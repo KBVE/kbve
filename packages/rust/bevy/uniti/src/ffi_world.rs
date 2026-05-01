@@ -157,6 +157,7 @@ pub struct WorldStore {
     state: Arc<Mutex<WorldState>>,
     db: Arc<Mutex<Option<Connection>>>,
     running: Arc<AtomicBool>,
+    ticker_paused: Arc<AtomicBool>,
     ticker: Option<JoinHandle<()>>,
     last_flush_micros: Arc<std::sync::atomic::AtomicU64>,
     total_flushes: Arc<std::sync::atomic::AtomicU64>,
@@ -186,6 +187,7 @@ impl WorldStore {
             let _ = c.pragma_update(None, "foreign_keys", "ON");
             let _ = c.pragma_update(None, "mmap_size", 268_435_456i64);
             let _ = c.pragma_update(None, "temp_store", "MEMORY");
+            let _ = c.busy_timeout(Duration::from_millis(500));
             if let Err(e) = init_schema(c) {
                 eprintln!("[uniti-world] SQLite schema init failed: {e}");
             }
@@ -213,9 +215,11 @@ impl WorldStore {
         // (BuildingsGhostSimSystem) to keep the live working set + the
         // FFI mirror from diverging; buildings here are write-through
         // crash-recovery state only.
+        let ticker_paused = Arc::new(AtomicBool::new(false));
         let state_for_thread = Arc::clone(&state);
         let db_for_thread = Arc::clone(&db);
         let running_for_thread = Arc::clone(&running);
+        let ticker_paused_for_thread = Arc::clone(&ticker_paused);
         let last_flush_for_thread = Arc::clone(&last_flush_micros);
         let total_flushes_for_thread = Arc::clone(&total_flushes);
         let ticker = thread::Builder::new()
@@ -227,6 +231,11 @@ impl WorldStore {
 
                 while running_for_thread.load(Ordering::Relaxed) {
                     thread::sleep(Duration::from_millis(100));
+                    if ticker_paused_for_thread.load(Ordering::Relaxed) {
+                        last_tick = std::time::Instant::now();
+                        last_flush = std::time::Instant::now();
+                        continue;
+                    }
                     let now = std::time::Instant::now();
                     let dt = now.duration_since(last_tick).as_secs_f32();
                     if dt < 1.0 {
@@ -291,6 +300,7 @@ impl WorldStore {
             state,
             db,
             running,
+            ticker_paused,
             ticker: Some(ticker),
             last_flush_micros,
             total_flushes,
@@ -846,6 +856,7 @@ fn flush_dirty(
     }
 
     let _ = tx.commit();
+    let _ = conn.pragma_update(None, "wal_checkpoint", "PASSIVE");
     if let Ok(mut s) = state.lock() {
         s.dirty_chunks.clear();
         s.dirty_hexes.clear();
@@ -854,6 +865,9 @@ fn flush_dirty(
     let elapsed = started.elapsed().as_micros() as u64;
     last_flush_micros.store(elapsed, std::sync::atomic::Ordering::Relaxed);
     total_flushes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    if elapsed > 100_000 {
+        eprintln!("[uniti-world] slow flush: {} us", elapsed);
+    }
 }
 
 impl Drop for WorldStore {
@@ -2569,4 +2583,450 @@ pub unsafe extern "C" fn uniti_world_save_unit_aggregate_batch(
         let _ = refresh_chunk_counts(conn, cx, cy);
     }
     written
+}
+
+use std::panic::{AssertUnwindSafe, catch_unwind};
+
+fn ffi_guard<F, R>(label: &'static str, default: R, f: F) -> R
+where
+    F: FnOnce() -> R,
+{
+    match catch_unwind(AssertUnwindSafe(f)) {
+        Ok(v) => v,
+        Err(_) => {
+            set_error(format!("{label}: panicked (caught and recovered)"));
+            default
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_pause_ticker(world: *const c_void) -> u8 {
+    ffi_guard("pause_ticker", 0, || {
+        if world.is_null() {
+            set_error("pause_ticker: null world");
+            return 0;
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        w.ticker_paused
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        1
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_resume_ticker(world: *const c_void) -> u8 {
+    ffi_guard("resume_ticker", 0, || {
+        if world.is_null() {
+            set_error("resume_ticker: null world");
+            return 0;
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        w.ticker_paused
+            .store(false, std::sync::atomic::Ordering::Relaxed);
+        1
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_is_ticker_paused(world: *const c_void) -> u8 {
+    if world.is_null() {
+        return 0;
+    }
+    let w = unsafe { &*(world as *const WorldStore) };
+    if w.ticker_paused.load(std::sync::atomic::Ordering::Relaxed) {
+        1
+    } else {
+        0
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_compact(world: *mut c_void) -> u8 {
+    ffi_guard("compact", 0, || {
+        if world.is_null() {
+            set_error("compact: null world");
+            return 0;
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => {
+                set_error("compact: db mutex poisoned");
+                return 0;
+            }
+        };
+        let Some(conn) = db.as_ref() else {
+            set_error("compact: db not open");
+            return 0;
+        };
+        let started = std::time::Instant::now();
+        match conn.execute_batch("VACUUM;") {
+            Ok(_) => {
+                let elapsed_ms = started.elapsed().as_millis();
+                if elapsed_ms > 500 {
+                    eprintln!("[uniti-world] slow VACUUM: {elapsed_ms} ms");
+                }
+                1
+            }
+            Err(e) => {
+                set_error(format!("compact: vacuum: {e}"));
+                0
+            }
+        }
+    })
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiDiskStats {
+    pub page_size_bytes: u32,
+    pub page_count: u64,
+    pub freelist_count: u64,
+    pub wal_pages: u64,
+    pub disk_size_bytes: u64,
+    pub valid: u8,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_disk_stats(world: *const c_void) -> FfiDiskStats {
+    ffi_guard("disk_stats", FfiDiskStats::default(), || {
+        if world.is_null() {
+            return FfiDiskStats::default();
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => return FfiDiskStats::default(),
+        };
+        let Some(conn) = db.as_ref() else {
+            return FfiDiskStats::default();
+        };
+        let mut s = FfiDiskStats::default();
+        if let Ok(v) = conn.query_row("PRAGMA page_size", [], |r| r.get::<_, i64>(0)) {
+            s.page_size_bytes = v as u32;
+        }
+        if let Ok(v) = conn.query_row("PRAGMA page_count", [], |r| r.get::<_, i64>(0)) {
+            s.page_count = v as u64;
+        }
+        if let Ok(v) = conn.query_row("PRAGMA freelist_count", [], |r| r.get::<_, i64>(0)) {
+            s.freelist_count = v as u64;
+        }
+        if let Ok(v) = conn.query_row("PRAGMA wal_checkpoint(PASSIVE)", [], |r| r.get::<_, i64>(1))
+        {
+            s.wal_pages = v as u64;
+        }
+        s.disk_size_bytes = s.page_count * s.page_size_bytes as u64;
+        s.valid = 1;
+        s
+    })
+}
+
+pub struct ChunkIter {
+    rows: Vec<FfiChunkSummary>,
+    pos: usize,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunks_iter_open(world: *const c_void) -> *mut c_void {
+    ffi_guard("chunks_iter_open", std::ptr::null_mut(), || {
+        if world.is_null() {
+            set_error("chunks_iter_open: null world");
+            return std::ptr::null_mut();
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => {
+                set_error("chunks_iter_open: db mutex poisoned");
+                return std::ptr::null_mut();
+            }
+        };
+        let Some(conn) = db.as_ref() else {
+            set_error("chunks_iter_open: db not open");
+            return std::ptr::null_mut();
+        };
+        let mut stmt = match conn.prepare(
+            "SELECT cx, cy, last_seen_ms, last_tick_ms, flags, threat_level,
+                    unit_count, building_count, aggregate_count
+             FROM chunks ORDER BY cx, cy",
+        ) {
+            Ok(s) => s,
+            Err(e) => {
+                set_error(format!("chunks_iter_open: prepare: {e}"));
+                return std::ptr::null_mut();
+            }
+        };
+        let rows: Vec<FfiChunkSummary> = stmt
+            .query_map([], |r| {
+                Ok(FfiChunkSummary {
+                    cx: r.get::<_, i64>(0)? as i32,
+                    cy: r.get::<_, i64>(1)? as i32,
+                    last_seen_ms: r.get::<_, i64>(2)? as u64,
+                    last_tick_ms: r.get::<_, i64>(3)? as u64,
+                    flags: r.get::<_, i64>(4)? as u32,
+                    threat_level: r.get::<_, i64>(5)? as u32,
+                    unit_count: r.get::<_, i64>(6)? as u32,
+                    building_count: r.get::<_, i64>(7)? as u32,
+                    aggregate_count: r.get::<_, i64>(8)? as u32,
+                    valid: 1,
+                })
+            })
+            .map(|r| r.flatten().collect())
+            .unwrap_or_default();
+        let iter = Box::new(ChunkIter { rows, pos: 0 });
+        Box::into_raw(iter) as *mut c_void
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunks_iter_next(
+    iter: *mut c_void,
+    out: *mut FfiChunkSummary,
+) -> u8 {
+    if iter.is_null() || out.is_null() {
+        return 0;
+    }
+    let it = unsafe { &mut *(iter as *mut ChunkIter) };
+    if it.pos >= it.rows.len() {
+        return 0;
+    }
+    unsafe { *out = it.rows[it.pos] };
+    it.pos += 1;
+    1
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunks_iter_remaining(iter: *const c_void) -> u32 {
+    if iter.is_null() {
+        return 0;
+    }
+    let it = unsafe { &*(iter as *const ChunkIter) };
+    (it.rows.len().saturating_sub(it.pos)) as u32
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_chunks_iter_close(iter: *mut c_void) {
+    if iter.is_null() {
+        return;
+    }
+    unsafe {
+        drop(Box::from_raw(iter as *mut ChunkIter));
+    }
+}
+
+pub const FFI_ABI_VERSION: u64 = 0x0001_0000_0000_0001;
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_abi_version() -> u64 {
+    FFI_ABI_VERSION
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_integrity_check(world: *const c_void) -> u8 {
+    ffi_guard("integrity_check", 0, || {
+        if world.is_null() {
+            set_error("integrity_check: null world");
+            return 0;
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => {
+                set_error("integrity_check: db mutex poisoned");
+                return 0;
+            }
+        };
+        let Some(conn) = db.as_ref() else {
+            set_error("integrity_check: db not open");
+            return 0;
+        };
+        match conn.query_row("PRAGMA integrity_check", [], |r| r.get::<_, String>(0)) {
+            Ok(s) if s == "ok" => 1,
+            Ok(s) => {
+                set_error(format!("integrity_check: {s}"));
+                0
+            }
+            Err(e) => {
+                set_error(format!("integrity_check: {e}"));
+                0
+            }
+        }
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_open_readonly(
+    path_ptr: *const c_char,
+    path_len: u32,
+) -> *mut c_void {
+    ffi_guard("open_readonly", std::ptr::null_mut(), || {
+        if path_ptr.is_null() || path_len == 0 {
+            set_error("open_readonly: empty path");
+            return std::ptr::null_mut();
+        }
+        let bytes = unsafe { std::slice::from_raw_parts(path_ptr as *const u8, path_len as usize) };
+        let path_str = match std::str::from_utf8(bytes) {
+            Ok(s) => s,
+            Err(_) => {
+                set_error("open_readonly: utf8 path required");
+                return std::ptr::null_mut();
+            }
+        };
+        let path = PathBuf::from(path_str);
+        let conn = match Connection::open_with_flags(
+            &path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        ) {
+            Ok(c) => c,
+            Err(e) => {
+                set_error(format!("open_readonly: {e}"));
+                return std::ptr::null_mut();
+            }
+        };
+        let _ = conn.busy_timeout(Duration::from_millis(500));
+        let _ = conn.pragma_update(None, "mmap_size", 268_435_456i64);
+        let store = WorldStore::build(Some(conn));
+        Box::into_raw(Box::new(store)) as *mut c_void
+    })
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct FfiSchemaCounts {
+    pub hexes: u64,
+    pub units: u64,
+    pub buildings: u64,
+    pub chunks: u64,
+    pub unit_aggregates: u64,
+    pub schema_version: u32,
+    pub valid: u8,
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_schema_counts(world: *const c_void) -> FfiSchemaCounts {
+    ffi_guard("schema_counts", FfiSchemaCounts::default(), || {
+        if world.is_null() {
+            return FfiSchemaCounts::default();
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => return FfiSchemaCounts::default(),
+        };
+        let Some(conn) = db.as_ref() else {
+            return FfiSchemaCounts::default();
+        };
+        let mut s = FfiSchemaCounts::default();
+        for (col, table) in [
+            (&mut s.hexes, "hexes"),
+            (&mut s.units, "units"),
+            (&mut s.buildings, "buildings"),
+            (&mut s.chunks, "chunks"),
+            (&mut s.unit_aggregates, "unit_aggregates"),
+        ] {
+            if let Ok(n) = conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |r| {
+                r.get::<_, i64>(0)
+            }) {
+                *col = n as u64;
+            }
+        }
+        if let Ok(v) = conn.query_row(
+            "SELECT value FROM meta WHERE key = 'schema_version'",
+            [],
+            |r| r.get::<_, String>(0),
+        ) {
+            s.schema_version = v.parse().unwrap_or(0);
+        }
+        s.valid = 1;
+        s
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_export_chunk_json(
+    world: *const c_void,
+    cx: i32,
+    cy: i32,
+    out_buf: *mut u8,
+    cap: u32,
+) -> u32 {
+    ffi_guard("export_chunk_json", 0, || {
+        if world.is_null() || out_buf.is_null() || cap == 0 {
+            return 0;
+        }
+        let w = unsafe { &*(world as *const WorldStore) };
+        let db = match w.db.lock() {
+            Ok(g) => g,
+            Err(_) => return 0,
+        };
+        let Some(conn) = db.as_ref() else {
+            return 0;
+        };
+        let summary = read_chunk_summary(conn, cx, cy);
+        let unit_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM units WHERE cx = ?1 AND cy = ?2",
+                [cx as i64, cy as i64],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+        let building_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM buildings WHERE cx = ?1 AND cy = ?2",
+                [cx as i64, cy as i64],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+        let aggregates: Vec<(i64, i64, f64, f64)> = conn
+            .prepare(
+                "SELECT unit_type, count, avg_health, hunger_pool
+                 FROM unit_aggregates WHERE cx = ?1 AND cy = ?2",
+            )
+            .and_then(|mut st| {
+                let rows = st
+                    .query_map([cx as i64, cy as i64], |r| {
+                        Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+                    })?
+                    .flatten()
+                    .collect::<Vec<_>>();
+                Ok(rows)
+            })
+            .unwrap_or_default();
+        let aggs_json = aggregates
+            .iter()
+            .map(|(t, n, h, hu)| {
+                format!(
+                    "{{\"unit_type\":{t},\"count\":{n},\"avg_health\":{h},\"hunger_pool\":{hu}}}"
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        let json = format!(
+            "{{\"cx\":{cx},\"cy\":{cy},\"valid\":{v},\"last_seen_ms\":{ls},\"last_tick_ms\":{lt},\"flags\":{f},\"threat_level\":{th},\"unit_count\":{uc},\"building_count\":{bc},\"unit_aggregates\":[{aggs_json}]}}",
+            v = summary.valid,
+            ls = summary.last_seen_ms,
+            lt = summary.last_tick_ms,
+            f = summary.flags,
+            th = summary.threat_level,
+            uc = unit_count,
+            bc = building_count,
+        );
+        let bytes = json.as_bytes();
+        let n = bytes.len().min(cap as usize);
+        let dst = unsafe { std::slice::from_raw_parts_mut(out_buf, n) };
+        dst.copy_from_slice(&bytes[..n]);
+        n as u32
+    })
+}
+
+pub type LogCallback = extern "C" fn(level: u8, msg: *const c_char);
+
+static LOG_CALLBACK: std::sync::Mutex<Option<LogCallback>> = std::sync::Mutex::new(None);
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_world_set_log_callback(cb: Option<LogCallback>) {
+    if let Ok(mut guard) = LOG_CALLBACK.lock() {
+        *guard = cb;
+    }
 }

@@ -20,8 +20,9 @@ namespace RareIcon
         const ushort CampMaxHp                  = 300;
         const int   MaxCamps                    = 3;
         const float CampGrowthIntervalSeconds   = 100f;
-        const int   DefenderCount               = 8;
+        const int   DefenderCount               = 4;
         const int   DefenderJitter              = 2;
+        const int   LaborerCount                = 4;
 
         float _spawnCheckTimer;
         uint  _rng = 0xCA11_CAFEu;
@@ -96,6 +97,13 @@ namespace RareIcon
             em.SetComponentData(camp, new BuildingVisual { Value = BuildingType.BanditCamp });
             em.AddComponentData(camp, new BuildingHealth { Value = CampMaxHp, Max = CampMaxHp });
             em.AddComponent<BanditCampTag>(camp);
+            em.AddComponent<HostileTerritoryRoot>(camp);
+            em.AddComponentData(camp, new TerritoryEmitter
+            {
+                Center       = campHex,
+                Radius       = 2,
+                OwnerFaction = FactionType.Hostile,
+            });
 
             uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
             em.AddComponentData(camp, new BanditCampState
@@ -104,7 +112,20 @@ namespace RareIcon
                 RaidCadenceTicks  = 45000u,
                 RaidPartySize     = 6,
             });
+            em.AddComponentData(camp, new BanditCampGrowth
+            {
+                NextEvolveTick     = nowTick + 180000u,
+                EvolveCadenceTicks = 180000u,
+                Tier               = 0,
+            });
             em.AddComponentData(camp, new Faction { Value = FactionType.Hostile });
+            em.AddComponentData(camp, new BanditCampStockpile { Loot = 0 });
+            em.AddBuffer<BanditResourceHex>(camp);
+            em.AddComponentData(camp, new BanditResourceScanState
+            {
+                NextScanTick     = nowTick,
+                ScanCadenceTicks = 30000u,
+            });
 
             for (int i = 0; i < DefenderCount; i++)
             {
@@ -117,6 +138,25 @@ namespace RareIcon
                 var defender = UnitSpawnSystem.SpawnBanditAt(em, defHex, _rng | 1u);
                 if (defender != Entity.Null)
                     em.AddComponentData(defender, new GarrisonPost { Hex = defHex });
+            }
+
+            for (int i = 0; i < LaborerCount; i++)
+            {
+                _rng = XorShift(_rng);
+                int dx = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                _rng = XorShift(_rng);
+                int dy = (int)(_rng % (uint)(DefenderJitter * 2 + 1)) - DefenderJitter;
+                int2 labHex = new int2(campHex.x + dx, campHex.y + dy);
+                _rng = XorShift(_rng);
+                var laborer = UnitSpawnSystem.SpawnBanditAt(em, labHex, _rng | 1u);
+                if (laborer == Entity.Null) continue;
+                em.AddComponentData(laborer, new BanditHome { Camp = camp, CampHex = campHex });
+                em.AddComponentData(laborer, new BanditChore
+                {
+                    Phase       = 0,
+                    TargetHex   = campHex,
+                    NextActTick = nowTick + (uint)(i * 800),
+                });
             }
 
             _lastKnownCampCount = active + 1;

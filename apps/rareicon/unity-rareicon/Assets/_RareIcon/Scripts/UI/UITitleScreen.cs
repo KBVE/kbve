@@ -90,16 +90,25 @@ namespace RareIcon
                 window.schedule.Execute(() => window.RemoveFromClassList("title-window--enter"))
                               .StartingIn(32);
 
-                window.RegisterCallback<GeometryChangedEvent>(evt =>
+                int lastW = -1;
+                System.Action sync = () =>
                 {
-                    float w = evt.newRect.width;
-                    bool narrow = w > 0f && w < 640f;
-                    bool wide   = w >= 1280f;
+                    int w = Screen.width;
+                    if (w == lastW) return;
+                    lastW = w;
+                    bool tiny   = w > 0 && w < 480;
+                    bool narrow = w > 0 && w < 640;
+                    bool wide   = w >= 1280;
+                    if (tiny)   window.AddToClassList("title-window--tiny");
+                    else        window.RemoveFromClassList("title-window--tiny");
                     if (narrow) window.AddToClassList("title-window--narrow");
                     else        window.RemoveFromClassList("title-window--narrow");
                     if (wide)   window.AddToClassList("title-window--wide");
                     else        window.RemoveFromClassList("title-window--wide");
-                });
+                };
+                window.RegisterCallback<GeometryChangedEvent>(_ => sync());
+                window.schedule.Execute(sync).Every(250);
+                sync();
             }
 
             _wrapper         = _root.Q<VisualElement>("title-wrapper");

@@ -518,10 +518,19 @@ jobs:
 
     steam:
         name: Steam (stub)
-        if: fromJson(inputs.external_publish).steam_app_id != ''
+        # New shape: external_publish.steam_apps is an array of
+        # { app_id, label, depot_id, branch } entries. Stub runs once per
+        # entry so future steamcmd implementation already iterates the
+        # right matrix.
+        if: fromJson(inputs.external_publish).steam_apps != null
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                app: ${{ fromJson(inputs.external_publish).steam_apps }}
         steps:
-            - run: echo "::notice::Steam publish not yet implemented for ${{ inputs.app_name }}"
+            - run: |
+                  echo "::notice::Steam publish stub — app=${{ matrix.app.app_id }} label=${{ matrix.app.label }} branch=${{ matrix.app.branch }} (not yet implemented for ${{ inputs.app_name }})"
 
     apple:
         name: Apple App Store (stub)

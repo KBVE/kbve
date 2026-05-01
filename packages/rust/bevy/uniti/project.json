@@ -103,6 +103,13 @@
 				"cwd": "packages/rust/bevy/uniti"
 			}
 		},
+		"bench": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo bench -p uniti"],
+				"cwd": "packages/rust/bevy/uniti"
+			}
+		},
 		"build:desktop": {
 			"executor": "nx:run-commands",
 			"options": {

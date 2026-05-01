@@ -42,10 +42,13 @@ Shader "RareIcon/HexTile"
         _DragonfruitFlesh ("Dragonfruit Bulb Color", Color) = (0.90, 0.18, 0.40, 1)
 
         // Territory — per-instance float written by TerritoryBakeSystem.
-        //  0 = outside empire, 1 = interior (subtle tint), 2 = edge (gold line).
-        _Territory        ("Territory (per-instance)", Float)   = 0
-        _TerritoryEdge    ("Territory Edge Color",     Color)   = (1.00, 0.82, 0.25, 1)
-        _TerritoryTint    ("Territory Interior Tint",  Color)   = (0.98, 0.78, 0.40, 1)
+        //  0 = outside, 1 = player interior, 2 = player edge,
+        //  4 = hostile interior, 5 = hostile edge (faction bucket = floor(value/3)).
+        _Territory             ("Territory (per-instance)",  Float) = 0
+        _TerritoryEdge         ("Territory Edge Color",      Color) = (1.00, 0.82, 0.25, 1)
+        _TerritoryTint         ("Territory Interior Tint",   Color) = (0.98, 0.78, 0.40, 1)
+        _HostileTerritoryEdge  ("Hostile Edge Color",        Color) = (0.85, 0.20, 0.20, 1)
+        _HostileTerritoryTint  ("Hostile Interior Tint",     Color) = (0.65, 0.18, 0.18, 1)
     }
 
     SubShader
@@ -119,6 +122,8 @@ Shader "RareIcon/HexTile"
                 float  _Territory;
                 float4 _TerritoryEdge;
                 float4 _TerritoryTint;
+                float4 _HostileTerritoryEdge;
+                float4 _HostileTerritoryTint;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON

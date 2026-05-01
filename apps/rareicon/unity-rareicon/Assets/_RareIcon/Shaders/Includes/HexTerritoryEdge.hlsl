@@ -1,39 +1,45 @@
 #ifndef RAREICON_HEX_TERRITORY_EDGE_INCLUDED
 #define RAREICON_HEX_TERRITORY_EDGE_INCLUDED
 
-// Gold empire border drawn along the outer rim of any tile flagged
-// as "edge" by TerritoryBakeSystem. Interior tiles get a warm-tinted
-// wash so the claimed area reads at a glance even without the border.
+// Faction-aware territory wash. TerritoryBakeSystem encodes the owning
+// faction in the integer bucket of the per-tile float so the shader can
+// pick the right tint/edge palette without a second material property:
 //
-//   territory == 0 → no-op (outside any empire)
-//   territory == 1 → interior: soft tint multiplier
-//   territory == 2 → edge:     tint + stroke along the hex rim
+//   territory == 0     → no-op (outside any empire)
+//   territory == 1     → player interior — gold tint
+//   territory == 2     → player edge     — gold stroke
+//   territory == 4     → hostile interior — red tint
+//   territory == 5     → hostile edge     — red stroke
 //
-// Uniforms: _Territory (per-instance), _TerritoryEdge, _TerritoryTint
+// Uniforms: _Territory (per-instance), _TerritoryEdge / _TerritoryTint
+// (player), _HostileTerritoryEdge / _HostileTerritoryTint (hostile).
 // `d` is the hex SDF in local-space (negative inside, zero at the edge).
 float3 ApplyTerritory(float3 ground, float d, float territory)
 {
     // territory == 0 → not owned, no-op. Branchless early-out.
     if (territory < 0.5) return ground;
 
-    // Interior wash — blend toward the tint colour directly instead of
-    // modulating the ground (a multiply by a near-white colour is
-    // effectively invisible). 25% lerp reads as "claimed" at a glance
-    // without overpowering the biome base underneath.
-    ground = lerp(ground, _TerritoryTint.rgb, 0.25);
+    bool   hostile = territory > 2.5;
+    float3 tint    = hostile ? _HostileTerritoryTint.rgb : _TerritoryTint.rgb;
+    float4 edgeRGBA = hostile ? _HostileTerritoryEdge   : _TerritoryEdge;
 
-    // Edge classify — any tile with at least one neighbour outside the
-    // empire (set to 2 by TerritoryBakeSystem) gets the gold stroke.
-    if (territory < 1.5) return ground;
+    // Interior wash — 25% lerp reads as "claimed" at a glance without
+    // overpowering the biome base underneath.
+    ground = lerp(ground, tint, 0.25);
+
+    // Edge classify — player edge sits at 2, hostile edge at 5; everything
+    // else is interior so we early-out before the stroke pass.
+    bool isEdge = (!hostile && territory > 1.5) || (hostile && territory > 4.5);
+    if (!isEdge) return ground;
 
     // Stroke band — sits INSIDE the main border line (which lives at
-    // -d ∈ [0.018, 0.06]). We paint between 0.060 and 0.020 so the gold
+    // -d ∈ [0.018, 0.06]). Paint between 0.090 and 0.030 so the colour
     // extends slightly past the dark border inward + is wide enough to
     // read at camera height. Caller draws the main border AFTER this
-    // include, so the dark line settles over the outer rim and the gold
-    // sits just inside it — reads as a framed claim, not a fight.
+    // include, so the dark line settles over the outer rim and the
+    // territory stroke sits just inside it.
     float t = smoothstep(0.090, 0.030, -d);
-    return lerp(ground, _TerritoryEdge.rgb, t * _TerritoryEdge.a);
+    return lerp(ground, edgeRGBA.rgb, t * edgeRGBA.a);
 }
 
 #endif // RAREICON_HEX_TERRITORY_EDGE_INCLUDED

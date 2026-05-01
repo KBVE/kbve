@@ -93,12 +93,15 @@ namespace RareIcon
                         Radius       = 3,
                         OwnerFaction = building.OwnerFaction,
                     });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Wall:
                     Ecb.AddComponent<WallTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.GoblinCave:
                     Ecb.AddComponent<GoblinCaveTag>(chunkIdx, entity);
@@ -176,6 +179,7 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingTier    { Value = 0 });
                     break;
                 case BuildingType.Lumbercamp:
                     Ecb.AddComponent<LumbercampTag>(chunkIdx, entity);
@@ -189,7 +193,8 @@ namespace RareIcon
                         CycleEndsAt   = 0f,
                     });
                     var lumberExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Log, Floor = 0 });
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Log,    Floor = 8 });
+                    lumberExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Timber, Floor = 0 });
                     break;
                 case BuildingType.MiningPit:
                     Ecb.AddComponent<MiningPitTag>(chunkIdx, entity);
@@ -203,7 +208,8 @@ namespace RareIcon
                         CycleEndsAt   = 0f,
                     });
                     var pitExports = Ecb.AddBuffer<SurplusExport>(chunkIdx, entity);
-                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone, Floor = 0 });
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.Stone,      Floor = 8 });
+                    pitExports.Add(new SurplusExport { ItemId = (ushort)ItemId.StoneBlock, Floor = 0 });
                     break;
             }
 

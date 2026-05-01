@@ -21,6 +21,7 @@ namespace RareIcon
     {
         public NativeList<ThreatRecord>     Threats;
         public NativeList<TerritoryEmitter> FriendlyEmitters;
+        public NativeList<TerritoryEmitter> HostileEmitters;
         public JobHandle                    PipelineHandle;
 
         public NativeParallelHashSet<Entity> PreviousFrameThreats;

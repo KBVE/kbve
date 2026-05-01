@@ -124,8 +124,13 @@ namespace RareIcon
                 {
                     var hex = req.CenterHex + footprint[i];
                     if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) continue;
-                    if (!em.HasComponent<TerritoryVisual>(tile)
-                        || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
+                    if (!em.HasComponent<TerritoryVisual>(tile))
+                    {
+                        reason = "outside empire territory";
+                        return false;
+                    }
+                    float tv = em.GetComponentData<TerritoryVisual>(tile).Value;
+                    if (tv <= 0f || tv >= 3f)
                     {
                         reason = "outside empire territory";
                         return false;
@@ -243,20 +248,20 @@ namespace RareIcon
                 ecb.AddComponent(building, new ProvidesSleep { Capacity = 255 });
 
                 var treasury = ecb.AddBuffer<CapitalLedger>(building);
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 2500 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Timber,       Count = 5 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.StoneBlock,   Count = 3 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Log,      Count = 400 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 300 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 250 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 1200 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Mushroom,     Count = 800 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 500 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 500 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 400 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.FreshMilk,         Count = 300 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Meal,         Count = 60 });
-                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Coin,   Count = 120 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Arrow,        Count = 3500 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Timber,       Count = 8 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.StoneBlock,   Count = 5 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Log,          Count = 600 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Stone,        Count = 450 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CactiNeedle,  Count = 350 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Berry,        Count = 1800 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Mushroom,     Count = 1200 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedBeef,   Count = 750 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.CookedChicken,Count = 750 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Egg,          Count = 600 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.FreshMilk,    Count = 450 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Meal,         Count = 120 });
+                treasury.Add(new CapitalLedger { Uid = UlidFactory.NewUid(), ItemId = (ushort)ItemId.Coin,         Count = 200 });
             }
             else
             {

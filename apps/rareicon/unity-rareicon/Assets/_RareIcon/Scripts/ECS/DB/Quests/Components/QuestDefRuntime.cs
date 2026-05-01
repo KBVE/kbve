@@ -17,6 +17,9 @@ namespace RareIcon
         public ushort RewardItemId;
         public ushort RewardItemCount;
         public ushort NextQuestId;
+        public uint   GiverNpcRefHash;
+        public byte   InnTierMin;
+        public byte   Category;
         public QuestObjectiveRuntime Obj0;
         public QuestObjectiveRuntime Obj1;
         public QuestObjectiveRuntime Obj2;

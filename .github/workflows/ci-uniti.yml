@@ -1,0 +1,249 @@
+name: CI - Uniti
+
+on:
+    pull_request:
+        paths:
+            - 'packages/rust/bevy/uniti/**'
+            - 'packages/rust/bevy/bevy_pathfinding/**'
+            - 'packages/rust/bevy/bevy_inventory/**'
+            - 'packages/rust/bevy/bevy_battle/**'
+            - 'packages/rust/bevy/bevy_skills/**'
+            - '.github/workflows/ci-uniti.yml'
+    push:
+        branches:
+            - main
+        paths:
+            - 'packages/rust/bevy/uniti/**'
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    verify:
+        name: Verify (fmt + clippy + tests)
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Rust stable
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: rustfmt, clippy
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: cargo fmt
+              run: cargo fmt -p uniti -- --check
+
+            - name: cargo clippy
+              run: cargo clippy -p uniti --all-targets -- -D warnings
+
+            - name: cargo test
+              run: cargo test -p uniti --no-fail-fast
+
+    asan:
+        name: Address Sanitizer
+        needs: [verify]
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        steps:
+            - uses: actions/checkout@v6
+            - name: Setup Rust nightly (asan)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  components: rust-src
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: asan
+                  cache-on-failure: true
+            - name: cargo test (asan)
+              env:
+                  RUSTFLAGS: '-Z sanitizer=address'
+                  RUSTDOCFLAGS: '-Z sanitizer=address'
+              run: |
+                  cargo +nightly test -p uniti \
+                      -Z build-std \
+                      --target x86_64-unknown-linux-gnu \
+                      --no-fail-fast
+
+    miri:
+        name: Miri (UB detector)
+        needs: [verify]
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        steps:
+            - uses: actions/checkout@v6
+            - name: Setup Rust nightly + miri
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  components: miri
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: miri
+                  cache-on-failure: true
+            - name: cargo miri test
+              env:
+                  MIRIFLAGS: '-Zmiri-disable-isolation'
+              continue-on-error: true
+              run: |
+                  cargo +nightly miri setup
+                  cargo +nightly miri test -p uniti --test ffi_chunk_summary
+
+    fuzz:
+        name: Fuzz (round-trip, smoke run)
+        needs: [verify]
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - uses: actions/checkout@v6
+            - name: Setup Rust nightly (fuzz)
+              uses: dtolnay/rust-toolchain@nightly
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: 'packages/rust/bevy/uniti/fuzz'
+                  key: fuzz
+                  cache-on-failure: true
+            - name: Install cargo-fuzz
+              run: cargo install cargo-fuzz --locked
+            - name: Smoke fuzz (60s)
+              continue-on-error: true
+              working-directory: packages/rust/bevy/uniti
+              run: |
+                  cargo +nightly fuzz run chunk_touch_roundtrip -- -max_total_time=60
+
+    build_linux:
+        name: Build Linux x86_64 (cdylib)
+        needs: [verify]
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup Rust stable
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: x86_64-unknown-linux-gnu
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: linux-x86_64
+                  cache-on-failure: true
+
+            - name: Install cross
+              run: cargo install cross --locked
+
+            - name: cross build (release)
+              run: cross build -p uniti --release --target x86_64-unknown-linux-gnu
+
+            - name: Upload Linux libuniti.so
+              uses: actions/upload-artifact@v4
+              with:
+                  name: uniti-linux-x86_64
+                  path: dist/target/x86_64-unknown-linux-gnu/release/libuniti.so
+                  if-no-files-found: error
+
+    build_android:
+        name: Build Android (4 ABIs)
+        needs: [verify]
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup Rust stable
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: android
+                  cache-on-failure: true
+
+            - name: Setup NDK
+              uses: nttld/setup-ndk@v1
+              id: ndk
+              with:
+                  ndk-version: r28
+                  add-to-path: true
+
+            - name: Install cargo-ndk
+              run: cargo install cargo-ndk --locked
+
+            - name: cargo ndk build
+              env:
+                  ANDROID_NDK_ROOT: ${{ steps.ndk.outputs.ndk-path }}
+                  ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+              run: |
+                  cd packages/rust/bevy/uniti
+                  cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
+                      -o ./android-out build -p uniti --release
+
+            - name: Upload Android per-ABI .so
+              uses: actions/upload-artifact@v4
+              with:
+                  name: uniti-android
+                  path: packages/rust/bevy/uniti/android-out
+                  if-no-files-found: error
+
+    build_ios:
+        name: Build iOS XCFramework (device + sim)
+        needs: [verify]
+        runs-on: macos-latest
+        timeout-minutes: 45
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup Rust stable
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: aarch64-apple-ios,aarch64-apple-ios-sim
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: ios
+                  cache-on-failure: true
+
+            - name: cargo build (device + sim)
+              run: |
+                  cd packages/rust/bevy/uniti
+                  cargo build -p uniti --release --target aarch64-apple-ios
+                  cargo build -p uniti --release --target aarch64-apple-ios-sim
+
+            - name: Build XCFramework
+              run: |
+                  rm -rf ios-out/uniti.xcframework
+                  mkdir -p ios-out
+                  xcodebuild -create-xcframework \
+                      -library dist/target/aarch64-apple-ios/release/libuniti.a \
+                      -library dist/target/aarch64-apple-ios-sim/release/libuniti.a \
+                      -output ios-out/uniti.xcframework
+
+            - name: Upload iOS XCFramework
+              uses: actions/upload-artifact@v4
+              with:
+                  name: uniti-ios
+                  path: ios-out/uniti.xcframework
+                  if-no-files-found: error

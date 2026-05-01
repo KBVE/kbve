@@ -65,6 +65,7 @@ namespace RareIcon
                 Dt              = SystemAPI.Time.DeltaTime,
                 Hash            = spatial.Hash,
                 BuildingTargets = buildingTargets,
+                MoraleLookup    = SystemAPI.GetComponentLookup<MoraleBuff>(true),
                 Ecb             = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
@@ -112,6 +113,7 @@ namespace RareIcon
 
         [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
         [ReadOnly] public NativeArray<MeleeBuildingTarget>              BuildingTargets;
+        [ReadOnly] public ComponentLookup<MoraleBuff>                   MoraleLookup;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
@@ -180,11 +182,18 @@ namespace RareIcon
             Entity bestTarget = PickByMode(mode, bestUnit, bestUnitSq, bestBuilding, bestBldgSq);
             if (bestTarget == Entity.Null) return;
 
+            float damage = attack.Damage;
+            if (MoraleLookup.HasComponent(entity))
+            {
+                sbyte bonus = MoraleLookup[entity].CombatBonusPct;
+                if (bonus != 0) damage *= 1f + bonus / 100f;
+            }
+
             var evt = Ecb.CreateEntity(chunkIdx);
             Ecb.AddComponent(chunkIdx, evt, new DamageEvent
             {
                 Target        = bestTarget,
-                Amount        = attack.Damage,
+                Amount        = damage,
                 Mod           = ArrowMod.None,
                 SourceFaction = strikerFaction,
             });

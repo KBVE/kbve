@@ -21,6 +21,9 @@ namespace RareIcon.Native
 
 
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void uniti_world_set_log_callback_cb_delegate(byte level, byte* msg);
+
 
 
         /// <summary>
@@ -861,6 +864,51 @@ namespace RareIcon.Native
         [DllImport(__DllName, EntryPoint = "uniti_world_save_unit_aggregate_batch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern uint uniti_world_save_unit_aggregate_batch(void* world, FfiUnitAggregate* items, uint count);
 
+        [DllImport(__DllName, EntryPoint = "uniti_world_pause_ticker", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_pause_ticker(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_resume_ticker", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_resume_ticker(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_is_ticker_paused", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_is_ticker_paused(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_compact", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_compact(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_disk_stats", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiDiskStats uniti_world_disk_stats(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_open", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_world_chunks_iter_open(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_next", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_chunks_iter_next(void* iter, FfiChunkSummary* @out);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_remaining", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_chunks_iter_remaining(void* iter);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_chunks_iter_close", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_chunks_iter_close(void* iter);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_abi_version", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern ulong uniti_world_abi_version();
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_integrity_check", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte uniti_world_integrity_check(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_open_readonly", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void* uniti_world_open_readonly(byte* path_ptr, uint path_len);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_schema_counts", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern FfiSchemaCounts uniti_world_schema_counts(void* world);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_export_chunk_json", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint uniti_world_export_chunk_json(void* world, int cx, int cy, byte* out_buf, uint cap);
+
+        [DllImport(__DllName, EntryPoint = "uniti_world_set_log_callback", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_world_set_log_callback(uniti_world_set_log_callback_cb_delegate cb);
+
 
     }
 
@@ -1099,6 +1147,29 @@ namespace RareIcon.Native
         public ulong last_seen_ms;
         public uint flags;
         public uint threat_level;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiDiskStats
+    {
+        public uint page_size_bytes;
+        public ulong page_count;
+        public ulong freelist_count;
+        public ulong wal_pages;
+        public ulong disk_size_bytes;
+        public byte valid;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct FfiSchemaCounts
+    {
+        public ulong hexes;
+        public ulong units;
+        public ulong buildings;
+        public ulong chunks;
+        public ulong unit_aggregates;
+        public uint schema_version;
+        public byte valid;
     }
 
 

@@ -194,6 +194,39 @@ namespace RareIcon
                 if (tier == 1) return BuildingType.Tavern;
                 if (tier == 2) return BuildingType.Lodge;
             }
+            else if (type == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return BuildingType.Sawmill;
+            }
+            else if (type == BuildingType.MiningPit)
+            {
+                if (tier == 1) return BuildingType.Quarry;
+            }
+            else if (type == BuildingType.Dock)
+            {
+                if (tier == 1) return BuildingType.Shipyard;
+                if (tier == 2) return BuildingType.Harbour;
+            }
+            else if (type == BuildingType.Furnace)
+            {
+                if (tier == 1) return BuildingType.Forge;
+                if (tier == 2) return BuildingType.Foundry;
+            }
+            else if (type == BuildingType.Outpost)
+            {
+                if (tier == 1) return BuildingType.Watchpost;
+                if (tier == 2) return BuildingType.Garrison;
+            }
+            else if (type == BuildingType.Tower)
+            {
+                if (tier == 1) return BuildingType.Bastion;
+                if (tier == 2) return BuildingType.Citadel;
+            }
+            else if (type == BuildingType.Wall)
+            {
+                if (tier == 1) return BuildingType.ReinforcedWall;
+                if (tier == 2) return BuildingType.FortifiedWall;
+            }
             return 0;
         }
     }

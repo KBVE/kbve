@@ -1,0 +1,21 @@
+// macOS depot for RareIcon Demo (AppID 3791950).
+//
+// macOS Unity builds output a `<AppName>.app/` bundle. The wildcard
+// captures the bundle plus any sibling artifacts at the StandaloneOSX
+// root.
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791953"
+
+	"FileMapping"
+	{
+		"LocalPath"  "StandaloneOSX/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	"FileExclusion" "*_BurstDebugInformation_DoNotShip*"
+	"FileExclusion" "*_BackUpThisFolder_ButDontShipItWithYourGame*"
+	"FileExclusion" "*.dSYM*"
+}

@@ -35,6 +35,35 @@ namespace RareIcon
         public const byte Landmark       = 20;  // Naturally-spawned world object — neutral-owned, has HP, gameplay TBD.
         public const byte Tavern         = 21;  // Inn tier 1 — heal-on-rest + coin trickle.
         public const byte Lodge          = 22;  // Inn tier 2 — bigger sleep cap, faster heal, higher coin yield.
+        public const byte GoblinVillage  = 23;  // Naturally-spawned settlement — random Hostile or Player faction roll at spawn time. Hostile variants drip out small raid parties; Player variants are passive ally settlements.
+        public const byte Sawmill        = 24;  // Lumbercamp tier 1 — keeps producing Log AND adds a Log → Timber recipe so the build-cost loop closes mid-game.
+        public const byte Quarry         = 25;  // Mining Pit tier 1 — keeps producing Stone AND adds a Stone → StoneBlock recipe so masonry costs flow without round-tripping the Capital seed.
+        public const byte Shipyard       = 26;  // Dock tier 1 — keeps spawning FishingBoats AND unlocks Galley combat-boat production from Timber + StoneBlock.
+        public const byte Harbour        = 27;  // Dock tier 2 — adds a passive Coin trickle and ups the FishingBoat / Galley cap.
+        public const byte PirateCove     = 28;  // Hostile-owned coastal structure — drips out PirateShip raids on cadence (sister to BanditCamp on water).
+        public const byte Forge          = 29;  // Furnace tier 1 — keeps smelting AND adds steel/bronze alloy recipes + faster cadence.
+        public const byte Foundry        = 30;  // Furnace tier 2 — high-tier metallurgy; unlocks mithril / obsidian-tipped crafting.
+        public const byte Watchpost      = 31;  // Outpost tier 1 — wider territory radius + scout reveal aura.
+        public const byte Garrison       = 32;  // Outpost tier 2 — full territory ring + faction-pressure modifier + arrow-volley boost.
+        public const byte Bastion        = 33;  // Tower tier 1 — bigger HP + tighter cadence on the territory emitter.
+        public const byte Citadel        = 34;  // Tower tier 2 — area-denial aura + ranged garrison slot.
+        public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
+        public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
+        public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.
+        public const byte HostileCity    = 38;  // CityState mood-band visual: Hostile (Mood < 33).
+        public const byte AlliedCity     = 39;  // CityState mood-band visual: Allied (Mood ≥ 67).
+        public const byte VassalCity     = 40;  // CityState diplomacy state: paying tribute to the player Capital.
+    }
+
+    /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>
+    public struct GoblinVillageTag : IComponentData { }
+
+    /// <summary>Per-village state used by <see cref="GoblinVillageRaidSystem"/> for the Hostile variant — fires raid parties on cadence (smaller than BanditCamp). Inert on Player-faction villages.</summary>
+    public struct GoblinVillageState : IComponentData
+    {
+        public uint   NextRaidTick;
+        public uint   RaidCadenceTicks;
+        public byte   RaidPartySize;
     }
 
     /// <summary>
@@ -62,6 +91,9 @@ namespace RareIcon
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
 
+    /// <summary>Hostile-side counterpart of <see cref="CapitalTag"/>: marks a building as a connectivity root for the hostile faction so <see cref="EmpireConnectivitySystem"/> seeds BFS from it. Without a root, hostile <see cref="TerritoryEmitter"/>s never receive <see cref="EmpireConnected"/> and the bake skips them, so their territory ring never renders. BanditCamp, GoblinCave, PirateCove, hostile GoblinVillage all carry this tag.</summary>
+    public struct HostileTerritoryRoot : IComponentData { }
+
     /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
     public struct BanditCampTag : IComponentData { }
 
@@ -71,6 +103,34 @@ namespace RareIcon
         public uint NextRaidTick;
         public uint RaidCadenceTicks;
         public byte RaidPartySize;
+    }
+
+    /// <summary>Per-camp evolution state. <c>BanditCampEvolutionSystem</c> ticks while the camp sits at full HP; once <see cref="NextEvolveTick"/> elapses, advances <see cref="Tier"/> (0 = camp, 1 = stronghold, 2 = fortress) and bumps the matching <see cref="BanditCampState"/> + <see cref="BuildingHealth"/> + <see cref="TerritoryEmitter"/> stats. Damaging the camp pushes the timer back — the player can deny growth by harassing the structure.</summary>
+    public struct BanditCampGrowth : IComponentData
+    {
+        public uint NextEvolveTick;
+        public uint EvolveCadenceTicks;
+        public byte Tier;
+    }
+
+    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves.</summary>
+    public struct BanditCampStockpile : IComponentData
+    {
+        public ushort Loot;
+    }
+
+    /// <summary>Cache of nearby resource-bearing hex coords keyed off the camp; <c>BanditCampResourceScanSystem</c> refreshes the buffer on a cadence so each laborer can pick a target with one buffer lookup instead of an O(R²) hex scan per tick. Buffer capacity caps the working set; depleted hexes get pruned on next refresh.</summary>
+    [InternalBufferCapacity(64)]
+    public struct BanditResourceHex : IBufferElementData
+    {
+        public int2 Hex;
+    }
+
+    /// <summary>Per-camp scan cadence — when <see cref="NextScanTick"/> elapses, <c>BanditCampResourceScanSystem</c> refills the camp's <see cref="BanditResourceHex"/> buffer from the surrounding hex grid and re-arms.</summary>
+    public struct BanditResourceScanState : IComponentData
+    {
+        public uint NextScanTick;
+        public uint ScanCadenceTicks;
     }
 
     /// <summary>Singleton — holds the shared building prefab Entity BuildingSpawnSystem created at startup. Any system that needs to instantiate a building (BanditCampSpawnerSystem, future Hostile builders) reads Prefab from this singleton instead of duplicating the mesh/material setup.</summary>
@@ -292,6 +352,41 @@ namespace RareIcon
     {
         public int2 Hex;
         public uint Seed;
+    }
+
+    /// <summary>Transient request emitted by <c>ShipyardGalleyProductionSystem</c> when a Galley craft cycle clears cost. <c>GalleySpawnApplierSystem</c> drains on the main thread + calls <see cref="UnitSpawnSystem"/>.SpawnGalleyAt.</summary>
+    public struct SpawnGalleyRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+        public byte Faction;
+    }
+
+    /// <summary>Transient request emitted by <c>PirateCoveRaidSystem</c> on raid cadence. <c>PirateShipSpawnApplierSystem</c> drains + calls <see cref="UnitSpawnSystem"/>.SpawnPirateShipAt.</summary>
+    public struct SpawnPirateShipRequest : IComponentData
+    {
+        public int2 Hex;
+        public uint Seed;
+    }
+
+    /// <summary>Marker tag for Hostile-owned PirateCove buildings — coastal raid source spawning <see cref="PirateShipTag"/> ships on cadence. Sister to <see cref="BanditCampTag"/>.</summary>
+    public struct PirateCoveTag : IComponentData { }
+
+    /// <summary>Per-cove raid state. <c>PirateCoveRaidSystem</c> emits a <see cref="SpawnPirateShipRequest"/> every <see cref="RaidCadenceTicks"/>; raids consist of <see cref="RaidPartySize"/> ships per cycle. Inert until first cadence elapses.</summary>
+    public struct PirateCoveState : IComponentData
+    {
+        public uint NextRaidTick;
+        public uint RaidCadenceTicks;
+        public byte RaidPartySize;
+    }
+
+    /// <summary>Per-Shipyard Galley-craft cadence (only fires when <see cref="BuildingTier"/> ≥ 1). Once per <see cref="CadenceTurns"/>, consumes <see cref="TimberCost"/> + <see cref="StoneCost"/> from Capital and emits a <see cref="SpawnGalleyRequest"/> on a hex adjacent to the dock.</summary>
+    public struct ShipyardGalleyProduction : IComponentData
+    {
+        public uint   LastProducedTurn;
+        public byte   CadenceTurns;
+        public ushort TimberCost;
+        public ushort StoneCost;
     }
 
     /// <summary>Per-outpost cooldown-gated arrow volley. Every CooldownSeconds the outpost fires ArrowsPerVolley projectiles in a cone of half-angle SpreadHalfAngleRad around the closest CombatDB threat within Range. Burns ArrowCost from the sibling OutpostArrowPool per firing.</summary>

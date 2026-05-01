@@ -51,10 +51,11 @@
        iPhone portrait stays usable. */
     width: 92%;
     max-width: 1080px;
-    min-width: 320px;
-    max-height: 96%;
+    min-width: 300px;
+    max-height: 94%;
+    min-height: 0;
 
-    padding: 10px 18px 8px 18px;
+    padding: 5px 10px 4px 10px;
     background-color: var(--color-bg-panel);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -72,26 +73,26 @@
    eats clicks meant for content. */
 .title-window-inner {
     position: absolute;
-    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
     border-color: var(--color-accent);
     border-width: 1px;
-    opacity: 0.45;
+    opacity: 0.35;
 }
 
 /* Close (×) button, top-right of the window. */
 .title-close {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 32px;
-    height: 32px;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
     padding: 0;
     margin: 0;
     background-color: rgba(0, 0, 0, 0);
     border-color: var(--color-accent);
     border-width: 1px;
     color: var(--color-accent);
-    font-size: 18px;
+    font-size: 13px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     transition-property: background-color, color, scale;
@@ -109,16 +110,16 @@
     flex-shrink: 0;
 }
 .title-social-btn {
-    width: 20px;
-    height: 20px;
-    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+    margin-left: 3px;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
     border-color: var(--color-accent);
     border-width: 1px;
     -unity-text-align: middle-center;
     color: var(--color-accent);
-    font-size: 10px;
+    font-size: 8px;
     -unity-font-style: bold;
     transition-property: background-color, scale;
     transition-duration: 0.14s;
@@ -185,26 +186,26 @@
    margin-bottom = ~30px. */
 .title-header {
     flex-direction: row;
-    align-items: baseline;
+    align-items: flex-end;
     flex-wrap: wrap;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     flex-shrink: 0;
 }
 .title-brand {
-    font-size: 18px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     margin: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
 }
 .title-tagline {
-    font-size: 8px;
+    font-size: 7px;
     color: var(--color-accent);
-    letter-spacing: 2px;
+    letter-spacing: 1.2px;
     -unity-font-style: bold;
-    margin-left: 10px;
+    margin-left: 6px;
     margin-bottom: 0;
     -unity-text-align: middle-left;
     white-space: nowrap;
@@ -215,16 +216,16 @@
 
 /* Stage headings */
 .title-stage__title {
-    font-size: 14px;
+    font-size: 11px;
     color: var(--color-text-strong);
     -unity-font-style: bold;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     letter-spacing: 1px;
 }
 .title-stage__hint {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--color-text-muted);
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     white-space: normal;
 }
 
@@ -238,35 +239,50 @@
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
-    margin-top: 2px;
+    margin-top: 0;
     overflow: hidden;
 }
 
-/* Menu rail */
+/* Menu rail (ScrollView). Width / border lives on the host; the
+   internal content container is forced to fill width and stack
+   buttons vertically so percent-width buttons span the rail. */
 .title-menu {
-    flex-direction: column;
-    width: 30%;
-    min-width: 170px;
-    max-width: 260px;
-    margin-right: 16px;
+    width: 28%;
+    min-width: 130px;
+    max-width: 200px;
+    margin-right: 10px;
     padding-right: 2px;
     border-right-color: var(--color-accent);
     border-right-width: 1px;
+    flex-shrink: 1;
+    min-height: 0;
+}
+.title-menu > .unity-scroll-view__content-viewport,
+.title-menu > .unity-scroll-view__content-and-vertical-scroll-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+.title-menu .unity-scroll-view__content-container {
+    flex-direction: column;
+    width: 100%;
+    flex-grow: 1;
 }
 .title-menu-btn {
     width: 100%;
-    margin: 2px 0;
-    padding: 8px 12px;
+    margin: 0;
+    padding: 3px 8px;
     background-color: rgba(0, 0, 0, 0);
     border-color: rgba(0, 0, 0, 0);
     border-left-color: rgba(0, 0, 0, 0);
-    border-left-width: 3px;
+    border-left-width: 2px;
     border-width: 0;
     color: var(--color-text-strong);
-    font-size: 13px;
+    font-size: 11px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
     transition-property: background-color, color, translate, border-left-color;
     transition-duration: 0.14s;
 }
@@ -290,33 +306,79 @@
 }
 .title-menu-btn--exit {
     color: var(--color-accent-deep);
-    margin-top: 8px;
+    margin-top: 4px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
-    padding-top: 10px;
+    padding-top: 5px;
 }
 
-/* Right pane — single visible stage at a time. */
+/* Right pane — single visible stage at a time (ScrollView host). */
 .title-content {
-    flex-direction: column;
     flex-grow: 1;
     flex-shrink: 1;
     min-width: 0;
+    min-height: 0;
+}
+.title-content > .unity-scroll-view__content-viewport,
+.title-content > .unity-scroll-view__content-and-vertical-scroll-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    min-width: 0;
+}
+.title-content .unity-scroll-view__content-container {
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+}
+
+/* Slim, theme-tinted scrollbar for both ScrollViews. UI Toolkit ships
+   chunky default sliders; trim them to a thin gold accent so they
+   stop dominating compact viewports. */
+.title-menu .unity-scroller--vertical,
+.title-content .unity-scroll-view__vertical-scroller,
+.title-menu .unity-scroll-view__vertical-scroller {
+    width: 6px;
+    background-color: rgba(0, 0, 0, 0);
+}
+.title-menu .unity-scroller--vertical .unity-base-slider,
+.title-content .unity-scroller--vertical .unity-base-slider {
+    width: 6px;
+    margin: 0;
+}
+.title-menu .unity-scroller--vertical #unity-tracker,
+.title-content .unity-scroller--vertical #unity-tracker {
+    background-color: rgba(252, 211, 77, 0.08);
+    border-width: 0;
+}
+.title-menu .unity-scroller--vertical #unity-dragger,
+.title-content .unity-scroller--vertical #unity-dragger {
+    background-color: rgba(252, 211, 77, 0.45);
+    border-width: 0;
+    min-height: 18px;
+}
+.title-menu .unity-scroller--vertical #unity-dragger:hover,
+.title-content .unity-scroller--vertical #unity-dragger:hover {
+    background-color: rgba(252, 211, 77, 0.7);
+}
+.title-menu .unity-scroller--vertical .unity-base-slider__navigation-button,
+.title-content .unity-scroller--vertical .unity-base-slider__navigation-button {
+    display: none;
 }
 
 /* Info / news card grid (default Info stage). */
 .title-info-grid {
     flex-direction: row;
     flex-wrap: wrap;
-    margin: 8px -6px 0 -6px;
+    margin: 4px -3px 0 -3px;
 }
 .title-info-card {
     flex-direction: column;
     flex-grow: 1;
     flex-basis: 30%;
-    min-width: 120px;
-    margin: 4px;
-    padding: 8px 10px;
+    min-width: 90px;
+    margin: 3px;
+    padding: 4px 6px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -329,21 +391,21 @@
     translate: 0 -2px;
 }
 .title-info-card__label {
-    font-size: 9px;
-    letter-spacing: 2px;
+    font-size: 7px;
+    letter-spacing: 1.5px;
     color: var(--color-accent-deep);
     -unity-font-style: bold;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 .title-info-card__value {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--color-text-strong);
     -unity-font-style: bold;
     margin-bottom: 1px;
     white-space: normal;
 }
 .title-info-card__sub {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--color-text-muted);
     white-space: normal;
 }
@@ -355,8 +417,8 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-top: 6px;
-    padding-top: 4px;
+    margin-top: 3px;
+    padding-top: 2px;
     border-top-color: rgba(252, 211, 77, 0.25);
     border-top-width: 1px;
     flex-shrink: 0;
@@ -364,7 +426,7 @@
 .title-persona {
     flex-direction: row;
     align-items: center;
-    padding: 1px 6px;
+    padding: 1px 4px;
     background-color: rgba(0, 0, 0, 0.4);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -375,9 +437,9 @@
     opacity: 0.85;
 }
 .title-avatar {
-    width: 18px;
-    height: 18px;
-    margin-right: 6px;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
     background-color: rgba(255, 255, 255, 0.05);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -390,14 +452,14 @@
     min-width: 0;
 }
 .title-persona__name {
-    font-size: 9px;
+    font-size: 8px;
     -unity-font-style: bold;
     color: var(--color-text-strong);
     white-space: nowrap;
     -unity-text-align: middle-left;
 }
 .title-persona__status {
-    font-size: 8px;
+    font-size: 7px;
     color: var(--color-text-muted);
     margin-top: 0;
     letter-spacing: 1px;
@@ -412,16 +474,16 @@
 .title-locale-row {
     flex-direction: row;
     flex-wrap: nowrap;
-    margin: 0 -6px 28px -6px;
+    margin: 0 -4px 12px -4px;
 }
 .title-locale-btn {
     flex-grow: 1;
     flex-basis: 40%;
     flex-shrink: 1;
-    margin: 0 6px;
-    padding: 14px 0;
+    margin: 0 4px;
+    padding: 8px 0;
     -unity-text-align: middle-center;
-    font-size: 14px;
+    font-size: 11px;
     -unity-font-style: bold;
     transition-property: background-color, color, scale;
     transition-duration: 0.16s;
@@ -438,15 +500,15 @@
 .title-seed-row {
     flex-direction: row;
     flex-wrap: nowrap;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     align-items: stretch;
 }
 .title-seed-input {
     flex-grow: 1;
     flex-shrink: 1;
-    margin-right: 8px;
+    margin-right: 6px;
     min-width: 0;       /* allow flex shrink past content */
-    min-height: 40px;
+    min-height: 26px;
 }
 /* IntegerField hierarchy:
      IntegerField (.unity-integer-field .title-seed-input)
@@ -465,24 +527,25 @@
     background-color: rgba(0, 0, 0, 0.45);
     border-color: var(--color-accent);
     border-width: 1px;
-    padding: 8px 12px;
-    min-height: 40px;
+    padding: 5px 8px;
+    min-height: 26px;
     -unity-text-align: middle-left;
     color: var(--color-text-strong);
-    font-size: 16px;
+    font-size: 12px;
 }
 .title-seed-input .unity-text-element {
     color: var(--color-text-strong);
-    font-size: 16px;
+    font-size: 12px;
 }
 .title-seed-btn {
     flex-grow: 0;
     flex-shrink: 0;
-    width: 120px;
-    min-height: 40px;
-    padding: 0 16px;
+    width: 90px;
+    min-height: 26px;
+    padding: 0 10px;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
+    font-size: 11px;
 }
 
 /* Narrow viewport — stack input above the Random button so the field
@@ -502,15 +565,15 @@
 .title-action-row {
     flex-direction: row;
     flex-wrap: wrap;
-    margin: 12px -6px 0 -6px;
+    margin: 6px -4px 0 -4px;
 }
 .title-action-btn {
     flex-grow: 1;
     flex-basis: 40%;
-    margin: 6px;
-    padding: 14px 0;
+    margin: 4px;
+    padding: 8px 0;
     -unity-text-align: middle-center;
-    font-size: 14px;
+    font-size: 11px;
     -unity-font-style: bold;
     transition-property: background-color, color, scale;
     transition-duration: 0.16s;
@@ -536,8 +599,8 @@
 
 /* Generation progress */
 .title-progress-track {
-    height: 14px;
-    margin: 10px 0 22px 0;
+    height: 10px;
+    margin: 6px 0 12px 0;
     background-color: rgba(0, 0, 0, 0.45);
     border-color: var(--color-accent);
     border-width: 1px;
@@ -551,31 +614,32 @@
     transition-timing-function: ease-out;
 }
 
-.title-start { margin-top: 10px; }
+.title-start { margin-top: 6px; }
 
 /* ---- Breakpoints ----
    UI Toolkit lacks media queries; UITitleScreen toggles `.title-window--narrow`
    (<640px viewport) and `.title-window--wide` (>1280px) on geometry-changed
    events so the same USS handles phone / laptop / 4K. */
 
-/* Narrow (phones / portrait tablets) — single column, larger touch targets. */
+/* Narrow (phones / portrait tablets) — single column, touch-friendly
+   but tight on vertical space. */
 .title-window--narrow {
-    padding: 10px 12px;
+    padding: 6px 8px;
 }
 .title-window--narrow .title-header {
-    margin-bottom: 6px;
+    margin-bottom: 2px;
     flex-direction: column;
     align-items: flex-start;
 }
 .title-window--narrow .title-brand {
-    font-size: 18px;
-    letter-spacing: 2px;
+    font-size: 13px;
+    letter-spacing: 1.5px;
 }
 .title-window--narrow .title-tagline {
-    letter-spacing: 2px;
-    font-size: 8px;
+    letter-spacing: 1.5px;
+    font-size: 7px;
     margin-left: 0;
-    margin-top: 2px;
+    margin-top: 1px;
     margin-bottom: 0;
 }
 .title-window--narrow .title-body {
@@ -585,34 +649,37 @@
     width: 100%;
     max-width: none;
     margin-right: 0;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
     padding-right: 0;
-    padding-bottom: 12px;
+    padding-bottom: 4px;
     border-right-width: 0;
     border-bottom-color: var(--color-accent);
     border-bottom-width: 1px;
 }
 .title-window--narrow .title-menu-btn {
-    padding: 16px 14px;
-    font-size: 16px;
-    min-height: 48px;
+    padding: 5px 10px;
+    font-size: 11px;
+    min-height: 26px;
+    margin: 0;
 }
 .title-window--narrow .title-menu-btn:hover {
     translate: 0 0;
 }
-.title-window--narrow .title-stage__title { font-size: 14px; }
+.title-window--narrow .title-stage__title { font-size: 11px; }
 .title-window--narrow .title-locale-row,
 .title-window--narrow .title-action-row {
     flex-direction: column;
 }
 .title-window--narrow .title-locale-row {
-    margin: 0 0 20px 0;
+    margin: 0 0 8px 0;
 }
 .title-window--narrow .title-locale-btn,
 .title-window--narrow .title-action-btn {
     flex-basis: 100%;
-    margin: 4px 0;
-    min-height: 48px;
+    margin: 2px 0;
+    min-height: 28px;
+    padding: 6px 0;
+    font-size: 11px;
 }
 .title-window--narrow .title-info-card {
     flex-basis: 100%;
@@ -620,12 +687,12 @@
 .title-window--narrow .title-footer {
     flex-direction: column;
     align-items: stretch;
-    margin-top: 16px;
-    padding-top: 12px;
+    margin-top: 6px;
+    padding-top: 4px;
 }
 .title-window--narrow .title-persona {
     max-width: none;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 .title-window--narrow .title-socials {
     justify-content: flex-end;
@@ -635,62 +702,131 @@
 }
 .title-window--narrow .title-seed-input {
     margin-right: 0;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 .title-window--narrow .title-seed-btn {
     width: auto;
-    min-height: 48px;
+    min-height: 28px;
 }
 
-/* Wide (1080p+ / 4K) — bigger panel padding, larger type for readable
-   distance from a couch / desk monitor. Two-column layout stays. */
+
+/* Wide (1080p+ / 4K) — modest bump for readable type from a couch /
+   desk monitor. Stays restrained so the panel feels lean even on big
+   displays. Two-column layout stays. */
 .title-window--wide {
-    padding: 18px 32px 14px 32px;
+    padding: 10px 18px 8px 18px;
 }
 .title-window--wide .title-brand {
-    font-size: 28px;
-    letter-spacing: 5px;
+    font-size: 18px;
+    letter-spacing: 3px;
 }
 .title-window--wide .title-tagline {
-    font-size: 11px;
-    letter-spacing: 3px;
-    margin-left: 16px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-left: 12px;
     margin-bottom: 0;
 }
 .title-window--wide .title-header {
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 .title-window--wide .title-menu {
-    min-width: 240px;
-    max-width: 320px;
-    margin-right: 32px;
+    min-width: 180px;
+    max-width: 240px;
+    margin-right: 16px;
 }
 .title-window--wide .title-menu-btn {
-    padding: 18px 20px;
-    font-size: 18px;
-    letter-spacing: 1.5px;
+    padding: 6px 12px;
+    font-size: 13px;
+    letter-spacing: 1px;
 }
 .title-window--wide .title-stage__title {
-    font-size: 22px;
+    font-size: 14px;
 }
 .title-window--wide .title-stage__hint {
-    font-size: 13px;
+    font-size: 10px;
 }
 .title-window--wide .title-info-card__value {
-    font-size: 20px;
+    font-size: 13px;
 }
 .title-window--wide .title-info-card__sub {
-    font-size: 12px;
+    font-size: 9px;
+}
+.title-window--wide .title-info-card__label {
+    font-size: 8px;
 }
 .title-window--wide .title-footer {
-    margin-top: 28px;
-    padding-top: 22px;
+    margin-top: 8px;
+    padding-top: 5px;
 }
 .title-window--wide .title-avatar {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
 }
 .title-window--wide .title-social-btn {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
+}
+
+/* Tiny (Screen.width < 480px) — phone portrait or split-screen game
+   view. Strip the inner double-stroke (saves 8px per axis), wrap
+   header so tagline can drop below brand at very small widths, kill
+   non-essential margins. Inherits all narrow-mode rules on top. */
+.title-window--tiny {
+    width: 96%;
+    padding: 4px 6px;
+}
+.title-window--tiny .title-window-inner {
+    display: none;
+}
+.title-window--tiny .title-close {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    top: 3px;
+    right: 3px;
+}
+.title-window--tiny .title-brand {
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+.title-window--tiny .title-tagline {
+    font-size: 6px;
+    letter-spacing: 1px;
+}
+.title-window--tiny .title-menu-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+    min-height: 22px;
+}
+.title-window--tiny .title-stage__title {
+    font-size: 10px;
+    margin-bottom: 2px;
+}
+.title-window--tiny .title-stage__hint {
+    font-size: 8px;
+    margin-bottom: 4px;
+}
+.title-window--tiny .title-info-card {
+    padding: 3px 5px;
+}
+.title-window--tiny .title-info-card__value {
+    font-size: 10px;
+}
+.title-window--tiny .title-info-card__label,
+.title-window--tiny .title-info-card__sub {
+    font-size: 7px;
+}
+.title-window--tiny .title-avatar {
+    width: 12px;
+    height: 12px;
+}
+.title-window--tiny .title-persona__name {
+    font-size: 7px;
+}
+.title-window--tiny .title-persona__status {
+    font-size: 6px;
+}
+.title-window--tiny .title-social-btn {
+    width: 14px;
+    height: 14px;
 }

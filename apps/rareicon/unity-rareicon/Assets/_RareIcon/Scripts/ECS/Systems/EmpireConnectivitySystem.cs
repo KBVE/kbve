@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Event-driven BFS over same-faction TerritoryEmitters rooted at each Capital; writes EmpireConnected to reachable entities, removes it from orphans via ECB.</summary>
+    /// <summary>Event-driven BFS over same-faction TerritoryEmitters rooted at each Capital (Player) and each HostileTerritoryRoot (BanditCamp / GoblinCave / PirateCove / hostile GoblinVillage). Writes EmpireConnected to reachable entities, removes it from orphans via ECB; downstream TerritoryBakeSystem reads the flag to render player + hostile rings on the same shader pass.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(TerritoryBakeSystem))]
@@ -44,7 +44,8 @@ namespace RareIcon
                 entities.Add(entity);
                 centers .Add(e.Center);
                 factions.Add(e.OwnerFaction);
-                if (SystemAPI.HasComponent<CapitalTag>(entity))
+                if (SystemAPI.HasComponent<CapitalTag>(entity)
+                    || SystemAPI.HasComponent<HostileTerritoryRoot>(entity))
                     caps.Add(idx);
                 idx++;
             }

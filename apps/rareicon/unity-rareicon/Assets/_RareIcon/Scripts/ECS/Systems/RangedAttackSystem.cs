@@ -31,9 +31,10 @@ namespace RareIcon
 
             state.Dependency = new RangedAttackJob
             {
-                Hash = spatial.Hash,
-                Dt   = SystemAPI.Time.DeltaTime,
-                Ecb  = ecb,
+                Hash         = spatial.Hash,
+                Dt           = SystemAPI.Time.DeltaTime,
+                MoraleLookup = SystemAPI.GetComponentLookup<MoraleBuff>(true),
+                Ecb          = ecb,
             }.Schedule(state.Dependency);
         }
     }
@@ -42,6 +43,7 @@ namespace RareIcon
     public partial struct RangedAttackJob : IJobEntity
     {
         [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
+        [ReadOnly] public ComponentLookup<MoraleBuff>                   MoraleLookup;
         public float Dt;
 
         public EntityCommandBuffer Ecb;
@@ -72,6 +74,13 @@ namespace RareIcon
             float dist = math.length(toTarget);
             float2 dir = dist > 1e-5f ? toTarget / dist : new float2(1f, 0f);
 
+            float damage = attack.Damage;
+            if (MoraleLookup.HasComponent(entity))
+            {
+                sbyte bonus = MoraleLookup[entity].CombatBonusPct;
+                if (bonus != 0) damage *= 1f + bonus / 100f;
+            }
+
             var req = Ecb.CreateEntity();
             Ecb.AddComponent(req, new SpawnProjectileRequest
             {
@@ -82,7 +91,7 @@ namespace RareIcon
                 Position     = shooterPos,
                 Velocity     = dir * attack.ProjectileSpeed,
                 Lifetime     = attack.ProjectileLifetime,
-                Damage       = attack.Damage,
+                Damage       = damage,
             });
 
             attack.TimeSinceShot = 0f;

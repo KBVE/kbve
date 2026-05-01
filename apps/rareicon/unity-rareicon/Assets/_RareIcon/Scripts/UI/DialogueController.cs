@@ -12,7 +12,7 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Orchestrates an active dialogue tree: looks up <see cref="DialogueTree"/> on start, routes each node to VN or Bubble renderer by mode, manages pause for VN, publishes <see cref="DialogueEndedMessage"/> when exhausted. F10 fires a debug hello-world tree for now.</summary>
+    /// <summary>Orchestrates an active dialogue tree: looks up <see cref="DialogueTree"/> on start, routes each node to VN or Bubble renderer by mode, publishes <see cref="DialogueEndedMessage"/> when exhausted. F10 fires a debug hello-world tree for now. The VN panel intentionally does NOT pause the simulation — multiplayer-friendly so two players talking to NPCs don't freeze each other's sim.</summary>
     public class DialogueController : IAsyncStartable, IDisposable
     {
         readonly ISubscriber<DialogueStartMessage>     _startSub;
@@ -22,7 +22,6 @@ namespace RareIcon
         readonly IPublisher<DialogueEndedMessage>      _endedPub;
         readonly IPublisher<SpeechBubbleMessage>       _bubblePub;
         readonly IPublisher<DialogueStartMessage>      _startPub;
-        readonly PauseService  _pause;
         readonly DialogueVN    _vn;
         readonly UIPanelManager _panelManager;
 
@@ -43,7 +42,6 @@ namespace RareIcon
             IPublisher<DialogueEndedMessage>    endedPub,
             IPublisher<SpeechBubbleMessage>     bubblePub,
             IPublisher<DialogueStartMessage>    startPub,
-            PauseService   pause,
             DialogueVN     vn,
             UIPanelManager panelManager)
         {
@@ -54,7 +52,6 @@ namespace RareIcon
             _endedPub   = endedPub;
             _bubblePub  = bubblePub;
             _startPub   = startPub;
-            _pause      = pause;
             _vn         = vn;
             _panelManager = panelManager;
         }
@@ -148,7 +145,6 @@ namespace RareIcon
 
             if (node.Mode == DialogueMode.VN)
             {
-                EnsurePaused();
                 _vn.Show(node, _activeSpeaker);
             }
             else
@@ -165,12 +161,6 @@ namespace RareIcon
             }
         }
 
-        void EnsurePaused()
-        {
-            if (!_pause.IsPaused || _pause.TopReason != PauseReason.Dialogue)
-                _pause.Pause(PauseReason.Dialogue);
-        }
-
         void End()
         {
             if (!_isActive) return;
@@ -181,7 +171,6 @@ namespace RareIcon
             _activeSpeaker = Entity.Null;
 
             _vn.Hide();
-            _pause.Resume(PauseReason.Dialogue);
 
             if (treeId != 0) _endedPub.Publish(new DialogueEndedMessage(treeId, _lastChoiceIndex));
         }

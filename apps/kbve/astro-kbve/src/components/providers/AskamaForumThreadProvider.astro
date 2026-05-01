@@ -57,11 +57,37 @@
 
 					<div class="thread-card__chips">
 						<span class="thread-card__chip">
-							<span aria-hidden="true">⬆</span>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="m5 12 7-7 7 7"></path><path
+									d="M12 19V5">
+								</path>
+							</svg>
 							{`{{ score }}`} pts
 						</span>
 						<span class="thread-card__chip">
-							<span aria-hidden="true">💬</span>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"></path>
+							</svg>
 							{`{{ comment_count }}`} replies
 						</span>
 					</div>
@@ -155,17 +181,64 @@
 				<ul class="forum-card__actions">
 					<li>
 						<button data-action="bookmark" type="button" disabled>
-							🔖 Bookmark
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path
+									d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z">
+								</path>
+							</svg>
+							Bookmark
 						</button>
 					</li>
 					<li>
 						<button data-action="subscribe" type="button" disabled>
-							🔔 Subscribe
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="M10.268 21a2 2 0 0 0 3.464 0">
+								</path><path
+									d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326">
+								</path>
+							</svg>
+							Subscribe
 						</button>
 					</li>
 					<li>
 						<button data-action="report" type="button" disabled>
-							🚩 Report
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path
+									d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z">
+								</path><line x1="4" x2="4" y1="22" y2="15">
+								</line>
+							</svg>
+							Report
 						</button>
 					</li>
 				</ul>
@@ -803,7 +876,7 @@
 	}
 
 	.thread-card__body {
-		padding-top: 1rem;
+		padding-top: 1.25rem;
 		font-size: 1rem;
 		line-height: 1.7;
 		color: var(--forum-text);
@@ -814,11 +887,29 @@
 	.thread-card__body :global(p:last-child) {
 		margin-bottom: 0;
 	}
+	/* Cap rendered-markdown headings so a one-line `# Title` does not
+	   blow up to the splash template's huge default H1 and visually
+	   crowd the card padding. The forum-shell margin reset zeros
+	   margin-top, so we re-add explicit space above. */
 	.thread-card__body :global(h1),
 	.thread-card__body :global(h2),
 	.thread-card__body :global(h3) {
 		margin: 1.5em 0 0.5em;
-		line-height: 1.25;
+		line-height: 1.3;
+		font-weight: 600;
+		color: var(--forum-text);
+	}
+	.thread-card__body :global(h1) {
+		font-size: 1.625rem;
+	}
+	.thread-card__body :global(h2) {
+		font-size: 1.375rem;
+	}
+	.thread-card__body :global(h3) {
+		font-size: 1.125rem;
+	}
+	.thread-card__body :global(:first-child) {
+		margin-top: 0;
 	}
 	.thread-card__body :global(pre) {
 		overflow-x: auto;
@@ -1307,6 +1398,9 @@
 	}
 	.forum-card__actions button {
 		width: 100%;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
 		text-align: left;
 		padding: 0.5rem 0.7rem;
 		background: var(--forum-bg-soft);
@@ -1318,6 +1412,10 @@
 		transition:
 			border-color 0.12s ease,
 			background 0.12s ease;
+	}
+	.forum-card__actions button :global(svg) {
+		flex-shrink: 0;
+		color: var(--forum-muted);
 	}
 	.forum-card__actions button:hover:not(:disabled) {
 		border-color: var(--forum-accent);

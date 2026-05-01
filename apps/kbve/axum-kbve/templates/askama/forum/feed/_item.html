@@ -5,14 +5,14 @@
   </div>
   <div class="forum-feed__item-body-col">
     <a class="forum-feed__item-title" href="/forum/t/{{ thread_slug_or_id }}">
-      {%- if pinned %}<span class="forum-feed__pin" aria-label="Pinned">📌</span>{% endif -%}
+      {%- if pinned %}<span class="forum-feed__pin" aria-label="Pinned"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg></span>{% endif -%}
       <span>{{ title }}</span>
     </a>
     <p class="forum-feed__item-meta">
       <a class="forum-feed__chip forum-feed__chip--space" href="/forum/s/{{ space_slug }}">s/{{ space_slug }}</a>
       <span>by <a href="/@{{ author_username }}">@{{ author_username }}</a></span>
       <span>· {{ created_at_human }}</span>
-      <span class="forum-feed__chip">💬 {{ comment_count }}</span>
+      <span class="forum-feed__chip"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg> {{ comment_count }}</span>
     </p>
     <div class="forum-feed__item-body">{{ body_excerpt_html|safe }}</div>
   </div>

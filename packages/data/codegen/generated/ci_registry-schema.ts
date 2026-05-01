@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-04-30T06:38:13.163Z
+ * Generated: 2026-04-30T18:59:19.021Z
  */
 
 import { z } from 'zod';
@@ -42,6 +42,16 @@ export type TestFrameworkValue = (typeof TestFrameworks)[number];
 
 export const TestFrameworkSchema = z.enum(TestFrameworks);
 
+// SteamApp
+export const SteamAppSchema = z.object({
+	app_id: z.string().regex(/^\d+$/, 'Steam app id must be numeric').max(16),
+	label: z.string().min(1).max(64).optional(),
+	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
+	branch: z.string().min(1).max(64).optional(),
+});
+
+export type SteamApp = z.infer<typeof SteamAppSchema>;
+
 // ExternalPublish
 export const ExternalPublishSchema = z.object({
 	modrinth_mod_id: z.string().max(32).optional(),
@@ -54,13 +64,7 @@ export const ExternalPublishSchema = z.object({
 	itch_user: z.string().min(1).max(64).optional(),
 	itch_game: z.string().min(1).max(64).optional(),
 	itch_channel: z.string().min(1).max(64).optional(),
-	steam_app_id: z
-		.string()
-		.regex(/^\d+$/, 'Steam app id must be numeric')
-		.max(16)
-		.optional(),
-	steam_depot_id: z.string().regex(/^\d+$/).max(16).optional(),
-	steam_branch: z.string().min(1).max(64).optional(),
+	steam_apps: z.array(SteamAppSchema).max(10).optional(),
 	apple_bundle_id: z.string().min(1).max(128).optional(),
 	apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
 	apple_team_id: z.string().min(1).max(32).optional(),

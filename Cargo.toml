@@ -43,6 +43,10 @@ members = [
 	'packages/rust/bevy/uniti',
 ]
 
+exclude = [
+	'packages/rust/bevy/uniti/fuzz',
+]
+
 [profile.dev]
 opt-level = 1
 

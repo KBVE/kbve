@@ -149,7 +149,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.10",
+			"version": "0.1.11",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -318,7 +318,7 @@
 		{
 			"key": "bevy_behavior_crate",
 			"package_name": "bevy_behavior",
-			"version": "0.0.0",
+			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_behavior/version.toml",
 			"version_source": "packages/rust/bevy/bevy_behavior/Cargo.toml",
 			"version_target": "packages/rust/bevy/bevy_behavior/Cargo.toml"
@@ -606,8 +606,16 @@
 			"external_publish": {
 				"itch_user": "kbve",
 				"itch_game": "rareicon",
-				"steam_app_id": "2238370",
-				"steam_branch": "demo"
+				"steam_apps": [
+					{
+						"app_id": "3791950",
+						"label": "demo"
+					},
+					{
+						"app_id": "2238370",
+						"label": "main"
+					}
+				]
 			}
 		}
 	],

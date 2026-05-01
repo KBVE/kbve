@@ -99,7 +99,7 @@ namespace RareIcon
                 healthRegen:   0f,
                 energyRegen:   5.0f,
                 manaRegen:     0.5f,
-                hungerPerSec:  0.30f,
+                hungerPerSec:  0.285f,
                 fatiguePerSec: 0.20f,
                 strength:      8,
                 agility:       12,
@@ -120,7 +120,7 @@ namespace RareIcon
                 healthRegen:   0f,
                 energyRegen:   6.0f,
                 manaRegen:     0f,
-                hungerPerSec:  0.35f,
+                hungerPerSec:  0.3325f,
                 fatiguePerSec: 0.22f,
                 strength:      16,
                 agility:       8,
@@ -141,7 +141,7 @@ namespace RareIcon
                 healthRegen:   0f,
                 energyRegen:   7.0f,
                 manaRegen:     0f,
-                hungerPerSec:  0.30f,
+                hungerPerSec:  0.285f,
                 fatiguePerSec: 0.20f,
                 strength:      12,
                 agility:       12,
@@ -162,7 +162,7 @@ namespace RareIcon
                 healthRegen:   0f,
                 energyRegen:   4.5f,
                 manaRegen:     4.0f,
-                hungerPerSec:  0.25f,
+                hungerPerSec:  0.2375f,
                 fatiguePerSec: 0.28f,
                 strength:      6,
                 agility:       9,
@@ -183,7 +183,7 @@ namespace RareIcon
                 healthRegen:   0f,
                 energyRegen:   7.0f,
                 manaRegen:     2.0f,
-                hungerPerSec:  0.33f,
+                hungerPerSec:  0.3135f,
                 fatiguePerSec: 0.22f,
                 strength:      14,
                 agility:       11,
@@ -304,6 +304,30 @@ namespace RareIcon
                 healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
                 hungerPerSec:  0f,   fatiguePerSec: 0f,
                 strength:      18, agility: 2, intellect: 6, will: 14,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Galley,
+                nameKey:       "creature.galley",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     140f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.50f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      14, agility: 8, intellect: 6, will: 10,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.PirateShip,
+                nameKey:       "creature.pirate_ship",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     120f, maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.55f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      14, agility: 10, intellect: 5, will: 10,
                 defaultWeapon: WeaponType.None));
 
             // Future creatures land here — Skeleton, GoblinShaman, etc.

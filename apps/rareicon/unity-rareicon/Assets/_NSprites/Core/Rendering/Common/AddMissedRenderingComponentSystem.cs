@@ -5,7 +5,7 @@ namespace NSprites
 {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateBefore(typeof(SpriteRenderingUpdateSystem))]
-    [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor | WorldSystemFilterFlags.EntitySceneOptimizations)]
+    [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor)]
     public partial struct AddMissedRenderingComponentSystem : ISystem
     {
         private EntityQuery _query;

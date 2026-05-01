@@ -373,6 +373,7 @@ namespace RareIcon
             // drops 0-3 landmarks at random hexes inside the chunk. Same
             // chunk coord = same landmarks across saves / reloads.
             LandmarkChunkSpawner.RollForChunk(chunkCoord, biomes, startX, startY);
+            WaterResourceInjector.InjectForChunk(EntityManager, biomes, startX, startY);
 
             // Re-materialize any ghost units that were saved when this chunk
             // last unloaded. Has to come AFTER the hex loop so the units land

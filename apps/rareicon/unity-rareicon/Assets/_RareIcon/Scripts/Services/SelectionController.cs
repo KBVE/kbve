@@ -32,7 +32,7 @@ namespace RareIcon
 
         void OnDrag(SelectionDragMessage msg)
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
@@ -68,7 +68,7 @@ namespace RareIcon
         /// <summary>Drops every <see cref="SelectedTag"/>.</summary>
         public void Clear()
         {
-            var world = World.DefaultGameObjectInjectionWorld;
+            var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
             ClearSelection(world.EntityManager);
         }

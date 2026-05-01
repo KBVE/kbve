@@ -35,6 +35,11 @@ namespace RareIcon
             var foodLookup    = SystemAPI.GetComponentLookup<ProvidesFood>(true);
             var sleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true);
             var healLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
+            var boardLookup   = SystemAPI.GetComponentLookup<QuestBoardState>(true);
+            var moraleLookup  = SystemAPI.GetComponentLookup<ProvidesMorale>(true);
+            var drinkLookup   = SystemAPI.GetComponentLookup<ProvidesDrink>(true);
+            var musicLookup   = SystemAPI.GetComponentLookup<InnMusicTrack>(true);
+            var auraLookup    = SystemAPI.GetComponentLookup<InnAmbientAura>(true);
 
             for (int i = 0; i < entities.Length; i++)
             {
@@ -44,6 +49,10 @@ namespace RareIcon
                 ApplyFood(ecb, e, tier, foodLookup);
                 ApplySleep(ecb, e, tier, sleepLookup);
                 ApplyHealing(ecb, e, tier, healLookup);
+                ApplyQuestBoard(ecb, e, tier, boardLookup);
+                ApplyMorale(ecb, e, tier, moraleLookup);
+                ApplyDrink(ecb, e, tier, drinkLookup);
+                ApplyMusic(ecb, e, tier, musicLookup, auraLookup);
             }
             entities.Dispose();
         }
@@ -86,6 +95,83 @@ namespace RareIcon
                 ecb.SetComponent(e, new ProvidesHealing { Priority = priority });
             else
                 ecb.AddComponent(e,  new ProvidesHealing { Priority = priority });
+        }
+
+        static void ApplyQuestBoard(EntityCommandBuffer ecb, Entity e, byte tier,
+                                    ComponentLookup<QuestBoardState> lookup)
+        {
+            if (tier == 0)
+            {
+                if (lookup.HasComponent(e))
+                {
+                    ecb.RemoveComponent<QuestBoardState>(e);
+                    ecb.RemoveComponent<QuestBoardSlot>(e);
+                }
+                return;
+            }
+            byte capacity = tier == 1 ? (byte)3 : (byte)5;
+            if (lookup.HasComponent(e))
+            {
+                ecb.SetComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+            }
+            else
+            {
+                ecb.AddComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+                ecb.AddBuffer<QuestBoardSlot>(e);
+            }
+        }
+
+        static void ApplyMorale(EntityCommandBuffer ecb, Entity e, byte tier,
+                                ComponentLookup<ProvidesMorale> lookup)
+        {
+            if (tier == 0)
+            {
+                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesMorale>(e);
+                return;
+            }
+            byte mag = tier == 1 ? (byte)1 : (byte)2;
+            if (lookup.HasComponent(e))
+                ecb.SetComponent(e, new ProvidesMorale { Magnitude = mag });
+            else
+                ecb.AddComponent(e,  new ProvidesMorale { Magnitude = mag });
+        }
+
+        static void ApplyDrink(EntityCommandBuffer ecb, Entity e, byte tier,
+                               ComponentLookup<ProvidesDrink> lookup)
+        {
+            if (tier == 0)
+            {
+                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesDrink>(e);
+                return;
+            }
+            byte quality = tier == 1 ? (byte)1 : (byte)2;
+            if (lookup.HasComponent(e))
+                ecb.SetComponent(e, new ProvidesDrink { Quality = quality });
+            else
+                ecb.AddComponent(e,  new ProvidesDrink { Quality = quality });
+        }
+
+        static void ApplyMusic(EntityCommandBuffer ecb, Entity e, byte tier,
+                               ComponentLookup<InnMusicTrack>   trackLookup,
+                               ComponentLookup<InnAmbientAura>  auraLookup)
+        {
+            ushort trackId = (ushort)tier;
+            byte   radius  = tier switch { 0 => 0, 1 => 3, _ => 5 };
+
+            if (trackLookup.HasComponent(e))
+                ecb.SetComponent(e, new InnMusicTrack { TrackId = trackId });
+            else
+                ecb.AddComponent(e,  new InnMusicTrack { TrackId = trackId });
+
+            if (radius == 0)
+            {
+                if (auraLookup.HasComponent(e)) ecb.RemoveComponent<InnAmbientAura>(e);
+                return;
+            }
+            if (auraLookup.HasComponent(e))
+                ecb.SetComponent(e, new InnAmbientAura { Radius = radius });
+            else
+                ecb.AddComponent(e,  new InnAmbientAura { Radius = radius });
         }
     }
 }

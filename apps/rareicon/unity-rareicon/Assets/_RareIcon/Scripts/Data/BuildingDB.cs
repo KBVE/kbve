@@ -75,6 +75,15 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar,  50) };
         static readonly Ingredient[] UpgradeFarmToVillage         = { new((ushort)ItemId.Timber,   10),
                                                                       new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeLumbercampToSawmill   = { new((ushort)ItemId.Timber,    8),
+                                                                      new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeMiningPitToQuarry     = { new((ushort)ItemId.Timber,    6),
+                                                                      new((ushort)ItemId.StoneBlock, 6) };
+        static readonly Ingredient[] UpgradeDockToShipyard        = { new((ushort)ItemId.Timber,   10),
+                                                                      new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeShipyardToHarbour     = { new((ushort)ItemId.Timber,   16),
+                                                                      new((ushort)ItemId.StoneBlock, 12),
+                                                                      new((ushort)ItemId.GoldBar,    8) };
         static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 12) };
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
@@ -86,6 +95,24 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeTavernToLodge         = { new((ushort)ItemId.Timber,   12),
                                                                       new((ushort)ItemId.StoneBlock, 8),
                                                                       new((ushort)ItemId.GoldBar,   15) };
+        static readonly Ingredient[] UpgradeFurnaceToForge         = { new((ushort)ItemId.StoneBlock, 8),
+                                                                       new((ushort)ItemId.IronOre,  4) };
+        static readonly Ingredient[] UpgradeForgeToFoundry         = { new((ushort)ItemId.StoneBlock, 14),
+                                                                       new((ushort)ItemId.IronOre,  10),
+                                                                       new((ushort)ItemId.GoldBar,    12) };
+        static readonly Ingredient[] UpgradeOutpostToWatchpost     = { new((ushort)ItemId.Timber,    6),
+                                                                       new((ushort)ItemId.StoneBlock, 6) };
+        static readonly Ingredient[] UpgradeWatchpostToGarrison    = { new((ushort)ItemId.Timber,   10),
+                                                                       new((ushort)ItemId.StoneBlock, 14),
+                                                                       new((ushort)ItemId.GoldBar,    8) };
+        static readonly Ingredient[] UpgradeTowerToBastion         = { new((ushort)ItemId.StoneBlock, 10),
+                                                                       new((ushort)ItemId.IronOre,   4) };
+        static readonly Ingredient[] UpgradeBastionToCitadel       = { new((ushort)ItemId.StoneBlock, 18),
+                                                                       new((ushort)ItemId.IronOre,  10),
+                                                                       new((ushort)ItemId.GoldBar,    14) };
+        static readonly Ingredient[] UpgradeWallToReinforced       = { new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
+                                                                       new((ushort)ItemId.IronOre,   3) };
 
         /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
@@ -108,6 +135,39 @@ namespace RareIcon
             {
                 if (fromTier == 0) return UpgradeInnToTavern;
                 if (fromTier == 1) return UpgradeTavernToLodge;
+            }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (fromTier == 0) return UpgradeLumbercampToSawmill;
+            }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (fromTier == 0) return UpgradeMiningPitToQuarry;
+            }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (fromTier == 0) return UpgradeDockToShipyard;
+                if (fromTier == 1) return UpgradeShipyardToHarbour;
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (fromTier == 0) return UpgradeFurnaceToForge;
+                if (fromTier == 1) return UpgradeForgeToFoundry;
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (fromTier == 0) return UpgradeOutpostToWatchpost;
+                if (fromTier == 1) return UpgradeWatchpostToGarrison;
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (fromTier == 0) return UpgradeTowerToBastion;
+                if (fromTier == 1) return UpgradeBastionToCitadel;
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (fromTier == 0) return UpgradeWallToReinforced;
+                if (fromTier == 1) return UpgradeReinforcedToFortified;
             }
             return CostNone;
         }
@@ -133,6 +193,39 @@ namespace RareIcon
             {
                 if (tier == 1) return BuildingType.Tavern;
                 if (tier == 2) return BuildingType.Lodge;
+            }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return BuildingType.Sawmill;
+            }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (tier == 1) return BuildingType.Quarry;
+            }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (tier == 1) return BuildingType.Shipyard;
+                if (tier == 2) return BuildingType.Harbour;
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (tier == 1) return BuildingType.Forge;
+                if (tier == 2) return BuildingType.Foundry;
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (tier == 1) return BuildingType.Watchpost;
+                if (tier == 2) return BuildingType.Garrison;
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (tier == 1) return BuildingType.Bastion;
+                if (tier == 2) return BuildingType.Citadel;
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (tier == 1) return BuildingType.ReinforcedWall;
+                if (tier == 2) return BuildingType.FortifiedWall;
             }
             return 0;
         }
@@ -220,9 +313,16 @@ namespace RareIcon
             BuildingType.Lumbercamp => "building.lumbercamp",
             BuildingType.MiningPit  => "building.mining_pit",
             BuildingType.Dock       => "building.dock",
+            BuildingType.Shipyard   => "building.shipyard",
+            BuildingType.Harbour    => "building.harbour",
+            BuildingType.PirateCove => "building.pirate_cove",
             BuildingType.Tower      => "building.tower",
             BuildingType.Wall       => "building.wall",
             BuildingType.Landmark   => "building.landmark",
+            BuildingType.CityState   => "building.city_state",
+            BuildingType.HostileCity => "building.hostile_city",
+            BuildingType.AlliedCity  => "building.allied_city",
+            BuildingType.VassalCity  => "building.vassal_city",
             _ => "building.unknown",
         };
 
@@ -247,6 +347,39 @@ namespace RareIcon
             {
                 if (tier == 1) return "building.tavern";
                 if (tier == 2) return "building.lodge";
+            }
+            else if (buildingType == BuildingType.Lumbercamp)
+            {
+                if (tier == 1) return "building.sawmill";
+            }
+            else if (buildingType == BuildingType.MiningPit)
+            {
+                if (tier == 1) return "building.quarry";
+            }
+            else if (buildingType == BuildingType.Dock)
+            {
+                if (tier == 1) return "building.shipyard";
+                if (tier == 2) return "building.harbour";
+            }
+            else if (buildingType == BuildingType.Furnace)
+            {
+                if (tier == 1) return "building.forge";
+                if (tier == 2) return "building.foundry";
+            }
+            else if (buildingType == BuildingType.Outpost)
+            {
+                if (tier == 1) return "building.watchpost";
+                if (tier == 2) return "building.garrison";
+            }
+            else if (buildingType == BuildingType.Tower)
+            {
+                if (tier == 1) return "building.bastion";
+                if (tier == 2) return "building.citadel";
+            }
+            else if (buildingType == BuildingType.Wall)
+            {
+                if (tier == 1) return "building.reinforced_wall";
+                if (tier == 2) return "building.fortified_wall";
             }
             return GetLocaleKey(buildingType);
         }
@@ -303,6 +436,9 @@ namespace RareIcon
             BuildingType.Lumbercamp => 200,
             BuildingType.MiningPit  => 220,
             BuildingType.Dock       => 180,
+            BuildingType.Shipyard   => 240,
+            BuildingType.Harbour    => 320,
+            BuildingType.PirateCove => 240,
             BuildingType.Tower      => 320,
             BuildingType.Wall       => 260,
             _                       => 100,

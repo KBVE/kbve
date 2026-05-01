@@ -17,6 +17,7 @@ namespace RareIcon
             {
                 Threats                      = new NativeList<ThreatRecord>(64, Allocator.Persistent),
                 FriendlyEmitters             = new NativeList<TerritoryEmitter>(4, Allocator.Persistent),
+                HostileEmitters              = new NativeList<TerritoryEmitter>(4, Allocator.Persistent),
                 PipelineHandle               = default,
 
                 PreviousFrameThreats         = new NativeParallelHashSet<Entity>(64, Allocator.Persistent),
@@ -43,6 +44,7 @@ namespace RareIcon
 
             live.Threats.Clear();
             live.FriendlyEmitters.Clear();
+            live.HostileEmitters.Clear();
             live.PipelineHandle = default;
 
             // Swap Write→Read on every event stream: last frame's producers
@@ -77,6 +79,7 @@ namespace RareIcon
             var db = state.EntityManager.GetComponentData<CombatDBSingleton>(_singleton);
             if (db.Threats.IsCreated)                      db.Threats.Dispose();
             if (db.FriendlyEmitters.IsCreated)             db.FriendlyEmitters.Dispose();
+            if (db.HostileEmitters.IsCreated)              db.HostileEmitters.Dispose();
             if (db.PreviousFrameThreats.IsCreated)         db.PreviousFrameThreats.Dispose();
             if (db.ThreatDetectedWriteBuffer.IsCreated)    db.ThreatDetectedWriteBuffer.Dispose();
             if (db.ThreatDetectedReadBuffer.IsCreated)     db.ThreatDetectedReadBuffer.Dispose();

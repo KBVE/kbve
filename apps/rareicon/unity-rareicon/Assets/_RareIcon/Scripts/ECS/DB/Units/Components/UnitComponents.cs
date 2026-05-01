@@ -29,6 +29,8 @@ namespace RareIcon
         public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
         public const byte FishingBoat   = 17; // Water-locked craftsman-built vessel; hunts Whales for Oil + Meat.
         public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
+        public const byte Galley        = 19; // Water-locked Player-faction warship — Shipyard-built, ranged arrow attack.
+        public const byte PirateShip    = 20; // Water-locked Hostile-faction raider — PirateCove-spawned, ranged arrow attack.
         // Skeleton, etc. land here as we add them.
     }
 
@@ -48,6 +50,12 @@ namespace RareIcon
 
     /// <summary>Marker tag for Whales — FishingBoats' prey. Drops Oil + 400 Meat via EnemyLootDropSystem on death.</summary>
     public struct WhaleTag : IComponentData { }
+
+    /// <summary>Marker tag for Player-faction Galley warships — Shipyard-built, water-locked, carries a <see cref="RangedAttack"/> arrow loadout. Distinguishes Galleys from FishingBoats so combat AI / repair systems can branch.</summary>
+    public struct GalleyTag : IComponentData { }
+
+    /// <summary>Marker tag for Hostile-faction PirateShip raiders — PirateCove-spawned, water-locked, carries a <see cref="RangedAttack"/> arrow loadout. Treated as a threat by ProfessionDispatch + threat scan.</summary>
+    public struct PirateShipTag : IComponentData { }
 
     /// <summary>Unit only accepts river/ocean destinations when wandering. WaterWanderJob validates the rolled target's BiomeType against this tag before committing the goal. Attach to Fishing Boats + Whales.</summary>
     public struct WaterLockedTag : IComponentData { }
@@ -85,6 +93,21 @@ namespace RareIcon
     public struct GarrisonPost : IComponentData
     {
         public int2 Hex;
+    }
+
+    /// <summary>Per-bandit home reference. <c>BanditChoreSystem</c> walks bandits between their camp's <see cref="CampHex"/> and resource-bearing hexes nearby; arriving at a resource hex deplets <see cref="HexResources"/> + increments the camp's <see cref="BanditCampStockpile"/>. <see cref="Camp"/> may resolve to <c>Entity.Null</c> after the camp is destroyed; the chore system gates on stockpile presence.</summary>
+    public struct BanditHome : IComponentData
+    {
+        public Entity Camp;
+        public int2   CampHex;
+    }
+
+    /// <summary>Per-bandit chore state. Phase 0 = idle (waiting on cooldown), 1 = walking out to <see cref="TargetHex"/>, 2 = walking back to camp. Hunt (40) hijacks the chore goal mid-march so combat always takes priority. Resets to phase 0 when bandit returns to camp hex.</summary>
+    public struct BanditChore : IComponentData
+    {
+        public byte Phase;
+        public int2 TargetHex;
+        public uint NextActTick;
     }
 
     /// <summary>Unit is resident inside Host building — hidden via DisableRendering, excluded from movement / collision / command queries until released. State (HP, inventory, stats) stays intact on the entity.</summary>

@@ -156,6 +156,20 @@ namespace RareIcon
                     Cooldown     = 18f * 60f,
                     ProbPerCheck = 0.025f,
                 },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.GoblinVillageRising,
+                    MinFromBoot  = 17f * 60f,
+                    Cooldown     = 22f * 60f,
+                    ProbPerCheck = 0.02f,
+                },
+                new EventConfig
+                {
+                    Kind         = WorldEventKind.PirateCoveRising,
+                    MinFromBoot  = 20f * 60f,
+                    Cooldown     = 25f * 60f,
+                    ProbPerCheck = 0.015f,
+                },
             };
             _nextEarliest = new float[_events.Length];
         }
