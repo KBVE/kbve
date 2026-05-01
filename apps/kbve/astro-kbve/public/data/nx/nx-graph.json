@@ -1694,6 +1694,90 @@
           "implicitDependencies": []
         }
       },
+      "steamcmd-ubuntu": {
+        "name": "steamcmd-ubuntu",
+        "type": "lib",
+        "data": {
+          "root": "packages/docker/steamcmd-ubuntu",
+          "name": "steamcmd-ubuntu",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/docker/steamcmd-ubuntu",
+          "tags": [
+            "docker",
+            "base-image",
+            "steam"
+          ],
+          "targets": {
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "options": {
+                "engine": "docker",
+                "context": "packages/docker/steamcmd-ubuntu",
+                "file": "packages/docker/steamcmd-ubuntu/Dockerfile",
+                "platforms": [
+                  "linux/amd64"
+                ],
+                "load": true,
+                "push": false,
+                "tags": [
+                  "ghcr.io/kbve/steamcmd-ubuntu:24.04"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "tags": [
+                    "ghcr.io/kbve/steamcmd-ubuntu:24.04"
+                  ]
+                },
+                "production": {
+                  "tags": [
+                    "ghcr.io/kbve/steamcmd-ubuntu:24.04",
+                    "ghcr.io/kbve/steamcmd-ubuntu:latest"
+                  ],
+                  "push": true,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/steamcmd-ubuntu"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/steamcmd-ubuntu:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/steamcmd-ubuntu:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "container"
+              ],
+              "options": {
+                "commands": [
+                  "echo '=== steamcmd-ubuntu image tests ==='",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 steamcmd +quit | grep -q 'Steam Console Client' && echo 'PASS: steamcmd boots'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'locale | grep -q en_US.UTF-8' && echo 'PASS: en_US.UTF-8 locale active'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'which steamcmd' | grep -q /usr/local/bin/steamcmd && echo 'PASS: steamcmd on PATH'",
+                  "echo '=== steamcmd-ubuntu image OK ==='"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "astro-discordsh": {
         "name": "astro-discordsh",
         "type": "app",
@@ -4345,6 +4429,93 @@
           ]
         }
       },
+      "arc-runner": {
+        "name": "arc-runner",
+        "type": "lib",
+        "data": {
+          "root": "packages/docker/arc-runner",
+          "name": "arc-runner",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/docker/arc-runner",
+          "tags": [
+            "docker",
+            "base-image",
+            "github-actions",
+            "infrastructure"
+          ],
+          "targets": {
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "options": {
+                "engine": "docker",
+                "context": "packages/docker/arc-runner",
+                "file": "packages/docker/arc-runner/Dockerfile",
+                "platforms": [
+                  "linux/amd64"
+                ],
+                "load": true,
+                "push": false,
+                "tags": [
+                  "ghcr.io/kbve/arc-runner:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "tags": [
+                    "ghcr.io/kbve/arc-runner:latest"
+                  ]
+                },
+                "production": {
+                  "tags": [
+                    "ghcr.io/kbve/arc-runner:latest",
+                    "ghcr.io/kbve/arc-runner:0.1.0"
+                  ],
+                  "push": true,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/arc-runner"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/arc-runner:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/arc-runner:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "container"
+              ],
+              "options": {
+                "commands": [
+                  "echo '=== arc-runner image tests ==='",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'git-lfs --version' | grep -q 'git-lfs/' && echo 'PASS: git-lfs on PATH'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'jq --version' | grep -q 'jq-' && echo 'PASS: jq on PATH'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'unzip -v' | grep -q 'UnZip' && echo 'PASS: unzip on PATH'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
+                  "echo '=== arc-runner image OK ==='"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "bevy_db": {
         "name": "bevy_db",
         "type": "lib",
@@ -4746,6 +4917,9 @@
             },
             "build:all": {
               "executor": "nx:run-commands",
+              "dependsOn": [
+                "verify"
+              ],
               "options": {
                 "parallel": false,
                 "commands": [
@@ -4755,6 +4929,31 @@
                   "npx nx run uniti:build:ios",
                   "npx nx run uniti:build:android"
                 ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "verify": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "cargo fmt -p uniti -- --check",
+                  "cargo clippy -p uniti --all-targets -- -D warnings",
+                  "cargo test -p uniti --no-fail-fast"
+                ],
+                "cwd": "packages/rust/bevy/uniti"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "bench": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo bench -p uniti"
+                ],
+                "cwd": "packages/rust/bevy/uniti"
               },
               "configurations": {},
               "parallelism": true
@@ -12174,6 +12373,7 @@
         }
       ],
       "notification-bot": [],
+      "steamcmd-ubuntu": [],
       "astro-discordsh": [
         {
           "source": "astro-discordsh",
@@ -12269,6 +12469,7 @@
           "type": "static"
         }
       ],
+      "arc-runner": [],
       "bevy_db": [],
       "herbmail-e2e": [
         {
