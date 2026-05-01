@@ -21,7 +21,8 @@ ENV LANG=en_US.UTF-8 \
 
 RUN /usr/games/steamcmd +quit || true
 
-RUN ln -s /usr/games/steamcmd /usr/local/bin/steamcmd
+RUN printf '#!/bin/sh\nexec /usr/games/steamcmd "$@"\n' > /usr/local/bin/steamcmd && \
+    chmod +x /usr/local/bin/steamcmd
 
 WORKDIR /export
 
