@@ -113,10 +113,24 @@ namespace RareIcon
         public byte Tier;
     }
 
-    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate.</summary>
+    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves.</summary>
     public struct BanditCampStockpile : IComponentData
     {
         public ushort Loot;
+    }
+
+    /// <summary>Cache of nearby resource-bearing hex coords keyed off the camp; <c>BanditCampResourceScanSystem</c> refreshes the buffer on a cadence so each laborer can pick a target with one buffer lookup instead of an O(R²) hex scan per tick. Buffer capacity caps the working set; depleted hexes get pruned on next refresh.</summary>
+    [InternalBufferCapacity(64)]
+    public struct BanditResourceHex : IBufferElementData
+    {
+        public int2 Hex;
+    }
+
+    /// <summary>Per-camp scan cadence — when <see cref="NextScanTick"/> elapses, <c>BanditCampResourceScanSystem</c> refills the camp's <see cref="BanditResourceHex"/> buffer from the surrounding hex grid and re-arms.</summary>
+    public struct BanditResourceScanState : IComponentData
+    {
+        public uint NextScanTick;
+        public uint ScanCadenceTicks;
     }
 
     /// <summary>Singleton — holds the shared building prefab Entity BuildingSpawnSystem created at startup. Any system that needs to instantiate a building (BanditCampSpawnerSystem, future Hostile builders) reads Prefab from this singleton instead of duplicating the mesh/material setup.</summary>

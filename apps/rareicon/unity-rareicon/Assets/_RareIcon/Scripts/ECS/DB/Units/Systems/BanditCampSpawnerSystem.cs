@@ -120,6 +120,12 @@ namespace RareIcon
             });
             em.AddComponentData(camp, new Faction { Value = FactionType.Hostile });
             em.AddComponentData(camp, new BanditCampStockpile { Loot = 0 });
+            em.AddBuffer<BanditResourceHex>(camp);
+            em.AddComponentData(camp, new BanditResourceScanState
+            {
+                NextScanTick     = nowTick,
+                ScanCadenceTicks = 30000u,
+            });
 
             for (int i = 0; i < DefenderCount; i++)
             {
