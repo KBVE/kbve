@@ -32,6 +32,7 @@ namespace RareIcon
         public const byte Harvest = 30;
         public const byte Hunt    = 40;
         public const byte Return  = 50;
+        public const byte AttackMove = 35;
         public const byte Order   = 100;
         public const byte Flee    = 200;
     }

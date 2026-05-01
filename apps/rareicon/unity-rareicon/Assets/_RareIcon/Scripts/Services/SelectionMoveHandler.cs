@@ -6,11 +6,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine.InputSystem;
 using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Bulk move-order executor — consumes SelectionMoveMessage and spreads every SelectedTag unit into a hex ring around the target. Units closest to the target take centre slots, so the click point is always honoured and only the overflow squad lands on adjacent rings. MovementGoal is written with GoalPriority.Order so this command overrides wander / harvest / hunt behaviour.</summary>
+    /// <summary>Bulk move-order executor — consumes SelectionMoveMessage and spreads every SelectedTag unit into a hex ring around the target. Units closest to the target take centre slots, so the click point is always honoured and only the overflow squad lands on adjacent rings. Default priority is <see cref="GoalPriority.Order"/> so the command overrides wander / harvest / hunt; holding Shift drops the priority to <see cref="GoalPriority.AttackMove"/> so Hunt can hijack mid-march and units engage hostiles encountered en route.</summary>
     public sealed class SelectionMoveHandler : IAsyncStartable, IDisposable
     {
         const float HexSize = 0.25f;
@@ -48,6 +49,8 @@ namespace RareIcon
 
             using var entities = query.ToEntityArray(Allocator.Temp);
 
+            byte priority = IsShiftHeld() ? GoalPriority.AttackMove : GoalPriority.Order;
+
             var order = new NativeArray<int>(count, Allocator.Temp);
             var dists = new NativeArray<float>(count, Allocator.Temp);
             var target = new int2(msg.Q, msg.R);
@@ -83,7 +86,7 @@ namespace RareIcon
                     em.SetComponentData(e, new MovementGoal
                     {
                         Kind      = GoalKind.MoveToHex,
-                        Priority  = GoalPriority.Order,
+                        Priority  = priority,
                         TargetHex = slot,
                     });
                     idx++;
@@ -97,5 +100,11 @@ namespace RareIcon
         }
 
         public void Dispose() => _subscription?.Dispose();
+
+        static bool IsShiftHeld()
+        {
+            var kb = Keyboard.current;
+            return kb != null && (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed);
+        }
     }
 }

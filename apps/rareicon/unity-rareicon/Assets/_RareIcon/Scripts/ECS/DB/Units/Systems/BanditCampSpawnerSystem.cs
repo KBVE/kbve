@@ -110,6 +110,12 @@ namespace RareIcon
                 RaidCadenceTicks  = 45000u,
                 RaidPartySize     = 6,
             });
+            em.AddComponentData(camp, new BanditCampGrowth
+            {
+                NextEvolveTick     = nowTick + 180000u,
+                EvolveCadenceTicks = 180000u,
+                Tier               = 0,
+            });
             em.AddComponentData(camp, new Faction { Value = FactionType.Hostile });
 
             for (int i = 0; i < DefenderCount; i++)

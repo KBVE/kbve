@@ -98,6 +98,14 @@ namespace RareIcon
         public byte RaidPartySize;
     }
 
+    /// <summary>Per-camp evolution state. <c>BanditCampEvolutionSystem</c> ticks while the camp sits at full HP; once <see cref="NextEvolveTick"/> elapses, advances <see cref="Tier"/> (0 = camp, 1 = stronghold, 2 = fortress) and bumps the matching <see cref="BanditCampState"/> + <see cref="BuildingHealth"/> + <see cref="TerritoryEmitter"/> stats. Damaging the camp pushes the timer back — the player can deny growth by harassing the structure.</summary>
+    public struct BanditCampGrowth : IComponentData
+    {
+        public uint NextEvolveTick;
+        public uint EvolveCadenceTicks;
+        public byte Tier;
+    }
+
     /// <summary>Singleton — holds the shared building prefab Entity BuildingSpawnSystem created at startup. Any system that needs to instantiate a building (BanditCampSpawnerSystem, future Hostile builders) reads Prefab from this singleton instead of duplicating the mesh/material setup.</summary>
     public struct BuildingPrefabSingleton : IComponentData
     {

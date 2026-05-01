@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-camp raid dispatch. When NowTick passes BanditCampState.NextRaidTick, spawns RaidPartySize bandits at jittered positions near the camp's RootHex and re-arms for the next cadence. Main-thread SystemBase because UnitSpawnSystem.SpawnBanditAt touches managed render assets; spawns are queued during the query iteration and executed after it closes so the structural changes don't invalidate the live iterator.</summary>
+    /// <summary>Per-camp raid dispatch. When NowTick passes BanditCampState.NextRaidTick, spawns RaidPartySize bandits stacked on the camp's RootHex (they emerge from the camp itself and disperse via wander/hunt) and re-arms for the next cadence. Main-thread SystemBase because UnitSpawnSystem.SpawnBanditAt touches managed render assets; spawns are queued during the query iteration and executed after it closes so the structural changes don't invalidate the live iterator.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(BanditCampSpawnerSystem))]
@@ -33,13 +33,7 @@ namespace RareIcon
                 int2 campHex = building.ValueRO.RootHex;
                 int party = state.RaidPartySize;
                 for (int i = 0; i < party; i++)
-                {
-                    _rng = XorShift(_rng);
-                    int dx = (int)(_rng % 5u) - 2;
-                    _rng = XorShift(_rng);
-                    int dy = (int)(_rng % 5u) - 2;
-                    pending.Add(new int2(campHex.x + dx, campHex.y + dy));
-                }
+                    pending.Add(campHex);
 
                 state.NextRaidTick = nowTick + state.RaidCadenceTicks;
             }
