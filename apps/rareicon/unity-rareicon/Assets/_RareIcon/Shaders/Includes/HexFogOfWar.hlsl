@@ -61,9 +61,9 @@ float RareiconFogNoise(float2 worldPos, float speed, float density)
 }
 
 // Apply the fog wash on top of an already-shaded ground colour. `worldPos`
-// is the tile's world-space xy (we pass in `IN.worldPos` from the vertex
-// stage); `d` is the hex SDF used for the territory edge so we can soften
-// the fog along the rim instead of clipping hard.
+// is the tile's world-space xy (passed from the vertex stage); `d` is the
+// hex SDF used for the territory edge so we can soften the fog along the
+// rim instead of clipping hard.
 float3 ApplyFog(float3 ground, float2 worldPos, float d, float fog)
 {
     if (fog < 0.5) return ground;
@@ -73,19 +73,22 @@ float3 ApplyFog(float3 ground, float2 worldPos, float d, float fog)
     if (fog < 1.5)
     {
         // Explored-stale: dim toward fog tint but keep biome readable. Noise
-        // adds a soft moving haze instead of a flat wash.
-        float k = 0.45 + 0.20 * noise;
-        return lerp(ground, _FogExploredColor.rgb, k);
+        // adds a soft moving haze instead of a flat wash. Stronger than
+        // before so the player's last-known view reads as actively foggy
+        // rather than mildly tinted.
+        float k = 0.70 + 0.15 * noise;
+        return lerp(ground, _FogExploredColor.rgb, saturate(k));
     }
 
-    // Unexplored: near-opaque fog, with the voronoi noise pushing brightness
-    // around the cell so the canopy reads as cloud volumes rather than a
-    // dead mask. Edge softening uses the hex SDF so adjacent visible tiles
-    // don't expose a hard hex silhouette through the fog.
-    float fogStrength = saturate(0.85 + 0.15 * noise);
-    float3 fogged = lerp(_FogColor.rgb, ground, 0.05 + 0.10 * noise);
-    float edgeMask = saturate(smoothstep(-0.02, 0.02, d));
-    return lerp(fogged, ground, (1.0 - fogStrength) * (1.0 - edgeMask));
+    // Unexplored: opaque fog. Voronoi noise modulates the fog *colour* (so
+    // it reads as moving cloud volumes) but biome ground stays hidden — a
+    // tiny near-edge bleed keeps the silhouette from looking like a
+    // stamped-on disc. Compared to the previous pass the ground lerp at
+    // interior is gone and the edge softening is much narrower.
+    float3 fogTint = lerp(_FogColor.rgb, _FogColor.rgb * 1.35, noise);
+    float interior = 1.0 - saturate(smoothstep(-0.005, 0.005, d));
+    float reveal   = (1.0 - interior) * 0.10;
+    return lerp(fogTint, ground, reveal);
 }
 
 #endif // RAREICON_HEX_FOG_OF_WAR_INCLUDED
