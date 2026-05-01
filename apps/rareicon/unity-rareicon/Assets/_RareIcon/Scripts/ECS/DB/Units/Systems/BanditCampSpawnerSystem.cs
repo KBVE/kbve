@@ -96,6 +96,7 @@ namespace RareIcon
             em.SetComponentData(camp, new BuildingVisual { Value = BuildingType.BanditCamp });
             em.AddComponentData(camp, new BuildingHealth { Value = CampMaxHp, Max = CampMaxHp });
             em.AddComponent<BanditCampTag>(camp);
+            em.AddComponent<HostileTerritoryRoot>(camp);
             em.AddComponentData(camp, new TerritoryEmitter
             {
                 Center       = campHex,

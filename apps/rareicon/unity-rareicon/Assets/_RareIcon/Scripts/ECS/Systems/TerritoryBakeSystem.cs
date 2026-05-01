@@ -80,7 +80,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Per-tile worker — classifies a single hex against the snapshot of all active emitters.</summary>
+    /// <summary>Per-tile worker — classifies a single hex against the snapshot of all active emitters. Encodes faction in the high bucket of the float: 0 = outside, 1 = player interior, 2 = player edge, 4 = hostile interior, 5 = hostile edge. Hostile beats player when both claim a tile so the player sees the threat ring through their own territory.</summary>
     [BurstCompile]
     public partial struct BakeJob : IJobEntity
     {
@@ -89,29 +89,47 @@ namespace RareIcon
         void Execute(in HexCoord coord, ref TerritoryVisual visual)
         {
             var hex = new int2(coord.Q, coord.R);
-            if (!Inside(hex, Emitters))
+            byte inFac = OwnerInside(hex, Emitters);
+            if (inFac == 0)
             {
                 if (visual.Value != 0f) visual.Value = 0f;
                 return;
             }
 
+            float baseValue = inFac == FactionType.Hostile ? 3f : 0f;
             for (int n = 0; n < 6; n++)
             {
-                if (!Inside(hex + HexNeighbor(n), Emitters))
+                if (!FactionInside(hex + HexNeighbor(n), inFac, Emitters))
                 {
-                    if (visual.Value != 2f) visual.Value = 2f;
+                    float edge = baseValue + 2f;
+                    if (visual.Value != edge) visual.Value = edge;
                     return;
                 }
             }
 
-            if (visual.Value != 1f) visual.Value = 1f;
+            float interior = baseValue + 1f;
+            if (visual.Value != interior) visual.Value = interior;
         }
 
-        static bool Inside(int2 hex, NativeArray<TerritoryEmitter> emitters)
+        static byte OwnerInside(int2 hex, NativeArray<TerritoryEmitter> emitters)
+        {
+            byte hit = 0;
+            for (int i = 0; i < emitters.Length; i++)
+            {
+                var e = emitters[i];
+                if (AxialDistance(hex - e.Center) > e.Radius) continue;
+                if (e.OwnerFaction == FactionType.Hostile) return FactionType.Hostile;
+                if (e.OwnerFaction == FactionType.Player)  hit = FactionType.Player;
+            }
+            return hit;
+        }
+
+        static bool FactionInside(int2 hex, byte faction, NativeArray<TerritoryEmitter> emitters)
         {
             for (int i = 0; i < emitters.Length; i++)
             {
                 var e = emitters[i];
+                if (e.OwnerFaction != faction) continue;
                 if (AxialDistance(hex - e.Center) <= e.Radius) return true;
             }
             return false;

@@ -124,8 +124,13 @@ namespace RareIcon
                 {
                     var hex = req.CenterHex + footprint[i];
                     if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) continue;
-                    if (!em.HasComponent<TerritoryVisual>(tile)
-                        || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
+                    if (!em.HasComponent<TerritoryVisual>(tile))
+                    {
+                        reason = "outside empire territory";
+                        return false;
+                    }
+                    float tv = em.GetComponentData<TerritoryVisual>(tile).Value;
+                    if (tv <= 0f || tv >= 3f)
                     {
                         reason = "outside empire territory";
                         return false;

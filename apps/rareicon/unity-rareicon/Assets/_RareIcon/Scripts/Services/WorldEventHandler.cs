@@ -916,6 +916,13 @@ namespace RareIcon
             em.SetComponentData(cave, new BuildingVisual { Value = BuildingType.GoblinCave });
             em.AddComponentData(cave, new BuildingHealth { Value = GoblinCaveMaxHp, Max = GoblinCaveMaxHp });
             em.AddComponent<GoblinCaveTag>(cave);
+            em.AddComponent<HostileTerritoryRoot>(cave);
+            em.AddComponentData(cave, new TerritoryEmitter
+            {
+                Center       = hex,
+                Radius       = 2,
+                OwnerFaction = FactionType.Hostile,
+            });
             em.AddComponentData(cave, new Faction { Value = FactionType.Hostile });
 
             _toastPub.Publish(new ToastMessage(
@@ -957,6 +964,8 @@ namespace RareIcon
             em.SetComponentData(village, new BuildingVisual { Value = BuildingType.GoblinCave });
             em.AddComponentData(village, new BuildingHealth { Value = GoblinVillageMaxHp, Max = GoblinVillageMaxHp });
             em.AddComponent<GoblinVillageTag>(village);
+            if (faction == FactionType.Hostile)
+                em.AddComponent<HostileTerritoryRoot>(village);
             em.AddComponentData(village, new TerritoryEmitter
             {
                 Center       = hex,
@@ -1022,6 +1031,7 @@ namespace RareIcon
             em.SetComponentData(cove, new BuildingVisual { Value = BuildingType.GoblinCave });
             em.AddComponentData(cove, new BuildingHealth { Value = PirateCoveMaxHp, Max = PirateCoveMaxHp });
             em.AddComponent<PirateCoveTag>(cove);
+            em.AddComponent<HostileTerritoryRoot>(cove);
             em.AddComponentData(cove, new TerritoryEmitter
             {
                 Center       = hex,

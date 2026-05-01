@@ -78,10 +78,10 @@ namespace RareIcon
 
                 if ((shrine.Flags & ShrineFlags.TerritoryActive) != 0
                     && hexDB.Lookup.TryGetValue(hex, out var tile)
-                    && territoryLookup.HasComponent(tile)
-                    && territoryLookup[tile].Value > 0f)
+                    && territoryLookup.HasComponent(tile))
                 {
-                    eligible = true;
+                    float tv = territoryLookup[tile].Value;
+                    if (tv > 0f && tv < 3f) eligible = true;
                 }
                 if (!eligible
                     && hasKing

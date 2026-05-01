@@ -159,9 +159,9 @@ namespace RareIcon
                 {
                     var hex = centerHex + footprint[i];
                     if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) return StateInvalid;
-                    if (!em.HasComponent<TerritoryVisual>(tile)
-                        || em.GetComponentData<TerritoryVisual>(tile).Value <= 0f)
-                        return StateInvalid;
+                    if (!em.HasComponent<TerritoryVisual>(tile)) return StateInvalid;
+                    float tv = em.GetComponentData<TerritoryVisual>(tile).Value;
+                    if (tv <= 0f || tv >= 3f) return StateInvalid;
                 }
             }
 

@@ -91,6 +91,9 @@ namespace RareIcon
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
     public struct CapitalTag : IComponentData { }
 
+    /// <summary>Hostile-side counterpart of <see cref="CapitalTag"/>: marks a building as a connectivity root for the hostile faction so <see cref="EmpireConnectivitySystem"/> seeds BFS from it. Without a root, hostile <see cref="TerritoryEmitter"/>s never receive <see cref="EmpireConnected"/> and the bake skips them, so their territory ring never renders. BanditCamp, GoblinCave, PirateCove, hostile GoblinVillage all carry this tag.</summary>
+    public struct HostileTerritoryRoot : IComponentData { }
+
     /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
     public struct BanditCampTag : IComponentData { }
 
