@@ -18,7 +18,7 @@
 
             <!-- Two-column body: menu rail (left) + content panel (right). -->
             <ui:VisualElement class="title-body">
-                <ui:VisualElement name="title-menu" class="title-menu">
+                <ui:ScrollView name="title-menu" class="title-menu" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto">
                     <ui:Button name="title-menu-singleplayer" class="title-menu-btn" text="Single Player" />
                     <ui:Button name="title-menu-multiplayer" class="title-menu-btn title-menu-btn--disabled" text="Multiplayer · Soon" />
                     <ui:Button name="title-menu-mods" class="title-menu-btn title-menu-btn--disabled" text="Mods · Soon" />
@@ -26,9 +26,9 @@
                     <ui:Button name="title-menu-settings" class="title-menu-btn title-menu-btn--disabled" text="Settings · Soon" />
                     <ui:Button name="title-menu-credits" class="title-menu-btn" text="Credits" />
                     <ui:Button name="title-menu-exit" class="title-menu-btn title-menu-btn--exit" text="Exit" />
-                </ui:VisualElement>
+                </ui:ScrollView>
 
-                <ui:VisualElement name="title-content" class="title-content">
+                <ui:ScrollView name="title-content" class="title-content" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto">
                     <!-- Default info panel — shown until the player picks a menu option. -->
                     <ui:VisualElement name="title-stage-info" class="title-stage title-stage-info">
                         <ui:Label class="title-stage__title" text="Welcome, Wanderer" />
@@ -91,7 +91,7 @@
 
                         <ui:Button name="title-start" class="btn title-action-btn title-action-btn--primary title-start" text="Start" />
                     </ui:VisualElement>
-                </ui:VisualElement>
+                </ui:ScrollView>
             </ui:VisualElement>
 
             <!-- Footer: persona left, socials right, both anchored at the bottom of the window. -->
