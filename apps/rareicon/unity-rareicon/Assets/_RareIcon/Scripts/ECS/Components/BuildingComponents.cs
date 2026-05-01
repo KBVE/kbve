@@ -94,6 +94,32 @@ namespace RareIcon
     /// <summary>Hostile-side counterpart of <see cref="CapitalTag"/>: marks a building as a connectivity root for the hostile faction so <see cref="EmpireConnectivitySystem"/> seeds BFS from it. Without a root, hostile <see cref="TerritoryEmitter"/>s never receive <see cref="EmpireConnected"/> and the bake skips them, so their territory ring never renders. BanditCamp, GoblinCave, PirateCove, hostile GoblinVillage all carry this tag.</summary>
     public struct HostileTerritoryRoot : IComponentData { }
 
+    /// <summary>Shared "we know about this" target list maintained by <c>BanditScoutBehaviorSystem</c>: when a BanditScout passes within scan range of a Player building, it appends that building's RootHex here. <c>HuntJob</c> reads the buffer to expand its raid divert targets beyond the per-bandit local <c>TargetingRadius</c>. Buffer wraps when full so newer sightings naturally evict stale ones.</summary>
+    [InternalBufferCapacity(32)]
+    public struct KnownPlayerHex : IBufferElementData
+    {
+        public int2 Hex;
+    }
+
+    /// <summary>Singleton entity that carries the <see cref="KnownPlayerHex"/> buffer + a small write cursor for the wrap. Bootstrapped lazily by <c>BanditScoutBehaviorSystem</c>.</summary>
+    public struct KnownPlayerHexesSingleton : IComponentData
+    {
+        public byte WriteCursor;
+    }
+
+    /// <summary>Per-camp scout dispatch state. <c>BanditScoutDispatchSystem</c> spawns one BanditScout when <see cref="NextScoutTick"/> elapses, consuming a small loot cost from the camp's <see cref="BanditCampStockpile"/>. Cadence resets after each spawn.</summary>
+    public struct BanditScoutDispatch : IComponentData
+    {
+        public uint NextScoutTick;
+        public uint ScoutCadenceTicks;
+    }
+
+    /// <summary>Player-issued request from the Barracks recruit panel. <c>ScoutRecruitSystem</c> validates Capital ledger cost (5 Coin + 2 Timber), deducts on success, spawns a Player Scout at a hex adjacent to <see cref="Barracks"/>, then destroys the request entity. Insufficient funds cancel cleanly with a toast.</summary>
+    public struct ScoutRecruitRequest : IComponentData
+    {
+        public Entity Barracks;
+    }
+
     /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
     public struct BanditCampTag : IComponentData { }
 
@@ -113,10 +139,11 @@ namespace RareIcon
         public byte Tier;
     }
 
-    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves.</summary>
+    /// <summary>Per-camp loot stockpile fed by <c>BanditChoreSystem</c> when bandits return from chopping wood / mining stone in nearby hexes. <see cref="BanditCampEvolutionSystem"/> consumes this on tier-up so the camp must "earn" its growth in addition to surviving the time gate; excess loot beyond the next tier cost gets spent by <see cref="BanditCampRaidSystem"/> on opportunistic surprise-raid waves; <see cref="BanditCampLaborerRespawnSystem"/> spends loot to refill dead laborers; on camp death, <see cref="BanditCampLootDropSystem"/> dumps the remainder to the player's Capital as Coin.</summary>
     public struct BanditCampStockpile : IComponentData
     {
         public ushort Loot;
+        public uint   NextLaborerRespawnTick;
     }
 
     /// <summary>Cache of nearby resource-bearing hex coords keyed off the camp; <c>BanditCampResourceScanSystem</c> refreshes the buffer on a cadence so each laborer can pick a target with one buffer lookup instead of an O(R²) hex scan per tick. Buffer capacity caps the working set; depleted hexes get pruned on next refresh.</summary>

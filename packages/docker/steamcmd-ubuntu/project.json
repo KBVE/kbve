@@ -1,0 +1,56 @@
+{
+	"name": "steamcmd-ubuntu",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/steamcmd-ubuntu",
+	"targets": {
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/steamcmd-ubuntu",
+				"file": "packages/docker/steamcmd-ubuntu/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/steamcmd-ubuntu:24.04"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/steamcmd-ubuntu:24.04"]
+				},
+				"production": {
+					"tags": [
+						"ghcr.io/kbve/steamcmd-ubuntu:24.04",
+						"ghcr.io/kbve/steamcmd-ubuntu:latest"
+					],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/steamcmd-ubuntu"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/steamcmd-ubuntu:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/steamcmd-ubuntu:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"echo '=== steamcmd-ubuntu image tests ==='",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 steamcmd +quit | grep -q 'Steam Console Client' && echo 'PASS: steamcmd boots'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'locale | grep -q en_US.UTF-8' && echo 'PASS: en_US.UTF-8 locale active'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'which steamcmd' | grep -q /usr/local/bin/steamcmd && echo 'PASS: steamcmd on PATH'",
+					"echo '=== steamcmd-ubuntu image OK ==='"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["docker", "base-image", "steam"]
+}

@@ -49,6 +49,14 @@ Shader "RareIcon/HexTile"
         _TerritoryTint         ("Territory Interior Tint",   Color) = (0.98, 0.78, 0.40, 1)
         _HostileTerritoryEdge  ("Hostile Edge Color",        Color) = (0.85, 0.20, 0.20, 1)
         _HostileTerritoryTint  ("Hostile Interior Tint",     Color) = (0.65, 0.18, 0.18, 1)
+
+        // Fog of war — per-instance float written by FogBakeSystem.
+        //  0 = clear, 1 = explored-stale, 2 = unexplored.
+        _Fog               ("Fog (per-instance)",       Float) = 0
+        _FogColor          ("Fog Color (Unexplored)",   Color) = (0.05, 0.06, 0.10, 1)
+        _FogExploredColor  ("Fog Color (Explored)",     Color) = (0.20, 0.22, 0.28, 1)
+        _FogNoiseDensity   ("Fog Noise Density",        Float) = 6.0
+        _FogNoiseSpeed     ("Fog Noise Speed",          Float) = 0.05
     }
 
     SubShader
@@ -124,6 +132,11 @@ Shader "RareIcon/HexTile"
                 float4 _TerritoryTint;
                 float4 _HostileTerritoryEdge;
                 float4 _HostileTerritoryTint;
+                float  _Fog;
+                float4 _FogColor;
+                float4 _FogExploredColor;
+                float  _FogNoiseDensity;
+                float  _FogNoiseSpeed;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -136,6 +149,7 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float4, _FloorAmounts)
                 UNITY_DOTS_INSTANCED_PROP(float, _CactusAmount)
                 UNITY_DOTS_INSTANCED_PROP(float, _Territory)
+                UNITY_DOTS_INSTANCED_PROP(float, _Fog)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
@@ -146,6 +160,7 @@ Shader "RareIcon/HexTile"
             #define _FloorAmounts UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _FloorAmounts)
             #define _CactusAmount UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _CactusAmount)
             #define _Territory    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Territory)
+            #define _Fog          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Fog)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
@@ -168,6 +183,7 @@ Shader "RareIcon/HexTile"
             #include "Includes/HexCactus.hlsl"
             #include "Includes/HexTree.hlsl"
             #include "Includes/HexTerritoryEdge.hlsl"
+            #include "Includes/HexFogOfWar.hlsl"
 
             Varyings vert(Attributes input)
             {
@@ -261,9 +277,14 @@ Shader "RareIcon/HexTile"
                 float border = smoothstep(-_BorderWidth, -_BorderWidth * 0.3, d);
                 float3 col = lerp(ground, _BorderColor.rgb, border * _BorderColor.a);
 
-                // Territory wash + gold rim — painted LAST so it wins
-                // against both the biome ground and the dark border.
+                // Territory wash + gold rim — painted before fog so the
+                // claim still reads through explored-stale haze, but full
+                // unexplored fog hides territory below.
                 col = ApplyTerritory(col, d, _Territory);
+
+                // Fog of war — animated voronoi haze; clear hexes pass
+                // through untouched, explored dim, unexplored near-opaque.
+                col = ApplyFog(col, input.worldPos, d, _Fog);
 
                 clip(-d - 0.001);
                 return float4(ApplyWorldAmbient(col), 1.0);

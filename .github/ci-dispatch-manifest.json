@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.126",
+			"version": "1.0.127",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -12,6 +12,17 @@
 			"image": "kbve/kbve",
 			"e2e_name": "axum-kbve-e2e",
 			"deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml",
+			"has_test": true
+		},
+		{
+			"key": "arc_runner",
+			"app_name": "arc-runner",
+			"version": "0.1.0",
+			"version_toml": "packages/docker/arc-runner/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
+			"source_path": "packages/docker/arc-runner",
+			"runner": "ubuntu-latest",
+			"image": "kbve/arc-runner",
 			"has_test": true
 		},
 		{
@@ -270,6 +281,17 @@
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
 			"has_test": false
+		},
+		{
+			"key": "steamcmd_ubuntu",
+			"app_name": "steamcmd-ubuntu",
+			"version": "0.1.0",
+			"version_toml": "packages/docker/steamcmd-ubuntu/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/steamcmd-ubuntu.mdx",
+			"source_path": "packages/docker/steamcmd-ubuntu",
+			"runner": "ubuntu-latest",
+			"image": "kbve/steamcmd-ubuntu",
+			"has_test": true
 		}
 	],
 	"npm": [
@@ -623,7 +645,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 20,
+		"docker": 21,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -633,6 +655,6 @@
 		"godot": 0,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 59
+		"total": 60
 	}
 }

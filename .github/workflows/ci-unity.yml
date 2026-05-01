@@ -353,18 +353,26 @@ jobs:
                       exit 1
                   fi
                   echo "$STEAM_CONFIG_VDF" | base64 -d > ~/Steam/config/config.vdf
-                  chmod 600 ~/Steam/config/config.vdf
+                  chmod 777 ~/Steam/config/config.vdf
+
+            - name: Warm Steam credential cache
+              if: steps.vdf.outputs.skip != 'true'
+              env:
+                  STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+                  STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+              run: |
+                  ~/Steam/steamcmd.sh +set_steam_guard_code "INVALID" \
+                      +login "$STEAM_USERNAME" "$STEAM_PASSWORD" +quit
 
             - name: Upload via SteamPipe
               if: steps.vdf.outputs.skip != 'true'
               env:
                   STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-                  STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
               working-directory: ${{ inputs.project_path }}/Steam
               run: |
                   VDF_ABS="$(pwd)/app_build_${{ steps.vdf.outputs.label }}.vdf"
                   ~/Steam/steamcmd.sh \
-                      +login "$STEAM_USERNAME" "$STEAM_PASSWORD" \
+                      +login "$STEAM_USERNAME" \
                       +run_app_build "$VDF_ABS" \
                       +quit
 

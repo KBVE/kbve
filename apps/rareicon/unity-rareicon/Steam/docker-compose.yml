@@ -1,0 +1,34 @@
+services:
+    capture:
+        image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        platform: linux/amd64
+        build:
+            context: ../../../../packages/docker/steamcmd-ubuntu
+        tty: true
+        stdin_open: true
+        environment:
+            STEAM_USERNAME: ${STEAM_USERNAME?STEAM_USERNAME missing in .env}
+        volumes:
+            - ./steam-export:/export
+        entrypoint: ['/bin/bash']
+
+    upload:
+        image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        platform: linux/amd64
+        build:
+            context: ../../../../packages/docker/steamcmd-ubuntu
+        environment:
+            STEAM_USERNAME: ${STEAM_USERNAME?STEAM_USERNAME missing in .env}
+            STEAM_PASSWORD: ${STEAM_PASSWORD?STEAM_PASSWORD missing in .env}
+        volumes:
+            - ./:/steam
+            - ../build:/build
+        working_dir: /steam
+        command:
+            - 'steamcmd'
+            - '+login'
+            - '${STEAM_USERNAME}'
+            - '${STEAM_PASSWORD}'
+            - '+run_app_build'
+            - '/steam/app_build_demo.vdf'
+            - '+quit'

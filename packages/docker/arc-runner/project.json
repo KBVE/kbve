@@ -1,0 +1,58 @@
+{
+	"name": "arc-runner",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/arc-runner",
+	"targets": {
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/arc-runner",
+				"file": "packages/docker/arc-runner/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/arc-runner:latest"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/arc-runner:latest"]
+				},
+				"production": {
+					"tags": [
+						"ghcr.io/kbve/arc-runner:latest",
+						"ghcr.io/kbve/arc-runner:0.1.0"
+					],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/arc-runner"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/arc-runner:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/arc-runner:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"echo '=== arc-runner image tests ==='",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'git-lfs --version' | grep -q 'git-lfs/' && echo 'PASS: git-lfs on PATH'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'jq --version' | grep -q 'jq-' && echo 'PASS: jq on PATH'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'unzip -v' | grep -q 'UnZip' && echo 'PASS: unzip on PATH'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
+					"echo '=== arc-runner image OK ==='"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["docker", "base-image", "github-actions", "infrastructure"]
+}

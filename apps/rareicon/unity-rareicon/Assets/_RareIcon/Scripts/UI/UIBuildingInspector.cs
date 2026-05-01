@@ -27,7 +27,7 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn, _demolishBtn, _upgradeBtn;
+        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn;
         Entity _target;
 
         [Inject]
@@ -80,6 +80,7 @@ namespace RareIcon
                 _upgradeBtn.text = _locale.Get("inspector.upgrade");
                 _upgradeBtn.clicked += RequestUpgrade;
             }
+            EnsureRecruitScoutButton();
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -113,6 +114,36 @@ namespace RareIcon
             _target = msg.Building;
             _isOpen.Value = true;
             Refresh();
+        }
+
+        void EnsureRecruitScoutButton()
+        {
+            _recruitScoutBtn = _root.Q<Button>("inspector-recruit-scout");
+            if (_recruitScoutBtn == null && _demolishBtn != null)
+            {
+                _recruitScoutBtn = new Button { name = "inspector-recruit-scout" };
+                _recruitScoutBtn.AddToClassList(_demolishBtn.GetClasses() != null ? "inspector-action" : "");
+                foreach (var cls in _demolishBtn.GetClasses())
+                    _recruitScoutBtn.AddToClassList(cls);
+                var parent = _demolishBtn.parent;
+                if (parent != null)
+                    parent.Insert(parent.IndexOf(_demolishBtn), _recruitScoutBtn);
+            }
+            if (_recruitScoutBtn == null) return;
+            _recruitScoutBtn.text = _locale.Get("inspector.recruit_scout");
+            _recruitScoutBtn.clicked += RequestRecruitScout;
+            SetHidden(_recruitScoutBtn, true);
+        }
+
+        void RequestRecruitScout()
+        {
+            if (_target == Entity.Null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<BarracksTag>(_target)) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new ScoutRecruitRequest { Barracks = _target });
         }
 
         void RequestRelease()
@@ -188,6 +219,9 @@ namespace RareIcon
             _titleLabel.text = title;
             if (_upgradeBtn != null)
                 SetHidden(_upgradeBtn, !BuildingDB.HasUpgrade(b.Type, tier));
+            if (_recruitScoutBtn != null)
+                SetHidden(_recruitScoutBtn, !em.HasComponent<BarracksTag>(_target)
+                                            || b.OwnerFaction != FactionType.Player);
 
             var ownerSb = ZString.CreateStringBuilder();
             try

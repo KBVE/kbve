@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Points Hostile units' MovementGoal at the player's Capital. If a damaged Player building is within TargetingRadius hexes of the hostile's current hex, the nearest damaged building wins — lets bandits swarm harassed outposts / farms instead of bypassing them to march on the Capital. GarrisonPost-tagged bandits (camp defenders) are excluded — they hold position and only swing their MeleeAttack at whatever comes into range.</summary>
+    /// <summary>Points Hostile units' MovementGoal at the player's Capital. If a damaged Player building is within <see cref="HuntJob.TargetingRadius"/> hexes of the hostile's current hex, the nearest damaged building wins. If a BanditScout has reported additional Player buildings into <see cref="KnownPlayerHexesSingleton"/>, those land in the same scan with a wider <see cref="HuntJob.KnownTargetRadius"/> — lets raid bandits divert to outposts the scout uncovered, even when the player's structures are intact. GarrisonPost defenders + BanditHome laborers are excluded.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial struct HuntBehaviorSystem : ISystem
@@ -33,25 +33,41 @@ namespace RareIcon
                 damagedHexes.Add(b.ValueRO.RootHex);
             }
 
+            var knownHexes = new NativeList<int2>(8, Allocator.TempJob);
+            if (SystemAPI.TryGetSingletonEntity<KnownPlayerHexesSingleton>(out var knownEntity)
+                && SystemAPI.HasBuffer<KnownPlayerHex>(knownEntity))
+            {
+                var buf = SystemAPI.GetBuffer<KnownPlayerHex>(knownEntity);
+                for (int i = 0; i < buf.Length; i++) knownHexes.Add(buf[i].Hex);
+            }
+
             var handle = new HuntJob
             {
-                CapitalHex       = capitalHex,
-                DamagedHexes     = damagedHexes.AsDeferredJobArray(),
-                TargetingRadius  = TargetingRadius,
+                CapitalHex        = capitalHex,
+                DamagedHexes      = damagedHexes.AsDeferredJobArray(),
+                KnownHexes        = knownHexes.AsDeferredJobArray(),
+                TargetingRadius   = TargetingRadius,
+                KnownTargetRadius = KnownTargetRadius,
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = damagedHexes.Dispose(handle);
+            state.Dependency = knownHexes  .Dispose(state.Dependency);
         }
+
+        public const int KnownTargetRadius = 24;
     }
 
     [BurstCompile]
     [WithNone(typeof(GarrisonPost))]
     [WithNone(typeof(BanditHome))]
+    [WithNone(typeof(BanditScoutTag))]
     public partial struct HuntJob : IJobEntity
     {
         public int2                     CapitalHex;
         [ReadOnly] public NativeArray<int2> DamagedHexes;
+        [ReadOnly] public NativeArray<int2> KnownHexes;
         public int                      TargetingRadius;
+        public int                      KnownTargetRadius;
 
         void Execute(in Faction faction, in UnitMovement m, ref MovementGoal goal)
         {
@@ -65,6 +81,12 @@ namespace RareIcon
                 int d = AxialDistance(m.CurrentHex - DamagedHexes[i]);
                 if (d > TargetingRadius) continue;
                 if (d < bestD) { bestD = d; target = DamagedHexes[i]; }
+            }
+            for (int i = 0; i < KnownHexes.Length; i++)
+            {
+                int d = AxialDistance(m.CurrentHex - KnownHexes[i]);
+                if (d > KnownTargetRadius) continue;
+                if (d < bestD) { bestD = d; target = KnownHexes[i]; }
             }
 
             goal = new MovementGoal

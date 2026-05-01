@@ -17,8 +17,8 @@ fn concurrent_chunk_touch_no_corruption() {
         handles.push(thread::spawn(move || {
             let h = world_addr as *mut std::ffi::c_void;
             for i in 0..50 {
-                let cx = (t * 100 + i) as i32;
-                let ok = unsafe { uniti_world_chunk_touch(h, cx, t as i32, 1, 0, 0) };
+                let cx = t * 100 + i;
+                let ok = unsafe { uniti_world_chunk_touch(h, cx, t, 1, 0, 0) };
                 if ok == 1 {
                     s.fetch_add(1, Ordering::Relaxed);
                 }

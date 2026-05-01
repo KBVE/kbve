@@ -14,15 +14,60 @@ on Steamworks (AppID `3791950`).
 
 ## Local upload
 
-From this directory:
+Two flavours: `docker compose` for reproducible runs (recommended),
+host-installed `steamcmd` for ad-hoc testing.
+
+### Via docker compose (uses ghcr.io/kbve/steamcmd-ubuntu:24.04)
+
+`STEAM_USERNAME` + `STEAM_PASSWORD` come from the gitignored repo-root
+`.env`; never inlined into the compose file.
+
+**Step 1 — capture `config.vdf` once** (only when the
+`STEAM_CONFIG_VDF` GitHub secret needs refreshing):
 
 ```sh
-# Build locally first (Unity → File → Build → StandaloneWindows64 etc.)
-# Output goes to ../build/<target>/.
+# from repo root
+docker compose -f apps/rareicon/unity-rareicon/Steam/docker-compose.yml \
+    --env-file .env run --rm capture
+```
 
+Inside the shell:
+
+```sh
+steamcmd +login "$STEAM_USERNAME"
+# enter password, confirm Steam Guard on phone, then:
+quit
+cp /root/Steam/config/config.vdf /export/
+exit
+```
+
+The captured `config.vdf` lands in `Steam/steam-export/config.vdf`
+(gitignored). Upload to GitHub:
+
+```sh
+base64 -i apps/rareicon/unity-rareicon/Steam/steam-export/config.vdf \
+    -o /tmp/steam_config.b64
+gh secret set STEAM_CONFIG_VDF --repo kbve/kbve < /tmp/steam_config.b64
+rm -rf /tmp/steam_config.b64 \
+    apps/rareicon/unity-rareicon/Steam/steam-export
+```
+
+**Step 2 — upload a build** (after a Unity standalone build at
+`../build/StandaloneWindows64/` etc.):
+
+```sh
+# from repo root
+docker compose -f apps/rareicon/unity-rareicon/Steam/docker-compose.yml \
+    --env-file .env run --rm upload
+```
+
+### Via host steamcmd (ad-hoc, your Mac steam install)
+
+```sh
+# from this directory
 steamcmd +login h0lybyte \
-  +run_app_build "$(pwd)/app_build_demo.vdf" \
-  +quit
+    +run_app_build "$(pwd)/app_build_demo.vdf" \
+    +quit
 ```
 
 `setlive` is intentionally **blank** in `app_build_demo.vdf` so the

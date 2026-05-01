@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-30T08:54:25.678Z",
+  "generated_at": "2026-05-01T08:47:27.563Z",
   "summary": {
     "total_protos": 27,
     "registered": 23,
     "orphaned": 3,
     "utility_only": 1,
-    "total_messages": 565,
+    "total_messages": 566,
     "total_enums": 103
   },
   "protos": [
@@ -285,6 +285,7 @@
       "package": "kbve.ci",
       "messages": [
         "GameEngineConfig",
+        "SteamApp",
         "ExternalPublish",
         "CiProject",
         "CiRegistry"
@@ -293,7 +294,7 @@
         "DispatchPipeline",
         "TestFramework"
       ],
-      "message_count": 4,
+      "message_count": 5,
       "enum_count": 2,
       "codegen": {
         "registered": true,
@@ -1130,7 +1131,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-04-30T08:54:25Z",
+  "checked_at": "2026-05-01T08:47:27Z",
   "drift_detected": false,
   "drift_files": []
 }

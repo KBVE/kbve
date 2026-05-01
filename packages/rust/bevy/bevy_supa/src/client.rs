@@ -38,11 +38,24 @@ impl SupaClient {
     ///
     /// `api_key` can be either the anon key (limited by RLS) or the
     /// service-role key (bypasses RLS). The client itself does not care.
+    ///
+    /// # Arguments
+    ///
+    /// * `base_url` — Supabase base URL (e.g. `https://xyz.supabase.co`).
+    ///   Trailing slashes are stripped.
+    /// * `api_key` — anon or service-role key.
     pub fn new(base_url: impl Into<String>, api_key: impl Into<String>) -> Self {
         Self::with_timeout(base_url, api_key, DEFAULT_TIMEOUT)
     }
 
     /// Build a client with a custom HTTP timeout.
+    ///
+    /// # Arguments
+    ///
+    /// * `base_url` — Supabase base URL.
+    /// * `api_key` — anon or service-role key.
+    /// * `timeout` — per-request HTTP timeout (override
+    ///   [`DEFAULT_TIMEOUT`] for out-of-cluster callers).
     pub fn with_timeout(
         base_url: impl Into<String>,
         api_key: impl Into<String>,
@@ -62,7 +75,12 @@ impl SupaClient {
     }
 
     /// Read `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` from the
-    /// process env. Returns `None` if either is missing or empty.
+    /// process env.
+    ///
+    /// # Returns
+    ///
+    /// `Some(client)` when both vars are set and non-empty, `None`
+    /// otherwise.
     pub fn from_env() -> Option<Self> {
         let url = std::env::var("SUPABASE_URL")
             .ok()
@@ -73,10 +91,11 @@ impl SupaClient {
         Some(Self::new(url, key))
     }
 
-    /// Override the effective auth JWT for this client. Useful when
-    /// proxying a user session through the server — pass the user's
-    /// anon JWT here and the service-role key stays at the `apikey`
-    /// header only.
+    /// Override the effective auth JWT for this client.
+    ///
+    /// Useful when proxying a user session through the server — pass
+    /// the user's anon JWT here and the service-role key stays at the
+    /// `apikey` header only. Returns `self` for chaining.
     pub fn with_jwt(mut self, jwt: impl Into<String>) -> Self {
         self.jwt = Some(jwt.into());
         self
@@ -96,6 +115,19 @@ impl SupaClient {
     }
 
     /// Call a Supabase RPC (database function) in the default schema.
+    ///
+    /// # Arguments
+    ///
+    /// * `function` — RPC name as registered in PostgREST (matches
+    ///   the SQL function name).
+    /// * `params` — JSON object of named parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SupaError::Transport`] on connection / DNS / TLS
+    /// failures. The HTTP response itself is not status-checked here —
+    /// callers decide how to handle 4xx / 5xx, typically via
+    /// [`reqwest::Response::error_for_status`].
     pub async fn rpc(
         &self,
         function: &str,
@@ -115,10 +147,20 @@ impl SupaClient {
     /// Call a Supabase RPC in a specific PostgreSQL schema.
     ///
     /// Sets `Content-Profile` and `Accept-Profile` so PostgREST routes
-    /// the call to the given schema (e.g. `"mc"` for the Minecraft auth
-    /// functions). The schema must be listed in PostgREST's
-    /// `db-schemas` config — for the kilobase stack that's the `pgrst.*`
-    /// values already pointing at `public, mc, tracker, ...`.
+    /// the call to the given schema (e.g. `"mc"` for the Minecraft
+    /// auth functions). The schema must be listed in PostgREST's
+    /// `db-schemas` config — for the kilobase stack that's the
+    /// `pgrst.*` values already pointing at `public, mc, tracker, …`.
+    ///
+    /// # Arguments
+    ///
+    /// * `function` — RPC name in the target schema.
+    /// * `params` — JSON object of named parameters.
+    /// * `schema` — PostgreSQL schema name (e.g. `"mc"`).
+    ///
+    /// # Errors
+    ///
+    /// Same as [`SupaClient::rpc`] — transport-layer failures.
     pub async fn rpc_schema(
         &self,
         function: &str,

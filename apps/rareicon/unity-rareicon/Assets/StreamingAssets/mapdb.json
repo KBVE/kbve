@@ -299,7 +299,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shop",
+			"faction": "neutral",
+			"maxHealth": 400
 		},
 		{
 			"id": "01KKR968Q3E3325YXY090Z03D1",
@@ -313,7 +316,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shop",
+			"faction": "neutral",
+			"maxHealth": 1200
 		},
 		{
 			"id": "01KKR968Q3801YCR495T6MT1WW",
@@ -327,7 +333,18 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shrine",
+			"faction": "neutral",
+			"maxHealth": 600,
+			"shrine": {
+				"cadenceTurns": 5,
+				"rewardCoin": 15,
+				"rewardItems": [],
+				"territoryActive": true,
+				"kingVisitActive": true
+			},
+			"aura": { "radius": 3, "bonusKind": "morale", "multiplier": 1 }
 		},
 		{
 			"id": "01KPTS5CHACVAEV4RM5ZJR0854",
@@ -662,7 +679,18 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shrine",
+			"faction": "neutral",
+			"maxHealth": 500,
+			"shrine": {
+				"cadenceTurns": 4,
+				"rewardCoin": 0,
+				"rewardItems": [{ "itemRef": "herb", "amount": 2 }],
+				"territoryActive": true,
+				"kingVisitActive": true
+			},
+			"aura": { "radius": 3, "bonusKind": "healing", "multiplier": 1 }
 		},
 		{
 			"id": "01KPTS5CHAPAK4KYSQKVKJYB5K",
@@ -785,7 +813,17 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shrine",
+			"faction": "neutral",
+			"maxHealth": 700,
+			"shrine": {
+				"cadenceTurns": 6,
+				"rewardCoin": 30,
+				"rewardItems": [],
+				"territoryActive": false,
+				"kingVisitActive": true
+			}
 		},
 		{
 			"id": "01JGFJK2X0ESVHM04JRZ7NMDMZ",
@@ -817,7 +855,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shop",
+			"faction": "neutral",
+			"maxHealth": 1000
 		},
 		{
 			"id": "01JCKH7M9K2XQZW3P4R5S6T7V8",
@@ -892,7 +933,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "dungeon",
+			"faction": "hostile",
+			"maxHealth": 1500
 		},
 		{
 			"id": "01KKR968Q35GKEGY6CWQW4SYN5",
@@ -992,7 +1036,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "dungeon",
+			"faction": "hostile",
+			"maxHealth": 1500
 		},
 		{
 			"id": "01K77XRVXZRQ0M7DHJWAFA7NPD",
@@ -1024,7 +1071,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shop",
+			"faction": "neutral",
+			"maxHealth": 1000
 		},
 		{
 			"id": "01KKR968Q4DZJBW6RMZPNMRHQH",
@@ -1212,7 +1262,10 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shop",
+			"faction": "neutral",
+			"maxHealth": 400
 		},
 		{
 			"id": "01KKR968Q4RQT5ANJZHG8KG71D",
@@ -1226,7 +1279,18 @@
 			"destructible": false,
 			"spawnWeight": 0.15,
 			"spawnCount": 1,
-			"blocksMovement": true
+			"blocksMovement": true,
+			"interaction": "shrine",
+			"faction": "neutral",
+			"maxHealth": 700,
+			"shrine": {
+				"cadenceTurns": 5,
+				"rewardCoin": 0,
+				"rewardItems": [{ "itemRef": "herb", "amount": 1 }],
+				"territoryActive": true,
+				"kingVisitActive": true
+			},
+			"aura": { "radius": 4, "bonusKind": "morale", "multiplier": 1 }
 		}
 	]
 }

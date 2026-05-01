@@ -129,7 +129,7 @@ namespace RareIcon
 
             LastClickedHex = msg;
 
-            if (_buildMode.IsActive)
+            if (_buildMode.IsActive || _buildMode.ExitedThisFrame)
                 return;
 
             var world = GameplayWorld.Resolve();
