@@ -41,6 +41,9 @@ use crate::client::SupaClient;
 impl Resource for SupaClient {}
 
 /// Plugin that inserts a [`SupaClient`] resource into the Bevy world.
+///
+/// Construct via [`Self::from_env`] (env-var driven, soft-fails with
+/// a warning) or [`Self::with_client`] (explicit, hard requirement).
 pub struct BevySupaPlugin {
     client: Option<SupaClient>,
 }
@@ -48,9 +51,10 @@ pub struct BevySupaPlugin {
 impl BevySupaPlugin {
     /// Build the plugin from `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
     ///
-    /// If either env var is missing the plugin logs a warning and
-    /// installs nothing — games that want hard-fail behavior should
-    /// construct `SupaClient::from_env()` themselves and use
+    /// If either env var is missing or empty the plugin logs a
+    /// warning at `Plugin::build` time and installs nothing — games
+    /// that want hard-fail behavior should construct
+    /// [`SupaClient::from_env`] themselves and pass to
     /// [`Self::with_client`].
     pub fn from_env() -> Self {
         Self {
@@ -59,6 +63,9 @@ impl BevySupaPlugin {
     }
 
     /// Build the plugin with an already-constructed client.
+    ///
+    /// Useful when you want explicit URL / key (e.g. an in-cluster
+    /// Kong endpoint) instead of env-driven config.
     pub fn with_client(client: SupaClient) -> Self {
         Self {
             client: Some(client),
