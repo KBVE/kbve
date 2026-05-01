@@ -1,0 +1,59 @@
+---
+title: SteamCMD Ubuntu
+description: |
+    Ubuntu 24.04 base image with steamcmd preinstalled. Used for local config.vdf capture + CI Steam upload step.
+sidebar:
+    label: SteamCMD Base
+    order: 901
+tags:
+    - docker
+    - infrastructure
+    - steam
+key: steamcmd_ubuntu
+pipeline: docker
+app_name: steamcmd-ubuntu
+version: "0.1.0"
+version_toml: packages/docker/steamcmd-ubuntu/version.toml
+source_path: packages/docker/steamcmd-ubuntu
+runner: ubuntu-latest
+image: kbve/steamcmd-ubuntu
+has_test: true
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Ubuntu 24.04 base with `steamcmd` preinstalled at `/opt/steamcmd/`, plus a `/usr/local/bin/steamcmd` shim for direct invocation.
+
+Two consumers:
+
+1. **Local** — interactive `docker run -it --rm -v ~/steam-export:/export ghcr.io/kbve/steamcmd-ubuntu:24.04 bash` to capture a Linux-flavored `config.vdf` for the `STEAM_CONFIG_VDF` GitHub secret. Steam Guard mobile auth runs once; the resulting machine token blob authenticates Linux runners on subsequent CI runs.
+2. **CI** — `ci-unity.yml`'s `deploy_steam` job uses this image to run `steamcmd +run_app_build` against the demo / main `app_build_<label>.vdf` configs.
+
+## Image hygiene
+
+- No credentials baked in. Each consumer brings its own `config.vdf` (volume mount locally, secret restore in CI).
+- Self-update runs at image build time so first invocation isn't paying the steamcmd bootstrap cost.
+- `lib32gcc-s1` is the only non-obvious runtime dep — steamcmd is a 32-bit Linux binary.
+
+## Local capture flow
+
+```sh
+mkdir -p ~/steam-export
+docker run -it --rm -v ~/steam-export:/export ghcr.io/kbve/steamcmd-ubuntu:24.04 bash
+# inside:
+#   steamcmd +login h0lybyte    → password + Steam Guard mobile confirm
+#   quit
+#   cp /root/Steam/config/config.vdf /export/
+#   exit
+
+base64 -i ~/steam-export/config.vdf -o /tmp/steam_config.b64
+gh secret set STEAM_CONFIG_VDF --repo kbve/kbve < /tmp/steam_config.b64
+rm -rf /tmp/steam_config.b64 ~/steam-export
+```
+
+## Pipeline
+
+`pipeline: docker` → manifest fan-out builds + pushes to `ghcr.io/kbve/steamcmd-ubuntu:24.04` whenever `version` here outpaces `version.toml`.
