@@ -33,8 +33,14 @@ use askama::Template;
 
 /// Static table of simple permanent redirects handled by Axum before hitting Astro.
 const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
+    ("/application/k", "/application/kubernetes/"),
+    ("/application/k/", "/application/kubernetes/"),
     ("/application/kube", "/application/kubernetes/"),
+    ("/application/kube/", "/application/kubernetes/"),
+    ("/application/kubes", "/application/kubernetes/"),
+    ("/application/kubes/", "/application/kubernetes/"),
     ("/application/kubectl", "/application/kubernetes/"),
+    ("/application/kubectl/", "/application/kubernetes/"),
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
     ("/dogevideo", "/crypto/"),
