@@ -49,6 +49,10 @@ namespace RareIcon
         public const byte Citadel        = 34;  // Tower tier 2 — area-denial aura + ranged garrison slot.
         public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
         public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
+        public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.
+        public const byte HostileCity    = 38;  // CityState mood-band visual: Hostile (Mood < 33).
+        public const byte AlliedCity     = 39;  // CityState mood-band visual: Allied (Mood ≥ 67).
+        public const byte VassalCity     = 40;  // CityState diplomacy state: paying tribute to the player Capital.
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>

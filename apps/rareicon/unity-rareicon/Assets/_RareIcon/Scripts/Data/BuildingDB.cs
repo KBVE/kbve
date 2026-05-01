@@ -319,6 +319,10 @@ namespace RareIcon
             BuildingType.Tower      => "building.tower",
             BuildingType.Wall       => "building.wall",
             BuildingType.Landmark   => "building.landmark",
+            BuildingType.CityState   => "building.city_state",
+            BuildingType.HostileCity => "building.hostile_city",
+            BuildingType.AlliedCity  => "building.allied_city",
+            BuildingType.VassalCity  => "building.vassal_city",
             _ => "building.unknown",
         };
 
