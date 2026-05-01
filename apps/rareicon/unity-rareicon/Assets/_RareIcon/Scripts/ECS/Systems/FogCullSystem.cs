@@ -80,7 +80,7 @@ namespace RareIcon
             if (hexLookup.TryGetValue(hex, out var hexEntity)
                 && fogLookup.HasComponent(hexEntity))
             {
-                fogged = fogLookup[hexEntity].Value >= 1.5f;
+                fogged = fogLookup[hexEntity].Value > 0.5f;
             }
 
             bool currentlyDisabled = disabledLookup.HasComponent(entity);

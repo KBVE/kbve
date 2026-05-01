@@ -104,11 +104,17 @@ namespace RareIcon
         public float Value;
     }
 
-    /// <summary>Fog-of-war classification for shader. 0 = clear (player can see this hex), 1 = explored-but-stale (player has seen it before, dimmed), 2 = unexplored (full fog). Rebaked by FogBakeSystem from current vision sources + persistent explored set.</summary>
+    /// <summary>Fog-of-war classification for shader. Continuous 0..2 float: 0 = clear, 1 = explored-stale, 2 = unexplored. Fractional values smoothly fade between states so vision-radius edges read as a soft falloff instead of a hard ring. Rebaked by FogBakeSystem from current vision sources (Player units + buildings) + the sticky <see cref="FogExplored"/> flag.</summary>
     [MaterialProperty("_Fog")]
     public struct FogVisibility : IComponentData
     {
         public float Value;
+    }
+
+    /// <summary>Sticky "this tile has been seen at least once" flag. Bake flips <see cref="Value"/> to 1 the first time a tile clears below the explored threshold; once-seen tiles then floor at <see cref="FogVisibility"/>=1 when out of live vision instead of going back to 2. Kept separate from <see cref="FogVisibility"/> so the shader's MaterialProperty binding stays a single-float contract.</summary>
+    public struct FogExplored : IComponentData
+    {
+        public byte Value;
     }
 
     /// <summary>

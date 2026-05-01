@@ -60,35 +60,38 @@ float RareiconFogNoise(float2 worldPos, float speed, float density)
     return saturate(a * 0.6 + b * 0.4);
 }
 
-// Apply the fog wash on top of an already-shaded ground colour. `worldPos`
-// is the tile's world-space xy (passed from the vertex stage); `d` is the
-// hex SDF used for the territory edge so we can soften the fog along the
-// rim instead of clipping hard.
+// Apply the fog wash on top of an already-shaded ground colour. `fog` is
+// continuous in [0, 2]: 0 = clear, 1 = explored-stale, 2 = unexplored.
+// FogBakeSystem hands us the smooth distance-falloff so vision-radius
+// edges fade gradually instead of snapping between buckets — we lerp
+// across both stage transitions so that gradient survives to the screen.
+// `worldPos` is the tile's world-space xy; `d` is the hex SDF used for
+// rim softening on the heaviest fog band.
 float3 ApplyFog(float3 ground, float2 worldPos, float d, float fog)
 {
-    if (fog < 0.5) return ground;
+    if (fog < 0.001) return ground;
 
     float noise = RareiconFogNoise(worldPos, _FogNoiseSpeed, _FogNoiseDensity);
 
-    if (fog < 1.5)
-    {
-        // Explored-stale: dim toward fog tint but keep biome readable. Noise
-        // adds a soft moving haze instead of a flat wash. Stronger than
-        // before so the player's last-known view reads as actively foggy
-        // rather than mildly tinted.
-        float k = 0.70 + 0.15 * noise;
-        return lerp(ground, _FogExploredColor.rgb, saturate(k));
-    }
+    // Stage 1 (fog 0..1): clear → explored-stale. Linear fade toward the
+    // explored tint scaled by noise so the falloff has motion at its edge.
+    float clearMix = saturate(fog) * (0.70 + 0.15 * noise);
+    float3 mid     = lerp(ground, _FogExploredColor.rgb, clearMix);
 
-    // Unexplored: opaque fog. Voronoi noise modulates the fog *colour* (so
-    // it reads as moving cloud volumes) but biome ground stays hidden — a
-    // tiny near-edge bleed keeps the silhouette from looking like a
-    // stamped-on disc. Compared to the previous pass the ground lerp at
-    // interior is gone and the edge softening is much narrower.
+    if (fog < 1.001) return mid;
+
+    // Stage 2 (fog 1..2): explored-stale → unexplored. Voronoi noise
+    // modulates the fog *colour* so the canopy reads as moving cloud
+    // volume; ground stays hidden at full fog except for a narrow rim
+    // bleed that prevents the hex silhouette from looking like a stamped
+    // disc.
     float3 fogTint = lerp(_FogColor.rgb, _FogColor.rgb * 1.35, noise);
     float interior = 1.0 - saturate(smoothstep(-0.005, 0.005, d));
     float reveal   = (1.0 - interior) * 0.10;
-    return lerp(fogTint, ground, reveal);
+    float3 heavy   = lerp(fogTint, ground, reveal);
+
+    float stage2Mix = saturate(fog - 1.0);
+    return lerp(mid, heavy, stage2Mix);
 }
 
 #endif // RAREICON_HEX_FOG_OF_WAR_INCLUDED
