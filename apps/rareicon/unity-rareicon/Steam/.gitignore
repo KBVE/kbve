@@ -1,3 +1,8 @@
 # SteamPipe build output — populated by steamcmd at upload time, not
 # tracked in git. The actual demo binaries live under ../build/.
 /BuildOutput/
+
+# Local config.vdf capture target (used by docker-compose `capture`
+# service). Holds the linux-flavored steamcmd login token blob — never
+# commit.
+/steam-export/

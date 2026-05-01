@@ -1,0 +1,65 @@
+# ============================================================================
+# Local Steam tooling — interactive steamcmd + scripted upload via the
+# ghcr.io/kbve/steamcmd-ubuntu image.
+#
+# Reads STEAM_USERNAME / STEAM_PASSWORD from ../../../../.env (repo root)
+# so credentials never end up in this file or in any committed artifact.
+#
+# Two services, both throwaway:
+#
+#   capture   — interactive shell for the one-time `steamcmd +login`
+#               + Steam Guard mobile confirm. Writes config.vdf to
+#               ./steam-export/ (gitignored). Run once when you need a
+#               fresh STEAM_CONFIG_VDF secret.
+#
+#   upload    — non-interactive `steamcmd +run_app_build` against
+#               app_build_demo.vdf. Mounts ./ as the SteamPipe context
+#               and ../build/ as the content root. Use after a Unity
+#               build to push to the demo app.
+#
+# Run with:
+#   docker compose -f apps/rareicon/unity-rareicon/Steam/docker-compose.yml \
+#       --env-file .env run --rm capture
+# (paths assumed relative to repo root)
+# ============================================================================
+
+services:
+    capture:
+        image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        # `tty + stdin_open` keeps the interactive prompt usable for the
+        # password + Steam Guard mobile confirm flow.
+        tty: true
+        stdin_open: true
+        environment:
+            STEAM_USERNAME: ${STEAM_USERNAME?STEAM_USERNAME missing in .env}
+        volumes:
+            - ./steam-export:/export
+        # Drops you at a bash shell. Recommended sequence inside:
+        #   steamcmd +login "$STEAM_USERNAME"
+        #   <password>
+        #   <Steam Guard mobile confirm>
+        #   quit
+        #   cp /root/Steam/config/config.vdf /export/
+        #   exit
+        entrypoint: ['/bin/bash']
+
+    upload:
+        image: ghcr.io/kbve/steamcmd-ubuntu:24.04
+        environment:
+            STEAM_USERNAME: ${STEAM_USERNAME?STEAM_USERNAME missing in .env}
+            STEAM_PASSWORD: ${STEAM_PASSWORD?STEAM_PASSWORD missing in .env}
+        # Mount the VDF dir as /steam and the build output as /build so
+        # the relative `contentroot` in app_build_demo.vdf (../build/)
+        # resolves correctly inside the container.
+        volumes:
+            - ./:/steam
+            - ../build:/build
+        working_dir: /steam
+        command:
+            - 'steamcmd'
+            - '+login'
+            - '${STEAM_USERNAME}'
+            - '${STEAM_PASSWORD}'
+            - '+run_app_build'
+            - '/steam/app_build_demo.vdf'
+            - '+quit'
