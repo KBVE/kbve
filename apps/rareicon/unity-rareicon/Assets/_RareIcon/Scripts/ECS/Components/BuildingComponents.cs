@@ -51,12 +51,19 @@ namespace RareIcon
         public const byte HighwatchTower = 42;  // Tower T1 alt — pure recon: huge VisionRadius, no volley (variant 2).
         public const byte AleHouse       = 43;  // Inn T1 alt — drink-quality focus, lighter heal, brewing recipes (variant 1).
         public const byte Glassworks     = 44;  // Furnace T1 alt — sand → glass + lens crafting recipes (variant 1).
+        public const byte BeaconOutpost  = 51;  // Outpost T1 alt — vision aura + signal-fire reveal, smaller volley (variant 1).
+        public const byte Gatepost       = 52;  // Outpost T1 alt — chokepoint defender — heavy volley, tighter territory (variant 2).
+        public const byte Stables        = 53;  // Barracks T1 alt — cavalry recruit + speed aura (variant 1).
+        public const byte Guildhall      = 54;  // Barracks T1 alt — periodic free hero recruitment (variant 2).
+        public const byte Buttress       = 55;  // Wall T1 alt — extra HP, projectile soak (variant 1).
+        public const byte Palisade       = 56;  // Wall T1 alt — cheap timber wall, lower HP (variant 2).
         public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
         public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
         public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.
         public const byte HostileCity    = 38;  // CityState mood-band visual: Hostile (Mood < 33).
         public const byte AlliedCity     = 39;  // CityState mood-band visual: Allied (Mood ≥ 67).
         public const byte VassalCity     = 40;  // CityState diplomacy state: paying tribute to the player Capital.
+        public const byte City           = 45;  // Player-founded city — second+ city under Player faction. Carries CityTag + CityLedger + smaller TerritoryEmitter than the Capital seed. Reuses Capital visual until a dedicated shader case ships.
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>
@@ -128,6 +135,12 @@ namespace RareIcon
     public struct GoblinHireRequest : IComponentData
     {
         public Entity Cave;
+    }
+
+    /// <summary>Player-issued request to found a new city at <see cref="CenterHex"/>. <c>FoundCitySystem</c> validates the hex (loaded, on land, unoccupied), enforces a minimum hex distance from existing player cities, debits the founding cost from the nearest player bank, then spawns a Building of type <see cref="BuildingType.City"/> with CityTag + CityLedger + a smaller TerritoryEmitter. Failure modes (off-map, water, too close, insufficient funds) cancel cleanly with a toast.</summary>
+    public struct FoundCityRequest : IComponentData
+    {
+        public Unity.Mathematics.int2 CenterHex;
     }
 
     /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
