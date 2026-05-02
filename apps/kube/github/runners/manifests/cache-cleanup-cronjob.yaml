@@ -77,7 +77,7 @@ spec:
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
-                              claimName: arc-runner-cache
+                              claimName: arc-runner-cache-sdb
                         - name: docker-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-docker-cache
@@ -196,7 +196,7 @@ spec:
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
-                              claimName: arc-runner-cache
+                              claimName: arc-runner-cache-sdb
                         - name: docker-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-docker-cache
@@ -335,7 +335,7 @@ spec:
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
-                              claimName: arc-runner-cache
+                              claimName: arc-runner-cache-sdb
                         - name: docker-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-docker-cache

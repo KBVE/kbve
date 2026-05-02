@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260320-image-bump'
+            kbve.com/restart-trigger: '20260502-runner-cache-sdb'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -137,7 +137,7 @@ template:
               emptyDir: {}
             - name: runner-cache
               persistentVolumeClaim:
-                  claimName: arc-runner-cache
+                  claimName: arc-runner-cache-sdb
             - name: docker-cache
               persistentVolumeClaim:
                   claimName: arc-runner-docker-cache
