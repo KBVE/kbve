@@ -183,8 +183,12 @@ jobs:
 
             - name: Pull LFS objects (rareicon scope only)
               run: |
+                  LFS_CACHE="/home/runner/_cache/lfs/${GITHUB_REPOSITORY//\//_}"
+                  mkdir -p "$LFS_CACHE"
+                  git config --local lfs.storage "$LFS_CACHE"
                   git lfs install --local
                   git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
+                  echo "LFS cache: $(du -sh "$LFS_CACHE" 2>/dev/null | cut -f1)"
 
             - name: Seed Unity Library from PVC
               run: |

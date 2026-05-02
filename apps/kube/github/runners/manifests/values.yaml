@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260502-runner-cache-sdb'
+            kbve.com/restart-trigger: '20260502-dind-cache-pvc'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -134,7 +134,8 @@ template:
             - name: dind-externals
               emptyDir: {}
             - name: dind-storage
-              emptyDir: {}
+              persistentVolumeClaim:
+                  claimName: arc-dind-cache
             - name: runner-cache
               persistentVolumeClaim:
                   claimName: arc-runner-cache-sdb
