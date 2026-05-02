@@ -165,6 +165,16 @@ namespace RareIcon
             var sp = _root.Q<Button>("title-menu-singleplayer");
             if (sp != null) sp.clicked += _session.BeginSinglePlayer;
 
+            var quick = _root.Q<Button>("title-menu-quick-continue");
+            if (quick != null)
+            {
+                quick.clicked += OnQuickContinueClicked;
+                // Show only when at least one save bundle exists. Skips
+                // the slot picker entirely on click — restores the
+                // most-recent slot directly.
+                if (_session.HasAnySlot) quick.RemoveFromClassList("is-hidden");
+            }
+
             var load = _root.Q<Button>("title-menu-load");
             if (load != null) load.clicked += _session.BeginLoadFlow;
 
@@ -236,6 +246,20 @@ namespace RareIcon
         {
             var back = _root.Q<Button>("title-load-back");
             if (back != null) back.clicked += _session.BackFromLoad;
+        }
+
+        void OnQuickContinueClicked()
+        {
+            bool ok = _session.QuickContinue(out var reason);
+            if (!ok)
+            {
+                // Surface the failure via the Load stage's status label
+                // — reuse the same surface as the slot-picker path so
+                // the player has one place to read save errors.
+                _session.BeginLoadFlow();
+                if (_loadStatus != null)
+                    _loadStatus.text = _locale.Get("title.load_failed") + ": " + (reason ?? "unknown");
+            }
         }
 
         void RefreshLoadList()

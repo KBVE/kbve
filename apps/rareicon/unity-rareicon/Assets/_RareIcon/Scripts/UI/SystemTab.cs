@@ -9,7 +9,8 @@ namespace RareIcon
         readonly LocaleService     _locale;
         readonly WorldGenSession   _session;
 
-        Label _statusLabel;
+        Label  _statusLabel;
+        Button _saveBtn;
 
         public string Title => "System";
 
@@ -29,10 +30,10 @@ namespace RareIcon
             heading.style.marginBottom = 8;
             root.Add(heading);
 
-            var save = MakePrimaryButton(_locale.Get("settings.system.save"), OnSaveClicked,
+            _saveBtn = MakePrimaryButton(_locale.Get("settings.system.save"), OnSaveClicked,
                 bg: UIStyles.Palette.Gold, fg: UIStyles.Palette.Zinc950);
-            save.style.marginBottom = 8;
-            root.Add(save);
+            _saveBtn.style.marginBottom = 8;
+            root.Add(_saveBtn);
 
             var quit = MakePrimaryButton(_locale.Get("settings.system.exit"), OnExitClicked,
                 bg: UIStyles.Palette.Alert, fg: UIStyles.Palette.GoldBright);
@@ -51,6 +52,20 @@ namespace RareIcon
         public void OnActivated()
         {
             if (_statusLabel != null) _statusLabel.text = string.Empty;
+            ApplyWorldGate();
+        }
+
+        // World hasn't started yet → SAVE GAME is meaningless (no live
+        // sim to snapshot). Hide the button + status hint at the title
+        // screen. EXIT GAME stays since the player still wants a clean
+        // shutdown path from the menu.
+        void ApplyWorldGate()
+        {
+            if (_saveBtn == null) return;
+            bool hasWorld = WorldGenSession.HasStarted;
+            _saveBtn.style.display = hasWorld ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!hasWorld && _statusLabel != null)
+                _statusLabel.text = _locale.Get("settings.system.no_world");
         }
 
         void OnSaveClicked()
@@ -67,8 +82,14 @@ namespace RareIcon
             // Persist before quitting so the autosave reflects the latest
             // tick. RustPersistenceFlushHook also fires on OnApplicationQuit
             // as a backstop, but driving it from here is more responsive.
-            byte[] thumb = ScreenshotService.CaptureThumbnailPng();
-            SaveSlotService.Save("autosave", BuildContext(), thumb);
+            // Skip the autosave at the title screen — there's no live sim
+            // to snapshot and writing an empty bundle would clobber a
+            // legitimate prior autosave.
+            if (WorldGenSession.HasStarted)
+            {
+                byte[] thumb = ScreenshotService.CaptureThumbnailPng();
+                SaveSlotService.Save("autosave", BuildContext(), thumb);
+            }
 
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
