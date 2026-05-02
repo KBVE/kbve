@@ -1,0 +1,43 @@
+---
+title: 'Pirate Ship'
+description: |
+    Hostile coastal raider. PirateCove-spawned via PirateCoveRaidSystem; water-locked, arrow attack, slightly weaker than the player Galley but spawned in waves. The ocean sister to the Bandit raid line.
+ref: 'pirate-ship'
+id: '01KSAVQR3VN6ZE4AVMV0V4Z6BV'
+name: 'Pirate Ship'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'aggressive'
+rank: 'elite'
+family: 'humanoid'
+level: 4
+stats:
+    hp: 120
+    max_hp: 120
+    attack: 6
+    defense: 3
+    speed: 4
+    armor: 1
+behavior:
+    movement_type: 'aggressive'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The pirate ship looses a ragged volley! {target} takes {dmg} damage!"
+        - "A jeering crew fires from the deck — {target} reels for {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The pirate ship lists badly, then slips beneath the waves with its haul."
+abilities:
+    - id: 'attack'
+      name: 'Cannon Volley'
+      damage: 6
+faction:
+    faction_id: 'hostile'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Hostile coastal raider. PirateCove-spawned, water-locked arrow attack, sister to Bandit raids.

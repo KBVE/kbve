@@ -1,0 +1,43 @@
+---
+title: 'Zombie'
+description: |
+    Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't fatigue.
+ref: 'zombie'
+id: '01KSAVP0BZN4KBB5Y1P62RVVWS'
+name: 'Zombie'
+type_flags: 1
+rarity: 'common'
+personality: 'aggressive'
+rank: 'standard'
+family: 'undead'
+level: 2
+stats:
+    hp: 50
+    max_hp: 50
+    attack: 4
+    defense: 1
+    speed: 2
+    armor: 0
+behavior:
+    movement_type: 'aggressive'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The zombie sinks rotted teeth into {target}! {dmg} damage!"
+        - "Cold, dead hands rake across {target} — {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The zombie collapses and stops twitching for good."
+abilities:
+    - id: 'attack'
+      name: 'Bite'
+      damage: 4
+faction:
+    faction_id: 'hostile'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Slow, undead horde unit. Spawns at night and around demolished shrines.

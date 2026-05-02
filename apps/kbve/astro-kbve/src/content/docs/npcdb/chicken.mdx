@@ -1,0 +1,42 @@
+---
+title: 'Chicken'
+description: |
+    Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife. Drops nothing meaningful — atmospheric.
+ref: 'chicken'
+id: '01KSAVKEYE51RE3HX4T4G1BNRV'
+name: 'Chicken'
+type_flags: 1
+rarity: 'common'
+personality: 'fearful'
+rank: 'standard'
+family: 'beast'
+level: 1
+stats:
+    hp: 5
+    max_hp: 5
+    attack: 1
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The chicken pecks at {target}'s ankle! {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The chicken keels over with a final, indignant cluck."
+abilities:
+    - id: 'attack'
+      name: 'Peck'
+      damage: 1
+faction:
+    faction_id: 'wildlife'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife.

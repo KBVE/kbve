@@ -1,0 +1,43 @@
+---
+title: 'Knight'
+description: |
+    Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.
+ref: 'knight'
+id: '01KSAVJ4TXAMCXS00X0F0H2W1E'
+name: 'Knight'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'brave'
+rank: 'elite'
+family: 'humanoid'
+level: 4
+stats:
+    hp: 120
+    max_hp: 120
+    attack: 8
+    defense: 3
+    speed: 3
+    armor: 4
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The knight crashes into {target} with a steel-shod blow! {dmg} damage!"
+        - "Plate clanks as the knight cleaves {target}! {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The knight falls heavily, plate ringing against the stone."
+abilities:
+    - id: 'attack'
+      name: 'Steel Cleave'
+      damage: 8
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.

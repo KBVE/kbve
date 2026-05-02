@@ -1,0 +1,39 @@
+---
+title: 'Sheep'
+description: |
+    Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed; herds farm Migration events spawn flocks.
+ref: 'sheep'
+id: '01KSAVAAWG80N798A1T6G6E9MD'
+name: 'Sheep'
+type_flags: 1
+rarity: 'common'
+personality: 'fearful'
+rank: 'standard'
+family: 'beast'
+level: 1
+stats:
+    hp: 20
+    max_hp: 20
+    attack: 1
+    defense: 0
+    speed: 2
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+flavor_text:
+    - action: 'death'
+      messages:
+        - "The sheep crumples mid-bleat."
+abilities:
+    - id: 'attack'
+      name: 'Headbutt'
+      damage: 1
+faction:
+    faction_id: 'wildlife'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed.

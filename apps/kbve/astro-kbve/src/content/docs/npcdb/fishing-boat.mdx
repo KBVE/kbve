@@ -1,0 +1,43 @@
+---
+title: 'Fishing Boat'
+description: |
+    Craftsman-built water-locked vessel. Slow, mid HP, harpoon-tipped ranged attack against Whales + Beasts. Spawned by Docks; lives in river / ocean tiles only.
+ref: 'fishing-boat'
+id: '01KSAVJR1ASDVMRD9B29PHBXWV'
+name: 'Fishing Boat'
+type_flags: 1
+rarity: 'common'
+personality: 'steady'
+rank: 'standard'
+family: 'humanoid'
+level: 3
+stats:
+    hp: 80
+    max_hp: 80
+    attack: 4
+    defense: 2
+    speed: 3
+    armor: 1
+behavior:
+    movement_type: 'water_wander'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The fishing boat's harpoon plunges into {target}! {dmg} damage!"
+        - "A whaling line whips through the water — {target} takes {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The fishing boat splinters apart and slips beneath the waves."
+abilities:
+    - id: 'attack'
+      name: 'Harpoon'
+      damage: 4
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Craftsman-built water-locked vessel. Slow, harpoon-tipped, hunts Whales and Beasts.
