@@ -14,7 +14,8 @@ namespace RareIcon
         uint _lastSeenGeneration;
         EntityQuery _tileQuery;
 
-        [BurstCompile]
+        EntityQuery _singletonQuery;
+
         public void OnCreate(ref SystemState state)
         {
             _lastSeenGeneration = uint.MaxValue;
@@ -22,16 +23,30 @@ namespace RareIcon
                 .WithAll<HexTileTag>()
                 .WithAll<AuraHighlightVisual>()
                 .Build(ref state);
-            EnsureSingleton(ref state);
+            _singletonQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<AuraHighlightTarget>()
+                .Build(ref state);
         }
 
-        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            EnsureSingleton(ref state);
-            var target = SystemAPI.GetSingleton<AuraHighlightTarget>();
+            if (_singletonQuery.CalculateEntityCount() == 0)
+            {
+                var e = state.EntityManager.CreateEntity(typeof(AuraHighlightTarget));
+                state.EntityManager.SetName(e, "AuraHighlightTarget");
+                state.EntityManager.SetComponentData(e, new AuraHighlightTarget
+                {
+                    Center     = int2.zero,
+                    Radius     = 0,
+                    Active     = 0,
+                    Generation = 0,
+                });
+                return;
+            }
+
+            var target = _singletonQuery.GetSingleton<AuraHighlightTarget>();
             if (target.Generation == _lastSeenGeneration) return;
             _lastSeenGeneration = target.Generation;
 
@@ -41,21 +56,6 @@ namespace RareIcon
                 Radius = target.Radius,
                 Active = target.Active,
             }.ScheduleParallel(state.Dependency);
-        }
-
-        [BurstCompile]
-        static void EnsureSingleton(ref SystemState state)
-        {
-            if (SystemAPI.HasSingleton<AuraHighlightTarget>()) return;
-            var e = state.EntityManager.CreateEntity(typeof(AuraHighlightTarget));
-            state.EntityManager.SetName(e, "AuraHighlightTarget");
-            state.EntityManager.SetComponentData(e, new AuraHighlightTarget
-            {
-                Center     = int2.zero,
-                Radius     = 0,
-                Active     = 0,
-                Generation = 0,
-            });
         }
     }
 
