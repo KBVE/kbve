@@ -71,12 +71,26 @@ namespace RareIcon
 
             var em = world.EntityManager;
             var req = em.CreateEntity();
-            em.AddComponentData(req, new BuildRequest
+            // Player-founded city has its own validation + spawn pipeline
+            // (FoundCitySystem) — distance gate, multi-resource bank
+            // withdrawal, dedicated spawn shape with CityTag + CityLedger.
+            // Skip the standard BuildRequest path for the City target.
+            if (buildingType == BuildingType.City)
             {
-                CenterHex = new int2(msg.Q, msg.R),
-                BuildingType = buildingType,
-                OwnerFaction = FactionType.Player,
-            });
+                em.AddComponentData(req, new FoundCityRequest
+                {
+                    CenterHex = new int2(msg.Q, msg.R),
+                });
+            }
+            else
+            {
+                em.AddComponentData(req, new BuildRequest
+                {
+                    CenterHex = new int2(msg.Q, msg.R),
+                    BuildingType = buildingType,
+                    OwnerFaction = FactionType.Player,
+                });
+            }
 
             _buildMode.Exit();
         }

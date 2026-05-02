@@ -26,6 +26,7 @@ namespace RareIcon
 
         VisualElement _root, _panel, _rowsHost;
         Row[] _rows;
+        BuildingPanelLayout _layout;
 
         [Inject]
         public UIBuildingPalette(LocaleService locale, UIPanelManager panelManager, BuildModeController buildMode,
@@ -70,6 +71,13 @@ namespace RareIcon
                 _rows[i] = new Row(type, _locale, OnRowClicked);
                 _rowsHost.Add(_rows[i].Element);
             }
+
+            // Responsive breakpoints — reshape padding + per-row layout
+            // when the modal is squeezed on small screens or stretched
+            // on ultrawide displays. Class toggles fire on every
+            // GeometryChangedEvent so resizing the editor mid-session
+            // re-flows immediately.
+            _layout = new BuildingPanelLayout(card, _rowsHost);
 
             _isOpen.Subscribe(open =>
             {
