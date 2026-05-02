@@ -219,8 +219,8 @@ namespace RareIcon
             }
             else if (type == BuildingType.Tower)
             {
-                if (tier == 1) return BuildingType.Bastion;
-                if (tier == 2) return BuildingType.Citadel;
+                if (tier == 1) return BuildingType.WatchTower;
+                if (tier == 2) return BuildingType.SentinelTower;
             }
             else if (type == BuildingType.Wall)
             {

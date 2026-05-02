@@ -105,11 +105,11 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeWatchpostToGarrison    = { new((ushort)ItemId.Timber,   10),
                                                                        new((ushort)ItemId.StoneBlock, 14),
                                                                        new((ushort)ItemId.GoldBar,    8) };
-        static readonly Ingredient[] UpgradeTowerToBastion         = { new((ushort)ItemId.StoneBlock, 10),
-                                                                       new((ushort)ItemId.IronOre,   4) };
-        static readonly Ingredient[] UpgradeBastionToCitadel       = { new((ushort)ItemId.StoneBlock, 18),
-                                                                       new((ushort)ItemId.IronOre,  10),
-                                                                       new((ushort)ItemId.GoldBar,    14) };
+        static readonly Ingredient[] UpgradeTowerToWatchTower      = { new((ushort)ItemId.StoneBlock, 10),
+                                                                       new((ushort)ItemId.IronOre,    4) };
+        static readonly Ingredient[] UpgradeWatchToSentinelTower   = { new((ushort)ItemId.StoneBlock, 18),
+                                                                       new((ushort)ItemId.IronOre,   10),
+                                                                       new((ushort)ItemId.GoldBar,   14) };
         static readonly Ingredient[] UpgradeWallToReinforced       = { new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
                                                                        new((ushort)ItemId.IronOre,   3) };
@@ -161,8 +161,8 @@ namespace RareIcon
             }
             else if (buildingType == BuildingType.Tower)
             {
-                if (fromTier == 0) return UpgradeTowerToBastion;
-                if (fromTier == 1) return UpgradeBastionToCitadel;
+                if (fromTier == 0) return UpgradeTowerToWatchTower;
+                if (fromTier == 1) return UpgradeWatchToSentinelTower;
             }
             else if (buildingType == BuildingType.Wall)
             {
@@ -219,8 +219,8 @@ namespace RareIcon
             }
             else if (buildingType == BuildingType.Tower)
             {
-                if (tier == 1) return BuildingType.Bastion;
-                if (tier == 2) return BuildingType.Citadel;
+                if (tier == 1) return BuildingType.WatchTower;
+                if (tier == 2) return BuildingType.SentinelTower;
             }
             else if (buildingType == BuildingType.Wall)
             {
@@ -316,7 +316,9 @@ namespace RareIcon
             BuildingType.Shipyard   => "building.shipyard",
             BuildingType.Harbour    => "building.harbour",
             BuildingType.PirateCove => "building.pirate_cove",
-            BuildingType.Tower      => "building.tower",
+            BuildingType.Tower         => "building.tower",
+            BuildingType.WatchTower    => "building.watch_tower",
+            BuildingType.SentinelTower => "building.sentinel_tower",
             BuildingType.Wall       => "building.wall",
             BuildingType.Landmark   => "building.landmark",
             BuildingType.CityState   => "building.city_state",
@@ -373,8 +375,8 @@ namespace RareIcon
             }
             else if (buildingType == BuildingType.Tower)
             {
-                if (tier == 1) return "building.bastion";
-                if (tier == 2) return "building.citadel";
+                if (tier == 1) return "building.watch_tower";
+                if (tier == 2) return "building.sentinel_tower";
             }
             else if (buildingType == BuildingType.Wall)
             {
@@ -439,7 +441,9 @@ namespace RareIcon
             BuildingType.Shipyard   => 240,
             BuildingType.Harbour    => 320,
             BuildingType.PirateCove => 240,
-            BuildingType.Tower      => 320,
+            BuildingType.Tower         => 320,
+            BuildingType.WatchTower    => 480,
+            BuildingType.SentinelTower => 720,
             BuildingType.Wall       => 260,
             _                       => 100,
         };
