@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260502-runner-2.334.0-dind-no-subpath'
+            kbve.com/restart-trigger: '20260502-dind-match-ue'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -99,7 +99,7 @@ template:
               # (game-ci/unity-builder) inherits the higher cap.
               command: ['sh', '-c']
               args:
-                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --data-root=/var/lib/docker --storage-driver=overlay2 --default-ulimit=nofile=1048576:1048576'
+                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576'
               securityContext:
                   privileged: true
               resources:
