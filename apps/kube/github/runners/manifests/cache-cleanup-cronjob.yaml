@@ -72,15 +72,10 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
-                              - name: docker-cache
-                                mountPath: /cache/docker
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
-                        - name: docker-cache
-                          persistentVolumeClaim:
-                              claimName: arc-runner-docker-cache
 ---
 # ── Tier 2: Medium — daily at 3 AM UTC ────────────────────────────────────
 apiVersion: batch/v1
@@ -191,15 +186,10 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
-                              - name: docker-cache
-                                mountPath: /cache/docker
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
-                        - name: docker-cache
-                          persistentVolumeClaim:
-                              claimName: arc-runner-docker-cache
 ---
 # ── Tier 3: Heavy — every 3 days at 4 AM UTC ──────────────────────────────
 apiVersion: batch/v1
@@ -330,12 +320,7 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
-                              - name: docker-cache
-                                mountPath: /cache/docker
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
-                        - name: docker-cache
-                          persistentVolumeClaim:
-                              claimName: arc-runner-docker-cache
