@@ -1,8 +1,9 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace RareIcon
 {
-    /// <summary>Drives responsive breakpoint classes on a panel + its children. Subscribes to <see cref="GeometryChangedEvent"/> on the panel root and toggles <c>is-narrow</c> / <c>is-wide</c> classes whenever the resolved width crosses the configured pixel breakpoints. USS rules under <c>.panel--modal.is-narrow</c> / <c>.panel--modal.is-wide</c> reshape padding + flex direction so phone-class resolutions don't crush rows and 4K screens don't bleed to the edges. Also re-applies the same classes to optional row children so individual rows can rearrange independently of the parent panel.</summary>
+    /// <summary>Drives responsive breakpoint classes on a panel + its children. Subscribes to <see cref="GeometryChangedEvent"/> on the panel as a tick source, but reads <see cref="Screen.width"/> for the breakpoint decision so toggling <c>is-narrow</c> / <c>is-wide</c> classes never feeds back into the panel's own width and triggers Unity's "recursive layout" warning. State-change gate guarantees <c>AddToClassList</c> only runs on transitions, not every tick.</summary>
     public sealed class BuildingPanelLayout
     {
         public const float NarrowBreakpoint = 640f;
@@ -10,6 +11,7 @@ namespace RareIcon
 
         readonly VisualElement _root;
         readonly VisualElement _rowsHost;
+        int _state = -1; // 0 = default, 1 = narrow, 2 = wide
 
         public BuildingPanelLayout(VisualElement root, VisualElement rowsHost = null)
         {
@@ -19,22 +21,25 @@ namespace RareIcon
             _root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
-        void OnGeometryChanged(GeometryChangedEvent evt)
+        void OnGeometryChanged(GeometryChangedEvent _)
         {
-            float w = evt.newRect.width;
+            float w = Screen.width;
             if (w <= 0f) return;
 
-            bool narrow = w < NarrowBreakpoint;
-            bool wide   = w >= WideBreakpoint;
+            int next = w <  NarrowBreakpoint ? 1
+                     : w >= WideBreakpoint   ? 2
+                     :                         0;
+            if (next == _state) return;
+            _state = next;
 
-            Toggle(_root, "is-narrow", narrow);
-            Toggle(_root, "is-wide",   wide);
+            Toggle(_root, "is-narrow", next == 1);
+            Toggle(_root, "is-wide",   next == 2);
 
             if (_rowsHost == null) return;
             for (int i = 0; i < _rowsHost.childCount; i++)
             {
-                Toggle(_rowsHost[i], "is-narrow", narrow);
-                Toggle(_rowsHost[i], "is-wide",   wide);
+                Toggle(_rowsHost[i], "is-narrow", next == 1);
+                Toggle(_rowsHost[i], "is-wide",   next == 2);
             }
         }
 
