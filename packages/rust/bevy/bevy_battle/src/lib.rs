@@ -59,7 +59,6 @@ pub use bevy::ecs::message::Messages;
 mod plugin {
     use bevy::prelude::*;
 
-    use crate::component::*;
     use crate::event::*;
     use crate::resource::*;
     use crate::system;

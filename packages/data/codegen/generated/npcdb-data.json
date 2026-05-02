@@ -8,7 +8,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_UNCOMMON",
 			"personality": "PERSONALITY_FEARFUL",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 2,
 			"stats": {
@@ -56,7 +56,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_AGGRESSIVE",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 2,
 			"stats": {
@@ -68,7 +68,7 @@
 				"armor": 1
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"movementType": "MOVEMENT_TYPE_PATROL",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -220,7 +220,7 @@
 			"name": "Cavalry",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_UNCOMMON",
-			"personality": "PERSONALITY_BRAVE",
+			"personality": "PERSONALITY_NOBLE",
 			"rank": "NPC_RANK_ELITE",
 			"family": "humanoid",
 			"level": 3,
@@ -233,7 +233,7 @@
 				"armor": 2
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"movementType": "MOVEMENT_TYPE_PATROL",
 				"firstStrike": true
 			},
 			"flavorText": [
@@ -379,7 +379,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_FEARFUL",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "beast",
 			"level": 1,
 			"stats": {
@@ -569,7 +569,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_FEARFUL",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "beast",
 			"level": 1,
 			"stats": {
@@ -1416,8 +1416,8 @@
 			"name": "Fishing Boat",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
-			"personality": "PERSONALITY_STEADY",
-			"rank": "NPC_RANK_STANDARD",
+			"personality": "PERSONALITY_STOIC",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 3,
 			"stats": {
@@ -1429,7 +1429,7 @@
 				"armor": 1
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -1585,7 +1585,7 @@
 			"name": "Galley",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_UNCOMMON",
-			"personality": "PERSONALITY_STEADY",
+			"personality": "PERSONALITY_STOIC",
 			"rank": "NPC_RANK_ELITE",
 			"family": "humanoid",
 			"level": 4,
@@ -1598,7 +1598,7 @@
 				"armor": 2
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -2014,7 +2014,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_AGGRESSIVE",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 1,
 			"stats": {
@@ -2110,9 +2110,9 @@
 			"id": "01KSAV57D0DKQNWXJ8AC01V8PQ",
 			"name": "King",
 			"typeFlags": 1,
-			"rarity": "NPC_RARITY_UNIQUE",
-			"personality": "PERSONALITY_COMMANDING",
-			"rank": "NPC_RANK_BOSS",
+			"rarity": "NPC_RARITY_LEGENDARY",
+			"personality": "PERSONALITY_NOBLE",
+			"rank": "NPC_RANK_WORLD_BOSS",
 			"family": "humanoid",
 			"level": 8,
 			"stats": {
@@ -2124,7 +2124,7 @@
 				"armor": 3
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_CONTROLLED",
+				"movementType": "MOVEMENT_TYPE_SCRIPTED",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -2160,7 +2160,7 @@
 			"name": "Knight",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_UNCOMMON",
-			"personality": "PERSONALITY_BRAVE",
+			"personality": "PERSONALITY_NOBLE",
 			"rank": "NPC_RANK_ELITE",
 			"family": "humanoid",
 			"level": 4,
@@ -2209,7 +2209,7 @@
 			"name": "Mage",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_RARE",
-			"personality": "PERSONALITY_CAUTIOUS",
+			"personality": "PERSONALITY_CUNNING",
 			"rank": "NPC_RANK_ELITE",
 			"family": "humanoid",
 			"level": 4,
@@ -2553,7 +2553,7 @@
 				"armor": 1
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"movementType": "MOVEMENT_TYPE_PATROL",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -2589,8 +2589,8 @@
 			"name": "Scout",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
-			"personality": "PERSONALITY_CAUTIOUS",
-			"rank": "NPC_RANK_STANDARD",
+			"personality": "PERSONALITY_CUNNING",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 1,
 			"stats": {
@@ -2890,7 +2890,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_FEARFUL",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "beast",
 			"level": 1,
 			"stats": {
@@ -3046,8 +3046,8 @@
 			"name": "Soldier",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
-			"personality": "PERSONALITY_STEADY",
-			"rank": "NPC_RANK_STANDARD",
+			"personality": "PERSONALITY_STOIC",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "humanoid",
 			"level": 2,
 			"stats": {
@@ -3647,7 +3647,7 @@
 			"name": "Whale",
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_RARE",
-			"personality": "PERSONALITY_CAUTIOUS",
+			"personality": "PERSONALITY_PASSIVE",
 			"rank": "NPC_RANK_ELITE",
 			"family": "beast",
 			"level": 6,
@@ -3660,7 +3660,7 @@
 				"armor": 2
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
 				"firstStrike": false
 			},
 			"flavorText": [
@@ -3696,7 +3696,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_UNCOMMON",
 			"personality": "PERSONALITY_AGGRESSIVE",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "beast",
 			"level": 2,
 			"stats": {
@@ -3872,7 +3872,7 @@
 			"typeFlags": 1,
 			"rarity": "NPC_RARITY_COMMON",
 			"personality": "PERSONALITY_AGGRESSIVE",
-			"rank": "NPC_RANK_STANDARD",
+			"rank": "NPC_RANK_NORMAL",
 			"family": "undead",
 			"level": 2,
 			"stats": {
@@ -3884,7 +3884,7 @@
 				"armor": 0
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
 				"firstStrike": false
 			},
 			"flavorText": [

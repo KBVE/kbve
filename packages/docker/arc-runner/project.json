@@ -20,10 +20,7 @@
 					"tags": ["ghcr.io/kbve/arc-runner:latest"]
 				},
 				"production": {
-					"tags": [
-						"ghcr.io/kbve/arc-runner:latest",
-						"ghcr.io/kbve/arc-runner:0.1.0"
-					],
+					"tags": ["ghcr.io/kbve/arc-runner:latest"],
 					"push": true,
 					"metadata": {
 						"images": ["ghcr.io/kbve/arc-runner"]
