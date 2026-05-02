@@ -19,7 +19,8 @@ namespace RareIcon
         const float HexSize     = 0.25f;
         const float LandmarkSize = 1.5f;
         const float LandmarkZ   = -0.55f;
-        const int   DebugRingRadius = 8;
+        const int   DebugRingRadius = 10;
+        const int   LandSearchRadius = 12;
 
         static LandmarkSpawnSystem _instance;
 
@@ -84,17 +85,51 @@ namespace RareIcon
                 return;
             }
 
+            int placed = 0;
+            int skipped = 0;
             foreach (var (refSlug, def) in entries)
             {
                 double ang = (2.0 * math.PI_DBL * i) / math.max(entries.Count, 1);
                 int qi = (int)math.round(DebugRingRadius * math.cos(ang));
                 int ri = (int)math.round(DebugRingRadius * math.sin(ang));
+                i++;
+
+                if (!TryFindLandHex(new int2(qi, ri), out var landHex))
+                {
+                    Debug.LogWarning($"[LandmarkSpawn] no land hex within {LandSearchRadius} of ({qi},{ri}) for '{refSlug}', skipping.");
+                    skipped++;
+                    continue;
+                }
+
                 byte visual = WorldObjectVisualType.FromRef(refSlug);
                 byte kind   = KindFromProto(def.Type);
-                SpawnInternal(refSlug, visual, kind, new int2(qi, ri));
-                i++;
+                SpawnInternal(refSlug, visual, kind, landHex);
+                placed++;
             }
-            Debug.Log($"[LandmarkSpawn] placed {entries.Count} world objects on debug ring (radius {DebugRingRadius}).");
+            Debug.Log($"[LandmarkSpawn] placed {placed}/{entries.Count} world objects on debug ring (radius {DebugRingRadius}); skipped {skipped} for lack of nearby land.");
+        }
+
+        /// <summary>Spiral-search out from <paramref name="origin"/> for the first hex that is loaded, on land (not Ocean, not River), and unoccupied. Lets the debug-ring placement skip past sea cuts and rivers without dropping landmarks into the surf.</summary>
+        bool TryFindLandHex(int2 origin, out int2 result)
+        {
+            var em = EntityManager;
+            foreach (var hex in HexMeshUtil.Spiral(origin, LandSearchRadius))
+            {
+                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) continue;
+                if (em.HasComponent<HexOccupant>(tile))
+                {
+                    var occ = em.GetComponentData<HexOccupant>(tile);
+                    if (occ.Building != Entity.Null) continue;
+                }
+                if (!em.HasComponent<BiomeType>(tile)) continue;
+                byte biome = em.GetComponentData<BiomeType>(tile).Value;
+                if (biome == BiomeGenerator.BIOME_OCEAN) continue;
+                if (biome == BiomeGenerator.BIOME_RIVER) continue;
+                result = hex;
+                return true;
+            }
+            result = default;
+            return false;
         }
 
         Entity SpawnInternal(string refSlug, byte visual, byte kind, int2 hex)
