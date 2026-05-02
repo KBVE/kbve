@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-01T09:39:08Z",
+  "generated_at": "2026-05-02T08:41:19Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 48,
+    "medium": 50,
     "low": 5,
     "info": 29
   },
@@ -362,13 +362,6 @@
           "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
         },
         {
-          "id": "1115692",
-          "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
-          "severity": "high",
-          "package": "handlebars",
-          "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
-        },
-        {
           "id": "1115693",
           "title": "Handlebars.js has JavaScript Injection via AST Type Confusion when passing an object as dynamic partial",
           "severity": "high",
@@ -535,19 +528,40 @@
           "severity": "medium",
           "package": "astro",
           "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
+        },
+        {
+          "id": "1117465",
+          "title": "Handlebars.js has JavaScript Injection in CLI Precompiler via Unescaped Names and Options",
+          "severity": "high",
+          "package": "handlebars",
+          "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
         }
       ]
     },
     "cargo": {
-      "total": 41,
+      "total": 43,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 12,
+        "medium": 14,
         "low": 0,
         "info": 29
       },
       "advisories": [
+        {
+          "id": "RUSTSEC-2026-0118",
+          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
+          "severity": "medium",
+          "package": "hickory-proto",
+          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
+        },
+        {
+          "id": "RUSTSEC-2026-0119",
+          "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
+          "severity": "medium",
+          "package": "hickory-proto",
+          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+        },
         {
           "id": "RUSTSEC-2023-0071",
           "title": "Marvin Attack: potential key recovery through timing sidechannels",

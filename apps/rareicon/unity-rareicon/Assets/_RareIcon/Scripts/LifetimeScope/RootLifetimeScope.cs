@@ -18,6 +18,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<LocaleChangedMessage>(options);
             builder.RegisterMessageBroker<PanelShowMessage>(options);
             builder.RegisterMessageBroker<PanelHideMessage>(options);
+            builder.RegisterMessageBroker<SettingsToggleMessage>(options);
             builder.RegisterMessageBroker<SceneLoadRequestMessage>(options);
             builder.RegisterMessageBroker<SceneLoadedMessage>(options);
             builder.RegisterMessageBroker<PlayerDamagedMessage>(options);

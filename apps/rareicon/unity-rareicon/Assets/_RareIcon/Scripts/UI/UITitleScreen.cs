@@ -20,6 +20,7 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly WorldGenSession _session;
         readonly AppStateController _appState;
+        readonly UISettings _settings;
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         readonly ISubscriber<SteamAvatarReadyMessage> _avatarSub;
         readonly ISteamAvatarService _avatars;
@@ -32,6 +33,9 @@ namespace RareIcon
         VisualElement _stageInfo;
         VisualElement _stageLocale;
         VisualElement _stageSeed;
+        VisualElement _stageLoad;
+        VisualElement _loadList;
+        Label         _loadStatus;
         VisualElement _stageGenerating;
         VisualElement _avatar;
         Label _personaName;
@@ -46,7 +50,8 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             WorldGenSession session,
-            AppStateController appState
+            AppStateController appState,
+            UISettings settings
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             , ISubscriber<SteamAvatarReadyMessage> avatarSub
             , ISteamAvatarService avatars
@@ -57,6 +62,7 @@ namespace RareIcon
             _panelManager = panelManager;
             _session = session;
             _appState = appState;
+            _settings = settings;
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             _avatarSub = avatarSub;
             _avatars = avatars;
@@ -118,6 +124,9 @@ namespace RareIcon
             _stageInfo       = _root.Q<VisualElement>("title-stage-info");
             _stageLocale     = _root.Q<VisualElement>("title-stage-locale");
             _stageSeed       = _root.Q<VisualElement>("title-stage-seed");
+            _stageLoad       = _root.Q<VisualElement>("title-stage-load");
+            _loadList        = _root.Q<VisualElement>("title-load-list");
+            _loadStatus      = _root.Q<Label>("title-load-status");
             _stageGenerating = _root.Q<VisualElement>("title-stage-generating");
             _avatar          = _root.Q<VisualElement>("title-avatar");
             _personaName     = _root.Q<Label>("title-persona-name");
@@ -130,6 +139,7 @@ namespace RareIcon
             BindMenu();
             BindLocaleStage();
             BindSeedStage();
+            BindLoadStage();
             BindGeneratingStage();
             BindPersona();
             BindClose();
@@ -154,6 +164,12 @@ namespace RareIcon
         {
             var sp = _root.Q<Button>("title-menu-singleplayer");
             if (sp != null) sp.clicked += _session.BeginSinglePlayer;
+
+            var load = _root.Q<Button>("title-menu-load");
+            if (load != null) load.clicked += _session.BeginLoadFlow;
+
+            var settings = _root.Q<Button>("title-menu-settings");
+            if (settings != null) settings.clicked += () => _settings?.Toggle();
 
             var codex = _root.Q<Button>("title-menu-codex");
             if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");
@@ -216,13 +232,109 @@ namespace RareIcon
             if (probe != null) btn.AddToClassList("title-social-btn--has-icon");
         }
 
+        void BindLoadStage()
+        {
+            var back = _root.Q<Button>("title-load-back");
+            if (back != null) back.clicked += _session.BackFromLoad;
+        }
+
+        void RefreshLoadList()
+        {
+            if (_loadList == null) return;
+            _loadList.Clear();
+            if (_loadStatus != null) _loadStatus.text = string.Empty;
+
+            var slots = SaveSlotService.ListSlotsWithMeta();
+            if (slots == null || slots.Length == 0)
+            {
+                var empty = new Label(_locale.Get("title.load_empty"));
+                empty.AddToClassList("title-load-empty");
+                _loadList.Add(empty);
+                return;
+            }
+
+            for (int i = 0; i < slots.Length; i++)
+                _loadList.Add(BuildLoadRow(slots[i]));
+        }
+
+        VisualElement BuildLoadRow(SaveSlotService.SlotInfo info)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("title-load-row");
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginBottom = 6;
+            row.style.paddingTop = 6;
+            row.style.paddingBottom = 6;
+            row.style.paddingLeft = 8;
+            row.style.paddingRight = 8;
+
+            var thumb = new VisualElement();
+            thumb.style.width = 96;
+            thumb.style.height = 54;
+            thumb.style.marginRight = 10;
+            byte[] thumbBytes = info.IsLegacy ? null : SaveBundleIO.ReadThumbnail(info.Path);
+            if (thumbBytes != null && thumbBytes.Length > 0)
+            {
+                var tex = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                if (tex.LoadImage(thumbBytes))
+                    thumb.style.backgroundImage = new StyleBackground(tex);
+            }
+            row.Add(thumb);
+
+            var meta = new VisualElement();
+            meta.style.flexGrow = 1f;
+            meta.style.flexDirection = FlexDirection.Column;
+            var title = new Label(info.Slot);
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+            meta.Add(title);
+            var subtitle = new Label(BuildLoadSubtitle(info));
+            subtitle.style.fontSize = 10;
+            subtitle.style.whiteSpace = WhiteSpace.Normal;
+            meta.Add(subtitle);
+            row.Add(meta);
+
+            string slot = info.Slot;
+            var loadBtn = new Button(() => OnLoadSlot(slot));
+            loadBtn.text = _locale.Get("title.load_button");
+            loadBtn.AddToClassList("btn");
+            loadBtn.AddToClassList("title-action-btn");
+            loadBtn.AddToClassList("title-action-btn--primary");
+            loadBtn.style.minWidth = 90;
+            row.Add(loadBtn);
+
+            return row;
+        }
+
+        static string BuildLoadSubtitle(SaveSlotService.SlotInfo info)
+        {
+            string prefix = info.IsLegacy ? "Legacy · " : string.Empty;
+            if (info.Manifest == null)
+                return prefix + System.DateTimeOffset.FromUnixTimeMilliseconds(info.FileMtimeUnixMs).LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+            return prefix
+                 + "Turn " + info.Manifest.TurnIndex
+                 + " · seed " + info.Manifest.Seed
+                 + " · " + System.DateTimeOffset.FromUnixTimeMilliseconds(info.FileMtimeUnixMs).LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+        }
+
+        void OnLoadSlot(string slot)
+        {
+            if (_loadStatus != null) _loadStatus.text = _locale.Get("title.load_busy");
+            bool ok = _session.LoadSlot(slot, out var reason);
+            if (!ok && _loadStatus != null)
+                _loadStatus.text = _locale.Get("title.load_failed") + ": " + (reason ?? "unknown");
+        }
+
         void BindSeedStage()
         {
             if (_seedInput != null) _seedInput.SetValueWithoutNotify(_session.Seed.CurrentValue);
             _seedInput?.RegisterValueChangedCallback(evt => _session.SetSeed(evt.newValue));
 
             _root.Q<Button>("title-seed-random").clicked += _session.Randomize;
-            _root.Q<Button>("title-seed-back").clicked   += _session.BackToLocale;
+            // Seed → Back routes to the AoE menu, not Locale — language
+            // is now committed on the standalone first-boot Language stage
+            // and never re-appears in the Single Player flow.
+            _root.Q<Button>("title-seed-back").clicked   += _session.BackToMenu;
             _root.Q<Button>("title-seed-confirm").clicked += () => _session.BeginGeneration();
         }
 
@@ -262,7 +374,32 @@ namespace RareIcon
             SetStage(_stageInfo,       stage == TitleStage.Info);
             SetStage(_stageLocale,     stage == TitleStage.Locale);
             SetStage(_stageSeed,       stage == TitleStage.Seed);
+            SetStage(_stageLoad,       stage == TitleStage.Load);
             SetStage(_stageGenerating, stage == TitleStage.Generating || stage == TitleStage.Ready);
+
+            // First-boot Language picker has no menu behind it, so the
+            // Back button is hidden until the player commits a locale at
+            // least once. Re-pick paths from a future Settings tab can
+            // surface the same stage with the back button enabled.
+            var localeBack = _root.Q<Button>("title-locale-back");
+            if (localeBack != null)
+                localeBack.style.display = (_locale != null && _locale.HasUserPickedLocale)
+                    ? DisplayStyle.Flex
+                    : DisplayStyle.None;
+
+            // Hide the menu rail entirely while the first-boot Language
+            // picker is up so the only thing the player can interact with
+            // is the language choice. After commit, the menu reappears.
+            var menuRail = _root.Q<VisualElement>("title-menu");
+            if (menuRail != null)
+            {
+                bool firstBoot = _locale != null && !_locale.HasUserPickedLocale;
+                menuRail.style.display = (firstBoot && stage == TitleStage.Locale)
+                    ? DisplayStyle.None
+                    : DisplayStyle.Flex;
+            }
+
+            if (stage == TitleStage.Load) RefreshLoadList();
 
             if (stage == TitleStage.Ready)
             {

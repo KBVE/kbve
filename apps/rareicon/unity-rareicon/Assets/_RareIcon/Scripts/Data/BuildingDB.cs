@@ -147,11 +147,6 @@ namespace RareIcon
         static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
                                                                        new((ushort)ItemId.IronOre,   3) };
 
-        // -- Alt-pick variant tables --
-        // Each entry lists the variant ids available for (building type,
-        // fromTier). Single-track upgrades fall through to _defaultVariant.
-        // Inspector + UpgradeJob iterate this table so adding a new alt
-        // pick is one entry here + one cost array + one shader include.
         static readonly byte[] _defaultVariant    = { 0 };
         static readonly byte[] _towerT0Variants   = { 0, 1, 2 }; // Watch / Beacon / Highwatch
         static readonly byte[] _innT0Variants     = { 0, 1 };    // Tavern / AleHouse

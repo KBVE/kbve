@@ -183,17 +183,25 @@ jobs:
 
             - name: Pull LFS objects (rareicon scope only)
               run: |
+                  LFS_CACHE="/home/runner/_cache/lfs/${GITHUB_REPOSITORY//\//_}"
+                  mkdir -p "$LFS_CACHE"
+                  git config --local lfs.storage "$LFS_CACHE"
                   git lfs install --local
                   git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
+                  echo "LFS cache: $(du -sh "$LFS_CACHE" 2>/dev/null | cut -f1)"
 
-            - name: Restore Unity Library cache
-              uses: actions/cache@v5
-              with:
-                  path: ${{ inputs.project_path }}/Library
-                  key: Library-${{ inputs.app_name }}-${{ matrix.target }}-${{ hashFiles(format('{0}/Packages/manifest.json', inputs.project_path), format('{0}/ProjectSettings/ProjectVersion.txt', inputs.project_path)) }}
-                  restore-keys: |
-                      Library-${{ inputs.app_name }}-${{ matrix.target }}-
-                      Library-${{ inputs.app_name }}-
+            - name: Seed Unity Library from PVC
+              run: |
+                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-${{ matrix.target }}"
+                  LIB_DIR="${{ inputs.project_path }}/Library"
+                  mkdir -p "$CACHE_DIR" "$LIB_DIR"
+                  if command -v rsync >/dev/null 2>&1; then
+                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
+                  else
+                      apt-get update -qq && apt-get install -y -qq --no-install-recommends rsync
+                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
+                  fi
+                  echo "Seeded Library from $CACHE_DIR ($(du -sh "$LIB_DIR" 2>/dev/null | cut -f1))"
 
             - name: Build with Unity
               uses: game-ci/unity-builder@v4
@@ -207,6 +215,19 @@ jobs:
                   unityVersion: ${{ inputs.engine_version }}
                   targetPlatform: ${{ matrix.target }}
                   buildName: ${{ inputs.app_name }}
+
+            - name: Save Unity Library to PVC
+              if: always()
+              run: |
+                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-${{ matrix.target }}"
+                  LIB_DIR="${{ inputs.project_path }}/Library"
+                  if [ ! -d "$LIB_DIR" ]; then
+                      echo "No Library/ to save (build may have failed before generation)"
+                      exit 0
+                  fi
+                  mkdir -p "$CACHE_DIR"
+                  rsync -a --delete "$LIB_DIR"/ "$CACHE_DIR"/
+                  echo "Saved Library to $CACHE_DIR ($(du -sh "$CACHE_DIR" 2>/dev/null | cut -f1))"
 
             # Strip Unity's ship-blocked debug folders before zipping so
             # the artifact carries only what end-users would actually run.
