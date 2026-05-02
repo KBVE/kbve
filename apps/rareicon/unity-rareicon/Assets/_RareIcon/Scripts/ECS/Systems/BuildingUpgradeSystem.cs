@@ -16,21 +16,25 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<BuildingUpgradeRequest>();
-            _costTable = new NativeList<UpgradeCostRow>(16, Allocator.Persistent);
-            for (byte type = 1; type < 16; type++)
+            _costTable = new NativeList<UpgradeCostRow>(64, Allocator.Persistent);
+            for (byte type = 1; type < 64; type++)
             {
                 for (byte tier = 0; tier < 8; tier++)
                 {
-                    var cost = BuildingDB.GetUpgradeCost(type, tier);
-                    for (int i = 0; i < cost.Length; i++)
+                    for (byte variant = 0; variant < 4; variant++)
                     {
-                        _costTable.Add(new UpgradeCostRow
+                        var cost = BuildingDB.GetUpgradeCost(type, tier, variant);
+                        for (int i = 0; i < cost.Length; i++)
                         {
-                            Type     = type,
-                            FromTier = tier,
-                            ItemId   = cost[i].ItemId,
-                            Amount   = (ushort)cost[i].Amount,
-                        });
+                            _costTable.Add(new UpgradeCostRow
+                            {
+                                Type     = type,
+                                FromTier = tier,
+                                Variant  = variant,
+                                ItemId   = cost[i].ItemId,
+                                Amount   = (ushort)cost[i].Amount,
+                            });
+                        }
                     }
                 }
             }
@@ -94,6 +98,7 @@ namespace RareIcon
     {
         public byte   Type;
         public byte   FromTier;
+        public byte   Variant;
         public ushort ItemId;
         public ushort Amount;
     }
@@ -132,7 +137,9 @@ namespace RareIcon
             int startIdx = -1, rowCount = 0;
             for (int i = 0; i < CostTable.Length; i++)
             {
-                if (CostTable[i].Type != type || CostTable[i].FromTier != tier) continue;
+                if (CostTable[i].Type != type
+                    || CostTable[i].FromTier != tier
+                    || CostTable[i].Variant != variantId) continue;
                 if (startIdx < 0) startIdx = i;
                 rowCount++;
             }

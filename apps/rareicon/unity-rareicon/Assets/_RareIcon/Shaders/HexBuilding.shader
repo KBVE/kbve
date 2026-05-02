@@ -320,6 +320,15 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_CASTLE          17
             #define BUILDING_TOWER           18
             #define BUILDING_WALL            19
+            // Tower tier / variant placeholders — until bespoke sprite art
+            // lands, these route through DrawTower with a per-variant tint
+            // applied in the fragment so the player can visually distinguish
+            // an upgraded silhouette without a full new HexHighwatchTower
+            // include.
+            #define BUILDING_WATCH_TOWER     33
+            #define BUILDING_SENTINEL_TOWER  34
+            #define BUILDING_BEACON_TOWER    41
+            #define BUILDING_HIGHWATCH_TOWER 42
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -438,6 +447,21 @@ Shader "RareIcon/HexBuilding"
                 else if (buildingType == BUILDING_TOWER)
                 {
                     DrawTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_WATCH_TOWER
+                      || buildingType == BUILDING_SENTINEL_TOWER
+                      || buildingType == BUILDING_BEACON_TOWER
+                      || buildingType == BUILDING_HIGHWATCH_TOWER)
+                {
+                    DrawTower(color, alpha, px, grid);
+                    // Tinted overlay distinguishes the variant on top of the
+                    // base Tower silhouette: Watch = warm steel, Sentinel =
+                    // gold accent, Beacon = orange flame, Highwatch = blue.
+                    float3 tint = float3(1, 1, 1);
+                    if (buildingType == BUILDING_SENTINEL_TOWER) tint = float3(1.10, 1.00, 0.55);
+                    else if (buildingType == BUILDING_BEACON_TOWER)    tint = float3(1.20, 0.75, 0.40);
+                    else if (buildingType == BUILDING_HIGHWATCH_TOWER) tint = float3(0.65, 0.85, 1.20);
+                    color *= tint;
                 }
                 else if (buildingType == BUILDING_WALL)
                 {

@@ -28,7 +28,10 @@ namespace RareIcon
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
         Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn;
-        Button _towerBeaconBtn, _towerHighwatchBtn;
+        VisualElement _upgradePanel;
+        Label _upgradePanelHeader;
+        VisualElement _upgradePanelCards;
+        Button _upgradePanelClose;
         Entity _target;
 
         [Inject]
@@ -79,10 +82,10 @@ namespace RareIcon
             if (_upgradeBtn != null)
             {
                 _upgradeBtn.text = _locale.Get("inspector.upgrade");
-                _upgradeBtn.clicked += RequestUpgrade;
+                _upgradeBtn.clicked += OpenUpgradePanel;
             }
             EnsureRecruitScoutButton();
-            EnsureTowerVariantButtons();
+            EnsureUpgradePanel();
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -137,39 +140,157 @@ namespace RareIcon
             SetHidden(_recruitScoutBtn, true);
         }
 
-        void EnsureTowerVariantButtons()
+        void EnsureUpgradePanel()
         {
-            _towerBeaconBtn    = MakeSiblingButton("inspector-tower-beacon",   _upgradeBtn);
-            _towerHighwatchBtn = MakeSiblingButton("inspector-tower-highwatch", _upgradeBtn);
-            if (_towerBeaconBtn != null)
+            _upgradePanel = _root.Q<VisualElement>("inspector-upgrade-panel");
+            if (_upgradePanel == null)
             {
-                _towerBeaconBtn.text = _locale.Get("inspector.upgrade_beacon_tower");
-                _towerBeaconBtn.clicked += () => RequestUpgradeWithVariant(1);
-                SetHidden(_towerBeaconBtn, true);
+                _upgradePanel = new VisualElement { name = "inspector-upgrade-panel" };
+                _upgradePanel.style.flexDirection = FlexDirection.Column;
+                _upgradePanel.style.marginTop = 6;
+                _upgradePanel.style.paddingTop = 6;
+                _upgradePanel.style.paddingBottom = 6;
+                _upgradePanel.style.paddingLeft = 6;
+                _upgradePanel.style.paddingRight = 6;
+                _upgradePanel.style.backgroundColor = new StyleColor(new UnityEngine.Color(0.08f, 0.10f, 0.14f, 0.92f));
+                _upgradePanel.style.borderTopLeftRadius = 4;
+                _upgradePanel.style.borderTopRightRadius = 4;
+                _upgradePanel.style.borderBottomLeftRadius = 4;
+                _upgradePanel.style.borderBottomRightRadius = 4;
+                if (_panel != null) _panel.Add(_upgradePanel); else _root.Add(_upgradePanel);
             }
-            if (_towerHighwatchBtn != null)
+            _upgradePanel.Clear();
+            _upgradePanelHeader = new Label(_locale.Get("inspector.upgrade_panel_header"))
             {
-                _towerHighwatchBtn.text = _locale.Get("inspector.upgrade_highwatch_tower");
-                _towerHighwatchBtn.clicked += () => RequestUpgradeWithVariant(2);
-                SetHidden(_towerHighwatchBtn, true);
-            }
+                name = "inspector-upgrade-panel-header",
+            };
+            _upgradePanelHeader.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            _upgradePanelHeader.style.marginBottom = 4;
+            _upgradePanel.Add(_upgradePanelHeader);
+            _upgradePanelCards = new VisualElement { name = "inspector-upgrade-panel-cards" };
+            _upgradePanelCards.style.flexDirection = FlexDirection.Column;
+            _upgradePanel.Add(_upgradePanelCards);
+            _upgradePanelClose = new Button(CloseUpgradePanel) { name = "inspector-upgrade-panel-close" };
+            _upgradePanelClose.text = _locale.Get("inspector.upgrade_panel_close");
+            _upgradePanelClose.style.marginTop = 4;
+            _upgradePanel.Add(_upgradePanelClose);
+            SetHidden(_upgradePanel, true);
         }
 
-        Button MakeSiblingButton(string name, Button anchor)
+        void OpenUpgradePanel()
         {
-            if (anchor == null) return null;
-            var existing = _root.Q<Button>(name);
-            if (existing != null) return existing;
-            var btn = new Button { name = name };
-            foreach (var cls in anchor.GetClasses()) btn.AddToClassList(cls);
-            var parent = anchor.parent;
-            if (parent != null)
-                parent.Insert(parent.IndexOf(anchor) + 1, btn);
-            return btn;
+            if (_target == Entity.Null || _upgradePanel == null || _upgradePanelCards == null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<Building>(_target)) return;
+            if (!em.HasComponent<BuildingTier>(_target)) return;
+
+            byte type = em.GetComponentData<Building>(_target).Type;
+            byte tier = em.GetComponentData<BuildingTier>(_target).Value;
+            if (!BuildingDB.HasUpgrade(type, tier)) return;
+
+            _upgradePanelCards.Clear();
+            byte[] variants = (type == BuildingType.Tower && tier == 0)
+                ? new byte[] { 0, 1, 2 }
+                : new byte[] { 0 };
+
+            for (int i = 0; i < variants.Length; i++)
+            {
+                byte v = variants[i];
+                _upgradePanelCards.Add(BuildUpgradeCard(type, tier, v));
+            }
+            SetHidden(_upgradePanel, false);
         }
 
-        void RequestUpgradeWithVariant(byte variant)
+        void CloseUpgradePanel()
         {
+            if (_upgradePanel != null) SetHidden(_upgradePanel, true);
+        }
+
+        VisualElement BuildUpgradeCard(byte type, byte fromTier, byte variant)
+        {
+            var card = new VisualElement();
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.marginBottom = 4;
+            card.style.paddingTop = 4;
+            card.style.paddingBottom = 4;
+            card.style.paddingLeft = 6;
+            card.style.paddingRight = 6;
+            card.style.backgroundColor = new StyleColor(new UnityEngine.Color(0.12f, 0.14f, 0.18f, 0.95f));
+            card.style.borderTopLeftRadius = 3;
+            card.style.borderTopRightRadius = 3;
+            card.style.borderBottomLeftRadius = 3;
+            card.style.borderBottomRightRadius = 3;
+
+            string nameKey = ResolveVariantNameKey(type, fromTier, variant);
+            string descKey = ResolveVariantDescKey(type, fromTier, variant);
+
+            var title = new Label(_locale.Get(nameKey));
+            title.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            card.Add(title);
+
+            string desc = _locale.Get(descKey);
+            if (!string.IsNullOrEmpty(desc))
+            {
+                var descLabel = new Label(desc);
+                descLabel.style.fontSize = 11;
+                descLabel.style.marginBottom = 2;
+                card.Add(descLabel);
+            }
+
+            var costSb = ZString.CreateStringBuilder();
+            try
+            {
+                var cost = BuildingDB.GetUpgradeCost(type, fromTier, variant);
+                for (int i = 0; i < cost.Length; i++)
+                {
+                    if (i > 0) costSb.Append(" + ");
+                    costSb.Append(cost[i].Amount);
+                    costSb.Append(' ');
+                    costSb.Append(_locale.GetItemName(cost[i].ItemId));
+                }
+                var costLabel = new Label(costSb.ToString());
+                costLabel.style.fontSize = 10;
+                costLabel.style.opacity = 0.85f;
+                card.Add(costLabel);
+            }
+            finally { costSb.Dispose(); }
+
+            var commit = new Button(() => CommitUpgrade(variant));
+            commit.text = _locale.Get("inspector.upgrade_panel_commit");
+            commit.style.marginTop = 4;
+            card.Add(commit);
+
+            return card;
+        }
+
+        static string ResolveVariantNameKey(byte type, byte fromTier, byte variant)
+        {
+            byte targetTier = (byte)(fromTier + 1);
+            if (type == BuildingType.Tower && fromTier == 0)
+            {
+                if (variant == 1) return "building.beacon_tower";
+                if (variant == 2) return "building.highwatch_tower";
+                return "building.watch_tower";
+            }
+            return BuildingDB.GetTieredLocaleKey(type, targetTier);
+        }
+
+        static string ResolveVariantDescKey(byte type, byte fromTier, byte variant)
+        {
+            if (type == BuildingType.Tower && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.tower_variant.beacon_desc";
+                if (variant == 2) return "inspector.tower_variant.highwatch_desc";
+                return "inspector.tower_variant.watch_desc";
+            }
+            return string.Empty;
+        }
+
+        void CommitUpgrade(byte variant)
+        {
+            CloseUpgradePanel();
             if (_target == Entity.Null) return;
             var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
@@ -217,20 +338,6 @@ namespace RareIcon
             Close();
         }
 
-        void RequestUpgrade()
-        {
-            if (_target == Entity.Null) return;
-            var world = GameplayWorld.Resolve();
-            if (world == null || !world.IsCreated) return;
-            var em = world.EntityManager;
-            if (!em.HasComponent<Building>(_target)) return;
-            if (!em.HasComponent<BuildingTier>(_target)) return;
-            byte type = em.GetComponentData<Building>(_target).Type;
-            byte tier = em.GetComponentData<BuildingTier>(_target).Value;
-            if (!BuildingDB.HasUpgrade(type, tier)) return;
-            var req = em.CreateEntity();
-            em.AddComponentData(req, new BuildingUpgradeRequest { Target = _target });
-        }
 
         void Refresh()
         {
@@ -265,18 +372,10 @@ namespace RareIcon
                 }
             }
             _titleLabel.text = title;
-            bool hasUpgrade = BuildingDB.HasUpgrade(b.Type, tier);
-            bool isTowerT0  = b.Type == BuildingType.Tower && tier == 0
+            bool hasUpgrade = BuildingDB.HasUpgrade(b.Type, tier)
                               && b.OwnerFaction == FactionType.Player;
-            if (_upgradeBtn != null)
-            {
-                SetHidden(_upgradeBtn, !hasUpgrade);
-                _upgradeBtn.text = isTowerT0
-                    ? _locale.Get("inspector.upgrade_watch_tower")
-                    : _locale.Get("inspector.upgrade");
-            }
-            if (_towerBeaconBtn    != null) SetHidden(_towerBeaconBtn,    !isTowerT0);
-            if (_towerHighwatchBtn != null) SetHidden(_towerHighwatchBtn, !isTowerT0);
+            if (_upgradeBtn != null) SetHidden(_upgradeBtn, !hasUpgrade);
+            if (_upgradePanel != null && !hasUpgrade) SetHidden(_upgradePanel, true);
             if (_recruitScoutBtn != null)
                 SetHidden(_recruitScoutBtn, !em.HasComponent<BarracksTag>(_target)
                                             || b.OwnerFaction != FactionType.Player);

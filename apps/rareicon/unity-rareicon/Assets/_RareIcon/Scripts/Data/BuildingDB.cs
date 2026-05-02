@@ -107,12 +107,30 @@ namespace RareIcon
                                                                        new((ushort)ItemId.GoldBar,    8) };
         static readonly Ingredient[] UpgradeTowerToWatchTower      = { new((ushort)ItemId.StoneBlock, 10),
                                                                        new((ushort)ItemId.IronOre,    4) };
+        static readonly Ingredient[] UpgradeTowerToBeaconTower     = { new((ushort)ItemId.StoneBlock, 12),
+                                                                       new((ushort)ItemId.IronOre,    4),
+                                                                       new((ushort)ItemId.Coin,       6) };
+        static readonly Ingredient[] UpgradeTowerToHighwatchTower  = { new((ushort)ItemId.StoneBlock,  6),
+                                                                       new((ushort)ItemId.IronOre,    8),
+                                                                       new((ushort)ItemId.Coin,      12) };
         static readonly Ingredient[] UpgradeWatchToSentinelTower   = { new((ushort)ItemId.StoneBlock, 18),
                                                                        new((ushort)ItemId.IronOre,   10),
                                                                        new((ushort)ItemId.GoldBar,   14) };
         static readonly Ingredient[] UpgradeWallToReinforced       = { new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
                                                                        new((ushort)ItemId.IronOre,   3) };
+
+        /// <summary>Variant-aware overload — used by tiers with alt-pick variants (Tower T1 today). Falls back to <see cref="GetUpgradeCost(byte, byte)"/> for default-track upgrades. Variants 0/1/2 for Tower T0 → Watch / Beacon / Highwatch are wired here.</summary>
+        public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier, byte variant)
+        {
+            if (buildingType == BuildingType.Tower && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeTowerToBeaconTower;
+                if (variant == 2) return UpgradeTowerToHighwatchTower;
+                return UpgradeTowerToWatchTower;
+            }
+            return GetUpgradeCost(buildingType, fromTier);
+        }
 
         /// <summary>Returns the material cost to advance `type` from `fromTier` to `fromTier + 1`. Empty array if no further tier exists.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier)
