@@ -114,7 +114,11 @@ namespace RareIcon
             Refresh();
         }
 
-        public void Close() => _isOpen.Value = false;
+        public void Close()
+        {
+            _isOpen.Value = false;
+            ClearAuraHighlight();
+        }
 
         void OnInspect(BuildingInspectMessage msg)
         {
@@ -548,6 +552,16 @@ namespace RareIcon
             if (_heroTimerLabel != null)
                 _heroTimerLabel.style.display = hasHeroTicker ? DisplayStyle.Flex : DisplayStyle.None;
 
+            if (em.HasComponent<BuildingSpeedAura>(_target) && ownsBuilding)
+            {
+                var aura = em.GetComponentData<BuildingSpeedAura>(_target);
+                WriteAuraHighlight(em, b.RootHex, aura.Radius, true);
+            }
+            else
+            {
+                ClearAuraHighlight();
+            }
+
             if (_tabs != null)
             {
                 _tabs.SetTabVisible("upgrades", hasUpgrade);
@@ -755,6 +769,37 @@ namespace RareIcon
         {
             using var q = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
             return q.CalculateEntityCount() == 0 ? 0f : q.GetSingleton<WorldClock>().AbsSeconds;
+        }
+
+        void WriteAuraHighlight(EntityManager em, int2 center, byte radius, bool active)
+        {
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<AuraHighlightTarget>());
+            if (q.CalculateEntityCount() == 0) return;
+            var tgt = q.GetSingleton<AuraHighlightTarget>();
+            byte activeByte = (byte)(active && radius > 0 ? 1 : 0);
+            bool changed = tgt.Active != activeByte
+                           || tgt.Center.x != center.x || tgt.Center.y != center.y
+                           || tgt.Radius != radius;
+            if (!changed) return;
+            tgt.Center     = center;
+            tgt.Radius     = radius;
+            tgt.Active     = activeByte;
+            tgt.Generation = unchecked(tgt.Generation + 1u);
+            q.SetSingleton(tgt);
+        }
+
+        void ClearAuraHighlight()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<AuraHighlightTarget>());
+            if (q.CalculateEntityCount() == 0) return;
+            var tgt = q.GetSingleton<AuraHighlightTarget>();
+            if (tgt.Active == 0) return;
+            tgt.Active     = 0;
+            tgt.Generation = unchecked(tgt.Generation + 1u);
+            q.SetSingleton(tgt);
         }
 
         public void Tick()

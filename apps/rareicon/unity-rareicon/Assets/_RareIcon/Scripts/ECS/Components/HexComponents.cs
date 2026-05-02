@@ -117,6 +117,22 @@ namespace RareIcon
         public byte Value;
     }
 
+    /// <summary>Per-tile aura highlight flag. <see cref="AuraHighlightBakeSystem"/> writes 1 onto every tile inside the currently-inspected building's aura radius (Stables BuildingSpeedAura today; future generic aura sources slot in the same way) and 0 everywhere else. HexTile shader reads via <c>_AuraHighlight</c> and paints a cyan rim so the player sees the boost zone at a glance.</summary>
+    [MaterialProperty("_AuraHighlight")]
+    public struct AuraHighlightVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Singleton describing the inspected aura source. <see cref="UIBuildingInspector"/> writes Center + Radius when the player clicks a building carrying <see cref="BuildingSpeedAura"/> (or future aura kinds), bumps <see cref="Generation"/> so the bake fires; clears <see cref="Active"/> when the panel closes or moves to a non-aura target.</summary>
+    public struct AuraHighlightTarget : IComponentData
+    {
+        public int2 Center;
+        public byte Radius;
+        public byte Active;
+        public uint Generation;
+    }
+
     /// <summary>
     /// Per-instance MaterialProperty driving how many trees the shader
     /// renders on this hex. Value is HexResources.Wood normalized to
