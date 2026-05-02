@@ -66,6 +66,8 @@ namespace RareIcon
                 Hash            = spatial.Hash,
                 BuildingTargets = buildingTargets,
                 MoraleLookup    = SystemAPI.GetComponentLookup<MoraleBuff>(true),
+                CavalryLookup   = SystemAPI.GetComponentLookup<CavalryTag>(true),
+                MovementModLookup = SystemAPI.GetComponentLookup<MovementModifier>(true),
                 Ecb             = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
@@ -114,6 +116,8 @@ namespace RareIcon
         [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
         [ReadOnly] public NativeArray<MeleeBuildingTarget>              BuildingTargets;
         [ReadOnly] public ComponentLookup<MoraleBuff>                   MoraleLookup;
+        [ReadOnly] public ComponentLookup<CavalryTag>                   CavalryLookup;
+        [ReadOnly] public ComponentLookup<MovementModifier>             MovementModLookup;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
@@ -187,6 +191,21 @@ namespace RareIcon
             {
                 sbyte bonus = MoraleLookup[entity].CombatBonusPct;
                 if (bonus != 0) damage *= 1f + bonus / 100f;
+            }
+
+            // Cavalry charge bonus — when a CavalryTag attacker moves
+            // faster than the baseline (Stables aura, future charge
+            // effects), damage scales 1.5x linear with the speed boost
+            // and caps at 2.0x so stacking auras can't snowball.
+            if (CavalryLookup.HasComponent(entity)
+                && MovementModLookup.HasComponent(entity))
+            {
+                float speedMul = MovementModLookup[entity].SpeedMul;
+                if (speedMul > 1.05f)
+                {
+                    float chargeMul = math.min(2.0f, 1f + (speedMul - 1f) * 1.5f);
+                    damage *= chargeMul;
+                }
             }
 
             var evt = Ecb.CreateEntity(chunkIdx);
