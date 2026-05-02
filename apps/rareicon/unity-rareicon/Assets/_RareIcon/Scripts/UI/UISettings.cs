@@ -28,12 +28,15 @@ namespace RareIcon
         public UISettings(UIPanelManager panelManager,
                           LocaleService locale,
                           CameraService camera,
-                          BiomeGenerator biomes)
+                          BiomeGenerator biomes,
+                          WorldGenSession session)
         {
             _panelManager = panelManager;
             _tabs = new ISettingsTab[]
             {
                 new SearchTab(locale, camera, biomes),
+                new SaveSlotsTab(locale, session),
+                new SystemTab(locale, session),
             };
         }
 

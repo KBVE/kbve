@@ -550,6 +550,72 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Player-faction Cavalry (mounted melee) at the given hex. Faster move speed than Soldier, mid HP, club melee with PreferUnits target so cavalry chases enemy units rather than bashing walls. <see cref="CavalryTag"/> distinguishes from base humanoid melee for future charge-bonus systems.</summary>
+        public static Entity SpawnCavalryAt(EntityManager em, int2 hex, uint rngSeed)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Cavalry);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = def.DefaultWeapon });
+            em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
+            if (def.MaxEnergy > 0)
+                em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
+
+            em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Player });
+            em.AddComponentData(entity, new Collidable { Radius = 0.22f });
+            em.AddComponent<CavalryTag>(entity);
+
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.50f,
+                Damage        = 7.0f,
+                Cooldown      = 1.0f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.95f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.20f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn a Hostile-faction BanditScout at the given hex. Mirrors <see cref="SpawnScoutAt"/> stat-line but Hostile + carries <see cref="BanditScoutTag"/> for the dispatch / behavior systems. No weapon — the scout flees combat and only reports player buildings into <c>KnownPlayerHexesSingleton</c>.</summary>
         public static Entity SpawnBanditScoutAt(EntityManager em, int2 hex, uint rngSeed)
         {

@@ -97,6 +97,7 @@ namespace RareIcon
         public const byte Dock       = 11;
         public const byte Tower      = 18;
         public const byte Wall       = 19;
+        public const byte City       = 45;  // Player-founded city — placed once per location, gated by min distance + cost in FoundCitySystem.
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -127,6 +128,12 @@ namespace RareIcon
 
     /// <summary>Player-issued request from the Barracks recruit panel. <c>ScoutRecruitSystem</c> validates Capital ledger cost (5 Coin + 2 Timber), deducts on success, spawns a Player Scout at a hex adjacent to <see cref="Barracks"/>, then destroys the request entity. Insufficient funds cancel cleanly with a toast.</summary>
     public struct ScoutRecruitRequest : IComponentData
+    {
+        public Entity Barracks;
+    }
+
+    /// <summary>Player-issued request from the Stables recruit panel. <c>CavalryRecruitSystem</c> validates Capital ledger cost (10 Coin + 4 Timber + 2 Carrot), deducts on success, spawns a Player Cavalry at a hex adjacent to <see cref="Barracks"/> (must carry <see cref="BarracksTag"/> + <see cref="BuildingTier"/> 1 + <see cref="BuildingVariant"/> 1), then destroys the request entity. Failure modes destroy the request silently with a toast so the UI doesn't loop on stuck state.</summary>
+    public struct CavalryRecruitRequest : IComponentData
     {
         public Entity Barracks;
     }
@@ -333,6 +340,20 @@ namespace RareIcon
 
     /// <summary>Marker tag for Barracks buildings — recruitment system query key.</summary>
     public struct BarracksTag : IComponentData { }
+
+    /// <summary>Per-building speed aura — every Player unit within <see cref="Radius"/> hex of the carrier gets a movement-speed boost proportional to <see cref="Magnitude"/>. Attached to Stables (Barracks T1 variant 1) by <see cref="BarracksTierServicesSystem"/>; the aura propagator system reads + applies to MovementModifier.SpeedMul.</summary>
+    public struct BuildingSpeedAura : IComponentData
+    {
+        public byte Magnitude;
+        public byte Radius;
+    }
+
+    /// <summary>Per-building hero recruit ticker — fires a free hero spawn every <see cref="CadenceTicks"/> ms. Attached to Guildhall (Barracks T1 variant 2) by <see cref="BarracksTierServicesSystem"/>; the recruit pipeline picks the role from a pool and spawns adjacent.</summary>
+    public struct HeroRecruitTicker : IComponentData
+    {
+        public uint NextRecruitTick;
+        public uint CadenceTicks;
+    }
 
     /// <summary>Per-barracks recruitment cadence. Once per N turns, consumes CoinCost Coin + FoodCost food (any ItemId flagged by FoodItems.IsFood) from the building's InventorySlot storage and spawns one Soldier on an adjacent hex. Storage capacity lives on the separate StorageCapacity component.</summary>
     public struct BarracksProduction : IComponentData

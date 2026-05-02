@@ -13,7 +13,7 @@ namespace RareIcon
         protected override void OnCreate()
         {
             _towersWithTier = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<TowerTag, BuildingTier, TerritoryEmitter>()
+                .WithAll<TowerTag, BuildingTier, TerritoryEmitter, BuildingHealth>()
                 .Build(EntityManager);
             _towersWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
             RequireForUpdate(_towersWithTier);
@@ -83,6 +83,16 @@ namespace RareIcon
             territory.Radius = radius;
             em.SetComponentData(tower, territory);
 
+            ushort newMaxHp = ResolveTowerMaxHp(tier, variant);
+            if (em.HasComponent<BuildingHealth>(tower))
+            {
+                var hp = em.GetComponentData<BuildingHealth>(tower);
+                float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+                hp.Max   = newMaxHp;
+                hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMaxHp), 0, newMaxHp);
+                em.SetComponentData(tower, hp);
+            }
+
             if (wantsVolley)
             {
                 var volley = new OutpostVolley
@@ -128,6 +138,18 @@ namespace RareIcon
             {
                 em.RemoveComponent<VisionRadius>(tower);
             }
+        }
+
+        static ushort ResolveTowerMaxHp(byte tier, byte variant)
+        {
+            if (tier >= 2) return 720;
+            if (tier == 1)
+            {
+                if (variant == 1) return 400; // Beacon
+                if (variant == 2) return 360; // Highwatch
+                return 480;                   // Watch
+            }
+            return 320;                       // base Tower
         }
     }
 }

@@ -14,7 +14,7 @@ using VContainer.Unity;
 namespace RareIcon
 {
     /// <summary>Bottom-left panel that shows the building the player just clicked. Refreshes on InventoryChangedMessage filtered by the currently-inspected entity.</summary>
-    public class UIBuildingInspector : IAsyncStartable, IDisposable
+    public class UIBuildingInspector : IAsyncStartable, ITickable, IDisposable
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
@@ -27,7 +27,8 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn;
+        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn, _recruitCavalryBtn;
+        Label _heroTimerLabel;
         VisualElement _upgradePanel;
         Label _upgradePanelHeader;
         VisualElement _upgradePanelCards;
@@ -113,7 +114,11 @@ namespace RareIcon
             Refresh();
         }
 
-        public void Close() => _isOpen.Value = false;
+        public void Close()
+        {
+            _isOpen.Value = false;
+            ClearAuraHighlight();
+        }
 
         void OnInspect(BuildingInspectMessage msg)
         {
@@ -188,6 +193,15 @@ namespace RareIcon
             _recruitGoblinBtn.text = _locale.Get("inspector.hire_goblin");
             _recruitGoblinBtn.style.marginBottom = 4;
             recruitContent.Add(_recruitGoblinBtn);
+            _recruitCavalryBtn = new Button(RequestRecruitCavalry) { name = "inspector-recruit-cavalry" };
+            _recruitCavalryBtn.text = _locale.Get("inspector.recruit_cavalry");
+            _recruitCavalryBtn.style.marginBottom = 4;
+            recruitContent.Add(_recruitCavalryBtn);
+            _heroTimerLabel = new Label(string.Empty) { name = "inspector-hero-timer" };
+            _heroTimerLabel.style.marginTop = 4;
+            _heroTimerLabel.style.fontSize = 11;
+            _heroTimerLabel.style.opacity = 0.85f;
+            recruitContent.Add(_heroTimerLabel);
             _tabs.AddTab("recruit", _locale.Get("inspector.tab_recruit"), recruitContent);
 
             // Insert the tabs container before the action button row so the
@@ -440,6 +454,22 @@ namespace RareIcon
             em.AddComponentData(req, new GoblinHireRequest { Cave = _target });
         }
 
+        void RequestRecruitCavalry()
+        {
+            if (_target == Entity.Null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<BarracksTag>(_target)
+                || !em.HasComponent<BuildingTier>(_target)
+                || !em.HasComponent<BuildingVariant>(_target)) return;
+            byte tier    = em.GetComponentData<BuildingTier>(_target).Value;
+            byte variant = em.GetComponentData<BuildingVariant>(_target).Value;
+            if (tier != 1 || variant != 1) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new CavalryRecruitRequest { Barracks = _target });
+        }
+
         void RequestRelease()
         {
             if (_target == Entity.Null) return;
@@ -505,12 +535,32 @@ namespace RareIcon
             bool ownsBuilding = b.OwnerFaction == FactionType.Player;
             bool hasBarracks  = ownsBuilding && em.HasComponent<BarracksTag>(_target);
             bool hasCave      = ownsBuilding && em.HasComponent<GoblinCaveTag>(_target);
+            bool isStables    = hasBarracks
+                                 && em.HasComponent<BuildingTier>(_target)
+                                 && em.HasComponent<BuildingVariant>(_target)
+                                 && em.GetComponentData<BuildingTier>(_target).Value == 1
+                                 && em.GetComponentData<BuildingVariant>(_target).Value == 1;
             bool hasRecruit   = hasBarracks || hasCave;
 
             if (_recruitScoutBtn != null)
                 _recruitScoutBtn.style.display = hasBarracks ? DisplayStyle.Flex : DisplayStyle.None;
             if (_recruitGoblinBtn != null)
                 _recruitGoblinBtn.style.display = hasCave ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_recruitCavalryBtn != null)
+                _recruitCavalryBtn.style.display = isStables ? DisplayStyle.Flex : DisplayStyle.None;
+            bool hasHeroTicker = ownsBuilding && em.HasComponent<HeroRecruitTicker>(_target);
+            if (_heroTimerLabel != null)
+                _heroTimerLabel.style.display = hasHeroTicker ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (em.HasComponent<BuildingSpeedAura>(_target) && ownsBuilding)
+            {
+                var aura = em.GetComponentData<BuildingSpeedAura>(_target);
+                WriteAuraHighlight(em, b.RootHex, aura.Radius, true);
+            }
+            else
+            {
+                ClearAuraHighlight();
+            }
 
             if (_tabs != null)
             {
@@ -719,6 +769,65 @@ namespace RareIcon
         {
             using var q = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
             return q.CalculateEntityCount() == 0 ? 0f : q.GetSingleton<WorldClock>().AbsSeconds;
+        }
+
+        void WriteAuraHighlight(EntityManager em, int2 center, byte radius, bool active)
+        {
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<AuraHighlightTarget>());
+            if (q.CalculateEntityCount() == 0) return;
+            var tgt = q.GetSingleton<AuraHighlightTarget>();
+            byte activeByte = (byte)(active && radius > 0 ? 1 : 0);
+            bool changed = tgt.Active != activeByte
+                           || tgt.Center.x != center.x || tgt.Center.y != center.y
+                           || tgt.Radius != radius;
+            if (!changed) return;
+            tgt.Center     = center;
+            tgt.Radius     = radius;
+            tgt.Active     = activeByte;
+            tgt.Generation = unchecked(tgt.Generation + 1u);
+            q.SetSingleton(tgt);
+        }
+
+        void ClearAuraHighlight()
+        {
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            using var q = em.CreateEntityQuery(ComponentType.ReadWrite<AuraHighlightTarget>());
+            if (q.CalculateEntityCount() == 0) return;
+            var tgt = q.GetSingleton<AuraHighlightTarget>();
+            if (tgt.Active == 0) return;
+            tgt.Active     = 0;
+            tgt.Generation = unchecked(tgt.Generation + 1u);
+            q.SetSingleton(tgt);
+        }
+
+        public void Tick()
+        {
+            if (_heroTimerLabel == null) return;
+            if (!_isOpen.Value) return;
+            if (_target == Entity.Null) return;
+            if (_heroTimerLabel.style.display == DisplayStyle.None) return;
+
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.Exists(_target) || !em.HasComponent<HeroRecruitTicker>(_target)) return;
+
+            var ticker = em.GetComponentData<HeroRecruitTicker>(_target);
+            uint nowTick = (uint)(world.Time.ElapsedTime * 1000d);
+            float remainingSec = ticker.NextRecruitTick > nowTick
+                ? (ticker.NextRecruitTick - nowTick) * 0.001f
+                : 0f;
+            int rounded = (int)System.Math.Ceiling(remainingSec);
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                sb.AppendFormat(_locale.Get("inspector.next_hero_in"), rounded);
+                _heroTimerLabel.text = sb.ToString();
+            }
+            finally { sb.Dispose(); }
         }
 
         public void Dispose()

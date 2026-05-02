@@ -830,3 +830,101 @@
     width: 14px;
     height: 14px;
 }
+
+/* Ultrawide (Screen.width ≥ 2560px) — 1440p ultrawide / 4K / 5K. Bumps
+   panel cap so 4K monitors don't feel like a postage stamp; bumps
+   reading sizes so distance viewing stays comfortable. Two-column
+   layout stays. Inherits .title-window--wide rules below it. */
+.title-window--ultrawide {
+    max-width: 1440px;
+    padding: 14px 24px 12px 24px;
+}
+.title-window--ultrawide .title-window-inner {
+    top: 8px; left: 8px; right: 8px; bottom: 8px;
+}
+.title-window--ultrawide .title-close {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    top: 8px;
+    right: 8px;
+}
+.title-window--ultrawide .title-brand {
+    font-size: 22px;
+    letter-spacing: 4px;
+}
+.title-window--ultrawide .title-tagline {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    margin-left: 14px;
+}
+.title-window--ultrawide .title-header {
+    margin-bottom: 8px;
+}
+.title-window--ultrawide .title-menu {
+    min-width: 220px;
+    max-width: 300px;
+    margin-right: 22px;
+}
+.title-window--ultrawide .title-menu-btn {
+    padding: 8px 14px;
+    font-size: 15px;
+    letter-spacing: 1.2px;
+}
+.title-window--ultrawide .title-stage__title {
+    font-size: 17px;
+    margin-bottom: 6px;
+}
+.title-window--ultrawide .title-stage__hint {
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+.title-window--ultrawide .title-info-card {
+    padding: 8px 10px;
+    min-width: 140px;
+}
+.title-window--ultrawide .title-info-card__value {
+    font-size: 16px;
+}
+.title-window--ultrawide .title-info-card__label {
+    font-size: 9px;
+}
+.title-window--ultrawide .title-info-card__sub {
+    font-size: 11px;
+}
+.title-window--ultrawide .title-footer {
+    margin-top: 12px;
+    padding-top: 8px;
+}
+.title-window--ultrawide .title-avatar {
+    width: 24px;
+    height: 24px;
+}
+.title-window--ultrawide .title-persona__name {
+    font-size: 11px;
+}
+.title-window--ultrawide .title-persona__status {
+    font-size: 9px;
+}
+.title-window--ultrawide .title-social-btn {
+    width: 24px;
+    height: 24px;
+}
+.title-window--ultrawide .title-locale-btn,
+.title-window--ultrawide .title-action-btn {
+    padding: 12px 0;
+    font-size: 14px;
+}
+.title-window--ultrawide .title-seed-input .unity-base-text-field__input,
+.title-window--ultrawide .title-seed-input .unity-text-element {
+    font-size: 14px;
+}
+.title-window--ultrawide .title-seed-input,
+.title-window--ultrawide .title-seed-input .unity-base-text-field__input,
+.title-window--ultrawide .title-seed-btn {
+    min-height: 36px;
+}
+.title-window--ultrawide .title-seed-btn {
+    width: 120px;
+    font-size: 14px;
+}

@@ -24,10 +24,17 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+
             var entities       = _furnacesWithTier.ToEntityArray(Allocator.Temp);
             var tierLookup     = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var variantLookup  = SystemAPI.GetComponentLookup<BuildingVariant>(true);
             var prodLookup     = SystemAPI.GetComponentLookup<FurnaceProduction>(false);
+            // BuildingHealth read-only; mutations route through ECB so the
+            // write doesn't race BuildingDeathJob / BuildingRepairJob /
+            // DamageJob and we don't have to stall the main thread to sync.
+            var hpLookup       = SystemAPI.GetComponentLookup<BuildingHealth>(true);
             var em = state.EntityManager;
 
             for (int i = 0; i < entities.Length; i++)
@@ -36,6 +43,8 @@ namespace RareIcon
                 byte tier    = tierLookup[e].Value;
                 byte variant = variantLookup.HasComponent(e) ? variantLookup[e].Value : (byte)0;
 
+                ApplyMaxHealth(ecb, e, tier, variant, hpLookup);
+
                 if (tier == 0) continue; // FurnaceInitSystem owns T0 recipe.
 
                 var recipe = ResolveRecipe(tier, variant);
@@ -43,6 +52,23 @@ namespace RareIcon
                 else em.AddComponentData(e, recipe);
             }
             entities.Dispose();
+        }
+
+        static void ApplyMaxHealth(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
+                                   ComponentLookup<BuildingHealth> hpLookup)
+        {
+            if (!hpLookup.HasComponent(e)) return;
+            ushort newMax = tier switch
+            {
+                0 => 300,
+                2 => 540,
+                _ => (variant == 1) ? (ushort)320 : (ushort)420, // Glassworks vs Forge
+            };
+            var hp = hpLookup[e];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMax;
+            hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMax), 0, newMax);
+            ecb.SetComponent(e, hp);
         }
 
         static FurnaceProduction ResolveRecipe(byte tier, byte variant)

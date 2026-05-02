@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.127",
+			"version": "1.0.128",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -160,7 +160,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.11",
+			"version": "0.1.12",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -335,7 +335,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_battle/version.toml",
 			"version_source": "packages/rust/bevy/bevy_battle/Cargo.toml",
-			"version_target": "packages/rust/bevy_battle/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_battle/Cargo.toml"
 		},
 		{
 			"key": "bevy_behavior_crate",
@@ -351,7 +351,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_cam/version.toml",
 			"version_source": "packages/rust/bevy/bevy_cam/Cargo.toml",
-			"version_target": "packages/rust/bevy_cam/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_cam/Cargo.toml"
 		},
 		{
 			"key": "bevy_chat_crate",
@@ -375,7 +375,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
 			"version_source": "packages/rust/bevy/bevy_inventory/Cargo.toml",
-			"version_target": "packages/rust/bevy_inventory/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_inventory/Cargo.toml"
 		},
 		{
 			"key": "bevy_items_crate",
@@ -383,7 +383,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
 			"version_source": "packages/rust/bevy/bevy_items/Cargo.toml",
-			"version_target": "packages/rust/bevy_items/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_items/Cargo.toml"
 		},
 		{
 			"key": "bevy_kbve_net_crate",
@@ -391,7 +391,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
 			"version_source": "packages/rust/bevy/bevy_kbve_net/Cargo.toml",
-			"version_target": "packages/rust/bevy_kbve_net/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
 		},
 		{
 			"key": "bevy_mapdb_crate",
@@ -399,7 +399,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
 			"version_source": "packages/rust/bevy/bevy_mapdb/Cargo.toml",
-			"version_target": "packages/rust/bevy_mapdb/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
 		},
 		{
 			"key": "bevy_npc_crate",
@@ -407,7 +407,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_npc/version.toml",
 			"version_source": "packages/rust/bevy/bevy_npc/Cargo.toml",
-			"version_target": "packages/rust/bevy_npc/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_npc/Cargo.toml"
 		},
 		{
 			"key": "bevy_pathfinding_crate",
@@ -423,7 +423,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_player/version.toml",
 			"version_source": "packages/rust/bevy/bevy_player/Cargo.toml",
-			"version_target": "packages/rust/bevy_player/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_player/Cargo.toml"
 		},
 		{
 			"key": "bevy_quests_crate",
@@ -431,7 +431,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_quests/version.toml",
 			"version_source": "packages/rust/bevy/bevy_quests/Cargo.toml",
-			"version_target": "packages/rust/bevy_quests/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_quests/Cargo.toml"
 		},
 		{
 			"key": "bevy_skills_crate",
@@ -439,7 +439,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_skills/version.toml",
 			"version_source": "packages/rust/bevy/bevy_skills/Cargo.toml",
-			"version_target": "packages/rust/bevy_skills/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
 		},
 		{
 			"key": "bevy_statemachine_crate",
@@ -447,7 +447,7 @@
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
 			"version_source": "packages/rust/bevy/bevy_statemachine/Cargo.toml",
-			"version_target": "packages/rust/bevy_statemachine/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
 		},
 		{
 			"key": "bevy_supa_crate",
@@ -463,7 +463,7 @@
 			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
 			"version_source": "packages/rust/bevy/bevy_tasker/Cargo.toml",
-			"version_target": "packages/rust/bevy_tasker/Cargo.toml"
+			"version_target": "packages/rust/bevy/bevy_tasker/Cargo.toml"
 		},
 		{
 			"key": "erust_crate",
@@ -621,7 +621,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
@@ -645,7 +645,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 21,
+		"docker": 22,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -655,6 +655,6 @@
 		"godot": 0,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 60
+		"total": 61
 	}
 }

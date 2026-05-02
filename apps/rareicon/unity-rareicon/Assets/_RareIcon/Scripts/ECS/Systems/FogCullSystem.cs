@@ -28,7 +28,17 @@ namespace RareIcon
             if (_accum < ScanIntervalSeconds) return;
             _accum = 0f;
 
-            var hexLookup = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
+            // Drain HexDB writers + FogBake writers before we read their
+            // containers on the main thread. SystemBase doesn't auto-sync
+            // jobs that target NativeContainers held in singletons or
+            // ComponentLookups outside its query, so the previously
+            // scheduled DrainHexDBJob + FogBakeJob would otherwise race
+            // these reads and Unity throws InvalidOperationException.
+            var hexDb = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDb.DrainHandle.Complete();
+            CompleteDependency();
+
+            var hexLookup = hexDb.Lookup;
             var fogLookup = SystemAPI.GetComponentLookup<FogVisibility>(true);
             var disabledLookup = SystemAPI.GetComponentLookup<DisableRendering>(true);
 

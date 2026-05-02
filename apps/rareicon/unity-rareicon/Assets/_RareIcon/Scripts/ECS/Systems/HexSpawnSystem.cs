@@ -295,7 +295,8 @@ namespace RareIcon
                 typeof(ItemDrop),
                 typeof(TerritoryVisual),
                 typeof(FogVisibility),
-                typeof(FogExplored)
+                typeof(FogExplored),
+                typeof(AuraHighlightVisual)
             );
 
             var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);

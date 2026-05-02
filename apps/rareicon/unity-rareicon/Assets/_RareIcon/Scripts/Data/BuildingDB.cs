@@ -65,6 +65,10 @@ namespace RareIcon
         static readonly Ingredient[] CostTower      = { new((ushort)ItemId.Timber,     2),
                                                         new((ushort)ItemId.StoneBlock, 4) };
         static readonly Ingredient[] CostWall       = { new((ushort)ItemId.StoneBlock, 5) };
+        static readonly Ingredient[] CostCity       = { new((ushort)ItemId.Coin,       200),
+                                                        new((ushort)ItemId.Timber,      100),
+                                                        new((ushort)ItemId.StoneBlock,  100),
+                                                        new((ushort)ItemId.Log,         200) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
         // -- Upgrade chain costs --
@@ -343,6 +347,7 @@ namespace RareIcon
             BuildingType.Dock       => CostDock,
             BuildingType.Tower      => CostTower,
             BuildingType.Wall       => CostWall,
+            BuildingType.City       => CostCity,
             _ => CostNone,
         };
 
@@ -430,6 +435,7 @@ namespace RareIcon
             BuildingType.HostileCity => "building.hostile_city",
             BuildingType.AlliedCity  => "building.allied_city",
             BuildingType.VassalCity  => "building.vassal_city",
+            BuildingType.City        => "building.city",
             _ => "building.unknown",
         };
 
@@ -507,6 +513,7 @@ namespace RareIcon
             BuildTarget.Dock       => BuildingType.Dock,
             BuildTarget.Tower      => BuildingType.Tower,
             BuildTarget.Wall       => BuildingType.Wall,
+            BuildTarget.City       => BuildingType.City,
             _ => BuildingType.None,
         };
 
@@ -526,6 +533,7 @@ namespace RareIcon
             BuildingType.Dock       => BuildTarget.Dock,
             BuildingType.Tower      => BuildTarget.Tower,
             BuildingType.Wall       => BuildTarget.Wall,
+            BuildingType.City       => BuildTarget.City,
             _ => BuildTarget.None,
         };
 
@@ -560,12 +568,14 @@ namespace RareIcon
             BuildingType.Buttress         => 420,
             BuildingType.Palisade         => 160,
             BuildingType.Wall       => 260,
+            BuildingType.City       => 1500,
             _                       => 100,
         };
 
         public static bool RequiresInTerritory(byte buildingType)
             => buildingType != BuildingType.Capital
-            && buildingType != BuildingType.Outpost;
+            && buildingType != BuildingType.Outpost
+            && buildingType != BuildingType.City;
 
         public const int OutpostAnchorRadius = 5;
 
@@ -573,6 +583,7 @@ namespace RareIcon
         public static readonly byte[] AllBuildable =
         {
             BuildingType.Capital,
+            BuildingType.City,
             BuildingType.Outpost,
             BuildingType.Farm,
             BuildingType.Lumbercamp,

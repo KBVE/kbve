@@ -208,6 +208,22 @@ jobs:
                   targetPlatform: ${{ matrix.target }}
                   buildName: ${{ inputs.app_name }}
 
+            # Strip Unity's ship-blocked debug folders before zipping so
+            # the artifact carries only what end-users would actually run.
+            # `*_BackUpThisFolder_ButDontShipItWithYourGame*` holds IL2CPP
+            # native debug symbols (Android/iOS); `*_BurstDebugInformation_DoNotShip*`
+            # holds Burst-compiled debug data; both are useful for symbolicating
+            # crashes locally but Unity explicitly tells you not to ship them.
+            - name: Strip Unity DoNotShip folders
+              run: |
+                  find "build/${{ matrix.target }}" -type d \
+                    \( -name "*_BackUpThisFolder_ButDontShipItWithYourGame*" \
+                    -o -name "*_BurstDebugInformation_DoNotShip*" \) \
+                    -prune -exec rm -rf {} + 2>/dev/null || true
+                  echo "build/${{ matrix.target }} after strip:"
+                  du -sh "build/${{ matrix.target }}" || true
+                  ls -la "build/${{ matrix.target }}" || true
+
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
@@ -265,9 +281,26 @@ jobs:
                   unzip -q butler.zip
                   chmod +x butler
                   ./butler -V
-                  ./butler push "build/${{ matrix.target }}" \
-                    "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
-                    --userversion "${{ inputs.manifest_version }}"
+
+                  # Android publishes a single .apk; everything else
+                  # publishes the build directory (executable + data
+                  # folder). The DoNotShip dirs were already stripped
+                  # before artifact upload, so the dir push is clean.
+                  if [ "${{ matrix.target }}" = "Android" ]; then
+                    APK=$(find "build/Android" -maxdepth 2 -name "*.apk" -type f | head -n 1)
+                    if [ -z "$APK" ]; then
+                      echo "::error::No .apk found under build/Android"
+                      exit 1
+                    fi
+                    echo "Pushing $APK to itch"
+                    ./butler push "$APK" \
+                      "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                      --userversion "${{ inputs.manifest_version }}"
+                  else
+                    ./butler push "build/${{ matrix.target }}" \
+                      "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                      --userversion "${{ inputs.manifest_version }}"
+                  fi
 
     deploy_steam:
         name: Steam deploy ${{ matrix.app.label || matrix.app.app_id }}
@@ -332,22 +365,20 @@ jobs:
                   done
                   ls -la
 
-            # Upload via game-ci/steam-deploy. Generates its own app_build
-            # VDF from the depot inputs below — our apps/<project>/Steam/
-            # app_build_<label>.vdf files act only as an enable signal in
-            # the Resolve step above (file present = matrix entry runs).
-            #
-            # Depot layout assumes sequential depot IDs starting at
-            # appId + 1 (matches RareIcon's 3791951/52/53 for demo and
-            # the eventual main scheme). Set firstDepotIdOverride if a
-            # future SteamApp uses non-sequential depot IDs.
+            - name: Generate Steam Guard TOTP
+              if: steps.vdf.outputs.skip != 'true'
+              id: steam_totp
+              uses: CyberAndrii/steam-totp@v1
+              with:
+                  shared_secret: ${{ secrets.STEAM_TOTP_SECRET }}
+
             - name: Upload via SteamPipe (game-ci/steam-deploy)
               if: steps.vdf.outputs.skip != 'true'
               uses: game-ci/steam-deploy@v3
               with:
                   username: ${{ secrets.STEAM_USERNAME }}
                   password: ${{ secrets.STEAM_PASSWORD }}
-                  totp: ${{ secrets.STEAM_TOTP_SECRET }}
+                  totp: ${{ steps.steam_totp.outputs.code }}
                   appId: ${{ matrix.app.app_id }}
                   buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }})'
                   rootPath: ${{ inputs.project_path }}/build

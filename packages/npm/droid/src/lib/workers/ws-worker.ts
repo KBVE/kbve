@@ -85,8 +85,11 @@ function stopHeartbeat() {
 	}
 }
 
-function broadcastStatus(status: string) {
-	eventsChannel?.postMessage({ type: 'status', status });
+function broadcastStatus(
+	status: string,
+	detail?: { code?: number; reason?: string; wasClean?: boolean },
+) {
+	eventsChannel?.postMessage({ type: 'status', status, ...detail });
 }
 
 function attemptReconnect() {
@@ -131,11 +134,13 @@ const wsInstanceAPI = {
 		}
 
 		lastUrl = url;
+		const safeUrl = url.replace(/(token=)[^&]+/i, '$1<redacted>');
+		console.log('[WS] Connecting to', safeUrl);
 		ws = new WebSocket(url);
 		ws.binaryType = 'arraybuffer';
 
 		ws.onopen = () => {
-			console.log('[WS] Connected:', url);
+			console.log('[WS] Connected:', safeUrl);
 			reconnectAttempts = 0;
 			lastPongTime = Date.now();
 			startHeartbeat();
@@ -201,17 +206,24 @@ const wsInstanceAPI = {
 		};
 
 		ws.onerror = (e) => {
-			console.error('[WS] Error:', e);
-			broadcastStatus('error');
+			console.error('[WS] Error event:', e);
+			broadcastStatus('error', {
+				reason: 'WebSocket error event (no detail in browser API)',
+			});
 		};
 
 		ws.onclose = (event) => {
-			console.log('[WS] Disconnected:', event.code, event.reason);
+			console.log(
+				`[WS] Disconnected code=${event.code} reason="${event.reason}" wasClean=${event.wasClean}`,
+			);
 			ws = null;
 			stopHeartbeat();
-			broadcastStatus('disconnected');
+			broadcastStatus('disconnected', {
+				code: event.code,
+				reason: event.reason,
+				wasClean: event.wasClean,
+			});
 
-			// Auto-reconnect on abnormal closure
 			if (event.code !== 1000) {
 				attemptReconnect();
 			}

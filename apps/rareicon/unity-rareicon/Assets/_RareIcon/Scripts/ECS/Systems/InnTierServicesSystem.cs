@@ -33,6 +33,11 @@ namespace RareIcon
             var entities = _innsWithTier.ToEntityArray(Unity.Collections.Allocator.Temp);
             var tierLookup    = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var variantLookup = SystemAPI.GetComponentLookup<BuildingVariant>(true);
+            // Read-only on BuildingHealth — Burst auto-syncs the read path.
+            // Mutations go through ECB so the write doesn't race with
+            // BuildingDeathJob / BuildingRepairJob / DamageJob; ECB plays
+            // at end-of-frame after every job has settled.
+            var hpLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(true);
             var foodLookup    = SystemAPI.GetComponentLookup<ProvidesFood>(true);
             var sleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true);
             var healLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
@@ -55,8 +60,26 @@ namespace RareIcon
                 ApplyMorale(ecb, e, tier, variant, moraleLookup);
                 ApplyDrink(ecb, e, tier, variant, drinkLookup);
                 ApplyMusic(ecb, e, tier, variant, musicLookup, auraLookup);
+                ApplyMaxHealth(ecb, e, tier, variant, hpLookup);
             }
             entities.Dispose();
+        }
+
+        static void ApplyMaxHealth(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
+                                   ComponentLookup<BuildingHealth> hpLookup)
+        {
+            if (!hpLookup.HasComponent(e)) return;
+            ushort newMax = tier switch
+            {
+                0 => 280,
+                2 => 460,
+                _ => (variant == 1) ? (ushort)280 : (ushort)360, // AleHouse vs Tavern
+            };
+            var hp = hpLookup[e];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMax;
+            hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMax), 0, newMax);
+            ecb.SetComponent(e, hp);
         }
 
         static void ApplyFood(EntityCommandBuffer ecb, Entity e, byte tier,

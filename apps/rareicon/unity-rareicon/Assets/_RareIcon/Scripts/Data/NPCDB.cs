@@ -345,6 +345,21 @@ namespace RareIcon
                 strength:      6, agility: 16, intellect: 9, will: 7,
                 defaultWeapon: WeaponType.None));
 
+            // Player mounted melee — fast charger, mid HP, sword loadout.
+            // Recruited from Stables. Faster than Soldier, slower than Scout;
+            // tier-services aura on Stables further bumps move speed.
+            Add(new NPCDef(
+                unitType:      UnitType.Cavalry,
+                nameKey:       "creature.cavalry",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     85f,  maxEnergy: 110f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.85f,
+                healthRegen:   0f,   energyRegen: 4.0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      13, agility: 12, intellect: 7, will: 9,
+                defaultWeapon: WeaponType.Club));
+
             // Bandit recon — same speed profile as Scout, slightly more HP
             // so a single Player Archer can't one-shot it. No weapon; a
             // BanditScout that runs into combat usually flees.

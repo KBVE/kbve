@@ -54,6 +54,8 @@ Shader "RareIcon/HexTile"
         //  0 = clear, 1 = explored-stale, 2 = unexplored.
         _Fog               ("Fog (per-instance)",       Float) = 0
         _FogColor          ("Fog Color (Unexplored)",   Color) = (0.05, 0.06, 0.10, 1)
+        _AuraHighlight     ("Aura Highlight (per-instance)", Float) = 0
+        _AuraHighlightColor ("Aura Highlight Color",         Color) = (0.40, 0.95, 1.00, 1)
         _FogExploredColor  ("Fog Color (Explored)",     Color) = (0.20, 0.22, 0.28, 1)
         _FogNoiseDensity   ("Fog Noise Density",        Float) = 6.0
         _FogNoiseSpeed     ("Fog Noise Speed",          Float) = 0.05
@@ -137,6 +139,8 @@ Shader "RareIcon/HexTile"
                 float4 _FogExploredColor;
                 float  _FogNoiseDensity;
                 float  _FogNoiseSpeed;
+                float  _AuraHighlight;
+                float4 _AuraHighlightColor;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -150,6 +154,7 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float, _CactusAmount)
                 UNITY_DOTS_INSTANCED_PROP(float, _Territory)
                 UNITY_DOTS_INSTANCED_PROP(float, _Fog)
+                UNITY_DOTS_INSTANCED_PROP(float, _AuraHighlight)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
@@ -161,6 +166,7 @@ Shader "RareIcon/HexTile"
             #define _CactusAmount UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _CactusAmount)
             #define _Territory    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Territory)
             #define _Fog          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Fog)
+            #define _AuraHighlight UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _AuraHighlight)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
@@ -285,6 +291,13 @@ Shader "RareIcon/HexTile"
                 // Fog of war — animated voronoi haze; clear hexes pass
                 // through untouched, explored dim, unexplored near-opaque.
                 col = ApplyFog(col, input.worldPos, d, _Fog);
+
+                if (_AuraHighlight > 0.5)
+                {
+                    col = lerp(col, _AuraHighlightColor.rgb, 0.18);
+                    float rim = smoothstep(0.090, 0.020, -d);
+                    col = lerp(col, _AuraHighlightColor.rgb, rim * _AuraHighlightColor.a * 0.85);
+                }
 
                 clip(-d - 0.001);
                 return float4(ApplyWorldAmbient(col), 1.0);

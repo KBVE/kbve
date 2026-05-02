@@ -33,6 +33,7 @@ namespace RareIcon
         public const byte PirateShip    = 20; // Water-locked Hostile-faction raider — PirateCove-spawned, ranged arrow attack.
         public const byte Scout         = 21; // Player-faction recon — fast, low HP, big vision radius for fog reveal. Recruited from Barracks.
         public const byte BanditScout   = 22; // Hostile-faction recon — wanders far from BanditCamp, marks discovered Player buildings as raid targets.
+        public const byte Cavalry       = 23; // Player-faction mounted melee — fast charger, decent HP, recruited from Stables (Barracks T1 variant 1).
         // Skeleton, etc. land here as we add them.
     }
 
@@ -64,6 +65,9 @@ namespace RareIcon
 
     /// <summary>Marker tag for Hostile-faction BanditScouts — periodically dispatched by BanditCamps to wander far from camp + mark discovered Player buildings into the shared known-target set so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius.</summary>
     public struct BanditScoutTag : IComponentData { }
+
+    /// <summary>Marker tag for Player-faction Cavalry — fast melee charger recruited from Stables. Carries the standard Player MeleeAttack loadout but with mount-driven move speed; future SpeedCharge pass can hook combat damage to MovementModifier.SpeedMul for charge bonus.</summary>
+    public struct CavalryTag : IComponentData { }
 
     /// <summary>Per-unit fog-of-war vision radius override. Attached to recon units (Scout = 3, future GriffinFlyer = 5+) so <see cref="FogBakeSystem"/> can give them a wider reveal than the default 1-hex unit baseline. Combat units leave this off and inherit the default — keeps the gather-loop in the bake job branchless except for the lookup probe.</summary>
     public struct VisionRadius : IComponentData

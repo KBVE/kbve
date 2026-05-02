@@ -12,6 +12,10 @@ namespace RareIcon
     {
         const string SaveFileName = "worldstore.db";
 
+        /// <summary>Absolute path to the live SQLite worldstore. Save / restore round-trips target this file via <see cref="NativeWorld.Archive"/> + <see cref="Native.NativeWorld.Restore"/>.</summary>
+        public static string LiveDbPath =>
+            Path.Combine(Application.persistentDataPath, SaveFileName);
+
         static NativeWorld _instance;
 
         /// <summary>Shared <see cref="NativeWorld"/> handle, or null if not yet initialized / dylib failed to load.</summary>
