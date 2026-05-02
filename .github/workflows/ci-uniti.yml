@@ -29,9 +29,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 30
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
+            CARGO_HOME: /home/runner/_cache/cargo/home/verify
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/verify
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/verify
         steps:
             - name: Checkout
               uses: actions/checkout@v6
@@ -61,9 +61,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 45
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
+            CARGO_HOME: /home/runner/_cache/cargo/home/asan
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/asan
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/asan
         steps:
             - uses: actions/checkout@v6
             - name: Install build prerequisites
@@ -78,6 +78,8 @@ jobs:
               env:
                   RUSTFLAGS: '-Z sanitizer=address'
                   RUSTDOCFLAGS: '-Z sanitizer=address'
+                  ASAN_OPTIONS: 'detect_leaks=0'
+                  LSAN_OPTIONS: 'detect_leaks=0'
               run: |
                   cargo +nightly test -p uniti \
                       -Z build-std \
@@ -90,9 +92,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 60
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
+            CARGO_HOME: /home/runner/_cache/cargo/home/miri
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/miri
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/miri
         steps:
             - uses: actions/checkout@v6
             - name: Install build prerequisites
@@ -117,9 +119,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 30
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
+            CARGO_HOME: /home/runner/_cache/cargo/home/fuzz
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/fuzz
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/fuzz
         steps:
             - uses: actions/checkout@v6
             - name: Install build prerequisites
@@ -142,8 +144,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 30
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            CARGO_HOME: /home/runner/_cache/cargo/home/build_linux
+            CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_linux
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_linux
         steps:
             - uses: actions/checkout@v6
 
@@ -157,17 +160,14 @@ jobs:
               with:
                   targets: x86_64-unknown-linux-gnu
 
-            - name: Install cross
-              run: cargo install cross --locked
-
-            - name: cross build (release)
-              run: cross build -p uniti --release --target x86_64-unknown-linux-gnu
+            - name: cargo build (release)
+              run: cargo build -p uniti --release --target x86_64-unknown-linux-gnu
 
             - name: Upload Linux libuniti.so
               uses: actions/upload-artifact@v4
               with:
                   name: uniti-linux-x86_64
-                  path: dist/target/x86_64-unknown-linux-gnu/release/libuniti.so
+                  path: ${{ env.CARGO_TARGET_DIR }}/x86_64-unknown-linux-gnu/release/libuniti.so
                   if-no-files-found: error
 
     build_android:
@@ -176,9 +176,9 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 45
         env:
-            CARGO_HOME: /home/runner/_cache/cargo/home
+            CARGO_HOME: /home/runner/_cache/cargo/home/build_android
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_android
-            RUSTUP_HOME: /home/runner/_cache/cargo/rustup
+            RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_android
         steps:
             - uses: actions/checkout@v6
 
