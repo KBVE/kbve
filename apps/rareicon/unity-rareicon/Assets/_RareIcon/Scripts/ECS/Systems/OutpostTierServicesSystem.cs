@@ -13,7 +13,7 @@ namespace RareIcon
         protected override void OnCreate()
         {
             _outpostsWithTier = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<OutpostTag, BuildingTier, TerritoryEmitter, OutpostVolley>()
+                .WithAll<OutpostTag, BuildingTier, TerritoryEmitter, OutpostVolley, BuildingHealth>()
                 .Build(EntityManager);
             _outpostsWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
             RequireForUpdate(_outpostsWithTier);
@@ -84,6 +84,16 @@ namespace RareIcon
             territory.Radius = radius;
             em.SetComponentData(outpost, territory);
 
+            ushort newMaxHp = ResolveOutpostMaxHp(tier, variant);
+            if (em.HasComponent<BuildingHealth>(outpost))
+            {
+                var hp = em.GetComponentData<BuildingHealth>(outpost);
+                float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+                hp.Max   = newMaxHp;
+                hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMaxHp), 0, newMaxHp);
+                em.SetComponentData(outpost, hp);
+            }
+
             var volley = em.GetComponentData<OutpostVolley>(outpost);
             volley.CooldownSeconds   = volleyCooldown;
             volley.Range             = volleyRange;
@@ -114,6 +124,18 @@ namespace RareIcon
             {
                 em.RemoveComponent<VisionRadius>(outpost);
             }
+        }
+
+        static ushort ResolveOutpostMaxHp(byte tier, byte variant)
+        {
+            if (tier >= 2) return 360; // Garrison
+            if (tier == 1)
+            {
+                if (variant == 1) return 240; // BeaconOutpost
+                if (variant == 2) return 280; // Gatepost
+                return 260;                   // Watchpost
+            }
+            return 220;                       // base Outpost
         }
     }
 }
