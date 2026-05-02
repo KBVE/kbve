@@ -54,7 +54,9 @@ namespace RareIcon
             if (_buildMode.IsActive) return;
 
             var state = _appState.Current.CurrentValue;
-            if (state != AppInterfaceState.World && state != AppInterfaceState.InTile) return;
+            if (state != AppInterfaceState.World
+             && state != AppInterfaceState.InTile
+             && state != AppInterfaceState.MainMenu) return;
 
             _nextAcceptUnscaledTime = Time.unscaledTime + CooldownSeconds;
 

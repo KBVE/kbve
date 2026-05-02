@@ -20,6 +20,7 @@ namespace RareIcon
         readonly UIPanelManager _panelManager;
         readonly WorldGenSession _session;
         readonly AppStateController _appState;
+        readonly UISettings _settings;
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         readonly ISubscriber<SteamAvatarReadyMessage> _avatarSub;
         readonly ISteamAvatarService _avatars;
@@ -49,7 +50,8 @@ namespace RareIcon
             LocaleService locale,
             UIPanelManager panelManager,
             WorldGenSession session,
-            AppStateController appState
+            AppStateController appState,
+            UISettings settings
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             , ISubscriber<SteamAvatarReadyMessage> avatarSub
             , ISteamAvatarService avatars
@@ -60,6 +62,7 @@ namespace RareIcon
             _panelManager = panelManager;
             _session = session;
             _appState = appState;
+            _settings = settings;
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             _avatarSub = avatarSub;
             _avatars = avatars;
@@ -164,6 +167,9 @@ namespace RareIcon
 
             var load = _root.Q<Button>("title-menu-load");
             if (load != null) load.clicked += _session.BeginLoadFlow;
+
+            var settings = _root.Q<Button>("title-menu-settings");
+            if (settings != null) settings.clicked += () => _settings?.Toggle();
 
             var codex = _root.Q<Button>("title-menu-codex");
             if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");

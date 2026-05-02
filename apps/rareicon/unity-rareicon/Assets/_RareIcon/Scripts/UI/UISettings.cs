@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MessagePipe;
 using R3;
 using UnityEngine.UIElements;
 using VContainer;
@@ -12,6 +13,7 @@ namespace RareIcon
     public class UISettings : IAsyncStartable, IDisposable
     {
         readonly UIPanelManager _panelManager;
+        readonly ISubscriber<SettingsToggleMessage> _toggleSub;
 
         readonly CompositeDisposable _disposables = new();
         readonly ReactiveProperty<bool> _isOpen = new(false);
@@ -29,9 +31,11 @@ namespace RareIcon
                           LocaleService locale,
                           CameraService camera,
                           BiomeGenerator biomes,
-                          WorldGenSession session)
+                          WorldGenSession session,
+                          ISubscriber<SettingsToggleMessage> toggleSub)
         {
             _panelManager = panelManager;
+            _toggleSub    = toggleSub;
             _tabs = new ISettingsTab[]
             {
                 new SearchTab(locale, camera, biomes),
@@ -87,6 +91,16 @@ namespace RareIcon
                 else      _panel.AddToClassList("is-hidden");
                 if (open) _tabs[_activeIndex].OnActivated();
             }).AddTo(_disposables);
+
+            // Global toggle bus — title-screen menu, future hotkey, and
+            // any non-DI'd caller can flip the panel without taking a
+            // hard reference to UISettings.
+            if (_toggleSub != null)
+            {
+                var bag = MessagePipe.DisposableBag.CreateBuilder();
+                _toggleSub.Subscribe(_ => Toggle()).AddTo(bag);
+                _disposables.Add(bag.Build());
+            }
         }
 
         public void Toggle() => _isOpen.Value = !_isOpen.Value;

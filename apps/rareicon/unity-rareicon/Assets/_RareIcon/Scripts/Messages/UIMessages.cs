@@ -137,6 +137,9 @@ namespace RareIcon
         public PanelHideMessage(string panelKey) => PanelKey = panelKey;
     }
 
+    /// <summary>Broadcast request to flip the global Settings panel open / closed. Decouples emitters (title screen menu button, in-world HUD button, future hotkey) from the UISettings instance — anyone with GlobalMessagePipe.GetPublisher can drive it without taking a direct DI reference.</summary>
+    public readonly struct SettingsToggleMessage { }
+
     /// <summary>Severity of a toast — drives the panel border tint.</summary>
     public enum ToastKind : byte
     {
