@@ -1,4 +1,6 @@
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
@@ -9,5 +11,22 @@ namespace RareIcon
     public struct CityAdminRadius : IComponentData
     {
         public byte Radius;
+    }
+
+    /// <summary>Per-frame snapshot of one city for the <see cref="CityIndexSingleton"/> lookup table. Caches Faction + RootHex + AdminRadius + ledger flags so Burst callers can pick the nearest city for a given hex without re-issuing entity queries every tick. <see cref="HasCapitalLedger"/> / <see cref="HasCityLedger"/> are 0/1 booleans packed as bytes so the entry stays blittable.</summary>
+    public struct CityIndexEntry
+    {
+        public Entity Entity;
+        public int2   RootHex;
+        public byte   Faction;
+        public byte   AdminRadius;
+        public byte   HasCapitalLedger;
+        public byte   HasCityLedger;
+    }
+
+    /// <summary>Per-frame index of every <see cref="CityTag"/> entity in the world. <c>CityIndexSystem</c> rebuilds the list once per frame at <see cref="InitializationSystemGroup"/> time so all downstream callers (tribute, shop, shrine, future consolidator) see a stable snapshot. Read-only from gameplay systems; do not mutate. Allocator.Persistent — owned + disposed by the builder system.</summary>
+    public struct CityIndexSingleton : IComponentData
+    {
+        public NativeList<CityIndexEntry> Entries;
     }
 }

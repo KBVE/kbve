@@ -85,14 +85,17 @@ namespace RareIcon
 
         void HandleShop(EntityManager em, Entity landmark, uint turn)
         {
-            if (!TryGetCapital(em, out var capital))
+            int2 here = em.HasComponent<Building>(landmark)
+                ? em.GetComponentData<Building>(landmark).RootHex
+                : default;
+
+            if (!CityRouter.TryGetNearestPlayerBank(em, here, out _, out var ledger))
             {
-                _toastPub.Publish(new ToastMessage("No Capital to receive supplies.", ToastKind.Warning));
+                _toastPub.Publish(new ToastMessage("No player city to receive supplies.", ToastKind.Warning));
                 return;
             }
 
             long unixMs = TryReadUnixMs(em);
-            var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
             BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, ShopRewardCoin, UlidFactory.NewUid(ref _rng, unixMs));
             BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Herb, ShopRewardHerb, UlidFactory.NewUid(ref _rng, unixMs));
 
@@ -135,16 +138,6 @@ namespace RareIcon
                 em.SetComponentData(landmark, new LandmarkVisitCooldown { NextEligibleTurn = nextTurn });
             else
                 em.AddComponentData(landmark, new LandmarkVisitCooldown { NextEligibleTurn = nextTurn });
-        }
-
-        static bool TryGetCapital(EntityManager em, out Entity capital)
-        {
-            using var q = em.CreateEntityQuery(
-                ComponentType.ReadOnly<CapitalTag>(),
-                ComponentType.ReadOnly<CapitalLedger>());
-            if (q.IsEmpty) { capital = Entity.Null; return false; }
-            capital = q.GetSingletonEntity();
-            return true;
         }
 
         static uint TryReadTurn(EntityManager em)

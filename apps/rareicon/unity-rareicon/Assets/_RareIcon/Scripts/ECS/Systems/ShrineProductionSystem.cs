@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Per-turn shrine grant. Reads <see cref="WorldClock"/>.TurnIndex, change-gates on turn delta, then iterates shrines once per turn. A shrine grants its reward when (TerritoryActive AND root hex carries faction territory) OR (KingVisitActive AND King.RootHex == shrine.RootHex), and (TurnIndex >= NextEligibleTurn). Grants land in the Capital ledger; NextEligibleTurn advances by CadenceTurns. Burst ISystem; no managed allocs.</summary>
+    /// <summary>Per-turn shrine grant. Reads <see cref="WorldClock"/>.TurnIndex, change-gates on turn delta, then iterates shrines once per turn. A shrine grants its reward when (TerritoryActive AND root hex carries faction territory) OR (KingVisitActive AND King.RootHex == shrine.RootHex), and (TurnIndex >= NextEligibleTurn). Grants land in the nearest player city's ledger via <see cref="CityIndexSingleton"/> + <see cref="CityRouterOps"/> (Capital today, second city later); NextEligibleTurn advances by CadenceTurns. Burst ISystem; no managed allocs.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(EconomySystemGroup))]
@@ -13,9 +13,10 @@ namespace RareIcon
     {
         EntityQuery _shrineQuery;
         EntityQuery _kingQuery;
-        EntityQuery _capitalQuery;
         uint _lastSeenTurn;
         Unity.Mathematics.Random _rng;
+        BufferLookup<CapitalLedger> _capLedger;
+        BufferLookup<CityLedger>    _cityLedger;
 
         public void OnCreate(ref SystemState state)
         {
@@ -25,13 +26,14 @@ namespace RareIcon
             _kingQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<KingTag, UnitMovement>()
                 .Build(ref state);
-            _capitalQuery = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<CapitalTag, CapitalLedger>()
-                .Build(ref state);
             _lastSeenTurn = uint.MaxValue;
             _rng = new Unity.Mathematics.Random(0x5421A37Du);
 
+            _capLedger  = state.GetBufferLookup<CapitalLedger>(false);
+            _cityLedger = state.GetBufferLookup<CityLedger>(false);
+
             state.RequireForUpdate<WorldClock>();
+            state.RequireForUpdate<CityIndexSingleton>();
             state.RequireForUpdate<LandmarkShrine>();
         }
 
@@ -46,8 +48,11 @@ namespace RareIcon
             _lastSeenTurn = turn;
             long unixMs = (long)(clock.AbsSeconds * 1000d);
 
-            if (_capitalQuery.IsEmpty) return;
-            Entity capital = _capitalQuery.GetSingletonEntity();
+            var index = SystemAPI.GetSingleton<CityIndexSingleton>();
+            if (!index.Entries.IsCreated || index.Entries.Length == 0) return;
+
+            _capLedger.Update(ref state);
+            _cityLedger.Update(ref state);
 
             int2 kingHex = new int2(int.MinValue, int.MinValue);
             bool hasKing = false;
@@ -64,8 +69,6 @@ namespace RareIcon
 
             var territoryLookup = SystemAPI.GetComponentLookup<TerritoryVisual>(true);
             var hexDB           = SystemAPI.GetSingleton<HexDBSingleton>();
-
-            var capitalLedger = SystemAPI.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
 
             foreach (var (shrineRef, building, rewards) in
                      SystemAPI.Query<RefRW<LandmarkShrine>, RefRO<Building>, DynamicBuffer<LandmarkShrineRewardItem>>())
@@ -92,12 +95,22 @@ namespace RareIcon
                 }
                 if (!eligible) continue;
 
+                if (!CityRouterOps.TryNearestCity(index.Entries, hex, FactionType.Player, out var target))
+                    continue;
+
+                DynamicBuffer<BankLedgerBase> ledger;
+                if (_capLedger.HasBuffer(target.Entity))
+                    ledger = _capLedger[target.Entity].Reinterpret<BankLedgerBase>();
+                else if (_cityLedger.HasBuffer(target.Entity))
+                    ledger = _cityLedger[target.Entity].Reinterpret<BankLedgerBase>();
+                else continue;
+
                 if (shrine.RewardCoin > 0)
-                    BankLedgerOps.AddItem(ref capitalLedger, (ushort)ItemId.Coin, shrine.RewardCoin, UlidFactory.NewUid(ref _rng, unixMs));
+                    BankLedgerOps.AddItem(ref ledger, (ushort)ItemId.Coin, shrine.RewardCoin, UlidFactory.NewUid(ref _rng, unixMs));
                 for (int i = 0; i < rewards.Length; i++)
                 {
                     if (rewards[i].ItemId == 0 || rewards[i].Amount == 0) continue;
-                    BankLedgerOps.AddItem(ref capitalLedger, rewards[i].ItemId, rewards[i].Amount, UlidFactory.NewUid(ref _rng, unixMs));
+                    BankLedgerOps.AddItem(ref ledger, rewards[i].ItemId, rewards[i].Amount, UlidFactory.NewUid(ref _rng, unixMs));
                 }
                 shrine.NextEligibleTurn = turn + shrine.CadenceTurns;
             }
