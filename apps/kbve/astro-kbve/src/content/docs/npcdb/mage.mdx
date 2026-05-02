@@ -1,0 +1,43 @@
+---
+title: 'Mage'
+description: |
+    Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.
+ref: 'mage'
+id: '01KSAVAEF2667PTP0HAG228QA5'
+name: 'Mage'
+type_flags: 1
+rarity: 'rare'
+personality: 'cautious'
+rank: 'elite'
+family: 'humanoid'
+level: 4
+stats:
+    hp: 45
+    max_hp: 45
+    attack: 9
+    defense: 4
+    speed: 4
+    armor: 0
+behavior:
+    movement_type: 'patrol'
+    first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The mage hurls a glowing bolt at {target}! {dmg} damage!"
+        - "Arcane sigils flare — {target} reels for {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The mage's robes burn out as the spellfire flickers and dies."
+abilities:
+    - id: 'attack'
+      name: 'Arcane Bolt'
+      damage: 9
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.

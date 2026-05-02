@@ -1,0 +1,43 @@
+---
+title: 'Galley'
+description: |
+    Player warship — Shipyard-built (Dock T1+). Water-locked, ranged arrow loadout, decent HP. Sister combat boat to the FishingBoat economy hull; kept on cadence by ShipyardGalleyProductionSystem.
+ref: 'galley'
+id: '01KSAV4D81ZJNBH8W8MS410ZX4'
+name: 'Galley'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'steady'
+rank: 'elite'
+family: 'humanoid'
+level: 4
+stats:
+    hp: 140
+    max_hp: 140
+    attack: 7
+    defense: 3
+    speed: 4
+    armor: 2
+behavior:
+    movement_type: 'water_wander'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The galley looses an arrow volley at {target}! {dmg} damage!"
+        - "Twin bow archers strike {target}! {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The galley founders, oars dragging into the depths."
+abilities:
+    - id: 'attack'
+      name: 'Arrow Volley'
+      damage: 7
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Player warship — Shipyard-built. Water-locked, ranged arrow loadout, decent HP.

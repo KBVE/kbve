@@ -36,6 +36,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
+
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
               with:
@@ -61,6 +66,10 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup
         steps:
             - uses: actions/checkout@v6
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
             - name: Setup Rust nightly (asan)
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -86,6 +95,10 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup
         steps:
             - uses: actions/checkout@v6
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
             - name: Setup Rust nightly + miri
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -109,6 +122,10 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup
         steps:
             - uses: actions/checkout@v6
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
             - name: Setup Rust nightly (fuzz)
               uses: dtolnay/rust-toolchain@nightly
             - name: Install cargo-fuzz
@@ -129,6 +146,11 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup
         steps:
             - uses: actions/checkout@v6
+
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -159,6 +181,11 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup
         steps:
             - uses: actions/checkout@v6
+
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends build-essential pkg-config
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable

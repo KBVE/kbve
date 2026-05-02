@@ -25,11 +25,15 @@ spec:
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        # Placeholder cron trigger — keeps KEDA managing the ScaledObject.
-        # CI workflows scale up via kubectl before staging downloads.
+        # Placeholder cron trigger — keeps KEDA managing the ScaledObject so
+        # cooldown-to-zero still applies after CI workflows scale up.
+        # `desiredReplicas` must be > 0 to pass KEDA's cron validator
+        # (`'0'` is rejected with `error parsing cron metadata: no
+        # desiredReplicas specified`), so set it to '1' but pick a window
+        # that never fires — Feb 30 doesn't exist on any calendar.
         - type: cron
           metadata:
               timezone: UTC
-              start: '0 6 * * 1-5'
-              end: '0 7 * * 1-5'
-              desiredReplicas: '0'
+              start: '0 0 30 2 *'
+              end: '5 0 30 2 *'
+              desiredReplicas: '1'

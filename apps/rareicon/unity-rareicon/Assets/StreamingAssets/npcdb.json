@@ -1,6 +1,91 @@
 {
 	"npcs": [
 		{
+			"description": "Hostile recon unit dispatched by Bandit Camps every 90s. Wanders far from the camp, marks discovered Player buildings into KnownPlayerHexesSingleton so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius. No weapon — flees combat.\n",
+			"ref": "bandit-scout",
+			"id": "01KSAVTYT9RBX566KHNYHGEREA",
+			"name": "Bandit Scout",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_FEARFUL",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 2,
+			"stats": {
+				"hp": 45,
+				"maxHp": 45,
+				"attack": 2,
+				"defense": 1,
+				"speed": 6,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "flee",
+					"messages": [
+						"The bandit scout sprints back toward camp the moment things turn south!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The bandit scout drops mid-stride, intel never delivered."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Desperate Jab", "damage": 2 }
+			],
+			"faction": { "factionId": "hostile" }
+		},
+		{
+			"description": "Hostile humanoid raider. Tougher and slower than the Goblin, prefers smashing buildings over chasing units. Spawns from Bandit Camps; drops Coin so the Looter job has reason to follow raids around.\n",
+			"ref": "bandit",
+			"id": "01KSAV7YC1CT201N51YJ15V1PK",
+			"name": "Bandit",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 2,
+			"stats": {
+				"hp": 55,
+				"maxHp": 55,
+				"attack": 5,
+				"defense": 2,
+				"speed": 4,
+				"armor": 1
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The bandit smashes {target} with a heavy club! {dmg} damage!",
+						"A jeering laugh — and {target} takes {dmg} damage from the blow!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The bandit drops their club and crumples, coin spilling from their belt."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Heavy Club", "damage": 5 }
+			],
+			"faction": { "factionId": "hostile" }
+		},
+		{
 			"description": "A skeletal figure that draws a creaking bow with trembling, bony fingers.\n",
 			"ref": "bone-archer",
 			"id": "01KKR5QWTA6KARZ9EQB9Y476S4",
@@ -111,6 +196,47 @@
 			"faction": { "factionId": "deep-wardens" }
 		},
 		{
+			"description": "Player mounted melee — fast charger, mid HP, club loadout. Recruited from Stables (Barracks T1 variant 1) for 10 Coin + 4 Timber + 2 Carrot. Damage scales with MovementModifier.SpeedMul via the cavalry charge bonus, capped at 2.0× under stacked Stables auras.\n",
+			"ref": "cavalry",
+			"id": "01KSAVJQSG83RSRAN9W8B27VTT",
+			"name": "Cavalry",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_BRAVE",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 3,
+			"stats": {
+				"hp": 85,
+				"maxHp": 85,
+				"attack": 7,
+				"defense": 2,
+				"speed": 5,
+				"armor": 2
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": true
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The cavalry charges {target} at full gallop! {dmg} damage!",
+						"Hooves thunder — {target} is bowled over for {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"Horse and rider fall together in a final, defiant rear."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Charge", "damage": 7 }],
+			"faction": { "factionId": "player" }
+		},
+		{
 			"description": "A pale spider that lurks in dungeon shadows, striking first with venomous fangs.\n",
 			"ref": "cave-spider",
 			"id": "01KKR5QWTARVPDS4ENXBK4MBD2",
@@ -218,6 +344,46 @@
 					"cooldownTurns": 2
 				}
 			]
+		},
+		{
+			"description": "Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife. Drops nothing meaningful — atmospheric.\n",
+			"ref": "chicken",
+			"id": "01KSAVKEYE51RE3HX4T4G1BNRV",
+			"name": "Chicken",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_FEARFUL",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "beast",
+			"level": 1,
+			"stats": {
+				"hp": 5,
+				"maxHp": 5,
+				"attack": 1,
+				"defense": 0,
+				"speed": 3,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The chicken pecks at {target}'s ankle! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The chicken keels over with a final, indignant cluck."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Peck", "damage": 1 }],
+			"faction": { "factionId": "wildlife" }
 		},
 		{
 			"description": "Once a noble guardian, now twisted by dark energy into a relentless engine of destruction.\n",
@@ -353,6 +519,40 @@
 			},
 			"abilities": [{ "id": "charge", "name": "Warden's Fury" }],
 			"faction": { "factionId": "deep-wardens" }
+		},
+		{
+			"description": "Largest passive livestock. Slowest move speed, biggest HP pool of the farm trio. Drops Meat in bulk when killed; herd into Farms for steady food production.\n",
+			"ref": "cow",
+			"id": "01KSAV880T75RMTKD004K83GDQ",
+			"name": "Cow",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_FEARFUL",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "beast",
+			"level": 1,
+			"stats": {
+				"hp": 40,
+				"maxHp": 40,
+				"attack": 2,
+				"defense": 1,
+				"speed": 2,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "death",
+					"messages": [
+						"The cow lows softly and lies down for the last time."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Headbutt", "damage": 2 }],
+			"faction": { "factionId": "wildlife" }
 		},
 		{
 			"description": "An ancient stone figure that stirs to life when intruders approach, defending its post with weathered resolve.\n",
@@ -1122,6 +1322,47 @@
 			"abilities": [{ "id": "attack", "name": "Fireball", "damage": 8 }]
 		},
 		{
+			"description": "Craftsman-built water-locked vessel. Slow, mid HP, harpoon-tipped ranged attack against Whales + Beasts. Spawned by Docks; lives in river / ocean tiles only.\n",
+			"ref": "fishing-boat",
+			"id": "01KSAVJR1ASDVMRD9B29PHBXWV",
+			"name": "Fishing Boat",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_STEADY",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 3,
+			"stats": {
+				"hp": 80,
+				"maxHp": 80,
+				"attack": 4,
+				"defense": 2,
+				"speed": 3,
+				"armor": 1
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The fishing boat's harpoon plunges into {target}! {dmg} damage!",
+						"A whaling line whips through the water — {target} takes {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The fishing boat splinters apart and slips beneath the waves."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Harpoon", "damage": 4 }],
+			"faction": { "factionId": "player" }
+		},
+		{
 			"description": "A massive fungal creature that lumbers forward with devastating force, its body thick with toxic spores.\n",
 			"ref": "fungal-brute",
 			"id": "01KKR5QWTB7S5FY2HNXJN5Y4NY",
@@ -1236,6 +1477,49 @@
 			"abilities": [
 				{ "id": "heavy-attack", "name": "Fungal Slam", "damage": 10 }
 			]
+		},
+		{
+			"description": "Player warship — Shipyard-built (Dock T1+). Water-locked, ranged arrow loadout, decent HP. Sister combat boat to the FishingBoat economy hull; kept on cadence by ShipyardGalleyProductionSystem.\n",
+			"ref": "galley",
+			"id": "01KSAV4D81ZJNBH8W8MS410ZX4",
+			"name": "Galley",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_STEADY",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 4,
+			"stats": {
+				"hp": 140,
+				"maxHp": 140,
+				"attack": 7,
+				"defense": 3,
+				"speed": 4,
+				"armor": 2
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The galley looses an arrow volley at {target}! {dmg} damage!",
+						"Twin bow archers strike {target}! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The galley founders, oars dragging into the depths."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Arrow Volley", "damage": 7 }
+			],
+			"faction": { "factionId": "player" }
 		},
 		{
 			"description": "A humanoid figure made of living glass that strikes with lethal precision, its transparent body nearly invisible.\n",
@@ -1596,6 +1880,47 @@
 			"faction": { "factionId": "crystal-order" }
 		},
 		{
+			"description": "Wiry humanoid raider — fast, frail, swings a club. The default Hostile-faction footsoldier of the Rareicon empire-builder; also recruitable as a Player goblin worker via Lost Goblin Band events.\n",
+			"ref": "goblin",
+			"id": "01KSAVBCDKGE0N89F6ZPH846Z8",
+			"name": "Goblin",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 1,
+			"stats": {
+				"hp": 30,
+				"maxHp": 30,
+				"attack": 4,
+				"defense": 1,
+				"speed": 4,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The goblin lunges at {target} with a rusty club! {dmg} damage!",
+						"A wild swing connects with {target}! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": ["The goblin crumples with a final snarl."]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Club Swing", "damage": 4 }
+			],
+			"faction": { "factionId": "hostile" }
+		},
+		{
 			"description": "A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.\n",
 			"ref": "green-toad",
 			"id": "01KKWBVKEN10357T9ZZ4BNJCG9",
@@ -1632,6 +1957,135 @@
 			},
 			"lore": "Green Toads are common grassland amphibians known for their rhythmic croaking and sudden, arcing hops.\nThey use a sprite-sheet animation with idle, croak emote, and hop cycles across a 9x5 frame grid.\nOccasionally they pause to puff up their throat in a charming display before launching to a new spot.\n",
 			"credits": "KBVE Isometric ambient creature system.\n"
+		},
+		{
+			"description": "Player avatar. Crowned warrior — high HP, ranged crossbow loadout, drives the empire-builder loop. Rarely seen on the front line by mid-game; lose him and the run ends.\n",
+			"ref": "king",
+			"id": "01KSAV57D0DKQNWXJ8AC01V8PQ",
+			"name": "King",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNIQUE",
+			"personality": "PERSONALITY_COMMANDING",
+			"rank": "NPC_RANK_BOSS",
+			"family": "humanoid",
+			"level": 8,
+			"stats": {
+				"hp": 200,
+				"maxHp": 200,
+				"attack": 10,
+				"defense": 4,
+				"speed": 4,
+				"armor": 3
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_CONTROLLED",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The King looses a crossbow bolt! {target} reels for {dmg} damage!",
+						"A snapped quarrel arcs through the air. {target} takes {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The King falls. The crown rolls free across the field — the run ends here."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Crossbow Volley", "damage": 10 }
+			],
+			"faction": { "factionId": "player" }
+		},
+		{
+			"description": "Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.\n",
+			"ref": "knight",
+			"id": "01KSAVJ4TXAMCXS00X0F0H2W1E",
+			"name": "Knight",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_BRAVE",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 4,
+			"stats": {
+				"hp": 120,
+				"maxHp": 120,
+				"attack": 8,
+				"defense": 3,
+				"speed": 3,
+				"armor": 4
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The knight crashes into {target} with a steel-shod blow! {dmg} damage!",
+						"Plate clanks as the knight cleaves {target}! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The knight falls heavily, plate ringing against the stone."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Steel Cleave", "damage": 8 }
+			],
+			"faction": { "factionId": "player" }
+		},
+		{
+			"description": "Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.\n",
+			"ref": "mage",
+			"id": "01KSAVAEF2667PTP0HAG228QA5",
+			"name": "Mage",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_RARE",
+			"personality": "PERSONALITY_CAUTIOUS",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 4,
+			"stats": {
+				"hp": 45,
+				"maxHp": 45,
+				"attack": 9,
+				"defense": 4,
+				"speed": 4,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": true
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The mage hurls a glowing bolt at {target}! {dmg} damage!",
+						"Arcane sigils flare — {target} reels for {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The mage's robes burn out as the spellfire flickers and dies."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Arcane Bolt", "damage": 9 }
+			],
+			"faction": { "factionId": "player" }
 		},
 		{
 			"description": "A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.\n",
@@ -1892,6 +2346,91 @@
 			"faction": { "factionId": "shadow-court" }
 		},
 		{
+			"description": "Hostile coastal raider. PirateCove-spawned via PirateCoveRaidSystem; water-locked, arrow attack, slightly weaker than the player Galley but spawned in waves. The ocean sister to the Bandit raid line.\n",
+			"ref": "pirate-ship",
+			"id": "01KSAVQR3VN6ZE4AVMV0V4Z6BV",
+			"name": "Pirate Ship",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 4,
+			"stats": {
+				"hp": 120,
+				"maxHp": 120,
+				"attack": 6,
+				"defense": 3,
+				"speed": 4,
+				"armor": 1
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The pirate ship looses a ragged volley! {target} takes {dmg} damage!",
+						"A jeering crew fires from the deck — {target} reels for {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The pirate ship lists badly, then slips beneath the waves with its haul."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Cannon Volley", "damage": 6 }
+			],
+			"faction": { "factionId": "hostile" }
+		},
+		{
+			"description": "Player recon unit. Fast, light, no weapon — vision radius 3 (vs default 1) feeds FogBakeSystem so the player explores fog of war faster. Recruited from Barracks for 5 Coin + 2 Timber.\n",
+			"ref": "scout",
+			"id": "01KSAVJ63XB5GY5MNA969VNW61",
+			"name": "Scout",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_CAUTIOUS",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 1,
+			"stats": {
+				"hp": 35,
+				"maxHp": 35,
+				"attack": 3,
+				"defense": 2,
+				"speed": 6,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The scout darts in with a quick jab! {target} takes {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The scout falls quietly, mapping notes scattering on the wind."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Quick Strike", "damage": 3 }
+			],
+			"faction": { "factionId": "player" }
+		},
+		{
 			"description": "A dark figure that moves between shadows, striking before its prey even knows it is there.\n",
 			"ref": "shade-stalker",
 			"id": "01KKR5QWTBAF71Q1NJTD7RZKEW",
@@ -2132,6 +2671,38 @@
 			"faction": { "factionId": "shadow-court" }
 		},
 		{
+			"description": "Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed; herds farm Migration events spawn flocks.\n",
+			"ref": "sheep",
+			"id": "01KSAVAAWG80N798A1T6G6E9MD",
+			"name": "Sheep",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_FEARFUL",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "beast",
+			"level": 1,
+			"stats": {
+				"hp": 20,
+				"maxHp": 20,
+				"attack": 1,
+				"defense": 0,
+				"speed": 2,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "death",
+					"messages": ["The sheep crumples mid-bleat."]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Headbutt", "damage": 1 }],
+			"faction": { "factionId": "wildlife" }
+		},
+		{
 			"description": "A reanimated skeleton clad in rusted armor, standing eternal watch over dusty corridors.\n",
 			"ref": "skeleton-guard",
 			"id": "01KKR5QWTAEV48Y4WK51JWBXTX",
@@ -2241,6 +2812,49 @@
 				{ "id": "defend", "name": "Shield Wall", "damage": 5 }
 			],
 			"faction": { "factionId": "deep-wardens" }
+		},
+		{
+			"description": "Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.\n",
+			"ref": "soldier",
+			"id": "01KSAVJJEH5P7XCW5ZRTA6YR4N",
+			"name": "Soldier",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_STEADY",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "humanoid",
+			"level": 2,
+			"stats": {
+				"hp": 70,
+				"maxHp": 70,
+				"attack": 6,
+				"defense": 2,
+				"speed": 5,
+				"armor": 2
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The soldier strikes with disciplined precision! {dmg} damage to {target}!",
+						"A trained swing finds its mark on {target}. {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The soldier falls in formation, banner still gripped tight."
+					]
+				}
+			],
+			"abilities": [
+				{ "id": "attack", "name": "Sword Strike", "damage": 6 }
+			],
+			"faction": { "factionId": "player" }
 		},
 		{
 			"description": "A massive stone construct that defends its territory with unwavering determination and crushing force.\n",
@@ -2777,6 +3391,85 @@
 			"faction": { "factionId": "shadow-court" }
 		},
 		{
+			"description": "Oceanic / river leviathan. Massive HP pool — a lone Fishing Boat can't solo it quickly. Drops Whale Oil + bulk Meat via EnemyLootDropSystem.\n",
+			"ref": "whale",
+			"id": "01KSAVP2EPHGT01VZ7WYGN0PV6",
+			"name": "Whale",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_RARE",
+			"personality": "PERSONALITY_CAUTIOUS",
+			"rank": "NPC_RANK_ELITE",
+			"family": "beast",
+			"level": 6,
+			"stats": {
+				"hp": 320,
+				"maxHp": 320,
+				"attack": 9,
+				"defense": 4,
+				"speed": 1,
+				"armor": 2
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_WATER_WANDER",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The whale's tail crashes into {target}! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The whale rolls onto its back and drifts, oil bleeding into the tide."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Tail Slap", "damage": 9 }],
+			"faction": { "factionId": "beast" }
+		},
+		{
+			"description": "Forest-biome predator. Fast melee bite, packs spawn in Wolf Pack events near Farms. Beast faction — bites Player + Wildlife indiscriminately. Drops Wolf Pelt + Wolf Fang.\n",
+			"ref": "wolf",
+			"id": "01KSAVCWA0E408E163EMXV0M45",
+			"name": "Wolf",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "beast",
+			"level": 2,
+			"stats": {
+				"hp": 35,
+				"maxHp": 35,
+				"attack": 5,
+				"defense": 1,
+				"speed": 5,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+				"firstStrike": true
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The wolf lunges and tears into {target}! {dmg} damage!",
+						"Fangs sink deep — {target} bleeds for {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": ["The wolf yelps once, then falls silent."]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Bite", "damage": 5 }],
+			"faction": { "factionId": "beast" }
+		},
+		{
 			"description": "A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.\n",
 			"ref": "woodland-butterfly",
 			"id": "01KKWBVKEMG5SA4RHTXPQMEC63",
@@ -2891,6 +3584,47 @@
 			],
 			"lore": "In life, the Executioner served a kingdom long since swallowed by darkness. Tasked with carrying out the sentences of a corrupt court, it executed hundreds — guilty and innocent alike. When the kingdom fell, the Executioner's guilt bound its soul to an eternal sentence of its own: to wander the ruins, forever seeking absolution through the only craft it ever knew. Its phantom axe is said to sever not just flesh, but the ties between a soul and its body — those slain by the Wraith Executioner do not rest easily.\n",
 			"credits": "Asset reference: [Undead Executioner by DarkPixel Kronovi](https://darkpixel-kronovi.itch.io/undead-executioner).\nFuture integration: UV-ready shader for apps/kbve/isometric.\n"
+		},
+		{
+			"description": "Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't fatigue.\n",
+			"ref": "zombie",
+			"id": "01KSAVP0BZN4KBB5Y1P62RVVWS",
+			"name": "Zombie",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_STANDARD",
+			"family": "undead",
+			"level": 2,
+			"stats": {
+				"hp": 50,
+				"maxHp": 50,
+				"attack": 4,
+				"defense": 1,
+				"speed": 2,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The zombie sinks rotted teeth into {target}! {dmg} damage!",
+						"Cold, dead hands rake across {target} — {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The zombie collapses and stops twitching for good."
+					]
+				}
+			],
+			"abilities": [{ "id": "attack", "name": "Bite", "damage": 4 }],
+			"faction": { "factionId": "hostile" }
 		}
 	]
 }

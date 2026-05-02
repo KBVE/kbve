@@ -1,0 +1,43 @@
+---
+title: 'Soldier'
+description: |
+    Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.
+ref: 'soldier'
+id: '01KSAVJJEH5P7XCW5ZRTA6YR4N'
+name: 'Soldier'
+type_flags: 1
+rarity: 'common'
+personality: 'steady'
+rank: 'standard'
+family: 'humanoid'
+level: 2
+stats:
+    hp: 70
+    max_hp: 70
+    attack: 6
+    defense: 2
+    speed: 5
+    armor: 2
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The soldier strikes with disciplined precision! {dmg} damage to {target}!"
+        - "A trained swing finds its mark on {target}. {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The soldier falls in formation, banner still gripped tight."
+abilities:
+    - id: 'attack'
+      name: 'Sword Strike'
+      damage: 6
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.

@@ -1,0 +1,42 @@
+---
+title: 'Scout'
+description: |
+    Player recon unit. Fast, light, no weapon — vision radius 3 (vs default 1) feeds FogBakeSystem so the player explores fog of war faster. Recruited from Barracks for 5 Coin + 2 Timber.
+ref: 'scout'
+id: '01KSAVJ63XB5GY5MNA969VNW61'
+name: 'Scout'
+type_flags: 1
+rarity: 'common'
+personality: 'cautious'
+rank: 'standard'
+family: 'humanoid'
+level: 1
+stats:
+    hp: 35
+    max_hp: 35
+    attack: 3
+    defense: 2
+    speed: 6
+    armor: 0
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The scout darts in with a quick jab! {target} takes {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The scout falls quietly, mapping notes scattering on the wind."
+abilities:
+    - id: 'attack'
+      name: 'Quick Strike'
+      damage: 3
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Player recon unit. Big vision radius for fog reveal. Recruited from Barracks.
