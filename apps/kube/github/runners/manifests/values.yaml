@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260502-runner-2.334.0'
+            kbve.com/restart-trigger: '20260502-runner-2.334.0-dind-no-subpath'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -120,7 +120,6 @@ template:
                     mountPath: /home/runner/_cache
                   - name: dind-storage
                     mountPath: /var/lib/docker
-                    subPath: docker
         volumes:
             - name: work
               emptyDir: {}
