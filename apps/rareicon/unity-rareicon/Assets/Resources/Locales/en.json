@@ -329,6 +329,7 @@
 	"inspector.upgrade_highwatch_tower": "Upgrade → Highwatch Tower (recon)",
 	"inspector.recruit_scout": "Recruit Scout (5 Coin + 2 Timber)",
 	"inspector.recruit_cavalry": "Recruit Cavalry (10 Coin + 4 Timber + 2 Carrot)",
+	"inspector.next_hero_in": "Next hero arrives in {0}s",
 	"inspector.hire_goblin": "Hire Goblin (8 Coin + 1 Meal)",
 	"inspector.tab_info": "Info",
 	"inspector.tab_upgrades": "Upgrades",

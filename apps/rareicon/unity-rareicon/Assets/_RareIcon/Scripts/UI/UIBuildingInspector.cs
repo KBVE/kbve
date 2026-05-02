@@ -14,7 +14,7 @@ using VContainer.Unity;
 namespace RareIcon
 {
     /// <summary>Bottom-left panel that shows the building the player just clicked. Refreshes on InventoryChangedMessage filtered by the currently-inspected entity.</summary>
-    public class UIBuildingInspector : IAsyncStartable, IDisposable
+    public class UIBuildingInspector : IAsyncStartable, ITickable, IDisposable
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
@@ -28,6 +28,7 @@ namespace RareIcon
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
         Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn, _recruitCavalryBtn;
+        Label _heroTimerLabel;
         VisualElement _upgradePanel;
         Label _upgradePanelHeader;
         VisualElement _upgradePanelCards;
@@ -192,6 +193,11 @@ namespace RareIcon
             _recruitCavalryBtn.text = _locale.Get("inspector.recruit_cavalry");
             _recruitCavalryBtn.style.marginBottom = 4;
             recruitContent.Add(_recruitCavalryBtn);
+            _heroTimerLabel = new Label(string.Empty) { name = "inspector-hero-timer" };
+            _heroTimerLabel.style.marginTop = 4;
+            _heroTimerLabel.style.fontSize = 11;
+            _heroTimerLabel.style.opacity = 0.85f;
+            recruitContent.Add(_heroTimerLabel);
             _tabs.AddTab("recruit", _locale.Get("inspector.tab_recruit"), recruitContent);
 
             // Insert the tabs container before the action button row so the
@@ -538,6 +544,9 @@ namespace RareIcon
                 _recruitGoblinBtn.style.display = hasCave ? DisplayStyle.Flex : DisplayStyle.None;
             if (_recruitCavalryBtn != null)
                 _recruitCavalryBtn.style.display = isStables ? DisplayStyle.Flex : DisplayStyle.None;
+            bool hasHeroTicker = ownsBuilding && em.HasComponent<HeroRecruitTicker>(_target);
+            if (_heroTimerLabel != null)
+                _heroTimerLabel.style.display = hasHeroTicker ? DisplayStyle.Flex : DisplayStyle.None;
 
             if (_tabs != null)
             {
@@ -746,6 +755,34 @@ namespace RareIcon
         {
             using var q = em.CreateEntityQuery(ComponentType.ReadOnly<WorldClock>());
             return q.CalculateEntityCount() == 0 ? 0f : q.GetSingleton<WorldClock>().AbsSeconds;
+        }
+
+        public void Tick()
+        {
+            if (_heroTimerLabel == null) return;
+            if (!_isOpen.Value) return;
+            if (_target == Entity.Null) return;
+            if (_heroTimerLabel.style.display == DisplayStyle.None) return;
+
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.Exists(_target) || !em.HasComponent<HeroRecruitTicker>(_target)) return;
+
+            var ticker = em.GetComponentData<HeroRecruitTicker>(_target);
+            uint nowTick = (uint)(world.Time.ElapsedTime * 1000d);
+            float remainingSec = ticker.NextRecruitTick > nowTick
+                ? (ticker.NextRecruitTick - nowTick) * 0.001f
+                : 0f;
+            int rounded = (int)System.Math.Ceiling(remainingSec);
+
+            var sb = ZString.CreateStringBuilder();
+            try
+            {
+                sb.AppendFormat(_locale.Get("inspector.next_hero_in"), rounded);
+                _heroTimerLabel.text = sb.ToString();
+            }
+            finally { sb.Dispose(); }
         }
 
         public void Dispose()

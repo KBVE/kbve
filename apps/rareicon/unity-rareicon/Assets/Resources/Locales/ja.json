@@ -302,6 +302,7 @@
 	"inspector.upgrade_highwatch_tower": "強化 → 高見の塔（偵察）",
 	"inspector.recruit_scout": "斥候を雇う（コイン5＋木材2）",
 	"inspector.recruit_cavalry": "騎兵を雇う（コイン10＋木材4＋人参2）",
+	"inspector.next_hero_in": "次の英雄まで {0} 秒",
 	"inspector.hire_goblin": "ゴブリンを雇う（コイン8＋食事1）",
 	"inspector.tab_info": "情報",
 	"inspector.tab_upgrades": "強化",
