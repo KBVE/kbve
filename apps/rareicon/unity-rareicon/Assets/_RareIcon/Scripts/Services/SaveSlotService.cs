@@ -121,8 +121,17 @@ namespace RareIcon
             bool ok = SaveBundleIO.Pack(dst, manifest, thumbnailPng, tmpZst);
             try { File.Delete(tmpZst); } catch { }
 
-            if (ok) Debug.Log($"[SaveSlotService] saved slot '{slot}' → {dst}");
-            else    Debug.LogError($"[SaveSlotService] bundle pack failed for slot '{slot}' → {dst}");
+            if (ok)
+            {
+                Debug.Log($"[SaveSlotService] saved slot '{slot}' → {dst}");
+                // Mirror to Steam Cloud when the runtime supports it.
+                // Stubs out on mobile / web / DISABLESTEAMWORKS builds.
+                SteamCloudSync.Upload(dst, slot + SaveExt);
+            }
+            else
+            {
+                Debug.LogError($"[SaveSlotService] bundle pack failed for slot '{slot}' → {dst}");
+            }
             return ok;
         }
 
@@ -189,7 +198,12 @@ namespace RareIcon
         public static bool Delete(string slot)
         {
             var path = PathForSlot(slot);
-            try { File.Delete(path); return true; }
+            try
+            {
+                File.Delete(path);
+                SteamCloudSync.Delete(slot + SaveExt);
+                return true;
+            }
             catch (Exception e) { Debug.LogError($"[SaveSlotService] delete failed for '{slot}': {e}"); return false; }
         }
     }
