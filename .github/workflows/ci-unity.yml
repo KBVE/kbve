@@ -399,8 +399,8 @@ jobs:
                   appId: ${{ matrix.app.app_id }}
                   buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }})'
                   rootPath: ${{ inputs.project_path }}/build
-                  depot1Path: StandaloneLinux64
-                  depot2Path: StandaloneWindows64
+                  depot1Path: StandaloneWindows64
+                  depot2Path: StandaloneLinux64
                   depot3Path: StandaloneOSX
                   releaseBranch: ${{ matrix.app.branch }}
 
