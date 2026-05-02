@@ -79,18 +79,17 @@ namespace RareIcon
             if (_stage.Value == TitleStage.Load) _stage.Value = TitleStage.Info;
         }
 
-        /// <summary>Restore <paramref name="slot"/> into the live worldstore, seed the BiomeGenerator from the manifest, and advance to Generating. Returns false on validation / extraction / uniti-restore failure with the reason; the title screen surfaces it back to the player. Caller must handle the case where restoring overwrites a live SQLite handle — uniti's Restore swaps the file in place.</summary>
+        /// <summary>Restore <paramref name="slot"/> into the live worldstore, seed the BiomeGenerator from the manifest, and advance to Generating. Routes through <see cref="WorldStoreSystem.RestoreSlotAndReopen"/> so the SQLite handle is closed before uniti rewrites the file (Windows holds exclusive locks; restoring without dispose+reopen would fail with "file in use"). Returns false with a reason on any step that rejects.</summary>
         public bool LoadSlot(string slot, out string failureReason)
         {
             failureReason = null;
-            if (_stage.Value != TitleStage.Load)
+            if (_stage.Value != TitleStage.Load && _stage.Value != TitleStage.Info)
             {
                 failureReason = "load stage not active";
                 return false;
             }
 
-            string liveDb = WorldStoreSystem.LiveDbPath;
-            if (!SaveSlotService.Restore(slot, liveDb, out failureReason))
+            if (!WorldStoreSystem.RestoreSlotAndReopen(slot, out failureReason))
                 return false;
 
             // Pull the seed back from the slot's manifest so the biome
@@ -106,6 +105,29 @@ namespace RareIcon
 
             BeginGeneration();
             return true;
+        }
+
+        /// <summary>One-shot helper from the menu — pick the most recent save bundle (sorted newest-first by mtime in <see cref="SaveSlotService.ListSlotsWithMeta"/>) and route it through <see cref="LoadSlot"/>. No-op + returns false if no slots exist.</summary>
+        public bool QuickContinue(out string failureReason)
+        {
+            failureReason = null;
+            var slots = SaveSlotService.ListSlotsWithMeta();
+            if (slots == null || slots.Length == 0)
+            {
+                failureReason = "no save slots";
+                return false;
+            }
+            return LoadSlot(slots[0].Slot, out failureReason);
+        }
+
+        /// <summary>True when at least one save bundle exists on disk. Used by the menu to show / hide the Quick Continue affordance.</summary>
+        public bool HasAnySlot
+        {
+            get
+            {
+                var slots = SaveSlotService.ListSlotsWithMeta();
+                return slots != null && slots.Length > 0;
+            }
         }
 
         /// <summary>Commit a locale from the first-boot Language picker. Persists via LocaleService and advances to the AoE menu (Info stage). Subsequent launches skip the picker outright.</summary>

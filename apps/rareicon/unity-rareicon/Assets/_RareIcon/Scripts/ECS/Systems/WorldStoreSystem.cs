@@ -74,5 +74,46 @@ namespace RareIcon
             _instance?.Dispose();
             _instance = null;
         }
+
+        /// <summary>Atomically swap the live worldstore for a save slot's contents. Disposes the current <see cref="NativeWorld"/> handle BEFORE invoking <see cref="SaveSlotService.Restore"/> so SQLite isn't holding the file open when uniti rewrites it (Windows holds exclusive locks on open SQLite files; restoring without disposing first would fail with "file in use"). Re-opens the store after the restore lands so the rest of the session has a valid handle. On any failure the system falls back to an in-memory NativeWorld and surfaces <paramref name="failureReason"/> so the caller can toast the player.</summary>
+        public static bool RestoreSlotAndReopen(string slot, out string failureReason)
+        {
+            failureReason = null;
+
+            // Final flush of any dirty live state — otherwise pending
+            // writes from the old session would race the restore on the
+            // next OpenAtPath call.
+            _instance?.Flush();
+            _instance?.Dispose();
+            _instance = null;
+
+            string liveDb = LiveDbPath;
+            bool restored = SaveSlotService.Restore(slot, liveDb, out failureReason);
+
+            // Reopen regardless — failure path still wants a working
+            // store (the prior Dispose closed the handle). On failure
+            // we open the (potentially stale) DB if it still exists,
+            // otherwise fall back to in-memory.
+            try
+            {
+                if (File.Exists(liveDb))
+                    _instance = NativeWorld.OpenAtPath(liveDb);
+
+                if (_instance == null || !_instance.IsValid)
+                {
+                    Debug.LogWarning($"[WorldStoreSystem] reopen after restore fell back to in-memory store");
+                    _instance = new NativeWorld();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[WorldStoreSystem] reopen after restore threw: {ex.Message}");
+                _instance = new NativeWorld();
+                if (failureReason == null) failureReason = "reopen failed: " + ex.Message;
+                return false;
+            }
+
+            return restored;
+        }
     }
 }

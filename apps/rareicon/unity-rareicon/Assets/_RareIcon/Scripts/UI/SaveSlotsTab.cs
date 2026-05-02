@@ -74,6 +74,18 @@ namespace RareIcon
         {
             if (_statusLabel != null) _statusLabel.text = string.Empty;
             if (_newSlotField != null) _newSlotField.SetValueWithoutNotify(SuggestSlotName());
+
+            // World hasn't started → can't save a snapshot. Disable the
+            // "new slot" save controls so the player can't write an
+            // empty bundle that clobbers a real one. Restore + Delete
+            // stay live so existing slots are still usable from the
+            // title screen (Continue path).
+            bool hasWorld = WorldGenSession.HasStarted;
+            if (_newSlotField  != null) _newSlotField.SetEnabled(hasWorld);
+            if (_newSlotButton != null) _newSlotButton.SetEnabled(hasWorld);
+            if (!hasWorld && _statusLabel != null)
+                SetStatus(_locale.Get("settings.saves.no_world"), success: false);
+
             RefreshList();
         }
 
@@ -81,6 +93,11 @@ namespace RareIcon
 
         void OnNewSaveClicked()
         {
+            if (!WorldGenSession.HasStarted)
+            {
+                SetStatus(_locale.Get("settings.saves.no_world"), success: false);
+                return;
+            }
             string slot = (_newSlotField?.value ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(slot)) slot = SuggestSlotName();
             DoSave(slot);
@@ -88,6 +105,11 @@ namespace RareIcon
 
         void DoSave(string slot)
         {
+            if (!WorldGenSession.HasStarted)
+            {
+                SetStatus(_locale.Get("settings.saves.no_world"), success: false);
+                return;
+            }
             byte[] thumb = ScreenshotService.CaptureThumbnailPng();
             var ctx = BuildContext();
             bool ok = SaveSlotService.Save(slot, ctx, thumb);
@@ -185,7 +207,11 @@ namespace RareIcon
             actions.style.marginLeft = 6;
 
             string slot = info.Slot;
-            actions.Add(MakeRowButton(_locale.Get("settings.saves.row_save"), () => DoSave(slot)));
+            // Row Save overwrites this slot from the live sim — skip it
+            // entirely at the title screen so a no-op autosave can't
+            // clobber a player's prior real save.
+            if (WorldGenSession.HasStarted)
+                actions.Add(MakeRowButton(_locale.Get("settings.saves.row_save"), () => DoSave(slot)));
             actions.Add(MakeRowButton(_locale.Get("settings.saves.row_load"), () => DoRestore(slot)));
             actions.Add(MakeRowButton(_locale.Get("settings.saves.row_delete"), () => DoDelete(slot), UIStyles.Palette.Alert));
 
