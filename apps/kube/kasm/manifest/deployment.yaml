@@ -23,8 +23,7 @@ spec:
                 app.kubernetes.io/part-of: kasm
                 app.kubernetes.io/component: workspace
         spec:
-            # KASM workspace runs as uid 1000 (kasm-user).
-            # fsGroup ensures the PVC is group-writable.
+            # kasm-user is uid 1000 — fsGroup makes the PVC group-writable.
             securityContext:
                 fsGroup: 1000
             initContainers:
@@ -35,20 +34,16 @@ spec:
                       - name: discord-profile
                         mountPath: /home/kasm-user
             containers:
-                # ── Gluetun VPN sidecar ──
-                # Establishes WireGuard tunnel. KASM container routes through it.
                 - name: gluetun
-                  image: ghcr.io/qdm12/gluetun:v3.40.0
+                  image: ghcr.io/qdm12/gluetun:v3.41.1
                   securityContext:
                       capabilities:
                           add:
                               - NET_ADMIN
                   ports:
-                      # KASM web port exposed through Gluetun's network stack
                       - name: kasm-web
                         containerPort: 6901
                         protocol: TCP
-                      # Gluetun health/control API
                       - name: gluetun-http
                         containerPort: 8000
                         protocol: TCP
@@ -56,34 +51,27 @@ spec:
                       - secretRef:
                             name: vpn-wireguard
                   env:
-                      # Gluetun-specific settings
                       - name: UPDATER_PERIOD
                         value: '24h'
                       - name: TZ
                         value: 'UTC'
-                      # HTTP proxy for containers sharing the network
                       - name: HTTPPROXY
                         value: 'on'
                       - name: HTTPPROXY_LOG
                         value: 'off'
-                      # Firewall — allow KASM port + health check port + DNS
                       - name: FIREWALL_INPUT_PORTS
                         value: '6901,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
-                      # Disable DNS-over-TLS — port 853 is blocked
-                      # through the WireGuard tunnel, causing gluetun's
-                      # internal healthcheck to fail every 6s.
+                      # DoT off — port 853 is blocked through the tunnel
+                      # and gluetun's internal healthcheck fails every 6s
+                      # if it tries to use it.
                       - name: DOT
                         value: 'off'
-                      # Use plaintext DNS through the tunnel instead
                       - name: DNS_ADDRESS
                         value: '1.1.1.1'
-                      # Give VPN tunnel time to stabilize before
-                      # gluetun's internal healthcheck starts checking
                       - name: HEALTH_VPN_DURATION_INITIAL
                         value: '30s'
-                      # Health check server
                       - name: HEALTH_SERVER_ADDRESS
                         value: '0.0.0.0:9999'
                   livenessProbe:
@@ -109,9 +97,6 @@ spec:
                           memory: '384Mi'
                           cpu: '500m'
 
-                # ── KASM Discord workspace ──
-                # Uses Gluetun's network namespace — all traffic exits via VPN.
-                # Browser profile persisted via PVC so Discord session survives restarts.
                 - name: workspace
                   image: kasmweb/discord:1.18.0-rolling-daily
                   env:
@@ -122,7 +107,6 @@ spec:
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
-                  # Network shared with gluetun — no ports needed here
                   resources:
                       requests:
                           memory: '1Gi'
