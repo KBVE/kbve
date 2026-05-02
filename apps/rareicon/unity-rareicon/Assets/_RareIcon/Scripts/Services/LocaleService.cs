@@ -10,23 +10,42 @@ namespace RareIcon
     /// </summary>
     public class LocaleService
     {
+        const string PersistKey = "rareicon.locale";
+
         Dictionary<string, string> _strings = new();
 
         public string CurrentLocale { get; private set; } = "en";
 
+        /// <summary>True if a locale has been explicitly chosen + persisted via <see cref="SetLocale"/> in any prior session. The title screen reads this on boot to skip the Language picker once the user has committed once; clearing the PlayerPrefs key (or using the future Settings re-pick) flips this back to false.</summary>
+        public bool HasUserPickedLocale { get; private set; }
+
         public LocaleService()
         {
-            LoadLocale("en");
+            string saved = PlayerPrefs.GetString(PersistKey, string.Empty);
+            if (!string.IsNullOrEmpty(saved))
+            {
+                LoadLocale(saved);
+                CurrentLocale = saved;
+                HasUserPickedLocale = true;
+            }
+            else
+            {
+                LoadLocale("en");
+            }
         }
 
-        /// <summary>
-        /// Set locale once from the title screen. Loads the full string table.
-        /// </summary>
+        /// <summary>Set locale on the title-screen Language picker. Persists the pick to PlayerPrefs so subsequent launches skip the picker; subsequent calls in the same session (e.g. user re-picks from a future Settings tab) update the in-memory string table without re-running the first-boot flow.</summary>
         public void SetLocale(string locale)
         {
-            if (CurrentLocale == locale) return;
-            LoadLocale(locale);
-            CurrentLocale = locale;
+            if (string.IsNullOrEmpty(locale)) return;
+            if (CurrentLocale != locale)
+            {
+                LoadLocale(locale);
+                CurrentLocale = locale;
+            }
+            PlayerPrefs.SetString(PersistKey, locale);
+            PlayerPrefs.Save();
+            HasUserPickedLocale = true;
         }
 
         /// <summary>

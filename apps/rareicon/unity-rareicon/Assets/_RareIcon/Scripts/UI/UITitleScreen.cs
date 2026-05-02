@@ -325,7 +325,10 @@ namespace RareIcon
             _seedInput?.RegisterValueChangedCallback(evt => _session.SetSeed(evt.newValue));
 
             _root.Q<Button>("title-seed-random").clicked += _session.Randomize;
-            _root.Q<Button>("title-seed-back").clicked   += _session.BackToLocale;
+            // Seed → Back routes to the AoE menu, not Locale — language
+            // is now committed on the standalone first-boot Language stage
+            // and never re-appears in the Single Player flow.
+            _root.Q<Button>("title-seed-back").clicked   += _session.BackToMenu;
             _root.Q<Button>("title-seed-confirm").clicked += () => _session.BeginGeneration();
         }
 
@@ -367,6 +370,28 @@ namespace RareIcon
             SetStage(_stageSeed,       stage == TitleStage.Seed);
             SetStage(_stageLoad,       stage == TitleStage.Load);
             SetStage(_stageGenerating, stage == TitleStage.Generating || stage == TitleStage.Ready);
+
+            // First-boot Language picker has no menu behind it, so the
+            // Back button is hidden until the player commits a locale at
+            // least once. Re-pick paths from a future Settings tab can
+            // surface the same stage with the back button enabled.
+            var localeBack = _root.Q<Button>("title-locale-back");
+            if (localeBack != null)
+                localeBack.style.display = (_locale != null && _locale.HasUserPickedLocale)
+                    ? DisplayStyle.Flex
+                    : DisplayStyle.None;
+
+            // Hide the menu rail entirely while the first-boot Language
+            // picker is up so the only thing the player can interact with
+            // is the language choice. After commit, the menu reappears.
+            var menuRail = _root.Q<VisualElement>("title-menu");
+            if (menuRail != null)
+            {
+                bool firstBoot = _locale != null && !_locale.HasUserPickedLocale;
+                menuRail.style.display = (firstBoot && stage == TitleStage.Locale)
+                    ? DisplayStyle.None
+                    : DisplayStyle.Flex;
+            }
 
             if (stage == TitleStage.Load) RefreshLoadList();
 

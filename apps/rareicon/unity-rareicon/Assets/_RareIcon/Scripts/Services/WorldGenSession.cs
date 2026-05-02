@@ -28,7 +28,7 @@ namespace RareIcon
         readonly RiverRouter _rivers;
         readonly LocaleService _locale;
 
-        readonly ReactiveProperty<TitleStage> _stage = new(TitleStage.Info);
+        readonly ReactiveProperty<TitleStage> _stage;
         readonly ReactiveProperty<int> _seed = new(unchecked((int)DateTime.UtcNow.Ticks));
         readonly ReactiveProperty<int> _chunksReady = new(0);
 
@@ -54,12 +54,17 @@ namespace RareIcon
             _chunks = chunks;
             _rivers = rivers;
             _locale = locale;
+            // First boot starts at the Language picker; once the player
+            // commits a locale (LocaleService persists it via PlayerPrefs)
+            // every subsequent launch boots straight into the AoE menu.
+            _stage = new ReactiveProperty<TitleStage>(
+                _locale.HasUserPickedLocale ? TitleStage.Info : TitleStage.Locale);
         }
 
-        /// <summary>Move from the AoE-style menu (Info stage) into the single-player launch flow (Locale → Seed → Generating). No-op if a sub-stage is already active — generation in flight cannot be re-entered.</summary>
+        /// <summary>Move from the AoE-style menu (Info stage) into the single-player launch flow (Seed → Generating). Skips the Locale stage entirely — language is committed once on first boot via the standalone Language picker.</summary>
         public void BeginSinglePlayer()
         {
-            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Locale;
+            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Seed;
         }
 
         /// <summary>Open the Continue / Load Save stage from the menu. Lists existing slots; clicking one routes through <see cref="LoadSlot"/>.</summary>
@@ -103,13 +108,14 @@ namespace RareIcon
             return true;
         }
 
+        /// <summary>Commit a locale from the first-boot Language picker. Persists via LocaleService and advances to the AoE menu (Info stage). Subsequent launches skip the picker outright.</summary>
         public void SelectLocale(string locale)
         {
             _locale.SetLocale(locale);
-            if (_stage.Value == TitleStage.Locale) _stage.Value = TitleStage.Seed;
+            if (_stage.Value == TitleStage.Locale) _stage.Value = TitleStage.Info;
         }
 
-        /// <summary>Drop back to the locale picker from the seed stage. No-op if generation has already started — there's no in-flight cancel for that path.</summary>
+        /// <summary>Drop back to the locale picker from the seed stage. Kept for parity but unused now that the picker only appears on first boot — Single Player flow is Info → Seed without an intermediate Language step.</summary>
         public void BackToLocale()
         {
             if (_stage.Value == TitleStage.Seed) _stage.Value = TitleStage.Locale;
