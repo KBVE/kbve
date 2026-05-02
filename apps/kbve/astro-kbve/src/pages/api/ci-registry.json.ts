@@ -178,7 +178,9 @@ function toManifestEntry(
 			const vs = d.version_source || mdxPath;
 			const vtgt =
 				d.version_target ||
-				`packages/rust/${d.package_name}/Cargo.toml`;
+				(d.source_path
+					? `${d.source_path.replace(/\/+$/, '')}/Cargo.toml`
+					: `packages/rust/${d.package_name}/Cargo.toml`);
 			return {
 				key: d.key!,
 				package_name: d.package_name,
