@@ -188,6 +188,10 @@ namespace RareIcon
             //    BuildingInspectMessage; closes via X button) --
             builder.RegisterEntryPoint<UIBuildingInspector>().AsSelf();
 
+            // -- Global escape handler — registered AFTER every modal so
+            //    its Inject pulls already-registered references. --
+            builder.RegisterEntryPoint<EscapeMenuController>();
+
             // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();
             builder.RegisterEntryPoint<TileHUD>();

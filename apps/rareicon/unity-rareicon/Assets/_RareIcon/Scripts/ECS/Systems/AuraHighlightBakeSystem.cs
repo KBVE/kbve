@@ -35,7 +35,7 @@ namespace RareIcon
             if (target.Generation == _lastSeenGeneration) return;
             _lastSeenGeneration = target.Generation;
 
-            state.Dependency = new BakeJob
+            state.Dependency = new AuraHighlightBakeJob
             {
                 Center = target.Center,
                 Radius = target.Radius,
@@ -60,7 +60,7 @@ namespace RareIcon
     }
 
     [BurstCompile]
-    public partial struct BakeJob : IJobEntity
+    public partial struct AuraHighlightBakeJob : IJobEntity
     {
         public int2 Center;
         public byte Radius;

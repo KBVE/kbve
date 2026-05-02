@@ -34,6 +34,7 @@ namespace RareIcon
             _tabs = new ISettingsTab[]
             {
                 new SearchTab(locale, camera, biomes),
+                new SystemTab(locale),
             };
         }
 

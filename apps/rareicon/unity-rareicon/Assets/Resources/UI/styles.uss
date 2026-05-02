@@ -743,3 +743,27 @@
     min-width: 6px;
     min-height: 6px;
 }
+
+/* Settings panel contrast pass — UI Toolkit's default text colour
+   inside TextField / DropdownField is a soft grey that disappears
+   against the zinc-950 surface, so force amber text + amber borders
+   on every input element nested under a modal panel. Single rule
+   covers Settings, future Save-slot picker, and any panel that
+   reuses the panel--modal chrome. */
+.panel--modal .unity-text-element,
+.panel--modal .unity-base-text-field__label,
+.panel--modal .unity-base-text-field__input,
+.panel--modal .unity-base-popup-field__label,
+.panel--modal .unity-base-popup-field__text,
+.panel--modal .unity-base-dropdown__label {
+    color: var(--color-text-strong);
+}
+.panel--modal .unity-base-text-field__input,
+.panel--modal .unity-base-popup-field__input {
+    background-color: var(--color-bg-muted);
+    border-color: var(--color-accent);
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+}
