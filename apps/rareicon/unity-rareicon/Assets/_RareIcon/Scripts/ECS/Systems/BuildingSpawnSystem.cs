@@ -194,6 +194,8 @@ namespace RareIcon
             if (req.BuildingType == BuildingType.Capital)
             {
                 ecb.AddComponent<CapitalTag>(building);
+                ecb.AddComponent<CityTag>(building);
+                ecb.AddComponent(building, new CityAdminRadius { Radius = 12 });
                 ecb.AddComponent<NeedsStaffing>(building);
                 ecb.AddComponent(building, new CapitalStatus { HasFood = 0 });
 

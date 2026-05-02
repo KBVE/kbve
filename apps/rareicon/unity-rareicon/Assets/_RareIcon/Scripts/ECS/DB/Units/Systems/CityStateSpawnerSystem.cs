@@ -83,6 +83,9 @@ namespace RareIcon
             em.SetComponentData(city, new BuildingVisual { Value = BuildingType.CityState });
             em.AddComponentData(city, new BuildingHealth { Value = CityMaxHp, Max = CityMaxHp });
             em.AddComponent<CityStateTag>(city);
+            em.AddComponent<CityTag>(city);
+            em.AddComponentData(city, new CityAdminRadius { Radius = 6 });
+            em.AddBuffer<CityLedger>(city);
             em.AddComponentData(city, new CityStateStatus { Value = CityStateStatusValue.Neutral });
             em.AddComponentData(city, new CityStateDisposition
             {

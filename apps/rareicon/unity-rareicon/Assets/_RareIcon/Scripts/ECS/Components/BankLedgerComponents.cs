@@ -27,6 +27,16 @@ namespace RareIcon
         public ushort Count;
     }
 
+    /// <summary>Per-city treasury for any non-Capital city — Player-founded cities + neutral CityStates. Same binary layout as <see cref="CapitalLedger"/> so reinterpret-based shared algorithms (<see cref="BankLedgerOps"/>) operate on either without specialization. Capital keeps <see cref="CapitalLedger"/> on its singleton entity for backwards-compat with existing CapitalTag lookups; multi-city ledger routing (deposit to nearest city) lands when a second city actually exists.</summary>
+    [InternalBufferCapacity(8)]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CityLedger : IBankLedger
+    {
+        public Ulid   Uid;
+        public ushort ItemId;
+        public ushort Count;
+    }
+
     /// <summary>Furnace smelting stash — smelter inputs (Wood, Sand) accumulate here until a cycle fires; outputs (Coal, Glass, Ash) land here before BuildingSurplusTransfer drains to Capital.</summary>
     [InternalBufferCapacity(8)]
     [StructLayout(LayoutKind.Sequential)]

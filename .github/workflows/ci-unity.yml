@@ -332,49 +332,29 @@ jobs:
                   done
                   ls -la
 
-            - name: Install steamcmd
+            # Upload via game-ci/steam-deploy. Generates its own app_build
+            # VDF from the depot inputs below — our apps/<project>/Steam/
+            # app_build_<label>.vdf files act only as an enable signal in
+            # the Resolve step above (file present = matrix entry runs).
+            #
+            # Depot layout assumes sequential depot IDs starting at
+            # appId + 1 (matches RareIcon's 3791951/52/53 for demo and
+            # the eventual main scheme). Set firstDepotIdOverride if a
+            # future SteamApp uses non-sequential depot IDs.
+            - name: Upload via SteamPipe (game-ci/steam-deploy)
               if: steps.vdf.outputs.skip != 'true'
-              run: |
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends lib32gcc-s1 ca-certificates
-                  mkdir -p ~/Steam ~/Steam/config
-                  cd ~/Steam
-                  curl -sL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" \
-                      | tar -xzf -
-                  ./steamcmd.sh +quit || true
-
-            - name: Restore Steam auth cache
-              if: steps.vdf.outputs.skip != 'true'
-              env:
-                  STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
-              run: |
-                  if [ -z "$STEAM_CONFIG_VDF" ]; then
-                      echo "::error::STEAM_CONFIG_VDF missing — cannot skip 2FA on the Linux runner"
-                      exit 1
-                  fi
-                  echo "$STEAM_CONFIG_VDF" | base64 -d > ~/Steam/config/config.vdf
-                  chmod 777 ~/Steam/config/config.vdf
-
-            - name: Warm Steam credential cache
-              if: steps.vdf.outputs.skip != 'true'
-              env:
-                  STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-                  STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
-              run: |
-                  ~/Steam/steamcmd.sh +set_steam_guard_code "INVALID" \
-                      +login "$STEAM_USERNAME" "$STEAM_PASSWORD" +quit
-
-            - name: Upload via SteamPipe
-              if: steps.vdf.outputs.skip != 'true'
-              env:
-                  STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-              working-directory: ${{ inputs.project_path }}/Steam
-              run: |
-                  VDF_ABS="$(pwd)/app_build_${{ steps.vdf.outputs.label }}.vdf"
-                  ~/Steam/steamcmd.sh \
-                      +login "$STEAM_USERNAME" \
-                      +run_app_build "$VDF_ABS" \
-                      +quit
+              uses: game-ci/steam-deploy@v3
+              with:
+                  username: ${{ secrets.STEAM_USERNAME }}
+                  password: ${{ secrets.STEAM_PASSWORD }}
+                  totp: ${{ secrets.STEAM_TOTP_SECRET }}
+                  appId: ${{ matrix.app.app_id }}
+                  buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }})'
+                  rootPath: ${{ inputs.project_path }}/build
+                  depot1Path: StandaloneLinux64
+                  depot2Path: StandaloneWindows64
+                  depot3Path: StandaloneOSX
+                  releaseBranch: ${{ matrix.app.branch }}
 
     post_publish_sync:
         name: Post-publish version sync

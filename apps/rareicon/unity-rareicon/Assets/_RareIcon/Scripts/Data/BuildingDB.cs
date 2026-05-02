@@ -86,22 +86,41 @@ namespace RareIcon
                                                                       new((ushort)ItemId.GoldBar,    8) };
         static readonly Ingredient[] UpgradeBarracksToKeep        = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 12) };
+        static readonly Ingredient[] UpgradeBarracksToStables     = { new((ushort)ItemId.Timber,    8),
+                                                                      new((ushort)ItemId.StoneBlock, 8),
+                                                                      new((ushort)ItemId.Carrot,    6) };
+        static readonly Ingredient[] UpgradeBarracksToGuildhall   = { new((ushort)ItemId.Timber,    6),
+                                                                      new((ushort)ItemId.StoneBlock, 12),
+                                                                      new((ushort)ItemId.Coin,      8) };
         static readonly Ingredient[] UpgradeKeepToCastle          = { new((ushort)ItemId.Timber,   10),
                                                                       new((ushort)ItemId.StoneBlock, 24),
                                                                       new((ushort)ItemId.GoldBar,   20) };
         static readonly Ingredient[] UpgradeInnToTavern           = { new((ushort)ItemId.Timber,    6),
                                                                       new((ushort)ItemId.StoneBlock, 4),
                                                                       new((ushort)ItemId.GoldBar,    5) };
+        static readonly Ingredient[] UpgradeInnToAleHouse         = { new((ushort)ItemId.Timber,    4),
+                                                                      new((ushort)ItemId.StoneBlock, 2),
+                                                                      new((ushort)ItemId.GoldBar,    3),
+                                                                      new((ushort)ItemId.Berry,      8) };
         static readonly Ingredient[] UpgradeTavernToLodge         = { new((ushort)ItemId.Timber,   12),
                                                                       new((ushort)ItemId.StoneBlock, 8),
                                                                       new((ushort)ItemId.GoldBar,   15) };
         static readonly Ingredient[] UpgradeFurnaceToForge         = { new((ushort)ItemId.StoneBlock, 8),
                                                                        new((ushort)ItemId.IronOre,  4) };
+        static readonly Ingredient[] UpgradeFurnaceToGlassworks    = { new((ushort)ItemId.StoneBlock,  6),
+                                                                       new((ushort)ItemId.NaturalSand, 4),
+                                                                       new((ushort)ItemId.Coal,        2) };
         static readonly Ingredient[] UpgradeForgeToFoundry         = { new((ushort)ItemId.StoneBlock, 14),
                                                                        new((ushort)ItemId.IronOre,  10),
                                                                        new((ushort)ItemId.GoldBar,    12) };
         static readonly Ingredient[] UpgradeOutpostToWatchpost     = { new((ushort)ItemId.Timber,    6),
                                                                        new((ushort)ItemId.StoneBlock, 6) };
+        static readonly Ingredient[] UpgradeOutpostToBeaconOutpost = { new((ushort)ItemId.Timber,    6),
+                                                                       new((ushort)ItemId.StoneBlock, 6),
+                                                                       new((ushort)ItemId.Coal,      4) };
+        static readonly Ingredient[] UpgradeOutpostToGatepost      = { new((ushort)ItemId.Timber,    8),
+                                                                       new((ushort)ItemId.StoneBlock, 4),
+                                                                       new((ushort)ItemId.IronOre,   4) };
         static readonly Ingredient[] UpgradeWatchpostToGarrison    = { new((ushort)ItemId.Timber,   10),
                                                                        new((ushort)ItemId.StoneBlock, 14),
                                                                        new((ushort)ItemId.GoldBar,    8) };
@@ -117,10 +136,39 @@ namespace RareIcon
                                                                        new((ushort)ItemId.IronOre,   10),
                                                                        new((ushort)ItemId.GoldBar,   14) };
         static readonly Ingredient[] UpgradeWallToReinforced       = { new((ushort)ItemId.StoneBlock, 4) };
+        static readonly Ingredient[] UpgradeWallToButtress         = { new((ushort)ItemId.StoneBlock, 8),
+                                                                       new((ushort)ItemId.IronOre,   2) };
+        static readonly Ingredient[] UpgradeWallToPalisade         = { new((ushort)ItemId.Timber,    4),
+                                                                       new((ushort)ItemId.StoneBlock, 1) };
         static readonly Ingredient[] UpgradeReinforcedToFortified  = { new((ushort)ItemId.StoneBlock, 8),
                                                                        new((ushort)ItemId.IronOre,   3) };
 
-        /// <summary>Variant-aware overload — used by tiers with alt-pick variants (Tower T1 today). Falls back to <see cref="GetUpgradeCost(byte, byte)"/> for default-track upgrades. Variants 0/1/2 for Tower T0 → Watch / Beacon / Highwatch are wired here.</summary>
+        // -- Alt-pick variant tables --
+        // Each entry lists the variant ids available for (building type,
+        // fromTier). Single-track upgrades fall through to _defaultVariant.
+        // Inspector + UpgradeJob iterate this table so adding a new alt
+        // pick is one entry here + one cost array + one shader include.
+        static readonly byte[] _defaultVariant    = { 0 };
+        static readonly byte[] _towerT0Variants   = { 0, 1, 2 }; // Watch / Beacon / Highwatch
+        static readonly byte[] _innT0Variants     = { 0, 1 };    // Tavern / AleHouse
+        static readonly byte[] _furnaceT0Variants = { 0, 1 };    // Forge / Glassworks
+        static readonly byte[] _outpostT0Variants = { 0, 1, 2 }; // Watchpost / BeaconOutpost / Gatepost
+        static readonly byte[] _barracksT0Variants = { 0, 1, 2 }; // Keep / Stables / Guildhall
+        static readonly byte[] _wallT0Variants    = { 0, 1, 2 }; // Reinforced / Buttress / Palisade
+
+        /// <summary>Returns the variant ids selectable when upgrading <paramref name="buildingType"/> from <paramref name="fromTier"/>. Default-track tiers return a single-element {0} array; alt-pick tiers return all available variant ids in display order. Inspector reads this for the upgrade card stack.</summary>
+        public static byte[] GetUpgradeVariants(byte buildingType, byte fromTier)
+        {
+            if (buildingType == BuildingType.Tower    && fromTier == 0) return _towerT0Variants;
+            if (buildingType == BuildingType.Inn      && fromTier == 0) return _innT0Variants;
+            if (buildingType == BuildingType.Furnace  && fromTier == 0) return _furnaceT0Variants;
+            if (buildingType == BuildingType.Outpost  && fromTier == 0) return _outpostT0Variants;
+            if (buildingType == BuildingType.Barracks && fromTier == 0) return _barracksT0Variants;
+            if (buildingType == BuildingType.Wall     && fromTier == 0) return _wallT0Variants;
+            return _defaultVariant;
+        }
+
+        /// <summary>Variant-aware overload — used by tiers with alt-pick variants. Falls back to <see cref="GetUpgradeCost(byte, byte)"/> for default-track upgrades. Variants 0/1/2 for Tower T0 → Watch / Beacon / Highwatch; 0/1 for Inn T0 → Tavern / AleHouse and Furnace T0 → Forge / Glassworks.</summary>
         public static Ingredient[] GetUpgradeCost(byte buildingType, byte fromTier, byte variant)
         {
             if (buildingType == BuildingType.Tower && fromTier == 0)
@@ -128,6 +176,34 @@ namespace RareIcon
                 if (variant == 1) return UpgradeTowerToBeaconTower;
                 if (variant == 2) return UpgradeTowerToHighwatchTower;
                 return UpgradeTowerToWatchTower;
+            }
+            if (buildingType == BuildingType.Inn && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeInnToAleHouse;
+                return UpgradeInnToTavern;
+            }
+            if (buildingType == BuildingType.Furnace && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeFurnaceToGlassworks;
+                return UpgradeFurnaceToForge;
+            }
+            if (buildingType == BuildingType.Outpost && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeOutpostToBeaconOutpost;
+                if (variant == 2) return UpgradeOutpostToGatepost;
+                return UpgradeOutpostToWatchpost;
+            }
+            if (buildingType == BuildingType.Barracks && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeBarracksToStables;
+                if (variant == 2) return UpgradeBarracksToGuildhall;
+                return UpgradeBarracksToKeep;
+            }
+            if (buildingType == BuildingType.Wall && fromTier == 0)
+            {
+                if (variant == 1) return UpgradeWallToButtress;
+                if (variant == 2) return UpgradeWallToPalisade;
+                return UpgradeWallToReinforced;
             }
             return GetUpgradeCost(buildingType, fromTier);
         }
@@ -298,6 +374,7 @@ namespace RareIcon
         public static float GetVisualScale(byte buildingType) => buildingType switch
         {
             BuildingType.Capital => 1.0f,
+            BuildingType.City    => 0.85f,
             _                    => 2.0f / 3.0f,
         };
 
@@ -339,6 +416,14 @@ namespace RareIcon
             BuildingType.SentinelTower    => "building.sentinel_tower",
             BuildingType.BeaconTower      => "building.beacon_tower",
             BuildingType.HighwatchTower   => "building.highwatch_tower",
+            BuildingType.AleHouse         => "building.ale_house",
+            BuildingType.Glassworks       => "building.glassworks",
+            BuildingType.BeaconOutpost    => "building.beacon_outpost",
+            BuildingType.Gatepost         => "building.gatepost",
+            BuildingType.Stables          => "building.stables",
+            BuildingType.Guildhall        => "building.guildhall",
+            BuildingType.Buttress         => "building.buttress",
+            BuildingType.Palisade         => "building.palisade",
             BuildingType.Wall       => "building.wall",
             BuildingType.Landmark   => "building.landmark",
             BuildingType.CityState   => "building.city_state",
@@ -466,6 +551,14 @@ namespace RareIcon
             BuildingType.SentinelTower    => 720,
             BuildingType.BeaconTower      => 400,
             BuildingType.HighwatchTower   => 360,
+            BuildingType.AleHouse         => 280,
+            BuildingType.Glassworks       => 320,
+            BuildingType.BeaconOutpost    => 240,
+            BuildingType.Gatepost         => 280,
+            BuildingType.Stables          => 420,
+            BuildingType.Guildhall        => 400,
+            BuildingType.Buttress         => 420,
+            BuildingType.Palisade         => 160,
             BuildingType.Wall       => 260,
             _                       => 100,
         };
