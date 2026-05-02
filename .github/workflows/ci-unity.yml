@@ -208,6 +208,22 @@ jobs:
                   targetPlatform: ${{ matrix.target }}
                   buildName: ${{ inputs.app_name }}
 
+            # Strip Unity's ship-blocked debug folders before zipping so
+            # the artifact carries only what end-users would actually run.
+            # `*_BackUpThisFolder_ButDontShipItWithYourGame*` holds IL2CPP
+            # native debug symbols (Android/iOS); `*_BurstDebugInformation_DoNotShip*`
+            # holds Burst-compiled debug data; both are useful for symbolicating
+            # crashes locally but Unity explicitly tells you not to ship them.
+            - name: Strip Unity DoNotShip folders
+              run: |
+                  find "build/${{ matrix.target }}" -type d \
+                    \( -name "*_BackUpThisFolder_ButDontShipItWithYourGame*" \
+                    -o -name "*_BurstDebugInformation_DoNotShip*" \) \
+                    -prune -exec rm -rf {} + 2>/dev/null || true
+                  echo "build/${{ matrix.target }} after strip:"
+                  du -sh "build/${{ matrix.target }}" || true
+                  ls -la "build/${{ matrix.target }}" || true
+
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
@@ -265,9 +281,26 @@ jobs:
                   unzip -q butler.zip
                   chmod +x butler
                   ./butler -V
-                  ./butler push "build/${{ matrix.target }}" \
-                    "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
-                    --userversion "${{ inputs.manifest_version }}"
+
+                  # Android publishes a single .apk; everything else
+                  # publishes the build directory (executable + data
+                  # folder). The DoNotShip dirs were already stripped
+                  # before artifact upload, so the dir push is clean.
+                  if [ "${{ matrix.target }}" = "Android" ]; then
+                    APK=$(find "build/Android" -maxdepth 2 -name "*.apk" -type f | head -n 1)
+                    if [ -z "$APK" ]; then
+                      echo "::error::No .apk found under build/Android"
+                      exit 1
+                    fi
+                    echo "Pushing $APK to itch"
+                    ./butler push "$APK" \
+                      "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                      --userversion "${{ inputs.manifest_version }}"
+                  else
+                    ./butler push "build/${{ matrix.target }}" \
+                      "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
+                      --userversion "${{ inputs.manifest_version }}"
+                  fi
 
     deploy_steam:
         name: Steam deploy ${{ matrix.app.label || matrix.app.app_id }}
