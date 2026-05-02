@@ -13,10 +13,10 @@
 # base image, so the init container keeps working unchanged.
 #
 # Build:
-#   docker build -t ghcr.io/kbve/arc-runner:latest apps/vm/arc-runner/
+#   docker build -t ghcr.io/kbve/arc-runner:latest packages/docker/arc-runner/
 # ============================================================================
 
-ARG ACTIONS_RUNNER_VERSION=2.333.0
+ARG ACTIONS_RUNNER_VERSION=2.334.0
 
 FROM --platform=linux/amd64 ghcr.io/actions/actions-runner:${ACTIONS_RUNNER_VERSION} AS runtime
 
