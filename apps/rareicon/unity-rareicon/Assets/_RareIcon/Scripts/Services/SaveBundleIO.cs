@@ -28,20 +28,20 @@ namespace RareIcon
                 using (var fs = new FileStream(tmp, FileMode.CreateNew, FileAccess.Write))
                 using (var zip = new ZipArchive(fs, ZipArchiveMode.Create, leaveOpen: false))
                 {
-                    var manifestEntry = zip.CreateEntry(ManifestEntry, CompressionLevel.NoCompression);
+                    var manifestEntry = zip.CreateEntry(ManifestEntry, System.IO.Compression.CompressionLevel.NoCompression);
                     using (var sw = new StreamWriter(manifestEntry.Open()))
                         sw.Write(JsonUtility.ToJson(manifest, prettyPrint: true));
 
                     if (thumbnailPng != null && thumbnailPng.Length > 0)
                     {
-                        var thumbEntry = zip.CreateEntry(ThumbnailEntry, CompressionLevel.NoCompression);
+                        var thumbEntry = zip.CreateEntry(ThumbnailEntry, System.IO.Compression.CompressionLevel.NoCompression);
                         using var ts = thumbEntry.Open();
                         ts.Write(thumbnailPng, 0, thumbnailPng.Length);
                     }
 
                     if (!string.IsNullOrEmpty(stateZstPath) && File.Exists(stateZstPath))
                     {
-                        var stateEntry = zip.CreateEntry(StateEntry, CompressionLevel.NoCompression);
+                        var stateEntry = zip.CreateEntry(StateEntry, System.IO.Compression.CompressionLevel.NoCompression);
                         using var es = stateEntry.Open();
                         using var rs = File.OpenRead(stateZstPath);
                         rs.CopyTo(es);
