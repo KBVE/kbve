@@ -49,6 +49,8 @@ namespace RareIcon
         public const byte SentinelTower  = 34;  // Tower T2 — full arrow garrison + area-denial aura + maximum territory ring.
         public const byte BeaconTower    = 41;  // Tower T1 alt — wider territory + light volley + medium VisionRadius (variant 1).
         public const byte HighwatchTower = 42;  // Tower T1 alt — pure recon: huge VisionRadius, no volley (variant 2).
+        public const byte AleHouse       = 43;  // Inn T1 alt — drink-quality focus, lighter heal, brewing recipes (variant 1).
+        public const byte Glassworks     = 44;  // Furnace T1 alt — sand → glass + lens crafting recipes (variant 1).
         public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
         public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
         public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.

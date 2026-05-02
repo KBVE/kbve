@@ -210,7 +210,11 @@ namespace RareIcon
             }
             else if (type == BuildingType.Inn)
             {
-                if (tier == 1) return BuildingType.Tavern;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.AleHouse;
+                    return BuildingType.Tavern;
+                }
                 if (tier == 2) return BuildingType.Lodge;
             }
             else if (type == BuildingType.Lumbercamp)
@@ -228,7 +232,11 @@ namespace RareIcon
             }
             else if (type == BuildingType.Furnace)
             {
-                if (tier == 1) return BuildingType.Forge;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.Glassworks;
+                    return BuildingType.Forge;
+                }
                 if (tier == 2) return BuildingType.Foundry;
             }
             else if (type == BuildingType.Outpost)

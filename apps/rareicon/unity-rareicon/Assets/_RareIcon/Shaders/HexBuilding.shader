@@ -329,6 +329,11 @@ Shader "RareIcon/HexBuilding"
             #define BUILDING_SENTINEL_TOWER  34
             #define BUILDING_BEACON_TOWER    41
             #define BUILDING_HIGHWATCH_TOWER 42
+            // Inn / Furnace alt-pick T1 placeholders — route to base Inn /
+            // Furnace draws + a light fragment tint until bespoke includes
+            // ship. Ale House = warm amber, Glassworks = cool teal.
+            #define BUILDING_ALE_HOUSE       43
+            #define BUILDING_GLASSWORKS      44
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -352,6 +357,10 @@ Shader "RareIcon/HexBuilding"
             #include "Includes/HexKeep.hlsl"
             #include "Includes/HexCastle.hlsl"
             #include "Includes/HexTower.hlsl"
+            #include "Includes/HexWatchTower.hlsl"
+            #include "Includes/HexBeaconTower.hlsl"
+            #include "Includes/HexHighwatchTower.hlsl"
+            #include "Includes/HexSentinelTower.hlsl"
             #include "Includes/HexWall.hlsl"
 
             Varyings vert(Attributes input)
@@ -448,20 +457,31 @@ Shader "RareIcon/HexBuilding"
                 {
                     DrawTower(color, alpha, px, grid);
                 }
-                else if (buildingType == BUILDING_WATCH_TOWER
-                      || buildingType == BUILDING_SENTINEL_TOWER
-                      || buildingType == BUILDING_BEACON_TOWER
-                      || buildingType == BUILDING_HIGHWATCH_TOWER)
+                else if (buildingType == BUILDING_WATCH_TOWER)
                 {
-                    DrawTower(color, alpha, px, grid);
-                    // Tinted overlay distinguishes the variant on top of the
-                    // base Tower silhouette: Watch = warm steel, Sentinel =
-                    // gold accent, Beacon = orange flame, Highwatch = blue.
-                    float3 tint = float3(1, 1, 1);
-                    if (buildingType == BUILDING_SENTINEL_TOWER) tint = float3(1.10, 1.00, 0.55);
-                    else if (buildingType == BUILDING_BEACON_TOWER)    tint = float3(1.20, 0.75, 0.40);
-                    else if (buildingType == BUILDING_HIGHWATCH_TOWER) tint = float3(0.65, 0.85, 1.20);
-                    color *= tint;
+                    DrawWatchTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_BEACON_TOWER)
+                {
+                    DrawBeaconTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_HIGHWATCH_TOWER)
+                {
+                    DrawHighwatchTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_SENTINEL_TOWER)
+                {
+                    DrawSentinelTower(color, alpha, px, grid);
+                }
+                else if (buildingType == BUILDING_ALE_HOUSE)
+                {
+                    DrawInn(color, alpha, px, grid);
+                    color *= float3(1.20, 0.95, 0.65);
+                }
+                else if (buildingType == BUILDING_GLASSWORKS)
+                {
+                    DrawFurnace(color, alpha, px, grid);
+                    color *= float3(0.70, 1.05, 1.10);
                 }
                 else if (buildingType == BUILDING_WALL)
                 {

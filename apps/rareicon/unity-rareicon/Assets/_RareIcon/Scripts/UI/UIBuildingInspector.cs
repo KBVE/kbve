@@ -261,9 +261,7 @@ namespace RareIcon
             if (!BuildingDB.HasUpgrade(type, tier)) { _upgradePanelCards.Clear(); return; }
 
             _upgradePanelCards.Clear();
-            byte[] variants = (type == BuildingType.Tower && tier == 0)
-                ? new byte[] { 0, 1, 2 }
-                : new byte[] { 0 };
+            var variants = BuildingDB.GetUpgradeVariants(type, tier);
             for (int i = 0; i < variants.Length; i++)
                 _upgradePanelCards.Add(BuildUpgradeCard(type, tier, variants[i]));
         }
@@ -334,6 +332,16 @@ namespace RareIcon
                 if (variant == 2) return "building.highwatch_tower";
                 return "building.watch_tower";
             }
+            if (type == BuildingType.Inn && fromTier == 0)
+            {
+                if (variant == 1) return "building.ale_house";
+                return "building.tavern";
+            }
+            if (type == BuildingType.Furnace && fromTier == 0)
+            {
+                if (variant == 1) return "building.glassworks";
+                return "building.forge";
+            }
             return BuildingDB.GetTieredLocaleKey(type, targetTier);
         }
 
@@ -344,6 +352,16 @@ namespace RareIcon
                 if (variant == 1) return "inspector.tower_variant.beacon_desc";
                 if (variant == 2) return "inspector.tower_variant.highwatch_desc";
                 return "inspector.tower_variant.watch_desc";
+            }
+            if (type == BuildingType.Inn && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.inn_variant.ale_house_desc";
+                return "inspector.inn_variant.tavern_desc";
+            }
+            if (type == BuildingType.Furnace && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.furnace_variant.glassworks_desc";
+                return "inspector.furnace_variant.forge_desc";
             }
             return string.Empty;
         }
