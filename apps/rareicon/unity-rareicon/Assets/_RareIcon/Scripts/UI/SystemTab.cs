@@ -6,15 +6,17 @@ namespace RareIcon
     /// <summary>Settings-panel tab — Save Game (writes the autosave slot via <see cref="SaveSlotService"/>) and Exit Game (Application.Quit). Buttons are sized large + high-contrast so they read at a glance, since this is the primary clean-shutdown surface for the player.</summary>
     public sealed class SystemTab : ISettingsTab
     {
-        readonly LocaleService _locale;
+        readonly LocaleService     _locale;
+        readonly WorldGenSession   _session;
 
         Label _statusLabel;
 
         public string Title => "System";
 
-        public SystemTab(LocaleService locale)
+        public SystemTab(LocaleService locale, WorldGenSession session)
         {
-            _locale = locale;
+            _locale  = locale;
+            _session = session;
         }
 
         public VisualElement Build()
@@ -53,7 +55,9 @@ namespace RareIcon
 
         void OnSaveClicked()
         {
-            bool ok = SaveSlotService.Save("autosave");
+            byte[] thumb = ScreenshotService.CaptureThumbnailPng();
+            var ctx = BuildContext();
+            bool ok = SaveSlotService.Save("autosave", ctx, thumb);
             _statusLabel.text = _locale.Get(ok ? "settings.system.save_ok" : "settings.system.save_fail");
             _statusLabel.style.color = ok ? UIStyles.Palette.Success : UIStyles.Palette.Alert;
         }
@@ -63,13 +67,20 @@ namespace RareIcon
             // Persist before quitting so the autosave reflects the latest
             // tick. RustPersistenceFlushHook also fires on OnApplicationQuit
             // as a backstop, but driving it from here is more responsive.
-            SaveSlotService.Save("autosave");
+            byte[] thumb = ScreenshotService.CaptureThumbnailPng();
+            SaveSlotService.Save("autosave", BuildContext(), thumb);
 
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
             Application.Quit();
 #endif
+        }
+
+        SaveContext BuildContext()
+        {
+            int seed = _session != null ? _session.Seed.CurrentValue : 0;
+            return new SaveContext(seed, capitalName: string.Empty, playtimeSeconds: Time.realtimeSinceStartupAsDouble);
         }
 
         static Button MakePrimaryButton(string text, System.Action onClick, Color bg, Color fg)
