@@ -12,6 +12,7 @@ namespace RareIcon
         Info,
         Locale,
         Seed,
+        Load,
         Generating,
         Ready,
     }
@@ -61,6 +62,47 @@ namespace RareIcon
             if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Locale;
         }
 
+        /// <summary>Open the Continue / Load Save stage from the menu. Lists existing slots; clicking one routes through <see cref="LoadSlot"/>.</summary>
+        public void BeginLoadFlow()
+        {
+            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Load;
+        }
+
+        /// <summary>Drop back to the AoE-style menu from the Load stage.</summary>
+        public void BackFromLoad()
+        {
+            if (_stage.Value == TitleStage.Load) _stage.Value = TitleStage.Info;
+        }
+
+        /// <summary>Restore <paramref name="slot"/> into the live worldstore, seed the BiomeGenerator from the manifest, and advance to Generating. Returns false on validation / extraction / uniti-restore failure with the reason; the title screen surfaces it back to the player. Caller must handle the case where restoring overwrites a live SQLite handle — uniti's Restore swaps the file in place.</summary>
+        public bool LoadSlot(string slot, out string failureReason)
+        {
+            failureReason = null;
+            if (_stage.Value != TitleStage.Load)
+            {
+                failureReason = "load stage not active";
+                return false;
+            }
+
+            string liveDb = WorldStoreSystem.LiveDbPath;
+            if (!SaveSlotService.Restore(slot, liveDb, out failureReason))
+                return false;
+
+            // Pull the seed back from the slot's manifest so the biome
+            // generator resumes against the same noise field the saved
+            // world was rolled with. Legacy slots (no manifest) keep the
+            // current seed so the world isn't visibly mismatched.
+            var slotPath = SaveSlotService.PathForSlot(slot);
+            if (SaveBundleIO.IsZipBundle(slotPath))
+            {
+                var manifest = SaveBundleIO.ReadManifest(slotPath);
+                if (manifest != null) _seed.Value = manifest.Seed;
+            }
+
+            BeginGeneration();
+            return true;
+        }
+
         public void SelectLocale(string locale)
         {
             _locale.SetLocale(locale);
@@ -76,7 +118,12 @@ namespace RareIcon
         /// <summary>Return to the AoE-style menu (Info stage) from any pre-generation sub-stage. No-op once generation is in flight.</summary>
         public void BackToMenu()
         {
-            if (_stage.Value == TitleStage.Locale || _stage.Value == TitleStage.Seed) _stage.Value = TitleStage.Info;
+            if (_stage.Value == TitleStage.Locale
+             || _stage.Value == TitleStage.Seed
+             || _stage.Value == TitleStage.Load)
+            {
+                _stage.Value = TitleStage.Info;
+            }
         }
 
         public void SetSeed(int seed) => _seed.Value = seed;
