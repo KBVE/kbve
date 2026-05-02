@@ -140,9 +140,9 @@ void DrawCapital(inout float3 color, inout float alpha, float2 px, float grid)
     // direction. Tinted with the roof color to match the corner
     // tower caps so the whole battlement ring reads as one piece.
     bool outerToothBand   = dNow >= 0.0 && dNow < 1.0;
-    int  parityX          = int(floor(px.x - c.x));
-    int  parityY          = int(floor(px.y - c.y));
-    bool checkerToothMask = ((parityX + parityY) % 2) == 0;
+    uint parityX          = (uint)(int)floor(px.x - c.x);
+    uint parityY          = (uint)(int)floor(px.y - c.y);
+    bool checkerToothMask = ((parityX + parityY) & 1u) == 0u;
     if (outerToothBand && checkerToothMask)
     {
         color = _CapitalRoof.rgb;
