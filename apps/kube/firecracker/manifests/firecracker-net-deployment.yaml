@@ -29,9 +29,6 @@ spec:
             nodeSelector:
                 kvm: 'true'
             automountServiceAccountToken: false
-            # Wait for the rootfs init job (PostSync hook) to populate
-            # vmlinux + rootfs images before the main container starts.
-            # Matches the firecracker-ctl deployment pattern.
             initContainers:
                 - name: wait-rootfs
                   image: busybox:1.37
@@ -62,21 +59,16 @@ spec:
                           cpu: 100m
                           memory: 32Mi
             containers:
-                # ── Gluetun VPN sidecar ──
-                # Establishes WireGuard tunnel. firecracker-ctl shares this
-                # network namespace, so all VM traffic routes through the VPN.
                 - name: gluetun
-                  image: ghcr.io/qdm12/gluetun:v3.40.0
+                  image: ghcr.io/qdm12/gluetun:v3.41.1
                   securityContext:
                       capabilities:
                           add:
                               - NET_ADMIN
                   ports:
-                      # Expose firecracker-ctl API through Gluetun's network stack
                       - name: api
                         containerPort: 9001
                         protocol: TCP
-                      # Gluetun health/control API
                       - name: gluetun-http
                         containerPort: 9999
                         protocol: TCP
@@ -88,18 +80,15 @@ spec:
                         value: '24h'
                       - name: TZ
                         value: 'UTC'
-                      # Firewall — allow firecracker-ctl API port + health
                       - name: FIREWALL_INPUT_PORTS
                         value: '9001,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
-                      # Disable DNS-over-TLS (port 853 blocked through tunnel,
-                      # same issue as KASM — causes health check failures)
+                      # DoT off — port 853 blocked through tunnel.
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
                         value: '1.1.1.1'
-                      # Give tunnel time to stabilize before health check
                       - name: HEALTH_VPN_DURATION_INITIAL
                         value: '30s'
                       - name: HEALTH_SERVER_ADDRESS
@@ -127,9 +116,8 @@ spec:
                           cpu: 500m
                           memory: 384Mi
 
-                # ── firecracker-ctl (shares Gluetun's network namespace) ──
                 - name: firecracker-ctl
-                  image: ghcr.io/kbve/firecracker-ctl:0.1.27
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.28
                   resources:
                       requests:
                           cpu: 250m
@@ -146,12 +134,8 @@ spec:
                         value: '10001'
                       - name: FC_JAILER_GID
                         value: '10001'
-                      # Different port? No — Gluetun already firewalls 9001
-                      # and this container doesn't own its own net namespace.
-                      # Listen on 9001 (same as default) through Gluetun.
                   securityContext:
-                      # Same seccomp exception as the non-network deployment
-                      # (jailer pivot_root requirement — see firecracker-deployment.yaml)
+                      # jailer pivot_root requires Unconfined seccomp.
                       seccompProfile:
                           type: Unconfined
                       readOnlyRootFilesystem: true
@@ -177,10 +161,7 @@ spec:
                         mountPath: /var/lib/firecracker/scratch
                       - name: tmp
                         mountPath: /tmp
-                  # No liveness/readiness probes on this container —
-                  # the probe port 9001 is owned by Gluetun (shared netns)
-                  # and we can't distinguish which container responds.
-                  # Gluetun's own health check covers the pod.
+                  # No probes — port 9001 is owned by Gluetun (shared netns).
             volumes:
                 - name: rootfs-cache
                   persistentVolumeClaim:
