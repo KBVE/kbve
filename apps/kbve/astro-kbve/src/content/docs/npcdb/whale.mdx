@@ -1,0 +1,42 @@
+---
+title: 'Whale'
+description: |
+    Oceanic / river leviathan. Massive HP pool — a lone Fishing Boat can't solo it quickly. Drops Whale Oil + bulk Meat via EnemyLootDropSystem.
+ref: 'whale'
+id: '01KSAVP2EPHGT01VZ7WYGN0PV6'
+name: 'Whale'
+type_flags: 1
+rarity: 'rare'
+personality: 'cautious'
+rank: 'elite'
+family: 'beast'
+level: 6
+stats:
+    hp: 320
+    max_hp: 320
+    attack: 9
+    defense: 4
+    speed: 1
+    armor: 2
+behavior:
+    movement_type: 'water_wander'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The whale's tail crashes into {target}! {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The whale rolls onto its back and drifts, oil bleeding into the tide."
+abilities:
+    - id: 'attack'
+      name: 'Tail Slap'
+      damage: 9
+faction:
+    faction_id: 'beast'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Oceanic leviathan. Huge HP pool, drops Whale Oil + bulk Meat. Fishing Boats' prey.

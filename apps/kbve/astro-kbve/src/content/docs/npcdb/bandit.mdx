@@ -1,0 +1,43 @@
+---
+title: 'Bandit'
+description: |
+    Hostile humanoid raider. Tougher and slower than the Goblin, prefers smashing buildings over chasing units. Spawns from Bandit Camps; drops Coin so the Looter job has reason to follow raids around.
+ref: 'bandit'
+id: '01KSAV7YC1CT201N51YJ15V1PK'
+name: 'Bandit'
+type_flags: 1
+rarity: 'common'
+personality: 'aggressive'
+rank: 'standard'
+family: 'humanoid'
+level: 2
+stats:
+    hp: 55
+    max_hp: 55
+    attack: 5
+    defense: 2
+    speed: 4
+    armor: 1
+behavior:
+    movement_type: 'aggressive'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The bandit smashes {target} with a heavy club! {dmg} damage!"
+        - "A jeering laugh — and {target} takes {dmg} damage from the blow!"
+    - action: 'death'
+      messages:
+        - "The bandit drops their club and crumples, coin spilling from their belt."
+abilities:
+    - id: 'attack'
+      name: 'Heavy Club'
+      damage: 5
+faction:
+    faction_id: 'hostile'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Hostile humanoid raider. Spawns from Bandit Camps, prefers smashing buildings, drops Coin on death.

@@ -1,0 +1,39 @@
+---
+title: 'Cow'
+description: |
+    Largest passive livestock. Slowest move speed, biggest HP pool of the farm trio. Drops Meat in bulk when killed; herd into Farms for steady food production.
+ref: 'cow'
+id: '01KSAV880T75RMTKD004K83GDQ'
+name: 'Cow'
+type_flags: 1
+rarity: 'common'
+personality: 'fearful'
+rank: 'standard'
+family: 'beast'
+level: 1
+stats:
+    hp: 40
+    max_hp: 40
+    attack: 2
+    defense: 1
+    speed: 2
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+flavor_text:
+    - action: 'death'
+      messages:
+        - "The cow lows softly and lies down for the last time."
+abilities:
+    - id: 'attack'
+      name: 'Headbutt'
+      damage: 2
+faction:
+    faction_id: 'wildlife'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Largest passive livestock. Slow, big HP pool, drops Meat in bulk when killed.

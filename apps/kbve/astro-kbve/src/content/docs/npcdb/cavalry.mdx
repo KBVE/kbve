@@ -1,0 +1,43 @@
+---
+title: 'Cavalry'
+description: |
+    Player mounted melee — fast charger, mid HP, club loadout. Recruited from Stables (Barracks T1 variant 1) for 10 Coin + 4 Timber + 2 Carrot. Damage scales with MovementModifier.SpeedMul via the cavalry charge bonus, capped at 2.0× under stacked Stables auras.
+ref: 'cavalry'
+id: '01KSAVJQSG83RSRAN9W8B27VTT'
+name: 'Cavalry'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'brave'
+rank: 'elite'
+family: 'humanoid'
+level: 3
+stats:
+    hp: 85
+    max_hp: 85
+    attack: 7
+    defense: 2
+    speed: 5
+    armor: 2
+behavior:
+    movement_type: 'aggressive'
+    first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The cavalry charges {target} at full gallop! {dmg} damage!"
+        - "Hooves thunder — {target} is bowled over for {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "Horse and rider fall together in a final, defiant rear."
+abilities:
+    - id: 'attack'
+      name: 'Charge'
+      damage: 7
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Player mounted melee. Fast charger, damage scales with movement speed via the cavalry charge bonus.
