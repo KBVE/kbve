@@ -83,7 +83,13 @@ namespace RareIcon
                 if (!buildingLookup.HasComponent(e)) continue;
                 var b = buildingLookup[e];
                 if (b.OwnerFaction != FactionType.Player) continue;
-                float r = capitalLookup.HasComponent(e) ? CapitalVisionRadius : BuildingVisionRadius;
+                float r;
+                if (visionRadiusLookup.HasComponent(e))
+                    r = visionRadiusLookup[e].Value;
+                else if (capitalLookup.HasComponent(e))
+                    r = CapitalVisionRadius;
+                else
+                    r = BuildingVisionRadius;
                 sources.Add(new VisionSource { CenterHex = b.RootHex, Radius = r });
             }
             buildingArr.Dispose();

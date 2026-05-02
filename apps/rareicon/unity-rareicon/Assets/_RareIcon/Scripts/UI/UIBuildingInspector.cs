@@ -28,6 +28,7 @@ namespace RareIcon
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
         Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn;
+        Button _towerBeaconBtn, _towerHighwatchBtn;
         Entity _target;
 
         [Inject]
@@ -81,6 +82,7 @@ namespace RareIcon
                 _upgradeBtn.clicked += RequestUpgrade;
             }
             EnsureRecruitScoutButton();
+            EnsureTowerVariantButtons();
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -133,6 +135,52 @@ namespace RareIcon
             _recruitScoutBtn.text = _locale.Get("inspector.recruit_scout");
             _recruitScoutBtn.clicked += RequestRecruitScout;
             SetHidden(_recruitScoutBtn, true);
+        }
+
+        void EnsureTowerVariantButtons()
+        {
+            _towerBeaconBtn    = MakeSiblingButton("inspector-tower-beacon",   _upgradeBtn);
+            _towerHighwatchBtn = MakeSiblingButton("inspector-tower-highwatch", _upgradeBtn);
+            if (_towerBeaconBtn != null)
+            {
+                _towerBeaconBtn.text = _locale.Get("inspector.upgrade_beacon_tower");
+                _towerBeaconBtn.clicked += () => RequestUpgradeWithVariant(1);
+                SetHidden(_towerBeaconBtn, true);
+            }
+            if (_towerHighwatchBtn != null)
+            {
+                _towerHighwatchBtn.text = _locale.Get("inspector.upgrade_highwatch_tower");
+                _towerHighwatchBtn.clicked += () => RequestUpgradeWithVariant(2);
+                SetHidden(_towerHighwatchBtn, true);
+            }
+        }
+
+        Button MakeSiblingButton(string name, Button anchor)
+        {
+            if (anchor == null) return null;
+            var existing = _root.Q<Button>(name);
+            if (existing != null) return existing;
+            var btn = new Button { name = name };
+            foreach (var cls in anchor.GetClasses()) btn.AddToClassList(cls);
+            var parent = anchor.parent;
+            if (parent != null)
+                parent.Insert(parent.IndexOf(anchor) + 1, btn);
+            return btn;
+        }
+
+        void RequestUpgradeWithVariant(byte variant)
+        {
+            if (_target == Entity.Null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<Building>(_target)) return;
+            if (!em.HasComponent<BuildingTier>(_target)) return;
+            byte type = em.GetComponentData<Building>(_target).Type;
+            byte tier = em.GetComponentData<BuildingTier>(_target).Value;
+            if (!BuildingDB.HasUpgrade(type, tier)) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new BuildingUpgradeRequest { Target = _target, VariantId = variant });
         }
 
         void RequestRecruitScout()
@@ -217,8 +265,18 @@ namespace RareIcon
                 }
             }
             _titleLabel.text = title;
+            bool hasUpgrade = BuildingDB.HasUpgrade(b.Type, tier);
+            bool isTowerT0  = b.Type == BuildingType.Tower && tier == 0
+                              && b.OwnerFaction == FactionType.Player;
             if (_upgradeBtn != null)
-                SetHidden(_upgradeBtn, !BuildingDB.HasUpgrade(b.Type, tier));
+            {
+                SetHidden(_upgradeBtn, !hasUpgrade);
+                _upgradeBtn.text = isTowerT0
+                    ? _locale.Get("inspector.upgrade_watch_tower")
+                    : _locale.Get("inspector.upgrade");
+            }
+            if (_towerBeaconBtn    != null) SetHidden(_towerBeaconBtn,    !isTowerT0);
+            if (_towerHighwatchBtn != null) SetHidden(_towerHighwatchBtn, !isTowerT0);
             if (_recruitScoutBtn != null)
                 SetHidden(_recruitScoutBtn, !em.HasComponent<BarracksTag>(_target)
                                             || b.OwnerFaction != FactionType.Player);

@@ -45,8 +45,10 @@ namespace RareIcon
         public const byte Foundry        = 30;  // Furnace tier 2 — high-tier metallurgy; unlocks mithril / obsidian-tipped crafting.
         public const byte Watchpost      = 31;  // Outpost tier 1 — wider territory radius + scout reveal aura.
         public const byte Garrison       = 32;  // Outpost tier 2 — full territory ring + faction-pressure modifier + arrow-volley boost.
-        public const byte WatchTower    = 33;  // Tower tier 1 — bigger HP + arrow-volley defense + wider territory radius. (Future siblings: BeaconTower / HighwatchTower as alt-pick T1 variants.)
-        public const byte SentinelTower = 34;  // Tower tier 2 — full arrow garrison + area-denial aura + maximum territory ring.
+        public const byte WatchTower     = 33;  // Tower T1 default — arrow-volley defense + wider territory radius (variant 0).
+        public const byte SentinelTower  = 34;  // Tower T2 — full arrow garrison + area-denial aura + maximum territory ring.
+        public const byte BeaconTower    = 41;  // Tower T1 alt — wider territory + light volley + medium VisionRadius (variant 1).
+        public const byte HighwatchTower = 42;  // Tower T1 alt — pure recon: huge VisionRadius, no volley (variant 2).
         public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
         public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
         public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.
@@ -218,10 +220,17 @@ namespace RareIcon
         [Unity.NetCode.GhostField] public byte Value;
     }
 
-    /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. Self-destroys after processing.</summary>
+    /// <summary>Player-issued request to advance Target to the next tier. BuildingUpgradeSystem validates cost against the Capital, deducts, bumps BuildingTier.Value. <see cref="VariantId"/> is consulted by tier-services systems whose tier has alt-pick variants (e.g. Tower T1 = WatchTower / BeaconTower / HighwatchTower); 0 = canonical default for tiers without alt picks. Self-destroys after processing.</summary>
     public struct BuildingUpgradeRequest : IComponentData
     {
         public Entity Target;
+        public byte   VariantId;
+    }
+
+    /// <summary>Per-building alt-pick variant. Set during <see cref="BuildingUpgradeSystem"/> processing when <see cref="BuildingUpgradeRequest.VariantId"/> != 0; tier-services systems read it to branch stat profiles + visual ids without burning new BuildingTier slots. Stays at 0 for tiers that have no alt picks.</summary>
+    public struct BuildingVariant : IComponentData
+    {
+        public byte Value;
     }
 
     /// <summary>Lifecycle state of a MarketOrder.</summary>

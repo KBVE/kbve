@@ -65,6 +65,7 @@ namespace RareIcon
                     BuildingLookup      = SystemAPI.GetComponentLookup<Building>(true),
                     TierLookup          = SystemAPI.GetComponentLookup<BuildingTier>(false),
                     VisualLookup        = SystemAPI.GetComponentLookup<BuildingVisual>(false),
+                    VariantLookup       = SystemAPI.GetComponentLookup<BuildingVariant>(false),
                     CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                     CostTable           = _costTable.AsArray(),
                     Ecb                 = ecb,
@@ -104,6 +105,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<Building>      BuildingLookup;
         public            ComponentLookup<BuildingTier>  TierLookup;
         public            ComponentLookup<BuildingVisual> VisualLookup;
+        public            ComponentLookup<BuildingVariant> VariantLookup;
         public            BufferLookup<CapitalLedger>    CapitalLedgerLookup;
         [ReadOnly] public NativeArray<UpgradeCostRow>    CostTable;
         public EntityCommandBuffer Ecb;
@@ -113,6 +115,7 @@ namespace RareIcon
         void Execute(Entity reqEntity, in BuildingUpgradeRequest request)
         {
             var target = request.Target;
+            byte variantId = request.VariantId;
             Ecb.DestroyEntity(reqEntity);
 
             if (target == Entity.Null) return;
@@ -150,10 +153,19 @@ namespace RareIcon
             byte newTier = (byte)(tier + 1);
             TierLookup[target] = new BuildingTier { Value = newTier };
 
+            // Persist the alt-pick choice on the building so tier-services
+            // systems (e.g. TowerTierServicesSystem) can branch stat profiles
+            // without re-reading the request. Buildings without a variant
+            // table get 0 = canonical default.
+            if (VariantLookup.HasComponent(target))
+                VariantLookup[target] = new BuildingVariant { Value = variantId };
+            else
+                Ecb.AddComponent(target, new BuildingVariant { Value = variantId });
+
             // Remap shader variant so the upgraded building renders as its
             // tier-specific silhouette. Burst-safe: pure byte→byte switch
             // mirrors BuildingDB.GetTieredVisualId.
-            byte visualId = TieredVisualId(type, newTier);
+            byte visualId = TieredVisualId(type, newTier, variantId);
             if (visualId != 0 && VisualLookup.HasComponent(target))
             {
                 VisualLookup[target] = new BuildingVisual { Value = visualId };
@@ -173,7 +185,7 @@ namespace RareIcon
             }
         }
 
-        static byte TieredVisualId(byte type, byte tier)
+        static byte TieredVisualId(byte type, byte tier, byte variant)
         {
             if (type == BuildingType.Market)
             {
@@ -219,7 +231,12 @@ namespace RareIcon
             }
             else if (type == BuildingType.Tower)
             {
-                if (tier == 1) return BuildingType.WatchTower;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.BeaconTower;
+                    if (variant == 2) return BuildingType.HighwatchTower;
+                    return BuildingType.WatchTower;
+                }
                 if (tier == 2) return BuildingType.SentinelTower;
             }
             else if (type == BuildingType.Wall)
