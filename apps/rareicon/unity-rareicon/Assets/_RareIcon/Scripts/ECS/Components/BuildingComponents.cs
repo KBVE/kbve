@@ -132,6 +132,12 @@ namespace RareIcon
         public Entity Barracks;
     }
 
+    /// <summary>Player-issued request from the Stables recruit panel. <c>CavalryRecruitSystem</c> validates Capital ledger cost (10 Coin + 4 Timber + 2 Carrot), deducts on success, spawns a Player Cavalry at a hex adjacent to <see cref="Barracks"/> (must carry <see cref="BarracksTag"/> + <see cref="BuildingTier"/> 1 + <see cref="BuildingVariant"/> 1), then destroys the request entity. Failure modes destroy the request silently with a toast so the UI doesn't loop on stuck state.</summary>
+    public struct CavalryRecruitRequest : IComponentData
+    {
+        public Entity Barracks;
+    }
+
     /// <summary>Player-issued request from the Goblin Cave recruit panel. <c>GoblinHireSystem</c> validates Capital ledger cost (8 Coin + 1 Meal), deducts on success, spawns a Player Goblin at a hex adjacent to <see cref="Cave"/>, then destroys the request entity. Independent of the cave's auto-spawn (food-fueled): hire is an instant on-demand purchase, auto-spawn keeps trickling.</summary>
     public struct GoblinHireRequest : IComponentData
     {

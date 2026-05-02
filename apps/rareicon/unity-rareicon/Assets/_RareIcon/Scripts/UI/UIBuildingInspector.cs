@@ -27,7 +27,7 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn;
+        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn, _recruitCavalryBtn;
         VisualElement _upgradePanel;
         Label _upgradePanelHeader;
         VisualElement _upgradePanelCards;
@@ -188,6 +188,10 @@ namespace RareIcon
             _recruitGoblinBtn.text = _locale.Get("inspector.hire_goblin");
             _recruitGoblinBtn.style.marginBottom = 4;
             recruitContent.Add(_recruitGoblinBtn);
+            _recruitCavalryBtn = new Button(RequestRecruitCavalry) { name = "inspector-recruit-cavalry" };
+            _recruitCavalryBtn.text = _locale.Get("inspector.recruit_cavalry");
+            _recruitCavalryBtn.style.marginBottom = 4;
+            recruitContent.Add(_recruitCavalryBtn);
             _tabs.AddTab("recruit", _locale.Get("inspector.tab_recruit"), recruitContent);
 
             // Insert the tabs container before the action button row so the
@@ -440,6 +444,22 @@ namespace RareIcon
             em.AddComponentData(req, new GoblinHireRequest { Cave = _target });
         }
 
+        void RequestRecruitCavalry()
+        {
+            if (_target == Entity.Null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<BarracksTag>(_target)
+                || !em.HasComponent<BuildingTier>(_target)
+                || !em.HasComponent<BuildingVariant>(_target)) return;
+            byte tier    = em.GetComponentData<BuildingTier>(_target).Value;
+            byte variant = em.GetComponentData<BuildingVariant>(_target).Value;
+            if (tier != 1 || variant != 1) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new CavalryRecruitRequest { Barracks = _target });
+        }
+
         void RequestRelease()
         {
             if (_target == Entity.Null) return;
@@ -505,12 +525,19 @@ namespace RareIcon
             bool ownsBuilding = b.OwnerFaction == FactionType.Player;
             bool hasBarracks  = ownsBuilding && em.HasComponent<BarracksTag>(_target);
             bool hasCave      = ownsBuilding && em.HasComponent<GoblinCaveTag>(_target);
+            bool isStables    = hasBarracks
+                                 && em.HasComponent<BuildingTier>(_target)
+                                 && em.HasComponent<BuildingVariant>(_target)
+                                 && em.GetComponentData<BuildingTier>(_target).Value == 1
+                                 && em.GetComponentData<BuildingVariant>(_target).Value == 1;
             bool hasRecruit   = hasBarracks || hasCave;
 
             if (_recruitScoutBtn != null)
                 _recruitScoutBtn.style.display = hasBarracks ? DisplayStyle.Flex : DisplayStyle.None;
             if (_recruitGoblinBtn != null)
                 _recruitGoblinBtn.style.display = hasCave ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_recruitCavalryBtn != null)
+                _recruitCavalryBtn.style.display = isStables ? DisplayStyle.Flex : DisplayStyle.None;
 
             if (_tabs != null)
             {
