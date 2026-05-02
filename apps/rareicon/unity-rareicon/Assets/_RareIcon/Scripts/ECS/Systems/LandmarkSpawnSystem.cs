@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using KBVE.Proto.Map;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>Instantiates landmark / settlement / arena / shrine / NPC-marker entities from MapdbCache. Creates one shared quad + material for HexWorldObject.shader and then spawns one of every dispatch-covered world object on a fixed ring around the map origin so the shader work is immediately visible. Future map-gen systems call SpawnAt(ref, hex) to place them authoritatively instead of relying on the debug ring; the ring is skipped if a non-debug spawn already landed first. Presentation-only: Shader.Find + Material creation are rendering concerns; server worlds don't need these.</summary>
+    /// <summary>Instantiates landmark / settlement / arena / shrine / NPC-marker entities from MapdbCache. Creates one shared quad + material for HexWorldObject.shader, then waits for chunk-driven scatter via <see cref="LandmarkChunkSpawner"/>. Per-chunk RNG is seeded by <c>HashChunk(chunkCoord)</c> so reloading the same chunk lands the same landmarks (idempotent across saves + sessions). Spawns route through <see cref="SpawnAt"/>; ocean / river / occupied tiles are rejected. Presentation-only: Shader.Find + Material creation are rendering concerns; server worlds don't need these.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     [UpdateAfter(typeof(MapdbLoaderSystem))]
@@ -19,14 +18,11 @@ namespace RareIcon
         const float HexSize     = 0.25f;
         const float LandmarkSize = 1.5f;
         const float LandmarkZ   = -0.55f;
-        const int   DebugRingRadius = 10;
-        const int   LandSearchRadius = 12;
 
         static LandmarkSpawnSystem _instance;
 
         Entity _prefab;
         bool _initialized;
-        bool _debugRingSpawned;
 
         protected override void OnCreate()
         {
@@ -44,15 +40,10 @@ namespace RareIcon
                 if (!_initialized) return;
             }
 
-            if (!_debugRingSpawned)
-            {
-                SpawnDebugRing();
-                _debugRingSpawned = true;
-                Enabled = false;  // one-shot; future spawns go through the static API.
-            }
+            Enabled = false;
         }
 
-        /// <summary>Spawn a landmark at `hex`, looked up by `refSlug` in MapdbCache. Returns Entity.Null if the ref is unknown or the shader has no dispatch for it.</summary>
+        /// <summary>Spawn a landmark at `hex`, looked up by `refSlug` in MapdbCache. Returns Entity.Null if the ref is unknown, the shader has no dispatch for it, the tile isn't loaded, the biome is Ocean / River, or the tile is already occupied. Defensive — chunk scatter pre-filters water via <see cref="LandmarkChunkSpawner.PickRef"/>, but SpawnAt is also called from authoritative map-gen + replay paths so the check stays.</summary>
         public static Entity SpawnAt(string refSlug, int2 hex)
         {
             if (_instance == null) return Entity.Null;
@@ -62,74 +53,28 @@ namespace RareIcon
             byte visual = WorldObjectVisualType.FromRef(refSlug);
             if (visual == WorldObjectVisualType.None) return Entity.Null;
 
-            byte kind = KindFromProto(def.Type);
-            return _instance.SpawnInternal(refSlug, visual, kind, hex);
-        }
-
-        void SpawnDebugRing()
-        {
-            // Walk every ref we know and drop one on a deterministic ring
-            // around the origin. Step angle fills a ring of up to 24 slots.
-            int i = 0;
-            var entries = new List<(string refSlug, WorldObjectDef def)>();
-            foreach (var def in MapdbCache.Registry.ObjectDefs)
+            var em = _instance.EntityManager;
+            // HexDB lookup may not be drained yet when LandmarkChunkSpawner
+            // calls in right after a chunk spawns; treat a lookup miss as
+            // "trust the caller" rather than rejecting outright. When the
+            // tile IS resolvable, reject occupied / Ocean / River outright.
+            if (HexHoverSystem.TryGetHexEntity(hex, out var tile))
             {
-                if (string.IsNullOrEmpty(def.Ref)) continue;
-                if (WorldObjectVisualType.FromRef(def.Ref) == WorldObjectVisualType.None) continue;
-                entries.Add((def.Ref, def));
-            }
-
-            if (entries.Count == 0)
-            {
-                Debug.Log("[LandmarkSpawn] no mapdb entries match any landmark shader dispatch; skipping debug ring.");
-                return;
-            }
-
-            int placed = 0;
-            int skipped = 0;
-            foreach (var (refSlug, def) in entries)
-            {
-                double ang = (2.0 * math.PI_DBL * i) / math.max(entries.Count, 1);
-                int qi = (int)math.round(DebugRingRadius * math.cos(ang));
-                int ri = (int)math.round(DebugRingRadius * math.sin(ang));
-                i++;
-
-                if (!TryFindLandHex(new int2(qi, ri), out var landHex))
-                {
-                    Debug.LogWarning($"[LandmarkSpawn] no land hex within {LandSearchRadius} of ({qi},{ri}) for '{refSlug}', skipping.");
-                    skipped++;
-                    continue;
-                }
-
-                byte visual = WorldObjectVisualType.FromRef(refSlug);
-                byte kind   = KindFromProto(def.Type);
-                SpawnInternal(refSlug, visual, kind, landHex);
-                placed++;
-            }
-            Debug.Log($"[LandmarkSpawn] placed {placed}/{entries.Count} world objects on debug ring (radius {DebugRingRadius}); skipped {skipped} for lack of nearby land.");
-        }
-
-        /// <summary>Spiral-search out from <paramref name="origin"/> for the first hex that is loaded, on land (not Ocean, not River), and unoccupied. Lets the debug-ring placement skip past sea cuts and rivers without dropping landmarks into the surf.</summary>
-        bool TryFindLandHex(int2 origin, out int2 result)
-        {
-            var em = EntityManager;
-            foreach (var hex in HexMeshUtil.Spiral(origin, LandSearchRadius))
-            {
-                if (!HexHoverSystem.TryGetHexEntity(hex, out var tile)) continue;
                 if (em.HasComponent<HexOccupant>(tile))
                 {
                     var occ = em.GetComponentData<HexOccupant>(tile);
-                    if (occ.Building != Entity.Null) continue;
+                    if (occ.Building != Entity.Null) return Entity.Null;
                 }
-                if (!em.HasComponent<BiomeType>(tile)) continue;
-                byte biome = em.GetComponentData<BiomeType>(tile).Value;
-                if (biome == BiomeGenerator.BIOME_OCEAN) continue;
-                if (biome == BiomeGenerator.BIOME_RIVER) continue;
-                result = hex;
-                return true;
+                if (em.HasComponent<BiomeType>(tile))
+                {
+                    byte biome = em.GetComponentData<BiomeType>(tile).Value;
+                    if (biome == BiomeGenerator.BIOME_OCEAN) return Entity.Null;
+                    if (biome == BiomeGenerator.BIOME_RIVER) return Entity.Null;
+                }
             }
-            result = default;
-            return false;
+
+            byte kind = KindFromProto(def.Type);
+            return _instance.SpawnInternal(refSlug, visual, kind, hex);
         }
 
         Entity SpawnInternal(string refSlug, byte visual, byte kind, int2 hex)
