@@ -84,6 +84,21 @@ spec:
                             namespace: kbve
                             kind: Gateway
                             sectionName: http
+
+            # --- Solver 7: RAREICON.COM domains ---
+            # Stays on the nginx solver until the Cilium gateway VIP (.71)
+            # is reachable from Let's Encrypt; until then nginx-on-.74 is
+            # the only path that completes HTTP-01.
+            - selector:
+                  dnsZones:
+                      - rareicon.com
+              http01:
+                  ingress:
+                      ingressClassName: nginx
+                      ingressTemplate:
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
