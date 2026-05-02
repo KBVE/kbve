@@ -93,11 +93,15 @@ template:
             # Note: Unity builds request high resources, DinD needs headroom
             - name: dind
               image: docker:29.3.0-dind
+              # Unity headless on Linux opens many fds during a Windows build
+              # (Burst codegen, asset import, IL2CPP). Mono asserts in
+              # pal_utilities.h:160 if fd >= RLIMIT_NOFILE → exit code 134.
+              # Lift dind's own nofile + propagate via dockerd's
+              # --default-ulimit so every container the runner spawns
+              # (game-ci/unity-builder) inherits the higher cap.
+              command: ['sh', '-c']
               args:
-                  - dockerd
-                  - --host=unix:///var/run/docker.sock
-                  - --host=tcp://0.0.0.0:2376
-                  - --tls=false
+                  - 'ulimit -n 1048576 && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576'
               securityContext:
                   privileged: true
               resources:

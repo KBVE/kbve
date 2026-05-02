@@ -75,11 +75,12 @@ template:
             # Docker-in-Docker sidecar with persistent image cache
             - name: dind
               image: docker:29.3.0-dind
+              # Lift fd limits for heavy Linux toolchains (Unity headless,
+              # UE5 cooked builds). Mono / clang both assert when fd
+              # exceeds RLIMIT_NOFILE → exit code 134.
+              command: ['sh', '-c']
               args:
-                  - dockerd
-                  - --host=unix:///var/run/docker.sock
-                  - --host=tcp://0.0.0.0:2376
-                  - --tls=false
+                  - 'ulimit -n 1048576 && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576'
               securityContext:
                   privileged: true
               resources:

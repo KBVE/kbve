@@ -242,7 +242,13 @@
 						</button>
 					</li>
 				</ul>
-				<p class="forum-card__copy">Sign in to use these actions.</p>
+				<p
+					class="forum-card__copy"
+					data-thread-actions-hint
+					data-anon-text="Sign in to use these actions."
+					data-auth-text="These actions are coming soon.">
+					Sign in to use these actions.
+				</p>
 			</section>
 		</aside>
 	</div>
@@ -330,6 +336,26 @@
 			el.textContent = letter;
 		}
 	}
+
+	// Swap the Thread Actions hint based on auth state. The buttons
+	// stay disabled until bookmark/subscribe/report endpoints land —
+	// this just stops telling signed-in users to sign in.
+	(async () => {
+		const hint = document.querySelector<HTMLElement>(
+			'[data-thread-actions-hint]',
+		);
+		if (!hint) return;
+		try {
+			await initSupa();
+		} catch {
+			return;
+		}
+		const supa = getSupa();
+		const sessionResult = await supa.getSession().catch(() => null);
+		const isAuthed = !!sessionResult?.session?.access_token;
+		const next = isAuthed ? hint.dataset.authText : hint.dataset.anonText;
+		if (next) hint.textContent = next;
+	})();
 
 	// Comment compose: submit via fetch with the local Supabase access
 	// token. axum's POST /api/v1/forum/t/{slug}/comments runs the

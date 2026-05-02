@@ -21,3 +21,8 @@ bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]

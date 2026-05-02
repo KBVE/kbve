@@ -39,6 +39,8 @@ namespace RareIcon
             }
 
             var capitalBuf = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
+            var pendingSpawn = new NativeList<int2>(4, Allocator.Temp);
+            var pendingSeeds = new NativeList<uint>(4, Allocator.Temp);
 
             foreach (var (reqRO, reqEntity) in
                      SystemAPI.Query<RefRO<ScoutRecruitRequest>>().WithEntityAccess())
@@ -72,19 +74,24 @@ namespace RareIcon
                           ^ (uint)(SystemAPI.Time.ElapsedTime * 1000d) * 0x85EBCA77u;
                 seed |= 1u;
 
-                var scout = UnitSpawnSystem.SpawnScoutAt(em, spawnHex, seed);
-                if (scout == Entity.Null)
-                {
-                    PublishToast("Recruit failed — render assets missing", ToastKind.Warning);
-                    continue;
-                }
-
-                PublishToast("Scout deployed", ToastKind.Success);
+                pendingSpawn.Add(spawnHex);
+                pendingSeeds.Add(seed);
             }
 
             for (int i = 0; i < pendingDestroy.Length; i++)
                 em.DestroyEntity(pendingDestroy[i]);
             pendingDestroy.Dispose();
+
+            for (int i = 0; i < pendingSpawn.Length; i++)
+            {
+                var scout = UnitSpawnSystem.SpawnScoutAt(em, pendingSpawn[i], pendingSeeds[i]);
+                if (scout == Entity.Null)
+                    PublishToast("Recruit failed — render assets missing", ToastKind.Warning);
+                else
+                    PublishToast("Scout deployed", ToastKind.Success);
+            }
+            pendingSpawn.Dispose();
+            pendingSeeds.Dispose();
         }
 
         void PublishToast(string text, ToastKind kind)

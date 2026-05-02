@@ -16,21 +16,25 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<BuildingUpgradeRequest>();
-            _costTable = new NativeList<UpgradeCostRow>(16, Allocator.Persistent);
-            for (byte type = 1; type < 16; type++)
+            _costTable = new NativeList<UpgradeCostRow>(64, Allocator.Persistent);
+            for (byte type = 1; type < 64; type++)
             {
                 for (byte tier = 0; tier < 8; tier++)
                 {
-                    var cost = BuildingDB.GetUpgradeCost(type, tier);
-                    for (int i = 0; i < cost.Length; i++)
+                    for (byte variant = 0; variant < 4; variant++)
                     {
-                        _costTable.Add(new UpgradeCostRow
+                        var cost = BuildingDB.GetUpgradeCost(type, tier, variant);
+                        for (int i = 0; i < cost.Length; i++)
                         {
-                            Type     = type,
-                            FromTier = tier,
-                            ItemId   = cost[i].ItemId,
-                            Amount   = (ushort)cost[i].Amount,
-                        });
+                            _costTable.Add(new UpgradeCostRow
+                            {
+                                Type     = type,
+                                FromTier = tier,
+                                Variant  = variant,
+                                ItemId   = cost[i].ItemId,
+                                Amount   = (ushort)cost[i].Amount,
+                            });
+                        }
                     }
                 }
             }
@@ -65,6 +69,7 @@ namespace RareIcon
                     BuildingLookup      = SystemAPI.GetComponentLookup<Building>(true),
                     TierLookup          = SystemAPI.GetComponentLookup<BuildingTier>(false),
                     VisualLookup        = SystemAPI.GetComponentLookup<BuildingVisual>(false),
+                    VariantLookup       = SystemAPI.GetComponentLookup<BuildingVariant>(false),
                     CapitalLedgerLookup = SystemAPI.GetBufferLookup<CapitalLedger>(false),
                     CostTable           = _costTable.AsArray(),
                     Ecb                 = ecb,
@@ -93,6 +98,7 @@ namespace RareIcon
     {
         public byte   Type;
         public byte   FromTier;
+        public byte   Variant;
         public ushort ItemId;
         public ushort Amount;
     }
@@ -104,6 +110,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<Building>      BuildingLookup;
         public            ComponentLookup<BuildingTier>  TierLookup;
         public            ComponentLookup<BuildingVisual> VisualLookup;
+        public            ComponentLookup<BuildingVariant> VariantLookup;
         public            BufferLookup<CapitalLedger>    CapitalLedgerLookup;
         [ReadOnly] public NativeArray<UpgradeCostRow>    CostTable;
         public EntityCommandBuffer Ecb;
@@ -113,6 +120,7 @@ namespace RareIcon
         void Execute(Entity reqEntity, in BuildingUpgradeRequest request)
         {
             var target = request.Target;
+            byte variantId = request.VariantId;
             Ecb.DestroyEntity(reqEntity);
 
             if (target == Entity.Null) return;
@@ -129,7 +137,9 @@ namespace RareIcon
             int startIdx = -1, rowCount = 0;
             for (int i = 0; i < CostTable.Length; i++)
             {
-                if (CostTable[i].Type != type || CostTable[i].FromTier != tier) continue;
+                if (CostTable[i].Type != type
+                    || CostTable[i].FromTier != tier
+                    || CostTable[i].Variant != variantId) continue;
                 if (startIdx < 0) startIdx = i;
                 rowCount++;
             }
@@ -150,10 +160,19 @@ namespace RareIcon
             byte newTier = (byte)(tier + 1);
             TierLookup[target] = new BuildingTier { Value = newTier };
 
+            // Persist the alt-pick choice on the building so tier-services
+            // systems (e.g. TowerTierServicesSystem) can branch stat profiles
+            // without re-reading the request. Buildings without a variant
+            // table get 0 = canonical default.
+            if (VariantLookup.HasComponent(target))
+                VariantLookup[target] = new BuildingVariant { Value = variantId };
+            else
+                Ecb.AddComponent(target, new BuildingVariant { Value = variantId });
+
             // Remap shader variant so the upgraded building renders as its
             // tier-specific silhouette. Burst-safe: pure byte→byte switch
             // mirrors BuildingDB.GetTieredVisualId.
-            byte visualId = TieredVisualId(type, newTier);
+            byte visualId = TieredVisualId(type, newTier, variantId);
             if (visualId != 0 && VisualLookup.HasComponent(target))
             {
                 VisualLookup[target] = new BuildingVisual { Value = visualId };
@@ -173,7 +192,7 @@ namespace RareIcon
             }
         }
 
-        static byte TieredVisualId(byte type, byte tier)
+        static byte TieredVisualId(byte type, byte tier, byte variant)
         {
             if (type == BuildingType.Market)
             {
@@ -219,8 +238,13 @@ namespace RareIcon
             }
             else if (type == BuildingType.Tower)
             {
-                if (tier == 1) return BuildingType.Bastion;
-                if (tier == 2) return BuildingType.Citadel;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.BeaconTower;
+                    if (variant == 2) return BuildingType.HighwatchTower;
+                    return BuildingType.WatchTower;
+                }
+                if (tier == 2) return BuildingType.SentinelTower;
             }
             else if (type == BuildingType.Wall)
             {

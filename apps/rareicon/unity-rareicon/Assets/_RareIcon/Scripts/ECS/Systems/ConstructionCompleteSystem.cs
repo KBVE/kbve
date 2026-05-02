@@ -94,6 +94,7 @@ namespace RareIcon
                         OwnerFaction = building.OwnerFaction,
                     });
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingVariant { Value = 0 });
                     break;
                 case BuildingType.Wall:
                     Ecb.AddComponent<WallTag>(chunkIdx, entity);

@@ -50,3 +50,9 @@ reqwest = { version = "0.12", default-features = false, features = [
 bevy = { version = "0.18", default-features = false, features = [
     "bevy_state",
 ], optional = true }
+
+# `native` and `wasm` features are mutually exclusive transports — can't
+# enable both. Pin docs.rs to native+bevy until the wasm stub becomes real.
+[package.metadata.docs.rs]
+features = ["native", "bevy"]
+rustdoc-args = ["--cfg", "docsrs"]
