@@ -53,8 +53,6 @@ namespace RareIcon
                      ref MovementModifier modifier)
         {
             bool wasAlive = health.Value > 0f;
-            // Seed from any active aura boost so Stables-style buffs survive
-            // the per-tick rewrite. Default 1.0 if no aura propagator wrote.
             float speedMul = modifier.AuraBoost > 0f ? modifier.AuraBoost : 1.0f;
 
             for (int i = effects.Length - 1; i >= 0; i--)

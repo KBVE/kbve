@@ -31,9 +31,6 @@ namespace RareIcon
             var tierLookup     = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var variantLookup  = SystemAPI.GetComponentLookup<BuildingVariant>(true);
             var prodLookup     = SystemAPI.GetComponentLookup<FurnaceProduction>(false);
-            // BuildingHealth read-only; mutations route through ECB so the
-            // write doesn't race BuildingDeathJob / BuildingRepairJob /
-            // DamageJob and we don't have to stall the main thread to sync.
             var hpLookup       = SystemAPI.GetComponentLookup<BuildingHealth>(true);
             var em = state.EntityManager;
 
@@ -45,7 +42,7 @@ namespace RareIcon
 
                 ApplyMaxHealth(ecb, e, tier, variant, hpLookup);
 
-                if (tier == 0) continue; // FurnaceInitSystem owns T0 recipe.
+                if (tier == 0) continue;
 
                 var recipe = ResolveRecipe(tier, variant);
                 if (prodLookup.HasComponent(e)) prodLookup[e] = recipe;
@@ -62,7 +59,7 @@ namespace RareIcon
             {
                 0 => 300,
                 2 => 540,
-                _ => (variant == 1) ? (ushort)320 : (ushort)420, // Glassworks vs Forge
+                _ => (variant == 1) ? (ushort)320 : (ushort)420,
             };
             var hp = hpLookup[e];
             float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
@@ -81,7 +78,6 @@ namespace RareIcon
             ushort ironOre = (ushort)ItemId.IronOre;
             ushort goldBar = (ushort)ItemId.GoldBar;
 
-            // T2 Foundry — heavy alloy smelt, slowest cadence but biggest yield.
             if (tier >= 2)
             {
                 return new FurnaceProduction
@@ -95,7 +91,6 @@ namespace RareIcon
                 };
             }
 
-            // T1 Glassworks — sand-based glass + lens crafting loop.
             if (variant == 1)
             {
                 return new FurnaceProduction
@@ -109,8 +104,6 @@ namespace RareIcon
                 };
             }
 
-            // T1 Forge default — log + iron ore → coal + ironingot proxy
-            // (we reuse coal/ash slots until a dedicated IronIngot item lands).
             return new FurnaceProduction
             {
                 Input1Id = log,     Input1Amount = 4,

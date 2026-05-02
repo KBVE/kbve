@@ -193,10 +193,6 @@ namespace RareIcon
                 if (bonus != 0) damage *= 1f + bonus / 100f;
             }
 
-            // Cavalry charge bonus — when a CavalryTag attacker moves
-            // faster than the baseline (Stables aura, future charge
-            // effects), damage scales 1.5x linear with the speed boost
-            // and caps at 2.0x so stacking auras can't snowball.
             if (CavalryLookup.HasComponent(entity)
                 && MovementModLookup.HasComponent(entity))
             {

@@ -160,10 +160,6 @@ namespace RareIcon
             byte newTier = (byte)(tier + 1);
             TierLookup[target] = new BuildingTier { Value = newTier };
 
-            // Persist the alt-pick choice on the building so tier-services
-            // systems (e.g. TowerTierServicesSystem) can branch stat profiles
-            // without re-reading the request. Buildings without a variant
-            // table get 0 = canonical default.
             if (VariantLookup.HasComponent(target))
                 VariantLookup[target] = new BuildingVariant { Value = variantId };
             else

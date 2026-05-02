@@ -38,8 +38,6 @@ namespace RareIcon
             if (_accum < ScanIntervalSeconds) return;
             _accum = 0f;
 
-            // Snapshot aura state into a flat blittable array so the unit
-            // job doesn't need to re-query each frame.
             var auraEntities = _auraQuery.ToEntityArray(Allocator.TempJob);
             var auras = new NativeList<AuraRecord>(auraEntities.Length, Allocator.TempJob);
             var auraLookup     = SystemAPI.GetComponentLookup<BuildingSpeedAura>(true);
