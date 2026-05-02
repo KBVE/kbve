@@ -43,7 +43,7 @@ namespace RareIcon
             Enabled = false;
         }
 
-        /// <summary>Spawn a landmark at `hex`, looked up by `refSlug` in MapdbCache. Returns Entity.Null if the ref is unknown, the shader has no dispatch for it, the tile isn't loaded, the biome is Ocean / River, or the tile is already occupied. Defensive — chunk scatter pre-filters water via <see cref="LandmarkChunkSpawner.PickRef"/>, but SpawnAt is also called from authoritative map-gen + replay paths so the check stays.</summary>
+        /// <summary>Spawn a landmark at `hex`, looked up by `refSlug` in MapdbCache. Returns Entity.Null if the ref is unknown, the shader has no dispatch for it, or the tile's biome is Ocean / River. MP determinism: every gate inside this method must be a pure function of the world seed (mapdb registry, biome map). Per-client gameplay state — HexOccupant, player buildings, faction territory — is intentionally NOT consulted; consulting it would let two clients with different local play state spawn different landmark sets on the same chunk and desync the world.</summary>
         public static Entity SpawnAt(string refSlug, int2 hex)
         {
             if (_instance == null) return Entity.Null;
@@ -54,23 +54,17 @@ namespace RareIcon
             if (visual == WorldObjectVisualType.None) return Entity.Null;
 
             var em = _instance.EntityManager;
-            // HexDB lookup may not be drained yet when LandmarkChunkSpawner
-            // calls in right after a chunk spawns; treat a lookup miss as
-            // "trust the caller" rather than rejecting outright. When the
-            // tile IS resolvable, reject occupied / Ocean / River outright.
-            if (HexHoverSystem.TryGetHexEntity(hex, out var tile))
+            // Biome is baked from the world seed at chunk spawn → deterministic
+            // across clients. HexDB lookup may miss right after chunk creation
+            // (drain not yet applied); treat a miss as "trust the caller"
+            // since LandmarkChunkSpawner.PickRef has already filtered water
+            // via the same biome map.
+            if (HexHoverSystem.TryGetHexEntity(hex, out var tile)
+                && em.HasComponent<BiomeType>(tile))
             {
-                if (em.HasComponent<HexOccupant>(tile))
-                {
-                    var occ = em.GetComponentData<HexOccupant>(tile);
-                    if (occ.Building != Entity.Null) return Entity.Null;
-                }
-                if (em.HasComponent<BiomeType>(tile))
-                {
-                    byte biome = em.GetComponentData<BiomeType>(tile).Value;
-                    if (biome == BiomeGenerator.BIOME_OCEAN) return Entity.Null;
-                    if (biome == BiomeGenerator.BIOME_RIVER) return Entity.Null;
-                }
+                byte biome = em.GetComponentData<BiomeType>(tile).Value;
+                if (biome == BiomeGenerator.BIOME_OCEAN) return Entity.Null;
+                if (biome == BiomeGenerator.BIOME_RIVER) return Entity.Null;
             }
 
             byte kind = KindFromProto(def.Type);
