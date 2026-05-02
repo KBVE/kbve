@@ -53,7 +53,7 @@ subjects:
       name: forgejo-external-secrets
       namespace: forgejo
 ---
-# Role: Allow ARC runners to read forgejo-deploy-keys secret
+# Role: Allow ARC runners to read forgejo-deploy-keys + forgejo-kbve-ci secrets
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -62,7 +62,7 @@ metadata:
 rules:
     - apiGroups: ['']
       resources: ['secrets']
-      resourceNames: ['forgejo-deploy-keys']
+      resourceNames: ['forgejo-deploy-keys', 'forgejo-kbve-ci']
       verbs: ['get']
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -9,4 +9,5 @@ resources:
     - rbac.yaml
     - forgejo-externalsecret.yaml
     - sealed-deploy-keys.yaml
+    - sealed-kbve-ci.yaml
     # Future: actions-runner.yaml
