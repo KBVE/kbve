@@ -21,10 +21,11 @@ namespace RareIcon
         public float Magnitude;
     }
 
-    /// <summary>Locomotion speed multiplier (1.0 = normal); status-effect writes stack here, base MoveSpeed stays authoritative.</summary>
+    /// <summary>Locomotion speed multiplier (1.0 = normal); status-effect writes stack here, base MoveSpeed stays authoritative. <see cref="AuraBoost"/> is the multiplicative aura factor written by aura propagators (e.g. Stables BuildingSpeedAura) — StatusEffectSystem seeds <see cref="SpeedMul"/> from it before applying debuffs so a unit standing in an aura keeps its boost while still being slowed by Ice etc.</summary>
     public struct MovementModifier : IComponentData
     {
         public float SpeedMul;
+        public float AuraBoost;
     }
 
     /// <summary>Post-Meal anti-spam cooldown. While present, subsequent Meal consumes still refill Hunger but the HP/Mana/Energy heal bonus is suppressed. Set SecondsRemaining to 60 on Meal consume; SatedDecaySystem decrements per tick and removes the component at zero.</summary>

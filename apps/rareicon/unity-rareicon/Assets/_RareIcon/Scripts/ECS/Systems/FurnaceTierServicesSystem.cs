@@ -28,6 +28,7 @@ namespace RareIcon
             var tierLookup     = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var variantLookup  = SystemAPI.GetComponentLookup<BuildingVariant>(true);
             var prodLookup     = SystemAPI.GetComponentLookup<FurnaceProduction>(false);
+            var hpLookup       = SystemAPI.GetComponentLookup<BuildingHealth>(false);
             var em = state.EntityManager;
 
             for (int i = 0; i < entities.Length; i++)
@@ -36,6 +37,8 @@ namespace RareIcon
                 byte tier    = tierLookup[e].Value;
                 byte variant = variantLookup.HasComponent(e) ? variantLookup[e].Value : (byte)0;
 
+                ApplyMaxHealth(e, tier, variant, ref hpLookup);
+
                 if (tier == 0) continue; // FurnaceInitSystem owns T0 recipe.
 
                 var recipe = ResolveRecipe(tier, variant);
@@ -43,6 +46,23 @@ namespace RareIcon
                 else em.AddComponentData(e, recipe);
             }
             entities.Dispose();
+        }
+
+        static void ApplyMaxHealth(Entity e, byte tier, byte variant,
+                                   ref ComponentLookup<BuildingHealth> hpLookup)
+        {
+            if (!hpLookup.HasComponent(e)) return;
+            ushort newMax = tier switch
+            {
+                0 => 300,
+                2 => 540,
+                _ => (variant == 1) ? (ushort)320 : (ushort)420, // Glassworks vs Forge
+            };
+            var hp = hpLookup[e];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMax;
+            hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMax), 0, newMax);
+            hpLookup[e] = hp;
         }
 
         static FurnaceProduction ResolveRecipe(byte tier, byte variant)
