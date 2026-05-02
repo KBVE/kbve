@@ -122,6 +122,12 @@ namespace RareIcon
         public Entity Barracks;
     }
 
+    /// <summary>Player-issued request from the Goblin Cave recruit panel. <c>GoblinHireSystem</c> validates Capital ledger cost (8 Coin + 1 Meal), deducts on success, spawns a Player Goblin at a hex adjacent to <see cref="Cave"/>, then destroys the request entity. Independent of the cave's auto-spawn (food-fueled): hire is an instant on-demand purchase, auto-spawn keeps trickling.</summary>
+    public struct GoblinHireRequest : IComponentData
+    {
+        public Entity Cave;
+    }
+
     /// <summary>Marker tag for a Hostile-owned BanditCamp — raid source. BanditCampRaidSystem emits bandit parties from its RootHex on a cadence; destroying the building (BuildingHealth→0) ends the raids. One or more may exist simultaneously in a future pass; today the spawner caps at one active camp.</summary>
     public struct BanditCampTag : IComponentData { }
 

@@ -27,11 +27,12 @@ namespace RareIcon
 
         VisualElement _root, _panel;
         Label _titleLabel, _ownerLabel, _healthLabel, _productionLabel, _storageLabel;
-        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn;
+        Button _releaseBtn, _demolishBtn, _upgradeBtn, _recruitScoutBtn, _recruitGoblinBtn;
         VisualElement _upgradePanel;
         Label _upgradePanelHeader;
         VisualElement _upgradePanelCards;
         Button _upgradePanelClose;
+        BuildingPanelTabs _tabs;
         Entity _target;
 
         [Inject]
@@ -86,6 +87,7 @@ namespace RareIcon
             }
             EnsureRecruitScoutButton();
             EnsureUpgradePanel();
+            BuildTabs();
             _root.Q<Button>("inspector-close").clicked += Close;
 
             // Stop the panel's clicks from falling through to the map below.
@@ -140,6 +142,71 @@ namespace RareIcon
             SetHidden(_recruitScoutBtn, true);
         }
 
+        void BuildTabs()
+        {
+            if (_panel == null) return;
+            _tabs = new BuildingPanelTabs();
+
+            // Info tab — reparent the existing inspector-scroll under the
+            // tab stage so the storage / production / health labels keep
+            // working without re-binding.
+            var scrollView = _root.Q<ScrollView>("inspector-scroll");
+            var infoContent = new VisualElement { name = "tab-info-content" };
+            infoContent.style.flexGrow = 1f;
+            if (scrollView != null)
+            {
+                scrollView.parent?.Remove(scrollView);
+                scrollView.style.flexGrow = 1f;
+                infoContent.Add(scrollView);
+            }
+            _tabs.AddTab("info", _locale.Get("inspector.tab_info"), infoContent);
+
+            // Upgrades tab — moves the existing upgrade-panel-cards element
+            // out of the floating panel and into a dedicated tab. The
+            // standalone "Upgrade" button + close button become redundant.
+            var upgradesContent = new VisualElement { name = "tab-upgrades-content" };
+            if (_upgradePanelCards != null)
+            {
+                _upgradePanelCards.parent?.Remove(_upgradePanelCards);
+                upgradesContent.Add(_upgradePanelCards);
+            }
+            _tabs.AddTab("upgrades", _locale.Get("inspector.tab_upgrades"), upgradesContent);
+
+            // Recruit tab — Scout for Barracks, Goblin for the Cave. Each
+            // button toggles via Refresh based on the inspected building's
+            // tags. Drop the now-redundant standalone Upgrade panel + button.
+            var recruitContent = new VisualElement { name = "tab-recruit-content" };
+            if (_recruitScoutBtn != null)
+            {
+                _recruitScoutBtn.parent?.Remove(_recruitScoutBtn);
+                _recruitScoutBtn.style.marginBottom = 4;
+                _recruitScoutBtn.RemoveFromClassList("is-hidden");
+                _recruitScoutBtn.style.display = DisplayStyle.Flex;
+                recruitContent.Add(_recruitScoutBtn);
+            }
+            _recruitGoblinBtn = new Button(RequestRecruitGoblin) { name = "inspector-recruit-goblin" };
+            _recruitGoblinBtn.text = _locale.Get("inspector.hire_goblin");
+            _recruitGoblinBtn.style.marginBottom = 4;
+            recruitContent.Add(_recruitGoblinBtn);
+            _tabs.AddTab("recruit", _locale.Get("inspector.tab_recruit"), recruitContent);
+
+            // Insert the tabs container before the action button row so the
+            // Demolish / Release shortcuts stay anchored at the bottom.
+            int beforeIdx = _releaseBtn != null
+                ? _panel.IndexOf(_releaseBtn)
+                : _panel.childCount;
+            if (beforeIdx < 0) beforeIdx = _panel.childCount;
+            _panel.Insert(beforeIdx, _tabs.Root);
+
+            // Hide the legacy standalone Upgrade button + the floating
+            // upgrade panel — tabs own that surface now.
+            if (_upgradeBtn != null) SetHidden(_upgradeBtn, true);
+            if (_upgradePanel != null) SetHidden(_upgradePanel, true);
+
+            _tabs.SetTabVisible("upgrades", false);
+            _tabs.SetTabVisible("recruit", false);
+        }
+
         void EnsureUpgradePanel()
         {
             _upgradePanel = _root.Q<VisualElement>("inspector-upgrade-panel");
@@ -179,33 +246,26 @@ namespace RareIcon
 
         void OpenUpgradePanel()
         {
-            if (_target == Entity.Null || _upgradePanel == null || _upgradePanelCards == null) return;
-            var world = GameplayWorld.Resolve();
-            if (world == null || !world.IsCreated) return;
-            var em = world.EntityManager;
-            if (!em.HasComponent<Building>(_target)) return;
-            if (!em.HasComponent<BuildingTier>(_target)) return;
-
-            byte type = em.GetComponentData<Building>(_target).Type;
-            byte tier = em.GetComponentData<BuildingTier>(_target).Value;
-            if (!BuildingDB.HasUpgrade(type, tier)) return;
-
-            _upgradePanelCards.Clear();
-            byte[] variants = (type == BuildingType.Tower && tier == 0)
-                ? new byte[] { 0, 1, 2 }
-                : new byte[] { 0 };
-
-            for (int i = 0; i < variants.Length; i++)
-            {
-                byte v = variants[i];
-                _upgradePanelCards.Add(BuildUpgradeCard(type, tier, v));
-            }
-            SetHidden(_upgradePanel, false);
+            if (_tabs == null) return;
+            _tabs.TryActivate("upgrades");
         }
 
         void CloseUpgradePanel()
         {
             if (_upgradePanel != null) SetHidden(_upgradePanel, true);
+        }
+
+        void PopulateUpgradeCards(EntityManager em, byte type, byte tier)
+        {
+            if (_upgradePanelCards == null) return;
+            if (!BuildingDB.HasUpgrade(type, tier)) { _upgradePanelCards.Clear(); return; }
+
+            _upgradePanelCards.Clear();
+            byte[] variants = (type == BuildingType.Tower && tier == 0)
+                ? new byte[] { 0, 1, 2 }
+                : new byte[] { 0 };
+            for (int i = 0; i < variants.Length; i++)
+                _upgradePanelCards.Add(BuildUpgradeCard(type, tier, variants[i]));
         }
 
         VisualElement BuildUpgradeCard(byte type, byte fromTier, byte variant)
@@ -315,6 +375,17 @@ namespace RareIcon
             em.AddComponentData(req, new ScoutRecruitRequest { Barracks = _target });
         }
 
+        void RequestRecruitGoblin()
+        {
+            if (_target == Entity.Null) return;
+            var world = GameplayWorld.Resolve();
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.HasComponent<GoblinCaveTag>(_target)) return;
+            var req = em.CreateEntity();
+            em.AddComponentData(req, new GoblinHireRequest { Cave = _target });
+        }
+
         void RequestRelease()
         {
             if (_target == Entity.Null) return;
@@ -374,11 +445,28 @@ namespace RareIcon
             _titleLabel.text = title;
             bool hasUpgrade = BuildingDB.HasUpgrade(b.Type, tier)
                               && b.OwnerFaction == FactionType.Player;
-            if (_upgradeBtn != null) SetHidden(_upgradeBtn, !hasUpgrade);
-            if (_upgradePanel != null && !hasUpgrade) SetHidden(_upgradePanel, true);
+            if (_upgradeBtn != null) SetHidden(_upgradeBtn, true);
+            if (_upgradePanel != null) SetHidden(_upgradePanel, true);
+
+            bool ownsBuilding = b.OwnerFaction == FactionType.Player;
+            bool hasBarracks  = ownsBuilding && em.HasComponent<BarracksTag>(_target);
+            bool hasCave      = ownsBuilding && em.HasComponent<GoblinCaveTag>(_target);
+            bool hasRecruit   = hasBarracks || hasCave;
+
             if (_recruitScoutBtn != null)
-                SetHidden(_recruitScoutBtn, !em.HasComponent<BarracksTag>(_target)
-                                            || b.OwnerFaction != FactionType.Player);
+                _recruitScoutBtn.style.display = hasBarracks ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_recruitGoblinBtn != null)
+                _recruitGoblinBtn.style.display = hasCave ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (_tabs != null)
+            {
+                _tabs.SetTabVisible("upgrades", hasUpgrade);
+                _tabs.SetTabVisible("recruit",  hasRecruit);
+                if (hasUpgrade)
+                    PopulateUpgradeCards(em, b.Type, tier);
+                else if (_upgradePanelCards != null)
+                    _upgradePanelCards.Clear();
+            }
 
             var ownerSb = ZString.CreateStringBuilder();
             try
