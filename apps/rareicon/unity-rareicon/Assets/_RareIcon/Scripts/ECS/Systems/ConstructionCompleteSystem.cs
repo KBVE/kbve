@@ -103,6 +103,7 @@ namespace RareIcon
                 case BuildingType.Furnace:
                     Ecb.AddComponent<FurnaceTag>(chunkIdx, entity);
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingVariant { Value = 0 });
                     break;
                 case BuildingType.GoblinCave:
                     Ecb.AddComponent<GoblinCaveTag>(chunkIdx, entity);
@@ -125,6 +126,7 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood  { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep { Capacity = 5 });
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
+                    Ecb.AddComponent(chunkIdx, entity, new BuildingVariant { Value = 0 });
                     break;
                 case BuildingType.Market:
                     Ecb.AddComponent<MarketTag>(chunkIdx, entity);
