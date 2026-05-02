@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: mc-chat-jwt
+    namespace: kilobase
+spec:
+    encryptedData:
+        signing-key: AgBLJW9pGOw+AFXPU5gL179YRzavn+mmKujOOhZeqltHv71ZRtt0TERr0Mqt3MNZ1+qhxZLe85PGoS5nkowtHU7RJ3ylIYCxMiRg2iKD+kCbMnbHodPWkTOY48Xi8K5SX9v+6Jq1UM7GcQhoabDTYPv9mbMsCAuLUcQYyq8GgYAyClBHLwItsjwUvzXgI1Mi/XwUhMeIpogpW+X1oAPw83fgjSntArc/sgmJIpTtKoVL+SPabjzmidi7w86CijAGHTTDu++SN+9C2BZisRc3rg9dq/E+OQzfuDF5dvP3cUGQoeCc9JBJZbOjjWW0MqWihYTo/HTqMYi0GwSd/xUJ+I4hKa0rKPejl+DOx+hmDVJiZzywWZfEIIS74vE9nA4fuuLtRfD/SQfqvMDRcjsgg2PDmTvW4CvQFblFACTLb/ZSTc4CixvZ+6GF2Gc/A7dOZ8MZy//ko8tDQz5elbzu84rdYgqduKmSxzzxjrrLGb/fCVUhFu4hZb1xd3BztF2bWcM15gGHq9yu8O52/2iem7qn0D740gAKfKQyNx+q5dc0UT0k8JHyLeocmWtMkkoZDT9NY0Hi3rKc8em5egfITzm4M/g5iusLbg+5Gjzio61l1P3WQ5NldHmSCuBU4rYm+Zctlml8Jx8T9uXkQV+Rc9exc7hXa/xk+ulkjMsEW1lkIN0kE1NvpzxIlFaS54Xw8GOUCG5PgCHwkSrHtxjt/+hjShF8Qw8QttO0e6kxIQMJB0zXWLDJe/Q2IV7MFgPcgz/ORiUyrqmTM4rqCRqcEi5mO67SxiMDWfNP0ERceq4pA7m7xO11S6nm
+    template:
+        metadata:
+            name: mc-chat-jwt
+            namespace: kilobase
