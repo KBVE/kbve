@@ -334,6 +334,16 @@ Shader "RareIcon/HexBuilding"
             // ship. Ale House = warm amber, Glassworks = cool teal.
             #define BUILDING_ALE_HOUSE       43
             #define BUILDING_GLASSWORKS      44
+            // Outpost / Barracks / Wall alt-pick T1 placeholders — same
+            // tinted-fallback strategy. BeaconOutpost = orange flame,
+            // Gatepost = iron grey, Stables = warm tan, Guildhall = royal
+            // purple, Buttress = steel, Palisade = warm wood.
+            #define BUILDING_BEACON_OUTPOST  51
+            #define BUILDING_GATEPOST        52
+            #define BUILDING_STABLES         53
+            #define BUILDING_GUILDHALL       54
+            #define BUILDING_BUTTRESS        55
+            #define BUILDING_PALISADE        56
 
             #include "Includes/HexShared.hlsl"
             #include "Includes/HexBuildingShared.hlsl"
@@ -482,6 +492,36 @@ Shader "RareIcon/HexBuilding"
                 {
                     DrawFurnace(color, alpha, px, grid);
                     color *= float3(0.70, 1.05, 1.10);
+                }
+                else if (buildingType == BUILDING_BEACON_OUTPOST)
+                {
+                    DrawOutpost(color, alpha, px, grid);
+                    color *= float3(1.20, 0.80, 0.45);
+                }
+                else if (buildingType == BUILDING_GATEPOST)
+                {
+                    DrawOutpost(color, alpha, px, grid);
+                    color *= float3(0.80, 0.85, 0.95);
+                }
+                else if (buildingType == BUILDING_STABLES)
+                {
+                    DrawBarracks(color, alpha, px, grid);
+                    color *= float3(1.10, 0.95, 0.70);
+                }
+                else if (buildingType == BUILDING_GUILDHALL)
+                {
+                    DrawBarracks(color, alpha, px, grid);
+                    color *= float3(0.90, 0.75, 1.20);
+                }
+                else if (buildingType == BUILDING_BUTTRESS)
+                {
+                    DrawWall(color, alpha, px, grid);
+                    color *= float3(0.85, 0.90, 1.00);
+                }
+                else if (buildingType == BUILDING_PALISADE)
+                {
+                    DrawWall(color, alpha, px, grid);
+                    color *= float3(1.10, 0.85, 0.60);
                 }
                 else if (buildingType == BUILDING_WALL)
                 {

@@ -205,7 +205,12 @@ namespace RareIcon
             }
             else if (type == BuildingType.Barracks)
             {
-                if (tier == 1) return BuildingType.Keep;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.Stables;
+                    if (variant == 2) return BuildingType.Guildhall;
+                    return BuildingType.Keep;
+                }
                 if (tier == 2) return BuildingType.Castle;
             }
             else if (type == BuildingType.Inn)
@@ -241,7 +246,12 @@ namespace RareIcon
             }
             else if (type == BuildingType.Outpost)
             {
-                if (tier == 1) return BuildingType.Watchpost;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.BeaconOutpost;
+                    if (variant == 2) return BuildingType.Gatepost;
+                    return BuildingType.Watchpost;
+                }
                 if (tier == 2) return BuildingType.Garrison;
             }
             else if (type == BuildingType.Tower)
@@ -256,7 +266,12 @@ namespace RareIcon
             }
             else if (type == BuildingType.Wall)
             {
-                if (tier == 1) return BuildingType.ReinforcedWall;
+                if (tier == 1)
+                {
+                    if (variant == 1) return BuildingType.Buttress;
+                    if (variant == 2) return BuildingType.Palisade;
+                    return BuildingType.ReinforcedWall;
+                }
                 if (tier == 2) return BuildingType.FortifiedWall;
             }
             return 0;

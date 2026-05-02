@@ -342,6 +342,24 @@ namespace RareIcon
                 if (variant == 1) return "building.glassworks";
                 return "building.forge";
             }
+            if (type == BuildingType.Outpost && fromTier == 0)
+            {
+                if (variant == 1) return "building.beacon_outpost";
+                if (variant == 2) return "building.gatepost";
+                return "building.watchpost";
+            }
+            if (type == BuildingType.Barracks && fromTier == 0)
+            {
+                if (variant == 1) return "building.stables";
+                if (variant == 2) return "building.guildhall";
+                return "building.keep";
+            }
+            if (type == BuildingType.Wall && fromTier == 0)
+            {
+                if (variant == 1) return "building.buttress";
+                if (variant == 2) return "building.palisade";
+                return "building.reinforced_wall";
+            }
             return BuildingDB.GetTieredLocaleKey(type, targetTier);
         }
 
@@ -362,6 +380,24 @@ namespace RareIcon
             {
                 if (variant == 1) return "inspector.furnace_variant.glassworks_desc";
                 return "inspector.furnace_variant.forge_desc";
+            }
+            if (type == BuildingType.Outpost && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.outpost_variant.beacon_desc";
+                if (variant == 2) return "inspector.outpost_variant.gatepost_desc";
+                return "inspector.outpost_variant.watchpost_desc";
+            }
+            if (type == BuildingType.Barracks && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.barracks_variant.stables_desc";
+                if (variant == 2) return "inspector.barracks_variant.guildhall_desc";
+                return "inspector.barracks_variant.keep_desc";
+            }
+            if (type == BuildingType.Wall && fromTier == 0)
+            {
+                if (variant == 1) return "inspector.wall_variant.buttress_desc";
+                if (variant == 2) return "inspector.wall_variant.palisade_desc";
+                return "inspector.wall_variant.reinforced_desc";
             }
             return string.Empty;
         }
