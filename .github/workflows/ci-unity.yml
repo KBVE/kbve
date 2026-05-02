@@ -332,22 +332,20 @@ jobs:
                   done
                   ls -la
 
-            # Upload via game-ci/steam-deploy. Generates its own app_build
-            # VDF from the depot inputs below — our apps/<project>/Steam/
-            # app_build_<label>.vdf files act only as an enable signal in
-            # the Resolve step above (file present = matrix entry runs).
-            #
-            # Depot layout assumes sequential depot IDs starting at
-            # appId + 1 (matches RareIcon's 3791951/52/53 for demo and
-            # the eventual main scheme). Set firstDepotIdOverride if a
-            # future SteamApp uses non-sequential depot IDs.
+            - name: Generate Steam Guard TOTP
+              if: steps.vdf.outputs.skip != 'true'
+              id: steam_totp
+              uses: CyberAndrii/steam-totp@v1
+              with:
+                  shared_secret: ${{ secrets.STEAM_TOTP_SECRET }}
+
             - name: Upload via SteamPipe (game-ci/steam-deploy)
               if: steps.vdf.outputs.skip != 'true'
               uses: game-ci/steam-deploy@v3
               with:
                   username: ${{ secrets.STEAM_USERNAME }}
                   password: ${{ secrets.STEAM_PASSWORD }}
-                  totp: ${{ secrets.STEAM_TOTP_SECRET }}
+                  totp: ${{ steps.steam_totp.outputs.code }}
                   appId: ${{ matrix.app.app_id }}
                   buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }})'
                   rootPath: ${{ inputs.project_path }}/build
