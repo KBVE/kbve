@@ -8,6 +8,30 @@ import { workerURLs } from './workers';
 import { initSupa } from './supa';
 
 let _bootPromise: Promise<void> | null = null;
+let _diagnosticsAttached = false;
+
+function attachDiagnostics(): void {
+	if (_diagnosticsAttached || typeof window === 'undefined') return;
+	_diagnosticsAttached = true;
+
+	window.addEventListener('unhandledrejection', (ev) => {
+		const reason = ev.reason;
+		const name = reason?.name ?? 'UnhandledRejection';
+		const message = reason?.message ?? String(reason);
+		const stack = reason?.stack ?? '(no stack)';
+		console.error(
+			`[chat:diag] unhandled rejection — ${name}: ${message}\n${stack}`,
+			reason,
+		);
+	});
+
+	window.addEventListener('error', (ev) => {
+		console.error(
+			`[chat:diag] window error — ${ev.message} at ${ev.filename}:${ev.lineno}:${ev.colno}`,
+			ev.error,
+		);
+	});
+}
 
 /**
  * Boot droid workers and Supabase auth in parallel.
@@ -15,6 +39,7 @@ let _bootPromise: Promise<void> | null = null;
  */
 export function bootChat(): Promise<void> {
 	if (_bootPromise) return _bootPromise;
+	attachDiagnostics();
 
 	_bootPromise = (async () => {
 		// Boot droid (workers) and auth in parallel

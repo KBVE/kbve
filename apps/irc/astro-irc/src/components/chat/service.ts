@@ -122,11 +122,37 @@ function ensureEventsSubscription(): void {
 
 		if (evt.type === 'status') {
 			const status = evt.status as string;
+			const code = typeof evt.code === 'number' ? evt.code : undefined;
+			const reason = typeof evt.reason === 'string' ? evt.reason : '';
+			const wasClean =
+				typeof evt.wasClean === 'boolean' ? evt.wasClean : undefined;
+
 			if (status === 'connected') {
 				$connectionStatus.set('connected');
+				$error.set('');
 				systemMessage($activeChannel.get(), 'Connected to IRC');
 			} else if (status === 'disconnected' || status === 'error') {
 				$connectionStatus.set(status as ConnectionStatus);
+				const detail =
+					code !== undefined
+						? `code=${code}${reason ? ` reason="${reason}"` : ''}${
+								wasClean === false ? ' (abnormal)' : ''
+							}`
+						: reason || 'no detail';
+				const message = `${status === 'error' ? 'WS error' : 'Disconnected'}: ${detail}`;
+				console.warn('[chat]', message, evt);
+				$error.set(message);
+				systemMessage($activeChannel.get(), message);
+			} else if (status === 'reconnecting') {
+				$connectionStatus.set('connecting');
+				systemMessage($activeChannel.get(), 'Reconnecting…');
+			} else if (status === 'failed') {
+				$connectionStatus.set('error');
+				$error.set('Reconnect failed — give up after retries');
+				systemMessage(
+					$activeChannel.get(),
+					'Reconnect failed — give up after retries',
+				);
 			}
 			return;
 		}
