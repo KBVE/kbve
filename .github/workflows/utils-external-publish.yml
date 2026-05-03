@@ -50,6 +50,9 @@ jobs:
         timeout-minutes: 25
         permissions:
             contents: read
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Install runtime dependencies (curl, jq, zip)
               run: |
