@@ -1,0 +1,68 @@
+---
+# arc-runner-dbmate — RBAC binding the arc-runner-set SA in
+# arc-runners namespace to a tight Role in kilobase. Lets
+# .github/workflows/ci-dbmate-deploy.yml run kubectl from inside
+# the runner pod against the dbmate Job + ConfigMap surface, and
+# nothing else.
+#
+# The runner pod's SA `arc-runner-set-gha-rs-no-permission` is
+# created by the GitHub Actions Runner Controller with zero baked
+# permissions; this Role/RoleBinding is what gives it the exact
+# verbs the workflow needs (and only those).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: arc-runner-dbmate
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: dbmate-runner
+        app.kubernetes.io/component: arc-rbac
+rules:
+    # Manage the migrations ConfigMap. resourceNames keeps the runner
+    # from touching unrelated ConfigMaps (postgrest config, etc).
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get', 'list', 'create', 'patch', 'update']
+      resourceNames:
+          - dbmate-migrations
+    # Bootstrap path: when dbmate-migrations doesn't exist yet, the
+    # runner needs `create` without a resourceNames filter (RBAC
+    # ignores resourceNames for `create`). The pinned line above is
+    # for `get / patch / update`; this line covers `create`.
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['create']
+    # Create + read dbmate Jobs. We don't need delete — the Job's
+    # ttlSecondsAfterFinished handles cleanup.
+    - apiGroups: ['batch']
+      resources: ['jobs']
+      verbs: ['get', 'list', 'create', 'watch', 'patch']
+    # Read pod state + logs so the workflow can `kubectl wait` and
+    # `kubectl logs job/...`.
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['get', 'list', 'watch']
+    - apiGroups: ['']
+      resources: ['pods/log']
+      verbs: ['get', 'list']
+    # describe job/... reads events for failure diagnostics.
+    - apiGroups: ['']
+      resources: ['events']
+      verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arc-runner-dbmate
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: dbmate-runner
+        app.kubernetes.io/component: arc-rbac
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arc-runner-dbmate
+subjects:
+    - kind: ServiceAccount
+      name: arc-runner-set-gha-rs-no-permission
+      namespace: arc-runners
