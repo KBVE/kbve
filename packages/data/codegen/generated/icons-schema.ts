@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/icons.binpb
  * Config: ../icons-zod-config.json
- * Generated: 2026-04-30T06:38:13.178Z
+ * Generated: 2026-05-03T09:31:28.500Z
  */
 
 import { z } from 'zod';
@@ -23,7 +23,12 @@ export type IconStyleValue = (typeof IconStyles)[number];
 
 export const IconStyleSchema = z.enum(IconStyles);
 
-export const IconFormats = ['svg', 'png', 'webp', 'font'] as const;
+export const IconFormats = [
+	'svg',
+	'png',
+	'webp',
+	'font',
+] as const;
 
 export type IconFormatValue = (typeof IconFormats)[number];
 
@@ -110,12 +115,13 @@ export const IconOfferingInfoSchema = z
 export type IconOfferingInfo = z.infer<typeof IconOfferingInfoSchema>;
 
 // IconViewBox
-export const IconViewBoxSchema = z.object({
-	min_x: z.number(),
-	min_y: z.number(),
-	width: z.number().min(1),
-	height: z.number().min(1),
-});
+export const IconViewBoxSchema = z
+	.object({
+		min_x: z.number(),
+		min_y: z.number(),
+		width: z.number().min(1),
+		height: z.number().min(1),
+	});
 
 export type IconViewBox = z.infer<typeof IconViewBoxSchema>;
 
@@ -137,105 +143,102 @@ export const IconRenderSchema = z
 export type IconRender = z.infer<typeof IconRenderSchema>;
 
 // IconExtension
-export const IconExtensionSchema = z.object({
-	key: z.string(),
-	value: z
-		.union([
-			z.object({ string_value: z.string() }),
-			z.object({ int_value: z.number() }),
-			z.object({ float_value: z.number() }),
-			z.object({ bool_value: z.boolean() }),
-			z.object({ bytes_value: z.string() }),
-		])
-		.optional(),
-});
+export const IconExtensionSchema = z
+	.object({
+		key: z.string(),
+		value: z.union([z.object({ string_value: z.string() }), z.object({ int_value: z.number() }), z.object({ float_value: z.number() }), z.object({ bool_value: z.boolean() }), z.object({ bytes_value: z.string() })]).optional(),
+	});
 
 export type IconExtension = z.infer<typeof IconExtensionSchema>;
 
 // Icon
-export const IconSchema = z.object({
-	ref: z.string(),
-	label: z.string().optional(),
-	id: z.string().optional(),
-	style: IconStyleSchema,
-	format: IconFormatSchema,
-	collection_ref: z.string().optional(),
-	svg_body: z.string().optional(),
-	svg_path: z.string().optional(),
-	raster_path: z.string().optional(),
-	font_family: z.string().optional(),
-	font_glyph: z.string().optional(),
-	raw_bytes: z.string().optional(),
-	viewbox: IconViewBoxSchema.optional(),
-	render: IconRenderSchema.optional(),
-	recommended_sizes: z.array(z.number()).optional(),
-	license: IconLicenseInfoSchema.optional(),
-	offering: IconOfferingInfoSchema.optional(),
-	aria_label: z.string().optional(),
-	role: z.string().optional(),
-	credits: z.string().optional(),
-	created_at: z.string().optional(),
-	updated_at: z.string().optional(),
-	version: z.string().optional(),
-	drafted: z.boolean().optional(),
-	extensions: z.array(IconExtensionSchema).optional(),
-	tags: z.array(z.string()).optional(),
-	themes: z.array(z.string()).optional(),
-});
+export const IconSchema = z
+	.object({
+		ref: z.string(),
+		label: z.string().optional(),
+		id: z.string().optional(),
+		style: IconStyleSchema,
+		format: IconFormatSchema,
+		collection_ref: z.string().optional(),
+		svg_body: z.string().optional(),
+		svg_path: z.string().optional(),
+		raster_path: z.string().optional(),
+		font_family: z.string().optional(),
+		font_glyph: z.string().optional(),
+		raw_bytes: z.string().optional(),
+		viewbox: IconViewBoxSchema.optional(),
+		render: IconRenderSchema.optional(),
+		recommended_sizes: z.array(z.number()).optional(),
+		license: IconLicenseInfoSchema.optional(),
+		offering: IconOfferingInfoSchema.optional(),
+		aria_label: z.string().optional(),
+		role: z.string().optional(),
+		credits: z.string().optional(),
+		created_at: z.string().optional(),
+		updated_at: z.string().optional(),
+		version: z.string().optional(),
+		drafted: z.boolean().optional(),
+		extensions: z.array(IconExtensionSchema).optional(),
+		tags: z.array(z.string()).optional(),
+		themes: z.array(z.string()).optional(),
+	});
 
 export type Icon = z.infer<typeof IconSchema>;
 
 // IconTerm
-export const IconTermSchema = z.object({
-	id: z.string(),
-	ref: z.string(),
-	name: z.string(),
-	title: z.string().optional(),
-	description: z.string().optional(),
-	categories: z.array(z.string()).optional(),
-	tags: z.array(z.string()).optional(),
-	primary_category: z.string().optional(),
-	search: IconSearchSchema.optional(),
-	default_license: IconLicenseInfoSchema.optional(),
-	default_offering: IconOfferingInfoSchema.optional(),
-	related_term_refs: z.array(z.string()).optional(),
-	icons: z.array(IconSchema).optional(),
-	credits: z.string().optional(),
-	created_at: z.string().optional(),
-	updated_at: z.string().optional(),
-	version: z.string().optional(),
-	drafted: z.boolean().optional(),
-	extensions: z.array(IconExtensionSchema).optional(),
-});
+export const IconTermSchema = z
+	.object({
+		id: z.string(),
+		ref: z.string(),
+		name: z.string(),
+		title: z.string().optional(),
+		description: z.string().optional(),
+		categories: z.array(z.string()).optional(),
+		tags: z.array(z.string()).optional(),
+		primary_category: z.string().optional(),
+		search: IconSearchSchema.optional(),
+		default_license: IconLicenseInfoSchema.optional(),
+		default_offering: IconOfferingInfoSchema.optional(),
+		related_term_refs: z.array(z.string()).optional(),
+		icons: z.array(IconSchema).optional(),
+		credits: z.string().optional(),
+		created_at: z.string().optional(),
+		updated_at: z.string().optional(),
+		version: z.string().optional(),
+		drafted: z.boolean().optional(),
+		extensions: z.array(IconExtensionSchema).optional(),
+	});
 
 export type IconTerm = z.infer<typeof IconTermSchema>;
 
 // IconCollection
-export const IconCollectionSchema = z.object({
-	id: z.string(),
-	ref: z.string(),
-	name: z.string(),
-	description: z.string().optional(),
-	homepage: z.string().optional(),
-	cover_icon_ref: z.string().optional(),
-	primary_style: IconStyleSchema.optional(),
-	default_viewbox: IconViewBoxSchema.optional(),
-	default_render: IconRenderSchema.optional(),
-	license: IconLicenseInfoSchema.optional(),
-	offering: IconOfferingInfoSchema.optional(),
-	tags: z.array(z.string()).optional(),
-	icon_count: z.number().min(0).optional(),
-	term_count: z.number().optional(),
-	version: z.string().optional(),
-	drafted: z.boolean().optional(),
-});
+export const IconCollectionSchema = z
+	.object({
+		id: z.string(),
+		ref: z.string(),
+		name: z.string(),
+		description: z.string().optional(),
+		homepage: z.string().optional(),
+		cover_icon_ref: z.string().optional(),
+		primary_style: IconStyleSchema.optional(),
+		default_viewbox: IconViewBoxSchema.optional(),
+		default_render: IconRenderSchema.optional(),
+		license: IconLicenseInfoSchema.optional(),
+		offering: IconOfferingInfoSchema.optional(),
+		tags: z.array(z.string()).optional(),
+		icon_count: z.number().min(0).optional(),
+		term_count: z.number().optional(),
+		version: z.string().optional(),
+		drafted: z.boolean().optional(),
+	});
 
 export type IconCollection = z.infer<typeof IconCollectionSchema>;
 
 // IconRegistry
-export const IconRegistrySchema = z.object({
-	terms: z.array(IconTermSchema).optional(),
-	collections: z.array(IconCollectionSchema).optional(),
-});
+export const IconRegistrySchema = z
+	.object({
+		terms: z.array(IconTermSchema).optional(),
+		collections: z.array(IconCollectionSchema).optional(),
+	});
 
 export type IconRegistry = z.infer<typeof IconRegistrySchema>;

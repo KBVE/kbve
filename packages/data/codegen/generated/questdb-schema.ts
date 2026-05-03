@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/questdb.binpb
  * Config: ../questdb-zod-config.json
- * Generated: 2026-04-30T08:48:30.087Z
+ * Generated: 2026-05-03T09:31:28.475Z
  */
 
 import { z } from 'zod';
@@ -67,8 +67,7 @@ export const ChoiceConsequenceTypes = [
 	'npc_disposition',
 ] as const;
 
-export type ChoiceConsequenceTypeValue =
-	(typeof ChoiceConsequenceTypes)[number];
+export type ChoiceConsequenceTypeValue = (typeof ChoiceConsequenceTypes)[number];
 
 export const ChoiceConsequenceTypeSchema = z.enum(ChoiceConsequenceTypes);
 
@@ -82,7 +81,10 @@ export type FailurePolicyValue = (typeof FailurePolicies)[number];
 
 export const FailurePolicySchema = z.enum(FailurePolicies);
 
-export const RewardPolicies = ['shared', 'leader'] as const;
+export const RewardPolicies = [
+	'shared',
+	'leader',
+] as const;
 
 export type RewardPolicyValue = (typeof RewardPolicies)[number];
 
@@ -118,45 +120,48 @@ export const QuestTimeLimitsSchema = z
 export type QuestTimeLimits = z.infer<typeof QuestTimeLimitsSchema>;
 
 // QuestObjective
-export const QuestObjectiveSchema = z.object({
-	id: z.string(),
-	description: z.string(),
-	type: ObjectiveTypeSchema,
-	target_refs: z.array(z.string()).optional(),
-	required_amount: z.number().min(1),
-	optional: z.boolean().optional(),
-	hidden: z.boolean().optional(),
-	reveal_trigger: z.string().optional(),
-	order: z.number().optional(),
-	zone_ref: z.string().optional(),
-});
+export const QuestObjectiveSchema = z
+	.object({
+		id: z.string(),
+		description: z.string(),
+		type: ObjectiveTypeSchema,
+		target_refs: z.array(z.string()).optional(),
+		required_amount: z.number().min(1),
+		optional: z.boolean().optional(),
+		hidden: z.boolean().optional(),
+		reveal_trigger: z.string().optional(),
+		order: z.number().optional(),
+		zone_ref: z.string().optional(),
+	});
 
 export type QuestObjective = z.infer<typeof QuestObjectiveSchema>;
 
 // QuestChoice
-export const QuestChoiceSchema = z.object({
-	id: z.string(),
-	label: z.string(),
-	description: z.string().optional(),
-	consequence: ChoiceConsequenceTypeSchema,
-	consequence_ref: z.string().optional(),
-	consequence_value: z.number().optional(),
-	next_step_id: z.string().optional(),
-	required_item_refs: z.array(z.string()).optional(),
-	required_class: z.string().optional(),
-	outcome_id: z.string().optional(),
-	set_flags: z.array(z.string()).optional(),
-	dialogue_node_ref: z.string().optional(),
-});
+export const QuestChoiceSchema = z
+	.object({
+		id: z.string(),
+		label: z.string(),
+		description: z.string().optional(),
+		consequence: ChoiceConsequenceTypeSchema,
+		consequence_ref: z.string().optional(),
+		consequence_value: z.number().optional(),
+		next_step_id: z.string().optional(),
+		required_item_refs: z.array(z.string()).optional(),
+		required_class: z.string().optional(),
+		outcome_id: z.string().optional(),
+		set_flags: z.array(z.string()).optional(),
+		dialogue_node_ref: z.string().optional(),
+	});
 
 export type QuestChoice = z.infer<typeof QuestChoiceSchema>;
 
 // QuestItemReward
-export const QuestItemRewardSchema = z.object({
-	item_ref: z.string(),
-	item_name: z.string().optional(),
-	amount: z.number(),
-});
+export const QuestItemRewardSchema = z
+	.object({
+		item_ref: z.string(),
+		item_name: z.string().optional(),
+		amount: z.number(),
+	});
 
 export type QuestItemReward = z.infer<typeof QuestItemRewardSchema>;
 
@@ -178,17 +183,18 @@ export const AchievementMetaSchema = z
 export type AchievementMeta = z.infer<typeof AchievementMetaSchema>;
 
 // QuestRewards
-export const QuestRewardsSchema = z.object({
-	items: z.array(QuestItemRewardSchema).optional(),
-	currency: z.number().optional(),
-	xp: z.number().optional(),
-	bonuses: z.record(z.string(), z.number()).optional(),
-	achievement: AchievementMetaSchema.optional(),
-	unlock_ref: z.string().optional(),
-	unlock_quest_refs: z.array(z.string()).optional(),
-	reputation_amount: z.number().optional(),
-	reputation_faction: z.string().optional(),
-});
+export const QuestRewardsSchema = z
+	.object({
+		items: z.array(QuestItemRewardSchema).optional(),
+		currency: z.number().optional(),
+		xp: z.number().optional(),
+		bonuses: z.record(z.string(), z.number()).optional(),
+		achievement: AchievementMetaSchema.optional(),
+		unlock_ref: z.string().optional(),
+		unlock_quest_refs: z.array(z.string()).optional(),
+		reputation_amount: z.number().optional(),
+		reputation_faction: z.string().optional(),
+	});
 
 export type QuestRewards = z.infer<typeof QuestRewardsSchema>;
 
@@ -207,127 +213,126 @@ export const QuestDialogueHooksSchema = z
 export type QuestDialogueHooks = z.infer<typeof QuestDialogueHooksSchema>;
 
 // QuestStep
-export const QuestStepSchema = z.object({
-	id: z.string(),
-	title: z.string().optional(),
-	description: z.string().optional(),
-	speaker_ref: z.string().optional(),
-	objectives: z.array(QuestObjectiveSchema).optional(),
-	choices: z.array(QuestChoiceSchema).optional(),
-	next_step_id: z.string().optional(),
-	step_rewards: QuestRewardsSchema.optional(),
-	trigger_on_start: z.string().optional(),
-	trigger_on_complete: z.string().optional(),
-	parallel: z.boolean().optional(),
-	auto_complete: z.boolean().optional(),
-	hidden: z.boolean().optional(),
-	skippable: z.boolean().optional(),
-	failure_policy: FailurePolicySchema.optional(),
-	step_time_limit_secs: z.number().optional(),
-	dialogue_hooks: QuestDialogueHooksSchema.optional(),
-});
+export const QuestStepSchema = z
+	.object({
+		id: z.string(),
+		title: z.string().optional(),
+		description: z.string().optional(),
+		speaker_ref: z.string().optional(),
+		objectives: z.array(QuestObjectiveSchema).optional(),
+		choices: z.array(QuestChoiceSchema).optional(),
+		next_step_id: z.string().optional(),
+		step_rewards: QuestRewardsSchema.optional(),
+		trigger_on_start: z.string().optional(),
+		trigger_on_complete: z.string().optional(),
+		parallel: z.boolean().optional(),
+		auto_complete: z.boolean().optional(),
+		hidden: z.boolean().optional(),
+		skippable: z.boolean().optional(),
+		failure_policy: FailurePolicySchema.optional(),
+		step_time_limit_secs: z.number().optional(),
+		dialogue_hooks: QuestDialogueHooksSchema.optional(),
+	});
 
 export type QuestStep = z.infer<typeof QuestStepSchema>;
 
 // QuestOutcome
-export const QuestOutcomeSchema = z.object({
-	id: z.string(),
-	description: z.string(),
-	rewards: QuestRewardsSchema.optional(),
-	next_quest_ref: z.string().optional(),
-	consequence_flags: z.array(z.string()).optional(),
-	ending_type: z.string().optional(),
-	canonical: z.boolean().optional(),
-});
+export const QuestOutcomeSchema = z
+	.object({
+		id: z.string(),
+		description: z.string(),
+		rewards: QuestRewardsSchema.optional(),
+		next_quest_ref: z.string().optional(),
+		consequence_flags: z.array(z.string()).optional(),
+		ending_type: z.string().optional(),
+		canonical: z.boolean().optional(),
+	});
 
 export type QuestOutcome = z.infer<typeof QuestOutcomeSchema>;
 
 // RepeatRewards
-export const RepeatRewardsSchema = z.object({
-	first_time: QuestRewardsSchema.optional(),
-	repeat: QuestRewardsSchema.optional(),
-});
+export const RepeatRewardsSchema = z
+	.object({
+		first_time: QuestRewardsSchema.optional(),
+		repeat: QuestRewardsSchema.optional(),
+	});
 
 export type RepeatRewards = z.infer<typeof RepeatRewardsSchema>;
 
 // QuestExtension
-export const QuestExtensionSchema = z.object({
-	key: z.string(),
-	value: z
-		.union([
-			z.object({ string_value: z.string() }),
-			z.object({ int_value: z.number() }),
-			z.object({ float_value: z.number() }),
-			z.object({ bool_value: z.boolean() }),
-			z.object({ bytes_value: z.string() }),
-		])
-		.optional(),
-});
+export const QuestExtensionSchema = z
+	.object({
+		key: z.string(),
+		value: z.union([z.object({ string_value: z.string() }), z.object({ int_value: z.number() }), z.object({ float_value: z.number() }), z.object({ bool_value: z.boolean() }), z.object({ bytes_value: z.string() })]).optional(),
+	});
 
 export type QuestExtension = z.infer<typeof QuestExtensionSchema>;
 
 // Quest
-export const QuestSchema = z.object({
-	id: z.string(),
-	ref: z.string(),
-	title: z.string(),
-	description: z.string().optional(),
-	lore: z.string().optional(),
-	category: QuestCategorySchema,
-	tags: z.array(z.string()).optional(),
-	icon: z.string().optional(),
-	img: z.string().optional(),
-	marker_icon: z.string().optional(),
-	prerequisites: QuestPrerequisiteSchema.optional(),
-	hidden: z.boolean().optional(),
-	repeatable: z.boolean().optional(),
-	auto_accept: z.boolean().optional(),
-	auto_complete: z.boolean().optional(),
-	shareable: z.boolean().optional(),
-	abandonable: z.boolean().optional(),
-	tracked: z.boolean().optional(),
-	time_limits: QuestTimeLimitsSchema.optional(),
-	steps: z.array(QuestStepSchema).optional(),
-	next_quest_ref: z.string().nullable().optional(),
-	chain_ref: z.string().optional(),
-	giver_npc_refs: z.array(z.string()).optional(),
-	turn_in_npc_refs: z.array(z.string()).optional(),
-	zone_refs: z.array(z.string()).optional(),
-	recommended_level: z.number().min(0).optional(),
-	recommended_party_size: z.number().min(1).max(40).optional(),
-	rewards: QuestRewardsSchema.optional(),
-	outcomes: z.array(QuestOutcomeSchema).optional(),
-	repeat_rewards: RepeatRewardsSchema.optional(),
-	reward_policy: RewardPolicySchema.optional(),
-	failure_policy: FailurePolicySchema.optional(),
-	dialogue_hooks: QuestDialogueHooksSchema.optional(),
-	triggers: z.array(z.string()).optional(),
-	required_flags: z.array(z.string()).optional(),
-	blocked_by_flags: z.array(z.string()).optional(),
-	extensions: z.array(QuestExtensionSchema).optional(),
-	credits: z.string().optional(),
-	drafted: z.boolean().optional(),
-});
+export const QuestSchema = z
+	.object({
+		id: z.string(),
+		ref: z.string(),
+		title: z.string(),
+		description: z.string().optional(),
+		lore: z.string().optional(),
+		category: QuestCategorySchema,
+		tags: z.array(z.string()).optional(),
+		icon: z.string().optional(),
+		img: z.string().optional(),
+		marker_icon: z.string().optional(),
+		prerequisites: QuestPrerequisiteSchema.optional(),
+		hidden: z.boolean().optional(),
+		repeatable: z.boolean().optional(),
+		auto_accept: z.boolean().optional(),
+		auto_complete: z.boolean().optional(),
+		shareable: z.boolean().optional(),
+		abandonable: z.boolean().optional(),
+		tracked: z.boolean().optional(),
+		time_limits: QuestTimeLimitsSchema.optional(),
+		steps: z.array(QuestStepSchema).optional(),
+		next_quest_ref: z.string().nullable().optional(),
+		chain_ref: z.string().optional(),
+		giver_npc_refs: z.array(z.string()).optional(),
+		turn_in_npc_refs: z.array(z.string()).optional(),
+		zone_refs: z.array(z.string()).optional(),
+		recommended_level: z.number().min(0).optional(),
+		recommended_party_size: z.number().min(1).max(40).optional(),
+		rewards: QuestRewardsSchema.optional(),
+		outcomes: z.array(QuestOutcomeSchema).optional(),
+		repeat_rewards: RepeatRewardsSchema.optional(),
+		reward_policy: RewardPolicySchema.optional(),
+		failure_policy: FailurePolicySchema.optional(),
+		dialogue_hooks: QuestDialogueHooksSchema.optional(),
+		triggers: z.array(z.string()).optional(),
+		required_flags: z.array(z.string()).optional(),
+		blocked_by_flags: z.array(z.string()).optional(),
+		extensions: z.array(QuestExtensionSchema).optional(),
+		credits: z.string().optional(),
+		drafted: z.boolean().optional(),
+	});
 
 export type Quest = z.infer<typeof QuestSchema>;
 
 // QuestChain
-export const QuestChainSchema = z.object({
-	id: z.string(),
-	ref: z.string(),
-	name: z.string(),
-	description: z.string().optional(),
-	quest_refs: z.array(z.string()).optional(),
-	icon: z.string().optional(),
-	chain_rewards: QuestRewardsSchema.optional(),
-});
+export const QuestChainSchema = z
+	.object({
+		id: z.string(),
+		ref: z.string(),
+		name: z.string(),
+		description: z.string().optional(),
+		quest_refs: z.array(z.string()).optional(),
+		icon: z.string().optional(),
+		chain_rewards: QuestRewardsSchema.optional(),
+	});
 
 export type QuestChain = z.infer<typeof QuestChainSchema>;
 
 // QuestRegistry
-export const QuestRegistrySchema = z.object({
-	quests: z.array(QuestSchema).optional(),
-	chains: z.array(QuestChainSchema).optional(),
-});
+export const QuestRegistrySchema = z
+	.object({
+		quests: z.array(QuestSchema).optional(),
+		chains: z.array(QuestChainSchema).optional(),
+	});
 
 export type QuestRegistry = z.infer<typeof QuestRegistrySchema>;

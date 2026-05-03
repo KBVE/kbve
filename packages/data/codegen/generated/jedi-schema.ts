@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/jedi.binpb
  * Config: ../jedi-zod-config.json
- * Generated: 2026-04-30T06:38:13.175Z
+ * Generated: 2026-05-03T09:31:28.497Z
  */
 
 import { z } from 'zod';
@@ -60,50 +60,48 @@ export type MessageKindValue = (typeof MessageKinds)[number];
 export const MessageKindSchema = z.enum(MessageKinds);
 
 // JediEnvelope
-export const JediEnvelopeSchema = z.object({
-	version: z.number(),
-	kind: MessageKindSchema,
-	format: PayloadFormatSchema,
-	payload: z.string(),
-	metadata: z.string(),
-});
+export const JediEnvelopeSchema = z
+	.object({
+		version: z.number(),
+		kind: MessageKindSchema,
+		format: PayloadFormatSchema,
+		payload: z.string(),
+		metadata: z.string(),
+	});
 
 export type JediEnvelope = z.infer<typeof JediEnvelopeSchema>;
 
 // FlexEnvelope
-export const FlexEnvelopeSchema = z.object({
-	kind: MessageKindSchema,
-	payload: z.string(),
-});
+export const FlexEnvelopeSchema = z
+	.object({
+		kind: MessageKindSchema,
+		payload: z.string(),
+	});
 
 export type FlexEnvelope = z.infer<typeof FlexEnvelopeSchema>;
 
 // RawEnvelope
-export const RawEnvelopeSchema = z.object({
-	key: z.string(),
-	payload: z.string(),
-});
+export const RawEnvelopeSchema = z
+	.object({
+		key: z.string(),
+		payload: z.string(),
+	});
 
 export type RawEnvelope = z.infer<typeof RawEnvelopeSchema>;
 
 // FlagEnvelope
-export const FlagEnvelopeSchema = z.object({
-	flag: z.number(),
-	payload: z.string(),
-});
+export const FlagEnvelopeSchema = z
+	.object({
+		flag: z.number(),
+		payload: z.string(),
+	});
 
 export type FlagEnvelope = z.infer<typeof FlagEnvelopeSchema>;
 
 // JediMessage
-export const JediMessageSchema = z.object({
-	envelope: z
-		.union([
-			JediEnvelopeSchema,
-			FlexEnvelopeSchema,
-			RawEnvelopeSchema,
-			FlagEnvelopeSchema,
-		])
-		.optional(),
-});
+export const JediMessageSchema = z
+	.object({
+		envelope: z.union([JediEnvelopeSchema, FlexEnvelopeSchema, RawEnvelopeSchema, FlagEnvelopeSchema]).optional(),
+	});
 
 export type JediMessage = z.infer<typeof JediMessageSchema>;

@@ -117,20 +117,24 @@ jobs:
                     exit 1
                   fi
 
-                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
-
-                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
-                    "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
-                    | jq -r --arg v "$TARGET_VERSION" '.[] | select(.version_number == $v) | .id' \
-                    | head -1)
+                  if [ -n "$ROLLING_VERSION" ]; then
+                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
+                      | jq -r '[.[] | select(.featured == true)] | .[0].id // ""')
+                  else
+                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$MOD_PROJECT_ID/version" \
+                      | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                      | head -1)
+                  fi
 
                   if [ -n "$EXISTING" ] && [ -z "$ROLLING_VERSION" ]; then
-                    echo "::notice::JAR v$TARGET_VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    echo "::notice::JAR v$VERSION already on Modrinth (id=$EXISTING) — skipping."
                     exit 0
                   fi
 
                   if [ -n "$EXISTING" ] && [ -n "$ROLLING_VERSION" ]; then
-                    echo "── Rolling JAR mode: replacing file on existing version $EXISTING (tag=$ROLLING_VERSION) ──"
+                    echo "── Rolling JAR mode: replacing file on featured slot $EXISTING ──"
                     OLD_HASHES=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                       "https://api.modrinth.com/v2/version/$EXISTING" \
                       | jq -r '.files[].hashes.sha1')
@@ -144,7 +148,7 @@ jobs:
                       cat /tmp/jar-add.json
                       exit 1
                     fi
-                    echo "Added new JAR file to v$TARGET_VERSION (id=$EXISTING)"
+                    echo "Added new JAR file to slot $EXISTING"
 
                     for hash in $OLD_HASHES; do
                       [ -z "$hash" ] && continue
@@ -158,13 +162,25 @@ jobs:
                         echo "Removed old JAR file sha1=$hash"
                       fi
                     done
+
+                    PATCH_CODE=$(curl -sSL -o /tmp/jar-patch.json -w '%{http_code}' \
+                      -X PATCH "https://api.modrinth.com/v2/version/$EXISTING" \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"version_number\":\"$VERSION\",\"name\":\"behavior_statetree $VERSION\"}")
+                    if [ "$PATCH_CODE" != "204" ]; then
+                      echo "::warning::Failed to PATCH version_number to $VERSION (HTTP $PATCH_CODE)"
+                      cat /tmp/jar-patch.json || true
+                    else
+                      echo "Renamed slot $EXISTING → version_number=$VERSION"
+                    fi
                     exit 0
                   fi
 
                   cat > /tmp/data.json <<JSON
                   {
-                    "name": "behavior_statetree $TARGET_VERSION",
-                    "version_number": "$TARGET_VERSION",
+                    "name": "behavior_statetree $VERSION",
+                    "version_number": "$VERSION",
                     "version_type": "$VERSION_TYPE",
                     "project_id": "$MOD_PROJECT_ID",
                     "loaders": $LOADERS,
@@ -223,20 +239,24 @@ jobs:
                     exit 1
                   fi
 
-                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
-
-                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
-                    "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
-                    | jq -r --arg v "$TARGET_VERSION" '.[] | select(.version_number == $v) | .id' \
-                    | head -1)
+                  if [ -n "$ROLLING_VERSION" ]; then
+                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
+                      | jq -r '[.[] | select(.featured == true)] | .[0].id // ""')
+                  else
+                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                      "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
+                      | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                      | head -1)
+                  fi
 
                   if [ -n "$EXISTING" ] && [ -z "$ROLLING_VERSION" ]; then
-                    echo "::notice::mrpack v$TARGET_VERSION already on Modrinth (id=$EXISTING) — skipping."
+                    echo "::notice::mrpack v$VERSION already on Modrinth (id=$EXISTING) — skipping."
                     exit 0
                   fi
 
                   if [ -n "$EXISTING" ] && [ -n "$ROLLING_VERSION" ]; then
-                    echo "── Rolling mrpack mode: replacing file on existing version $EXISTING (tag=$ROLLING_VERSION) ──"
+                    echo "── Rolling mrpack mode: replacing file on featured slot $EXISTING ──"
                     OLD_HASHES=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
                       "https://api.modrinth.com/v2/version/$EXISTING" \
                       | jq -r '.files[].hashes.sha1')
@@ -250,7 +270,7 @@ jobs:
                       cat /tmp/mrpack-add.json
                       exit 1
                     fi
-                    echo "Added new mrpack file to v$TARGET_VERSION (id=$EXISTING)"
+                    echo "Added new mrpack file to slot $EXISTING"
 
                     for hash in $OLD_HASHES; do
                       [ -z "$hash" ] && continue
@@ -264,13 +284,25 @@ jobs:
                         echo "Removed old mrpack file sha1=$hash"
                       fi
                     done
+
+                    PATCH_CODE=$(curl -sSL -o /tmp/mrpack-patch.json -w '%{http_code}' \
+                      -X PATCH "https://api.modrinth.com/v2/version/$EXISTING" \
+                      -H "Authorization: $MODRINTH_TOKEN" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"version_number\":\"$VERSION\",\"name\":\"KBVE MC Client $VERSION\"}")
+                    if [ "$PATCH_CODE" != "204" ]; then
+                      echo "::warning::Failed to PATCH version_number to $VERSION (HTTP $PATCH_CODE)"
+                      cat /tmp/mrpack-patch.json || true
+                    else
+                      echo "Renamed slot $EXISTING → version_number=$VERSION"
+                    fi
                     exit 0
                   fi
 
                   cat > /tmp/pack-data.json <<JSON
                   {
-                    "name": "KBVE MC Client $TARGET_VERSION",
-                    "version_number": "$TARGET_VERSION",
+                    "name": "KBVE MC Client $VERSION",
+                    "version_number": "$VERSION",
                     "version_type": "$VERSION_TYPE",
                     "project_id": "$PACK_PROJECT_ID",
                     "loaders": $LOADERS,
@@ -324,7 +356,7 @@ jobs:
                     exit 1
                   fi
 
-                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
+                  TARGET_VERSION="$VERSION"
 
                   verify_project () {
                     local PROJECT_ID="$1"
@@ -392,7 +424,7 @@ jobs:
                     exit 0
                   fi
 
-                  TARGET_VERSION="${ROLLING_VERSION:-$VERSION}"
+                  TARGET_VERSION="$VERSION"
 
                   unfeature_others () {
                     local PROJECT_ID="$1"
