@@ -164,6 +164,30 @@ namespace RareIcon
     }
 
 
+    /// <summary>Identifies the active onboarding hint the driver wants the UI to render. <c>None</c> hides the panel.</summary>
+    public enum TutorialStepId : byte
+    {
+        None             = 0,
+        OpenBuildPalette = 1,
+        PlaceCapital     = 2,
+        PlaceFarm        = 3,
+        Complete         = 4,
+    }
+
+    /// <summary>Driver → UI handoff for the bottom-right onboarding hint panel. Hotkey may be empty; Text is the localized prompt.</summary>
+    public readonly struct TutorialHintMessage
+    {
+        public readonly TutorialStepId Step;
+        public readonly string Text;
+        public readonly string Hotkey;
+        public TutorialHintMessage(TutorialStepId step, string text, string hotkey)
+        {
+            Step = step;
+            Text = text;
+            Hotkey = hotkey;
+        }
+    }
+
     /// <summary>"Player clicked a building hex" — Building Inspector panel target.</summary>
     public readonly struct BuildingInspectMessage
     {
