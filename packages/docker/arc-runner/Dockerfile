@@ -50,7 +50,10 @@ RUN set -eux; \
         xz-utils \
         ca-certificates \
         curl \
-        gnupg; \
+        gnupg \
+        rsync \
+        build-essential \
+        pkg-config; \
     install -m 0755 -d /etc/apt/keyrings; \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg; \

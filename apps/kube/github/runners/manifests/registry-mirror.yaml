@@ -1,0 +1,156 @@
+# Docker Hub pull-through cache for arc-runner-set DinD sidecars.
+#
+# Why: dind-storage cannot live on Longhorn RWX (NFS share-manager) —
+# overlayfs returns EINVAL on NFS lower dirs. Switching dind-storage to
+# emptyDir means each cold pod re-pulls ~5GB of unityci/editor from
+# Docker Hub. This in-cluster registry:2 in proxy mode caches Hub layers
+# on a Longhorn RWO PVC so subsequent pulls are LAN speed and Hub anon
+# rate limits aren't hit on every scale-up.
+#
+# Wiring: dockerd args in values.yaml add
+#   --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000
+#   --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000
+# Mirror only proxies Docker Hub. ghcr.io / quay.io etc bypass mirror.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: registry-mirror-data
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 200Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-config
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror
+        app.kubernetes.io/part-of: arc-runner-set
+data:
+    config.yml: |
+        version: 0.1
+        log:
+          level: info
+          fields:
+            service: registry
+        storage:
+          filesystem:
+            rootdirectory: /var/lib/registry
+          cache:
+            blobdescriptor: inmemory
+          delete:
+            enabled: true
+        http:
+          addr: :5000
+          headers:
+            X-Content-Type-Options: [nosniff]
+        proxy:
+          remoteurl: https://registry-1.docker.io
+          # Hub creds bypass anon 100/6h pull cap. Wire later via
+          # ExternalSecret if rate-limit hit; for now anon is fine
+          # because cached layers don't re-fetch from upstream.
+          # username: ""
+          # password: ""
+        health:
+          storagedriver:
+            enabled: true
+            interval: 10s
+            threshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: registry-mirror
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    replicas: 1
+    strategy:
+        # RWO PVC + single replica: Recreate avoids the rolling-update
+        # deadlock where the new pod can't attach the volume the old
+        # pod still holds.
+        type: Recreate
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: registry-mirror
+                app.kubernetes.io/part-of: arc-runner-set
+        spec:
+            containers:
+                - name: registry
+                  image: registry:2.8.3
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: 5000
+                  env:
+                      - name: REGISTRY_HTTP_ADDR
+                        value: ':5000'
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/docker/registry
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/registry
+                  resources:
+                      limits:
+                          cpu: '2'
+                          memory: 2Gi
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+            volumes:
+                - name: config
+                  configMap:
+                      name: registry-mirror-config
+                      items:
+                          - key: config.yml
+                            path: config.yml
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: registry-mirror-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: registry-mirror
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    type: ClusterIP
+    selector:
+        app.kubernetes.io/name: registry-mirror
+    ports:
+        - name: http
+          port: 5000
+          targetPort: http
+          protocol: TCP
