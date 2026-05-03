@@ -46,7 +46,7 @@ namespace RareIcon
 
         void BuildPanel()
         {
-            _root = new VisualElement().ApplyPanelChrome(padV: 8, padH: 12);
+            _root = new VisualElement().ApplyFantasyChrome(padV: 10, padH: 14);
             _root.style.flexDirection = FlexDirection.Column;
             _root.style.alignItems = Align.FlexEnd;
             _root.style.maxWidth = 280;
