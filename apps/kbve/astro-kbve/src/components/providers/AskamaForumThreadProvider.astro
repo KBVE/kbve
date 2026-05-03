@@ -316,6 +316,19 @@
 	import { initSupa, getSupa } from '@/lib/supa';
 	import { addToast } from '@kbve/droid';
 
+	// prettier-plugin-astro keeps reformatting <textarea ... /> back
+	// into <textarea>...\n  </textarea>, which means the textarea's
+	// initial value is leading whitespace and the cursor opens
+	// indented. Force-clear every textarea on load.
+	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+		'.thread-compose__textarea, .forum-mod-dialog__textarea',
+	)) {
+		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+			t.value = '';
+			t.defaultValue = '';
+		}
+	}
+
 	// Initial-letter fallback for the author avatar slot. The askama
 	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
 	// When the URL is non-empty we swap the letter for an `<img>`; otherwise

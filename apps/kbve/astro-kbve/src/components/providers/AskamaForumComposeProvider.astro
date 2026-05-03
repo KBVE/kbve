@@ -129,6 +129,18 @@ const spaces = await getForumSpaces();
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
 
+	// prettier-plugin-astro keeps reformatting <textarea ... /> into
+	// <textarea>...\n  </textarea>, leaving leading whitespace as the
+	// initial value. Force-clear on load.
+	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+		'.compose-form__field textarea',
+	)) {
+		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+			t.value = '';
+			t.defaultValue = '';
+		}
+	}
+
 	const form = document.getElementById(
 		'compose-form',
 	) as HTMLFormElement | null;
