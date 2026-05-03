@@ -108,15 +108,35 @@ namespace RareIcon
             worldPos.z = -0.7f;
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
-            ushort startingShield = unitType == UnitType.Knight ? EquipmentMap.IRON_SHIELD_ITEM : (ushort)0;
-            byte shieldSlot = EquipmentMap.ShieldVisualFor(startingShield);
+
+            ushort startShield = 0, startWeapon = 0, startHelmet = 0, startArmor = 0;
+            if (unitType == UnitType.Knight)
+            {
+                startShield = EquipmentMap.IRON_SHIELD_ITEM;
+                startWeapon = EquipmentMap.IRON_SWORD_ITEM;
+                startArmor  = EquipmentMap.IRON_ARMOR_ITEM;
+            }
+
+            byte shieldSlot = EquipmentMap.ShieldVisualFor(startShield);
+            byte weaponByte = startWeapon == 0 ? def.DefaultWeapon : EquipmentMap.WeaponVisualFor(startWeapon);
+            byte helmetByte = EquipmentMap.HelmetVisualFor(startHelmet);
+            byte armorByte  = EquipmentMap.ArmorVisualFor(startArmor);
+
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
-                Weapon = def.DefaultWeapon,
+                Weapon = weaponByte,
+                Helmet = helmetByte,
                 Shield = shieldSlot,
+                Armor  = armorByte,
             });
-            em.AddComponentData(entity, new Equipment { ShieldItemId = startingShield });
+            em.AddComponentData(entity, new Equipment
+            {
+                ShieldItemId = startShield,
+                WeaponItemId = startWeapon,
+                HelmetItemId = startHelmet,
+                ArmorItemId  = startArmor,
+            });
 
             if (def.MaxHealth > 0)
             {
@@ -140,8 +160,9 @@ namespace RareIcon
             }
 
             em.AddComponentData(entity, new UnitVisual        { Value = (float)def.UnitType });
-            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)weaponByte });
             em.AddComponentData(entity, new UnitShieldVisual  { Value = (float)shieldSlot });
+            em.AddComponentData(entity, new UnitArmorVisual   { Value = (float)armorByte });
             em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
             em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f });
 

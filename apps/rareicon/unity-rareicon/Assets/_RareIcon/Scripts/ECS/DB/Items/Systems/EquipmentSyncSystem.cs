@@ -3,7 +3,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Couples a unit's <see cref="Equipment"/> slot to its <see cref="Unit.Shield"/> byte and pulls the best shield in its pack into the equip slot. Runs every <see cref="PollInterval"/> seconds; the pack scan is cheap (≤ 8 slots/unit) and only entities with Equipment + Unit + PackSlot match. <see cref="EquipmentVisualMirrorSystem"/> writes the visual from the Unit byte, so both spawn-baked and equipped shields share one render path.</summary>
+    /// <summary>Couples a unit's <see cref="Equipment"/> slots (shield/weapon/helmet/armor) to its <see cref="Unit"/> byte fields, and pulls the highest-tier matching item out of the unit's pack into each empty / lower-tier slot. Runs every <see cref="PollInterval"/> seconds — pack ≤ 8 slots per unit, 4 slots scanned, so the per-tick cost stays trivial. Equipment is the source of truth; the pack copy is consumed on auto-equip. <see cref="EquipmentVisualMirrorSystem"/> turns the Unit bytes into MaterialProperty floats, so this system is the only writer of Unit equipment bytes.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class EquipmentSyncSystem : SystemBase
@@ -38,46 +38,65 @@ namespace RareIcon
                 var equipment = em.GetComponentData<Equipment>(entity);
                 var pack      = em.GetBuffer<PackSlot>(entity);
 
-                int currentTier = EquipmentMap.ShieldTier(equipment.ShieldItemId);
-                int bestSlot    = -1;
-                int bestTier    = currentTier;
+                bool changed = false;
+                changed |= AutoEquip(ref pack, ref equipment.ShieldItemId, EquipmentSlot.Shield);
+                changed |= AutoEquip(ref pack, ref equipment.WeaponItemId, EquipmentSlot.Weapon);
+                changed |= AutoEquip(ref pack, ref equipment.HelmetItemId, EquipmentSlot.Helmet);
+                changed |= AutoEquip(ref pack, ref equipment.ArmorItemId,  EquipmentSlot.Armor);
 
-                for (int s = 0; s < pack.Length; s++)
-                {
-                    var slot = pack[s];
-                    if (slot.Count == 0) continue;
-                    int tier = EquipmentMap.ShieldTier(slot.ItemId);
-                    if (tier > bestTier)
-                    {
-                        bestTier = tier;
-                        bestSlot = s;
-                    }
-                }
+                if (changed) em.SetComponentData(entity, equipment);
 
-                if (bestSlot >= 0)
-                {
-                    var slot = pack[bestSlot];
-                    equipment.ShieldItemId = slot.ItemId;
-                    if (slot.Count > 1)
-                    {
-                        slot.Count--;
-                        pack[bestSlot] = slot;
-                    }
-                    else
-                    {
-                        pack.RemoveAt(bestSlot);
-                    }
-                    em.SetComponentData(entity, equipment);
-                }
-
-                byte targetByte = EquipmentMap.ShieldVisualFor(equipment.ShieldItemId);
                 var unit = em.GetComponentData<Unit>(entity);
-                if (unit.Shield != targetByte)
+                byte shieldByte = EquipmentMap.ShieldVisualFor(equipment.ShieldItemId);
+                byte weaponByte = EquipmentMap.WeaponVisualFor(equipment.WeaponItemId);
+                byte helmetByte = EquipmentMap.HelmetVisualFor(equipment.HelmetItemId);
+                byte armorByte  = EquipmentMap.ArmorVisualFor (equipment.ArmorItemId);
+
+                bool unitDirty = false;
+                if (shieldByte != 0 && unit.Shield != shieldByte) { unit.Shield = shieldByte; unitDirty = true; }
+                else if (shieldByte == 0 && unit.Shield != 0 && equipment.ShieldItemId == 0) { unit.Shield = 0; unitDirty = true; }
+
+                if (weaponByte != 0 && unit.Weapon != weaponByte) { unit.Weapon = weaponByte; unitDirty = true; }
+                if (helmetByte != 0 && unit.Helmet != helmetByte) { unit.Helmet = helmetByte; unitDirty = true; }
+                if (armorByte  != 0 && unit.Armor  != armorByte ) { unit.Armor  = armorByte;  unitDirty = true; }
+
+                if (unitDirty) em.SetComponentData(entity, unit);
+            }
+        }
+
+        static bool AutoEquip(ref DynamicBuffer<PackSlot> pack, ref ushort current, EquipmentSlot slot)
+        {
+            int currentTier = EquipmentMap.Tier(current);
+            int bestSlot = -1;
+            int bestTier = currentTier;
+
+            for (int s = 0; s < pack.Length; s++)
+            {
+                var entry = pack[s];
+                if (entry.Count == 0) continue;
+                if (EquipmentMap.SlotFor(entry.ItemId) != slot) continue;
+                int tier = EquipmentMap.Tier(entry.ItemId);
+                if (tier > bestTier)
                 {
-                    unit.Shield = targetByte;
-                    em.SetComponentData(entity, unit);
+                    bestTier = tier;
+                    bestSlot = s;
                 }
             }
+
+            if (bestSlot < 0) return false;
+
+            var picked = pack[bestSlot];
+            current = picked.ItemId;
+            if (picked.Count > 1)
+            {
+                picked.Count--;
+                pack[bestSlot] = picked;
+            }
+            else
+            {
+                pack.RemoveAt(bestSlot);
+            }
+            return true;
         }
     }
 }

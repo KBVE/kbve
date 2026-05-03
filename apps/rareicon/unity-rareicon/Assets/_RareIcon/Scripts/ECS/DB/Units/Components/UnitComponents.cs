@@ -154,6 +154,7 @@ namespace RareIcon
         [Unity.NetCode.GhostField] public byte Weapon;
         [Unity.NetCode.GhostField] public byte Helmet;
         [Unity.NetCode.GhostField] public byte Shield;
+        [Unity.NetCode.GhostField] public byte Armor;
     }
 
     /// <summary>Weapon IDs — each maps to one HexX.hlsl draw function.</summary>
@@ -162,7 +163,9 @@ namespace RareIcon
         public const byte None     = 0;
         public const byte Club     = 1;
         public const byte Crossbow = 2;
-        // Sword, Bow, Spear, Staff, etc. land here as we add their .hlsl files.
+        public const byte Sword    = 3;
+        public const byte Wand     = 4;
+        public const byte Bow      = 5;
     }
 
     /// <summary>
@@ -173,9 +176,21 @@ namespace RareIcon
     /// </summary>
     public static class HelmetType
     {
-        public const byte None = 0;
-        public const byte Cap  = 1;
-        // Horned, Hood, Bascinet, etc. land here as we add their variants.
+        public const byte None     = 0;
+        public const byte Cap      = 1;
+        public const byte Hood     = 2;
+        public const byte Bascinet = 3;
+    }
+
+    /// <summary>Body-armor IDs — per-instance equipment slot tinted over the body in HexUnit.shader. 0 = no armor (body sprite renders bare). Visual differentiation for non-zero values uses a tint pass; per-armor sprite shapes can land later.</summary>
+    public static class ArmorType
+    {
+        public const byte None      = 0;
+        public const byte Leather   = 1;
+        public const byte ChainMail = 2;
+        public const byte Iron      = 3;
+        public const byte Crystal   = 4;
+        public const byte Plate     = 5;
     }
 
     /// <summary>
@@ -221,6 +236,13 @@ namespace RareIcon
     /// </summary>
     [MaterialProperty("_UnitShield")]
     public struct UnitShieldVisual : IComponentData
+    {
+        public float Value;
+    }
+
+    /// <summary>Per-instance MaterialProperty for body armor. 0 = bare body, otherwise <see cref="ArmorType"/>.* constant. Reserved for the upcoming HexUnit.shader armor-tint pass; system pipeline writes the value already so visuals follow once the shader pass lands.</summary>
+    [MaterialProperty("_UnitArmor")]
+    public struct UnitArmorVisual : IComponentData
     {
         public float Value;
     }

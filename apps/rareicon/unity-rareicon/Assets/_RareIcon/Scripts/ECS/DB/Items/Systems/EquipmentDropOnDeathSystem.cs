@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Drops a dying unit's equipped shield as ground loot on its current hex so passersby (any faction's pickup loop) can claim it. Faction-agnostic — Knight, Bandit, even Goblin, all dump their shield. Companion to <see cref="EnemyLootDropSystem"/>; that one handles UnitType-specific corpse drops, this one handles the unit's actual carried equipment.</summary>
+    /// <summary>Drops every equipped item (shield, weapon, helmet, armor) onto the dying unit's hex so passersby of any faction can claim them. Faction-agnostic — Knight, Bandit, even a freshly slain Goblin sheds its full kit. Sister to <see cref="EnemyLootDropSystem"/>; that one drops UnitType-specific corpse loot, this one mirrors the unit's actual carried equipment.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
@@ -49,14 +49,20 @@ namespace RareIcon
                      in UnitMovement movement,
                      ref Equipment equipment)
         {
-            if (equipment.ShieldItemId == 0) return;
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
             if (!DropLookup.HasBuffer(hex)) return;
 
-            Ecb.AppendToBuffer(chunkIdx, hex,
-                new ItemDrop { ItemId = equipment.ShieldItemId, Count = 1 });
+            DropOne(ref equipment.ShieldItemId, hex, chunkIdx);
+            DropOne(ref equipment.WeaponItemId, hex, chunkIdx);
+            DropOne(ref equipment.HelmetItemId, hex, chunkIdx);
+            DropOne(ref equipment.ArmorItemId,  hex, chunkIdx);
+        }
 
-            equipment.ShieldItemId = 0;
+        void DropOne(ref ushort slot, Entity hex, int chunkIdx)
+        {
+            if (slot == 0) return;
+            Ecb.AppendToBuffer(chunkIdx, hex, new ItemDrop { ItemId = slot, Count = 1 });
+            slot = 0;
         }
     }
 }
