@@ -311,6 +311,7 @@ fn router(state: AppState) -> Router {
             "/api/v1/forum/c/{comment_id}/moderate",
             axum::routing::patch(api_staff_edit_comment),
         )
+        .route("/api/v1/me", get(api_me))
         .route("/api/v1/me/staff", get(api_me_staff))
         .route("/api/v1/forum/spaces", get(api_list_spaces))
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
@@ -2953,9 +2954,37 @@ async fn api_remove_comment(
     }
 }
 
-/// GET /api/v1/me/staff — Bearer-authed staff probe. Returns
-/// `{is_staff: bool, user_id: <uuid>}`. The client uses this to
-/// decide whether to render the mod buttons on comment rows.
+/// GET /api/v1/me — Bearer-authed identity probe. Returns
+/// `{user_id, username, is_staff}`. Used by the compose page to
+/// gate the form (signed-in + has-username before submit) and by
+/// any client surface that needs to mirror user state.
+async fn api_me(headers: HeaderMap) -> Response {
+    let user_id = match auth_user_id(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let username = match get_profile_service() {
+        Some(svc) => svc.get_username_by_id(&user_id).await.unwrap_or_else(|e| {
+            tracing::warn!("api_me username lookup failed: {}", e);
+            None
+        }),
+        None => None,
+    };
+    let is_staff = match get_forum_service() {
+        Some(svc) => svc.is_staff(&user_id).await.unwrap_or(false),
+        None => false,
+    };
+    (
+        StatusCode::OK,
+        Json(json!({
+            "user_id": user_id,
+            "username": username,
+            "is_staff": is_staff,
+        })),
+    )
+        .into_response()
+}
+
 async fn api_me_staff(headers: HeaderMap) -> Response {
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
