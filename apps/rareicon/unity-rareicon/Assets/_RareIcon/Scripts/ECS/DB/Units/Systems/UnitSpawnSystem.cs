@@ -54,25 +54,27 @@ namespace RareIcon
             try
             {
 
-            SpawnKingAt(EntityManager, new int2(0, 0));
+            int2 anchor = FindNearestLandHex(int2.zero);
 
-            SpawnGuardGoblinAt(EntityManager, new int2( 1,  0), 0xA110C8u);
-            SpawnGuardGoblinAt(EntityManager, new int2(-1,  0), 0xB22199u);
-            SpawnGuardGoblinAt(EntityManager, new int2( 0,  1), 0xC332AAu);
-            SpawnGuardGoblinAt(EntityManager, new int2( 0, -1), 0xD443BBu);
+            SpawnKingAt(EntityManager, anchor);
 
-            SpawnHeroAt(EntityManager, new int2( 2,  0), 0x1001A1u, HeroRole.MasterBlacksmith);
-            SpawnHeroAt(EntityManager, new int2(-2,  0), 0x1002B2u, HeroRole.MasterCraftsman);
-            SpawnGoblinAt(EntityManager, new int2( 0,  2), 0x1003C3u, default, FactionType.Player, UnitType.Soldier);
-            SpawnGoblinAt(EntityManager, new int2( 0, -2), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
-            SpawnGoblinAt(EntityManager, new int2( 2, -2), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
-            SpawnGoblinAt(EntityManager, new int2(-2,  2), 0x1006F6u, default, FactionType.Player, UnitType.Mage);
+            SpawnGuardGoblinAt(EntityManager, NearestLand(anchor + new int2( 1,  0)), 0xA110C8u);
+            SpawnGuardGoblinAt(EntityManager, NearestLand(anchor + new int2(-1,  0)), 0xB22199u);
+            SpawnGuardGoblinAt(EntityManager, NearestLand(anchor + new int2( 0,  1)), 0xC332AAu);
+            SpawnGuardGoblinAt(EntityManager, NearestLand(anchor + new int2( 0, -1)), 0xD443BBu);
 
-            SpawnArcherSoldierAt(EntityManager, new int2( 3,  0), 0x2001A1u);
-            SpawnArcherSoldierAt(EntityManager, new int2(-3,  0), 0x2002B2u);
-            SpawnArcherSoldierAt(EntityManager, new int2( 0,  3), 0x2003C3u);
-            SpawnArcherSoldierAt(EntityManager, new int2( 0, -3), 0x2004D4u);
-            SpawnArcherSoldierAt(EntityManager, new int2( 3, -3), 0x2005E5u);
+            SpawnHeroAt(EntityManager, NearestLand(anchor + new int2( 2,  0)), 0x1001A1u, HeroRole.MasterBlacksmith);
+            SpawnHeroAt(EntityManager, NearestLand(anchor + new int2(-2,  0)), 0x1002B2u, HeroRole.MasterCraftsman);
+            SpawnGoblinAt(EntityManager, NearestLand(anchor + new int2( 0,  2)), 0x1003C3u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, NearestLand(anchor + new int2( 0, -2)), 0x1004D4u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, NearestLand(anchor + new int2( 2, -2)), 0x1005E5u, default, FactionType.Player, UnitType.Soldier);
+            SpawnGoblinAt(EntityManager, NearestLand(anchor + new int2(-2,  2)), 0x1006F6u, default, FactionType.Player, UnitType.Mage);
+
+            SpawnArcherSoldierAt(EntityManager, NearestLand(anchor + new int2( 3,  0)), 0x2001A1u);
+            SpawnArcherSoldierAt(EntityManager, NearestLand(anchor + new int2(-3,  0)), 0x2002B2u);
+            SpawnArcherSoldierAt(EntityManager, NearestLand(anchor + new int2( 0,  3)), 0x2003C3u);
+            SpawnArcherSoldierAt(EntityManager, NearestLand(anchor + new int2( 0, -3)), 0x2004D4u);
+            SpawnArcherSoldierAt(EntityManager, NearestLand(anchor + new int2( 3, -3)), 0x2005E5u);
 
             for (int i = 0; i < GoblinCount; i++)
             {
@@ -81,7 +83,9 @@ namespace RareIcon
                 int q = (int)(h % (uint)span) - SpawnRadius;
                 int r = (int)((h >> 16) % (uint)span) - SpawnRadius;
                 uint rng = h * 0xC2B2AE3Du ^ ((uint)i * 0x27D4EB2Fu);
-                SpawnGoblinAt(EntityManager, new int2(q, r), rng);
+                int2 candidate = anchor + new int2(q, r);
+                if (!IsLandHex(candidate)) continue;
+                SpawnGoblinAt(EntityManager, candidate, rng);
             }
 
             }
@@ -1569,6 +1573,36 @@ namespace RareIcon
             };
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        bool IsLandHex(int2 hex)
+        {
+            if (!HexHoverSystem.TryGetHexEntity(hex, out var hexEntity)) return false;
+            if (!EntityManager.HasComponent<BiomeType>(hexEntity)) return false;
+            byte biome = EntityManager.GetComponentData<BiomeType>(hexEntity).Value;
+            return biome != BiomeGenerator.BIOME_OCEAN && biome != BiomeGenerator.BIOME_RIVER;
+        }
+
+        int2 NearestLand(int2 hex)
+        {
+            if (IsLandHex(hex)) return hex;
+            return FindNearestLandHex(hex);
+        }
+
+        int2 FindNearestLandHex(int2 origin)
+        {
+            if (IsLandHex(origin)) return origin;
+            for (int radius = 1; radius <= 64; radius++)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    if (math.abs(dx) != radius && math.abs(dy) != radius) continue;
+                    int2 candidate = new int2(origin.x + dx, origin.y + dy);
+                    if (IsLandHex(candidate)) return candidate;
+                }
+            }
+            return origin;
         }
     }
 }

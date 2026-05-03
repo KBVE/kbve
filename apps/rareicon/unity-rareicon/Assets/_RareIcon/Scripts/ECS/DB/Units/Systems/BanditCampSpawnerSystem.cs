@@ -72,14 +72,11 @@ namespace RareIcon
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
             var prefab      = SystemAPI.GetSingleton<BuildingPrefabSingleton>().Prefab;
 
-            _rng = XorShift(_rng);
-            float angle = (_rng & 0xFFFFu) / 65535f * math.PI * 2f;
-            _rng = XorShift(_rng);
-            int radius = PlacementRing + (int)(_rng % (uint)PlacementJitter);
-
-            int2 campHex = new int2(
-                capitalHex.x + (int)math.round(math.cos(angle) * radius),
-                capitalHex.y + (int)math.round(math.sin(angle) * radius));
+            if (!TryFindLandPlacement(capitalHex, out int2 campHex))
+            {
+                _spawnCheckTimer = 5f;
+                return;
+            }
 
             float3 pos = HexMeshUtil.HexToWorld(campHex.x, campHex.y, HexSize);
             pos.z = BuildingZ;
@@ -185,6 +182,32 @@ namespace RareIcon
                 catch { return; }
             }
             _toastPub?.Publish(new ToastMessage(text, kind));
+        }
+
+        bool TryFindLandPlacement(int2 capitalHex, out int2 hex)
+        {
+            const int MaxAttempts = 16;
+            for (int i = 0; i < MaxAttempts; i++)
+            {
+                _rng = XorShift(_rng);
+                float angle = (_rng & 0xFFFFu) / 65535f * math.PI * 2f;
+                _rng = XorShift(_rng);
+                int radius = PlacementRing + (int)(_rng % (uint)PlacementJitter);
+
+                int2 candidate = new int2(
+                    capitalHex.x + (int)math.round(math.cos(angle) * radius),
+                    capitalHex.y + (int)math.round(math.sin(angle) * radius));
+
+                if (!HexHoverSystem.TryGetHexEntity(candidate, out var hexEntity)) continue;
+                if (!EntityManager.HasComponent<BiomeType>(hexEntity)) continue;
+                byte biome = EntityManager.GetComponentData<BiomeType>(hexEntity).Value;
+                if (biome == BiomeGenerator.BIOME_OCEAN || biome == BiomeGenerator.BIOME_RIVER) continue;
+
+                hex = candidate;
+                return true;
+            }
+            hex = default;
+            return false;
         }
 
         static uint XorShift(uint s)
