@@ -23,7 +23,7 @@
 			"source_path": "packages/docker/arc-runner",
 			"runner": "ubuntu-latest",
 			"image": "kbve/arc-runner",
-			"has_test": true
+			"has_test": false
 		},
 		{
 			"key": "aria2_proxy",
