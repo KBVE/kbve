@@ -54,12 +54,18 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
-            - name: Install dbmate
+            - name: Install dbmate + psql client
               run: |
+                  # ARC runners ship without postgresql-client. apt-get
+                  # under -e (the workflow's default) so a transient
+                  # apt mirror failure aborts the job loud.
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends postgresql-client
                   curl -fsSL -o /usr/local/bin/dbmate \
                       https://github.com/amacneil/dbmate/releases/download/v2.28.0/dbmate-linux-amd64
                   chmod +x /usr/local/bin/dbmate
                   dbmate --version
+                  psql --version
 
             - name: Seed init scripts (roles + auth/n8n/profile stubs)
               working-directory: packages/data/sql/dbmate
