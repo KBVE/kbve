@@ -38,19 +38,19 @@
 
                         <ui:VisualElement class="title-info-grid">
                             <ui:VisualElement class="title-info-card">
-                                <ui:Label class="title-info-card__label" text="LATEST" />
-                                <ui:Label class="title-info-card__value" text="Demo build" />
-                                <ui:Label class="title-info-card__sub"   text="v0.1.x · pre-alpha" />
+                                <ui:Label class="title-info-card__label" text="QUICK PLAY" />
+                                <ui:Label class="title-info-card__value" text="Single Player" />
+                                <ui:Label class="title-info-card__sub"   text="Local session" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="title-info-card">
-                                <ui:Label class="title-info-card__label" text="STEAM" />
-                                <ui:Label class="title-info-card__value" text="App 2238370" />
-                                <ui:Label class="title-info-card__sub"   text="demo branch" />
+                            <ui:VisualElement class="title-info-card title-info-card--disabled">
+                                <ui:Label class="title-info-card__label" text="LOBBY" />
+                                <ui:Label class="title-info-card__value" text="Multiplayer" />
+                                <ui:Label class="title-info-card__sub"   text="Coming soon" />
                             </ui:VisualElement>
-                            <ui:VisualElement class="title-info-card">
-                                <ui:Label class="title-info-card__label" text="COMMUNITY" />
-                                <ui:Label class="title-info-card__value" text="Discord" />
-                                <ui:Label class="title-info-card__sub"   text="kbve.com/discord/" />
+                            <ui:VisualElement class="title-info-card title-info-card--disabled">
+                                <ui:Label class="title-info-card__label" text="MODS" />
+                                <ui:Label class="title-info-card__value" text="Modifications" />
+                                <ui:Label class="title-info-card__sub"   text="Coming soon" />
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>

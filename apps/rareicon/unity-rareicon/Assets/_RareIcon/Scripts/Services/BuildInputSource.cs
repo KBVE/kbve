@@ -12,14 +12,17 @@ namespace RareIcon
     {
         readonly BuildModeController _buildMode;
         readonly AppStateController _appState;
+        readonly UIBuildingPalette _palette;
 
         [Inject]
         public BuildInputSource(
             BuildModeController buildMode,
-            AppStateController appState)
+            AppStateController appState,
+            UIBuildingPalette palette)
         {
             _buildMode = buildMode;
             _appState = appState;
+            _palette = palette;
         }
 
          public void Tick()
@@ -37,7 +40,7 @@ namespace RareIcon
 
             if (kb.bKey.wasPressedThisFrame)
             {
-                ToggleSelectedBuildTarget();
+                _palette.Toggle();
             }
         }
 
@@ -68,19 +71,6 @@ namespace RareIcon
         {
            if (_buildMode.IsActive)
                 _buildMode.Exit();
-        }
-
-        void ToggleSelectedBuildTarget()
-        {
-            var target = ResolveBuildTarget();
-            if (target != BuildTarget.None)
-                _buildMode.Toggle(target);
-        }
-
-        static byte ResolveBuildTarget()
-        {
-            // v1: single hotkey target. TODO: Expand later into palette / hotbar / current selection lookup.
-            return BuildTarget.Capital;
         }
 
         public void Dispose() { }

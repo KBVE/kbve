@@ -390,6 +390,20 @@
     border-color: var(--color-text-strong);
     translate: 0 -2px;
 }
+.title-info-card--disabled {
+    opacity: 0.45;
+    -unity-background-image-tint-color: rgba(140, 140, 140, 1);
+}
+.title-info-card--disabled:hover {
+    background-color: transparent;
+    border-color: var(--color-border);
+    translate: 0 0;
+}
+.title-info-card--disabled .title-info-card__label,
+.title-info-card--disabled .title-info-card__value,
+.title-info-card--disabled .title-info-card__sub {
+    color: rgba(180, 180, 180, 0.7);
+}
 .title-info-card__label {
     font-size: 7px;
     letter-spacing: 1.5px;

@@ -61,16 +61,18 @@ namespace RareIcon
                 _locale.HasUserPickedLocale ? TitleStage.Info : TitleStage.Locale);
         }
 
-        /// <summary>Move from the AoE-style menu (Info stage) into the single-player launch flow (Seed → Generating). Skips the Locale stage entirely — language is committed once on first boot via the standalone Language picker.</summary>
+        /// <summary>Move into the single-player launch flow (Seed → Generating) from any pre-generation stage. Lets the player pivot from Continue / Locale back to a fresh single-player run without bouncing through Back. No-op once world generation is already in flight.</summary>
         public void BeginSinglePlayer()
         {
-            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Seed;
+            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
+            _stage.Value = TitleStage.Seed;
         }
 
-        /// <summary>Open the Continue / Load Save stage from the menu. Lists existing slots; clicking one routes through <see cref="LoadSlot"/>.</summary>
+        /// <summary>Open the Continue / Load Save stage. Accepts any pre-generation stage so toggling Continue from inside Seed / Locale works without first stepping back to the menu.</summary>
         public void BeginLoadFlow()
         {
-            if (_stage.Value == TitleStage.Info) _stage.Value = TitleStage.Load;
+            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
+            _stage.Value = TitleStage.Load;
         }
 
         /// <summary>Drop back to the AoE-style menu from the Load stage.</summary>
