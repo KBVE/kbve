@@ -57,7 +57,7 @@ namespace RareIcon
         LobsterSoup = 48,  // lobster-soup
         Butter = 49,  // butter
         Beer = 50,  // beer
-        VampirieBloodChampagne = 51,  // vampirie-blood-champagne
+        VampireBloodChampagne = 51,  // vampire-blood-champagne
         VampireBloodGelato = 52,  // vampire-blood-gelato
         PunkSkateboard = 53,  // punk-skateboard
         SurferLongboard = 54,  // surfer-longboard

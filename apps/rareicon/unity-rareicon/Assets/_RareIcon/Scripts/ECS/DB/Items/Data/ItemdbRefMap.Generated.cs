@@ -61,7 +61,7 @@ namespace RareIcon
             { "lobster-soup", ItemId.LobsterSoup },
             { "butter", ItemId.Butter },
             { "beer", ItemId.Beer },
-            { "vampirie-blood-champagne", ItemId.VampirieBloodChampagne },
+            { "vampire-blood-champagne", ItemId.VampireBloodChampagne },
             { "vampire-blood-gelato", ItemId.VampireBloodGelato },
             { "punk-skateboard", ItemId.PunkSkateboard },
             { "surfer-longboard", ItemId.SurferLongboard },
