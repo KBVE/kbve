@@ -61,8 +61,16 @@ namespace RareIcon
                 _locale.HasUserPickedLocale ? TitleStage.Info : TitleStage.Locale);
         }
 
-        /// <summary>Move into the single-player launch flow (Seed → Generating) from any pre-generation stage. Lets the player pivot from Continue / Locale back to a fresh single-player run without bouncing through Back. No-op once world generation is already in flight.</summary>
+        /// <summary>Quick-play single-player launch — rolls a fresh random seed and advances straight into generation, skipping the manual Seed picker. Players who want a specific seed take <see cref="BeginCustomSeed"/>. No-op once generation is already in flight.</summary>
         public void BeginSinglePlayer()
+        {
+            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
+            Randomize();
+            BeginGeneration();
+        }
+
+        /// <summary>Open the manual Seed picker for players who want to type a specific seed before generation. Same gate as <see cref="BeginSinglePlayer"/>; routed from a separate menu entry so the default Single Player path stays one-click quick-play.</summary>
+        public void BeginCustomSeed()
         {
             if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
             _stage.Value = TitleStage.Seed;
