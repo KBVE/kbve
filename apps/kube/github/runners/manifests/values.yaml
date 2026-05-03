@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260502-dind-match-ue'
+            kbve.com/restart-trigger: '20260502-dind-emptydir-mirror'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -97,9 +97,15 @@ template:
               # Lift dind's own nofile + propagate via dockerd's
               # --default-ulimit so every container the runner spawns
               # (game-ci/unity-builder) inherits the higher cap.
+              #
+              # /var/lib/docker is now emptyDir (per-pod ephemeral) because
+              # Longhorn RWX (NFS share-manager) breaks overlayfs with
+              # EINVAL. Image layers are cached upstream by the in-cluster
+              # registry-mirror.arc-runners.svc proxy of Docker Hub, so
+              # cold pods pull from LAN instead of hitting Hub each time.
               command: ['sh', '-c']
               args:
-                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576'
+                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000 --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000'
               securityContext:
                   privileged: true
               resources:
@@ -127,9 +133,12 @@ template:
               emptyDir: {}
             - name: dind-externals
               emptyDir: {}
+            # Per-pod ephemeral /var/lib/docker. Longhorn RWX (NFS) cannot
+            # back overlayfs lower dirs (EINVAL). Cold pulls hit the
+            # in-cluster Docker Hub mirror at registry-mirror:5000.
             - name: dind-storage
-              persistentVolumeClaim:
-                  claimName: arc-dind-cache
+              emptyDir:
+                  sizeLimit: 100Gi
             - name: runner-cache
               persistentVolumeClaim:
                   claimName: arc-runner-cache-sdb
