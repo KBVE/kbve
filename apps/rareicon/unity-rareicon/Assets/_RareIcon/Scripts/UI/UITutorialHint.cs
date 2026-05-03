@@ -127,7 +127,19 @@ namespace RareIcon
                 _hotkey.text = msg.Hotkey;
                 _hotkey.style.display = DisplayStyle.Flex;
             }
+            ApplyTone(msg.Tone);
             SetVisible(true);
+        }
+
+        void ApplyTone(TutorialHintTone tone)
+        {
+            var border = tone == TutorialHintTone.Crisis
+                ? UIStyles.Palette.Alert
+                : UIStyles.Palette.BorderGold;
+            _root.style.BorderColor(border);
+            _prompt.style.color = tone == TutorialHintTone.Crisis
+                ? UIStyles.Palette.Alert
+                : UIStyles.Palette.TextStrong;
         }
 
         void SetVisible(bool visible)
