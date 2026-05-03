@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-04-30T06:38:13.149Z
+ * Generated: 2026-05-03T09:19:32.684Z
  */
 
 import { z } from 'zod';
@@ -114,6 +114,7 @@ export const MovementTypes = [
 	'random_wander',
 	'patrol',
 	'scripted',
+	'aggressive',
 ] as const;
 
 export type MovementTypeValue = (typeof MovementTypes)[number];

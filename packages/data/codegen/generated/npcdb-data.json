@@ -2128,7 +2128,7 @@
 				"armor": 3
 			},
 			"behavior": {
-				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"movementType": "MOVEMENT_TYPE_PATROL",
 				"firstStrike": false
 			},
 			"flavorText": [
