@@ -4468,8 +4468,7 @@
                 },
                 "production": {
                   "tags": [
-                    "ghcr.io/kbve/arc-runner:latest",
-                    "ghcr.io/kbve/arc-runner:0.1.0"
+                    "ghcr.io/kbve/arc-runner:latest"
                   ],
                   "push": true,
                   "metadata": {
@@ -7276,6 +7275,27 @@
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-itemdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:npcdb": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/npcdb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-npcdb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/npcdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/npcdb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/npcdb-data.binpb",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.json",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.binpb"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-npcdb-data.mjs",
                 "cwd": ""
               },
               "cache": true,
