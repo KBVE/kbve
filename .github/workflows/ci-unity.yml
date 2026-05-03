@@ -144,6 +144,7 @@ jobs:
         timeout-minutes: 60
         permissions:
             contents: read
+            checks: write
         steps:
             - name: Install git-lfs
               run: |
@@ -213,7 +214,7 @@ jobs:
               with:
                   name: ${{ inputs.app_name }}-test-results
                   path: ${{ inputs.project_path }}/test-results
-                  retention-days: 7
+                  retention-days: 3
 
             - name: Save Unity Library to PVC
               if: always()
