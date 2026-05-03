@@ -404,6 +404,19 @@
 .title-info-card--disabled .title-info-card__sub {
     color: rgba(180, 180, 180, 0.7);
 }
+.title-info-card--clickable {
+    cursor: link;
+    border-color: var(--color-accent-deep);
+}
+.title-info-card--clickable:hover {
+    background-color: rgba(252, 211, 77, 0.12);
+    border-color: var(--color-text-strong);
+    translate: 0 -3px;
+}
+.title-info-card--clickable:active {
+    translate: 0 -1px;
+    background-color: rgba(252, 211, 77, 0.20);
+}
 .title-info-card__label {
     font-size: 7px;
     letter-spacing: 1.5px;

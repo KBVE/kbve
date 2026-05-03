@@ -37,10 +37,10 @@
                         <ui:Label class="title-stage__hint" text="A 2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps." />
 
                         <ui:VisualElement class="title-info-grid">
-                            <ui:VisualElement class="title-info-card">
+                            <ui:VisualElement name="title-info-quickplay" class="title-info-card title-info-card--clickable" picking-mode="Position">
                                 <ui:Label class="title-info-card__label" text="QUICK PLAY" />
                                 <ui:Label class="title-info-card__value" text="Single Player" />
-                                <ui:Label class="title-info-card__sub"   text="Local session" />
+                                <ui:Label class="title-info-card__sub"   text="Random seed · jump in" />
                             </ui:VisualElement>
                             <ui:VisualElement class="title-info-card title-info-card--disabled">
                                 <ui:Label class="title-info-card__label" text="LOBBY" />

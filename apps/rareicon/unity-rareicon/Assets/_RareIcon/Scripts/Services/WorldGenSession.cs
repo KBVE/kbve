@@ -61,19 +61,19 @@ namespace RareIcon
                 _locale.HasUserPickedLocale ? TitleStage.Info : TitleStage.Locale);
         }
 
-        /// <summary>Quick-play single-player launch — rolls a fresh random seed and advances straight into generation, skipping the manual Seed picker. Players who want a specific seed take <see cref="BeginCustomSeed"/>. No-op once generation is already in flight.</summary>
+        /// <summary>Single-player launch flow — opens the Seed picker so the player can review / type a custom seed before world generation. Accepts any pre-generation stage so toggling from Continue / Locale works without a Back step. No-op once generation is already in flight.</summary>
         public void BeginSinglePlayer()
+        {
+            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
+            _stage.Value = TitleStage.Seed;
+        }
+
+        /// <summary>Quick-play one-click launch — rolls a random seed and routes straight into generation, skipping the Seed picker. Wired from the Welcome stage's QUICK PLAY card so the very first click after the title screen drops the player into a fresh run.</summary>
+        public void BeginQuickPlay()
         {
             if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
             Randomize();
             BeginGeneration();
-        }
-
-        /// <summary>Open the manual Seed picker for players who want to type a specific seed before generation. Same gate as <see cref="BeginSinglePlayer"/>; routed from a separate menu entry so the default Single Player path stays one-click quick-play.</summary>
-        public void BeginCustomSeed()
-        {
-            if (_stage.Value == TitleStage.Generating || _stage.Value == TitleStage.Ready) return;
-            _stage.Value = TitleStage.Seed;
         }
 
         /// <summary>Open the Continue / Load Save stage. Accepts any pre-generation stage so toggling Continue from inside Seed / Locale works without first stepping back to the menu.</summary>
