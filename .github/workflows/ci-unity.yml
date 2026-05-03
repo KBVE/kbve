@@ -137,9 +137,102 @@ jobs:
             - id: set
               run: echo "matrix=$(echo '${{ inputs.build_targets }}' | jq -c .)" >> "$GITHUB_OUTPUT"
 
+    test:
+        name: Unity EditMode Tests
+        needs: [version_gate]
+        runs-on: arc-runner-set
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            - name: Install git-lfs
+              run: |
+                  if command -v git-lfs >/dev/null 2>&1; then
+                    git-lfs version
+                  else
+                    apt-get update -qq
+                    apt-get install -y -qq --no-install-recommends git-lfs
+                    git-lfs version
+                  fi
+
+            - name: Configure Forgejo LFS credentials
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+
+            - name: Checkout monorepo (no LFS smudge)
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
+
+            - name: Pull LFS objects (rareicon scope only)
+              run: |
+                  LFS_CACHE="/home/runner/_cache/lfs/${GITHUB_REPOSITORY//\//_}"
+                  mkdir -p "$LFS_CACHE"
+                  git config --local lfs.storage "$LFS_CACHE"
+                  git lfs install --local
+                  git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
+
+            - name: Seed Unity Library from PVC
+              run: |
+                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-test"
+                  LIB_DIR="${{ inputs.project_path }}/Library"
+                  mkdir -p "$CACHE_DIR" "$LIB_DIR"
+                  if command -v rsync >/dev/null 2>&1; then
+                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
+                  else
+                      apt-get update -qq && apt-get install -y -qq --no-install-recommends rsync
+                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
+                  fi
+
+            - name: Run Unity EditMode tests
+              uses: game-ci/unity-test-runner@v4
+              env:
+                  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+                  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+                  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+                  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+              with:
+                  projectPath: ${{ inputs.project_path }}
+                  unityVersion: ${{ inputs.engine_version }}
+                  testMode: EditMode
+                  githubToken: ${{ secrets.GITHUB_TOKEN }}
+                  artifactsPath: ${{ inputs.project_path }}/test-results
+
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-test-results
+                  path: ${{ inputs.project_path }}/test-results
+                  retention-days: 7
+
+            - name: Save Unity Library to PVC
+              if: always()
+              run: |
+                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-test"
+                  LIB_DIR="${{ inputs.project_path }}/Library"
+                  if [ ! -d "$LIB_DIR" ]; then
+                      exit 0
+                  fi
+                  mkdir -p "$CACHE_DIR"
+                  rsync -a --delete "$LIB_DIR"/ "$CACHE_DIR"/
+
+            - name: Wipe Forgejo netrc
+              if: always()
+              run: rm -f "$HOME/.netrc"
+
     build:
         name: Build ${{ matrix.target }}
-        needs: [build_matrix]
+        needs: [build_matrix, test]
         runs-on: arc-runner-set
         timeout-minutes: 180
         permissions:
@@ -432,6 +525,7 @@ jobs:
                 queue_guard,
                 version_gate,
                 build_matrix,
+                test,
                 build,
                 deploy_itch,
                 deploy_steam,
@@ -456,6 +550,7 @@ jobs:
                 queue_guard,
                 version_gate,
                 build_matrix,
+                test,
                 build,
                 deploy_itch,
                 deploy_steam,
