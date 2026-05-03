@@ -126,7 +126,10 @@
 			"abilities": [
 				{ "id": "attack", "name": "Heavy Club", "damage": 5 }
 			],
-			"faction": { "factionId": "hostile" }
+			"faction": { "factionId": "hostile" },
+			"equipment": {
+				"equipped": [{ "slot": "EQUIP_SLOT_HEAD", "itemRef": "hood" }]
+			}
 		},
 		{
 			"description": "A skeletal figure that draws a creaking bow with trembling, bony fingers.\n",
@@ -2128,7 +2131,17 @@
 			"abilities": [
 				{ "id": "attack", "name": "Crossbow Volley", "damage": 10 }
 			],
-			"faction": { "factionId": "player" }
+			"faction": { "factionId": "player" },
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "gold-plated-shield"
+					},
+					{ "slot": "EQUIP_SLOT_MAIN_HAND", "itemRef": "iron-sword" },
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "iron-armor" }
+				]
+			}
 		},
 		{
 			"description": "Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.\n",
@@ -2171,7 +2184,14 @@
 			"abilities": [
 				{ "id": "attack", "name": "Steel Cleave", "damage": 8 }
 			],
-			"faction": { "factionId": "player" }
+			"faction": { "factionId": "player" },
+			"equipment": {
+				"equipped": [
+					{ "slot": "EQUIP_SLOT_OFF_HAND", "itemRef": "iron-shield" },
+					{ "slot": "EQUIP_SLOT_MAIN_HAND", "itemRef": "iron-sword" },
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "iron-armor" }
+				]
+			}
 		},
 		{
 			"description": "Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.\n",
@@ -3068,7 +3088,20 @@
 			"abilities": [
 				{ "id": "attack", "name": "Sword Strike", "damage": 6 }
 			],
-			"faction": { "factionId": "player" }
+			"faction": { "factionId": "player" },
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "wooden-shield"
+					},
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "rusty-sword"
+					},
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "chain-mail" }
+				]
+			}
 		},
 		{
 			"description": "A massive stone construct that defends its territory with unwavering determination and crushing force.\n",

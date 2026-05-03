@@ -1,2 +1,21 @@
-# CODEOWENERS file
-.github/ @h0lybyte
+# CODEOWNERS — last-matching pattern wins. Pair with branch
+# protection ("Require review from Code Owners") on main.
+#
+# Goal: block merge of high-risk diffs without a maintainer review,
+# without blanketing every PR.
+
+# CI / workflows / actions
+.github/                                  @h0lybyte
+
+# Database schema source of truth + migration files. Pairs with the
+# kilobase-prod GitHub Environment gate so we get review-time AND
+# deploy-time approval on every schema change.
+packages/data/sql/schema/                 @h0lybyte
+packages/data/sql/dbmate/migrations/      @h0lybyte
+
+# Kubernetes infra around the DB + credential plumbing. Mistakes
+# here are hard to roll back.
+apps/kube/kilobase/                       @h0lybyte
+apps/kube/cnpg/                           @h0lybyte
+apps/kube/external-secrets/               @h0lybyte
+apps/kube/sealed-secrets/                 @h0lybyte

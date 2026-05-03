@@ -1,0 +1,113 @@
+# =============================================================================
+# CI: dbmate-deploy
+#
+# Two-stage prod deploy. ARC runner orchestrates; the actual dbmate
+# binary runs INSIDE the kilobase namespace as a Kubernetes Job
+# (apps/kube/kilobase/manifests/dbmate-runner-job.yaml). The Job
+# uses Postgres advisory locking so concurrent runs queue rather
+# than collide, and the schema_migrations UNIQUE on version means
+# re-applying an already-applied migration is a no-op.
+#
+# Stage 1 (status): read-only preview Job. Always runs.
+# Stage 2 (apply): renders the up Job from the template. Gated by
+#   GitHub Environment "kilobase-prod" — set required reviewers on
+#   that environment in repo Settings → Environments before this
+#   workflow can succeed.
+#
+# Pre-req: the validate workflow (ci-dbmate-validate.yml) MUST be
+# green on the same SHA. We assert via a status-check guard.
+# =============================================================================
+name: CI - dbmate deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+            confirm_sha:
+                description: 'Short SHA you want to apply (must match HEAD)'
+                required: true
+
+permissions:
+    contents: read
+
+jobs:
+    guard:
+        name: Pre-flight checks
+        runs-on: arc-runner-set
+        timeout-minutes: 2
+        outputs:
+            sha: ${{ steps.sha.outputs.short }}
+        steps:
+            - uses: actions/checkout@v6
+            - id: sha
+              run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+            - name: Verify operator-supplied SHA matches HEAD
+              run: |
+                  if [ "${{ inputs.confirm_sha }}" != "${{ steps.sha.outputs.short }}" ]; then
+                    echo "::error::SHA mismatch — supplied ${{ inputs.confirm_sha }}, HEAD ${{ steps.sha.outputs.short }}"
+                    exit 1
+                  fi
+
+    status:
+        name: dbmate status (preview)
+        needs: guard
+        runs-on: arc-runner-set
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Build migrations ConfigMap (replace existing)
+              run: |
+                  kubectl -n kilobase create configmap dbmate-migrations \
+                    --from-file=packages/data/sql/dbmate/migrations/ \
+                    --dry-run=client -o yaml | kubectl apply -f -
+
+            - name: Render + run a status Job
+              env:
+                  DBMATE_VERSION_TAG: status-${{ needs.guard.outputs.sha }}-${{ github.run_id }}
+              run: |
+                  envsubst < apps/kube/kilobase/manifests/dbmate-runner-job.yaml \
+                    | sed 's/dbmate up/dbmate status/' \
+                    | sed 's/dbmate-up-/dbmate-status-/' \
+                    | kubectl apply -f -
+
+            - name: Stream Job logs until completion
+              env:
+                  DBMATE_VERSION_TAG: status-${{ needs.guard.outputs.sha }}-${{ github.run_id }}
+              run: |
+                  kubectl -n kilobase wait --for=condition=complete \
+                    --timeout=300s job/dbmate-status-$DBMATE_VERSION_TAG
+                  kubectl -n kilobase logs job/dbmate-status-$DBMATE_VERSION_TAG
+
+    apply:
+        name: dbmate up (apply)
+        needs: [guard, status]
+        runs-on: arc-runner-set
+        environment:
+            name: kilobase-prod
+            url: https://kbve.com/forum/
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Render + run the up Job
+              env:
+                  DBMATE_VERSION_TAG: ${{ needs.guard.outputs.sha }}-${{ github.run_id }}
+              run: |
+                  envsubst < apps/kube/kilobase/manifests/dbmate-runner-job.yaml \
+                    | kubectl apply -f -
+
+            - name: Wait for completion + tail logs
+              env:
+                  DBMATE_VERSION_TAG: ${{ needs.guard.outputs.sha }}-${{ github.run_id }}
+              run: |
+                  set +e
+                  kubectl -n kilobase wait --for=condition=complete \
+                    --timeout=600s job/dbmate-up-$DBMATE_VERSION_TAG
+                  RC=$?
+                  echo "----- Job logs -----"
+                  kubectl -n kilobase logs job/dbmate-up-$DBMATE_VERSION_TAG
+                  if [ "$RC" -ne 0 ]; then
+                    echo "----- Job description (failure path) -----"
+                    kubectl -n kilobase describe job/dbmate-up-$DBMATE_VERSION_TAG
+                    exit $RC
+                  fi

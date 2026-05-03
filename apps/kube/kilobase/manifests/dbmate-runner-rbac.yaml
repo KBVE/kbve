@@ -1,0 +1,48 @@
+---
+# dbmate-runner — minimal-permission ServiceAccount that the dbmate
+# Job runs as. Scoped to kilobase namespace; can read its own
+# migrations ConfigMap + the dbmate-creds SealedSecret. NOTHING ELSE.
+#
+# Pairs with apps/kube/kilobase/manifests/dbmate-runner-job.yaml
+# and the .github/workflows/ci-dbmate-* workflows.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: dbmate-runner
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: dbmate-runner
+        app.kubernetes.io/component: schema-migrations
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: dbmate-runner
+    namespace: kilobase
+rules:
+    # Read the migrations ConfigMap that the workflow generated.
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get', 'list']
+      resourceNames:
+          - dbmate-migrations
+    # Read the SealedSecret-decrypted DATABASE_URL secret.
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get']
+      resourceNames:
+          - dbmate-creds
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: dbmate-runner
+    namespace: kilobase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: dbmate-runner
+subjects:
+    - kind: ServiceAccount
+      name: dbmate-runner
+      namespace: kilobase
