@@ -433,7 +433,11 @@ jobs:
                   git commit -m "chore(${{ inputs.app_name }}): post-publish sync to v${{ inputs.manifest_version }}" || exit 0
                   git push origin "$BRANCH"
                   gh pr create --title "chore(${{ inputs.app_name }}): post-publish sync v${{ inputs.manifest_version }}" \
-                    --body "Auto-generated post-publish sync." --base main --head "$BRANCH"
+                    --body "Auto-generated post-publish sync." \
+                    --base dev --head "$BRANCH" \
+                    --label "atomic,auto-pr"
+                  PR_NUM=$(gh pr view "$BRANCH" --json number --jq '.number')
+                  gh workflow run ci-auto-merge-bot-prs.yml --field pr_number="${PR_NUM}" --repo ${{ github.repository }} || true
 
     track_failure:
         name: Track Failures
