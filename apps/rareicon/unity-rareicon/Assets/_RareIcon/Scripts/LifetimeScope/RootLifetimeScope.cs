@@ -27,6 +27,7 @@ namespace RareIcon
             builder.RegisterMessageBroker<HexClickedMessage>(options);
             builder.RegisterMessageBroker<EnterTileMessage>(options);
             builder.RegisterMessageBroker<ToastMessage>(options);
+            builder.RegisterMessageBroker<TutorialHintMessage>(options);
 
             builder.RegisterMessageBroker<BuildingInspectMessage>(options);
             builder.RegisterMessageBroker<LandmarkInspectMessage>(options);
@@ -167,6 +168,9 @@ namespace RareIcon
 
             // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
+
+            builder.RegisterEntryPoint<TutorialDriverService>().AsSelf();
+            builder.RegisterEntryPoint<UITutorialHint>().AsSelf();
 
             // -- Pause indicator (top-right overlay + F9 debug toggle) --
             builder.RegisterEntryPoint<PauseIndicator>().AsSelf();

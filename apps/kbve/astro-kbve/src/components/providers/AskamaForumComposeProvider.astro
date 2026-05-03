@@ -31,6 +31,25 @@ const spaces = await getForumSpaces();
 			</p>
 		</header>
 
+		<div id="compose-gate" class="compose-gate" hidden>
+			<h2 class="compose-gate__title">Almost there</h2>
+			<p
+				class="compose-gate__lede"
+				data-anon-text="Sign in to start a thread."
+				data-no-username-text="You're signed in but need a username before posting.">
+				Sign in to start a thread.
+			</p>
+			<div class="compose-gate__actions">
+				<a
+					id="compose-gate-signin"
+					class="compose-gate__btn compose-gate__btn--primary"
+					href="/profile">
+					Sign in
+				</a>
+				<a class="compose-gate__btn" href="/forum/">Back to forum</a>
+			</div>
+		</div>
+
 		<form
 			id="compose-form"
 			class="compose-form"
@@ -110,6 +129,18 @@ const spaces = await getForumSpaces();
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
 
+	// prettier-plugin-astro keeps reformatting <textarea ... /> into
+	// <textarea>...\n  </textarea>, leaving leading whitespace as the
+	// initial value. Force-clear on load.
+	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+		'.compose-form__field textarea',
+	)) {
+		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+			t.value = '';
+			t.defaultValue = '';
+		}
+	}
+
 	const form = document.getElementById(
 		'compose-form',
 	) as HTMLFormElement | null;
@@ -130,6 +161,65 @@ const spaces = await getForumSpaces();
 		);
 		if (match) spaceSelect.value = defaultSpace;
 	}
+
+	// Eligibility gate: hide the form for anon visitors and for
+	// signed-in users without a username. The submit RPC enforces
+	// the same rules server-side, but failing client-side avoids
+	// the "fill out a long body, hit post, get rejected" flow.
+	(async () => {
+		const gate = document.getElementById('compose-gate');
+		const gateLede = gate?.querySelector<HTMLElement>(
+			'.compose-gate__lede',
+		);
+		const signin = document.getElementById(
+			'compose-gate-signin',
+		) as HTMLAnchorElement | null;
+		if (!gate || !form) return;
+
+		const showGate = (mode: 'anon' | 'no-username') => {
+			form.hidden = true;
+			gate.hidden = false;
+			if (gateLede) {
+				gateLede.textContent =
+					mode === 'anon'
+						? (gateLede.dataset.anonText ?? '')
+						: (gateLede.dataset.noUsernameText ?? '');
+			}
+			if (signin) {
+				signin.textContent =
+					mode === 'anon' ? 'Sign in' : 'Set username';
+				signin.href = '/profile';
+			}
+		};
+
+		try {
+			await initSupa();
+		} catch {
+			showGate('anon');
+			return;
+		}
+		const supa = getSupa();
+		const sessionResult = await supa.getSession().catch(() => null);
+		const session = sessionResult?.session ?? null;
+		if (!session?.access_token) {
+			showGate('anon');
+			return;
+		}
+
+		try {
+			const res = await fetch('/api/v1/me', {
+				headers: { Authorization: `Bearer ${session.access_token}` },
+			});
+			if (!res.ok) throw new Error(`me ${res.status}`);
+			const data = (await res.json()) as { username?: string | null };
+			if (!data.username) {
+				showGate('no-username');
+				return;
+			}
+		} catch (err) {
+			console.warn('compose: /api/v1/me probe failed', err);
+		}
+	})();
 
 	function setStatus(kind: 'idle' | 'busy' | 'error' | 'ok', msg = '') {
 		if (!status) return;
@@ -240,12 +330,17 @@ const spaces = await getForumSpaces();
 		background: var(--forum-bg-card);
 		border: 1px solid var(--forum-border);
 		border-radius: var(--forum-radius);
-		padding: 1.75rem 1.75rem 1.5rem;
+		padding: 2rem 2.5rem 1.75rem;
+	}
+	@media (max-width: 640px) {
+		.compose-card {
+			padding: 1.5rem 1.5rem 1.25rem;
+		}
 	}
 	.compose-card__header {
 		display: grid;
-		gap: 0.4rem;
-		margin-bottom: 1.5rem;
+		gap: 0.5rem;
+		margin-bottom: 1.75rem;
 	}
 	.compose-card__title {
 		font-size: clamp(1.5rem, 2.6vw, 2rem);
@@ -362,5 +457,52 @@ const spaces = await getForumSpaces();
 	}
 	.compose-form__status[data-kind='ok'] {
 		color: #34d399;
+	}
+
+	.compose-gate {
+		display: grid;
+		gap: 0.85rem;
+		padding: 1.5rem 1.5rem 1.75rem;
+		background: var(--forum-bg-soft);
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius);
+	}
+	.compose-gate__title {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 600;
+	}
+	.compose-gate__lede {
+		margin: 0;
+		color: var(--forum-muted);
+		font-size: 0.9375rem;
+	}
+	.compose-gate__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.compose-gate__btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5rem 1.1rem;
+		border: 1px solid var(--forum-border);
+		border-radius: var(--forum-radius-sm);
+		color: var(--forum-text);
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 500;
+		transition: border-color 0.12s ease;
+	}
+	.compose-gate__btn:hover {
+		border-color: var(--forum-accent);
+	}
+	.compose-gate__btn--primary {
+		background: var(--forum-accent);
+		color: #fff;
+		border-color: var(--forum-accent);
+	}
+	.compose-gate__btn--primary:hover {
+		filter: brightness(1.1);
 	}
 </style>

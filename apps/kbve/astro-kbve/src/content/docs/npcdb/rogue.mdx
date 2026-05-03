@@ -1,0 +1,43 @@
+---
+title: 'Rogue'
+description: |
+    Player melee skirmisher. Dual-dagger, dark cloak, face scarf. Fast and high-attack but glassy — picks off stragglers, dies fast in line combat.
+ref: 'rogue'
+id: '01KSAVZ000000000000000ROGE'
+name: 'Rogue'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'cunning'
+rank: 'normal'
+family: 'humanoid'
+level: 3
+stats:
+    hp: 45
+    max_hp: 45
+    attack: 9
+    defense: 1
+    speed: 6
+    armor: 0
+behavior:
+    movement_type: 'aggressive'
+    first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The rogue slips behind {target} — twin daggers flash! {dmg} damage!"
+        - "{target} catches a blade between the ribs — {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The rogue staggers, cloak settling over the still form."
+abilities:
+    - id: 'attack'
+      name: 'Twin Strike'
+      damage: 9
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Fast, high-attack, low HP. Skirmisher class.

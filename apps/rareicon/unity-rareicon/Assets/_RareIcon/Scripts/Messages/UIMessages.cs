@@ -164,6 +164,45 @@ namespace RareIcon
     }
 
 
+    /// <summary>Identifies the active hint the driver wants the bottom-right panel to render. <c>None</c> hides. Ranges: 1–9 onboarding chain (sequential), 10–49 ambient management hints, 50+ crisis hints (override chain + ambient).</summary>
+    public enum TutorialStepId : byte
+    {
+        None             = 0,
+        OpenBuildPalette = 1,
+        PlaceCapital     = 2,
+        PlaceFarm        = 3,
+        Complete         = 4,
+
+        BuildBarracks    = 10,
+        RecruitSoldier   = 11,
+
+        CapitalLowHP     = 50,
+        RaidIncoming     = 51,
+    }
+
+    /// <summary>Tone hint for the panel (drives accent color). Crisis hints flip border to alert.</summary>
+    public enum TutorialHintTone : byte
+    {
+        Info   = 0,
+        Crisis = 1,
+    }
+
+    /// <summary>Driver → UI handoff for the bottom-right hint panel. Hotkey may be empty; Text is the prompt; Tone drives accent.</summary>
+    public readonly struct TutorialHintMessage
+    {
+        public readonly TutorialStepId Step;
+        public readonly string Text;
+        public readonly string Hotkey;
+        public readonly TutorialHintTone Tone;
+        public TutorialHintMessage(TutorialStepId step, string text, string hotkey, TutorialHintTone tone = TutorialHintTone.Info)
+        {
+            Step = step;
+            Text = text;
+            Hotkey = hotkey;
+            Tone = tone;
+        }
+    }
+
     /// <summary>"Player clicked a building hex" — Building Inspector panel target.</summary>
     public readonly struct BuildingInspectMessage
     {

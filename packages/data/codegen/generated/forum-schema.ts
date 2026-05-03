@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/forum.binpb
  * Config: ../forum-zod-config.json
- * Generated: 2026-04-30T06:38:13.167Z
+ * Generated: 2026-05-03T09:31:28.489Z
  */
 
 import { z } from 'zod';
@@ -66,13 +66,21 @@ export type SpaceStatusValue = (typeof SpaceStatuses)[number];
 
 export const SpaceStatusSchema = z.enum(SpaceStatuses);
 
-export const TagStatuses = ['active', 'deprecated', 'merged'] as const;
+export const TagStatuses = [
+	'active',
+	'deprecated',
+	'merged',
+] as const;
 
 export type TagStatusValue = (typeof TagStatuses)[number];
 
 export const TagStatusSchema = z.enum(TagStatuses);
 
-export const VoteDirections = ['up', 'down', 'cleared'] as const;
+export const VoteDirections = [
+	'up',
+	'down',
+	'cleared',
+] as const;
 
 export type VoteDirectionValue = (typeof VoteDirections)[number];
 
@@ -158,7 +166,11 @@ export type NotificationKindValue = (typeof NotificationKinds)[number];
 
 export const NotificationKindSchema = z.enum(NotificationKinds);
 
-export const FollowTargetKinds = ['user', 'space', 'tag'] as const;
+export const FollowTargetKinds = [
+	'user',
+	'space',
+	'tag',
+] as const;
 
 export type FollowTargetKindValue = (typeof FollowTargetKinds)[number];
 
@@ -188,505 +200,496 @@ export type AttachmentKindValue = (typeof AttachmentKinds)[number];
 
 export const AttachmentKindSchema = z.enum(AttachmentKinds);
 
-export const LfgStatuses = ['open', 'full', 'started', 'cancelled'] as const;
+export const LfgStatuses = [
+	'open',
+	'full',
+	'started',
+	'cancelled',
+] as const;
 
 export type LfgStatusValue = (typeof LfgStatuses)[number];
 
 export const LfgStatusSchema = z.enum(LfgStatuses);
 
 // DiscussionData
-export const DiscussionDataSchema = z.object({});
+export const DiscussionDataSchema = z
+	.object({
+	});
 
 export type DiscussionData = z.infer<typeof DiscussionDataSchema>;
 
 // QuestionData
-export const QuestionDataSchema = z.object({});
+export const QuestionDataSchema = z
+	.object({
+	});
 
 export type QuestionData = z.infer<typeof QuestionDataSchema>;
 
 // AnnouncementData
-export const AnnouncementDataSchema = z.object({
-	expires_at: z.string().datetime().optional(),
-});
+export const AnnouncementDataSchema = z
+	.object({
+		expires_at: z.string().datetime().optional(),
+	});
 
 export type AnnouncementData = z.infer<typeof AnnouncementDataSchema>;
 
 // MarketplaceData
-export const MarketplaceDataSchema = z.object({
-	item_name: z.string().min(1).max(200),
-	item_description: z.string().max(2000).optional(),
-	price: z.number().int().min(0),
-	currency: z.string().min(1).max(32),
-	condition: z.string().max(50).optional(),
-	buyer_id: z.string().uuid().optional(),
-	image_attachment_ids: z.array(z.string().min(1)).default([]),
-	shipping_region: z.string().max(50).optional(),
-	offers_accepted: z.boolean(),
-	trade_accepted: z.boolean(),
-	payment_ref: z.string().max(200).optional(),
-	expires_at: z.string().datetime().optional(),
-});
+export const MarketplaceDataSchema = z
+	.object({
+		item_name: z.string().min(1).max(200),
+		item_description: z.string().max(2000).optional(),
+		price: z.number().int().min(0),
+		currency: z.string().min(1).max(32),
+		condition: z.string().max(50).optional(),
+		buyer_id: z.string().uuid().optional(),
+		image_attachment_ids: z.array(z.string().min(1)).default([]),
+		shipping_region: z.string().max(50).optional(),
+		offers_accepted: z.boolean(),
+		trade_accepted: z.boolean(),
+		payment_ref: z.string().max(200).optional(),
+		expires_at: z.string().datetime().optional(),
+	});
 
 export type MarketplaceData = z.infer<typeof MarketplaceDataSchema>;
 
 // AuctionData
-export const AuctionDataSchema = z.object({
-	item_name: z.string().min(1).max(200),
-	item_description: z.string().max(2000).optional(),
-	start_price: z.number().int().min(0),
-	current_bid: z.number().int().min(0).default(0),
-	current_bidder_id: z.string().uuid().optional(),
-	currency: z.string().min(1).max(32),
-	end_time: z.string().datetime(),
-	bid_count: z.number().int().min(0).default(0),
-	min_increment: z.number().int().min(0).default(1),
-	reserve_price: z.number().int().min(0).optional(),
-	anti_snipe_enabled: z.boolean(),
-	anti_snipe_extend_seconds: z.number().int().min(0).default(0),
-	image_attachment_ids: z.array(z.string().min(1)).default([]),
-});
+export const AuctionDataSchema = z
+	.object({
+		item_name: z.string().min(1).max(200),
+		item_description: z.string().max(2000).optional(),
+		start_price: z.number().int().min(0),
+		current_bid: z.number().int().min(0).default(0),
+		current_bidder_id: z.string().uuid().optional(),
+		currency: z.string().min(1).max(32),
+		end_time: z.string().datetime(),
+		bid_count: z.number().int().min(0).default(0),
+		min_increment: z.number().int().min(0).default(1),
+		reserve_price: z.number().int().min(0).optional(),
+		anti_snipe_enabled: z.boolean(),
+		anti_snipe_extend_seconds: z.number().int().min(0).default(0),
+		image_attachment_ids: z.array(z.string().min(1)).default([]),
+	});
 
 export type AuctionData = z.infer<typeof AuctionDataSchema>;
 
 // PollData
-export const PollDataSchema = z.object({
-	options: z.array(z.string().min(1).max(200)).min(2).max(20),
-	votes: z.array(z.number().int().min(0)).default([]),
-	multiple_choice: z.boolean().default(false),
-	end_time: z.string().datetime().optional(),
-	anonymous: z.boolean().default(false),
-	max_choices: z.number().int().min(0).default(0),
-});
+export const PollDataSchema = z
+	.object({
+		options: z.array(z.string().min(1).max(200)).min(2).max(20),
+		votes: z.array(z.number().int().min(0)).default([]),
+		multiple_choice: z.boolean().default(false),
+		end_time: z.string().datetime().optional(),
+		anonymous: z.boolean().default(false),
+		max_choices: z.number().int().min(0).default(0),
+	});
 
 export type PollData = z.infer<typeof PollDataSchema>;
 
 // LfgData
-export const LfgDataSchema = z.object({
-	game: z.string().min(1).max(100),
-	slots_total: z.number().int().min(1).max(100),
-	slots_filled: z.number().int().min(0).default(0),
-	requirements: z.string().max(1000).optional(),
-	scheduled_time: z.string().datetime().optional(),
-	platforms: z.array(z.string().min(1).max(32)).default([]),
-	voice_required: z.boolean(),
-	leader_id: z.string().uuid().optional(),
-	lfg_status: LfgStatusSchema,
-	member_user_ids: z.array(z.string().uuid()).default([]),
-});
+export const LfgDataSchema = z
+	.object({
+		game: z.string().min(1).max(100),
+		slots_total: z.number().int().min(1).max(100),
+		slots_filled: z.number().int().min(0).default(0),
+		requirements: z.string().max(1000).optional(),
+		scheduled_time: z.string().datetime().optional(),
+		platforms: z.array(z.string().min(1).max(32)).default([]),
+		voice_required: z.boolean(),
+		leader_id: z.string().uuid().optional(),
+		lfg_status: LfgStatusSchema,
+		member_user_ids: z.array(z.string().uuid()).default([]),
+	});
 
 export type LfgData = z.infer<typeof LfgDataSchema>;
 
 // AssetData
-export const AssetDataSchema = z.object({
-	asset_name: z.string().min(1).max(200),
-	asset_description: z.string().max(2000).optional(),
-	download_url: z.string().url().max(512).optional(),
-	source_url: z.string().url().max(512).optional(),
-	license: z.string().max(64).optional(),
-	version: z.string().max(32).optional(),
-	engine: z.string().max(64).optional(),
-	file_types: z.array(z.string().min(1).max(16)).max(20).default([]),
-	file_size_bytes: z.number().int().min(0).optional(),
-	download_count: z.number().int().min(0).default(0),
-	repo_url: z.string().url().max(512).optional(),
-});
+export const AssetDataSchema = z
+	.object({
+		asset_name: z.string().min(1).max(200),
+		asset_description: z.string().max(2000).optional(),
+		download_url: z.string().url().max(512).optional(),
+		source_url: z.string().url().max(512).optional(),
+		license: z.string().max(64).optional(),
+		version: z.string().max(32).optional(),
+		engine: z.string().max(64).optional(),
+		file_types: z.array(z.string().min(1).max(16)).max(20).default([]),
+		file_size_bytes: z.number().int().min(0).optional(),
+		download_count: z.number().int().min(0).default(0),
+		repo_url: z.string().url().max(512).optional(),
+	});
 
 export type AssetData = z.infer<typeof AssetDataSchema>;
 
 // StatusData
-export const StatusDataSchema = z.object({
-	content_warning: z.string().max(100).optional(),
-});
+export const StatusDataSchema = z
+	.object({
+		content_warning: z.string().max(100).optional(),
+	});
 
 export type StatusData = z.infer<typeof StatusDataSchema>;
 
 // ForumThread
-export const ForumThreadSchema = z.object({
-	id: z.string().min(1),
-	title: z.string().max(300, 'Title must be 300 characters or less'),
-	body: z.string().min(1, 'Body is required'),
-	author_id: z.string().uuid(),
-	space_id: z.string().uuid(),
-	status: ThreadStatusSchema,
-	thread_type: ThreadTypeSchema,
-	type_data: z
-		.union([
-			DiscussionDataSchema,
-			QuestionDataSchema,
-			AnnouncementDataSchema,
-			MarketplaceDataSchema,
-			AuctionDataSchema,
-			PollDataSchema,
-			LfgDataSchema,
-			AssetDataSchema,
-			StatusDataSchema,
-		])
-		.optional(),
-	comment_count: z.number().int().min(0).default(0),
-	view_count: z.number().int().min(0).default(0),
-	slug: z
-		.string()
-		.min(1)
-		.max(300)
-		.regex(/^[a-z0-9][a-z0-9-]*$/)
-		.optional(),
-	pinned: z.boolean().default(false),
-	accepted_comment_id: z.string().min(1).optional(),
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime(),
-	edited_at: z.string().datetime().optional(),
-	score: z.number().int().default(0),
-	upvote_count: z.number().int().min(0).default(0),
-	downvote_count: z.number().int().min(0).default(0),
-	last_activity_at: z.string().datetime(),
-	nsfw: z.boolean().default(false),
-	locked: z.boolean().default(false),
-	locale: z.string().max(10).optional(),
-	cross_posted_from_thread_id: z.string().min(1).optional(),
-	quoted_thread_id: z.string().min(1).optional(),
-	scheduled_at: z.string().datetime().optional(),
-	revision_count: z.number().int().min(0).default(0),
-	attachment_count: z.number().int().min(0).default(0),
-});
+export const ForumThreadSchema = z
+	.object({
+		id: z.string().min(1),
+		title: z.string().max(300, 'Title must be 300 characters or less'),
+		body: z.string().min(1, 'Body is required'),
+		author_id: z.string().uuid(),
+		space_id: z.string().uuid(),
+		status: ThreadStatusSchema,
+		thread_type: ThreadTypeSchema,
+		type_data: z.union([DiscussionDataSchema, QuestionDataSchema, AnnouncementDataSchema, MarketplaceDataSchema, AuctionDataSchema, PollDataSchema, LfgDataSchema, AssetDataSchema, StatusDataSchema]).optional(),
+		comment_count: z.number().int().min(0).default(0),
+		view_count: z.number().int().min(0).default(0),
+		slug: z.string().min(1).max(300).regex(/^[a-z0-9][a-z0-9-]*$/).optional(),
+		pinned: z.boolean().default(false),
+		accepted_comment_id: z.string().min(1).optional(),
+		created_at: z.string().datetime(),
+		updated_at: z.string().datetime(),
+		edited_at: z.string().datetime().optional(),
+		score: z.number().int().default(0),
+		upvote_count: z.number().int().min(0).default(0),
+		downvote_count: z.number().int().min(0).default(0),
+		last_activity_at: z.string().datetime(),
+		nsfw: z.boolean().default(false),
+		locked: z.boolean().default(false),
+		locale: z.string().max(10).optional(),
+		cross_posted_from_thread_id: z.string().min(1).optional(),
+		quoted_thread_id: z.string().min(1).optional(),
+		scheduled_at: z.string().datetime().optional(),
+		revision_count: z.number().int().min(0).default(0),
+		attachment_count: z.number().int().min(0).default(0),
+	});
 
 export type ForumThread = z.infer<typeof ForumThreadSchema>;
 
 // ForumSpace
-export const ForumSpaceSchema = z.object({
-	id: z.string().uuid(),
-	slug: z
-		.string()
-		.min(1)
-		.max(50)
-		.regex(
-			/^[a-z0-9][a-z0-9-]*$/,
-			'Slug must be lowercase alphanumeric with hyphens',
-		),
-	name: z
-		.string()
-		.min(1, 'Space name is required')
-		.max(100, 'Space name must be 100 characters or less'),
-	description: z.string().max(2000).optional(),
-	parent_space_id: z.string().uuid().optional(),
-	rules: z.string().max(5000).optional(),
-	icon_url: z.string().url().max(512).optional(),
-	banner_url: z.string().url().max(512).optional(),
-	status: SpaceStatusSchema,
-	follower_count: z.number().int().min(0).default(0),
-	thread_count: z.number().int().min(0).default(0),
-	allowed_types: z.array(ThreadTypeSchema).default([]),
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime(),
-	sort_order: z.number().int().default(0),
-	nsfw: z.boolean().default(false),
-	flair_config_json: z.string().optional(),
-	moderator_ids: z.array(z.string().uuid()).default([]),
-	active_user_count: z.number().int().min(0).default(0),
-});
+export const ForumSpaceSchema = z
+	.object({
+		id: z.string().uuid(),
+		slug: z.string().min(1).max(50).regex(/^[a-z0-9][a-z0-9-]*$/, 'Slug must be lowercase alphanumeric with hyphens'),
+		name: z.string().min(1, 'Space name is required').max(100, 'Space name must be 100 characters or less'),
+		description: z.string().max(2000).optional(),
+		parent_space_id: z.string().uuid().optional(),
+		rules: z.string().max(5000).optional(),
+		icon_url: z.string().url().max(512).optional(),
+		banner_url: z.string().url().max(512).optional(),
+		status: SpaceStatusSchema,
+		follower_count: z.number().int().min(0).default(0),
+		thread_count: z.number().int().min(0).default(0),
+		allowed_types: z.array(ThreadTypeSchema).default([]),
+		created_at: z.string().datetime(),
+		updated_at: z.string().datetime(),
+		sort_order: z.number().int().default(0),
+		nsfw: z.boolean().default(false),
+		flair_config_json: z.string().optional(),
+		moderator_ids: z.array(z.string().uuid()).default([]),
+		active_user_count: z.number().int().min(0).default(0),
+	});
 
 export type ForumSpace = z.infer<typeof ForumSpaceSchema>;
 
 // ForumTag
-export const ForumTagSchema = z.object({
-	id: z.number().int().positive(),
-	slug: z
-		.string()
-		.min(1)
-		.max(50)
-		.regex(
-			/^[a-z0-9][a-z0-9-]*$/,
-			'Tag slug must be lowercase alphanumeric with hyphens',
-		),
-	name: z
-		.string()
-		.min(1, 'Tag name is required')
-		.max(50, 'Tag name must be 50 characters or less'),
-	description: z.string().max(500).optional(),
-	status: TagStatusSchema,
-	alias_of: z.number().int().positive().optional(),
-	canonical_id: z.number().int().positive(),
-	usage_count: z.number().int().min(0).default(0),
-	created_by: z.string().uuid(),
-	created_at: z.string().datetime(),
-	parent_tag_ids: z.array(z.number().int().positive()).default([]),
-	color: z
-		.string()
-		.regex(/^#[0-9a-fA-F]{6}$/)
-		.optional(),
-	icon_ref: z.string().max(100).optional(),
-});
+export const ForumTagSchema = z
+	.object({
+		id: z.number().int().positive(),
+		slug: z.string().min(1).max(50).regex(/^[a-z0-9][a-z0-9-]*$/, 'Tag slug must be lowercase alphanumeric with hyphens'),
+		name: z.string().min(1, 'Tag name is required').max(50, 'Tag name must be 50 characters or less'),
+		description: z.string().max(500).optional(),
+		status: TagStatusSchema,
+		alias_of: z.number().int().positive().optional(),
+		canonical_id: z.number().int().positive(),
+		usage_count: z.number().int().min(0).default(0),
+		created_by: z.string().uuid(),
+		created_at: z.string().datetime(),
+		parent_tag_ids: z.array(z.number().int().positive()).default([]),
+		color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+		icon_ref: z.string().max(100).optional(),
+	});
 
 export type ForumTag = z.infer<typeof ForumTagSchema>;
 
 // ForumUserProfile
-export const ForumUserProfileSchema = z.object({
-	user_id: z.string().uuid(),
-	karma: z.number(),
-	post_count: z.number(),
-	comment_count: z.number(),
-	upvotes_given: z.number(),
-	downvotes_given: z.number(),
-	upvotes_received: z.number(),
-	downvotes_received: z.number(),
-	signature: z
-		.string()
-		.max(500, 'Signature must be 500 characters or less')
-		.optional(),
-	flair_id: z.number().optional(),
-	flair_text: z.string().optional(),
-	rank_id: z.number().optional(),
-	badge_ids: z.array(z.number()).optional(),
-	joined_forum_at: z.string().datetime(),
-	last_active_at: z.string().datetime().optional(),
-	trust_level: z.number().int().min(0).max(5).default(0),
-	mute_all_notifications: z.boolean(),
-	show_nsfw: z.boolean(),
-	is_banned: z.boolean(),
-	ban_reason: z.string().optional(),
-	ban_expires_at: z.string().datetime().optional(),
-});
+export const ForumUserProfileSchema = z
+	.object({
+		user_id: z.string().uuid(),
+		karma: z.number(),
+		post_count: z.number(),
+		comment_count: z.number(),
+		upvotes_given: z.number(),
+		downvotes_given: z.number(),
+		upvotes_received: z.number(),
+		downvotes_received: z.number(),
+		signature: z.string().max(500, 'Signature must be 500 characters or less').optional(),
+		flair_id: z.number().optional(),
+		flair_text: z.string().optional(),
+		rank_id: z.number().optional(),
+		badge_ids: z.array(z.number()).optional(),
+		joined_forum_at: z.string().datetime(),
+		last_active_at: z.string().datetime().optional(),
+		trust_level: z.number().int().min(0).max(5).default(0),
+		mute_all_notifications: z.boolean(),
+		show_nsfw: z.boolean(),
+		is_banned: z.boolean(),
+		ban_reason: z.string().optional(),
+		ban_expires_at: z.string().datetime().optional(),
+	});
 
 export type ForumUserProfile = z.infer<typeof ForumUserProfileSchema>;
 
 // Attachment
-export const AttachmentSchema = z.object({
-	id: z.string().min(1),
-	parent_kind: AttachmentParentKindSchema,
-	parent_id: z.string().min(1),
-	kind: AttachmentKindSchema,
-	url: z.string().url().max(2048),
-	mime_type: z.string().max(128).optional(),
-	size_bytes: z.number().int().min(0).optional(),
-	width: z.number().optional(),
-	height: z.number().optional(),
-	duration_seconds: z.number().optional(),
-	alt_text: z.string().max(500).optional(),
-	title: z.string().max(300).optional(),
-	preview_image_url: z.string().url().max(2048).optional(),
-	language: z.string().max(32).optional(),
-	uploader_id: z.string().uuid(),
-	created_at: z.string().datetime(),
-	sort_order: z.number().int().default(0),
-});
+export const AttachmentSchema = z
+	.object({
+		id: z.string().min(1),
+		parent_kind: AttachmentParentKindSchema,
+		parent_id: z.string().min(1),
+		kind: AttachmentKindSchema,
+		url: z.string().url().max(2048),
+		mime_type: z.string().max(128).optional(),
+		size_bytes: z.number().int().min(0).optional(),
+		width: z.number().optional(),
+		height: z.number().optional(),
+		duration_seconds: z.number().optional(),
+		alt_text: z.string().max(500).optional(),
+		title: z.string().max(300).optional(),
+		preview_image_url: z.string().url().max(2048).optional(),
+		language: z.string().max(32).optional(),
+		uploader_id: z.string().uuid(),
+		created_at: z.string().datetime(),
+		sort_order: z.number().int().default(0),
+	});
 
 export type Attachment = z.infer<typeof AttachmentSchema>;
 
 // ForumComment
-export const ForumCommentSchema = z.object({
-	id: z.string().min(1),
-	body: z
-		.string()
-		.min(1, 'Comment body is required')
-		.max(2000, 'Comment must be 2000 characters or less'),
-	author_id: z.string().uuid(),
-	thread_id: z.string().min(1),
-	parent_comment_id: z.string().min(1).optional(),
-	depth: z.number().int().min(0).max(5),
-	status: CommentStatusSchema,
-	is_accepted: z.boolean().default(false),
-	created_at: z.string().datetime(),
-	edited_at: z.string().datetime().optional(),
-	score: z.number().int().default(0),
-	upvote_count: z.number().int().min(0).default(0),
-	downvote_count: z.number().int().min(0).default(0),
-	quoted_comment_id: z.string().min(1).optional(),
-	revision_count: z.number().int().min(0).default(0),
-	attachment_count: z.number().int().min(0).default(0),
-});
+export const ForumCommentSchema = z
+	.object({
+		id: z.string().min(1),
+		body: z.string().min(1, 'Comment body is required').max(2000, 'Comment must be 2000 characters or less'),
+		author_id: z.string().uuid(),
+		thread_id: z.string().min(1),
+		parent_comment_id: z.string().min(1).optional(),
+		depth: z.number().int().min(0).max(5),
+		status: CommentStatusSchema,
+		is_accepted: z.boolean().default(false),
+		created_at: z.string().datetime(),
+		edited_at: z.string().datetime().optional(),
+		score: z.number().int().default(0),
+		upvote_count: z.number().int().min(0).default(0),
+		downvote_count: z.number().int().min(0).default(0),
+		quoted_comment_id: z.string().min(1).optional(),
+		revision_count: z.number().int().min(0).default(0),
+		attachment_count: z.number().int().min(0).default(0),
+	});
 
 export type ForumComment = z.infer<typeof ForumCommentSchema>;
 
 // ForumAuctionBid
-export const ForumAuctionBidSchema = z.object({
-	id: z.string().min(1),
-	thread_id: z.string().min(1),
-	bidder_id: z.string().uuid(),
-	amount: z.number().int().min(0),
-	currency: z.string(),
-	created_at: z.string().datetime(),
-	retracted: z.boolean(),
-});
+export const ForumAuctionBidSchema = z
+	.object({
+		id: z.string().min(1),
+		thread_id: z.string().min(1),
+		bidder_id: z.string().uuid(),
+		amount: z.number().int().min(0),
+		currency: z.string(),
+		created_at: z.string().datetime(),
+		retracted: z.boolean(),
+	});
 
 export type ForumAuctionBid = z.infer<typeof ForumAuctionBidSchema>;
 
 // ThreadPage
-export const ThreadPageSchema = z.object({
-	thread: ForumThreadSchema.optional(),
-	space: ForumSpaceSchema.optional(),
-	tags: z.array(ForumTagSchema).optional(),
-	author_forum_profile: ForumUserProfileSchema.optional(),
-	attachments: z.array(AttachmentSchema).optional(),
-	comments: z.array(ForumCommentSchema).optional(),
-	comment_page_size: z.number(),
-	next_comment_cursor: z.string().optional(),
-	viewer_vote: VoteDirectionSchema.optional(),
-	viewer_bookmarked: z.boolean(),
-	viewer_subscribed: z.boolean(),
-	recent_bids: z.array(ForumAuctionBidSchema).optional(),
-});
+export const ThreadPageSchema = z
+	.object({
+		thread: ForumThreadSchema.optional(),
+		space: ForumSpaceSchema.optional(),
+		tags: z.array(ForumTagSchema).optional(),
+		author_forum_profile: ForumUserProfileSchema.optional(),
+		attachments: z.array(AttachmentSchema).optional(),
+		comments: z.array(ForumCommentSchema).optional(),
+		comment_page_size: z.number(),
+		next_comment_cursor: z.string().optional(),
+		viewer_vote: VoteDirectionSchema.optional(),
+		viewer_bookmarked: z.boolean(),
+		viewer_subscribed: z.boolean(),
+		recent_bids: z.array(ForumAuctionBidSchema).optional(),
+	});
 
 export type ThreadPage = z.infer<typeof ThreadPageSchema>;
 
 // FeedItem
-export const FeedItemSchema = z.object({
-	thread: ForumThreadSchema.optional(),
-	space: ForumSpaceSchema.optional(),
-	tags: z.array(ForumTagSchema).optional(),
-	author_name: z.string().min(1).max(128),
-	author_avatar_url: z.string().url().max(512).optional(),
-	author_flair_id: z.number().optional(),
-	author_rank_id: z.number().optional(),
-	viewer_vote: VoteDirectionSchema.optional(),
-	viewer_bookmarked: z.boolean(),
-	viewer_subscribed: z.boolean(),
-	attachments: z.array(AttachmentSchema).optional(),
-	reaction_total: z.number(),
-});
+export const FeedItemSchema = z
+	.object({
+		thread: ForumThreadSchema.optional(),
+		space: ForumSpaceSchema.optional(),
+		tags: z.array(ForumTagSchema).optional(),
+		author_name: z.string().min(1).max(128),
+		author_avatar_url: z.string().url().max(512).optional(),
+		author_flair_id: z.number().optional(),
+		author_rank_id: z.number().optional(),
+		viewer_vote: VoteDirectionSchema.optional(),
+		viewer_bookmarked: z.boolean(),
+		viewer_subscribed: z.boolean(),
+		attachments: z.array(AttachmentSchema).optional(),
+		reaction_total: z.number(),
+	});
 
 export type FeedItem = z.infer<typeof FeedItemSchema>;
 
 // SpacePage
-export const SpacePageSchema = z.object({
-	space: ForumSpaceSchema.optional(),
-	threads: z.array(FeedItemSchema).optional(),
-	popular_tags: z.array(ForumTagSchema).optional(),
-	child_spaces: z.array(ForumSpaceSchema).optional(),
-	parent_space: ForumSpaceSchema.optional(),
-	viewer_follows: z.boolean(),
-	viewer_is_moderator: z.boolean(),
-});
+export const SpacePageSchema = z
+	.object({
+		space: ForumSpaceSchema.optional(),
+		threads: z.array(FeedItemSchema).optional(),
+		popular_tags: z.array(ForumTagSchema).optional(),
+		child_spaces: z.array(ForumSpaceSchema).optional(),
+		parent_space: ForumSpaceSchema.optional(),
+		viewer_follows: z.boolean(),
+		viewer_is_moderator: z.boolean(),
+	});
 
 export type SpacePage = z.infer<typeof SpacePageSchema>;
 
 // Notification
-export const NotificationSchema = z.object({
-	id: z.string().min(1),
-	recipient_id: z.string().uuid(),
-	kind: NotificationKindSchema,
-	actor_id: z.string().uuid().optional(),
-	target_kind: AttachmentParentKindSchema.optional(),
-	target_id: z.string().min(1).optional(),
-	body: z.string().max(500).optional(),
-	read_at: z.string().datetime().optional(),
-	created_at: z.string().datetime(),
-});
+export const NotificationSchema = z
+	.object({
+		id: z.string().min(1),
+		recipient_id: z.string().uuid(),
+		kind: NotificationKindSchema,
+		actor_id: z.string().uuid().optional(),
+		target_kind: AttachmentParentKindSchema.optional(),
+		target_id: z.string().min(1).optional(),
+		body: z.string().max(500).optional(),
+		read_at: z.string().datetime().optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type Notification = z.infer<typeof NotificationSchema>;
 
 // ModerationAction
-export const ModerationActionSchema = z.object({
-	id: z.string().min(1),
-	moderator_id: z.string().uuid(),
-	kind: ModerationActionKindSchema,
-	target_kind: AttachmentParentKindSchema,
-	target_id: z.string().min(1),
-	reason: z.string().max(2000).optional(),
-	metadata_json: z.string().optional(),
-	created_at: z.string().datetime(),
-});
+export const ModerationActionSchema = z
+	.object({
+		id: z.string().min(1),
+		moderator_id: z.string().uuid(),
+		kind: ModerationActionKindSchema,
+		target_kind: AttachmentParentKindSchema,
+		target_id: z.string().min(1),
+		reason: z.string().max(2000).optional(),
+		metadata_json: z.string().optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type ModerationAction = z.infer<typeof ModerationActionSchema>;
 
 // Report
-export const ReportSchema = z.object({
-	id: z.string().min(1),
-	reporter_id: z.string().uuid(),
-	target_kind: AttachmentParentKindSchema,
-	target_id: z.string().min(1),
-	reason: ReportReasonSchema,
-	reason_detail: z.string().max(2000).optional(),
-	resolved_by: z.string().uuid().optional(),
-	resolved_at: z.string().datetime().optional(),
-	resolution_note: z.string().max(2000).optional(),
-	created_at: z.string().datetime(),
-});
+export const ReportSchema = z
+	.object({
+		id: z.string().min(1),
+		reporter_id: z.string().uuid(),
+		target_kind: AttachmentParentKindSchema,
+		target_id: z.string().min(1),
+		reason: ReportReasonSchema,
+		reason_detail: z.string().max(2000).optional(),
+		resolved_by: z.string().uuid().optional(),
+		resolved_at: z.string().datetime().optional(),
+		resolution_note: z.string().max(2000).optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type Report = z.infer<typeof ReportSchema>;
 
 // ThreadSubscription
-export const ThreadSubscriptionSchema = z.object({
-	thread_id: z.string().min(1),
-	user_id: z.string().uuid(),
-	email_enabled: z.boolean(),
-	push_enabled: z.boolean(),
-	created_at: z.string().datetime(),
-});
+export const ThreadSubscriptionSchema = z
+	.object({
+		thread_id: z.string().min(1),
+		user_id: z.string().uuid(),
+		email_enabled: z.boolean(),
+		push_enabled: z.boolean(),
+		created_at: z.string().datetime(),
+	});
 
 export type ThreadSubscription = z.infer<typeof ThreadSubscriptionSchema>;
 
 // Bookmark
-export const BookmarkSchema = z.object({
-	id: z.string().min(1),
-	user_id: z.string().uuid(),
-	thread_id: z.string().min(1),
-	folder: z.string().max(100).optional(),
-	note: z.string().max(500).optional(),
-	created_at: z.string().datetime(),
-});
+export const BookmarkSchema = z
+	.object({
+		id: z.string().min(1),
+		user_id: z.string().uuid(),
+		thread_id: z.string().min(1),
+		folder: z.string().max(100).optional(),
+		note: z.string().max(500).optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type Bookmark = z.infer<typeof BookmarkSchema>;
 
 // UserFollow
-export const UserFollowSchema = z.object({
-	follower_id: z.string().uuid(),
-	target_kind: FollowTargetKindSchema,
-	target_id: z.string().min(1),
-	created_at: z.string().datetime(),
-	notifications_enabled: z.boolean(),
-});
+export const UserFollowSchema = z
+	.object({
+		follower_id: z.string().uuid(),
+		target_kind: FollowTargetKindSchema,
+		target_id: z.string().min(1),
+		created_at: z.string().datetime(),
+		notifications_enabled: z.boolean(),
+	});
 
 export type UserFollow = z.infer<typeof UserFollowSchema>;
 
 // ThreadTag
-export const ThreadTagSchema = z.object({
-	thread_id: z.string().min(1),
-	tag_id: z.number().int().positive(),
-});
+export const ThreadTagSchema = z
+	.object({
+		thread_id: z.string().min(1),
+		tag_id: z.number().int().positive(),
+	});
 
 export type ThreadTag = z.infer<typeof ThreadTagSchema>;
 
 // Reaction
-export const ReactionSchema = z.object({
-	id: z.string().min(1),
-	parent_kind: AttachmentParentKindSchema,
-	parent_id: z.string().min(1),
-	user_id: z.string().uuid(),
-	kind: ReactionKindSchema,
-	custom_kind: z.string().max(50).optional(),
-	created_at: z.string().datetime(),
-});
+export const ReactionSchema = z
+	.object({
+		id: z.string().min(1),
+		parent_kind: AttachmentParentKindSchema,
+		parent_id: z.string().min(1),
+		user_id: z.string().uuid(),
+		kind: ReactionKindSchema,
+		custom_kind: z.string().max(50).optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type Reaction = z.infer<typeof ReactionSchema>;
 
 // CommentVote
-export const CommentVoteSchema = z.object({
-	comment_id: z.string().min(1),
-	voter_id: z.string().uuid(),
-	direction: VoteDirectionSchema,
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime(),
-});
+export const CommentVoteSchema = z
+	.object({
+		comment_id: z.string().min(1),
+		voter_id: z.string().uuid(),
+		direction: VoteDirectionSchema,
+		created_at: z.string().datetime(),
+		updated_at: z.string().datetime(),
+	});
 
 export type CommentVote = z.infer<typeof CommentVoteSchema>;
 
 // ThreadVote
-export const ThreadVoteSchema = z.object({
-	thread_id: z.string().min(1),
-	voter_id: z.string().uuid(),
-	direction: VoteDirectionSchema,
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime(),
-});
+export const ThreadVoteSchema = z
+	.object({
+		thread_id: z.string().min(1),
+		voter_id: z.string().uuid(),
+		direction: VoteDirectionSchema,
+		created_at: z.string().datetime(),
+		updated_at: z.string().datetime(),
+	});
 
 export type ThreadVote = z.infer<typeof ThreadVoteSchema>;
 
 // ForumPollVote
-export const ForumPollVoteSchema = z.object({
-	id: z.string().min(1),
-	thread_id: z.string().min(1),
-	voter_id: z.string().uuid(),
-	option_indices: z.array(z.number()).optional(),
-	created_at: z.string().datetime(),
-});
+export const ForumPollVoteSchema = z
+	.object({
+		id: z.string().min(1),
+		thread_id: z.string().min(1),
+		voter_id: z.string().uuid(),
+		option_indices: z.array(z.number()).optional(),
+		created_at: z.string().datetime(),
+	});
 
 export type ForumPollVote = z.infer<typeof ForumPollVoteSchema>;

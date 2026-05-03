@@ -137,6 +137,7 @@ namespace RareIcon
             _startBtn        = _root.Q<Button>("title-start");
 
             BindMenu();
+            BindQuickPlayCard();
             BindLocaleStage();
             BindSeedStage();
             BindLoadStage();
@@ -196,6 +197,18 @@ namespace RareIcon
                 Application.Quit();
 #endif
             };
+        }
+
+        /// <summary>Make the Welcome stage's QUICK PLAY info card act as a one-click quick-play button — rolls a random seed via WorldGenSession.BeginQuickPlay and routes straight to generation, skipping the manual Seed picker. Locked to the Info stage so a click on a stale card during Seed / Load doesn't interrupt the active flow.</summary>
+        void BindQuickPlayCard()
+        {
+            var card = _root.Q<VisualElement>("title-info-quickplay");
+            if (card == null) return;
+            card.RegisterCallback<ClickEvent>(_ =>
+            {
+                if (_session.Stage.CurrentValue != TitleStage.Info) return;
+                _session.BeginQuickPlay();
+            });
         }
 
         void BindLocaleStage()

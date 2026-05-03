@@ -18,6 +18,17 @@ namespace RareIcon
             new MirrorWeaponVisualJob().ScheduleParallel();
             new MirrorHelmetVisualJob().ScheduleParallel();
             new MirrorShieldVisualJob().ScheduleParallel();
+            new MirrorArmorVisualJob().ScheduleParallel();
+        }
+    }
+
+    [BurstCompile]
+    public partial struct MirrorArmorVisualJob : IJobEntity
+    {
+        void Execute(in Unit unit, ref UnitArmorVisual visual)
+        {
+            float v = (float)unit.Armor;
+            if (visual.Value != v) visual.Value = v;
         }
     }
 

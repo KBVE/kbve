@@ -1,0 +1,45 @@
+---
+title: 'Cleric'
+description: |
+    Player support humanoid. Pale robe, gold trim, holy symbol. Heals nearby allies; reserved for higher-tier Barracks / temple recruitment once healing AI lands.
+ref: 'cleric'
+id: '01KSAVZ000000000000000CLRC'
+name: 'Cleric'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'noble'
+rank: 'normal'
+family: 'humanoid'
+level: 3
+stats:
+    hp: 60
+    max_hp: 60
+    attack: 3
+    defense: 2
+    speed: 4
+    armor: 1
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The cleric strikes with a glowing mace — {target} takes {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The cleric falls, holy symbol fading to grey."
+abilities:
+    - id: 'attack'
+      name: 'Sanctified Blow'
+      damage: 3
+    - id: 'heal'
+      name: 'Mend'
+      damage: 0
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Support humanoid. Heals allies; weak in direct combat.

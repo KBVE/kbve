@@ -614,7 +614,7 @@ impl ProfileService {
     }
 
     /// Get username by user_id using RPC
-    async fn get_username_by_id(&self, user_id: &str) -> Result<Option<String>, String> {
+    pub async fn get_username_by_id(&self, user_id: &str) -> Result<Option<String>, String> {
         let url = self.client.config().rpc_url("get_username_by_id");
         let headers = self.client.rpc_headers("profile")?;
 

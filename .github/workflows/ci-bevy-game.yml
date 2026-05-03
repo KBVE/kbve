@@ -245,30 +245,18 @@ jobs:
     post_publish_sync:
         name: Post-publish version sync
         needs: [version_gate, build, itch]
-        if: always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped')
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && inputs.version_toml != '' }}
         permissions:
             contents: write
             pull-requests: write
-        steps:
-            - uses: actions/checkout@v6
-            - name: Bump version.toml + open PR
-              if: ${{ inputs.version_toml != '' }}
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  BRANCH="bevy-game-sync-${{ inputs.app_name }}-${{ inputs.manifest_version }}"
-                  git checkout -b "$BRANCH"
-                  sed -i.bak "s/^version = \".*\"/version = \"${{ inputs.manifest_version }}\"/" "${{ inputs.version_toml }}"
-                  rm -f "${{ inputs.version_toml }}.bak"
-                  git add "${{ inputs.version_toml }}"
-                  git commit -m "chore(${{ inputs.app_name }}): post-publish sync to v${{ inputs.manifest_version }}" || exit 0
-                  git push origin "$BRANCH"
-                  gh pr create --title "chore(${{ inputs.app_name }}): post-publish sync v${{ inputs.manifest_version }}" \
-                    --body "Auto-generated post-publish sync." --base main --head "$BRANCH"
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
+        with:
+            app_name: ${{ inputs.app_name }}
+            version: ${{ inputs.manifest_version }}
+            version_toml_path: ${{ inputs.version_toml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
     track_failure:
         name: Track Failures

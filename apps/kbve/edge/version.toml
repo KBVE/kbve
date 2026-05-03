@@ -11,6 +11,11 @@ label = "Meme"
 description = "Meme feed and reactions"
 
 [[functions]]
+name = "forum"
+label = "Forum"
+description = "Public forum reads — spaces, tags, threads"
+
+[[functions]]
 name = "discordsh"
 label = "Discord"
 description = "Discord server integration"

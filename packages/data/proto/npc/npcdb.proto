@@ -99,6 +99,7 @@ enum MovementType {
   MOVEMENT_RANDOM_WANDER = 1;
   MOVEMENT_PATROL = 2;
   MOVEMENT_SCRIPTED = 3;
+  MOVEMENT_AGGRESSIVE = 4;
 }
 
 // Difficulty mode for stat overrides

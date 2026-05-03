@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-05-02T08:37:11.195Z",
+	"generated_at": "2026-05-03T08:40:13.455Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 159
+		"total_items": 158
 	},
 	"summary": {
 		"Theory": 20,
@@ -14,7 +14,7 @@
 		"Support": 0,
 		"Staging": 3,
 		"Review": 1,
-		"Done": 103
+		"Done": 102
 	},
 	"columns": {
 		"Theory": [
@@ -873,10 +873,10 @@
 		"Review": [
 			{
 				"type": "PULL_REQUEST",
-				"number": 10375,
-				"title": "Release: 1 chore → Main",
+				"number": 10411,
+				"title": "Release: 6 features, 7 fixes, 1 doc, 1 refactor, 3 chores → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/10375",
+				"url": "https://github.com/KBVE/kbve/pull/10411",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -1011,215 +1011,6 @@
 				],
 				"matrix": null,
 				"date": "2026-03-31",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10165,
-				"title": "Release: 1 feature → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10165",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10166,
-				"title": "Atomic: mc v1.0.20 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10166",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10167,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10167",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10170,
-				"title": "Release: 1 feature, 2 fixes → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10170",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10173,
-				"title": "Release: 1 feature, 1 fix, 1 refactor, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10173",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10175,
-				"title": "Atomic: mc v1.0.21 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10175",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10179,
-				"title": "Release: 2 features, 4 fixes, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10179",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10180,
-				"title": "Atomic: axum-kbve v1.0.112 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10180",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10185,
-				"title": "Atomic: mc v1.0.22 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10185",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10186,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10186",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10188,
-				"title": "Release: 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10188",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10190,
-				"title": "Release: 5 features, 1 fix, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10190",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10191,
-				"title": "Atomic: mc v1.0.23 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10191",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10193,
-				"title": "chore(dashboard): daily sync — 2026-04-18",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10193",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -2427,6 +2218,196 @@
 				"title": "Atomic: irc-gateway v0.1.12 post-publish sync",
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/10374",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10375,
+				"title": "Release: 2 features, 3 fixes, 1 doc, 1 test → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10375",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10376,
+				"title": "chore(dashboard): daily sync — 2026-05-02",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10376",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10385,
+				"title": "Release: 2 fixes, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10385",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10387,
+				"title": "Release: 2 fixes, 6 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10387",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10388,
+				"title": "chore(bevy_behavior): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10388",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10389,
+				"title": "chore(bevy_inventory): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10389",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10390,
+				"title": "chore(bevy_skills): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10390",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10399,
+				"title": "Release: 1 fix, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10399",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10403,
+				"title": "chore(bevy_battle): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10403",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10406,
+				"title": "Release: 1 feature, 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10406",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10408,
+				"title": "Atomic: arc-runner v0.1.1 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10408",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10409,
+				"title": "Release: 1 fix, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10409",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 10413,
+				"title": "Atomic: axum-kbve v1.0.129 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/10413",
 				"assignees": [],
 				"labels": [
 					"auto-pr",

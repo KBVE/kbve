@@ -16,6 +16,10 @@
 // already-sanitized HTML composed server-side from per-row askama
 // partials. They go through `set:html` directly. Plain text fields
 // (heading / sort label) use askama's default escape.
+
+import { getForumTopTags } from '@/data/forum-tags';
+
+const topTags = await getForumTopTags(8);
 ---
 
 <div class="forum-shell">
@@ -129,6 +133,31 @@
 					aria-label="Spaces"
 					set:html={`{{ spaces_nav_html|safe }}`}
 				/>
+			</section>
+
+			<section class="forum-card">
+				<h2 class="forum-card__title">Tags</h2>
+				{
+					topTags.length > 0 ? (
+						<div class="forum-card__chips">
+							{topTags.map((t) => (
+								<a
+									class="forum-card__chip"
+									href={`/forum/tag/${t.slug}/`}>
+									#{t.name}
+								</a>
+							))}
+						</div>
+					) : (
+						<p class="forum-card__copy">
+							No tags yet — use <code>#hashtag</code> in a thread
+							body to create one.
+						</p>
+					)
+				}
+				<a class="forum-card__cta" href="/forum/tags">
+					Browse all tags →
+				</a>
 			</section>
 
 			<section class="forum-card">
@@ -521,5 +550,33 @@
 	}
 	.forum-card__cta:hover {
 		text-decoration: underline;
+	}
+	.forum-card__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin: 0 0 0.75rem;
+	}
+	.forum-card__chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.55rem;
+		background: var(--forum-accent-soft);
+		color: var(--forum-text);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: background 0.12s ease;
+	}
+	.forum-card__chip:hover {
+		background: var(--forum-accent);
+		color: #fff;
+	}
+	.forum-card__copy code {
+		background: var(--forum-bg);
+		padding: 0.05em 0.3em;
+		border-radius: 4px;
+		font-size: 0.85em;
 	}
 </style>

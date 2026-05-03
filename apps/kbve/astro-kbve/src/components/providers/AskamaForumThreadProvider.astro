@@ -316,6 +316,19 @@
 	import { initSupa, getSupa } from '@/lib/supa';
 	import { addToast } from '@kbve/droid';
 
+	// prettier-plugin-astro keeps reformatting <textarea ... /> back
+	// into <textarea>...\n  </textarea>, which means the textarea's
+	// initial value is leading whitespace and the cursor opens
+	// indented. Force-clear every textarea on load.
+	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+		'.thread-compose__textarea, .forum-mod-dialog__textarea',
+	)) {
+		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+			t.value = '';
+			t.defaultValue = '';
+		}
+	}
+
 	// Initial-letter fallback for the author avatar slot. The askama
 	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
 	// When the URL is non-empty we swap the letter for an `<img>`; otherwise
@@ -981,13 +994,13 @@
 		background: var(--forum-bg-card);
 		border: 1px solid var(--forum-border);
 		border-radius: var(--forum-radius);
-		padding: 1.5rem 2rem 1.75rem;
+		padding: 1.75rem 2.5rem 2rem;
 		display: grid;
 		gap: 1.25rem;
 	}
 	@media (max-width: 640px) {
 		.thread-comments {
-			padding: 1rem 1rem 1.25rem;
+			padding: 1.25rem 1.5rem 1.5rem;
 		}
 	}
 	.thread-comments__header {
@@ -1016,8 +1029,8 @@
 
 	.thread-compose {
 		display: grid;
-		gap: 0.6rem;
-		padding: 1rem;
+		gap: 0.7rem;
+		padding: 1.25rem 1.5rem;
 		background: var(--forum-bg-soft);
 		border: 1px solid var(--forum-border);
 		border-radius: var(--forum-radius);
@@ -1095,7 +1108,7 @@
 
 	/* ── Comment cards ────────────────────────────────────────── */
 	.thread-comments__tree :global(.forum-comment) {
-		padding: 1rem 1.25rem;
+		padding: 1.15rem 1.5rem;
 		border-left: 2px solid var(--forum-border);
 		margin-left: calc(var(--depth, 0) * 1.25rem);
 		background: var(--forum-bg-soft);

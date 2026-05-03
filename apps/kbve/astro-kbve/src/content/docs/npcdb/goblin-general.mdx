@@ -1,0 +1,43 @@
+---
+title: 'Goblin General'
+description: |
+    Hostile warlord goblin. Chestplate, spiked crown, warpaint. Tougher than a regular Goblin, anchors larger raid waves and elite hostile garrisons.
+ref: 'goblin-general'
+id: '01KSAVZ00000000000000GGNRL'
+name: 'Goblin General'
+type_flags: 1
+rarity: 'rare'
+personality: 'aggressive'
+rank: 'elite'
+family: 'humanoid'
+level: 5
+stats:
+    hp: 140
+    max_hp: 140
+    attack: 11
+    defense: 3
+    speed: 4
+    armor: 3
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The goblin general roars — {target} takes {dmg} crushing damage!"
+        - "Spiked crown gleaming, the warlord cleaves into {target} for {dmg}!"
+    - action: 'death'
+      messages:
+        - "The goblin general topples, warpaint streaked with blood."
+abilities:
+    - id: 'attack'
+      name: 'Warlord Cleave'
+      damage: 11
+faction:
+    faction_id: 'hostile'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Hostile warlord. Anchors elite raid waves.

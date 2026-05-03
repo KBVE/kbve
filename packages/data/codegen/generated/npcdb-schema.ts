@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-04-30T06:38:13.149Z
+ * Generated: 2026-05-03T09:31:28.469Z
  */
 
 import { z } from 'zod';
@@ -114,13 +114,19 @@ export const MovementTypes = [
 	'random_wander',
 	'patrol',
 	'scripted',
+	'aggressive',
 ] as const;
 
 export type MovementTypeValue = (typeof MovementTypes)[number];
 
 export const MovementTypeSchema = z.enum(MovementTypes);
 
-export const DifficultyModes = ['normal', 'hard', 'heroic', 'mythic'] as const;
+export const DifficultyModes = [
+	'normal',
+	'hard',
+	'heroic',
+	'mythic',
+] as const;
 
 export type DifficultyModeValue = (typeof DifficultyModes)[number];
 
@@ -169,40 +175,43 @@ export const NpcStatsSchema = z
 export type NpcStats = z.infer<typeof NpcStatsSchema>;
 
 // NpcAbility
-export const NpcAbilitySchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	description: z.string().optional(),
-	element: ElementSchema.optional(),
-	damage: z.number().optional(),
-	mp_cost: z.number().optional(),
-	ep_cost: z.number().optional(),
-	cooldown_turns: z.number().optional(),
-	hit_chance: z.number().min(0).max(1).optional(),
-	is_aoe: z.boolean().optional(),
-	heal_amount: z.number().optional(),
-	status_effect: z.string().optional(),
-	weight: z.number().optional(),
-});
+export const NpcAbilitySchema = z
+	.object({
+		id: z.string(),
+		name: z.string(),
+		description: z.string().optional(),
+		element: ElementSchema.optional(),
+		damage: z.number().optional(),
+		mp_cost: z.number().optional(),
+		ep_cost: z.number().optional(),
+		cooldown_turns: z.number().optional(),
+		hit_chance: z.number().min(0).max(1).optional(),
+		is_aoe: z.boolean().optional(),
+		heal_amount: z.number().optional(),
+		status_effect: z.string().optional(),
+		weight: z.number().optional(),
+	});
 
 export type NpcAbility = z.infer<typeof NpcAbilitySchema>;
 
 // ElementalAffinity
-export const ElementalAffinitySchema = z.object({
-	element: ElementSchema,
-	magnitude: z.number().min(0).max(1),
-});
+export const ElementalAffinitySchema = z
+	.object({
+		element: ElementSchema,
+		magnitude: z.number().min(0).max(1),
+	});
 
 export type ElementalAffinity = z.infer<typeof ElementalAffinitySchema>;
 
 // IntentWeight
-export const IntentWeightSchema = z.object({
-	ability_id: z.string(),
-	weight: z.number(),
-	tier_min: z.number().optional(),
-	tier_max: z.number().optional(),
-	hp_threshold: z.number().optional(),
-});
+export const IntentWeightSchema = z
+	.object({
+		ability_id: z.string(),
+		weight: z.number(),
+		tier_min: z.number().optional(),
+		tier_max: z.number().optional(),
+		hp_threshold: z.number().optional(),
+	});
 
 export type IntentWeight = z.infer<typeof IntentWeightSchema>;
 
@@ -227,159 +236,173 @@ export const BehaviorTraitsSchema = z
 export type BehaviorTraits = z.infer<typeof BehaviorTraitsSchema>;
 
 // FactionInfo
-export const FactionInfoSchema = z.object({
-	faction_id: z.string(),
-	faction_rank: z.number().optional(),
-	hostile_factions: z.array(z.string()).optional(),
-	friendly_factions: z.array(z.string()).optional(),
-});
+export const FactionInfoSchema = z
+	.object({
+		faction_id: z.string(),
+		faction_rank: z.number().optional(),
+		hostile_factions: z.array(z.string()).optional(),
+		friendly_factions: z.array(z.string()).optional(),
+	});
 
 export type FactionInfo = z.infer<typeof FactionInfoSchema>;
 
 // LootEntry
-export const LootEntrySchema = z.object({
-	item_ref: z.string(),
-	item_name: z.string().optional(),
-	min_quantity: z.number(),
-	max_quantity: z.number(),
-	drop_rate: z.number().min(0).max(1),
-	level_requirement: z.number().optional(),
-});
+export const LootEntrySchema = z
+	.object({
+		item_ref: z.string(),
+		item_name: z.string().optional(),
+		min_quantity: z.number(),
+		max_quantity: z.number(),
+		drop_rate: z.number().min(0).max(1),
+		level_requirement: z.number().optional(),
+	});
 
 export type LootEntry = z.infer<typeof LootEntrySchema>;
 
 // LootTable
-export const LootTableSchema = z.object({
-	entries: z.array(LootEntrySchema).optional(),
-	guaranteed_drops: z.number().optional(),
-	max_drops: z.number().optional(),
-	gold_min: z.number().optional(),
-	gold_max: z.number().optional(),
-	xp_reward: z.number().optional(),
-});
+export const LootTableSchema = z
+	.object({
+		entries: z.array(LootEntrySchema).optional(),
+		guaranteed_drops: z.number().optional(),
+		max_drops: z.number().optional(),
+		gold_min: z.number().optional(),
+		gold_max: z.number().optional(),
+		xp_reward: z.number().optional(),
+	});
 
 export type LootTable = z.infer<typeof LootTableSchema>;
 
 // EquipmentEntry
-export const EquipmentEntrySchema = z.object({
-	slot: EquipSlotSchema,
-	item_ref: z.string(),
-	item_name: z.string().optional(),
-	enchant_level: z.number().optional(),
-});
+export const EquipmentEntrySchema = z
+	.object({
+		slot: EquipSlotSchema,
+		item_ref: z.string(),
+		item_name: z.string().optional(),
+		enchant_level: z.number().optional(),
+	});
 
 export type EquipmentEntry = z.infer<typeof EquipmentEntrySchema>;
 
 // EquipmentLoadout
-export const EquipmentLoadoutSchema = z.object({
-	equipped: z.array(EquipmentEntrySchema).optional(),
-});
+export const EquipmentLoadoutSchema = z
+	.object({
+		equipped: z.array(EquipmentEntrySchema).optional(),
+	});
 
 export type EquipmentLoadout = z.infer<typeof EquipmentLoadoutSchema>;
 
 // FlavorPool
-export const FlavorPoolSchema = z.object({
-	action: z.string(),
-	messages: z.array(z.string()).optional(),
-});
+export const FlavorPoolSchema = z
+	.object({
+		action: z.string(),
+		messages: z.array(z.string()).optional(),
+	});
 
 export type FlavorPool = z.infer<typeof FlavorPoolSchema>;
 
 // DialogueLine
-export const DialogueLineSchema = z.object({
-	trigger: z.string(),
-	lines: z.array(z.string()).optional(),
-	condition: z.string().optional(),
-});
+export const DialogueLineSchema = z
+	.object({
+		trigger: z.string(),
+		lines: z.array(z.string()).optional(),
+		condition: z.string().optional(),
+	});
 
 export type DialogueLine = z.infer<typeof DialogueLineSchema>;
 
 // DialogueOption
-export const DialogueOptionSchema = z.object({
-	id: z.string(),
-	label: z.string(),
-	next_node_id: z.string().optional(),
-	consequence_type: z.string().optional(),
-	consequence_ref: z.string().optional(),
-	consequence_value: z.number().optional(),
-	required_item_refs: z.array(z.string()).optional(),
-	required_class: z.string().optional(),
-	required_quest_status: z.string().optional(),
-	required_flags: z.array(z.string()).optional(),
-	set_flag: z.string().optional(),
-});
+export const DialogueOptionSchema = z
+	.object({
+		id: z.string(),
+		label: z.string(),
+		next_node_id: z.string().optional(),
+		consequence_type: z.string().optional(),
+		consequence_ref: z.string().optional(),
+		consequence_value: z.number().optional(),
+		required_item_refs: z.array(z.string()).optional(),
+		required_class: z.string().optional(),
+		required_quest_status: z.string().optional(),
+		required_flags: z.array(z.string()).optional(),
+		set_flag: z.string().optional(),
+	});
 
 export type DialogueOption = z.infer<typeof DialogueOptionSchema>;
 
 // DialogueNode
-export const DialogueNodeSchema = z.object({
-	id: z.string(),
-	text: z.string(),
-	speaker_override: z.string().optional(),
-	portrait_override: z.string().optional(),
-	options: z.array(DialogueOptionSchema).optional(),
-	next_node_id: z.string().optional(),
-	quest_ref: z.string().optional(),
-	condition: z.string().optional(),
-	priority: z.number().optional(),
-	trigger_on_enter: z.string().optional(),
-	trigger_on_exit: z.string().optional(),
-});
+export const DialogueNodeSchema = z
+	.object({
+		id: z.string(),
+		text: z.string(),
+		speaker_override: z.string().optional(),
+		portrait_override: z.string().optional(),
+		options: z.array(DialogueOptionSchema).optional(),
+		next_node_id: z.string().optional(),
+		quest_ref: z.string().optional(),
+		condition: z.string().optional(),
+		priority: z.number().optional(),
+		trigger_on_enter: z.string().optional(),
+		trigger_on_exit: z.string().optional(),
+	});
 
 export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
 
 // DialogueTree
-export const DialogueTreeSchema = z.object({
-	entry_node_id: z.string(),
-	nodes: z.array(DialogueNodeSchema).optional(),
-});
+export const DialogueTreeSchema = z
+	.object({
+		entry_node_id: z.string(),
+		nodes: z.array(DialogueNodeSchema).optional(),
+	});
 
 export type DialogueTree = z.infer<typeof DialogueTreeSchema>;
 
 // SpawnRule
-export const SpawnRuleSchema = z.object({
-	zone: z.string().optional(),
-	floor_min: z.number().optional(),
-	floor_max: z.number().optional(),
-	spawn_weight: z.number().min(0),
-	max_active: z.number().optional(),
-	level_min: z.number().optional(),
-	level_max: z.number().optional(),
-	respawn_time_secs: z.number().optional(),
-	respawn_variance: z.number().optional(),
-	despawn_time_secs: z.number().optional(),
-});
+export const SpawnRuleSchema = z
+	.object({
+		zone: z.string().optional(),
+		floor_min: z.number().optional(),
+		floor_max: z.number().optional(),
+		spawn_weight: z.number().min(0),
+		max_active: z.number().optional(),
+		level_min: z.number().optional(),
+		level_max: z.number().optional(),
+		respawn_time_secs: z.number().optional(),
+		respawn_variance: z.number().optional(),
+		despawn_time_secs: z.number().optional(),
+	});
 
 export type SpawnRule = z.infer<typeof SpawnRuleSchema>;
 
 // PhaseRule
-export const PhaseRuleSchema = z.object({
-	phase_id: z.number().optional(),
-	prerequisite_quest_refs: z.array(z.string()).optional(),
-	event_ref: z.string().optional(),
-	time_start: z.number().optional(),
-	time_end: z.number().optional(),
-});
+export const PhaseRuleSchema = z
+	.object({
+		phase_id: z.number().optional(),
+		prerequisite_quest_refs: z.array(z.string()).optional(),
+		event_ref: z.string().optional(),
+		time_start: z.number().optional(),
+		time_end: z.number().optional(),
+	});
 
 export type PhaseRule = z.infer<typeof PhaseRuleSchema>;
 
 // DifficultyOverride
-export const DifficultyOverrideSchema = z.object({
-	mode: DifficultyModeSchema,
-	stats: NpcStatsSchema.optional(),
-	xp_modifier: z.number().optional(),
-	gold_modifier: z.number().optional(),
-});
+export const DifficultyOverrideSchema = z
+	.object({
+		mode: DifficultyModeSchema,
+		stats: NpcStatsSchema.optional(),
+		xp_modifier: z.number().optional(),
+		gold_modifier: z.number().optional(),
+	});
 
 export type DifficultyOverride = z.infer<typeof DifficultyOverrideSchema>;
 
 // PartyScaling
-export const PartyScalingSchema = z.object({
-	enabled: z.boolean(),
-	hp_per_member: z.number().optional(),
-	damage_per_member: z.number().optional(),
-	base_party_size: z.number().optional(),
-});
+export const PartyScalingSchema = z
+	.object({
+		enabled: z.boolean(),
+		hp_per_member: z.number().optional(),
+		damage_per_member: z.number().optional(),
+		base_party_size: z.number().optional(),
+	});
 
 export type PartyScaling = z.infer<typeof PartyScalingSchema>;
 
@@ -414,78 +437,73 @@ export const InteractionFlagsSchema = z
 export type InteractionFlags = z.infer<typeof InteractionFlagsSchema>;
 
 // NpcExtension
-export const NpcExtensionSchema = z.object({
-	key: z.string(),
-	value: z
-		.union([
-			z.object({ string_value: z.string() }),
-			z.object({ int_value: z.number() }),
-			z.object({ float_value: z.number() }),
-			z.object({ bool_value: z.boolean() }),
-			z.object({ bytes_value: z.string() }),
-		])
-		.optional(),
-});
+export const NpcExtensionSchema = z
+	.object({
+		key: z.string(),
+		value: z.union([z.object({ string_value: z.string() }), z.object({ int_value: z.number() }), z.object({ float_value: z.number() }), z.object({ bool_value: z.boolean() }), z.object({ bytes_value: z.string() })]).optional(),
+	});
 
 export type NpcExtension = z.infer<typeof NpcExtensionSchema>;
 
 // Npc
-export const NpcSchema = z.object({
-	id: z.string(),
-	ref: z.string(),
-	name: z.string(),
-	title: z.string().optional(),
-	description: z.string().optional(),
-	lore: z.string().optional(),
-	type_flags: z.number(),
-	rarity: NpcRaritySchema,
-	personality: PersonalitySchema,
-	element: ElementSchema.optional(),
-	tags: z.array(z.string()).optional(),
-	rank: NpcRankSchema,
-	family: CreatureFamilySchema,
-	img: z.string().optional(),
-	icon: z.string().optional(),
-	pixel_density: z.number().optional(),
-	scale: z.number().optional(),
-	model_ref: z.string().optional(),
-	animation_set: z.string().optional(),
-	sound_set: z.string().optional(),
-	level: z.number().min(0).max(999),
-	level_min: z.number().optional(),
-	level_max: z.number().optional(),
-	stats: NpcStatsSchema.optional(),
-	abilities: z.array(NpcAbilitySchema).optional(),
-	weaknesses: z.array(ElementalAffinitySchema).optional(),
-	resistances: z.array(ElementalAffinitySchema).optional(),
-	status_immunities: z.array(z.string()).optional(),
-	intent_weights: z.array(IntentWeightSchema).optional(),
-	behavior: BehaviorTraitsSchema.optional(),
-	faction: FactionInfoSchema.optional(),
-	loot: LootTableSchema.optional(),
-	equipment: EquipmentLoadoutSchema.optional(),
-	flavor_text: z.array(FlavorPoolSchema).optional(),
-	dialogue: z.array(DialogueLineSchema).optional(),
-	dialogue_tree: DialogueTreeSchema.optional(),
-	quest_refs: z.array(z.string()).optional(),
-	shop_inventory_ref: z.string().optional(),
-	kill_credit_ref: z.string().optional(),
-	spawn_rules: z.array(SpawnRuleSchema).optional(),
-	phase_rules: z.array(PhaseRuleSchema).optional(),
-	difficulty_overrides: z.array(DifficultyOverrideSchema).optional(),
-	party_scaling: PartyScalingSchema.optional(),
-	spatial: SpatialPropertiesSchema.optional(),
-	interaction: InteractionFlagsSchema.optional(),
-	extensions: z.array(NpcExtensionSchema).optional(),
-	credits: z.string().optional(),
-	drafted: z.boolean().optional(),
-});
+export const NpcSchema = z
+	.object({
+		id: z.string(),
+		ref: z.string(),
+		name: z.string(),
+		title: z.string().optional(),
+		description: z.string().optional(),
+		lore: z.string().optional(),
+		type_flags: z.number(),
+		rarity: NpcRaritySchema,
+		personality: PersonalitySchema,
+		element: ElementSchema.optional(),
+		tags: z.array(z.string()).optional(),
+		rank: NpcRankSchema,
+		family: CreatureFamilySchema,
+		img: z.string().optional(),
+		icon: z.string().optional(),
+		pixel_density: z.number().optional(),
+		scale: z.number().optional(),
+		model_ref: z.string().optional(),
+		animation_set: z.string().optional(),
+		sound_set: z.string().optional(),
+		level: z.number().min(0).max(999),
+		level_min: z.number().optional(),
+		level_max: z.number().optional(),
+		stats: NpcStatsSchema.optional(),
+		abilities: z.array(NpcAbilitySchema).optional(),
+		weaknesses: z.array(ElementalAffinitySchema).optional(),
+		resistances: z.array(ElementalAffinitySchema).optional(),
+		status_immunities: z.array(z.string()).optional(),
+		intent_weights: z.array(IntentWeightSchema).optional(),
+		behavior: BehaviorTraitsSchema.optional(),
+		faction: FactionInfoSchema.optional(),
+		loot: LootTableSchema.optional(),
+		equipment: EquipmentLoadoutSchema.optional(),
+		flavor_text: z.array(FlavorPoolSchema).optional(),
+		dialogue: z.array(DialogueLineSchema).optional(),
+		dialogue_tree: DialogueTreeSchema.optional(),
+		quest_refs: z.array(z.string()).optional(),
+		shop_inventory_ref: z.string().optional(),
+		kill_credit_ref: z.string().optional(),
+		spawn_rules: z.array(SpawnRuleSchema).optional(),
+		phase_rules: z.array(PhaseRuleSchema).optional(),
+		difficulty_overrides: z.array(DifficultyOverrideSchema).optional(),
+		party_scaling: PartyScalingSchema.optional(),
+		spatial: SpatialPropertiesSchema.optional(),
+		interaction: InteractionFlagsSchema.optional(),
+		extensions: z.array(NpcExtensionSchema).optional(),
+		credits: z.string().optional(),
+		drafted: z.boolean().optional(),
+	});
 
 export type Npc = z.infer<typeof NpcSchema>;
 
 // NpcRegistry
-export const NpcRegistrySchema = z.object({
-	npcs: z.array(NpcSchema).optional(),
-});
+export const NpcRegistrySchema = z
+	.object({
+		npcs: z.array(NpcSchema).optional(),
+	});
 
 export type NpcRegistry = z.infer<typeof NpcRegistrySchema>;

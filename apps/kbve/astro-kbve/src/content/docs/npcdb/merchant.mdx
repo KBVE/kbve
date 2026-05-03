@@ -1,0 +1,42 @@
+---
+title: 'Merchant'
+description: |
+    Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.
+ref: 'merchant'
+id: '01KSAVZ000000000000000MRCH'
+name: 'Merchant'
+type_flags: 1
+rarity: 'common'
+personality: 'noble'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The merchant swings a coin-laden purse at {target}! {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "Coins clatter across the cobbles as the merchant falls."
+abilities:
+    - id: 'attack'
+      name: 'Pouch Swing'
+      damage: 1
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Civilian humanoid. Innkeeper visual base. No combat role.

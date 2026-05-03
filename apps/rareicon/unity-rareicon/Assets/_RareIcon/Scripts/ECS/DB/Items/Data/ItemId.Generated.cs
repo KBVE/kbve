@@ -57,7 +57,7 @@ namespace RareIcon
         LobsterSoup = 48,  // lobster-soup
         Butter = 49,  // butter
         Beer = 50,  // beer
-        VampirieBloodChampagne = 51,  // vampirie-blood-champagne
+        VampireBloodChampagne = 51,  // vampire-blood-champagne
         VampireBloodGelato = 52,  // vampire-blood-gelato
         PunkSkateboard = 53,  // punk-skateboard
         SurferLongboard = 54,  // surfer-longboard
@@ -181,5 +181,9 @@ namespace RareIcon
         QuestScroll = 554,  // quest-scroll
         BossKey = 555,  // boss-key
         CapitalLandGrant = 556,  // capital-land-grant
+        Buckler = 557,  // buckler
+        WoodenShield = 558,  // wooden-shield
+        KiteShield = 559,  // kite-shield
+        GoldPlatedShield = 560,  // gold-plated-shield
     }
 }

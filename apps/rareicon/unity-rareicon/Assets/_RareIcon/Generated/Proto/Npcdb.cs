@@ -219,18 +219,19 @@ namespace KBVE.Proto.Npc {
             "EhoKFkNSRUFUVVJFX0ZBTUlMWV9EUkFHT04QBxIeChpDUkVBVFVSRV9GQU1J",
             "TFlfQUJFUlJBVElPThAIEhkKFUNSRUFUVVJFX0ZBTUlMWV9QTEFOVBAJEhoK",
             "FkNSRUFUVVJFX0ZBTUlMWV9TUElSSVQQChIdChlDUkVBVFVSRV9GQU1JTFlf",
-            "Q09OU1RSVUNUEAsqbwoMTW92ZW1lbnRUeXBlEhcKE01PVkVNRU5UX1NUQVRJ",
-            "T05BUlkQABIaChZNT1ZFTUVOVF9SQU5ET01fV0FOREVSEAESEwoPTU9WRU1F",
-            "TlRfUEFUUk9MEAISFQoRTU9WRU1FTlRfU0NSSVBURUQQAypqCg5EaWZmaWN1",
-            "bHR5TW9kZRIVChFESUZGSUNVTFRZX05PUk1BTBAAEhMKD0RJRkZJQ1VMVFlf",
-            "SEFSRBABEhUKEURJRkZJQ1VMVFlfSEVST0lDEAISFQoRRElGRklDVUxUWV9N",
-            "WVRISUMQAyqEAgoJRXF1aXBTbG90EhoKFkVRVUlQX1NMT1RfVU5TUEVDSUZJ",
-            "RUQQABITCg9FUVVJUF9TTE9UX0hFQUQQARIUChBFUVVJUF9TTE9UX0NIRVNU",
-            "EAISEwoPRVFVSVBfU0xPVF9MRUdTEAMSEwoPRVFVSVBfU0xPVF9GRUVUEAQS",
-            "FAoQRVFVSVBfU0xPVF9IQU5EUxAFEhgKFEVRVUlQX1NMT1RfTUFJTl9IQU5E",
-            "EAYSFwoTRVFVSVBfU0xPVF9PRkZfSEFORBAHEhMKD0VRVUlQX1NMT1RfTkVD",
-            "SxAIEhMKD0VRVUlQX1NMT1RfUklORxAJEhMKD0VRVUlQX1NMT1RfQkFDSxAK",
-            "QhGqAg5LQlZFLlByb3RvLk5wY2IGcHJvdG8z"));
+            "Q09OU1RSVUNUEAsqiAEKDE1vdmVtZW50VHlwZRIXChNNT1ZFTUVOVF9TVEFU",
+            "SU9OQVJZEAASGgoWTU9WRU1FTlRfUkFORE9NX1dBTkRFUhABEhMKD01PVkVN",
+            "RU5UX1BBVFJPTBACEhUKEU1PVkVNRU5UX1NDUklQVEVEEAMSFwoTTU9WRU1F",
+            "TlRfQUdHUkVTU0lWRRAEKmoKDkRpZmZpY3VsdHlNb2RlEhUKEURJRkZJQ1VM",
+            "VFlfTk9STUFMEAASEwoPRElGRklDVUxUWV9IQVJEEAESFQoRRElGRklDVUxU",
+            "WV9IRVJPSUMQAhIVChFESUZGSUNVTFRZX01ZVEhJQxADKoQCCglFcXVpcFNs",
+            "b3QSGgoWRVFVSVBfU0xPVF9VTlNQRUNJRklFRBAAEhMKD0VRVUlQX1NMT1Rf",
+            "SEVBRBABEhQKEEVRVUlQX1NMT1RfQ0hFU1QQAhITCg9FUVVJUF9TTE9UX0xF",
+            "R1MQAxITCg9FUVVJUF9TTE9UX0ZFRVQQBBIUChBFUVVJUF9TTE9UX0hBTkRT",
+            "EAUSGAoURVFVSVBfU0xPVF9NQUlOX0hBTkQQBhIXChNFUVVJUF9TTE9UX09G",
+            "Rl9IQU5EEAcSEwoPRVFVSVBfU0xPVF9ORUNLEAgSEwoPRVFVSVBfU0xPVF9S",
+            "SU5HEAkSEwoPRVFVSVBfU0xPVF9CQUNLEApCEaoCDktCVkUuUHJvdG8uTnBj",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::KBVE.Proto.Common.CommonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -367,6 +368,7 @@ namespace KBVE.Proto.Npc {
     [pbr::OriginalName("MOVEMENT_RANDOM_WANDER")] MovementRandomWander = 1,
     [pbr::OriginalName("MOVEMENT_PATROL")] MovementPatrol = 2,
     [pbr::OriginalName("MOVEMENT_SCRIPTED")] MovementScripted = 3,
+    [pbr::OriginalName("MOVEMENT_AGGRESSIVE")] MovementAggressive = 4,
   }
 
   /// <summary>

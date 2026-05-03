@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using MessagePipe;
 using VContainer;
@@ -16,7 +17,7 @@ using R3;
 namespace RareIcon
 {
     /// <summary>World-state HUD — toolbar, clock, controlling indicator, hover tile-info. Layout in Resources/UI/WorldHUD.uxml; this controller wires events + pushes data.</summary>
-    public class WorldHUD : IAsyncStartable, IDisposable
+    public class WorldHUD : IAsyncStartable, ITickable, IDisposable
     {
         readonly LocaleService _locale;
         readonly UIPanelManager _panelManager;
@@ -386,6 +387,14 @@ namespace RareIcon
             if (count <= 0) return;
             if (sb.Length > 0) sb.Append(" · ");
             sb.Append(count); sb.Append(letter);
+        }
+
+        public void Tick()
+        {
+            if (_appState == null || !_appState.CanAcceptWorldInput()) return;
+            if (Keyboard.current is not { } kb) return;
+            if (kb.kKey.wasPressedThisFrame) JumpToKing();
+            if (kb.rKey.wasPressedThisFrame) ReleaseControl();
         }
 
         void ReleaseControl()
