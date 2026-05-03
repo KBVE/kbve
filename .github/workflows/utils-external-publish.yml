@@ -145,9 +145,11 @@ jobs:
                       "https://api.modrinth.com/v2/version/$EXISTING" \
                       | jq -r '.files[].hashes.sha1')
 
+                    printf '{"file_parts":["jar"]}' > /tmp/jar-add-data.json
                     HTTP_CODE=$(curl -sSL -o /tmp/jar-add.json -w '%{http_code}' \
                       -X POST "https://api.modrinth.com/v2/version/$EXISTING/file" \
                       -H "Authorization: $MODRINTH_TOKEN" \
+                      -F "data=@/tmp/jar-add-data.json;type=application/json" \
                       -F "jar=@$JAR_PATH;type=application/java-archive")
                     if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
                       echo "::error::Modrinth JAR add-to-version failed (HTTP $HTTP_CODE)"
@@ -267,9 +269,11 @@ jobs:
                       "https://api.modrinth.com/v2/version/$EXISTING" \
                       | jq -r '.files[].hashes.sha1')
 
+                    printf '{"file_parts":["mrpack"]}' > /tmp/mrpack-add-data.json
                     HTTP_CODE=$(curl -sSL -o /tmp/mrpack-add.json -w '%{http_code}' \
                       -X POST "https://api.modrinth.com/v2/version/$EXISTING/file" \
                       -H "Authorization: $MODRINTH_TOKEN" \
+                      -F "data=@/tmp/mrpack-add-data.json;type=application/json" \
                       -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
                     if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
                       echo "::error::Modrinth mrpack add-to-version failed (HTTP $HTTP_CODE)"
