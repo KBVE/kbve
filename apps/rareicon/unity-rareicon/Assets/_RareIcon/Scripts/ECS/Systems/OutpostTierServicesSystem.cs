@@ -1,77 +1,97 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Reactive on Outpost <see cref="BuildingTier"/> change — branches volley + territory radius + vision aura per <see cref="BuildingVariant"/>. T0 keeps the existing baseline. T1 default (Watchpost): wider territory + scout reveal aura. T1 alt 1 (BeaconOutpost): big VisionRadius signal-fire reveal, lighter volley. T1 alt 2 (Gatepost): chokepoint defender — heavy volley, tighter territory. T2 (Garrison): full volley + biggest territory ring.</summary>
+    /// <summary>Reactive on Outpost <see cref="BuildingTier"/> change — branches volley + territory radius + vision aura per <see cref="BuildingVariant"/>. T0 keeps the existing baseline. T1 default (Watchpost): wider territory + scout reveal aura. T1 alt 1 (BeaconOutpost): big VisionRadius signal-fire reveal, lighter volley. T1 alt 2 (Gatepost): chokepoint defender — heavy volley, tighter territory. T2 (Garrison): full volley + biggest territory ring. Off-main-thread parallel <see cref="OutpostRebakeJob"/> + ECB.ParallelWriter.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(BuildingUpgradeSystem))]
-    public partial class OutpostTierServicesSystem : SystemBase
+    public partial struct OutpostTierServicesSystem : ISystem
     {
         EntityQuery _outpostsWithTier;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
             _outpostsWithTier = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<OutpostTag, BuildingTier, TerritoryEmitter, OutpostVolley, BuildingHealth>()
-                .Build(EntityManager);
+                .Build(ref state);
             _outpostsWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
-            RequireForUpdate(_outpostsWithTier);
+            state.RequireForUpdate(_outpostsWithTier);
         }
 
-        protected override void OnUpdate()
-        {
-            var entities = _outpostsWithTier.ToEntityArray(Allocator.Temp);
-            var em = EntityManager;
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            for (int i = 0; i < entities.Length; i++)
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
+            state.Dependency = new OutpostRebakeJob
             {
-                var e = entities[i];
-                byte tier    = em.GetComponentData<BuildingTier>(e).Value;
-                byte variant = em.HasComponent<BuildingVariant>(e)
-                    ? em.GetComponentData<BuildingVariant>(e).Value
-                    : (byte)0;
-
-                ApplyTier(em, e, tier, variant);
-            }
-            entities.Dispose();
+                VariantLookup   = SystemAPI.GetComponentLookup<BuildingVariant>(true),
+                TerritoryLookup = SystemAPI.GetComponentLookup<TerritoryEmitter>(true),
+                HpLookup        = SystemAPI.GetComponentLookup<BuildingHealth>(true),
+                VolleyLookup    = SystemAPI.GetComponentLookup<OutpostVolley>(true),
+                PoolLookup      = SystemAPI.GetComponentLookup<OutpostArrowPool>(true),
+                VisionLookup    = SystemAPI.GetComponentLookup<VisionRadius>(true),
+                Ecb             = ecb,
+            }.ScheduleParallel(_outpostsWithTier, state.Dependency);
         }
+    }
 
-        static void ApplyTier(EntityManager em, Entity outpost, byte tier, byte variant)
+    [BurstCompile]
+    public partial struct OutpostRebakeJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<BuildingVariant>   VariantLookup;
+        [ReadOnly] public ComponentLookup<TerritoryEmitter>  TerritoryLookup;
+        [ReadOnly] public ComponentLookup<BuildingHealth>    HpLookup;
+        [ReadOnly] public ComponentLookup<OutpostVolley>     VolleyLookup;
+        [ReadOnly] public ComponentLookup<OutpostArrowPool>  PoolLookup;
+        [ReadOnly] public ComponentLookup<VisionRadius>      VisionLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity outpost, [ChunkIndexInQuery] int chunkIdx, in BuildingTier tier)
         {
+            byte t = tier.Value;
+            byte v = VariantLookup.HasComponent(outpost) ? VariantLookup[outpost].Value : (byte)0;
+
             byte radius;
             float volleyCooldown, volleyRange, volleyDamage;
             byte volleyArrows, volleyArrowCost;
             ushort poolStock;
             float visionRadius = 0f;
 
-            switch (tier)
+            switch (t)
             {
                 case 0:
                     radius = 5;
                     volleyCooldown = 30f; volleyRange = 15f; volleyDamage = 8f;
                     volleyArrows = 20; volleyArrowCost = 5; poolStock = 100;
                     break;
-                case 2: // Garrison
+                case 2:
                     radius = 9;
                     volleyCooldown = 18f; volleyRange = 18f; volleyDamage = 11f;
                     volleyArrows = 28; volleyArrowCost = 6; poolStock = 200;
                     break;
-                default: // tier 1 — branch on variant
-                    if (variant == 1) // BeaconOutpost — vision focus
+                default:
+                    if (v == 1)
                     {
                         radius = 9;
                         volleyCooldown = 30f; volleyRange = 12f; volleyDamage = 6f;
                         volleyArrows = 12; volleyArrowCost = 3; poolStock = 70;
                         visionRadius = 12f;
                     }
-                    else if (variant == 2) // Gatepost — chokepoint defender
+                    else if (v == 2)
                     {
                         radius = 5;
                         volleyCooldown = 22f; volleyRange = 14f; volleyDamage = 12f;
                         volleyArrows = 22; volleyArrowCost = 5; poolStock = 140;
                     }
-                    else // Watchpost default
+                    else
                     {
                         radius = 7;
                         volleyCooldown = 24f; volleyRange = 16f; volleyDamage = 9f;
@@ -80,62 +100,59 @@ namespace RareIcon
                     break;
             }
 
-            var territory = em.GetComponentData<TerritoryEmitter>(outpost);
+            var territory = TerritoryLookup[outpost];
             territory.Radius = radius;
-            em.SetComponentData(outpost, territory);
+            Ecb.SetComponent(chunkIdx, outpost, territory);
 
-            ushort newMaxHp = ResolveOutpostMaxHp(tier, variant);
-            if (em.HasComponent<BuildingHealth>(outpost))
+            ushort newMaxHp = ResolveMaxHp(t, v);
+            var hp = HpLookup[outpost];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMaxHp;
+            hp.Value = (ushort)math.clamp((int)math.round(ratio * newMaxHp), 0, newMaxHp);
+            Ecb.SetComponent(chunkIdx, outpost, hp);
+
+            var volley = VolleyLookup[outpost];
+            volley.CooldownSeconds = volleyCooldown;
+            volley.Range           = volleyRange;
+            volley.ArrowsPerVolley = volleyArrows;
+            volley.ArrowCost       = volleyArrowCost;
+            volley.DamagePerArrow  = volleyDamage;
+            Ecb.SetComponent(chunkIdx, outpost, volley);
+
+            if (PoolLookup.HasComponent(outpost))
             {
-                var hp = em.GetComponentData<BuildingHealth>(outpost);
-                float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
-                hp.Max   = newMaxHp;
-                hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMaxHp), 0, newMaxHp);
-                em.SetComponentData(outpost, hp);
-            }
-
-            var volley = em.GetComponentData<OutpostVolley>(outpost);
-            volley.CooldownSeconds   = volleyCooldown;
-            volley.Range             = volleyRange;
-            volley.ArrowsPerVolley   = volleyArrows;
-            volley.ArrowCost         = volleyArrowCost;
-            volley.DamagePerArrow    = volleyDamage;
-            em.SetComponentData(outpost, volley);
-
-            if (em.HasComponent<OutpostArrowPool>(outpost))
-            {
-                var pool = em.GetComponentData<OutpostArrowPool>(outpost);
+                var pool = PoolLookup[outpost];
                 if (pool.Stock < poolStock) pool.Stock = poolStock;
-                em.SetComponentData(outpost, pool);
+                Ecb.SetComponent(chunkIdx, outpost, pool);
             }
             else
             {
-                em.AddComponentData(outpost, new OutpostArrowPool { Stock = poolStock });
+                Ecb.AddComponent(chunkIdx, outpost, new OutpostArrowPool { Stock = poolStock });
             }
 
             if (visionRadius > 0f)
             {
-                if (em.HasComponent<VisionRadius>(outpost))
-                    em.SetComponentData(outpost, new VisionRadius { Value = visionRadius });
+                if (VisionLookup.HasComponent(outpost))
+                    Ecb.SetComponent(chunkIdx, outpost, new VisionRadius { Value = visionRadius });
                 else
-                    em.AddComponentData(outpost, new VisionRadius { Value = visionRadius });
+                    Ecb.AddComponent(chunkIdx, outpost, new VisionRadius { Value = visionRadius });
             }
-            else if (em.HasComponent<VisionRadius>(outpost))
+            else if (VisionLookup.HasComponent(outpost))
             {
-                em.RemoveComponent<VisionRadius>(outpost);
+                Ecb.RemoveComponent<VisionRadius>(chunkIdx, outpost);
             }
         }
 
-        static ushort ResolveOutpostMaxHp(byte tier, byte variant)
+        static ushort ResolveMaxHp(byte tier, byte variant)
         {
-            if (tier >= 2) return 360; // Garrison
+            if (tier >= 2) return 360;
             if (tier == 1)
             {
-                if (variant == 1) return 240; // BeaconOutpost
-                if (variant == 2) return 280; // Gatepost
-                return 260;                   // Watchpost
+                if (variant == 1) return 240;
+                if (variant == 2) return 280;
+                return 260;
             }
-            return 220;                       // base Outpost
+            return 220;
         }
     }
 }

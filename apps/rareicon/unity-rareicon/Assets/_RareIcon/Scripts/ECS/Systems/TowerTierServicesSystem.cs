@@ -1,44 +1,64 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Reactive on Tower <see cref="BuildingTier"/> change — attaches the volley defence kit, scales <see cref="TerritoryEmitter"/> radius per tier, and branches on <see cref="BuildingVariant"/> for T1 alt-picks. T0 stays a passive territory pole. T1 variants: 0 = WatchTower (defense — strong volley, radius 5), 1 = BeaconTower (hybrid — wider radius 7, light volley, mid VisionRadius), 2 = HighwatchTower (recon — no volley, big VisionRadius). T2 (SentinelTower) gets a heavier volley + radius 7. Removing tier downgrades cleanly.</summary>
+    /// <summary>Reactive on Tower <see cref="BuildingTier"/> change — attaches the volley defence kit, scales <see cref="TerritoryEmitter"/> radius per tier, and branches on <see cref="BuildingVariant"/> for T1 alt-picks. T0 stays a passive territory pole. T1 variants: 0 = WatchTower (defense), 1 = BeaconTower (hybrid), 2 = HighwatchTower (recon). T2 (SentinelTower) gets heavier volley + radius 7. Off-main-thread parallel <see cref="TowerRebakeJob"/> + ECB.ParallelWriter for every component add/set/remove.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(BuildingUpgradeSystem))]
-    public partial class TowerTierServicesSystem : SystemBase
+    public partial struct TowerTierServicesSystem : ISystem
     {
         EntityQuery _towersWithTier;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
             _towersWithTier = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<TowerTag, BuildingTier, TerritoryEmitter, BuildingHealth>()
-                .Build(EntityManager);
+                .Build(ref state);
             _towersWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
-            RequireForUpdate(_towersWithTier);
+            state.RequireForUpdate(_towersWithTier);
         }
 
-        protected override void OnUpdate()
-        {
-            var entities = _towersWithTier.ToEntityArray(Allocator.Temp);
-            var em = EntityManager;
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
-            for (int i = 0; i < entities.Length; i++)
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
+            state.Dependency = new TowerRebakeJob
             {
-                var e = entities[i];
-                byte tier    = em.GetComponentData<BuildingTier>(e).Value;
-                byte variant = em.HasComponent<BuildingVariant>(e)
-                    ? em.GetComponentData<BuildingVariant>(e).Value
-                    : (byte)0;
-
-                ApplyTier(em, e, tier, variant);
-            }
-            entities.Dispose();
+                VariantLookup   = SystemAPI.GetComponentLookup<BuildingVariant>(true),
+                TerritoryLookup = SystemAPI.GetComponentLookup<TerritoryEmitter>(true),
+                HpLookup        = SystemAPI.GetComponentLookup<BuildingHealth>(true),
+                VolleyLookup    = SystemAPI.GetComponentLookup<OutpostVolley>(true),
+                PoolLookup      = SystemAPI.GetComponentLookup<OutpostArrowPool>(true),
+                VisionLookup    = SystemAPI.GetComponentLookup<VisionRadius>(true),
+                Ecb             = ecb,
+            }.ScheduleParallel(_towersWithTier, state.Dependency);
         }
+    }
 
-        static void ApplyTier(EntityManager em, Entity tower, byte tier, byte variant)
+    [BurstCompile]
+    public partial struct TowerRebakeJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<BuildingVariant>   VariantLookup;
+        [ReadOnly] public ComponentLookup<TerritoryEmitter>  TerritoryLookup;
+        [ReadOnly] public ComponentLookup<BuildingHealth>    HpLookup;
+        [ReadOnly] public ComponentLookup<OutpostVolley>     VolleyLookup;
+        [ReadOnly] public ComponentLookup<OutpostArrowPool>  PoolLookup;
+        [ReadOnly] public ComponentLookup<VisionRadius>      VisionLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity tower, [ChunkIndexInQuery] int chunkIdx, in BuildingTier tier)
         {
+            byte t = tier.Value;
+            byte v = VariantLookup.HasComponent(tower) ? VariantLookup[tower].Value : (byte)0;
+
             byte radius;
             bool wantsVolley;
             float volleyCooldown = 4f, volleyRange = 8f;
@@ -47,7 +67,7 @@ namespace RareIcon
             ushort poolStock = 60;
             float visionRadius = 0f;
 
-            switch (tier)
+            switch (t)
             {
                 case 0:
                     radius = 3; wantsVolley = false;
@@ -58,8 +78,8 @@ namespace RareIcon
                     volleyArrows = 12; volleyArrowCost = 2; volleyDamage = 7f;
                     poolStock = 120;
                     break;
-                default: // tier 1 — branch on variant
-                    if (variant == 1) // BeaconTower — hybrid
+                default:
+                    if (v == 1)
                     {
                         radius = 7; wantsVolley = true;
                         volleyCooldown = 5f; volleyRange = 10f;
@@ -67,31 +87,28 @@ namespace RareIcon
                         poolStock = 40;
                         visionRadius = 10f;
                     }
-                    else if (variant == 2) // HighwatchTower — pure recon
+                    else if (v == 2)
                     {
                         radius = 4; wantsVolley = false;
                         visionRadius = 14f;
                     }
-                    else // WatchTower — defense default
+                    else
                     {
                         radius = 5; wantsVolley = true;
                     }
                     break;
             }
 
-            var territory = em.GetComponentData<TerritoryEmitter>(tower);
+            var territory = TerritoryLookup[tower];
             territory.Radius = radius;
-            em.SetComponentData(tower, territory);
+            Ecb.SetComponent(chunkIdx, tower, territory);
 
-            ushort newMaxHp = ResolveTowerMaxHp(tier, variant);
-            if (em.HasComponent<BuildingHealth>(tower))
-            {
-                var hp = em.GetComponentData<BuildingHealth>(tower);
-                float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
-                hp.Max   = newMaxHp;
-                hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMaxHp), 0, newMaxHp);
-                em.SetComponentData(tower, hp);
-            }
+            ushort newMaxHp = ResolveMaxHp(t, v);
+            var hp = HpLookup[tower];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMaxHp;
+            hp.Value = (ushort)math.clamp((int)math.round(ratio * newMaxHp), 0, newMaxHp);
+            Ecb.SetComponent(chunkIdx, tower, hp);
 
             if (wantsVolley)
             {
@@ -107,49 +124,49 @@ namespace RareIcon
                     ProjectileLifetime = 3f,
                     DamagePerArrow     = volleyDamage,
                 };
-                if (em.HasComponent<OutpostVolley>(tower)) em.SetComponentData(tower, volley);
-                else em.AddComponentData(tower, volley);
+                if (VolleyLookup.HasComponent(tower)) Ecb.SetComponent(chunkIdx, tower, volley);
+                else                                  Ecb.AddComponent(chunkIdx, tower, volley);
 
-                if (em.HasComponent<OutpostArrowPool>(tower))
+                if (PoolLookup.HasComponent(tower))
                 {
-                    var pool = em.GetComponentData<OutpostArrowPool>(tower);
+                    var pool = PoolLookup[tower];
                     if (pool.Stock < poolStock) pool.Stock = poolStock;
-                    em.SetComponentData(tower, pool);
+                    Ecb.SetComponent(chunkIdx, tower, pool);
                 }
                 else
                 {
-                    em.AddComponentData(tower, new OutpostArrowPool { Stock = poolStock });
+                    Ecb.AddComponent(chunkIdx, tower, new OutpostArrowPool { Stock = poolStock });
                 }
             }
             else
             {
-                if (em.HasComponent<OutpostVolley>(tower))    em.RemoveComponent<OutpostVolley>(tower);
-                if (em.HasComponent<OutpostArrowPool>(tower)) em.RemoveComponent<OutpostArrowPool>(tower);
+                if (VolleyLookup.HasComponent(tower)) Ecb.RemoveComponent<OutpostVolley>(chunkIdx, tower);
+                if (PoolLookup.HasComponent(tower))   Ecb.RemoveComponent<OutpostArrowPool>(chunkIdx, tower);
             }
 
             if (visionRadius > 0f)
             {
-                if (em.HasComponent<VisionRadius>(tower))
-                    em.SetComponentData(tower, new VisionRadius { Value = visionRadius });
+                if (VisionLookup.HasComponent(tower))
+                    Ecb.SetComponent(chunkIdx, tower, new VisionRadius { Value = visionRadius });
                 else
-                    em.AddComponentData(tower, new VisionRadius { Value = visionRadius });
+                    Ecb.AddComponent(chunkIdx, tower, new VisionRadius { Value = visionRadius });
             }
-            else if (em.HasComponent<VisionRadius>(tower))
+            else if (VisionLookup.HasComponent(tower))
             {
-                em.RemoveComponent<VisionRadius>(tower);
+                Ecb.RemoveComponent<VisionRadius>(chunkIdx, tower);
             }
         }
 
-        static ushort ResolveTowerMaxHp(byte tier, byte variant)
+        static ushort ResolveMaxHp(byte tier, byte variant)
         {
             if (tier >= 2) return 720;
             if (tier == 1)
             {
-                if (variant == 1) return 400; // Beacon
-                if (variant == 2) return 360; // Highwatch
-                return 480;                   // Watch
+                if (variant == 1) return 400;
+                if (variant == 2) return 360;
+                return 480;
             }
-            return 320;                       // base Tower
+            return 320;
         }
     }
 }
