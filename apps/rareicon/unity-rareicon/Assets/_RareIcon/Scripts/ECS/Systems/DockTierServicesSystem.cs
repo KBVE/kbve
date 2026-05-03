@@ -4,7 +4,8 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Reactive on Dock <see cref="BuildingTier"/> change — adds tier-specific service components. T1 (Shipyard) attaches <see cref="ShipyardGalleyProduction"/> so the Galley craft cycle starts firing; T2 (Harbour) widens the cadence + bumps cap. Mirrors the Inn / Lumbercamp / MiningPit tier-services pattern.</summary>
+    /// <summary>Reactive on Dock <see cref="BuildingTier"/> change — adds / updates tier-specific service components. T1 (Shipyard) attaches <see cref="ShipyardGalleyProduction"/>; T2 (Harbour) widens the cadence + bumps cap. Off-main-thread via parallel <see cref="DockRebakeJob"/> + ECB for structural add/set.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(BuildingUpgradeSystem))]
     public partial struct DockTierServicesSystem : ISystem
@@ -22,39 +23,50 @@ namespace RareIcon
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var entities   = _docksWithTier.ToEntityArray(Allocator.Temp);
-            var tierLookup = SystemAPI.GetComponentLookup<BuildingTier>(true);
-            var galleyLookup = SystemAPI.GetComponentLookup<ShipyardGalleyProduction>(false);
-            var em = state.EntityManager;
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            for (int i = 0; i < entities.Length; i++)
+            state.Dependency = new DockRebakeJob
             {
-                var e = entities[i];
-                byte tier = tierLookup[e].Value;
+                GalleyLookup = SystemAPI.GetComponentLookup<ShipyardGalleyProduction>(true),
+                Ecb          = ecb,
+            }.ScheduleParallel(_docksWithTier, state.Dependency);
+        }
+    }
 
-                if (tier >= 1)
+    [BurstCompile]
+    public partial struct DockRebakeJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<ShipyardGalleyProduction> GalleyLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in BuildingTier tier)
+        {
+            if (tier.Value < 1) return;
+
+            byte cadence = (byte)(tier.Value >= 2 ? 4 : 6);
+
+            if (!GalleyLookup.HasComponent(entity))
+            {
+                Ecb.AddComponent(chunkIdx, entity, new ShipyardGalleyProduction
                 {
-                    if (!galleyLookup.HasComponent(e))
-                    {
-                        em.AddComponentData(e, new ShipyardGalleyProduction
-                        {
-                            LastProducedTurn = 0,
-                            CadenceTurns     = (byte)(tier >= 2 ? 4 : 6),
-                            TimberCost       = 3,
-                            StoneCost        = 1,
-                        });
-                    }
-                    else
-                    {
-                        var p = em.GetComponentData<ShipyardGalleyProduction>(e);
-                        p.CadenceTurns = (byte)(tier >= 2 ? 4 : 6);
-                        em.SetComponentData(e, p);
-                    }
-                }
+                    LastProducedTurn = 0,
+                    CadenceTurns     = cadence,
+                    TimberCost       = 3,
+                    StoneCost        = 1,
+                });
             }
-            entities.Dispose();
+            else
+            {
+                var p = GalleyLookup[entity];
+                p.CadenceTurns = cadence;
+                Ecb.SetComponent(chunkIdx, entity, p);
+            }
         }
     }
 }
