@@ -1,0 +1,96 @@
+# =============================================================================
+# CI: dbmate-validate
+#
+# Proof-of-concept stage. Spins a vanilla Postgres 17-alpine service
+# container on the ARC runner, applies init/* + every dbmate migration
+# top-to-bottom against a blank DB, then exercises rollback on the
+# newest migration to verify the migrate:down path. NO production
+# contact. NO CNPG-specific image — we want this to fail loud if a
+# migration relies on a Kilobase-specific extension that isn't in
+# vanilla postgres.
+#
+# Triggered on every PR that touches packages/data/sql/dbmate/** so
+# regressions are caught at review time.
+# =============================================================================
+name: CI - dbmate validate
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'packages/data/sql/dbmate/**'
+            - '.github/workflows/ci-dbmate-validate.yml'
+    pull_request:
+        paths:
+            - 'packages/data/sql/dbmate/**'
+            - '.github/workflows/ci-dbmate-validate.yml'
+    workflow_dispatch:
+
+jobs:
+    blank-db-rollout:
+        name: Apply all migrations on blank Postgres
+        runs-on: arc-runner-set
+        timeout-minutes: 10
+
+        services:
+            postgres:
+                image: postgres:17-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: postgres
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U postgres"
+                    --health-interval 5s
+                    --health-timeout 3s
+                    --health-retries 10
+
+        env:
+            DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=dbmate,public
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Install dbmate
+              run: |
+                  curl -fsSL -o /usr/local/bin/dbmate \
+                      https://github.com/amacneil/dbmate/releases/download/v2.28.0/dbmate-linux-amd64
+                  chmod +x /usr/local/bin/dbmate
+                  dbmate --version
+
+            - name: Seed init scripts (roles + auth/n8n/profile stubs)
+              working-directory: packages/data/sql/dbmate
+              run: |
+                  for f in init/00-roles.sql init/01-auth-stub.sql \
+                           init/02-extensions-stub.sql init/03-n8n-stub.sql \
+                           init/04-profile-stub.sql; do
+                    [ -f "$f" ] && PGPASSWORD=postgres psql \
+                      -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f "$f"
+                  done
+
+            - name: Apply all migrations
+              working-directory: packages/data/sql/dbmate
+              run: dbmate --no-dump-schema --migrations-dir migrations up
+
+            - name: Confirm tracker has every migration
+              working-directory: packages/data/sql/dbmate
+              run: |
+                  applied=$(dbmate --migrations-dir migrations status \
+                            | grep -c "^\[X\]" || true)
+                  files=$(ls migrations/*.sql | wc -l)
+                  echo "applied=$applied files=$files"
+                  if [ "$applied" -ne "$files" ]; then
+                    echo "::error::dbmate tracker drift — $applied applied vs $files files"
+                    exit 1
+                  fi
+
+            - name: Roll back the most recent migration (verifies migrate:down)
+              working-directory: packages/data/sql/dbmate
+              run: dbmate --no-dump-schema --migrations-dir migrations rollback
+
+            - name: Re-apply to confirm idempotency
+              working-directory: packages/data/sql/dbmate
+              run: dbmate --no-dump-schema --migrations-dir migrations up

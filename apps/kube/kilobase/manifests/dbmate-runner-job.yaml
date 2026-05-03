@@ -1,0 +1,77 @@
+---
+# dbmate-runner Job template. Rendered by the GitHub Actions
+# workflow with envsubst — `${DBMATE_VERSION_TAG}` becomes a unique
+# git-sha + timestamp suffix so every deploy is auditable as a
+# distinct Job and never collides with a prior run.
+#
+# Safety knobs:
+#   backoffLimit: 0           — failed migrations stop, no auto-retry
+#   activeDeadlineSeconds:600 — Pod-killed at 10 min so a stuck DDL
+#                                doesn't pile up locks indefinitely
+#   ttlSecondsAfterFinished:  86400 (24h) so the run record stays
+#                              available for log audit then self-cleans
+#   restartPolicy: Never      — no pod-level retry on container exit
+#   parallelism / completions: 1 (default, listed for clarity)
+#
+# The Job command is hardcoded to `dbmate up` — never down. To
+# rollback, you write a new migration that reverses the change and
+# ship it via the same flow.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: dbmate-up-${DBMATE_VERSION_TAG}
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: dbmate-runner
+        app.kubernetes.io/component: schema-migrations
+        kbve.com/migration-tag: '${DBMATE_VERSION_TAG}'
+spec:
+    backoffLimit: 0
+    activeDeadlineSeconds: 600
+    ttlSecondsAfterFinished: 86400
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: dbmate-runner
+                kbve.com/migration-tag: '${DBMATE_VERSION_TAG}'
+        spec:
+            serviceAccountName: dbmate-runner
+            restartPolicy: Never
+            containers:
+                - name: dbmate
+                  image: ghcr.io/amacneil/dbmate:2.28.0
+                  command:
+                      - dbmate
+                      - --no-dump-schema
+                      - --migrations-dir
+                      - /m
+                      - up
+                  env:
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: dbmate-creds
+                                key: DATABASE_URL
+                  volumeMounts:
+                      - name: migrations
+                        mountPath: /m
+                        readOnly: true
+                  resources:
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
+                      limits:
+                          cpu: 500m
+                          memory: 256Mi
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 65532
+                      readOnlyRootFilesystem: true
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop: ['ALL']
+            volumes:
+                - name: migrations
+                  configMap:
+                      name: dbmate-migrations
+                      defaultMode: 0444
