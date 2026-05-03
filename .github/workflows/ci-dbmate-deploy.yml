@@ -39,11 +39,18 @@ jobs:
         steps:
             - uses: actions/checkout@v6
             - id: sha
-              run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+              # --short=7 pins the length so operator-supplied 7-char
+              # SHAs match regardless of local abbrev config drift.
+              run: echo "short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
             - name: Verify operator-supplied SHA matches HEAD
               run: |
-                  if [ "${{ inputs.confirm_sha }}" != "${{ steps.sha.outputs.short }}" ]; then
-                    echo "::error::SHA mismatch — supplied ${{ inputs.confirm_sha }}, HEAD ${{ steps.sha.outputs.short }}"
+                  SUPPLIED="${{ inputs.confirm_sha }}"
+                  HEAD="${{ steps.sha.outputs.short }}"
+                  # Accept either exact 7-char match or a longer prefix
+                  # form (substring check against full HEAD) so users
+                  # with --short=9 git config don't get bounced.
+                  if [[ "${SUPPLIED:0:7}" != "$HEAD" ]]; then
+                    echo "::error::SHA mismatch — supplied $SUPPLIED, HEAD $HEAD"
                     exit 1
                   fi
 
@@ -54,6 +61,16 @@ jobs:
         timeout-minutes: 5
         steps:
             - uses: actions/checkout@v6
+
+            - name: Install kubectl + envsubst
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                      curl ca-certificates gettext-base
+                  curl -fsSL -o /usr/local/bin/kubectl \
+                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
+                  sudo chmod +x /usr/local/bin/kubectl
+                  kubectl version --client=true
 
             - name: Build migrations ConfigMap (replace existing)
               run: |
@@ -88,6 +105,16 @@ jobs:
         timeout-minutes: 15
         steps:
             - uses: actions/checkout@v6
+
+            - name: Install kubectl + envsubst
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                      curl ca-certificates gettext-base
+                  curl -fsSL -o /usr/local/bin/kubectl \
+                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
+                  sudo chmod +x /usr/local/bin/kubectl
+                  kubectl version --client=true
 
             - name: Render + run the up Job
               env:
