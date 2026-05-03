@@ -1,0 +1,43 @@
+---
+title: 'Archer'
+description: |
+    Player ranged humanoid. Hooded leather, back quiver. Lower HP than Soldier; trades durability for reach. Used by Barracks recruitment + initial spawn cluster.
+ref: 'archer'
+id: '01KSAVZ000000000000000ARCH'
+name: 'Archer'
+type_flags: 1
+rarity: 'common'
+personality: 'cunning'
+rank: 'normal'
+family: 'humanoid'
+level: 2
+stats:
+    hp: 50
+    max_hp: 50
+    attack: 6
+    defense: 1
+    speed: 4
+    armor: 1
+behavior:
+    movement_type: 'patrol'
+    first_strike: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "The archer looses an arrow at {target}! {dmg} damage!"
+        - "Bowstring snaps — {target} takes {dmg} damage!"
+    - action: 'death'
+      messages:
+        - "The archer crumples, quiver spilling broken shafts."
+abilities:
+    - id: 'attack'
+      name: 'Longbow Shot'
+      damage: 6
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Player ranged humanoid. Trades HP for reach.

@@ -375,6 +375,66 @@ namespace RareIcon
                 strength:      7, agility: 15, intellect: 8, will: 7,
                 defaultWeapon: WeaponType.None));
 
+            Add(new NPCDef(
+                unitType:      UnitType.Archer,
+                nameKey:       "creature.archer",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     50f, maxEnergy: 110f, maxMana: 0f,
+                maxHunger:     150f, maxFatigue: 100f,
+                moveSpeed:     0.7f,
+                healthRegen:   0f, energyRegen: 5.5f, manaRegen: 0f,
+                hungerPerSec:  0.30f, fatiguePerSec: 0.20f,
+                strength:      9, agility: 14, intellect: 8, will: 8,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Rogue,
+                nameKey:       "creature.rogue",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     45f, maxEnergy: 130f, maxMana: 0f,
+                maxHunger:     130f, maxFatigue: 90f,
+                moveSpeed:     0.95f,
+                healthRegen:   0f, energyRegen: 7.0f, manaRegen: 0f,
+                hungerPerSec:  0.30f, fatiguePerSec: 0.22f,
+                strength:      11, agility: 16, intellect: 9, will: 8,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Cleric,
+                nameKey:       "creature.cleric",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     60f, maxEnergy: 100f, maxMana: 120f,
+                maxHunger:     150f, maxFatigue: 100f,
+                moveSpeed:     0.7f,
+                healthRegen:   0.3f, energyRegen: 5.0f, manaRegen: 1.5f,
+                hungerPerSec:  0.30f, fatiguePerSec: 0.20f,
+                strength:      9, agility: 9, intellect: 14, will: 14,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.Merchant,
+                nameKey:       "creature.merchant",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     30f, maxEnergy: 80f, maxMana: 0f,
+                maxHunger:     150f, maxFatigue: 100f,
+                moveSpeed:     0.6f,
+                healthRegen:   0f, energyRegen: 4.0f, manaRegen: 0f,
+                hungerPerSec:  0.30f, fatiguePerSec: 0.18f,
+                strength:      6, agility: 8, intellect: 12, will: 10,
+                defaultWeapon: WeaponType.None));
+
+            Add(new NPCDef(
+                unitType:      UnitType.GoblinGeneral,
+                nameKey:       "creature.goblin_general",
+                category:      NPCCategory.Humanoid,
+                maxHealth:     140f, maxEnergy: 150f, maxMana: 30f,
+                maxHunger:     180f, maxFatigue: 130f,
+                moveSpeed:     0.75f,
+                healthRegen:   0.2f, energyRegen: 6.0f, manaRegen: 0.3f,
+                hungerPerSec:  0.32f, fatiguePerSec: 0.22f,
+                strength:      16, agility: 12, intellect: 9, will: 12,
+                defaultWeapon: WeaponType.Club));
+
             // Future creatures land here — Skeleton, GoblinShaman, etc.
         }
 

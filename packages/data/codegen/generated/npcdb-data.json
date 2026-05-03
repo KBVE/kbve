@@ -1,6 +1,55 @@
 {
 	"npcs": [
 		{
+			"description": "Player ranged humanoid. Hooded leather, back quiver. Lower HP than Soldier; trades durability for reach. Used by Barracks recruitment + initial spawn cluster.\n",
+			"ref": "archer",
+			"id": "01KSAVZ000000000000000ARCH",
+			"name": "Archer",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_CUNNING",
+			"rank": "NPC_RANK_NORMAL",
+			"family": "humanoid",
+			"level": 2,
+			"stats": {
+				"hp": 50,
+				"maxHp": 50,
+				"attack": 6,
+				"defense": 1,
+				"speed": 4,
+				"armor": 1
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": true
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The archer looses an arrow at {target}! {dmg} damage!",
+						"Bowstring snaps — {target} takes {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The archer crumples, quiver spilling broken shafts."
+					]
+				}
+			],
+			"abilities": [
+				{
+					"id": "attack",
+					"name": "Longbow Shot",
+					"damage": 6
+				}
+			],
+			"faction": {
+				"factionId": "player"
+			}
+		},
+		{
 			"description": "Hostile recon unit dispatched by Bandit Camps every 90s. Wanders far from the camp, marks discovered Player buildings into KnownPlayerHexesSingleton so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius. No weapon — flees combat.\n",
 			"ref": "bandit-scout",
 			"id": "01KSAVTYT9RBX566KHNYHGEREA",
@@ -417,6 +466,59 @@
 			],
 			"faction": {
 				"factionId": "wildlife"
+			}
+		},
+		{
+			"description": "Player support humanoid. Pale robe, gold trim, holy symbol. Heals nearby allies; reserved for higher-tier Barracks / temple recruitment once healing AI lands.\n",
+			"ref": "cleric",
+			"id": "01KSAVZ000000000000000CLRC",
+			"name": "Cleric",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_NOBLE",
+			"rank": "NPC_RANK_NORMAL",
+			"family": "humanoid",
+			"level": 3,
+			"stats": {
+				"hp": 60,
+				"maxHp": 60,
+				"attack": 3,
+				"defense": 2,
+				"speed": 4,
+				"armor": 1
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The cleric strikes with a glowing mace — {target} takes {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The cleric falls, holy symbol fading to grey."
+					]
+				}
+			],
+			"abilities": [
+				{
+					"id": "attack",
+					"name": "Sanctified Blow",
+					"damage": 3
+				},
+				{
+					"id": "heal",
+					"name": "Mend",
+					"damage": 0
+				}
+			],
+			"faction": {
+				"factionId": "player"
 			}
 		},
 		{
@@ -2007,6 +2109,55 @@
 			}
 		},
 		{
+			"description": "Hostile warlord goblin. Chestplate, spiked crown, warpaint. Tougher than a regular Goblin, anchors larger raid waves and elite hostile garrisons.\n",
+			"ref": "goblin-general",
+			"id": "01KSAVZ00000000000000GGNRL",
+			"name": "Goblin General",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_RARE",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_ELITE",
+			"family": "humanoid",
+			"level": 5,
+			"stats": {
+				"hp": 140,
+				"maxHp": 140,
+				"attack": 11,
+				"defense": 3,
+				"speed": 4,
+				"armor": 3
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The goblin general roars — {target} takes {dmg} crushing damage!",
+						"Spiked crown gleaming, the warlord cleaves into {target} for {dmg}!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The goblin general topples, warpaint streaked with blood."
+					]
+				}
+			],
+			"abilities": [
+				{
+					"id": "attack",
+					"name": "Warlord Cleave",
+					"damage": 11
+				}
+			],
+			"faction": {
+				"factionId": "hostile"
+			}
+		},
+		{
 			"description": "Wiry humanoid raider — fast, frail, swings a club. The default Hostile-faction footsoldier of the Rareicon empire-builder; also recruitable as a Player goblin worker via Lost Goblin Band events.\n",
 			"ref": "goblin",
 			"id": "01KSAVBCDKGE0N89F6ZPH846Z8",
@@ -2303,6 +2454,54 @@
 			"credits": "KBVE Isometric ambient creature system.\n"
 		},
 		{
+			"description": "Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.\n",
+			"ref": "merchant",
+			"id": "01KSAVZ000000000000000MRCH",
+			"name": "Merchant",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_NOBLE",
+			"rank": "NPC_RANK_NORMAL",
+			"family": "humanoid",
+			"level": 1,
+			"stats": {
+				"hp": 30,
+				"maxHp": 30,
+				"attack": 1,
+				"defense": 0,
+				"speed": 3,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_PATROL",
+				"firstStrike": false
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The merchant swings a coin-laden purse at {target}! {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"Coins clatter across the cobbles as the merchant falls."
+					]
+				}
+			],
+			"abilities": [
+				{
+					"id": "attack",
+					"name": "Pouch Swing",
+					"damage": 1
+				}
+			],
+			"faction": {
+				"factionId": "player"
+			}
+		},
+		{
 			"description": "A tiny fungal creature that bounces erratically, releasing clouds of irritating spores.\n",
 			"ref": "mushroom-sprite",
 			"id": "01KKR5QWTAJEKFBFF31JNDW8Q9",
@@ -2580,6 +2779,55 @@
 			],
 			"faction": {
 				"factionId": "hostile"
+			}
+		},
+		{
+			"description": "Player melee skirmisher. Dual-dagger, dark cloak, face scarf. Fast and high-attack but glassy — picks off stragglers, dies fast in line combat.\n",
+			"ref": "rogue",
+			"id": "01KSAVZ000000000000000ROGE",
+			"name": "Rogue",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_UNCOMMON",
+			"personality": "PERSONALITY_CUNNING",
+			"rank": "NPC_RANK_NORMAL",
+			"family": "humanoid",
+			"level": 3,
+			"stats": {
+				"hp": 45,
+				"maxHp": 45,
+				"attack": 9,
+				"defense": 1,
+				"speed": 6,
+				"armor": 0
+			},
+			"behavior": {
+				"movementType": "MOVEMENT_TYPE_AGGRESSIVE",
+				"firstStrike": true
+			},
+			"flavorText": [
+				{
+					"action": "attack",
+					"messages": [
+						"The rogue slips behind {target} — twin daggers flash! {dmg} damage!",
+						"{target} catches a blade between the ribs — {dmg} damage!"
+					]
+				},
+				{
+					"action": "death",
+					"messages": [
+						"The rogue staggers, cloak settling over the still form."
+					]
+				}
+			],
+			"abilities": [
+				{
+					"id": "attack",
+					"name": "Twin Strike",
+					"damage": 9
+				}
+			],
+			"faction": {
+				"factionId": "player"
 			}
 		},
 		{
