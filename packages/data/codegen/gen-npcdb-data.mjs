@@ -58,7 +58,7 @@ const ENUM_PREFIX = {
 	creatureFamily: 'CREATURE_FAMILY_',
 	movementType:   'MOVEMENT_TYPE_',
 	difficulty:     'DIFFICULTY_',
-	equipSlot:      'EQUIP_SLOT_',
+	slot:           'EQUIP_SLOT_',
 };
 
 const ASTRO_ONLY_FIELDS = new Set([

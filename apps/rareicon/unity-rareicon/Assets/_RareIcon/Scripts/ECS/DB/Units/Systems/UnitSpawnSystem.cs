@@ -109,18 +109,14 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
 
-            ushort startShield = 0, startWeapon = 0, startHelmet = 0, startArmor = 0;
-            if (unitType == UnitType.Knight)
-            {
-                startShield = EquipmentMap.IRON_SHIELD_ITEM;
-                startWeapon = EquipmentMap.IRON_SWORD_ITEM;
-                startArmor  = EquipmentMap.IRON_ARMOR_ITEM;
-            }
+            var equipment = EquipmentLoadoutResolver.Resolve(
+                unitType,
+                out byte shieldSlot,
+                out byte weaponByte,
+                out byte helmetByte,
+                out byte armorByte);
 
-            byte shieldSlot = EquipmentMap.ShieldVisualFor(startShield);
-            byte weaponByte = startWeapon == 0 ? def.DefaultWeapon : EquipmentMap.WeaponVisualFor(startWeapon);
-            byte helmetByte = EquipmentMap.HelmetVisualFor(startHelmet);
-            byte armorByte  = EquipmentMap.ArmorVisualFor(startArmor);
+            if (weaponByte == WeaponType.None) weaponByte = def.DefaultWeapon;
 
             em.AddComponentData(entity, new Unit
             {
@@ -130,13 +126,7 @@ namespace RareIcon
                 Shield = shieldSlot,
                 Armor  = armorByte,
             });
-            em.AddComponentData(entity, new Equipment
-            {
-                ShieldItemId = startShield,
-                WeaponItemId = startWeapon,
-                HelmetItemId = startHelmet,
-                ArmorItemId  = startArmor,
-            });
+            em.AddComponentData(entity, equipment);
 
             if (def.MaxHealth > 0)
             {
@@ -285,13 +275,26 @@ namespace RareIcon
             worldPos.z = -0.7f;
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+
+            var kingEquipment = EquipmentLoadoutResolver.Resolve(
+                def.UnitType,
+                out byte kingShield,
+                out byte kingWeapon,
+                out byte kingHelmet,
+                out byte kingArmor);
+
+            if (kingWeapon == WeaponType.None) kingWeapon = def.DefaultWeapon;
+            if (kingHelmet == HelmetType.None) kingHelmet = HelmetType.Cap;
+
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
-                Weapon = def.DefaultWeapon,
-                Helmet = HelmetType.Cap,
+                Weapon = kingWeapon,
+                Helmet = kingHelmet,
+                Shield = kingShield,
+                Armor  = kingArmor,
             });
-            em.AddComponentData(entity, new Equipment { ShieldItemId = 0 });
+            em.AddComponentData(entity, kingEquipment);
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;
@@ -303,9 +306,11 @@ namespace RareIcon
             em.AddComponentData(entity, new ManaRegen  { PerSecond = def.ManaRegen });
 
             em.AddComponentData(entity, new UnitVisual        { Value = (float)UnitType.Soldier });
-            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)kingWeapon });
+            em.AddComponentData(entity, new UnitShieldVisual  { Value = (float)kingShield });
+            em.AddComponentData(entity, new UnitArmorVisual   { Value = (float)kingArmor });
             em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
-            em.AddComponentData(entity, new UnitHelmetVisual  { Value = (float)HelmetType.Cap });
+            em.AddComponentData(entity, new UnitHelmetVisual  { Value = (float)kingHelmet });
             em.AddComponentData(entity, new UnitMovingVisual  { Value = 0f });
 
             em.AddComponentData(entity, new Faction    { Value = FactionType.Player });

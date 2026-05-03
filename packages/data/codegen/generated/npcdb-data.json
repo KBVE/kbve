@@ -144,6 +144,14 @@
 			],
 			"faction": {
 				"factionId": "hostile"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_HEAD",
+						"itemRef": "hood"
+					}
+				]
 			}
 		},
 		{
@@ -2302,6 +2310,22 @@
 			],
 			"faction": {
 				"factionId": "player"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "gold-plated-shield"
+					},
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "iron-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "iron-armor"
+					}
+				]
 			}
 		},
 		{
@@ -2351,6 +2375,22 @@
 			],
 			"faction": {
 				"factionId": "player"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "iron-shield"
+					},
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "iron-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "iron-armor"
+					}
+				]
 			}
 		},
 		{
@@ -3334,6 +3374,22 @@
 			],
 			"faction": {
 				"factionId": "player"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "wooden-shield"
+					},
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "rusty-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "chain-mail"
+					}
+				]
 			}
 		},
 		{
