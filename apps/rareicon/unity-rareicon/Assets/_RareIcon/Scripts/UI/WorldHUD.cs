@@ -197,12 +197,20 @@ namespace RareIcon
                 _stack.style.flexDirection = FlexDirection.Row;
                 _frame.TopRight.Add(_stack);
             }
-            if (_hoverPanel != null && _frame.BottomLeft != null)
+            if (_hoverPanel != null && _frame.WorldOverlay != null)
             {
+                // Mount the hover panel inside WorldOverlay with absolute
+                // positioning instead of joining the bottom bar's flex.
+                // Otherwise the panel widens with the unit's pack count
+                // / hex resource list, squeezing BottomCenter and shifting
+                // every other footer item sideways on every hover.
                 _hoverPanel.RemoveFromHierarchy();
                 _hoverPanel.RemoveFromClassList("tile-info");
                 _hoverPanel.AddToClassList("tile-info--inline");
-                _frame.BottomLeft.Add(_hoverPanel);
+                _hoverPanel.style.position = UnityEngine.UIElements.Position.Absolute;
+                _hoverPanel.style.left   = 16;
+                _hoverPanel.style.bottom = 12;
+                _frame.WorldOverlay.Add(_hoverPanel);
             }
         }
 
