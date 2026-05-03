@@ -35,7 +35,7 @@ namespace RareIcon
         {
             await _frame.Ready;
             if (cancellation.IsCancellationRequested) return;
-            if (_frame.BottomRight == null) return;
+            if (_frame.WorldOverlay == null) return;
 
             BuildPanel();
 
@@ -50,9 +50,16 @@ namespace RareIcon
             _root.style.flexDirection = FlexDirection.Column;
             _root.style.alignItems = Align.FlexEnd;
             _root.style.maxWidth = 280;
-            _root.style.marginBottom = 12;
             _root.style.display = DisplayStyle.None;
             _root.pickingMode = PickingMode.Position;
+            // Mount above the footer via absolute positioning inside the
+            // WorldOverlay region. Previously this lived inside the
+            // bottom bar's right region, which made the bar grow when
+            // the hint appeared and shifted every other footer item
+            // sideways. Absolute keeps the footer geometry stable.
+            _root.style.position = Position.Absolute;
+            _root.style.right    = 16;
+            _root.style.bottom   = 12;
 
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
@@ -106,7 +113,7 @@ namespace RareIcon
             _root.Add(row);
             _root.Add(_skip);
 
-            _frame.BottomRight.Add(_root);
+            _frame.WorldOverlay.Add(_root);
         }
 
         void OnHint(TutorialHintMessage msg)
