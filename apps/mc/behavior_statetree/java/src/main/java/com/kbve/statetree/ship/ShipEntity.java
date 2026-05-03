@@ -36,8 +36,9 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<String> SHIP_NAME =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<String> SHIP_ID =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 
-    private String shipIdStr = "";
     private String ownerUuidStr = "";
     private float heading = 0.0f;
     private float targetSpeed = 0.0f;
@@ -50,11 +51,12 @@ public class ShipEntity extends Entity {
     // -- Ship state ---------------------------------------------------------
 
     public UUID getShipId() {
-        return shipIdStr.isEmpty() ? null : UUID.fromString(shipIdStr);
+        String id = this.dataTracker.get(SHIP_ID);
+        return id.isEmpty() ? null : UUID.fromString(id);
     }
 
     public void setShipId(UUID id) {
-        this.shipIdStr = id != null ? id.toString() : "";
+        this.dataTracker.set(SHIP_ID, id != null ? id.toString() : "");
     }
 
     public UUID getOwnerUuid() {
@@ -172,11 +174,12 @@ public class ShipEntity extends Entity {
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
         builder.add(MODEL_NAME, "immersive_aircraft/airship");
         builder.add(SHIP_NAME, "");
+        builder.add(SHIP_ID, "");
     }
 
     @Override
     public void readCustomData(ReadView view) {
-        this.shipIdStr = view.getString("ShipId", "");
+        this.dataTracker.set(SHIP_ID, view.getString("ShipId", ""));
         this.ownerUuidStr = view.getString("OwnerUuid", "");
         setModelName(view.getString("ModelName", "immersive_aircraft/airship"));
         setShipName(view.getString("ShipName", ""));
@@ -186,7 +189,7 @@ public class ShipEntity extends Entity {
 
     @Override
     public void writeCustomData(WriteView view) {
-        view.putString("ShipId", shipIdStr);
+        view.putString("ShipId", this.dataTracker.get(SHIP_ID));
         view.putString("OwnerUuid", ownerUuidStr);
         view.putString("ModelName", getModelName());
         view.putString("ShipName", getShipName());
