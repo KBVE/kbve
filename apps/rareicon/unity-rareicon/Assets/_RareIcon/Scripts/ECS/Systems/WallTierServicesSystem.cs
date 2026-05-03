@@ -26,6 +26,7 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
+            state.CompleteDependency();
             var entities      = _wallsWithTier.ToEntityArray(Allocator.Temp);
             var tierLookup    = SystemAPI.GetComponentLookup<BuildingTier>(true);
             var variantLookup = SystemAPI.GetComponentLookup<BuildingVariant>(true);
