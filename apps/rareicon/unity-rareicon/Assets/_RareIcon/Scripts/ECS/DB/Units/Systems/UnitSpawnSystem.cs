@@ -108,16 +108,15 @@ namespace RareIcon
             worldPos.z = -0.7f;
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
-            // Knight ships an integral round shield in the off-hand slot;
-            // every other humanoid leaves the slot empty so HexShield.hlsl
-            // composites nothing.
-            byte shieldSlot = unitType == UnitType.Knight ? ShieldType.Round : ShieldType.None;
+            ushort startingShield = unitType == UnitType.Knight ? EquipmentMap.IRON_SHIELD_ITEM : (ushort)0;
+            byte shieldSlot = EquipmentMap.ShieldVisualFor(startingShield);
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
                 Weapon = def.DefaultWeapon,
                 Shield = shieldSlot,
             });
+            em.AddComponentData(entity, new Equipment { ShieldItemId = startingShield });
 
             if (def.MaxHealth > 0)
             {
@@ -271,6 +270,7 @@ namespace RareIcon
                 Weapon = def.DefaultWeapon,
                 Helmet = HelmetType.Cap,
             });
+            em.AddComponentData(entity, new Equipment { ShieldItemId = 0 });
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;

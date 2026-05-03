@@ -181,5 +181,9 @@ namespace RareIcon
         QuestScroll = 554,  // quest-scroll
         BossKey = 555,  // boss-key
         CapitalLandGrant = 556,  // capital-land-grant
+        Buckler = 557,  // buckler
+        WoodenShield = 558,  // wooden-shield
+        KiteShield = 559,  // kite-shield
+        GoldPlatedShield = 560,  // gold-plated-shield
     }
 }

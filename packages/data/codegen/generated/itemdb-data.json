@@ -579,6 +579,19 @@
 			]
 		},
 		{
+			"description": "Small round wood-and-leather hand shield, gripped centrally rather than strapped. Light enough that a militia goblin can swing it on a club arm without slowing the swing. Stops a glancing arrow; nothing more ambitious.\n",
+			"lore": "The starting shield of every village watch from here to the river. Carpenters press them out by the dozen between the spring weapons-tax and the autumn harvest stand-down, and the watch sergeants accept them because losses to weather and woodworm always run ahead of replacements. A buckler that lasts past its second autumn is generally good for another five.\n",
+			"ref": "buckler",
+			"key": 557,
+			"id": "01KTVTRAB1BUCKLER0000000557",
+			"name": "Buckler",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 8
+		},
+		{
 			"description": "A hand-sized block of pale gold butter wrapped in waxed cloth, the surface printed with the farmhouse's maker-stamp in low relief. Soft at the corners, firm at the middle, carrying the clean smell of cultured cream.\n",
 			"lore": "Churned at dawn in kitchens where the first person up is the one who draws the butter duty, and the last person to bed is the one who scolds them about it. A block keeps a week in a cellar, a day in a pack, and roughly an hour on the counter in summer. Cooks use it for richness; apothecaries for carrier fat; the old hedge-circle for oiling whatever they do not want seen turning.\n",
 			"ref": "butter",
@@ -1753,6 +1766,19 @@
 			"buyPrice": 150
 		},
 		{
+			"description": "Ceremonial round shield, hammered iron core sheathed in a thin layer of beaten gold and chased with the bearer's house mark. Stops a blow as well as the iron underneath, and looks like a king's ransom doing it.\n",
+			"lore": "Awarded — never sold — to heroes who have already proven they don't need it. The plating is too soft to take a direct sword stroke without scarring, which is rather the point: a gold-plated shield with deep score marks tells a story the bearer no longer has to. A clean one suggests its owner has either retired well or hasn't earned the gift yet.\n",
+			"ref": "gold-plated-shield",
+			"key": 560,
+			"id": "01KTVTRAB1GOLDPLATED00000560",
+			"name": "Gold-Plated Shield",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_RARE",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 250
+		},
+		{
 			"description": "Steel shin-cuffs clasp over mid-calf boots of scuffed grey leather, each sole housing a ring of microthrusters around a central electromagnetic coil. They hum faintly when powered on, and the footsteps they leave dent the floor instead of marking it.\n",
 			"lore": "Produced as working prototypes by a defense-contract subsidiary that was shuttered inside eighteen months, and leaked into circulation when the assets auction went ahead without the inventory register. Pilots describe the activation surge as a short drop followed by a longer rise, which is apparently easier to learn than it sounds and considerably easier to unlearn. The charge reserve burns through in four jumps, and the replacement cell is made by a supplier the original contractor is no longer speaking to.\n",
 			"ref": "gravity-boots",
@@ -2204,6 +2230,19 @@
 					}
 				}
 			]
+		},
+		{
+			"description": "Tall teardrop-shaped iron-faced shield strapped along the forearm and shoulder, covering the body from chin to knee when the bearer crouches. Heavy; favoured by armoured cavalry and front-line spearmen who can afford to plant rather than skirmish.\n",
+			"lore": "A pattern brought back from the southern border and copied every year by a different armourer who insists his rivet spacing is the correct one. The point pattern bullies a lance off line where a round shield would just split. Cavalry recruits learn its weight by holding it level until their arm gives out; sergeants count the seconds.\n",
+			"ref": "kite-shield",
+			"key": 559,
+			"id": "01KTVTRAB1KITESHIELD00000559",
+			"name": "Kite Shield",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_UNCOMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 55
 		},
 		{
 			"description": "Taxidermy kiwi bird fixed at the crown of a cracked ceramic mask, its small glass eyes set slightly closer together than nature managed. Equal parts gift-shop curio and cautionary artifact, and impossible to face directly for more than a minute at a stretch.\n",
@@ -4939,6 +4978,19 @@
 			"stackable": true,
 			"maxStack": 20,
 			"buyPrice": 6
+		},
+		{
+			"description": "Plank-built oak shield with iron rim banding. A step up from the buckler — large enough to cover the body when crouched, but the heart-pine boards split if a kite-rider lands the charge straight on the boss.\n",
+			"lore": "What every militia outfit issues to its line goblins once they survive a season on the buckler. The carpenters' guild bickers annually with the smiths over rim thickness; the smiths win every time the magister returns from a frontier patrol short two shields and a finger.\n",
+			"ref": "wooden-shield",
+			"key": 558,
+			"id": "01KTVTRAB1WOODENSHIELD000558",
+			"name": "Wooden Shield",
+			"typeFlags": 514,
+			"rarity": "ITEM_RARITY_COMMON",
+			"stackable": false,
+			"maxStack": 1,
+			"buyPrice": 18
 		},
 		{
 			"description": "Loose bundle of cream-colored wool still holding the curl of the fleece, lanolin-rich to the touch and smelling faintly of the sheep and the shear-shed. A handful carded between the fingers comes apart into a soft cloud that wants to stay in the air.\n",

@@ -364,7 +364,11 @@ Shader "RareIcon/HexUnit"
             #define WEAPON_CROSSBOW  2
 
             #define HELMET_CAP       1
-            #define SHIELD_ROUND     1
+            #define SHIELD_BUCKLER     1
+            #define SHIELD_WOODEN      2
+            #define SHIELD_IRON        3
+            #define SHIELD_KITE        4
+            #define SHIELD_GOLDPLATED  5
 
             // Per-creature includes. Shared anim helpers first so every
             // creature file can reference _UnitShadow / _UnitStep / _UnitBob.
@@ -557,9 +561,9 @@ Shader "RareIcon/HexUnit"
                     }
                     float2 shieldAnchor = UnitShieldAnchor(grid, shieldFacing);
 
-                    if (shield == SHIELD_ROUND)
+                    if (shield >= SHIELD_BUCKLER && shield <= SHIELD_GOLDPLATED)
                     {
-                        DrawShield(color, alpha, shieldPx, shieldAnchor, shieldFacing);
+                        DrawShield(color, alpha, shieldPx, shieldAnchor, shieldFacing, shield);
                     }
                 }
 

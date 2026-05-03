@@ -185,6 +185,10 @@ namespace RareIcon
             { "quest-scroll", ItemId.QuestScroll },
             { "boss-key", ItemId.BossKey },
             { "capital-land-grant", ItemId.CapitalLandGrant },
+            { "buckler", ItemId.Buckler },
+            { "wooden-shield", ItemId.WoodenShield },
+            { "kite-shield", ItemId.KiteShield },
+            { "gold-plated-shield", ItemId.GoldPlatedShield },
         };
     }
 }

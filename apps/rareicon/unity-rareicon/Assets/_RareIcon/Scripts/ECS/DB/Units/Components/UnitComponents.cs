@@ -184,9 +184,14 @@ namespace RareIcon
     /// </summary>
     public static class ShieldType
     {
-        public const byte None  = 0;
-        public const byte Round = 1;
-        // Kite, Tower, Buckler, etc. land here as we add their variants.
+        public const byte None       = 0;
+        public const byte Buckler    = 1;
+        public const byte Wooden     = 2;
+        public const byte Iron       = 3;
+        public const byte Kite       = 4;
+        public const byte GoldPlated = 5;
+
+        public const byte Round = Iron;
     }
 
     /// <summary>
