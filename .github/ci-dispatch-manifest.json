@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.130",
+			"version": "1.0.131",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -516,7 +516,7 @@
 		{
 			"key": "uniti_crate",
 			"package_name": "uniti",
-			"version": "0.0.0",
+			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/uniti/version.toml",
 			"version_source": "packages/rust/bevy/uniti/Cargo.toml",
 			"version_target": "packages/rust/bevy/uniti/Cargo.toml"
@@ -621,7 +621,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.3",
+			"version": "0.1.4",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
