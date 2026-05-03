@@ -314,6 +314,7 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/me", get(api_me))
         .route("/api/v1/me/staff", get(api_me_staff))
         .route("/api/v1/forum/spaces", get(api_list_spaces))
+        .route("/api/v1/forum/tags", get(api_list_tags))
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -2248,6 +2249,37 @@ async fn forum_tag_handler(
 }
 
 /// GET /forum/tags — popularity-sorted tag listing.
+/// GET /api/v1/forum/tags — JSON list of popularity-sorted tags.
+/// Drives the astro-kbve build-time top-tags fetch.
+async fn api_list_tags() -> Response {
+    let svc = match get_forum_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "forum service unavailable"})),
+            )
+                .into_response();
+        }
+    };
+    match svc.list_tags(200).await {
+        Ok(rows) => (
+            StatusCode::OK,
+            [(header::CACHE_CONTROL, "public, max-age=300")],
+            Json(json!({ "tags": rows })),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!("forum.list_tags api failed: {}", e);
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(json!({"error": "upstream error"})),
+            )
+                .into_response()
+        }
+    }
+}
+
 /// GET /api/v1/forum/spaces — JSON list of active spaces.
 /// Drives the astro-kbve build-time spaces.json artifact.
 async fn api_list_spaces() -> Response {

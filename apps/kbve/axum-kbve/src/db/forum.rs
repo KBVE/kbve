@@ -76,7 +76,7 @@ pub struct SpaceRow {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TagRow {
     pub id: i32,
     pub slug: String,
