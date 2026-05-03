@@ -31,7 +31,7 @@ maxRunners: 10
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260502-dind-emptydir-mirror'
+            kbve.com/restart-trigger: '20260502-dind-snapshotter-off'
     spec:
         # Init container to copy externals for DinD
         initContainers:
@@ -103,9 +103,17 @@ template:
               # EINVAL. Image layers are cached upstream by the in-cluster
               # registry-mirror.arc-runners.svc proxy of Docker Hub, so
               # cold pods pull from LAN instead of hitting Hub each time.
+              #
+              # Docker 29 defaults to containerd-snapshotter=true, which
+              # deeply nests one overlay snapshot per pulled layer. Talos
+              # nodes (kernel 6.18, host rootfs already overlayfs) reject
+              # the resulting overlay-on-overlay mount with EINVAL during
+              # `docker run`. Disable the snapshotter so dockerd falls
+              # back to the legacy overlay2 graphdriver, which uses a
+              # flatter merged-diff layout that mounts cleanly.
               command: ['sh', '-c']
               args:
-                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000 --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000'
+                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --feature=containerd-snapshotter=false --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000 --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000'
               securityContext:
                   privileged: true
               resources:
