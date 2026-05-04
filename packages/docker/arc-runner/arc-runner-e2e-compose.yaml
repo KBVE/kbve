@@ -1,0 +1,54 @@
+# ============================================================================
+# arc-runner — e2e docker-compose stack.
+#
+# Mirrors the in-cluster ARC runner pod layout (runner + DinD sidecar
+# sharing a network namespace) so tests exercise the same wiring used
+# by the gha-runner-scale-set chart.
+#
+# Usage from repo root:
+#   docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml up -d
+#   # ... run vitest assertions inside the runner container ...
+#   docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml down -v
+#
+# Or via nx:
+#   ./kbve.sh -nx arc-runner-e2e:e2e
+# ============================================================================
+
+services:
+    runner:
+        image: kbve/arc-runner:latest
+        container_name: arc-runner-e2e
+        # Long-lived sleep so vitest can exec assertions against the
+        # baked-in tools without the upstream `run.sh` trying to
+        # register the runner against GitHub.
+        entrypoint: ['/bin/bash', '-c', 'sleep infinity']
+        environment:
+            DOCKER_HOST: tcp://localhost:2376
+            RUNNER_ALLOW_RUNASROOT: '1'
+        # Match the pod's runAsUser: 0 / runAsGroup: 0 securityContext
+        # so the sudoers entry baked into the image takes effect.
+        user: '0:0'
+
+    dind:
+        image: docker:29.3.0-dind
+        container_name: arc-runner-e2e-dind
+        privileged: true
+        # Share the runner's network namespace — same as the K8s pod
+        # spec, so `localhost:2376` from inside the runner reaches
+        # this dockerd. Means `network_mode` only takes effect once
+        # the runner container is already up.
+        network_mode: 'service:runner'
+        depends_on:
+            - runner
+        # Same dockerd flags as the production pod (containerd
+        # snapshotter off, larger ulimit, registry mirror dropped
+        # because the e2e host doesn't run the in-cluster mirror).
+        command:
+            - sh
+            - -c
+            - 'ulimit -n 1048576 && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --feature=containerd-snapshotter=false'
+        volumes:
+            - dind-storage:/var/lib/docker
+
+volumes:
+    dind-storage:

@@ -13,6 +13,9 @@ metadata:
         # Stakater Reloader — auto rolling-restart when mc-velocity-config
         # ConfigMap changes (velocity.toml or forwarding.secret).
         configmap.reloader.stakater.com/reload: 'mc-velocity-config'
+        # Same reloader for the Discord relay token secret — rotating the
+        # token via seal-discord-token.sh + commit = auto-restart.
+        secret.reloader.stakater.com/reload: 'mc-discord-relay'
 spec:
     replicas: 1
     selector:
@@ -82,6 +85,15 @@ spec:
                         value: 'pluginmsg'
                       - name: LUCKPERMS_STORAGE_METHOD
                         value: 'h2'
+                      # Discord relay bot token — sealed via SealedSecrets,
+                      # rotated through ./seal-discord-token.sh. Plugin reads
+                      # this env var at startup; the secret never lands in
+                      # the configmap.
+                      - name: DISCORD_BOT_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: mc-discord-relay
+                                key: DISCORD_BOT_TOKEN
                   ports:
                       # hostPort exposes Velocity directly on the node IP at
                       # the standard Minecraft port 25565. Bypasses Service /

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-03T08:44:27Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-04T09:01:10Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-05-03T08:44:27Z** — updated daily by `ci-dashboard`.
   <Card title="32 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="50 Medium" icon="information">
+  <Card title="49 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="5 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-05-03T08:44:27Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **74** advisories
+    **73** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 1
     "High" : 32
-    "Medium" : 50
+    "Medium" : 49
     "Low" : 5
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 74
+    "npm" : 73
     "Cargo" : 43
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 32 | 36 | 5 | 74 |
+| **npm** | 1 | 32 | 35 | 5 | 73 |
 | **Cargo** | 0 | 0 | 14 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 50 | 5 | 117 |
+| **Total** | 1 | 32 | 49 | 5 | 116 |
 
   </TabItem>
   <TabItem label="npm">
@@ -159,7 +159,6 @@ pie showData
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `follow-redirects` | follow-redirects leaks Custom Authentication Headers to C... | [Details](https://github.com/advisories/GHSA-r4q5-vmmm-2653) |
-| Medium | `fast-xml-parser` | fast-xml-parser XMLBuilder: XML Comment and CDATA Injecti... | [Details](https://github.com/advisories/GHSA-gh4j-gqv2-49f6) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `postcss` | PostCSS has XSS via Unescaped &lt;/style&gt; in its CSS Stringi... | [Details](https://github.com/advisories/GHSA-qx2v-qp2m-jg93) |
 | Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |

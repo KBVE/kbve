@@ -12,7 +12,13 @@ namespace RareIcon
     [UpdateAfter(typeof(CookingSystem))]
     public partial struct LooterPickupSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<GroundArrow>();
+            state.RequireForUpdate<ProfessionIntent>();
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]

@@ -46,9 +46,15 @@ namespace RareIcon
             foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesSleep>())
                 AppendFootprint(sleepHexes, building.ValueRO.RootHex, building.ValueRO.Type);
 
-            var healHexes = new NativeList<int2>(8, Allocator.TempJob);
-            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesHealing>())
-                AppendFootprint(healHexes, building.ValueRO.RootHex, building.ValueRO.Type);
+            int healCount = 0;
+            DynamicBuffer<HealerHexElement> healSrc = default;
+            if (SystemAPI.TryGetSingletonEntity<HealFlowFieldSingleton>(out var healSingleton))
+            {
+                healSrc = SystemAPI.GetBuffer<HealerHexElement>(healSingleton);
+                healCount = healSrc.Length;
+            }
+            var healHexes = new NativeArray<int2>(healCount, Allocator.TempJob);
+            for (int i = 0; i < healCount; i++) healHexes[i] = healSrc[i].Hex;
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
@@ -85,7 +91,7 @@ namespace RareIcon
                 CapitalFootprint  = capitalFootprint,
                 FoodProviderHexes = foodHexes.AsArray(),
                 SleepProviderHexes= sleepHexes.AsArray(),
-                HealProviderHexes = healHexes.AsArray(),
+                HealProviderHexes = healHexes,
                 Wildlife          = wildlife.AsArray(),
                 FriendlyEmitters  = emitters.AsArray(),
                 ForageHexes       = forageHexes.AsArray(),

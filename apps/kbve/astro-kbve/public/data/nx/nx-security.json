@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-03T08:44:27Z",
+  "generated_at": "2026-05-04T09:01:10Z",
   "summary": {
     "critical": 1,
     "high": 32,
-    "medium": 50,
+    "medium": 49,
     "low": 5,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 74,
+      "total": 73,
       "severities": {
         "critical": 1,
         "high": 32,
-        "medium": 36,
+        "medium": 35,
         "low": 5,
         "info": 0
       },
@@ -458,13 +458,6 @@
           "severity": "medium",
           "package": "follow-redirects",
           "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
-        },
-        {
-          "id": "1116957",
-          "title": "fast-xml-parser XMLBuilder: XML Comment and CDATA Injection via Unescaped Delimiters",
-          "severity": "medium",
-          "package": "fast-xml-parser",
-          "url": "https://github.com/advisories/GHSA-gh4j-gqv2-49f6"
         },
         {
           "id": "1116960",

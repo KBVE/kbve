@@ -1,22 +1,33 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Converts accumulated SkillXP into Skills level increments once XP crosses XPPerLevel; hits cap at Skills.SkillCap and stops accumulating further.</summary>
+    /// <summary>Converts accumulated <see cref="SkillXP"/> into <see cref="Skills"/> level increments once XP crosses <see cref="XPPerLevel"/>; hits cap at <see cref="Skills.SkillCap"/> and stops accumulating further. Change-filtered on <see cref="SkillXP"/> so OnUpdate stays asleep until a producer (HarvestSystem, BuilderDepositSystem, LooterPickupSystem, etc) actually bumps an XP counter.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct SkillProgressionSystem : ISystem
     {
         public const ushort XPPerLevel = 100;
 
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        EntityQuery _query;
+
+        public void OnCreate(ref SystemState state)
+        {
+            _query = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<Skills, SkillXP>()
+                .Build(ref state);
+            _query.SetChangedVersionFilter(ComponentType.ReadOnly<SkillXP>());
+            state.RequireForUpdate(_query);
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            new LevelUpJob().ScheduleParallel();
+            state.Dependency = new LevelUpJob().ScheduleParallel(_query, state.Dependency);
         }
     }
 
