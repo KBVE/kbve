@@ -69,8 +69,10 @@ namespace RareIcon
 
             public void Execute()
             {
-                const ushort WoodLogCost    = 1;
-                const ushort ArrowsProduced = 8;
+                const ushort WoodLogCost           = 1;
+                const ushort NeedleCost            = 1;
+                const ushort ArrowsBasic           = 5;  // log-only fallback so production never stalls
+                const ushort ArrowsTipped          = 12; // log + cacti needle (premium) — rewards full chain
 
                 const ushort HerbCost        = 3;
                 const ushort MedKitsProduced = 1;
@@ -85,8 +87,13 @@ namespace RareIcon
 
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Log) >= WoodLogCost)
                     {
+                        bool hasNeedle = BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) >= NeedleCost;
+                        ushort produced = hasNeedle ? ArrowsTipped : ArrowsBasic;
+
                         Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Log),   ReservationOps.Consume(barracks, WoodLogCost, Tick));
-                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow), ReservationOps.Produce(barracks, ArrowsProduced, Tick));
+                        if (hasNeedle)
+                            Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.CactiNeedle), ReservationOps.Consume(barracks, NeedleCost, Tick));
+                        Reservations.Add(ReservationOps.Key(barracks, (ushort)ItemId.Arrow), ReservationOps.Produce(barracks, produced, Tick));
                     }
 
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Herb) >= HerbCost)
