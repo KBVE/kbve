@@ -6,7 +6,7 @@
 
 use bevy::prelude::*;
 
-use bevy_pathfinding::grid::MapRegionSnapshot;
+use bevy_pathfinder::grid::MapRegionSnapshot;
 
 use crate::types::{NpcCommand, NpcObservation, PlayerSnapshot};
 

@@ -1602,7 +1602,7 @@ dependencies = [
  "bevy_behavior",
  "bevy_chat",
  "bevy_npc",
- "bevy_pathfinding",
+ "bevy_pathfinder",
  "crossbeam-channel",
  "jni 0.21.1",
  "serde",
@@ -2512,7 +2512,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_pathfinding"
+name = "bevy_pathfinder"
 version = "0.1.0"
 dependencies = [
  "bevy",
@@ -8082,7 +8082,7 @@ dependencies = [
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",
- "bevy_pathfinding",
+ "bevy_pathfinder",
  "bevy_skills",
  "bevy_tasker",
  "console_error_panic_hook",
@@ -16613,7 +16613,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_battle",
  "bevy_inventory",
- "bevy_pathfinding",
+ "bevy_pathfinder",
  "bevy_skills",
  "criterion",
  "csbindgen",

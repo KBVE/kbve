@@ -6,7 +6,7 @@ Builds as a `cdylib` (`libuniti.dylib` / `uniti.dll` / `libuniti.so`) and is con
 
 ## Bundled Surface
 
-- `bevy_pathfinding` — grid flow-field navigation
+- `bevy_pathfinder` — grid flow-field navigation
 - `bevy_inventory` — item / slot persistence
 - `bevy_battle` — combat resolution
 - `bevy_skills` — skill / proc tables

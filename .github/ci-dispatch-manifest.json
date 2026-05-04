@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.131",
+			"version": "1.0.130",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -410,12 +410,12 @@
 			"version_target": "packages/rust/bevy/bevy_npc/Cargo.toml"
 		},
 		{
-			"key": "bevy_pathfinding_crate",
-			"package_name": "bevy_pathfinding",
+			"key": "bevy_pathfinder_crate",
+			"package_name": "bevy_pathfinder",
 			"version": "0.0.0",
-			"version_toml": "packages/rust/bevy/bevy_pathfinding/version.toml",
-			"version_source": "packages/rust/bevy/bevy_pathfinding/Cargo.toml",
-			"version_target": "packages/rust/bevy/bevy_pathfinding/Cargo.toml"
+			"version_toml": "packages/rust/bevy/bevy_pathfinder/version.toml",
+			"version_source": "packages/rust/bevy/bevy_pathfinder/Cargo.toml",
+			"version_target": "packages/rust/bevy/bevy_pathfinder/Cargo.toml"
 		},
 		{
 			"key": "bevy_player_crate",

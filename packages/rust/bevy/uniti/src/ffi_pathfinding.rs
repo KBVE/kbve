@@ -3,8 +3,8 @@
 
 use std::ffi::c_void;
 
-use bevy_pathfinding::flow_field::FlowField;
-use bevy_pathfinding::grid::{BlockGrid, CellNav, SurfaceKind};
+use bevy_pathfinder::flow_field::FlowField;
+use bevy_pathfinder::grid::{BlockGrid, CellNav, SurfaceKind};
 
 /// Direction sample returned by [`uniti_flow_direction`].
 ///

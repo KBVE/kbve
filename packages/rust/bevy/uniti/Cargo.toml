@@ -31,7 +31,7 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 zstd = { version = "0.13", default-features = false }
 # Pure data crates — default-features = false strips their optional bevy dep,
 # keeping the compile mobile-friendly (no bevy_app / android-activity pull).
-bevy_pathfinding = { version = "0.1", path = "../bevy_pathfinding", default-features = false }
+bevy_pathfinder = { version = "0.1", path = "../bevy_pathfinder", default-features = false }
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }

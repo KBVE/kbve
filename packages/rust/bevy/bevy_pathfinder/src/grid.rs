@@ -109,7 +109,7 @@ impl BlockGrid {
     /// # Examples
     ///
     /// ```
-    /// use bevy_pathfinding::grid::BlockGrid;
+    /// use bevy_pathfinder::grid::BlockGrid;
     ///
     /// let grid = BlockGrid::new(0, 0, 64, 64);
     /// assert_eq!(grid.len(), 64 * 64);

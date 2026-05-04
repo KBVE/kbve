@@ -1,6 +1,6 @@
 //! Pathfinding adapter for Isometric creatures — foundation layer.
 //!
-//! `bevy_pathfinding` operates on a 2D grid (`BlockGrid`) with BFS-computed
+//! `bevy_pathfinder` operates on a 2D grid (`BlockGrid`) with BFS-computed
 //! `FlowField`s. Isometric is a 3D game with continuous positions, so
 //! using it requires a mapping:
 //!
