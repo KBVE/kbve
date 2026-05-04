@@ -27,6 +27,7 @@
 #![allow(clippy::missing_safety_doc)]
 #![allow(unsafe_op_in_unsafe_fn)]
 
+pub mod ffi_empire;
 pub mod ffi_inventory;
 pub mod ffi_pathfinding;
 pub mod ffi_world;

@@ -1,6 +1,7 @@
 fn main() {
     csbindgen::Builder::default()
         .input_extern_file("src/lib.rs")
+        .input_extern_file("src/ffi_empire.rs")
         .input_extern_file("src/ffi_inventory.rs")
         .input_extern_file("src/ffi_pathfinding.rs")
         .input_extern_file("src/ffi_world.rs")

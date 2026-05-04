@@ -27,6 +27,60 @@ namespace RareIcon.Native
 
 
         /// <summary>
+        ///  Stores a snapshot published by Unity. `bytes` must point to a
+        ///  proto-encoded `EmpireSnapshot` of length `len`. The function copies
+        ///  the bytes into Rust-owned memory, so the caller is free to release
+        ///  or reuse the source buffer immediately after the call returns.
+        ///
+        ///  Returns `1` on success, `0` if the input is null or empty.
+        ///
+        ///  # Safety
+        ///  `bytes` must be a valid pointer to at least `len` initialised bytes
+        ///  when `len &gt; 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_publish", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_publish(byte* bytes, nuint len);
+
+        /// <summary>
+        ///  Returns the currently-stored snapshot length (in bytes) without
+        ///  copying. Unity calls this first to size its receive buffer.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_snapshot_len", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern nuint uniti_empire_snapshot_len();
+
+        /// <summary>
+        ///  Copies the latest snapshot bytes into the caller-provided buffer.
+        ///  `out` must point to at least `out_cap` writable bytes; on success
+        ///  the actual byte count is returned. If the buffer is too small or
+        ///  no snapshot is available the function returns `0` and writes
+        ///  nothing.
+        ///
+        ///  # Safety
+        ///  `out` must be a valid pointer to at least `out_cap` writable bytes
+        ///  when `out_cap &gt; 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_take", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern nuint uniti_empire_take(byte* @out, nuint out_cap);
+
+        /// <summary>
+        ///  Strategic tick stub. Phase 2.5+ will decode the published snapshot
+        ///  via `prost`, drift mood / advance tribute on unloaded cities, and
+        ///  re-encode in place. For now this is a no-op so the FFI round-trip
+        ///  can be validated end-to-end.
+        ///
+        ///  Returns `1` if a snapshot is currently held, `0` otherwise.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_tick", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_tick();
+
+        /// <summary>
+        ///  Drops the cached snapshot — useful when a new world load wants to
+        ///  start with a clean slate.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_reset", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_empire_reset();
+
+        /// <summary>
         ///  Create an inventory with the given slot capacity.
         ///
         ///  # Arguments
