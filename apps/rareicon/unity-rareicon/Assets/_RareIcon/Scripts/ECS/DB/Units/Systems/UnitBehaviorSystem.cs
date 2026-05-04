@@ -46,11 +46,15 @@ namespace RareIcon
             foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesSleep>())
                 AppendFootprint(sleepHexes, building.ValueRO.RootHex, building.ValueRO.Type);
 
-            var healService = state.World.GetExistingSystemManaged<HealFlowFieldService>();
-            var cachedHealHexes = healService != null ? healService.HealerHexes : default;
-            var healHexes = cachedHealHexes.IsCreated && cachedHealHexes.Length > 0
-                ? new NativeArray<int2>(cachedHealHexes, Allocator.TempJob)
-                : new NativeArray<int2>(0, Allocator.TempJob);
+            int healCount = 0;
+            DynamicBuffer<HealerHexElement> healSrc = default;
+            if (SystemAPI.TryGetSingletonEntity<HealFlowFieldSingleton>(out var healSingleton))
+            {
+                healSrc = SystemAPI.GetBuffer<HealerHexElement>(healSingleton);
+                healCount = healSrc.Length;
+            }
+            var healHexes = new NativeArray<int2>(healCount, Allocator.TempJob);
+            for (int i = 0; i < healCount; i++) healHexes[i] = healSrc[i].Hex;
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
