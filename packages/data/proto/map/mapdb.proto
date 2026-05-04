@@ -254,6 +254,230 @@ enum SpawnCategory {
   SPAWN_CATEGORY_AMBIENT    = 7;   // Critters, birds, particles
 }
 
+// Time-of-day window — canonical replacement for stringly-typed
+// SpawnPoint.time_of_day. Wired to WorldClock when available.
+enum TimeOfDay {
+  TIME_OF_DAY_UNSPECIFIED = 0;
+  TIME_OF_DAY_DAWN        = 1;
+  TIME_OF_DAY_DAY         = 2;
+  TIME_OF_DAY_DUSK        = 3;
+  TIME_OF_DAY_NIGHT       = 4;
+  TIME_OF_DAY_MIDNIGHT    = 5;   // Deep night — special spawn window
+}
+
+// Weather state — climate / spawn / movement gating.
+enum WeatherKind {
+  WEATHER_KIND_UNSPECIFIED = 0;
+  WEATHER_KIND_CLEAR       = 1;
+  WEATHER_KIND_OVERCAST    = 2;
+  WEATHER_KIND_RAIN        = 3;
+  WEATHER_KIND_STORM       = 4;
+  WEATHER_KIND_SNOW        = 5;
+  WEATHER_KIND_BLIZZARD    = 6;
+  WEATHER_KIND_FOG         = 7;
+  WEATHER_KIND_SANDSTORM   = 8;
+  WEATHER_KIND_HEATWAVE    = 9;
+  WEATHER_KIND_ASHFALL     = 10;  // Volcanic / apocalyptic
+  WEATHER_KIND_ARCANE      = 11;  // Magic storm — affects mana / spell mods
+  WEATHER_KIND_CURSED      = 12;  // Story-flagged dread weather
+}
+
+// Season — long-cadence climate band. Drives crop yields, NPC mood,
+// holiday events, world music, and ambient palettes.
+enum Season {
+  SEASON_UNSPECIFIED = 0;
+  SEASON_SPRING      = 1;
+  SEASON_SUMMER      = 2;
+  SEASON_AUTUMN      = 3;
+  SEASON_WINTER      = 4;
+  SEASON_DRY         = 5;   // Equatorial / two-season worlds
+  SEASON_WET         = 6;
+  SEASON_HARVEST     = 7;   // Festival / event banding
+  SEASON_DEAD        = 8;   // Apocalyptic / nuclear / undead overrun
+}
+
+// Settlement size tier — population class drives services, taxes,
+// growth ceiling, and visual density.
+enum SettlementTier {
+  SETTLEMENT_TIER_UNSPECIFIED = 0;
+  SETTLEMENT_TIER_OUTPOST     = 1;   // <50, frontier
+  SETTLEMENT_TIER_HAMLET      = 2;   // 50–200
+  SETTLEMENT_TIER_VILLAGE     = 3;   // 200–1000
+  SETTLEMENT_TIER_TOWN        = 4;   // 1k–5k
+  SETTLEMENT_TIER_CITY        = 5;   // 5k–50k
+  SETTLEMENT_TIER_METROPOLIS  = 6;   // 50k+
+  SETTLEMENT_TIER_CAPITAL     = 7;   // Faction seat (any pop class)
+  SETTLEMENT_TIER_RUINED      = 8;   // Destroyed / abandoned
+  SETTLEMENT_TIER_NOMADIC     = 9;   // Mobile camp (caravan / horde)
+}
+
+// District functional zoning inside a Settlement.
+enum DistrictType {
+  DISTRICT_TYPE_UNSPECIFIED   = 0;
+  DISTRICT_TYPE_RESIDENTIAL   = 1;
+  DISTRICT_TYPE_COMMERCIAL    = 2;   // Markets / shops
+  DISTRICT_TYPE_INDUSTRIAL    = 3;   // Smithies, mills
+  DISTRICT_TYPE_AGRICULTURAL  = 4;   // Farms within walls
+  DISTRICT_TYPE_MILITARY      = 5;   // Barracks / training
+  DISTRICT_TYPE_RELIGIOUS     = 6;   // Temples / shrines
+  DISTRICT_TYPE_ADMINISTRATIVE = 7;  // Palace / town hall
+  DISTRICT_TYPE_HARBOR        = 8;   // Docks / shipyards
+  DISTRICT_TYPE_ARCANE        = 9;   // Mage quarter / library
+  DISTRICT_TYPE_NOBLE         = 10;
+  DISTRICT_TYPE_SLUM          = 11;
+  DISTRICT_TYPE_UNDERCITY     = 12;  // Sewer / criminal
+  DISTRICT_TYPE_GUILD         = 13;  // Faction lodges
+  DISTRICT_TYPE_ENTERTAINMENT = 14;  // Arena / theatre / brothel
+  DISTRICT_TYPE_GRAVEYARD     = 15;
+  DISTRICT_TYPE_PARK          = 16;
+  DISTRICT_TYPE_CUSTOM        = 100;
+}
+
+// Form of government — selects ruler model, succession rules, and
+// applicable buffs/policies in civ-style games.
+enum GovernmentType {
+  GOVERNMENT_TYPE_UNSPECIFIED = 0;
+  GOVERNMENT_TYPE_ANARCHY     = 1;
+  GOVERNMENT_TYPE_TRIBAL      = 2;
+  GOVERNMENT_TYPE_FEUDAL      = 3;
+  GOVERNMENT_TYPE_MONARCHY    = 4;
+  GOVERNMENT_TYPE_REPUBLIC    = 5;
+  GOVERNMENT_TYPE_DEMOCRACY   = 6;
+  GOVERNMENT_TYPE_OLIGARCHY   = 7;
+  GOVERNMENT_TYPE_THEOCRACY   = 8;
+  GOVERNMENT_TYPE_EMPIRE      = 9;
+  GOVERNMENT_TYPE_GUILD       = 10;  // Mercantile / craft-guild rule
+  GOVERNMENT_TYPE_HIVE_MIND   = 11;
+  GOVERNMENT_TYPE_CORPORATE   = 12;  // Sci-fi / cyberpunk
+  GOVERNMENT_TYPE_MERCENARY   = 13;
+  GOVERNMENT_TYPE_OCCUPIED    = 14;  // Foreign rule — controlled by another faction
+}
+
+// Pair-wise diplomatic stance between two factions.
+enum DiplomaticStance {
+  DIPLOMATIC_STANCE_UNSPECIFIED = 0;
+  DIPLOMATIC_STANCE_NEUTRAL     = 1;
+  DIPLOMATIC_STANCE_FRIENDLY    = 2;
+  DIPLOMATIC_STANCE_ALLIED      = 3;
+  DIPLOMATIC_STANCE_TRADE       = 4;   // Trade-only agreement
+  DIPLOMATIC_STANCE_NON_AGGRESSION = 5;
+  DIPLOMATIC_STANCE_RIVAL       = 6;
+  DIPLOMATIC_STANCE_HOSTILE     = 7;
+  DIPLOMATIC_STANCE_AT_WAR      = 8;
+  DIPLOMATIC_STANCE_VASSAL      = 9;   // Subordinate faction
+  DIPLOMATIC_STANCE_OVERLORD    = 10;  // Dominant faction in vassalage
+  DIPLOMATIC_STANCE_TRIBUTARY   = 11;  // Pays tribute, otherwise free
+  DIPLOMATIC_STANCE_VENDETTA    = 12;  // Personal blood feud (clan / honour systems)
+}
+
+// How a faction holds territory.
+enum TerritoryClaimKind {
+  TERRITORY_CLAIM_UNSPECIFIED = 0;
+  TERRITORY_CLAIM_HARD        = 1;   // Owned, defended, patrolled
+  TERRITORY_CLAIM_SOFT        = 2;   // Influence only, no garrison
+  TERRITORY_CLAIM_CONTESTED   = 3;   // Two factions overlap claim
+  TERRITORY_CLAIM_OCCUPIED    = 4;   // Held by enemy, original claimant survives
+  TERRITORY_CLAIM_HISTORICAL  = 5;   // Lost long ago, used for casus belli
+  TERRITORY_CLAIM_NEUTRAL     = 6;   // Unowned, recognized as neutral ground
+  TERRITORY_CLAIM_SACRED      = 7;   // Religious / cultural — non-military claim
+}
+
+// Trade-good classification — drives tariffs, contraband checks, caravan AI.
+enum TradeGoodCategory {
+  TRADE_GOOD_UNSPECIFIED   = 0;
+  TRADE_GOOD_RAW_MATERIAL  = 1;   // Ore, timber, hide
+  TRADE_GOOD_FOOD          = 2;
+  TRADE_GOOD_TEXTILE       = 3;
+  TRADE_GOOD_LUXURY        = 4;   // Silk, spice, gemstone
+  TRADE_GOOD_TOOL          = 5;
+  TRADE_GOOD_WEAPON        = 6;
+  TRADE_GOOD_ARMOR         = 7;
+  TRADE_GOOD_MAGICAL       = 8;
+  TRADE_GOOD_INFORMATION   = 9;   // Letters, maps, intel
+  TRADE_GOOD_LIVESTOCK     = 10;
+  TRADE_GOOD_ARTIFACT      = 11;  // Quest-tier
+  TRADE_GOOD_CONTRABAND    = 12;  // Smuggled / illegal
+  TRADE_GOOD_SLAVE         = 13;  // Dark themes / opt-in
+  TRADE_GOOD_RELIC         = 14;
+  TRADE_GOOD_CURRENCY      = 15;  // Specie / bullion
+}
+
+// Trade-route medium — gates which units can traverse.
+enum RouteKind {
+  ROUTE_KIND_UNSPECIFIED = 0;
+  ROUTE_KIND_LAND        = 1;
+  ROUTE_KIND_SEA         = 2;
+  ROUTE_KIND_RIVER       = 3;
+  ROUTE_KIND_AIR         = 4;
+  ROUTE_KIND_PORTAL      = 5;   // Magical / instant
+  ROUTE_KIND_RAIL        = 6;
+  ROUTE_KIND_UNDERGROUND = 7;
+}
+
+// Landmark significance scope — controls discovery sound, fast-travel
+// availability, lore reveal weight, minimap symbol size.
+enum LandmarkSignificance {
+  LANDMARK_SIGNIFICANCE_UNSPECIFIED = 0;
+  LANDMARK_SIGNIFICANCE_LOCAL       = 1;   // Inside one zone
+  LANDMARK_SIGNIFICANCE_REGIONAL    = 2;   // Visible across a region
+  LANDMARK_SIGNIFICANCE_CONTINENTAL = 3;
+  LANDMARK_SIGNIFICANCE_WORLD       = 4;   // Wonder / unique
+  LANDMARK_SIGNIFICANCE_MYTHIC      = 5;   // Lore-only / quest-tier
+  LANDMARK_SIGNIFICANCE_RUIN        = 6;   // Ancient, decayed
+}
+
+// Cultural archetype — flavours unit names, music, dialect, faction visuals.
+enum CultureArchetype {
+  CULTURE_ARCHETYPE_UNSPECIFIED = 0;
+  CULTURE_ARCHETYPE_HUMAN_FEUDAL  = 1;
+  CULTURE_ARCHETYPE_NORDIC        = 2;
+  CULTURE_ARCHETYPE_DESERT        = 3;
+  CULTURE_ARCHETYPE_ELVEN         = 4;
+  CULTURE_ARCHETYPE_DWARVEN       = 5;
+  CULTURE_ARCHETYPE_ORCISH        = 6;
+  CULTURE_ARCHETYPE_GOBLIN        = 7;
+  CULTURE_ARCHETYPE_UNDEAD        = 8;
+  CULTURE_ARCHETYPE_OCEANIC       = 9;
+  CULTURE_ARCHETYPE_NOMAD         = 10;
+  CULTURE_ARCHETYPE_ARCANE        = 11;
+  CULTURE_ARCHETYPE_INFERNAL      = 12;
+  CULTURE_ARCHETYPE_CELESTIAL     = 13;
+  CULTURE_ARCHETYPE_INSECTOID     = 14;
+  CULTURE_ARCHETYPE_MECHANICAL    = 15;   // Constructs / robots
+  CULTURE_ARCHETYPE_PSIONIC       = 16;
+  CULTURE_ARCHETYPE_CUSTOM        = 100;
+}
+
+// Religion / pantheon alignment — drives shrine bonuses, holy / unholy
+// damage, NPC alignment.
+enum ReligionAlignment {
+  RELIGION_ALIGNMENT_UNSPECIFIED = 0;
+  RELIGION_ALIGNMENT_LIGHT       = 1;
+  RELIGION_ALIGNMENT_DARK        = 2;
+  RELIGION_ALIGNMENT_NATURE      = 3;
+  RELIGION_ALIGNMENT_ARCANE      = 4;
+  RELIGION_ALIGNMENT_DEATH       = 5;
+  RELIGION_ALIGNMENT_LIFE        = 6;
+  RELIGION_ALIGNMENT_ORDER       = 7;
+  RELIGION_ALIGNMENT_CHAOS       = 8;
+  RELIGION_ALIGNMENT_NEUTRAL     = 9;
+  RELIGION_ALIGNMENT_ANCESTRAL   = 10;
+  RELIGION_ALIGNMENT_ELEMENTAL   = 11;
+}
+
+// Quest hub dialogue node kind — branching conversation atom.
+enum DialogueNodeKind {
+  DIALOGUE_NODE_KIND_UNSPECIFIED = 0;
+  DIALOGUE_NODE_KIND_LINE        = 1;   // Plain dialogue line
+  DIALOGUE_NODE_KIND_CHOICE      = 2;   // Player chooses next
+  DIALOGUE_NODE_KIND_QUEST_OFFER = 3;   // Offers a quest_ref
+  DIALOGUE_NODE_KIND_QUEST_TURN_IN = 4;
+  DIALOGUE_NODE_KIND_SHOP_OPEN   = 5;
+  DIALOGUE_NODE_KIND_END         = 6;
+  DIALOGUE_NODE_KIND_GOTO        = 7;   // Jump to another node id
+  DIALOGUE_NODE_KIND_SCRIPT      = 8;   // Call out to script_ref
+}
+
 // =============================================================================
 // Sub-messages — Spatial primitives
 // =============================================================================
@@ -366,6 +590,20 @@ message Zone {
 
   // Seed derivation
   optional SeedPolicy seed_policy = 38;
+
+  // Empire / city / territory wiring
+  optional string faction_ref = 40;            // Controlling faction
+  repeated string settlement_refs = 41;        // Settlements anchored in this zone
+  repeated string territory_claim_refs = 42;   // Active claims overlapping this zone
+  repeated string landmark_refs = 43;          // Landmarks in this zone
+  repeated string trade_route_refs = 44;       // Routes passing through
+
+  // Cultural / religious flavour overrides
+  optional string culture_ref = 45;
+  optional string religion_ref = 46;
+
+  // Climate authoring — overrides region climate when set
+  optional ClimateConfig climate = 47;
 
   // Metadata
   optional string credits = 32;
@@ -779,6 +1017,18 @@ message WorldObjectDef {
   optional QuestGiverSpec quest_giver = 63;
   optional AuraSpec aura = 64;
   optional string faction = 65;
+
+  // Empire / city / culture wiring (added with the Faction/Settlement layer).
+  // `faction` (above) stays as a slug for legacy use; `faction_ref` is the
+  // canonical pointer to a Faction record. `settlement_ref` tags a structure
+  // as belonging to a Settlement's roster (used by district / siege logic).
+  optional string faction_ref = 66;
+  optional string settlement_ref = 67;
+  optional string district_ref = 68;
+  optional string culture_ref = 69;
+  optional string religion_ref = 70;
+  optional string dialogue_tree_ref = 71;     // Upgrade for QuestGiverSpec / NPC dialog
+  optional float interaction_cooldown_secs = 72;
 }
 
 // Resource cost for constructing a structure
@@ -829,6 +1079,18 @@ message SpawnPoint {
   optional int32 group_min = 18;      // Min entities per spawn
   optional int32 group_max = 19;      // Max entities per spawn
   optional float group_radius = 20;   // Spread radius for groups
+
+  // Typed condition gates — preferred over the stringly-typed
+  // `time_of_day` / `weather` fields above. Generators should set the
+  // typed enums; the string fields stay for backward-compat reads.
+  optional TimeOfDay time_of_day_kind = 21;
+  optional WeatherKind weather_kind = 22;
+  optional Season season = 23;
+
+  // Faction / territory gating
+  optional string faction_ref = 24;          // Only spawn while this faction owns the area
+  optional string territory_claim_ref = 25;  // Only spawn inside this claim
+  optional string settlement_ref = 26;       // Pinned to a specific settlement
 }
 
 // =============================================================================
@@ -853,6 +1115,18 @@ message Region {
 
   // Extensions
   repeated MapExtension extensions = 11;
+
+  // Empire / city / culture wiring
+  repeated string faction_refs = 12;          // Factions whose territory touches this region
+  repeated string settlement_refs = 13;       // Settlements anchored in this region
+  repeated string territory_claim_refs = 14;
+  repeated string trade_route_refs = 15;
+  repeated string landmark_refs = 16;
+  repeated string culture_refs = 17;
+  repeated string religion_refs = 18;
+  optional ClimateConfig climate = 19;        // Default climate for child zones
+  optional string dominant_culture_ref = 20;
+  optional string dominant_religion_ref = 21;
 }
 
 // =============================================================================
@@ -987,6 +1261,491 @@ message HexWorldMap {
 }
 
 // =============================================================================
+// Sub-messages — Identity & Banners (faction + settlement visual identity)
+// =============================================================================
+
+// Visual identity block — banner / sigil / motto. Reused by Faction,
+// Settlement, GuildHall, and any nameable owning entity.
+message Banner {
+  optional Color primary = 1;
+  optional Color secondary = 2;
+  optional Color tertiary = 3;
+  optional string sigil_ref = 4;        // icon / sprite slug
+  optional string motto = 5;
+  optional string anthem_ref = 6;       // music ref
+  optional string crest_pattern = 7;    // pattern slug ("checker", "rampant_lion")
+}
+
+// Generic resource ledger — used as treasury, granary, armoury,
+// reserve. Maps free-form item slugs (itemdb refs) to integer
+// quantities; per-item caps are optional.
+message ResourceLedger {
+  map<string, int64> resources = 1;             // item_ref → amount
+  map<string, int64> capacity_per_item = 2;     // optional ceiling per item
+  optional int64 total_capacity = 3;            // optional aggregate ceiling
+  optional bool unlimited = 4;                  // sandbox / cheats / godmode
+}
+
+// Cultural identity — drives names, music, dialect, faction palettes.
+message Culture {
+  string id = 1;                                 // ULID
+  string ref = 2;
+  string name = 3;
+  CultureArchetype archetype = 4;
+  optional string description = 5;
+  optional string lore = 6;
+  optional string language_ref = 7;             // links to a language pack
+  repeated string name_pool_refs = 8;            // NPC / settlement name pools
+  optional Banner banner = 9;
+  repeated MapExtension extensions = 10;
+}
+
+// Religion / pantheon — shrines, altars, holy units link via religion_ref.
+message Religion {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  ReligionAlignment alignment = 4;
+  optional string description = 5;
+  optional string lore = 6;
+  repeated string deity_refs = 7;                // pantheon members
+  repeated string holy_site_refs = 8;            // landmark / shrine refs
+  repeated string forbidden_action_refs = 9;     // taboos (slug list)
+  repeated string blessed_skill_refs = 10;       // skills with bonus
+  optional Banner banner = 11;
+  repeated MapExtension extensions = 12;
+}
+
+// =============================================================================
+// Sub-messages — Faction & Diplomacy
+// =============================================================================
+
+// Single diplomatic relation between two factions.
+message DiplomaticRelation {
+  string from_faction_ref = 1;
+  string to_faction_ref = 2;
+  DiplomaticStance stance = 3;
+  int32 reputation = 4;                          // -100..100
+  optional string treaty_ref = 5;                // links to Treaty.ref
+  optional int64 expires_at_turn = 6;            // 0 = permanent
+  optional int64 established_at_turn = 7;
+}
+
+// Formal agreement between factions — gates wars, trade, marriages.
+message Treaty {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  repeated string signatory_faction_refs = 4;
+  optional string description = 5;
+  optional int64 signed_at_turn = 6;
+  optional int64 expires_at_turn = 7;
+  repeated string clause_refs = 8;               // game-defined clause types
+  repeated MapExtension extensions = 9;
+}
+
+// Faction / empire / clan / guild — top-level political entity.
+message Faction {
+  string id = 1;                                 // ULID
+  string ref = 2;
+  string name = 3;
+  optional string short_name = 4;                // For tags / mentions
+  optional string description = 5;
+  optional string lore = 6;
+
+  // Identity
+  GovernmentType government = 7;
+  optional Banner banner = 8;
+  optional string culture_ref = 9;
+  optional string religion_ref = 10;
+  optional CultureArchetype archetype = 11;      // Quick lookup w/o culture_ref
+
+  // Leadership
+  optional string ruler_unit_ref = 12;           // NPC / player unit ref
+  optional string heir_unit_ref = 13;
+  repeated string council_unit_refs = 14;        // Advisors / nobles
+  optional string capital_settlement_ref = 15;
+
+  // Membership
+  repeated string member_settlement_refs = 16;
+  repeated string member_zone_refs = 17;
+  repeated string member_unit_refs = 18;          // Standing army roster
+  repeated string vassal_faction_refs = 19;
+  optional string overlord_faction_ref = 20;
+
+  // Economy
+  optional ResourceLedger treasury = 21;
+  repeated string trade_route_refs = 22;
+  optional float taxation_rate = 23;             // 0.0–1.0
+  optional float tribute_rate = 24;              // Owed to overlord
+
+  // Diplomacy
+  repeated DiplomaticRelation relations = 25;
+  repeated string allied_faction_refs = 26;       // Denormalized for fast reads
+  repeated string hostile_faction_refs = 27;
+  repeated string treaty_refs = 28;
+
+  // Power / metrics
+  optional int32 prestige = 29;
+  optional int32 stability = 30;                 // -100..100, civil unrest gauge
+  optional int32 tech_level = 31;
+  optional int32 manpower = 32;                  // Recruitable population pool
+  optional float aggression = 33;                // 0.0–1.0 AI temperament
+  repeated string trait_refs = 34;               // "seafaring", "magical", etc.
+
+  // Cosmetic / metadata
+  optional string color_hex = 35;                // Quick map color (e.g. "#A22")
+  optional bool destroyed = 36;
+  optional int64 founded_at_turn = 37;
+  optional int64 destroyed_at_turn = 38;
+  optional string credits = 39;
+  optional bool drafted = 40;
+
+  repeated MapExtension extensions = 41;
+}
+
+// =============================================================================
+// Sub-messages — Settlement & City
+// =============================================================================
+
+// Sub-region of a Settlement — districts let cities split into
+// residential / commercial / military quarters with their own
+// stats and building rosters.
+message District {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  DistrictType type = 4;
+  optional string description = 5;
+
+  optional Bounds2D bounds = 6;
+  repeated GridPos grid_cells = 7;               // For tile-grid cities
+  repeated HexCoord hexes = 8;                   // For hex-grid cities
+
+  optional int32 population = 9;
+  optional int32 population_cap = 10;
+  optional float wealth_index = 11;              // 0.0–1.0
+  optional float crime_rate = 12;                // 0.0–1.0
+  optional float happiness = 13;                 // 0.0–1.0
+  optional float pollution = 14;
+
+  repeated string building_refs = 15;            // WorldObjectPlacement / building IDs
+  repeated string npc_refs = 16;
+  repeated string service_kinds = 17;            // Denormalized list of ServiceKind names
+
+  optional string district_quest_ref = 18;       // District-tied storyline
+  optional bool walled = 19;
+  optional bool destroyed = 20;
+  repeated MapExtension extensions = 21;
+}
+
+// Settlement / city / town / village — owns a footprint inside one
+// or more zones, optionally split into districts. Ownership chains up
+// to a Faction; supplied by TradeRoutes; defended by structures whose
+// services list TerritoryEmitterSpec.
+message Settlement {
+  string id = 1;                                 // ULID
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  // Class
+  SettlementTier tier = 6;
+  optional string faction_ref = 7;
+  optional string culture_ref = 8;
+  optional string religion_ref = 9;
+
+  // Leadership
+  optional string mayor_unit_ref = 10;
+  repeated string council_unit_refs = 11;
+
+  // Geography
+  optional string region_ref = 12;
+  optional string zone_ref = 13;                 // Primary zone the settlement sits in
+  repeated string aux_zone_refs = 14;            // Secondary / sub-zones
+  optional WorldPos position = 15;
+  optional GridPos grid_pos = 16;
+  optional HexCoord hex = 17;
+  optional Bounds2D footprint_bounds = 18;
+  repeated HexCoord footprint_hexes = 19;
+
+  // Demographics
+  optional int32 population = 20;
+  optional int32 population_cap = 21;
+  optional float growth_rate = 22;               // Per-turn or per-tick
+  optional int32 garrison_size = 23;             // Defending militia
+  optional int32 manpower_pool = 24;             // Recruitable
+
+  // Economy
+  optional ResourceLedger treasury = 25;
+  optional ResourceLedger granary = 26;          // Food / supplies separate
+  optional float tax_rate = 27;
+  optional float tariff_rate = 28;               // For inbound trade
+  repeated string trade_route_refs = 29;
+  repeated string export_item_refs = 30;          // Denormalized: what this settlement produces
+  repeated string import_item_refs = 31;          // Denormalized: what it needs
+
+  // Districts & contents
+  repeated District districts = 32;              // Inline sub-regions
+  repeated string building_refs = 33;            // Building placement refs at settlement scope
+  repeated string landmark_refs = 34;            // Featured landmarks within the settlement
+  repeated string poi_refs = 35;                 // Featured POIs
+
+  // Services denormalized for quick capability queries.
+  repeated string service_kinds = 36;            // ServiceKind enum names
+
+  // Defenses & status
+  optional bool capital = 37;
+  optional bool walled = 38;
+  optional int32 wall_health = 39;
+  optional bool besieged = 40;
+  optional string besieging_faction_ref = 41;
+  optional bool destroyed = 42;
+  optional bool occupied = 43;
+  optional string occupier_faction_ref = 44;
+
+  // Phasing / unlock
+  optional bool discoverable = 45;
+  optional string discovery_quest_ref = 46;
+  repeated string prerequisite_quest_refs = 47;
+
+  // Visual / map
+  optional Banner banner = 48;
+  optional string icon = 49;
+  optional string marker_icon = 50;
+  optional string img = 51;
+
+  // Lifecycle
+  optional int64 founded_at_turn = 52;
+  optional int64 destroyed_at_turn = 53;
+
+  // Metadata
+  optional string credits = 54;
+  optional bool drafted = 55;
+  repeated MapExtension extensions = 56;
+}
+
+// =============================================================================
+// Sub-messages — Territory & Borders
+// =============================================================================
+
+// Faction territorial claim — explicit hex / rect / zone ownership
+// with strength + contestation. Empire AI reads claims to drive
+// expansion goals; rendering uses claims to draw map borders.
+message TerritoryClaim {
+  string id = 1;
+  string ref = 2;
+  string faction_ref = 3;
+  TerritoryClaimKind kind = 4;
+
+  // Claimed area — pick the form matching the world topology
+  repeated HexCoord hexes = 5;
+  optional Bounds2D bounds = 6;
+  repeated string zone_refs = 7;                 // Whole-zone claims
+  repeated string settlement_refs = 8;           // Anchored to specific cities
+
+  optional int32 strength = 9;                   // 0..100 — defensive weight
+  optional int32 garrison_size = 10;
+  optional string contested_by_faction_ref = 11;
+  optional int32 contest_progress = 12;          // 0..100 toward flip
+
+  optional int64 claimed_at_turn = 13;
+  optional int64 expires_at_turn = 14;           // 0 = permanent
+  optional bool sacred = 15;                     // Religion-linked, non-military
+  optional string casus_belli_ref = 16;          // Why it's claimed (lore / war goal)
+
+  repeated MapExtension extensions = 17;
+}
+
+// =============================================================================
+// Sub-messages — Trade & Economy
+// =============================================================================
+
+// One stop along a trade route — caravan halts here for `dwell_secs`
+// before moving to the next stop.
+message TradeRouteStop {
+  optional string settlement_ref = 1;
+  optional HexCoord hex = 2;
+  optional WorldPos position = 3;
+  optional float dwell_secs = 4;
+  optional bool refuel = 5;                      // Restocks caravan supplies
+  optional bool toll = 6;                        // Pays tariff to local faction
+}
+
+// One cargo line carried along a trade route.
+message TradeCargo {
+  string item_ref = 1;
+  int32 amount_per_caravan = 2;
+  TradeGoodCategory category = 3;
+  optional int32 buy_price_at_origin = 4;
+  optional int32 sell_price_at_destination = 5;
+  optional bool perishable = 6;
+  optional bool restricted = 7;                  // Faction-locked / contraband
+}
+
+// Recurring caravan / shipping line between settlements.
+message TradeRoute {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  string from_settlement_ref = 5;
+  string to_settlement_ref = 6;
+  repeated TradeRouteStop stops = 7;             // Optional waypoints
+
+  RouteKind route_kind = 8;
+  repeated TradeCargo cargo = 9;
+  optional float cadence_secs = 10;              // How often a caravan launches
+  optional float distance = 11;                  // World units / hex count
+  optional int32 caravan_size = 12;              // Number of carriers
+  optional int32 caravan_health = 13;
+  optional float danger_level = 14;              // 0.0–1.0 — bandit / pirate density
+  repeated string protection_unit_refs = 15;     // Escort unit refs
+
+  optional string operator_faction_ref = 16;
+  optional float profit_per_run = 17;            // Estimated, for AI evaluation
+  optional bool active = 18;
+  optional int64 established_at_turn = 19;
+  optional int64 last_run_at_turn = 20;
+
+  repeated MapExtension extensions = 21;
+}
+
+// =============================================================================
+// Sub-messages — Landmarks (formalized)
+// =============================================================================
+
+// Landmark — a positioned, named, optionally interactive point of
+// interest. Bridges PoiType.POI_LANDMARK + WorldObjectType.LANDMARK
+// into a single addressable record. Click behavior is delegated to a
+// referenced WorldObjectDef (via interaction_world_object_ref).
+message Landmark {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  LandmarkSignificance significance = 6;
+  optional string zone_ref = 7;
+  optional string region_ref = 8;
+  optional string settlement_ref = 9;            // If inside a settlement
+  optional string faction_ref = 10;              // Owning faction (if any)
+  optional string culture_ref = 11;
+  optional string religion_ref = 12;
+
+  // Position
+  optional WorldPos position = 13;
+  optional GridPos grid_pos = 14;
+  optional HexCoord hex = 15;
+  optional float discovery_radius = 16;          // Auto-discover within this range
+
+  // Visual
+  optional string img = 17;
+  optional string icon = 18;
+  optional string marker_icon = 19;
+  optional Color marker_color = 20;
+
+  // Behavior
+  optional string interaction_world_object_ref = 21;  // WorldObjectDef.ref for click logic
+  optional bool discoverable = 22;
+  optional bool fast_travel = 23;
+  optional bool respawn_point = 24;
+  optional bool unique = 25;                     // One-of-a-kind landmark
+  optional bool destroyed = 26;
+
+  // Phasing / unlock
+  optional string discovery_quest_ref = 27;
+  repeated string prerequisite_quest_refs = 28;
+  optional string event_ref = 29;
+
+  // Linkage
+  repeated string npc_refs = 30;
+  repeated string quest_refs = 31;
+  optional string dialogue_tree_ref = 32;
+  optional string shop_ref = 33;
+  optional string dungeon_zone_ref = 34;
+
+  // Metadata
+  optional string credits = 35;
+  optional bool drafted = 36;
+  repeated MapExtension extensions = 37;
+}
+
+// =============================================================================
+// Sub-messages — Dialogue Trees (quest hub upgrades)
+// =============================================================================
+
+// A choice line within a CHOICE node.
+message DialogueChoice {
+  string text = 1;
+  string next_node_id = 2;
+  repeated string required_flag_refs = 3;        // Gating world flags
+  optional string skill_check_ref = 4;           // e.g. "persuasion:30"
+  optional string set_flag_ref = 5;              // Sets this flag when chosen
+  optional int32 reputation_delta = 6;
+  optional string faction_ref = 7;               // Reputation target
+}
+
+// One node in a dialogue tree.
+message DialogueNode {
+  string id = 1;
+  DialogueNodeKind kind = 2;
+  optional string speaker_ref = 3;               // NPC ref
+  optional string text = 4;
+  optional string voice_ref = 5;                 // Audio ref
+  repeated DialogueChoice choices = 6;           // For CHOICE nodes
+  optional string next_node_id = 7;              // For LINE / GOTO nodes
+  optional string quest_ref = 8;                 // For QUEST_OFFER / QUEST_TURN_IN
+  optional string shop_ref = 9;                  // For SHOP_OPEN
+  optional string script_ref = 10;               // For SCRIPT
+  repeated string required_flag_refs = 11;
+  repeated string set_flag_refs = 12;
+}
+
+// A whole branching conversation tree, addressable by ref.
+message DialogueTree {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  string root_node_id = 5;
+  repeated DialogueNode nodes = 6;
+  optional string default_speaker_ref = 7;
+  repeated MapExtension extensions = 8;
+}
+
+// =============================================================================
+// Sub-messages — Climate & Schedule
+// =============================================================================
+
+// One entry in a weather rotation — weight-driven random pick that
+// runs for `duration_secs` before a re-roll.
+message WeatherProfile {
+  WeatherKind kind = 1;
+  float weight = 2;                              // Relative likelihood
+  optional float duration_secs = 3;
+  optional Season season_filter = 4;             // Only pick during this season
+  optional TimeOfDay time_of_day_filter = 5;
+  repeated string event_refs = 6;                // Seasonal event hooks
+}
+
+// Climate band for a zone — drives weather rotation, season cadence,
+// crop yields, ambient music swap.
+message ClimateConfig {
+  optional Season default_season = 1;
+  optional float season_cycle_secs = 2;          // Length of a full season cycle
+  repeated WeatherProfile weather_rotation = 3;
+  optional float baseline_temperature = 4;       // For survival games
+  optional float temperature_variance = 5;
+  repeated string holiday_event_refs = 6;        // Calendar events
+  optional bool day_night_locked = 7;            // Eternal day / night zones
+  optional TimeOfDay locked_time_of_day = 8;
+}
+
+// =============================================================================
 // Extensibility
 // =============================================================================
 
@@ -1011,4 +1770,14 @@ message MapRegistry {
   repeated Zone zones = 2;
   repeated WorldObjectDef object_defs = 3;
   repeated HexWorldMap hex_worlds = 4;
+  repeated Faction factions = 5;
+  repeated Settlement settlements = 6;
+  repeated TerritoryClaim territory_claims = 7;
+  repeated TradeRoute trade_routes = 8;
+  repeated Landmark landmarks = 9;
+  repeated Culture cultures = 10;
+  repeated Religion religions = 11;
+  repeated Treaty treaties = 12;
+  repeated DialogueTree dialogue_trees = 13;
+  repeated ClimateConfig climates = 14;
 }

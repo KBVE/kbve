@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/staff.binpb
  * Config: ../staff-zod-config.json
- * Generated: 2026-05-04T06:27:06.686Z
+ * Generated: 2026-05-04T21:04:26.547Z
  */
 
 import { z } from 'zod';

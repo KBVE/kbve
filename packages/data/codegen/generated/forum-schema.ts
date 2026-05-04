@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/forum.binpb
  * Config: ../forum-zod-config.json
- * Generated: 2026-05-04T06:27:06.680Z
+ * Generated: 2026-05-04T21:04:26.542Z
  */
 
 import { z } from 'zod';

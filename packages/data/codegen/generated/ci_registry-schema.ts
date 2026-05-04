@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-05-04T06:27:06.676Z
+ * Generated: 2026-05-04T21:04:26.539Z
  */
 
 import { z } from 'zod';
