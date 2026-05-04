@@ -1,4 +1,5 @@
 using System;
+using RareIcon.Native;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
