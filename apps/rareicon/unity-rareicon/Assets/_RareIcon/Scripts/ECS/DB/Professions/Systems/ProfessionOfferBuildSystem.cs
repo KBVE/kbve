@@ -115,6 +115,14 @@ namespace RareIcon
                     offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
             }
 
+            foreach (var (coordRO, dropsRO) in
+                     SystemAPI.Query<RefRO<HexCoord>, DynamicBuffer<ItemDrop>>())
+            {
+                if (dropsRO.Length == 0) continue;
+                var hex = new int2(coordRO.ValueRO.Q, coordRO.ValueRO.R);
+                offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDropPickup, Hex = hex });
+            }
+
             if (db.HasFarm)
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = db.FarmHex, Target = db.NearestFarm });
 
