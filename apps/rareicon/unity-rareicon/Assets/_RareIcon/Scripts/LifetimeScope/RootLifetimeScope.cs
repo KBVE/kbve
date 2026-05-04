@@ -138,6 +138,10 @@ namespace RareIcon
                 .AsSelf().As<ISteamAvatarService>();
             builder.RegisterEntryPoint<SteamLobbyBrowserService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyBrowserService>();
+
+            // Phase 1 multiplayer orchestrator + lobby waiting room UI.
+            builder.RegisterEntryPoint<MultiplayerCoordinator>(Lifetime.Singleton).AsSelf();
+            builder.RegisterEntryPoint<UILobbyRoom>().AsSelf();
 #endif
 
             // -- UI --

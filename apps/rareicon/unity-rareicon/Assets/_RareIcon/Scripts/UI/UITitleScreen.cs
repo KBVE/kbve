@@ -24,6 +24,7 @@ namespace RareIcon
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
         readonly ISubscriber<SteamAvatarReadyMessage> _avatarSub;
         readonly ISteamAvatarService _avatars;
+        readonly MultiplayerCoordinator _multiplayer;
 #endif
 
         readonly CompositeDisposable _disposables = new();
@@ -55,6 +56,7 @@ namespace RareIcon
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             , ISubscriber<SteamAvatarReadyMessage> avatarSub
             , ISteamAvatarService avatars
+            , MultiplayerCoordinator multiplayer
 #endif
         )
         {
@@ -66,6 +68,7 @@ namespace RareIcon
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             _avatarSub = avatarSub;
             _avatars = avatars;
+            _multiplayer = multiplayer;
 #endif
         }
 
@@ -181,6 +184,19 @@ namespace RareIcon
 
             var settings = _root.Q<Button>("title-menu-settings");
             if (settings != null) settings.clicked += () => _settings?.Toggle();
+
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+            var mp = _root.Q<Button>("title-menu-multiplayer");
+            if (mp != null && _multiplayer != null)
+            {
+                mp.RemoveFromClassList("title-menu-btn--disabled");
+                mp.text = "Multiplayer";
+                // Phase 1 default: PvE co-op host. Mode picker UI lands in
+                // a follow-up; for now Steam invites + a single host-mode
+                // path validate the lobby plumbing end-to-end.
+                mp.clicked += () => _multiplayer.HostPvECoop();
+            }
+#endif
 
             var codex = _root.Q<Button>("title-menu-codex");
             if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");
