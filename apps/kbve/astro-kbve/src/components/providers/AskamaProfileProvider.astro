@@ -1,5 +1,6 @@
 ---
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import AstroFooter from '@/components/footer/AstroFooter.astro';
 // AskamaProfileProvider - Mirrors the Askama profile.html template
 // This component renders the user profile page that Axum serves for /@username routes
 // Askama variables: {{ username }}, {{ username_first_char }}, {{ unsplash_banner_id }}, {{ bio }}, {{ status }}, {{ primary_avatar_url }}, {{ discord_username }}, {{ discord_avatar }}, {{ discord_is_guild_member }}, {{ discord_id }}, {{ discord_guild_nickname }}, {{ discord_joined_at }}, {{ discord_is_boosting }}, {{ discord_role_count }}, {{ discord_role_names }}, {{ github_username }}, {{ github_avatar }}, {{ twitch_username }}, {{ twitch_avatar }}, {{ twitch_is_live }}, {{ rentearth_characters }}, {{ rentearth_total_playtime_hours }}, {{ rentearth_last_activity }}
@@ -836,6 +837,11 @@ const forumProfileSection = `{% if forum_present %}
 		<div class="adsense-container">
 			<Adsense />
 		</div>
+
+		<!-- Site footer — Starlight's splash template doesn't render
+			 the global footer slot, so we mount it manually here so
+			 /@username pages keep parity with /forum/, /, etc. -->
+		<AstroFooter />
 	</div>
 </div>
 
@@ -2819,7 +2825,11 @@ const forumProfileSection = `{% if forum_present %}
 	}
 
 	/* ── Forum activity card ─────────────────────────────────── */
-	.profile-forum {
+	/* `.profile-forum` markup is injected via `Fragment set:html` so
+	 * Astro's data-astro-cid scoping doesn't reach it. Every selector
+	 * here is wrapped in :global() so the styles still apply, matching
+	 * the same pattern used by the .profile-hero* rules above. */
+	:global(.profile-forum) {
 		background: linear-gradient(
 			145deg,
 			rgba(30, 41, 59, 0.9) 0%,
@@ -2840,7 +2850,7 @@ const forumProfileSection = `{% if forum_present %}
 			transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
 			box-shadow 0.4s ease;
 	}
-	.profile-forum:hover {
+	:global(.profile-forum:hover) {
 		transform: translateY(-4px);
 		box-shadow:
 			0 30px 60px -12px rgba(0, 0, 0, 0.55),
@@ -2849,22 +2859,22 @@ const forumProfileSection = `{% if forum_present %}
 			inset 0 -2px 4px rgba(0, 0, 0, 0.2);
 	}
 	@media (max-width: 640px) {
-		.profile-forum {
+		:global(.profile-forum) {
 			padding: 1.5rem 1.5rem;
 		}
 	}
-	.profile-forum__header {
+	:global(.profile-forum__header) {
 		display: grid;
 		gap: 0.6rem;
 	}
-	.profile-forum__header-row {
+	:global(.profile-forum__header-row) {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
 		gap: 1rem;
 		flex-wrap: wrap;
 	}
-	.profile-forum__eyebrow {
+	:global(.profile-forum__eyebrow) {
 		margin: 0 0 0.2rem;
 		font-size: 0.6875rem;
 		font-weight: 700;
@@ -2872,13 +2882,13 @@ const forumProfileSection = `{% if forum_present %}
 		letter-spacing: 0.1em;
 		color: #8b5cf6;
 	}
-	.profile-forum__title {
+	:global(.profile-forum__title) {
 		font-size: 1.25rem;
 		font-weight: 700;
 		margin: 0;
 		letter-spacing: -0.01em;
 	}
-	.profile-forum__cta {
+	:global(.profile-forum__cta) {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
@@ -2894,11 +2904,11 @@ const forumProfileSection = `{% if forum_present %}
 			background 0.15s ease,
 			border-color 0.15s ease;
 	}
-	.profile-forum__cta:hover {
+	:global(.profile-forum__cta:hover) {
 		background: rgba(139, 92, 246, 0.25);
 		border-color: rgba(139, 92, 246, 0.6);
 	}
-	.profile-forum__signature {
+	:global(.profile-forum__signature) {
 		font-size: 0.875rem;
 		color: rgba(226, 232, 240, 0.75);
 		margin: 0;
@@ -2909,7 +2919,7 @@ const forumProfileSection = `{% if forum_present %}
 		font-style: italic;
 	}
 
-	.profile-forum__stats {
+	:global(.profile-forum__stats) {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
 		gap: 0.5rem;
@@ -2919,41 +2929,41 @@ const forumProfileSection = `{% if forum_present %}
 		border: 1px solid rgba(148, 163, 184, 0.1);
 		margin: 0;
 	}
-	.profile-forum__stat {
+	:global(.profile-forum__stat) {
 		display: grid;
 		gap: 0.1rem;
 		margin: 0;
 		text-align: center;
 	}
-	.profile-forum__stat dt {
+	:global(.profile-forum__stat dt) {
 		font-size: 0.6875rem;
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: rgba(148, 163, 184, 0.85);
 	}
-	.profile-forum__stat dd {
+	:global(.profile-forum__stat dd) {
 		margin: 0;
 		font-size: 1rem;
 		font-weight: 700;
 		color: #fafafa;
 	}
 
-	.profile-forum__columns {
+	:global(.profile-forum__columns) {
 		display: grid;
 		gap: 1rem;
 		grid-template-columns: minmax(0, 1fr);
 	}
 	@media (min-width: 720px) {
-		.profile-forum__columns {
+		:global(.profile-forum__columns) {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
 	}
-	.profile-forum__col {
+	:global(.profile-forum__col) {
 		display: grid;
 		gap: 0.5rem;
 	}
-	.profile-forum__col-title {
+	:global(.profile-forum__col-title) {
 		font-size: 0.75rem;
 		font-weight: 700;
 		text-transform: uppercase;
@@ -2961,13 +2971,13 @@ const forumProfileSection = `{% if forum_present %}
 		color: rgba(226, 232, 240, 0.7);
 		margin: 0;
 	}
-	.profile-forum__empty {
+	:global(.profile-forum__empty) {
 		font-size: 0.875rem;
 		color: rgba(148, 163, 184, 0.7);
 		margin: 0;
 		padding: 0.75rem 0;
 	}
-	.profile-forum__list {
+	:global(.profile-forum__list) {
 		display: grid;
 		gap: 0.4rem;
 	}
