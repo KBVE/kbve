@@ -20,6 +20,9 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 [build-dependencies]
 csbindgen = "1.9"
 prost-build = "0.13"
+# Vendored protoc so cross-compile environments (cross, ndk, xwin) don't
+# need a system-installed protobuf-compiler.
+protoc-bin-vendored = "3"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

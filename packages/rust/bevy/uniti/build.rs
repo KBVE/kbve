@@ -1,4 +1,12 @@
 fn main() {
+    // Vendor protoc so cross-compile sandboxes (cross, ndk, xwin) don't
+    // need protobuf-compiler preinstalled.
+    let protoc_path = protoc_bin_vendored::protoc_bin_path()
+        .expect("protoc-bin-vendored could not locate a protoc binary for this host");
+    unsafe {
+        std::env::set_var("PROTOC", protoc_path);
+    }
+
     prost_build::Config::new()
         .out_dir("src/proto")
         .compile_protos(
