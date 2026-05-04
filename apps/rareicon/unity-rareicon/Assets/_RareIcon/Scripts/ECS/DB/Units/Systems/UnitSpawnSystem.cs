@@ -774,6 +774,95 @@ namespace RareIcon
             return entity;
         }
 
+        /// <summary>Spawn a Hostile-faction Skeleton at the given hex. Resolves a variant-specific MDX kit (<c>skeleton</c> / <c>skeleton-guard</c> / <c>skeleton-wraith</c> / <c>skeleton-fungal</c> / <c>skeleton-desert</c>) so Plain skeletons spawn naked while Guard variants get a rusted helm + shield, Wraith carries a rune-staff, etc. Carries the standard <see cref="Equipment"/> + visual byte components so DamageJob's mitigation pipeline + the existing equip auto-swap pick the right armor / weapon. The <see cref="SkeletonVariant"/> material property drives the shader's variant branch (palette + accessory overlay).</summary>
+        public static Entity SpawnSkeletonAt(EntityManager em, int2 hex, uint rngSeed,
+                                             byte variant = SkeletonVariantValue.Plain,
+                                             UnitSpawnState state = default)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Skeleton);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            string refSlug = EquipmentLoadoutResolver.RefForSkeletonVariant(variant);
+            var equipment = EquipmentLoadoutResolver.ResolveByRef(
+                refSlug,
+                out byte shieldByte,
+                out byte weaponByte,
+                out byte helmetByte,
+                out byte armorByte);
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit
+            {
+                Type   = UnitType.Skeleton,
+                Weapon = weaponByte,
+                Helmet = helmetByte,
+                Shield = shieldByte,
+                Armor  = armorByte,
+            });
+            em.AddComponentData(entity, equipment);
+
+            float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
+            float hp    = state.Health    > 0f ? state.Health    : maxHp;
+            em.AddComponentData(entity, new Health { Value = hp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual        { Value = (float)UnitType.Skeleton });
+            em.AddComponentData(entity, new SkeletonVariant   { Value = (float)variant });
+            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)weaponByte });
+            em.AddComponentData(entity, new UnitShieldVisual  { Value = (float)shieldByte });
+            em.AddComponentData(entity, new UnitArmorVisual   { Value = (float)armorByte });
+            em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.20f });
+
+            float meleeDamage   = variant == SkeletonVariantValue.Guard  ? 6.0f : 4.5f;
+            float meleeCooldown = variant == SkeletonVariantValue.Wraith ? 1.5f : 1.2f;
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.45f,
+                Damage        = meleeDamage,
+                Cooldown      = meleeCooldown,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
         /// <summary>Spawn an aggressive beast (Wolf, future Bear, etc.) at the given hex. Beast faction, no carried weapon, no jobs/needs, but does carry MeleeAttack so it bites adjacent Player / Wildlife units. Wanders by default; reactive combat handled by MeleeAttackSystem.</summary>
         public static Entity SpawnBeastAt(EntityManager em, int2 hex, uint rngSeed, byte unitType,
                                           UnitSpawnState state = default)
