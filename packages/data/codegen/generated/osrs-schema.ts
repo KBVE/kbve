@@ -3,13 +3,22 @@
  *
  * Source: ../descriptors/osrs.binpb
  * Config: ../osrs-zod-config.json
- * Generated: 2026-05-03T09:31:28.483Z
+ * Generated: 2026-05-04T06:27:06.674Z
  */
 
 import { z } from 'zod';
 
 export const OSRSHeadTagSchema = z.object({
-	tag: z.enum(['meta', 'link', 'script', 'style', 'title', 'base', 'noscript', 'template']),
+	tag: z.enum([
+		'meta',
+		'link',
+		'script',
+		'style',
+		'title',
+		'base',
+		'noscript',
+		'template',
+	]),
 	attrs: z.record(z.union([z.string(), z.boolean()])).optional(),
 	content: z.string().optional(),
 });
@@ -123,68 +132,64 @@ export const OSRSDropRarities = [
 export type OSRSDropRarity = (typeof OSRSDropRarities)[number];
 
 // OSRSRequirements
-export const OSRSRequirementsSchema = z
-	.object({
-		attack: z.number().min(1).max(99).optional(),
-		strength: z.number().min(1).max(99).optional(),
-		defence: z.number().min(1).max(99).optional(),
-		ranged: z.number().min(1).max(99).optional(),
-		prayer: z.number().min(1).max(99).optional(),
-		magic: z.number().min(1).max(99).optional(),
-		runecraft: z.number().min(1).max(99).optional(),
-		hitpoints: z.number().min(1).max(99).optional(),
-		crafting: z.number().min(1).max(99).optional(),
-		mining: z.number().min(1).max(99).optional(),
-		smithing: z.number().min(1).max(99).optional(),
-		fishing: z.number().min(1).max(99).optional(),
-		cooking: z.number().min(1).max(99).optional(),
-		firemaking: z.number().min(1).max(99).optional(),
-		woodcutting: z.number().min(1).max(99).optional(),
-		agility: z.number().min(1).max(99).optional(),
-		herblore: z.number().min(1).max(99).optional(),
-		thieving: z.number().min(1).max(99).optional(),
-		fletching: z.number().min(1).max(99).optional(),
-		slayer: z.number().min(1).max(99).optional(),
-		farming: z.number().min(1).max(99).optional(),
-		construction: z.number().min(1).max(99).optional(),
-		hunter: z.number().min(1).max(99).optional(),
-		quest: z.string().optional(),
-	});
+export const OSRSRequirementsSchema = z.object({
+	attack: z.number().min(1).max(99).optional(),
+	strength: z.number().min(1).max(99).optional(),
+	defence: z.number().min(1).max(99).optional(),
+	ranged: z.number().min(1).max(99).optional(),
+	prayer: z.number().min(1).max(99).optional(),
+	magic: z.number().min(1).max(99).optional(),
+	runecraft: z.number().min(1).max(99).optional(),
+	hitpoints: z.number().min(1).max(99).optional(),
+	crafting: z.number().min(1).max(99).optional(),
+	mining: z.number().min(1).max(99).optional(),
+	smithing: z.number().min(1).max(99).optional(),
+	fishing: z.number().min(1).max(99).optional(),
+	cooking: z.number().min(1).max(99).optional(),
+	firemaking: z.number().min(1).max(99).optional(),
+	woodcutting: z.number().min(1).max(99).optional(),
+	agility: z.number().min(1).max(99).optional(),
+	herblore: z.number().min(1).max(99).optional(),
+	thieving: z.number().min(1).max(99).optional(),
+	fletching: z.number().min(1).max(99).optional(),
+	slayer: z.number().min(1).max(99).optional(),
+	farming: z.number().min(1).max(99).optional(),
+	construction: z.number().min(1).max(99).optional(),
+	hunter: z.number().min(1).max(99).optional(),
+	quest: z.string().optional(),
+});
 
 export type OSRSRequirements = z.infer<typeof OSRSRequirementsSchema>;
 
 // OSRSAttackBonus
-export const OSRSAttackBonusSchema = z
-	.object({
-		stab: z.number().optional(),
-		slash: z.number().optional(),
-		crush: z.number().optional(),
-		magic: z.number().optional(),
-		ranged: z.number().optional(),
-	});
+export const OSRSAttackBonusSchema = z.object({
+	stab: z.number().optional(),
+	slash: z.number().optional(),
+	crush: z.number().optional(),
+	magic: z.number().optional(),
+	ranged: z.number().optional(),
+});
 
 export type OSRSAttackBonus = z.infer<typeof OSRSAttackBonusSchema>;
 
 // OSRSDefenceBonus
-export const OSRSDefenceBonusSchema = z
-	.object({
-		stab: z.number().optional(),
-		slash: z.number().optional(),
-		crush: z.number().optional(),
-		magic: z.number().optional(),
-		ranged: z.number().optional(),
-	});
+export const OSRSDefenceBonusSchema = z.object({
+	stab: z.number().optional(),
+	slash: z.number().optional(),
+	crush: z.number().optional(),
+	magic: z.number().optional(),
+	ranged: z.number().optional(),
+});
 
 export type OSRSDefenceBonus = z.infer<typeof OSRSDefenceBonusSchema>;
 
 // OSRSOtherBonus
-export const OSRSOtherBonusSchema = z
-	.object({
-		melee_strength: z.number().optional(),
-		ranged_strength: z.number().optional(),
-		magic_damage: z.number().optional(),
-		prayer: z.number().optional(),
-	});
+export const OSRSOtherBonusSchema = z.object({
+	melee_strength: z.number().optional(),
+	ranged_strength: z.number().optional(),
+	magic_damage: z.number().optional(),
+	prayer: z.number().optional(),
+});
 
 export type OSRSOtherBonus = z.infer<typeof OSRSOtherBonusSchema>;
 
@@ -227,13 +232,12 @@ export const OSRSSpecialAttackSchema = z
 export type OSRSSpecialAttack = z.infer<typeof OSRSSpecialAttackSchema>;
 
 // OSRSSetBonus
-export const OSRSSetBonusSchema = z
-	.object({
-		set_name: z.string().optional(),
-		pieces_required: z.number().min(2).max(5).optional(),
-		description: z.string().optional(),
-		pieces: z.array(z.number()).optional(),
-	});
+export const OSRSSetBonusSchema = z.object({
+	set_name: z.string().optional(),
+	pieces_required: z.number().min(2).max(5).optional(),
+	description: z.string().optional(),
+	pieces: z.array(z.number()).optional(),
+});
 
 export type OSRSSetBonus = z.infer<typeof OSRSSetBonusSchema>;
 
@@ -255,50 +259,51 @@ export const OSRSDropSourceSchema = z
 export type OSRSDropSource = z.infer<typeof OSRSDropSourceSchema>;
 
 // OSRSShopSource
-export const OSRSShopSourceSchema = z
-	.object({
-		shop_name: z.string(),
-		location: z.string().optional(),
-		price: z.union([z.number(), z.string()]).optional(),
-		stock: z.union([z.number(), z.string()]).optional(),
-		currency: z.string().optional(),
-		members_only: z.boolean().optional(),
-	});
+export const OSRSShopSourceSchema = z.object({
+	shop_name: z.string(),
+	location: z.string().optional(),
+	price: z.union([z.number(), z.string()]).optional(),
+	stock: z.union([z.number(), z.string()]).optional(),
+	currency: z.string().optional(),
+	members_only: z.boolean().optional(),
+});
 
 export type OSRSShopSource = z.infer<typeof OSRSShopSourceSchema>;
 
 // OSRSSkillingSource
-export const OSRSSkillingSourceSchema = z
-	.object({
-		skill: z.string().transform((s) => s.toLowerCase()),
-		level: z.number().min(1).max(99),
-		xp: z.number().optional(),
-		location: z.string().optional(),
-		method: z.string().optional(),
-		catch_rate: z.number().optional(),
-		success_rate: z.number().optional(),
-		tool: z.string().optional(),
-		bait: z.string().optional(),
-		members_only: z.boolean().optional(),
-	});
+export const OSRSSkillingSourceSchema = z.object({
+	skill: z.string().transform((s) => s.toLowerCase()),
+	level: z.number().min(1).max(99),
+	xp: z.number().optional(),
+	location: z.string().optional(),
+	method: z.string().optional(),
+	catch_rate: z.number().optional(),
+	success_rate: z.number().optional(),
+	tool: z.string().optional(),
+	bait: z.string().optional(),
+	members_only: z.boolean().optional(),
+});
 
 export type OSRSSkillingSource = z.infer<typeof OSRSSkillingSourceSchema>;
 
 // OSRSRecipeMaterial
-export const OSRSMaterialSchema = z
-	.object({
-		item_id: z.number().optional(),
-		item_name: z.string(),
-		quantity: z.number().default(1),
-		consumed: z.boolean().default(true),
-	});
+export const OSRSMaterialSchema = z.object({
+	item_id: z.number().optional(),
+	item_name: z.string(),
+	quantity: z.number().default(1),
+	consumed: z.boolean().default(true),
+});
 
 export type OSRSMaterial = z.infer<typeof OSRSMaterialSchema>;
 
 // OSRSRecipe
 export const OSRSRecipeSchema = z
 	.object({
-		skill: z.string().transform((s) => s.toLowerCase()).nullable().optional(),
+		skill: z
+			.string()
+			.transform((s) => s.toLowerCase())
+			.nullable()
+			.optional(),
 		level: z.number().min(0).max(99).nullable().optional(),
 		xp: z.number().nullable().optional(),
 		facility: z.string().nullable().optional(),
@@ -316,7 +321,11 @@ export type OSRSRecipe = z.infer<typeof OSRSRecipeSchema>;
 // OSRSEffect
 export const OSRSEffectSchema = z
 	.object({
-		stat: z.string().transform((s) => s.toLowerCase()).nullable().optional(),
+		stat: z
+			.string()
+			.transform((s) => s.toLowerCase())
+			.nullable()
+			.optional(),
 		boost_type: z.string().nullable().optional(),
 		boost_value: z.number().nullable().optional(),
 		boost_formula: z.string().nullable().optional(),
@@ -384,337 +393,334 @@ export const OSRSCookingSchema = z
 export type OSRSCooking = z.infer<typeof OSRSCookingSchema>;
 
 // OSRSRelatedItem
-export const OSRSRelatedItemSchema = z
-	.object({
-		item_id: z.number().optional(),
-		item_name: z.string().optional(),
-		relationship: z.enum(['variant', 'upgrade', 'downgrade', 'component', 'product', 'set_piece', 'alternative']).optional(),
-		slug: z.string().optional(),
-		description: z.string().optional(),
-	});
+export const OSRSRelatedItemSchema = z.object({
+	item_id: z.number().optional(),
+	item_name: z.string().optional(),
+	relationship: z
+		.enum([
+			'variant',
+			'upgrade',
+			'downgrade',
+			'component',
+			'product',
+			'set_piece',
+			'alternative',
+		])
+		.optional(),
+	slug: z.string().optional(),
+	description: z.string().optional(),
+});
 
 export type OSRSRelatedItem = z.infer<typeof OSRSRelatedItemSchema>;
 
 // OSRSTreasureTrail
-export const OSRSTreasureTrailSchema = z
-	.object({
-		tier: z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master']),
-		emotes: z.array(z.string()).optional(),
-		stash_location: z.string().optional(),
-		required_items: z.array(z.string()).optional(),
-		is_reward: z.boolean().optional(),
-		reward_tiers: z.array(z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master'])).optional(),
-	});
+export const OSRSTreasureTrailSchema = z.object({
+	tier: z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master']),
+	emotes: z.array(z.string()).optional(),
+	stash_location: z.string().optional(),
+	required_items: z.array(z.string()).optional(),
+	is_reward: z.boolean().optional(),
+	reward_tiers: z
+		.array(
+			z.enum(['beginner', 'easy', 'medium', 'hard', 'elite', 'master']),
+		)
+		.optional(),
+});
 
 export type OSRSTreasureTrail = z.infer<typeof OSRSTreasureTrailSchema>;
 
 // OSRSItemProperties
-export const OSRSItemPropertiesSchema = z
-	.object({
-		release_date: z.string().optional(),
-		update: z.string().optional(),
-		tradeable: z.boolean().optional(),
-		tradeable_ge: z.boolean().optional(),
-		stackable: z.boolean().optional(),
-		noteable: z.boolean().optional(),
-		equipable: z.boolean().optional(),
-		edible: z.boolean().optional(),
-		quest_item: z.boolean().optional(),
-		quest: z.string().optional(),
-		options: z.array(z.string()).optional(),
-		bankable: z.boolean().optional(),
-		placeholder: z.boolean().optional(),
-		weight: z.number().optional(),
-		destroy: z.string().optional(),
-		respawn: z.number().optional(),
-		worn_options: z.array(z.string()).optional(),
-		alchable: z.boolean().optional(),
-		league_region: z.string().optional(),
-	});
+export const OSRSItemPropertiesSchema = z.object({
+	release_date: z.string().optional(),
+	update: z.string().optional(),
+	tradeable: z.boolean().optional(),
+	tradeable_ge: z.boolean().optional(),
+	stackable: z.boolean().optional(),
+	noteable: z.boolean().optional(),
+	equipable: z.boolean().optional(),
+	edible: z.boolean().optional(),
+	quest_item: z.boolean().optional(),
+	quest: z.string().optional(),
+	options: z.array(z.string()).optional(),
+	bankable: z.boolean().optional(),
+	placeholder: z.boolean().optional(),
+	weight: z.number().optional(),
+	destroy: z.string().optional(),
+	respawn: z.number().optional(),
+	worn_options: z.array(z.string()).optional(),
+	alchable: z.boolean().optional(),
+	league_region: z.string().optional(),
+});
 
 export type OSRSItemProperties = z.infer<typeof OSRSItemPropertiesSchema>;
 
 // OSRSMeta
-export const OSRSMetaSchema = z
-	.object({
-		description: z.string().max(160).optional(),
-		keywords: z.array(z.string()).optional(),
-		og_image: z.string().optional(),
-		canonical: z.string().url().optional(),
-		og_image_alt: z.string().optional(),
-		og_type: z.enum(['article', 'website', 'product']).optional(),
-		twitter_card: z.enum(['summary', 'summary_large_image']).optional(),
-		head: z.array(OSRSHeadTagSchema).optional(),
-		noindex: z.boolean().optional(),
-	});
+export const OSRSMetaSchema = z.object({
+	description: z.string().max(160).optional(),
+	keywords: z.array(z.string()).optional(),
+	og_image: z.string().optional(),
+	canonical: z.string().url().optional(),
+	og_image_alt: z.string().optional(),
+	og_type: z.enum(['article', 'website', 'product']).optional(),
+	twitter_card: z.enum(['summary', 'summary_large_image']).optional(),
+	head: z.array(OSRSHeadTagSchema).optional(),
+	noindex: z.boolean().optional(),
+});
 
 export type OSRSMeta = z.infer<typeof OSRSMetaSchema>;
 
 // OSRSPrice
-export const OSRSPriceSchema = z
-	.object({
-		high_price: z.number().nullable().optional(),
-		high_time: z.number().nullable().optional(),
-		low_price: z.number().nullable().optional(),
-		low_time: z.number().nullable().optional(),
-	});
+export const OSRSPriceSchema = z.object({
+	high_price: z.number().nullable().optional(),
+	high_time: z.number().nullable().optional(),
+	low_price: z.number().nullable().optional(),
+	low_time: z.number().nullable().optional(),
+});
 
 export type OSRSPrice = z.infer<typeof OSRSPriceSchema>;
 
 // OSRSAbout
-export const OSRSAboutSchema = z
-	.object({
-		text: z.string(),
-	});
+export const OSRSAboutSchema = z.object({
+	text: z.string(),
+});
 
 export type OSRSAbout = z.infer<typeof OSRSAboutSchema>;
 
 // OSRSMarketStep
-export const OSRSMarketStepSchema = z
-	.object({
-		order: z.number(),
-		action: z.string(),
-		item_id: z.number().optional(),
-		item_name: z.string().optional(),
-	});
+export const OSRSMarketStepSchema = z.object({
+	order: z.number(),
+	action: z.string(),
+	item_id: z.number().optional(),
+	item_name: z.string().optional(),
+});
 
 export type OSRSMarketStep = z.infer<typeof OSRSMarketStepSchema>;
 
 // OSRSMarketStrategy
-export const OSRSMarketStrategySchema = z
-	.object({
-		title: z.string().optional(),
-		steps: z.array(OSRSMarketStepSchema).optional(),
-		profit_formulas: z.array(z.string()).optional(),
-		notes: z.array(z.string()).optional(),
-	});
+export const OSRSMarketStrategySchema = z.object({
+	title: z.string().optional(),
+	steps: z.array(OSRSMarketStepSchema).optional(),
+	profit_formulas: z.array(z.string()).optional(),
+	notes: z.array(z.string()).optional(),
+});
 
 export type OSRSMarketStrategy = z.infer<typeof OSRSMarketStrategySchema>;
 
 // OSRSMaterial
-export const OSRSMaterialSchema = z
-	.object({
-		type: z.string(),
-		tier: z.string().optional(),
-	});
+export const OSRSMaterialSchema = z.object({
+	type: z.string(),
+	tier: z.string().optional(),
+});
 
 export type OSRSMaterial = z.infer<typeof OSRSMaterialSchema>;
 
 // OSRSPrayer
-export const OSRSPrayerSchema = z
-	.object({
-		xp_bury: z.number().optional(),
-		xp_gilded_altar: z.number().optional(),
-		xp_chaos_altar: z.number().optional(),
-		xp_ectofuntus: z.number().optional(),
-	});
+export const OSRSPrayerSchema = z.object({
+	xp_bury: z.number().optional(),
+	xp_gilded_altar: z.number().optional(),
+	xp_chaos_altar: z.number().optional(),
+	xp_ectofuntus: z.number().optional(),
+});
 
 export type OSRSPrayer = z.infer<typeof OSRSPrayerSchema>;
 
 // OSRSGathering
-export const OSRSGatheringSchema = z
-	.object({
-		skill: z.string(),
-		level: z.number(),
-		xp: z.number().optional(),
-		locations: z.array(z.string()).optional(),
-		tool: z.string().optional(),
-		members_only: z.boolean().optional(),
-	});
+export const OSRSGatheringSchema = z.object({
+	skill: z.string(),
+	level: z.number(),
+	xp: z.number().optional(),
+	locations: z.array(z.string()).optional(),
+	tool: z.string().optional(),
+	members_only: z.boolean().optional(),
+});
 
 export type OSRSGathering = z.infer<typeof OSRSGatheringSchema>;
 
 // OSRSTeleportDestination
-export const OSRSTeleportDestinationSchema = z
-	.object({
-		name: z.string(),
-		location: z.string().optional(),
-		requirements: z.string().optional(),
-		members_only: z.boolean().optional(),
-		wilderness: z.boolean().optional(),
-	});
+export const OSRSTeleportDestinationSchema = z.object({
+	name: z.string(),
+	location: z.string().optional(),
+	requirements: z.string().optional(),
+	members_only: z.boolean().optional(),
+	wilderness: z.boolean().optional(),
+});
 
-export type OSRSTeleportDestination = z.infer<typeof OSRSTeleportDestinationSchema>;
+export type OSRSTeleportDestination = z.infer<
+	typeof OSRSTeleportDestinationSchema
+>;
 
 // OSRSTeleport
-export const OSRSTeleportSchema = z
-	.object({
-		destinations: z.array(OSRSTeleportDestinationSchema).optional(),
-		charges: z.number().optional(),
-		recharge_method: z.string().optional(),
-		recharge_cost: z.number().optional(),
-		type: z.string().optional(),
-		spellbook: z.string().optional(),
-		magic_level: z.number().optional(),
-		runes: z.array(z.string()).optional(),
-		magic_xp: z.number().optional(),
-	});
+export const OSRSTeleportSchema = z.object({
+	destinations: z.array(OSRSTeleportDestinationSchema).optional(),
+	charges: z.number().optional(),
+	recharge_method: z.string().optional(),
+	recharge_cost: z.number().optional(),
+	type: z.string().optional(),
+	spellbook: z.string().optional(),
+	magic_level: z.number().optional(),
+	runes: z.array(z.string()).optional(),
+	magic_xp: z.number().optional(),
+});
 
 export type OSRSTeleport = z.infer<typeof OSRSTeleportSchema>;
 
 // OSRSQuestRequirement
-export const OSRSQuestRequirementSchema = z
-	.object({
-		quest_name: z.string(),
-		role: z.string().optional(),
-		quantity: z.number().optional(),
-		notes: z.string().optional(),
-	});
+export const OSRSQuestRequirementSchema = z.object({
+	quest_name: z.string(),
+	role: z.string().optional(),
+	quantity: z.number().optional(),
+	notes: z.string().optional(),
+});
 
 export type OSRSQuestRequirement = z.infer<typeof OSRSQuestRequirementSchema>;
 
 // OSRSQuestData
-export const OSRSQuestDataSchema = z
-	.object({
-		quests: z.array(OSRSQuestRequirementSchema).optional(),
-	});
+export const OSRSQuestDataSchema = z.object({
+	quests: z.array(OSRSQuestRequirementSchema).optional(),
+});
 
 export type OSRSQuestData = z.infer<typeof OSRSQuestDataSchema>;
 
 // OSRSFarming
-export const OSRSFarmingSchema = z
-	.object({
-		farming_level: z.number().optional(),
-		plant_xp: z.number().optional(),
-		harvest_xp: z.number().optional(),
-		check_health_xp: z.number().optional(),
-		patch_type: z.string().optional(),
-		growth_time: z.number().optional(),
-		payment: z.string().optional(),
-		payment_item_id: z.number().optional(),
-		seed_id: z.number().optional(),
-		produce_id: z.number().optional(),
-		produce_name: z.string().optional(),
-		min_yield: z.number().optional(),
-		max_yield: z.number().optional(),
-		compost_type: z.string().optional(),
-		growth_cycles: z.number().optional(),
-		cycle_minutes: z.number().optional(),
-		seed_name: z.string().optional(),
-		disease_free: z.boolean().optional(),
-	});
+export const OSRSFarmingSchema = z.object({
+	farming_level: z.number().optional(),
+	plant_xp: z.number().optional(),
+	harvest_xp: z.number().optional(),
+	check_health_xp: z.number().optional(),
+	patch_type: z.string().optional(),
+	growth_time: z.number().optional(),
+	payment: z.string().optional(),
+	payment_item_id: z.number().optional(),
+	seed_id: z.number().optional(),
+	produce_id: z.number().optional(),
+	produce_name: z.string().optional(),
+	min_yield: z.number().optional(),
+	max_yield: z.number().optional(),
+	compost_type: z.string().optional(),
+	growth_cycles: z.number().optional(),
+	cycle_minutes: z.number().optional(),
+	seed_name: z.string().optional(),
+	disease_free: z.boolean().optional(),
+});
 
 export type OSRSFarming = z.infer<typeof OSRSFarmingSchema>;
 
 // OSRSCharges
-export const OSRSChargesSchema = z
-	.object({
-		max_charges: z.number().optional(),
-		charge_cost_item_id: z.number().optional(),
-		charge_cost_item: z.string().optional(),
-		charges_per_item: z.number().optional(),
-		degrade_to_id: z.number().optional(),
-		degrade_to_name: z.string().optional(),
-		repairable: z.boolean().optional(),
-		repair_cost: z.number().optional(),
-		repair_npc: z.string().optional(),
-		combat_hours: z.number().optional(),
-	});
+export const OSRSChargesSchema = z.object({
+	max_charges: z.number().optional(),
+	charge_cost_item_id: z.number().optional(),
+	charge_cost_item: z.string().optional(),
+	charges_per_item: z.number().optional(),
+	degrade_to_id: z.number().optional(),
+	degrade_to_name: z.string().optional(),
+	repairable: z.boolean().optional(),
+	repair_cost: z.number().optional(),
+	repair_npc: z.string().optional(),
+	combat_hours: z.number().optional(),
+});
 
 export type OSRSCharges = z.infer<typeof OSRSChargesSchema>;
 
 // OSRSSlayer
-export const OSRSSlayerSchema = z
-	.object({
-		slayer_level: z.number().optional(),
-		slayer_master: z.string().optional(),
-		task_weight: z.number().optional(),
-		category: z.string().optional(),
-		requires_task: z.boolean().optional(),
-	});
+export const OSRSSlayerSchema = z.object({
+	slayer_level: z.number().optional(),
+	slayer_master: z.string().optional(),
+	task_weight: z.number().optional(),
+	category: z.string().optional(),
+	requires_task: z.boolean().optional(),
+});
 
 export type OSRSSlayer = z.infer<typeof OSRSSlayerSchema>;
 
 // OSRSConstruction
-export const OSRSConstructionSchema = z
-	.object({
-		construction_level: z.number().optional(),
-		construction_xp: z.number().optional(),
-		room: z.string().optional(),
-		hotspot: z.string().optional(),
-		flatpack: z.boolean().optional(),
-		built_item_id: z.number().optional(),
-	});
+export const OSRSConstructionSchema = z.object({
+	construction_level: z.number().optional(),
+	construction_xp: z.number().optional(),
+	room: z.string().optional(),
+	hotspot: z.string().optional(),
+	flatpack: z.boolean().optional(),
+	built_item_id: z.number().optional(),
+});
 
 export type OSRSConstruction = z.infer<typeof OSRSConstructionSchema>;
 
 // OSRSPassiveEffect
-export const OSRSPassiveEffectSchema = z
-	.object({
-		name: z.string(),
-		description: z.string().optional(),
-		trigger: z.string().optional(),
-		chance: z.number().optional(),
-		affected_skill: z.string().optional(),
-		boost_value: z.number().optional(),
-		boost_formula: z.string().optional(),
-	});
+export const OSRSPassiveEffectSchema = z.object({
+	name: z.string(),
+	description: z.string().optional(),
+	trigger: z.string().optional(),
+	chance: z.number().optional(),
+	affected_skill: z.string().optional(),
+	boost_value: z.number().optional(),
+	boost_formula: z.string().optional(),
+});
 
 export type OSRSPassiveEffect = z.infer<typeof OSRSPassiveEffectSchema>;
 
 // OSRSAmmunition
-export const OSRSAmmunitionSchema = z
-	.object({
-		type: z.string().optional(),
-		tier: z.string().optional(),
-		ranged_strength: z.number().optional(),
-		enchanted: z.boolean().optional(),
-		enchant_effect: z.string().optional(),
-		enchant_description: z.string().optional(),
-		proc_rate_pvm: z.number().optional(),
-		proc_rate_pvp: z.number().optional(),
-		compatible_weapons: z.array(z.string()).optional(),
-		enchant_magic_level: z.number().optional(),
-		enchant_runes: z.array(z.string()).optional(),
-	});
+export const OSRSAmmunitionSchema = z.object({
+	type: z.string().optional(),
+	tier: z.string().optional(),
+	ranged_strength: z.number().optional(),
+	enchanted: z.boolean().optional(),
+	enchant_effect: z.string().optional(),
+	enchant_description: z.string().optional(),
+	proc_rate_pvm: z.number().optional(),
+	proc_rate_pvp: z.number().optional(),
+	compatible_weapons: z.array(z.string()).optional(),
+	enchant_magic_level: z.number().optional(),
+	enchant_runes: z.array(z.string()).optional(),
+});
 
 export type OSRSAmmunition = z.infer<typeof OSRSAmmunitionSchema>;
 
 // OSRSItem
-export const OSRSExtendedSchema = z
-	.object({
-		id: z.number(),
-		name: z.string(),
-		slug: z.string(),
-		examine: z.string(),
-		members: z.boolean(),
-		icon: z.string(),
-		value: z.number(),
-		lowalch: z.number().nullable(),
-		highalch: z.number().nullable(),
-		limit: z.number().nullable(),
-		equipment: OSRSEquipmentSchema.optional(),
-		special_attack: OSRSSpecialAttackSchema.optional(),
-		set_bonus: OSRSSetBonusSchema.optional(),
-		drop_table: z.lazy(() => OSRSDropTableSchema).nullable().optional(),
-		shops: z.array(OSRSShopSourceSchema).optional(),
-		skilling_sources: z.array(OSRSSkillingSourceSchema).optional(),
-		recipes: z.array(OSRSRecipeSchema).optional(),
-		potion: OSRSPotionSchema.optional(),
-		food: OSRSFoodSchema.optional(),
-		cooking: OSRSCookingSchema.optional(),
-		related_items: z.array(OSRSRelatedItemSchema).optional(),
-		treasure_trail: OSRSTreasureTrailSchema.optional(),
-		properties: OSRSItemPropertiesSchema.optional(),
-		meta: OSRSMetaSchema.optional(),
-		price: OSRSPriceSchema.optional(),
-		about: OSRSAboutSchema.optional(),
-		market_strategy: OSRSMarketStrategySchema.optional(),
-		trading_tips: z.array(z.string()).optional(),
-		material: OSRSMaterialSchema.optional(),
-		prayer: OSRSPrayerSchema.optional(),
-		gathering: OSRSGatheringSchema.optional(),
-		teleport: OSRSTeleportSchema.optional(),
-		quest_data: OSRSQuestDataSchema.optional(),
-		farming: OSRSFarmingSchema.optional(),
-		charges: OSRSChargesSchema.optional(),
-		slayer: OSRSSlayerSchema.optional(),
-		construction: OSRSConstructionSchema.optional(),
-		passive_effects: z.array(OSRSPassiveEffectSchema).optional(),
-		ammunition: OSRSAmmunitionSchema.optional(),
-		mdx_version: z.number().optional(),
-		mdx_updated: z.string().optional(),
-	});
+export const OSRSExtendedSchema = z.object({
+	id: z.number(),
+	name: z.string(),
+	slug: z.string(),
+	examine: z.string(),
+	members: z.boolean(),
+	icon: z.string(),
+	value: z.number(),
+	lowalch: z.number().nullable(),
+	highalch: z.number().nullable(),
+	limit: z.number().nullable(),
+	equipment: OSRSEquipmentSchema.optional(),
+	special_attack: OSRSSpecialAttackSchema.optional(),
+	set_bonus: OSRSSetBonusSchema.optional(),
+	drop_table: z
+		.lazy(() => OSRSDropTableSchema)
+		.nullable()
+		.optional(),
+	shops: z.array(OSRSShopSourceSchema).optional(),
+	skilling_sources: z.array(OSRSSkillingSourceSchema).optional(),
+	recipes: z.array(OSRSRecipeSchema).optional(),
+	potion: OSRSPotionSchema.optional(),
+	food: OSRSFoodSchema.optional(),
+	cooking: OSRSCookingSchema.optional(),
+	related_items: z.array(OSRSRelatedItemSchema).optional(),
+	treasure_trail: OSRSTreasureTrailSchema.optional(),
+	properties: OSRSItemPropertiesSchema.optional(),
+	meta: OSRSMetaSchema.optional(),
+	price: OSRSPriceSchema.optional(),
+	about: OSRSAboutSchema.optional(),
+	market_strategy: OSRSMarketStrategySchema.optional(),
+	trading_tips: z.array(z.string()).optional(),
+	material: OSRSMaterialSchema.optional(),
+	prayer: OSRSPrayerSchema.optional(),
+	gathering: OSRSGatheringSchema.optional(),
+	teleport: OSRSTeleportSchema.optional(),
+	quest_data: OSRSQuestDataSchema.optional(),
+	farming: OSRSFarmingSchema.optional(),
+	charges: OSRSChargesSchema.optional(),
+	slayer: OSRSSlayerSchema.optional(),
+	construction: OSRSConstructionSchema.optional(),
+	passive_effects: z.array(OSRSPassiveEffectSchema).optional(),
+	ammunition: OSRSAmmunitionSchema.optional(),
+	mdx_version: z.number().optional(),
+	mdx_updated: z.string().optional(),
+});
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
 
@@ -739,9 +745,7 @@ export function hasEquipment(
 	return item.equipment !== undefined;
 }
 
-export function isWeapon(
-	item: OSRSExtended,
-): boolean {
+export function isWeapon(item: OSRSExtended): boolean {
 	return item.equipment?.slot === 'weapon' || item.equipment?.slot === '2h';
 }
 
@@ -785,15 +789,11 @@ export function hasDropSources(
 	return (item.drop_table.sources?.length ?? 0) > 0;
 }
 
-export function hasShopSources(
-	item: OSRSExtended,
-): boolean {
+export function hasShopSources(item: OSRSExtended): boolean {
 	return (item.shops?.length ?? 0) > 0;
 }
 
-export function hasRecipes(
-	item: OSRSExtended,
-): boolean {
+export function hasRecipes(item: OSRSExtended): boolean {
 	return (item.recipes?.length ?? 0) > 0;
 }
 
@@ -815,24 +815,18 @@ export function hasProperties(
 	return item.properties !== undefined;
 }
 
-export function isTradeable(
-	item: OSRSExtended,
-): boolean {
+export function isTradeable(item: OSRSExtended): boolean {
 	return (
 		item.properties?.tradeable === true ||
 		item.properties?.tradeable_ge === true
 	);
 }
 
-export function isQuestItem(
-	item: OSRSExtended,
-): boolean {
+export function isQuestItem(item: OSRSExtended): boolean {
 	return item.properties?.quest_item === true;
 }
 
-export function hasRelatedItems(
-	item: OSRSExtended,
-): boolean {
+export function hasRelatedItems(item: OSRSExtended): boolean {
 	return (item.related_items?.length ?? 0) > 0;
 }
 

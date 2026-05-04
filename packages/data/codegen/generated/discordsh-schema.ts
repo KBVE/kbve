@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/discordsh.binpb
  * Config: ../discordsh-zod-config.json
- * Generated: 2026-05-03T09:31:28.484Z
+ * Generated: 2026-05-04T06:27:06.676Z
  */
 
 import { z } from 'zod';
@@ -28,18 +28,39 @@ export type ServerCategoryValue = (typeof ServerCategories)[number];
 export const ServerCategorySchema = z.enum(ServerCategories);
 
 // SubmitServerRequest
-export const SubmitServerRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-		name: z.string().min(1, 'Server name is required').max(100, 'Server name must be 100 characters or less'),
-		summary: z.string().min(1, 'Summary is required').max(200, 'Summary must be 200 characters or less'),
-		description: z.string().max(2000, 'Description must be 2000 characters or less').optional(),
-		icon_url: z.string().url('Must be a valid URL').optional(),
-		banner_url: z.string().url('Must be a valid URL').optional(),
-		invite_code: z.string().regex(/^[a-zA-Z0-9_-]{2,32}$/, 'Invalid invite code format'),
-		categories: z.array(z.number().int().min(1).max(12)).max(3, 'Maximum 3 categories').optional(),
-		tags: z.array(z.string().min(1).max(50)).max(10, 'Maximum 10 tags').optional(),
-		member_count: z.number().int().min(0).optional(),
-	});
+export const SubmitServerRequestSchema = z.object({
+	server_id: z
+		.string()
+		.regex(
+			/^\d{17,20}$/,
+			'Must be a valid Discord snowflake (17-20 digits)',
+		),
+	name: z
+		.string()
+		.min(1, 'Server name is required')
+		.max(100, 'Server name must be 100 characters or less'),
+	summary: z
+		.string()
+		.min(1, 'Summary is required')
+		.max(200, 'Summary must be 200 characters or less'),
+	description: z
+		.string()
+		.max(2000, 'Description must be 2000 characters or less')
+		.optional(),
+	icon_url: z.string().url('Must be a valid URL').optional(),
+	banner_url: z.string().url('Must be a valid URL').optional(),
+	invite_code: z
+		.string()
+		.regex(/^[a-zA-Z0-9_-]{2,32}$/, 'Invalid invite code format'),
+	categories: z
+		.array(z.number().int().min(1).max(12))
+		.max(3, 'Maximum 3 categories')
+		.optional(),
+	tags: z
+		.array(z.string().min(1).max(50))
+		.max(10, 'Maximum 10 tags')
+		.optional(),
+	member_count: z.number().int().min(0).optional(),
+});
 
 export type SubmitServerRequest = z.infer<typeof SubmitServerRequestSchema>;

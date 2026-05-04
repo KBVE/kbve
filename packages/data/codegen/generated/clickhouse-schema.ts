@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/clickhouse.binpb
  * Config: ../clickhouse-zod-config.json
- * Generated: 2026-05-03T09:31:28.479Z
+ * Generated: 2026-05-04T06:27:06.672Z
  */
 
 import { z } from 'zod';
@@ -22,66 +22,59 @@ export type SeverityLevelValue = (typeof SeverityLevels)[number];
 export const SeverityLevelSchema = z.enum(SeverityLevels);
 
 // TailRequest
-export const TailRequestSchema = z
-	.object({
-		pod_namespace: z.string().nullable().optional(),
-		service: z.string().nullable().optional(),
-		level: SeverityLevelSchema.nullable().optional(),
-		search: z.string().nullable().optional(),
-		poll_interval_ms: z.number().min(100).max(30000),
-	});
+export const TailRequestSchema = z.object({
+	pod_namespace: z.string().nullable().optional(),
+	service: z.string().nullable().optional(),
+	level: SeverityLevelSchema.nullable().optional(),
+	search: z.string().nullable().optional(),
+	poll_interval_ms: z.number().min(100).max(30000),
+});
 
 export type TailRequest = z.infer<typeof TailRequestSchema>;
 
 // DdlResponse
-export const DdlResponseSchema = z
-	.object({
-		success: z.boolean(),
-		statement: z.string(),
-	});
+export const DdlResponseSchema = z.object({
+	success: z.boolean(),
+	statement: z.string(),
+});
 
 export type DdlResponse = z.infer<typeof DdlResponseSchema>;
 
 // DdlRequest
-export const DdlRequestSchema = z
-	.object({
-		statement: z.string(),
-	});
+export const DdlRequestSchema = z.object({
+	statement: z.string(),
+});
 
 export type DdlRequest = z.infer<typeof DdlRequestSchema>;
 
 // InsertResponse
-export const InsertResponseSchema = z
-	.object({
-		success: z.boolean(),
-		rows_added: z.number(),
-	});
+export const InsertResponseSchema = z.object({
+	success: z.boolean(),
+	rows_added: z.number(),
+});
 
 export type InsertResponse = z.infer<typeof InsertResponseSchema>;
 
 // InsertRequest
-export const InsertRequestSchema = z
-	.object({
-		table: z.string(),
-		rows: z.array(z.string()).optional(),
-	});
+export const InsertRequestSchema = z.object({
+	table: z.string(),
+	rows: z.array(z.string()).optional(),
+});
 
 export type InsertRequest = z.infer<typeof InsertRequestSchema>;
 
 // RawQueryResponse
-export const RawQueryResponseSchema = z
-	.object({
-		data: z.string(),
-		count: z.number(),
-	});
+export const RawQueryResponseSchema = z.object({
+	data: z.string(),
+	count: z.number(),
+});
 
 export type RawQueryResponse = z.infer<typeof RawQueryResponseSchema>;
 
 // RawQueryRequest
-export const RawQueryRequestSchema = z
-	.object({
-		query: z.string(),
-	});
+export const RawQueryRequestSchema = z.object({
+	query: z.string(),
+});
 
 export type RawQueryRequest = z.infer<typeof RawQueryRequestSchema>;
 
@@ -98,11 +91,10 @@ export const LogStatsBucketSchema = z
 export type LogStatsBucket = z.infer<typeof LogStatsBucketSchema>;
 
 // LogStatsResponse
-export const LogStatsResponseSchema = z
-	.object({
-		buckets: z.array(LogStatsBucketSchema).optional(),
-		count: z.number(),
-	});
+export const LogStatsResponseSchema = z.object({
+	buckets: z.array(LogStatsBucketSchema).optional(),
+	count: z.number(),
+});
 
 export type LogStatsResponse = z.infer<typeof LogStatsResponseSchema>;
 
@@ -117,10 +109,9 @@ export const TimeRangeSchema = z
 export type TimeRange = z.infer<typeof TimeRangeSchema>;
 
 // LogStatsRequest
-export const LogStatsRequestSchema = z
-	.object({
-		time_range: TimeRangeSchema.nullable().optional(),
-	});
+export const LogStatsRequestSchema = z.object({
+	time_range: TimeRangeSchema.nullable().optional(),
+});
 
 export type LogStatsRequest = z.infer<typeof LogStatsRequestSchema>;
 
@@ -142,11 +133,10 @@ export const LogEntrySchema = z
 export type LogEntry = z.infer<typeof LogEntrySchema>;
 
 // LogQueryResponse
-export const LogQueryResponseSchema = z
-	.object({
-		rows: z.array(LogEntrySchema).optional(),
-		count: z.number(),
-	});
+export const LogQueryResponseSchema = z.object({
+	rows: z.array(LogEntrySchema).optional(),
+	count: z.number(),
+});
 
 export type LogQueryResponse = z.infer<typeof LogQueryResponseSchema>;
 
@@ -161,15 +151,14 @@ export const PaginationSchema = z
 export type Pagination = z.infer<typeof PaginationSchema>;
 
 // LogQueryRequest
-export const LogQueryRequestSchema = z
-	.object({
-		pod_namespace: z.string().nullable().optional(),
-		service: z.string().nullable().optional(),
-		level: SeverityLevelSchema.nullable().optional(),
-		search: z.string().nullable().optional(),
-		time_range: TimeRangeSchema.nullable().optional(),
-		pagination: PaginationSchema.nullable().optional(),
-	});
+export const LogQueryRequestSchema = z.object({
+	pod_namespace: z.string().nullable().optional(),
+	service: z.string().nullable().optional(),
+	level: SeverityLevelSchema.nullable().optional(),
+	search: z.string().nullable().optional(),
+	time_range: TimeRangeSchema.nullable().optional(),
+	pagination: PaginationSchema.nullable().optional(),
+});
 
 export type LogQueryRequest = z.infer<typeof LogQueryRequestSchema>;
 

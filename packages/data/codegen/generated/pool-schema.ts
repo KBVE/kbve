@@ -3,47 +3,43 @@
  *
  * Source: ../descriptors/pool.binpb
  * Config: ../pool-zod-config.json
- * Generated: 2026-05-03T09:31:28.497Z
+ * Generated: 2026-05-04T06:27:06.688Z
  */
 
 import { z } from 'zod';
 
 // ItemDefinition
-export const ItemDefinitionSchema = z
-	.object({
-		id: z.string(),
-		name: z.string(),
-		description: z.string(),
-		category: z.string(),
-		stack_size: z.number(),
-		properties: z.record(z.string(), z.string()).optional(),
-	});
+export const ItemDefinitionSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string(),
+	category: z.string(),
+	stack_size: z.number(),
+	properties: z.record(z.string(), z.string()).optional(),
+});
 
 export type ItemDefinition = z.infer<typeof ItemDefinitionSchema>;
 
 // ItemRegistry
-export const ItemRegistrySchema = z
-	.object({
-		items: z.array(ItemDefinitionSchema).optional(),
-	});
+export const ItemRegistrySchema = z.object({
+	items: z.array(ItemDefinitionSchema).optional(),
+});
 
 export type ItemRegistry = z.infer<typeof ItemRegistrySchema>;
 
 // Prefab
-export const PrefabSchema = z
-	.object({
-		id: z.string(),
-		name: z.string(),
-		category: z.string(),
-		metadata: z.record(z.string(), z.string()).optional(),
-	});
+export const PrefabSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	category: z.string(),
+	metadata: z.record(z.string(), z.string()).optional(),
+});
 
 export type Prefab = z.infer<typeof PrefabSchema>;
 
 // PrefabRegistry
-export const PrefabRegistrySchema = z
-	.object({
-		prefabs: z.array(PrefabSchema).optional(),
-	});
+export const PrefabRegistrySchema = z.object({
+	prefabs: z.array(PrefabSchema).optional(),
+});
 
 export type PrefabRegistry = z.infer<typeof PrefabRegistrySchema>;
