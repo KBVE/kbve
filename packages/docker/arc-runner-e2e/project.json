@@ -1,0 +1,31 @@
+{
+	"name": "arc-runner-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "packages/docker/arc-runner-e2e/e2e",
+	"implicitDependencies": ["arc-runner"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans 2>/dev/null || true",
+					"docker buildx build --platform linux/amd64 -f packages/docker/arc-runner/Dockerfile -t kbve/arc-runner:latest --load packages/docker/arc-runner/",
+					"docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e up -d",
+					"echo 'Waiting for dockerd...' && for i in $(seq 1 60); do if docker exec arc-runner-e2e bash -lc 'curl -sf http://localhost:2376/_ping >/dev/null'; then echo 'dockerd ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'dockerd did not become ready'; docker logs arc-runner-e2e-dind 2>&1 | tail -30; docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans; exit 1; fi; sleep 1; done",
+					"cd packages/docker/arc-runner-e2e && npx vitest run; EC=$?; cd - >/dev/null && docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:docker", "arc-runner", "e2e"]
+}

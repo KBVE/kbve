@@ -16,6 +16,18 @@ spec:
               releaseName: arc-runner-set
               valueFiles:
                   - $values/apps/kube/github/runners/manifests/values.yaml
+        # Helm chart for the KBVE custom-image canary scale set.
+        # Same DinD config as arc-runner-set, but the runner container
+        # is ghcr.io/kbve/arc-runner. Workflows opt in via
+        # `runs-on: arc-runner-set-kbve`. Retires once values.yaml is
+        # flipped to the kbve image (#10329).
+        - repoURL: ghcr.io/actions/actions-runner-controller-charts
+          targetRevision: 0.9.3
+          chart: gha-runner-scale-set
+          helm:
+              releaseName: arc-runner-set-kbve
+              valueFiles:
+                  - $values/apps/kube/github/runners/manifests/values-kbve.yaml
         # Helm chart for the Unreal Engine runner scale set (Linux)
         - repoURL: ghcr.io/actions/actions-runner-controller-charts
           targetRevision: 0.9.3
