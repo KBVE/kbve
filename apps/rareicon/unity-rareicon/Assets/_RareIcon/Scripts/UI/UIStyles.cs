@@ -240,6 +240,66 @@ namespace RareIcon
                 padV: Spacing.Sm, padH: Spacing.Md);
         }
 
+        /// <summary>High-fantasy chrome — thick outer gold border, an inset secondary rule for the double-frame "scroll" feel, corner notches, and a diamond accent at top + bottom center. Built on top of <see cref="ApplyPanelChrome"/> so palette + padding behaviour stays consistent. Use this for player-facing surfaces that benefit from extra polish (tutorial hint, inspector header, modal footers); avoid on dense data lists where the chrome would crowd the content.</summary>
+        public static VisualElement ApplyFantasyChrome(this VisualElement v,
+                                                       Color? background = null,
+                                                       Color? border     = null,
+                                                       float padV        = Spacing.Md,
+                                                       float padH        = Spacing.Lg)
+        {
+            var outer = border ?? Palette.GoldDeep;
+            var inner = Palette.Gold;
+
+            v.ApplyPanelChrome(background, outer, radius: Radius.Sharp, borderWidth: 2f, padV: padV, padH: padH);
+
+            // Inset secondary rule — absolute child that draws the inner
+            // gold line offset 4px in from the outer frame, picking-mode
+            // ignored so it never blocks clicks. The double-rule reads as
+            // "framed parchment" without altering the panel's flex layout.
+            var innerFrame = new VisualElement();
+            innerFrame.style.position = Position.Absolute;
+            innerFrame.style.top     = 4;
+            innerFrame.style.left    = 4;
+            innerFrame.style.right   = 4;
+            innerFrame.style.bottom  = 4;
+            innerFrame.style.borderTopWidth    = 1;
+            innerFrame.style.borderBottomWidth = 1;
+            innerFrame.style.borderLeftWidth   = 1;
+            innerFrame.style.borderRightWidth  = 1;
+            innerFrame.style.borderTopColor    = inner;
+            innerFrame.style.borderBottomColor = inner;
+            innerFrame.style.borderLeftColor   = inner;
+            innerFrame.style.borderRightColor  = inner;
+            innerFrame.pickingMode = PickingMode.Ignore;
+            v.Add(innerFrame);
+
+            v.AddCornerNotches(length: 18f, thickness: 2f, color: outer);
+            AddFantasyDiamond(v, top: true,  color: outer);
+            AddFantasyDiamond(v, top: false, color: outer);
+
+            return v;
+        }
+
+        // Small rotated square anchored at the panel's top-center / bottom-center
+        // outer edge — reads as a stamped seal on a scroll. Ignores picking so
+        // it never blocks pointer events even when it overlaps content slightly.
+        static void AddFantasyDiamond(VisualElement panel, bool top, Color color)
+        {
+            const float size = 8f;
+            var dot = new VisualElement();
+            dot.style.position        = Position.Absolute;
+            dot.style.width           = size;
+            dot.style.height          = size;
+            dot.style.backgroundColor = color;
+            dot.style.rotate          = new StyleRotate(new Rotate(45f));
+            dot.style.left            = new Length(50f, LengthUnit.Percent);
+            dot.style.translate       = new Translate(-size * 0.5f, 0f);
+            if (top) dot.style.top    = -size * 0.5f;
+            else     dot.style.bottom = -size * 0.5f;
+            dot.pickingMode = PickingMode.Ignore;
+            panel.Add(dot);
+        }
+
         // -- Anchoring --
         // Absolute-positioned panels use percent offsets so they track the
         // safe area as the window resizes. These two cover the common cases

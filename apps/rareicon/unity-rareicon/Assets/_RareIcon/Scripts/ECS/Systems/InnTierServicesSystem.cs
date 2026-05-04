@@ -1,10 +1,11 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Keeps an Inn's ProvidesFood / ProvidesSleep / ProvidesHealing / ProvidesDrink / ProvidesMorale / InnMusicTrack / InnAmbientAura in sync with its BuildingTier + BuildingVariant. Tier 0 = Inn, Tier 1 default (variant 0) = Tavern, Tier 1 alt (variant 1) = AleHouse (brewing focus — heal off, drink + morale up, bigger aura), Tier 2 = Lodge. Reactive on the BuildingTier change filter so the work fires once per upgrade, not every frame.</summary>
+    /// <summary>Keeps an Inn's ProvidesFood / ProvidesSleep / ProvidesHealing / ProvidesDrink / ProvidesMorale / InnMusicTrack / InnAmbientAura in sync with its BuildingTier + BuildingVariant. Tier 0 = Inn, Tier 1 default (variant 0) = Tavern, Tier 1 alt (variant 1) = AleHouse (brewing focus — heal off, drink + morale up, bigger aura), Tier 2 = Lodge. Reactive on the BuildingTier change filter so the work fires once per upgrade, not every frame. Off-main-thread parallel <see cref="InnRebakeJob"/> + ECB.ParallelWriter for every component add/set/remove.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(BuildingUpgradeSystem))]
@@ -17,7 +18,6 @@ namespace RareIcon
             _innsWithTier = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<InnTag, BuildingTier>()
                 .Build(ref state);
-
             _innsWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
             state.RequireForUpdate(_innsWithTier);
         }
@@ -28,199 +28,191 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged);
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            var entities = _innsWithTier.ToEntityArray(Unity.Collections.Allocator.Temp);
-            var tierLookup    = SystemAPI.GetComponentLookup<BuildingTier>(true);
-            var variantLookup = SystemAPI.GetComponentLookup<BuildingVariant>(true);
-            // Read-only on BuildingHealth — Burst auto-syncs the read path.
-            // Mutations go through ECB so the write doesn't race with
-            // BuildingDeathJob / BuildingRepairJob / DamageJob; ECB plays
-            // at end-of-frame after every job has settled.
-            var hpLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(true);
-            var foodLookup    = SystemAPI.GetComponentLookup<ProvidesFood>(true);
-            var sleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true);
-            var healLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true);
-            var boardLookup   = SystemAPI.GetComponentLookup<QuestBoardState>(true);
-            var moraleLookup  = SystemAPI.GetComponentLookup<ProvidesMorale>(true);
-            var drinkLookup   = SystemAPI.GetComponentLookup<ProvidesDrink>(true);
-            var musicLookup   = SystemAPI.GetComponentLookup<InnMusicTrack>(true);
-            var auraLookup    = SystemAPI.GetComponentLookup<InnAmbientAura>(true);
-
-            for (int i = 0; i < entities.Length; i++)
+            state.Dependency = new InnRebakeJob
             {
-                var e = entities[i];
-                byte tier    = tierLookup[e].Value;
-                byte variant = variantLookup.HasComponent(e) ? variantLookup[e].Value : (byte)0;
-
-                ApplyFood(ecb, e, tier, foodLookup);
-                ApplySleep(ecb, e, tier, variant, sleepLookup);
-                ApplyHealing(ecb, e, tier, variant, healLookup);
-                ApplyQuestBoard(ecb, e, tier, boardLookup);
-                ApplyMorale(ecb, e, tier, variant, moraleLookup);
-                ApplyDrink(ecb, e, tier, variant, drinkLookup);
-                ApplyMusic(ecb, e, tier, variant, musicLookup, auraLookup);
-                ApplyMaxHealth(ecb, e, tier, variant, hpLookup);
-            }
-            entities.Dispose();
+                VariantLookup = SystemAPI.GetComponentLookup<BuildingVariant>(true),
+                HpLookup      = SystemAPI.GetComponentLookup<BuildingHealth>(true),
+                FoodLookup    = SystemAPI.GetComponentLookup<ProvidesFood>(true),
+                SleepLookup   = SystemAPI.GetComponentLookup<ProvidesSleep>(true),
+                HealLookup    = SystemAPI.GetComponentLookup<ProvidesHealing>(true),
+                BoardLookup   = SystemAPI.GetComponentLookup<QuestBoardState>(true),
+                MoraleLookup  = SystemAPI.GetComponentLookup<ProvidesMorale>(true),
+                DrinkLookup   = SystemAPI.GetComponentLookup<ProvidesDrink>(true),
+                MusicLookup   = SystemAPI.GetComponentLookup<InnMusicTrack>(true),
+                AuraLookup    = SystemAPI.GetComponentLookup<InnAmbientAura>(true),
+                Ecb           = ecb,
+            }.ScheduleParallel(_innsWithTier, state.Dependency);
         }
+    }
 
-        static void ApplyMaxHealth(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                                   ComponentLookup<BuildingHealth> hpLookup)
+    [BurstCompile]
+    public partial struct InnRebakeJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<BuildingVariant> VariantLookup;
+        [ReadOnly] public ComponentLookup<BuildingHealth>  HpLookup;
+        [ReadOnly] public ComponentLookup<ProvidesFood>    FoodLookup;
+        [ReadOnly] public ComponentLookup<ProvidesSleep>   SleepLookup;
+        [ReadOnly] public ComponentLookup<ProvidesHealing> HealLookup;
+        [ReadOnly] public ComponentLookup<QuestBoardState> BoardLookup;
+        [ReadOnly] public ComponentLookup<ProvidesMorale>  MoraleLookup;
+        [ReadOnly] public ComponentLookup<ProvidesDrink>   DrinkLookup;
+        [ReadOnly] public ComponentLookup<InnMusicTrack>   MusicLookup;
+        [ReadOnly] public ComponentLookup<InnAmbientAura>  AuraLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity e, [ChunkIndexInQuery] int chunkIdx, in BuildingTier tier)
         {
-            if (!hpLookup.HasComponent(e)) return;
-            ushort newMax = tier switch
-            {
-                0 => 280,
-                2 => 460,
-                _ => (variant == 1) ? (ushort)280 : (ushort)360, // AleHouse vs Tavern
-            };
-            var hp = hpLookup[e];
-            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
-            hp.Max   = newMax;
-            hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMax), 0, newMax);
-            ecb.SetComponent(e, hp);
+            byte t = tier.Value;
+            byte v = VariantLookup.HasComponent(e) ? VariantLookup[e].Value : (byte)0;
+
+            ApplyFood(chunkIdx, e, t);
+            ApplySleep(chunkIdx, e, t, v);
+            ApplyHealing(chunkIdx, e, t, v);
+            ApplyQuestBoard(chunkIdx, e, t);
+            ApplyMorale(chunkIdx, e, t, v);
+            ApplyDrink(chunkIdx, e, t, v);
+            ApplyMusic(chunkIdx, e, t, v);
+            ApplyMaxHealth(chunkIdx, e, t, v);
         }
 
-        static void ApplyFood(EntityCommandBuffer ecb, Entity e, byte tier,
-                              ComponentLookup<ProvidesFood> lookup)
+        void ApplyFood(int chunkIdx, Entity e, byte tier)
         {
             byte priority = (byte)(1 + tier);
-            if (lookup.HasComponent(e))
-                ecb.SetComponent(e, new ProvidesFood { Priority = priority });
+            if (FoodLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new ProvidesFood { Priority = priority });
             else
-                ecb.AddComponent(e,  new ProvidesFood { Priority = priority });
+                Ecb.AddComponent(chunkIdx, e,  new ProvidesFood { Priority = priority });
         }
 
-        static void ApplySleep(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                               ComponentLookup<ProvidesSleep> lookup)
+        void ApplySleep(int chunkIdx, Entity e, byte tier, byte variant)
         {
-            // AleHouse trades sleep capacity for drink + morale — patrons
-            // pile in for the brew, not the bunks.
             byte cap = tier switch
             {
                 0 => 5,
                 1 => (variant == 1) ? (byte)6 : (byte)8,
                 _ => 12,
             };
-            if (lookup.HasComponent(e))
-                ecb.SetComponent(e, new ProvidesSleep { Capacity = cap });
+            if (SleepLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new ProvidesSleep { Capacity = cap });
             else
-                ecb.AddComponent(e,  new ProvidesSleep { Capacity = cap });
+                Ecb.AddComponent(chunkIdx, e,  new ProvidesSleep { Capacity = cap });
         }
 
-        static void ApplyHealing(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                                 ComponentLookup<ProvidesHealing> lookup)
+        void ApplyHealing(int chunkIdx, Entity e, byte tier, byte variant)
         {
-            // AleHouse drops healing entirely — its angle is morale + drink,
-            // not medicine. Tavern + Lodge keep heal.
             if (tier == 0 || (tier == 1 && variant == 1))
             {
-                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesHealing>(e);
+                if (HealLookup.HasComponent(e)) Ecb.RemoveComponent<ProvidesHealing>(chunkIdx, e);
                 return;
             }
             byte priority = tier == 1 ? (byte)1 : (byte)2;
-            if (lookup.HasComponent(e))
-                ecb.SetComponent(e, new ProvidesHealing { Priority = priority });
+            if (HealLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new ProvidesHealing { Priority = priority });
             else
-                ecb.AddComponent(e,  new ProvidesHealing { Priority = priority });
+                Ecb.AddComponent(chunkIdx, e,  new ProvidesHealing { Priority = priority });
         }
 
-        static void ApplyQuestBoard(EntityCommandBuffer ecb, Entity e, byte tier,
-                                    ComponentLookup<QuestBoardState> lookup)
+        void ApplyQuestBoard(int chunkIdx, Entity e, byte tier)
         {
             if (tier == 0)
             {
-                if (lookup.HasComponent(e))
+                if (BoardLookup.HasComponent(e))
                 {
-                    ecb.RemoveComponent<QuestBoardState>(e);
-                    ecb.RemoveComponent<QuestBoardSlot>(e);
+                    Ecb.RemoveComponent<QuestBoardState>(chunkIdx, e);
+                    Ecb.RemoveComponent<QuestBoardSlot>(chunkIdx, e);
                 }
                 return;
             }
             byte capacity = tier == 1 ? (byte)3 : (byte)5;
-            if (lookup.HasComponent(e))
+            if (BoardLookup.HasComponent(e))
             {
-                ecb.SetComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+                Ecb.SetComponent(chunkIdx, e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
             }
             else
             {
-                ecb.AddComponent(e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
-                ecb.AddBuffer<QuestBoardSlot>(e);
+                Ecb.AddComponent(chunkIdx, e, new QuestBoardState { NextRefreshTurn = 0, Capacity = capacity });
+                Ecb.AddBuffer<QuestBoardSlot>(chunkIdx, e);
             }
         }
 
-        static void ApplyMorale(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                                ComponentLookup<ProvidesMorale> lookup)
+        void ApplyMorale(int chunkIdx, Entity e, byte tier, byte variant)
         {
             if (tier == 0)
             {
-                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesMorale>(e);
+                if (MoraleLookup.HasComponent(e)) Ecb.RemoveComponent<ProvidesMorale>(chunkIdx, e);
                 return;
             }
-            // AleHouse leans into festive — bumps morale magnitude one band
-            // above Tavern at the same tier.
             byte mag = tier switch
             {
                 1 => (variant == 1) ? (byte)2 : (byte)1,
                 _ => 2,
             };
-            if (lookup.HasComponent(e))
-                ecb.SetComponent(e, new ProvidesMorale { Magnitude = mag });
+            if (MoraleLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new ProvidesMorale { Magnitude = mag });
             else
-                ecb.AddComponent(e,  new ProvidesMorale { Magnitude = mag });
+                Ecb.AddComponent(chunkIdx, e,  new ProvidesMorale { Magnitude = mag });
         }
 
-        static void ApplyDrink(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                               ComponentLookup<ProvidesDrink> lookup)
+        void ApplyDrink(int chunkIdx, Entity e, byte tier, byte variant)
         {
             if (tier == 0)
             {
-                if (lookup.HasComponent(e)) ecb.RemoveComponent<ProvidesDrink>(e);
+                if (DrinkLookup.HasComponent(e)) Ecb.RemoveComponent<ProvidesDrink>(chunkIdx, e);
                 return;
             }
-            // AleHouse + Lodge share peak drink quality (2); Tavern stays
-            // at 1 unless brewing-specialised.
             byte quality = tier switch
             {
                 1 => (variant == 1) ? (byte)2 : (byte)1,
                 _ => 2,
             };
-            if (lookup.HasComponent(e))
-                ecb.SetComponent(e, new ProvidesDrink { Quality = quality });
+            if (DrinkLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new ProvidesDrink { Quality = quality });
             else
-                ecb.AddComponent(e,  new ProvidesDrink { Quality = quality });
+                Ecb.AddComponent(chunkIdx, e,  new ProvidesDrink { Quality = quality });
         }
 
-        static void ApplyMusic(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                               ComponentLookup<InnMusicTrack>   trackLookup,
-                               ComponentLookup<InnAmbientAura>  auraLookup)
+        void ApplyMusic(int chunkIdx, Entity e, byte tier, byte variant)
         {
-            // Track id encodes tier in the low bits + variant in bit 4 so a
-            // future audio bridge can pick distinct loops per pick.
             ushort trackId = (ushort)(tier | (variant << 4));
-            // AleHouse's festival aura reaches further than the standard Tavern.
-            byte   radius  = tier switch
+            byte radius = tier switch
             {
                 0 => 0,
                 1 => (variant == 1) ? (byte)4 : (byte)3,
                 _ => 5,
             };
 
-            if (trackLookup.HasComponent(e))
-                ecb.SetComponent(e, new InnMusicTrack { TrackId = trackId });
+            if (MusicLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new InnMusicTrack { TrackId = trackId });
             else
-                ecb.AddComponent(e,  new InnMusicTrack { TrackId = trackId });
+                Ecb.AddComponent(chunkIdx, e,  new InnMusicTrack { TrackId = trackId });
 
             if (radius == 0)
             {
-                if (auraLookup.HasComponent(e)) ecb.RemoveComponent<InnAmbientAura>(e);
+                if (AuraLookup.HasComponent(e)) Ecb.RemoveComponent<InnAmbientAura>(chunkIdx, e);
                 return;
             }
-            if (auraLookup.HasComponent(e))
-                ecb.SetComponent(e, new InnAmbientAura { Radius = radius });
+            if (AuraLookup.HasComponent(e))
+                Ecb.SetComponent(chunkIdx, e, new InnAmbientAura { Radius = radius });
             else
-                ecb.AddComponent(e,  new InnAmbientAura { Radius = radius });
+                Ecb.AddComponent(chunkIdx, e,  new InnAmbientAura { Radius = radius });
+        }
+
+        void ApplyMaxHealth(int chunkIdx, Entity e, byte tier, byte variant)
+        {
+            if (!HpLookup.HasComponent(e)) return;
+            ushort newMax = tier switch
+            {
+                0 => 280,
+                2 => 460,
+                _ => (variant == 1) ? (ushort)280 : (ushort)360,
+            };
+            var hp = HpLookup[e];
+            float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
+            hp.Max   = newMax;
+            hp.Value = (ushort)math.clamp((int)math.round(ratio * newMax), 0, newMax);
+            Ecb.SetComponent(chunkIdx, e, hp);
         }
     }
 }

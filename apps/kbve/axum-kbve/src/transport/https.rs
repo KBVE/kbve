@@ -47,6 +47,9 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/argo/", "/application/kubernetes/#argo"),
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
+    // /health is the canonical (no trailing slash) — match how the
+    // ingress + uptime probes hit it.
+    ("/health/", "/health"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
     // Tag listing — short alias for users.

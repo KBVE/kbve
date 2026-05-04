@@ -1,10 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Reactive on Furnace <see cref="BuildingTier"/> change — swaps the <see cref="FurnaceProduction"/> recipe and cadence by tier + variant. T0 keeps the biome-resolved baseline written by <see cref="FurnaceInitSystem"/>. T1 default (variant 0 = Forge): faster cadence + Iron-ore smelt loop. T1 alt (variant 1 = Glassworks): sand + coal → glass + lens. T2 (Foundry): high-tier alloy recipe. Mirrors the Dock / Inn tier-services pattern; change-filter so the work fires once per upgrade, not every frame.</summary>
+    /// <summary>Reactive on Furnace <see cref="BuildingTier"/> change — swaps the <see cref="FurnaceProduction"/> recipe + cadence and rebakes <see cref="BuildingHealth"/> per tier + variant. T0 keeps the biome-resolved baseline written by <see cref="FurnaceInitSystem"/>; T1 default (Forge), T1 alt 1 (Glassworks), T2 (Foundry). Off-main-thread via parallel <see cref="FurnaceRebakeJob"/>; structural <see cref="FurnaceProduction"/> add/set goes through an end-of-frame ECB so chunk layout doesn't change mid-job.</summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(BuildingUpgradeSystem))]
     public partial struct FurnaceTierServicesSystem : ISystem
@@ -14,7 +16,7 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             _furnacesWithTier = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<FurnaceTag, BuildingTier>()
+                .WithAll<FurnaceTag, BuildingTier, BuildingHealth>()
                 .Build(ref state);
             _furnacesWithTier.SetChangedVersionFilter(ComponentType.ReadOnly<BuildingTier>());
             state.RequireForUpdate(_furnacesWithTier);
@@ -22,50 +24,55 @@ namespace RareIcon
 
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                               .CreateCommandBuffer(state.WorldUnmanaged);
+                               .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
-            var entities       = _furnacesWithTier.ToEntityArray(Allocator.Temp);
-            var tierLookup     = SystemAPI.GetComponentLookup<BuildingTier>(true);
-            var variantLookup  = SystemAPI.GetComponentLookup<BuildingVariant>(true);
-            var prodLookup     = SystemAPI.GetComponentLookup<FurnaceProduction>(false);
-            var hpLookup       = SystemAPI.GetComponentLookup<BuildingHealth>(true);
-            var em = state.EntityManager;
-
-            for (int i = 0; i < entities.Length; i++)
+            state.Dependency = new FurnaceRebakeJob
             {
-                var e = entities[i];
-                byte tier    = tierLookup[e].Value;
-                byte variant = variantLookup.HasComponent(e) ? variantLookup[e].Value : (byte)0;
-
-                ApplyMaxHealth(ecb, e, tier, variant, hpLookup);
-
-                if (tier == 0) continue;
-
-                var recipe = ResolveRecipe(tier, variant);
-                if (prodLookup.HasComponent(e)) prodLookup[e] = recipe;
-                else em.AddComponentData(e, recipe);
-            }
-            entities.Dispose();
+                VariantLookup = SystemAPI.GetComponentLookup<BuildingVariant>(true),
+                ProdLookup    = SystemAPI.GetComponentLookup<FurnaceProduction>(true),
+                Ecb           = ecb,
+            }.ScheduleParallel(_furnacesWithTier, state.Dependency);
         }
+    }
 
-        static void ApplyMaxHealth(EntityCommandBuffer ecb, Entity e, byte tier, byte variant,
-                                   ComponentLookup<BuildingHealth> hpLookup)
+    [BurstCompile]
+    public partial struct FurnaceRebakeJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<BuildingVariant>   VariantLookup;
+        [ReadOnly] public ComponentLookup<FurnaceProduction> ProdLookup;
+        public EntityCommandBuffer.ParallelWriter Ecb;
+
+        void Execute(Entity entity,
+                     [ChunkIndexInQuery] int chunkIdx,
+                     in BuildingTier tier,
+                     ref BuildingHealth hp)
         {
-            if (!hpLookup.HasComponent(e)) return;
-            ushort newMax = tier switch
-            {
-                0 => 300,
-                2 => 540,
-                _ => (variant == 1) ? (ushort)320 : (ushort)420,
-            };
-            var hp = hpLookup[e];
+            byte t = tier.Value;
+            byte v = VariantLookup.HasComponent(entity) ? VariantLookup[entity].Value : (byte)0;
+
+            ushort newMax = ResolveMaxHp(t, v);
             float ratio = hp.Max > 0 ? (float)hp.Value / hp.Max : 1f;
             hp.Max   = newMax;
-            hp.Value = (ushort)Unity.Mathematics.math.clamp((int)Unity.Mathematics.math.round(ratio * newMax), 0, newMax);
-            ecb.SetComponent(e, hp);
+            hp.Value = (ushort)math.clamp((int)math.round(ratio * newMax), 0, newMax);
+
+            if (t == 0) return;
+
+            var recipe = ResolveRecipe(t, v);
+            if (ProdLookup.HasComponent(entity))
+                Ecb.SetComponent(chunkIdx, entity, recipe);
+            else
+                Ecb.AddComponent(chunkIdx, entity, recipe);
+        }
+
+        static ushort ResolveMaxHp(byte tier, byte variant)
+        {
+            if (tier == 0) return 300;
+            if (tier >= 2) return 540;
+            return variant == 1 ? (ushort)320 : (ushort)420;
         }
 
         static FurnaceProduction ResolveRecipe(byte tier, byte variant)
