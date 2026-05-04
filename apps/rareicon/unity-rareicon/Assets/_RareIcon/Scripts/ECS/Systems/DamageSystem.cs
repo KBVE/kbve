@@ -94,22 +94,19 @@ namespace RareIcon
                     {
                         var eq = EquipmentLookup[ev.Target];
                         bool dirty = false;
-                        if (mit.ArmorPct > 0 && eq.ArmorItemId != 0)
+                        if (mit.ArmorPct > 0 && eq.ArmorItemId != 0 && eq.ArmorHp > 0)
                         {
-                            if (eq.ArmorHp <= 1) { eq.ArmorItemId = 0; eq.ArmorHp = 0; }
-                            else                 { eq.ArmorHp--; }
+                            eq.ArmorHp--;
                             dirty = true;
                         }
-                        if (mit.HelmetPct > 0 && eq.HelmetItemId != 0)
+                        if (mit.HelmetPct > 0 && eq.HelmetItemId != 0 && eq.HelmetHp > 0)
                         {
-                            if (eq.HelmetHp <= 1) { eq.HelmetItemId = 0; eq.HelmetHp = 0; }
-                            else                  { eq.HelmetHp--; }
+                            eq.HelmetHp--;
                             dirty = true;
                         }
-                        if (shieldBlocked && eq.ShieldItemId != 0)
+                        if (shieldBlocked && eq.ShieldItemId != 0 && eq.ShieldHp > 0)
                         {
-                            if (eq.ShieldHp <= 1) { eq.ShieldItemId = 0; eq.ShieldHp = 0; }
-                            else                  { eq.ShieldHp--; }
+                            eq.ShieldHp--;
                             dirty = true;
                         }
                         if (dirty) EquipmentLookup[ev.Target] = eq;

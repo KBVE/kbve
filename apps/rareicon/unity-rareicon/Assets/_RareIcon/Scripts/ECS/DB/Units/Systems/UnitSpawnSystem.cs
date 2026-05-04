@@ -463,12 +463,24 @@ namespace RareIcon
             float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
             worldPos.z = -0.7f;
 
+            var equipment = EquipmentLoadoutResolver.Resolve(
+                UnitType.Bandit,
+                out byte shieldByte,
+                out byte weaponByte,
+                out byte helmetByte,
+                out byte armorByte);
+            if (weaponByte == WeaponType.None) weaponByte = def.DefaultWeapon;
+
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
-                Weapon = def.DefaultWeapon,
+                Weapon = weaponByte,
+                Helmet = helmetByte,
+                Shield = shieldByte,
+                Armor  = armorByte,
             });
+            em.AddComponentData(entity, equipment);
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;
@@ -477,15 +489,15 @@ namespace RareIcon
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
 
             em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
-            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)weaponByte });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)shieldByte });
+            em.AddComponentData(entity, new UnitArmorVisual  { Value = (float)armorByte });
             em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
             em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
 
             em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
-            // Bandits hit harder than goblins and prefer buildings so a
-            // raid actually pressures the empire's structures.
             em.AddComponentData(entity, new MeleeAttack
             {
                 Range         = 0.45f,
@@ -541,6 +553,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Scout, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -599,6 +612,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = def.DefaultWeapon });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Cavalry, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -665,6 +679,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.BanditScout, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -727,6 +742,7 @@ namespace RareIcon
                 Type   = def.UnitType,
                 Weapon = WeaponType.None,
             });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Zombie, out _, out _, out _, out _));
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;

@@ -44,30 +44,32 @@ namespace RareIcon
                 if (changed) em.SetComponentData(entity, equipment);
 
                 var unit = em.GetComponentData<Unit>(entity);
-                byte shieldByte = EquipmentMap.ShieldVisualFor(equipment.ShieldItemId);
+                byte shieldByte = equipment.ShieldHp > 0 ? EquipmentMap.ShieldVisualFor(equipment.ShieldItemId) : (byte)0;
                 byte weaponByte = EquipmentMap.WeaponVisualFor(equipment.WeaponItemId);
-                byte helmetByte = EquipmentMap.HelmetVisualFor(equipment.HelmetItemId);
-                byte armorByte  = EquipmentMap.ArmorVisualFor (equipment.ArmorItemId);
+                byte helmetByte = equipment.HelmetHp > 0 ? EquipmentMap.HelmetVisualFor(equipment.HelmetItemId) : (byte)0;
+                byte armorByte  = equipment.ArmorHp  > 0 ? EquipmentMap.ArmorVisualFor (equipment.ArmorItemId)  : (byte)0;
 
                 bool unitDirty = false;
                 if (shieldByte != 0 && unit.Shield != shieldByte) { unit.Shield = shieldByte; unitDirty = true; }
-                else if (shieldByte == 0 && unit.Shield != 0 && equipment.ShieldItemId == 0) { unit.Shield = 0; unitDirty = true; }
+                else if (shieldByte == 0 && unit.Shield != 0)     { unit.Shield = 0;          unitDirty = true; }
 
                 if (weaponByte != 0 && unit.Weapon != weaponByte) { unit.Weapon = weaponByte; unitDirty = true; }
 
                 if (helmetByte != 0 && unit.Helmet != helmetByte) { unit.Helmet = helmetByte; unitDirty = true; }
-                else if (helmetByte == 0 && unit.Helmet != 0 && equipment.HelmetItemId == 0) { unit.Helmet = 0; unitDirty = true; }
+                else if (helmetByte == 0 && unit.Helmet != 0)     { unit.Helmet = 0;          unitDirty = true; }
 
                 if (armorByte != 0 && unit.Armor != armorByte) { unit.Armor = armorByte; unitDirty = true; }
-                else if (armorByte == 0 && unit.Armor != 0 && equipment.ArmorItemId == 0) { unit.Armor = 0; unitDirty = true; }
+                else if (armorByte == 0 && unit.Armor != 0)    { unit.Armor = 0;         unitDirty = true; }
 
                 if (unitDirty) em.SetComponentData(entity, unit);
 
-                var shieldRoll = DefenseDB.ShieldMitigation(equipment.ShieldItemId);
+                var shieldRoll = equipment.ShieldHp > 0
+                    ? DefenseDB.ShieldMitigation(equipment.ShieldItemId)
+                    : (mitigationPct: (byte)0, blockChancePct: (byte)0);
                 var mit = new DefenseMitigation
                 {
-                    ArmorPct             = DefenseDB.ArmorMitigationPct(equipment.ArmorItemId),
-                    HelmetPct            = DefenseDB.HelmetMitigationPct(equipment.HelmetItemId),
+                    ArmorPct             = equipment.ArmorHp  > 0 ? DefenseDB.ArmorMitigationPct(equipment.ArmorItemId)   : (byte)0,
+                    HelmetPct            = equipment.HelmetHp > 0 ? DefenseDB.HelmetMitigationPct(equipment.HelmetItemId) : (byte)0,
                     ShieldMitigationPct  = shieldRoll.mitigationPct,
                     ShieldBlockChancePct = shieldRoll.blockChancePct,
                 };
