@@ -18,34 +18,32 @@ metadata:
         app.kubernetes.io/name: dbmate-runner
         app.kubernetes.io/component: arc-rbac
 rules:
-    # Manage the migrations ConfigMap. resourceNames keeps the runner
-    # from touching unrelated ConfigMaps (postgrest config, etc).
+    # Manage the migrations ConfigMap.
+    # delete is required because the workflow uses delete-then-create
+    # (kubectl apply blows past the 262144 byte annotation limit when
+    # the migrations dump is inlined as last-applied-configuration).
+    # resourceNames pins write/read verbs to the single CM the
+    # workflow owns; bootstrap `create` is unscoped because RBAC
+    # ignores resourceNames on create.
     - apiGroups: ['']
       resources: ['configmaps']
-      verbs: ['get', 'list', 'create', 'patch', 'update']
+      verbs: ['get', 'list', 'patch', 'update', 'delete']
       resourceNames:
           - dbmate-migrations
-    # Bootstrap path: when dbmate-migrations doesn't exist yet, the
-    # runner needs `create` without a resourceNames filter (RBAC
-    # ignores resourceNames for `create`). The pinned line above is
-    # for `get / patch / update`; this line covers `create`.
     - apiGroups: ['']
       resources: ['configmaps']
       verbs: ['create']
-    # Create + read dbmate Jobs. We don't need delete — the Job's
+    # Create + read dbmate Jobs. No delete — the Job's
     # ttlSecondsAfterFinished handles cleanup.
     - apiGroups: ['batch']
       resources: ['jobs']
       verbs: ['get', 'list', 'create', 'watch', 'patch']
-    # Read pod state + logs so the workflow can `kubectl wait` and
-    # `kubectl logs job/...`.
     - apiGroups: ['']
       resources: ['pods']
       verbs: ['get', 'list', 'watch']
     - apiGroups: ['']
       resources: ['pods/log']
       verbs: ['get', 'list']
-    # describe job/... reads events for failure diagnostics.
     - apiGroups: ['']
       resources: ['events']
       verbs: ['get', 'list']
