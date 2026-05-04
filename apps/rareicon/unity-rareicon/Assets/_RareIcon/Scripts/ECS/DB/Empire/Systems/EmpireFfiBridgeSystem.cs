@@ -16,6 +16,7 @@ namespace RareIcon
         ulong _lastPublished;
         byte[] _scratch = Array.Empty<byte>();
         bool _runtimeStarted;
+        int _bridgeAtGeneration = -1;
 
         protected override void OnStopRunning()
         {
@@ -28,6 +29,17 @@ namespace RareIcon
 
         protected override unsafe void OnUpdate()
         {
+            // Re-arm whenever WorldResetService bumps the generation — the
+            // SystemBase instance survives the world reset, but the Rust-side
+            // ticker was stopped + the snapshot cache cleared, so the next
+            // run needs a fresh async_start before publishing.
+            if (UnitSpawnSystem.RespawnGeneration != _bridgeAtGeneration)
+            {
+                _runtimeStarted = false;
+                _lastPublished  = 0;
+                _bridgeAtGeneration = UnitSpawnSystem.RespawnGeneration;
+            }
+
             if (!_runtimeStarted)
             {
                 int started = Uniti.uniti_empire_async_start();
