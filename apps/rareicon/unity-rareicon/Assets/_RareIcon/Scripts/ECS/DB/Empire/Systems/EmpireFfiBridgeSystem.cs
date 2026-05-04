@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Phase 2 — bridges <see cref="EmpireSnapshotCache"/> to the uniti FFI on a slow cadence so the Rust crate owns the canonical strategic state for unloaded-region cities. Each cycle: publish the latest Unity-built snapshot bytes, ask Rust to tick, then pull whatever Rust returned and feed it to <see cref="EmpireSnapshotImportSystem"/> via <see cref="EmpireSnapshotCache.ApplyIncoming"/>. The actual mood drift / tribute simulation in Rust is a Phase 2.5 follow-up; today the Rust side echoes bytes back unchanged, validating the round-trip without Unity-side hacks.</summary>
+    /// <summary>Phase 2/2.5 — bridges <see cref="EmpireSnapshotCache"/> to the uniti FFI on a slow cadence so Rust owns the canonical strategic state for unloaded-region cities. Calls <see cref="Uniti.uniti_empire_async_start"/> on first run so the Rust tokio runtime starts a 1s background ticker that drives <c>uniti_empire_tick</c> independently of Unity's frame loop. Each cycle here only publishes Unity-built deltas + pulls Rust-authored deltas back; the strategic simulation itself runs Rust-side. Stops the runtime in <see cref="OnStopRunning"/> so save-and-quit shuts down cleanly.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(EmpireSystemGroup))]
     [UpdateAfter(typeof(EmpireSnapshotExportSystem))]
@@ -15,9 +15,25 @@ namespace RareIcon
         float _accum;
         ulong _lastPublished;
         byte[] _scratch = Array.Empty<byte>();
+        bool _runtimeStarted;
+
+        protected override void OnStopRunning()
+        {
+            if (_runtimeStarted)
+            {
+                Uniti.uniti_empire_async_stop();
+                _runtimeStarted = false;
+            }
+        }
 
         protected override unsafe void OnUpdate()
         {
+            if (!_runtimeStarted)
+            {
+                int started = Uniti.uniti_empire_async_start();
+                _runtimeStarted = started == 1;
+            }
+
             _accum += SystemAPI.Time.DeltaTime;
             if (_accum < BridgeIntervalSeconds) return;
             _accum = 0f;
@@ -33,8 +49,6 @@ namespace RareIcon
                 }
                 _lastPublished = gen;
             }
-
-            Uniti.uniti_empire_tick();
 
             nuint len = Uniti.uniti_empire_snapshot_len();
             if (len == 0) return;

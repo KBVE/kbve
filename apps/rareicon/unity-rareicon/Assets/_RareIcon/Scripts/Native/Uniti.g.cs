@@ -82,6 +82,21 @@ namespace RareIcon.Native
         public static extern void uniti_empire_reset();
 
         /// <summary>
+        ///  Starts the tokio-driven empire ticker. Idempotent — calling twice
+        ///  is a no-op. Returns `1` on success / already-running, `0` if the
+        ///  platform doesn't support a real runtime (WebGL).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_async_start", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_async_start();
+
+        /// <summary>
+        ///  Stops the tokio ticker without tearing down the runtime — leaves
+        ///  the runtime warm so a subsequent start has zero spin-up cost.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_async_stop", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_empire_async_stop();
+
+        /// <summary>
         ///  Create an inventory with the given slot capacity.
         ///
         ///  # Arguments

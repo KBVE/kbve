@@ -148,6 +148,51 @@ fn tick_increments_generation() {
 }
 
 #[test]
+fn async_ticker_drifts_mood_in_background() {
+    let _g = lock();
+    let bytes = build_snapshot(vec![city(
+        "bg",
+        90,
+        CityStateStatusValue::CityStateStatusAllied,
+    )]);
+    unsafe { uniti_empire_publish(bytes.as_ptr(), bytes.len()) };
+
+    let started = unsafe { uniti_empire_async_start() };
+    assert_eq!(started, 1, "tokio runtime should start on non-wasm targets");
+
+    // Ticker fires every 1s; wait long enough for several drift steps.
+    std::thread::sleep(std::time::Duration::from_millis(3500));
+    unsafe { uniti_empire_async_stop() };
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    let snap = take_snapshot().unwrap();
+    let mood = snap.cities[0].mood;
+    assert!(
+        mood < 90,
+        "background ticker should have drifted mood below the start value, got {mood}"
+    );
+}
+
+#[test]
+fn async_ticker_idempotent_start() {
+    let _g = lock();
+    let bytes = build_snapshot(vec![city(
+        "idem",
+        50,
+        CityStateStatusValue::CityStateStatusNeutral,
+    )]);
+    unsafe { uniti_empire_publish(bytes.as_ptr(), bytes.len()) };
+
+    assert_eq!(unsafe { uniti_empire_async_start() }, 1);
+    assert_eq!(
+        unsafe { uniti_empire_async_start() },
+        1,
+        "second start is a no-op"
+    );
+    unsafe { uniti_empire_async_stop() };
+}
+
+#[test]
 fn tribute_field_round_trips_unchanged() {
     let _g = lock();
     let mut rec = city("tributary", 50, CityStateStatusValue::CityStateStatusVassal);

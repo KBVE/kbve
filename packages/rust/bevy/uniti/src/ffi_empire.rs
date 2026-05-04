@@ -18,10 +18,19 @@
 //! + buffer pointer/length pairs.
 
 use std::sync::Mutex;
+use std::sync::OnceLock;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use prost::Message;
 
 use crate::proto::empire::{CityStateRecord, CityStateStatusValue, EmpireSnapshot};
+
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Duration;
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::runtime::{Builder, Runtime};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::sync::Notify;
 
 /// Mood band cutoffs (kept in lockstep with `RareIcon.CityStateMoodBand`
 /// on the Unity side; both must agree on band membership to avoid the
@@ -148,6 +157,75 @@ pub unsafe extern "C" fn uniti_empire_tick() -> i32 {
 pub unsafe extern "C" fn uniti_empire_reset() {
     if let Ok(mut guard) = SNAPSHOT.lock() {
         *guard = None;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Async runtime — opt-in tokio ticker for unloaded-region cities.
+// Keeps the synchronous FFI above untouched; Unity continues to publish
+// and take whenever it wants. When the runtime is enabled, a background
+// tokio task drives `uniti_empire_tick` on a 1s cadence so cities outside
+// the active chunk window keep evolving even if Unity stops polling tick.
+// ---------------------------------------------------------------------------
+
+#[cfg(not(target_arch = "wasm32"))]
+static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+
+#[cfg(not(target_arch = "wasm32"))]
+static TICKER_RUNNING: AtomicBool = AtomicBool::new(false);
+
+#[cfg(not(target_arch = "wasm32"))]
+static TICKER_STOP: OnceLock<std::sync::Arc<Notify>> = OnceLock::new();
+
+/// Starts the tokio-driven empire ticker. Idempotent — calling twice
+/// is a no-op. Returns `1` on success / already-running, `0` if the
+/// platform doesn't support a real runtime (WebGL).
+#[cfg(not(target_arch = "wasm32"))]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_empire_async_start() -> i32 {
+    let runtime = RUNTIME.get_or_init(|| {
+        Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_time()
+            .thread_name("uniti-empire-rt")
+            .build()
+            .expect("uniti tokio runtime build failed")
+    });
+
+    if TICKER_RUNNING.swap(true, Ordering::SeqCst) {
+        return 1;
+    }
+
+    let notify = TICKER_STOP
+        .get_or_init(|| std::sync::Arc::new(Notify::new()))
+        .clone();
+
+    runtime.spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(1));
+        interval.tick().await;
+        loop {
+            interval.tick().await;
+            if !TICKER_RUNNING.load(Ordering::SeqCst) {
+                break;
+            }
+            unsafe {
+                uniti_empire_tick();
+            }
+        }
+        let _ = notify;
+    });
+
+    1
+}
+
+/// Stops the tokio ticker without tearing down the runtime — leaves
+/// the runtime warm so a subsequent start has zero spin-up cost.
+#[cfg(not(target_arch = "wasm32"))]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn uniti_empire_async_stop() {
+    TICKER_RUNNING.store(false, Ordering::SeqCst);
+    if let Some(n) = TICKER_STOP.get() {
+        n.notify_waiters();
     }
 }
 

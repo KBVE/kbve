@@ -36,8 +36,14 @@ bevy_pathfinder = { version = "0.1", path = "../bevy_pathfinder", default-featur
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
-# Empire snapshot proto codec — kept minimal, no async runtime pulled in
+# Empire snapshot proto codec.
 prost = "0.13"
+# Async runtime for the empire strategic ticker + future MP transports.
+# Feature-set is intentionally minimal: rt + time only, no multi-thread
+# scheduler, no macros, no IO. Excluded from wasm32 in lib code via cfg
+# so WebGL builds skip the runtime entirely while the sync FFI surface
+# (publish/take/tick) keeps working.
+tokio = { version = "1", default-features = false, features = ["rt", "rt-multi-thread", "time", "sync"] }
 
 [dev-dependencies]
 tempfile = "3"
