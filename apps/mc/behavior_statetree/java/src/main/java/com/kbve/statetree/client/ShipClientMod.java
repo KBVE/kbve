@@ -83,9 +83,7 @@ public class ShipClientMod implements ClientModInitializer {
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
         float sideways = w ? 1.0f : (e ? -1.0f : 0f);
 
-        if (forward != 0 || sideways != 0) {
-            ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways));
-        }
+        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways));
     }
 
     public void setActiveHelm(String shipId, String shipName) {

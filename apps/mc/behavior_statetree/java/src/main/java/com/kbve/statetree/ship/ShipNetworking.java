@@ -69,11 +69,14 @@ public final class ShipNetworking {
                 ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Entity-based ships: helm input drives speed + heading.
-                // Movement happens in ShipEntity.tick() based on those fields.
-                ship.setTargetSpeed(payload.forward() > 0 ? 2.0f : 0f);
-                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 2.0f);
-                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 2.0f);
+                float currentSpeed = ship.getTargetSpeed();
+                if (payload.forward() > 0) {
+                    ship.setTargetSpeed(Math.min(currentSpeed + 0.15f, 3.0f));
+                } else {
+                    ship.setTargetSpeed(Math.max(currentSpeed - 0.1f, 0f));
+                }
+                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 1.5f);
+                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 1.5f);
             });
         });
     }
