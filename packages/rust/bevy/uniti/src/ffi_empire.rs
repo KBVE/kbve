@@ -28,9 +28,10 @@ use crate::proto::empire::{CityStateRecord, CityStateStatusValue, EmpireSnapshot
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration;
 #[cfg(not(target_arch = "wasm32"))]
-use tokio::runtime::{Builder, Runtime};
-#[cfg(not(target_arch = "wasm32"))]
 use tokio::sync::Notify;
+
+#[cfg(not(target_arch = "wasm32"))]
+use crate::runtime::shared_runtime;
 
 /// Mood band cutoffs (kept in lockstep with `RareIcon.CityStateMoodBand`
 /// on the Unity side; both must agree on band membership to avoid the
@@ -169,9 +170,6 @@ pub unsafe extern "C" fn uniti_empire_reset() {
 // ---------------------------------------------------------------------------
 
 #[cfg(not(target_arch = "wasm32"))]
-static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-
-#[cfg(not(target_arch = "wasm32"))]
 static TICKER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -183,14 +181,7 @@ static TICKER_STOP: OnceLock<std::sync::Arc<Notify>> = OnceLock::new();
 #[cfg(not(target_arch = "wasm32"))]
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_empire_async_start() -> i32 {
-    let runtime = RUNTIME.get_or_init(|| {
-        Builder::new_multi_thread()
-            .worker_threads(1)
-            .enable_time()
-            .thread_name("uniti-empire-rt")
-            .build()
-            .expect("uniti tokio runtime build failed")
-    });
+    let runtime = shared_runtime();
 
     if TICKER_RUNNING.swap(true, Ordering::SeqCst) {
         return 1;
