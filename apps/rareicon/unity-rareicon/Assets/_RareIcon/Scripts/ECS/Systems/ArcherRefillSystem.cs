@@ -66,7 +66,7 @@ namespace RareIcon
             byte pt = attack.ProjectileType;
             if (pt != ProjectileType.Arrow && pt != ProjectileType.Bolt) return;
 
-            int carrying = CountOfPack(pack, (ushort)ItemId.Arrow);
+            int carrying = CountAnyArrow(pack);
             if (carrying >= ArcherRefillConfig.QuiverMax) return;
 
             if (!HexLookup.TryGetValue(movement.CurrentHex, out Entity tile)) return;
@@ -83,21 +83,31 @@ namespace RareIcon
                 storage = BarracksLookup[building].Reinterpret<BankLedgerBase>();
             else return;
 
-            int available = BankLedgerOps.CountOf(storage, (ushort)ItemId.Arrow);
-            if (available <= 0) return;
-
             int room = ArcherRefillConfig.QuiverMax - carrying;
-            int transfer = math.min(room, available);
-            if (transfer <= 0) return;
+            if (room <= 0) return;
 
-            Reservations.Add(ReservationOps.Key(building, (ushort)ItemId.Arrow), ReservationOps.Refill(entity, transfer, Tick));
+            ReserveTier(storage, building, entity, (ushort)ItemId.StoneheadArrow, ref room);
+            if (room <= 0) return;
+            ReserveTier(storage, building, entity, (ushort)ItemId.NeedleArrow,    ref room);
+            if (room <= 0) return;
+            ReserveTier(storage, building, entity, (ushort)ItemId.Arrow,          ref room);
         }
 
-        static int CountOfPack(in DynamicBuffer<PackSlot> buf, ushort itemId)
+        void ReserveTier(in DynamicBuffer<BankLedgerBase> storage, Entity building, Entity unit, ushort itemId, ref int room)
+        {
+            int available = BankLedgerOps.CountOf(storage, itemId);
+            if (available <= 0) return;
+            int transfer = math.min(room, available);
+            if (transfer <= 0) return;
+            Reservations.Add(ReservationOps.Key(building, itemId), ReservationOps.Refill(unit, transfer, Tick));
+            room -= transfer;
+        }
+
+        static int CountAnyArrow(in DynamicBuffer<PackSlot> buf)
         {
             int total = 0;
             for (int i = 0; i < buf.Length; i++)
-                if (buf[i].ItemId == itemId) total += buf[i].Count;
+                if (AmmoOps.IsArrow(buf[i].ItemId)) total += buf[i].Count;
             return total;
         }
     }

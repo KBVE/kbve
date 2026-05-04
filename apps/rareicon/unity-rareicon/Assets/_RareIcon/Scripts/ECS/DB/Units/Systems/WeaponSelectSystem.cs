@@ -21,7 +21,7 @@ namespace RareIcon
                 var inv = SystemAPI.GetBuffer<CapitalLedger>(capital);
                 for (int i = 0; i < inv.Length; i++)
                 {
-                    if (inv[i].ItemId == (ushort)ItemId.Arrow && inv[i].Count > 0)
+                    if (inv[i].Count > 0 && AmmoOps.IsArrow(inv[i].ItemId))
                     {
                         hasArrows = true;
                         break;

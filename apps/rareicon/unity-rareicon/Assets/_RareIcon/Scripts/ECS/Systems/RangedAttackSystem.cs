@@ -64,9 +64,10 @@ namespace RareIcon
             bool requiresAmmo = faction.Value == FactionType.Player
                              && (attack.ProjectileType == ProjectileType.Arrow ||
                                  attack.ProjectileType == ProjectileType.Bolt);
+            float ammoDamageMul = 1f;
             if (requiresAmmo)
             {
-                if (!ConsumeOne(unitInv, (ushort)ItemId.Arrow)) return;
+                if (!ConsumeBestArrow(unitInv, out ammoDamageMul)) return;
             }
 
             float2 shooterPos = new float2(transform.Position.x, transform.Position.y);
@@ -74,7 +75,7 @@ namespace RareIcon
             float dist = math.length(toTarget);
             float2 dir = dist > 1e-5f ? toTarget / dist : new float2(1f, 0f);
 
-            float damage = attack.Damage;
+            float damage = attack.Damage * ammoDamageMul;
             if (MoraleLookup.HasComponent(entity))
             {
                 sbyte bonus = MoraleLookup[entity].CombatBonusPct;
@@ -146,6 +147,26 @@ namespace RareIcon
                 return true;
             }
             return false;
+        }
+
+        /// <summary>Pulls the highest-tier arrow from the pack, consuming one and returning its damage multiplier. Stonehead → Needle → Wooden order keeps premium ammo prioritised in line combat.</summary>
+        static bool ConsumeBestArrow(DynamicBuffer<PackSlot> inv, out float damageMul)
+        {
+            int bestIdx = -1;
+            int bestTier = 0;
+            for (int i = 0; i < inv.Length; i++)
+            {
+                if (inv[i].Count == 0) continue;
+                if (!AmmoOps.IsArrow(inv[i].ItemId)) continue;
+                int tier = AmmoOps.Tier(inv[i].ItemId);
+                if (tier > bestTier) { bestTier = tier; bestIdx = i; }
+            }
+            if (bestIdx < 0) { damageMul = 1f; return false; }
+            damageMul = AmmoOps.DamageMul(inv[bestIdx].ItemId);
+            var slot = inv[bestIdx];
+            slot.Count -= 1;
+            inv[bestIdx] = slot;
+            return true;
         }
 
         static byte FacingFromDir(float dx, float dy)

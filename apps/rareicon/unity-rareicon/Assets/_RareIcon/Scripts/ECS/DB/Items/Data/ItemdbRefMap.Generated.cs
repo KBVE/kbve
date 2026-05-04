@@ -189,6 +189,8 @@ namespace RareIcon
             { "wooden-shield", ItemId.WoodenShield },
             { "kite-shield", ItemId.KiteShield },
             { "gold-plated-shield", ItemId.GoldPlatedShield },
+            { "needle-arrow", ItemId.NeedleArrow },
+            { "stonehead-arrow", ItemId.StoneheadArrow },
         };
     }
 }
