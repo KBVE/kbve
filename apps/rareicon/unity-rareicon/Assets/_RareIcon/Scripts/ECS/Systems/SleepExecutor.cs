@@ -80,8 +80,13 @@ namespace RareIcon
         const float SleepDrainPerSec       = 20f;
         const float GoblinSleepMultiplier  = 1.75f;
         const float WakeThresholdPct       = 0.15f;
-        const float SleepHealPerSec        = 2f;
-        const float HealingScalePerTier    = 2f;
+        // Bumped from 2.0 / 2.0 to 3.0 / 3.5 — under the prior rates the
+        // Inn heal capacity couldn't keep up with raid-tick damage and
+        // the empire bled population during Bandit waves. New numbers:
+        // base 3 hp/s, +3.5 per ProvidesHealing.Priority. T0 Inn = 6.5,
+        // Tavern = 6.5, Lodge (Pri 2) = 10. Rough double on Lodge.
+        const float SleepHealPerSec        = 3f;
+        const float HealingScalePerTier    = 3.5f;
         const uint  MoraleBuffDurationT1   = 200;
         const uint  MoraleBuffDurationT2   = 400;
         const sbyte MoraleWorkBonusT1      = 5;

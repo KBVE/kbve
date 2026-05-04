@@ -29,6 +29,7 @@ namespace RareIcon
                 BuildingHpLookup = SystemAPI.GetComponentLookup<BuildingHealth>(false),
                 EffectLookup     = SystemAPI.GetBufferLookup<StatusEffect>(false),
                 TransformLookup  = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                DefenseLookup    = SystemAPI.GetComponentLookup<DefenseMitigation>(true),
                 DecalRngSeed     = (uint)(state.GlobalSystemVersion | 1u),
                 Ecb              = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
@@ -54,7 +55,8 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public ComponentLookup<BuildingHealth> BuildingHpLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<StatusEffect>      EffectLookup;
 
-        [Unity.Collections.ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<LocalTransform>    TransformLookup;
+        [Unity.Collections.ReadOnly] public ComponentLookup<DefenseMitigation> DefenseLookup;
 
         public uint DecalRngSeed;
         public EntityCommandBuffer.ParallelWriter Ecb;
@@ -68,6 +70,26 @@ namespace RareIcon
 
                 float amount = ev.Amount;
                 if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
+
+                // Equipment mitigation: armor + helmet always apply,
+                // shield rolls per hit. Combined cap at 80% so the
+                // tankiest possible kit still takes 20% of incoming
+                // damage — keeps fights from stalling on full-plate
+                // immortals.
+                if (DefenseLookup.HasComponent(ev.Target))
+                {
+                    var mit = DefenseLookup[ev.Target];
+                    int totalPct = mit.ArmorPct + mit.HelmetPct;
+                    uint rng = XorShift((uint)eventEntity.Index ^ DecalRngSeed ^ 0xA5C3D9F1u);
+                    if (mit.ShieldMitigationPct > 0
+                        && mit.ShieldBlockChancePct > 0
+                        && (rng % 100u) < mit.ShieldBlockChancePct)
+                    {
+                        totalPct += mit.ShieldMitigationPct;
+                    }
+                    if (totalPct > 80) totalPct = 80;
+                    if (totalPct > 0) amount *= (100f - totalPct) * 0.01f;
+                }
 
                 health.Value = math.max(0f, health.Value - amount);
                 HealthLookup[ev.Target] = health;
