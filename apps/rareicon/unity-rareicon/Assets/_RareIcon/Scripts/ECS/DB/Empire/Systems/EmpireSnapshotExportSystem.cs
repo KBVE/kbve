@@ -2,6 +2,7 @@ using KBVE.Proto.Common;
 using KBVE.Proto.Empire;
 using Unity.Collections;
 using Unity.Entities;
+using ProtoStatus = KBVE.Proto.Empire.CityStateStatusValue;
 
 namespace RareIcon
 {
@@ -57,7 +58,7 @@ namespace RareIcon
                 {
                     Id            = new ULID { Value = string.Empty },
                     RootHex       = new Vec2i { X = bldg.RootHex.x, Y = bldg.RootHex.y },
-                    Status        = (CityStateStatusValue)status.Value,
+                    Status        = (ProtoStatus)status.Value,
                     Mood          = disp.Mood,
                     DriftPerCadence = disp.DriftPerCadence,
                     OwnerFaction  = em.HasComponent<Faction>(e)
