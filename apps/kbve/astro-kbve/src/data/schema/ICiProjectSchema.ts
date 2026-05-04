@@ -72,6 +72,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	image: CiProjectSchema.shape.image,
 	e2e_name: CiProjectSchema.shape.e2e_name,
 	deployment_yaml: CiProjectSchema.shape.deployment_yaml,
+	deployment_yamls: CiProjectSchema.shape.deployment_yamls,
 	version_target: CiProjectSchema.shape.version_target,
 	has_test: CiProjectSchema.shape.has_test,
 	target: CiProjectSchema.shape.target,

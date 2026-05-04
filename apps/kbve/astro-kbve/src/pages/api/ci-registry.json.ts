@@ -24,6 +24,7 @@ interface DockerEntry {
 	image?: string;
 	e2e_name?: string;
 	deployment_yaml?: string;
+	deployment_yamls?: string[];
 	has_test?: boolean;
 	target?: string;
 	nx_project?: string;
@@ -149,6 +150,10 @@ function toManifestEntry(
 				...(d.deployment_yaml && {
 					deployment_yaml: d.deployment_yaml,
 				}),
+				...(d.deployment_yamls &&
+					d.deployment_yamls.length > 0 && {
+						deployment_yamls: d.deployment_yamls,
+					}),
 				...(d.has_test !== undefined && { has_test: d.has_test }),
 				...(d.target && { target: d.target }),
 				...(d.nx_project && { nx_project: d.nx_project }),
