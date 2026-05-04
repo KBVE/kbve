@@ -17,6 +17,8 @@ source_path: packages/docker/arc-runner
 version_toml: packages/docker/arc-runner/version.toml
 runner: ubuntu-latest
 image: kbve/arc-runner
+deployment_yamls:
+    - apps/kube/github/runners/manifests/values-kbve.yaml
 has_test: false
 author: h0lybyte
 license: KBVE

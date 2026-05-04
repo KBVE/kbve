@@ -26,7 +26,12 @@ on:
                 type: string
                 default: ''
             deployment_yaml:
-                description: 'Path to kube deployment YAML'
+                description: 'Path to kube deployment YAML (single-pin apps)'
+                required: false
+                type: string
+                default: ''
+            deployment_yamls:
+                description: 'JSON array of kube manifest paths sharing the same image tag (multi-pin base images). Same sed semantics as deployment_yaml — only lines matching `image: <image_name>:` are touched.'
                 required: false
                 type: string
                 default: ''
@@ -167,30 +172,48 @@ jobs:
                   esac
                   echo "Synced $TARGET to $VERSION"
 
-            - name: Update kube deployment manifest
-              if: inputs.deployment_yaml != '' && inputs.image_name != ''
+            - name: Update kube deployment manifests
+              if: (inputs.deployment_yaml != '' || inputs.deployment_yamls != '') && inputs.image_name != ''
+              env:
+                  DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
               run: |
-                  FILE="${{ inputs.deployment_yaml }}"
                   VERSION="${{ steps.validate.outputs.version }}"
                   IMAGE="${{ inputs.image_name }}"
+                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-                  if [ ! -f "$FILE" ]; then
-                    echo "::warning::deployment_yaml '$FILE' not found — skipping."
-                    exit 0
+                  FILES=""
+                  if [ -n "${{ inputs.deployment_yaml }}" ]; then
+                    FILES="${{ inputs.deployment_yaml }}"
+                  fi
+                  if [ -n "$DEPLOYMENT_YAMLS_JSON" ]; then
+                    EXTRA=$(echo "$DEPLOYMENT_YAMLS_JSON" | jq -r '.[]' 2>/dev/null || true)
+                    FILES="$FILES $EXTRA"
                   fi
 
-                  OLD_TAG=$(grep -oP 'image: \S+:\K[^\s"]+' "$FILE" | head -1 || echo "unknown")
+                  for FILE in $FILES; do
+                    if [ -z "$FILE" ]; then
+                      continue
+                    fi
+                    if [ ! -f "$FILE" ]; then
+                      echo "::warning::manifest '$FILE' not found — skipping."
+                      continue
+                    fi
 
-                  sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${VERSION}|g" "$FILE"
-                  sed -i "s|version: \"${OLD_TAG}\"|version: \"${VERSION}\"|g" "$FILE"
+                    OLD_TAG=$(grep -oP "image: ${IMAGE}:\K[^\s\"]+" "$FILE" | head -1 || echo "unknown")
 
-                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-                  sed -i "s|rollout-restart: \".*\"|rollout-restart: \"${TIMESTAMP}\"|g" "$FILE"
+                    sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${VERSION}|g" "$FILE"
+                    if [ "$OLD_TAG" != "unknown" ]; then
+                      sed -i "s|version: \"${OLD_TAG}\"|version: \"${VERSION}\"|g" "$FILE"
+                    fi
+                    sed -i "s|rollout-restart: \".*\"|rollout-restart: \"${TIMESTAMP}\"|g" "$FILE"
 
-                  echo "Updated $FILE: $OLD_TAG → $VERSION"
+                    echo "Updated $FILE: $OLD_TAG → $VERSION"
+                  done
 
             # ── Safety check — verify only expected files changed ────────────
             - name: Verify changed files
+              env:
+                  DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
               run: |
                   EXPECTED_FILES="${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ]; then
@@ -198,6 +221,10 @@ jobs:
                   fi
                   if [ -n "${{ inputs.deployment_yaml }}" ]; then
                     EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.deployment_yaml }}"
+                  fi
+                  if [ -n "$DEPLOYMENT_YAMLS_JSON" ]; then
+                    EXTRA=$(echo "$DEPLOYMENT_YAMLS_JSON" | jq -r '.[]' 2>/dev/null || true)
+                    EXPECTED_FILES="$EXPECTED_FILES $EXTRA"
                   fi
 
                   CHANGED=$(git diff --name-only)
