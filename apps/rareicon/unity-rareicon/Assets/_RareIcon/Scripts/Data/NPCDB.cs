@@ -90,7 +90,7 @@ namespace RareIcon
                 unitType:      UnitType.Goblin,
                 nameKey:       "creature.goblin",
                 category:      NPCCategory.Humanoid,
-                maxHealth:     30f,
+                maxHealth:     40f,
                 maxEnergy:     100f,
                 maxMana:       30f,
                 maxHunger:     100f,
