@@ -63,12 +63,13 @@ namespace RareIcon.Native
         public static extern nuint uniti_empire_take(byte* @out, nuint out_cap);
 
         /// <summary>
-        ///  Strategic tick stub. Phase 2.5+ will decode the published snapshot
-        ///  via `prost`, drift mood / advance tribute on unloaded cities, and
-        ///  re-encode in place. For now this is a no-op so the FFI round-trip
-        ///  can be validated end-to-end.
+        ///  Strategic tick. Decodes the cached snapshot, drifts each non-terminal
+        ///  city's `mood` one step toward the Neutral target, recomputes
+        ///  `status` against the band cutoffs, bumps `generation`, and
+        ///  re-encodes. Vassal / Annexed / Razed are sticky and skipped.
         ///
-        ///  Returns `1` if a snapshot is currently held, `0` otherwise.
+        ///  Returns `1` on success, `0` when no snapshot is held or decode /
+        ///  encode fails (the cache is left untouched in that case).
         /// </summary>
         [DllImport(__DllName, EntryPoint = "uniti_empire_tick", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int uniti_empire_tick();

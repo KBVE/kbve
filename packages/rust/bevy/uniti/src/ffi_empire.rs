@@ -1,26 +1,46 @@
 //! Empire snapshot FFI — Unity publishes a serialized
 //! [`EmpireSnapshot`](../../../../packages/data/proto/empire/empire.proto)
 //! every couple seconds; Rust holds it under a global mutex so the
-//! background ticker (Phase 2.5+) can read + mutate it independently
-//! of Unity's frame loop, then Unity pulls the updated bytes back via
+//! background ticker can read + mutate it independently of Unity's
+//! frame loop, then Unity pulls the updated bytes back via
 //! `uniti_empire_take`.
 //!
-//! Phase 2 lands the byte-buffer plumbing only — the actual strategic
-//! tick (mood drift on unloaded cities, tribute scheduling, etc.) is
-//! a follow-up. Decoupling the FFI surface from the simulation lets us
-//! validate the round-trip first, then drop a `prost`-decoded tick
-//! function in without touching Unity.
+//! Phase 2.5 lands the strategic tick: prost decodes the cached bytes,
+//! drifts each city's `mood` one step toward the Neutral mid-band (50),
+//! recomputes the matching `status`, and re-encodes in place. Vassal /
+//! Annexed / Razed are sticky end-states and stay put. The actual
+//! ledger writes (tribute coin / food deposits) remain Unity-side
+//! because they need the live `CapitalLedger` buffer; this tick is the
+//! pure-state portion that's safe to run on unloaded-region cities
+//! without Unity world data.
 //!
 //! See the crate root for the shared safety contract on opaque handles
 //! + buffer pointer/length pairs.
 
 use std::sync::Mutex;
 
+use prost::Message;
+
+use crate::proto::empire::{CityStateRecord, CityStateStatusValue, EmpireSnapshot};
+
+/// Mood band cutoffs (kept in lockstep with `RareIcon.CityStateMoodBand`
+/// on the Unity side; both must agree on band membership to avoid the
+/// status flapping back and forth on each handoff).
+const HOSTILE_MAX: u32 = 33;
+const ALLIED_MIN: u32 = 67;
+
+/// Single mood step per tick — slow enough that a player has time to
+/// react to a slipping ally, fast enough that a freshly gifted city
+/// settles within a handful of cycles.
+const DRIFT_STEP: u32 = 1;
+
+/// Mid-Neutral target every non-terminal city drifts toward.
+const NEUTRAL_TARGET: u32 = 50;
+
 /// Global slot for the latest snapshot crossing the FFI either way.
 /// Both publish (Unity → Rust) and take (Rust → Unity) hit the same
-/// buffer; tick will eventually rewrite the contents in-place after
-/// running mood drift / tribute / spawn logic on unloaded-region
-/// cities.
+/// buffer; tick decodes, mutates, and re-encodes in place so the
+/// next take call already sees the drift result.
 static SNAPSHOT: Mutex<Option<Vec<u8>>> = Mutex::new(None);
 
 /// Stores a snapshot published by Unity. `bytes` must point to a
@@ -88,19 +108,38 @@ pub unsafe extern "C" fn uniti_empire_take(out: *mut u8, out_cap: usize) -> usiz
     bytes.len()
 }
 
-/// Strategic tick stub. Phase 2.5+ will decode the published snapshot
-/// via `prost`, drift mood / advance tribute on unloaded cities, and
-/// re-encode in place. For now this is a no-op so the FFI round-trip
-/// can be validated end-to-end.
+/// Strategic tick. Decodes the cached snapshot, drifts each non-terminal
+/// city's `mood` one step toward the Neutral target, recomputes
+/// `status` against the band cutoffs, bumps `generation`, and
+/// re-encodes. Vassal / Annexed / Razed are sticky and skipped.
 ///
-/// Returns `1` if a snapshot is currently held, `0` otherwise.
+/// Returns `1` on success, `0` when no snapshot is held or decode /
+/// encode fails (the cache is left untouched in that case).
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uniti_empire_tick() -> i32 {
-    if SNAPSHOT.lock().ok().map(|g| g.is_some()).unwrap_or(false) {
-        1
-    } else {
-        0
+    let Ok(mut guard) = SNAPSHOT.lock() else {
+        return 0;
+    };
+    let Some(bytes) = guard.as_ref() else {
+        return 0;
+    };
+
+    let mut snap = match EmpireSnapshot::decode(bytes.as_slice()) {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+
+    snap.generation = snap.generation.wrapping_add(1);
+    for city in &mut snap.cities {
+        drift_city(city);
     }
+
+    let mut buf = Vec::with_capacity(snap.encoded_len());
+    if snap.encode(&mut buf).is_err() {
+        return 0;
+    }
+    *guard = Some(buf);
+    1
 }
 
 /// Drops the cached snapshot — useful when a new world load wants to
@@ -110,4 +149,33 @@ pub unsafe extern "C" fn uniti_empire_reset() {
     if let Ok(mut guard) = SNAPSHOT.lock() {
         *guard = None;
     }
+}
+
+/// Per-city mood drift + status recompute. Sticky end-states bail
+/// early so diplomacy decisions don't auto-revert.
+fn drift_city(city: &mut CityStateRecord) {
+    let status = CityStateStatusValue::try_from(city.status)
+        .unwrap_or(CityStateStatusValue::CityStateStatusNeutral);
+    if matches!(
+        status,
+        CityStateStatusValue::CityStateStatusVassal
+            | CityStateStatusValue::CityStateStatusAnnexed
+            | CityStateStatusValue::CityStateStatusRazed
+    ) {
+        return;
+    }
+
+    if city.mood < NEUTRAL_TARGET {
+        city.mood = (city.mood + DRIFT_STEP).min(NEUTRAL_TARGET);
+    } else if city.mood > NEUTRAL_TARGET {
+        city.mood = city.mood.saturating_sub(DRIFT_STEP).max(NEUTRAL_TARGET);
+    }
+
+    city.status = if city.mood < HOSTILE_MAX {
+        CityStateStatusValue::CityStateStatusHostile as i32
+    } else if city.mood >= ALLIED_MIN {
+        CityStateStatusValue::CityStateStatusAllied as i32
+    } else {
+        CityStateStatusValue::CityStateStatusNeutral as i32
+    };
 }

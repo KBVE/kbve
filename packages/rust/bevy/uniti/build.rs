@@ -1,4 +1,15 @@
 fn main() {
+    prost_build::Config::new()
+        .out_dir("src/proto")
+        .compile_protos(
+            &[
+                "../../../data/proto/empire/empire.proto",
+                "../../../data/proto/kbve/common.proto",
+            ],
+            &["../../../data/proto"],
+        )
+        .expect("prost-build empire.proto failed");
+
     csbindgen::Builder::default()
         .input_extern_file("src/lib.rs")
         .input_extern_file("src/ffi_empire.rs")

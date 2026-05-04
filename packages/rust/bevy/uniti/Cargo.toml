@@ -19,6 +19,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [build-dependencies]
 csbindgen = "1.9"
+prost-build = "0.13"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -35,6 +36,8 @@ bevy_pathfinder = { version = "0.1", path = "../bevy_pathfinder", default-featur
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
+# Empire snapshot proto codec — kept minimal, no async runtime pulled in
+prost = "0.13"
 
 [dev-dependencies]
 tempfile = "3"

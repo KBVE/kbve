@@ -31,3 +31,4 @@ pub mod ffi_empire;
 pub mod ffi_inventory;
 pub mod ffi_pathfinding;
 pub mod ffi_world;
+pub mod proto;

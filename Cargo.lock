@@ -16618,6 +16618,8 @@ dependencies = [
  "criterion",
  "csbindgen",
  "proptest",
+ "prost 0.13.5",
+ "prost-build 0.13.5",
  "rusqlite",
  "serde",
  "tempfile",
