@@ -1,0 +1,143 @@
+# ARC Runner Scale Set — KBVE custom-image canary.
+#
+# Mirrors values.yaml but points the runner + init container at
+# ghcr.io/kbve/arc-runner (built from packages/docker/arc-runner/).
+# That image bakes in git-lfs, unzip, jq, xz-utils, gh + the sudoers
+# tweak, so workflows targeting `runs-on: arc-runner-set-kbve` skip
+# the per-job apt-get install steps.
+#
+# Phased rollout — see https://github.com/KBVE/kbve/issues/10329:
+#   1. This scale-set deploys idle alongside the upstream
+#      arc-runner-set. No workflow targets it yet.
+#   2. One workflow at a time gets flipped from
+#      `runs-on: arc-runner-set` to `runs-on: arc-runner-set-kbve`,
+#      starting with the cheapest jobs.
+#   3. Once every workflow has been validated on the new image, the
+#      main values.yaml flips its image too and this canary retires.
+#   4. apt-get install band-aids in ci-unity.yml etc. get stripped.
+
+runnerScaleSetName: 'arc-runner-set-kbve'
+githubConfigUrl: 'https://github.com/kbve'
+githubConfigSecret: github-arc-token
+
+controllerServiceAccount:
+    name: arc-controller
+    namespace: arc-systems
+
+# Canary capacity — keep low until workflows are migrated. Bump
+# in step with traffic as the upstream arc-runner-set drains.
+minRunners: 0
+maxRunners: 3
+
+template:
+    metadata:
+        annotations:
+            kbve.com/restart-trigger: '20260504-canary-bootstrap'
+    spec:
+        initContainers:
+            - name: init-dind-externals
+              image: ghcr.io/kbve/arc-runner:0.1.1
+              command:
+                  [
+                      'cp',
+                      '-r',
+                      '-v',
+                      '/home/runner/externals/.',
+                      '/home/runner/tmpDir/',
+                  ]
+              volumeMounts:
+                  - name: dind-externals
+                    mountPath: /home/runner/tmpDir
+        containers:
+            - name: runner
+              image: ghcr.io/kbve/arc-runner:0.1.1
+              # No `command:` override — the image bakes in the
+              # sudoers entry, so the upstream entrypoint
+              # (/home/runner/run.sh) Just Works.
+              env:
+                  - name: DOCKER_HOST
+                    value: tcp://localhost:2376
+                  - name: RUNNER_ALLOW_RUNASROOT
+                    value: '1'
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 24Gi
+                  requests:
+                      # Idle runners burn ~100m. Reserve 1 CPU so the
+                      # pod schedules; bursts hit the 12 CPU limit.
+                      cpu: '1'
+                      memory: 4Gi
+              securityContext:
+                  runAsUser: 0
+                  runAsGroup: 0
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  - name: runner-cache
+                    mountPath: /home/runner/_cache
+            - name: dind
+              image: docker:29.3.0-dind
+              # See values.yaml dind block for the full rationale on
+              # ulimit nofile + containerd-snapshotter=false. Keeping
+              # it identical means the canary fails the same way as
+              # the upstream pool if a Docker quirk reappears.
+              command: ['sh', '-c']
+              args:
+                  - 'ulimit -n 1048576 && mkdir -p /var/lib/docker && echo "dind starting; data-root contents:" && ls -la /var/lib/docker && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --feature=containerd-snapshotter=false --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000 --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000'
+              securityContext:
+                  privileged: true
+              resources:
+                  limits:
+                      cpu: '12'
+                      memory: 32Gi
+                  requests:
+                      cpu: 500m
+                      memory: 2Gi
+              volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  - name: runner-cache
+                    mountPath: /home/runner/_cache
+                  - name: dind-storage
+                    mountPath: /var/lib/docker
+        volumes:
+            - name: work
+              emptyDir: {}
+            - name: dind-sock
+              emptyDir: {}
+            - name: dind-externals
+              emptyDir: {}
+            - name: dind-storage
+              emptyDir:
+                  sizeLimit: 100Gi
+            - name: runner-cache
+              persistentVolumeClaim:
+                  claimName: arc-runner-cache-sdb
+
+listenerTemplate:
+    spec:
+        containers:
+            - name: listener
+              resources:
+                  limits:
+                      cpu: 250m
+                      memory: 256Mi
+                  requests:
+                      cpu: 50m
+                      memory: 64Mi
+              securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  capabilities:
+                      drop:
+                          - ALL
