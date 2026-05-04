@@ -7,7 +7,7 @@ namespace RareIcon
 {
     /// <summary>Drops 1-3 independent city-states on a ring outside the Capital at world-gen, faction Neutral by default. Mirror of <see cref="BanditCampSpawnerSystem"/> — same prefab + ring placement style, but the result is a peaceful Neutral settlement instead of a hostile camp. Subsequent diplomacy + raid systems read CityStateDisposition / CityStateStatus to drive behavior. SystemBase because building-entity instantiation + toast publish need main-thread managed access.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    [UpdateInGroup(typeof(EmpireSystemGroup))]
     public partial class CityStateSpawnerSystem : SystemBase
     {
         const float HexSize           = 0.25f;

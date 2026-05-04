@@ -8,7 +8,7 @@ namespace RareIcon
     /// <summary>Drains player-emitted city-state diplomacy requests — Gift, Annex, Raze. Burst ISystem off main thread: structural changes go through ECB, ledger reads/writes via lookups + buffer reinterpret in-job, toast publishes routed through <see cref="PendingToast"/> carrier entities so the managed <see cref="MessagePipe"/> publisher only fires from <see cref="ToastBridgeSystem"/>. Three Burst jobs scheduled in serial — they all touch the capital ledger so they can't safely parallelize against each other.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(EmpireSystemGroup))]
     [UpdateAfter(typeof(CityStateMoodDriftSystem))]
     public partial struct CityStateDiplomacySystem : ISystem
     {
