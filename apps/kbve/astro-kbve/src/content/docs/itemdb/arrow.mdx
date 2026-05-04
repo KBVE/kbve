@@ -17,6 +17,34 @@ buy_price: 1
 compress:
   target_ref: 'quiver'
   ratio: 100
+recipes:
+    - skill: 'fletching'
+      skill_level: 1
+      xp_reward: 4
+      output_quantity: 10
+      ingredients:
+          - item_ref: 'log'
+            amount: 1
+          - item_ref: 'cacti-needle'
+            amount: 1
+          - item_ref: 'stone'
+            amount: 1
+    - skill: 'fletching'
+      skill_level: 1
+      xp_reward: 6
+      output_quantity: 10
+      ingredients:
+          - item_ref: 'bone'
+            amount: 1
+          - item_ref: 'log'
+            amount: 1
+    - skill: 'fletching'
+      skill_level: 3
+      xp_reward: 80
+      output_quantity: 500
+      ingredients:
+          - item_ref: 'timber'
+            amount: 1
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';

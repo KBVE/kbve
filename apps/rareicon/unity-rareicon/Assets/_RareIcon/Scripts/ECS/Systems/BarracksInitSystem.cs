@@ -56,6 +56,23 @@ namespace RareIcon
                     CycleEndsAt      = 0f,
                     PullsFromCapital = 1,
                 });
+                recipes.Add(new ProductionRecipe
+                {
+                    Input1Id         = (ushort)ItemId.Bone,        Input1Amount  = 1,
+                    Input2Id         = (ushort)ItemId.Log,         Input2Amount  = 1,
+                    Output1Id        = (ushort)ItemId.Arrow,       Output1Amount = 10,
+                    CycleDuration    = 14f,
+                    CycleEndsAt      = 0f,
+                    PullsFromCapital = 1,
+                });
+                recipes.Add(new ProductionRecipe
+                {
+                    Input1Id         = (ushort)ItemId.Timber,      Input1Amount  = 1,
+                    Output1Id        = (ushort)ItemId.Arrow,       Output1Amount = 500,
+                    CycleDuration    = 60f,
+                    CycleEndsAt      = 0f,
+                    PullsFromCapital = 1,
+                });
 
                 var exports = ecb.AddBuffer<SurplusExport>(e);
                 exports.Add(new SurplusExport { ItemId = (ushort)ItemId.Arrow, Floor = 20 });
