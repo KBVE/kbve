@@ -205,6 +205,7 @@ jobs:
                           ...(manifest.crates || []),
                           ...(manifest.python || []),
                           ...(manifest.unreal || []),
+                          ...(manifest.unity || []),
                         ];
                         const entry = allEntries.find(
                           e => e.app_name === appName || e.package_name === appName
