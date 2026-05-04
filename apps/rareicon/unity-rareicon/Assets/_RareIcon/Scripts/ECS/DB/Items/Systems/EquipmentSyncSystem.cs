@@ -45,7 +45,7 @@ namespace RareIcon
 
                 var unit = em.GetComponentData<Unit>(entity);
                 byte shieldByte = equipment.ShieldHp > 0 ? EquipmentMap.ShieldVisualFor(equipment.ShieldItemId) : (byte)0;
-                byte weaponByte = EquipmentMap.WeaponVisualFor(equipment.WeaponItemId);
+                byte weaponByte = equipment.WeaponHp > 0 ? EquipmentMap.WeaponVisualFor(equipment.WeaponItemId) : (byte)0;
                 byte helmetByte = equipment.HelmetHp > 0 ? EquipmentMap.HelmetVisualFor(equipment.HelmetItemId) : (byte)0;
                 byte armorByte  = equipment.ArmorHp  > 0 ? EquipmentMap.ArmorVisualFor (equipment.ArmorItemId)  : (byte)0;
 
@@ -54,6 +54,7 @@ namespace RareIcon
                 else if (shieldByte == 0 && unit.Shield != 0)     { unit.Shield = 0;          unitDirty = true; }
 
                 if (weaponByte != 0 && unit.Weapon != weaponByte) { unit.Weapon = weaponByte; unitDirty = true; }
+                else if (weaponByte == 0 && unit.Weapon != 0 && equipment.WeaponItemId != 0) { unit.Weapon = 0; unitDirty = true; }
 
                 if (helmetByte != 0 && unit.Helmet != helmetByte) { unit.Helmet = helmetByte; unitDirty = true; }
                 else if (helmetByte == 0 && unit.Helmet != 0)     { unit.Helmet = 0;          unitDirty = true; }
@@ -82,7 +83,7 @@ namespace RareIcon
 
         static bool AutoEquip(ref DynamicBuffer<PackSlot> pack, ref ushort current, ref ushort currentHp, EquipmentSlot slot)
         {
-            int currentTier = EquipmentMap.Tier(current);
+            int currentTier = currentHp > 0 ? EquipmentMap.Tier(current) : 0;
             int bestSlot = -1;
             int bestTier = currentTier;
 
@@ -90,6 +91,7 @@ namespace RareIcon
             {
                 var entry = pack[s];
                 if (entry.Count == 0) continue;
+                if (entry.Hp == 0) continue;
                 if (EquipmentMap.SlotFor(entry.ItemId) != slot) continue;
                 int tier = EquipmentMap.Tier(entry.ItemId);
                 if (tier > bestTier)
@@ -101,9 +103,12 @@ namespace RareIcon
 
             if (bestSlot < 0) return false;
 
+            if (current != 0 && currentHp == 0)
+                pack.Add(new PackSlot { ItemId = current, Count = 1, Hp = 0 });
+
             var picked = pack[bestSlot];
             current   = picked.ItemId;
-            currentHp = EquipmentDurability.MaxFor(picked.ItemId);
+            currentHp = picked.Hp > 0 ? picked.Hp : EquipmentDurability.MaxFor(picked.ItemId);
             if (picked.Count > 1)
             {
                 picked.Count--;

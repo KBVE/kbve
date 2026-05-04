@@ -169,12 +169,13 @@ namespace RareIcon
         public float Value;
     }
 
-    /// <summary>Ground-loot entry on a hex tile; picked up by any unit with an inventory walking onto it.</summary>
+    /// <summary>Ground-loot entry on a hex tile; picked up by any unit with an inventory walking onto it. <see cref="Hp"/> carries remaining durability for equipment drops so picking the gear up + equipping it doesn't reset to full max — closes the "break it, drop it, repick it" free-repair loophole. Stackable items leave Hp at 0.</summary>
     [InternalBufferCapacity(4)]
     public struct ItemDrop : IBufferElementData
     {
         public ushort ItemId;
         public ushort Count;
+        public ushort Hp;
     }
 
     /// <summary>

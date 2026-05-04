@@ -31,10 +31,11 @@ namespace RareIcon
 
             state.Dependency = new RangedAttackJob
             {
-                Hash         = spatial.Hash,
-                Dt           = SystemAPI.Time.DeltaTime,
-                MoraleLookup = SystemAPI.GetComponentLookup<MoraleBuff>(true),
-                Ecb          = ecb,
+                Hash            = spatial.Hash,
+                Dt              = SystemAPI.Time.DeltaTime,
+                MoraleLookup    = SystemAPI.GetComponentLookup<MoraleBuff>(true),
+                EquipmentLookup = SystemAPI.GetComponentLookup<Equipment>(false),
+                Ecb             = ecb,
             }.Schedule(state.Dependency);
         }
     }
@@ -44,6 +45,7 @@ namespace RareIcon
     {
         [ReadOnly] public NativeParallelMultiHashMap<int, HashedTarget> Hash;
         [ReadOnly] public ComponentLookup<MoraleBuff>                   MoraleLookup;
+        public ComponentLookup<Equipment> EquipmentLookup;
         public float Dt;
 
         public EntityCommandBuffer Ecb;
@@ -96,6 +98,16 @@ namespace RareIcon
             });
 
             attack.TimeSinceShot = 0f;
+
+            if (EquipmentLookup.HasComponent(entity))
+            {
+                var eq = EquipmentLookup[entity];
+                if (eq.WeaponItemId != 0 && eq.WeaponHp > 0)
+                {
+                    eq.WeaponHp--;
+                    EquipmentLookup[entity] = eq;
+                }
+            }
         }
 
         static bool TryFindTarget(

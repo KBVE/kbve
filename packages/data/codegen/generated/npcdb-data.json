@@ -95,6 +95,18 @@
 			],
 			"faction": {
 				"factionId": "hostile"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_HEAD",
+						"itemRef": "hood"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "leather"
+					}
+				]
 			}
 		},
 		{
@@ -317,6 +329,18 @@
 			],
 			"faction": {
 				"factionId": "player"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "iron-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "chain-mail"
+					}
+				]
 			}
 		},
 		{
@@ -2916,6 +2940,18 @@
 			],
 			"faction": {
 				"factionId": "player"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_HEAD",
+						"itemRef": "hood"
+					},
+					{
+						"slot": "EQUIP_SLOT_CHEST",
+						"itemRef": "leather"
+					}
+				]
 			}
 		},
 		{
@@ -3325,6 +3361,22 @@
 			],
 			"faction": {
 				"factionId": "deep-wardens"
+			},
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "rusty-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "wooden-shield"
+					},
+					{
+						"slot": "EQUIP_SLOT_HEAD",
+						"itemRef": "hood"
+					}
+				]
 			}
 		},
 		{

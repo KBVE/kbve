@@ -124,7 +124,7 @@ namespace RareIcon
             if (drops.Length == 0) return;
 
             for (int i = 0; i < drops.Length; i++)
-                pack.AddItem(drops[i].ItemId, drops[i].Count);
+                pack.AddItem(drops[i].ItemId, drops[i].Count, drops[i].Hp);
             drops.Clear();
         }
     }
