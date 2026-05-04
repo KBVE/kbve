@@ -25,7 +25,7 @@ use events::{
 use systems::{
     ingest_map_data, ingest_observations, ingest_player_snapshots, manage_pet_dog_population,
     manage_pet_parrot_population, manage_skeleton_population, plan_behavior, plan_pet_dog_behavior,
-    plan_pet_parrot_behavior, rebuild_flow_fields,
+    plan_pet_parrot_behavior, prune_stale_pets, rebuild_flow_fields,
 };
 
 /// Plugin that registers all AI ECS components, resources, and systems.
@@ -59,6 +59,7 @@ impl Plugin for AiBehaviorPlugin {
                     ingest_player_snapshots,
                     ingest_observations,
                     ingest_map_data,
+                    prune_stale_pets,
                     rebuild_flow_fields,
                     plan_behavior,
                     plan_pet_dog_behavior,

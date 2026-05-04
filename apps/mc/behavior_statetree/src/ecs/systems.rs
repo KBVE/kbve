@@ -32,15 +32,15 @@ pub fn ingest_observations(
         &mut McHealth,
         &mut AiEpoch,
         &mut NearbyEntities,
+        Option<&mut LastObservedTick>,
     )>,
     mut server_tick: ResMut<ServerTick>,
 ) {
     for obs in obs_buffer.pending.drain(..) {
         server_tick.0 = obs.tick;
 
-        // Try to find existing entity
         let mut found = false;
-        for (mc_id, mut pos, mut health, mut epoch, mut nearby) in &mut query {
+        for (mc_id, mut pos, mut health, mut epoch, mut nearby, mut last_obs) in &mut query {
             if mc_id.0 == obs.entity_id {
                 pos.x = obs.position[0];
                 pos.y = obs.position[1];
@@ -58,6 +58,9 @@ pub fn ingest_observations(
                         is_hostile: e.is_hostile,
                     })
                     .collect();
+                if let Some(ref mut lt) = last_obs {
+                    lt.0 = obs.tick;
+                }
                 found = true;
                 break;
             }
@@ -104,6 +107,7 @@ pub fn ingest_observations(
                         position,
                         health,
                         AiEpoch { value: 1 },
+                        LastObservedTick(obs.tick),
                         nearby,
                     ));
                 }
@@ -121,6 +125,7 @@ pub fn ingest_observations(
                         position,
                         health,
                         AiEpoch { value: 1 },
+                        LastObservedTick(obs.tick),
                         PoopCooldown::default(),
                         nearby,
                     ));
@@ -1138,4 +1143,24 @@ pub fn rebuild_flow_fields(
 
     // Detect chokepoints
     gates.0 = flow_gate::detect_gates(grid);
+}
+
+pub fn prune_stale_pets(
+    mut commands: Commands,
+    server_tick: Res<ServerTick>,
+    pets: Query<(Entity, &McEntityId, &LastObservedTick), Or<(With<AiPetDog>, With<AiPetParrot>)>>,
+) {
+    const STALE_AFTER_TICKS: u64 = 200;
+
+    for (ecs_entity, mc_id, last_obs) in &pets {
+        let age = server_tick.0.saturating_sub(last_obs.0);
+        if age > STALE_AFTER_TICKS {
+            tracing::info!(
+                "[ECS] Pruning stale pet ECS entity (mc_id={}, age={} ticks)",
+                mc_id.0,
+                age,
+            );
+            commands.entity(ecs_entity).despawn();
+        }
+    }
 }
