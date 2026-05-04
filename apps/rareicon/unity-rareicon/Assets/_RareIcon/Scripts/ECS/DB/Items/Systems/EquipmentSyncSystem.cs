@@ -36,10 +36,10 @@ namespace RareIcon
                 var pack      = em.GetBuffer<PackSlot>(entity);
 
                 bool changed = false;
-                changed |= AutoEquip(ref pack, ref equipment.ShieldItemId, EquipmentSlot.Shield);
-                changed |= AutoEquip(ref pack, ref equipment.WeaponItemId, EquipmentSlot.Weapon);
-                changed |= AutoEquip(ref pack, ref equipment.HelmetItemId, EquipmentSlot.Helmet);
-                changed |= AutoEquip(ref pack, ref equipment.ArmorItemId,  EquipmentSlot.Armor);
+                changed |= AutoEquip(ref pack, ref equipment.ShieldItemId, ref equipment.ShieldHp, EquipmentSlot.Shield);
+                changed |= AutoEquip(ref pack, ref equipment.WeaponItemId, ref equipment.WeaponHp, EquipmentSlot.Weapon);
+                changed |= AutoEquip(ref pack, ref equipment.HelmetItemId, ref equipment.HelmetHp, EquipmentSlot.Helmet);
+                changed |= AutoEquip(ref pack, ref equipment.ArmorItemId,  ref equipment.ArmorHp,  EquipmentSlot.Armor);
 
                 if (changed) em.SetComponentData(entity, equipment);
 
@@ -54,8 +54,12 @@ namespace RareIcon
                 else if (shieldByte == 0 && unit.Shield != 0 && equipment.ShieldItemId == 0) { unit.Shield = 0; unitDirty = true; }
 
                 if (weaponByte != 0 && unit.Weapon != weaponByte) { unit.Weapon = weaponByte; unitDirty = true; }
+
                 if (helmetByte != 0 && unit.Helmet != helmetByte) { unit.Helmet = helmetByte; unitDirty = true; }
-                if (armorByte  != 0 && unit.Armor  != armorByte ) { unit.Armor  = armorByte;  unitDirty = true; }
+                else if (helmetByte == 0 && unit.Helmet != 0 && equipment.HelmetItemId == 0) { unit.Helmet = 0; unitDirty = true; }
+
+                if (armorByte != 0 && unit.Armor != armorByte) { unit.Armor = armorByte; unitDirty = true; }
+                else if (armorByte == 0 && unit.Armor != 0 && equipment.ArmorItemId == 0) { unit.Armor = 0; unitDirty = true; }
 
                 if (unitDirty) em.SetComponentData(entity, unit);
 
@@ -74,7 +78,7 @@ namespace RareIcon
             }
         }
 
-        static bool AutoEquip(ref DynamicBuffer<PackSlot> pack, ref ushort current, EquipmentSlot slot)
+        static bool AutoEquip(ref DynamicBuffer<PackSlot> pack, ref ushort current, ref ushort currentHp, EquipmentSlot slot)
         {
             int currentTier = EquipmentMap.Tier(current);
             int bestSlot = -1;
@@ -96,7 +100,8 @@ namespace RareIcon
             if (bestSlot < 0) return false;
 
             var picked = pack[bestSlot];
-            current = picked.ItemId;
+            current   = picked.ItemId;
+            currentHp = EquipmentDurability.MaxFor(picked.ItemId);
             if (picked.Count > 1)
             {
                 picked.Count--;

@@ -2,13 +2,17 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Per-unit equipment slots. Stores itemdb keys (not the byte slot enum) so loot drops re-emit the same canonical item; <see cref="EquipmentSyncSystem"/> collapses each id into its <see cref="Unit"/> byte for the shader. One slot per equipment kind — multi-ring / multi-amulet stacking lands as a buffer if the design ever calls for it.</summary>
+    /// <summary>Per-unit equipment slots. Stores itemdb keys (not the byte slot enum) so loot drops re-emit the same canonical item; <see cref="EquipmentSyncSystem"/> collapses each id into its <see cref="Unit"/> byte for the shader. <c>*Hp</c> ushorts track per-slot durability — set on equip from <see cref="EquipmentDurability.MaxFor"/>, decremented by <see cref="DamageJob"/> each time the slot mitigates a hit, and the matching ItemId clears to 0 once Hp reaches 0 so EquipmentSyncSystem drops the slot's contribution to <see cref="DefenseMitigation"/>.</summary>
     public struct Equipment : IComponentData
     {
         public ushort ShieldItemId;
         public ushort WeaponItemId;
         public ushort HelmetItemId;
         public ushort ArmorItemId;
+        public ushort ShieldHp;
+        public ushort WeaponHp;
+        public ushort HelmetHp;
+        public ushort ArmorHp;
     }
 
     /// <summary>Combat-relevant defense numbers derived from <see cref="Equipment"/>. <see cref="EquipmentSyncSystem"/> rebuilds this whenever a slot changes; <see cref="DamageJob"/> reads it to scale incoming damage. <see cref="ArmorPct"/> + <see cref="HelmetPct"/> are flat percentages applied to every hit; <see cref="ShieldMitigationPct"/> is layered on top when the per-hit block roll succeeds at <see cref="ShieldBlockChancePct"/>. Burst-safe single struct.</summary>

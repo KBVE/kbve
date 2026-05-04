@@ -77,19 +77,23 @@ namespace RareIcon
                 {
                     case EquipSlot.OffHand:
                         equipment.ShieldItemId = itemId;
+                        equipment.ShieldHp     = EquipmentDurability.MaxFor(itemId);
                         shieldByte = EquipmentMap.ShieldVisualFor(itemId);
                         break;
                     case EquipSlot.MainHand:
                         equipment.WeaponItemId = itemId;
+                        equipment.WeaponHp     = EquipmentDurability.MaxFor(itemId);
                         byte v = EquipmentMap.WeaponVisualFor(itemId);
                         if (v != WeaponType.None) weaponByte = v;
                         break;
                     case EquipSlot.Head:
                         equipment.HelmetItemId = itemId;
+                        equipment.HelmetHp     = EquipmentDurability.MaxFor(itemId);
                         helmetByte = EquipmentMap.HelmetVisualFor(itemId);
                         break;
                     case EquipSlot.Chest:
                         equipment.ArmorItemId = itemId;
+                        equipment.ArmorHp     = EquipmentDurability.MaxFor(itemId);
                         armorByte = EquipmentMap.ArmorVisualFor(itemId);
                         break;
                 }
