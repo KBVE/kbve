@@ -62,15 +62,15 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
-            - name: Install kubectl + envsubst
+            - name: Install kubectl
+              uses: azure/setup-kubectl@v4
+              with:
+                  version: v1.31.0
+            - name: Install envsubst
               run: |
+                  # gettext-base ships envsubst; runner image lacks it.
                   sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
-                      curl ca-certificates gettext-base
-                  curl -fsSL -o /usr/local/bin/kubectl \
-                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
-                  sudo chmod +x /usr/local/bin/kubectl
-                  kubectl version --client=true
+                  sudo apt-get install -y --no-install-recommends gettext-base
 
             - name: Build migrations ConfigMap (replace existing)
               run: |
@@ -112,15 +112,15 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
-            - name: Install kubectl + envsubst
+            - name: Install kubectl
+              uses: azure/setup-kubectl@v4
+              with:
+                  version: v1.31.0
+            - name: Install envsubst
               run: |
+                  # gettext-base ships envsubst; runner image lacks it.
                   sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
-                      curl ca-certificates gettext-base
-                  curl -fsSL -o /usr/local/bin/kubectl \
-                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
-                  sudo chmod +x /usr/local/bin/kubectl
-                  kubectl version --client=true
+                  sudo apt-get install -y --no-install-recommends gettext-base
 
             - name: Render + run the up Job
               env:
