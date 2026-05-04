@@ -2,7 +2,6 @@ using System;
 using RareIcon.Native;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -28,7 +27,7 @@ namespace RareIcon
         public int2 Hex;
     }
 
-    /// <summary>ISystem owner of the uniti flow-field for healing dispatch. OnCreate allocates the 192x192 grid + schedules a Burst <see cref="FillGridJob"/> that paints every cell Solid off the main thread. OnUpdate hashes the live <see cref="ProvidesHealing"/> root-hex set in Burst; on diff it schedules <see cref="ComputeFlowJob"/> which calls <c>uniti_flow_compute</c> on a worker, frees the prior field, and writes the fresh handle back into the singleton via <see cref="ComponentLookup{T}"/>. Net main-thread cost per frame is the hash compare + buffer refill — the BFS itself never touches the main thread.</summary>
+    /// <summary>ISystem owner of the uniti flow-field for healing dispatch. OnCreate allocates the 192x192 grid + schedules a Burst <see cref="FillGridJob"/> that paints every cell Solid off the main thread. OnUpdate is fully deferred — it kicks <see cref="EntityQuery.ToComponentDataListAsync{T}"/> to snapshot the <see cref="ProvidesHealing"/> Building array on a worker, then chains <see cref="SnapshotHashComputeJob"/> which hashes the root-hex set, refills the <see cref="HealerHexElement"/> buffer on diff, calls <c>uniti_flow_free</c> + <c>uniti_flow_compute</c>, and writes the new handle back into the singleton via <see cref="ComponentLookup{T}"/>. Main-thread cost per frame is the schedule call + dependency wiring — every byte of work lives on a worker.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateBefore(typeof(UnitBehaviorSystem))]
@@ -38,10 +37,15 @@ namespace RareIcon
         const int GridOriginX = -GridSize / 2;
         const int GridOriginZ = -GridSize / 2;
 
-        Entity _singleton;
+        Entity      _singleton;
+        EntityQuery _healersQuery;
 
         public unsafe void OnCreate(ref SystemState state)
         {
+            _healersQuery = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<ProvidesHealing, Building>()
+                .Build(ref state);
+
             _singleton = state.EntityManager.CreateEntity(
                 typeof(HealFlowFieldSingleton),
                 typeof(HealerHexElement));
@@ -83,58 +87,20 @@ namespace RareIcon
             if (data.GridHandle  != IntPtr.Zero) Uniti.uniti_grid_free((void*)data.GridHandle);
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var singletonRW = SystemAPI.GetComponentRW<HealFlowFieldSingleton>(_singleton);
-            var hexBuffer   = SystemAPI.GetBuffer<HealerHexElement>(_singleton);
+            var buildings = _healersQuery.ToComponentDataListAsync<Building>(
+                Allocator.TempJob, state.Dependency, out var snapshotJh);
 
-            var hexes = new NativeList<int2>(8, Allocator.Temp);
-            ulong hash = 1469598103934665603UL;
-            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesHealing>())
+            var jh = new SnapshotHashComputeJob
             {
-                var hex = building.ValueRO.RootHex;
-                hexes.Add(hex);
-                hash ^= (ulong)(uint)hex.x; hash *= 1099511628211UL;
-                hash ^= (ulong)(uint)hex.y; hash *= 1099511628211UL;
-            }
+                Buildings       = buildings,
+                Singleton       = _singleton,
+                SingletonLookup = SystemAPI.GetComponentLookup<HealFlowFieldSingleton>(false),
+                HexBufferLookup = SystemAPI.GetBufferLookup<HealerHexElement>(false),
+            }.Schedule(snapshotJh);
 
-            ref var s = ref singletonRW.ValueRW;
-            if (hash == s.LastHash)
-            {
-                hexes.Dispose();
-                return;
-            }
-
-            hexBuffer.Clear();
-            for (int i = 0; i < hexes.Length; i++)
-                hexBuffer.Add(new HealerHexElement { Hex = hexes[i] });
-
-            int n = hexes.Length;
-            var goals = new NativeArray<int>(n * 2, Allocator.TempJob);
-            for (int i = 0; i < n; i++)
-            {
-                goals[i * 2 + 0] = hexes[i].x;
-                goals[i * 2 + 1] = hexes[i].y;
-            }
-            hexes.Dispose();
-
-            IntPtr oldField = s.FieldHandle;
-            s.LastHash    = hash;
-            s.HealerCount = n;
-            s.FieldHandle = IntPtr.Zero;
-
-            var lookup = SystemAPI.GetComponentLookup<HealFlowFieldSingleton>(false);
-            var jh = new ComputeFlowJob
-            {
-                GridHandle = s.GridHandle,
-                OldField   = oldField,
-                Goals      = goals,
-                Singleton  = _singleton,
-                Lookup     = lookup,
-            }.Schedule(state.Dependency);
-
-            state.Dependency = goals.Dispose(jh);
+            state.Dependency = buildings.Dispose(jh);
         }
     }
 
@@ -160,32 +126,60 @@ namespace RareIcon
         }
     }
 
+    /// <summary>End-to-end off-main pipeline tail. Reads the snapshotted Building array, hashes the root-hex set, early-outs when the hash matches the singleton's <c>LastHash</c>, otherwise refills the <see cref="HealerHexElement"/> buffer, frees the prior field via <c>uniti_flow_free</c>, computes a fresh field via <c>uniti_flow_compute</c>, and writes the new handle + hash + count back into the singleton. Goals flatten to a stack-allocated <c>int*</c> sized for up to 256 healers, so no temp allocation hits the heap on the worker.</summary>
     [BurstCompile]
-    public unsafe struct ComputeFlowJob : IJob
+    public unsafe struct SnapshotHashComputeJob : IJob
     {
-        public IntPtr GridHandle;
-        public IntPtr OldField;
-        [ReadOnly] public NativeArray<int> Goals;
+        const int MaxHealers = 256;
+        const ulong FnvOffset = 1469598103934665603UL;
+        const ulong FnvPrime  = 1099511628211UL;
+
+        [ReadOnly] public NativeList<Building> Buildings;
         public Entity Singleton;
-        public ComponentLookup<HealFlowFieldSingleton> Lookup;
+        public ComponentLookup<HealFlowFieldSingleton> SingletonLookup;
+        public BufferLookup<HealerHexElement>          HexBufferLookup;
 
         public void Execute()
         {
-            if (OldField != IntPtr.Zero)
-                Uniti.uniti_flow_free((void*)OldField);
+            int n = Buildings.Length;
+            if (n > MaxHealers) n = MaxHealers;
+
+            ulong hash = FnvOffset;
+            for (int i = 0; i < n; i++)
+            {
+                var hex = Buildings[i].RootHex;
+                hash ^= (ulong)(uint)hex.x; hash *= FnvPrime;
+                hash ^= (ulong)(uint)hex.y; hash *= FnvPrime;
+            }
+
+            var data = SingletonLookup[Singleton];
+            if (hash == data.LastHash) return;
+
+            var hexBuf = HexBufferLookup[Singleton];
+            hexBuf.Clear();
+            for (int i = 0; i < n; i++)
+                hexBuf.Add(new HealerHexElement { Hex = Buildings[i].RootHex });
+
+            if (data.FieldHandle != IntPtr.Zero)
+                Uniti.uniti_flow_free((void*)data.FieldHandle);
 
             IntPtr newField = IntPtr.Zero;
-            if (Goals.Length >= 2)
+            if (n > 0)
             {
-                int* ptr = (int*)Goals.GetUnsafeReadOnlyPtr();
-                uint count = (uint)(Goals.Length / 2);
-                void* fh = Uniti.uniti_flow_compute((void*)GridHandle, ptr, count);
+                int* goals = stackalloc int[MaxHealers * 2];
+                for (int i = 0; i < n; i++)
+                {
+                    goals[i * 2 + 0] = Buildings[i].RootHex.x;
+                    goals[i * 2 + 1] = Buildings[i].RootHex.y;
+                }
+                void* fh = Uniti.uniti_flow_compute((void*)data.GridHandle, goals, (uint)n);
                 newField = (IntPtr)fh;
             }
 
-            var data = Lookup[Singleton];
             data.FieldHandle = newField;
-            Lookup[Singleton] = data;
+            data.LastHash    = hash;
+            data.HealerCount = n;
+            SingletonLookup[Singleton] = data;
         }
     }
 }
