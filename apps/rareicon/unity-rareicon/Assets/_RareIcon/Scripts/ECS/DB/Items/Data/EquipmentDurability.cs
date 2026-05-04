@@ -27,6 +27,7 @@ namespace RareIcon
                 case (ushort)ItemId.IronArmor:        return 320;
                 case (ushort)ItemId.CrystalArmor:     return 500;
 
+                case (ushort)ItemId.Buckler:          return 50;
                 case (ushort)ItemId.WoodenShield:     return 70;
                 case (ushort)ItemId.IronShield:       return 180;
                 case (ushort)ItemId.KiteShield:       return 240;
