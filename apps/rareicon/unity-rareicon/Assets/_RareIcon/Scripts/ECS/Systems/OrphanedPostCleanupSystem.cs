@@ -63,16 +63,21 @@ namespace RareIcon
 
             if (capitalFell)
             {
-                // Single carrier emitted on the main-thread ECB so the toast bridge
-                // picks it up next frame; no chunk index needed for a one-shot event.
+                // Toast surfaces the loss flavor; signal flips AppState into
+                // GameOver so the loss screen mounts. Both carriers ride the
+                // same end-of-frame ECB and resolve next frame.
                 var mainEcb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                        .CreateCommandBuffer(state.WorldUnmanaged);
-                var carrier = mainEcb.CreateEntity();
-                mainEcb.AddComponent(carrier, new PendingToast
+
+                var toastCarrier = mainEcb.CreateEntity();
+                mainEcb.AddComponent(toastCarrier, new PendingToast
                 {
                     Kind = (byte)ToastKind.Error,
                     Text = "The Capital has fallen — the run ends here.",
                 });
+
+                var signalCarrier = mainEcb.CreateEntity();
+                mainEcb.AddComponent<GameOverSignal>(signalCarrier);
             }
 
             state.Dependency = destroyedHexes.Dispose(state.Dependency);

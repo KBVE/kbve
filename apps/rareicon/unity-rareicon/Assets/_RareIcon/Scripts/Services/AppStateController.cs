@@ -28,7 +28,9 @@ namespace RareIcon
 
         Reconnecting,
         Disconnected,
-        Error
+        Error,
+
+        GameOver,
     }
 
     [Flags]
@@ -211,6 +213,21 @@ namespace RareIcon
         {
             SetState(AppInterfaceState.Error);
             AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
+        }
+
+        /// <summary>Capital was destroyed — switch into the GameOver state with a locked-input modal overlay so the loss screen owns input until the player picks Return to Title.</summary>
+        public void EnterGameOver()
+        {
+            if (_state.Value == AppInterfaceState.GameOver) return;
+            SetState(AppInterfaceState.GameOver);
+            AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
+        }
+
+        /// <summary>Return to title from any in-run state — clears overlays first so the menu starts clean.</summary>
+        public void ReturnToMainMenu()
+        {
+            SetOverlay(AppOverlayFlags.None);
+            SetState(AppInterfaceState.MainMenu);
         }
 
         public void OpenInventory()

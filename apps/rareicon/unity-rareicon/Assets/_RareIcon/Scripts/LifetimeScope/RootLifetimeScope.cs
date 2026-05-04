@@ -88,6 +88,7 @@ namespace RareIcon
                 BuildModeBridge.Source     = container.Resolve<BuildModeController>();
                 ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
                 PauseBridge.Source         = container.Resolve<PauseService>();
+                AppStateBridge.Source      = container.Resolve<AppStateController>();
             });
 
             // -- Services --
@@ -174,6 +175,9 @@ namespace RareIcon
 
             // -- Pause indicator (top-right overlay + F9 debug toggle) --
             builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
+
+            // -- Game-over loss screen (full-screen modal on AppInterfaceState.GameOver) --
+            builder.RegisterEntryPoint<UIGameOverScreen>().AsSelf();
 
             // -- Dialogue: VN renderer is DI-resolvable so the controller
             //    can drive it directly; bubble + controller are pure
