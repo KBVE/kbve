@@ -2,6 +2,7 @@ using System;
 using RareIcon.Native;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -107,7 +108,7 @@ namespace RareIcon
     [BurstCompile]
     public unsafe struct FillGridJob : IJob
     {
-        public IntPtr GridHandle;
+        [NativeDisableUnsafePtrRestriction] public IntPtr GridHandle;
         public int    OriginX;
         public int    OriginZ;
         public int    Size;
