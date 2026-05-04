@@ -62,21 +62,27 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
-            - name: Install kubectl + envsubst
+            - name: Install kubectl
+              uses: azure/setup-kubectl@v4
+              with:
+                  version: v1.31.0
+            - name: Install envsubst
               run: |
+                  # gettext-base ships envsubst; runner image lacks it.
                   sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
-                      curl ca-certificates gettext-base
-                  curl -fsSL -o /usr/local/bin/kubectl \
-                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
-                  sudo chmod +x /usr/local/bin/kubectl
-                  kubectl version --client=true
+                  sudo apt-get install -y --no-install-recommends gettext-base
 
             - name: Build migrations ConfigMap (replace existing)
               run: |
+                  # delete-then-create avoids the
+                  # `kubectl.kubernetes.io/last-applied-configuration`
+                  # annotation that `kubectl apply` would inline (the
+                  # migrations dump pushes it over the 262144 byte
+                  # annotation limit).
+                  kubectl -n kilobase delete configmap dbmate-migrations \
+                    --ignore-not-found
                   kubectl -n kilobase create configmap dbmate-migrations \
-                    --from-file=packages/data/sql/dbmate/migrations/ \
-                    --dry-run=client -o yaml | kubectl apply -f -
+                    --from-file=packages/data/sql/dbmate/migrations/
 
             - name: Render + run a status Job
               env:
@@ -106,15 +112,15 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
-            - name: Install kubectl + envsubst
+            - name: Install kubectl
+              uses: azure/setup-kubectl@v4
+              with:
+                  version: v1.31.0
+            - name: Install envsubst
               run: |
+                  # gettext-base ships envsubst; runner image lacks it.
                   sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
-                      curl ca-certificates gettext-base
-                  curl -fsSL -o /usr/local/bin/kubectl \
-                      https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
-                  sudo chmod +x /usr/local/bin/kubectl
-                  kubectl version --client=true
+                  sudo apt-get install -y --no-install-recommends gettext-base
 
             - name: Render + run the up Job
               env:

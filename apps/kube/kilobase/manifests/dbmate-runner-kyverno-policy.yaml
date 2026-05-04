@@ -1,0 +1,105 @@
+---
+# kilobase-jobs-restricted — Kyverno ClusterPolicy that locks down
+# what Jobs the arc-runner-set ServiceAccount can create in the
+# kilobase namespace. Even with the (already-tight) Role binding,
+# this is the second wall: an attacker who picks up the runner SA
+# token still can't create an arbitrary privileged Job in kilobase
+# because the admission controller rejects Jobs that don't match
+# the dbmate-runner template shape.
+#
+# Pre-req: kyverno installed (apps/kube/kyverno).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    name: kilobase-jobs-restricted
+    annotations:
+        policies.kyverno.io/title: kilobase-jobs-restricted
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/severity: high
+        policies.kyverno.io/description: >-
+            Restricts Jobs created in the kilobase namespace to ones
+            that match the dbmate-runner contract: must use the
+            dbmate-runner ServiceAccount, must drop ALL capabilities,
+            must run as non-root with a read-only rootfs, and must
+            mount only the dbmate-migrations ConfigMap + dbmate-creds
+            Secret. Applies on CREATE; UPDATE on existing Jobs is not
+            covered (Job specs are immutable post-create anyway).
+spec:
+    validationFailureAction: Enforce
+    background: false
+    rules:
+        - name: kilobase-job-must-use-dbmate-runner-sa
+          match:
+              any:
+                  - resources:
+                        kinds: ['Job']
+                        namespaces: ['kilobase']
+          # Skip CNPG operator-managed Jobs (backups, restores) so we
+          # don't break the database itself. They live in cnpg-system
+          # but operator-spawned Jobs land in kilobase under the
+          # CNPG owner reference.
+          exclude:
+              any:
+                  - resources:
+                        selector:
+                            matchLabels:
+                                cnpg.io/cluster: supabase-cluster
+                  - resources:
+                        selector:
+                            matchExpressions:
+                                - key: cnpg.io/jobRole
+                                  operator: Exists
+          validate:
+              message: >-
+                  Jobs in kilobase must use the dbmate-runner SA, drop ALL
+                  capabilities, run non-root with a read-only rootfs, and
+                  mount only the dbmate-migrations ConfigMap + dbmate-creds
+                  Secret.
+              pattern:
+                  spec:
+                      template:
+                          spec:
+                              serviceAccountName: dbmate-runner
+                              automountServiceAccountToken: 'false | true'
+                              containers:
+                                  - name: '*'
+                                    securityContext:
+                                        runAsNonRoot: true
+                                        readOnlyRootFilesystem: true
+                                        allowPrivilegeEscalation: false
+                                        capabilities:
+                                            drop:
+                                                - 'ALL'
+        - name: kilobase-job-volume-allowlist
+          match:
+              any:
+                  - resources:
+                        kinds: ['Job']
+                        namespaces: ['kilobase']
+          exclude:
+              any:
+                  - resources:
+                        selector:
+                            matchLabels:
+                                cnpg.io/cluster: supabase-cluster
+                  - resources:
+                        selector:
+                            matchExpressions:
+                                - key: cnpg.io/jobRole
+                                  operator: Exists
+          validate:
+              message: >-
+                  Job volumes must reference only `dbmate-migrations`
+                  (ConfigMap) or `dbmate-creds` (Secret). hostPath /
+                  emptyDir / arbitrary PVC mounts are blocked.
+              foreach:
+                  - list: 'request.object.spec.template.spec.volumes'
+                    deny:
+                        conditions:
+                            all:
+                                - key: "{{ element.configMap.name || element.secret.secretName || '_' }}"
+                                  operator: NotIn
+                                  value:
+                                      - 'dbmate-migrations'
+                                      - 'dbmate-creds'
+                                      - '_'

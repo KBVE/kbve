@@ -21,7 +21,10 @@ on:
                 type: string
         secrets:
             MODRINTH_TOKEN:
-                description: 'Modrinth PAT with version:create scope'
+                description: 'Modrinth PAT (mrp_…) with version:create scope — used for v2 uploads'
+                required: false
+            MODRINTH_SESSION:
+                description: 'Modrinth session token (mra_…) — used for v3 server-listing PATCH on `minecraft_java_server` projects. Required when external_publish.modrinth_server_address is set.'
                 required: false
             ITCH_API_KEY:
                 description: 'butler API key for Itch.io uploads'
@@ -75,6 +78,7 @@ jobs:
                   echo "loaders=$(echo "$EP" | jq -c '.modrinth_loaders // "[\"fabric\"]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
                   echo "game_versions=$(echo "$EP" | jq -c '.modrinth_game_versions // "[]" | if type=="string" then fromjson else . end')" >> "$GITHUB_OUTPUT"
                   echo "rolling_version=$(echo "$EP" | jq -r '.modrinth_rolling_version // ""')" >> "$GITHUB_OUTPUT"
+                  echo "server_address=$(echo "$EP" | jq -r '.modrinth_server_address // ""')" >> "$GITHUB_OUTPUT"
 
             - name: Pin version.toml to publishing version
               env:
@@ -234,6 +238,7 @@ jobs:
 
             - name: Publish mrpack to Modrinth modpack project
               if: steps.ep.outputs.pack_id != ''
+              id: pub_mrpack
               env:
                   MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
                   PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
@@ -241,7 +246,7 @@ jobs:
                   VERSION_TYPE: ${{ steps.ep.outputs.version_type }}
                   LOADERS: ${{ steps.ep.outputs.loaders }}
                   GAME_VERSIONS: ${{ steps.ep.outputs.game_versions }}
-                  ROLLING_VERSION: ${{ steps.ep.outputs.rolling_version }}
+                  SERVER_ADDRESS: ${{ steps.ep.outputs.server_address }}
                   MRPACK_PATH: ${{ steps.mrpack.outputs.path }}
               run: |
                   set -euo pipefail
@@ -250,65 +255,14 @@ jobs:
                     exit 1
                   fi
 
-                  if [ -n "$ROLLING_VERSION" ]; then
-                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
-                      "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
-                      | jq -r '[.[] | select(.featured == true)] | .[0].id // ""')
-                  else
-                    EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
-                      "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
-                      | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
-                      | head -1)
-                  fi
+                  EXISTING=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
+                    "https://api.modrinth.com/v2/project/$PACK_PROJECT_ID/version" \
+                    | jq -r --arg v "$VERSION" '.[] | select(.version_number == $v) | .id' \
+                    | head -1)
 
-                  if [ -n "$EXISTING" ] && [ -z "$ROLLING_VERSION" ]; then
-                    echo "::notice::mrpack v$VERSION already on Modrinth (id=$EXISTING) — skipping."
-                    exit 0
-                  fi
-
-                  if [ -n "$EXISTING" ] && [ -n "$ROLLING_VERSION" ]; then
-                    echo "── Rolling mrpack mode: replacing file on featured slot $EXISTING ──"
-                    OLD_HASHES=$(curl -sSL --fail-with-body -H "Authorization: $MODRINTH_TOKEN" \
-                      "https://api.modrinth.com/v2/version/$EXISTING" \
-                      | jq -r '.files[].hashes.sha1')
-
-                    printf '{"file_parts":["mrpack"]}' > /tmp/mrpack-add-data.json
-                    HTTP_CODE=$(curl -sSL -o /tmp/mrpack-add.json -w '%{http_code}' \
-                      -X POST "https://api.modrinth.com/v2/version/$EXISTING/file" \
-                      -H "Authorization: $MODRINTH_TOKEN" \
-                      -F "data=@/tmp/mrpack-add-data.json;type=application/json" \
-                      -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
-                    if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
-                      echo "::error::Modrinth mrpack add-to-version failed (HTTP $HTTP_CODE)"
-                      cat /tmp/mrpack-add.json
-                      exit 1
-                    fi
-                    echo "Added new mrpack file to slot $EXISTING"
-
-                    for hash in $OLD_HASHES; do
-                      [ -z "$hash" ] && continue
-                      DEL_CODE=$(curl -sSL -o /tmp/del-resp.json -w '%{http_code}' \
-                        -X DELETE "https://api.modrinth.com/v2/version_file/$hash" \
-                        -H "Authorization: $MODRINTH_TOKEN")
-                      if [ "$DEL_CODE" != "204" ]; then
-                        echo "::warning::Delete old mrpack file (sha1=$hash) failed HTTP $DEL_CODE"
-                        cat /tmp/del-resp.json || true
-                      else
-                        echo "Removed old mrpack file sha1=$hash"
-                      fi
-                    done
-
-                    PATCH_CODE=$(curl -sSL -o /tmp/mrpack-patch.json -w '%{http_code}' \
-                      -X PATCH "https://api.modrinth.com/v2/version/$EXISTING" \
-                      -H "Authorization: $MODRINTH_TOKEN" \
-                      -H "Content-Type: application/json" \
-                      -d "{\"version_number\":\"$VERSION\",\"name\":\"KBVE MC Client $VERSION\"}")
-                    if [ "$PATCH_CODE" != "204" ]; then
-                      echo "::warning::Failed to PATCH version_number to $VERSION (HTTP $PATCH_CODE)"
-                      cat /tmp/mrpack-patch.json || true
-                    else
-                      echo "Renamed slot $EXISTING → version_number=$VERSION"
-                    fi
+                  if [ -n "$EXISTING" ]; then
+                    echo "::notice::mrpack v$VERSION already on Modrinth (id=$EXISTING) — reusing for v3 listing PATCH."
+                    echo "version_id=$EXISTING" >> "$GITHUB_OUTPUT"
                     exit 0
                   fi
 
@@ -320,9 +274,11 @@ jobs:
                     "project_id": "$PACK_PROJECT_ID",
                     "loaders": $LOADERS,
                     "game_versions": $GAME_VERSIONS,
-                    "featured": true,
+                    "featured": false,
+                    "status": "listed",
                     "dependencies": [],
-                    "file_parts": ["mrpack"]
+                    "file_parts": ["file"],
+                    "primary_file": "file"
                   }
                   JSON
 
@@ -330,13 +286,66 @@ jobs:
                     -X POST "https://api.modrinth.com/v2/version" \
                     -H "Authorization: $MODRINTH_TOKEN" \
                     -F "data=@/tmp/pack-data.json;type=application/json" \
-                    -F "mrpack=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
+                    -F "file=@$MRPACK_PATH;type=application/x-modrinth-modpack+zip")
                   if [ "$HTTP_CODE" != "200" ]; then
                     echo "::error::Modrinth mrpack upload failed (HTTP $HTTP_CODE)"
                     cat /tmp/mrpack-response.json
                     exit 1
                   fi
-                  jq -r '"Published mrpack — version id \(.id)"' /tmp/mrpack-response.json
+                  NEW_ID=$(jq -r '.id' /tmp/mrpack-response.json)
+                  echo "Published mrpack — version id $NEW_ID"
+                  echo "version_id=$NEW_ID" >> "$GITHUB_OUTPUT"
+
+            - name: Update Modrinth `minecraft_java_server` listing → new version_id
+              if: |
+                  steps.ep.outputs.pack_id != '' &&
+                  steps.ep.outputs.server_address != '' &&
+                  steps.pub_mrpack.outputs.version_id != ''
+              env:
+                  MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
+                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
+                  SERVER_ADDRESS: ${{ steps.ep.outputs.server_address }}
+                  NEW_VERSION_ID: ${{ steps.pub_mrpack.outputs.version_id }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_SESSION:-}" ]; then
+                    echo "::error::MODRINTH_SESSION (mra_…) secret missing — required for v3 server listing PATCH"
+                    exit 1
+                  fi
+
+                  cat > /tmp/v3-listing.json <<JSON
+                  {
+                    "minecraft_java_server": {
+                      "address": "$SERVER_ADDRESS",
+                      "content": {
+                        "kind": "modpack",
+                        "version_id": "$NEW_VERSION_ID",
+                        "project_id": "$PACK_PROJECT_ID"
+                      }
+                    }
+                  }
+                  JSON
+
+                  HTTP_CODE=$(curl -sSL -o /tmp/v3-resp.json -w '%{http_code}' \
+                    -X PATCH "https://api.modrinth.com/v3/project/$PACK_PROJECT_ID" \
+                    -H "Authorization: Bearer $MODRINTH_SESSION" \
+                    -H "Content-Type: application/json" \
+                    -H "User-Agent: kbve-ci/1.0" \
+                    --data @/tmp/v3-listing.json)
+                  if [ "$HTTP_CODE" != "204" ]; then
+                    echo "::error::Modrinth v3 server-listing PATCH failed (HTTP $HTTP_CODE)"
+                    cat /tmp/v3-resp.json
+                    exit 1
+                  fi
+                  echo "Updated v3 server listing → version_id=$NEW_VERSION_ID address=$SERVER_ADDRESS"
+
+                  ACTUAL=$(curl -sSL "https://api.modrinth.com/v3/project/$PACK_PROJECT_ID" \
+                    | jq -r '.minecraft_java_server.content.version_id // ""')
+                  if [ "$ACTUAL" != "$NEW_VERSION_ID" ]; then
+                    echo "::warning::v3 listing reports version_id=$ACTUAL, expected $NEW_VERSION_ID"
+                  else
+                    echo "Verified: v3 listing.content.version_id == $NEW_VERSION_ID"
+                  fi
 
     modrinth_verify:
         name: Modrinth Verify (${{ inputs.app_name }} v${{ inputs.version }})

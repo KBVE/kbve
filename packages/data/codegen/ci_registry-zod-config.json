@@ -88,6 +88,7 @@
 		"kbve.ci.ExternalPublish.modrinth_loaders": "z.string().max(256).optional()",
 		"kbve.ci.ExternalPublish.modrinth_retain_count": "z.number().int().min(1).max(50).optional()",
 		"kbve.ci.ExternalPublish.modrinth_rolling_version": "z.string().min(1).max(64).optional()",
+		"kbve.ci.ExternalPublish.modrinth_server_address": "z.string().min(1).max(253).optional()",
 		"kbve.ci.ExternalPublish.itch_user": "z.string().min(1).max(64).optional()",
 		"kbve.ci.ExternalPublish.itch_game": "z.string().min(1).max(64).optional()",
 		"kbve.ci.ExternalPublish.itch_channel": "z.string().min(1).max(64).optional()",

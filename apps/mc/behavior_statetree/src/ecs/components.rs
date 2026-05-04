@@ -440,23 +440,23 @@ pub struct ActiveShips {
 /// The current walkability grid built from the most recent map snapshot.
 /// `None` until Java sends the first `MapRegionSnapshot`.
 #[derive(Resource, Default)]
-pub struct CurrentBlockGrid(pub Option<bevy_pathfinding::grid::BlockGrid>);
+pub struct CurrentBlockGrid(pub Option<bevy_pathfinder::grid::BlockGrid>);
 
 /// Flow fields computed toward each online player's position. Keyed by
 /// the player's Minecraft entity ID so skeletons can pick "approach the
 /// nearest player" in O(1) per cell.
 #[derive(Resource, Default)]
-pub struct PlayerFlowFields(pub Vec<(u64, bevy_pathfinding::flow_field::FlowField)>);
+pub struct PlayerFlowFields(pub Vec<(u64, bevy_pathfinder::flow_field::FlowField)>);
 
 /// Flee flow field — points every cell AWAY from all player positions.
 /// Used by the low-health flee behavior.
 #[derive(Resource, Default)]
-pub struct FleeFlowField(pub Option<bevy_pathfinding::flow_field::FlowField>);
+pub struct FleeFlowField(pub Option<bevy_pathfinder::flow_field::FlowField>);
 
 /// Detected chokepoints / flow gates in the current grid. Recomputed
 /// alongside the flow fields.
 #[derive(Resource, Default)]
-pub struct DetectedFlowGates(pub Vec<bevy_pathfinding::flow_gate::FlowGate>);
+pub struct DetectedFlowGates(pub Vec<bevy_pathfinder::flow_gate::FlowGate>);
 
 /// Tracks when the flow field was last rebuilt. Flow field recomputation
 /// is expensive relative to a normal ECS tick, so it's throttled.

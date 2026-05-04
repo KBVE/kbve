@@ -11,6 +11,15 @@ namespace RareIcon
         public ushort ArmorItemId;
     }
 
+    /// <summary>Combat-relevant defense numbers derived from <see cref="Equipment"/>. <see cref="EquipmentSyncSystem"/> rebuilds this whenever a slot changes; <see cref="DamageJob"/> reads it to scale incoming damage. <see cref="ArmorPct"/> + <see cref="HelmetPct"/> are flat percentages applied to every hit; <see cref="ShieldMitigationPct"/> is layered on top when the per-hit block roll succeeds at <see cref="ShieldBlockChancePct"/>. Burst-safe single struct.</summary>
+    public struct DefenseMitigation : IComponentData
+    {
+        public byte ArmorPct;
+        public byte HelmetPct;
+        public byte ShieldMitigationPct;
+        public byte ShieldBlockChancePct;
+    }
+
     /// <summary>Slot-typing tag returned by <see cref="EquipmentMap.SlotFor"/>. Lets the sync system route a generic pack scan into the right Equipment field without per-call switch sprawl.</summary>
     public enum EquipmentSlot : byte
     {

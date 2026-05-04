@@ -70,7 +70,13 @@ namespace RareIcon
             switch (t)
             {
                 case 0:
-                    radius = 3; wantsVolley = false;
+                    // T0 Tower now fires — heavier per-arrow damage than
+                    // the basic Outpost so towers feel meaningful as
+                    // standalone defenses while costing the upkeep cost.
+                    radius = 3; wantsVolley = true;
+                    volleyCooldown = 5f; volleyRange = 11f;
+                    volleyArrows = 6; volleyArrowCost = 2; volleyDamage = 12f;
+                    poolStock = 80;
                     break;
                 case 2:
                     radius = 7; wantsVolley = true;

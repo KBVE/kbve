@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/profile.binpb
  * Config: ../profile-zod-config.json
- * Generated: 2026-05-03T09:31:28.495Z
+ * Generated: 2026-05-04T06:27:06.687Z
  */
 
 import { z } from 'zod';
@@ -22,101 +22,95 @@ export type UsernameErrorTypeValue = (typeof UsernameErrorTypes)[number];
 export const UsernameErrorTypeSchema = z.enum(UsernameErrorTypes);
 
 // UsernameValidation
-export const UsernameValidationSchema = z
-	.object({
-		valid: z.boolean(),
-		normalized: z.string().optional(),
-		error_type: UsernameErrorTypeSchema.optional(),
-		error_message: z.string().optional(),
-	});
+export const UsernameValidationSchema = z.object({
+	valid: z.boolean(),
+	normalized: z.string().optional(),
+	error_type: UsernameErrorTypeSchema.optional(),
+	error_message: z.string().optional(),
+});
 
 export type UsernameValidation = z.infer<typeof UsernameValidationSchema>;
 
 // ProviderInfo
-export const ProviderInfoSchema = z
-	.object({
-		provider: z.string(),
-		provider_id: z.string(),
-		username: z.string().optional(),
-		avatar_url: z.string().optional(),
-		email: z.string().optional(),
-		linked_at: z.string().optional(),
-		last_sign_in_at: z.string().optional(),
-	});
+export const ProviderInfoSchema = z.object({
+	provider: z.string(),
+	provider_id: z.string(),
+	username: z.string().optional(),
+	avatar_url: z.string().optional(),
+	email: z.string().optional(),
+	linked_at: z.string().optional(),
+	last_sign_in_at: z.string().optional(),
+});
 
 export type ProviderInfo = z.infer<typeof ProviderInfoSchema>;
 
 // DiscordProfile
-export const DiscordProfileSchema = z
-	.object({
-		id: z.string(),
-		username: z.string().optional(),
-		discriminator: z.string().optional(),
-		avatar_url: z.string().optional(),
-		banner_url: z.string().optional(),
-		accent_color: z.number().optional(),
-	});
+export const DiscordProfileSchema = z.object({
+	id: z.string(),
+	username: z.string().optional(),
+	discriminator: z.string().optional(),
+	avatar_url: z.string().optional(),
+	banner_url: z.string().optional(),
+	accent_color: z.number().optional(),
+});
 
 export type DiscordProfile = z.infer<typeof DiscordProfileSchema>;
 
 // GithubProfile
-export const GithubProfileSchema = z
-	.object({
-		id: z.string(),
-		username: z.string().optional(),
-		avatar_url: z.string().optional(),
-		bio: z.string().optional(),
-		company: z.string().optional(),
-		location: z.string().optional(),
-		blog: z.string().optional(),
-		public_repos: z.number().optional(),
-		followers: z.number().optional(),
-		following: z.number().optional(),
-	});
+export const GithubProfileSchema = z.object({
+	id: z.string(),
+	username: z.string().optional(),
+	avatar_url: z.string().optional(),
+	bio: z.string().optional(),
+	company: z.string().optional(),
+	location: z.string().optional(),
+	blog: z.string().optional(),
+	public_repos: z.number().optional(),
+	followers: z.number().optional(),
+	following: z.number().optional(),
+});
 
 export type GithubProfile = z.infer<typeof GithubProfileSchema>;
 
 // UserProfile
-export const UserProfileSchema = z
-	.object({
-		user_id: z.string(),
-		username: z.string(),
-		display_name: z.string().optional(),
-		bio: z.string().optional(),
-		avatar_url: z.string().optional(),
-		providers: z.array(ProviderInfoSchema).optional(),
-		discord: DiscordProfileSchema.optional(),
-		github: GithubProfileSchema.optional(),
-		created_at: z.string().optional(),
-		updated_at: z.string().optional(),
-		is_public: z.boolean(),
-		show_providers: z.boolean(),
-	});
+export const UserProfileSchema = z.object({
+	user_id: z.string(),
+	username: z.string(),
+	display_name: z.string().optional(),
+	bio: z.string().optional(),
+	avatar_url: z.string().optional(),
+	providers: z.array(ProviderInfoSchema).optional(),
+	discord: DiscordProfileSchema.optional(),
+	github: GithubProfileSchema.optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+	is_public: z.boolean(),
+	show_providers: z.boolean(),
+});
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 // GetProfileResponse
-export const GetProfileResponseSchema = z
-	.object({
-		found: z.boolean(),
-		profile: UserProfileSchema.optional(),
-		error: z.string().optional(),
-	});
+export const GetProfileResponseSchema = z.object({
+	found: z.boolean(),
+	profile: UserProfileSchema.optional(),
+	error: z.string().optional(),
+});
 
 export type GetProfileResponse = z.infer<typeof GetProfileResponseSchema>;
 
 // GetProfileByIdRequest
-export const GetProfileByIdRequestSchema = z
-	.object({
-		user_id: z.string(),
-	});
+export const GetProfileByIdRequestSchema = z.object({
+	user_id: z.string(),
+});
 
 export type GetProfileByIdRequest = z.infer<typeof GetProfileByIdRequestSchema>;
 
 // GetProfileByUsernameRequest
-export const GetProfileByUsernameRequestSchema = z
-	.object({
-		username: z.string(),
-	});
+export const GetProfileByUsernameRequestSchema = z.object({
+	username: z.string(),
+});
 
-export type GetProfileByUsernameRequest = z.infer<typeof GetProfileByUsernameRequestSchema>;
+export type GetProfileByUsernameRequest = z.infer<
+	typeof GetProfileByUsernameRequestSchema
+>;

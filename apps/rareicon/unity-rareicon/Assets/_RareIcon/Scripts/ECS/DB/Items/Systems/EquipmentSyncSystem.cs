@@ -61,6 +61,23 @@ namespace RareIcon
                 if (armorByte  != 0 && unit.Armor  != armorByte ) { unit.Armor  = armorByte;  unitDirty = true; }
 
                 if (unitDirty) em.SetComponentData(entity, unit);
+
+                // Mirror equipment into combat-facing mitigation numbers
+                // so DamageJob can read armor / shield reduction without
+                // touching the Equipment payload. Lazy-add since most
+                // early-game spawns ship without Equipment.
+                var shieldRoll = DefenseDB.ShieldMitigation(equipment.ShieldItemId);
+                var mit = new DefenseMitigation
+                {
+                    ArmorPct             = DefenseDB.ArmorMitigationPct(equipment.ArmorItemId),
+                    HelmetPct            = DefenseDB.HelmetMitigationPct(equipment.HelmetItemId),
+                    ShieldMitigationPct  = shieldRoll.mitigationPct,
+                    ShieldBlockChancePct = shieldRoll.blockChancePct,
+                };
+                if (em.HasComponent<DefenseMitigation>(entity))
+                    em.SetComponentData(entity, mit);
+                else
+                    em.AddComponentData(entity, mit);
             }
         }
 

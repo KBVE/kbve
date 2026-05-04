@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-05-03T09:31:28.473Z
+ * Generated: 2026-05-04T06:27:06.665Z
  */
 
 import { z } from 'zod';
@@ -164,18 +164,17 @@ export type SkillingTypeValue = (typeof SkillingTypes)[number];
 export const SkillingTypeSchema = z.enum(SkillingTypes);
 
 // UseEffect
-export const UseEffectSchema = z
-	.object({
-		type: UseEffectTypeSchema,
-		amount: z.number().optional(),
-		status_effect: StatusEffectKindSchema.optional(),
-		effect_kind_custom: z.string().optional(),
-		stacks: z.number().optional(),
-		turns: z.number().optional(),
-		percent: z.number().optional(),
-		summon_ref: z.string().optional(),
-		element: ElementSchema.optional(),
-	});
+export const UseEffectSchema = z.object({
+	type: UseEffectTypeSchema,
+	amount: z.number().optional(),
+	status_effect: StatusEffectKindSchema.optional(),
+	effect_kind_custom: z.string().optional(),
+	stacks: z.number().optional(),
+	turns: z.number().optional(),
+	percent: z.number().optional(),
+	summon_ref: z.string().optional(),
+	element: ElementSchema.optional(),
+});
 
 export type UseEffect = z.infer<typeof UseEffectSchema>;
 
@@ -205,19 +204,18 @@ export const ItemBonusesSchema = z
 export type ItemBonuses = z.infer<typeof ItemBonusesSchema>;
 
 // EquipmentInfo
-export const EquipmentInfoSchema = z
-	.object({
-		slot: EquipSlotSchema,
-		bonuses: ItemBonusesSchema.optional(),
-		special: GearSpecialTypeSchema.optional(),
-		special_value: z.number().optional(),
-		durability: z.number().nullable().optional(),
-		max_durability: z.number().nullable().optional(),
-		enchantment_slots: z.number().optional(),
-		enchantment_types: z.array(z.string()).optional(),
-		cursed: z.boolean().optional(),
-		movement_penalty: z.number().optional(),
-	});
+export const EquipmentInfoSchema = z.object({
+	slot: EquipSlotSchema,
+	bonuses: ItemBonusesSchema.optional(),
+	special: GearSpecialTypeSchema.optional(),
+	special_value: z.number().optional(),
+	durability: z.number().nullable().optional(),
+	max_durability: z.number().nullable().optional(),
+	enchantment_slots: z.number().optional(),
+	enchantment_types: z.array(z.string()).optional(),
+	cursed: z.boolean().optional(),
+	movement_penalty: z.number().optional(),
+});
 
 export type EquipmentInfo = z.infer<typeof EquipmentInfoSchema>;
 
@@ -260,38 +258,35 @@ export const SkillingInfoSchema = z
 export type SkillingInfo = z.infer<typeof SkillingInfoSchema>;
 
 // CraftingIngredient
-export const CraftingIngredientSchema = z
-	.object({
-		item_ref: z.string(),
-		name: z.string().optional(),
-		amount: z.number().min(1),
-		consumed: z.boolean().optional(),
-	});
+export const CraftingIngredientSchema = z.object({
+	item_ref: z.string(),
+	name: z.string().optional(),
+	amount: z.number().min(1),
+	consumed: z.boolean().optional(),
+});
 
 export type CraftingIngredient = z.infer<typeof CraftingIngredientSchema>;
 
 // CraftingRecipe
-export const CraftingRecipeSchema = z
-	.object({
-		ingredients: z.array(CraftingIngredientSchema).optional(),
-		required_tools: z.array(z.string()).optional(),
-		skill: z.string().optional(),
-		skill_level: z.number().min(0).max(99).optional(),
-		xp_reward: z.number().optional(),
-		output_quantity: z.number().optional(),
-		facility: z.string().optional(),
-		members_only: z.boolean().optional(),
-	});
+export const CraftingRecipeSchema = z.object({
+	ingredients: z.array(CraftingIngredientSchema).optional(),
+	required_tools: z.array(z.string()).optional(),
+	skill: z.string().optional(),
+	skill_level: z.number().min(0).max(99).optional(),
+	xp_reward: z.number().optional(),
+	output_quantity: z.number().optional(),
+	facility: z.string().optional(),
+	members_only: z.boolean().optional(),
+});
 
 export type CraftingRecipe = z.infer<typeof CraftingRecipeSchema>;
 
 // ScriptBinding
-export const ScriptBindingSchema = z
-	.object({
-		guid: z.string(),
-		name: z.string().optional(),
-		vars: z.record(z.string(), z.string()).optional(),
-	});
+export const ScriptBindingSchema = z.object({
+	guid: z.string(),
+	name: z.string().optional(),
+	vars: z.record(z.string(), z.string()).optional(),
+});
 
 export type ScriptBinding = z.infer<typeof ScriptBindingSchema>;
 
@@ -311,332 +306,320 @@ export const DeployableInfoSchema = z
 export type DeployableInfo = z.infer<typeof DeployableInfoSchema>;
 
 // ItemAffinity
-export const ItemAffinitySchema = z
-	.object({
-		element: ElementSchema,
-		magnitude: z.number().min(0).max(1),
-	});
+export const ItemAffinitySchema = z.object({
+	element: ElementSchema,
+	magnitude: z.number().min(0).max(1),
+});
 
 export type ItemAffinity = z.infer<typeof ItemAffinitySchema>;
 
 // ItemSource
-export const ItemSourceSchema = z
-	.object({
-		source_type: z.string().optional(),
-		source_ref: z.string().optional(),
-		source_name: z.string().optional(),
-		drop_rate: z.number().optional(),
-		min_quantity: z.number().optional(),
-		max_quantity: z.number().optional(),
-		level_requirement: z.number().optional(),
-	});
+export const ItemSourceSchema = z.object({
+	source_type: z.string().optional(),
+	source_ref: z.string().optional(),
+	source_name: z.string().optional(),
+	drop_rate: z.number().optional(),
+	min_quantity: z.number().optional(),
+	max_quantity: z.number().optional(),
+	level_requirement: z.number().optional(),
+});
 
 export type ItemSource = z.infer<typeof ItemSourceSchema>;
 
 // CompressInfo
-export const CompressInfoSchema = z
-	.object({
-		target_ref: z.string(),
-		ratio: z.number(),
-		facility: z.string().optional(),
-	});
+export const CompressInfoSchema = z.object({
+	target_ref: z.string(),
+	ratio: z.number(),
+	facility: z.string().optional(),
+});
 
 export type CompressInfo = z.infer<typeof CompressInfoSchema>;
 
 // StackingInfo
-export const StackingInfoSchema = z
-	.object({
-		pack_max: z.number().optional(),
-		no_pack: z.boolean().optional(),
-		pool_group: z.string().optional(),
-	});
+export const StackingInfoSchema = z.object({
+	pack_max: z.number().optional(),
+	no_pack: z.boolean().optional(),
+	pool_group: z.string().optional(),
+});
 
 export type StackingInfo = z.infer<typeof StackingInfoSchema>;
 
 // WeaponInfo
-export const WeaponInfoSchema = z
-	.object({
-		range: z.number().optional(),
-		attack_speed: z.number().optional(),
-		projectile_ref: z.string().optional(),
-		ammo_ref: z.string().optional(),
-		compatible_ammo: z.array(z.string()).optional(),
-		damage_element: ElementSchema.optional(),
-		min_damage: z.number().optional(),
-		max_damage: z.number().optional(),
-		crit_chance: z.number().optional(),
-		crit_damage: z.number().optional(),
-		windup_ticks: z.number().optional(),
-		recovery_ticks: z.number().optional(),
-		aoe_radius: z.number().optional(),
-		two_handed: z.boolean().optional(),
-		charges: z.number().optional(),
-	});
+export const WeaponInfoSchema = z.object({
+	range: z.number().optional(),
+	attack_speed: z.number().optional(),
+	projectile_ref: z.string().optional(),
+	ammo_ref: z.string().optional(),
+	compatible_ammo: z.array(z.string()).optional(),
+	damage_element: ElementSchema.optional(),
+	min_damage: z.number().optional(),
+	max_damage: z.number().optional(),
+	crit_chance: z.number().optional(),
+	crit_damage: z.number().optional(),
+	windup_ticks: z.number().optional(),
+	recovery_ticks: z.number().optional(),
+	aoe_radius: z.number().optional(),
+	two_handed: z.boolean().optional(),
+	charges: z.number().optional(),
+});
 
 export type WeaponInfo = z.infer<typeof WeaponInfoSchema>;
 
 // FuelInfo
-export const FuelInfoSchema = z
-	.object({
-		burn_seconds: z.number(),
-		heat_output: z.number().optional(),
-		residue_ref: z.string().optional(),
-		residue_chance: z.number().optional(),
-		renewable: z.boolean().optional(),
-	});
+export const FuelInfoSchema = z.object({
+	burn_seconds: z.number(),
+	heat_output: z.number().optional(),
+	residue_ref: z.string().optional(),
+	residue_chance: z.number().optional(),
+	renewable: z.boolean().optional(),
+});
 
 export type FuelInfo = z.infer<typeof FuelInfoSchema>;
 
 // ContainerInfo
-export const ContainerInfoSchema = z
-	.object({
-		added_slots: z.number().optional(),
-		volume_multiplier: z.number().optional(),
-		weight_reduction: z.number().optional(),
-		category_filter: z.array(z.string()).optional(),
-		storage_slots: z.number().optional(),
-		shared_inventory: z.boolean().optional(),
-		locked_by_default: z.boolean().optional(),
-	});
+export const ContainerInfoSchema = z.object({
+	added_slots: z.number().optional(),
+	volume_multiplier: z.number().optional(),
+	weight_reduction: z.number().optional(),
+	category_filter: z.array(z.string()).optional(),
+	storage_slots: z.number().optional(),
+	shared_inventory: z.boolean().optional(),
+	locked_by_default: z.boolean().optional(),
+});
 
 export type ContainerInfo = z.infer<typeof ContainerInfoSchema>;
 
 // PlantingInfo
-export const PlantingInfoSchema = z
-	.object({
-		grows_into_ref: z.string(),
-		grow_seconds: z.number(),
-		yield_amount: z.number().optional(),
-		required_tile: z.string().optional(),
-		required_light: z.number().optional(),
-		water_per_hour: z.number().optional(),
-		multi_harvest: z.boolean().optional(),
-		regrow_seconds: z.number().optional(),
-		season: z.string().optional(),
-		frost_tolerance: z.number().optional(),
-	});
+export const PlantingInfoSchema = z.object({
+	grows_into_ref: z.string(),
+	grow_seconds: z.number(),
+	yield_amount: z.number().optional(),
+	required_tile: z.string().optional(),
+	required_light: z.number().optional(),
+	water_per_hour: z.number().optional(),
+	multi_harvest: z.boolean().optional(),
+	regrow_seconds: z.number().optional(),
+	season: z.string().optional(),
+	frost_tolerance: z.number().optional(),
+});
 
 export type PlantingInfo = z.infer<typeof PlantingInfoSchema>;
 
 // ProjectileInfo
-export const ProjectileInfoSchema = z
-	.object({
-		speed: z.number().optional(),
-		gravity: z.number().optional(),
-		pierce_count: z.number().optional(),
-		impact_effect_ref: z.string().optional(),
-		trail_ref: z.string().optional(),
-		homing: z.boolean().optional(),
-		splash_radius: z.number().optional(),
-		splash_falloff: z.number().optional(),
-	});
+export const ProjectileInfoSchema = z.object({
+	speed: z.number().optional(),
+	gravity: z.number().optional(),
+	pierce_count: z.number().optional(),
+	impact_effect_ref: z.string().optional(),
+	trail_ref: z.string().optional(),
+	homing: z.boolean().optional(),
+	splash_radius: z.number().optional(),
+	splash_falloff: z.number().optional(),
+});
 
 export type ProjectileInfo = z.infer<typeof ProjectileInfoSchema>;
 
 // TrapInfo
-export const TrapInfoSchema = z
-	.object({
-		trigger: z.string().optional(),
-		arming_seconds: z.number().optional(),
-		proximity_radius: z.number().optional(),
-		max_triggers: z.number().optional(),
-		reusable: z.boolean().optional(),
-		on_trigger: z.array(UseEffectSchema).optional(),
-	});
+export const TrapInfoSchema = z.object({
+	trigger: z.string().optional(),
+	arming_seconds: z.number().optional(),
+	proximity_radius: z.number().optional(),
+	max_triggers: z.number().optional(),
+	reusable: z.boolean().optional(),
+	on_trigger: z.array(UseEffectSchema).optional(),
+});
 
 export type TrapInfo = z.infer<typeof TrapInfoSchema>;
 
 // EnchantmentInfo
-export const EnchantmentInfoSchema = z
-	.object({
-		slug: z.string(),
-		bonuses: ItemBonusesSchema.optional(),
-		on_use: z.array(UseEffectSchema).optional(),
-		while_equipped: z.array(UseEffectSchema).optional(),
-		tier: z.number().optional(),
-		removable: z.boolean().optional(),
-		level_requirement: z.number().optional(),
-		affinities: z.array(ItemAffinitySchema).optional(),
-		resistances: z.array(ItemAffinitySchema).optional(),
-	});
+export const EnchantmentInfoSchema = z.object({
+	slug: z.string(),
+	bonuses: ItemBonusesSchema.optional(),
+	on_use: z.array(UseEffectSchema).optional(),
+	while_equipped: z.array(UseEffectSchema).optional(),
+	tier: z.number().optional(),
+	removable: z.boolean().optional(),
+	level_requirement: z.number().optional(),
+	affinities: z.array(ItemAffinitySchema).optional(),
+	resistances: z.array(ItemAffinitySchema).optional(),
+});
 
 export type EnchantmentInfo = z.infer<typeof EnchantmentInfoSchema>;
 
 // SpellInfo
-export const SpellInfoSchema = z
-	.object({
-		spell_ref: z.string(),
-		mana_cost: z.number().optional(),
-		cast_seconds: z.number().optional(),
-		cooldown_seconds: z.number().optional(),
-		scaling_stat: z.string().optional(),
-		scaling_multiplier: z.number().optional(),
-		base_damage: z.number().optional(),
-		element: ElementSchema.optional(),
-		range: z.number().optional(),
-		aoe_radius: z.number().optional(),
-		teaches_permanent: z.boolean().optional(),
-		consumed_on_cast: z.boolean().optional(),
-		charges: z.number().optional(),
-		side_effects: z.array(UseEffectSchema).optional(),
-	});
+export const SpellInfoSchema = z.object({
+	spell_ref: z.string(),
+	mana_cost: z.number().optional(),
+	cast_seconds: z.number().optional(),
+	cooldown_seconds: z.number().optional(),
+	scaling_stat: z.string().optional(),
+	scaling_multiplier: z.number().optional(),
+	base_damage: z.number().optional(),
+	element: ElementSchema.optional(),
+	range: z.number().optional(),
+	aoe_radius: z.number().optional(),
+	teaches_permanent: z.boolean().optional(),
+	consumed_on_cast: z.boolean().optional(),
+	charges: z.number().optional(),
+	side_effects: z.array(UseEffectSchema).optional(),
+});
 
 export type SpellInfo = z.infer<typeof SpellInfoSchema>;
 
 // BookInfo
-export const BookInfoSchema = z
-	.object({
-		body_text: z.string().optional(),
-		body_text_ref: z.string().optional(),
-		reading_seconds: z.number().optional(),
-		teaches_recipe_ref: z.string().optional(),
-		teaches_spell_ref: z.string().optional(),
-		unlocks_lore_ref: z.string().optional(),
-		consumed_on_read: z.boolean().optional(),
-		language: z.string().optional(),
-		chapters: z.array(z.string()).optional(),
-	});
+export const BookInfoSchema = z.object({
+	body_text: z.string().optional(),
+	body_text_ref: z.string().optional(),
+	reading_seconds: z.number().optional(),
+	teaches_recipe_ref: z.string().optional(),
+	teaches_spell_ref: z.string().optional(),
+	unlocks_lore_ref: z.string().optional(),
+	consumed_on_read: z.boolean().optional(),
+	language: z.string().optional(),
+	chapters: z.array(z.string()).optional(),
+});
 
 export type BookInfo = z.infer<typeof BookInfoSchema>;
 
 // KeyInfo
-export const KeyInfoSchema = z
-	.object({
-		unlocks_ref: z.string(),
-		unlock_category: z.string().optional(),
-		consumed_on_use: z.boolean().optional(),
-		grant_item_ref: z.string().optional(),
-		uses: z.number().optional(),
-		faction_lock: z.string().optional(),
-	});
+export const KeyInfoSchema = z.object({
+	unlocks_ref: z.string(),
+	unlock_category: z.string().optional(),
+	consumed_on_use: z.boolean().optional(),
+	grant_item_ref: z.string().optional(),
+	uses: z.number().optional(),
+	faction_lock: z.string().optional(),
+});
 
 export type KeyInfo = z.infer<typeof KeyInfoSchema>;
 
 // VehicleInfo
-export const VehicleInfoSchema = z
-	.object({
-		max_speed: z.number().optional(),
-		acceleration: z.number().optional(),
-		turn_rate: z.number().optional(),
-		passenger_capacity: z.number().optional(),
-		fuel_ref: z.string().optional(),
-		fuel_per_distance: z.number().optional(),
-		terrain_type: z.string().optional(),
-		cargo_slots: z.number().optional(),
-		cargo_weight_capacity: z.number().optional(),
-		damage_reduction: z.number().optional(),
-		requires_leash: z.boolean().optional(),
-	});
+export const VehicleInfoSchema = z.object({
+	max_speed: z.number().optional(),
+	acceleration: z.number().optional(),
+	turn_rate: z.number().optional(),
+	passenger_capacity: z.number().optional(),
+	fuel_ref: z.string().optional(),
+	fuel_per_distance: z.number().optional(),
+	terrain_type: z.string().optional(),
+	cargo_slots: z.number().optional(),
+	cargo_weight_capacity: z.number().optional(),
+	damage_reduction: z.number().optional(),
+	requires_leash: z.boolean().optional(),
+});
 
 export type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
 
 // ItemExtension
-export const ItemExtensionSchema = z
-	.object({
-		key: z.string(),
-		value: z.union([z.object({ string_value: z.string() }), z.object({ int_value: z.number() }), z.object({ float_value: z.number() }), z.object({ bool_value: z.boolean() }), z.object({ bytes_value: z.string() })]).optional(),
-	});
+export const ItemExtensionSchema = z.object({
+	key: z.string(),
+	value: z
+		.union([
+			z.object({ string_value: z.string() }),
+			z.object({ int_value: z.number() }),
+			z.object({ float_value: z.number() }),
+			z.object({ bool_value: z.boolean() }),
+			z.object({ bytes_value: z.string() }),
+		])
+		.optional(),
+});
 
 export type ItemExtension = z.infer<typeof ItemExtensionSchema>;
 
 // Item
-export const ItemSchema = z
-	.object({
-		id: z.string(),
-		ref: z.string(),
-		name: z.string(),
-		title: z.string().optional(),
-		description: z.string().optional(),
-		lore: z.string().optional(),
-		type_flags: z.number(),
-		rarity: ItemRaritySchema,
-		element: ElementSchema.optional(),
-		tags: z.array(z.string()).optional(),
-		img: z.string().optional(),
-		icon: z.string().optional(),
-		emoji: z.string().optional(),
-		pixel_density: z.number().min(8).max(512).optional(),
-		sorting_layer: z.string().optional(),
-		sorting_order: z.number().optional(),
-		model_ref: z.string().optional(),
-		animation_ref: z.string().optional(),
-		sound_ref: z.string().optional(),
-		max_stack: z.number().min(1).optional(),
-		stackable: z.boolean().optional(),
-		weight: z.number().min(0).optional(),
-		level_requirement: z.number().min(0).optional(),
-		quest_requirement: z.string().optional(),
-		buy_price: z.number().min(0).optional(),
-		sell_price: z.number().min(0).optional(),
-		tradeable: z.boolean().optional(),
-		consumable: z.boolean().optional(),
-		cooldown: z.number().min(0).optional(),
-		action: z.string().optional(),
-		use_effects: z.array(UseEffectSchema).optional(),
-		equipment: EquipmentInfoSchema.optional(),
-		food: FoodInfoSchema.optional(),
-		skilling: SkillingInfoSchema.optional(),
-		recipes: z.array(CraftingRecipeSchema).optional(),
-		deployable: DeployableInfoSchema.optional(),
-		resistances: z.array(ItemAffinitySchema).optional(),
-		affinities: z.array(ItemAffinitySchema).optional(),
-		scripts: z.array(ScriptBindingSchema).optional(),
-		sources: z.array(ItemSourceSchema).optional(),
-		related_item_refs: z.array(z.string()).optional(),
-		set_ref: z.string().optional(),
-		durability: z.number().optional(),
-		max_durability: z.number().optional(),
-		compress: CompressInfoSchema.optional(),
-		stacking: StackingInfoSchema.optional(),
-		pool_group: z.string().optional(),
-		weapon: WeaponInfoSchema.optional(),
-		fuel: FuelInfoSchema.optional(),
-		container: ContainerInfoSchema.optional(),
-		planting: PlantingInfoSchema.optional(),
-		projectile: ProjectileInfoSchema.optional(),
-		trap: TrapInfoSchema.optional(),
-		enchantment: EnchantmentInfoSchema.optional(),
-		volume: z.number().optional(),
-		spell: SpellInfoSchema.optional(),
-		book: BookInfoSchema.optional(),
-		unlock: KeyInfoSchema.optional(),
-		vehicle: VehicleInfoSchema.optional(),
-		light_radius: z.number().optional(),
-		light_color: z.string().optional(),
-		extensions: z.array(ItemExtensionSchema).optional(),
-		credits: z.string().optional(),
-		drafted: z.boolean().optional(),
-	});
+export const ItemSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	type_flags: z.number(),
+	rarity: ItemRaritySchema,
+	element: ElementSchema.optional(),
+	tags: z.array(z.string()).optional(),
+	img: z.string().optional(),
+	icon: z.string().optional(),
+	emoji: z.string().optional(),
+	pixel_density: z.number().min(8).max(512).optional(),
+	sorting_layer: z.string().optional(),
+	sorting_order: z.number().optional(),
+	model_ref: z.string().optional(),
+	animation_ref: z.string().optional(),
+	sound_ref: z.string().optional(),
+	max_stack: z.number().min(1).optional(),
+	stackable: z.boolean().optional(),
+	weight: z.number().min(0).optional(),
+	level_requirement: z.number().min(0).optional(),
+	quest_requirement: z.string().optional(),
+	buy_price: z.number().min(0).optional(),
+	sell_price: z.number().min(0).optional(),
+	tradeable: z.boolean().optional(),
+	consumable: z.boolean().optional(),
+	cooldown: z.number().min(0).optional(),
+	action: z.string().optional(),
+	use_effects: z.array(UseEffectSchema).optional(),
+	equipment: EquipmentInfoSchema.optional(),
+	food: FoodInfoSchema.optional(),
+	skilling: SkillingInfoSchema.optional(),
+	recipes: z.array(CraftingRecipeSchema).optional(),
+	deployable: DeployableInfoSchema.optional(),
+	resistances: z.array(ItemAffinitySchema).optional(),
+	affinities: z.array(ItemAffinitySchema).optional(),
+	scripts: z.array(ScriptBindingSchema).optional(),
+	sources: z.array(ItemSourceSchema).optional(),
+	related_item_refs: z.array(z.string()).optional(),
+	set_ref: z.string().optional(),
+	durability: z.number().optional(),
+	max_durability: z.number().optional(),
+	compress: CompressInfoSchema.optional(),
+	stacking: StackingInfoSchema.optional(),
+	pool_group: z.string().optional(),
+	weapon: WeaponInfoSchema.optional(),
+	fuel: FuelInfoSchema.optional(),
+	container: ContainerInfoSchema.optional(),
+	planting: PlantingInfoSchema.optional(),
+	projectile: ProjectileInfoSchema.optional(),
+	trap: TrapInfoSchema.optional(),
+	enchantment: EnchantmentInfoSchema.optional(),
+	volume: z.number().optional(),
+	spell: SpellInfoSchema.optional(),
+	book: BookInfoSchema.optional(),
+	unlock: KeyInfoSchema.optional(),
+	vehicle: VehicleInfoSchema.optional(),
+	light_radius: z.number().optional(),
+	light_color: z.string().optional(),
+	extensions: z.array(ItemExtensionSchema).optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+});
 
 export type Item = z.infer<typeof ItemSchema>;
 
 // SetBonus
-export const SetBonusSchema = z
-	.object({
-		pieces_required: z.number().min(1).max(10),
-		description: z.string().optional(),
-		stat_bonuses: ItemBonusesSchema.optional(),
-		effects: z.array(UseEffectSchema).optional(),
-	});
+export const SetBonusSchema = z.object({
+	pieces_required: z.number().min(1).max(10),
+	description: z.string().optional(),
+	stat_bonuses: ItemBonusesSchema.optional(),
+	effects: z.array(UseEffectSchema).optional(),
+});
 
 export type SetBonus = z.infer<typeof SetBonusSchema>;
 
 // ItemSet
-export const ItemSetSchema = z
-	.object({
-		set_id: z.string(),
-		set_name: z.string(),
-		item_refs: z.array(z.string()).optional(),
-		bonuses: z.array(SetBonusSchema).optional(),
-	});
+export const ItemSetSchema = z.object({
+	set_id: z.string(),
+	set_name: z.string(),
+	item_refs: z.array(z.string()).optional(),
+	bonuses: z.array(SetBonusSchema).optional(),
+});
 
 export type ItemSet = z.infer<typeof ItemSetSchema>;
 
 // ItemRegistry
-export const ItemRegistrySchema = z
-	.object({
-		items: z.array(ItemSchema).optional(),
-		sets: z.array(ItemSetSchema).optional(),
-	});
+export const ItemRegistrySchema = z.object({
+	items: z.array(ItemSchema).optional(),
+	sets: z.array(ItemSetSchema).optional(),
+});
 
 export type ItemRegistry = z.infer<typeof ItemRegistrySchema>;

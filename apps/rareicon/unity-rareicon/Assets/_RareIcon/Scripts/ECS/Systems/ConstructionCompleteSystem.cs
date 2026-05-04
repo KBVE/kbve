@@ -170,17 +170,17 @@ namespace RareIcon
                     });
                     Ecb.AddComponent(chunkIdx, entity, new OutpostVolley
                     {
-                        CooldownSeconds    = 30f,
-                        TimeSinceVolley    = 30f,
+                        CooldownSeconds    = 10f,
+                        TimeSinceVolley    = 10f,
                         Range              = 15f,
                         ArrowsPerVolley    = 20,
                         ArrowCost          = 5,
                         SpreadHalfAngleRad = 0.52f,
                         ProjectileSpeed    = 14f,
                         ProjectileLifetime = 3f,
-                        DamagePerArrow     = 8f,
+                        DamagePerArrow     = 9f,
                     });
-                    Ecb.AddComponent(chunkIdx, entity, new OutpostArrowPool { Stock = 100 });
+                    Ecb.AddComponent(chunkIdx, entity, new OutpostArrowPool { Stock = 160 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 10 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 1 });

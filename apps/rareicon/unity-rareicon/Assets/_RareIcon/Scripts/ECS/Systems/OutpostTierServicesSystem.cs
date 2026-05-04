@@ -68,9 +68,13 @@ namespace RareIcon
             switch (t)
             {
                 case 0:
+                    // Cadence dropped from 30s -> 10s + light damage bump
+                    // so the basic Outpost actually feels like a defensive
+                    // structure during raids. Pool sized so a 10s cadence
+                    // sustains ~20 minutes between hauler refills.
                     radius = 5;
-                    volleyCooldown = 30f; volleyRange = 15f; volleyDamage = 8f;
-                    volleyArrows = 20; volleyArrowCost = 5; poolStock = 100;
+                    volleyCooldown = 10f; volleyRange = 15f; volleyDamage = 9f;
+                    volleyArrows = 20; volleyArrowCost = 5; poolStock = 160;
                     break;
                 case 2:
                     radius = 9;

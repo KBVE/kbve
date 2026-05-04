@@ -40,7 +40,7 @@ bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc", features = ["creatur
 # Flow field pathfinding — pure algorithms, no Bevy feature needed here
 # (the grid/flow types are plain Rust structs wrapped as Bevy Resources
 # inside our own ECS module).
-bevy_pathfinding = { path = "../../../packages/rust/bevy/bevy_pathfinding" }
+bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder" }
 
 # Shared behavior tree engine — BehaviorNode trait, Selector/Sequence
 # composites, cooldown system, observation traits. MC-specific nodes

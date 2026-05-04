@@ -3,68 +3,63 @@
  *
  * Source: ../descriptors/snapshot.binpb
  * Config: ../snapshot-zod-config.json
- * Generated: 2026-05-03T09:31:28.496Z
+ * Generated: 2026-05-04T06:27:06.687Z
  */
 
 import { z } from 'zod';
 
 // Error
-export const ErrorSchema = z
-	.object({
-		code: z.number(),
-		message: z.string(),
-	});
+export const ErrorSchema = z.object({
+	code: z.number(),
+	message: z.string(),
+});
 
 export type Error = z.infer<typeof ErrorSchema>;
 
 // ConnectResponse
-export const ConnectResponseSchema = z
-	.object({
-		success: z.boolean(),
-		session_id: z.string(),
-		server_version: z.string(),
-		server_time: z.number(),
-	});
+export const ConnectResponseSchema = z.object({
+	success: z.boolean(),
+	session_id: z.string(),
+	server_version: z.string(),
+	server_time: z.number(),
+});
 
 export type ConnectResponse = z.infer<typeof ConnectResponseSchema>;
 
 // ClientReady
-export const ClientReadySchema = z
-	.object({
-		client_version: z.string(),
-	});
+export const ClientReadySchema = z.object({
+	client_version: z.string(),
+});
 
 export type ClientReady = z.infer<typeof ClientReadySchema>;
 
 // Pong
-export const PongSchema = z
-	.object({
-		client_timestamp: z.number(),
-		server_timestamp: z.number(),
-	});
+export const PongSchema = z.object({
+	client_timestamp: z.number(),
+	server_timestamp: z.number(),
+});
 
 export type Pong = z.infer<typeof PongSchema>;
 
 // Ping
-export const PingSchema = z
-	.object({
-		timestamp: z.number(),
-	});
+export const PingSchema = z.object({
+	timestamp: z.number(),
+});
 
 export type Ping = z.infer<typeof PingSchema>;
 
 // ServerMessage
-export const ServerMessageSchema = z
-	.object({
-		payload: z.union([PongSchema, ConnectResponseSchema, ErrorSchema]).optional(),
-	});
+export const ServerMessageSchema = z.object({
+	payload: z
+		.union([PongSchema, ConnectResponseSchema, ErrorSchema])
+		.optional(),
+});
 
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;
 
 // ClientMessage
-export const ClientMessageSchema = z
-	.object({
-		payload: z.union([PingSchema, ClientReadySchema]).optional(),
-	});
+export const ClientMessageSchema = z.object({
+	payload: z.union([PingSchema, ClientReadySchema]).optional(),
+});
 
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;

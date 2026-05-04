@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kyverno
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '1'
+spec:
+    project: default
+    source:
+        repoURL: https://kyverno.github.io/kyverno
+        chart: kyverno
+        targetRevision: 3.4.4
+        helm:
+            values: |
+                fullnameOverride: kyverno
+                # Admission controller: 2 replicas for HA. Background
+                # controller: handle generate/synchronize rules.
+                admissionController:
+                    replicas: 2
+                    resources:
+                        limits: { cpu: 1000m, memory: 1Gi }
+                        requests: { cpu: 100m, memory: 256Mi }
+                backgroundController:
+                    replicas: 1
+                    resources:
+                        limits: { cpu: 500m, memory: 512Mi }
+                        requests: { cpu: 50m, memory: 128Mi }
+                cleanupController:
+                    replicas: 1
+                reportsController:
+                    replicas: 1
+                # Skip enforcing on system namespaces so we don't lock
+                # ourselves out of cluster bootstrap.
+                config:
+                    excludeKyvernoNamespace: true
+                    resourceFilters:
+                        - '[Event,*,*]'
+                        - '[Node,*,*]'
+                        - '[Node/*,*,*]'
+                        - '[APIService,*,*]'
+                        - '[APIService/*,*,*]'
+                        - '[TokenReview,*,*]'
+                        - '[SubjectAccessReview,*,*]'
+                        - '[SelfSubjectAccessReview,*,*]'
+                        - '[Binding,*,*]'
+                        - '[ReplicaSet,*,*]'
+                        - '[ReplicaSet/*,*,*]'
+                        - '[AdmissionReport,*,*]'
+                        - '[ClusterAdmissionReport,*,*]'
+                        - '[BackgroundScanReport,*,*]'
+                        - '[ClusterBackgroundScanReport,*,*]'
+                        - '[ClusterRole,*,system:*]'
+                        - '[ClusterRoleBinding,*,system:*]'
+                        - '[Role,*,system:*]'
+                        - '[RoleBinding,*,system:*]'
+                        - '[*,kube-system,*]'
+                        - '[*,kube-public,*]'
+                        - '[*,kube-node-lease,*]'
+                        - '[*,argocd,*]'
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kyverno
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true

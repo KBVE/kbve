@@ -102,7 +102,7 @@ impl FlowField {
     /// # Examples
     ///
     /// ```
-    /// use bevy_pathfinding::{grid::{BlockGrid, CellNav, SurfaceKind}, flow_field::FlowField};
+    /// use bevy_pathfinder::{grid::{BlockGrid, CellNav, SurfaceKind}, flow_field::FlowField};
     ///
     /// let mut grid = BlockGrid::new(0, 0, 4, 4);
     /// for (x, z, _) in grid.clone().iter() {
