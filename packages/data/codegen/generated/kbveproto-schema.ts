@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/kbveproto.binpb
  * Config: ../kbveproto-zod-config.json
- * Generated: 2026-05-04T06:27:06.685Z
+ * Generated: 2026-05-04T21:04:26.546Z
  */
 
 import { z } from 'zod';

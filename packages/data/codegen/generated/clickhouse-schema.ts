@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/clickhouse.binpb
  * Config: ../clickhouse-zod-config.json
- * Generated: 2026-05-04T06:27:06.672Z
+ * Generated: 2026-05-04T21:04:26.535Z
  */
 
 import { z } from 'zod';

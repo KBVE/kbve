@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-05-04T06:27:06.670Z
+ * Generated: 2026-05-04T21:04:26.534Z
  */
 
 import { z } from 'zod';
@@ -306,6 +306,32 @@ export const MapExtensionSchema = z.object({
 
 export type MapExtension = z.infer<typeof MapExtensionSchema>;
 
+// WeatherProfile
+export const WeatherProfileSchema = z.object({
+	kind: z.string(),
+	weight: z.number(),
+	duration_secs: z.number().optional(),
+	season_filter: z.string().optional(),
+	time_of_day_filter: z.string().optional(),
+	event_refs: z.array(z.string()).optional(),
+});
+
+export type WeatherProfile = z.infer<typeof WeatherProfileSchema>;
+
+// ClimateConfig
+export const ClimateConfigSchema = z.object({
+	default_season: z.string().optional(),
+	season_cycle_secs: z.number().optional(),
+	weather_rotation: z.array(WeatherProfileSchema).optional(),
+	baseline_temperature: z.number().optional(),
+	temperature_variance: z.number().optional(),
+	holiday_event_refs: z.array(z.string()).optional(),
+	day_night_locked: z.boolean().optional(),
+	locked_time_of_day: z.string().optional(),
+});
+
+export type ClimateConfig = z.infer<typeof ClimateConfigSchema>;
+
 // Region
 export const RegionSchema = z.object({
 	id: z.string(),
@@ -319,6 +345,16 @@ export const RegionSchema = z.object({
 	gravity: z.number().optional(),
 	day_cycle_secs: z.number().optional(),
 	extensions: z.array(MapExtensionSchema).optional(),
+	faction_refs: z.array(z.string()).optional(),
+	settlement_refs: z.array(z.string()).optional(),
+	territory_claim_refs: z.array(z.string()).optional(),
+	trade_route_refs: z.array(z.string()).optional(),
+	landmark_refs: z.array(z.string()).optional(),
+	culture_refs: z.array(z.string()).optional(),
+	religion_refs: z.array(z.string()).optional(),
+	climate: ClimateConfigSchema.optional(),
+	dominant_culture_ref: z.string().optional(),
+	dominant_religion_ref: z.string().optional(),
 });
 
 export type Region = z.infer<typeof RegionSchema>;
@@ -475,6 +511,12 @@ export const SpawnPointSchema = z.object({
 	group_min: z.number().optional(),
 	group_max: z.number().optional(),
 	group_radius: z.number().optional(),
+	time_of_day_kind: z.string().optional(),
+	weather_kind: z.string().optional(),
+	season: z.string().optional(),
+	faction_ref: z.string().optional(),
+	territory_claim_ref: z.string().optional(),
+	settlement_ref: z.string().optional(),
 });
 
 export type SpawnPoint = z.infer<typeof SpawnPointSchema>;
@@ -611,6 +653,14 @@ export const ZoneSchema = z.object({
 	replication: ReplicationHintSchema.optional(),
 	environment: EnvironmentConfigSchema.optional(),
 	seed_policy: SeedPolicySchema.optional(),
+	faction_ref: z.string().optional(),
+	settlement_refs: z.array(z.string()).optional(),
+	territory_claim_refs: z.array(z.string()).optional(),
+	landmark_refs: z.array(z.string()).optional(),
+	trade_route_refs: z.array(z.string()).optional(),
+	culture_ref: z.string().optional(),
+	religion_ref: z.string().optional(),
+	climate: ClimateConfigSchema.optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),
 });
@@ -864,6 +914,13 @@ export const WorldObjectDefSchema = z.object({
 	quest_giver: QuestGiverSpecSchema.optional(),
 	aura: AuraSpecSchema.optional(),
 	faction: z.string().optional(),
+	faction_ref: z.string().optional(),
+	settlement_ref: z.string().optional(),
+	district_ref: z.string().optional(),
+	culture_ref: z.string().optional(),
+	religion_ref: z.string().optional(),
+	dialogue_tree_ref: z.string().optional(),
+	interaction_cooldown_secs: z.number().optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;
@@ -915,12 +972,406 @@ export const HexWorldMapSchema = z.object({
 
 export type HexWorldMap = z.infer<typeof HexWorldMapSchema>;
 
+// Banner
+export const BannerSchema = z.object({
+	primary: ColorSchema.optional(),
+	secondary: ColorSchema.optional(),
+	tertiary: ColorSchema.optional(),
+	sigil_ref: z.string().optional(),
+	motto: z.string().optional(),
+	anthem_ref: z.string().optional(),
+	crest_pattern: z.string().optional(),
+});
+
+export type Banner = z.infer<typeof BannerSchema>;
+
+// ResourceLedger
+export const ResourceLedgerSchema = z.object({
+	resources: z.record(z.string(), z.number()).optional(),
+	capacity_per_item: z.record(z.string(), z.number()).optional(),
+	total_capacity: z.number().optional(),
+	unlimited: z.boolean().optional(),
+});
+
+export type ResourceLedger = z.infer<typeof ResourceLedgerSchema>;
+
+// DiplomaticRelation
+export const DiplomaticRelationSchema = z.object({
+	from_faction_ref: z.string(),
+	to_faction_ref: z.string(),
+	stance: z.string(),
+	reputation: z.number(),
+	treaty_ref: z.string().optional(),
+	expires_at_turn: z.number().optional(),
+	established_at_turn: z.number().optional(),
+});
+
+export type DiplomaticRelation = z.infer<typeof DiplomaticRelationSchema>;
+
+// Faction
+export const FactionSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	short_name: z.string().optional(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	government: z.string(),
+	banner: BannerSchema.optional(),
+	culture_ref: z.string().optional(),
+	religion_ref: z.string().optional(),
+	archetype: z.string().optional(),
+	ruler_unit_ref: z.string().optional(),
+	heir_unit_ref: z.string().optional(),
+	council_unit_refs: z.array(z.string()).optional(),
+	capital_settlement_ref: z.string().optional(),
+	member_settlement_refs: z.array(z.string()).optional(),
+	member_zone_refs: z.array(z.string()).optional(),
+	member_unit_refs: z.array(z.string()).optional(),
+	vassal_faction_refs: z.array(z.string()).optional(),
+	overlord_faction_ref: z.string().optional(),
+	treasury: ResourceLedgerSchema.optional(),
+	trade_route_refs: z.array(z.string()).optional(),
+	taxation_rate: z.number().optional(),
+	tribute_rate: z.number().optional(),
+	relations: z.array(DiplomaticRelationSchema).optional(),
+	allied_faction_refs: z.array(z.string()).optional(),
+	hostile_faction_refs: z.array(z.string()).optional(),
+	treaty_refs: z.array(z.string()).optional(),
+	prestige: z.number().optional(),
+	stability: z.number().optional(),
+	tech_level: z.number().optional(),
+	manpower: z.number().optional(),
+	aggression: z.number().optional(),
+	trait_refs: z.array(z.string()).optional(),
+	color_hex: z.string().optional(),
+	destroyed: z.boolean().optional(),
+	founded_at_turn: z.number().optional(),
+	destroyed_at_turn: z.number().optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Faction = z.infer<typeof FactionSchema>;
+
+// District
+export const DistrictSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	type: z.string(),
+	description: z.string().optional(),
+	bounds: Bounds2DSchema.optional(),
+	grid_cells: z.array(GridPosSchema).optional(),
+	hexes: z.array(HexCoordSchema).optional(),
+	population: z.number().optional(),
+	population_cap: z.number().optional(),
+	wealth_index: z.number().optional(),
+	crime_rate: z.number().optional(),
+	happiness: z.number().optional(),
+	pollution: z.number().optional(),
+	building_refs: z.array(z.string()).optional(),
+	npc_refs: z.array(z.string()).optional(),
+	service_kinds: z.array(z.string()).optional(),
+	district_quest_ref: z.string().optional(),
+	walled: z.boolean().optional(),
+	destroyed: z.boolean().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type District = z.infer<typeof DistrictSchema>;
+
+// Settlement
+export const SettlementSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	tier: z.string(),
+	faction_ref: z.string().optional(),
+	culture_ref: z.string().optional(),
+	religion_ref: z.string().optional(),
+	mayor_unit_ref: z.string().optional(),
+	council_unit_refs: z.array(z.string()).optional(),
+	region_ref: z.string().optional(),
+	zone_ref: z.string().optional(),
+	aux_zone_refs: z.array(z.string()).optional(),
+	position: WorldPosSchema.optional(),
+	grid_pos: GridPosSchema.optional(),
+	hex: HexCoordSchema.optional(),
+	footprint_bounds: Bounds2DSchema.optional(),
+	footprint_hexes: z.array(HexCoordSchema).optional(),
+	population: z.number().optional(),
+	population_cap: z.number().optional(),
+	growth_rate: z.number().optional(),
+	garrison_size: z.number().optional(),
+	manpower_pool: z.number().optional(),
+	treasury: ResourceLedgerSchema.optional(),
+	granary: ResourceLedgerSchema.optional(),
+	tax_rate: z.number().optional(),
+	tariff_rate: z.number().optional(),
+	trade_route_refs: z.array(z.string()).optional(),
+	export_item_refs: z.array(z.string()).optional(),
+	import_item_refs: z.array(z.string()).optional(),
+	districts: z.array(DistrictSchema).optional(),
+	building_refs: z.array(z.string()).optional(),
+	landmark_refs: z.array(z.string()).optional(),
+	poi_refs: z.array(z.string()).optional(),
+	service_kinds: z.array(z.string()).optional(),
+	capital: z.boolean().optional(),
+	walled: z.boolean().optional(),
+	wall_health: z.number().optional(),
+	besieged: z.boolean().optional(),
+	besieging_faction_ref: z.string().optional(),
+	destroyed: z.boolean().optional(),
+	occupied: z.boolean().optional(),
+	occupier_faction_ref: z.string().optional(),
+	discoverable: z.boolean().optional(),
+	discovery_quest_ref: z.string().optional(),
+	prerequisite_quest_refs: z.array(z.string()).optional(),
+	banner: BannerSchema.optional(),
+	icon: z.string().optional(),
+	marker_icon: z.string().optional(),
+	img: z.string().optional(),
+	founded_at_turn: z.number().optional(),
+	destroyed_at_turn: z.number().optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Settlement = z.infer<typeof SettlementSchema>;
+
+// TerritoryClaim
+export const TerritoryClaimSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	faction_ref: z.string(),
+	kind: z.string(),
+	hexes: z.array(HexCoordSchema).optional(),
+	bounds: Bounds2DSchema.optional(),
+	zone_refs: z.array(z.string()).optional(),
+	settlement_refs: z.array(z.string()).optional(),
+	strength: z.number().optional(),
+	garrison_size: z.number().optional(),
+	contested_by_faction_ref: z.string().optional(),
+	contest_progress: z.number().optional(),
+	claimed_at_turn: z.number().optional(),
+	expires_at_turn: z.number().optional(),
+	sacred: z.boolean().optional(),
+	casus_belli_ref: z.string().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type TerritoryClaim = z.infer<typeof TerritoryClaimSchema>;
+
+// TradeRouteStop
+export const TradeRouteStopSchema = z.object({
+	settlement_ref: z.string().optional(),
+	hex: HexCoordSchema.optional(),
+	position: WorldPosSchema.optional(),
+	dwell_secs: z.number().optional(),
+	refuel: z.boolean().optional(),
+	toll: z.boolean().optional(),
+});
+
+export type TradeRouteStop = z.infer<typeof TradeRouteStopSchema>;
+
+// TradeCargo
+export const TradeCargoSchema = z.object({
+	item_ref: z.string(),
+	amount_per_caravan: z.number(),
+	category: z.string(),
+	buy_price_at_origin: z.number().optional(),
+	sell_price_at_destination: z.number().optional(),
+	perishable: z.boolean().optional(),
+	restricted: z.boolean().optional(),
+});
+
+export type TradeCargo = z.infer<typeof TradeCargoSchema>;
+
+// TradeRoute
+export const TradeRouteSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	from_settlement_ref: z.string(),
+	to_settlement_ref: z.string(),
+	stops: z.array(TradeRouteStopSchema).optional(),
+	route_kind: z.string(),
+	cargo: z.array(TradeCargoSchema).optional(),
+	cadence_secs: z.number().optional(),
+	distance: z.number().optional(),
+	caravan_size: z.number().optional(),
+	caravan_health: z.number().optional(),
+	danger_level: z.number().optional(),
+	protection_unit_refs: z.array(z.string()).optional(),
+	operator_faction_ref: z.string().optional(),
+	profit_per_run: z.number().optional(),
+	active: z.boolean().optional(),
+	established_at_turn: z.number().optional(),
+	last_run_at_turn: z.number().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type TradeRoute = z.infer<typeof TradeRouteSchema>;
+
+// Landmark
+export const LandmarkSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	significance: z.string(),
+	zone_ref: z.string().optional(),
+	region_ref: z.string().optional(),
+	settlement_ref: z.string().optional(),
+	faction_ref: z.string().optional(),
+	culture_ref: z.string().optional(),
+	religion_ref: z.string().optional(),
+	position: WorldPosSchema.optional(),
+	grid_pos: GridPosSchema.optional(),
+	hex: HexCoordSchema.optional(),
+	discovery_radius: z.number().optional(),
+	img: z.string().optional(),
+	icon: z.string().optional(),
+	marker_icon: z.string().optional(),
+	marker_color: ColorSchema.optional(),
+	interaction_world_object_ref: z.string().optional(),
+	discoverable: z.boolean().optional(),
+	fast_travel: z.boolean().optional(),
+	respawn_point: z.boolean().optional(),
+	unique: z.boolean().optional(),
+	destroyed: z.boolean().optional(),
+	discovery_quest_ref: z.string().optional(),
+	prerequisite_quest_refs: z.array(z.string()).optional(),
+	event_ref: z.string().optional(),
+	npc_refs: z.array(z.string()).optional(),
+	quest_refs: z.array(z.string()).optional(),
+	dialogue_tree_ref: z.string().optional(),
+	shop_ref: z.string().optional(),
+	dungeon_zone_ref: z.string().optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Landmark = z.infer<typeof LandmarkSchema>;
+
+// Culture
+export const CultureSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	archetype: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	language_ref: z.string().optional(),
+	name_pool_refs: z.array(z.string()).optional(),
+	banner: BannerSchema.optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Culture = z.infer<typeof CultureSchema>;
+
+// Religion
+export const ReligionSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	alignment: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	deity_refs: z.array(z.string()).optional(),
+	holy_site_refs: z.array(z.string()).optional(),
+	forbidden_action_refs: z.array(z.string()).optional(),
+	blessed_skill_refs: z.array(z.string()).optional(),
+	banner: BannerSchema.optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Religion = z.infer<typeof ReligionSchema>;
+
+// Treaty
+export const TreatySchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	signatory_faction_refs: z.array(z.string()).optional(),
+	description: z.string().optional(),
+	signed_at_turn: z.number().optional(),
+	expires_at_turn: z.number().optional(),
+	clause_refs: z.array(z.string()).optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type Treaty = z.infer<typeof TreatySchema>;
+
+// DialogueChoice
+export const DialogueChoiceSchema = z.object({
+	text: z.string(),
+	next_node_id: z.string(),
+	required_flag_refs: z.array(z.string()).optional(),
+	skill_check_ref: z.string().optional(),
+	set_flag_ref: z.string().optional(),
+	reputation_delta: z.number().optional(),
+	faction_ref: z.string().optional(),
+});
+
+export type DialogueChoice = z.infer<typeof DialogueChoiceSchema>;
+
+// DialogueNode
+export const DialogueNodeSchema = z.object({
+	id: z.string(),
+	kind: z.string(),
+	speaker_ref: z.string().optional(),
+	text: z.string().optional(),
+	voice_ref: z.string().optional(),
+	choices: z.array(DialogueChoiceSchema).optional(),
+	next_node_id: z.string().optional(),
+	quest_ref: z.string().optional(),
+	shop_ref: z.string().optional(),
+	script_ref: z.string().optional(),
+	required_flag_refs: z.array(z.string()).optional(),
+	set_flag_refs: z.array(z.string()).optional(),
+});
+
+export type DialogueNode = z.infer<typeof DialogueNodeSchema>;
+
+// DialogueTree
+export const DialogueTreeSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	root_node_id: z.string(),
+	nodes: z.array(DialogueNodeSchema).optional(),
+	default_speaker_ref: z.string().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
+
+export type DialogueTree = z.infer<typeof DialogueTreeSchema>;
+
 // MapRegistry
 export const MapRegistrySchema = z.object({
 	regions: z.array(RegionSchema).optional(),
 	zones: z.array(ZoneSchema).optional(),
 	object_defs: z.array(WorldObjectDefSchema).optional(),
 	hex_worlds: z.array(HexWorldMapSchema).optional(),
+	factions: z.array(FactionSchema).optional(),
+	settlements: z.array(SettlementSchema).optional(),
+	territory_claims: z.array(TerritoryClaimSchema).optional(),
+	trade_routes: z.array(TradeRouteSchema).optional(),
+	landmarks: z.array(LandmarkSchema).optional(),
+	cultures: z.array(CultureSchema).optional(),
+	religions: z.array(ReligionSchema).optional(),
+	treaties: z.array(TreatySchema).optional(),
+	dialogue_trees: z.array(DialogueTreeSchema).optional(),
+	climates: z.array(ClimateConfigSchema).optional(),
 });
 
 export type MapRegistry = z.infer<typeof MapRegistrySchema>;
