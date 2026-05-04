@@ -1,20 +1,31 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Moves bag items (Pouch/Bag/Pack) from a unit's InventorySlot buffer into its EquippedBag buffer, up to InventoryUtil.MaxEquippedBags.</summary>
+    /// <summary>Moves bag items (Pouch/Bag/Pack) from a unit's PackSlot buffer into its EquippedBag buffer, up to <see cref="InventoryUtil.MaxEquippedBags"/>. Change-filtered on PackSlot — the job only runs for entities whose pack actually shifted since last tick, so the system stays asleep when nobody picked anything up.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct BagAutoEquipSystem : ISystem
     {
-        [BurstCompile] public void OnCreate(ref SystemState state) { }
+        EntityQuery _query;
+
+        public void OnCreate(ref SystemState state)
+        {
+            _query = new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<PackSlot, EquippedBag>()
+                .Build(ref state);
+            _query.SetChangedVersionFilter(ComponentType.ReadOnly<PackSlot>());
+            state.RequireForUpdate(_query);
+        }
+
         [BurstCompile] public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            state.Dependency = new AutoEquipJob().ScheduleParallel(state.Dependency);
+            state.Dependency = new AutoEquipJob().ScheduleParallel(_query, state.Dependency);
         }
     }
 

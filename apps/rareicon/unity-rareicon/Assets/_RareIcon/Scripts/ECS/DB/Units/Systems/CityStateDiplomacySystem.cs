@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Drains player-emitted city-state diplomacy requests — Gift, Annex, Raze. Managed SystemBase because raze fires a toast + future loot drop, and annex flips Building/Faction structurally. Each request entity is destroyed after processing whether or not the action was honored.</summary>
+    /// <summary>Drains player-emitted city-state diplomacy requests — Gift, Annex, Raze. Managed SystemBase because raze fires a toast + future loot drop, and annex flips Building/Faction structurally. Each request entity is destroyed after processing whether or not the action was honored. Gated via <c>RequireAnyForUpdate</c> on the three request queries so the system stays asleep until the player actually emits one.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(CityStateMoodDriftSystem))]
@@ -15,23 +15,32 @@ namespace RareIcon
         IPublisher<ToastMessage> _toastPub;
         Unity.Mathematics.Random _rng;
 
+        EntityQuery _giftQuery;
+        EntityQuery _annexQuery;
+        EntityQuery _razeQuery;
+
         protected override void OnCreate()
         {
             _rng = new Unity.Mathematics.Random(0xC1A1B0E9u);
+
+            _giftQuery  = GetEntityQuery(ComponentType.ReadOnly<CityStateGiftRequest>());
+            _annexQuery = GetEntityQuery(ComponentType.ReadOnly<CityStateAnnexRequest>());
+            _razeQuery  = GetEntityQuery(ComponentType.ReadOnly<CityStateRazeRequest>());
+
+            RequireAnyForUpdate(_giftQuery, _annexQuery, _razeQuery);
         }
 
         protected override void OnUpdate()
         {
             var em = EntityManager;
-            DrainGifts(em);
-            DrainAnnexes(em);
-            DrainRazes(em);
+            if (!_giftQuery.IsEmpty)  DrainGifts(em);
+            if (!_annexQuery.IsEmpty) DrainAnnexes(em);
+            if (!_razeQuery.IsEmpty)  DrainRazes(em);
         }
 
         void DrainGifts(EntityManager em)
         {
-            using var requests = GetEntityQuery(ComponentType.ReadOnly<CityStateGiftRequest>())
-                .ToEntityArray(Allocator.Temp);
+            using var requests = _giftQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
 
             Entity capital = Entity.Null;
@@ -80,8 +89,7 @@ namespace RareIcon
 
         void DrainAnnexes(EntityManager em)
         {
-            using var requests = GetEntityQuery(ComponentType.ReadOnly<CityStateAnnexRequest>())
-                .ToEntityArray(Allocator.Temp);
+            using var requests = _annexQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
 
             for (int i = 0; i < requests.Length; i++)
@@ -119,8 +127,7 @@ namespace RareIcon
 
         void DrainRazes(EntityManager em)
         {
-            using var requests = GetEntityQuery(ComponentType.ReadOnly<CityStateRazeRequest>())
-                .ToEntityArray(Allocator.Temp);
+            using var requests = _razeQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
 
             Entity capital = Entity.Null;

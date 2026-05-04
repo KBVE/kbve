@@ -3,14 +3,11 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Couples a unit's <see cref="Equipment"/> slots (shield/weapon/helmet/armor) to its <see cref="Unit"/> byte fields, and pulls the highest-tier matching item out of the unit's pack into each empty / lower-tier slot. Runs every <see cref="PollInterval"/> seconds — pack ≤ 8 slots per unit, 4 slots scanned, so the per-tick cost stays trivial. Equipment is the source of truth; the pack copy is consumed on auto-equip. <see cref="EquipmentVisualMirrorSystem"/> turns the Unit bytes into MaterialProperty floats, so this system is the only writer of Unit equipment bytes.</summary>
+    /// <summary>Couples a unit's <see cref="Equipment"/> slots (shield/weapon/helmet/armor) to its <see cref="Unit"/> byte fields, pulls the highest-tier matching item out of the pack into each empty / lower-tier slot, and rebuilds <see cref="DefenseMitigation"/> for the damage pipeline. Change-filtered on Equipment + PackSlot so OnUpdate is a no-op while nothing has shifted; <see cref="RequireForUpdate"/> on the same query gates the call entirely. <see cref="EquipmentVisualMirrorSystem"/> turns the Unit bytes into MaterialProperty floats — this system is the only writer of Unit equipment bytes.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class EquipmentSyncSystem : SystemBase
     {
-        const float PollInterval = 0.5f;
-        float _accum;
-
         EntityQuery _equipQuery;
 
         protected override void OnCreate()
@@ -19,16 +16,16 @@ namespace RareIcon
                 ComponentType.ReadWrite<Equipment>(),
                 ComponentType.ReadWrite<Unit>(),
                 ComponentType.ReadWrite<PackSlot>());
+            _equipQuery.SetChangedVersionFilter(new[]
+            {
+                ComponentType.ReadOnly<Equipment>(),
+                ComponentType.ReadOnly<PackSlot>(),
+            });
+            RequireForUpdate(_equipQuery);
         }
 
         protected override void OnUpdate()
         {
-            _accum += SystemAPI.Time.DeltaTime;
-            if (_accum < PollInterval) return;
-            _accum = 0f;
-
-            if (_equipQuery.IsEmpty) return;
-
             var em = EntityManager;
             using var entities = _equipQuery.ToEntityArray(Allocator.Temp);
 
@@ -62,10 +59,6 @@ namespace RareIcon
 
                 if (unitDirty) em.SetComponentData(entity, unit);
 
-                // Mirror equipment into combat-facing mitigation numbers
-                // so DamageJob can read armor / shield reduction without
-                // touching the Equipment payload. Lazy-add since most
-                // early-game spawns ship without Equipment.
                 var shieldRoll = DefenseDB.ShieldMitigation(equipment.ShieldItemId);
                 var mit = new DefenseMitigation
                 {
