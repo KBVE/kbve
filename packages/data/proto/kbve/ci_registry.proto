@@ -112,6 +112,7 @@ message ExternalPublish {
   optional string modrinth_loaders = 5;         // JSON array string, e.g. '["fabric"]'
   optional uint32 modrinth_retain_count = 6;    // Newest versions to keep; older ones are pruned. 0/unset = default 3.
   optional string modrinth_rolling_version = 7; // If set (any non-empty value, e.g. "latest"), CI keeps a single featured slot per project and replaces its file every publish, then PATCHes the slot's version_number to the current semver — version_id stays stable so Modrinth Servers / Pyro linkage never breaks while the displayed version stays current. Disables per-publish version creation + retain/prune.
+  optional string modrinth_server_address = 8;  // For Modrinth `minecraft_java_server` projects (Pyro Custom modpack listing). When set, CI does per-release `POST /v2/version`, captures the new version_id, then PATCHes `/v3/project/{slug-or-id}/minecraft_java_server.content` so the server listing points at the latest mrpack. Address (e.g. `mc.kbve.com`) is preserved on the listing across publishes. Requires the `MODRINTH_SESSION` secret (an `mra_` session token; PATs cannot edit v3 server listings).
 
   // ── Itch.io (HTML5 / native game builds) ──────────────────────────
   optional string itch_user = 10;               // Itch.io user/publisher slug

@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-05-03T09:31:28.478Z
+ * Generated: 2026-05-04T06:27:06.670Z
  */
 
 import { z } from 'zod';
@@ -192,21 +192,13 @@ export type ResourceTypeValue = (typeof ResourceTypes)[number];
 
 export const ResourceTypeSchema = z.enum(ResourceTypes);
 
-export const ContainerTypes = [
-	'crate',
-	'chest',
-	'barrel',
-] as const;
+export const ContainerTypes = ['crate', 'chest', 'barrel'] as const;
 
 export type ContainerTypeValue = (typeof ContainerTypes)[number];
 
 export const ContainerTypeSchema = z.enum(ContainerTypes);
 
-export const CraftingStationTypes = [
-	'workbench',
-	'furnace',
-	'anvil',
-] as const;
+export const CraftingStationTypes = ['workbench', 'furnace', 'anvil'] as const;
 
 export type CraftingStationTypeValue = (typeof CraftingStationTypes)[number];
 
@@ -257,12 +249,7 @@ export type ReplicationHintValue = (typeof ReplicationHints)[number];
 
 export const ReplicationHintSchema = z.enum(ReplicationHints);
 
-export const TravelTypes = [
-	'open',
-	'gated',
-	'one_way',
-	'blocked',
-] as const;
+export const TravelTypes = ['open', 'gated', 'one_way', 'blocked'] as const;
 
 export type TravelTypeValue = (typeof TravelTypes)[number];
 
@@ -304,73 +291,75 @@ export type ServiceKindValue = (typeof ServiceKinds)[number];
 export const ServiceKindSchema = z.enum(ServiceKinds);
 
 // MapExtension
-export const MapExtensionSchema = z
-	.object({
-		key: z.string(),
-		value: z.union([z.object({ string_value: z.string() }), z.object({ int_value: z.number() }), z.object({ float_value: z.number() }), z.object({ bool_value: z.boolean() }), z.object({ bytes_value: z.string() })]).optional(),
-	});
+export const MapExtensionSchema = z.object({
+	key: z.string(),
+	value: z
+		.union([
+			z.object({ string_value: z.string() }),
+			z.object({ int_value: z.number() }),
+			z.object({ float_value: z.number() }),
+			z.object({ bool_value: z.boolean() }),
+			z.object({ bytes_value: z.string() }),
+		])
+		.optional(),
+});
 
 export type MapExtension = z.infer<typeof MapExtensionSchema>;
 
 // Region
-export const RegionSchema = z
-	.object({
-		id: z.string(),
-		ref: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		lore: z.string().optional(),
-		zone_refs: z.array(z.string()).optional(),
-		img: z.string().optional(),
-		icon: z.string().optional(),
-		gravity: z.number().optional(),
-		day_cycle_secs: z.number().optional(),
-		extensions: z.array(MapExtensionSchema).optional(),
-	});
+export const RegionSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	zone_refs: z.array(z.string()).optional(),
+	img: z.string().optional(),
+	icon: z.string().optional(),
+	gravity: z.number().optional(),
+	day_cycle_secs: z.number().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
 
 export type Region = z.infer<typeof RegionSchema>;
 
 // Bounds2D
-export const Bounds2DSchema = z
-	.object({
-		min_x: z.number(),
-		min_y: z.number(),
-		max_x: z.number(),
-		max_y: z.number(),
-	});
+export const Bounds2DSchema = z.object({
+	min_x: z.number(),
+	min_y: z.number(),
+	max_x: z.number(),
+	max_y: z.number(),
+});
 
 export type Bounds2D = z.infer<typeof Bounds2DSchema>;
 
 // WorldPos
-export const WorldPosSchema = z
-	.object({
-		x: z.number(),
-		y: z.number(),
-		z: z.number(),
-	});
+export const WorldPosSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+	z: z.number(),
+});
 
 export type WorldPos = z.infer<typeof WorldPosSchema>;
 
 // BoundsAABB
-export const BoundsAABBSchema = z
-	.object({
-		min: WorldPosSchema.optional(),
-		max: WorldPosSchema.optional(),
-	});
+export const BoundsAABBSchema = z.object({
+	min: WorldPosSchema.optional(),
+	max: WorldPosSchema.optional(),
+});
 
 export type BoundsAABB = z.infer<typeof BoundsAABBSchema>;
 
 // ZoneConnection
-export const ZoneConnectionSchema = z
-	.object({
-		target_zone_ref: z.string(),
-		name: z.string().optional(),
-		direction: DirectionSchema.optional(),
-		position: WorldPosSchema.optional(),
-		level_requirement: z.number().nullable().optional(),
-		quest_requirement: z.string().optional(),
-		bidirectional: z.boolean().optional(),
-	});
+export const ZoneConnectionSchema = z.object({
+	target_zone_ref: z.string(),
+	name: z.string().optional(),
+	direction: DirectionSchema.optional(),
+	position: WorldPosSchema.optional(),
+	level_requirement: z.number().nullable().optional(),
+	quest_requirement: z.string().optional(),
+	bidirectional: z.boolean().optional(),
+});
 
 export type ZoneConnection = z.infer<typeof ZoneConnectionSchema>;
 
@@ -387,14 +376,13 @@ export const ColorSchema = z
 export type Color = z.infer<typeof ColorSchema>;
 
 // TerrainBandDef
-export const TerrainBandDefSchema = z
-	.object({
-		type: TerrainBandSchema,
-		min_height: z.number().min(0),
-		max_height: z.number(),
-		colors: z.array(ColorSchema).optional(),
-		body_darkness: z.number().min(0).max(1).optional(),
-	});
+export const TerrainBandDefSchema = z.object({
+	type: TerrainBandSchema,
+	min_height: z.number().min(0),
+	max_height: z.number(),
+	colors: z.array(ColorSchema).optional(),
+	body_darkness: z.number().min(0).max(1).optional(),
+});
 
 export type TerrainBandDef = z.infer<typeof TerrainBandDefSchema>;
 
@@ -434,541 +422,505 @@ export const WaterConfigSchema = z
 export type WaterConfig = z.infer<typeof WaterConfigSchema>;
 
 // GridPos
-export const GridPosSchema = z
-	.object({
-		x: z.number(),
-		y: z.number(),
-	});
+export const GridPosSchema = z.object({
+	x: z.number(),
+	y: z.number(),
+});
 
 export type GridPos = z.infer<typeof GridPosSchema>;
 
 // PointOfInterest
-export const PointOfInterestSchema = z
-	.object({
-		id: z.string(),
-		ref: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		type: PoiTypeSchema,
-		position: WorldPosSchema.optional(),
-		grid_pos: GridPosSchema.optional(),
-		radius: z.number().min(0).optional(),
-		icon: z.string().optional(),
-		marker_icon: z.string().optional(),
-		npc_refs: z.array(z.string()).optional(),
-		quest_refs: z.array(z.string()).optional(),
-		shop_ref: z.string().optional(),
-		zone_ref: z.string().optional(),
-		discoverable: z.boolean().optional(),
-		fast_travel: z.boolean().optional(),
-		respawn_point: z.boolean().optional(),
-		extensions: z.array(MapExtensionSchema).optional(),
-	});
+export const PointOfInterestSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	type: PoiTypeSchema,
+	position: WorldPosSchema.optional(),
+	grid_pos: GridPosSchema.optional(),
+	radius: z.number().min(0).optional(),
+	icon: z.string().optional(),
+	marker_icon: z.string().optional(),
+	npc_refs: z.array(z.string()).optional(),
+	quest_refs: z.array(z.string()).optional(),
+	shop_ref: z.string().optional(),
+	zone_ref: z.string().optional(),
+	discoverable: z.boolean().optional(),
+	fast_travel: z.boolean().optional(),
+	respawn_point: z.boolean().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+});
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 // SpawnPoint
-export const SpawnPointSchema = z
-	.object({
-		id: z.string(),
-		category: SpawnCategorySchema,
-		entity_ref: z.string().optional(),
-		position: WorldPosSchema.optional(),
-		grid_pos: GridPosSchema.optional(),
-		radius: z.number().optional(),
-		spawn_weight: z.number().min(0).optional(),
-		max_active: z.number().optional(),
-		level_min: z.number().nullable().optional(),
-		level_max: z.number().nullable().optional(),
-		respawn_time_secs: z.number().optional(),
-		respawn_variance: z.number().optional(),
-		time_of_day: z.string().optional(),
-		weather: z.string().optional(),
-		event_ref: z.string().optional(),
-		quest_ref: z.string().optional(),
-		required_flags: z.array(z.string()).optional(),
-		group_min: z.number().optional(),
-		group_max: z.number().optional(),
-		group_radius: z.number().optional(),
-	});
+export const SpawnPointSchema = z.object({
+	id: z.string(),
+	category: SpawnCategorySchema,
+	entity_ref: z.string().optional(),
+	position: WorldPosSchema.optional(),
+	grid_pos: GridPosSchema.optional(),
+	radius: z.number().optional(),
+	spawn_weight: z.number().min(0).optional(),
+	max_active: z.number().optional(),
+	level_min: z.number().nullable().optional(),
+	level_max: z.number().nullable().optional(),
+	respawn_time_secs: z.number().optional(),
+	respawn_variance: z.number().optional(),
+	time_of_day: z.string().optional(),
+	weather: z.string().optional(),
+	event_ref: z.string().optional(),
+	quest_ref: z.string().optional(),
+	required_flags: z.array(z.string()).optional(),
+	group_min: z.number().optional(),
+	group_max: z.number().optional(),
+	group_radius: z.number().optional(),
+});
 
 export type SpawnPoint = z.infer<typeof SpawnPointSchema>;
 
 // WorldObjectPlacement
-export const WorldObjectPlacementSchema = z
-	.object({
-		object_def_ref: z.string(),
-		position: WorldPosSchema.optional(),
-		grid_pos: GridPosSchema.optional(),
-		rotation_y: z.number().optional(),
-		scale_override: z.number().optional(),
-		seed: z.number().optional(),
-	});
+export const WorldObjectPlacementSchema = z.object({
+	object_def_ref: z.string(),
+	position: WorldPosSchema.optional(),
+	grid_pos: GridPosSchema.optional(),
+	rotation_y: z.number().optional(),
+	scale_override: z.number().optional(),
+	seed: z.number().optional(),
+});
 
 export type WorldObjectPlacement = z.infer<typeof WorldObjectPlacementSchema>;
 
 // TileHazard
-export const TileHazardSchema = z
-	.object({
-		type: z.string(),
-		damage: z.number().optional(),
-		effect_kind: z.string().optional(),
-		effect_stacks: z.number().optional(),
-		effect_turns: z.number().optional(),
-		trigger_chance: z.number().min(0).max(1).optional(),
-	});
+export const TileHazardSchema = z.object({
+	type: z.string(),
+	damage: z.number().optional(),
+	effect_kind: z.string().optional(),
+	effect_stacks: z.number().optional(),
+	effect_turns: z.number().optional(),
+	trigger_chance: z.number().min(0).max(1).optional(),
+});
 
 export type TileHazard = z.infer<typeof TileHazardSchema>;
 
 // TileDef
-export const TileDefSchema = z
-	.object({
-		id: z.string(),
-		name: z.string().optional(),
-		description: z.string().optional(),
-		room_type: RoomTypeSchema,
-		exits: z.array(DirectionSchema).optional(),
-		modifiers: z.array(RoomModifierSchema).optional(),
-		hazards: z.array(TileHazardSchema).optional(),
-		enemy_refs: z.array(z.string()).optional(),
-		loot_refs: z.array(z.string()).optional(),
-		merchant_ref: z.string().optional(),
-		story_event_ref: z.string().optional(),
-		template_name: z.string().optional(),
-		img: z.string().optional(),
-		music_override: z.string().optional(),
-	});
+export const TileDefSchema = z.object({
+	id: z.string(),
+	name: z.string().optional(),
+	description: z.string().optional(),
+	room_type: RoomTypeSchema,
+	exits: z.array(DirectionSchema).optional(),
+	modifiers: z.array(RoomModifierSchema).optional(),
+	hazards: z.array(TileHazardSchema).optional(),
+	enemy_refs: z.array(z.string()).optional(),
+	loot_refs: z.array(z.string()).optional(),
+	merchant_ref: z.string().optional(),
+	story_event_ref: z.string().optional(),
+	template_name: z.string().optional(),
+	img: z.string().optional(),
+	music_override: z.string().optional(),
+});
 
 export type TileDef = z.infer<typeof TileDefSchema>;
 
 // RoomSpawnWeight
-export const RoomSpawnWeightSchema = z
-	.object({
-		room_type: RoomTypeSchema,
-		weight: z.number().min(0),
-		min_depth: z.number().optional(),
-		max_depth: z.number().optional(),
-	});
+export const RoomSpawnWeightSchema = z.object({
+	room_type: RoomTypeSchema,
+	weight: z.number().min(0),
+	min_depth: z.number().optional(),
+	max_depth: z.number().optional(),
+});
 
 export type RoomSpawnWeight = z.infer<typeof RoomSpawnWeightSchema>;
 
 // DungeonConfig
-export const DungeonConfigSchema = z
-	.object({
-		seed: z.number().optional(),
-		max_depth: z.number().optional(),
-		boss_ring_distances: z.array(z.number()).optional(),
-		bosses_per_ring: z.number().optional(),
-		tile_templates: z.array(TileDefSchema).optional(),
-		room_weights: z.array(RoomSpawnWeightSchema).optional(),
-	});
+export const DungeonConfigSchema = z.object({
+	seed: z.number().optional(),
+	max_depth: z.number().optional(),
+	boss_ring_distances: z.array(z.number()).optional(),
+	bosses_per_ring: z.number().optional(),
+	tile_templates: z.array(TileDefSchema).optional(),
+	room_weights: z.array(RoomSpawnWeightSchema).optional(),
+});
 
 export type DungeonConfig = z.infer<typeof DungeonConfigSchema>;
 
 // EnvironmentConfig
-export const EnvironmentConfigSchema = z
-	.object({
-		sun_pitch: z.number().min(-90).max(90).optional(),
-		sun_yaw: z.number().min(0).max(360).optional(),
-		sun_intensity: z.number().min(0).optional(),
-		sun_color: ColorSchema.optional(),
-		sky_intensity: z.number().min(0).optional(),
-		atmosphere_rayleigh_scale: z.number().optional(),
-		atmosphere_mie_scale: z.number().optional(),
-		fog_density: z.number().min(0).optional(),
-		fog_height_falloff: z.number().min(0).optional(),
-		fog_color: ColorSchema.optional(),
-		fog_start_distance: z.number().min(0).optional(),
-		ambient_sound_ref: z.string().optional(),
-		music_ref: z.string().optional(),
-	});
+export const EnvironmentConfigSchema = z.object({
+	sun_pitch: z.number().min(-90).max(90).optional(),
+	sun_yaw: z.number().min(0).max(360).optional(),
+	sun_intensity: z.number().min(0).optional(),
+	sun_color: ColorSchema.optional(),
+	sky_intensity: z.number().min(0).optional(),
+	atmosphere_rayleigh_scale: z.number().optional(),
+	atmosphere_mie_scale: z.number().optional(),
+	fog_density: z.number().min(0).optional(),
+	fog_height_falloff: z.number().min(0).optional(),
+	fog_color: ColorSchema.optional(),
+	fog_start_distance: z.number().min(0).optional(),
+	ambient_sound_ref: z.string().optional(),
+	music_ref: z.string().optional(),
+});
 
 export type EnvironmentConfig = z.infer<typeof EnvironmentConfigSchema>;
 
 // SeedPolicy
-export const SeedPolicySchema = z
-	.object({
-		world_seed: z.number(),
-		content_version: z.number().min(0),
-	});
+export const SeedPolicySchema = z.object({
+	world_seed: z.number(),
+	content_version: z.number().min(0),
+});
 
 export type SeedPolicy = z.infer<typeof SeedPolicySchema>;
 
 // Zone
-export const ZoneSchema = z
-	.object({
-		id: z.string(),
-		ref: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		lore: z.string().optional(),
-		type: ZoneTypeSchema,
-		biome: BiomeSchema,
-		tags: z.array(z.string()).optional(),
-		bounds: Bounds2DSchema.optional(),
-		bounds_3d: BoundsAABBSchema.optional(),
-		level_min: z.number().nullable().optional(),
-		level_max: z.number().nullable().optional(),
-		recommended_party_size: z.number().optional(),
-		connections: z.array(ZoneConnectionSchema).optional(),
-		img: z.string().optional(),
-		icon: z.string().optional(),
-		music_ref: z.string().optional(),
-		ambient_ref: z.string().optional(),
-		pvp_enabled: z.boolean().optional(),
-		safe_zone: z.boolean().optional(),
-		instanced: z.boolean().optional(),
-		max_players: z.number().optional(),
-		terrain: TerrainConfigSchema.optional(),
-		water: WaterConfigSchema.optional(),
-		pois: z.array(PointOfInterestSchema).optional(),
-		spawn_points: z.array(SpawnPointSchema).optional(),
-		objects: z.array(WorldObjectPlacementSchema).optional(),
-		dungeon: DungeonConfigSchema.optional(),
-		prerequisite_quest_refs: z.array(z.string()).optional(),
-		event_ref: z.string().optional(),
-		extensions: z.array(MapExtensionSchema).optional(),
-		generation: GenerationModeSchema.optional(),
-		persistence: PersistenceModeSchema.optional(),
-		streaming: StreamingHintSchema.optional(),
-		replication: ReplicationHintSchema.optional(),
-		environment: EnvironmentConfigSchema.optional(),
-		seed_policy: SeedPolicySchema.optional(),
-		credits: z.string().optional(),
-		drafted: z.boolean().optional(),
-	});
+export const ZoneSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	lore: z.string().optional(),
+	type: ZoneTypeSchema,
+	biome: BiomeSchema,
+	tags: z.array(z.string()).optional(),
+	bounds: Bounds2DSchema.optional(),
+	bounds_3d: BoundsAABBSchema.optional(),
+	level_min: z.number().nullable().optional(),
+	level_max: z.number().nullable().optional(),
+	recommended_party_size: z.number().optional(),
+	connections: z.array(ZoneConnectionSchema).optional(),
+	img: z.string().optional(),
+	icon: z.string().optional(),
+	music_ref: z.string().optional(),
+	ambient_ref: z.string().optional(),
+	pvp_enabled: z.boolean().optional(),
+	safe_zone: z.boolean().optional(),
+	instanced: z.boolean().optional(),
+	max_players: z.number().optional(),
+	terrain: TerrainConfigSchema.optional(),
+	water: WaterConfigSchema.optional(),
+	pois: z.array(PointOfInterestSchema).optional(),
+	spawn_points: z.array(SpawnPointSchema).optional(),
+	objects: z.array(WorldObjectPlacementSchema).optional(),
+	dungeon: DungeonConfigSchema.optional(),
+	prerequisite_quest_refs: z.array(z.string()).optional(),
+	event_ref: z.string().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+	generation: GenerationModeSchema.optional(),
+	persistence: PersistenceModeSchema.optional(),
+	streaming: StreamingHintSchema.optional(),
+	replication: ReplicationHintSchema.optional(),
+	environment: EnvironmentConfigSchema.optional(),
+	seed_policy: SeedPolicySchema.optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+});
 
 export type Zone = z.infer<typeof ZoneSchema>;
 
 // BuildCost
-export const BuildCostSchema = z
-	.object({
-		resource_type: z.string(),
-		amount: z.number().min(1),
-	});
+export const BuildCostSchema = z.object({
+	resource_type: z.string(),
+	amount: z.number().min(1),
+});
 
 export type BuildCost = z.infer<typeof BuildCostSchema>;
 
 // ServiceCapability
-export const ServiceCapabilitySchema = z
-	.object({
-		kind: ServiceKindSchema,
-		priority: z.number(),
-		capacity: z.number(),
-	});
+export const ServiceCapabilitySchema = z.object({
+	kind: ServiceKindSchema,
+	priority: z.number(),
+	capacity: z.number(),
+});
 
 export type ServiceCapability = z.infer<typeof ServiceCapabilitySchema>;
 
 // TenderSpec
-export const TenderSpecSchema = z
-	.object({
-		profession_ref: z.string(),
-		footprint_radius: z.number(),
-		required: z.boolean(),
-	});
+export const TenderSpecSchema = z.object({
+	profession_ref: z.string(),
+	footprint_radius: z.number(),
+	required: z.boolean(),
+});
 
 export type TenderSpec = z.infer<typeof TenderSpecSchema>;
 
 // TerritoryEmitterSpec
-export const TerritoryEmitterSpecSchema = z
-	.object({
-		radius: z.number(),
-	});
+export const TerritoryEmitterSpecSchema = z.object({
+	radius: z.number(),
+});
 
 export type TerritoryEmitterSpec = z.infer<typeof TerritoryEmitterSpecSchema>;
 
 // IngredientSpec
-export const IngredientSpecSchema = z
-	.object({
-		item_ref: z.string(),
-		amount: z.number(),
-	});
+export const IngredientSpecSchema = z.object({
+	item_ref: z.string(),
+	amount: z.number(),
+});
 
 export type IngredientSpec = z.infer<typeof IngredientSpecSchema>;
 
 // ProductionRecipeSpec
-export const ProductionRecipeSpecSchema = z
-	.object({
-		inputs: z.array(IngredientSpecSchema).optional(),
-		outputs: z.array(IngredientSpecSchema).optional(),
-		cycle_secs: z.number(),
-		pulls_from_treasury: z.boolean(),
-	});
+export const ProductionRecipeSpecSchema = z.object({
+	inputs: z.array(IngredientSpecSchema).optional(),
+	outputs: z.array(IngredientSpecSchema).optional(),
+	cycle_secs: z.number(),
+	pulls_from_treasury: z.boolean(),
+});
 
 export type ProductionRecipeSpec = z.infer<typeof ProductionRecipeSpecSchema>;
 
 // SurplusExportSpec
-export const SurplusExportSpecSchema = z
-	.object({
-		item_ref: z.string(),
-		floor: z.number(),
-	});
+export const SurplusExportSpecSchema = z.object({
+	item_ref: z.string(),
+	floor: z.number(),
+});
 
 export type SurplusExportSpec = z.infer<typeof SurplusExportSpecSchema>;
 
 // PassiveProductionSpec
-export const PassiveProductionSpecSchema = z
-	.object({
-		output_item_ref: z.string(),
-		output_amount: z.number(),
-		cycle_secs: z.number(),
-		destination: z.string(),
-	});
+export const PassiveProductionSpecSchema = z.object({
+	output_item_ref: z.string(),
+	output_amount: z.number(),
+	cycle_secs: z.number(),
+	destination: z.string(),
+});
 
 export type PassiveProductionSpec = z.infer<typeof PassiveProductionSpecSchema>;
 
 // RangedAttackSpec
-export const RangedAttackSpecSchema = z
-	.object({
-		cooldown_secs: z.number(),
-		range: z.number(),
-		shots_per_volley: z.number(),
-		ammo_per_volley_cost: z.number(),
-		damage_per_shot: z.number(),
-		spread_half_angle_rad: z.number(),
-		projectile_speed: z.number(),
-		projectile_lifetime: z.number(),
-		projectile_ref: z.string(),
-		ammo_capacity: z.number(),
-	});
+export const RangedAttackSpecSchema = z.object({
+	cooldown_secs: z.number(),
+	range: z.number(),
+	shots_per_volley: z.number(),
+	ammo_per_volley_cost: z.number(),
+	damage_per_shot: z.number(),
+	spread_half_angle_rad: z.number(),
+	projectile_speed: z.number(),
+	projectile_lifetime: z.number(),
+	projectile_ref: z.string(),
+	ammo_capacity: z.number(),
+});
 
 export type RangedAttackSpec = z.infer<typeof RangedAttackSpecSchema>;
 
 // PopulationSpawnSpec
-export const PopulationSpawnSpecSchema = z
-	.object({
-		spawn_entity_ref: z.string(),
-		cadence_turns: z.number(),
-		cost_per_spawn: IngredientSpecSchema.optional(),
-		storage_cap: z.number(),
-	});
+export const PopulationSpawnSpecSchema = z.object({
+	spawn_entity_ref: z.string(),
+	cadence_turns: z.number(),
+	cost_per_spawn: IngredientSpecSchema.optional(),
+	storage_cap: z.number(),
+});
 
 export type PopulationSpawnSpec = z.infer<typeof PopulationSpawnSpecSchema>;
 
 // RaidSpec
-export const RaidSpecSchema = z
-	.object({
-		cadence_turns: z.number(),
-		party_size: z.number(),
-		party_unit_ref: z.string(),
-		target_kind: z.string(),
-	});
+export const RaidSpecSchema = z.object({
+	cadence_turns: z.number(),
+	party_size: z.number(),
+	party_unit_ref: z.string(),
+	target_kind: z.string(),
+});
 
 export type RaidSpec = z.infer<typeof RaidSpecSchema>;
 
 // UpgradeSpec
-export const UpgradeSpecSchema = z
-	.object({
-		next_def_ref: z.string(),
-		costs: z.array(IngredientSpecSchema).optional(),
-	});
+export const UpgradeSpecSchema = z.object({
+	next_def_ref: z.string(),
+	costs: z.array(IngredientSpecSchema).optional(),
+});
 
 export type UpgradeSpec = z.infer<typeof UpgradeSpecSchema>;
 
 // UpgradeChainSpec
-export const UpgradeChainSpecSchema = z
-	.object({
-		tiers: z.array(UpgradeSpecSchema).optional(),
-	});
+export const UpgradeChainSpecSchema = z.object({
+	tiers: z.array(UpgradeSpecSchema).optional(),
+});
 
 export type UpgradeChainSpec = z.infer<typeof UpgradeChainSpecSchema>;
 
 // ShrineSpec
-export const ShrineSpecSchema = z
-	.object({
-		cadence_turns: z.number(),
-		reward_coin: z.number(),
-		reward_items: z.array(IngredientSpecSchema).optional(),
-		territory_active: z.boolean(),
-		king_visit_active: z.boolean(),
-		xp_skill_ref: z.string().optional(),
-		xp_amount: z.number().optional(),
-		buff_ref: z.string().optional(),
-		buff_duration_secs: z.number().optional(),
-	});
+export const ShrineSpecSchema = z.object({
+	cadence_turns: z.number(),
+	reward_coin: z.number(),
+	reward_items: z.array(IngredientSpecSchema).optional(),
+	territory_active: z.boolean(),
+	king_visit_active: z.boolean(),
+	xp_skill_ref: z.string().optional(),
+	xp_amount: z.number().optional(),
+	buff_ref: z.string().optional(),
+	buff_duration_secs: z.number().optional(),
+});
 
 export type ShrineSpec = z.infer<typeof ShrineSpecSchema>;
 
 // ShopOffer
-export const ShopOfferSchema = z
-	.object({
-		item_ref: z.string(),
-		buy_price: z.number(),
-		sell_price: z.number().optional(),
-		stock: z.number().optional(),
-		restock_seconds: z.number().optional(),
-	});
+export const ShopOfferSchema = z.object({
+	item_ref: z.string(),
+	buy_price: z.number(),
+	sell_price: z.number().optional(),
+	stock: z.number().optional(),
+	restock_seconds: z.number().optional(),
+});
 
 export type ShopOffer = z.infer<typeof ShopOfferSchema>;
 
 // ShopSpec
-export const ShopSpecSchema = z
-	.object({
-		inventory: z.array(ShopOfferSchema).optional(),
-	});
+export const ShopSpecSchema = z.object({
+	inventory: z.array(ShopOfferSchema).optional(),
+});
 
 export type ShopSpec = z.infer<typeof ShopSpecSchema>;
 
 // DungeonSpec
-export const DungeonSpecSchema = z
-	.object({
-		scene_ref: z.string(),
-		min_player_level: z.number().optional(),
-		party_size_max: z.number().optional(),
-		difficulty: z.string().optional(),
-		entry_quest_ref: z.string().optional(),
-	});
+export const DungeonSpecSchema = z.object({
+	scene_ref: z.string(),
+	min_player_level: z.number().optional(),
+	party_size_max: z.number().optional(),
+	difficulty: z.string().optional(),
+	entry_quest_ref: z.string().optional(),
+});
 
 export type DungeonSpec = z.infer<typeof DungeonSpecSchema>;
 
 // QuestGiverSpec
-export const QuestGiverSpecSchema = z
-	.object({
-		quest_refs: z.array(z.string()).optional(),
-		greeting_dialogue_ref: z.string().optional(),
-	});
+export const QuestGiverSpecSchema = z.object({
+	quest_refs: z.array(z.string()).optional(),
+	greeting_dialogue_ref: z.string().optional(),
+});
 
 export type QuestGiverSpec = z.infer<typeof QuestGiverSpecSchema>;
 
 // AuraSpec
-export const AuraSpecSchema = z
-	.object({
-		radius: z.number(),
-		bonus_kind: z.string(),
-		multiplier: z.number(),
-	});
+export const AuraSpecSchema = z.object({
+	radius: z.number(),
+	bonus_kind: z.string(),
+	multiplier: z.number(),
+});
 
 export type AuraSpec = z.infer<typeof AuraSpecSchema>;
 
 // WorldObjectDef
-export const WorldObjectDefSchema = z
-	.object({
-		id: z.string(),
-		ref: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		type: WorldObjectTypeSchema,
-		sub_kind: z.string().optional(),
-		resource_type: ResourceTypeSchema.optional(),
-		container_type: ContainerTypeSchema.optional(),
-		crafting_station_type: CraftingStationTypeSchema.optional(),
-		model_ref: z.string().optional(),
-		icon: z.string().optional(),
-		scale: z.number().optional(),
-		palette: z.array(ColorSchema).optional(),
-		img: z.string().optional(),
-		interactable: z.boolean().optional(),
-		destructible: z.boolean().optional(),
-		loot_item_ref: z.string().optional(),
-		harvest_time_ms: z.number().optional(),
-		tool_required: z.string().optional(),
-		skill_level: z.number().optional(),
-		skill_type: z.string().optional(),
-		harvest_yield: z.number().min(0).optional(),
-		max_amount: z.number().min(0).optional(),
-		initial_amount: z.number().min(0).optional(),
-		max_health: z.number().min(0).optional(),
-		footprint_width: z.number().min(1).optional(),
-		footprint_height: z.number().min(1).optional(),
-		blocks_placement: z.boolean().optional(),
-		construction_time_secs: z.number().min(0).optional(),
-		build_costs: z.array(BuildCostSchema).optional(),
-		spawn_weight: z.number().min(0).max(1).optional(),
-		spawn_count: z.number().optional(),
-		collision_radius: z.number().optional(),
-		collision_height: z.number().optional(),
-		blocks_movement: z.boolean().optional(),
-		occludes_player: z.boolean().optional(),
-		respawn_time_secs: z.number().optional(),
-		respawn_variance: z.number().optional(),
-		extensions: z.array(MapExtensionSchema).optional(),
-		credits: z.string().optional(),
-		drafted: z.boolean().optional(),
-		allowed_biomes: z.array(z.number()).optional(),
-		spawns_fully_built: z.boolean().optional(),
-		requires_in_territory: z.boolean().optional(),
-		footprint_shape: FootprintShapeSchema.optional(),
-		footprint_cells: z.array(GridPosSchema).optional(),
-		cost_source: CostSourceSchema.optional(),
-		services: z.array(ServiceCapabilitySchema).optional(),
-		tender: TenderSpecSchema.optional(),
-		territory: TerritoryEmitterSpecSchema.optional(),
-		recipes: z.array(ProductionRecipeSpecSchema).optional(),
-		surplus: z.array(SurplusExportSpecSchema).optional(),
-		passive_production: PassiveProductionSpecSchema.optional(),
-		ranged_attack: RangedAttackSpecSchema.optional(),
-		population_spawn: PopulationSpawnSpecSchema.optional(),
-		raid: RaidSpecSchema.optional(),
-		upgrade_chain: UpgradeChainSpecSchema.optional(),
-		interaction: z.string().optional(),
-		shrine: ShrineSpecSchema.optional(),
-		shop: ShopSpecSchema.optional(),
-		dungeon: DungeonSpecSchema.optional(),
-		quest_giver: QuestGiverSpecSchema.optional(),
-		aura: AuraSpecSchema.optional(),
-		faction: z.string().optional(),
-	});
+export const WorldObjectDefSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	type: WorldObjectTypeSchema,
+	sub_kind: z.string().optional(),
+	resource_type: ResourceTypeSchema.optional(),
+	container_type: ContainerTypeSchema.optional(),
+	crafting_station_type: CraftingStationTypeSchema.optional(),
+	model_ref: z.string().optional(),
+	icon: z.string().optional(),
+	scale: z.number().optional(),
+	palette: z.array(ColorSchema).optional(),
+	img: z.string().optional(),
+	interactable: z.boolean().optional(),
+	destructible: z.boolean().optional(),
+	loot_item_ref: z.string().optional(),
+	harvest_time_ms: z.number().optional(),
+	tool_required: z.string().optional(),
+	skill_level: z.number().optional(),
+	skill_type: z.string().optional(),
+	harvest_yield: z.number().min(0).optional(),
+	max_amount: z.number().min(0).optional(),
+	initial_amount: z.number().min(0).optional(),
+	max_health: z.number().min(0).optional(),
+	footprint_width: z.number().min(1).optional(),
+	footprint_height: z.number().min(1).optional(),
+	blocks_placement: z.boolean().optional(),
+	construction_time_secs: z.number().min(0).optional(),
+	build_costs: z.array(BuildCostSchema).optional(),
+	spawn_weight: z.number().min(0).max(1).optional(),
+	spawn_count: z.number().optional(),
+	collision_radius: z.number().optional(),
+	collision_height: z.number().optional(),
+	blocks_movement: z.boolean().optional(),
+	occludes_player: z.boolean().optional(),
+	respawn_time_secs: z.number().optional(),
+	respawn_variance: z.number().optional(),
+	extensions: z.array(MapExtensionSchema).optional(),
+	credits: z.string().optional(),
+	drafted: z.boolean().optional(),
+	allowed_biomes: z.array(z.number()).optional(),
+	spawns_fully_built: z.boolean().optional(),
+	requires_in_territory: z.boolean().optional(),
+	footprint_shape: FootprintShapeSchema.optional(),
+	footprint_cells: z.array(GridPosSchema).optional(),
+	cost_source: CostSourceSchema.optional(),
+	services: z.array(ServiceCapabilitySchema).optional(),
+	tender: TenderSpecSchema.optional(),
+	territory: TerritoryEmitterSpecSchema.optional(),
+	recipes: z.array(ProductionRecipeSpecSchema).optional(),
+	surplus: z.array(SurplusExportSpecSchema).optional(),
+	passive_production: PassiveProductionSpecSchema.optional(),
+	ranged_attack: RangedAttackSpecSchema.optional(),
+	population_spawn: PopulationSpawnSpecSchema.optional(),
+	raid: RaidSpecSchema.optional(),
+	upgrade_chain: UpgradeChainSpecSchema.optional(),
+	interaction: z.string().optional(),
+	shrine: ShrineSpecSchema.optional(),
+	shop: ShopSpecSchema.optional(),
+	dungeon: DungeonSpecSchema.optional(),
+	quest_giver: QuestGiverSpecSchema.optional(),
+	aura: AuraSpecSchema.optional(),
+	faction: z.string().optional(),
+});
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;
 
 // HexCoord
-export const HexCoordSchema = z
-	.object({
-		q: z.number(),
-		r: z.number(),
-	});
+export const HexCoordSchema = z.object({
+	q: z.number(),
+	r: z.number(),
+});
 
 export type HexCoord = z.infer<typeof HexCoordSchema>;
 
 // HexTravelLink
-export const HexTravelLinkSchema = z
-	.object({
-		from: HexCoordSchema.optional(),
-		to: HexCoordSchema.optional(),
-		travel_type: TravelTypeSchema,
-		level_requirement: z.number().optional(),
-		quest_requirement: z.string().optional(),
-		tag: z.string().optional(),
-	});
+export const HexTravelLinkSchema = z.object({
+	from: HexCoordSchema.optional(),
+	to: HexCoordSchema.optional(),
+	travel_type: TravelTypeSchema,
+	level_requirement: z.number().optional(),
+	quest_requirement: z.string().optional(),
+	tag: z.string().optional(),
+});
 
 export type HexTravelLink = z.infer<typeof HexTravelLinkSchema>;
 
 // HexZoneRecord
-export const HexZoneRecordSchema = z
-	.object({
-		coord: HexCoordSchema.optional(),
-		zone_ref: z.string(),
-		generation: GenerationModeSchema,
-		persistence: PersistenceModeSchema,
-		streaming: StreamingHintSchema,
-		replication: ReplicationHintSchema,
-		seed_policy: SeedPolicySchema.optional(),
-		environment: EnvironmentConfigSchema.optional(),
-		travel_links: z.array(HexTravelLinkSchema).optional(),
-	});
+export const HexZoneRecordSchema = z.object({
+	coord: HexCoordSchema.optional(),
+	zone_ref: z.string(),
+	generation: GenerationModeSchema,
+	persistence: PersistenceModeSchema,
+	streaming: StreamingHintSchema,
+	replication: ReplicationHintSchema,
+	seed_policy: SeedPolicySchema.optional(),
+	environment: EnvironmentConfigSchema.optional(),
+	travel_links: z.array(HexTravelLinkSchema).optional(),
+});
 
 export type HexZoneRecord = z.infer<typeof HexZoneRecordSchema>;
 
 // HexWorldMap
-export const HexWorldMapSchema = z
-	.object({
-		id: z.string(),
-		name: z.string(),
-		description: z.string().optional(),
-		seed_policy: SeedPolicySchema.optional(),
-		hex_size: z.number().min(0),
-		hexes: z.array(HexZoneRecordSchema).optional(),
-	});
+export const HexWorldMapSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	seed_policy: SeedPolicySchema.optional(),
+	hex_size: z.number().min(0),
+	hexes: z.array(HexZoneRecordSchema).optional(),
+});
 
 export type HexWorldMap = z.infer<typeof HexWorldMapSchema>;
 
 // MapRegistry
-export const MapRegistrySchema = z
-	.object({
-		regions: z.array(RegionSchema).optional(),
-		zones: z.array(ZoneSchema).optional(),
-		object_defs: z.array(WorldObjectDefSchema).optional(),
-		hex_worlds: z.array(HexWorldMapSchema).optional(),
-	});
+export const MapRegistrySchema = z.object({
+	regions: z.array(RegionSchema).optional(),
+	zones: z.array(ZoneSchema).optional(),
+	object_defs: z.array(WorldObjectDefSchema).optional(),
+	hex_worlds: z.array(HexWorldMapSchema).optional(),
+});
 
 export type MapRegistry = z.infer<typeof MapRegistrySchema>;
