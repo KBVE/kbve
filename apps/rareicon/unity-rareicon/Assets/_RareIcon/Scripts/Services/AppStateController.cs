@@ -223,9 +223,10 @@ namespace RareIcon
             AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
         }
 
-        /// <summary>Return to title from any in-run state — clears overlays first so the menu starts clean.</summary>
+        /// <summary>Return to title from any in-run state — tears down the active world (stops Rust empire ticker, destroys gameplay entities, resets <see cref="WorldGenSession"/>) so the title screen sees a clean slate, then flips state.</summary>
         public void ReturnToMainMenu()
         {
+            WorldResetBridge.Source?.Reset();
             SetOverlay(AppOverlayFlags.None);
             SetState(AppInterfaceState.MainMenu);
         }

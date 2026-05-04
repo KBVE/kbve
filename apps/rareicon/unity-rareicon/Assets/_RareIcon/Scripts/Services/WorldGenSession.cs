@@ -42,6 +42,19 @@ namespace RareIcon
 
         public static void MarkWorldStarted() => HasStarted = true;
 
+        /// <summary>Counterpart to <see cref="MarkWorldStarted"/> — flipped <c>false</c> by <see cref="WorldResetService"/> on Return-to-Title so the next play-through respawns the King + retinue + initial cluster cleanly.</summary>
+        public static void MarkWorldEnded() => HasStarted = false;
+
+        /// <summary>Resets the stage state machine back to a fresh title screen — used by the Return-to-Title flow so the player can pick a new seed without the system thinking generation is still in flight.</summary>
+        public void ResetForNewRun()
+        {
+            _genCts?.Cancel();
+            _genCts?.Dispose();
+            _genCts = null;
+            _chunksReady.Value = 0;
+            _stage.Value = TitleStage.Info;
+        }
+
         CancellationTokenSource _genCts;
 
         public WorldGenSession(

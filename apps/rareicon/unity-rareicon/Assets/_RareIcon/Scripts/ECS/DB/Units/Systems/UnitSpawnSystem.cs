@@ -39,14 +39,20 @@ namespace RareIcon
 
         bool _spawned;
 
+        /// <summary>WorldResetService bumps this on Return-to-Title so the next OnUpdate re-runs the initial spawn loop. Static + read once per OnUpdate keeps the reset cross-system without holding a reference back to the SystemBase.</summary>
+        public static int RespawnGeneration;
+        int _spawnedAtGeneration;
+
         /// <summary>True while the one-shot initial spawn loop runs; <see cref="PublishTraitToast"/> reads this and skips publishing so the king's starting retinue doesn't fire "Hero born" toasts. New heroes (barracks recruitment, settler arrival) spawn after the loop completes and toast normally.</summary>
         static bool _suppressTraitToasts;
 
         protected override void OnUpdate()
         {
             if (!WorldGenSession.HasStarted) return;
+            if (RespawnGeneration != _spawnedAtGeneration) _spawned = false;
             if (_spawned) return;
             _spawned = true;
+            _spawnedAtGeneration = RespawnGeneration;
 
             if (!EnsureRenderAssets()) return;
 

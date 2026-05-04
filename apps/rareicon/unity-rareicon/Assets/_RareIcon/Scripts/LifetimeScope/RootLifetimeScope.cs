@@ -89,6 +89,7 @@ namespace RareIcon
                 ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
                 PauseBridge.Source         = container.Resolve<PauseService>();
                 AppStateBridge.Source      = container.Resolve<AppStateController>();
+                WorldResetBridge.Source    = container.Resolve<WorldResetService>();
             });
 
             // -- Services --
@@ -114,6 +115,7 @@ namespace RareIcon
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
             builder.Register<WorldGenSession>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<WorldResetService>(Lifetime.Singleton).AsSelf();
 
             // -- Steam services (standalone-only; entire RareIcon.Platform asmdef
             //    is excluded on iOS/Android/WebGL targets) --
