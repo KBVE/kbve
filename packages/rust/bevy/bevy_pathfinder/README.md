@@ -1,4 +1,4 @@
-# bevy_pathfinding
+# bevy_pathfinder
 
 Grid-based flow field pathfinding and chokepoint detection. Pure Rust core with optional Bevy ECS integration.
 
@@ -11,7 +11,7 @@ Grid-based flow field pathfinding and chokepoint detection. Pure Rust core with 
 ## Usage
 
 ```rust
-use bevy_pathfinding::{grid::BlockGrid, flow_field::FlowField};
+use bevy_pathfinder::{grid::BlockGrid, flow_field::FlowField};
 
 let grid = BlockGrid::new(width, height);
 let field = FlowField::compute(&grid, &[goal]);

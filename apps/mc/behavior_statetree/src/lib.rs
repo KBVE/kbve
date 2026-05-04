@@ -23,7 +23,7 @@ use jni::JNIEnv;
 use jni::objects::{JClass, JString};
 use jni::sys::{jboolean, jstring};
 
-use bevy_pathfinding::grid::MapRegionSnapshot;
+use bevy_pathfinder::grid::MapRegionSnapshot;
 use runtime::AiRuntime;
 use types::{NpcObservation, NpcThinkJob, PlayerSnapshot};
 

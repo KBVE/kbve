@@ -10,7 +10,7 @@ use bevy::app::App;
 use crossbeam_channel::{Receiver, Sender, bounded};
 use tracing::{debug, warn};
 
-use bevy_pathfinding::grid::MapRegionSnapshot;
+use bevy_pathfinder::grid::MapRegionSnapshot;
 
 use crate::ecs::AiBehaviorPlugin;
 use crate::ecs::events::{

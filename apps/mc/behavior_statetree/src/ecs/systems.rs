@@ -5,8 +5,8 @@
 
 use bevy::prelude::*;
 
-use bevy_pathfinding::flow_field::FlowField;
-use bevy_pathfinding::flow_gate;
+use bevy_pathfinder::flow_field::FlowField;
+use bevy_pathfinder::flow_gate;
 
 use crate::tree::archetype_nodes::{
     BuildScaffold, IsPathBlocked, IsStuckAtCliff, MaintainRange, ShootAtTarget, TeleportToTarget,
@@ -516,7 +516,7 @@ fn build_flow_hint(
         .and_then(|ff| ff.next_target(grid, bx, bz));
 
     // Nearest gate
-    let nearest_gate = bevy_pathfinding::flow_gate::nearest_gate(&gates.0, bx, bz).map(|g| {
+    let nearest_gate = bevy_pathfinder::flow_gate::nearest_gate(&gates.0, bx, bz).map(|g| {
         let cell = grid.get(g.center_x, g.center_z);
         [
             g.center_x as f64 + 0.5,
@@ -527,7 +527,7 @@ fn build_flow_hint(
 
     // Gates within patrol range (~32 blocks)
     let gates_in_range =
-        bevy_pathfinding::flow_gate::gates_in_radius(&gates.0, bx, bz, 32).len() as u32;
+        bevy_pathfinder::flow_gate::gates_in_radius(&gates.0, bx, bz, 32).len() as u32;
 
     FlowFieldHint {
         approach_target,

@@ -4,7 +4,7 @@ on:
     pull_request:
         paths:
             - 'packages/rust/bevy/uniti/**'
-            - 'packages/rust/bevy/bevy_pathfinding/**'
+            - 'packages/rust/bevy/bevy_pathfinder/**'
             - 'packages/rust/bevy/bevy_inventory/**'
             - 'packages/rust/bevy/bevy_battle/**'
             - 'packages/rust/bevy/bevy_skills/**'
