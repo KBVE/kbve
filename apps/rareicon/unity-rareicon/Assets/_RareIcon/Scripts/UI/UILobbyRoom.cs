@@ -23,6 +23,7 @@ namespace RareIcon
         VisualElement _docRoot;
         VisualElement _titleContent;
         readonly System.Collections.Generic.List<VisualElement> _hiddenSiblings = new();
+        VisualElementPool<Label> _memberRowPool;
         Label _modeLabel;
         Label _seedLabel;
         Label _lobbyIdLabel;
@@ -101,6 +102,18 @@ namespace RareIcon
             _memberList.style.marginTop = 4;
             _memberList.style.marginBottom = 8;
             _memberList.style.minHeight = 60;
+
+            _memberRowPool = new VisualElementPool<Label>(
+                factory: () =>
+                {
+                    var l = new Label();
+                    l.style.color = UIStyles.Palette.TextPrimary;
+                    l.style.fontSize = 12;
+                    l.style.marginBottom = 2;
+                    return l;
+                },
+                onRelease: l => l.text = string.Empty,
+                prewarm: 4);
 
             // Action buttons
             _inviteBtn = MakeButton("Invite Friends", () => _mp.OpenInviteOverlay());
@@ -234,8 +247,11 @@ namespace RareIcon
 
         void RefreshMemberList()
         {
-            if (_memberList == null) return;
-            _memberList.Clear();
+            if (_memberList == null || _memberRowPool == null) return;
+            // Return every rented row to the pool — rows detach from the
+            // member list automatically inside Release(); next iteration
+            // re-rents fresh instances + re-attaches.
+            _memberRowPool.ReleaseAll();
 
             var ids = _mp.MemberIds;
             ulong owner = _mp.OwnerSteamId;
@@ -244,19 +260,17 @@ namespace RareIcon
                 ulong id = ids[i];
                 string name = MultiplayerCoordinator.ResolveDisplayName(id);
                 string suffix = id == owner ? "  (host)" : string.Empty;
-
-                var row = new Label($"• {name}{suffix}");
+                var row = _memberRowPool.Acquire();
+                row.text = $"• {name}{suffix}";
                 row.style.color = UIStyles.Palette.TextPrimary;
-                row.style.fontSize = 12;
-                row.style.marginBottom = 2;
                 _memberList.Add(row);
             }
 
             if (ids.Count == 0)
             {
-                var empty = new Label("waiting for peers…");
+                var empty = _memberRowPool.Acquire();
+                empty.text = "waiting for peers…";
                 empty.style.color = UIStyles.Palette.GoldMuted;
-                empty.style.fontSize = 12;
                 _memberList.Add(empty);
             }
         }
@@ -281,7 +295,11 @@ namespace RareIcon
             _                => "Single Player",
         };
 
-        public void Dispose() => _disposables?.Dispose();
+        public void Dispose()
+        {
+            _memberRowPool?.Dispose();
+            _disposables?.Dispose();
+        }
     }
 }
 
