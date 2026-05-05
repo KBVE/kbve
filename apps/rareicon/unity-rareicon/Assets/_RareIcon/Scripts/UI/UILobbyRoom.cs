@@ -43,18 +43,12 @@ namespace RareIcon
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null) return;
+            VisualElement uiRoot;
+            try { uiRoot = await _panelManager.WaitForRootAsync(cancellation); }
+            catch (OperationCanceledException) { return; }
+            if (uiRoot == null) return;
 
-            int waited = 0;
-            while (uiDoc.rootVisualElement == null && waited < 1000)
-            {
-                await UniTask.Delay(50, cancellationToken: cancellation);
-                waited += 50;
-            }
-            if (uiDoc.rootVisualElement == null) return;
-
-            BuildPanel(uiDoc.rootVisualElement);
+            BuildPanel(uiRoot);
 
             _appState.Current
                 .Subscribe(state => SetVisible(state == AppInterfaceState.Lobby))
