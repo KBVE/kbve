@@ -1,9 +1,17 @@
 # PaperMC lobby server — Velocity's default landing target and fallback when
-# the Fabric backend goes offline. Intentionally minimal: superflat peaceful
-# world, LuckPerms for cross-server permission sync via pluginmsg, and no
-# other plugins. Commands that teleport players between servers (/lobby,
-# /hub, /mc, /survival) live on the Velocity proxy plugin, not here.
+# the Fabric backend goes offline. Plugins downloaded at runtime via itzg's
+# MODRINTH_PROJECTS env var, plus a single source-built plugin
+# (kbve-mc-uplink) that forwards backend gameplay events to the Velocity-side
+# discord relay. Cross-server teleport commands (/lobby, /hub, /mc, /survival)
+# live on the Velocity proxy plugin, not here.
 
+# ── Stage 1 — Build the kbve-mc-uplink Paper plugin ───────────────────
+FROM gradle:jdk21 AS plugin-builder
+WORKDIR /build
+COPY apps/mc/lobby/plugin/ .
+RUN gradle shadowJar --no-daemon --stacktrace
+
+# ── Stage 2 — Runtime (itzg/minecraft-server with TYPE=PAPER) ─────────
 FROM itzg/minecraft-server:java25
 
 ENV TYPE=PAPER
@@ -100,3 +108,8 @@ ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+Disable
 # itzg's CFG_VELOCITY_* patch path changes in the future, the forwarding
 # section is still present at /config/paper-global.yml on first boot.
 COPY apps/mc/lobby/config/ /config/
+
+# Source-built kbve-mc-uplink plugin — forwards death/advancement events
+# to the Velocity-side discord relay over the kbve:relay-events channel.
+COPY --from=plugin-builder /build/build/libs/kbve-mc-uplink-*.jar \
+    /plugins/kbve-mc-uplink.jar
