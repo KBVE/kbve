@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MessagePipe;
@@ -18,20 +16,13 @@ namespace RareIcon
     public class UIPanelManager : MonoBehaviour
     {
         readonly Dictionary<string, UIPanel> _panels = new();
-        readonly UniTaskCompletionSource<VisualElement> _rootReady = new();
         UIDocument _uiDocument;
 
-        /// <summary>True once the underlying <see cref="UIDocument.rootVisualElement"/> exists. Panel consumers should prefer <see cref="WaitForRootAsync"/> over polling.</summary>
+        /// <summary>True once the underlying <see cref="UIDocument.rootVisualElement"/> exists. Panel consumers gate startup on this via <c>UniTask.WaitUntil(() =&gt; _panelManager.IsRootReady, ct)</c> + read <see cref="RootElement"/>.</summary>
         public bool IsRootReady => _uiDocument != null && _uiDocument.rootVisualElement != null;
 
-        /// <summary>Direct accessor — null until the first frame after Awake. Panels that need eager access should await <see cref="WaitForRootAsync"/> instead.</summary>
+        /// <summary>Direct accessor — null until the first frame after Awake. Pair with <see cref="IsRootReady"/> via <c>UniTask.WaitUntil</c>.</summary>
         public VisualElement RootElement => _uiDocument != null ? _uiDocument.rootVisualElement : null;
-
-        /// <summary>One-shot awaitable that resolves with the document's <see cref="VisualElement"/> root the moment it becomes available. Subsequent awaits return the cached root immediately.</summary>
-        public UniTask<VisualElement> WaitForRootAsync(CancellationToken cancellation = default)
-        {
-            return _rootReady.Task.AttachExternalCancellation(cancellation);
-        }
 
         [Inject] LocaleService _locale;
         [Inject] ISubscriber<PanelShowMessage> _showSub;
@@ -70,13 +61,6 @@ namespace RareIcon
         {
             _uiBlocker?.Register(_uiDocument);
 
-            // Resolve the rootReady awaitable as soon as the UIDocument
-            // populates its rootVisualElement. Awake is too early — Unity
-            // builds the panel one frame later — so we poll one frame at
-            // a time until it lands. UniTask.NextFrame keeps the loop
-            // allocation-free + cancellation-friendly.
-            ResolveRootWhenReady().Forget();
-
             var bag = DisposableBag.CreateBuilder();
 
             _showSub.Subscribe(msg =>
@@ -98,20 +82,6 @@ namespace RareIcon
         {
             _uiBlocker?.Unregister(_uiDocument);
             _subscriptions?.Dispose();
-            _rootReady.TrySetCanceled();
-        }
-
-        async UniTaskVoid ResolveRootWhenReady()
-        {
-            const int MaxFrameWait = 240; // ~4 s at 60 fps — bail rather than spin forever
-            int waited = 0;
-            while (_uiDocument != null && _uiDocument.rootVisualElement == null && waited < MaxFrameWait)
-            {
-                await UniTask.NextFrame(this.GetCancellationTokenOnDestroy());
-                waited++;
-            }
-            if (_uiDocument != null && _uiDocument.rootVisualElement != null)
-                _rootReady.TrySetResult(_uiDocument.rootVisualElement);
         }
 
         /// <summary>
