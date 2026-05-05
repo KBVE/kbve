@@ -84,32 +84,49 @@ class DiscordBot(
     /**
      * Post a player's chat to Discord via the cached webhook.
      * Webhook username is set to "<player> [L|S|?]" so reply-routing can
-     * recover the source server from the message's author name.
+     * recover the source server from the message's author name. Avatar
+     * rendered via Visage when a player UUID is supplied.
      */
-    fun postOutbound(serverName: String, playerName: String, message: String) {
+    fun postOutbound(serverName: String, playerName: String, playerUuid: java.util.UUID?, message: String) {
         val tag = serverTag(serverName)
         val displayName = sanitizeUsername("$playerName $tag")
-        postWebhook(displayName, message)
+        postWebhook(displayName, message, playerUuid?.let(::visageUrl))
     }
 
     /**
-     * Post a system event (join, leave, future: death, advancement) under a
-     * neutral webhook identity so it's visually distinct from player chat.
-     * Reply-routing intentionally won't match this (no [L]/[S] tag), so replies
-     * fall through to global broadcast.
+     * Post a system event embed (join, leave, switch, death, advancement)
+     * with the player's face icon as the embed author icon and a sidebar
+     * color matching the event type. See companion [Color] for codes.
      */
-    fun postSystemMessage(content: String) {
-        postWebhook(SYSTEM_USERNAME, content)
+    fun postSystemEmbed(authorText: String, color: Int, playerUuid: java.util.UUID?) {
+        val url = webhookUrl.get() ?: return
+        val author = JsonWriter.obj().field("name", authorText)
+        if (playerUuid != null) {
+            author.field("icon_url", visageUrl(playerUuid))
+        }
+        val embed = JsonWriter.obj()
+            .fieldRaw("color", color.toString())
+            .field("author", author)
+        val payload = JsonWriter.obj()
+            .field("embeds", JsonWriter.arr().element(embed))
+            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
+            .build()
+        sendPayload(url, payload)
     }
 
-    private fun postWebhook(username: String, content: String) {
+    private fun postWebhook(username: String, content: String, avatarUrl: String? = null) {
         val url = webhookUrl.get() ?: return
-        val payload = JsonWriter.obj()
+        val builder = JsonWriter.obj()
             .field("username", username)
             .field("content", content)
             .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
-            .build()
+        if (avatarUrl != null) {
+            builder.field("avatar_url", avatarUrl)
+        }
+        sendPayload(url, builder.build())
+    }
 
+    private fun sendPayload(url: String, payload: String) {
         val req = HttpRequest.newBuilder(URI.create(url))
             .timeout(Duration.ofSeconds(5))
             .header("Content-Type", "application/json")
@@ -125,6 +142,9 @@ class DiscordBot(
                 }
             }
     }
+
+    private fun visageUrl(uuid: java.util.UUID): String =
+        "https://visage.surgeplay.com/face/96/$uuid"
 
     override fun onReady(event: ReadyEvent) {
         botUserId = event.jda.selfUser.id
@@ -436,6 +456,13 @@ class DiscordBot(
     companion object {
         const val WEBHOOK_NAME = "kbve-mc-relay"
         const val SYSTEM_USERNAME = "Server"
+
+        // Discord embed sidebar colors for system events.
+        const val COLOR_JOIN = 0x57F287        // Discord green
+        const val COLOR_LEAVE = 0xED4245       // Discord red
+        const val COLOR_SWITCH = 0x5865F2      // Discord blurple
+        const val COLOR_DEATH = 0x4F545C       // Dark gray
+        const val COLOR_ADVANCEMENT = 0xFAA61A // Gold
         // Matches >word, optionally followed by whitespace + body. The body group
         // is empty for arg-less commands like ">help" / ">who" / ">servers".
         private val PREFIX_REGEX = Regex("""^>(\w+)(?:\s+([\s\S]+))?$""")
@@ -454,6 +481,18 @@ internal class JsonWriter private constructor(private val isArray: Boolean) {
 
     fun field(name: String, value: JsonWriter): JsonWriter {
         parts += "\"${escape(name)}\":${value.build()}"
+        return this
+    }
+
+    /** Emit an unquoted JSON value (numbers, booleans, null). Caller must ensure validity. */
+    fun fieldRaw(name: String, value: String): JsonWriter {
+        parts += "\"${escape(name)}\":$value"
+        return this
+    }
+
+    /** Append a raw element to an array (for arr() writers). */
+    fun element(value: JsonWriter): JsonWriter {
+        parts += value.build()
         return this
     }
 
