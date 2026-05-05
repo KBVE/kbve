@@ -31,8 +31,8 @@ public final class IntentDecoder {
     /** Legacy wire key → (creatureTag, tamed). */
     private static final Map<String, LegacySpawn> LEGACY_SPAWNS = Map.of(
             "SpawnSkeleton", new LegacySpawn("skeleton", false),
-            "SpawnPetDog", new LegacySpawn("pet_dog", true),
-            "SpawnPetParrot", new LegacySpawn("pet_parrot", true),
+            "SpawnPetDog", new LegacySpawn("dog", true),
+            "SpawnPetParrot", new LegacySpawn("parrot", true),
             "SpawnSkeletonMelee", new LegacySpawn("skeleton_melee", false),
             "SpawnSkeletonMage", new LegacySpawn("skeleton_mage", false),
             "SpawnSkeletonArcher", new LegacySpawn("skeleton_archer", false)
