@@ -131,7 +131,13 @@ namespace RareIcon
             card.Add(_startBtn);
             card.Add(_leaveBtn);
             _root.Add(card);
-            uiRoot.Add(_root);
+
+            // Mount inside the title window so the lobby reads as a stage
+            // of the title screen, not a global popup floating outside the
+            // window chrome. Falls back to the doc root if the title UXML
+            // hasn't loaded (defensive — should never happen at runtime).
+            var titleWindow = uiRoot.Q<VisualElement>("title-window");
+            (titleWindow ?? uiRoot).Add(_root);
         }
 
         static Label MakeRow(string text)
