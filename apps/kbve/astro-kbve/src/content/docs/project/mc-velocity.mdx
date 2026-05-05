@@ -13,7 +13,7 @@ tags:
 key: mc_velocity
 pipeline: docker
 app_name: mc-velocity
-version: "1.1.3"
+version: "1.1.4"
 source_path: apps/mc/velocity
 version_toml: apps/mc/velocity/version.toml
 runner: ubuntu-latest
@@ -47,19 +47,30 @@ Hardcoded aliases for v1. A config file for dynamic aliases is v2 scope. No-perm
 
 ### 2. Cross-server chat bridge
 
-Listens to `PlayerChatEvent` on Velocity and broadcasts a secondary `Component` to all players on *other* servers. Does NOT cancel or modify the original event, so local signed chat flows through normally — the bridge is additive.
-
-Per-player chat mode stored in an in-memory `ConcurrentHashMap<UUID, ChatMode>`, toggled via `/chat`:
+Listens to `PlayerChatEvent` on Velocity. Per-player chat mode stored in an in-memory `ConcurrentHashMap<UUID, ChatMode>`, toggled via `/chat`:
 
 | Command | Behavior |
 |---|---|
 | `/chat` | Shows current mode (default `global`) |
 | `/chat local` | Messages stay on source server |
-| `/chat global` | Messages bridge cross-server with `[L]` / `[S]` tag prefixes |
+| `/chat global` | Messages broadcast to every backend with a server-tagged prefix |
 
-Bridged messages are color-coded by server: gray for lobby (`[L]`), gold for mc (`[S]`).
+**Local mode:** the plugin doesn't touch the event. Vanilla MC chat (`<player> message`) flows through with signed-chat verification + backend chat-filter pipeline intact, visible only to same-server players. The absence of a tag is the local indicator.
 
-Session-scoped — the map resets when the Velocity pod restarts. Persistent storage is v2 scope.
+**Global mode:** the plugin denies the original `PlayerChatEvent` and re-emits a formatted `Component` to every player on every backend:
+
+```
+[Lobby] fudster: hi
+[Survival] fudster: hi
+```
+
+- `[`, `]`, `:` → dark gray (visual gutter)
+- `Lobby` → dark aqua, `Survival` → dark green (no yellow)
+- Player name + body → white (default chat color)
+
+Tradeoff: signed-chat verification is bypassed for global only — the message reaches recipients as a system component, not signed chat. Local chat keeps full signing.
+
+Session-scoped — the chat-mode map resets when the Velocity pod restarts. Persistent storage is v2 scope.
 
 ### 3. Last-server persistence
 
