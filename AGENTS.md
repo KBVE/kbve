@@ -138,6 +138,18 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
 ---
 
+# pipeline:docker apps — version bumps
+
+For any project with `pipeline: docker` in its `*.mdx` frontmatter (mc-velocity, mc-lobby, mc, etc.):
+
+- ✅ Bump only the mdx frontmatter `version: "x.y.z"` to ship a new image.
+- ❌ Never edit `apps/<app>/version.toml` — CI's post-publish PR owns it.
+- ❌ Never edit `apps/kube/.../<app>-deployment.yaml` `image:` tag — same.
+
+Dispatch compares mdx `version:` against `version.toml`; if equal, it skips the build entirely. Pre-bumping `version.toml` silently breaks the pipeline.
+
+---
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 
