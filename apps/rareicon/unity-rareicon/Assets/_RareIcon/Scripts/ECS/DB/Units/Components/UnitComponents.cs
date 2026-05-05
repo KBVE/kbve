@@ -4,37 +4,51 @@ using Unity.Rendering;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Unit type IDs — passed to HexUnit.shader via _UnitType to pick which
-    /// pixel-art include draws the creature. Add new ones at the end.
-    /// </summary>
+    /// <summary>Unit type IDs — passed to HexUnit.shader via <c>_UnitType</c> to pick which pixel-art include draws the creature. Add new ones at the end.</summary>
     public static class UnitType
     {
-        public const byte None    = 0;
-        public const byte Goblin  = 1;
-        public const byte Knight  = 2;
-        public const byte Soldier = 3;
-        public const byte Mage    = 4;
-        public const byte King    = 5;  // Player-controlled — visually a Soldier + Crown for v1.
-        public const byte Archer   = 6;  // Humanoid ranger — hooded, forest leather, back quiver.
-        public const byte Rogue    = 7;  // Humanoid dual-dagger — dark cloak + face scarf.
-        public const byte Cleric   = 8;  // Humanoid healer — pale robe, gold trim, holy symbol.
-        public const byte Merchant = 9;  // Humanoid civilian trader — flat cap, coin pouch.
-        public const byte Chicken = 10;
-        public const byte Sheep   = 11;
-        public const byte Cow     = 12;
-        public const byte Wolf    = 13;  // Beast faction, forest pack hunter.
-        public const byte Bandit  = 14;  // Hostile faction, raid waves alongside goblins.
-        public const byte Zombie  = 15;
-        public const byte GoblinGeneral = 16; // Warlord goblin — chestplate, spiked crown, warpaint.
-        public const byte FishingBoat   = 17; // Water-locked craftsman-built vessel; hunts Whales for Oil + Meat.
-        public const byte Whale         = 18; // Oceanic / river leviathan — FishingBoats' prey.
-        public const byte Galley        = 19; // Water-locked Player-faction warship — Shipyard-built, ranged arrow attack.
-        public const byte PirateShip    = 20; // Water-locked Hostile-faction raider — PirateCove-spawned, ranged arrow attack.
-        public const byte Scout         = 21; // Player-faction recon — fast, low HP, big vision radius for fog reveal. Recruited from Barracks.
-        public const byte BanditScout   = 22; // Hostile-faction recon — wanders far from BanditCamp, marks discovered Player buildings as raid targets.
-        public const byte Cavalry       = 23; // Player-faction mounted melee — fast charger, decent HP, recruited from Stables (Barracks T1 variant 1).
-        // Skeleton, etc. land here as we add them.
+        public const byte None          = 0;
+        public const byte Goblin        = 1;
+        public const byte Knight        = 2;
+        public const byte Soldier       = 3;
+        public const byte Mage          = 4;
+        public const byte King          = 5;
+        public const byte Archer        = 6;
+        public const byte Rogue         = 7;
+        public const byte Cleric        = 8;
+        public const byte Merchant      = 9;
+        public const byte Chicken       = 10;
+        public const byte Sheep         = 11;
+        public const byte Cow           = 12;
+        public const byte Wolf          = 13;
+        public const byte Bandit        = 14;
+        public const byte Zombie        = 15;
+        public const byte GoblinGeneral = 16;
+        public const byte FishingBoat   = 17;
+        public const byte Whale         = 18;
+        public const byte Galley        = 19;
+        public const byte PirateShip    = 20;
+        public const byte Scout         = 21;
+        public const byte BanditScout   = 22;
+        public const byte Cavalry       = 23;
+        public const byte Skeleton      = 24;
+    }
+
+    /// <summary>Skeleton appearance/behavior variant byte. Plain bones is the default; Guard adds a rusted helm + shield kit, Wraith glows blue + carries magic-resist, Fungal/Desert are biome palette swaps.</summary>
+    public static class SkeletonVariantValue
+    {
+        public const byte Plain  = 0;
+        public const byte Guard  = 1;
+        public const byte Wraith = 2;
+        public const byte Fungal = 3;
+        public const byte Desert = 4;
+    }
+
+    /// <summary>Per-instance MaterialProperty for the skeleton fragment branch in HexUnit.shader; carries <see cref="SkeletonVariantValue"/> as a float so the shader can pick the right palette + accessory overlay without a new <c>UnitType</c> byte per variant.</summary>
+    [MaterialProperty("_SkeletonVariant")]
+    public struct SkeletonVariant : IComponentData
+    {
+        public float Value;
     }
 
     /// <summary>Per-unit display name as two pool indexes — 4 bytes total. FirstNameId picks from a language-neutral pool (goblin names like "Skab" read the same in any locale); EpithetId picks from a localizable pool ("the Sly" / "ずる賢き"). 0 in either slot = unset; the UI falls back to the creature.* locale label when both are 0.</summary>

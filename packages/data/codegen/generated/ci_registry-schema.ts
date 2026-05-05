@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-05-04T06:27:06.676Z
+ * Generated: 2026-05-04T21:17:48.048Z
  */
 
 import { z } from 'zod';
@@ -43,120 +43,105 @@ export type TestFrameworkValue = (typeof TestFrameworks)[number];
 export const TestFrameworkSchema = z.enum(TestFrameworks);
 
 // SteamApp
-export const SteamAppSchema = z.object({
-	app_id: z.string().regex(/^\d+$/, 'Steam app id must be numeric').max(16),
-	label: z.string().min(1).max(64).optional(),
-	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
-	branch: z.string().min(1).max(64).optional(),
-});
+export const SteamAppSchema = z
+	.object({
+		app_id: z.string().regex(/^\d+$/, 'Steam app id must be numeric').max(16),
+		label: z.string().min(1).max(64).optional(),
+		depot_id: z.string().regex(/^\d+$/).max(16).optional(),
+		branch: z.string().min(1).max(64).optional(),
+	});
 
 export type SteamApp = z.infer<typeof SteamAppSchema>;
 
 // ExternalPublish
-export const ExternalPublishSchema = z.object({
-	modrinth_mod_id: z.string().max(32).optional(),
-	modrinth_pack_id: z.string().max(32).optional(),
-	modrinth_version_type: z.enum(['alpha', 'beta', 'release']).optional(),
-	modrinth_game_versions: z.string().max(512).optional(),
-	modrinth_loaders: z.string().max(256).optional(),
-	modrinth_retain_count: z.number().int().min(1).max(50).optional(),
-	modrinth_rolling_version: z.string().min(1).max(64).optional(),
-	modrinth_server_address: z.string().min(1).max(253).optional(),
-	itch_user: z.string().min(1).max(64).optional(),
-	itch_game: z.string().min(1).max(64).optional(),
-	itch_channel: z.string().min(1).max(64).optional(),
-	steam_apps: z.array(SteamAppSchema).max(10).optional(),
-	apple_bundle_id: z.string().min(1).max(128).optional(),
-	apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
-	apple_team_id: z.string().min(1).max(32).optional(),
-	google_play_package: z.string().min(1).max(128).optional(),
-	google_play_track: z
-		.enum(['internal', 'alpha', 'beta', 'production'])
-		.optional(),
-	curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
-	curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
-	curseforge_release_type: z.enum(['alpha', 'beta', 'release']).optional(),
-});
+export const ExternalPublishSchema = z
+	.object({
+		modrinth_mod_id: z.string().max(32).optional(),
+		modrinth_pack_id: z.string().max(32).optional(),
+		modrinth_version_type: z.enum(['alpha', 'beta', 'release']).optional(),
+		modrinth_game_versions: z.string().max(512).optional(),
+		modrinth_loaders: z.string().max(256).optional(),
+		modrinth_retain_count: z.number().int().min(1).max(50).optional(),
+		modrinth_rolling_version: z.string().min(1).max(64).optional(),
+		modrinth_server_address: z.string().min(1).max(253).optional(),
+		itch_user: z.string().min(1).max(64).optional(),
+		itch_game: z.string().min(1).max(64).optional(),
+		itch_channel: z.string().min(1).max(64).optional(),
+		steam_apps: z.array(SteamAppSchema).max(10).optional(),
+		apple_bundle_id: z.string().min(1).max(128).optional(),
+		apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
+		apple_team_id: z.string().min(1).max(32).optional(),
+		google_play_package: z.string().min(1).max(128).optional(),
+		google_play_track: z.enum(['internal', 'alpha', 'beta', 'production']).optional(),
+		curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
+		curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
+		curseforge_release_type: z.enum(['alpha', 'beta', 'release']).optional(),
+	});
 
 export type ExternalPublish = z.infer<typeof ExternalPublishSchema>;
 
 // GameEngineConfig
-export const GameEngineConfigSchema = z.object({
-	version: z.string().min(1).max(64),
-	project_path: z.string().min(1).max(256),
-	build_targets: z.array(z.string().min(1).max(64)).max(20),
-	license_method: z.enum(['personal', 'professional', 'serial']).optional(),
-	dotnet_enabled: z.boolean().optional(),
-	test_args: z.array(z.string().max(256)).max(50).optional(),
-	features: z.array(z.string().min(1).max(64)).max(50).optional(),
-	external_repo_url: z.string().url().max(512).optional(),
-});
+export const GameEngineConfigSchema = z
+	.object({
+		version: z.string().min(1).max(64),
+		project_path: z.string().min(1).max(256),
+		build_targets: z.array(z.string().min(1).max(64)).max(20),
+		license_method: z.enum(['personal', 'professional', 'serial']).optional(),
+		dotnet_enabled: z.boolean().optional(),
+		test_args: z.array(z.string().max(256)).max(50).optional(),
+		features: z.array(z.string().min(1).max(64)).max(50).optional(),
+		external_repo_url: z.string().url().max(512).optional(),
+	});
 
 export type GameEngineConfig = z.infer<typeof GameEngineConfigSchema>;
 
 // CiProject
-export const CiProjectSchema = z.object({
-	key: z
-		.string()
-		.min(1, 'Alteration key is required')
-		.max(64, 'Key must be 64 characters or less')
-		.regex(
-			/^[a-z][a-z0-9_]*$/,
-			'Key must be lowercase alphanumeric with underscores',
-		),
-	name: z
-		.string()
-		.min(1, 'Project name is required')
-		.max(128, 'Name must be 128 characters or less'),
-	pipeline: DispatchPipelineSchema,
-	app_name: z.string().min(1).max(64).optional(),
-	package_name: z.string().min(1).max(64).optional(),
-	pypi_name: z.string().min(1).max(64).optional(),
-	plugin_name: z.string().min(1).max(64).optional(),
-	plugin_path: z.string().max(256).optional(),
-	dependency_plugins: z.string().max(512).optional(),
-	itch_game_id: z.string().min(1).max(64).optional(),
-	description: z
-		.string()
-		.max(500, 'Description must be 500 characters or less')
-		.optional(),
-	tags: z
-		.array(z.string().min(1).max(50))
-		.max(20, 'Maximum 20 tags')
-		.optional(),
-	source_path: z.string().max(256).optional(),
-	version_toml: z.string().max(256).optional(),
-	version: z
-		.string()
-		.regex(/^\d+\.\d+\.\d+$/, 'Must be valid semver (x.y.z)')
-		.optional(),
-	version_source: z.string().max(256).optional(),
-	author: z.string().min(1).max(128).optional(),
-	license: z.string().min(1).max(64).optional(),
-	repository_url: z.string().url().max(512).optional(),
-	homepage_url: z.string().url().max(512).optional(),
-	status: z.enum(['active', 'beta', 'deprecated', 'archived']).optional(),
-	min_engine_version: z.string().max(32).optional(),
-	supported_platforms: z.array(z.string().min(1).max(32)).max(10).optional(),
-	runner: z.string().max(64).optional(),
-	image: z.string().max(128).optional(),
-	e2e_name: z.string().max(64).optional(),
-	deployment_yaml: z.string().max(256).optional(),
-	version_target: z.string().max(256).optional(),
-	has_test: z.boolean().optional(),
-	target: z.string().max(64).optional(),
-	nx_project: z.string().max(64).optional(),
-	test_framework: TestFrameworkSchema.optional(),
-	shell_path: z.string().max(256).optional(),
-	external_publish: ExternalPublishSchema.optional(),
-	engine: GameEngineConfigSchema.optional(),
-});
+export const CiProjectSchema = z
+	.object({
+		key: z.string().min(1, 'Alteration key is required').max(64, 'Key must be 64 characters or less').regex(/^[a-z][a-z0-9_]*$/, 'Key must be lowercase alphanumeric with underscores'),
+		name: z.string().min(1, 'Project name is required').max(128, 'Name must be 128 characters or less'),
+		pipeline: DispatchPipelineSchema,
+		app_name: z.string().min(1).max(64).optional(),
+		package_name: z.string().min(1).max(64).optional(),
+		pypi_name: z.string().min(1).max(64).optional(),
+		plugin_name: z.string().min(1).max(64).optional(),
+		plugin_path: z.string().max(256).optional(),
+		dependency_plugins: z.string().max(512).optional(),
+		itch_game_id: z.string().min(1).max(64).optional(),
+		description: z.string().max(500, 'Description must be 500 characters or less').optional(),
+		tags: z.array(z.string().min(1).max(50)).max(20, 'Maximum 20 tags').optional(),
+		source_path: z.string().max(256).optional(),
+		version_toml: z.string().max(256).optional(),
+		version: z.string().regex(/^\d+\.\d+\.\d+$/, 'Must be valid semver (x.y.z)').optional(),
+		version_source: z.string().max(256).optional(),
+		author: z.string().min(1).max(128).optional(),
+		license: z.string().min(1).max(64).optional(),
+		repository_url: z.string().url().max(512).optional(),
+		homepage_url: z.string().url().max(512).optional(),
+		status: z.enum(['active', 'beta', 'deprecated', 'archived']).optional(),
+		min_engine_version: z.string().max(32).optional(),
+		supported_platforms: z.array(z.string().min(1).max(32)).max(10).optional(),
+		runner: z.string().max(64).optional(),
+		image: z.string().max(128).optional(),
+		e2e_name: z.string().max(64).optional(),
+		deployment_yaml: z.string().max(256).optional(),
+		deployment_yamls: z.array(z.string()).optional(),
+		version_target: z.string().max(256).optional(),
+		has_test: z.boolean().optional(),
+		target: z.string().max(64).optional(),
+		nx_project: z.string().max(64).optional(),
+		test_framework: TestFrameworkSchema.optional(),
+		shell_path: z.string().max(256).optional(),
+		external_publish: ExternalPublishSchema.optional(),
+		engine: GameEngineConfigSchema.optional(),
+	});
 
 export type CiProject = z.infer<typeof CiProjectSchema>;
 
 // CiRegistry
-export const CiRegistrySchema = z.object({
-	projects: z.array(CiProjectSchema).optional(),
-});
+export const CiRegistrySchema = z
+	.object({
+		projects: z.array(CiProjectSchema).optional(),
+	});
 
 export type CiRegistry = z.infer<typeof CiRegistrySchema>;

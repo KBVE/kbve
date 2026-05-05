@@ -28,7 +28,9 @@ namespace RareIcon
 
         Reconnecting,
         Disconnected,
-        Error
+        Error,
+
+        GameOver,
     }
 
     [Flags]
@@ -211,6 +213,22 @@ namespace RareIcon
         {
             SetState(AppInterfaceState.Error);
             AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
+        }
+
+        /// <summary>Capital was destroyed — switch into the GameOver state with a locked-input modal overlay so the loss screen owns input until the player picks Return to Title.</summary>
+        public void EnterGameOver()
+        {
+            if (_state.Value == AppInterfaceState.GameOver) return;
+            SetState(AppInterfaceState.GameOver);
+            AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
+        }
+
+        /// <summary>Return to title from any in-run state — tears down the active world (stops Rust empire ticker, destroys gameplay entities, resets <see cref="WorldGenSession"/>) so the title screen sees a clean slate, then flips state.</summary>
+        public void ReturnToMainMenu()
+        {
+            WorldResetBridge.Source?.Reset();
+            SetOverlay(AppOverlayFlags.None);
+            SetState(AppInterfaceState.MainMenu);
         }
 
         public void OpenInventory()

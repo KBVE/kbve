@@ -52,17 +52,18 @@ namespace RareIcon
             if (!HexLookup.TryGetValue(movement.CurrentHex, out var hex)) return;
             if (!DropLookup.HasBuffer(hex)) return;
 
-            DropOne(ref equipment.ShieldItemId, hex, chunkIdx);
-            DropOne(ref equipment.WeaponItemId, hex, chunkIdx);
-            DropOne(ref equipment.HelmetItemId, hex, chunkIdx);
-            DropOne(ref equipment.ArmorItemId,  hex, chunkIdx);
+            DropOne(ref equipment.ShieldItemId, ref equipment.ShieldHp, hex, chunkIdx);
+            DropOne(ref equipment.WeaponItemId, ref equipment.WeaponHp, hex, chunkIdx);
+            DropOne(ref equipment.HelmetItemId, ref equipment.HelmetHp, hex, chunkIdx);
+            DropOne(ref equipment.ArmorItemId,  ref equipment.ArmorHp,  hex, chunkIdx);
         }
 
-        void DropOne(ref ushort slot, Entity hex, int chunkIdx)
+        void DropOne(ref ushort slot, ref ushort hp, Entity hex, int chunkIdx)
         {
             if (slot == 0) return;
-            Ecb.AppendToBuffer(chunkIdx, hex, new ItemDrop { ItemId = slot, Count = 1 });
+            Ecb.AppendToBuffer(chunkIdx, hex, new ItemDrop { ItemId = slot, Count = 1, Hp = hp });
             slot = 0;
+            hp   = 0;
         }
     }
 }

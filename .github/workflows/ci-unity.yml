@@ -182,18 +182,6 @@ jobs:
                   git lfs install --local
                   git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
 
-            - name: Seed Unity Library from PVC
-              run: |
-                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-test"
-                  LIB_DIR="${{ inputs.project_path }}/Library"
-                  mkdir -p "$CACHE_DIR" "$LIB_DIR"
-                  if command -v rsync >/dev/null 2>&1; then
-                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
-                  else
-                      apt-get update -qq && apt-get install -y -qq --no-install-recommends rsync
-                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
-                  fi
-
             - name: Run Unity EditMode tests
               uses: game-ci/unity-test-runner@v4
               env:
@@ -215,17 +203,6 @@ jobs:
                   name: ${{ inputs.app_name }}-test-results
                   path: ${{ inputs.project_path }}/test-results
                   retention-days: 3
-
-            - name: Save Unity Library to PVC
-              if: always()
-              run: |
-                  CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-test"
-                  LIB_DIR="${{ inputs.project_path }}/Library"
-                  if [ ! -d "$LIB_DIR" ]; then
-                      exit 0
-                  fi
-                  mkdir -p "$CACHE_DIR"
-                  rsync -a --delete "$LIB_DIR"/ "$CACHE_DIR"/
 
             - name: Wipe Forgejo netrc
               if: always()
@@ -288,14 +265,18 @@ jobs:
               run: |
                   CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-${{ matrix.target }}"
                   LIB_DIR="${{ inputs.project_path }}/Library"
-                  mkdir -p "$CACHE_DIR" "$LIB_DIR"
-                  if command -v rsync >/dev/null 2>&1; then
-                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
-                  else
+                  MARKER="$CACHE_DIR/.cache-valid"
+                  mkdir -p "$LIB_DIR"
+                  if ! command -v rsync >/dev/null 2>&1; then
                       apt-get update -qq && apt-get install -y -qq --no-install-recommends rsync
-                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
                   fi
-                  echo "Seeded Library from $CACHE_DIR ($(du -sh "$LIB_DIR" 2>/dev/null | cut -f1))"
+                  if [ -f "$MARKER" ]; then
+                      rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
+                      echo "Seeded Library from $CACHE_DIR ($(du -sh "$LIB_DIR" 2>/dev/null | cut -f1))"
+                  else
+                      echo "Cache marker missing at $MARKER — starting cold."
+                      mkdir -p "$CACHE_DIR"
+                  fi
 
             - name: Build with Unity
               uses: game-ci/unity-builder@v4
@@ -311,16 +292,22 @@ jobs:
                   buildName: ${{ inputs.app_name }}
 
             - name: Save Unity Library to PVC
-              if: always()
+              if: success()
               run: |
                   CACHE_DIR="/home/runner/_cache/unity-library/${{ inputs.app_name }}-${{ matrix.target }}"
+                  STAGE_DIR="${CACHE_DIR}.tmp.$$"
                   LIB_DIR="${{ inputs.project_path }}/Library"
                   if [ ! -d "$LIB_DIR" ]; then
                       echo "No Library/ to save (build may have failed before generation)"
                       exit 0
                   fi
-                  mkdir -p "$CACHE_DIR"
-                  rsync -a --delete "$LIB_DIR"/ "$CACHE_DIR"/
+                  mkdir -p "$(dirname "$CACHE_DIR")"
+                  rm -rf "$STAGE_DIR"
+                  mkdir -p "$STAGE_DIR"
+                  rsync -a --delete "$LIB_DIR"/ "$STAGE_DIR"/
+                  touch "$STAGE_DIR/.cache-valid"
+                  rm -rf "$CACHE_DIR"
+                  mv "$STAGE_DIR" "$CACHE_DIR"
                   echo "Saved Library to $CACHE_DIR ($(du -sh "$CACHE_DIR" 2>/dev/null | cut -f1))"
 
             # Strip Unity's ship-blocked debug folders before zipping so

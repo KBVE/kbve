@@ -8,7 +8,7 @@ namespace RareIcon
     /// <summary>Turn-gated tribute deposit. Every Vassal city-state with a <see cref="CityStateTribute"/> component drips CoinPerTurn + FoodPerTurn into the nearest player city's ledger when WorldClock.TurnIndex passes <see cref="CityStateTribute"/>.NextTurn. Routes via <see cref="CityIndexSingleton"/> + <see cref="CityRouterOps"/> so once the player owns multiple cities each vassal pays its closest one (Capital today, second city later) without further changes here.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-    [UpdateInGroup(typeof(EconomySystemGroup))]
+    [UpdateInGroup(typeof(EmpireSystemGroup))]
     public partial struct CityStateTributeSystem : ISystem
     {
         EntityQuery _vassalQuery;

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package empire;
+
+option csharp_namespace = "KBVE.Proto.Empire";
+
+import "kbve/common.proto";
+
+// City-state lifecycle status. Mirrors RareIcon.CityStateStatusValue;
+// keep wire numbers stable so saves carry across Unity ↔ Rust.
+enum CityStateStatusValue {
+  CITY_STATE_STATUS_HOSTILE  = 0;
+  CITY_STATE_STATUS_NEUTRAL  = 1;
+  CITY_STATE_STATUS_ALLIED   = 2;
+  CITY_STATE_STATUS_VASSAL   = 3;
+  CITY_STATE_STATUS_ANNEXED  = 4;
+  CITY_STATE_STATUS_RAZED    = 5;
+}
+
+// Active tribute drip when a city-state is a vassal.
+message Tribute {
+  uint32 coin_per_turn  = 1;
+  uint32 food_per_turn  = 2;
+  uint32 cadence_turns  = 3;
+  uint32 next_turn      = 4;
+}
+
+// One city-state record. Locked to a hex coordinate so the Rust
+// off-region ticker can reason about distance + chunk membership
+// without dragging Unity transform data across the FFI.
+message CityStateRecord {
+  kbve.common.ULID id              = 1;
+  kbve.common.Vec2i root_hex       = 2;
+  CityStateStatusValue status      = 3;
+  uint32 mood                      = 4;
+  int32  drift_per_cadence         = 5;
+  Tribute tribute                  = 6;
+  uint32 owner_faction             = 7;   // 0 = independent, 1 = player, 2 = hostile, etc
+  string display_name              = 8;
+}
+
+// Aggregate strategic snapshot. Phase 1 mirrors Unity ECS state into
+// this; Phase 2 lets the Rust uniti tokio task own ticking + persistence
+// for cities outside the active chunk window.
+message EmpireSnapshot {
+  uint64 generation                = 1;   // monotonically incremented per emit
+  uint32 turn_index                = 2;   // WorldClock.TurnIndex at capture
+  repeated CityStateRecord cities  = 3;
+}

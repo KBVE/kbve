@@ -7,7 +7,7 @@ namespace RareIcon
     /// <summary>Turn-gated drift of <see cref="CityStateDisposition"/>.Mood toward Neutral (50). Each cadence, every non-terminal city-state's Mood moves DriftPerCadence steps toward 50, and <see cref="CityStateStatus"/>.Value is recomputed against the band thresholds. Vassal / Annexed / Razed status is sticky — drift skips those entities so diplomacy decisions don't auto-revert.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateInGroup(typeof(EmpireSystemGroup))]
     public partial struct CityStateMoodDriftSystem : ISystem
     {
         const uint CadenceTurns = 5;

@@ -246,7 +246,10 @@ namespace RareIcon
                 name = "inspector-upgrade-panel-header",
             };
             _upgradePanelHeader.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
-            _upgradePanelHeader.style.marginBottom = 4;
+            _upgradePanelHeader.style.fontSize      = 16;
+            _upgradePanelHeader.style.color         = UIStyles.Palette.TextStrong;
+            _upgradePanelHeader.style.letterSpacing = 2;
+            _upgradePanelHeader.style.marginBottom  = 8;
             _upgradePanel.Add(_upgradePanelHeader);
             _upgradePanelCards = new VisualElement { name = "inspector-upgrade-panel-cards" };
             _upgradePanelCards.style.flexDirection = FlexDirection.Column;
@@ -284,30 +287,44 @@ namespace RareIcon
         {
             var card = new VisualElement();
             card.style.flexDirection = FlexDirection.Column;
-            card.style.marginBottom = 4;
-            card.style.paddingTop = 4;
-            card.style.paddingBottom = 4;
-            card.style.paddingLeft = 6;
-            card.style.paddingRight = 6;
-            card.style.backgroundColor = new StyleColor(new UnityEngine.Color(0.12f, 0.14f, 0.18f, 0.95f));
-            card.style.borderTopLeftRadius = 3;
-            card.style.borderTopRightRadius = 3;
-            card.style.borderBottomLeftRadius = 3;
-            card.style.borderBottomRightRadius = 3;
+            card.style.marginBottom  = 8;
+            card.style.paddingTop    = 10;
+            card.style.paddingBottom = 10;
+            card.style.paddingLeft   = 12;
+            card.style.paddingRight  = 12;
+            card.style.backgroundColor = UIStyles.Palette.TileHudBg;
+            card.style.borderTopLeftRadius     = 6;
+            card.style.borderTopRightRadius    = 6;
+            card.style.borderBottomLeftRadius  = 6;
+            card.style.borderBottomRightRadius = 6;
+            card.style.borderTopWidth    = 1;
+            card.style.borderBottomWidth = 1;
+            card.style.borderLeftWidth   = 1;
+            card.style.borderRightWidth  = 1;
+            card.style.borderTopColor    = UIStyles.Palette.BorderGold;
+            card.style.borderBottomColor = UIStyles.Palette.BorderGold;
+            card.style.borderLeftColor   = UIStyles.Palette.BorderGold;
+            card.style.borderRightColor  = UIStyles.Palette.BorderGold;
 
             string nameKey = ResolveVariantNameKey(type, fromTier, variant);
             string descKey = ResolveVariantDescKey(type, fromTier, variant);
 
             var title = new Label(_locale.Get(nameKey));
             title.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            title.style.fontSize     = 15;
+            title.style.color        = UIStyles.Palette.TextStrong;
+            title.style.letterSpacing = 1;
+            title.style.marginBottom = 4;
             card.Add(title);
 
             string desc = _locale.Get(descKey);
             if (!string.IsNullOrEmpty(desc))
             {
                 var descLabel = new Label(desc);
-                descLabel.style.fontSize = 11;
-                descLabel.style.marginBottom = 2;
+                descLabel.style.fontSize    = 12;
+                descLabel.style.color       = UIStyles.Palette.TextPrimary;
+                descLabel.style.whiteSpace  = WhiteSpace.Normal;
+                descLabel.style.marginBottom = 6;
                 card.Add(descLabel);
             }
 
@@ -317,21 +334,27 @@ namespace RareIcon
                 var cost = BuildingDB.GetUpgradeCost(type, fromTier, variant);
                 for (int i = 0; i < cost.Length; i++)
                 {
-                    if (i > 0) costSb.Append(" + ");
+                    if (i > 0) costSb.Append("   ");
                     costSb.Append(cost[i].Amount);
                     costSb.Append(' ');
                     costSb.Append(_locale.GetItemName(cost[i].ItemId));
                 }
                 var costLabel = new Label(costSb.ToString());
-                costLabel.style.fontSize = 10;
-                costLabel.style.opacity = 0.85f;
+                costLabel.style.fontSize     = 12;
+                costLabel.style.color        = UIStyles.Palette.TextResource;
+                costLabel.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+                costLabel.style.marginBottom = 6;
                 card.Add(costLabel);
             }
             finally { costSb.Dispose(); }
 
-            var commit = new Button(() => CommitUpgrade(variant));
-            commit.text = _locale.Get("inspector.upgrade_panel_commit");
+            var commit = UIStyles.MakeButton(_locale.Get("inspector.upgrade_panel_commit"), () => CommitUpgrade(variant));
             commit.style.marginTop = 4;
+            commit.style.height    = 30;
+            commit.style.fontSize  = 13;
+            commit.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            commit.style.backgroundColor = UIStyles.Palette.GoldDeep;
+            commit.style.color           = UIStyles.Palette.Zinc950;
             card.Add(commit);
 
             return card;

@@ -88,6 +88,8 @@ namespace RareIcon
                 BuildModeBridge.Source     = container.Resolve<BuildModeController>();
                 ActivityFeedBridge.Source  = container.Resolve<ActivityFeedService>();
                 PauseBridge.Source         = container.Resolve<PauseService>();
+                AppStateBridge.Source      = container.Resolve<AppStateController>();
+                WorldResetBridge.Source    = container.Resolve<WorldResetService>();
             });
 
             // -- Services --
@@ -113,6 +115,7 @@ namespace RareIcon
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
             builder.Register<WorldGenSession>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
+            builder.Register<WorldResetService>(Lifetime.Singleton).AsSelf();
 
             // -- Steam services (standalone-only; entire RareIcon.Platform asmdef
             //    is excluded on iOS/Android/WebGL targets) --
@@ -135,6 +138,10 @@ namespace RareIcon
                 .AsSelf().As<ISteamAvatarService>();
             builder.RegisterEntryPoint<SteamLobbyBrowserService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyBrowserService>();
+
+            // Phase 1 multiplayer orchestrator + lobby waiting room UI.
+            builder.RegisterEntryPoint<MultiplayerCoordinator>(Lifetime.Singleton).AsSelf();
+            builder.RegisterEntryPoint<UILobbyRoom>().AsSelf();
 #endif
 
             // -- UI --
@@ -174,6 +181,9 @@ namespace RareIcon
 
             // -- Pause indicator (top-right overlay + F9 debug toggle) --
             builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
+
+            // -- Game-over loss screen (full-screen modal on AppInterfaceState.GameOver) --
+            builder.RegisterEntryPoint<UIGameOverScreen>().AsSelf();
 
             // -- Dialogue: VN renderer is DI-resolvable so the controller
             //    can drive it directly; bubble + controller are pure

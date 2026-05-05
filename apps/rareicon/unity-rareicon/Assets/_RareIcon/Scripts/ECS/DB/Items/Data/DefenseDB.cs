@@ -32,6 +32,7 @@ namespace RareIcon
         {
             switch (itemId)
             {
+                case (ushort)ItemId.Buckler:          return (15, 15);
                 case (ushort)ItemId.WoodenShield:     return (25, 20);
                 case (ushort)ItemId.IronShield:       return (40, 30);
                 case (ushort)ItemId.KiteShield:       return (45, 35);

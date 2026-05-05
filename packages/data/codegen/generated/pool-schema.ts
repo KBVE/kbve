@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/pool.binpb
  * Config: ../pool-zod-config.json
- * Generated: 2026-05-04T06:27:06.688Z
+ * Generated: 2026-05-04T21:04:26.550Z
  */
 
 import { z } from 'zod';

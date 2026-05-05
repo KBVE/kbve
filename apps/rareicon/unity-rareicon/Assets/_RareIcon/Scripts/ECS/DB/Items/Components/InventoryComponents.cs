@@ -12,13 +12,14 @@ namespace RareIcon
         void   SetCount(ushort count);
     }
 
-    /// <summary>Per-unit carried-item slot. Distinct IBufferElementData so Unity's job-safety system tracks unit access independently from every building ledger. Each stack carries a Cysharp.Ulid for FFI / save-key / birth-time ordering.</summary>
+    /// <summary>Per-unit carried-item slot. Distinct IBufferElementData so Unity's job-safety system tracks unit access independently from every building ledger. Each stack carries a Cysharp.Ulid for FFI / save-key / birth-time ordering. <see cref="Hp"/> tracks remaining durability for equipment items (one instance per slot, never stacked); stackable items leave it at <c>0</c>. <c>Hp == 0</c> on an equipment item means broken — <see cref="EquipmentSyncSystem"/> skips it during AutoEquip until a repair flow tops it back up.</summary>
     [InternalBufferCapacity(8)]
     public struct PackSlot : IBufferElementData, IItemSlot
     {
         public Ulid   Uid;
         public ushort ItemId;
         public ushort Count;
+        public ushort Hp;
 
         public Ulid   GetUid()                 => Uid;
         public ushort GetItemId()              => ItemId;
@@ -62,47 +63,75 @@ namespace RareIcon
 
     public static class PackBufferExtensions
     {
-        public static void AddItem(this DynamicBuffer<PackSlot> buffer, ushort itemId, ushort count)
+        public static void AddItem(this DynamicBuffer<PackSlot> buffer, ushort itemId, ushort count, ushort hp = ushort.MaxValue)
         {
             if (count == 0) return;
-            for (int i = 0; i < buffer.Length; i++)
+            bool isEquip = EquipmentMap.SlotFor(itemId) != EquipmentSlot.None;
+            ushort packHp = hp == ushort.MaxValue
+                ? (isEquip ? EquipmentDurability.MaxFor(itemId) : (ushort)0)
+                : hp;
+
+            if (!isEquip)
             {
-                if (buffer[i].ItemId == itemId)
+                for (int i = 0; i < buffer.Length; i++)
                 {
-                    var slot = buffer[i];
-                    slot.Count = (ushort)(slot.Count + count);
-                    buffer[i] = slot;
-                    return;
+                    if (buffer[i].ItemId == itemId)
+                    {
+                        var slot = buffer[i];
+                        slot.Count = (ushort)(slot.Count + count);
+                        buffer[i] = slot;
+                        return;
+                    }
                 }
+                buffer.Add(new PackSlot { ItemId = itemId, Count = count, Hp = 0 });
+                return;
             }
-            buffer.Add(new PackSlot { ItemId = itemId, Count = count });
+
+            for (int i = 0; i < count; i++)
+                buffer.Add(new PackSlot { ItemId = itemId, Count = 1, Hp = packHp });
         }
 
         public static ushort AddItemCapped(
             this DynamicBuffer<PackSlot> buffer,
-            ushort itemId, ushort count, int stackMax, int slotCap)
+            ushort itemId, ushort count, int stackMax, int slotCap, ushort hp = ushort.MaxValue)
         {
             if (count == 0 || itemId == 0) return 0;
             if (stackMax <= 0) stackMax = 99;
             if (slotCap <= 0) slotCap = InventoryUtil.BaseSlotCap;
 
+            bool isEquip = EquipmentMap.SlotFor(itemId) != EquipmentSlot.None;
+            ushort packHp = hp == ushort.MaxValue
+                ? (isEquip ? EquipmentDurability.MaxFor(itemId) : (ushort)0)
+                : hp;
+
             int remaining = count;
-            for (int i = 0; i < buffer.Length && remaining > 0; i++)
+            if (!isEquip)
             {
-                if (buffer[i].ItemId != itemId) continue;
-                int room = stackMax - buffer[i].Count;
-                if (room <= 0) continue;
-                int take = remaining < room ? remaining : room;
-                var slot = buffer[i];
-                slot.Count = (ushort)(slot.Count + take);
-                buffer[i] = slot;
-                remaining -= take;
+                for (int i = 0; i < buffer.Length && remaining > 0; i++)
+                {
+                    if (buffer[i].ItemId != itemId) continue;
+                    int room = stackMax - buffer[i].Count;
+                    if (room <= 0) continue;
+                    int take = remaining < room ? remaining : room;
+                    var slot = buffer[i];
+                    slot.Count = (ushort)(slot.Count + take);
+                    buffer[i] = slot;
+                    remaining -= take;
+                }
+                while (remaining > 0 && buffer.Length < slotCap)
+                {
+                    int take = remaining < stackMax ? remaining : stackMax;
+                    buffer.Add(new PackSlot { ItemId = itemId, Count = (ushort)take, Hp = 0 });
+                    remaining -= take;
+                }
             }
-            while (remaining > 0 && buffer.Length < slotCap)
+            else
             {
-                int take = remaining < stackMax ? remaining : stackMax;
-                buffer.Add(new PackSlot { ItemId = itemId, Count = (ushort)take });
-                remaining -= take;
+                while (remaining > 0 && buffer.Length < slotCap)
+                {
+                    buffer.Add(new PackSlot { ItemId = itemId, Count = 1, Hp = packHp });
+                    remaining--;
+                }
             }
             return (ushort)(count - remaining);
         }

@@ -14,34 +14,23 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.entity.Entity;
 import net.minecraft.resource.ResourceType;
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Client-side mod entrypoint for the ship system.
- *
- * <p>Vanilla entity tracking handles position, heading, and tracked data
- * (modelName, shipName) sync automatically. The only client→server payload
- * is {@code HelmInputPayload} for WASD steering.
- */
 public class ShipClientMod implements ClientModInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
     private final ShipHud hud = new ShipHud();
 
-    /** Ship the local player is currently steering (null if not at helm). */
     private String activeHelmShipId = null;
-
-    /** Saved camera perspective to restore on dismount. */
     private Perspective savedPerspective = null;
 
     @Override
     public void onInitializeClient() {
-        // Register BBModel renderer for ShipEntity
         EntityRendererRegistry.register(ShipEntityTypes.SHIP, BBModelShipRenderer::new);
 
-        // Load .bbmodel files from client resources
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
                 .registerReloadListener(new BBModelLoader());
 
@@ -50,8 +39,6 @@ public class ShipClientMod implements ClientModInitializer {
 
         LOGGER.info("[Ship Client] Initialized — BBModel renderer + HUD + helm ready");
     }
-
-    // -- Helm WASD input + camera -------------------------------------------
 
     private void onClientTick(MinecraftClient client) {
         if (client.player == null) return;
@@ -65,6 +52,7 @@ public class ShipClientMod implements ClientModInitializer {
                         idStr, shipEntity.getShipName());
                 setActiveHelm(idStr, shipEntity.getShipName());
             }
+            hud.setTelemetry(shipEntity.getTargetSpeed(), shipEntity.getYaw(), (int) Math.floor(shipEntity.getY()));
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();
@@ -72,20 +60,23 @@ public class ShipClientMod implements ClientModInitializer {
 
         if (activeHelmShipId == null) return;
 
-        // Read WASD input (cardinal directions — airship-style)
         boolean n = client.options.forwardKey.isPressed();
         boolean s = client.options.backKey.isPressed();
         boolean w = client.options.leftKey.isPressed();
         boolean e = client.options.rightKey.isPressed();
 
-        hud.setInputState(n, s, e, w);
+        long handle = client.getWindow().getHandle();
+        boolean rise = client.options.jumpKey.isPressed();
+        boolean lower = GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_TAB) == GLFW.GLFW_PRESS;
+        boolean boost = client.options.sprintKey.isPressed();
 
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
         float sideways = w ? 1.0f : (e ? -1.0f : 0f);
+        float vertical = rise ? 1.0f : (lower ? -1.0f : 0f);
 
-        if (forward != 0 || sideways != 0) {
-            ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways));
-        }
+        hud.setInputState(n, s, e, w, rise, lower, boost);
+
+        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways, vertical, boost));
     }
 
     public void setActiveHelm(String shipId, String shipName) {

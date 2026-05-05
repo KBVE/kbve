@@ -30,6 +30,7 @@ namespace RareIcon
                 EffectLookup     = SystemAPI.GetBufferLookup<StatusEffect>(false),
                 TransformLookup  = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 DefenseLookup    = SystemAPI.GetComponentLookup<DefenseMitigation>(true),
+                EquipmentLookup  = SystemAPI.GetComponentLookup<Equipment>(false),
                 DecalRngSeed     = (uint)(state.GlobalSystemVersion | 1u),
                 Ecb              = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
@@ -54,6 +55,7 @@ namespace RareIcon
         [NativeDisableParallelForRestriction] public ComponentLookup<Health>         HealthLookup;
         [NativeDisableParallelForRestriction] public ComponentLookup<BuildingHealth> BuildingHpLookup;
         [NativeDisableParallelForRestriction] public BufferLookup<StatusEffect>      EffectLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<Equipment>      EquipmentLookup;
 
         [Unity.Collections.ReadOnly] public ComponentLookup<LocalTransform>    TransformLookup;
         [Unity.Collections.ReadOnly] public ComponentLookup<DefenseMitigation> DefenseLookup;
@@ -81,14 +83,34 @@ namespace RareIcon
                     var mit = DefenseLookup[ev.Target];
                     int totalPct = mit.ArmorPct + mit.HelmetPct;
                     uint rng = XorShift((uint)eventEntity.Index ^ DecalRngSeed ^ 0xA5C3D9F1u);
-                    if (mit.ShieldMitigationPct > 0
+                    bool shieldBlocked = mit.ShieldMitigationPct > 0
                         && mit.ShieldBlockChancePct > 0
-                        && (rng % 100u) < mit.ShieldBlockChancePct)
-                    {
-                        totalPct += mit.ShieldMitigationPct;
-                    }
+                        && (rng % 100u) < mit.ShieldBlockChancePct;
+                    if (shieldBlocked) totalPct += mit.ShieldMitigationPct;
                     if (totalPct > 80) totalPct = 80;
                     if (totalPct > 0) amount *= (100f - totalPct) * 0.01f;
+
+                    if (EquipmentLookup.HasComponent(ev.Target))
+                    {
+                        var eq = EquipmentLookup[ev.Target];
+                        bool dirty = false;
+                        if (mit.ArmorPct > 0 && eq.ArmorItemId != 0 && eq.ArmorHp > 0)
+                        {
+                            eq.ArmorHp--;
+                            dirty = true;
+                        }
+                        if (mit.HelmetPct > 0 && eq.HelmetItemId != 0 && eq.HelmetHp > 0)
+                        {
+                            eq.HelmetHp--;
+                            dirty = true;
+                        }
+                        if (shieldBlocked && eq.ShieldItemId != 0 && eq.ShieldHp > 0)
+                        {
+                            eq.ShieldHp--;
+                            dirty = true;
+                        }
+                        if (dirty) EquipmentLookup[ev.Target] = eq;
+                    }
                 }
 
                 health.Value = math.max(0f, health.Value - amount);

@@ -160,6 +160,21 @@ Shader "RareIcon/HexUnit"
         _WhaleFluke      ("Whale Fluke",      Color) = (0.12, 0.16, 0.26, 1)
         _WhaleEye        ("Whale Eye",        Color) = (0.06, 0.06, 0.08, 1)
         _WhaleSpout      ("Whale Spout",      Color) = (0.90, 0.94, 0.98, 0.80)
+
+        _SkeletonVariant      ("Skeleton Variant (per-instance)", Float) = 0
+        _SkeletonBone         ("Skeleton Bone",          Color) = (0.92, 0.90, 0.82, 1)
+        _SkeletonShade        ("Skeleton Bone Shade",    Color) = (0.62, 0.60, 0.54, 1)
+        _SkeletonEye          ("Skeleton Eye Socket",    Color) = (0.05, 0.05, 0.05, 1)
+        _SkeletonHelm         ("Skeleton Helm",          Color) = (0.55, 0.42, 0.28, 1)
+        _SkeletonHelmShade    ("Skeleton Helm Shade",    Color) = (0.34, 0.24, 0.16, 1)
+        _SkeletonBoneWraith   ("Skeleton Wraith Bone",   Color) = (0.78, 0.86, 0.92, 1)
+        _SkeletonShadeWraith  ("Skeleton Wraith Shade",  Color) = (0.42, 0.52, 0.64, 1)
+        _SkeletonEyeWraith    ("Skeleton Wraith Eye",    Color) = (0.40, 0.78, 0.98, 1)
+        _SkeletonBoneFungal   ("Skeleton Fungal Bone",   Color) = (0.80, 0.84, 0.62, 1)
+        _SkeletonShadeFungal  ("Skeleton Fungal Shade",  Color) = (0.42, 0.55, 0.30, 1)
+        _SkeletonEyeFungal    ("Skeleton Fungal Eye",    Color) = (0.55, 0.92, 0.30, 1)
+        _SkeletonBoneDesert   ("Skeleton Desert Bone",   Color) = (0.96, 0.88, 0.66, 1)
+        _SkeletonShadeDesert  ("Skeleton Desert Shade",  Color) = (0.72, 0.55, 0.30, 1)
     }
 
     SubShader
@@ -319,6 +334,20 @@ Shader "RareIcon/HexUnit"
                 float4 _WhaleFluke;
                 float4 _WhaleEye;
                 float4 _WhaleSpout;
+                float  _SkeletonVariant;
+                float4 _SkeletonBone;
+                float4 _SkeletonShade;
+                float4 _SkeletonEye;
+                float4 _SkeletonHelm;
+                float4 _SkeletonHelmShade;
+                float4 _SkeletonBoneWraith;
+                float4 _SkeletonShadeWraith;
+                float4 _SkeletonEyeWraith;
+                float4 _SkeletonBoneFungal;
+                float4 _SkeletonShadeFungal;
+                float4 _SkeletonEyeFungal;
+                float4 _SkeletonBoneDesert;
+                float4 _SkeletonShadeDesert;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -330,6 +359,7 @@ Shader "RareIcon/HexUnit"
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitShield)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitMoving)
                 UNITY_DOTS_INSTANCED_PROP(float, _UnitSelected)
+                UNITY_DOTS_INSTANCED_PROP(float, _SkeletonVariant)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _UnitType     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitType)
@@ -339,6 +369,7 @@ Shader "RareIcon/HexUnit"
             #define _UnitShield   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitShield)
             #define _UnitMoving   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitMoving)
             #define _UnitSelected UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _UnitSelected)
+            #define _SkeletonVariant UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _SkeletonVariant)
             #endif
 
             // Must match constants in UnitComponents.cs.
@@ -359,6 +390,7 @@ Shader "RareIcon/HexUnit"
             #define UNIT_GOBLIN_GENERAL 16
             #define UNIT_FISHING_BOAT   17
             #define UNIT_WHALE          18
+            #define UNIT_SKELETON       24
 
             #define WEAPON_CLUB      1
             #define WEAPON_CROSSBOW  2
@@ -392,6 +424,7 @@ Shader "RareIcon/HexUnit"
             #include "Includes/HexGoblinGeneral.hlsl"
             #include "Includes/HexFishingBoat.hlsl"
             #include "Includes/HexWhale.hlsl"
+            #include "Includes/HexSkeleton.hlsl"
             // Weapon + equipment includes — composited on top of the
             // creature at each unit's respective anchor.
             #include "Includes/HexClub.hlsl"
@@ -496,6 +529,11 @@ Shader "RareIcon/HexUnit"
                 {
                     DrawWhale(color, alpha, px, grid, seed, facing);
                 }
+                else if (unitType == UNIT_SKELETON)
+                {
+                    int variant = (int)(_SkeletonVariant + 0.5);
+                    DrawSkeleton(color, alpha, px, grid, seed, facing, variant);
+                }
 
                 // -- 2. Weapon (composited on top of the creature) -------------
                 // The weapon code stays facing-agnostic: when facing=West we
@@ -536,8 +574,10 @@ Shader "RareIcon/HexUnit"
                         anchor = GoblinGeneralWeaponAnchor(grid, weaponFacing);
                     else if (unitType == UNIT_FISHING_BOAT)
                         anchor = FishingBoatWeaponAnchor(grid, weaponFacing);
+                    else if (unitType == UNIT_SKELETON)
+                        anchor = SkeletonWeaponAnchor(grid, weaponFacing);
                     else
-                        anchor = float2(grid * 0.5, grid * 0.45); // generic fallback
+                        anchor = float2(grid * 0.5, grid * 0.45);
 
                     if (weapon == WEAPON_CLUB)
                     {

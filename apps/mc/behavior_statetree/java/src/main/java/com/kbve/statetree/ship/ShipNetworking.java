@@ -11,28 +11,20 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Network packets for the ship system.
- *
- * <p>Only {@link HelmInputPayload} remains. Position, heading, modelName,
- * and shipName all sync through vanilla entity tracking (position via
- * entity motion, heading via {@code yaw}, the others via DataTracker).
- * Previously there were ShipSpawn/Despawn/Move/Status payloads for the
- * block-based ship system — those were deleted when ships became entities.
- */
+/** Network packets for the ship system. Only HelmInputPayload remains; everything else syncs via vanilla entity tracking. */
 public final class ShipNetworking {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
 
-    // -- Client → Server payloads -------------------------------------------
-
-    /** WASD helm steering input. */
+    /** Helm steering input. forward/sideways = WASD; vertical = Space/Tab; boost = sprint. */
     public record HelmInputPayload(
             String shipId,
             float forward,
-            float sideways
+            float sideways,
+            float vertical,
+            boolean boost
     ) implements CustomPayload {
         public static final CustomPayload.Id<HelmInputPayload> ID = new CustomPayload.Id<>(HELM_INPUT_ID);
         public static final PacketCodec<RegistryByteBuf, HelmInputPayload> CODEC =
@@ -40,6 +32,8 @@ public final class ShipNetworking {
                         PacketCodecs.STRING, HelmInputPayload::shipId,
                         PacketCodecs.FLOAT, HelmInputPayload::forward,
                         PacketCodecs.FLOAT, HelmInputPayload::sideways,
+                        PacketCodecs.FLOAT, HelmInputPayload::vertical,
+                        PacketCodecs.BOOLEAN, HelmInputPayload::boost,
                         HelmInputPayload::new
                 );
 
@@ -69,11 +63,16 @@ public final class ShipNetworking {
                 ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Entity-based ships: helm input drives speed + heading.
-                // Movement happens in ShipEntity.tick() based on those fields.
-                ship.setTargetSpeed(payload.forward() > 0 ? 2.0f : 0f);
-                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 2.0f);
-                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 2.0f);
+                float maxSpeed = payload.boost() ? 4.5f : 3.0f;
+                float currentSpeed = ship.getTargetSpeed();
+                if (payload.forward() > 0) {
+                    ship.setTargetSpeed(Math.min(currentSpeed + 0.15f, maxSpeed));
+                } else {
+                    ship.setTargetSpeed(Math.max(currentSpeed - 0.1f, 0f));
+                }
+                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 1.5f);
+                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 1.5f);
+                ship.setVerticalIntent(payload.vertical());
             });
         });
     }

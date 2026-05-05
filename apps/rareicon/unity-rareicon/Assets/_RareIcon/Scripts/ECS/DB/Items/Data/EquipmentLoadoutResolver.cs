@@ -25,7 +25,20 @@ namespace RareIcon
                 case UnitType.Scout:         return "scout";
                 case UnitType.BanditScout:   return "bandit-scout";
                 case UnitType.Cavalry:       return "cavalry";
+                case UnitType.Skeleton:      return "skeleton";
                 default:                     return null;
+            }
+        }
+
+        public static string RefForSkeletonVariant(byte variant)
+        {
+            switch (variant)
+            {
+                case SkeletonVariantValue.Guard:  return "skeleton-guard";
+                case SkeletonVariantValue.Wraith: return "skeleton-wraith";
+                case SkeletonVariantValue.Fungal: return "skeleton-fungal";
+                case SkeletonVariantValue.Desert: return "skeleton-desert";
+                default:                          return "skeleton";
             }
         }
 
@@ -34,6 +47,13 @@ namespace RareIcon
                                         out byte weaponByte,
                                         out byte helmetByte,
                                         out byte armorByte)
+            => ResolveByRef(RefForUnitType(unitType), out shieldByte, out weaponByte, out helmetByte, out armorByte);
+
+        public static Equipment ResolveByRef(string refSlug,
+                                             out byte shieldByte,
+                                             out byte weaponByte,
+                                             out byte helmetByte,
+                                             out byte armorByte)
         {
             shieldByte = ShieldType.None;
             weaponByte = WeaponType.None;
@@ -42,7 +62,6 @@ namespace RareIcon
 
             var equipment = new Equipment();
 
-            string refSlug = RefForUnitType(unitType);
             if (string.IsNullOrEmpty(refSlug)) return equipment;
             if (!NpcdbCache.IsLoaded) return equipment;
             if (!NpcdbCache.TryGetByRef(refSlug, out var npc)) return equipment;
@@ -58,19 +77,23 @@ namespace RareIcon
                 {
                     case EquipSlot.OffHand:
                         equipment.ShieldItemId = itemId;
+                        equipment.ShieldHp     = EquipmentDurability.MaxFor(itemId);
                         shieldByte = EquipmentMap.ShieldVisualFor(itemId);
                         break;
                     case EquipSlot.MainHand:
                         equipment.WeaponItemId = itemId;
+                        equipment.WeaponHp     = EquipmentDurability.MaxFor(itemId);
                         byte v = EquipmentMap.WeaponVisualFor(itemId);
                         if (v != WeaponType.None) weaponByte = v;
                         break;
                     case EquipSlot.Head:
                         equipment.HelmetItemId = itemId;
+                        equipment.HelmetHp     = EquipmentDurability.MaxFor(itemId);
                         helmetByte = EquipmentMap.HelmetVisualFor(itemId);
                         break;
                     case EquipSlot.Chest:
                         equipment.ArmorItemId = itemId;
+                        equipment.ArmorHp     = EquipmentDurability.MaxFor(itemId);
                         armorByte = EquipmentMap.ArmorVisualFor(itemId);
                         break;
                 }

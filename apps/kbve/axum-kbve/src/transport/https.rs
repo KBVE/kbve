@@ -50,6 +50,15 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     // /health is the canonical (no trailing slash) — match how the
     // ingress + uptime probes hit it.
     ("/health/", "/health"),
+    // GET API endpoints under /api/v1/* are canonical without a
+    // trailing slash. axum doesn't normalize trailing slashes by
+    // default and our route table only registers the no-slash
+    // form. Mirror them here so curl + bookmarks + the astro-kbve
+    // build-time fetch still resolve.
+    ("/api/v1/forum/tags/", "/api/v1/forum/tags"),
+    ("/api/v1/forum/spaces/", "/api/v1/forum/spaces"),
+    ("/api/v1/me/", "/api/v1/me"),
+    ("/api/v1/me/staff/", "/api/v1/me/staff"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
     // Tag listing — short alias for users.

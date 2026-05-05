@@ -2850,6 +2850,20 @@
 			"buyPrice": 1
 		},
 		{
+			"description": "Ash-shafted arrow tipped with a hardened cacti needle bound in resin. The needle's natural taper drives through cloth and light leather where a wooden head would skip — quartermasters issue them when the line expects unarmoured raiders.\n",
+			"lore": "Desert frontier fletchers learned to harvest spent cacti needles from foragers' yields long before the central guild caught on. The recipe travelled north with a single retired sergeant who could not stop talking about it. Within a season every militia bowyer was bidding for needle stock at twice the cactus harvester's asking price.\n",
+			"ref": "needle-arrow",
+			"key": 561,
+			"id": "01KTVTRAB1NEEDLEARROW000561",
+			"name": "Needle Arrow",
+			"typeFlags": 576,
+			"rarity": "ITEM_RARITY_UNCOMMON",
+			"emoji": "🏹",
+			"stackable": true,
+			"maxStack": 50,
+			"buyPrice": 3
+		},
+		{
 			"description": "A thick, slow-moving liquid that coats the inside of the vial like wet paint. It hums when you bring it near metal, and the label warns against operating heavy machinery, prayer, or romance for twelve hours after consumption.\n",
 			"lore": "Formulated by NoodlesTech out of a rented lab above a laundromat, using precursor chemicals that the regulator has not yet invented categories for. The company pivoted to wellness branding in 2039 and stopped answering returns. Users report the same three dreams in rotation, always in this order: a staircase, a boardroom, and a meal they almost finished.\n",
 			"ref": "noodles-girthy-pharma-potion",
@@ -4183,6 +4197,20 @@
 			"stacking": {
 				"packMax": 6
 			}
+		},
+		{
+			"description": "Heavier ash shaft with a chipped flint or sharpened stone head lashed to it with sinew. Slow off the string but it punches through plank shields and rattles teeth behind a chestplate. Fletchers grumble about the weight; sergeants order them anyway.\n",
+			"lore": "The oldest arrow pattern in the kingdom. Predates ironworking; survives because nothing else in the militia kit puts a heavy man on his back at thirty paces for the cost of a knapped pebble. Apprentice quarrymen knap broken-tile heads on slow shifts and trade them for bowstring — an unofficial economy the guild has tried and failed to tax three times.\n",
+			"ref": "stonehead-arrow",
+			"key": 562,
+			"id": "01KTVTRAB1STONEHEAD0000000562",
+			"name": "Stonehead Arrow",
+			"typeFlags": 576,
+			"rarity": "ITEM_RARITY_COMMON",
+			"emoji": "🏹",
+			"stackable": true,
+			"maxStack": 50,
+			"buyPrice": 2
 		},
 		{
 			"description": "Head the diameter of a saucepan riding on a stem taller than most children, petals golden at the outer ring and fading to rust where the seed-pack begins. Leans visibly toward the afternoon sun in a way that makes the whole field look like it is listening to the same story.\n",

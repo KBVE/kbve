@@ -48,8 +48,7 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
     private static final java.util.Set<String> MISSING_MODELS_LOGGED =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
-    /** Blockbench units → world blocks (1/16). */
-    private static final float MODEL_SCALE = 1.0f / 16.0f;
+    private static final float MODEL_SCALE = 1.0f / 4.0f;
 
     public BBModelShipRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);

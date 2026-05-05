@@ -12,10 +12,13 @@ use std::ffi::{c_char, c_void};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::thread::{self, JoinHandle};
+use std::thread;
 use std::time::Duration;
 
 use rusqlite::Connection;
+use tokio::task::JoinHandle;
+
+use crate::runtime::shared_runtime;
 
 /// Per-hex resource amounts. Mirrors the C# `HexResources` struct exactly.
 #[repr(C)]
@@ -222,79 +225,81 @@ impl WorldStore {
         let ticker_paused_for_thread = Arc::clone(&ticker_paused);
         let last_flush_for_thread = Arc::clone(&last_flush_micros);
         let total_flushes_for_thread = Arc::clone(&total_flushes);
-        let ticker = thread::Builder::new()
-            .name("uniti-world-tick".into())
-            .spawn(move || {
-                let mut last_tick = std::time::Instant::now();
-                let mut last_flush = std::time::Instant::now();
-                const FLUSH_INTERVAL_SECS: f32 = 30.0;
+        // spawn_blocking instead of std::thread::spawn so the shared
+        // tokio runtime owns this background work alongside the empire
+        // ticker. Single shutdown path, single thread-naming convention,
+        // and `rusqlite` calls inside the loop stay perfectly happy
+        // because spawn_blocking dedicates a worker thread to the task.
+        let ticker = shared_runtime().spawn_blocking(move || {
+            let mut last_tick = std::time::Instant::now();
+            let mut last_flush = std::time::Instant::now();
+            const FLUSH_INTERVAL_SECS: f32 = 30.0;
 
-                while running_for_thread.load(Ordering::Relaxed) {
-                    thread::sleep(Duration::from_millis(100));
-                    if ticker_paused_for_thread.load(Ordering::Relaxed) {
-                        last_tick = std::time::Instant::now();
-                        last_flush = std::time::Instant::now();
-                        continue;
-                    }
-                    let now = std::time::Instant::now();
-                    let dt = now.duration_since(last_tick).as_secs_f32();
-                    if dt < 1.0 {
-                        continue;
-                    }
-                    last_tick = now;
+            while running_for_thread.load(Ordering::Relaxed) {
+                thread::sleep(Duration::from_millis(100));
+                if ticker_paused_for_thread.load(Ordering::Relaxed) {
+                    last_tick = std::time::Instant::now();
+                    last_flush = std::time::Instant::now();
+                    continue;
+                }
+                let now = std::time::Instant::now();
+                let dt = now.duration_since(last_tick).as_secs_f32();
+                if dt < 1.0 {
+                    continue;
+                }
+                last_tick = now;
 
-                    {
-                        let Ok(mut locked) = state_for_thread.lock() else {
+                {
+                    let Ok(mut locked) = state_for_thread.lock() else {
+                        continue;
+                    };
+                    let mut dirty_keys: Vec<ChunkKey> = Vec::new();
+                    for (chunk_key, chunk_data) in locked.chunks.iter_mut() {
+                        if chunk_data.units.is_empty() {
                             continue;
-                        };
-                        let mut dirty_keys: Vec<ChunkKey> = Vec::new();
-                        for (chunk_key, chunk_data) in locked.chunks.iter_mut() {
-                            if chunk_data.units.is_empty() {
-                                continue;
-                            }
-                            for unit in chunk_data.units.iter_mut() {
-                                if unit.hunger_per_second > 0.0 {
-                                    unit.hunger = (unit.hunger + unit.hunger_per_second * dt)
-                                        .min(unit.hunger_max);
-                                }
-                                if unit.fatigue_per_second > 0.0 {
-                                    unit.fatigue = (unit.fatigue + unit.fatigue_per_second * dt)
-                                        .min(unit.fatigue_max);
-                                }
-                                if unit.energy_per_second != 0.0 {
-                                    unit.energy = (unit.energy + unit.energy_per_second * dt)
-                                        .clamp(0.0, unit.energy_max);
-                                }
-                                unit.last_tick_secs += dt;
-                            }
-                            dirty_keys.push(*chunk_key);
                         }
-                        for k in dirty_keys {
-                            locked.dirty_chunks.insert(k);
+                        for unit in chunk_data.units.iter_mut() {
+                            if unit.hunger_per_second > 0.0 {
+                                unit.hunger = (unit.hunger + unit.hunger_per_second * dt)
+                                    .min(unit.hunger_max);
+                            }
+                            if unit.fatigue_per_second > 0.0 {
+                                unit.fatigue = (unit.fatigue + unit.fatigue_per_second * dt)
+                                    .min(unit.fatigue_max);
+                            }
+                            if unit.energy_per_second != 0.0 {
+                                unit.energy = (unit.energy + unit.energy_per_second * dt)
+                                    .clamp(0.0, unit.energy_max);
+                            }
+                            unit.last_tick_secs += dt;
                         }
+                        dirty_keys.push(*chunk_key);
                     }
-
-                    if now.duration_since(last_flush).as_secs_f32() >= FLUSH_INTERVAL_SECS {
-                        last_flush = now;
-                        flush_dirty(
-                            &state_for_thread,
-                            &db_for_thread,
-                            &last_flush_for_thread,
-                            &total_flushes_for_thread,
-                        );
+                    for k in dirty_keys {
+                        locked.dirty_chunks.insert(k);
                     }
                 }
 
-                // Final flush on shutdown so the last tick of work + any
-                // pending writes make it to disk before the process exits.
-                flush_dirty(
-                    &state_for_thread,
-                    &db_for_thread,
-                    &last_flush_for_thread,
-                    &total_flushes_for_thread,
-                );
-            })
-            .expect("spawn uniti-world-tick");
+                if now.duration_since(last_flush).as_secs_f32() >= FLUSH_INTERVAL_SECS {
+                    last_flush = now;
+                    flush_dirty(
+                        &state_for_thread,
+                        &db_for_thread,
+                        &last_flush_for_thread,
+                        &total_flushes_for_thread,
+                    );
+                }
+            }
+
+            // Final flush on shutdown so the last tick of work + any
+            // pending writes make it to disk before the process exits.
+            flush_dirty(
+                &state_for_thread,
+                &db_for_thread,
+                &last_flush_for_thread,
+                &total_flushes_for_thread,
+            );
+        });
 
         Self {
             state,
@@ -872,9 +877,14 @@ fn flush_dirty(
 
 impl Drop for WorldStore {
     fn drop(&mut self) {
+        // Signal stop; the spawn_blocking loop polls this flag every
+        // 100 ms and runs the final flush before returning. Wait on the
+        // tokio JoinHandle via the shared runtime so the writer thread
+        // has a chance to land its last SQLite batch before the
+        // connection mutex drops with the WorldStore.
         self.running.store(false, Ordering::Relaxed);
         if let Some(handle) = self.ticker.take() {
-            let _ = handle.join();
+            let _ = shared_runtime().block_on(handle);
         }
     }
 }

@@ -83,7 +83,13 @@
 			"abilities": [
 				{ "id": "attack", "name": "Desperate Jab", "damage": 2 }
 			],
-			"faction": { "factionId": "hostile" }
+			"faction": { "factionId": "hostile" },
+			"equipment": {
+				"equipped": [
+					{ "slot": "EQUIP_SLOT_HEAD", "itemRef": "hood" },
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "leather" }
+				]
+			}
 		},
 		{
 			"description": "Hostile humanoid raider. Tougher and slower than the Goblin, prefers smashing buildings over chasing units. Spawns from Bandit Camps; drops Coin so the Looter job has reason to follow raids around.\n",
@@ -280,7 +286,13 @@
 				}
 			],
 			"abilities": [{ "id": "attack", "name": "Charge", "damage": 7 }],
-			"faction": { "factionId": "player" }
+			"faction": { "factionId": "player" },
+			"equipment": {
+				"equipped": [
+					{ "slot": "EQUIP_SLOT_MAIN_HAND", "itemRef": "iron-sword" },
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "chain-mail" }
+				]
+			}
 		},
 		{
 			"description": "A pale spider that lurks in dungeon shadows, striking first with venomous fangs.\n",
@@ -2662,7 +2674,13 @@
 			"abilities": [
 				{ "id": "attack", "name": "Quick Strike", "damage": 3 }
 			],
-			"faction": { "factionId": "player" }
+			"faction": { "factionId": "player" },
+			"equipment": {
+				"equipped": [
+					{ "slot": "EQUIP_SLOT_HEAD", "itemRef": "hood" },
+					{ "slot": "EQUIP_SLOT_CHEST", "itemRef": "leather" }
+				]
+			}
 		},
 		{
 			"description": "A dark figure that moves between shadows, striking before its prey even knows it is there.\n",
@@ -3045,7 +3063,20 @@
 			"abilities": [
 				{ "id": "defend", "name": "Shield Wall", "damage": 5 }
 			],
-			"faction": { "factionId": "deep-wardens" }
+			"faction": { "factionId": "deep-wardens" },
+			"equipment": {
+				"equipped": [
+					{
+						"slot": "EQUIP_SLOT_MAIN_HAND",
+						"itemRef": "rusty-sword"
+					},
+					{
+						"slot": "EQUIP_SLOT_OFF_HAND",
+						"itemRef": "wooden-shield"
+					},
+					{ "slot": "EQUIP_SLOT_HEAD", "itemRef": "hood" }
+				]
+			}
 		},
 		{
 			"description": "Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.\n",

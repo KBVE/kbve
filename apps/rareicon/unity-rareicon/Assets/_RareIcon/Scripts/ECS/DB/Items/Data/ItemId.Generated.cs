@@ -185,5 +185,7 @@ namespace RareIcon
         WoodenShield = 558,  // wooden-shield
         KiteShield = 559,  // kite-shield
         GoldPlatedShield = 560,  // gold-plated-shield
+        NeedleArrow = 561,  // needle-arrow
+        StoneheadArrow = 562,  // stonehead-arrow
     }
 }

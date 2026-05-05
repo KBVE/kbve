@@ -26,8 +26,8 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
         const float UnitSize = 0.5f;
-        const int   GoblinCount  = 100;
-        const int   SpawnRadius  = 12;
+        const int   GoblinCount  = 250;
+        const int   SpawnRadius  = 18;
 
         static Mesh                  _mesh;
         static Material              _material;
@@ -39,14 +39,20 @@ namespace RareIcon
 
         bool _spawned;
 
+        /// <summary>WorldResetService bumps this on Return-to-Title so the next OnUpdate re-runs the initial spawn loop. Static + read once per OnUpdate keeps the reset cross-system without holding a reference back to the SystemBase.</summary>
+        public static int RespawnGeneration;
+        int _spawnedAtGeneration;
+
         /// <summary>True while the one-shot initial spawn loop runs; <see cref="PublishTraitToast"/> reads this and skips publishing so the king's starting retinue doesn't fire "Hero born" toasts. New heroes (barracks recruitment, settler arrival) spawn after the loop completes and toast normally.</summary>
         static bool _suppressTraitToasts;
 
         protected override void OnUpdate()
         {
             if (!WorldGenSession.HasStarted) return;
+            if (RespawnGeneration != _spawnedAtGeneration) _spawned = false;
             if (_spawned) return;
             _spawned = true;
+            _spawnedAtGeneration = RespawnGeneration;
 
             if (!EnsureRenderAssets()) return;
 
@@ -457,12 +463,24 @@ namespace RareIcon
             float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
             worldPos.z = -0.7f;
 
+            var equipment = EquipmentLoadoutResolver.Resolve(
+                UnitType.Bandit,
+                out byte shieldByte,
+                out byte weaponByte,
+                out byte helmetByte,
+                out byte armorByte);
+            if (weaponByte == WeaponType.None) weaponByte = def.DefaultWeapon;
+
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit
             {
                 Type   = def.UnitType,
-                Weapon = def.DefaultWeapon,
+                Weapon = weaponByte,
+                Helmet = helmetByte,
+                Shield = shieldByte,
+                Armor  = armorByte,
             });
+            em.AddComponentData(entity, equipment);
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;
@@ -471,15 +489,15 @@ namespace RareIcon
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
 
             em.AddComponentData(entity, new UnitVisual       { Value = (float)def.UnitType });
-            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)def.DefaultWeapon });
+            em.AddComponentData(entity, new UnitWeaponVisual { Value = (float)weaponByte });
+            em.AddComponentData(entity, new UnitShieldVisual { Value = (float)shieldByte });
+            em.AddComponentData(entity, new UnitArmorVisual  { Value = (float)armorByte });
             em.AddComponentData(entity, new UnitFacingVisual { Value = (float)UnitFacing.East });
             em.AddComponentData(entity, new UnitMovingVisual { Value = 1f });
 
             em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
-            // Bandits hit harder than goblins and prefer buildings so a
-            // raid actually pressures the empire's structures.
             em.AddComponentData(entity, new MeleeAttack
             {
                 Range         = 0.45f,
@@ -535,6 +553,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Scout, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -593,6 +612,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = def.DefaultWeapon });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Cavalry, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -659,6 +679,7 @@ namespace RareIcon
 
             em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
             em.AddComponentData(entity, new Unit { Type = def.UnitType, Weapon = WeaponType.None });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.BanditScout, out _, out _, out _, out _));
             em.AddComponentData(entity, new Health { Value = def.MaxHealth, Max = def.MaxHealth });
             if (def.MaxEnergy > 0)
                 em.AddComponentData(entity, new Energy { Value = def.MaxEnergy, Max = def.MaxEnergy });
@@ -721,6 +742,7 @@ namespace RareIcon
                 Type   = def.UnitType,
                 Weapon = WeaponType.None,
             });
+            em.AddComponentData(entity, EquipmentLoadoutResolver.Resolve(UnitType.Zombie, out _, out _, out _, out _));
 
             float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
             float hp    = state.Health    > 0f ? state.Health    : maxHp;
@@ -739,6 +761,95 @@ namespace RareIcon
                 Range         = 0.45f,
                 Damage        = 4.0f,
                 Cooldown      = 1.3f,
+                TimeSinceShot = 0f,
+                TargetMode    = MeleeTargetMode.PreferUnits,
+            });
+
+            em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
+            em.AddBuffer<StatusEffect>(entity);
+
+            float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
+            em.AddComponentData(entity, new UnitMovement
+            {
+                CurrentHex      = hex,
+                TargetHex       = hex,
+                MoveSpeed       = def.MoveSpeed * speedJit,
+                Facing          = UnitFacing.East,
+                RandomState     = rngSeed | 1u,
+                WanderStep      = 0u,
+                DwellTimer      = (rngSeed % 200u) / 200f,
+                LastDir         = 255,
+                LastHarvestStep = uint.MaxValue,
+            });
+
+            em.AddComponentData(entity, new MovementGoal
+            {
+                Kind      = GoalKind.None,
+                Priority  = GoalPriority.None,
+                TargetHex = hex,
+            });
+
+            RenderMeshUtility.AddComponents(
+                entity, em, _renderDesc, _renderArray,
+                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+            return entity;
+        }
+
+        /// <summary>Spawn a Hostile-faction Skeleton at the given hex. Resolves a variant-specific MDX kit (<c>skeleton</c> / <c>skeleton-guard</c> / <c>skeleton-wraith</c> / <c>skeleton-fungal</c> / <c>skeleton-desert</c>) so Plain skeletons spawn naked while Guard variants get a rusted helm + shield, Wraith carries a rune-staff, etc. Carries the standard <see cref="Equipment"/> + visual byte components so DamageJob's mitigation pipeline + the existing equip auto-swap pick the right armor / weapon. The <see cref="SkeletonVariant"/> material property drives the shader's variant branch (palette + accessory overlay).</summary>
+        public static Entity SpawnSkeletonAt(EntityManager em, int2 hex, uint rngSeed,
+                                             byte variant = SkeletonVariantValue.Plain,
+                                             UnitSpawnState state = default)
+        {
+            if (!EnsureRenderAssets()) return Entity.Null;
+
+            var def = NPCDB.Get(UnitType.Skeleton);
+            var entity = em.CreateEntity();
+
+            float3 worldPos = HexMeshUtil.HexToWorld(hex.x, hex.y, HexSize);
+            worldPos.z = -0.7f;
+
+            string refSlug = EquipmentLoadoutResolver.RefForSkeletonVariant(variant);
+            var equipment = EquipmentLoadoutResolver.ResolveByRef(
+                refSlug,
+                out byte shieldByte,
+                out byte weaponByte,
+                out byte helmetByte,
+                out byte armorByte);
+
+            em.AddComponentData(entity, LocalTransform.FromPosition(worldPos));
+            em.AddComponentData(entity, new Unit
+            {
+                Type   = UnitType.Skeleton,
+                Weapon = weaponByte,
+                Helmet = helmetByte,
+                Shield = shieldByte,
+                Armor  = armorByte,
+            });
+            em.AddComponentData(entity, equipment);
+
+            float maxHp = state.MaxHealth > 0f ? state.MaxHealth : def.MaxHealth;
+            float hp    = state.Health    > 0f ? state.Health    : maxHp;
+            em.AddComponentData(entity, new Health { Value = hp, Max = maxHp });
+
+            em.AddComponentData(entity, new UnitVisual        { Value = (float)UnitType.Skeleton });
+            em.AddComponentData(entity, new SkeletonVariant   { Value = (float)variant });
+            em.AddComponentData(entity, new UnitWeaponVisual  { Value = (float)weaponByte });
+            em.AddComponentData(entity, new UnitShieldVisual  { Value = (float)shieldByte });
+            em.AddComponentData(entity, new UnitArmorVisual   { Value = (float)armorByte });
+            em.AddComponentData(entity, new UnitFacingVisual  { Value = (float)UnitFacing.East });
+            em.AddComponentData(entity, new UnitMovingVisual  { Value = 1f });
+
+            em.AddComponentData(entity, new Faction    { Value = FactionType.Hostile });
+            em.AddComponentData(entity, new Collidable { Radius = 0.20f });
+
+            float meleeDamage   = variant == SkeletonVariantValue.Guard  ? 6.0f : 4.5f;
+            float meleeCooldown = variant == SkeletonVariantValue.Wraith ? 1.5f : 1.2f;
+            em.AddComponentData(entity, new MeleeAttack
+            {
+                Range         = 0.45f,
+                Damage        = meleeDamage,
+                Cooldown      = meleeCooldown,
                 TimeSinceShot = 0f,
                 TargetMode    = MeleeTargetMode.PreferUnits,
             });

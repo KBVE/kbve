@@ -24,11 +24,18 @@ namespace RareIcon.EditorTools
 
         static SteamPluginPlatformGate()
         {
-            ApplyMobileLockdown();
+            EditorApplication.delayCall += DeferredApplyMobileLockdown;
         }
 
         [MenuItem("Tools/RareIcon/Re-apply Steam mobile plugin lockdown")]
         private static void ApplyMobileLockdownMenu() => ApplyMobileLockdown();
+
+        private static void DeferredApplyMobileLockdown()
+        {
+            EditorApplication.delayCall -= DeferredApplyMobileLockdown;
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+            ApplyMobileLockdown();
+        }
 
         private static void ApplyMobileLockdown()
         {

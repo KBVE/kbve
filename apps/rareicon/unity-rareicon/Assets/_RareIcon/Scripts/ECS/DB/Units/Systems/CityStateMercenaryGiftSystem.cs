@@ -6,7 +6,7 @@ namespace RareIcon
 {
     /// <summary>Allied city-states periodically gift the player a Soldier mercenary spawned at the Capital's RootHex. Cadence is shared across all Allied cities (one gift per cadence regardless of count) so the empire isn't flooded by a stack of allies. Manages own elapsed-time tracker since cadence is in real seconds rather than turns — keeps the gift rate even across speed scaling.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-    [UpdateInGroup(typeof(BehaviorSystemGroup))]
+    [UpdateInGroup(typeof(EmpireSystemGroup))]
     public partial class CityStateMercenaryGiftSystem : SystemBase
     {
         const float CadenceSeconds = 120f;

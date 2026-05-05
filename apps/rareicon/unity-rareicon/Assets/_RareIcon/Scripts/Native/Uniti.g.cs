@@ -27,6 +27,76 @@ namespace RareIcon.Native
 
 
         /// <summary>
+        ///  Stores a snapshot published by Unity. `bytes` must point to a
+        ///  proto-encoded `EmpireSnapshot` of length `len`. The function copies
+        ///  the bytes into Rust-owned memory, so the caller is free to release
+        ///  or reuse the source buffer immediately after the call returns.
+        ///
+        ///  Returns `1` on success, `0` if the input is null or empty.
+        ///
+        ///  # Safety
+        ///  `bytes` must be a valid pointer to at least `len` initialised bytes
+        ///  when `len &gt; 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_publish", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_publish(byte* bytes, nuint len);
+
+        /// <summary>
+        ///  Returns the currently-stored snapshot length (in bytes) without
+        ///  copying. Unity calls this first to size its receive buffer.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_snapshot_len", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern nuint uniti_empire_snapshot_len();
+
+        /// <summary>
+        ///  Copies the latest snapshot bytes into the caller-provided buffer.
+        ///  `out` must point to at least `out_cap` writable bytes; on success
+        ///  the actual byte count is returned. If the buffer is too small or
+        ///  no snapshot is available the function returns `0` and writes
+        ///  nothing.
+        ///
+        ///  # Safety
+        ///  `out` must be a valid pointer to at least `out_cap` writable bytes
+        ///  when `out_cap &gt; 0`.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_take", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern nuint uniti_empire_take(byte* @out, nuint out_cap);
+
+        /// <summary>
+        ///  Strategic tick. Decodes the cached snapshot, drifts each non-terminal
+        ///  city's `mood` one step toward the Neutral target, recomputes
+        ///  `status` against the band cutoffs, bumps `generation`, and
+        ///  re-encodes. Vassal / Annexed / Razed are sticky and skipped.
+        ///
+        ///  Returns `1` on success, `0` when no snapshot is held or decode /
+        ///  encode fails (the cache is left untouched in that case).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_tick", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_tick();
+
+        /// <summary>
+        ///  Drops the cached snapshot — useful when a new world load wants to
+        ///  start with a clean slate.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_reset", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_empire_reset();
+
+        /// <summary>
+        ///  Starts the tokio-driven empire ticker. Idempotent — calling twice
+        ///  is a no-op. Returns `1` on success / already-running, `0` if the
+        ///  platform doesn't support a real runtime (WebGL).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_async_start", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int uniti_empire_async_start();
+
+        /// <summary>
+        ///  Stops the tokio ticker without tearing down the runtime — leaves
+        ///  the runtime warm so a subsequent start has zero spin-up cost.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "uniti_empire_async_stop", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void uniti_empire_async_stop();
+
+        /// <summary>
         ///  Create an inventory with the given slot capacity.
         ///
         ///  # Arguments

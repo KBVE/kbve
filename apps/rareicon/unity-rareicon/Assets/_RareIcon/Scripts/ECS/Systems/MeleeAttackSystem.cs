@@ -68,6 +68,7 @@ namespace RareIcon
                 MoraleLookup    = SystemAPI.GetComponentLookup<MoraleBuff>(true),
                 CavalryLookup   = SystemAPI.GetComponentLookup<CavalryTag>(true),
                 MovementModLookup = SystemAPI.GetComponentLookup<MovementModifier>(true),
+                EquipmentLookup = SystemAPI.GetComponentLookup<Equipment>(false),
                 Ecb             = ecb.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
@@ -118,6 +119,7 @@ namespace RareIcon
         [ReadOnly] public ComponentLookup<MoraleBuff>                   MoraleLookup;
         [ReadOnly] public ComponentLookup<CavalryTag>                   CavalryLookup;
         [ReadOnly] public ComponentLookup<MovementModifier>             MovementModLookup;
+        [NativeDisableParallelForRestriction] public ComponentLookup<Equipment> EquipmentLookup;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
 
@@ -214,6 +216,16 @@ namespace RareIcon
             });
 
             attack.TimeSinceShot = 0f;
+
+            if (EquipmentLookup.HasComponent(entity))
+            {
+                var eq = EquipmentLookup[entity];
+                if (eq.WeaponItemId != 0 && eq.WeaponHp > 0)
+                {
+                    eq.WeaponHp--;
+                    EquipmentLookup[entity] = eq;
+                }
+            }
         }
 
         static Entity PickByMode(byte mode,

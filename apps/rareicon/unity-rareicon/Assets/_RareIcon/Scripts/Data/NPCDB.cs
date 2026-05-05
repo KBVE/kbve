@@ -90,7 +90,7 @@ namespace RareIcon
                 unitType:      UnitType.Goblin,
                 nameKey:       "creature.goblin",
                 category:      NPCCategory.Humanoid,
-                maxHealth:     30f,
+                maxHealth:     40f,
                 maxEnergy:     100f,
                 maxMana:       30f,
                 maxHunger:     100f,
@@ -435,7 +435,17 @@ namespace RareIcon
                 strength:      16, agility: 12, intellect: 9, will: 12,
                 defaultWeapon: WeaponType.Club));
 
-            // Future creatures land here — Skeleton, GoblinShaman, etc.
+            Add(new NPCDef(
+                unitType:      UnitType.Skeleton,
+                nameKey:       "creature.skeleton",
+                category:      NPCCategory.Undead,
+                maxHealth:     35f,  maxEnergy: 0f, maxMana: 0f,
+                maxHunger:     0f,   maxFatigue: 0f,
+                moveSpeed:     0.45f,
+                healthRegen:   0f,   energyRegen: 0f, manaRegen: 0f,
+                hungerPerSec:  0f,   fatiguePerSec: 0f,
+                strength:      9, agility: 9, intellect: 2, will: 4,
+                defaultWeapon: WeaponType.None));
         }
 
         static void Add(NPCDef def) => _byId[def.UnitType] = def;

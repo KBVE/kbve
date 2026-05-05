@@ -286,7 +286,8 @@ namespace RareIcon
                         }
                         else
                         {
-                            if (offer.Variant != OfferVariant.LooterForage) continue;
+                            if (offer.Variant != OfferVariant.LooterForage
+                                && offer.Variant != OfferVariant.LooterDropPickup) continue;
                         }
                     }
 
@@ -494,7 +495,8 @@ namespace RareIcon
                 case ProfessionKind.Blacksmith:
                     return int.MaxValue;
                 case ProfessionKind.Looter:
-                    if (variant == OfferVariant.LooterForage) return SearchRadius;
+                    if (variant == OfferVariant.LooterForage)     return SearchRadius;
+                    if (variant == OfferVariant.LooterDropPickup) return SearchRadius * 2;
                     return int.MaxValue;
                 default:
                     return int.MaxValue;
@@ -505,7 +507,9 @@ namespace RareIcon
         {
             return kind == ProfessionKind.Lumberjack
                 || kind == ProfessionKind.Miner
-                || (kind == ProfessionKind.Looter && variant == OfferVariant.LooterForage);
+                || (kind == ProfessionKind.Looter
+                    && (variant == OfferVariant.LooterForage
+                     || variant == OfferVariant.LooterDropPickup));
         }
 
         static bool TryFindClosestThreat(
