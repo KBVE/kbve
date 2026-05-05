@@ -48,6 +48,7 @@ class DiscordBot(
     private val channelId: String,
     private val authorizedRoles: Set<String>,
     private val serverAliases: Map<String, String>,
+    private val execRouter: ExecRouter,
 ) : ListenerAdapter() {
 
     private var jda: JDA? = null
@@ -165,10 +166,12 @@ class DiscordBot(
                 if (match != null) {
                     webhookUrl.set(match.url)
                     logger.info("Reusing existing webhook {} on #{}", WEBHOOK_NAME, channel.name)
+                    announceLifecycle("🟢 Proxy started", COLOR_JOIN)
                 } else {
                     channel.createWebhook(WEBHOOK_NAME).queue({ created: Webhook ->
                         webhookUrl.set(created.url)
                         logger.info("Created webhook {} on #{}", WEBHOOK_NAME, channel.name)
+                        announceLifecycle("🟢 Proxy started", COLOR_JOIN)
                     }, { err ->
                         logger.error("Failed to create webhook (need MANAGE_WEBHOOKS) — outbound disabled", err)
                     })
@@ -182,6 +185,38 @@ class DiscordBot(
             })
         } catch (t: Throwable) {
             logger.error("provisionWebhook error", t)
+        }
+    }
+
+    /** Lifecycle embed — sidebar-only, no avatar (system event, not a player). */
+    private fun announceLifecycle(text: String, color: Int) {
+        postSystemEmbed(text, color, null)
+    }
+
+    /**
+     * Synchronously post a shutdown embed before JDA tears down. Best-effort —
+     * if the bot was never ready or the webhook isn't provisioned, no-op.
+     * Blocks up to 2s on the HTTP send so the message has a chance to land.
+     */
+    fun announceShutdown() {
+        val url = webhookUrl.get() ?: return
+        val author = JsonWriter.obj().field("name", "🔴 Proxy shutting down")
+        val embed = JsonWriter.obj()
+            .fieldRaw("color", COLOR_LEAVE.toString())
+            .field("author", author)
+        val payload = JsonWriter.obj()
+            .field("embeds", JsonWriter.arr().element(embed))
+            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
+            .build()
+        val req = HttpRequest.newBuilder(URI.create(url))
+            .timeout(Duration.ofSeconds(2))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+            .build()
+        try {
+            httpClient.send(req, HttpResponse.BodyHandlers.discarding())
+        } catch (t: Throwable) {
+            logger.warn("Failed to post shutdown embed", t)
         }
     }
 
@@ -303,7 +338,7 @@ class DiscordBot(
         for (rs in server.allServers) {
             val name = rs.serverInfo.name
             val playerCount = rs.playersConnected.size
-            embed.addField(name, "Players: $playerCount\nAddress: ${rs.serverInfo.address}", true)
+            embed.addField(name, "Players: $playerCount", true)
         }
         event.channel.sendMessageEmbeds(embed.build()).queue()
     }
@@ -327,10 +362,10 @@ class DiscordBot(
 
         if (isStaff) {
             val staffLines = listOf(
-                "**>cmd <command>** — run a command on the Velocity console",
-                "**>kick <player> [reason]** — kick a player",
-                "**>ban <player> [reason]** — ban a player (requires backend ban plugin)",
-                "**>mute <player> [duration]** — mute a player (requires backend mute plugin)",
+                "**>cmd <proxy|lobby|mc> <command> [-v]** — run a command on the named target. Add `-v` to see output. Append `--` to pass a literal trailing `-v`.",
+                "**>kick <player> [reason]** — kick a player (auto-routes to their backend)",
+                "**>ban <player> [reason]** — ban a player (vanilla `/ban`, persists to `banned-players.json`)",
+                "**>mute <player> [duration]** — mute a player (requires EssentialsX or similar — vanilla has no `/mute`)",
                 "**>tell <player> <msg>** — DM a player from Discord",
                 "**>say <msg>** — broadcast as staff announcement",
             )
@@ -366,10 +401,96 @@ class DiscordBot(
     private fun handleCmd(event: MessageReceivedEvent, member: Member?, body: String) {
         if (!requireStaff(event, member, ">cmd $body")) return
         if (body.isBlank()) {
-            reply(event, "Usage: `>cmd <velocity console command>`")
+            reply(event, USAGE_CMD)
             return
         }
-        executeConsole(event, body)
+        // Strict target-required parsing: first token is target, rest is the
+        // actual command. Trailing -v (peeled before forwarding) toggles verbose.
+        val parts = body.split(' ', limit = 2)
+        val targetToken = parts[0].lowercase()
+        val rest = if (parts.size > 1) parts[1] else ""
+        val target = CMD_TARGETS[targetToken]
+        if (target == null) {
+            reply(event, USAGE_CMD)
+            return
+        }
+        if (rest.isBlank()) {
+            reply(event, USAGE_CMD)
+            return
+        }
+        val (command, verbose) = parseVerbose(rest)
+        if (command.isBlank()) {
+            reply(event, USAGE_CMD)
+            return
+        }
+        if (target == "proxy") {
+            executeOnProxy(event, command, verbose)
+        } else {
+            executeOnBackend(event, target, command, verbose)
+        }
+    }
+
+    /**
+     * Peel a trailing `-v` flag off the command. Supports POSIX-style `--`
+     * end-of-options to escape: `say something -v --` runs `say something -v`
+     * silently. Returns (command-without-flag, verboseRequested).
+     */
+    private fun parseVerbose(input: String): Pair<String, Boolean> {
+        val tokens = input.trim().split(Regex("\\s+")).toMutableList()
+        if (tokens.isEmpty()) return "" to false
+        // End-of-options sentinel: drop trailing `--` AFTER any flags.
+        if (tokens.last() == "--") {
+            tokens.removeAt(tokens.size - 1)
+            return tokens.joinToString(" ") to false
+        }
+        if (tokens.last() == "-v") {
+            tokens.removeAt(tokens.size - 1)
+            return tokens.joinToString(" ") to true
+        }
+        return input to false
+    }
+
+    private fun executeOnProxy(event: MessageReceivedEvent, command: String, verbose: Boolean) {
+        val captureSource = BufferedConsoleSource(server.consoleCommandSource)
+        try {
+            server.commandManager
+                .executeAsync(captureSource, command)
+                .whenComplete { ok, err ->
+                    val output = captureSource.captured
+                    when {
+                        err != null -> {
+                            val msg = (err.message ?: err::class.java.simpleName).take(MAX_OUTPUT_CHARS)
+                            reply(event, "⚠️ Error: ```\n$msg\n```")
+                            logger.warn("Console command error: {}", command, err)
+                        }
+                        ok != true -> {
+                            reply(event, "❌ unknown or rejected: `$command`\n$PROXY_HINT")
+                        }
+                        !verbose -> {
+                            event.message.addReaction(
+                                net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("✅")
+                            ).queue()
+                        }
+                        output.isBlank() -> reply(event, "✅ ran (no output)")
+                        else -> reply(event, "✅\n```\n${output.take(MAX_OUTPUT_CHARS)}\n```")
+                    }
+                }
+        } catch (t: Throwable) {
+            reply(event, "⚠️ ${t.message ?: t::class.java.simpleName}")
+            logger.warn("executeOnProxy threw", t)
+        }
+    }
+
+    private fun executeOnBackend(
+        event: MessageReceivedEvent,
+        target: String,
+        command: String,
+        verbose: Boolean,
+    ) {
+        val sent = execRouter.executeOnBackend(target, command, verbose, event)
+        if (!sent) {
+            reply(event, "❌ no players on `$target` to route command through")
+        }
     }
 
     private fun handleStaffPassthrough(
@@ -383,7 +504,28 @@ class DiscordBot(
             reply(event, "Usage: `>$verb <player> [reason...]`")
             return
         }
-        executeConsole(event, "$verb $rest")
+        // Auto-detect: find the player on whichever backend they're connected
+        // to, then forward the verb (kick / ban / mute) as a backend command.
+        val (body, verbose) = parseVerbose(rest)
+        val targetName = body.split(' ', limit = 2).firstOrNull()
+            ?: run {
+                reply(event, "Usage: `>$verb <player> [reason...]`")
+                return
+            }
+        val targetPlayer = server.allPlayers.firstOrNull { it.username.equals(targetName, ignoreCase = true) }
+        if (targetPlayer == null) {
+            reply(event, "❌ `$targetName` is not online")
+            return
+        }
+        val backend = targetPlayer.currentServer.map { it.serverInfo.name }.orElse(null)
+        if (backend == null) {
+            reply(event, "❌ `$targetName` is connected but not on a backend")
+            return
+        }
+        val sent = execRouter.executeOnBackend(backend, "$verb $body", verbose, event)
+        if (!sent) {
+            reply(event, "❌ couldn't route `$verb` to `$backend`")
+        }
     }
 
     private fun handleTell(event: MessageReceivedEvent, member: Member?, displayName: String, rest: String) {
@@ -411,31 +553,10 @@ class DiscordBot(
             reply(event, "Usage: `>say <message>`")
             return
         }
-        val component = Component.text("[Discord Staff] $rest")
+        val component = Component.text("[Staff] $rest")
             .color(ChatDispatcher.COLOR_DISCORD_STAFF_SAY)
         dispatcher.broadcastGlobal(component)
         reply(event, "✅ broadcast network-wide")
-    }
-
-    private fun executeConsole(event: MessageReceivedEvent, command: String) {
-        try {
-            server.commandManager
-                .executeAsync(server.consoleCommandSource, command)
-                .whenComplete { ok, err ->
-                    when {
-                        err != null -> {
-                            val msg = (err.message ?: err::class.java.simpleName).take(1500)
-                            reply(event, "⚠️ Error: ```\n$msg\n```")
-                            logger.warn("Console command error: {}", command, err)
-                        }
-                        ok == true -> reply(event, "✅ ran `$command`")
-                        else -> reply(event, "❌ unknown or rejected: `$command`")
-                    }
-                }
-        } catch (t: Throwable) {
-            reply(event, "⚠️ ${t.message ?: t::class.java.simpleName}")
-            logger.warn("executeConsole threw", t)
-        }
     }
 
     /** Send a Discord-style reply threaded under the user's command message. */
@@ -463,6 +584,30 @@ class DiscordBot(
         const val COLOR_SWITCH = 0x5865F2      // Discord blurple
         const val COLOR_DEATH = 0x4F545C       // Dark gray
         const val COLOR_ADVANCEMENT = 0xFAA61A // Gold
+
+        // `>cmd` target keywords mapped to canonical names. Aliases match the
+        // existing chat-prefix vocabulary.
+        val CMD_TARGETS: Map<String, String> = mapOf(
+            "proxy" to "proxy",
+            "velocity" to "proxy",
+            "lobby" to "lobby",
+            "hub" to "lobby",
+            "mc" to "mc",
+            "survival" to "mc",
+        )
+
+        const val MAX_OUTPUT_CHARS = 1500
+
+        const val USAGE_CMD =
+            "❌ Usage: `>cmd <proxy|lobby|mc> <command> [-v]`\n" +
+            "Proxy commands: `glist`, `server`, `send`, `velocity`, `shutdown`. " +
+            "Backend commands → `>cmd lobby <command>` or `>cmd mc <command>`. " +
+            "Add `-v` to see output."
+
+        const val PROXY_HINT =
+            "Proxy commands: `glist`, `server`, `send`, `velocity`, `shutdown`. " +
+            "For backend commands use `>cmd lobby ...` or `>cmd mc ...`."
+
         // Matches >word, optionally followed by whitespace + body. The body group
         // is empty for arg-less commands like ">help" / ">who" / ">servers".
         private val PREFIX_REGEX = Regex("""^>(\w+)(?:\s+([\s\S]+))?$""")

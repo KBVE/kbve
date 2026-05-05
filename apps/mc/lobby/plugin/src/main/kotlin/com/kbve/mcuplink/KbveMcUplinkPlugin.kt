@@ -10,18 +10,21 @@ import org.bukkit.plugin.java.JavaPlugin
  * plugin-messaging channel. The relay owns the Discord webhook;
  * this plugin holds no Discord credentials and makes no HTTP calls.
  *
- * Channel registration is OUTGOING only — backends emit, the proxy
- * receives and consumes.
+ * Channel is registered as both OUTGOING (death + advancement events)
+ * and INCOMING (Discord-issued backend commands via the `>cmd lobby ...`
+ * verb — see [ExecListener]).
  */
 class KbveMcUplinkPlugin : JavaPlugin() {
 
     override fun onEnable() {
         server.messenger.registerOutgoingPluginChannel(this, RelayWire.CHANNEL)
+        server.messenger.registerIncomingPluginChannel(this, RelayWire.CHANNEL, ExecListener(this))
         server.pluginManager.registerEvents(EventListener(this), this)
         logger.info("kbve-mc-uplink ${pluginMeta.version} ready (channel=${RelayWire.CHANNEL})")
     }
 
     override fun onDisable() {
+        server.messenger.unregisterIncomingPluginChannel(this)
         server.messenger.unregisterOutgoingPluginChannel(this)
     }
 }
