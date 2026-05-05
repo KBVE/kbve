@@ -106,7 +106,7 @@ impl Default for ArrowCooldown {
     fn default() -> Self {
         Self {
             last_shot_tick: 0,
-            cooldown_ticks: 20, // 2s at 100ms ECS ticks
+            cooldown_ticks: 30,
         }
     }
 }
@@ -382,8 +382,7 @@ impl Default for PetParrotPopulationConfig {
             // Same rationale as the dog — keep the return trigger tight
             // so the parrot flies back before vanilla's teleport fires.
             follow_distance: 6.0,
-            // ECS ticks = 100ms each, so 15 ticks ≈ 1.5s between poops.
-            poop_cooldown_ticks: 15,
+            poop_cooldown_ticks: 100,
             // 20 TPS → 80 ticks = 4s of poison ticks (one damage tick/second).
             poison_duration_ticks: 80,
             poison_amplifier: 0,

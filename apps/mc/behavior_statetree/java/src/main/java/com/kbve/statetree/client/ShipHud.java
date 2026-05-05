@@ -71,6 +71,15 @@ public class ShipHud implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
+        int cx = screenWidth / 2;
+        int cy = screenHeight / 2;
+        int crossColor = 0xFFFFFFFF;
+        context.fill(cx - 6, cy, cx - 1, cy + 1, crossColor);
+        context.fill(cx + 2, cy, cx + 7, cy + 1, crossColor);
+        context.fill(cx, cy - 6, cx + 1, cy - 1, crossColor);
+        context.fill(cx, cy + 2, cx + 1, cy + 7, crossColor);
+        context.fill(cx - 1, cy - 1, cx + 2, cy + 2, 0x80000000);
+
         if (!shipName.isEmpty()) {
             String nameText = "§l" + shipName;
             int nameWidth = client.textRenderer.getWidth(nameText);

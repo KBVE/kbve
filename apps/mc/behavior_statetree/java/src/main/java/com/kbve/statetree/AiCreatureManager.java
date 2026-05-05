@@ -304,8 +304,12 @@ public class AiCreatureManager {
         // in rivers, oceans, or any waterlogged surface.
         BlockState surfaceState = world.getBlockState(surface);
         BlockState belowState = world.getBlockState(surface.down());
+        BlockState aboveState = world.getBlockState(surface.up());
+        BlockState above2State = world.getBlockState(surface.up().up());
         if (surfaceState.getFluidState().isIn(FluidTags.WATER)
-                || belowState.getFluidState().isIn(FluidTags.WATER)) {
+                || belowState.getFluidState().isIn(FluidTags.WATER)
+                || aboveState.getFluidState().isIn(FluidTags.WATER)
+                || above2State.getFluidState().isIn(FluidTags.WATER)) {
             return false;
         }
 
