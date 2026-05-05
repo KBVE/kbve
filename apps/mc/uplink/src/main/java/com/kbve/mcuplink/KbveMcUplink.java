@@ -99,14 +99,12 @@ public final class KbveMcUplink implements ModInitializer {
         server.execute(() -> {
             CapturingOutput out = new CapturingOutput();
             ServerCommandSource source = server.getCommandSource()
-                    .withOutput(out, 4, true)
+                    .withOutput(out)
                     .withSilent();
-            int result;
             boolean ok;
             try {
-                result = server.getCommandManager().executeWithPrefix(source, req.command());
-                // executeWithPrefix returns the raw command result code (0 = fail).
-                ok = result > 0 || !out.captured().isEmpty();
+                server.getCommandManager().parseAndExecute(source, req.command());
+                ok = !out.captured().isEmpty();
             } catch (Throwable t) {
                 LOGGER.warn("[{}] dispatch threw for '{}': {}", MOD_ID, req.command(), t.getMessage());
                 out.appendLine("Error: " + (t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
