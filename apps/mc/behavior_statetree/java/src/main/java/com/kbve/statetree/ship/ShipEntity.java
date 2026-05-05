@@ -38,6 +38,10 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<String> SHIP_ID =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<Float> SHIP_HEALTH =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+
+    public static final float MAX_HEALTH = 100.0f;
 
     private String ownerUuidStr = "";
     private float heading = 0.0f;
@@ -90,11 +94,26 @@ public class ShipEntity extends Entity {
     public float getVerticalIntent() { return verticalIntent; }
     public void setVerticalIntent(float v) { this.verticalIntent = Math.max(-1f, Math.min(1f, v)); }
 
+    public float getShipHealth() { return this.dataTracker.get(SHIP_HEALTH); }
+    public void setShipHealth(float hp) {
+        this.dataTracker.set(SHIP_HEALTH, Math.max(0f, Math.min(MAX_HEALTH, hp)));
+    }
+
     @Override
     public boolean damage(net.minecraft.server.world.ServerWorld world,
                           net.minecraft.entity.damage.DamageSource source,
                           float amount) {
-        return false;
+        if (this.isRemoved()) return false;
+        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FIRE)) return false;
+        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FALL)) return false;
+
+        float newHp = getShipHealth() - amount;
+        setShipHealth(newHp);
+        if (newHp <= 0f) {
+            this.removeAllPassengers();
+            this.discard();
+        }
+        return true;
     }
 
     @Override
@@ -110,6 +129,21 @@ public class ShipEntity extends Entity {
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if (player.isSneaking()) return ActionResult.PASS;
+
+        net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+        if (stack.isOf(net.minecraft.item.Items.IRON_INGOT) && getShipHealth() < MAX_HEALTH) {
+            float before = getShipHealth();
+            setShipHealth(before + 25.0f);
+            if (!player.getAbilities().creativeMode) {
+                stack.decrement(1);
+            }
+            if (!this.getEntityWorld().isClient()) {
+                player.sendMessage(net.minecraft.text.Text.of(
+                        String.format("Ship repaired: %.0f → %.0f / %.0f",
+                                before, getShipHealth(), MAX_HEALTH)), true);
+            }
+            return ActionResult.SUCCESS;
+        }
 
         if (player instanceof ServerPlayerEntity && !this.hasPassengers()) {
             player.startRiding(this);
@@ -171,6 +205,7 @@ public class ShipEntity extends Entity {
         builder.add(MODEL_NAME, "immersive_aircraft/airship");
         builder.add(SHIP_NAME, "");
         builder.add(SHIP_ID, "");
+        builder.add(SHIP_HEALTH, MAX_HEALTH);
     }
 
     @Override
@@ -181,6 +216,7 @@ public class ShipEntity extends Entity {
         setShipName(view.getString("ShipName", ""));
         this.heading = view.getFloat("Heading", 0.0f);
         this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
+        setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
     }
 
     @Override
@@ -191,5 +227,6 @@ public class ShipEntity extends Entity {
         view.putString("ShipName", getShipName());
         view.putFloat("Heading", heading);
         view.putFloat("TargetSpeed", targetSpeed);
+        view.putFloat("ShipHealth", getShipHealth());
     }
 }

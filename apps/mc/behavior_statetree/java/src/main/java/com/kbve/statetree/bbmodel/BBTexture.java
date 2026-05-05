@@ -38,10 +38,14 @@ public class BBTexture {
         this.uvWidth = BBModelUtils.getIntElement(element, "uv_width", 16);
         this.uvHeight = BBModelUtils.getIntElement(element, "uv_height", 16);
 
+        String pathName = this.name.endsWith(".png") ? this.name : this.name + ".png";
         if (this.name.contains(":")) {
             this.location = Identifier.of(this.name);
         } else {
-            this.location = Identifier.of(identifier.getNamespace(), "textures/entity/" + this.name);
+            String modelPath = identifier.getPath();
+            int lastSlash = modelPath.lastIndexOf('/');
+            String folder = lastSlash >= 0 ? modelPath.substring(0, lastSlash + 1) : "";
+            this.location = Identifier.of(identifier.getNamespace(), "textures/entity/" + folder + pathName);
         }
     }
 }
