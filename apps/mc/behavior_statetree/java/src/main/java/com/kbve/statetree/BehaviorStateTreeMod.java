@@ -9,8 +9,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,31 +44,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
             var overworld = server.getOverworld();
             if (overworld != null) {
                 shipManager.tick(overworld);
-            }
-        });
-
-        // Dev mode: auto-op every player on join when server is offline-mode
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            if (!server.isOnlineMode()) {
-                ServerPlayerEntity player = handler.getPlayer();
-                server.getPlayerManager().addToOperators(player.getPlayerConfigEntry());
-                LOGGER.info("[{}] Dev auto-op: {} (offline-mode server)", MOD_ID, player.getNameForScoreboard());
-
-                String playerName = player.getNameForScoreboard();
-                java.util.concurrent.atomic.AtomicInteger ticksLeft = new java.util.concurrent.atomic.AtomicInteger(20);
-                ServerTickEvents.EndTick delayedTp = new ServerTickEvents.EndTick() {
-                    @Override
-                    public void onEndTick(net.minecraft.server.MinecraftServer s) {
-                        if (ticksLeft.decrementAndGet() > 0) return;
-                        if (!player.isAlive()) return;
-                        s.getCommandManager().parseAndExecute(
-                                s.getCommandSource(),
-                                "tp " + playerName + " 0 67 0");
-                        LOGGER.info("[{}] Teleported {} to spawn (0, 67, 0)", MOD_ID, playerName);
-                        ticksLeft.set(Integer.MAX_VALUE);
-                    }
-                };
-                ServerTickEvents.END_SERVER_TICK.register(delayedTp);
             }
         });
 

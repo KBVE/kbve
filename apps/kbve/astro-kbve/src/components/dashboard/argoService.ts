@@ -54,6 +54,17 @@ export interface ResourceNode {
 	kind: string;
 	namespace: string;
 	name: string;
+	uid?: string;
+	parentRefs?: Array<{
+		group?: string;
+		kind: string;
+		namespace?: string;
+		name: string;
+		uid?: string;
+	}>;
+	info?: Array<{ name: string; value: string }>;
+	createdAt?: string;
+	resourceVersion?: string;
 	health?: {
 		status: string;
 		message?: string;
@@ -62,6 +73,56 @@ export interface ResourceNode {
 
 export interface ResourceTree {
 	nodes: ResourceNode[];
+}
+
+export interface AppEvent {
+	type?: string;
+	reason?: string;
+	message?: string;
+	count?: number;
+	firstTimestamp?: string;
+	lastTimestamp?: string;
+	eventTime?: string;
+	source?: { component?: string; host?: string };
+	involvedObject?: {
+		kind?: string;
+		namespace?: string;
+		name?: string;
+		uid?: string;
+	};
+	metadata?: { uid?: string; name?: string; namespace?: string };
+}
+
+export interface ManagedResource {
+	group?: string;
+	version?: string;
+	kind: string;
+	namespace?: string;
+	name: string;
+	hook?: boolean;
+	requiresPruning?: boolean;
+	liveState?: string;
+	targetState?: string;
+	diff?: string;
+	normalizedLiveState?: string;
+	predictedLiveState?: string;
+}
+
+export interface LogLine {
+	content: string;
+	timeStamp?: string;
+	podName?: string;
+	last?: boolean;
+}
+
+export interface ResourceSelector {
+	appName: string;
+	kind: string;
+	namespace: string;
+	name: string;
+	group?: string;
+	version?: string;
+	uid?: string;
 }
 
 interface CachedData {
@@ -147,6 +208,138 @@ export async function fetchResourceTree(
 	return await resp.json();
 }
 
+export async function fetchLiveResource(
+	token: string,
+	sel: ResourceSelector,
+): Promise<Record<string, unknown>> {
+	const params = new URLSearchParams({
+		namespace: sel.namespace,
+		resourceName: sel.name,
+		kind: sel.kind,
+		version: sel.version ?? 'v1',
+		group: sel.group ?? '',
+	});
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(sel.appName)}/resource?${params}`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(15000),
+		},
+	);
+
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (resp.status === 404)
+		throw new Error('Resource not found in cluster (may be Missing)');
+	if (!resp.ok) throw new Error(`ArgoCD API error: ${resp.status}`);
+
+	const body = await resp.json();
+	const raw = body?.manifest;
+	if (typeof raw !== 'string')
+		throw new Error('Unexpected response: missing manifest');
+	try {
+		return JSON.parse(raw) as Record<string, unknown>;
+	} catch {
+		throw new Error('Failed to parse manifest JSON');
+	}
+}
+
+export async function fetchAppEvents(
+	token: string,
+	appName: string,
+	resourceFilter?: {
+		uid?: string;
+		namespace?: string;
+		name?: string;
+		kind?: string;
+	},
+): Promise<AppEvent[]> {
+	const params = new URLSearchParams();
+	if (resourceFilter?.uid) params.set('resourceUID', resourceFilter.uid);
+	if (resourceFilter?.namespace)
+		params.set('resourceNamespace', resourceFilter.namespace);
+	if (resourceFilter?.name) params.set('resourceName', resourceFilter.name);
+	const qs = params.toString();
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/events${qs ? `?${qs}` : ''}`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(10000),
+		},
+	);
+
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (!resp.ok) throw new Error(`ArgoCD API error: ${resp.status}`);
+
+	const body = await resp.json();
+	return Array.isArray(body?.items) ? (body.items as AppEvent[]) : [];
+}
+
+export async function fetchManagedResources(
+	token: string,
+	appName: string,
+): Promise<ManagedResource[]> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/managed-resources`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(15000),
+		},
+	);
+
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (!resp.ok) throw new Error(`ArgoCD API error: ${resp.status}`);
+
+	const body = await resp.json();
+	return Array.isArray(body?.items) ? (body.items as ManagedResource[]) : [];
+}
+
+export async function fetchPodLogs(
+	token: string,
+	appName: string,
+	podName: string,
+	opts: {
+		namespace: string;
+		container?: string;
+		tailLines?: number;
+		sinceSeconds?: number;
+	},
+): Promise<LogLine[]> {
+	const params = new URLSearchParams({
+		namespace: opts.namespace,
+		podName: podName,
+		tailLines: String(opts.tailLines ?? 200),
+		follow: 'false',
+	});
+	if (opts.container) params.set('container', opts.container);
+	if (opts.sinceSeconds)
+		params.set('sinceSeconds', String(opts.sinceSeconds));
+
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/pods/${encodeURIComponent(podName)}/logs?${params}`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(20000),
+		},
+	);
+
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (resp.status === 404) throw new Error('Pod not found');
+	if (!resp.ok) throw new Error(`ArgoCD API error: ${resp.status}`);
+
+	const text = await resp.text();
+	const lines: LogLine[] = [];
+	for (const raw of text.split('\n')) {
+		if (!raw.trim()) continue;
+		try {
+			const parsed = JSON.parse(raw);
+			if (parsed?.result) lines.push(parsed.result as LogLine);
+		} catch {
+			lines.push({ content: raw });
+		}
+	}
+	return lines;
+}
+
 // ---------------------------------------------------------------------------
 // Cache helpers
 // ---------------------------------------------------------------------------
@@ -220,6 +413,10 @@ class ArgoService {
 	public readonly $errorReason = atom<string | null>(null);
 	public readonly $lastUpdated = atom<Date | null>(null);
 	public readonly $expandedApp = atom<string | null>(null);
+	public readonly $selectedResource = atom<ResourceSelector | null>(null);
+	public readonly $appTab = atom<'resources' | 'events' | 'history'>(
+		'resources',
+	);
 
 	// Computed
 	public readonly $totalApps = computed(
@@ -332,9 +529,32 @@ class ArgoService {
 	public toggleExpandedApp(name: string): void {
 		if (this.$expandedApp.get() === name) {
 			this.$expandedApp.set(null);
+			this.$selectedResource.set(null);
 		} else {
 			this.$expandedApp.set(name);
+			this.$appTab.set('resources');
+			this.$selectedResource.set(null);
 		}
+	}
+
+	public selectResource(sel: ResourceSelector | null): void {
+		const cur = this.$selectedResource.get();
+		if (
+			sel &&
+			cur &&
+			cur.appName === sel.appName &&
+			cur.kind === sel.kind &&
+			cur.namespace === sel.namespace &&
+			cur.name === sel.name
+		) {
+			this.$selectedResource.set(null);
+		} else {
+			this.$selectedResource.set(sel);
+		}
+	}
+
+	public setAppTab(tab: 'resources' | 'events' | 'history'): void {
+		this.$appTab.set(tab);
 	}
 
 	private _startAutoRefresh(): void {

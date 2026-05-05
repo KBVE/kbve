@@ -45,6 +45,7 @@ public final class ShipManager {
         entity.setShipId(shipId);
         entity.setOwnerUuid(ownerUuid);
         entity.setModelName(modelName);
+        entity.setShipHealth(ShipEntity.MAX_HEALTH);
         entity.refreshPositionAndAngles(
                 nearPos.getX() + 0.5,
                 nearPos.getY() + SPAWN_HEIGHT_OFFSET,
@@ -113,13 +114,22 @@ public final class ShipManager {
      * Remove all active ships (dev tool).
      */
     public void clearAll(ServerWorld world) {
+        int tracked = activeShips.size();
         for (var entry : activeShips.entrySet()) {
             entry.getValue().removeAllPassengers();
             entry.getValue().discard();
         }
-        int count = activeShips.size();
         activeShips.clear();
-        LOGGER.info("[Ship] Cleared all {} ships", count);
+
+        int orphans = 0;
+        for (var entity : world.iterateEntities()) {
+            if (entity instanceof ShipEntity ship && ship.isAlive()) {
+                ship.removeAllPassengers();
+                ship.discard();
+                orphans++;
+            }
+        }
+        LOGGER.info("[Ship] Cleared {} tracked + {} orphan ships", tracked, orphans);
     }
 
     /**

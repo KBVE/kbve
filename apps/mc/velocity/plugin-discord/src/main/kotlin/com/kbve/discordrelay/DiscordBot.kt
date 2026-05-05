@@ -84,18 +84,49 @@ class DiscordBot(
     /**
      * Post a player's chat to Discord via the cached webhook.
      * Webhook username is set to "<player> [L|S|?]" so reply-routing can
-     * recover the source server from the message's author name.
+     * recover the source server from the message's author name. Avatar
+     * rendered via Visage when a player UUID is supplied.
      */
-    fun postOutbound(serverName: String, playerName: String, message: String) {
-        val url = webhookUrl.get() ?: return
+    fun postOutbound(serverName: String, playerName: String, playerUuid: java.util.UUID?, message: String) {
         val tag = serverTag(serverName)
         val displayName = sanitizeUsername("$playerName $tag")
+        postWebhook(displayName, message, playerUuid?.let(::visageUrl))
+    }
+
+    /**
+     * Post a system event embed (join, leave, switch, death, advancement)
+     * with the player's face icon as the embed author icon and a sidebar
+     * color matching the event type. See companion [Color] for codes.
+     */
+    fun postSystemEmbed(authorText: String, color: Int, playerUuid: java.util.UUID?) {
+        val url = webhookUrl.get() ?: return
+        val author = JsonWriter.obj().field("name", authorText)
+        if (playerUuid != null) {
+            author.field("icon_url", visageUrl(playerUuid))
+        }
+        val embed = JsonWriter.obj()
+            .fieldRaw("color", color.toString())
+            .field("author", author)
         val payload = JsonWriter.obj()
-            .field("username", displayName)
-            .field("content", message)
+            .field("embeds", JsonWriter.arr().element(embed))
             .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
             .build()
+        sendPayload(url, payload)
+    }
 
+    private fun postWebhook(username: String, content: String, avatarUrl: String? = null) {
+        val url = webhookUrl.get() ?: return
+        val builder = JsonWriter.obj()
+            .field("username", username)
+            .field("content", content)
+            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
+        if (avatarUrl != null) {
+            builder.field("avatar_url", avatarUrl)
+        }
+        sendPayload(url, builder.build())
+    }
+
+    private fun sendPayload(url: String, payload: String) {
         val req = HttpRequest.newBuilder(URI.create(url))
             .timeout(Duration.ofSeconds(5))
             .header("Content-Type", "application/json")
@@ -111,6 +142,9 @@ class DiscordBot(
                 }
             }
     }
+
+    private fun visageUrl(uuid: java.util.UUID): String =
+        "https://visage.surgeplay.com/face/96/$uuid"
 
     override fun onReady(event: ReadyEvent) {
         botUserId = event.jda.selfUser.id
@@ -332,7 +366,7 @@ class DiscordBot(
     private fun handleCmd(event: MessageReceivedEvent, member: Member?, body: String) {
         if (!requireStaff(event, member, ">cmd $body")) return
         if (body.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>cmd <velocity console command>`")
             return
         }
         executeConsole(event, body)
@@ -346,7 +380,7 @@ class DiscordBot(
     ) {
         if (!requireStaff(event, member, ">$verb $rest")) return
         if (rest.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>$verb <player> [reason...]`")
             return
         }
         executeConsole(event, "$verb $rest")
@@ -356,7 +390,7 @@ class DiscordBot(
         if (!requireStaff(event, member, ">tell $rest")) return
         val parts = rest.split(' ', limit = 2)
         if (parts.size < 2 || parts[0].isBlank() || parts[1].isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>tell <player> <message>`")
             return
         }
         val targetName = parts[0]
@@ -364,20 +398,23 @@ class DiscordBot(
         val component = Component.text("[Discord→DM from $displayName] $msg")
             .color(ChatDispatcher.COLOR_DISCORD_DM)
         val found = dispatcher.sendToPlayer(targetName, component)
-        val emoji = if (found) "✅" else "❌"
-        event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(emoji)).queue()
+        if (found) {
+            reply(event, "✅ DM'd `$targetName`")
+        } else {
+            reply(event, "❌ `$targetName` is not online")
+        }
     }
 
     private fun handleSay(event: MessageReceivedEvent, member: Member?, rest: String) {
         if (!requireStaff(event, member, ">say $rest")) return
         if (rest.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>say <message>`")
             return
         }
         val component = Component.text("[Discord Staff] $rest")
             .color(ChatDispatcher.COLOR_DISCORD_STAFF_SAY)
         dispatcher.broadcastGlobal(component)
-        event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("✅")).queue()
+        reply(event, "✅ broadcast network-wide")
     }
 
     private fun executeConsole(event: MessageReceivedEvent, command: String) {
@@ -385,22 +422,25 @@ class DiscordBot(
             server.commandManager
                 .executeAsync(server.consoleCommandSource, command)
                 .whenComplete { ok, err ->
-                    val emoji = when {
-                        err != null -> "⚠️"
-                        ok == true -> "✅"
-                        else -> "❌"
-                    }
-                    event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(emoji)).queue()
-                    if (err != null) {
-                        val msg = (err.message ?: err::class.java.simpleName).take(1500)
-                        event.channel.sendMessage("```\n$msg\n```").queue()
-                        logger.warn("Console command error: {}", command, err)
+                    when {
+                        err != null -> {
+                            val msg = (err.message ?: err::class.java.simpleName).take(1500)
+                            reply(event, "⚠️ Error: ```\n$msg\n```")
+                            logger.warn("Console command error: {}", command, err)
+                        }
+                        ok == true -> reply(event, "✅ ran `$command`")
+                        else -> reply(event, "❌ unknown or rejected: `$command`")
                     }
                 }
         } catch (t: Throwable) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "⚠️ ${t.message ?: t::class.java.simpleName}")
             logger.warn("executeConsole threw", t)
         }
+    }
+
+    /** Send a Discord-style reply threaded under the user's command message. */
+    private fun reply(event: MessageReceivedEvent, content: String) {
+        event.message.reply(content).mentionRepliedUser(false).queue()
     }
 
     /** Discord usernames for webhook messages: 1-80 chars, no @, #, :, ```. */
@@ -415,7 +455,17 @@ class DiscordBot(
 
     companion object {
         const val WEBHOOK_NAME = "kbve-mc-relay"
-        private val PREFIX_REGEX = Regex("""^>(\w+)\s+([\s\S]+)$""")
+        const val SYSTEM_USERNAME = "Server"
+
+        // Discord embed sidebar colors for system events.
+        const val COLOR_JOIN = 0x57F287        // Discord green
+        const val COLOR_LEAVE = 0xED4245       // Discord red
+        const val COLOR_SWITCH = 0x5865F2      // Discord blurple
+        const val COLOR_DEATH = 0x4F545C       // Dark gray
+        const val COLOR_ADVANCEMENT = 0xFAA61A // Gold
+        // Matches >word, optionally followed by whitespace + body. The body group
+        // is empty for arg-less commands like ">help" / ">who" / ">servers".
+        private val PREFIX_REGEX = Regex("""^>(\w+)(?:\s+([\s\S]+))?$""")
         private val AUTHOR_TAG_REGEX = Regex("""\[(L|S|\?)]\s*$""")
     }
 }
@@ -431,6 +481,18 @@ internal class JsonWriter private constructor(private val isArray: Boolean) {
 
     fun field(name: String, value: JsonWriter): JsonWriter {
         parts += "\"${escape(name)}\":${value.build()}"
+        return this
+    }
+
+    /** Emit an unquoted JSON value (numbers, booleans, null). Caller must ensure validity. */
+    fun fieldRaw(name: String, value: String): JsonWriter {
+        parts += "\"${escape(name)}\":$value"
+        return this
+    }
+
+    /** Append a raw element to an array (for arr() writers). */
+    fun element(value: JsonWriter): JsonWriter {
+        parts += value.build()
         return this
     }
 

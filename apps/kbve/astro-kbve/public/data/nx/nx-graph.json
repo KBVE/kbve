@@ -1778,6 +1778,123 @@
           "implicitDependencies": []
         }
       },
+      "arc-runner-e2e": {
+        "name": "arc-runner-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "packages/docker/arc-runner-e2e",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "arc-runner-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "packages/docker/arc-runner-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects arc-runner-e2e --includeDependentProjects -- pnpm exec nx build-deps arc-runner-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans 2>/dev/null || true",
+                  "docker buildx build --platform linux/amd64 -f packages/docker/arc-runner/Dockerfile -t kbve/arc-runner:latest --load packages/docker/arc-runner/",
+                  "docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e up -d",
+                  "echo 'Waiting for dockerd...' && for i in $(seq 1 60); do if docker exec arc-runner-e2e bash -lc 'curl -sf http://localhost:2376/_ping >/dev/null'; then echo 'dockerd ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'dockerd did not become ready'; docker logs arc-runner-e2e-dind 2>&1 | tail -30; docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans; exit 1; fi; sleep 1; done",
+                  "cd packages/docker/arc-runner-e2e && npx vitest run; EC=$?; cd - >/dev/null && docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml -p arc-runner-e2e down -v --remove-orphans 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "arc-runner-e2e",
+          "tags": [
+            "npm:private",
+            "scope:docker",
+            "arc-runner",
+            "e2e"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/docker/arc-runner-e2e/e2e",
+          "implicitDependencies": [
+            "arc-runner"
+          ]
+        }
+      },
       "astro-discordsh": {
         "name": "astro-discordsh",
         "type": "app",
@@ -3564,6 +3681,33 @@
             "axum-discordsh",
             "astro-discordsh"
           ]
+        }
+      },
+      "unity-rareicon": {
+        "name": "unity-rareicon",
+        "type": "app",
+        "data": {
+          "root": "apps/rareicon/unity-rareicon",
+          "name": "unity-rareicon",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/rareicon/unity-rareicon/Assets",
+          "tags": [
+            "scope:rareicon",
+            "type:unity-app"
+          ],
+          "targets": {
+            "dev:android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "bash Scripts/dev-android.sh",
+                "cwd": "apps/rareicon/unity-rareicon"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
         }
       },
       "axum-chuckrpg": {
@@ -12394,6 +12538,13 @@
       ],
       "notification-bot": [],
       "steamcmd-ubuntu": [],
+      "arc-runner-e2e": [
+        {
+          "source": "arc-runner-e2e",
+          "target": "arc-runner",
+          "type": "implicit"
+        }
+      ],
       "astro-discordsh": [
         {
           "source": "astro-discordsh",
@@ -12465,6 +12616,7 @@
           "type": "implicit"
         }
       ],
+      "unity-rareicon": [],
       "axum-chuckrpg": [],
       "axum-herbmail": [],
       "axum-rareicon": [],

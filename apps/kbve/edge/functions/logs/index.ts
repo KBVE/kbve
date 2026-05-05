@@ -33,6 +33,7 @@ const ch = createClient({
 
 interface QueryParams {
   pod_namespace?: string;
+  pod_name?: string;
   service?: string;
   level?: string;
   search?: string;
@@ -51,6 +52,11 @@ async function handleQuery(params: QueryParams) {
   if (params.pod_namespace) {
     conditions.push("pod_namespace = {ns:String}");
     queryParams.ns = params.pod_namespace;
+  }
+
+  if (params.pod_name) {
+    conditions.push("pod_name = {pn:String}");
+    queryParams.pn = params.pod_name;
   }
 
   if (params.service) {
