@@ -2981,11 +2981,6 @@ const forumProfileSection = `{% if forum_present %}
 		display: grid;
 		gap: 0.4rem;
 	}
-	/* Wrap the WHOLE selector in :global() — using `.profile-forum :global(...)`
-	 * makes Astro auto-scope the parent `.profile-forum` to `[data-astro-cid-XXX]`,
-	 * but the parent <article> is injected via `Fragment set:html` so it has no
-	 * scope attr and the rule never matches. Wrapping the whole selector in
-	 * :global() keeps both halves unscoped so they apply to the injected markup. */
 	:global(.profile-forum .profile-forum__row) {
 		display: grid;
 		gap: 0.2rem;
