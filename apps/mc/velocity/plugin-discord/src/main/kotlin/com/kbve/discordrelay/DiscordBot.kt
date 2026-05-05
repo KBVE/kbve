@@ -87,12 +87,26 @@ class DiscordBot(
      * recover the source server from the message's author name.
      */
     fun postOutbound(serverName: String, playerName: String, message: String) {
-        val url = webhookUrl.get() ?: return
         val tag = serverTag(serverName)
         val displayName = sanitizeUsername("$playerName $tag")
+        postWebhook(displayName, message)
+    }
+
+    /**
+     * Post a system event (join, leave, future: death, advancement) under a
+     * neutral webhook identity so it's visually distinct from player chat.
+     * Reply-routing intentionally won't match this (no [L]/[S] tag), so replies
+     * fall through to global broadcast.
+     */
+    fun postSystemMessage(content: String) {
+        postWebhook(SYSTEM_USERNAME, content)
+    }
+
+    private fun postWebhook(username: String, content: String) {
+        val url = webhookUrl.get() ?: return
         val payload = JsonWriter.obj()
-            .field("username", displayName)
-            .field("content", message)
+            .field("username", username)
+            .field("content", content)
             .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
             .build()
 
@@ -332,7 +346,7 @@ class DiscordBot(
     private fun handleCmd(event: MessageReceivedEvent, member: Member?, body: String) {
         if (!requireStaff(event, member, ">cmd $body")) return
         if (body.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>cmd <velocity console command>`")
             return
         }
         executeConsole(event, body)
@@ -346,7 +360,7 @@ class DiscordBot(
     ) {
         if (!requireStaff(event, member, ">$verb $rest")) return
         if (rest.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>$verb <player> [reason...]`")
             return
         }
         executeConsole(event, "$verb $rest")
@@ -356,7 +370,7 @@ class DiscordBot(
         if (!requireStaff(event, member, ">tell $rest")) return
         val parts = rest.split(' ', limit = 2)
         if (parts.size < 2 || parts[0].isBlank() || parts[1].isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>tell <player> <message>`")
             return
         }
         val targetName = parts[0]
@@ -364,20 +378,23 @@ class DiscordBot(
         val component = Component.text("[Discord→DM from $displayName] $msg")
             .color(ChatDispatcher.COLOR_DISCORD_DM)
         val found = dispatcher.sendToPlayer(targetName, component)
-        val emoji = if (found) "✅" else "❌"
-        event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(emoji)).queue()
+        if (found) {
+            reply(event, "✅ DM'd `$targetName`")
+        } else {
+            reply(event, "❌ `$targetName` is not online")
+        }
     }
 
     private fun handleSay(event: MessageReceivedEvent, member: Member?, rest: String) {
         if (!requireStaff(event, member, ">say $rest")) return
         if (rest.isBlank()) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "Usage: `>say <message>`")
             return
         }
         val component = Component.text("[Discord Staff] $rest")
             .color(ChatDispatcher.COLOR_DISCORD_STAFF_SAY)
         dispatcher.broadcastGlobal(component)
-        event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("✅")).queue()
+        reply(event, "✅ broadcast network-wide")
     }
 
     private fun executeConsole(event: MessageReceivedEvent, command: String) {
@@ -385,22 +402,25 @@ class DiscordBot(
             server.commandManager
                 .executeAsync(server.consoleCommandSource, command)
                 .whenComplete { ok, err ->
-                    val emoji = when {
-                        err != null -> "⚠️"
-                        ok == true -> "✅"
-                        else -> "❌"
-                    }
-                    event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(emoji)).queue()
-                    if (err != null) {
-                        val msg = (err.message ?: err::class.java.simpleName).take(1500)
-                        event.channel.sendMessage("```\n$msg\n```").queue()
-                        logger.warn("Console command error: {}", command, err)
+                    when {
+                        err != null -> {
+                            val msg = (err.message ?: err::class.java.simpleName).take(1500)
+                            reply(event, "⚠️ Error: ```\n$msg\n```")
+                            logger.warn("Console command error: {}", command, err)
+                        }
+                        ok == true -> reply(event, "✅ ran `$command`")
+                        else -> reply(event, "❌ unknown or rejected: `$command`")
                     }
                 }
         } catch (t: Throwable) {
-            event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
+            reply(event, "⚠️ ${t.message ?: t::class.java.simpleName}")
             logger.warn("executeConsole threw", t)
         }
+    }
+
+    /** Send a Discord-style reply threaded under the user's command message. */
+    private fun reply(event: MessageReceivedEvent, content: String) {
+        event.message.reply(content).mentionRepliedUser(false).queue()
     }
 
     /** Discord usernames for webhook messages: 1-80 chars, no @, #, :, ```. */
@@ -415,7 +435,10 @@ class DiscordBot(
 
     companion object {
         const val WEBHOOK_NAME = "kbve-mc-relay"
-        private val PREFIX_REGEX = Regex("""^>(\w+)\s+([\s\S]+)$""")
+        const val SYSTEM_USERNAME = "Server"
+        // Matches >word, optionally followed by whitespace + body. The body group
+        // is empty for arg-less commands like ">help" / ">who" / ">servers".
+        private val PREFIX_REGEX = Regex("""^>(\w+)(?:\s+([\s\S]+))?$""")
         private val AUTHOR_TAG_REGEX = Regex("""\[(L|S|\?)]\s*$""")
     }
 }

@@ -2,6 +2,8 @@ package com.kbve.discordrelay
 
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.connection.DisconnectEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
@@ -32,7 +34,7 @@ import org.slf4j.Logger
 @Plugin(
     id = "kbve-discord-relay",
     name = "KBVE Discord Relay",
-    version = "1.0.2",
+    version = "1.0.3",
     description = "Discord chat relay with prefix routing, reply context, and role-gated console commands.",
     authors = ["kbve"],
 )
@@ -70,7 +72,7 @@ class KbveDiscordRelay @Inject constructor(
             DEFAULT_AUTHORIZED_ROLES
         }
 
-        logger.info("KBVE Discord Relay v1.0.2 initializing")
+        logger.info("KBVE Discord Relay v1.0.3 initializing")
         val dispatcher = ChatDispatcher(server)
         val instance = DiscordBot(
             server = server,
@@ -102,6 +104,18 @@ class KbveDiscordRelay @Inject constructor(
         val sender = event.player
         val sourceServer = sender.currentServer.orElse(null) ?: return
         active.postOutbound(sourceServer.serverInfo.name, sender.username, event.message)
+    }
+
+    /** Network-level join — fires once when the player completes proxy login. */
+    @Subscribe
+    fun onPostLogin(event: PostLoginEvent) {
+        bot?.postSystemMessage("🟢 **${event.player.username}** joined")
+    }
+
+    /** Network-level leave — fires when the player disconnects from the proxy. */
+    @Subscribe
+    fun onDisconnect(event: DisconnectEvent) {
+        bot?.postSystemMessage("🔴 **${event.player.username}** left")
     }
 
     companion object {

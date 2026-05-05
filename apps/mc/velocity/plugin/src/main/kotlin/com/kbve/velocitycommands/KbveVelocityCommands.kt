@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Plugin(
     id = "kbve-velocity-commands",
     name = "KBVE Velocity Commands",
-    version = "1.1.0",
+    version = "1.1.1",
     description = "Teleport aliases, cross-server chat bridge, and last-server persistence.",
     authors = ["kbve"],
 )
@@ -73,7 +73,7 @@ class KbveVelocityCommands @Inject constructor(
 
     @Subscribe
     fun onProxyInit(event: ProxyInitializeEvent) {
-        logger.info("KBVE Velocity Commands v1.1.0 initializing")
+        logger.info("KBVE Velocity Commands v1.1.1 initializing")
         registerTeleportCommands()
         registerChatCommand()
         logger.info("Registered ${teleportAliases.size} teleport aliases + /chat command")
@@ -175,13 +175,9 @@ class KbveVelocityCommands @Inject constructor(
         chatModes.getOrDefault(uuid, ChatMode.GLOBAL)
 
     @Subscribe
-    @Suppress("DEPRECATION") // PlayerChatEvent#setResult is deprecated in Velocity 3.4
     fun onPlayerChat(event: PlayerChatEvent) {
         val sender = event.player
         val mode = getChatMode(sender.uniqueId)
-        // LOCAL chat passes through untouched — vanilla MC chat (including signed
-        // chat verification + backend chat-filter pipeline) reaches only same-server
-        // players. The absence of a tag is the local indicator.
         if (mode == ChatMode.LOCAL) return
 
         val sourceServer = sender.currentServer.orElse(null) ?: return
@@ -198,15 +194,14 @@ class KbveVelocityCommands @Inject constructor(
             else -> NamedTextColor.GRAY
         }
 
-        // GLOBAL: deny the original event so the backend doesn't broadcast it locally,
-        // then re-emit the formatted Component to every player on every backend.
-        // Format: [Lobby] fudster: hi
-        //   - brackets + colon in dark gray (visual gutter)
+        // Cross-server bridge ONLY. Source-server players see the original signed
+        // chat through the normal backend path — we never deny() the event because
+        // 1.19.1+ disconnects the player if a plugin tries to cancel signed chat
+        // (Velocity throws "A plugin tried to cancel a signed chat message").
+        // Format on remote servers: [Lobby] fudster: hi
+        //   - brackets + colon in dark gray
         //   - server label in DARK_AQUA / DARK_GREEN (no yellow)
-        //   - player name + body in white (default chat color)
-        // Tradeoff: signed-chat verification is bypassed for global only.
-        event.result = PlayerChatEvent.ChatResult.denied()
-
+        //   - player name + body in white
         val bridged = Component.text()
             .append(Component.text("[", NamedTextColor.DARK_GRAY))
             .append(Component.text(displayLabel, labelColor))
@@ -217,6 +212,11 @@ class KbveVelocityCommands @Inject constructor(
             .build()
 
         for (target in server.allPlayers) {
+            val targetServer = target.currentServer.orElse(null) ?: continue
+            // Skip players on the same server — they already see the original
+            // signed chat from the backend; sending the bridge component would
+            // duplicate the message for them.
+            if (targetServer.serverInfo.name == sourceName) continue
             target.sendMessage(bridged)
         }
     }
