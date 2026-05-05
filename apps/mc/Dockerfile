@@ -54,9 +54,10 @@ RUN cargo build -p behavior_statetree -p mc_auth --release
 FROM ${JAVA_BUILDER_IMAGE} AS java-builder
 WORKDIR /build
 
-# Copy Java source for both Fabric mods
+# Copy Java source for the Fabric mods
 COPY apps/mc/behavior_statetree/java/ behavior_statetree/java/
 COPY apps/mc/mc_auth/java/ mc_auth/java/
+COPY apps/mc/uplink/ uplink/
 
 # version.toml — single source of truth for the MC stack version.
 # build.gradle reads ../../version.toml relative to java/ so it
@@ -87,6 +88,13 @@ RUN gradle build --no-daemon \
     || (echo "Retry 1: mc_auth" && gradle build --no-daemon) \
     || (echo "Retry 2: mc_auth" && gradle build --no-daemon)
 # Output: /build/mc_auth/java/build/libs/*.jar
+
+# Build kbve-mc-uplink JAR — Discord event forwarder, no Rust deps.
+WORKDIR /build/uplink
+RUN gradle build --no-daemon \
+    || (echo "Retry 1: kbve-mc-uplink" && gradle build --no-daemon) \
+    || (echo "Retry 2: kbve-mc-uplink" && gradle build --no-daemon)
+# Output: /build/uplink/build/libs/kbve-mc-uplink-<version>.jar
 
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
 FROM itzg/minecraft-server:java25
@@ -304,6 +312,12 @@ COPY --from=java-builder /build/behavior_statetree/java/build/libs/*.jar /mods/
 
 # mc_auth mod (built in stage 2) — Supabase auth bridge + Agones heartbeat
 COPY --from=java-builder /build/mc_auth/java/build/libs/*.jar /mods/
+
+# kbve-mc-uplink mod (built in stage 2) — Discord event forwarder.
+# Forwards death + advancement events to the Velocity-side discord relay
+# over the kbve:relay-events plugin-messaging channel. Backend stays
+# Discord-blind (no JDA, no token, no webhook URL).
+COPY --from=java-builder /build/uplink/build/libs/kbve-mc-uplink-*.jar /mods/
 
 # Additional pre-built mods
 COPY apps/mc/mods/ /mods/
