@@ -32,7 +32,7 @@ import org.slf4j.Logger
 @Plugin(
     id = "kbve-discord-relay",
     name = "KBVE Discord Relay",
-    version = "1.0.0",
+    version = "1.0.1",
     description = "Discord chat relay with prefix routing, reply context, and role-gated console commands.",
     authors = ["kbve"],
 )
@@ -70,7 +70,7 @@ class KbveDiscordRelay @Inject constructor(
             DEFAULT_AUTHORIZED_ROLES
         }
 
-        logger.info("KBVE Discord Relay v1.0.0 initializing")
+        logger.info("KBVE Discord Relay v1.0.1 initializing")
         val dispatcher = ChatDispatcher(server)
         val instance = DiscordBot(
             server = server,
