@@ -128,6 +128,101 @@ function ErrorBlock({ message }: { message: string }) {
 	);
 }
 
+type ResourceViewMode = 'kind' | 'tree';
+
+function ResourceRow({
+	node,
+	depth,
+	appName,
+	selected,
+	token,
+	onSelectResource,
+}: {
+	node: ResourceNode;
+	depth: number;
+	appName: string;
+	selected: boolean;
+	token: string;
+	onSelectResource: (sel: ResourceSelector) => void;
+}) {
+	const sel: ResourceSelector = {
+		appName,
+		kind: node.kind,
+		namespace: node.namespace ?? '',
+		name: node.name,
+		group: node.group,
+		version: node.version,
+		uid: node.uid,
+	};
+	return (
+		<>
+			<div
+				onClick={() => onSelectResource(sel)}
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+					padding: '4px 8px',
+					paddingLeft: 8 + depth * 16,
+					fontSize: '0.8rem',
+					color: 'var(--sl-color-text, #e6edf3)',
+					cursor: 'pointer',
+					borderRadius: 4,
+					background: selected
+						? 'rgba(139, 92, 246, 0.12)'
+						: 'transparent',
+					transition: 'background 0.12s',
+				}}
+				onMouseEnter={(e) => {
+					if (!selected) {
+						e.currentTarget.style.background =
+							'rgba(255, 255, 255, 0.03)';
+					}
+				}}
+				onMouseLeave={(e) => {
+					if (!selected) {
+						e.currentTarget.style.background = 'transparent';
+					}
+				}}>
+				{node.health && (
+					<span
+						style={{
+							color: healthColor(node.health.status),
+						}}>
+						{healthIcon(node.health.status)}
+					</span>
+				)}
+				<span
+					style={{
+						fontSize: '0.7rem',
+						padding: '0 6px',
+						borderRadius: 3,
+						background: 'rgba(139, 92, 246, 0.1)',
+						color: '#c4b5fd',
+						fontWeight: 600,
+					}}>
+					{node.kind}
+				</span>
+				<span
+					style={{
+						color: 'var(--sl-color-gray-4, #6b7280)',
+					}}>
+					{node.namespace}/
+				</span>
+				{node.name}
+			</div>
+			{selected && (
+				<ReactArgoResourceDetail
+					token={token}
+					sel={sel}
+					healthMessage={node.health?.message}
+					onClose={() => argoService.selectResource(null)}
+				/>
+			)}
+		</>
+	);
+}
+
 function ResourceTreePanel({
 	token,
 	appName,
@@ -142,6 +237,11 @@ function ResourceTreePanel({
 	const [tree, setTree] = useState<ResourceTree | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+
+	const [viewMode, setViewMode] = useState<ResourceViewMode>('kind');
+	const [kindFilter, setKindFilter] = useState<string>('');
+	const [healthFilter, setHealthFilter] = useState<string>('');
+	const [search, setSearch] = useState<string>('');
 
 	useEffect(() => {
 		let cancelled = false;
@@ -162,6 +262,27 @@ function ResourceTreePanel({
 		};
 	}, [token, appName]);
 
+	const isSelected = (n: ResourceNode) =>
+		!!selectedResource &&
+		selectedResource.appName === appName &&
+		selectedResource.kind === n.kind &&
+		selectedResource.namespace === (n.namespace ?? '') &&
+		selectedResource.name === n.name;
+
+	const filterMatch = (n: ResourceNode) => {
+		if (kindFilter && n.kind !== kindFilter) return false;
+		if (healthFilter && n.health?.status !== healthFilter) return false;
+		if (search) {
+			const q = search.toLowerCase();
+			if (
+				!n.name.toLowerCase().includes(q) &&
+				!(n.namespace ?? '').toLowerCase().includes(q)
+			)
+				return false;
+		}
+		return true;
+	};
+
 	if (loading) return <LoadingBlock label="Loading resources..." />;
 	if (error) return <ErrorBlock message={error} />;
 	if (!tree?.nodes?.length) {
@@ -177,7 +298,167 @@ function ResourceTreePanel({
 		);
 	}
 
-	const grouped = tree.nodes.reduce(
+	const allKinds = Array.from(new Set(tree.nodes.map((n) => n.kind))).sort();
+	const filtered = tree.nodes.filter(filterMatch);
+
+	const filterControls = (
+		<div
+			style={{
+				display: 'flex',
+				gap: 8,
+				marginBottom: 8,
+				alignItems: 'center',
+				flexWrap: 'wrap',
+			}}>
+			<div
+				style={{
+					display: 'inline-flex',
+					borderRadius: 6,
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					overflow: 'hidden',
+				}}>
+				{(['kind', 'tree'] as ResourceViewMode[]).map((m) => (
+					<button
+						key={m}
+						onClick={() => setViewMode(m)}
+						style={{
+							background:
+								viewMode === m
+									? 'rgba(139, 92, 246, 0.15)'
+									: 'transparent',
+							color:
+								viewMode === m
+									? '#c4b5fd'
+									: 'var(--sl-color-gray-3, #8b949e)',
+							border: 'none',
+							padding: '4px 10px',
+							fontSize: '0.75rem',
+							fontWeight: 600,
+							cursor: 'pointer',
+							textTransform: 'capitalize',
+						}}>
+						{m === 'kind' ? 'By Kind' : 'Tree'}
+					</button>
+				))}
+			</div>
+			<select
+				value={kindFilter}
+				onChange={(e) => setKindFilter(e.target.value)}
+				style={smallSelectStyle}>
+				<option value="">All kinds</option>
+				{allKinds.map((k) => (
+					<option key={k} value={k}>
+						{k}
+					</option>
+				))}
+			</select>
+			<select
+				value={healthFilter}
+				onChange={(e) => setHealthFilter(e.target.value)}
+				style={smallSelectStyle}>
+				<option value="">All health</option>
+				<option value="Healthy">Healthy</option>
+				<option value="Degraded">Degraded</option>
+				<option value="Progressing">Progressing</option>
+				<option value="Suspended">Suspended</option>
+				<option value="Missing">Missing</option>
+			</select>
+			<input
+				value={search}
+				onChange={(e) => setSearch(e.target.value)}
+				placeholder="filter by name/namespace..."
+				style={{
+					...smallSelectStyle,
+					minWidth: 180,
+					flex: '1 1 200px',
+				}}
+			/>
+			<span
+				style={{
+					fontSize: '0.7rem',
+					color: 'var(--sl-color-gray-4, #6b7280)',
+				}}>
+				{filtered.length}/{tree.nodes.length}
+			</span>
+		</div>
+	);
+
+	if (filtered.length === 0) {
+		return (
+			<div>
+				{filterControls}
+				<div
+					style={{
+						padding: '1rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.85rem',
+					}}>
+					No resources match current filter
+				</div>
+			</div>
+		);
+	}
+
+	if (viewMode === 'tree') {
+		const byUid = new Map<string, ResourceNode>();
+		for (const n of tree.nodes) {
+			if (n.uid) byUid.set(n.uid, n);
+		}
+		const childrenByParentUid = new Map<string, ResourceNode[]>();
+		const roots: ResourceNode[] = [];
+		for (const n of tree.nodes) {
+			const parentUid = n.parentRefs?.[0]?.uid;
+			if (parentUid && byUid.has(parentUid)) {
+				const arr = childrenByParentUid.get(parentUid) ?? [];
+				arr.push(n);
+				childrenByParentUid.set(parentUid, arr);
+			} else {
+				roots.push(n);
+			}
+		}
+
+		const filteredUids = new Set(
+			filtered.map((n) => n.uid).filter(Boolean) as string[],
+		);
+		const includesFilteredDescendant = (n: ResourceNode): boolean => {
+			if (n.uid && filteredUids.has(n.uid)) return true;
+			const kids = (n.uid && childrenByParentUid.get(n.uid)) || [];
+			return kids.some(includesFilteredDescendant);
+		};
+
+		const renderNode = (
+			n: ResourceNode,
+			depth: number,
+		): React.ReactNode => {
+			if (!includesFilteredDescendant(n)) return null;
+			const kids =
+				(n.uid && childrenByParentUid.get(n.uid)) ||
+				([] as ResourceNode[]);
+			return (
+				<React.Fragment
+					key={`${n.uid ?? `${n.namespace}-${n.name}-${depth}`}`}>
+					<ResourceRow
+						node={n}
+						depth={depth}
+						appName={appName}
+						selected={isSelected(n)}
+						token={token}
+						onSelectResource={onSelectResource}
+					/>
+					{kids.map((k) => renderNode(k, depth + 1))}
+				</React.Fragment>
+			);
+		};
+
+		return (
+			<div>
+				{filterControls}
+				{roots.map((r) => renderNode(r, 0))}
+			</div>
+		);
+	}
+
+	const grouped = filtered.reduce(
 		(acc, node) => {
 			const kind = node.kind;
 			if (!acc[kind]) acc[kind] = [];
@@ -187,15 +468,9 @@ function ResourceTreePanel({
 		{} as Record<string, ResourceNode[]>,
 	);
 
-	const isSelected = (n: ResourceNode) =>
-		!!selectedResource &&
-		selectedResource.appName === appName &&
-		selectedResource.kind === n.kind &&
-		selectedResource.namespace === (n.namespace ?? '') &&
-		selectedResource.name === n.name;
-
 	return (
 		<div>
+			{filterControls}
 			{Object.entries(grouped).map(([kind, nodes]) => (
 				<div key={kind} style={{ marginBottom: '0.75rem' }}>
 					<div
@@ -209,84 +484,31 @@ function ResourceTreePanel({
 						}}>
 						{kind} ({nodes.length})
 					</div>
-					{nodes.map((node, i) => {
-						const selected = isSelected(node);
-						const sel: ResourceSelector = {
-							appName,
-							kind: node.kind,
-							namespace: node.namespace ?? '',
-							name: node.name,
-							group: node.group,
-							version: node.version,
-							uid: node.uid,
-						};
-						return (
-							<React.Fragment
-								key={`${node.namespace}-${node.name}-${i}`}>
-								<div
-									onClick={() => onSelectResource(sel)}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 8,
-										padding: '4px 8px',
-										fontSize: '0.8rem',
-										color: 'var(--sl-color-text, #e6edf3)',
-										cursor: 'pointer',
-										borderRadius: 4,
-										background: selected
-											? 'rgba(139, 92, 246, 0.12)'
-											: 'transparent',
-										transition: 'background 0.12s',
-									}}
-									onMouseEnter={(e) => {
-										if (!selected) {
-											e.currentTarget.style.background =
-												'rgba(255, 255, 255, 0.03)';
-										}
-									}}
-									onMouseLeave={(e) => {
-										if (!selected) {
-											e.currentTarget.style.background =
-												'transparent';
-										}
-									}}>
-									{node.health && (
-										<span
-											style={{
-												color: healthColor(
-													node.health.status,
-												),
-											}}>
-											{healthIcon(node.health.status)}
-										</span>
-									)}
-									<span
-										style={{
-											color: 'var(--sl-color-gray-4, #6b7280)',
-										}}>
-										{node.namespace}/
-									</span>
-									{node.name}
-								</div>
-								{selected && (
-									<ReactArgoResourceDetail
-										token={token}
-										sel={sel}
-										healthMessage={node.health?.message}
-										onClose={() =>
-											argoService.selectResource(null)
-										}
-									/>
-								)}
-							</React.Fragment>
-						);
-					})}
+					{nodes.map((node, i) => (
+						<ResourceRow
+							key={`${node.uid ?? `${node.namespace}-${node.name}-${i}`}`}
+							node={node}
+							depth={0}
+							appName={appName}
+							selected={isSelected(node)}
+							token={token}
+							onSelectResource={onSelectResource}
+						/>
+					))}
 				</div>
 			))}
 		</div>
 	);
 }
+
+const smallSelectStyle: React.CSSProperties = {
+	background: 'var(--sl-color-bg-nav, #111)',
+	color: 'var(--sl-color-text, #e6edf3)',
+	border: '1px solid var(--sl-color-gray-5, #262626)',
+	borderRadius: 6,
+	padding: '4px 8px',
+	fontSize: '0.75rem',
+};
 
 function AppEventsPanel({
 	token,
