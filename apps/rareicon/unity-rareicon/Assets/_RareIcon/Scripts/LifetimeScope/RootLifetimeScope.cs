@@ -90,6 +90,10 @@ namespace RareIcon
                 PauseBridge.Source         = container.Resolve<PauseService>();
                 AppStateBridge.Source      = container.Resolve<AppStateController>();
                 WorldResetBridge.Source    = container.Resolve<WorldResetService>();
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+                MultiplayerAuthorityBridge.Coordinator = container.Resolve<MultiplayerCoordinator>();
+                MultiplayerAuthorityBridge.Lobby       = container.Resolve<ISteamLobbyService>();
+#endif
             });
 
             // -- Services --
