@@ -140,7 +140,15 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
 # MDX is the version source — never hand-edit downstream files
 
-Every project with a `pipeline:` field in its `apps/kbve/astro-kbve/src/content/docs/project/*.mdx` frontmatter (`docker`, `crates`, `npm`, `python`, `ue5_server`, `unity`, `unreal`) follows the same contract:
+Every project with a `pipeline:` field in its `apps/kbve/astro-kbve/src/content/docs/project/*.mdx` frontmatter follows the same contract:
+
+- `pipeline: docker` — `mc`, `mc-lobby`, `mc-velocity`, `kilobase`, `api`, `arc-runner`, `chuckrpg`, `discordsh`, `edge`, `herbmail`, `irc-gateway`, `iot-edge-worker`, `kubectl`, `memes`, `rareicon`, `rows`, `steamcmd-ubuntu`, etc.
+- `pipeline: crates` — `bevy_inventory`, `bevy_kbve_net`, `bevy_items`, `bevy_tasker`, `soul`, `uniti`, `khashvault`, `holy`, `kbve`, `jedi`, etc.
+- `pipeline: npm` — `@kbve/*` packages
+- `pipeline: python` — `python-kbve` (PyPI: `kbve`)
+- `pipeline: ue5_server`, `pipeline: unity`, `pipeline: unreal` — game engine builds
+
+Same rules apply across all of them:
 
 - ✅ Bump **only** the mdx frontmatter `version: "x.y.z"` to ship a new release.
 - ❌ Never edit the file pointed at by `version_toml:` (`apps/<app>/version.toml`, `packages/.../version.toml`) — CI's post-publish PR owns it.
