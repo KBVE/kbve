@@ -18,6 +18,12 @@ namespace RareIcon
         readonly Dictionary<string, UIPanel> _panels = new();
         UIDocument _uiDocument;
 
+        /// <summary>True once the underlying <see cref="UIDocument.rootVisualElement"/> exists. Panel consumers gate startup on this via <c>UniTask.WaitUntil(() =&gt; _panelManager.IsRootReady, ct)</c> + read <see cref="RootElement"/>.</summary>
+        public bool IsRootReady => _uiDocument != null && _uiDocument.rootVisualElement != null;
+
+        /// <summary>Direct accessor — null until the first frame after Awake. Pair with <see cref="IsRootReady"/> via <c>UniTask.WaitUntil</c>.</summary>
+        public VisualElement RootElement => _uiDocument != null ? _uiDocument.rootVisualElement : null;
+
         [Inject] LocaleService _locale;
         [Inject] ISubscriber<PanelShowMessage> _showSub;
         [Inject] ISubscriber<PanelHideMessage> _hideSub;

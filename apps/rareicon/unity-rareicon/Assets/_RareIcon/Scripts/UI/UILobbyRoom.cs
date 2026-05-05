@@ -20,6 +20,10 @@ namespace RareIcon
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
+        VisualElement _docRoot;
+        VisualElement _titleContent;
+        readonly System.Collections.Generic.List<VisualElement> _hiddenSiblings = new();
+        VisualElementPool<Label> _memberRowPool;
         Label _modeLabel;
         Label _seedLabel;
         Label _lobbyIdLabel;
@@ -40,18 +44,11 @@ namespace RareIcon
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            var uiDoc = _panelManager.GetComponent<UIDocument>();
-            if (uiDoc == null) return;
+            await UniTask.WaitUntil(() => _panelManager.IsRootReady, cancellationToken: cancellation);
+            var uiRoot = _panelManager.RootElement;
+            if (uiRoot == null) return;
 
-            int waited = 0;
-            while (uiDoc.rootVisualElement == null && waited < 1000)
-            {
-                await UniTask.Delay(50, cancellationToken: cancellation);
-                waited += 50;
-            }
-            if (uiDoc.rootVisualElement == null) return;
-
-            BuildPanel(uiDoc.rootVisualElement);
+            BuildPanel(uiRoot);
 
             _appState.Current
                 .Subscribe(state => SetVisible(state == AppInterfaceState.Lobby))
@@ -65,15 +62,12 @@ namespace RareIcon
         void BuildPanel(VisualElement uiRoot)
         {
             _root = new VisualElement();
-            _root.style.position = Position.Absolute;
-            _root.style.left = 0;
-            _root.style.right = 0;
-            _root.style.top = 0;
-            _root.style.bottom = 0;
+            _root.style.flexGrow = 1;
             _root.style.alignItems = Align.Center;
-            _root.style.justifyContent = Justify.Center;
-            _root.style.backgroundColor = UIStyles.Palette.BackdropDim;
+            _root.style.justifyContent = Justify.FlexStart;
+            _root.style.paddingTop = 24;
             _root.style.display = DisplayStyle.None;
+            _root.AddToClassList("title-stage");
 
             var card = new VisualElement().ApplyPanelChrome(padV: 24, padH: 32);
             card.style.minWidth = 420;
@@ -109,6 +103,18 @@ namespace RareIcon
             _memberList.style.marginBottom = 8;
             _memberList.style.minHeight = 60;
 
+            _memberRowPool = new VisualElementPool<Label>(
+                factory: () =>
+                {
+                    var l = new Label();
+                    l.style.color = UIStyles.Palette.TextPrimary;
+                    l.style.fontSize = 12;
+                    l.style.marginBottom = 2;
+                    return l;
+                },
+                onRelease: l => l.text = string.Empty,
+                prewarm: 4);
+
             // Action buttons
             _inviteBtn = MakeButton("Invite Friends", () => _mp.OpenInviteOverlay());
             _inviteBtn.style.marginTop = 12;
@@ -131,7 +137,24 @@ namespace RareIcon
             card.Add(_startBtn);
             card.Add(_leaveBtn);
             _root.Add(card);
-            uiRoot.Add(_root);
+
+            // Defer parenting to SetVisible — title screen UXML is loaded
+            // by UITitleScreen on its own IAsyncStartable schedule which may
+            // not have run yet when this builder fires. Lazy-find the
+            // title-content scrollview at show time.
+            _docRoot = uiRoot;
+        }
+
+        void EnsureMountedInTitleContent()
+        {
+            if (_root == null || _docRoot == null) return;
+            var found = _docRoot.Q<VisualElement>("title-content");
+            if (found == null) return;
+            if (_titleContent == found && _root.parent == found) return;
+
+            _titleContent = found;
+            _root.RemoveFromHierarchy();
+            _titleContent.Add(_root);
         }
 
         static Label MakeRow(string text)
@@ -167,14 +190,42 @@ namespace RareIcon
             if (_root == null) return;
             if (visible)
             {
+                EnsureMountedInTitleContent();
                 _seedLabel.text    = $"Seed: {(_mp.InLobby ? Convert.ToString(0) : "-")}";
                 _lobbyIdLabel.text = $"Lobby: {_mp.CurrentLobbyId}";
+                HideTitleStageSiblings();
                 RefreshModeUI();
                 RefreshHostUI();
                 RefreshMemberList();
             }
+            else
+            {
+                RestoreTitleStageSiblings();
+            }
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             if (visible) _root.BringToFront();
+        }
+
+        void HideTitleStageSiblings()
+        {
+            _hiddenSiblings.Clear();
+            if (_titleContent == null) return;
+            for (int i = 0; i < _titleContent.childCount; i++)
+            {
+                var child = _titleContent[i];
+                if (child == _root) continue;
+                if (!child.ClassListContains("title-stage")) continue;
+                if (child.style.display == DisplayStyle.None) continue;
+                _hiddenSiblings.Add(child);
+                child.style.display = DisplayStyle.None;
+            }
+        }
+
+        void RestoreTitleStageSiblings()
+        {
+            for (int i = 0; i < _hiddenSiblings.Count; i++)
+                _hiddenSiblings[i].style.display = DisplayStyle.Flex;
+            _hiddenSiblings.Clear();
         }
 
         void RefreshModeUI()
@@ -196,8 +247,11 @@ namespace RareIcon
 
         void RefreshMemberList()
         {
-            if (_memberList == null) return;
-            _memberList.Clear();
+            if (_memberList == null || _memberRowPool == null) return;
+            // Return every rented row to the pool — rows detach from the
+            // member list automatically inside Release(); next iteration
+            // re-rents fresh instances + re-attaches.
+            _memberRowPool.ReleaseAll();
 
             var ids = _mp.MemberIds;
             ulong owner = _mp.OwnerSteamId;
@@ -206,19 +260,17 @@ namespace RareIcon
                 ulong id = ids[i];
                 string name = MultiplayerCoordinator.ResolveDisplayName(id);
                 string suffix = id == owner ? "  (host)" : string.Empty;
-
-                var row = new Label($"• {name}{suffix}");
+                var row = _memberRowPool.Acquire();
+                row.text = $"• {name}{suffix}";
                 row.style.color = UIStyles.Palette.TextPrimary;
-                row.style.fontSize = 12;
-                row.style.marginBottom = 2;
                 _memberList.Add(row);
             }
 
             if (ids.Count == 0)
             {
-                var empty = new Label("waiting for peers…");
+                var empty = _memberRowPool.Acquire();
+                empty.text = "waiting for peers…";
                 empty.style.color = UIStyles.Palette.GoldMuted;
-                empty.style.fontSize = 12;
                 _memberList.Add(empty);
             }
         }
@@ -243,7 +295,11 @@ namespace RareIcon
             _                => "Single Player",
         };
 
-        public void Dispose() => _disposables?.Dispose();
+        public void Dispose()
+        {
+            _memberRowPool?.Dispose();
+            _disposables?.Dispose();
+        }
     }
 }
 

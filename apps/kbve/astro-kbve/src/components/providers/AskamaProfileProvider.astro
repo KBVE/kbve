@@ -1,6 +1,5 @@
 ---
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
-import AstroFooter from '@/components/footer/AstroFooter.astro';
 // AskamaProfileProvider - Mirrors the Askama profile.html template
 // This component renders the user profile page that Axum serves for /@username routes
 // Askama variables: {{ username }}, {{ username_first_char }}, {{ unsplash_banner_id }}, {{ bio }}, {{ status }}, {{ primary_avatar_url }}, {{ discord_username }}, {{ discord_avatar }}, {{ discord_is_guild_member }}, {{ discord_id }}, {{ discord_guild_nickname }}, {{ discord_joined_at }}, {{ discord_is_boosting }}, {{ discord_role_count }}, {{ discord_role_names }}, {{ github_username }}, {{ github_avatar }}, {{ twitch_username }}, {{ twitch_avatar }}, {{ twitch_is_live }}, {{ rentearth_characters }}, {{ rentearth_total_playtime_hours }}, {{ rentearth_last_activity }}
@@ -837,11 +836,6 @@ const forumProfileSection = `{% if forum_present %}
 		<div class="adsense-container">
 			<Adsense />
 		</div>
-
-		<!-- Site footer — Starlight's splash template doesn't render
-			 the global footer slot, so we mount it manually here so
-			 /@username pages keep parity with /forum/, /, etc. -->
-		<AstroFooter />
 	</div>
 </div>
 
@@ -2981,7 +2975,7 @@ const forumProfileSection = `{% if forum_present %}
 		display: grid;
 		gap: 0.4rem;
 	}
-	.profile-forum :global(.profile-forum__row) {
+	:global(.profile-forum .profile-forum__row) {
 		display: grid;
 		gap: 0.2rem;
 		padding: 0.6rem 0.85rem;
@@ -2994,11 +2988,11 @@ const forumProfileSection = `{% if forum_present %}
 			border-color 0.15s ease,
 			background 0.15s ease;
 	}
-	.profile-forum :global(.profile-forum__row:hover) {
+	:global(.profile-forum .profile-forum__row:hover) {
 		border-color: rgba(139, 92, 246, 0.5);
 		background: rgba(139, 92, 246, 0.08);
 	}
-	.profile-forum :global(.profile-forum__row-title) {
+	:global(.profile-forum .profile-forum__row-title) {
 		font-size: 0.875rem;
 		font-weight: 600;
 		display: -webkit-box;
@@ -3006,14 +3000,14 @@ const forumProfileSection = `{% if forum_present %}
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
-	.profile-forum :global(.profile-forum__row-meta) {
+	:global(.profile-forum .profile-forum__row-meta) {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.3rem;
 		font-size: 0.75rem;
 		color: rgba(148, 163, 184, 0.85);
 	}
-	.profile-forum :global(.profile-forum__pin) {
+	:global(.profile-forum .profile-forum__pin) {
 		margin-right: 0.25rem;
 	}
 </style>

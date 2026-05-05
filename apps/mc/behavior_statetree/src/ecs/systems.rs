@@ -400,6 +400,7 @@ pub fn plan_behavior(
             &NearbyEntities,
             &mut CallCooldown,
             Option<&SkeletonArchetype>,
+            Option<&mut ArrowCooldown>,
         ),
         With<AiManaged>,
     >,
@@ -413,7 +414,7 @@ pub fn plan_behavior(
 ) {
     let current_tick = server_tick.0;
 
-    for (mc_id, pos, health, epoch, nearby, mut cooldown, archetype) in &mut query {
+    for (mc_id, pos, health, epoch, nearby, mut cooldown, archetype, mut arrow_cd) in &mut query {
         let flow_hint = build_flow_hint(
             pos,
             grid_res.as_ref(),
@@ -469,10 +470,31 @@ pub fn plan_behavior(
         };
         let (_status, commands) = tree.evaluate(&observation, &mut ctx);
 
+        let filtered: Vec<NpcCommand> = if let Some(ref mut acd) = arrow_cd {
+            let elapsed = current_tick.saturating_sub(acd.last_shot_tick);
+            let mut out = Vec::with_capacity(commands.len());
+            let mut shot_consumed = false;
+            for cmd in commands {
+                match cmd {
+                    NpcCommand::ShootArrow { .. } => {
+                        if !shot_consumed && elapsed >= acd.cooldown_ticks {
+                            shot_consumed = true;
+                            acd.last_shot_tick = current_tick;
+                            out.push(cmd);
+                        }
+                    }
+                    other => out.push(other),
+                }
+            }
+            out
+        } else {
+            commands
+        };
+
         intent_buffer.ready.push(IntentReady {
             entity_id: mc_id.0,
             epoch: epoch.value,
-            commands,
+            commands: filtered,
         });
     }
 }

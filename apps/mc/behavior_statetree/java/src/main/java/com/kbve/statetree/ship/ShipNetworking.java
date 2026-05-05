@@ -70,8 +70,8 @@ public final class ShipNetworking {
                 } else {
                     ship.setTargetSpeed(Math.max(currentSpeed - 0.1f, 0f));
                 }
-                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 1.5f);
-                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 1.5f);
+                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 1.0f);
+                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 1.0f);
                 ship.setVerticalIntent(payload.vertical());
             });
         });
