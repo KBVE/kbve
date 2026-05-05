@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-05-04T09:01:10Z",
+  "generated_at": "2026-05-05T08:56:08Z",
   "summary": {
     "critical": 1,
-    "high": 32,
-    "medium": 49,
-    "low": 5,
+    "high": 36,
+    "medium": 57,
+    "low": 6,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 73,
+      "total": 86,
       "severities": {
         "critical": 1,
-        "high": 32,
-        "medium": 35,
-        "low": 5,
+        "high": 36,
+        "medium": 43,
+        "low": 6,
         "info": 0
       },
       "advisories": [
@@ -528,6 +528,97 @@
           "severity": "high",
           "package": "handlebars",
           "url": "https://github.com/advisories/GHSA-xjpj-3mr7-gcpf"
+        },
+        {
+          "id": "1117574",
+          "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
+        },
+        {
+          "id": "1117576",
+          "title": "Axios: Incomplete Fix for CVE-2025-62718 \u2014 NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
+        },
+        {
+          "id": "1117577",
+          "title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
+        },
+        {
+          "id": "1117578",
+          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
+        },
+        {
+          "id": "1117580",
+          "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
+          "severity": "low",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
+        },
+        {
+          "id": "1117581",
+          "title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
+        },
+        {
+          "id": "1117583",
+          "title": "Axios: no_proxy bypass via IP alias allows SSRF",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
+        },
+        {
+          "id": "1117585",
+          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
+        },
+        {
+          "id": "1117587",
+          "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
+        },
+        {
+          "id": "1117589",
+          "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
+        },
+        {
+          "id": "1117591",
+          "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
+        },
+        {
+          "id": "1117593",
+          "title": "Axios: Header Injection via Prototype Pollution",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
+        },
+        {
+          "id": "1117595",
+          "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
         }
       ]
     },
