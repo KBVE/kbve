@@ -156,7 +156,10 @@ class DiscordBot(
         if (event.author.isBot) return
         if (event.author.id == botUserId) return
 
-        val raw = event.message.contentRaw.trim()
+        // contentDisplay resolves <@id> -> @username, <@&id> -> @RoleName, <#id> -> #channel.
+        // contentRaw would leak the numeric IDs into in-game chat. Prefix detection is
+        // unaffected because prefixes are ASCII tokens unrelated to mention syntax.
+        val raw = event.message.contentDisplay.trim()
         if (raw.isEmpty()) return
 
         val member = event.member
