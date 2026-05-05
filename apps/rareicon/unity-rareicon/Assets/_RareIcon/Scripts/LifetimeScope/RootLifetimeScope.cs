@@ -146,6 +146,8 @@ namespace RareIcon
             // Phase 1 multiplayer orchestrator + lobby waiting room UI.
             builder.RegisterEntryPoint<MultiplayerCoordinator>(Lifetime.Singleton).AsSelf();
             builder.RegisterEntryPoint<UILobbyRoom>().AsSelf();
+            // Phase 2b transport lifecycle — boots SteamPacketBridge on match start.
+            builder.RegisterEntryPoint<MultiplayerLifecycleService>(Lifetime.Singleton).AsSelf();
 #endif
 
             // -- UI --
