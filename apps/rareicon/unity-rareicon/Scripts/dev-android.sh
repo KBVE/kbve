@@ -39,11 +39,12 @@ echo "$AVDS" | grep -qx "$AVD" || err "AVD '$AVD' not in available list:\n$AVDS"
 EMU_PID=""
 if ! adb devices | awk 'NR>1 && $2=="device" && /^emulator-/' | grep -q .; then
     EMU_LOG="/tmp/rareicon-avd-$$.log"
-    log "Booting emulator: $AVD (Vulkan, host GPU). Log: $EMU_LOG"
+    GPU_MODE="${RAREICON_GPU:-swiftshader_indirect}"
+    log "Booting emulator: $AVD (GPU=$GPU_MODE). Log: $EMU_LOG"
     "$SDK/emulator/emulator" -avd "$AVD" \
-        -gpu host \
-        -feature Vulkan \
+        -gpu "$GPU_MODE" \
         -no-snapshot-save \
+        -no-snapshot-load \
         -no-boot-anim \
         </dev/null >"$EMU_LOG" 2>&1 &
     EMU_PID=$!
@@ -79,6 +80,20 @@ echo "$INSTALL_OUT" | grep -q "Success" || err "adb install failed:\n$INSTALL_OU
 log "Launching package: $PKG"
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
 
+(
+    sleep 8
+    log "--- Post-launch diagnostics ---"
+    PID="$(adb shell pidof "$PKG" 2>/dev/null | tr -d '\r')"
+    if [ -n "$PID" ]; then
+        log "Process alive: pid=$PID"
+    else
+        log "Process DEAD. Checking dropbox + tombstones."
+        adb shell dumpsys dropbox --print 2>/dev/null | tail -100 || true
+        adb shell ls /data/tombstones/ 2>/dev/null || true
+    fi
+    adb shell dumpsys activity activities 2>/dev/null | grep -A2 -iE "rareicon|mResumed|mFocused" | head -30 || true
+) &
+
 cleanup() {
     log "Stopping emulator (Ctrl+C received)."
     [ -n "$EMU_PID" ] && kill "$EMU_PID" 2>/dev/null || true
@@ -95,4 +110,20 @@ LOG_FILE="$LOG_DIR/dev-android-$(date +%Y%m%d-%H%M%S).log"
 log "Streaming logcat (Unity + AndroidRuntime crashes). Ctrl+C to quit + close emulator."
 log "Tee'd to: $LOG_FILE"
 adb logcat -c >/dev/null 2>&1 || true
-adb logcat -v color -s Unity:V CRASH:V AndroidRuntime:E DEBUG:E | tee -a "$LOG_FILE"
+adb logcat -v color \
+    Unity:V \
+    CRASH:V \
+    AndroidRuntime:E \
+    DEBUG:V \
+    libc:F \
+    tombstoned:V \
+    ActivityManager:I \
+    ActivityTaskManager:I \
+    AndroidGameSdk:V \
+    Vulkan:V \
+    Gralloc:E \
+    SurfaceFlinger:E \
+    il2cpp:V \
+    UnityMain:V \
+    libuniti:V \
+    '*:S' | tee -a "$LOG_FILE"
