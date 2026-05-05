@@ -11,7 +11,6 @@ import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import com.velocitypowered.api.event.player.ServerConnectedEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
-import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
@@ -28,13 +27,14 @@ import java.util.concurrent.ConcurrentHashMap
  * KBVE Velocity Commands
  * ======================
  *
- * Small custom Velocity plugin that bundles four features for the
- * KBVE MC stack (lobby + fabric survival):
+ * Custom Velocity plugin for the KBVE MC stack (lobby + fabric survival):
  *
  *  1. Teleport command aliases — /lobby /hub /mc /survival.
  *  2. Cross-server chat bridge with /chat local|global per-player mode.
  *  3. Last-server persistence (reconnect lands on previous backend).
- *  4. Discord chat relay (DiscordRelay.kt) — gated on DISCORD_BOT_TOKEN.
+ *
+ * Discord relay lives in a separate plugin (kbve-discord-relay) so the
+ * two can be enabled, versioned, and rolled back independently.
  *
  * All storage is in-memory. On Velocity pod restart the chat modes and
  * last-server map reset to defaults — persistence is v2 scope.
@@ -42,8 +42,8 @@ import java.util.concurrent.ConcurrentHashMap
 @Plugin(
     id = "kbve-velocity-commands",
     name = "KBVE Velocity Commands",
-    version = "1.1.0",
-    description = "Teleport aliases, cross-server chat bridge, last-server persistence, and Discord relay.",
+    version = "1.0.4",
+    description = "Teleport aliases, cross-server chat bridge, and last-server persistence.",
     authors = ["kbve"],
 )
 class KbveVelocityCommands @Inject constructor(
@@ -52,10 +52,6 @@ class KbveVelocityCommands @Inject constructor(
     @DataDirectory private val dataDirectory: Path,
 ) {
 
-    // ------------------------------------------------------------------
-    // State
-    // ------------------------------------------------------------------
-
     enum class ChatMode { LOCAL, GLOBAL }
 
     /** Per-player chat mode. Missing entry = GLOBAL (the default). */
@@ -63,9 +59,6 @@ class KbveVelocityCommands @Inject constructor(
 
     /** Per-player last-connected server name. Missing entry = no override. */
     private val lastServers = ConcurrentHashMap<UUID, String>()
-
-    /** Discord relay; null when env vars are missing or JDA failed to start. */
-    private var discordRelay: DiscordRelay? = null
 
     /**
      * Alias → backing server name. Edit this map to add more aliases.
@@ -78,55 +71,13 @@ class KbveVelocityCommands @Inject constructor(
         "survival" to "mc",
     )
 
-    // ------------------------------------------------------------------
-    // Lifecycle
-    // ------------------------------------------------------------------
-
     @Subscribe
     fun onProxyInit(event: ProxyInitializeEvent) {
-        logger.info("KBVE Velocity Commands v1.1.0 initializing")
+        logger.info("KBVE Velocity Commands v1.0.4 initializing")
         registerTeleportCommands()
         registerChatCommand()
         logger.info("Registered ${teleportAliases.size} teleport aliases + /chat command")
-        startDiscordRelay()
     }
-
-    @Subscribe
-    fun onProxyShutdown(event: ProxyShutdownEvent) {
-        discordRelay?.shutdown()
-    }
-
-    private fun startDiscordRelay() {
-        val token = System.getenv("DISCORD_BOT_TOKEN")
-        if (token.isNullOrBlank()) {
-            logger.info("DISCORD_BOT_TOKEN unset — Discord relay disabled")
-            return
-        }
-        val channelId = System.getenv("DISCORD_CHANNEL_ID")?.takeIf { it.isNotBlank() }
-            ?: DEFAULT_DISCORD_CHANNEL_ID
-        val rolesEnv = System.getenv("DISCORD_CMD_ROLES")
-        val roles: Set<String> = if (!rolesEnv.isNullOrBlank()) {
-            rolesEnv.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-        } else {
-            DEFAULT_AUTHORIZED_ROLES
-        }
-        val dispatcher = ChatDispatcher(server)
-        val relay = DiscordRelay(
-            server = server,
-            logger = logger,
-            dispatcher = dispatcher,
-            token = token,
-            channelId = channelId,
-            authorizedRoles = roles,
-            teleportAliases = teleportAliases,
-        )
-        relay.start()
-        discordRelay = relay
-    }
-
-    // ------------------------------------------------------------------
-    // Teleport command aliases — /lobby /hub /mc /survival
-    // ------------------------------------------------------------------
 
     private fun registerTeleportCommands() {
         for ((alias, targetServerName) in teleportAliases) {
@@ -173,10 +124,6 @@ class KbveVelocityCommands @Inject constructor(
             )
         }
     }
-
-    // ------------------------------------------------------------------
-    // /chat local|global command
-    // ------------------------------------------------------------------
 
     private fun registerChatCommand() {
         val node = LiteralArgumentBuilder
@@ -227,10 +174,6 @@ class KbveVelocityCommands @Inject constructor(
     private fun getChatMode(uuid: UUID): ChatMode =
         chatModes.getOrDefault(uuid, ChatMode.GLOBAL)
 
-    // ------------------------------------------------------------------
-    // Cross-server chat bridge
-    // ------------------------------------------------------------------
-
     @Subscribe
     fun onPlayerChat(event: PlayerChatEvent) {
         val sender = event.player
@@ -261,15 +204,7 @@ class KbveVelocityCommands @Inject constructor(
             if (targetServer.serverInfo.name == sourceName) continue
             target.sendMessage(bridged)
         }
-
-        // Mirror GLOBAL chat into Discord. LOCAL stays in-game by virtue of
-        // the early-return above.
-        discordRelay?.postOutbound(sourceName, sender.username, event.message)
     }
-
-    // ------------------------------------------------------------------
-    // Last-server persistence
-    // ------------------------------------------------------------------
 
     @Subscribe
     fun onServerConnected(event: ServerConnectedEvent) {
@@ -294,18 +229,5 @@ class KbveVelocityCommands @Inject constructor(
         // Keep chatModes + lastServers populated after disconnect so
         // the per-player preferences survive short reconnects. They
         // are cleared only on Velocity pod restart (in-memory map).
-    }
-
-    companion object {
-        // Default Discord channel for the chat relay. Override with
-        // DISCORD_CHANNEL_ID env var for staging/dev deployments.
-        private const val DEFAULT_DISCORD_CHANNEL_ID = "1501071171804991651"
-
-        // Roles allowed to invoke staff-gated Discord commands (>cmd, >kick,
-        // >ban, >mute, >tell, >say). Override with DISCORD_CMD_ROLES (csv).
-        private val DEFAULT_AUTHORIZED_ROLES: Set<String> = setOf(
-            "733334418747555918",
-            "647866541790068746",
-        )
     }
 }

@@ -23,11 +23,16 @@ deployment_yaml: apps/kube/agones/mc/velocity-deployment.yaml
 has_test: true
 ---
 
+## `kbve-velocity-commands`
+
 ## Overview
 
-Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with a pre-baked Kotlin plugin (`kbve-velocity-commands`) compiled from source at `apps/mc/velocity/plugin/`.
+Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with two pre-baked Kotlin plugins built from source:
 
-The plugin bundles four features in one JAR, all specific to the KBVE MC stack:
+- **`kbve-velocity-commands`** (`apps/mc/velocity/plugin/`) — teleport aliases, cross-server chat bridge, last-server persistence.
+- **`kbve-discord-relay`** (`apps/mc/velocity/plugin-discord/`) — Discord ↔ MC chat relay with prefix routing, reply context, and role-gated console commands.
+
+The two plugins are independent (no source-level dependency, separate `@Plugin` IDs, separate version numbers) so they can be enabled, disabled, and rolled back independently. They ship together in the same image because they target the same Velocity proxy and need the same JDK/runtime stage.
 
 ### 1. Teleport command aliases
 
@@ -62,11 +67,11 @@ Tracks the last server a player was connected to via `ServerConnectedEvent` and 
 
 In-memory only for v1 — survives player disconnect/reconnect cycles within a single Velocity pod lifetime, not across pod restarts.
 
-### 4. Discord chat relay
+## `kbve-discord-relay`
 
-Bridges in-game `GLOBAL` chat into a single Discord channel and routes Discord messages back into the network. No DiscordSRV dependency — JDA 5 is bundled directly into the plugin's fat jar.
+Bridges in-game chat into a single Discord channel and routes Discord messages back into the network. Standalone Velocity plugin — no DiscordSRV, no source dependency on `kbve-velocity-commands`. JDA 5 is bundled directly into the plugin's fat jar.
 
-**Outbound (MC → Discord):** when a player sends a message in `/chat global` mode, the bridge posts it to a webhook the bot self-provisions on startup (`kbve-mc-relay`, created via `MANAGE_WEBHOOKS`). The webhook `username` is set to `<player> [L]` or `<player> [S]` so each message renders as the player rather than the bot. `LOCAL` chat stays in-game.
+**Outbound (MC → Discord):** every player chat message — `LOCAL` or `GLOBAL` — is posted to a webhook the bot self-provisions on startup (`kbve-mc-relay`, created via `MANAGE_WEBHOOKS`). The webhook `username` is set to `<player> [L]` or `<player> [S]` so each message renders as the player and Discord readers can see which backend it came from. Mode-independent on purpose: `/chat local` still appears in Discord with the `[L]`/`[S]` tag — the mode only affects whether the in-game cross-server bridge in `kbve-velocity-commands` fires.
 
 **Inbound (Discord → MC):** the bot listens to the configured channel and parses prefixes:
 
@@ -90,7 +95,7 @@ Bridges in-game `GLOBAL` chat into a single Discord channel and routes Discord m
 | `DISCORD_CHANNEL_ID` | Channel the bot listens to and posts into (default `1501071171804991651`) |
 | `DISCORD_CMD_ROLES` | Optional CSV override of authorized role IDs |
 
-If `DISCORD_BOT_TOKEN` is unset (e.g. the e2e container test) the relay logs a single line and disables itself; the rest of the plugin continues working.
+If `DISCORD_BOT_TOKEN` is unset (e.g. the e2e container test) the plugin logs a single line and stays inert; `kbve-velocity-commands` continues working.
 
 ## Build
 
@@ -98,20 +103,20 @@ Multi-stage Dockerfile:
 
 ```
 Stage 1: gradle:jdk21
-    └─► Gradle shadowJar builds kbve-velocity-commands-<version>.jar
-         └─► com.velocitypowered:velocity-api:3.4.0-SNAPSHOT
-              └─► Kotlin 2.0.21 + KAPT for @Plugin annotation processing
-
-Stage 2: itzg/bungeecord:latest
-    └─► COPY --from=plugin-builder the JAR into /plugins/
+    └─► Gradle shadowJar → kbve-velocity-commands-<version>.jar
+Stage 2: gradle:jdk21
+    └─► Gradle shadowJar → kbve-discord-relay-<version>.jar (bundles JDA 5)
+Stage 3: itzg/bungeecord:latest
+    └─► COPY both JARs into /plugins/
          └─► itzg auto-loads everything in /plugins/ at Velocity boot
               └─► LuckPerms-Velocity also downloaded via PLUGINS env var
 ```
 
-All existing Velocity runtime wiring (LuckPerms env vars, forwarding mode, plugin messaging) continues to work — this image only pre-bakes the one plugin KBVE owns the source for.
+Both plugins use Velocity API 3.4.0-SNAPSHOT, Kotlin 2.0.21, KAPT for `@Plugin` annotation processing, and JDK 21.
 
 ### Related
 
 - [mc (Fabric survival backend)](/project/mc/)
 - [mc-lobby (PaperMC lobby)](/project/mc-lobby/)
-- [Plugin source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin)
+- [kbve-velocity-commands source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin)
+- [kbve-discord-relay source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin-discord)

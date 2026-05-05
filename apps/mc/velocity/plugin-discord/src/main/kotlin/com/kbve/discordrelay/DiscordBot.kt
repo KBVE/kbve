@@ -1,4 +1,4 @@
-package com.kbve.velocitycommands
+package com.kbve.discordrelay
 
 import com.velocitypowered.api.proxy.ProxyServer
 import net.dv8tion.jda.api.EmbedBuilder
@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.slf4j.Logger
 import java.net.URI
 import java.net.http.HttpClient
@@ -27,32 +26,28 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Discord ↔ Velocity chat relay.
+ * JDA-backed Discord ↔ Velocity chat bridge.
  *
- * Outbound (MC → Discord): [postOutbound] posts as the player's name
- * via a webhook the bot self-provisions on the configured channel.
+ * Outbound: [postOutbound] posts as the player's name via a webhook the
+ * bot self-provisions on the configured channel ("kbve-mc-relay").
  *
- * Inbound (Discord → MC): listens to MessageReceivedEvent on one
- * channel, parses prefix routing (>lobby, >mc, >cmd, >who, ...) and
- * dispatches to the right backends through [ChatDispatcher].
- *
- * Reply routing: when a Discord message is a reply, the source server
- * is read off the referenced message's webhook author name suffix
- * ("Player [L]" / "Player [S]"). No cache needed — Discord already
- * stores the author per message.
+ * Inbound: listens to MessageReceivedEvent on one channel and parses
+ * prefix routing (>lobby, >mc, >cmd, >who, ...) — plain text broadcasts
+ * globally, replies inherit the source server from the referenced
+ * webhook message's author tag ("Player [L]" / "Player [S]").
  *
  * Auth: STAFF commands check member roles against [authorizedRoles].
  * Unauthorized callers are silently dropped (no reply, no reaction)
- * so unprivileged users can't enumerate the gated command set.
+ * so they can't enumerate the gated command set.
  */
-class DiscordRelay(
+class DiscordBot(
     private val server: ProxyServer,
     private val logger: Logger,
     private val dispatcher: ChatDispatcher,
     private val token: String,
     private val channelId: String,
     private val authorizedRoles: Set<String>,
-    private val teleportAliases: Map<String, String>,
+    private val serverAliases: Map<String, String>,
 ) : ListenerAdapter() {
 
     private var jda: JDA? = null
@@ -64,7 +59,7 @@ class DiscordRelay(
     @Volatile private var botUserId: String? = null
 
     fun start() {
-        logger.info("DiscordRelay starting (channel={}, authorizedRoles={})", channelId, authorizedRoles)
+        logger.info("DiscordBot starting (channel={}, authorizedRoles={})", channelId, authorizedRoles)
         try {
             jda = JDABuilder.createDefault(token)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
@@ -73,27 +68,23 @@ class DiscordRelay(
                 .addEventListeners(this)
                 .build()
         } catch (t: Throwable) {
-            logger.error("DiscordRelay failed to start JDA — relay disabled", t)
+            logger.error("DiscordBot failed to start JDA — relay disabled", t)
         }
     }
 
     fun shutdown() {
         try {
             jda?.shutdown()
-            logger.info("DiscordRelay shutdown")
+            logger.info("DiscordBot shutdown")
         } catch (t: Throwable) {
-            logger.warn("DiscordRelay shutdown error", t)
+            logger.warn("DiscordBot shutdown error", t)
         }
     }
 
-    // ------------------------------------------------------------------
-    // Outbound (called from KbveVelocityCommands.onPlayerChat)
-    // ------------------------------------------------------------------
-
     /**
      * Post a player's chat to Discord via the cached webhook.
-     * Webhook username is set to "<player> [L|S|?]" so reply-routing
-     * can recover the source server from the message's author name.
+     * Webhook username is set to "<player> [L|S|?]" so reply-routing can
+     * recover the source server from the message's author name.
      */
     fun postOutbound(serverName: String, playerName: String, message: String) {
         val url = webhookUrl.get() ?: return
@@ -121,13 +112,9 @@ class DiscordRelay(
             }
     }
 
-    // ------------------------------------------------------------------
-    // JDA event hooks
-    // ------------------------------------------------------------------
-
     override fun onReady(event: ReadyEvent) {
         botUserId = event.jda.selfUser.id
-        logger.info("DiscordRelay JDA ready as {} ({})", event.jda.selfUser.name, botUserId)
+        logger.info("DiscordBot JDA ready as {} ({})", event.jda.selfUser.name, botUserId)
 
         val channel = event.jda.getTextChannelById(channelId)
         if (channel == null) {
@@ -166,7 +153,7 @@ class DiscordRelay(
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channel.id != channelId) return
-        if (event.author.isBot) return // covers our own webhook posts and any other bots
+        if (event.author.isBot) return
         if (event.author.id == botUserId) return
 
         val raw = event.message.contentRaw.trim()
@@ -175,7 +162,6 @@ class DiscordRelay(
         val member = event.member
         val displayName = member?.effectiveName ?: event.author.name
 
-        // Detect explicit prefix: >word ...
         val prefixMatch = PREFIX_REGEX.matchEntire(raw)
         if (prefixMatch != null) {
             val token = prefixMatch.groupValues[1].lowercase()
@@ -184,7 +170,6 @@ class DiscordRelay(
             return
         }
 
-        // No explicit prefix: reply scopes to source server, otherwise global.
         val replyServer = inferServerFromReply(event.message)
         if (replyServer != null) {
             relayChatToServer(replyServer, displayName, raw)
@@ -192,10 +177,6 @@ class DiscordRelay(
             relayChatGlobal(displayName, raw)
         }
     }
-
-    // ------------------------------------------------------------------
-    // Prefix dispatch
-    // ------------------------------------------------------------------
 
     private fun handlePrefix(
         event: MessageReceivedEvent,
@@ -205,35 +186,27 @@ class DiscordRelay(
         rest: String,
     ) {
         when (token) {
-            // Public commands
             "who", "list" -> handleWho(event)
             "servers" -> handleServers(event)
             "help" -> handleHelp(event, member)
 
-            // Staff commands
-            "cmd" -> handleCmd(event, member, displayName, rest)
-            "kick" -> handleStaffPassthrough(event, member, displayName, "kick", rest)
-            "ban" -> handleStaffPassthrough(event, member, displayName, "ban", rest)
-            "mute" -> handleStaffPassthrough(event, member, displayName, "mute", rest)
+            "cmd" -> handleCmd(event, member, rest)
+            "kick" -> handleStaffPassthrough(event, member, "kick", rest)
+            "ban" -> handleStaffPassthrough(event, member, "ban", rest)
+            "mute" -> handleStaffPassthrough(event, member, "mute", rest)
             "tell" -> handleTell(event, member, displayName, rest)
-            "say" -> handleSay(event, member, displayName, rest)
+            "say" -> handleSay(event, member, rest)
 
             else -> {
-                // Token may be a server alias (>lobby, >hub, >mc, >survival).
-                val backendName = teleportAliases[token]
+                val backendName = serverAliases[token]
                 if (backendName != null) {
                     relayChatToServer(backendName, displayName, rest)
                 } else {
-                    // Unknown prefix: treat the whole thing as global to avoid silently dropping.
                     relayChatGlobal(displayName, ">$token $rest")
                 }
             }
         }
     }
-
-    // ------------------------------------------------------------------
-    // Chat relay helpers
-    // ------------------------------------------------------------------
 
     private fun relayChatGlobal(discordName: String, message: String) {
         val component = Component.text("[D] <$discordName> $message")
@@ -258,7 +231,6 @@ class DiscordRelay(
 
     private fun inferServerFromReply(message: Message): String? {
         val ref = message.referencedMessage ?: return null
-        // Webhook messages report their author with the username we set on send.
         val authorName = ref.author.name
         val match = AUTHOR_TAG_REGEX.find(authorName) ?: return null
         return when (match.groupValues[1]) {
@@ -267,10 +239,6 @@ class DiscordRelay(
             else -> null
         }
     }
-
-    // ------------------------------------------------------------------
-    // Public commands
-    // ------------------------------------------------------------------
 
     private fun handleWho(event: MessageReceivedEvent) {
         val grouped = server.allPlayers.groupBy {
@@ -334,10 +302,6 @@ class DiscordRelay(
         event.channel.sendMessageEmbeds(embed.build()).queue()
     }
 
-    // ------------------------------------------------------------------
-    // Staff commands
-    // ------------------------------------------------------------------
-
     private fun isStaff(member: Member?): Boolean {
         if (member == null) return false
         return member.roles.any { it.id in authorizedRoles }
@@ -345,8 +309,7 @@ class DiscordRelay(
 
     /**
      * Returns true if authorized. On rejection, audit-logs and silently
-     * drops the message — no reaction, no reply (don't advertise the
-     * command's existence to unprivileged users).
+     * drops — no reaction, no reply (don't advertise the gated command).
      */
     private fun requireStaff(event: MessageReceivedEvent, member: Member?, command: String): Boolean {
         if (isStaff(member)) {
@@ -363,7 +326,7 @@ class DiscordRelay(
         return false
     }
 
-    private fun handleCmd(event: MessageReceivedEvent, member: Member?, displayName: String, body: String) {
+    private fun handleCmd(event: MessageReceivedEvent, member: Member?, body: String) {
         if (!requireStaff(event, member, ">cmd $body")) return
         if (body.isBlank()) {
             event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
@@ -375,7 +338,6 @@ class DiscordRelay(
     private fun handleStaffPassthrough(
         event: MessageReceivedEvent,
         member: Member?,
-        displayName: String,
         verb: String,
         rest: String,
     ) {
@@ -403,7 +365,7 @@ class DiscordRelay(
         event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(emoji)).queue()
     }
 
-    private fun handleSay(event: MessageReceivedEvent, member: Member?, displayName: String, rest: String) {
+    private fun handleSay(event: MessageReceivedEvent, member: Member?, rest: String) {
         if (!requireStaff(event, member, ">say $rest")) return
         if (rest.isBlank()) {
             event.message.addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⚠️")).queue()
@@ -437,10 +399,6 @@ class DiscordRelay(
             logger.warn("executeConsole threw", t)
         }
     }
-
-    // ------------------------------------------------------------------
-    // Misc
-    // ------------------------------------------------------------------
 
     /** Discord usernames for webhook messages: 1-80 chars, no @, #, :, ```. */
     private fun sanitizeUsername(s: String): String =
