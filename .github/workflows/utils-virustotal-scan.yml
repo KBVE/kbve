@@ -1,0 +1,87 @@
+name: Utils - VirusTotal Scan
+
+on:
+    workflow_call:
+        inputs:
+            artifact_name:
+                description: 'Name of the artifact to download and scan'
+                required: false
+                type: string
+                default: ''
+            file:
+                description: 'Path to the file to scan (after artifact download, or relative to checkout)'
+                required: true
+                type: string
+            label:
+                description: 'Label shown in the job summary heading'
+                required: false
+                type: string
+                default: 'binary'
+            poll_seconds:
+                description: 'Seconds to wait for analysis to complete'
+                required: false
+                type: string
+                default: '180'
+            checkout:
+                description: 'Whether to checkout the repo (needed to consume the composite action)'
+                required: false
+                type: boolean
+                default: true
+        secrets:
+            VT_API_KEY:
+                required: true
+
+    workflow_dispatch:
+        inputs:
+            artifact_name:
+                description: 'Artifact to download and scan (leave blank if file is committed)'
+                required: false
+                type: string
+                default: ''
+            file:
+                description: 'Path to the file to scan'
+                required: true
+                type: string
+            label:
+                description: 'Label shown in the job summary heading'
+                required: false
+                type: string
+                default: 'binary'
+            poll_seconds:
+                description: 'Seconds to wait for analysis to complete'
+                required: false
+                type: string
+                default: '180'
+
+permissions: {}
+
+jobs:
+    scan:
+        name: VirusTotal Scan
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+            actions: read
+        steps:
+            - name: Checkout (for composite action)
+              if: inputs.checkout != false
+              uses: actions/checkout@v6
+              with:
+                  sparse-checkout: .github/actions/virustotal-scan
+                  sparse-checkout-cone-mode: false
+
+            - name: Download artifact
+              if: inputs.artifact_name != ''
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.artifact_name }}
+                  path: artifact
+
+            - name: Scan
+              uses: ./.github/actions/virustotal-scan
+              with:
+                  vt_api_key: ${{ secrets.VT_API_KEY }}
+                  file: ${{ inputs.file }}
+                  label: ${{ inputs.label }}
+                  poll_seconds: ${{ inputs.poll_seconds }}
