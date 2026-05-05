@@ -71,7 +71,11 @@ namespace RareIcon
 
             try
             {
-                SteamPacketBridge.Initialize();
+                // ActivatePeer wires the bridge + stamps LocalSteamId for
+                // the driver constructor that was already registered at
+                // BeforeSceneLoad. Driver picks them up the next time
+                // NetCode opens a session.
+                SteamNetworkDriverConstructor.ActivatePeer();
                 _bridgeUp = true;
                 Debug.Log($"[MultiplayerLifecycle] transport bridge online — host={_coord.IsHost.CurrentValue} mode={_coord.Mode.CurrentValue}");
             }
