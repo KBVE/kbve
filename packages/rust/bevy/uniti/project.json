@@ -134,14 +134,14 @@
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["cargo test -p uniti"],
+				"commands": ["cargo +stable test -p uniti"],
 				"cwd": "packages/rust/bevy/uniti"
 			}
 		},
 		"lint": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["cargo clippy -p uniti -- -D warnings"],
+				"commands": ["cargo +stable clippy -p uniti -- -D warnings"],
 				"cwd": "packages/rust/bevy/uniti"
 			}
 		},
