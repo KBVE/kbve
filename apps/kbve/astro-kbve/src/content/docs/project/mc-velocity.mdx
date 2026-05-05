@@ -1,7 +1,7 @@
 ---
 title: Minecraft Velocity Proxy
 description: |
-    Custom Velocity 3.4 proxy image with a Kotlin plugin providing cross-server teleport aliases, chat bridging, and last-server persistence for the KBVE MC stack.
+    Custom Velocity 3.4 proxy image with a Kotlin plugin providing cross-server teleport aliases, chat bridging, last-server persistence, and a Discord chat relay for the KBVE MC stack.
 sidebar:
     label: MC Velocity
     order: 452
@@ -13,7 +13,7 @@ tags:
 key: mc_velocity
 pipeline: docker
 app_name: mc-velocity
-version: "1.0.3"
+version: "1.1.0"
 source_path: apps/mc/velocity
 version_toml: apps/mc/velocity/version.toml
 runner: ubuntu-latest
@@ -27,7 +27,7 @@ has_test: true
 
 Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with a pre-baked Kotlin plugin (`kbve-velocity-commands`) compiled from source at `apps/mc/velocity/plugin/`.
 
-The plugin bundles three features in one JAR, all specific to the KBVE MC stack:
+The plugin bundles four features in one JAR, all specific to the KBVE MC stack:
 
 ### 1. Teleport command aliases
 
@@ -61,6 +61,36 @@ Session-scoped — the map resets when the Velocity pod restarts. Persistent sto
 Tracks the last server a player was connected to via `ServerConnectedEvent` and restores it on `PlayerChooseInitialServerEvent` when they reconnect. Falls back to Velocity's normal `try` list (which starts with lobby) if the stored server is missing or offline.
 
 In-memory only for v1 — survives player disconnect/reconnect cycles within a single Velocity pod lifetime, not across pod restarts.
+
+### 4. Discord chat relay
+
+Bridges in-game `GLOBAL` chat into a single Discord channel and routes Discord messages back into the network. No DiscordSRV dependency — JDA 5 is bundled directly into the plugin's fat jar.
+
+**Outbound (MC → Discord):** when a player sends a message in `/chat global` mode, the bridge posts it to a webhook the bot self-provisions on startup (`kbve-mc-relay`, created via `MANAGE_WEBHOOKS`). The webhook `username` is set to `<player> [L]` or `<player> [S]` so each message renders as the player rather than the bot. `LOCAL` chat stays in-game.
+
+**Inbound (Discord → MC):** the bot listens to the configured channel and parses prefixes:
+
+| Discord input | In-game effect |
+|---|---|
+| `hi everyone` | Broadcast to all servers |
+| `>lobby hello` / `>hub hello` | Lobby only |
+| `>mc hello` / `>survival hello` | Survival only |
+| reply to a `[L]` webhook message | Lobby only (server inferred from the referenced message's author tag) |
+| reply to an `[S]` webhook message | Survival only |
+
+**Public commands** (no role gate): `>who` / `>list`, `>servers`, `>help`.
+
+**Staff commands** (gated by Discord role IDs `733334418747555918` or `647866541790068746`, override via `DISCORD_CMD_ROLES`): `>cmd <command>` runs on the Velocity console; `>kick <player> [reason]`, `>ban`, `>mute` are sugar over `>cmd`; `>tell <player> <msg>` DMs a single player; `>say <msg>` posts a network-wide staff announcement. Unauthorized callers are silently dropped (no reaction, no reply) so unprivileged users can't enumerate the gated command set, with every attempt audit-logged at INFO.
+
+**Configuration:**
+
+| Env var | Purpose |
+|---|---|
+| `DISCORD_BOT_TOKEN` | JDA bot login (sealed in `mc-discord-relay` Secret) |
+| `DISCORD_CHANNEL_ID` | Channel the bot listens to and posts into (default `1501071171804991651`) |
+| `DISCORD_CMD_ROLES` | Optional CSV override of authorized role IDs |
+
+If `DISCORD_BOT_TOKEN` is unset (e.g. the e2e container test) the relay logs a single line and disables itself; the rest of the plugin continues working.
 
 ## Build
 
