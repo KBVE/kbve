@@ -34,6 +34,8 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
+            if (!MultiplayerAuthority.IsAuthority) return;
+
             _spawnCheckTimer -= SystemAPI.Time.DeltaTime;
             if (_spawnCheckTimer > 0f) return;
 

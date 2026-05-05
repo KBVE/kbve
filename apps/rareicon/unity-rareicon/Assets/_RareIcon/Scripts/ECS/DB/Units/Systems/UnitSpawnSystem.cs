@@ -49,6 +49,10 @@ namespace RareIcon
         protected override void OnUpdate()
         {
             if (!WorldGenSession.HasStarted) return;
+            // Initial cluster (King + retinue + 100 wandering goblins) is
+            // host-authoritative in MP — clients receive these entities
+            // via replication and skip the spawn pass.
+            if (!MultiplayerAuthority.IsAuthority) return;
             if (RespawnGeneration != _spawnedAtGeneration) _spawned = false;
             if (_spawned) return;
             _spawned = true;
