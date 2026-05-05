@@ -1,0 +1,16 @@
+{
+	"name": "unity-rareicon",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/rareicon/unity-rareicon/Assets",
+	"tags": ["scope:rareicon", "type:unity-app"],
+	"targets": {
+		"dev:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "bash Scripts/dev-android.sh",
+				"cwd": "apps/rareicon/unity-rareicon"
+			}
+		}
+	}
+}
