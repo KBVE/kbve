@@ -1,0 +1,77 @@
+---
+import { referrals } from '../../data/referrals';
+
+export function getStaticPaths() {
+	return referrals.map((r) => ({
+		params: { slug: r.slug },
+		props: { target: r.target, title: r.title, blurb: r.blurb ?? '' },
+	}));
+}
+
+const { target, title, blurb } = Astro.props;
+const safeTarget = target;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="refresh" content={`0; url=${safeTarget}`} />
+		<meta name="robots" content="noindex" />
+		<link rel="canonical" href={safeTarget} />
+		<title>Redirecting → {title}</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+				background: #09090b;
+				color: #fde68a;
+				font-family: ui-sans-serif, system-ui, sans-serif;
+				min-height: 100vh;
+			}
+			main {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 12px;
+				padding: 48px 24px;
+				min-height: 100vh;
+				text-align: center;
+			}
+			h1 {
+				font-size: 22px;
+				margin: 0;
+				color: #fcd34d;
+				letter-spacing: 1px;
+			}
+			p {
+				font-size: 14px;
+				margin: 0;
+				opacity: 0.85;
+			}
+			a {
+				color: #f59e0b;
+				text-decoration: underline;
+				font-weight: 600;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Redirecting to {title}…</h1>
+			{blurb && <p>{blurb}</p>}
+			<p>
+				If the redirect does not fire automatically, <a
+					href={safeTarget}>
+					click here
+				</a>.
+			</p>
+		</main>
+		<script
+			type="text/javascript"
+			set:html={`window.location.replace(${JSON.stringify(safeTarget)});`}
+		/>
+	</body>
+</html>
