@@ -36,6 +36,7 @@ class RelayEventChannel(
     private val logger: Logger,
     private val bot: DiscordBot,
     private val channel: ChannelIdentifier,
+    private val execRouter: ExecRouter,
 ) {
 
     fun handle(event: PluginMessageEvent) {
@@ -67,6 +68,15 @@ class RelayEventChannel(
                 val title = data.optString("title") ?: "?"
                 bot.postSystemEmbed("🏆 $name earned [$title]", DiscordBot.COLOR_ADVANCEMENT, uuid)
             }
+            "exec_result" -> {
+                val correlation = uuid ?: run {
+                    logger.warn("exec_result missing uuid")
+                    return
+                }
+                val ok = data.optBoolean("ok") ?: false
+                val output = data.optString("output").orEmpty()
+                execRouter.completeExec(correlation, ok, output)
+            }
             "join", "leave", "chat" -> {
                 // Reserved for future backend-side variants. Proxy already handles
                 // join/leave embeds via ServerConnectedEvent + DisconnectEvent and
@@ -97,4 +107,8 @@ class RelayEventChannel(
 
     private fun JsonObject.optString(key: String): String? =
         if (has(key) && !get(key).isJsonNull && get(key).isJsonPrimitive) get(key).asString else null
+
+    private fun JsonObject.optBoolean(key: String): Boolean? =
+        if (has(key) && !get(key).isJsonNull && get(key).isJsonPrimitive && get(key).asJsonPrimitive.isBoolean)
+            get(key).asBoolean else null
 }

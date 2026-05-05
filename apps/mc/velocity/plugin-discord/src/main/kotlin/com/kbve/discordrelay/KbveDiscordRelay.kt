@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Plugin(
     id = "kbve-discord-relay",
     name = "KBVE Discord Relay",
-    version = "1.1.0",
+    version = "1.2.0",
     description = "Discord chat relay with prefix routing, reply context, role-gated console commands, and backend event channel.",
     authors = ["kbve"],
 )
@@ -52,6 +52,8 @@ class KbveDiscordRelay @Inject constructor(
 
     private var bot: DiscordBot? = null
     private var relayChannel: RelayEventChannel? = null
+    private var execRouter: ExecRouter? = null
+    private var statusMonitor: BackendStatusMonitor? = null
 
     /**
      * Last server each player was connected to, keyed by UUID. Used by the
@@ -89,8 +91,17 @@ class KbveDiscordRelay @Inject constructor(
             DEFAULT_AUTHORIZED_ROLES
         }
 
-        logger.info("KBVE Discord Relay v1.1.0 initializing")
+        logger.info("KBVE Discord Relay v1.2.0 initializing")
         val dispatcher = ChatDispatcher(server)
+
+        // Register the kbve:relay-events plugin-messaging channel first so the
+        // ExecRouter can use the same identifier when sending outbound exec
+        // payloads.
+        val channel = MinecraftChannelIdentifier.create(RELAY_CHANNEL_NAMESPACE, RELAY_CHANNEL_NAME)
+        server.channelRegistrar.register(channel)
+        val router = ExecRouter(server, logger, channel)
+        execRouter = router
+
         val instance = DiscordBot(
             server = server,
             logger = logger,
@@ -99,21 +110,29 @@ class KbveDiscordRelay @Inject constructor(
             channelId = channelId,
             authorizedRoles = roles,
             serverAliases = serverAliases,
+            execRouter = router,
         )
         instance.start()
         bot = instance
 
-        // Register the kbve:relay-events plugin-messaging channel so backend
-        // plugins (kbve-mc-uplink) can forward gameplay events upstream.
-        val channel = MinecraftChannelIdentifier.create(RELAY_CHANNEL_NAMESPACE, RELAY_CHANNEL_NAME)
-        server.channelRegistrar.register(channel)
-        relayChannel = RelayEventChannel(logger, instance, channel)
+        relayChannel = RelayEventChannel(logger, instance, channel, router)
         logger.info("KBVE Discord Relay registered channel {}:{}", RELAY_CHANNEL_NAMESPACE, RELAY_CHANNEL_NAME)
+
+        // Backend lifecycle tracking — pings each backend periodically and
+        // posts an embed on up/down transitions.
+        val monitor = BackendStatusMonitor(server, logger, instance)
+        monitor.start()
+        statusMonitor = monitor
     }
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
+        // Fire the lifecycle embed BEFORE tearing down JDA so the HTTP POST
+        // has a working webhook to call.
+        bot?.announceShutdown()
         bot?.shutdown()
+        execRouter?.shutdown()
+        statusMonitor?.shutdown()
     }
 
     /**

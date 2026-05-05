@@ -10,9 +10,10 @@ namespace RareIcon
         public ulong LocalSteamId;
         public ulong HostSteamId;
         public byte InMultiplayer; // 1 when in a Steam lobby, 0 otherwise
+        public byte MatchStarted;  // 1 once host flips lobby data started=1
     }
 
-    /// <summary>Static fast-path so any system can check authority without doing a SystemAPI singleton fetch on the hot loop. Mirrored from the singleton by <see cref="MultiplayerSessionBridge"/> every frame the session changes. Defaults to <c>true</c> so existing single-player flow stays unaffected before MP infra spins up.</summary>
+    /// <summary>Static fast-path so any system can check authority without doing a SystemAPI singleton fetch on the hot loop. Mirrored from the singleton by <see cref="MultiplayerSessionBridge"/> every frame the session changes. Defaults to <c>true</c> so existing single-player flow stays unaffected before MP infra spins up. Cross-world readable — NetCode Server / Client worlds query this without a singleton replication.</summary>
     public static class MultiplayerAuthority
     {
         /// <summary>True when this peer should run authoritative simulation (single-player solo, OR multiplayer host). Clients flip this to false on lobby join + back to true on leave.</summary>
@@ -21,7 +22,19 @@ namespace RareIcon
         /// <summary>True only when the peer is connected to a Steam lobby.</summary>
         public static bool InMultiplayer = false;
 
+        /// <summary>True only when the lobby host has flipped <see cref="LobbyDataKeys.Started"/> to 1 — green-light for connect/listen request entities to spawn.</summary>
+        public static bool MatchStarted = false;
+
         /// <summary>Active match mode, if any. Defaults to SinglePlayer.</summary>
         public static GameMode Mode = GameMode.SinglePlayer;
+
+        /// <summary>Local peer's SteamID (server uses this for its listen endpoint; clients use it as the source identifier).</summary>
+        public static ulong LocalSteamId = 0;
+
+        /// <summary>Lobby owner's SteamID — clients dial this via <see cref="Steamworks"/> identity to open a NetCode session.</summary>
+        public static ulong HostSteamId = 0;
+
+        /// <summary>Bumped by <see cref="MultiplayerSessionBridge"/> every time the match transitions in/out of started so connect/listen systems can re-fire on a fresh run without hand-tracking flags.</summary>
+        public static int Generation = 0;
     }
 }

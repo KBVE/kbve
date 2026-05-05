@@ -31,6 +31,7 @@ namespace RareIcon
             byte mode          = (byte)GameMode.SinglePlayer;
             byte isAuthority   = 1;
             byte inMultiplayer = 0;
+            byte matchStarted  = 0;
             ulong local        = 0;
             ulong host         = 0;
 
@@ -44,26 +45,36 @@ namespace RareIcon
                 host          = lobby.OwnerSteamId;
                 try { local = SteamUser.GetSteamID().m_SteamID; } catch { local = 0; }
                 isAuthority   = (byte)(coord.IsHost.CurrentValue ? 1 : 0);
+                matchStarted  = (byte)(lobby.GetData(LobbyDataKeys.Started) == "1" ? 1 : 0);
             }
 #endif
 
             var s = EntityManager.GetComponentData<MultiplayerSession>(_singleton);
             if (s.Mode != mode || s.IsAuthority != isAuthority ||
-                s.InMultiplayer != inMultiplayer || s.LocalSteamId != local || s.HostSteamId != host)
+                s.InMultiplayer != inMultiplayer || s.LocalSteamId != local ||
+                s.HostSteamId != host || s.MatchStarted != matchStarted)
             {
                 s.Mode          = mode;
                 s.IsAuthority   = isAuthority;
                 s.InMultiplayer = inMultiplayer;
                 s.LocalSteamId  = local;
                 s.HostSteamId   = host;
+                s.MatchStarted  = matchStarted;
                 EntityManager.SetComponentData(_singleton, s);
             }
 
             // Static fast-path so spawner OnUpdate guards stay branch-free
-            // and don't pay the singleton-lookup cost.
+            // and don't pay the singleton-lookup cost. Cross-world readable
+            // (NetCode Server / Client worlds query this without singleton replication).
+            bool prevStarted = MultiplayerAuthority.MatchStarted;
             MultiplayerAuthority.IsAuthority   = isAuthority == 1;
             MultiplayerAuthority.InMultiplayer = inMultiplayer == 1;
+            MultiplayerAuthority.MatchStarted  = matchStarted == 1;
             MultiplayerAuthority.Mode          = (GameMode)mode;
+            MultiplayerAuthority.LocalSteamId  = local;
+            MultiplayerAuthority.HostSteamId   = host;
+            if (prevStarted != MultiplayerAuthority.MatchStarted)
+                MultiplayerAuthority.Generation++;
         }
     }
 

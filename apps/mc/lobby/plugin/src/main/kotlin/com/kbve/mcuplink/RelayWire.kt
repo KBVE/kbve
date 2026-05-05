@@ -47,6 +47,21 @@ object RelayWire {
                 .build()
         )
 
+    /**
+     * Reply to an `exec` command sent by the proxy. [correlation] echoes the
+     * UUID from the inbound exec payload so the proxy can match this back to
+     * the originating Discord message.
+     */
+    fun execResultPayload(correlation: String, ok: Boolean, output: String): ByteArray =
+        frame(
+            JsonWriter.obj()
+                .field("type", "exec_result")
+                .field("uuid", correlation)
+                .field("server", SERVER_NAME)
+                .field("data", JsonWriter.obj().fieldRaw("ok", ok.toString()).field("output", output))
+                .build()
+        )
+
     private fun frame(json: String): ByteArray {
         val baos = ByteArrayOutputStream()
         DataOutputStream(baos).use { it.writeUTF(json) }
@@ -65,6 +80,12 @@ internal class JsonWriter private constructor() {
 
     fun field(name: String, value: JsonWriter): JsonWriter {
         parts += "\"${escape(name)}\":${value.build()}"
+        return this
+    }
+
+    /** Emit an unquoted JSON value (numbers, booleans, null). Caller ensures validity. */
+    fun fieldRaw(name: String, value: String): JsonWriter {
+        parts += "\"${escape(name)}\":$value"
         return this
     }
 
