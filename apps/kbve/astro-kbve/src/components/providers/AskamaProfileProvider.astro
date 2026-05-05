@@ -1,6 +1,5 @@
 ---
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
-import AstroFooter from '@/components/footer/AstroFooter.astro';
 // AskamaProfileProvider - Mirrors the Askama profile.html template
 // This component renders the user profile page that Axum serves for /@username routes
 // Askama variables: {{ username }}, {{ username_first_char }}, {{ unsplash_banner_id }}, {{ bio }}, {{ status }}, {{ primary_avatar_url }}, {{ discord_username }}, {{ discord_avatar }}, {{ discord_is_guild_member }}, {{ discord_id }}, {{ discord_guild_nickname }}, {{ discord_joined_at }}, {{ discord_is_boosting }}, {{ discord_role_count }}, {{ discord_role_names }}, {{ github_username }}, {{ github_avatar }}, {{ twitch_username }}, {{ twitch_avatar }}, {{ twitch_is_live }}, {{ rentearth_characters }}, {{ rentearth_total_playtime_hours }}, {{ rentearth_last_activity }}
@@ -837,11 +836,6 @@ const forumProfileSection = `{% if forum_present %}
 		<div class="adsense-container">
 			<Adsense />
 		</div>
-
-		<!-- Site footer — Starlight's splash template doesn't render
-			 the global footer slot, so we mount it manually here so
-			 /@username pages keep parity with /forum/, /, etc. -->
-		<AstroFooter />
 	</div>
 </div>
 

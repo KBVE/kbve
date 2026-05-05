@@ -102,6 +102,7 @@ sidebar:
 ---
 
 import AskamaProfileProvider from '@/components/providers/AskamaProfileProvider.astro';
+import AstroFooter from '@/components/footer/AstroFooter.astro';
 
 {/* JSON-LD Structured Data for Person/Profile */}
 <script type="application/ld+json" set:html={`{
@@ -121,3 +122,5 @@ import AskamaProfileProvider from '@/components/providers/AskamaProfileProvider.
 }`} />
 
 <AskamaProfileProvider />
+
+<AstroFooter />
