@@ -4,13 +4,14 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Phase 1 multiplayer lobby waiting room. Visible during <see cref="AppInterfaceState.Lobby"/>; shows lobby id (host can copy + share via Steam invite), peer count, mode, and a Start Match button gated to the host. No avatars / per-member rows yet — keeps Phase 1 tight on plumbing; Phase 2 layers richer presence on top.</summary>
+    /// <summary>Phase 1 multiplayer lobby waiting room. Visible during <see cref="AppInterfaceState.Lobby"/>; shows lobby id, peer roster (Steam display names + host marker), mode picker (host-only), invite-overlay button, Start, Leave. Mode + Start fan out via <see cref="MultiplayerCoordinator"/> which writes to Steam lobby data; clients see updates through <see cref="SteamLobbyDataChangedMessage"/> + <see cref="SteamLobbyMemberChangedMessage"/>.</summary>
     public sealed class UILobbyRoom : IAsyncStartable, IDisposable
     {
         readonly AppStateController _appState;
@@ -19,11 +20,13 @@ namespace RareIcon
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
-        Label _title;
         Label _modeLabel;
         Label _seedLabel;
-        Label _membersLabel;
         Label _lobbyIdLabel;
+        VisualElement _memberList;
+        Button _modePvEBtn;
+        Button _modePvPBtn;
+        Button _inviteBtn;
         Button _startBtn;
         Button _leaveBtn;
 
@@ -54,9 +57,9 @@ namespace RareIcon
                 .Subscribe(state => SetVisible(state == AppInterfaceState.Lobby))
                 .AddTo(_disposables);
 
-            _mp.Mode.Subscribe(m => _modeLabel.text = $"Mode: {m}").AddTo(_disposables);
-            _mp.IsHost.Subscribe(h => _startBtn.SetEnabled(h)).AddTo(_disposables);
-            _mp.Members.Subscribe(n => _membersLabel.text = $"Members: {n}").AddTo(_disposables);
+            _mp.Mode.Subscribe(_ => RefreshModeUI()).AddTo(_disposables);
+            _mp.IsHost.Subscribe(_ => RefreshHostUI()).AddTo(_disposables);
+            _mp.Members.Subscribe(_ => RefreshMemberList()).AddTo(_disposables);
         }
 
         void BuildPanel(VisualElement uiRoot)
@@ -73,35 +76,58 @@ namespace RareIcon
             _root.style.display = DisplayStyle.None;
 
             var card = new VisualElement().ApplyPanelChrome(padV: 24, padH: 32);
-            card.style.minWidth = 380;
+            card.style.minWidth = 420;
             card.style.alignItems = Align.Stretch;
 
-            _title = UIStyles.MakeHeading("Lobby", fontSize: 22);
-            _title.style.unityTextAlign = UnityEngine.TextAnchor.MiddleCenter;
-            _title.style.marginBottom = 12;
+            var title = UIStyles.MakeHeading("Lobby", fontSize: 22);
+            title.style.unityTextAlign = TextAnchor.MiddleCenter;
+            title.style.marginBottom = 12;
 
             _modeLabel    = MakeRow("Mode: -");
-            _membersLabel = MakeRow("Members: 0");
             _seedLabel    = MakeRow("Seed: -");
             _lobbyIdLabel = MakeRow("Lobby: -");
 
-            _startBtn = new Button(() => _mp.StartMatch()) { text = "Start Match" };
-            _startBtn.style.marginTop = 16;
-            _startBtn.style.paddingTop = 8;
-            _startBtn.style.paddingBottom = 8;
-            _startBtn.style.color = UIStyles.Palette.GoldBright;
-            _startBtn.style.backgroundColor = UIStyles.Palette.ButtonBg;
+            // Mode picker (host-only, disabled for clients)
+            var modeRow = new VisualElement();
+            modeRow.style.flexDirection = FlexDirection.Row;
+            modeRow.style.justifyContent = Justify.SpaceBetween;
+            modeRow.style.marginTop = 6;
 
-            _leaveBtn = new Button(() => _mp.Leave()) { text = "Leave Lobby" };
+            _modePvEBtn = MakeModeBtn("PvE Co-op",  () => _mp.SetMode(GameMode.PvECoop));
+            _modePvPBtn = MakeModeBtn("PvP",        () => _mp.SetMode(GameMode.PvP));
+            modeRow.Add(_modePvEBtn);
+            modeRow.Add(_modePvPBtn);
+
+            // Member list
+            var membersHeader = MakeRow("Members");
+            membersHeader.style.marginTop = 12;
+            membersHeader.style.color = UIStyles.Palette.GoldBright;
+            membersHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+            _memberList = new VisualElement();
+            _memberList.style.marginTop = 4;
+            _memberList.style.marginBottom = 8;
+            _memberList.style.minHeight = 60;
+
+            // Action buttons
+            _inviteBtn = MakeButton("Invite Friends", () => _mp.OpenInviteOverlay());
+            _inviteBtn.style.marginTop = 12;
+
+            _startBtn = MakeButton("Start Match", () => _mp.StartMatch());
+            _startBtn.style.marginTop = 6;
+
+            _leaveBtn = MakeButton("Leave Lobby", () => _mp.Leave());
             _leaveBtn.style.marginTop = 6;
             _leaveBtn.style.color = UIStyles.Palette.GoldMuted;
-            _leaveBtn.style.backgroundColor = UIStyles.Palette.ButtonBg;
 
-            card.Add(_title);
+            card.Add(title);
             card.Add(_modeLabel);
-            card.Add(_membersLabel);
             card.Add(_seedLabel);
             card.Add(_lobbyIdLabel);
+            card.Add(modeRow);
+            card.Add(membersHeader);
+            card.Add(_memberList);
+            card.Add(_inviteBtn);
             card.Add(_startBtn);
             card.Add(_leaveBtn);
             _root.Add(card);
@@ -117,17 +143,105 @@ namespace RareIcon
             return l;
         }
 
+        static Button MakeButton(string text, Action onClick)
+        {
+            var b = new Button(onClick) { text = text };
+            b.style.paddingTop = 6;
+            b.style.paddingBottom = 6;
+            b.style.color = UIStyles.Palette.GoldBright;
+            b.style.backgroundColor = UIStyles.Palette.ButtonBg;
+            return b;
+        }
+
+        static Button MakeModeBtn(string text, Action onClick)
+        {
+            var b = MakeButton(text, onClick);
+            b.style.flexGrow = 1;
+            b.style.marginLeft = 2;
+            b.style.marginRight = 2;
+            return b;
+        }
+
         void SetVisible(bool visible)
         {
             if (_root == null) return;
             if (visible)
             {
-                _seedLabel.text    = $"Seed: {(_mp.InLobby ? _mp.Mode.CurrentValue.ToString() : "-")}";
+                _seedLabel.text    = $"Seed: {(_mp.InLobby ? Convert.ToString(0) : "-")}";
                 _lobbyIdLabel.text = $"Lobby: {_mp.CurrentLobbyId}";
+                RefreshModeUI();
+                RefreshHostUI();
+                RefreshMemberList();
             }
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             if (visible) _root.BringToFront();
         }
+
+        void RefreshModeUI()
+        {
+            var mode = _mp.Mode.CurrentValue;
+            _modeLabel.text = $"Mode: {DescribeMode(mode)}";
+            HighlightModeBtn(_modePvEBtn, mode == GameMode.PvECoop);
+            HighlightModeBtn(_modePvPBtn, mode == GameMode.PvP);
+        }
+
+        void RefreshHostUI()
+        {
+            bool host = _mp.IsHost.CurrentValue;
+            _modePvEBtn.SetEnabled(host);
+            _modePvPBtn.SetEnabled(host);
+            _startBtn.SetEnabled(host);
+            _inviteBtn.SetEnabled(host);
+        }
+
+        void RefreshMemberList()
+        {
+            if (_memberList == null) return;
+            _memberList.Clear();
+
+            var ids = _mp.MemberIds;
+            ulong owner = _mp.OwnerSteamId;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                ulong id = ids[i];
+                string name = MultiplayerCoordinator.ResolveDisplayName(id);
+                string suffix = id == owner ? "  (host)" : string.Empty;
+
+                var row = new Label($"• {name}{suffix}");
+                row.style.color = UIStyles.Palette.TextPrimary;
+                row.style.fontSize = 12;
+                row.style.marginBottom = 2;
+                _memberList.Add(row);
+            }
+
+            if (ids.Count == 0)
+            {
+                var empty = new Label("waiting for peers…");
+                empty.style.color = UIStyles.Palette.GoldMuted;
+                empty.style.fontSize = 12;
+                _memberList.Add(empty);
+            }
+        }
+
+        static void HighlightModeBtn(Button b, bool active)
+        {
+            b.style.borderTopWidth = 1;
+            b.style.borderBottomWidth = 1;
+            b.style.borderLeftWidth = 1;
+            b.style.borderRightWidth = 1;
+            var c = active ? UIStyles.Palette.Gold : UIStyles.Palette.BorderSubtle;
+            b.style.borderTopColor = c;
+            b.style.borderBottomColor = c;
+            b.style.borderLeftColor = c;
+            b.style.borderRightColor = c;
+        }
+
+        static string DescribeMode(GameMode m) => m switch
+        {
+            GameMode.PvECoop => "PvE Co-op (shared empire)",
+            GameMode.PvP     => "PvP (rival empires)",
+            _                => "Single Player",
+        };
 
         public void Dispose() => _disposables?.Dispose();
     }

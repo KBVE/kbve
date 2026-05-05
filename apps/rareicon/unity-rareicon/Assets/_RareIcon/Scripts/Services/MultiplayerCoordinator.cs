@@ -100,6 +100,45 @@ namespace RareIcon
         /// <summary>Open the active Steam invite overlay so the host can drag friends in.</summary>
         public void Invite(ulong friendSteamId) => _lobby.Invite(friendSteamId);
 
+        /// <summary>Open the Steam overlay's friend-picker so the host can drag any friend in. Convenience wrapper around <see cref="Steamworks.SteamFriends.ActivateGameOverlayInviteDialog"/>.</summary>
+        public void OpenInviteOverlay()
+        {
+            if (!_lobby.InLobby) return;
+            try
+            {
+                Steamworks.SteamFriends.ActivateGameOverlayInviteDialog(new Steamworks.CSteamID(_lobby.CurrentLobbyId));
+            }
+            catch
+            {
+                // Steamworks not initialised yet — silent no-op.
+            }
+        }
+
+        /// <summary>Host-only — change the match mode while waiting in the lobby. Writes the new mode into Steam lobby data so every peer's <see cref="OnData"/> picks it up + reflects in the UI.</summary>
+        public void SetMode(GameMode mode)
+        {
+            if (!_isHost.Value || !_lobby.InLobby) return;
+            _mode.Value = mode;
+            _lobby.SetData(LobbyDataKeys.Mode, ((byte)mode).ToString());
+        }
+
+        /// <summary>Resolve a Steam display name for the supplied id, falling back to a stringified id when Steamworks isn't ready.</summary>
+        public static string ResolveDisplayName(ulong steamId)
+        {
+            try
+            {
+                string name = Steamworks.SteamFriends.GetFriendPersonaName(new Steamworks.CSteamID(steamId));
+                return string.IsNullOrEmpty(name) ? steamId.ToString() : name;
+            }
+            catch
+            {
+                return steamId.ToString();
+            }
+        }
+
+        public ulong OwnerSteamId => _lobby.OwnerSteamId;
+        public System.Collections.Generic.IReadOnlyList<ulong> MemberIds => _lobby.Members;
+
         /// <summary>Leave the current lobby and bounce UI back to the title.</summary>
         public void Leave()
         {
