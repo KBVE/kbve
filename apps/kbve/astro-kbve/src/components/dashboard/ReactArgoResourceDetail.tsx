@@ -9,6 +9,7 @@ import {
 	type ManagedResource,
 	type ResourceSelector,
 } from './argoService';
+import { fetchIndexedLogs, type LogRow } from './clickhouseService';
 import { Loader2, X, AlertCircle } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -70,7 +71,15 @@ function toYaml(value: unknown, indent = 0): string {
 // Tab bar
 // ---------------------------------------------------------------------------
 
-type TabId = 'summary' | 'manifest' | 'events' | 'diff' | 'logs';
+type TabId =
+	| 'summary'
+	| 'manifest'
+	| 'events'
+	| 'diff'
+	| 'logs'
+	| 'indexed'
+	| 'conditions'
+	| 'containers';
 
 function TabBar({
 	tabs,
@@ -727,9 +736,535 @@ function LogsTab({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Main detail panel
-// ---------------------------------------------------------------------------
+function IndexedLogsTab({
+	token,
+	sel,
+	isPod,
+}: {
+	token: string;
+	sel: ResourceSelector;
+	isPod: boolean;
+}) {
+	const [rows, setRows] = useState<LogRow[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [minutes, setMinutes] = useState<number>(60);
+	const [level, setLevel] = useState<string>('');
+	const [search, setSearch] = useState<string>('');
+
+	const load = async () => {
+		try {
+			setLoading(true);
+			setError(null);
+			const data = await fetchIndexedLogs(token, {
+				namespace: sel.namespace || undefined,
+				podName: isPod ? sel.name : undefined,
+				level: level || undefined,
+				search: search || undefined,
+				minutes,
+				limit: 500,
+			});
+			setRows(data);
+		} catch (e: unknown) {
+			setError(e instanceof Error ? e.message : 'Failed to load');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		load();
+	}, [token, sel.appName, sel.namespace, sel.name, isPod, minutes, level]);
+
+	return (
+		<div>
+			<div
+				style={{
+					display: 'flex',
+					gap: 8,
+					marginBottom: 8,
+					alignItems: 'center',
+					flexWrap: 'wrap',
+				}}>
+				<span
+					style={{
+						fontSize: '0.7rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+					}}>
+					{isPod
+						? `pod=${sel.name}`
+						: `namespace=${sel.namespace || '(cluster)'}`}
+				</span>
+				<select
+					value={minutes}
+					onChange={(e) => setMinutes(Number(e.target.value))}
+					style={selectStyle}>
+					{[
+						[15, '15m'],
+						[60, '1h'],
+						[360, '6h'],
+						[1440, '24h'],
+						[10080, '7d'],
+					].map(([m, label]) => (
+						<option key={m} value={m}>
+							{label}
+						</option>
+					))}
+				</select>
+				<select
+					value={level}
+					onChange={(e) => setLevel(e.target.value)}
+					style={selectStyle}>
+					<option value="">All levels</option>
+					<option value="error">error</option>
+					<option value="warn">warn</option>
+					<option value="info">info</option>
+					<option value="debug">debug</option>
+				</select>
+				<input
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') load();
+					}}
+					placeholder="search message..."
+					style={{
+						...selectStyle,
+						minWidth: 180,
+						flex: '1 1 200px',
+					}}
+				/>
+				<button
+					onClick={load}
+					disabled={loading}
+					style={{
+						background: 'rgba(139, 92, 246, 0.12)',
+						color: '#c4b5fd',
+						border: '1px solid rgba(139, 92, 246, 0.3)',
+						borderRadius: 6,
+						padding: '4px 10px',
+						fontSize: '0.75rem',
+						cursor: loading ? 'wait' : 'pointer',
+					}}>
+					{loading ? 'Loading...' : 'Refresh'}
+				</button>
+			</div>
+			{error && (
+				<div
+					style={{
+						padding: '0.5rem 0.75rem',
+						color: '#ef4444',
+						fontSize: '0.8rem',
+						marginBottom: 8,
+					}}>
+					{error}
+				</div>
+			)}
+			{rows.length === 0 && !loading && !error ? (
+				<div
+					style={{
+						padding: '1rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.85rem',
+					}}>
+					No indexed log lines for this filter
+				</div>
+			) : (
+				<div
+					style={{
+						background: 'var(--sl-color-bg-inline-code, #0d1117)',
+						borderRadius: 6,
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						maxHeight: 420,
+						overflow: 'auto',
+						fontFamily: 'var(--sl-font-mono, monospace)',
+						fontSize: '0.72rem',
+						lineHeight: 1.4,
+					}}>
+					{rows.map((r, i) => {
+						const ts = r.timestamp
+							? new Date(r.timestamp).toLocaleTimeString()
+							: '';
+						const lvl = String(r.level ?? '').toLowerCase();
+						const lvlColor =
+							lvl === 'error'
+								? '#ef4444'
+								: lvl === 'warn'
+									? '#fbbf24'
+									: lvl === 'debug'
+										? '#94a3b8'
+										: '#22c55e';
+						return (
+							<div
+								key={i}
+								style={{
+									padding: '4px 8px',
+									borderBottom:
+										i < rows.length - 1
+											? '1px solid rgba(255,255,255,0.03)'
+											: 'none',
+									display: 'grid',
+									gridTemplateColumns: '80px 60px 100px 1fr',
+									gap: 8,
+									alignItems: 'baseline',
+								}}>
+								<span
+									style={{
+										color: 'var(--sl-color-gray-4, #6b7280)',
+									}}>
+									{ts}
+								</span>
+								<span
+									style={{
+										color: lvlColor,
+										fontWeight: 600,
+										textTransform: 'uppercase',
+										fontSize: '0.65rem',
+									}}>
+									{r.level ?? ''}
+								</span>
+								<span
+									style={{
+										color: 'var(--sl-color-gray-4, #6b7280)',
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+										whiteSpace: 'nowrap',
+									}}
+									title={r.pod_name ?? ''}>
+									{r.pod_name ?? ''}
+								</span>
+								<span
+									style={{
+										color: 'var(--sl-color-text, #e6edf3)',
+										whiteSpace: 'pre-wrap',
+										wordBreak: 'break-word',
+									}}>
+									{r.message ?? ''}
+								</span>
+							</div>
+						);
+					})}
+				</div>
+			)}
+		</div>
+	);
+}
+
+const selectStyle: React.CSSProperties = {
+	background: 'var(--sl-color-bg-nav, #111)',
+	color: 'var(--sl-color-text, #e6edf3)',
+	border: '1px solid var(--sl-color-gray-5, #262626)',
+	borderRadius: 6,
+	padding: '4px 8px',
+	fontSize: '0.8rem',
+};
+
+function ContainersTab({
+	containerStatuses,
+	initContainerStatuses,
+}: {
+	containerStatuses: Array<Record<string, unknown>>;
+	initContainerStatuses: Array<Record<string, unknown>>;
+}) {
+	const renderRow = (cs: Record<string, unknown>, isInit: boolean) => {
+		const name = cs.name as string;
+		const ready = cs.ready as boolean | undefined;
+		const started = cs.started as boolean | undefined;
+		const restartCount = cs.restartCount as number | undefined;
+		const image = cs.image as string | undefined;
+		const state = (cs.state as Record<string, unknown>) ?? {};
+		const lastState = (cs.lastState as Record<string, unknown>) ?? {};
+
+		const stateName = Object.keys(state)[0] ?? 'unknown';
+		const stateInfo = state[stateName] as
+			| Record<string, unknown>
+			| undefined;
+		const stateColor =
+			stateName === 'running'
+				? '#22c55e'
+				: stateName === 'waiting'
+					? '#fbbf24'
+					: '#ef4444';
+
+		const lastStateName = Object.keys(lastState)[0];
+		const lastInfo = lastStateName
+			? (lastState[lastStateName] as Record<string, unknown>)
+			: undefined;
+
+		return (
+			<div
+				key={`${isInit ? 'init-' : ''}${name}`}
+				style={{
+					padding: '0.6rem 0.75rem',
+					borderRadius: 6,
+					background: 'var(--sl-color-bg, #0d1117)',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					marginBottom: 6,
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 8,
+						marginBottom: 4,
+						fontSize: '0.85rem',
+					}}>
+					{isInit && (
+						<span
+							style={{
+								fontSize: '0.65rem',
+								padding: '1px 6px',
+								borderRadius: 3,
+								background: 'rgba(148, 163, 184, 0.12)',
+								color: '#94a3b8',
+								fontWeight: 600,
+							}}>
+							INIT
+						</span>
+					)}
+					<span
+						style={{
+							fontWeight: 600,
+							color: 'var(--sl-color-text, #e6edf3)',
+						}}>
+						{name}
+					</span>
+					<span
+						style={{
+							fontSize: '0.7rem',
+							padding: '1px 8px',
+							borderRadius: 3,
+							color: stateColor,
+							background: `${stateColor}18`,
+							border: `1px solid ${stateColor}30`,
+							fontWeight: 600,
+							textTransform: 'uppercase',
+						}}>
+						{stateName}
+					</span>
+					{ready !== undefined && (
+						<span
+							style={{
+								fontSize: '0.7rem',
+								color: ready ? '#22c55e' : '#ef4444',
+							}}>
+							ready: {ready ? 'true' : 'false'}
+						</span>
+					)}
+					{started !== undefined && (
+						<span
+							style={{
+								fontSize: '0.7rem',
+								color: started ? '#22c55e' : '#fbbf24',
+							}}>
+							started: {started ? 'true' : 'false'}
+						</span>
+					)}
+					{restartCount !== undefined && restartCount > 0 && (
+						<span
+							style={{
+								marginLeft: 'auto',
+								fontSize: '0.7rem',
+								color: restartCount > 5 ? '#ef4444' : '#fbbf24',
+								fontWeight: 600,
+							}}>
+							restarts: {restartCount}
+						</span>
+					)}
+				</div>
+				{image && (
+					<div
+						style={{
+							fontSize: '0.7rem',
+							color: 'var(--sl-color-gray-4, #6b7280)',
+							fontFamily: 'var(--sl-font-mono, monospace)',
+							marginBottom: 4,
+							wordBreak: 'break-all',
+						}}>
+						{image}
+					</div>
+				)}
+				{stateInfo && Object.keys(stateInfo).length > 0 && (
+					<div
+						style={{
+							fontSize: '0.72rem',
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							marginTop: 4,
+						}}>
+						{stateInfo.reason ? (
+							<>
+								<span
+									style={{
+										color: stateColor,
+										fontWeight: 600,
+									}}>
+									{String(stateInfo.reason)}
+								</span>
+								{stateInfo.message
+									? `: ${String(stateInfo.message)}`
+									: ''}
+							</>
+						) : stateInfo.startedAt ? (
+							<>started {String(stateInfo.startedAt)}</>
+						) : null}
+					</div>
+				)}
+				{lastInfo && lastInfo.reason && (
+					<div
+						style={{
+							marginTop: 4,
+							fontSize: '0.7rem',
+							color: '#fca5a5',
+						}}>
+						last {lastStateName}: {String(lastInfo.reason)}
+						{lastInfo.exitCode !== undefined
+							? ` (exit ${String(lastInfo.exitCode)})`
+							: ''}
+						{lastInfo.message
+							? ` — ${String(lastInfo.message)}`
+							: ''}
+					</div>
+				)}
+			</div>
+		);
+	};
+
+	return (
+		<div>
+			{initContainerStatuses.length > 0 && (
+				<div style={{ marginBottom: 8 }}>
+					<div
+						style={{
+							fontSize: '0.7rem',
+							fontWeight: 600,
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							marginBottom: 4,
+							textTransform: 'uppercase',
+							letterSpacing: '0.05em',
+						}}>
+						Init Containers
+					</div>
+					{initContainerStatuses.map((c) => renderRow(c, true))}
+				</div>
+			)}
+			<div
+				style={{
+					fontSize: '0.7rem',
+					fontWeight: 600,
+					color: 'var(--sl-color-gray-3, #8b949e)',
+					marginBottom: 4,
+					textTransform: 'uppercase',
+					letterSpacing: '0.05em',
+				}}>
+				Containers
+			</div>
+			{containerStatuses.map((c) => renderRow(c, false))}
+		</div>
+	);
+}
+
+function ConditionsTab({
+	conditions,
+}: {
+	conditions: Array<Record<string, unknown>>;
+}) {
+	if (conditions.length === 0) {
+		return (
+			<div
+				style={{
+					padding: '1rem',
+					color: 'var(--sl-color-gray-3, #8b949e)',
+					fontSize: '0.85rem',
+				}}>
+				No conditions reported
+			</div>
+		);
+	}
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+			{conditions.map((c, i) => {
+				const type = c.type as string;
+				const statusVal = c.status as string;
+				const reason = c.reason as string | undefined;
+				const message = c.message as string | undefined;
+				const ts = (c.lastTransitionTime ?? c.lastProbeTime) as
+					| string
+					| undefined;
+				const isTrue = statusVal === 'True';
+				const isFalse = statusVal === 'False';
+				const color = isTrue
+					? '#22c55e'
+					: isFalse
+						? '#ef4444'
+						: '#fbbf24';
+				return (
+					<div
+						key={`${type}-${i}`}
+						style={{
+							padding: '0.5rem 0.75rem',
+							borderRadius: 6,
+							background: 'var(--sl-color-bg, #0d1117)',
+							border: '1px solid var(--sl-color-gray-5, #262626)',
+						}}>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: 8,
+								marginBottom: 2,
+								fontSize: '0.8rem',
+							}}>
+							<span
+								style={{
+									fontWeight: 600,
+									color: 'var(--sl-color-text, #e6edf3)',
+								}}>
+								{type}
+							</span>
+							<span
+								style={{
+									fontSize: '0.7rem',
+									padding: '1px 8px',
+									borderRadius: 3,
+									color,
+									background: `${color}18`,
+									border: `1px solid ${color}30`,
+									fontWeight: 600,
+								}}>
+								{statusVal}
+							</span>
+							{ts && (
+								<span
+									style={{
+										marginLeft: 'auto',
+										color: 'var(--sl-color-gray-4, #6b7280)',
+										fontSize: '0.7rem',
+									}}>
+									{new Date(ts).toLocaleString()}
+								</span>
+							)}
+						</div>
+						{(reason || message) && (
+							<div
+								style={{
+									fontSize: '0.75rem',
+									color: 'var(--sl-color-gray-3, #8b949e)',
+								}}>
+								{reason && (
+									<span style={{ fontWeight: 600 }}>
+										{reason}
+									</span>
+								)}
+								{reason && message ? ': ' : ''}
+								{message ?? ''}
+							</div>
+						)}
+					</div>
+				);
+			})}
+		</div>
+	);
+}
 
 export default function ReactArgoResourceDetail({
 	token,
@@ -758,13 +1293,30 @@ export default function ReactArgoResourceDetail({
 	const [managedError, setManagedError] = useState<string | null>(null);
 
 	const isPod = sel.kind === 'Pod';
+	const status = (manifest?.status as Record<string, unknown>) ?? {};
+	const conditions = Array.isArray(status.conditions)
+		? (status.conditions as Array<Record<string, unknown>>)
+		: [];
+	const containerStatuses = Array.isArray(status.containerStatuses)
+		? (status.containerStatuses as Array<Record<string, unknown>>)
+		: [];
+	const initContainerStatuses = Array.isArray(status.initContainerStatuses)
+		? (status.initContainerStatuses as Array<Record<string, unknown>>)
+		: [];
 
 	const tabs: { id: TabId; label: string }[] = [
 		{ id: 'summary', label: 'Summary' },
 		{ id: 'manifest', label: 'Manifest' },
+		...(isPod && (containerStatuses.length || initContainerStatuses.length)
+			? [{ id: 'containers' as TabId, label: 'Containers' }]
+			: []),
+		...(conditions.length
+			? [{ id: 'conditions' as TabId, label: 'Conditions' }]
+			: []),
 		{ id: 'events', label: 'Events' },
 		{ id: 'diff', label: 'Diff' },
 		...(isPod ? [{ id: 'logs' as TabId, label: 'Logs' }] : []),
+		{ id: 'indexed', label: 'Indexed Logs' },
 	];
 
 	useEffect(() => {
@@ -977,6 +1529,19 @@ export default function ReactArgoResourceDetail({
 			{tab === 'logs' && (
 				<LogsTab token={token} sel={sel} manifest={manifest} />
 			)}
+
+			{tab === 'indexed' && (
+				<IndexedLogsTab token={token} sel={sel} isPod={isPod} />
+			)}
+
+			{tab === 'containers' && (
+				<ContainersTab
+					containerStatuses={containerStatuses}
+					initContainerStatuses={initContainerStatuses}
+				/>
+			)}
+
+			{tab === 'conditions' && <ConditionsTab conditions={conditions} />}
 		</div>
 	);
 }
