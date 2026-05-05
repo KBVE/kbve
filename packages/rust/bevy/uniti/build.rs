@@ -1,6 +1,17 @@
+use std::path::Path;
+
 fn main() {
-    // Vendor protoc so cross-compile sandboxes (cross, ndk, xwin) don't
-    // need protobuf-compiler preinstalled.
+    let proto_root = Path::new("../../../data/proto");
+    let unity_target =
+        Path::new("../../../../apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/Native");
+
+    if !proto_root.exists() {
+        println!(
+            "cargo:warning=uniti: out-of-tree proto sources not found; using pre-committed src/proto/*.rs"
+        );
+        return;
+    }
+
     let protoc_path = protoc_bin_vendored::protoc_bin_path()
         .expect("protoc-bin-vendored could not locate a protoc binary for this host");
     unsafe {
@@ -17,6 +28,13 @@ fn main() {
             &["../../../data/proto"],
         )
         .expect("prost-build empire.proto failed");
+
+    if !unity_target.exists() {
+        println!(
+            "cargo:warning=uniti: Unity target dir not present; skipping csbindgen Uniti.g.cs emission"
+        );
+        return;
+    }
 
     csbindgen::Builder::default()
         .input_extern_file("src/lib.rs")
