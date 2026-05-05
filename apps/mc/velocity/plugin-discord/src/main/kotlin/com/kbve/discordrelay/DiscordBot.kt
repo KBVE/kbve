@@ -93,7 +93,7 @@ class DiscordBot(
         val payload = JsonWriter.obj()
             .field("username", displayName)
             .field("content", message)
-            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()).build())
+            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
             .build()
 
         val req = HttpRequest.newBuilder(URI.create(url))
