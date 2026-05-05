@@ -1,34 +1,36 @@
 # Custom Velocity proxy image for the KBVE MC stack.
 #
-# This is itzg/bungeecord (TYPE=VELOCITY runtime) with a pre-baked
-# Kotlin plugin JAR that provides:
-#   - Teleport command aliases: /lobby /hub /mc /survival
-#   - Cross-server chat bridge with /chat local|global per-player mode
-#   - Last-server persistence (reconnect lands on previous backend)
+# This is itzg/bungeecord (TYPE=VELOCITY runtime) with two pre-baked
+# Kotlin plugins:
+#   - kbve-velocity-commands: teleport aliases, cross-server chat bridge,
+#     last-server persistence. Source: apps/mc/velocity/plugin/.
+#   - kbve-discord-relay: Discord <-> MC chat relay with prefix routing,
+#     reply context, and role-gated console commands.
+#     Source: apps/mc/velocity/plugin-discord/.
 #
-# The plugin source lives at apps/mc/velocity/plugin/ and is built
-# with Gradle shadowJar in stage 1. Stage 2 drops the resulting JAR
-# into /plugins/ where itzg/bungeecord scans for plugins at startup.
+# Each plugin builds in its own Gradle stage and the resulting JARs are
+# copied into /plugins/, where itzg/bungeecord auto-loads them at boot.
 #
 # All other Velocity runtime wiring (PLUGINS env var for LuckPerms
-# download, LUCKPERMS_MESSAGING_SERVICE=pluginmsg, etc) still happens
-# at container start time via env vars — this image just pre-bakes
-# the one plugin we own the source for.
+# download, LUCKPERMS_MESSAGING_SERVICE=pluginmsg, DISCORD_BOT_TOKEN,
+# etc) still happens at container start time via env vars.
 
-# ── Stage 1 — Build the Kotlin plugin with Gradle ─────────────────────
-FROM gradle:jdk21 AS plugin-builder
+# ── Stage 1 — Build kbve-velocity-commands ────────────────────────────
+FROM gradle:jdk21 AS plugin-commands-builder
 WORKDIR /build
-
 COPY apps/mc/velocity/plugin/ .
-
-# shadowJar produces build/libs/kbve-velocity-commands-<version>.jar
 RUN gradle shadowJar --no-daemon --stacktrace
 
-# ── Stage 2 — Runtime (itzg/bungeecord with TYPE=VELOCITY) ────────────
+# ── Stage 2 — Build kbve-discord-relay ────────────────────────────────
+FROM gradle:jdk21 AS plugin-discord-builder
+WORKDIR /build
+COPY apps/mc/velocity/plugin-discord/ .
+RUN gradle shadowJar --no-daemon --stacktrace
+
+# ── Stage 3 — Runtime (itzg/bungeecord with TYPE=VELOCITY) ────────────
 FROM itzg/bungeecord:latest
 
-# Drop the plugin JAR into the plugins folder. itzg/bungeecord copies
-# everything in /plugins/ to /server/plugins/ on first boot and loads
-# them automatically when Velocity starts.
-COPY --from=plugin-builder /build/build/libs/kbve-velocity-commands-*.jar \
+COPY --from=plugin-commands-builder /build/build/libs/kbve-velocity-commands-*.jar \
     /plugins/kbve-velocity-commands.jar
+COPY --from=plugin-discord-builder /build/build/libs/kbve-discord-relay-*.jar \
+    /plugins/kbve-discord-relay.jar

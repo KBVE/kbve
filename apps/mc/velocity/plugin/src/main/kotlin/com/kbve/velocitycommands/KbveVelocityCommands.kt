@@ -27,22 +27,14 @@ import java.util.concurrent.ConcurrentHashMap
  * KBVE Velocity Commands
  * ======================
  *
- * Small custom Velocity plugin that bundles three features for the
- * KBVE MC stack (lobby + fabric survival):
+ * Custom Velocity plugin for the KBVE MC stack (lobby + fabric survival):
  *
- *  1. Teleport command aliases — /lobby /hub /mc /survival — thin
- *     wrappers around createConnectionRequest().fireAndForget().
+ *  1. Teleport command aliases — /lobby /hub /mc /survival.
+ *  2. Cross-server chat bridge with /chat local|global per-player mode.
+ *  3. Last-server persistence (reconnect lands on previous backend).
  *
- *  2. Cross-server chat bridge — listens to PlayerChatEvent, does NOT
- *     cancel or modify the original (signed chat stays intact), and
- *     broadcasts a parallel Component to players on OTHER servers
- *     prefixed with a server tag. Per-player local/global mode via
- *     /chat command, stored in an in-memory map (session-scoped).
- *
- *  3. Last-server persistence — tracks the last server a player was
- *     connected to via ServerConnectedEvent and restores it on
- *     PlayerChooseInitialServerEvent when they reconnect. Falls back
- *     to Velocity's normal `try` list if the stored server is missing.
+ * Discord relay lives in a separate plugin (kbve-discord-relay) so the
+ * two can be enabled, versioned, and rolled back independently.
  *
  * All storage is in-memory. On Velocity pod restart the chat modes and
  * last-server map reset to defaults — persistence is v2 scope.
@@ -50,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Plugin(
     id = "kbve-velocity-commands",
     name = "KBVE Velocity Commands",
-    version = "1.0.0",
+    version = "1.0.4",
     description = "Teleport aliases, cross-server chat bridge, and last-server persistence.",
     authors = ["kbve"],
 )
@@ -59,10 +51,6 @@ class KbveVelocityCommands @Inject constructor(
     private val logger: Logger,
     @DataDirectory private val dataDirectory: Path,
 ) {
-
-    // ------------------------------------------------------------------
-    // State
-    // ------------------------------------------------------------------
 
     enum class ChatMode { LOCAL, GLOBAL }
 
@@ -83,21 +71,13 @@ class KbveVelocityCommands @Inject constructor(
         "survival" to "mc",
     )
 
-    // ------------------------------------------------------------------
-    // Lifecycle
-    // ------------------------------------------------------------------
-
     @Subscribe
     fun onProxyInit(event: ProxyInitializeEvent) {
-        logger.info("KBVE Velocity Commands v1.0.0 initializing")
+        logger.info("KBVE Velocity Commands v1.0.4 initializing")
         registerTeleportCommands()
         registerChatCommand()
         logger.info("Registered ${teleportAliases.size} teleport aliases + /chat command")
     }
-
-    // ------------------------------------------------------------------
-    // Teleport command aliases — /lobby /hub /mc /survival
-    // ------------------------------------------------------------------
 
     private fun registerTeleportCommands() {
         for ((alias, targetServerName) in teleportAliases) {
@@ -144,10 +124,6 @@ class KbveVelocityCommands @Inject constructor(
             )
         }
     }
-
-    // ------------------------------------------------------------------
-    // /chat local|global command
-    // ------------------------------------------------------------------
 
     private fun registerChatCommand() {
         val node = LiteralArgumentBuilder
@@ -198,10 +174,6 @@ class KbveVelocityCommands @Inject constructor(
     private fun getChatMode(uuid: UUID): ChatMode =
         chatModes.getOrDefault(uuid, ChatMode.GLOBAL)
 
-    // ------------------------------------------------------------------
-    // Cross-server chat bridge
-    // ------------------------------------------------------------------
-
     @Subscribe
     fun onPlayerChat(event: PlayerChatEvent) {
         val sender = event.player
@@ -233,10 +205,6 @@ class KbveVelocityCommands @Inject constructor(
             target.sendMessage(bridged)
         }
     }
-
-    // ------------------------------------------------------------------
-    // Last-server persistence
-    // ------------------------------------------------------------------
 
     @Subscribe
     fun onServerConnected(event: ServerConnectedEvent) {
