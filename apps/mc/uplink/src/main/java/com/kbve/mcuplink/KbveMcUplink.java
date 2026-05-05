@@ -7,7 +7,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandOutput;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +21,12 @@ import org.slf4j.LoggerFactory;
  *
  * Forwards backend gameplay events (death, advancement) to the Velocity-side
  * {@code kbve-discord-relay} plugin over the {@code kbve:relay-events}
- * plugin-messaging channel.
+ * plugin-messaging channel, and runs Discord-issued commands locally
+ * via the same channel ({@code exec} payloads).
  *
  * <p>Backend stays Discord-blind: no JDA, no HTTP, no Discord token.
  * Player events ride on the existing player→proxy connection via Fabric's
  * networking API.
- *
- * <p>Wire format mirrors the Paper edition: a length-prefixed UTF JSON
- * blob ({@code DataOutputStream.writeUTF(...)} convention).
  */
 public final class KbveMcUplink implements ModInitializer {
 
@@ -48,9 +50,11 @@ public final class KbveMcUplink implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Register the payload type for outbound (S2C) so we can ServerPlayNetworking.send.
-        // Velocity's PluginMessageEvent receives the raw bytes regardless.
+        // Register the payload for both directions:
+        //   S2C: outbound death + advancement + exec_result
+        //   C2S: inbound exec from the proxy (Velocity spoofs as a client packet)
         PayloadTypeRegistry.playS2C().register(PAYLOAD_ID, PAYLOAD_CODEC);
+        PayloadTypeRegistry.playC2S().register(PAYLOAD_ID, PAYLOAD_CODEC);
 
         // Death — fires after the player entity is marked dead.
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
@@ -64,7 +68,10 @@ public final class KbveMcUplink implements ModInitializer {
             }
         });
 
-        // Advancement — driven by the mixin on PlayerAdvancementTracker#grantCriterion.
+        // Inbound exec — Discord-issued backend command from the proxy.
+        ServerPlayNetworking.registerGlobalReceiver(PAYLOAD_ID, (payload, context) -> {
+            handleExec(context.server(), context.player(), payload.bytes());
+        });
 
         LOGGER.info("[{}] kbve-mc-uplink initialized (channel={})", MOD_ID, CHANNEL_ID);
     }
@@ -76,6 +83,38 @@ public final class KbveMcUplink implements ModInitializer {
                 player.getNameForScoreboard(),
                 title,
                 key));
+    }
+
+    private static void handleExec(MinecraftServer server, ServerPlayerEntity player, byte[] data) {
+        RelayWire.ExecRequest req;
+        try {
+            req = RelayWire.parseExec(data);
+        } catch (Throwable t) {
+            LOGGER.warn("[{}] failed to parse exec payload: {}", MOD_ID, t.getMessage());
+            return;
+        }
+        if (req == null) return; // not an exec payload
+
+        // Run on the main thread — command execution touches world state.
+        server.execute(() -> {
+            CapturingOutput out = new CapturingOutput();
+            ServerCommandSource source = server.getCommandSource()
+                    .withOutput(out, 4, true)
+                    .withSilent();
+            int result;
+            boolean ok;
+            try {
+                result = server.getCommandManager().executeWithPrefix(source, req.command());
+                // executeWithPrefix returns the raw command result code (0 = fail).
+                ok = result > 0 || !out.captured().isEmpty();
+            } catch (Throwable t) {
+                LOGGER.warn("[{}] dispatch threw for '{}': {}", MOD_ID, req.command(), t.getMessage());
+                out.appendLine("Error: " + (t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+                ok = false;
+            }
+            byte[] reply = RelayWire.execResultPayload(req.correlation(), ok, out.captured());
+            send(player, reply);
+        });
     }
 
     private static void send(ServerPlayerEntity player, byte[] data) {
@@ -92,5 +131,27 @@ public final class KbveMcUplink implements ModInitializer {
         public Id<? extends CustomPayload> getId() {
             return PAYLOAD_ID;
         }
+    }
+
+    /** CommandOutput that captures every sendMessage call as plain text. */
+    private static final class CapturingOutput implements CommandOutput {
+        private final StringBuilder buffer = new StringBuilder();
+
+        String captured() {
+            return buffer.toString().strip();
+        }
+
+        void appendLine(String line) {
+            buffer.append(line).append('\n');
+        }
+
+        @Override
+        public void sendMessage(Text message) {
+            appendLine(message.getString());
+        }
+
+        @Override public boolean shouldReceiveFeedback() { return true; }
+        @Override public boolean shouldTrackOutput() { return true; }
+        @Override public boolean shouldBroadcastConsoleToOps() { return false; }
     }
 }
