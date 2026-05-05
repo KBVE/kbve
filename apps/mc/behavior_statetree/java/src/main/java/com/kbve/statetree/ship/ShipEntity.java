@@ -42,6 +42,7 @@ public class ShipEntity extends Entity {
     private String ownerUuidStr = "";
     private float heading = 0.0f;
     private float targetSpeed = 0.0f;
+    private float verticalIntent = 0.0f;
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
@@ -80,14 +81,14 @@ public class ShipEntity extends Entity {
     public float getHeading() { return heading; }
     public void setHeading(float heading) {
         this.heading = heading % 360;
-        // Mirror to vanilla yaw so entity tracking syncs rotation to clients.
         this.setYaw(this.heading);
     }
 
     public float getTargetSpeed() { return targetSpeed; }
     public void setTargetSpeed(float speed) { this.targetSpeed = Math.max(0, speed); }
 
-    // -- Damage (abstract in 1.21.11) -----------------------------------------
+    public float getVerticalIntent() { return verticalIntent; }
+    public void setVerticalIntent(float v) { this.verticalIntent = Math.max(-1f, Math.min(1f, v)); }
 
     @Override
     public boolean damage(net.minecraft.server.world.ServerWorld world,
@@ -95,13 +96,6 @@ public class ShipEntity extends Entity {
                           float amount) {
         return false;
     }
-
-    // -- Collision ----------------------------------------------------------
-    //
-    // Ships are solid — other entities collide with the hitbox and players
-    // can stand on the deck. The entity dimensions (set in ShipEntityTypes)
-    // define the AABB; BBModel visuals may extend beyond it, but the
-    // collision box is the simplified solid footprint.
 
     @Override
     public boolean isCollidable(Entity other) {
@@ -112,8 +106,6 @@ public class ShipEntity extends Entity {
     public boolean canHit() {
         return true;
     }
-
-    // -- Interaction --------------------------------------------------------
 
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
@@ -131,17 +123,12 @@ public class ShipEntity extends Entity {
         return !this.hasPassengers() && passenger instanceof PlayerEntity;
     }
 
-    // -- Movement -----------------------------------------------------------
-
     @Override
     public void tick() {
         super.tick();
 
-        // Keep vanilla yaw in sync with our heading (important for clients
-        // that only see the entity via standard tracking — they use getYaw()).
         this.setYaw(heading);
 
-        if (targetSpeed <= 0.0f) return;
         if (!this.hasPassengers()) return;
         Entity rider = this.getFirstPassenger();
         if (!(rider instanceof ServerPlayerEntity)) return;
@@ -149,8 +136,19 @@ public class ShipEntity extends Entity {
         double rad = Math.toRadians(heading);
         double dx = -Math.sin(rad) * targetSpeed * 0.05;
         double dz = Math.cos(rad) * targetSpeed * 0.05;
+        double dy = verticalIntent * 0.15;
 
-        this.move(MovementType.SELF, new Vec3d(dx, 0, dz));
+        if (dx == 0 && dy == 0 && dz == 0) return;
+
+        this.move(MovementType.SELF, new Vec3d(dx, dy, dz));
+
+        if (targetSpeed > 0.5f && this.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+            if (this.age % 4 == 0) {
+                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                        this.getX(), this.getY() + 1.0, this.getZ(),
+                        1, 0.1, 0.05, 0.1, 0.01);
+            }
+        }
     }
 
     public void steerFromRider(PlayerEntity rider) {
@@ -167,8 +165,6 @@ public class ShipEntity extends Entity {
             heading += sideways > 0 ? -2.0f : 2.0f;
         }
     }
-
-    // -- Serialization (1.21.11 WriteView / ReadView API) -------------------
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {

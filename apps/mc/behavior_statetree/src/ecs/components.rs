@@ -120,6 +120,9 @@ impl Default for ArrowCooldown {
 #[derive(Component, Debug)]
 pub struct AiPetDog;
 
+#[derive(Component, Debug, Clone, Copy)]
+pub struct LastObservedTick(pub u64);
+
 /// Marker for AI Pet Parrot entities. A pet parrot is a tamed parrot
 /// spawned alongside a player that flies nearby and drops a ranged
 /// "poop" poison attack on hostiles. Like pet dogs, parrots skip the
