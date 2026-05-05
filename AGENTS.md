@@ -138,15 +138,41 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
 ---
 
-# pipeline:docker apps — version bumps
+# MDX is the version source — never hand-edit downstream files
 
-For any project with `pipeline: docker` in its `*.mdx` frontmatter (mc-velocity, mc-lobby, mc, etc.):
+Every project with a `pipeline:` field in its `apps/kbve/astro-kbve/src/content/docs/project/*.mdx` frontmatter follows the same contract:
 
-- ✅ Bump only the mdx frontmatter `version: "x.y.z"` to ship a new image.
-- ❌ Never edit `apps/<app>/version.toml` — CI's post-publish PR owns it.
-- ❌ Never edit `apps/kube/.../<app>-deployment.yaml` `image:` tag — same.
+- `pipeline: docker` — `mc`, `mc-lobby`, `mc-velocity`, `kilobase`, `api`, `arc-runner`, `chuckrpg`, `discordsh`, `edge`, `herbmail`, `irc-gateway`, `iot-edge-worker`, `kubectl`, `memes`, `rareicon`, `rows`, `steamcmd-ubuntu`, etc.
+- `pipeline: crates` — `bevy_inventory`, `bevy_kbve_net`, `bevy_items`, `bevy_tasker`, `soul`, `uniti`, `khashvault`, `holy`, `kbve`, `jedi`, etc.
+- `pipeline: npm` — `@kbve/*` packages
+- `pipeline: python` — `python-kbve` (PyPI: `kbve`)
+- `pipeline: ue5_server`, `pipeline: unity`, `pipeline: unreal` — game engine builds
 
-Dispatch compares mdx `version:` against `version.toml`; if equal, it skips the build entirely. Pre-bumping `version.toml` silently breaks the pipeline.
+Same rules apply across all of them:
+
+- ✅ Bump **only** the mdx frontmatter `version: "x.y.z"` to ship a new release.
+- ❌ Never edit the file pointed at by `version_toml:` (`apps/<app>/version.toml`, `packages/.../version.toml`) — CI's post-publish PR owns it.
+- ❌ Never edit the file pointed at by `version_source:` (`Cargo.toml`, `package.json`, `pyproject.toml`) — same.
+- ❌ Never edit `apps/kube/.../<app>-deployment.yaml` `image:` tags — Argo + post-publish own those too.
+
+Dispatch logic: CI compares mdx `version:` against `version_toml`; **equal → skip build entirely**. Pre-bumping `version.toml` (or `Cargo.toml`, etc.) silently breaks the pipeline because the dispatcher thinks the version already shipped.
+
+Look-ups before editing: `git log -- <project>.mdx` and confirm the bot account (`kbve-bot` / CI commits) is the one that touches `version.toml`. If a human commit shows up there, it's a mistake.
+
+---
+
+# itemdb / npcdb / mapdb / questdb MDX — content, not versioned
+
+Different rule for content collections under `apps/kbve/astro-kbve/src/content/docs/{itemdb,npcdb,mapdb,questdb}/*.mdx`:
+
+- These have **no** `version:` field. They're data, not packages.
+- Edit MDX → run the matching codegen target:
+    - `npx nx run astro-kbve:sync:itemdb`
+    - `npx nx run astro-kbve:sync:npcdb`
+    - `npx nx run astro-kbve:sync:mapdb`
+    - `npx nx run astro-kbve:sync:questdb`
+- Commit the MDX **and** any artifacts the sync target wrote (JSON / binpb under `astro-kbve/public/data/`, Generated C# under `apps/rareicon/.../Generated/`).
+- ❌ Never hand-edit those generated artifacts. The MDX is the source of truth; the sync target is the only writer.
 
 ---
 
