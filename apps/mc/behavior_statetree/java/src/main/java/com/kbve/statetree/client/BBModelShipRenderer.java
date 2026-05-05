@@ -48,11 +48,11 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
     private static final java.util.Set<String> MISSING_MODELS_LOGGED =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
-    private static final float MODEL_SCALE = 1.0f / 4.0f;
+    private static final float MODEL_SCALE = 1.0f;
 
     public BBModelShipRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
-        this.shadowRadius = 2.0f;
+        this.shadowRadius = 4.0f;
     }
 
     // -- State lifecycle ----------------------------------------------------
