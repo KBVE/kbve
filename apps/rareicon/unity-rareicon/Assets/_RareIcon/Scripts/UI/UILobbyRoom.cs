@@ -20,6 +20,8 @@ namespace RareIcon
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
+        VisualElement _titleContent;
+        readonly System.Collections.Generic.List<VisualElement> _hiddenSiblings = new();
         Label _modeLabel;
         Label _seedLabel;
         Label _lobbyIdLabel;
@@ -65,15 +67,12 @@ namespace RareIcon
         void BuildPanel(VisualElement uiRoot)
         {
             _root = new VisualElement();
-            _root.style.position = Position.Absolute;
-            _root.style.left = 0;
-            _root.style.right = 0;
-            _root.style.top = 0;
-            _root.style.bottom = 0;
+            _root.style.flexGrow = 1;
             _root.style.alignItems = Align.Center;
-            _root.style.justifyContent = Justify.Center;
-            _root.style.backgroundColor = UIStyles.Palette.BackdropDim;
+            _root.style.justifyContent = Justify.FlexStart;
+            _root.style.paddingTop = 24;
             _root.style.display = DisplayStyle.None;
+            _root.AddToClassList("title-stage");
 
             var card = new VisualElement().ApplyPanelChrome(padV: 24, padH: 32);
             card.style.minWidth = 420;
@@ -132,12 +131,11 @@ namespace RareIcon
             card.Add(_leaveBtn);
             _root.Add(card);
 
-            // Mount inside the title window so the lobby reads as a stage
-            // of the title screen, not a global popup floating outside the
-            // window chrome. Falls back to the doc root if the title UXML
-            // hasn't loaded (defensive — should never happen at runtime).
-            var titleWindow = uiRoot.Q<VisualElement>("title-window");
-            (titleWindow ?? uiRoot).Add(_root);
+            // Mount inside the title screen's stage scrollview so the
+            // lobby reads as a stage rather than a popup. Sibling stages
+            // get hidden in SetVisible(true) and restored in SetVisible(false).
+            _titleContent = uiRoot.Q<VisualElement>("title-content");
+            (_titleContent ?? uiRoot).Add(_root);
         }
 
         static Label MakeRow(string text)
@@ -175,12 +173,39 @@ namespace RareIcon
             {
                 _seedLabel.text    = $"Seed: {(_mp.InLobby ? Convert.ToString(0) : "-")}";
                 _lobbyIdLabel.text = $"Lobby: {_mp.CurrentLobbyId}";
+                HideTitleStageSiblings();
                 RefreshModeUI();
                 RefreshHostUI();
                 RefreshMemberList();
             }
+            else
+            {
+                RestoreTitleStageSiblings();
+            }
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             if (visible) _root.BringToFront();
+        }
+
+        void HideTitleStageSiblings()
+        {
+            _hiddenSiblings.Clear();
+            if (_titleContent == null) return;
+            for (int i = 0; i < _titleContent.childCount; i++)
+            {
+                var child = _titleContent[i];
+                if (child == _root) continue;
+                if (!child.ClassListContains("title-stage")) continue;
+                if (child.style.display == DisplayStyle.None) continue;
+                _hiddenSiblings.Add(child);
+                child.style.display = DisplayStyle.None;
+            }
+        }
+
+        void RestoreTitleStageSiblings()
+        {
+            for (int i = 0; i < _hiddenSiblings.Count; i++)
+                _hiddenSiblings[i].style.display = DisplayStyle.Flex;
+            _hiddenSiblings.Clear();
         }
 
         void RefreshModeUI()
