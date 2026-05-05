@@ -144,6 +144,13 @@
 				"commands": ["cargo clippy -p uniti -- -D warnings"],
 				"cwd": "packages/rust/bevy/uniti"
 			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": ["nx run uniti:lint", "nx run uniti:test"]
+			}
 		}
 	}
 }
