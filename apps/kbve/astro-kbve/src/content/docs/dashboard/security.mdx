@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-04T09:01:10Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-05T08:56:08Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**33** critical/high severity findings across the monorepo.
+**37** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-05-04T09:01:10Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="32 High" icon="error">
+  <Card title="36 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="49 Medium" icon="information">
+  <Card title="57 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="5 Low" icon="approve-check-circle">
+  <Card title="6 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-05-04T09:01:10Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **73** advisories
+    **86** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -63,9 +63,9 @@ Last generated: **2026-05-04T09:01:10Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 32
-    "Medium" : 49
-    "Low" : 5
+    "High" : 36
+    "Medium" : 57
+    "Low" : 6
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 73
+    "npm" : 86
     "Cargo" : 43
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 32 | 35 | 5 | 73 |
+| **npm** | 1 | 36 | 43 | 6 | 86 |
 | **Cargo** | 0 | 0 | 14 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 32 | 49 | 5 | 116 |
+| **Total** | 1 | 36 | 57 | 6 | 129 |
 
   </TabItem>
   <TabItem label="npm">
@@ -127,6 +127,10 @@ pie showData
 | High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
 | High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
+| High | `axios` | Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Prote... | [Details](https://github.com/advisories/GHSA-pmwg-cvhr-8vh7) |
+| High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
+| High | `axios` | Axios: Prototype Pollution Gadgets - Response Tampering, ... | [Details](https://github.com/advisories/GHSA-pf86-5x62-jrwf) |
+| High | `axios` | Axios: Header Injection via Prototype Pollution | [Details](https://github.com/advisories/GHSA-6chq-wfr3-2hj9) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -162,11 +166,20 @@ pie showData
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `postcss` | PostCSS has XSS via Unescaped &lt;/style&gt; in its CSS Stringi... | [Details](https://github.com/advisories/GHSA-qx2v-qp2m-jg93) |
 | Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |
+| Medium | `axios` | Axios: Authentication Bypass via Prototype Pollution Gadg... | [Details](https://github.com/advisories/GHSA-w9j2-pvgh-6h63) |
+| Medium | `axios` | Axios: Invisible JSON Response Tampering via Prototype Po... | [Details](https://github.com/advisories/GHSA-3w6x-2g7m-8v23) |
+| Medium | `axios` | Axios: CRLF Injection in multipart/form-data body via uns... | [Details](https://github.com/advisories/GHSA-445q-vr5w-6q77) |
+| Medium | `axios` | Axios: no_proxy bypass via IP alias allows SSRF | [Details](https://github.com/advisories/GHSA-m7pr-hjqh-92cm) |
+| Medium | `axios` | Axios: unbounded recursion in toFormData causes DoS via d... | [Details](https://github.com/advisories/GHSA-62hf-57xw-28j9) |
+| Medium | `axios` | Axios' HTTP adapter-streamed uploads bypass maxBodyLength... | [Details](https://github.com/advisories/GHSA-5c9x-8gcm-mpgx) |
+| Medium | `axios` | Axios: HTTP adapter streamed responses bypass maxContentL... | [Details](https://github.com/advisories/GHSA-vf2m-468p-8v99) |
+| Medium | `axios` | Axios: XSRF Token Cross-Origin Leakage via Prototype Poll... | [Details](https://github.com/advisories/GHSA-xx6v-rp6x-q39c) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `astro` | Astro: Remote allowlist bypass via unanchored matchPathna... | [Details](https://github.com/advisories/GHSA-g735-7g2w-hh3f) |
 | Low | `handlebars` | Handlebars.js has a Property Access Validation Bypass in ... | [Details](https://github.com/advisories/GHSA-442j-39wm-28r2) |
+| Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
 
   </TabItem>
   <TabItem label="Cargo">

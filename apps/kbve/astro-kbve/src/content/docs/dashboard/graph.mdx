@@ -13,21 +13,21 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-05-04T09:00:27Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-05T08:55:37Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
-  <Card title="38 Apps" icon="rocket">
-    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 32 more
+  <Card title="39 Apps" icon="rocket">
+    @kbve/source, angelscript, astro-chuckrpg, astro-cryptothrone, astro-discordsh, astro-herbmail + 33 more
   </Card>
-  <Card title="21 E2es" icon="approve-check-circle">
-    aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, astro-rareicon-e2e, axum-chuckrpg-e2e + 15 more
+  <Card title="22 E2es" icon="approve-check-circle">
+    arc-runner-e2e, aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, astro-rareicon-e2e + 16 more
   </Card>
   <Card title="35 Libs" icon="puzzle">
     arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 29 more
   </Card>
-  <Card title="46 Dependencies" icon="random">
-    Across 94 projects in the monorepo.
+  <Card title="47 Dependencies" icon="random">
+    Across 96 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -56,8 +56,8 @@ Last generated: **2026-05-04T09:00:27Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Projects by Type
-    "Apps" : 38
-    "E2es" : 21
+    "Apps" : 39
+    "E2es" : 22
     "Libs" : 35
 ```
 
@@ -82,6 +82,7 @@ graph LR
     classDef lib fill:#10b981,stroke:#059669,color:#fff
     classDef e2e fill:#f59e0b,stroke:#d97706,color:#fff
     _kbve_source["@kbve/source"] --> devops["devops"]
+    arc_runner_e2e["arc-runner-e2e"] --> arc_runner["arc-runner"]
     aria2_proxy_e2e["aria2-proxy-e2e"] --> aria2_proxy["aria2-proxy"]
     astro["astro"] --> droid["droid"]
     astro_chuckrpg["astro-chuckrpg"] --> astro["astro"]
@@ -127,9 +128,9 @@ graph LR
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
     ows["ows"] --> rows["rows"]
     rows_e2e["rows-e2e"] --> rows["rows"]
-    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,mc_lobby,mc_velocity,memes,notification_bot,ows,pydesk,rows app
+    class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,mc_lobby,mc_velocity,memes,notification_bot,ows,pydesk,rows,unity_rareicon app
     class arc_runner,aria2_proxy,astro,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_supa,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,steamcmd_ubuntu,uniti lib
-    class aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
+    class arc_runner_e2e,aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
 ```
 
 :::tip[Legend]
@@ -143,7 +144,8 @@ graph LR
 |---------|------|------|:----:|:----------:|
 | **@kbve/source** | app | `.` | 1 | 0 |
 | **angelscript** | app | `apps/angelscript` | 0 | 0 |
-| **arc-runner** | lib | `packages/docker/arc-runner` | 0 | 0 |
+| **arc-runner** | lib | `packages/docker/arc-runner` | 0 | 1 |
+| **arc-runner-e2e** | e2e | `packages/docker/arc-runner-e2e` | 1 | 0 |
 | **aria2-proxy** | lib | `apps/vm/aria2-proxy` | 0 | 1 |
 | **aria2-proxy-e2e** | e2e | `apps/vm/aria2-proxy-e2e` | 1 | 0 |
 | **astro** | lib | `packages/npm/astro` | 2 | 10 |
@@ -235,6 +237,7 @@ graph LR
 | **rows-e2e** | e2e | `apps/ows/rows-e2e` | 1 | 0 |
 | **steamcmd-ubuntu** | lib | `packages/docker/steamcmd-ubuntu` | 0 | 0 |
 | **uniti** | lib | `packages/rust/bevy/uniti` | 0 | 0 |
+| **unity-rareicon** | app | `apps/rareicon/unity-rareicon` | 0 | 0 |
 
   </TabItem>
   <TabItem label="Details">
@@ -341,6 +344,15 @@ graph LR
 </details>
 
 #### E2e Projects
+
+<details>
+<summary><strong>arc-runner-e2e</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| arc-runner | implicit |
+
+</details>
 
 <details>
 <summary><strong>aria2-proxy-e2e</strong> (1 dep)</summary>
