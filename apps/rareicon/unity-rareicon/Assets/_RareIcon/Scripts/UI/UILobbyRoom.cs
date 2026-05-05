@@ -20,6 +20,7 @@ namespace RareIcon
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
+        VisualElement _docRoot;
         VisualElement _titleContent;
         readonly System.Collections.Generic.List<VisualElement> _hiddenSiblings = new();
         Label _modeLabel;
@@ -131,11 +132,23 @@ namespace RareIcon
             card.Add(_leaveBtn);
             _root.Add(card);
 
-            // Mount inside the title screen's stage scrollview so the
-            // lobby reads as a stage rather than a popup. Sibling stages
-            // get hidden in SetVisible(true) and restored in SetVisible(false).
-            _titleContent = uiRoot.Q<VisualElement>("title-content");
-            (_titleContent ?? uiRoot).Add(_root);
+            // Defer parenting to SetVisible — title screen UXML is loaded
+            // by UITitleScreen on its own IAsyncStartable schedule which may
+            // not have run yet when this builder fires. Lazy-find the
+            // title-content scrollview at show time.
+            _docRoot = uiRoot;
+        }
+
+        void EnsureMountedInTitleContent()
+        {
+            if (_root == null || _docRoot == null) return;
+            var found = _docRoot.Q<VisualElement>("title-content");
+            if (found == null) return;
+            if (_titleContent == found && _root.parent == found) return;
+
+            _titleContent = found;
+            _root.RemoveFromHierarchy();
+            _titleContent.Add(_root);
         }
 
         static Label MakeRow(string text)
@@ -171,6 +184,7 @@ namespace RareIcon
             if (_root == null) return;
             if (visible)
             {
+                EnsureMountedInTitleContent();
                 _seedLabel.text    = $"Seed: {(_mp.InLobby ? Convert.ToString(0) : "-")}";
                 _lobbyIdLabel.text = $"Lobby: {_mp.CurrentLobbyId}";
                 HideTitleStageSiblings();
