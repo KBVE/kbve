@@ -2981,7 +2981,12 @@ const forumProfileSection = `{% if forum_present %}
 		display: grid;
 		gap: 0.4rem;
 	}
-	.profile-forum :global(.profile-forum__row) {
+	/* Wrap the WHOLE selector in :global() — using `.profile-forum :global(...)`
+	 * makes Astro auto-scope the parent `.profile-forum` to `[data-astro-cid-XXX]`,
+	 * but the parent <article> is injected via `Fragment set:html` so it has no
+	 * scope attr and the rule never matches. Wrapping the whole selector in
+	 * :global() keeps both halves unscoped so they apply to the injected markup. */
+	:global(.profile-forum .profile-forum__row) {
 		display: grid;
 		gap: 0.2rem;
 		padding: 0.6rem 0.85rem;
@@ -2994,11 +2999,11 @@ const forumProfileSection = `{% if forum_present %}
 			border-color 0.15s ease,
 			background 0.15s ease;
 	}
-	.profile-forum :global(.profile-forum__row:hover) {
+	:global(.profile-forum .profile-forum__row:hover) {
 		border-color: rgba(139, 92, 246, 0.5);
 		background: rgba(139, 92, 246, 0.08);
 	}
-	.profile-forum :global(.profile-forum__row-title) {
+	:global(.profile-forum .profile-forum__row-title) {
 		font-size: 0.875rem;
 		font-weight: 600;
 		display: -webkit-box;
@@ -3006,14 +3011,14 @@ const forumProfileSection = `{% if forum_present %}
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
-	.profile-forum :global(.profile-forum__row-meta) {
+	:global(.profile-forum .profile-forum__row-meta) {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.3rem;
 		font-size: 0.75rem;
 		color: rgba(148, 163, 184, 0.85);
 	}
-	.profile-forum :global(.profile-forum__pin) {
+	:global(.profile-forum .profile-forum__pin) {
 		margin-right: 0.25rem;
 	}
 </style>
