@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Plugin(
     id = "kbve-velocity-commands",
     name = "KBVE Velocity Commands",
-    version = "1.0.4",
+    version = "1.1.0",
     description = "Teleport aliases, cross-server chat bridge, and last-server persistence.",
     authors = ["kbve"],
 )
@@ -73,7 +73,7 @@ class KbveVelocityCommands @Inject constructor(
 
     @Subscribe
     fun onProxyInit(event: ProxyInitializeEvent) {
-        logger.info("KBVE Velocity Commands v1.0.4 initializing")
+        logger.info("KBVE Velocity Commands v1.1.0 initializing")
         registerTeleportCommands()
         registerChatCommand()
         logger.info("Registered ${teleportAliases.size} teleport aliases + /chat command")
@@ -175,33 +175,48 @@ class KbveVelocityCommands @Inject constructor(
         chatModes.getOrDefault(uuid, ChatMode.GLOBAL)
 
     @Subscribe
+    @Suppress("DEPRECATION") // PlayerChatEvent#setResult is deprecated in Velocity 3.4
     fun onPlayerChat(event: PlayerChatEvent) {
         val sender = event.player
         val mode = getChatMode(sender.uniqueId)
+        // LOCAL chat passes through untouched — vanilla MC chat (including signed
+        // chat verification + backend chat-filter pipeline) reaches only same-server
+        // players. The absence of a tag is the local indicator.
         if (mode == ChatMode.LOCAL) return
 
         val sourceServer = sender.currentServer.orElse(null) ?: return
         val sourceName = sourceServer.serverInfo.name
 
-        val prefix = when (sourceName) {
-            "lobby" -> "[L]"
-            "mc" -> "[S]"
-            else -> "[?]"
+        val displayLabel = when (sourceName) {
+            "lobby" -> "Lobby"
+            "mc" -> "Survival"
+            else -> sourceName.replaceFirstChar { it.uppercase() }
+        }
+        val labelColor = when (sourceName) {
+            "lobby" -> NamedTextColor.DARK_AQUA
+            "mc" -> NamedTextColor.DARK_GREEN
+            else -> NamedTextColor.GRAY
         }
 
-        val color = when (sourceName) {
-            "lobby" -> NamedTextColor.GRAY
-            "mc" -> NamedTextColor.GOLD
-            else -> NamedTextColor.DARK_GRAY
-        }
+        // GLOBAL: deny the original event so the backend doesn't broadcast it locally,
+        // then re-emit the formatted Component to every player on every backend.
+        // Format: [Lobby] fudster: hi
+        //   - brackets + colon in dark gray (visual gutter)
+        //   - server label in DARK_AQUA / DARK_GREEN (no yellow)
+        //   - player name + body in white (default chat color)
+        // Tradeoff: signed-chat verification is bypassed for global only.
+        event.result = PlayerChatEvent.ChatResult.denied()
 
-        val bridged = Component.text("$prefix <${sender.username}> ${event.message}")
-            .color(color)
+        val bridged = Component.text()
+            .append(Component.text("[", NamedTextColor.DARK_GRAY))
+            .append(Component.text(displayLabel, labelColor))
+            .append(Component.text("] ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(sender.username, NamedTextColor.WHITE))
+            .append(Component.text(": ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(event.message, NamedTextColor.WHITE))
+            .build()
 
         for (target in server.allPlayers) {
-            val targetServer = target.currentServer.orElse(null) ?: continue
-            // Skip players on the same server — they already see local chat.
-            if (targetServer.serverInfo.name == sourceName) continue
             target.sendMessage(bridged)
         }
     }

@@ -93,7 +93,7 @@ class DiscordBot(
         val payload = JsonWriter.obj()
             .field("username", displayName)
             .field("content", message)
-            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()).build())
+            .field("allowed_mentions", JsonWriter.obj().field("parse", JsonWriter.arr()))
             .build()
 
         val req = HttpRequest.newBuilder(URI.create(url))
@@ -156,7 +156,10 @@ class DiscordBot(
         if (event.author.isBot) return
         if (event.author.id == botUserId) return
 
-        val raw = event.message.contentRaw.trim()
+        // contentDisplay resolves <@id> -> @username, <@&id> -> @RoleName, <#id> -> #channel.
+        // contentRaw would leak the numeric IDs into in-game chat. Prefix detection is
+        // unaffected because >foo prefixes don't involve mention syntax.
+        val raw = event.message.contentDisplay.trim()
         if (raw.isEmpty()) return
 
         val member = event.member
