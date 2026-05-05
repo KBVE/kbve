@@ -17,6 +17,8 @@ public class ShipHud implements HudRenderCallback {
     private float speed = 0f;
     private float heading = 0f;
     private int altitude = 0;
+    private float health = 100f;
+    private float maxHealth = 100f;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -48,6 +50,11 @@ public class ShipHud implements HudRenderCallback {
         this.speed = speed;
         this.heading = heading;
         this.altitude = altitude;
+    }
+
+    public void setHealth(float health, float maxHealth) {
+        this.health = health;
+        this.maxHealth = maxHealth;
     }
 
     public boolean isActive() {
@@ -106,6 +113,21 @@ public class ShipHud implements HudRenderCallback {
         int telWidth = client.textRenderer.getWidth(telemetry);
         context.drawText(client.textRenderer, Text.of("§e" + telemetry),
                 (screenWidth - telWidth) / 2, screenHeight - 78, 0xFFFFFFFF, true);
+
+        int barW = 120;
+        int barH = 6;
+        int barX = (screenWidth - barW) / 2;
+        int barY = screenHeight - 66;
+        float ratio = maxHealth > 0 ? Math.max(0f, Math.min(1f, health / maxHealth)) : 0f;
+        int fillW = (int) (barW * ratio);
+        int hpColor = ratio > 0.5f ? 0xFF44CC44 : (ratio > 0.25f ? 0xFFCCAA22 : 0xFFCC2222);
+        context.fill(barX - 1, barY - 1, barX + barW + 1, barY + barH + 1, 0xFF000000);
+        context.fill(barX, barY, barX + barW, barY + barH, 0xFF333333);
+        if (fillW > 0) context.fill(barX, barY, barX + fillW, barY + barH, hpColor);
+        String hpText = String.format("HULL %.0f / %.0f", health, maxHealth);
+        int hpW = client.textRenderer.getWidth(hpText);
+        context.drawText(client.textRenderer, Text.of("§f" + hpText),
+                (screenWidth - hpW) / 2, barY - 10, 0xFFFFFFFF, true);
 
         if (inputBoost && speed > 0) {
             String boostTag = "§6§lBOOST";

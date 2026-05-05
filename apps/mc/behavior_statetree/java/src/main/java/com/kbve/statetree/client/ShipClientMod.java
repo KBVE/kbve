@@ -53,6 +53,7 @@ public class ShipClientMod implements ClientModInitializer {
                 setActiveHelm(idStr, shipEntity.getShipName());
             }
             hud.setTelemetry(shipEntity.getTargetSpeed(), shipEntity.getYaw(), (int) Math.floor(shipEntity.getY()));
+            hud.setHealth(shipEntity.getShipHealth(), ShipEntity.MAX_HEALTH);
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();
