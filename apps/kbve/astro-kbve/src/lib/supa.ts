@@ -15,7 +15,7 @@ export const SUPABASE_URL = 'https://supabase.kbve.com';
 export const SUPABASE_ANON_KEY =
 	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg';
 
-const INIT_TIMEOUT_MS = 12_000;
+const INIT_TIMEOUT_MS = 3_000;
 const AUTO_RECOVER_FLAG = 'kbve_supa_auto_recovered';
 
 function ensureClient(): SupabaseGateway {
@@ -94,6 +94,12 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 		} catch (err) {
 			void autoRecoverStaleClient();
 			throw err;
+		}
+
+		if (typeof window !== 'undefined') {
+			try {
+				sessionStorage.removeItem(AUTO_RECOVER_FLAG);
+			} catch {}
 		}
 	})()
 		.then(() => {})
