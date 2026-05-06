@@ -44,9 +44,9 @@ public class ShipClientMod implements ClientModInitializer {
 
         Entity vehicle = client.player.getVehicle();
         if (vehicle instanceof ShipEntity shipEntity) {
-            if (activeHelmShipId == null) {
-                java.util.UUID shipId = shipEntity.getShipId();
-                String idStr = shipId != null ? shipId.toString() : "";
+            java.util.UUID shipId = shipEntity.getShipId();
+            String idStr = shipId != null ? shipId.toString() : "";
+            if (!idStr.isEmpty() && !idStr.equals(activeHelmShipId)) {
                 LOGGER.info("[Ship Client] Mounted ShipEntity (id={}, name={})",
                         idStr, shipEntity.getShipName());
                 setActiveHelm(idStr, shipEntity.getShipName());
@@ -58,7 +58,7 @@ public class ShipClientMod implements ClientModInitializer {
             clearActiveHelm();
         }
 
-        if (activeHelmShipId == null) return;
+        if (activeHelmShipId == null || activeHelmShipId.isEmpty()) return;
 
         boolean n = client.options.forwardKey.isPressed();
         boolean s = client.options.backKey.isPressed();
