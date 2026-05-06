@@ -18,22 +18,22 @@ public final class ShipNetworking {
 
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
 
-    /** Helm steering input. forward/sideways = WASD; vertical = Space/Tab; boost = sprint. */
+    /** Helm steering input. forward = W throttle; vertical = Space/Tab; boost = sprint; target_yaw = camera-driven heading the ship should turn toward. */
     public record HelmInputPayload(
             String shipId,
             float forward,
-            float sideways,
             float vertical,
-            boolean boost
+            boolean boost,
+            float targetYaw
     ) implements CustomPayload {
         public static final CustomPayload.Id<HelmInputPayload> ID = new CustomPayload.Id<>(HELM_INPUT_ID);
         public static final PacketCodec<RegistryByteBuf, HelmInputPayload> CODEC =
                 PacketCodec.tuple(
                         PacketCodecs.STRING, HelmInputPayload::shipId,
                         PacketCodecs.FLOAT, HelmInputPayload::forward,
-                        PacketCodecs.FLOAT, HelmInputPayload::sideways,
                         PacketCodecs.FLOAT, HelmInputPayload::vertical,
                         PacketCodecs.BOOLEAN, HelmInputPayload::boost,
+                        PacketCodecs.FLOAT, HelmInputPayload::targetYaw,
                         HelmInputPayload::new
                 );
 
@@ -70,8 +70,15 @@ public final class ShipNetworking {
                 } else {
                     ship.setTargetSpeed(Math.max(currentSpeed - 0.1f, 0f));
                 }
-                if (payload.sideways() > 0) ship.setHeading(ship.getHeading() - 1.0f);
-                if (payload.sideways() < 0) ship.setHeading(ship.getHeading() + 1.0f);
+
+                float current = ship.getHeading();
+                float diff = ((payload.targetYaw() - current) % 360f + 540f) % 360f - 180f;
+                float deadZoneDeg = 5f;
+                if (Math.abs(diff) < deadZoneDeg) diff = 0f;
+                float maxDeltaPerTick = 2.0f;
+                float step = Math.max(-maxDeltaPerTick, Math.min(maxDeltaPerTick, diff * 0.15f));
+                if (step != 0f) ship.setHeading(current + step);
+
                 ship.setVerticalIntent(payload.vertical());
             });
         });

@@ -63,8 +63,6 @@ public class ShipClientMod implements ClientModInitializer {
 
         boolean n = client.options.forwardKey.isPressed();
         boolean s = client.options.backKey.isPressed();
-        boolean w = client.options.leftKey.isPressed();
-        boolean e = client.options.rightKey.isPressed();
 
         long handle = client.getWindow().getHandle();
         boolean rise = client.options.jumpKey.isPressed();
@@ -72,12 +70,12 @@ public class ShipClientMod implements ClientModInitializer {
         boolean boost = client.options.sprintKey.isPressed();
 
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
-        float sideways = w ? 1.0f : (e ? -1.0f : 0f);
         float vertical = rise ? 1.0f : (lower ? -1.0f : 0f);
+        float targetYaw = client.player.getYaw();
 
-        hud.setInputState(n, s, e, w, rise, lower, boost);
+        hud.setInputState(n, s, false, false, rise, lower, boost);
 
-        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways, vertical, boost));
+        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, vertical, boost, targetYaw));
     }
 
     public void setActiveHelm(String shipId, String shipName) {
