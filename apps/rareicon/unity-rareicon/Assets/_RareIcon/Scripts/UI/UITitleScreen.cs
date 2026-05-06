@@ -156,6 +156,22 @@ namespace RareIcon
                 if (_seedInput != null && _seedInput.value != s) _seedInput.SetValueWithoutNotify(s);
             }).AddTo(_disposables);
 
+            // Hide the title screen entirely while the lobby overlay is up.
+            // Bitwise gate on AppMask.Lobby — single source of truth, no
+            // per-stage sibling visibility juggling. UILobbyRoom mounts as
+            // a top-level absolute overlay so we don't need to compete for
+            // layout space with it.
+            _appState.CurrentMask
+                .Select(m => (m & AppMask.Lobby) != 0)
+                .DistinctUntilChanged()
+                .Subscribe(inLobby => _root.style.display = inLobby ? DisplayStyle.None : DisplayStyle.Flex)
+                .AddTo(_disposables);
+
+            _appState.CurrentSection
+                .DistinctUntilChanged()
+                .Subscribe(OnSectionChanged)
+                .AddTo(_disposables);
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             var bag = MessagePipe.DisposableBag.CreateBuilder();
             _avatarSub.Subscribe(_ => RefreshAvatar()).AddTo(bag);
@@ -163,16 +179,24 @@ namespace RareIcon
 #endif
         }
 
-        /// <summary>Wire the AoE-style left menu rail. Single Player drops into the existing locale → seed → generating flow; Codex / Credits open external KBVE pages; Exit triggers Application.Quit. Multiplayer / Mods / Settings stay disabled visually until backend support lands.</summary>
+        /// <summary>Wire the AoE-style left menu rail. Each rail click first calls <see cref="AppStateController.SwitchSection"/> so the bitwise <see cref="TitleSection"/> reflects the active tab (single source of truth for highlighting + future per-tab content), then runs the legacy action handler. Single Player drops into the existing locale → seed → generating flow; Codex / Credits open external KBVE pages; Exit triggers Application.Quit. Multiplayer / Mods / Settings stay disabled visually until backend support lands.</summary>
         void BindMenu()
         {
             var sp = _root.Q<Button>("title-menu-singleplayer");
-            if (sp != null) sp.clicked += _session.BeginSinglePlayer;
+            if (sp != null) sp.clicked += () =>
+            {
+                _appState.SwitchSection(TitleSection.SinglePlayer);
+                _session.BeginSinglePlayer();
+            };
 
             var quick = _root.Q<Button>("title-menu-quick-continue");
             if (quick != null)
             {
-                quick.clicked += OnQuickContinueClicked;
+                quick.clicked += () =>
+                {
+                    _appState.SwitchSection(TitleSection.Continue);
+                    OnQuickContinueClicked();
+                };
                 // Show only when at least one save bundle exists. Skips
                 // the slot picker entirely on click — restores the
                 // most-recent slot directly.
@@ -180,10 +204,18 @@ namespace RareIcon
             }
 
             var load = _root.Q<Button>("title-menu-load");
-            if (load != null) load.clicked += _session.BeginLoadFlow;
+            if (load != null) load.clicked += () =>
+            {
+                _appState.SwitchSection(TitleSection.Continue);
+                _session.BeginLoadFlow();
+            };
 
             var settings = _root.Q<Button>("title-menu-settings");
-            if (settings != null) settings.clicked += () => _settings?.Toggle();
+            if (settings != null) settings.clicked += () =>
+            {
+                _appState.SwitchSection(TitleSection.Settings);
+                _settings?.Toggle();
+            };
 
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             var mp = _root.Q<Button>("title-menu-multiplayer");
@@ -191,28 +223,63 @@ namespace RareIcon
             {
                 mp.RemoveFromClassList("title-menu-btn--disabled");
                 mp.text = "Multiplayer";
-                // Phase 1 default: PvE co-op host. Mode picker UI lands in
-                // a follow-up; for now Steam invites + a single host-mode
-                // path validate the lobby plumbing end-to-end.
-                mp.clicked += () => _multiplayer.HostPvECoop();
+                mp.clicked += () =>
+                {
+                    _appState.SwitchSection(TitleSection.Multiplayer);
+                    // Phase 1 default: PvE co-op host. Mode picker UI lands
+                    // in a follow-up; for now Steam invites + a single host-
+                    // mode path validate the lobby plumbing end-to-end.
+                    _multiplayer.HostPvECoop();
+                };
             }
 #endif
 
             var codex = _root.Q<Button>("title-menu-codex");
-            if (codex != null) codex.clicked += () => Application.OpenURL("https://kbve.com/itemdb/");
+            if (codex != null) codex.clicked += () =>
+            {
+                _appState.SwitchSection(TitleSection.Codex);
+                Application.OpenURL("https://kbve.com/itemdb/");
+            };
 
             var credits = _root.Q<Button>("title-menu-credits");
-            if (credits != null) credits.clicked += () => Application.OpenURL("https://kbve.com/about/");
+            if (credits != null) credits.clicked += () =>
+            {
+                _appState.SwitchSection(TitleSection.Credits);
+                Application.OpenURL("https://kbve.com/about/");
+            };
 
             var exit = _root.Q<Button>("title-menu-exit");
             if (exit != null) exit.clicked += () =>
             {
+                _appState.SwitchSection(TitleSection.Exit);
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
 #else
                 Application.Quit();
 #endif
             };
+        }
+
+        /// <summary>Reflect the active <see cref="TitleSection"/> in the rail by toggling an <c>is-active</c> USS class on each button. Single source of truth — every rail click writes <see cref="TitleSection"/> via <see cref="AppStateController.SwitchSection"/>; this handler is the only place that paints the highlight.</summary>
+        void OnSectionChanged(TitleSection section)
+        {
+            ApplyRailActive("title-menu-singleplayer",     (section & TitleSection.SinglePlayer) != 0);
+            ApplyRailActive("title-menu-quick-continue",   (section & TitleSection.Continue) != 0);
+            ApplyRailActive("title-menu-load",             (section & TitleSection.Continue) != 0);
+            ApplyRailActive("title-menu-multiplayer",      (section & TitleSection.Multiplayer) != 0);
+            ApplyRailActive("title-menu-mods",             (section & TitleSection.Mods) != 0);
+            ApplyRailActive("title-menu-codex",            (section & TitleSection.Codex) != 0);
+            ApplyRailActive("title-menu-settings",         (section & TitleSection.Settings) != 0);
+            ApplyRailActive("title-menu-credits",          (section & TitleSection.Credits) != 0);
+            ApplyRailActive("title-menu-exit",             (section & TitleSection.Exit) != 0);
+        }
+
+        void ApplyRailActive(string buttonName, bool active)
+        {
+            var btn = _root?.Q<Button>(buttonName);
+            if (btn == null) return;
+            if (active) btn.AddToClassList("is-active");
+            else        btn.RemoveFromClassList("is-active");
         }
 
         /// <summary>Make the Welcome stage's QUICK PLAY info card act as a one-click quick-play button — rolls a random seed via WorldGenSession.BeginQuickPlay and routes straight to generation, skipping the manual Seed picker. Locked to the Info stage so a click on a stale card during Seed / Load doesn't interrupt the active flow.</summary>

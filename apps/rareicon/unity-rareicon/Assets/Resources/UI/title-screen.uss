@@ -295,6 +295,12 @@
     background-color: rgba(252, 211, 77, 0.20);
     translate: 2px 0;
 }
+.title-menu-btn.is-active {
+    background-color: rgba(252, 211, 77, 0.14);
+    border-left-color: var(--color-accent);
+    color: var(--color-accent);
+    translate: 4px 0;
+}
 .title-menu-btn--disabled {
     color: var(--color-text-muted);
     opacity: 0.55;

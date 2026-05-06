@@ -25,8 +25,6 @@ namespace RareIcon
 
         VisualElement _root;
         VisualElement _docRoot;
-        VisualElement _titleContent;
-        readonly List<VisualElement> _hiddenSiblings = new();
         VisualElementPool<Label> _memberRowPool;
         ObservableListView<MemberRecord, Label> _memberView;
         Label _emptyRow;
@@ -65,8 +63,8 @@ namespace RareIcon
             CacheLocalizedConstants();
             BuildPanel(uiRoot);
 
-            _appState.Current
-                .Subscribe(state => _isVisible.Value = state == AppInterfaceState.Lobby)
+            _appState.CurrentMask
+                .Subscribe(mask => _isVisible.Value = (mask & AppMask.Lobby) != 0)
                 .AddTo(_disposables);
 
             _isVisible.DistinctUntilChanged()
@@ -116,12 +114,16 @@ namespace RareIcon
         void BuildPanel(VisualElement uiRoot)
         {
             _root = new VisualElement();
-            _root.style.flexGrow = 1;
+            _root.name = "lobby-overlay";
+            _root.style.position = Position.Absolute;
+            _root.style.left   = 0;
+            _root.style.right  = 0;
+            _root.style.top    = 0;
+            _root.style.bottom = 0;
             _root.style.alignItems = Align.Center;
-            _root.style.justifyContent = Justify.FlexStart;
+            _root.style.justifyContent = Justify.Center;
             _root.style.paddingTop = 24;
             _root.style.display = DisplayStyle.None;
-            _root.AddToClassList("title-stage");
 
             var card = new VisualElement().ApplyPanelChrome(padV: 24, padH: 32);
             card.style.minWidth = 420;
@@ -196,19 +198,7 @@ namespace RareIcon
             _root.Add(card);
 
             _docRoot = uiRoot;
-        }
-
-        void EnsureMountedInTitleContent()
-        {
-            if (_root == null || _docRoot == null) return;
-            if (_titleContent != null && _root.parent == _titleContent) return;
-
-            if (_titleContent == null)
-                _titleContent = _docRoot.Q<VisualElement>("title-content");
-            if (_titleContent == null) return;
-
-            _root.RemoveFromHierarchy();
-            _titleContent.Add(_root);
+            uiRoot.Add(_root);
         }
 
         static Label MakeRow(string text)
@@ -244,41 +234,13 @@ namespace RareIcon
             if (_root == null) return;
             if (visible)
             {
-                EnsureMountedInTitleContent();
                 _seedLabel.text    = ZString.Concat(_seedLabelPrefix,    ": ", _mp.InLobby ? "0" : _emptyDash);
                 _lobbyIdLabel.text = ZString.Concat(_lobbyIdLabelPrefix, ": ", _mp.CurrentLobbyId);
-                HideTitleStageSiblings();
                 RefreshModeUI();
                 RefreshHostUI();
             }
-            else
-            {
-                RestoreTitleStageSiblings();
-            }
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             if (visible) _root.BringToFront();
-        }
-
-        void HideTitleStageSiblings()
-        {
-            _hiddenSiblings.Clear();
-            if (_titleContent == null) return;
-            for (int i = 0; i < _titleContent.childCount; i++)
-            {
-                var child = _titleContent[i];
-                if (child == _root) continue;
-                if (!child.ClassListContains("title-stage")) continue;
-                if (child.style.display == DisplayStyle.None) continue;
-                _hiddenSiblings.Add(child);
-                child.style.display = DisplayStyle.None;
-            }
-        }
-
-        void RestoreTitleStageSiblings()
-        {
-            for (int i = 0; i < _hiddenSiblings.Count; i++)
-                _hiddenSiblings[i].style.display = DisplayStyle.Flex;
-            _hiddenSiblings.Clear();
         }
 
         void RefreshModeUI()
