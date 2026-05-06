@@ -67,9 +67,7 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         super.updateRenderState(entity, state, tickDelta);
         String name = entity.getModelName();
         state.modelName = (name == null || name.isEmpty()) ? DEFAULT_MODEL : name;
-        // Read yaw (synced via vanilla entity tracking) — not the custom
-        // heading field which only exists server-side.
-        state.heading = entity.getYaw();
+        state.heading = entity.getLerpedYaw(tickDelta);
         state.animationTime = (entity.age + tickDelta) * 0.05f;
     }
 
