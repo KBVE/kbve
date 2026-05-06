@@ -61,6 +61,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/api/v1/me/staff/", "/api/v1/me/staff"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
+    ("/tta", "/project/"),
+    ("/tta/", "/project/"),
     // Tag listing — short alias for users.
     ("/tags", "/forum/tags"),
     ("/tags/", "/forum/tags"),
