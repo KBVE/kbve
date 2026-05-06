@@ -397,6 +397,59 @@ export function syncColor(status: string): string {
 	}
 }
 
+export const STALL_THRESHOLD_MS = 5 * 60 * 1000;
+
+export interface StallReason {
+	reason: string;
+	ageMs: number;
+}
+
+export function detectAppStall(app: ArgoApplication): StallReason | null {
+	const op = app.status.operationState;
+	if (op && op.phase === 'Running' && op.startedAt) {
+		const ageMs = Date.now() - new Date(op.startedAt).getTime();
+		if (ageMs >= STALL_THRESHOLD_MS) {
+			return { reason: 'Sync running', ageMs };
+		}
+	}
+	if (app.status.health.status === 'Progressing' && app.status.reconciledAt) {
+		const ageMs = Date.now() - new Date(app.status.reconciledAt).getTime();
+		if (ageMs >= STALL_THRESHOLD_MS) {
+			return { reason: 'Progressing', ageMs };
+		}
+	}
+	if (app.status.sync.status === 'OutOfSync' && app.status.reconciledAt) {
+		const ageMs = Date.now() - new Date(app.status.reconciledAt).getTime();
+		if (ageMs >= 30 * 60 * 1000) {
+			return { reason: 'OutOfSync', ageMs };
+		}
+	}
+	return null;
+}
+
+export function detectResourceStall(node: ResourceNode): StallReason | null {
+	if (node.health?.status === 'Progressing' && node.createdAt) {
+		const ageMs = Date.now() - new Date(node.createdAt).getTime();
+		if (ageMs >= STALL_THRESHOLD_MS) {
+			return { reason: 'Progressing', ageMs };
+		}
+	}
+	if (node.health?.status === 'Degraded') {
+		return { reason: 'Degraded', ageMs: 0 };
+	}
+	if (node.health?.status === 'Missing') {
+		return { reason: 'Missing', ageMs: 0 };
+	}
+	return null;
+}
+
+export function formatAge(ageMs: number): string {
+	if (ageMs < 60 * 1000) return `${Math.floor(ageMs / 1000)}s`;
+	if (ageMs < 60 * 60 * 1000) return `${Math.floor(ageMs / 60000)}m`;
+	if (ageMs < 24 * 60 * 60 * 1000) return `${Math.floor(ageMs / 3600000)}h`;
+	return `${Math.floor(ageMs / 86400000)}d`;
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -449,6 +502,20 @@ class ArgoService {
 		[this.$applications],
 		(apps) =>
 			apps.filter((a) => a.status.sync.status === 'OutOfSync').length,
+	);
+
+	public readonly $stalledApps = computed([this.$applications], (apps) =>
+		apps
+			.map((a) => ({ app: a, stall: detectAppStall(a) }))
+			.filter(
+				(x): x is { app: ArgoApplication; stall: StallReason } =>
+					x.stall !== null,
+			),
+	);
+
+	public readonly $stalledCount = computed(
+		[this.$stalledApps],
+		(s) => s.length,
 	);
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
