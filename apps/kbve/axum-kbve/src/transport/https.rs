@@ -63,6 +63,14 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/dogevideo/", "/crypto/"),
     ("/tta", "/project/"),
     ("/tta/", "/project/"),
+    (
+        "/osrs/bracelet-of-ethereum",
+        "/osrs/bracelet-of-ethereum-uncharged/",
+    ),
+    (
+        "/osrs/bracelet-of-ethereum/",
+        "/osrs/bracelet-of-ethereum-uncharged/",
+    ),
     // Tag listing — short alias for users.
     ("/tags", "/forum/tags"),
     ("/tags/", "/forum/tags"),
