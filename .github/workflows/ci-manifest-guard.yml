@@ -1,0 +1,65 @@
+name: CI - Manifest Guard
+
+on:
+    pull_request:
+        branches:
+            - main
+        paths:
+            - 'apps/kbve/astro-kbve/src/content/**'
+            - 'apps/kbve/astro-kbve/src/content.config.ts'
+            - 'apps/kbve/astro-kbve/src/pages/api/ci-registry.json.ts'
+            - '.github/ci-dispatch-manifest.json'
+            - '.github/workflows/ci-manifest-guard.yml'
+            - 'packages/data/proto/kbve/ci_registry.proto'
+            - 'packages/devops/**'
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    verify:
+        name: Verify ci-dispatch-manifest is up to date
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v6
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - run: pnpm install --frozen-lockfile
+
+            - run: npx nx run astro-kbve:build
+
+            - run: npx nx run astro-kbve:sync:ci-manifest
+
+            - name: Diff manifest
+              run: |
+                  if ! git diff --exit-code -- .github/ci-dispatch-manifest.json; then
+                      echo "::error::ci-dispatch-manifest.json is out of sync with the MDX sources."
+                      echo "::error::Run 'npx nx run astro-kbve:build && npx nx run astro-kbve:sync:ci-manifest' locally and commit the regenerated manifest."
+                      git diff --stat -- .github/ci-dispatch-manifest.json
+                      exit 1
+                  fi
+                  echo "Manifest is in sync."
