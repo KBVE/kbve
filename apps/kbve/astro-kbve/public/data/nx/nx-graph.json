@@ -5130,7 +5130,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "commands": [
-                  "cargo test -p uniti"
+                  "cargo +stable test -p uniti"
                 ],
                 "cwd": "packages/rust/bevy/uniti"
               },
@@ -5146,7 +5146,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "commands": [
-                  "cargo clippy -p uniti -- -D warnings"
+                  "cargo +stable clippy -p uniti -- -D warnings"
                 ],
                 "cwd": "packages/rust/bevy/uniti"
               },
@@ -5157,6 +5157,23 @@
                 "{workspaceRoot}/.eslintrc.json",
                 "{workspaceRoot}/.eslintignore",
                 "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run uniti:lint",
+                  "nx run uniti:test"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
               ],
               "cache": true
             }
@@ -7377,7 +7394,7 @@
             "sync:ci-manifest": {
               "executor": "nx:run-commands",
               "options": {
-                "command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,2)+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
+                "command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,'\\t')+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
                 "cwd": ""
               },
               "configurations": {},

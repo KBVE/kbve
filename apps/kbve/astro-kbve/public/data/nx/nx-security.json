@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-05T08:56:08Z",
+  "generated_at": "2026-05-06T09:02:35Z",
   "summary": {
     "critical": 1,
     "high": 36,
@@ -488,13 +488,6 @@
           "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8"
         },
         {
-          "id": "1116970",
-          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-          "severity": "medium",
-          "package": "uuid",
-          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
-        },
-        {
           "id": "1117015",
           "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
           "severity": "medium",
@@ -619,6 +612,13 @@
           "severity": "medium",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
+        },
+        {
+          "id": "1117637",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "medium",
+          "package": "uuid",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
         }
       ]
     },
