@@ -289,6 +289,22 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		status: 'active',
 		tags: ['docker', 'base-image', 'chisel'],
 	},
+	{
+		key: 'firecracker_python_net',
+		name: 'Firecracker Python Net',
+		pipeline: 'docker',
+		app_name: 'firecracker-python-net',
+		description:
+			'Network-capable Alpine + Python rootfs (requests/httpx baked) for the staff-side firecracker-ctl-net deployment',
+		source_path: 'packages/docker/firecracker/python/net',
+		version_toml: 'packages/docker/firecracker/python/net/version.toml',
+		runner: 'ubuntu-latest',
+		image: 'kbve/firecracker-python-net',
+		author: 'h0lybyte',
+		license: 'KBVE',
+		status: 'active',
+		tags: ['docker', 'base-image', 'firecracker', 'python'],
+	},
 
 	// ── NPM Packages ───────────────────────────────────────────
 	{
