@@ -20,4 +20,10 @@ public class ShipRenderState extends EntityRenderState {
 
     /** Animation time in ticks (continuous counter for propellers, sails). */
     public float animationTime = 0.0f;
+
+    /** Auto-roll target derived from yaw rate (degrees, clamped). */
+    public float targetRoll = 0.0f;
+
+    /** Smoothed render roll, lerped toward targetRoll each frame. */
+    public float renderRoll = 0.0f;
 }

@@ -18,22 +18,22 @@ public final class ShipNetworking {
 
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
 
-    /** Helm steering input. forward = W throttle; vertical = Space/Tab; boost = sprint; target_yaw = camera-driven heading the ship should turn toward. */
+    /** Helm steering input. forward = W throttle; boost = sprint; target_yaw / target_pitch = camera-driven heading + altitude direction. */
     public record HelmInputPayload(
             String shipId,
             float forward,
-            float vertical,
             boolean boost,
-            float targetYaw
+            float targetYaw,
+            float targetPitch
     ) implements CustomPayload {
         public static final CustomPayload.Id<HelmInputPayload> ID = new CustomPayload.Id<>(HELM_INPUT_ID);
         public static final PacketCodec<RegistryByteBuf, HelmInputPayload> CODEC =
                 PacketCodec.tuple(
                         PacketCodecs.STRING, HelmInputPayload::shipId,
                         PacketCodecs.FLOAT, HelmInputPayload::forward,
-                        PacketCodecs.FLOAT, HelmInputPayload::vertical,
                         PacketCodecs.BOOLEAN, HelmInputPayload::boost,
                         PacketCodecs.FLOAT, HelmInputPayload::targetYaw,
+                        PacketCodecs.FLOAT, HelmInputPayload::targetPitch,
                         HelmInputPayload::new
                 );
 
@@ -79,7 +79,15 @@ public final class ShipNetworking {
                 float step = Math.max(-maxDeltaPerTick, Math.min(maxDeltaPerTick, diff * 0.15f));
                 if (step != 0f) ship.setHeading(current + step);
 
-                ship.setVerticalIntent(payload.vertical());
+                float pitchDeadZone = 8f;
+                float pitch = payload.targetPitch();
+                float verticalIntent;
+                if (Math.abs(pitch) < pitchDeadZone) {
+                    verticalIntent = 0f;
+                } else {
+                    verticalIntent = (float) -Math.sin(Math.toRadians(pitch));
+                }
+                ship.setVerticalIntent(verticalIntent);
             });
         });
     }
