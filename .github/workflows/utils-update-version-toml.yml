@@ -82,6 +82,32 @@ jobs:
                   echo "Synced $TARGET to $VERSION:"
                   grep -m1 'version' "$TARGET"
 
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - run: pnpm install --frozen-lockfile
+
+            - name: Regenerate ci-dispatch-manifest
+              run: |
+                  npx nx run astro-kbve:build
+                  npx nx run astro-kbve:sync:ci-manifest
+
             - name: Create PR
               env:
                   GH_TOKEN: ${{ github.token }}
@@ -98,6 +124,7 @@ jobs:
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
                   fi
+                  git add .github/ci-dispatch-manifest.json
                   if git diff --cached --quiet; then
                     echo "::notice::version.toml already at ${VERSION} on dev — nothing to commit."
                     exit 0

@@ -4,6 +4,7 @@ on:
     pull_request:
         branches:
             - main
+            - dev
         paths:
             - 'apps/kbve/astro-kbve/src/content/**'
             - 'apps/kbve/astro-kbve/src/content.config.ts'

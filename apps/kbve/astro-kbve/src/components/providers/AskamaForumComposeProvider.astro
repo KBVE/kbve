@@ -32,11 +32,14 @@ const spaces = await getForumSpaces();
 		</header>
 
 		<div id="compose-gate" class="compose-gate" hidden>
-			<h2 class="compose-gate__title">Almost there</h2>
+			<h2 class="compose-gate__title" data-default-title="Almost there">
+				Almost there
+			</h2>
 			<p
 				class="compose-gate__lede"
 				data-anon-text="Sign in to start a thread."
-				data-no-username-text="You're signed in but need a username before posting.">
+				data-no-username-text="You're signed in but need a username before posting."
+				data-init-error-text="Auth couldn't load. Refresh the page and try again.">
 				Sign in to start a thread.
 			</p>
 			<div class="compose-gate__actions">
@@ -176,26 +179,41 @@ const spaces = await getForumSpaces();
 		) as HTMLAnchorElement | null;
 		if (!gate || !form) return;
 
-		const showGate = (mode: 'anon' | 'no-username') => {
+		const showGate = (mode: 'anon' | 'no-username' | 'init-error') => {
 			form.hidden = true;
 			gate.hidden = false;
 			if (gateLede) {
 				gateLede.textContent =
 					mode === 'anon'
 						? (gateLede.dataset.anonText ?? '')
-						: (gateLede.dataset.noUsernameText ?? '');
+						: mode === 'no-username'
+							? (gateLede.dataset.noUsernameText ?? '')
+							: (gateLede.dataset.initErrorText ?? '');
 			}
 			if (signin) {
-				signin.textContent =
-					mode === 'anon' ? 'Sign in' : 'Set username';
-				signin.href = '/profile';
+				if (mode === 'init-error') {
+					signin.textContent = 'Refresh page';
+					signin.href = location.pathname + location.search;
+					signin.addEventListener(
+						'click',
+						(ev) => {
+							ev.preventDefault();
+							location.reload();
+						},
+						{ once: true },
+					);
+				} else {
+					signin.textContent =
+						mode === 'anon' ? 'Sign in' : 'Set username';
+					signin.href = '/profile';
+				}
 			}
 		};
 
 		try {
 			await initSupa();
 		} catch {
-			showGate('anon');
+			showGate('init-error');
 			return;
 		}
 		const supa = getSupa();

@@ -1,0 +1,14 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": ["WWW", "WIW", "PPP"],
+	"key": {
+		"W": "minecraft:white_wool",
+		"I": "minecraft:iron_block",
+		"P": "minecraft:oak_planks"
+	},
+	"result": {
+		"id": "behavior_statetree:airship",
+		"count": 1
+	},
+	"category": "misc"
+}

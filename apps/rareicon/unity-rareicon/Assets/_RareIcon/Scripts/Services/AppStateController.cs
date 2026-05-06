@@ -79,11 +79,34 @@ namespace RareIcon
         readonly SynchronizedReactiveProperty<AppInterfaceState> _state =
             new(AppInterfaceState.Boot);
 
+        readonly SynchronizedReactiveProperty<AppMask> _mask =
+            new(AppMask.Boot);
+
+        readonly SynchronizedReactiveProperty<TitleSection> _section =
+            new(TitleSection.MainMenu);
+
         readonly SynchronizedReactiveProperty<AppOverlayFlags> _overlays =
             new(AppOverlayFlags.None);
 
         public ReadOnlyReactiveProperty<AppInterfaceState> Current => _state;
+        /// <summary>Bitwise mirror of <see cref="Current"/>. Subscribers that want to gate on a group of phases (e.g. World+InTile) should bind to this instead of doing two-way enum equality. Always coherent with <see cref="Current"/>: both are republished from the same setter.</summary>
+        public ReadOnlyReactiveProperty<AppMask> CurrentMask => _mask;
+        /// <summary>Active title-screen section (left-rail tab). Independent of <see cref="Current"/> so the section selection survives <see cref="AppMask.MainMenu"/> ⇄ <see cref="AppMask.Lobby"/> hops; UI surfaces gate visibility on `(section &amp; MyTab) != 0` and stop touching sibling display styles. Defaults to <see cref="TitleSection.MainMenu"/> on boot.</summary>
+        public ReadOnlyReactiveProperty<TitleSection> CurrentSection => _section;
         public ReadOnlyReactiveProperty<AppOverlayFlags> Overlays => _overlays;
+
+        /// <summary>Convenience for `(CurrentMask &amp; any) != 0`. Cheaper than the property-chain when checking from a hot path.</summary>
+        public bool Has(AppMask any) => (_mask.CurrentValue & any) != 0;
+
+        /// <summary>Convenience for `(CurrentSection &amp; any) != 0`.</summary>
+        public bool Has(TitleSection any) => (_section.CurrentValue & any) != 0;
+
+        /// <summary>Switch the active title-screen section (single-bit-active). Clears every other section bit and sets the requested one. Idempotent — same section is a no-op. Does not change <see cref="Current"/> / <see cref="CurrentMask"/>; section is orthogonal to app phase.</summary>
+        public void SwitchSection(TitleSection section)
+        {
+            if (_section.CurrentValue == section) return;
+            _section.Value = section;
+        }
 
         public HexClickedMessage LastClickedHex { get; private set; }
         public EnterTileMessage CurrentTile { get; private set; }
@@ -223,12 +246,13 @@ namespace RareIcon
             AddOverlay(AppOverlayFlags.Modal | AppOverlayFlags.LockedInput);
         }
 
-        /// <summary>Return to title from any in-run state — tears down the active world (stops Rust empire ticker, destroys gameplay entities, resets <see cref="WorldGenSession"/>) so the title screen sees a clean slate, then flips state.</summary>
+        /// <summary>Return to title from any in-run state — tears down the active world (stops Rust empire ticker, destroys gameplay entities, resets <see cref="WorldGenSession"/>) so the title screen sees a clean slate, then flips state. Also resets <see cref="CurrentSection"/> to <see cref="TitleSection.MainMenu"/> so the rail returns to the welcome state instead of leaving (e.g.) Multiplayer highlighted after a Leave Lobby.</summary>
         public void ReturnToMainMenu()
         {
             WorldResetBridge.Source?.Reset();
             SetOverlay(AppOverlayFlags.None);
             SetState(AppInterfaceState.MainMenu);
+            SwitchSection(TitleSection.MainMenu);
         }
 
         public void OpenInventory()
@@ -333,6 +357,7 @@ namespace RareIcon
                 return;
 
             _state.Value = next;
+            _mask.Value  = next.ToMask();
         }
 
         void SetOverlay(AppOverlayFlags flags)
@@ -502,6 +527,8 @@ namespace RareIcon
         {
             _subscriptions?.Dispose();
             _state?.Dispose();
+            _mask?.Dispose();
+            _section?.Dispose();
             _overlays?.Dispose();
         }
     }

@@ -1,0 +1,35 @@
+{
+	"parent": "minecraft:adventure/root",
+	"display": {
+		"icon": {
+			"id": "minecraft:elytra"
+		},
+		"title": {
+			"text": "Take to the Skies"
+		},
+		"description": {
+			"text": "Board your first KBVE airship"
+		},
+		"frame": "task",
+		"show_toast": true,
+		"announce_to_chat": true,
+		"hidden": false
+	},
+	"criteria": {
+		"board_ship": {
+			"trigger": "minecraft:player_interacted_with_entity",
+			"conditions": {
+				"entity": [
+					{
+						"condition": "minecraft:entity_properties",
+						"entity": "this",
+						"predicate": {
+							"type": "behavior_statetree:ship"
+						}
+					}
+				]
+			}
+		}
+	},
+	"requirements": [["board_ship"]]
+}

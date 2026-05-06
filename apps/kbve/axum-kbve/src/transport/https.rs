@@ -4,7 +4,7 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use axum::{
     Json, Router,
     body::Body,
-    extract::{Path, Request, State},
+    extract::{OriginalUri, Path, Request, State},
     http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
@@ -61,6 +61,16 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/api/v1/me/staff/", "/api/v1/me/staff"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
+    ("/tta", "/project/"),
+    ("/tta/", "/project/"),
+    (
+        "/osrs/bracelet-of-ethereum",
+        "/osrs/bracelet-of-ethereum-uncharged/",
+    ),
+    (
+        "/osrs/bracelet-of-ethereum/",
+        "/osrs/bracelet-of-ethereum-uncharged/",
+    ),
     // Tag listing — short alias for users.
     ("/tags", "/forum/tags"),
     ("/tags/", "/forum/tags"),
@@ -90,6 +100,15 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/askama/osrs_not_found", "/osrs/"),
     ("/askama/osrs_not_found/", "/osrs/"),
 ];
+
+async fn lang_strip_root() -> Redirect {
+    Redirect::permanent("/")
+}
+
+async fn lang_strip_handler(Path(rest): Path<String>, OriginalUri(uri): OriginalUri) -> Redirect {
+    let query = uri.query().map(|q| format!("?{q}")).unwrap_or_default();
+    Redirect::permanent(&format!("/{rest}{query}"))
+}
 
 fn mount_permanent_redirects<S>(
     router: Router<S>,
@@ -241,6 +260,18 @@ fn router(state: AppState) -> Router {
         .layer(axum::middleware::from_fn(cache_headers));
 
     let public_router = Router::new()
+        .route("/ko", get(lang_strip_root))
+        .route("/ko/", get(lang_strip_root))
+        .route("/ko/{*rest}", get(lang_strip_handler))
+        .route("/ja", get(lang_strip_root))
+        .route("/ja/", get(lang_strip_root))
+        .route("/ja/{*rest}", get(lang_strip_handler))
+        .route("/fr", get(lang_strip_root))
+        .route("/fr/", get(lang_strip_root))
+        .route("/fr/{*rest}", get(lang_strip_handler))
+        .route("/es", get(lang_strip_root))
+        .route("/es/", get(lang_strip_root))
+        .route("/es/{*rest}", get(lang_strip_handler))
         .route("/health", get(health))
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
