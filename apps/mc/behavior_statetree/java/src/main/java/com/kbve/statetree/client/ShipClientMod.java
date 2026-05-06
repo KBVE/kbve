@@ -14,7 +14,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.entity.Entity;
 import net.minecraft.resource.ResourceType;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +44,9 @@ public class ShipClientMod implements ClientModInitializer {
 
         Entity vehicle = client.player.getVehicle();
         if (vehicle instanceof ShipEntity shipEntity) {
-            if (activeHelmShipId == null) {
-                java.util.UUID shipId = shipEntity.getShipId();
-                String idStr = shipId != null ? shipId.toString() : "";
+            java.util.UUID shipId = shipEntity.getShipId();
+            String idStr = shipId != null ? shipId.toString() : "";
+            if (!idStr.isEmpty() && !idStr.equals(activeHelmShipId)) {
                 LOGGER.info("[Ship Client] Mounted ShipEntity (id={}, name={})",
                         idStr, shipEntity.getShipName());
                 setActiveHelm(idStr, shipEntity.getShipName());
@@ -59,25 +58,21 @@ public class ShipClientMod implements ClientModInitializer {
             clearActiveHelm();
         }
 
-        if (activeHelmShipId == null) return;
+        if (activeHelmShipId == null || activeHelmShipId.isEmpty()) return;
 
         boolean n = client.options.forwardKey.isPressed();
         boolean s = client.options.backKey.isPressed();
-        boolean w = client.options.leftKey.isPressed();
-        boolean e = client.options.rightKey.isPressed();
-
-        long handle = client.getWindow().getHandle();
-        boolean rise = client.options.jumpKey.isPressed();
-        boolean lower = GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_TAB) == GLFW.GLFW_PRESS;
         boolean boost = client.options.sprintKey.isPressed();
 
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
-        float sideways = w ? 1.0f : (e ? -1.0f : 0f);
-        float vertical = rise ? 1.0f : (lower ? -1.0f : 0f);
+        float targetYaw = client.player.getYaw();
+        float targetPitch = client.player.getPitch();
 
-        hud.setInputState(n, s, e, w, rise, lower, boost);
+        boolean rise = targetPitch < -8f;
+        boolean lower = targetPitch > 8f;
+        hud.setInputState(n, s, false, false, rise, lower, boost);
 
-        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, sideways, vertical, boost));
+        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, boost, targetYaw, targetPitch));
     }
 
     public void setActiveHelm(String shipId, String shipName) {

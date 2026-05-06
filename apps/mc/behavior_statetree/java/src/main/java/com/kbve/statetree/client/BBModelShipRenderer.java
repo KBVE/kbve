@@ -67,8 +67,23 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         super.updateRenderState(entity, state, tickDelta);
         String name = entity.getModelName();
         state.modelName = (name == null || name.isEmpty()) ? DEFAULT_MODEL : name;
-        state.heading = entity.getLerpedYaw(tickDelta);
+        float lerped = entity.getLerpedYaw(tickDelta);
+        float yawDelta = wrapDegrees(lerped - state.heading);
+        state.targetRoll = clamp(-yawDelta * 4.0f, -35f, 35f);
+        state.renderRoll += (state.targetRoll - state.renderRoll) * 0.15f;
+        state.heading = lerped;
         state.animationTime = (entity.age + tickDelta) * 0.05f;
+    }
+
+    private static float wrapDegrees(float a) {
+        a = a % 360f;
+        if (a >= 180f) a -= 360f;
+        if (a < -180f) a += 360f;
+        return a;
+    }
+
+    private static float clamp(float v, float lo, float hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 
     // -- Render -------------------------------------------------------------
@@ -94,9 +109,10 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Scale from Blockbench units to world units
         matrices.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
 
-        // Ship heading rotation (Y-axis)
         matrices.multiply(new Quaternionf().rotateY(
                 (float) Math.toRadians(-state.heading)));
+        matrices.multiply(new Quaternionf().rotateZ(
+                (float) Math.toRadians(state.renderRoll)));
 
         // Walk the model tree — submit render commands per face
         int light = 0xF000F0; // full bright (airships fly in sky)
