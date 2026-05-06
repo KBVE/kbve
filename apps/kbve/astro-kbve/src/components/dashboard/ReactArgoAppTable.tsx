@@ -6,6 +6,9 @@ import {
 	syncColor,
 	fetchResourceTree,
 	fetchAppEvents,
+	detectAppStall,
+	detectResourceStall,
+	formatAge,
 	type AppEvent,
 	type ArgoApplication,
 	type ResourceTree,
@@ -22,7 +25,40 @@ import {
 	ChevronDown,
 	ChevronRight,
 	Box,
+	Clock,
 } from 'lucide-react';
+
+function StallBadge({
+	reason,
+	ageMs,
+	compact,
+}: {
+	reason: string;
+	ageMs: number;
+	compact?: boolean;
+}) {
+	return (
+		<span
+			title={`${reason} for ${formatAge(ageMs)}`}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 3,
+				padding: compact ? '0 6px' : '2px 8px',
+				borderRadius: 4,
+				background: 'rgba(245, 158, 11, 0.12)',
+				border: '1px solid rgba(245, 158, 11, 0.35)',
+				color: '#fbbf24',
+				fontSize: compact ? '0.65rem' : '0.7rem',
+				fontWeight: 600,
+				textTransform: 'uppercase',
+				letterSpacing: '0.04em',
+			}}>
+			<Clock size={compact ? 10 : 11} />
+			Stalled {ageMs > 0 ? formatAge(ageMs) : ''}
+		</span>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -210,6 +246,18 @@ function ResourceRow({
 					{node.namespace}/
 				</span>
 				{node.name}
+				{(() => {
+					const stall = detectResourceStall(node);
+					return stall ? (
+						<span style={{ marginLeft: 'auto' }}>
+							<StallBadge
+								reason={stall.reason}
+								ageMs={stall.ageMs}
+								compact
+							/>
+						</span>
+					) : null;
+				})()}
 			</div>
 			{selected && (
 				<ReactArgoResourceDetail
@@ -271,7 +319,11 @@ function ResourceTreePanel({
 
 	const filterMatch = (n: ResourceNode) => {
 		if (kindFilter && n.kind !== kindFilter) return false;
-		if (healthFilter && n.health?.status !== healthFilter) return false;
+		if (healthFilter === '__stalled') {
+			if (!detectResourceStall(n)) return false;
+		} else if (healthFilter && n.health?.status !== healthFilter) {
+			return false;
+		}
 		if (search) {
 			const q = search.toLowerCase();
 			if (
@@ -362,6 +414,7 @@ function ResourceTreePanel({
 				<option value="Progressing">Progressing</option>
 				<option value="Suspended">Suspended</option>
 				<option value="Missing">Missing</option>
+				<option value="__stalled">Stalled only</option>
 			</select>
 			<input
 				value={search}
@@ -778,11 +831,24 @@ function ApplicationRow({
 				</span>
 				<span
 					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
 						fontWeight: 600,
 						color: 'var(--sl-color-text, #e6edf3)',
 						fontSize: '0.9rem',
 					}}>
 					{app.metadata.name}
+					{(() => {
+						const stall = detectAppStall(app);
+						return stall ? (
+							<StallBadge
+								reason={stall.reason}
+								ageMs={stall.ageMs}
+								compact
+							/>
+						) : null;
+					})()}
 				</span>
 				<span
 					style={{

@@ -461,6 +461,254 @@ export function EventsList({ events }: { events: AppEvent[] }) {
 // Diff
 // ---------------------------------------------------------------------------
 
+type DiffOp = 'eq' | 'add' | 'del';
+interface DiffLine {
+	op: DiffOp;
+	live?: string;
+	target?: string;
+	leftNo?: number;
+	rightNo?: number;
+}
+
+function computeUnifiedDiff(liveYaml: string, targetYaml: string): DiffLine[] {
+	const a = liveYaml ? liveYaml.split('\n') : [];
+	const b = targetYaml ? targetYaml.split('\n') : [];
+	const m = a.length;
+	const n = b.length;
+	const lcs: number[][] = Array.from({ length: m + 1 }, () =>
+		new Array(n + 1).fill(0),
+	);
+	for (let i = m - 1; i >= 0; i--) {
+		for (let j = n - 1; j >= 0; j--) {
+			lcs[i][j] =
+				a[i] === b[j]
+					? lcs[i + 1][j + 1] + 1
+					: Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+		}
+	}
+	const out: DiffLine[] = [];
+	let i = 0,
+		j = 0,
+		left = 0,
+		right = 0;
+	while (i < m && j < n) {
+		if (a[i] === b[j]) {
+			left++;
+			right++;
+			out.push({
+				op: 'eq',
+				live: a[i],
+				target: b[j],
+				leftNo: left,
+				rightNo: right,
+			});
+			i++;
+			j++;
+		} else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+			left++;
+			out.push({ op: 'del', live: a[i], leftNo: left });
+			i++;
+		} else {
+			right++;
+			out.push({ op: 'add', target: b[j], rightNo: right });
+			j++;
+		}
+	}
+	while (i < m) {
+		left++;
+		out.push({ op: 'del', live: a[i], leftNo: left });
+		i++;
+	}
+	while (j < n) {
+		right++;
+		out.push({ op: 'add', target: b[j], rightNo: right });
+		j++;
+	}
+	return out;
+}
+
+function diffSummary(lines: DiffLine[]): { added: number; removed: number } {
+	let added = 0,
+		removed = 0;
+	for (const l of lines) {
+		if (l.op === 'add') added++;
+		else if (l.op === 'del') removed++;
+	}
+	return { added, removed };
+}
+
+const DIFF_BG = {
+	add: 'rgba(34, 197, 94, 0.08)',
+	del: 'rgba(239, 68, 68, 0.08)',
+	eq: 'transparent',
+} as const;
+const DIFF_BORDER = {
+	add: '#22c55e',
+	del: '#ef4444',
+	eq: 'transparent',
+} as const;
+
+function UnifiedDiffView({ lines }: { lines: DiffLine[] }) {
+	return (
+		<div
+			style={{
+				background: 'var(--sl-color-bg-inline-code, #0d1117)',
+				borderRadius: 6,
+				border: '1px solid var(--sl-color-gray-5, #262626)',
+				maxHeight: 480,
+				overflow: 'auto',
+				fontFamily: 'var(--sl-font-mono, monospace)',
+				fontSize: '0.72rem',
+				lineHeight: 1.4,
+			}}>
+			{lines.map((l, idx) => {
+				const text =
+					l.op === 'eq'
+						? (l.live ?? '')
+						: l.op === 'add'
+							? (l.target ?? '')
+							: (l.live ?? '');
+				const sym = l.op === 'add' ? '+' : l.op === 'del' ? '-' : ' ';
+				const color =
+					l.op === 'add'
+						? '#86efac'
+						: l.op === 'del'
+							? '#fca5a5'
+							: 'var(--sl-color-text, #e6edf3)';
+				return (
+					<div
+						key={idx}
+						style={{
+							display: 'grid',
+							gridTemplateColumns: '36px 36px 14px 1fr',
+							gap: 8,
+							padding: '0 8px',
+							background: DIFF_BG[l.op],
+							borderLeft: `2px solid ${DIFF_BORDER[l.op]}`,
+						}}>
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								textAlign: 'right',
+								userSelect: 'none',
+							}}>
+							{l.leftNo ?? ''}
+						</span>
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								textAlign: 'right',
+								userSelect: 'none',
+							}}>
+							{l.rightNo ?? ''}
+						</span>
+						<span
+							style={{
+								color,
+								fontWeight: 700,
+								userSelect: 'none',
+							}}>
+							{sym}
+						</span>
+						<span
+							style={{
+								color,
+								whiteSpace: 'pre',
+								wordBreak: 'break-all',
+							}}>
+							{text}
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
+function SideBySideDiffView({ lines }: { lines: DiffLine[] }) {
+	return (
+		<div
+			style={{
+				background: 'var(--sl-color-bg-inline-code, #0d1117)',
+				borderRadius: 6,
+				border: '1px solid var(--sl-color-gray-5, #262626)',
+				maxHeight: 480,
+				overflow: 'auto',
+				fontFamily: 'var(--sl-font-mono, monospace)',
+				fontSize: '0.72rem',
+				lineHeight: 1.4,
+			}}>
+			{lines.map((l, idx) => {
+				const leftBg = l.op === 'del' ? DIFF_BG.del : DIFF_BG.eq;
+				const rightBg = l.op === 'add' ? DIFF_BG.add : DIFF_BG.eq;
+				const leftColor =
+					l.op === 'del'
+						? '#fca5a5'
+						: 'var(--sl-color-text, #e6edf3)';
+				const rightColor =
+					l.op === 'add'
+						? '#86efac'
+						: 'var(--sl-color-text, #e6edf3)';
+				return (
+					<div
+						key={idx}
+						style={{
+							display: 'grid',
+							gridTemplateColumns: '36px 1fr 36px 1fr',
+							borderBottom:
+								idx < lines.length - 1
+									? '1px solid rgba(255,255,255,0.02)'
+									: 'none',
+						}}>
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								textAlign: 'right',
+								padding: '0 6px',
+								userSelect: 'none',
+								background: leftBg,
+							}}>
+							{l.leftNo ?? ''}
+						</span>
+						<span
+							style={{
+								color: leftColor,
+								whiteSpace: 'pre',
+								wordBreak: 'break-all',
+								padding: '0 6px',
+								background: leftBg,
+								borderRight:
+									'1px solid var(--sl-color-gray-5, #262626)',
+							}}>
+							{l.live ?? ''}
+						</span>
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								textAlign: 'right',
+								padding: '0 6px',
+								userSelect: 'none',
+								background: rightBg,
+							}}>
+							{l.rightNo ?? ''}
+						</span>
+						<span
+							style={{
+								color: rightColor,
+								whiteSpace: 'pre',
+								wordBreak: 'break-all',
+								padding: '0 6px',
+								background: rightBg,
+							}}>
+							{l.target ?? ''}
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
 function DiffTab({
 	sel,
 	managed,
@@ -468,6 +716,9 @@ function DiffTab({
 	sel: ResourceSelector;
 	managed: ManagedResource | null;
 }) {
+	const [view, setView] = useState<'unified' | 'split'>('unified');
+	const [showEq, setShowEq] = useState<boolean>(false);
+
 	if (!managed) {
 		return (
 			<div
@@ -499,6 +750,22 @@ function DiffTab({
 		}
 	}, [managed.targetState]);
 
+	const liveYaml = useMemo(() => (live ? toYaml(live) : ''), [live]);
+	const targetYaml = useMemo(() => (target ? toYaml(target) : ''), [target]);
+
+	const allLines = useMemo(
+		() => computeUnifiedDiff(liveYaml, targetYaml),
+		[liveYaml, targetYaml],
+	);
+	const visibleLines = useMemo(
+		() => (showEq ? allLines : allLines.filter((l) => l.op !== 'eq')),
+		[allLines, showEq],
+	);
+	const summary = useMemo(() => diffSummary(allLines), [allLines]);
+
+	const onlyLive = !!live && !target;
+	const onlyTarget = !live && !!target;
+
 	if (!live && !target) {
 		return (
 			<div
@@ -512,45 +779,155 @@ function DiffTab({
 		);
 	}
 
+	if (onlyLive || onlyTarget) {
+		const yaml = onlyLive ? liveYaml : targetYaml;
+		const label = onlyLive
+			? 'Live only — no target'
+			: 'Target only — not in cluster';
+		const color = onlyLive ? '#fbbf24' : '#8b5cf6';
+		const reason = onlyLive
+			? `${sel.kind} exists in the cluster but is not in the desired state. ${
+					managed.requiresPruning
+						? 'Argo will prune on next sync.'
+						: ''
+				}`
+			: `${sel.kind} is in the desired state but missing from the cluster. Argo will create on next sync.`;
+		return (
+			<div>
+				<div
+					style={{
+						padding: '0.5rem 0.75rem',
+						borderRadius: 6,
+						background: `${color}14`,
+						border: `1px solid ${color}40`,
+						color,
+						fontSize: '0.8rem',
+						fontWeight: 600,
+						marginBottom: 8,
+					}}>
+					{label}
+				</div>
+				<div
+					style={{
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.75rem',
+						marginBottom: 8,
+					}}>
+					{reason}
+				</div>
+				<CodeBlock>{yaml}</CodeBlock>
+			</div>
+		);
+	}
+
+	if (summary.added === 0 && summary.removed === 0) {
+		return (
+			<div>
+				<div
+					style={{
+						padding: '0.5rem 0.75rem',
+						borderRadius: 6,
+						background: 'rgba(34, 197, 94, 0.08)',
+						border: '1px solid rgba(34, 197, 94, 0.3)',
+						color: '#22c55e',
+						fontSize: '0.8rem',
+						fontWeight: 600,
+						marginBottom: 8,
+					}}>
+					No diff — live matches target
+				</div>
+				<CodeBlock>{liveYaml}</CodeBlock>
+			</div>
+		);
+	}
+
 	return (
 		<div>
 			<div
 				style={{
-					display: 'grid',
-					gridTemplateColumns: '1fr 1fr',
-					gap: '0.5rem',
+					display: 'flex',
+					gap: 8,
+					marginBottom: 8,
+					alignItems: 'center',
+					flexWrap: 'wrap',
 				}}>
-				<div>
-					<div
-						style={{
-							fontSize: '0.7rem',
-							fontWeight: 600,
-							color: '#22c55e',
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-							marginBottom: 4,
-						}}>
-						Live (cluster)
-					</div>
-					<CodeBlock>{live ? toYaml(live) : '(missing)'}</CodeBlock>
+				<div
+					style={{
+						display: 'inline-flex',
+						borderRadius: 6,
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						overflow: 'hidden',
+					}}>
+					{(['unified', 'split'] as const).map((m) => (
+						<button
+							key={m}
+							onClick={() => setView(m)}
+							style={{
+								background:
+									view === m
+										? 'rgba(139, 92, 246, 0.15)'
+										: 'transparent',
+								color:
+									view === m
+										? '#c4b5fd'
+										: 'var(--sl-color-gray-3, #8b949e)',
+								border: 'none',
+								padding: '4px 10px',
+								fontSize: '0.75rem',
+								fontWeight: 600,
+								cursor: 'pointer',
+								textTransform: 'capitalize',
+							}}>
+							{m === 'unified' ? 'Unified' : 'Side-by-side'}
+						</button>
+					))}
 				</div>
-				<div>
-					<div
-						style={{
-							fontSize: '0.7rem',
-							fontWeight: 600,
-							color: '#8b5cf6',
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-							marginBottom: 4,
-						}}>
-						Target (desired)
-					</div>
-					<CodeBlock>
-						{target ? toYaml(target) : '(missing)'}
-					</CodeBlock>
-				</div>
+				<label
+					style={{
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: 4,
+						fontSize: '0.75rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						cursor: 'pointer',
+					}}>
+					<input
+						type="checkbox"
+						checked={showEq}
+						onChange={(e) => setShowEq(e.target.checked)}
+					/>
+					Show unchanged
+				</label>
+				<span
+					style={{
+						fontSize: '0.7rem',
+						color: '#86efac',
+						fontWeight: 600,
+					}}>
+					+{summary.added}
+				</span>
+				<span
+					style={{
+						fontSize: '0.7rem',
+						color: '#fca5a5',
+						fontWeight: 600,
+					}}>
+					-{summary.removed}
+				</span>
+				<span
+					style={{
+						marginLeft: 'auto',
+						fontSize: '0.7rem',
+						color: 'var(--sl-color-gray-4, #6b7280)',
+					}}>
+					{visibleLines.length}/{allLines.length} lines
+				</span>
 			</div>
+			{view === 'unified' ? (
+				<UnifiedDiffView lines={visibleLines} />
+			) : (
+				<SideBySideDiffView lines={visibleLines} />
+			)}
 			{managed.requiresPruning && (
 				<div
 					style={{
@@ -1109,7 +1486,7 @@ function ContainersTab({
 						) : null}
 					</div>
 				)}
-				{lastInfo && lastInfo.reason && (
+				{lastInfo && !!lastInfo.reason && (
 					<div
 						style={{
 							marginTop: 4,
@@ -1316,7 +1693,7 @@ export default function ReactArgoResourceDetail({
 		{ id: 'events', label: 'Events' },
 		{ id: 'diff', label: 'Diff' },
 		...(isPod ? [{ id: 'logs' as TabId, label: 'Logs' }] : []),
-		{ id: 'indexed', label: 'Indexed Logs' },
+		{ id: 'indexed', label: 'Clickhouse Logs' },
 	];
 
 	useEffect(() => {

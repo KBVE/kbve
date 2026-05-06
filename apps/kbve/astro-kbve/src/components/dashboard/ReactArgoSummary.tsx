@@ -7,6 +7,7 @@ import {
 	Activity,
 	XCircle,
 	RefreshCw,
+	Clock,
 	AlertCircle,
 } from 'lucide-react';
 
@@ -66,6 +67,7 @@ export default function ReactArgoSummary() {
 	const syncedCount = useStore(argoService.$syncedCount);
 	const degradedCount = useStore(argoService.$degradedCount);
 	const outOfSyncCount = useStore(argoService.$outOfSyncCount);
+	const stalledCount = useStore(argoService.$stalledCount);
 
 	return (
 		<>
@@ -169,6 +171,12 @@ export default function ReactArgoSummary() {
 						label="Out of Sync"
 						value={outOfSyncCount}
 						color={outOfSyncCount > 0 ? '#f59e0b' : '#22c55e'}
+					/>
+					<StatCard
+						icon={<Clock size={16} style={{ color: '#fbbf24' }} />}
+						label="Stalled"
+						value={stalledCount}
+						color={stalledCount > 0 ? '#fbbf24' : '#22c55e'}
 					/>
 				</div>
 			)}
