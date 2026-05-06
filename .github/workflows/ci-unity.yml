@@ -83,6 +83,10 @@ on:
 
 permissions: {}
 
+concurrency:
+    group: ci-unity
+    cancel-in-progress: false
+
 jobs:
     queue_guard:
         name: Queue Guard
