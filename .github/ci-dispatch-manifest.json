@@ -135,6 +135,17 @@
 			"has_test": false
 		},
 		{
+			"key": "firecracker_python_net",
+			"app_name": "firecracker-python-net",
+			"version": "0.1.0",
+			"version_toml": "packages/docker/firecracker/python/net/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx",
+			"source_path": "packages/docker/firecracker/python/net",
+			"runner": "ubuntu-latest",
+			"image": "kbve/firecracker-python-net",
+			"has_test": false
+		},
+		{
 			"key": "herbmail",
 			"app_name": "herbmail",
 			"version": "0.1.1",
@@ -650,7 +661,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 22,
+		"docker": 23,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -660,6 +671,6 @@
 		"godot": 0,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 61
+		"total": 62
 	}
 }

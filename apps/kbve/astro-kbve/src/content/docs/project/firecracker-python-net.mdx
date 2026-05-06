@@ -1,0 +1,63 @@
+---
+title: Firecracker Python Net
+description: |
+    Network-capable Alpine + Python rootfs for the staff-side firecracker-ctl-net deployment. Bakes requests, httpx, urllib3, certifi, ca-certificates, and a resolv.conf with public DNS.
+sidebar:
+    label: FC Python Net
+    order: 55
+tags:
+    - docker
+    - firecracker
+    - python
+    - base-image
+key: firecracker_python_net
+pipeline: docker
+app_name: firecracker-python-net
+version: "0.1.0"
+version_toml: packages/docker/firecracker/python/net/version.toml
+source_path: packages/docker/firecracker/python/net
+runner: ubuntu-latest
+image: kbve/firecracker-python-net
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Network-capable Python rootfs image used by the **staff-side** Firecracker deployment (`firecracker-ctl-net`). Built as a multi-stage Docker image whose final scratch layer carries a single `/rootfs.ext4` artifact.
+
+This image is **not** for the public sandbox quick-mode VMs. Those keep the no-network `alpine-python` rootfs from [apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python](apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python) — sandboxing without internet egress is the safety property.
+
+## What's baked in
+
+- Alpine 3.21 + Python 3.12
+- `py3-pip`, `py3-requests`, `py3-httpx`, `py3-urllib3`, `py3-certifi`
+- `ca-certificates-bundle`, `ca-certificates`, `iproute2`
+- `/etc/resolv.conf` with `1.1.1.1` and `8.8.8.8`
+- `/init` mounts `/proc`, `/sys`, `/dev`, brings up `lo` + `eth0`, then `exec /entrypoint`
+
+## Two ecosystems
+
+| Image | Deployment | Network | DNS | requests baked |
+|-------|-----------|---------|-----|----------------|
+| `alpine-python` (existing) | `firecracker-ctl` (public quick) | none | no | no |
+| `firecracker-python-net` (this) | `firecracker-ctl-net` (staff persistent) | TAP via Gluetun/WireGuard | yes | yes |
+
+## Build
+
+```bash
+npx nx run firecracker-python-net:container
+npx nx run firecracker-python-net:extract
+```
+
+Output: `packages/docker/firecracker/python/net/dist/python-net.ext4`.
+
+## Publish
+
+```bash
+npx nx run firecracker-python-net:container:production
+```
+
+Pushes `ghcr.io/kbve/firecracker-python-net:latest` and `:<version>`.
