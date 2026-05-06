@@ -1,3 +1,5 @@
+#if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
+
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -55,3 +57,5 @@ namespace RareIcon
         }
     }
 }
+
+#endif
