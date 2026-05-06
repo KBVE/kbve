@@ -16,6 +16,7 @@ resources:
     - kbve-gateway.yaml
     - kbve-ingress.yaml
     - kbve-www-redirect-ingress.yaml
+    - kbve-mc-redirect-ingress.yaml
     - kbve-wt-selfsigned-cronjob.yaml
     - cf-cache-purge-externalsecret.yaml
     - cf-cache-purge-postsync.yaml
