@@ -215,7 +215,7 @@ jobs:
                 target: ${{ fromJSON(inputs.build_targets) }}
         steps:
             - name: Download artefact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.app_name }}-${{ matrix.target }}
                   path: ./build
