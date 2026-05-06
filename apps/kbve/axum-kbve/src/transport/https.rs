@@ -4,7 +4,7 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use axum::{
     Json, Router,
     body::Body,
-    extract::{Path, Request, State},
+    extract::{OriginalUri, Path, Request, State},
     http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
@@ -100,6 +100,15 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/askama/osrs_not_found", "/osrs/"),
     ("/askama/osrs_not_found/", "/osrs/"),
 ];
+
+async fn ko_strip_root() -> Redirect {
+    Redirect::permanent("/")
+}
+
+async fn ko_strip_handler(Path(rest): Path<String>, OriginalUri(uri): OriginalUri) -> Redirect {
+    let query = uri.query().map(|q| format!("?{q}")).unwrap_or_default();
+    Redirect::permanent(&format!("/{rest}{query}"))
+}
 
 fn mount_permanent_redirects<S>(
     router: Router<S>,
@@ -251,6 +260,9 @@ fn router(state: AppState) -> Router {
         .layer(axum::middleware::from_fn(cache_headers));
 
     let public_router = Router::new()
+        .route("/ko", get(ko_strip_root))
+        .route("/ko/", get(ko_strip_root))
+        .route("/ko/{*rest}", get(ko_strip_handler))
         .route("/health", get(health))
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
