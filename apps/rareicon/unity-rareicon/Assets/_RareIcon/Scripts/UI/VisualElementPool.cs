@@ -59,9 +59,6 @@ namespace RareIcon
             _live.RemoveAt(idx);
             _liveCount.Value = _live.Count;
             _onRelease?.Invoke(el);
-            // Detach from any parent so the element doesn't leak into a
-            // hierarchy after it's logically released. Caller owns the
-            // value reset in onRelease (e.g. label.text = "").
             el.RemoveFromHierarchy();
             _free.Push(el);
             _released.OnNext(el);

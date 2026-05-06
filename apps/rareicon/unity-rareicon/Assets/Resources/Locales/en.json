@@ -382,5 +382,21 @@
 	"trait.timid": "Timid",
 	"trait.sickly": "Sickly",
 	"roster.traits": "Traits",
-	"toast.trait_born": "{0} is born {1}"
+	"toast.trait_born": "{0} is born {1}",
+	"lobby.title": "Lobby",
+	"lobby.mode_label": "Mode",
+	"lobby.seed_label": "Seed",
+	"lobby.id_label": "Lobby",
+	"lobby.members_header": "Members",
+	"lobby.host_suffix": "(host)",
+	"lobby.waiting_for_peers": "waiting for peers…",
+	"lobby.btn_invite": "Invite Friends",
+	"lobby.btn_start": "Start Match",
+	"lobby.btn_leave": "Leave Lobby",
+	"lobby.empty_dash": "-",
+	"mode.single_player": "Single Player",
+	"mode.pve_coop": "PvE Co-op (shared empire)",
+	"mode.pvp": "PvP (rival empires)",
+	"mode.btn_pve_coop": "PvE Co-op",
+	"mode.btn_pvp": "PvP"
 }
