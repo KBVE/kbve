@@ -1,6 +1,6 @@
 ---
 import FooterQuickLinks from './FooterQuickLinks.astro';
-import { DroidOverlays } from '@/components/providers/DroidOverlays';
+import AstroDroidFooter from './AstroDroidFooter.astro';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 
 const legalLinks = [
@@ -223,9 +223,7 @@ const currentYear = new Date().getFullYear();
 	</div>
 
 	<FooterQuickLinks />
-	<div data-island="toast-mount" hidden>
-		<DroidOverlays client:only="react" />
-	</div>
+	<AstroDroidFooter />
 </footer>
 
 <style>
