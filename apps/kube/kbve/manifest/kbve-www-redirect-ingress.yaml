@@ -4,7 +4,7 @@ metadata:
     name: kbve-www-redirect
     namespace: kbve
     annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-http
+        cert-manager.io/cluster-issuer: letsencrypt-dns
         nginx.ingress.kubernetes.io/permanent-redirect: https://kbve.com$request_uri
         nginx.ingress.kubernetes.io/permanent-redirect-code: '301'
         nginx.ingress.kubernetes.io/ssl-redirect: 'true'
