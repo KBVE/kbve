@@ -1,0 +1,15 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": ["WIW", "IFI", "PPP"],
+	"key": {
+		"W": "minecraft:white_wool",
+		"I": "minecraft:iron_ingot",
+		"F": "minecraft:furnace",
+		"P": "minecraft:oak_planks"
+	},
+	"result": {
+		"id": "behavior_statetree:biplane",
+		"count": 1
+	},
+	"category": "misc"
+}
