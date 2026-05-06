@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using Cysharp.Text;
 
@@ -7,9 +9,13 @@ namespace RareIcon
     /// <summary>
     /// i18n service. Locale is chosen once on the title screen and stays for the session.
     /// Static strings resolve via Get(key). Dynamic HUD text uses ZString for zero-alloc formatting.
+    /// Burst-side consumers (toast emitters, combat damage labels, FFI empire events) read
+    /// the parallel <see cref="LocaleTable"/> static fast-path which is rebuilt in lockstep
+    /// with the managed dictionary on every <see cref="SetLocale"/>.
     /// </summary>
-    public class LocaleService
+    public class LocaleService : IDisposable
     {
+        const int NativeTableCapacity = 1024;
         const string PersistKey = "rareicon.locale";
 
         Dictionary<string, string> _strings = new();
@@ -85,7 +91,47 @@ namespace RareIcon
             }
 
             _strings = ParseFlat(asset.text);
+            RebuildNativeTable();
             Debug.Log($"[LocaleService] Loaded {_strings.Count} strings for '{locale}'");
+        }
+
+        void RebuildNativeTable()
+        {
+            if (LocaleTable.Current.IsCreated) LocaleTable.Current.Dispose();
+            var map = new NativeHashMap<FixedString64Bytes, FixedString512Bytes>(NativeTableCapacity, Allocator.Persistent);
+            int dropped = 0;
+            foreach (var kv in _strings)
+            {
+                if (!TryToFixed64(kv.Key, out var k) || !TryToFixed512(kv.Value, out var v))
+                {
+                    dropped++;
+                    continue;
+                }
+                map[k] = v;
+            }
+            LocaleTable.Current = map;
+            LocaleTable.IsReady = true;
+            LocaleTable.Generation++;
+            if (dropped > 0)
+                Debug.LogWarning($"[LocaleService] {dropped} entries dropped from native table (key>60B or value>509B)");
+        }
+
+        static bool TryToFixed64(string s, out FixedString64Bytes f)
+        {
+            f = default;
+            return f.Append(s) == FormatError.None;
+        }
+
+        static bool TryToFixed512(string s, out FixedString512Bytes f)
+        {
+            f = default;
+            return f.Append(s) == FormatError.None;
+        }
+
+        public void Dispose()
+        {
+            if (LocaleTable.Current.IsCreated) LocaleTable.Current.Dispose();
+            LocaleTable.IsReady = false;
         }
 
         static Dictionary<string, string> ParseFlat(string json)

@@ -1,8 +1,11 @@
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using Cysharp.Text;
 using Cysharp.Threading.Tasks;
+using ObservableCollections;
 using R3;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,19 +14,23 @@ using VContainer.Unity;
 
 namespace RareIcon
 {
-    /// <summary>Phase 1 multiplayer lobby waiting room. Visible during <see cref="AppInterfaceState.Lobby"/>; shows lobby id, peer roster (Steam display names + host marker), mode picker (host-only), invite-overlay button, Start, Leave. Mode + Start fan out via <see cref="MultiplayerCoordinator"/> which writes to Steam lobby data; clients see updates through <see cref="SteamLobbyDataChangedMessage"/> + <see cref="SteamLobbyMemberChangedMessage"/>.</summary>
+    /// <summary>Phase 1 multiplayer lobby waiting room. Visible during <see cref="AppInterfaceState.Lobby"/>; shows lobby id, peer roster (Steam display names + host marker), mode picker (host-only), invite-overlay button, Start, Leave. Mode + Start fan out via <see cref="MultiplayerCoordinator"/> which writes to Steam lobby data; clients see updates through <see cref="SteamLobbyDataChangedMessage"/> + <see cref="SteamLobbyMemberChangedMessage"/>. Member list is delta-driven via <see cref="ObservableListView{TRecord, TElement}"/> over <see cref="MultiplayerCoordinator.MemberList"/>; empty-state row is a permanent fixture toggled by display style on count-change. All strings i18n via <see cref="LocaleService"/>; row text uses <see cref="ZString"/> for zero-alloc formatting.</summary>
     public sealed class UILobbyRoom : IAsyncStartable, IDisposable
     {
         readonly AppStateController _appState;
         readonly MultiplayerCoordinator _mp;
         readonly UIPanelManager _panelManager;
+        readonly LocaleService _locale;
         readonly CompositeDisposable _disposables = new();
 
         VisualElement _root;
         VisualElement _docRoot;
         VisualElement _titleContent;
-        readonly System.Collections.Generic.List<VisualElement> _hiddenSiblings = new();
+        readonly List<VisualElement> _hiddenSiblings = new();
         VisualElementPool<Label> _memberRowPool;
+        ObservableListView<MemberRecord, Label> _memberView;
+        Label _emptyRow;
+        readonly ReactiveProperty<bool> _isVisible = new(false);
         Label _modeLabel;
         Label _seedLabel;
         Label _lobbyIdLabel;
@@ -34,12 +41,19 @@ namespace RareIcon
         Button _startBtn;
         Button _leaveBtn;
 
+        string _hostSuffix;
+        string _modeLabelPrefix;
+        string _seedLabelPrefix;
+        string _lobbyIdLabelPrefix;
+        string _emptyDash;
+
         [Inject]
-        public UILobbyRoom(AppStateController appState, MultiplayerCoordinator mp, UIPanelManager panelManager)
+        public UILobbyRoom(AppStateController appState, MultiplayerCoordinator mp, UIPanelManager panelManager, LocaleService locale)
         {
             _appState = appState;
             _mp = mp;
             _panelManager = panelManager;
+            _locale = locale;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -48,15 +62,55 @@ namespace RareIcon
             var uiRoot = _panelManager.RootElement;
             if (uiRoot == null) return;
 
+            CacheLocalizedConstants();
             BuildPanel(uiRoot);
 
             _appState.Current
-                .Subscribe(state => SetVisible(state == AppInterfaceState.Lobby))
+                .Subscribe(state => _isVisible.Value = state == AppInterfaceState.Lobby)
                 .AddTo(_disposables);
 
-            _mp.Mode.Subscribe(_ => RefreshModeUI()).AddTo(_disposables);
-            _mp.IsHost.Subscribe(_ => RefreshHostUI()).AddTo(_disposables);
-            _mp.Members.Subscribe(_ => RefreshMemberList()).AddTo(_disposables);
+            _isVisible.DistinctUntilChanged()
+                .Subscribe(OnVisibilityChanged)
+                .AddTo(_disposables);
+
+            _mp.Mode
+                .Where(_ => _isVisible.Value)
+                .Subscribe(_ => RefreshModeUI())
+                .AddTo(_disposables);
+
+            _mp.IsHost
+                .Where(_ => _isVisible.Value)
+                .Subscribe(_ => RefreshHostUI())
+                .AddTo(_disposables);
+
+            _memberView = new ObservableListView<MemberRecord, Label>(
+                source: _mp.MemberList,
+                container: _memberList,
+                pool: _memberRowPool,
+                bind: BindMemberRow);
+
+            _mp.MemberList.ObserveCountChanged()
+                .Select(c => c == 0 ? DisplayStyle.Flex : DisplayStyle.None)
+                .DistinctUntilChanged()
+                .Subscribe(d => _emptyRow.style.display = d)
+                .AddTo(_disposables);
+        }
+
+        void CacheLocalizedConstants()
+        {
+            _hostSuffix         = ZString.Concat("  ", _locale.Get("lobby.host_suffix"));
+            _modeLabelPrefix    = _locale.Get("lobby.mode_label");
+            _seedLabelPrefix    = _locale.Get("lobby.seed_label");
+            _lobbyIdLabelPrefix = _locale.Get("lobby.id_label");
+            _emptyDash          = _locale.Get("lobby.empty_dash");
+        }
+
+        void BindMemberRow(MemberRecord rec, Label row)
+        {
+            row.text = rec.DisplayLine.IsEmpty
+                ? ZString.Concat("• ", rec.DisplayName.ToString(), rec.IsHost == 1 ? _hostSuffix : string.Empty)
+                : rec.DisplayLine.ToString();
+            row.style.color = UIStyles.Palette.TextPrimary;
         }
 
         void BuildPanel(VisualElement uiRoot)
@@ -73,27 +127,25 @@ namespace RareIcon
             card.style.minWidth = 420;
             card.style.alignItems = Align.Stretch;
 
-            var title = UIStyles.MakeHeading("Lobby", fontSize: 22);
+            var title = UIStyles.MakeHeading(_locale.Get("lobby.title"), fontSize: 22);
             title.style.unityTextAlign = TextAnchor.MiddleCenter;
             title.style.marginBottom = 12;
 
-            _modeLabel    = MakeRow("Mode: -");
-            _seedLabel    = MakeRow("Seed: -");
-            _lobbyIdLabel = MakeRow("Lobby: -");
+            _modeLabel    = MakeRow(ZString.Concat(_modeLabelPrefix,    ": ", _emptyDash));
+            _seedLabel    = MakeRow(ZString.Concat(_seedLabelPrefix,    ": ", _emptyDash));
+            _lobbyIdLabel = MakeRow(ZString.Concat(_lobbyIdLabelPrefix, ": ", _emptyDash));
 
-            // Mode picker (host-only, disabled for clients)
             var modeRow = new VisualElement();
             modeRow.style.flexDirection = FlexDirection.Row;
             modeRow.style.justifyContent = Justify.SpaceBetween;
             modeRow.style.marginTop = 6;
 
-            _modePvEBtn = MakeModeBtn("PvE Co-op",  () => _mp.SetMode(GameMode.PvECoop));
-            _modePvPBtn = MakeModeBtn("PvP",        () => _mp.SetMode(GameMode.PvP));
+            _modePvEBtn = MakeModeBtn(_locale.Get("mode.btn_pve_coop"), () => _mp.SetMode(GameMode.PvECoop));
+            _modePvPBtn = MakeModeBtn(_locale.Get("mode.btn_pvp"),      () => _mp.SetMode(GameMode.PvP));
             modeRow.Add(_modePvEBtn);
             modeRow.Add(_modePvPBtn);
 
-            // Member list
-            var membersHeader = MakeRow("Members");
+            var membersHeader = MakeRow(_locale.Get("lobby.members_header"));
             membersHeader.style.marginTop = 12;
             membersHeader.style.color = UIStyles.Palette.GoldBright;
             membersHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -115,14 +167,19 @@ namespace RareIcon
                 onRelease: l => l.text = string.Empty,
                 prewarm: 4);
 
-            // Action buttons
-            _inviteBtn = MakeButton("Invite Friends", () => _mp.OpenInviteOverlay());
+            _emptyRow = new Label(_locale.Get("lobby.waiting_for_peers"));
+            _emptyRow.style.color = UIStyles.Palette.GoldMuted;
+            _emptyRow.style.fontSize = 12;
+            _emptyRow.style.marginBottom = 2;
+            _memberList.Add(_emptyRow);
+
+            _inviteBtn = MakeButton(_locale.Get("lobby.btn_invite"), () => _mp.OpenInviteOverlay());
             _inviteBtn.style.marginTop = 12;
 
-            _startBtn = MakeButton("Start Match", () => _mp.StartMatch());
+            _startBtn = MakeButton(_locale.Get("lobby.btn_start"), () => _mp.StartMatch());
             _startBtn.style.marginTop = 6;
 
-            _leaveBtn = MakeButton("Leave Lobby", () => _mp.Leave());
+            _leaveBtn = MakeButton(_locale.Get("lobby.btn_leave"), () => _mp.Leave());
             _leaveBtn.style.marginTop = 6;
             _leaveBtn.style.color = UIStyles.Palette.GoldMuted;
 
@@ -138,21 +195,18 @@ namespace RareIcon
             card.Add(_leaveBtn);
             _root.Add(card);
 
-            // Defer parenting to SetVisible — title screen UXML is loaded
-            // by UITitleScreen on its own IAsyncStartable schedule which may
-            // not have run yet when this builder fires. Lazy-find the
-            // title-content scrollview at show time.
             _docRoot = uiRoot;
         }
 
         void EnsureMountedInTitleContent()
         {
             if (_root == null || _docRoot == null) return;
-            var found = _docRoot.Q<VisualElement>("title-content");
-            if (found == null) return;
-            if (_titleContent == found && _root.parent == found) return;
+            if (_titleContent != null && _root.parent == _titleContent) return;
 
-            _titleContent = found;
+            if (_titleContent == null)
+                _titleContent = _docRoot.Q<VisualElement>("title-content");
+            if (_titleContent == null) return;
+
             _root.RemoveFromHierarchy();
             _titleContent.Add(_root);
         }
@@ -185,18 +239,17 @@ namespace RareIcon
             return b;
         }
 
-        void SetVisible(bool visible)
+        void OnVisibilityChanged(bool visible)
         {
             if (_root == null) return;
             if (visible)
             {
                 EnsureMountedInTitleContent();
-                _seedLabel.text    = $"Seed: {(_mp.InLobby ? Convert.ToString(0) : "-")}";
-                _lobbyIdLabel.text = $"Lobby: {_mp.CurrentLobbyId}";
+                _seedLabel.text    = ZString.Concat(_seedLabelPrefix,    ": ", _mp.InLobby ? "0" : _emptyDash);
+                _lobbyIdLabel.text = ZString.Concat(_lobbyIdLabelPrefix, ": ", _mp.CurrentLobbyId);
                 HideTitleStageSiblings();
                 RefreshModeUI();
                 RefreshHostUI();
-                RefreshMemberList();
             }
             else
             {
@@ -231,7 +284,7 @@ namespace RareIcon
         void RefreshModeUI()
         {
             var mode = _mp.Mode.CurrentValue;
-            _modeLabel.text = $"Mode: {DescribeMode(mode)}";
+            _modeLabel.text = ZString.Concat(_modeLabelPrefix, ": ", DescribeMode(mode));
             HighlightModeBtn(_modePvEBtn, mode == GameMode.PvECoop);
             HighlightModeBtn(_modePvPBtn, mode == GameMode.PvP);
         }
@@ -243,36 +296,6 @@ namespace RareIcon
             _modePvPBtn.SetEnabled(host);
             _startBtn.SetEnabled(host);
             _inviteBtn.SetEnabled(host);
-        }
-
-        void RefreshMemberList()
-        {
-            if (_memberList == null || _memberRowPool == null) return;
-            // Return every rented row to the pool — rows detach from the
-            // member list automatically inside Release(); next iteration
-            // re-rents fresh instances + re-attaches.
-            _memberRowPool.ReleaseAll();
-
-            var ids = _mp.MemberIds;
-            ulong owner = _mp.OwnerSteamId;
-            for (int i = 0; i < ids.Count; i++)
-            {
-                ulong id = ids[i];
-                string name = MultiplayerCoordinator.ResolveDisplayName(id);
-                string suffix = id == owner ? "  (host)" : string.Empty;
-                var row = _memberRowPool.Acquire();
-                row.text = $"• {name}{suffix}";
-                row.style.color = UIStyles.Palette.TextPrimary;
-                _memberList.Add(row);
-            }
-
-            if (ids.Count == 0)
-            {
-                var empty = _memberRowPool.Acquire();
-                empty.text = "waiting for peers…";
-                empty.style.color = UIStyles.Palette.GoldMuted;
-                _memberList.Add(empty);
-            }
         }
 
         static void HighlightModeBtn(Button b, bool active)
@@ -288,15 +311,16 @@ namespace RareIcon
             b.style.borderRightColor = c;
         }
 
-        static string DescribeMode(GameMode m) => m switch
+        string DescribeMode(GameMode m) => m switch
         {
-            GameMode.PvECoop => "PvE Co-op (shared empire)",
-            GameMode.PvP     => "PvP (rival empires)",
-            _                => "Single Player",
+            GameMode.PvECoop => _locale.Get("mode.pve_coop"),
+            GameMode.PvP     => _locale.Get("mode.pvp"),
+            _                => _locale.Get("mode.single_player"),
         };
 
         public void Dispose()
         {
+            _memberView?.Dispose();
             _memberRowPool?.Dispose();
             _disposables?.Dispose();
         }

@@ -1,9 +1,12 @@
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
+using System.Collections.Generic;
 using MessagePipe;
+using ObservableCollections;
 using R3;
 using RareIcon.Platform;
+using Unity.Collections;
 using VContainer;
 using VContainer.Unity;
 
@@ -24,14 +27,19 @@ namespace RareIcon
 
         readonly ReactiveProperty<GameMode> _mode    = new(GameMode.SinglePlayer);
         readonly ReactiveProperty<bool>     _isHost  = new(false);
-        readonly ReactiveProperty<int>      _members = new(0);
+        readonly ReactiveProperty<int>      _membersCount = new(0);
+        readonly ObservableList<MemberRecord> _membersList = new();
+        readonly Dictionary<ulong, MemberRecord> _byId = new();
 
         readonly CompositeDisposable _disposables = new();
         bool _matchStarting;
 
         public ReadOnlyReactiveProperty<GameMode> Mode    => _mode;
         public ReadOnlyReactiveProperty<bool>     IsHost  => _isHost;
-        public ReadOnlyReactiveProperty<int>      Members => _members;
+        public ReadOnlyReactiveProperty<int>      Members => _membersCount;
+
+        /// <summary>Authoritative roster — diff-driven, blittable record per peer. Subscribers (UI list views, ECS PlayerPeerMirrorSystem) bind via <c>ObserveAdd / ObserveRemove</c> and only pay per-delta cost. Mutations gated on <see cref="ObservableList{T}.SyncRoot"/> so non-main-thread emitters (NetCode driver, future Rust empire stream) can co-write safely.</summary>
+        public ObservableList<MemberRecord> MemberList => _membersList;
 
         public ulong CurrentLobbyId => _lobby.CurrentLobbyId;
         public bool  InLobby        => _lobby.InLobby;
@@ -171,7 +179,7 @@ namespace RareIcon
         void OnJoined(SteamLobbyJoinedMessage msg)
         {
             if (!msg.Success) return;
-            _members.Value = _lobby.Members.Count;
+            SyncMemberList();
 
             string modeStr = _lobby.GetData(LobbyDataKeys.Mode);
             if (byte.TryParse(modeStr, out byte b) && b <= (byte)GameMode.PvP)
@@ -191,15 +199,100 @@ namespace RareIcon
 
         void OnLeft(SteamLobbyLeftMessage _)
         {
-            _members.Value = 0;
+            _membersCount.Value = 0;
             _isHost.Value  = false;
             _matchStarting = false;
+            lock (_membersList.SyncRoot)
+            {
+                _membersList.Clear();
+                _byId.Clear();
+            }
             _appState.ReturnToMainMenu();
         }
 
-        void OnMember(SteamLobbyMemberChangedMessage _)
+        void OnMember(SteamLobbyMemberChangedMessage _) => SyncMemberList();
+
+        void SyncMemberList()
         {
-            _members.Value = _lobby.Members.Count;
+            ulong owner = _lobby.OwnerSteamId;
+            var current = _lobby.Members;
+            _membersCount.Value = current.Count;
+
+            lock (_membersList.SyncRoot)
+            {
+                var seen = new HashSet<ulong>(current.Count);
+                for (int i = 0; i < current.Count; i++)
+                {
+                    ulong id = current[i];
+                    seen.Add(id);
+                    var rec = BuildRecord(id, owner);
+                    if (_byId.TryGetValue(id, out var prev))
+                    {
+                        if (!RecordPayloadEquals(prev, rec))
+                        {
+                            int idx = _membersList.IndexOf(prev);
+                            if (idx >= 0) _membersList[idx] = rec;
+                            _byId[id] = rec;
+                        }
+                    }
+                    else
+                    {
+                        _membersList.Add(rec);
+                        _byId[id] = rec;
+                    }
+                }
+
+                if (_byId.Count > seen.Count)
+                {
+                    var stale = new List<ulong>();
+                    foreach (var kv in _byId) if (!seen.Contains(kv.Key)) stale.Add(kv.Key);
+                    for (int i = 0; i < stale.Count; i++)
+                    {
+                        var rec = _byId[stale[i]];
+                        _membersList.Remove(rec);
+                        _byId.Remove(stale[i]);
+                    }
+                }
+            }
+        }
+
+        static MemberRecord BuildRecord(ulong id, ulong owner)
+        {
+            string name = ResolveDisplayName(id);
+            var fixedName = new FixedString64Bytes();
+            fixedName.CopyFromTruncated(name ?? string.Empty);
+            return new MemberRecord
+            {
+                SteamId     = id,
+                DisplayName = fixedName,
+                FactionId   = 0,
+                LocalSlot   = 0,
+                IsHost      = (byte)(id == owner ? 1 : 0),
+            };
+        }
+
+        static bool RecordPayloadEquals(MemberRecord a, MemberRecord b)
+        {
+            return a.IsHost == b.IsHost
+                && a.FactionId == b.FactionId
+                && a.LocalSlot == b.LocalSlot
+                && a.DisplayName.Equals(b.DisplayName)
+                && a.DisplayLine.Equals(b.DisplayLine);
+        }
+
+        /// <summary>Push a Burst-composed display line back into the managed roster. Called by <see cref="LobbyMemberDisplayBridge"/> after its version-gate detects a fresh <see cref="LocalizedDisplay"/> payload on a <see cref="PlayerPeer"/> entity. No-op when the steam id is not in the roster (peer left between Burst tick + bridge drain) or when the bytes match the cached record. Mutating call fires Replace on <see cref="MemberList"/>, which <see cref="ObservableListView{TRecord, TElement}"/> picks up and re-binds with one <c>ToString()</c> at the Label boundary.</summary>
+        public void UpdateMemberDisplayLine(ulong steamId, FixedString128Bytes line)
+        {
+            lock (_membersList.SyncRoot)
+            {
+                if (!_byId.TryGetValue(steamId, out var prev)) return;
+                if (prev.DisplayLine.Equals(line)) return;
+                var next = prev;
+                next.DisplayLine = line;
+                int idx = _membersList.IndexOf(prev);
+                if (idx >= 0) _membersList[idx] = next;
+                _byId[steamId] = next;
+            }
         }
 
         void OnData(SteamLobbyDataChangedMessage _)
