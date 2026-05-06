@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.131",
+			"version": "1.0.134",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -200,7 +200,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.35",
+			"version": "1.0.39",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -221,7 +221,7 @@
 		{
 			"key": "mc_lobby",
 			"app_name": "mc-lobby",
-			"version": "1.0.4",
+			"version": "1.0.7",
 			"version_toml": "apps/mc/lobby/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
 			"source_path": "apps/mc/lobby",
@@ -234,7 +234,7 @@
 		{
 			"key": "mc_velocity",
 			"app_name": "mc-velocity",
-			"version": "1.0.3",
+			"version": "1.1.8",
 			"version_toml": "apps/mc/velocity/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
 			"source_path": "apps/mc/velocity",
@@ -624,7 +624,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
