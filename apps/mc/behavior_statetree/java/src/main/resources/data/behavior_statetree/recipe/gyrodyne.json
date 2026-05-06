@@ -1,0 +1,14 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [" I ", "WPW", " P "],
+	"key": {
+		"I": "minecraft:iron_ingot",
+		"W": "minecraft:white_wool",
+		"P": "minecraft:oak_planks"
+	},
+	"result": {
+		"id": "behavior_statetree:gyrodyne",
+		"count": 1
+	},
+	"category": "misc"
+}

@@ -3,6 +3,7 @@ package com.kbve.statetree;
 import com.kbve.statetree.chat.McChatEvents;
 import com.kbve.statetree.ship.ShipCommands;
 import com.kbve.statetree.ship.ShipEntityTypes;
+import com.kbve.statetree.ship.ShipItems;
 import com.kbve.statetree.ship.ShipManager;
 import com.kbve.statetree.ship.ShipNetworking;
 import net.fabricmc.api.ModInitializer;
@@ -27,8 +28,9 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Register ship entity type
+        // Register ship entity type + spawn items
         ShipEntityTypes.register();
+        ShipItems.register();
 
         // Register network payloads + server-side helm input receiver
         ShipNetworking.registerPayloads();
