@@ -24,6 +24,7 @@ RUN apk add --no-cache e2fsprogs
 
 RUN mkdir -p /rootfs/etc/apk && \
     cp /etc/apk/repositories /rootfs/etc/apk/repositories && \
+    cp -a /etc/apk/keys /rootfs/etc/apk/ && \
     apk add --root /rootfs --initdb --no-cache \
         alpine-baselayout \
         busybox \
