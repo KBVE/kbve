@@ -2,37 +2,82 @@
 ref: lock-open
 name: Lock Open
 title: Lock Open Icon
-description: Lock Open glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+description: Lock Open glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: action
-categories: [action, library]
-tags: [phosphor-generated, multi-weight]
+categories:
+  - action
+  - library
+tags:
+  - phosphor-generated
+  - multi-weight
+  - heroicons-generated
+  - heroicons
+  - merged-multi-source
 search:
-  keywords: ["lock-open","lock","open","lock open"]
+  keywords:
+    - lock-open
+    - lock
+    - open
+    - lock open
   primary_category: action
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  attribution_line: Phosphor Icons (https://phosphoricons.com/) — MIT License
   author: Phosphor contributors
-  source_url: "https://phosphoricons.com/?q=lock-open"
+  source_url: https://phosphoricons.com/?q=lock-open
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "regular"
-    label: "Regular"
+  - ref: regular
+    label: Regular
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [phosphor, regular]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,80H96V56a32,32,0,0,1,32-32c15.37,0,29.2,11,32.16,25.59a8,8,0,0,0,15.68-3.18C171.32,24.15,151.2,8,128,8A48.05,48.05,0,0,0,80,56V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm0,128H48V96H208V208Zm-68-56a12,12,0,1,1-12-12A12,12,0,0,1,140,152Z"/></svg>
-pagefindFilters: [phosphor, action]
+  - ref: hero-heroicons
+    label: Heroicons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25"/></svg>
+pagefindFilters:
+  - phosphor
+  - action
+  - heroicons
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

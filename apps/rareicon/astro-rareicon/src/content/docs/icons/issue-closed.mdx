@@ -1,0 +1,50 @@
+---
+ref: issue-closed
+name: Issue Closed
+title: Issue Closed Icon
+description: Issue Closed glyph from the octicons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [octicons-generated, octicons]
+search:
+  keywords: ["issue-closed","issue","closed","issue-closed-24","issue closed"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  author: GitHub Inc.
+  source_url: "https://primer.style/foundations/icons/issue-closed-24"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "octicons"
+    label: "Octicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [octicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M17.28 9.28a.75.75 0 0 0-1.06-1.06l-5.97 5.97l-2.47-2.47a.75.75 0 0 0-1.06 1.06l3 3a.75.75 0 0 0 1.06 0z"/><path fill="currentColor" d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12S5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5a9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5A9.5 9.5 0 0 0 2.5 12"/></svg>
+pagefindFilters: [octicons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Issue Closed — glyph from the [Octicons icon library](https://primer.style/foundations/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

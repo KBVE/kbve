@@ -111,6 +111,14 @@
 				"parallel": false
 			}
 		},
+		"gen:iconify-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-iconify-icons.mjs"],
+				"parallel": false
+			}
+		},
 		"gen:merge-variants": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -129,6 +137,7 @@
 					"node scripts/gen-tabler-icons.mjs",
 					"node scripts/gen-phosphor-icons.mjs",
 					"node scripts/gen-gameicons.mjs",
+					"node scripts/gen-iconify-icons.mjs",
 					"node scripts/gen-merge-variants.mjs"
 				],
 				"parallel": false

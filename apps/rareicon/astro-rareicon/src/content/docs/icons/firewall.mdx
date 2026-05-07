@@ -1,0 +1,50 @@
+---
+ref: firewall
+name: Firewall
+title: Firewall Icon
+description: Firewall glyph from the carbon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [carbon-generated, carbon]
+search:
+  keywords: ["firewall"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Carbon Icons (https://carbondesignsystem.com/guidelines/icons/library/) — Apache 2.0"
+  author: IBM Corp.
+  source_url: "https://carbondesignsystem.com/guidelines/icons/library/?icon=firewall"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "carbon"
+    label: "Carbon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 32, height: 32 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [carbon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="M27 20.397v3c-1 0-2-1.5-2-4v-3c-4 5-5 7-5 9A5 5 0 0 0 23.046 30A7.53 7.53 0 0 1 25 26.397A7.53 7.53 0 0 1 26.954 30A5 5 0 0 0 30 25.397c0-2-1.125-3.571-3-5M17 28H4v-4h13v-2H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h13Z"/><path fill="currentColor" d="M28 12H7a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10v-2H7v-4h21l.001 2H30v-2a2 2 0 0 0-2-2m-3-2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h21a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2M4 4v4h21V4Z"/></svg>
+pagefindFilters: [carbon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Firewall — glyph from the [Carbon icon library](https://carbondesignsystem.com/guidelines/icons/library/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

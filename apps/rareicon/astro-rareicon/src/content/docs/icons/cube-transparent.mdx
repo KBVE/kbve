@@ -1,0 +1,50 @@
+---
+ref: cube-transparent
+name: Cube Transparent
+title: Cube Transparent Icon
+description: Cube Transparent glyph from the heroicons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [heroicons-generated, heroicons]
+search:
+  keywords: ["cube-transparent","cube","transparent","cube transparent"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Heroicons (https://heroicons.com/) — MIT License"
+  author: Refactoring UI Inc.
+  source_url: "https://heroicons.com/cube-transparent"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "heroicons"
+    label: "Heroicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [heroicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 7.5l-2.25-1.312M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.312M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.312M12 12.75l-2.25-1.312M12 12.75V15m0 6.75l2.25-1.312M12 21.75V19.5m0 2.25l-2.25-1.312m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"/></svg>
+pagefindFilters: [heroicons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Cube Transparent — glyph from the [Heroicons icon library](https://heroicons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

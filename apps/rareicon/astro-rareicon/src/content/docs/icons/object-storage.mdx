@@ -1,0 +1,50 @@
+---
+ref: object-storage
+name: Object Storage
+title: Object Storage Icon
+description: Object Storage glyph from the carbon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [carbon-generated, carbon]
+search:
+  keywords: ["object-storage","object","storage","object storage"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Carbon Icons (https://carbondesignsystem.com/guidelines/icons/library/) — Apache 2.0"
+  author: IBM Corp.
+  source_url: "https://carbondesignsystem.com/guidelines/icons/library/?icon=object-storage"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "carbon"
+    label: "Carbon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 32, height: 32 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [carbon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="M28 20h-2v2h2v6H4v-6h10v-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2"/><circle cx="7" cy="25" r="1" fill="currentColor"/><path fill="currentColor" d="M30 8h-8v6h-6v8h8v-6h6Zm-8 12h-4v-4h4Zm6-6h-4v-4h4Zm-10-4h-8V2h8Zm-6-2h4V4h-4Z"/></svg>
+pagefindFilters: [carbon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Object Storage — glyph from the [Carbon icon library](https://carbondesignsystem.com/guidelines/icons/library/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

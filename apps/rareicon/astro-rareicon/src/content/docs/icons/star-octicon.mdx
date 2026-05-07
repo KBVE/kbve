@@ -1,0 +1,50 @@
+---
+ref: star-octicon
+name: Star Octicon
+title: Star Octicon Icon
+description: Star Octicon glyph from the octicons icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [octicons-generated, octicons]
+search:
+  keywords: ["star-octicon","star","octicon","star-24","star octicon"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  author: GitHub Inc.
+  source_url: "https://primer.style/foundations/icons/star-24"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "octicons"
+    label: "Octicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [octicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M12 .25a.75.75 0 0 1 .673.418l3.058 6.197l6.839.994a.75.75 0 0 1 .415 1.279l-4.948 4.823l1.168 6.811a.751.751 0 0 1-1.088.791L12 18.347l-6.117 3.216a.75.75 0 0 1-1.088-.79l1.168-6.812l-4.948-4.823a.75.75 0 0 1 .416-1.28l6.838-.993L11.328.668A.75.75 0 0 1 12 .25m0 2.445L9.44 7.882a.75.75 0 0 1-.565.41l-5.725.832l4.143 4.038a.75.75 0 0 1 .215.664l-.978 5.702l5.121-2.692a.75.75 0 0 1 .698 0l5.12 2.692l-.977-5.702a.75.75 0 0 1 .215-.664l4.143-4.038l-5.725-.831a.75.75 0 0 1-.565-.41z"/></svg>
+pagefindFilters: [octicons, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Star Octicon — glyph from the [Octicons icon library](https://primer.style/foundations/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

@@ -39,7 +39,15 @@ const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 
-const PACK_SUFFIXES = ['tabler', 'phosphor', 'game'];
+const PACK_SUFFIXES = [
+	'tabler',
+	'phosphor',
+	'game',
+	'hero',
+	'octicon',
+	'iconoir',
+	'carbon',
+];
 const PACK_RE = new RegExp(`^(.+)-(${PACK_SUFFIXES.join('|')})\\.mdx$`);
 
 /**
@@ -80,6 +88,10 @@ function isGenerated(frontmatter) {
 			t === 'tabler-generated' ||
 			t === 'phosphor-generated' ||
 			t === 'game-icons-generated' ||
+			t === 'heroicons-generated' ||
+			t === 'octicons-generated' ||
+			t === 'iconoir-generated' ||
+			t === 'carbon-generated' ||
 			t === 'merged-multi-source');
 	return tags.some(sentinel);
 }

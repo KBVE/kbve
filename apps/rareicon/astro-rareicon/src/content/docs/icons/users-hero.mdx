@@ -1,0 +1,50 @@
+---
+ref: users-hero
+name: Users Hero
+title: Users Hero Icon
+description: Users Hero glyph from the heroicons icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [heroicons-generated, heroicons]
+search:
+  keywords: ["users-hero","users","hero","users hero"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Heroicons (https://heroicons.com/) — MIT License"
+  author: Refactoring UI Inc.
+  source_url: "https://heroicons.com/users"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "heroicons"
+    label: "Heroicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [heroicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.4 9.4 0 0 0 2.625.372a9.3 9.3 0 0 0 4.121-.952q.004-.086.004-.173a4.125 4.125 0 0 0-7.536-2.32M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.3 12.3 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0a3.375 3.375 0 0 1 6.75 0m8.25 2.25a2.625 2.625 0 1 1-5.25 0a2.625 2.625 0 0 1 5.25 0"/></svg>
+pagefindFilters: [heroicons, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Users Hero — glyph from the [Heroicons icon library](https://heroicons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

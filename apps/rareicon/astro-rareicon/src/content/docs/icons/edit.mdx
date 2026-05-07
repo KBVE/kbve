@@ -1,0 +1,50 @@
+---
+ref: edit
+name: Edit
+title: Edit Icon
+description: Edit glyph from the iconoir icon library, 1 variant — recolor via currentColor.
+primary_category: action
+categories: [action, library]
+tags: [iconoir-generated, iconoir]
+search:
+  keywords: ["edit"]
+  primary_category: action
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Iconoir (https://iconoir.com/) — MIT License"
+  author: Iconoir contributors
+  source_url: "https://iconoir.com/edit"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "iconoir"
+    label: "Iconoir"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [iconoir]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 21h18M12.222 5.828L15.05 3L20 7.95l-2.828 2.828m-4.95-4.95l-5.607 5.607a1 1 0 0 0-.293.707v4.536h4.536a1 1 0 0 0 .707-.293l5.607-5.607m-4.95-4.95l4.95 4.95"/></svg>
+pagefindFilters: [iconoir, action]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Edit — glyph from the [Iconoir icon library](https://iconoir.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

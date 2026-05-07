@@ -2,37 +2,82 @@
 ref: magnifying-glass
 name: Magnifying Glass
 title: Magnifying Glass Icon
-description: Magnifying Glass glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+description: Magnifying Glass glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: action
-categories: [action, library]
-tags: [phosphor-generated, multi-weight]
+categories:
+  - action
+  - library
+tags:
+  - phosphor-generated
+  - multi-weight
+  - heroicons-generated
+  - heroicons
+  - merged-multi-source
 search:
-  keywords: ["magnifying-glass","magnifying","glass","magnifying glass"]
+  keywords:
+    - magnifying-glass
+    - magnifying
+    - glass
+    - magnifying glass
   primary_category: action
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  attribution_line: Phosphor Icons (https://phosphoricons.com/) — MIT License
   author: Phosphor contributors
-  source_url: "https://phosphoricons.com/?q=magnifying-glass"
+  source_url: https://phosphoricons.com/?q=magnifying-glass
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "regular"
-    label: "Regular"
+  - ref: regular
+    label: Regular
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [phosphor, regular]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
-pagefindFilters: [phosphor, action]
+  - ref: hero-heroicons
+    label: Heroicons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607"/></svg>
+pagefindFilters:
+  - phosphor
+  - action
+  - heroicons
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

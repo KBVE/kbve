@@ -1,0 +1,50 @@
+---
+ref: repo-forked
+name: Repo Forked
+title: Repo Forked Icon
+description: Repo Forked glyph from the octicons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [octicons-generated, octicons]
+search:
+  keywords: ["repo-forked","repo","forked","repo-forked-24","repo forked"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  author: GitHub Inc.
+  source_url: "https://primer.style/foundations/icons/repo-forked-24"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "octicons"
+    label: "Octicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [octicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M8.75 19.25a3.25 3.25 0 1 1 6.5 0a3.25 3.25 0 0 1-6.5 0M15 4.75a3.25 3.25 0 1 1 6.5 0a3.25 3.25 0 0 1-6.5 0m-12.5 0a3.25 3.25 0 1 1 6.5 0a3.25 3.25 0 0 1-6.5 0M5.75 6.5a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 5.75 6.5M12 21a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 12 21m6.25-14.5a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 18.25 6.5"/><path fill="currentColor" d="M6.5 7.75v1A2.25 2.25 0 0 0 8.75 11h6.5a2.25 2.25 0 0 0 2.25-2.25v-1H19v1a3.75 3.75 0 0 1-3.75 3.75h-6.5A3.75 3.75 0 0 1 5 8.75v-1Z"/><path fill="currentColor" d="M11.25 16.25v-5h1.5v5z"/></svg>
+pagefindFilters: [octicons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Repo Forked — glyph from the [Octicons icon library](https://primer.style/foundations/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

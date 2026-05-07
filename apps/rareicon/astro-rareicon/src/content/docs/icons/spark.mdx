@@ -1,0 +1,50 @@
+---
+ref: spark
+name: Spark
+title: Spark Icon
+description: Spark glyph from the iconoir icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [iconoir-generated, iconoir]
+search:
+  keywords: ["spark"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Iconoir (https://iconoir.com/) — MIT License"
+  author: Iconoir contributors
+  source_url: "https://iconoir.com/spark"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "iconoir"
+    label: "Iconoir"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [iconoir]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" d="M3 12c6.268 0 9-2.637 9-9c0 6.363 2.713 9 9 9c-6.287 0-9 2.713-9 9c0-6.287-2.732-9-9-9Z"/></svg>
+pagefindFilters: [iconoir, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Spark — glyph from the [Iconoir icon library](https://iconoir.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

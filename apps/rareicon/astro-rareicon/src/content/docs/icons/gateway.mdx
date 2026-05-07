@@ -1,0 +1,50 @@
+---
+ref: gateway
+name: Gateway
+title: Gateway Icon
+description: Gateway glyph from the carbon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [carbon-generated, carbon]
+search:
+  keywords: ["gateway"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Carbon Icons (https://carbondesignsystem.com/guidelines/icons/library/) — Apache 2.0"
+  author: IBM Corp.
+  source_url: "https://carbondesignsystem.com/guidelines/icons/library/?icon=gateway"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "carbon"
+    label: "Carbon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 32, height: 32 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [carbon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="M31 16a2 2 0 0 0-.586-1.414l-5.793-5.793l2.868-2.868a2 2 0 1 0-1.414-1.414L23.207 7.38l-5.793-5.793a2 2 0 0 0-2.828 0L8.793 7.379L5.925 4.51a2 2 0 1 0-1.414 1.414l2.868 2.868l-5.793 5.793a2 2 0 0 0 0 2.828l5.793 5.793l-2.868 2.868a2 2 0 1 0 1.414 1.414l2.868-2.868l5.793 5.793a2 2 0 0 0 2.828 0l5.793-5.793l2.868 2.868a2 2 0 1 0 1.414-1.414l-2.868-2.868l5.793-5.793A2 2 0 0 0 31 16m-7.793 5.793L20.414 19L19 20.414l2.793 2.793L16 29l-5.793-5.793L13 20.414L11.586 19l-2.793 2.793L3 16l5.793-5.793L11.586 13L13 11.586l-2.793-2.793L16 3l5.794 5.793L19 11.586L20.414 13l2.794-2.793L29 16Z"/></svg>
+pagefindFilters: [carbon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Gateway — glyph from the [Carbon icon library](https://carbondesignsystem.com/guidelines/icons/library/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

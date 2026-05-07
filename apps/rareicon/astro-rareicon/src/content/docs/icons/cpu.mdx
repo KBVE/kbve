@@ -2,7 +2,7 @@
 ref: cpu
 name: Cpu
 title: Cpu Icon
-description: Cpu glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Cpu glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
 categories:
   - tech
@@ -14,6 +14,8 @@ tags:
   - multi-weight
   - merged-multi-source
   - tabler-generated
+  - iconoir-generated
+  - iconoir
 search:
   keywords:
     - cpu
@@ -99,11 +101,33 @@ icons:
       - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -12" /> <path d="M9 9h6v6h-6l0 -6" /> <path d="M3 10h2" /> <path d="M3 14h2" /> <path d="M10 3v2" /> <path d="M14 3v2" /> <path d="M21 10h-2" /> <path d="M21 14h-2" /> <path d="M14 21v-2" /> <path d="M10 21v-2" /></svg>
+  - ref: iconoir
+    label: Iconoir
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - iconoir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M8 15.4V8.6a.6.6 0 0 1 .6-.6h6.8a.6.6 0 0 1 .6.6v6.8a.6.6 0 0 1-.6.6H8.6a.6.6 0 0 1-.6-.6"/><path d="M20 4.6v14.8a.6.6 0 0 1-.6.6H4.6a.6.6 0 0 1-.6-.6V4.6a.6.6 0 0 1 .6-.6h14.8a.6.6 0 0 1 .6.6M17 4V2m-5 2V2M7 4V2m0 18v2m5-2v2m5-2v2m3-5h2m-2-5h2m-2-5h2M4 17H2m2-5H2m2-5H2"/></g></svg>
 pagefindFilters:
   - lucide
   - tech
   - phosphor
   - tabler
+  - iconoir
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

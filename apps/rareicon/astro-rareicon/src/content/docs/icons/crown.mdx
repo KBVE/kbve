@@ -2,7 +2,7 @@
 ref: crown
 name: Crown
 title: Crown Icon
-description: Crown glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Crown glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
 categories:
   - ui
@@ -15,6 +15,8 @@ tags:
   - multi-weight
   - merged-multi-source
   - tabler-generated
+  - iconoir-generated
+  - iconoir
 search:
   keywords:
     - crown
@@ -100,12 +102,34 @@ icons:
       - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4l4 -6" /></svg>
+  - ref: iconoir
+    label: Iconoir
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - iconoir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.2 17L21 7l-6.3 3L12 7l-2.7 3L3 7l1.8 10z"/></svg>
 pagefindFilters:
   - lucide
   - ui
   - phosphor
   - game
   - tabler
+  - iconoir
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

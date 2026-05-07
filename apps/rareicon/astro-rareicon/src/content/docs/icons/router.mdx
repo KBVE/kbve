@@ -2,7 +2,7 @@
 ref: router
 name: Router
 title: Router Icon
-description: Router glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Router glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
 categories:
   - tech
@@ -12,6 +12,8 @@ tags:
   - outline
   - tabler-generated
   - merged-multi-source
+  - carbon-generated
+  - carbon
 search:
   keywords:
     - router
@@ -75,10 +77,32 @@ icons:
       - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -4" /> <path d="M17 17l0 .01" /> <path d="M13 17l0 .01" /> <path d="M15 13l0 -2" /> <path d="M11.75 8.75a4 4 0 0 1 6.5 0" /> <path d="M8.5 6.5a8 8 0 0 1 13 0" /></svg>
+  - ref: carbon
+    label: Carbon
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 32
+      height: 32
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - carbon
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="m21 7l-5-5l-5 5l1.409 1.419L15 5.847V13h2V5.794l2.591 2.625zm0 18l-5 5l-5-5l1.409-1.419L15 26.153V19h2v7.206l2.591-2.625zm3-14l-5 5l5 5l1.419-1.409L22.847 17H30v-2h-7.206l2.625-2.591zM8 11l5 5l-5 5l-1.419-1.409L9.153 17H2v-2h7.206l-2.625-2.591z"/></svg>
 pagefindFilters:
   - lucide
   - tech
   - tabler
+  - carbon
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

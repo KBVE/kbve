@@ -1,0 +1,50 @@
+---
+ref: mark-github
+name: Mark Github
+title: Mark Github Icon
+description: Mark Github glyph from the octicons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [octicons-generated, octicons]
+search:
+  keywords: ["mark-github","mark","github","mark-github-24","mark github"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  author: GitHub Inc.
+  source_url: "https://primer.style/foundations/icons/mark-github-24"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "octicons"
+    label: "Octicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [octicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256c0-1.123.404-2.336 1.078-3.144c-.292-.741-.247-2.314.09-2.965c.898-.112 2.111.36 2.83 1.01c.853-.269 1.752-.404 2.853-.404c1.1 0 1.999.135 2.807.382c.696-.629 1.932-1.1 2.83-.988c.315.606.36 2.179.067 2.942c.72.854 1.101 2 1.101 3.167c0 2.763-2.089 4.852-5.098 5.234c.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786c4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1C5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669c.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313c-.247-.607-.517-.966-1.034-1.033c-.27-.023-.359-.135-.359-.27c0-.27.45-.471.898-.471c.652 0 1.213.404 1.797 1.235c.45.651.921.943 1.483.943c.561 0 .92-.202 1.437-.719c.382-.381.674-.718.944-.943"/></svg>
+pagefindFilters: [octicons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Mark Github — glyph from the [Octicons icon library](https://primer.style/foundations/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

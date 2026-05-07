@@ -1,0 +1,50 @@
+---
+ref: lock-closed
+name: Lock Closed
+title: Lock Closed Icon
+description: Lock Closed glyph from the heroicons icon library, 1 variant — recolor via currentColor.
+primary_category: action
+categories: [action, library]
+tags: [heroicons-generated, heroicons]
+search:
+  keywords: ["lock-closed","lock","closed","lock closed"]
+  primary_category: action
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Heroicons (https://heroicons.com/) — MIT License"
+  author: Refactoring UI Inc.
+  source_url: "https://heroicons.com/lock-closed"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "heroicons"
+    label: "Heroicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [heroicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25"/></svg>
+pagefindFilters: [heroicons, action]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Lock Closed — glyph from the [Heroicons icon library](https://heroicons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

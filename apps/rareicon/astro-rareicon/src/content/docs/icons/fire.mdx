@@ -2,40 +2,84 @@
 ref: fire
 name: Fire
 title: Fire Icon
-description: Fire glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Fire glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - game
+tags:
+  - lucide
+  - outline
+  - heroicons-generated
+  - heroicons
+  - merged-multi-source
 search:
-  keywords: ["fire", "extinguisher"]
+  keywords:
+    - fire
+    - extinguisher
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/fire"
+  source_url: https://lucide.dev/icons/fire
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "extinguisher"
-    label: "Extinguisher"
+  - ref: extinguisher
+    label: Extinguisher
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6.5V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3.5"/><path d="M9 18h8"/><path d="M18 3h-3"/><path d="M11 3a6 6 0 0 0-6 6v11"/><path d="M5 13h4"/><path d="M17 10a4 4 0 0 0-8 0v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2Z"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: hero-heroicons
+    label: Heroicons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21A8.25 8.25 0 0 1 6.038 7.047A8.3 8.3 0 0 0 9 9.601a8.98 8.98 0 0 1 3.361-6.867a8.2 8.2 0 0 0 3 2.48"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468a6 6 0 0 0-1.925 3.547a6 6 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18"/></g></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - heroicons
+  - game
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

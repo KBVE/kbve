@@ -2,37 +2,82 @@
 ref: shopping-cart
 name: Shopping Cart
 title: Shopping Cart Icon
-description: Shopping Cart glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+description: Shopping Cart glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: commerce
-categories: [commerce, library]
-tags: [phosphor-generated, multi-weight]
+categories:
+  - commerce
+  - library
+tags:
+  - phosphor-generated
+  - multi-weight
+  - heroicons-generated
+  - heroicons
+  - merged-multi-source
 search:
-  keywords: ["shopping-cart","shopping","cart","shopping cart"]
+  keywords:
+    - shopping-cart
+    - shopping
+    - cart
+    - shopping cart
   primary_category: commerce
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  attribution_line: Phosphor Icons (https://phosphoricons.com/) — MIT License
   author: Phosphor contributors
-  source_url: "https://phosphoricons.com/?q=shopping-cart"
+  source_url: https://phosphoricons.com/?q=shopping-cart
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "regular"
-    label: "Regular"
+  - ref: regular
+    label: Regular
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [phosphor, regular]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M230.14,58.87A8,8,0,0,0,224,56H62.68L56.6,22.57A8,8,0,0,0,48.73,16H24a8,8,0,0,0,0,16h18L67.56,172.29a24,24,0,0,0,5.33,11.27,28,28,0,1,0,44.4,8.44h45.42A27.75,27.75,0,0,0,160,204a28,28,0,1,0,28-28H91.17a8,8,0,0,1-7.87-6.57L80.13,152h116a24,24,0,0,0,23.61-19.71l12.16-66.86A8,8,0,0,0,230.14,58.87ZM104,204a12,12,0,1,1-12-12A12,12,0,0,1,104,204Zm96,0a12,12,0,1,1-12-12A12,12,0,0,1,200,204Zm4-74.57A8,8,0,0,1,196.1,136H77.22L65.59,72H214.41Z"/></svg>
-pagefindFilters: [phosphor, commerce]
+  - ref: hero-heroicons
+    label: Heroicons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.137a60 60 0 0 0-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0m12.75 0a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0"/></svg>
+pagefindFilters:
+  - phosphor
+  - commerce
+  - heroicons
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

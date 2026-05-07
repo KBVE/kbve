@@ -1,0 +1,50 @@
+---
+ref: container-software
+name: Container Software
+title: Container Software Icon
+description: Container Software glyph from the carbon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [carbon-generated, carbon]
+search:
+  keywords: ["container-software","container","software","container software"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Carbon Icons (https://carbondesignsystem.com/guidelines/icons/library/) — Apache 2.0"
+  author: IBM Corp.
+  source_url: "https://carbondesignsystem.com/guidelines/icons/library/?icon=container-software"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "carbon"
+    label: "Carbon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 32, height: 32 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [carbon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="M28 12h-8V4h8Zm-6-2h4V6h-4Z"/><path fill="currentColor" d="M17 15V9H9v14h14v-8Zm-6-4h4v4h-4Zm4 10h-4v-4h4Zm6 0h-4v-4h4Z"/><path fill="currentColor" d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2"/></svg>
+pagefindFilters: [carbon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Container Software — glyph from the [Carbon icon library](https://carbondesignsystem.com/guidelines/icons/library/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

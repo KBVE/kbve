@@ -2,7 +2,7 @@
 ref: cloud
 name: Cloud
 title: Cloud Icon
-description: Cloud glyph with 21 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Cloud glyph with 23 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
 categories:
   - tech
@@ -13,6 +13,10 @@ tags:
   - phosphor-generated
   - multi-weight
   - merged-multi-source
+  - heroicons-generated
+  - heroicons
+  - iconoir-generated
+  - iconoir
 search:
   keywords:
     - cloud
@@ -549,10 +553,54 @@ icons:
       - regular
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M160,40A88.09,88.09,0,0,0,81.29,88.67,64,64,0,1,0,72,216h88a88,88,0,0,0,0-176Zm0,160H72a48,48,0,0,1,0-96c1.1,0,2.2,0,3.29.11A88,88,0,0,0,72,128a8,8,0,0,0,16,0,72,72,0,1,1,72,72Z"/></svg>
+  - ref: hero-heroicons
+    label: Heroicons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257a3 3 0 0 0-3.758-3.848a5.25 5.25 0 0 0-10.233 2.33A4.5 4.5 0 0 0 2.25 15"/></svg>
+  - ref: iconoir
+    label: Iconoir
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - iconoir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" d="M12 4c-6 0-6 4-6 6c-1.667 0-5 1-5 5s3.333 5 5 5h12c1.667 0 5-1 5-5s-3.333-5-5-5c0-2 0-6-6-6Z"/></svg>
 pagefindFilters:
   - lucide
   - tech
   - phosphor
+  - heroicons
+  - iconoir
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
