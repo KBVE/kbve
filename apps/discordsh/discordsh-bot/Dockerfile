@@ -14,6 +14,7 @@ COPY Cargo.lock ./
 
 COPY apps/discordsh/discordsh-bot/Cargo.toml apps/discordsh/discordsh-bot/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
@@ -28,6 +29,7 @@ COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/discordsh/discordsh-bot/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
@@ -71,6 +73,7 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && \
 COPY packages/data/proto packages/data/proto
 
 COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
@@ -84,7 +87,7 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat
+    cargo build --release -p kbve -p jedi -p holy -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat
 
 # ============================================================================
 # [STAGE D] - Build Application
@@ -98,6 +101,7 @@ RUN dpkg -s make >/dev/null 2>&1 || \
 # Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
