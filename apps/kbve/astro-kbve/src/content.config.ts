@@ -122,6 +122,17 @@ export const collections = {
 				osrs: OSRSFrontmatterSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
+				// Per-page social-meta overrides consumed by
+				// src/components/navigation/Head.astro. Astro silently strips
+				// nested z.object fields imported across zod-package boundaries
+				// (project memory), so the SocialMetaOverlay shape is defined
+				// inline here using astro:content's z instance.
+				ogTitle: z.string().optional(),
+				ogDescription: z.string().optional(),
+				ogImage: z.string().optional(),
+				twitterTitle: z.string().optional(),
+				twitterDescription: z.string().optional(),
+				twitterImage: z.string().optional(),
 			}),
 		}),
 	}),

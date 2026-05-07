@@ -4,7 +4,7 @@
 	"package": "com.kbve.statetree.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": ["BowAttackGoalMixin"],
-	"client": ["client.CameraMixin"],
+	"client": ["client.CameraMixin", "client.GameRendererMixin"],
 	"injectors": {
 		"defaultRequire": 1
 	}

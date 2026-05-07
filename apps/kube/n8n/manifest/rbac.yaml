@@ -1,9 +1,14 @@
-# ServiceAccount used by the n8n Deployment pod
+# ServiceAccount used by the n8n Deployment pod.
+# The pod does not call the kube API — token mount is disabled here at
+# the SA level; the Deployment specs also set the field at the pod
+# level so any future template that re-binds this SA still inherits the
+# safe default.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: n8n-sa
     namespace: n8n
+automountServiceAccountToken: false
 ---
 # Role: Allow n8n ExternalSecrets SA to read redis-auth secret
 apiVersion: rbac.authorization.k8s.io/v1

@@ -1,0 +1,51 @@
+---
+ref: sports-esports
+name: Sports Esports
+title: Sports Esports Icon
+description: Sports Esports glyph from the material-symbols icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [material-symbols-generated, material-symbols]
+search:
+  keywords: ["sports-esports","sports","esports","sports esports"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Symbols (https://fonts.google.com/icons) — Apache 2.0"
+  author: Google LLC
+  source_url: "https://fonts.google.com/icons?icon.query=sports-esports"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "material-symbols"
+    label: "Material Symbols"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [material-symbols]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M4.55 19q-1.275 0-1.975-.888T2.05 15.95l1.05-7.5q.225-1.5 1.338-2.475T7.05 5h9.9q1.5 0 2.613.975T20.9 8.45l1.05 7.5q.175 1.275-.525 2.163T19.45 19q-.525 0-.975-.187t-.825-.563L15.4 16H8.6l-2.25 2.25q-.375.375-.825.563T4.55 19m13.163-6.288Q18 12.425 18 12t-.288-.712T17 11t-.712.288T16 12t.288.713T17 13t.713-.288m-2-3Q16 9.426 16 9t-.288-.712T15 8t-.712.288T14 9t.288.713T15 10t.713-.288M7.75 13h1.5v-1.75H11v-1.5H9.25V8h-1.5v1.75H6v1.5h1.75z"/></svg>
+pagefindFilters: [material-symbols, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Sports Esports — glyph from the [Material Symbols icon library](https://fonts.google.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

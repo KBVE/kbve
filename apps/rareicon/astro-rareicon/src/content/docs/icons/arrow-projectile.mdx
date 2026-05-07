@@ -1,0 +1,51 @@
+---
+ref: arrow-projectile
+name: Arrow Projectile
+title: Arrow Projectile Icon
+description: Arrow Projectile glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["arrow-projectile","arrow","projectile","arrow projectile"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/arrow-projectile"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="m22 2l-2 5l-.97-.97L8 17.06V19l-3 3l-1-2l-2-1l3-3h1.94L17.97 4.97L17 4z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Arrow Projectile — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

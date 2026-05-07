@@ -1,0 +1,51 @@
+---
+ref: crossbow
+name: Crossbow
+title: Crossbow Icon
+description: Crossbow glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["crossbow"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/crossbow"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m89.594 18.094l-10.75 10.75l.03.03l27.532 333.563l-83.03 92.938l33.25 33.25l90.155-80.563l336.19 24.907l.186.186l.156-.156h.032v-.03l10.562-10.564c-1.676-1.676-3.122-3.437-4.687-5.156c-21.332-25.55-25.416-63.24-35.47-109.125c-8.323-37.99-21.225-81.042-53.094-125.03l-38.062 50.81c.005.008-.005.026 0 .032c28.988 36.074 46.027 67.766 59.72 96.25c15.017 31.247 26.122 59 44.467 83.688L165.314 391.5L337.53 237.594l64.376-85.97l-41.53-41.53l-85.907 64.312L122.81 344.094L98.156 45.25c24.68 18.33 52.425 29.426 83.656 44.438c28.49 13.693 60.2 30.72 96.282 59.718l50.812-38.062c-43.99-31.86-87.04-44.736-125.03-53.063C157.987 48.224 120.3 44.113 94.75 22.78c-1.72-1.564-3.48-3.01-5.156-4.686m317.03.312c-3.385.028-6.862.406-10.28.97c-4.558.75-8.992 1.837-12.813 3.093c-3.82 1.254-6.776 2.302-9.717 4.624a7.18 7.18 0 0 0-2.72 6.187l5.032 62.345a7.18 7.18 0 0 0 2.063 4.53l33.656 33.626a7.18 7.18 0 0 0 4.5 2.095l62.344 5.03a7.18 7.18 0 0 0 6.218-2.718c2.335-2.944 3.367-5.895 4.625-9.718c1.26-3.824 2.343-8.255 3.095-12.814c.752-4.56 1.18-9.198.875-13.625c-.305-4.425-1.012-8.99-4.844-12.81L422.78 23.343c-3.822-3.824-8.384-4.54-12.81-4.844a44 44 0 0 0-3.345-.094zm.126 14.375a30 30 0 0 1 2.25.064c2.404.165 3.74.915 3.72.78l65.655 65.657c-.138-.023.616 1.318.78 3.72c.19 2.746-.062 6.526-.686 10.313c-.626 3.786-1.595 7.62-2.595 10.656c-.412 1.25-.524 1.272-.938 2.186l-54.78-4.375l-29.938-29.936l-4.376-54.813c.913-.41.94-.495 2.187-.905c3.037-.998 6.872-1.97 10.658-2.594c2.84-.466 5.662-.728 8.062-.75zm-47.97 120.44l-18.936 31.593l-204.5 204.468l-8.844-.655l-1.188-14.563l201.875-201.906l31.594-18.937z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Crossbow — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

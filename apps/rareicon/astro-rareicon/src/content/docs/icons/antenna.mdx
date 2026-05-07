@@ -2,40 +2,85 @@
 ref: antenna
 name: Antenna
 title: Antenna Icon
-description: Antenna glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Antenna glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - tech
+tags:
+  - lucide
+  - outline
+  - tabler-generated
+  - merged-multi-source
 search:
-  keywords: ["antenna"]
+  keywords:
+    - antenna
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/antenna"
+  source_url: https://lucide.dev/icons/antenna
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 7 2"/><path d="m7 12 5-10"/><path d="m12 12 5-10"/><path d="m17 12 5-10"/><path d="M4.5 7h15"/><path d="M12 16v6"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: tabler-outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v8" /> <path d="M16 4.5v7" /> <path d="M12 5v16" /> <path d="M8 5.5v5" /> <path d="M4 6v4" /> <path d="M20 8h-16" /></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - tabler
+  - tech
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
@@ -49,5 +94,6 @@ Antenna — outline glyph from the [Lucide icon library](https://lucide.dev/) (I
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />

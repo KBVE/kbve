@@ -1,0 +1,51 @@
+---
+ref: shield-sword
+name: Shield Sword
+title: Shield Sword Icon
+description: Shield Sword glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["shield-sword","shield","sword","shield sword"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/shield-sword"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M12 1L3 5v6c0 5.5 3.8 10.7 9 12c5.2-1.3 9-6.5 9-12V5zm3 14h-2v3h-2v-3H9v-2h2l-1-5.9l2-1.6l2 1.6l-1 5.9h2z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shield Sword — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

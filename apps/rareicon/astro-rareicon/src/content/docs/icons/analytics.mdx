@@ -1,0 +1,51 @@
+---
+ref: analytics
+name: Analytics
+title: Analytics Icon
+description: Analytics glyph from the carbon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [carbon-generated, carbon]
+search:
+  keywords: ["analytics"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Carbon Icons (https://carbondesignsystem.com/guidelines/icons/library/) — Apache 2.0"
+  author: IBM Corp.
+  source_url: "https://carbondesignsystem.com/guidelines/icons/library/?icon=analytics"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "carbon"
+    label: "Carbon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 32, height: 32 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [carbon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor"><path fill="currentColor" d="M4 2H2v26a2 2 0 0 0 2 2h26v-2H4Z"/><path fill="currentColor" d="M30 9h-7v2h3.59L19 18.59l-4.29-4.3a1 1 0 0 0-1.42 0L6 21.59L7.41 23L14 16.41l4.29 4.3a1 1 0 0 0 1.42 0l8.29-8.3V16h2Z"/></svg>
+pagefindFilters: [carbon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Analytics — glyph from the [Carbon icon library](https://carbondesignsystem.com/guidelines/icons/library/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

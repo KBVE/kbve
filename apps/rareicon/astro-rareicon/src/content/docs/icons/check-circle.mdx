@@ -1,0 +1,96 @@
+---
+ref: check-circle
+name: Check Circle
+title: Check Circle Icon
+description: Check Circle glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+primary_category: action
+categories:
+  - action
+  - library
+tags:
+  - phosphor-generated
+  - multi-weight
+  - iconoir-generated
+  - iconoir
+  - merged-multi-source
+search:
+  keywords:
+    - check-circle
+    - check
+    - circle
+    - check circle
+  primary_category: action
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: Phosphor Icons (https://phosphoricons.com/) — MIT License
+  author: Phosphor contributors
+  source_url: https://phosphoricons.com/?q=check-circle
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg>
+  - ref: iconoir
+    label: Iconoir
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - iconoir
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m7 12.5l3 3l7-7"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12s4.477 10 10 10"/></g></svg>
+pagefindFilters:
+  - phosphor
+  - action
+  - iconoir
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Check Circle — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

@@ -45,6 +45,7 @@ export default defineConfig({
 				Footer: './src/components/starlight/Footer.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
 				Header: './src/components/starlight/Header.astro',
+				Head: './src/components/starlight/Head.astro',
 			},
 			head: [
 				{
@@ -66,6 +67,62 @@ export default defineConfig({
 					attrs: {
 						name: 'twitter:card',
 						content: 'summary_large_image',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image',
+						content: 'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:width',
+						content: '920',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:height',
+						content: '430',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:alt',
+						content: 'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image',
+						content: 'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image:alt',
+						content: 'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:site',
+						content: '@kbve',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:creator',
+						content: '@kbve',
 					},
 				},
 				{
@@ -95,6 +152,10 @@ export default defineConfig({
 				{
 					label: 'Steam',
 					link: '/steam/',
+				},
+				{
+					label: 'Press Kit',
+					link: '/press/',
 				},
 				{
 					label: 'Getting Started',

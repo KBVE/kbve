@@ -1,0 +1,51 @@
+---
+ref: chess-rook
+name: Chess Rook
+title: Chess Rook Icon
+description: Chess Rook glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["chess-rook","chess","rook","chess rook"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/chess-rook"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M5 20h14v2H5zM17 2v3h-2V2h-2v3h-2V2H9v3H7V2H5v6h2v10h10V8h2V2z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Chess Rook — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

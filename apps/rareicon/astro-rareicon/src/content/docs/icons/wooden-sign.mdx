@@ -1,0 +1,51 @@
+---
+ref: wooden-sign
+name: Wooden Sign
+title: Wooden Sign Icon
+description: Wooden Sign glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["wooden-sign","wooden","sign","wooden sign"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/wooden-sign"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M240.03 35.938c-1.08.01-2.168.062-3.25.124c-8.644.502-17.16 2.8-22.5 5.97c-5.336 3.167-7.018 5.72-6.81 9.593v.25l.78 28.156l59.97-1.28l-.876-31.844c-.148-3.014-1.806-5.15-7.47-7.593C255.63 37.48 249.63 36.27 243.25 36a61 61 0 0 0-3.22-.063zm224.94 57.218L33.593 102.53l1.375 62l154.655 4.064l-148.156 9.72l-2.907 98.81l1.406.313l8.06 1.844l-.843 8.22l-6.906 67.47l429.533-9.283L464.219 283l-140.376-3.656l139.22-9.156l-8.877-99.407l-138.875-3.624l151.032-9.937l-1.375-64.064zM276.31 368.562l-59.875 1.282L220 495.78h59.844l-3.53-127.217z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Wooden Sign — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

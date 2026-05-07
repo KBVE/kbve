@@ -1,0 +1,51 @@
+---
+ref: sword-cross
+name: Sword Cross
+title: Sword Cross Icon
+description: Sword Cross glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["sword-cross","sword","cross","sword cross"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/sword-cross"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="m6.2 2.44l11.9 11.9l2.12-2.12l1.41 1.41l-2.47 2.47l3.18 3.18c.39.39.39 1.02 0 1.41l-.71.71a.996.996 0 0 1-1.41 0L17 18.23l-2.44 2.47l-1.41-1.41l2.12-2.12l-11.9-11.9V2.44zM15.89 10l4.74-4.74V2.44H17.8l-4.74 4.74zm-4.95 5l-2.83-2.87l-2.21 2.21l-2.12-2.12l-1.41 1.41l2.47 2.47l-3.18 3.19a.996.996 0 0 0 0 1.41l.71.71c.39.39 1.02.39 1.41 0L7 18.23l2.44 2.47l1.41-1.41l-2.12-2.12z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Sword Cross — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

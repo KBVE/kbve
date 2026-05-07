@@ -307,7 +307,7 @@ pub fn npc_db() -> &'static NpcDb {
 
 /// Find NPCs at a given level. Returns refs into the global NPC database.
 pub fn find_npcs_by_level(level: i32) -> Vec<&'static bevy_npc::Npc> {
-    NPC_DB.find_by_level(level)
+    NPC_DB.find_by_level(level).collect()
 }
 
 /// Look up a single NPC by its ref slug (e.g. "glass-slime").

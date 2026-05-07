@@ -1,8 +1,76 @@
 ---
-import DefaultHead from '@astrojs/starlight/components/Head.astro';
+/**
+ * KBVE Head override.
+ *
+ * Wraps Starlight's default Head pipeline so the original og:* / twitter:*
+ * meta tags Starlight emits from frontmatter `title` / `description` get
+ * dropped only when the page sets a corresponding override field
+ * (`ogTitle`, `ogDescription`, `ogImage`, `twitterTitle`,
+ * `twitterDescription`, `twitterImage`). Otherwise Starlight defaults
+ * survive untouched. No duplicate meta tags in the rendered head.
+ *
+ * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
+ */
+const route = Astro.locals.starlightRoute;
+const head = route.head;
+const data = route.entry.data as Record<string, unknown>;
+
+const ogTitle = typeof data.ogTitle === 'string' ? data.ogTitle : undefined;
+const ogDescription =
+	typeof data.ogDescription === 'string' ? data.ogDescription : undefined;
+const ogImage = typeof data.ogImage === 'string' ? data.ogImage : undefined;
+const twitterTitle =
+	typeof data.twitterTitle === 'string' ? data.twitterTitle : ogTitle;
+const twitterDescription =
+	typeof data.twitterDescription === 'string'
+		? data.twitterDescription
+		: ogDescription;
+const twitterImage =
+	typeof data.twitterImage === 'string' ? data.twitterImage : ogImage;
+
+const owned: Record<string, string | undefined> = {};
+if (ogTitle) owned['og:title'] = ogTitle;
+if (ogDescription) owned['og:description'] = ogDescription;
+if (ogImage) owned['og:image'] = ogImage;
+if (twitterTitle) owned['twitter:title'] = twitterTitle;
+if (twitterDescription) owned['twitter:description'] = twitterDescription;
+if (twitterImage) owned['twitter:image'] = twitterImage;
+
+type HeadTag = (typeof head)[number];
+
+function tagKey(t: HeadTag): string | undefined {
+	if (t.tag !== 'meta' || !t.attrs) return undefined;
+	const property = t.attrs.property;
+	const name = t.attrs.name;
+	if (typeof property === 'string') return property;
+	if (typeof name === 'string') return name;
+	return undefined;
+}
+
+const filteredHead = head.filter((t) => {
+	const key = tagKey(t);
+	return !key || !(key in owned);
+});
+
+const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
+	const isTwitter = key.startsWith('twitter:');
+	return {
+		tag: 'meta',
+		attrs: isTwitter
+			? { name: key, content: content! }
+			: { property: key, content: content! },
+	} as HeadTag;
+});
 ---
 
-<DefaultHead><slot /></DefaultHead>
+{
+	filteredHead.map(({ tag: Tag, attrs, content }) => (
+		<Tag {...attrs} set:html={content} />
+	))
+}
+{overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
+
+<slot />
 <meta name="view-transition" content="same-origin" />
 
 <!-- YouTube hero-bg DNS + TLS warm so the iframe doesn't gate LCP -->

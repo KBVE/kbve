@@ -1,0 +1,51 @@
+---
+ref: flight-takeoff
+name: Flight Takeoff
+title: Flight Takeoff Icon
+description: Flight Takeoff glyph from the material-symbols icon library, 1 variant — recolor via currentColor.
+primary_category: navigation
+categories: [navigation, library]
+tags: [material-symbols-generated, material-symbols]
+search:
+  keywords: ["flight-takeoff","flight","takeoff","flight takeoff"]
+  primary_category: navigation
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Symbols (https://fonts.google.com/icons) — Apache 2.0"
+  author: Google LLC
+  source_url: "https://fonts.google.com/icons?icon.query=flight-takeoff"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "material-symbols"
+    label: "Material Symbols"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [material-symbols]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M3 21v-2h18v2zm1.75-5L1 9.75l2.4-.65l2.8 2.35l3.5-.925l-5.175-6.9l2.9-.775L14.9 9.125l4.25-1.15q.8-.225 1.513.187t.937 1.213t-.187 1.513t-1.213.937z"/></svg>
+pagefindFilters: [material-symbols, navigation]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Flight Takeoff — glyph from the [Material Symbols icon library](https://fonts.google.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

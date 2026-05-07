@@ -1,0 +1,51 @@
+---
+ref: profile-circle
+name: Profile Circle
+title: Profile Circle Icon
+description: Profile Circle glyph from the iconoir icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [iconoir-generated, iconoir]
+search:
+  keywords: ["profile-circle","profile","circle","profile circle"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Iconoir (https://iconoir.com/) — MIT License"
+  author: Iconoir contributors
+  source_url: "https://iconoir.com/profile-circle"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "iconoir"
+    label: "Iconoir"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [iconoir]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2"/><path d="M4.271 18.346S6.5 15.5 12 15.5s7.73 2.846 7.73 2.846M12 12a3 3 0 1 0 0-6a3 3 0 0 0 0 6"/></g></svg>
+pagefindFilters: [iconoir, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Profile Circle — glyph from the [Iconoir icon library](https://iconoir.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

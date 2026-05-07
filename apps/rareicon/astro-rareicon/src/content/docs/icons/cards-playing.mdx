@@ -1,0 +1,51 @@
+---
+ref: cards-playing
+name: Cards Playing
+title: Cards Playing Icon
+description: Cards Playing glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["cards-playing","cards","playing","cards playing"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/cards-playing"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M14.7 2.2h1.5c1.1 0 2 .9 2 2v6.4zm5.4 1.6l1.3.6c1 .4 1.5 1.6 1.1 2.6l-2.4 5.9zM18 15.5l-5-12c-.3-.8-1-1.2-1.8-1.2c-.3 0-.5.1-.8.2L3 5.5C2 5.9 1.5 7 2 8l5 12c.3.8 1 1.2 1.8 1.2c.3 0 .5 0 .8-.2l7.4-3c.8-.3 1.2-1 1.2-1.8c-.1-.2-.1-.5-.2-.7m-6.6-.5l-3.2-2.4l.4-4l3.2 2.4z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Cards Playing — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

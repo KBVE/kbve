@@ -4,6 +4,8 @@ import com.kbve.statetree.bbmodel.BBModelLoader;
 import com.kbve.statetree.ship.ShipEntity;
 import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipNetworking.HelmInputPayload;
+import com.kbve.statetree.ship.ShipNetworking.WeaponFirePayload;
+import com.kbve.statetree.ship.ShipScreenHandlerTypes;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -11,6 +13,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.entity.Entity;
 import net.minecraft.resource.ResourceType;
@@ -33,10 +36,12 @@ public class ShipClientMod implements ClientModInitializer {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
                 .registerReloadListener(new BBModelLoader());
 
+        HandledScreens.register(ShipScreenHandlerTypes.SHIP, ShipScreen::new);
+
         HudRenderCallback.EVENT.register(hud);
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
 
-        LOGGER.info("[Ship Client] Initialized — BBModel renderer + HUD + helm ready");
+        LOGGER.info("[Ship Client] Initialized — BBModel renderer + GUI + HUD + helm ready");
     }
 
     private void onClientTick(MinecraftClient client) {
@@ -53,6 +58,10 @@ public class ShipClientMod implements ClientModInitializer {
             }
             hud.setTelemetry(shipEntity.getTargetSpeed(), shipEntity.getYaw(), (int) Math.floor(shipEntity.getY()));
             hud.setHealth(shipEntity.getShipHealth(), ShipEntity.MAX_HEALTH);
+            hud.setFuel(shipEntity.getFuelLevel(), ShipEntity.MAX_FUEL, shipEntity.isFuelLow());
+            hud.setEnginePower(shipEntity.getEnginePower());
+            hud.setUpgrades(shipEntity.getUpgradeCount(),
+                    com.kbve.statetree.ship.ShipUpgrades.MAX_SLOTS);
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();
@@ -73,6 +82,12 @@ public class ShipClientMod implements ClientModInitializer {
         hud.setInputState(n, s, false, false, rise, lower, boost);
 
         ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, boost, targetYaw, targetPitch));
+
+        // Fire weapons on attack key press (mouse left). Server enforces
+        // per-slot cooldown so spamming the key doesn't desync.
+        if (client.options.attackKey.isPressed()) {
+            ClientPlayNetworking.send(new WeaponFirePayload(activeHelmShipId, targetYaw, targetPitch));
+        }
     }
 
     public void setActiveHelm(String shipId, String shipName) {

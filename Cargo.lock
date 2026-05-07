@@ -1432,6 +1432,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "utoipa",
  "webpki-roots 0.26.11",
 ]
 

@@ -1,0 +1,51 @@
+---
+ref: bug-octicon
+name: Bug Octicon
+title: Bug Octicon Icon
+description: Bug Octicon glyph from the octicons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [octicons-generated, octicons]
+search:
+  keywords: ["bug-octicon","bug","octicon","bug-24","bug octicon"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  author: GitHub Inc.
+  source_url: "https://primer.style/foundations/icons/bug-24"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "octicons"
+    label: "Octicons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [octicons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M7.72.22a.75.75 0 0 1 1.06 0l1.204 1.203A5 5 0 0 1 12 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 0 1 1.042.018a.75.75 0 0 1 .018 1.042l-.971.972A5 5 0 0 1 17 6v1.104a2.76 2.76 0 0 1 1.917 1.974l1.998-.999a.75.75 0 0 1 .67 1.342L19 10.714V13.5l3.25.003a.75.75 0 0 1 0 1.5L19 15.001V16c0 .568-.068 1.134-.204 1.686l.04.018l2.75 1.375a.75.75 0 1 1-.671 1.342l-2.638-1.319A7 7 0 0 1 12 23a7 7 0 0 1-6.197-3.742l-2.758 1.181a.752.752 0 0 1-1.064-.776a.75.75 0 0 1 .474-.602l2.795-1.199A7 7 0 0 1 5 16v-.996H1.75a.75.75 0 0 1 0-1.5H5v-2.79L2.415 9.42a.75.75 0 0 1 .67-1.342l1.998.999A2.76 2.76 0 0 1 7 7.104V6a5 5 0 0 1 1.69-3.748l-.97-.972a.75.75 0 0 1 0-1.06M6.5 9.75V16a5.5 5.5 0 1 0 11 0V9.75c0-.69-.56-1.25-1.25-1.25h-8.5c-.69 0-1.25.56-1.25 1.25M8.5 7h7V6a3.5 3.5 0 1 0-7 0Z"/></svg>
+pagefindFilters: [octicons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Bug Octicon — glyph from the [Octicons icon library](https://primer.style/foundations/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

@@ -1,0 +1,51 @@
+---
+ref: magic-shield
+name: Magic Shield
+title: Magic Shield Icon
+description: Magic Shield glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["magic-shield","magic","shield","magic shield"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/magic-shield"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M57.78 23.135c-1.517 29.085-2.193 55.608-2.266 80.316c6.56-2.716 13.703-4.333 21.228-4.333c31.245 0 56.883 25.64 56.883 56.887c0 31.246-25.777 56.3-56.883 56.3c-6.068 0-11.95-1.003-17.488-2.77C71.906 332.82 108.064 376.35 147.668 401.9c20.677 13.34 42.986 21.7 64.268 33.245c17.444 9.463 34.177 21.525 47.42 40.127c13.23-18.597 29.925-30.658 47.324-40.122c21.226-11.545 43.46-19.904 64.064-33.242c39.46-25.543 75.488-69.07 88.135-192.324c-5.32 1.708-10.974 2.723-16.907 2.723c-31.107 0-56.88-25.058-56.88-56.3c0-31.244 25.634-56.888 56.88-56.888c7.63 0 14.745 1.697 21.23 4.508c-.07-24.757-.745-51.334-2.265-80.49c-59.488 13-130.78 19.266-201.5 19.888h-.163c-70.718-.62-142.008-6.888-201.496-19.888zm304.124 39.32l-27.117 93.18l-17.945-5.22l11.504-39.532l-85.116 63.646l-11.19-14.97l129.864-97.105zm-205.394 1.01l81.732 59.512l-11 15.107l-34.338-25.004l34.79 103.514l-17.714 5.955l-53.47-159.085zm140.486 99.652l129.383 97.95l-98.25-.48l.09-18.69l42.15.208l-84.653-64.087zm-122.357 37.71l10.83 15.228l-36.206 25.754l104.898-.17l.03 18.69l-163.577.262l84.024-59.766zm117.79 21l17.806 5.675l-49.39 155.008l-31.248-96.46l17.777-5.76l13.324 41.124l31.73-99.586z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Magic Shield — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

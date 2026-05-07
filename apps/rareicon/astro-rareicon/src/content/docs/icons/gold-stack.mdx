@@ -1,0 +1,51 @@
+---
+ref: gold-stack
+name: Gold Stack
+title: Gold Stack Icon
+description: Gold Stack glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: commerce
+categories: [commerce, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["gold-stack","gold","stack","gold stack"]
+  primary_category: commerce
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/gold-stack"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m313.824 61.625l-67.865 118.24L176 96l-4.08 129.77L56.162 105.264L112 272l-81.986-63.115l19.865 113.77L18 311.724V391h7.514l16-48h40l16-48h40l16-48h40l16-48h92.972l16 48h40l16 48h40l16 48h40l16 48H494V241.285l-77.783 39.547L480 144l-125.797 83.758L400 128l-74.926 66.87zM222.486 217l-10 30h87.028l-10-30zm-56 48l-10 30h87.028l-10-30zm86 0L256 275.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm-168 48l-10 30h87.028l-10-30zm86 0L200 323.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L312 323.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm-280 48l-10 30h87.028l-10-30zm86 0L144 371.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L256 371.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L368 371.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zM18 409v30h57.514l-10-30zm66.486 0L88 419.54L91.514 409zm26 0l-10 30h87.028l-10-30zm86 0L200 419.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L312 419.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L424 419.54l3.514-10.54zm26 0l-10 30H494v-30zm-418 48L32 467.54L35.514 457zm26 0l-10 30h87.028l-10-30zm86 0L144 467.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0L256 467.54l3.514-10.54zm26 0l-10 30h87.028l-10-30zm86 0l3.344 10.033l.342-.01L371.514 457zm26 0l-10 30h87.028l-10-30zm86 0l2.287 6.863l2.477-.07l2.264-6.793z"/></svg>
+pagefindFilters: [game-icons, gamedev, commerce]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Gold Stack — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

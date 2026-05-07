@@ -129,3 +129,45 @@ impl Plugin for CreaturePlugin {
         app.init_resource::<CapturedCreatures>();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn captured_creatures_insert_and_check() {
+        let mut c = CapturedCreatures::default();
+        assert!(c.is_empty());
+        c.insert(42);
+        c.insert(99);
+        assert!(c.is_captured(42));
+        assert!(c.is_captured(99));
+        assert!(!c.is_captured(7));
+        assert_eq!(c.len(), 2);
+    }
+
+    #[test]
+    fn captured_creatures_dedup() {
+        let mut c = CapturedCreatures::default();
+        c.insert(42);
+        c.insert(42);
+        assert_eq!(c.len(), 1, "HashSet must dedup repeated inserts");
+    }
+
+    #[test]
+    fn captured_creatures_remove_and_clear() {
+        let mut c = CapturedCreatures::default();
+        c.insert(1);
+        c.insert(2);
+        c.remove(1);
+        assert!(!c.is_captured(1));
+        assert!(c.is_captured(2));
+        c.clear();
+        assert!(c.is_empty());
+    }
+
+    #[test]
+    fn creature_state_default_is_pooled() {
+        assert_eq!(CreatureState::default(), CreatureState::Pooled);
+    }
+}

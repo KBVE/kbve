@@ -1,0 +1,51 @@
+---
+ref: octopus
+name: Octopus
+title: Octopus Icon
+description: Octopus glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["octopus"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/octopus"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M150.25 19.97c-114.48-.574-139.972 184.95 20.563 212.124c-29.5.534-55.382 8.11-91.75 25.97C-19.2 306.313.665 462.966 100.874 446c34.48-5.838 51.21-50.325.875-65.375c16.515 29.61-27.968 47.1-41.906 1.938c-11.262-36.49 21.145-74.914 52.468-85c30.5-9.82 55.244-10.86 82.47-5.844c-36.585 34.247-56.547 80.465-42.376 123.624c44.522 135.595 192.146 82.52 162.844-6.72c-10.346-31.506-41.408-46.505-68-10.155c35.164-8.854 50.45 38.75 18.188 49.342c-26.355 8.655-60.212-13.527-66.032-41.343c-7.82-37.39 19.77-77.195 54.78-95.25c22.176 35.37 38.812 48.68 83.22 72.186c85.843 45.436 212.957-36.54 143.906-110.53c-22.626-24.244-54.574-30.02-67.5 13.124c30.188-20.09 60.748 26.8 33.875 47.563c-21.95 16.96-61.503 19.135-86.437 5.5c-30.797-16.842-53.79-37.798-70.188-66.532c57.07 13.69 119.584-1.065 143-45.342c45.72-86.45-7.046-152.467-59.125-153.375c-20.378-.356-40.654 9.237-54.875 31.5c-17.85 27.946-9.815 61.533 35.157 59.124c-29.11-21.628-1.9-63.623 26.717-45.343c23.378 14.932 22.494 51.88 9.75 77.28c-15.165 30.23-60.573 50.738-95.062 24.657c-3.008-5.71-5.563-11.683-7.78-17.843c8.99-6.49 14.874-17.028 14.874-28.875c0-17.772-13.252-32.64-30.345-35.218c-9.763-47.134-23.34-92.648-84.844-112.594c-13.64-4.424-26.437-6.472-38.28-6.53zm117.844 137.405c9.463 0 16.937 7.474 16.937 16.938s-7.473 16.937-16.936 16.937s-16.906-7.474-16.906-16.938s7.443-16.937 16.906-16.937zm-65.406 10.5c9.463 0 16.937 7.474 16.937 16.938s-7.474 16.937-16.938 16.937s-16.937-7.474-16.937-16.938s7.474-16.937 16.938-16.937"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Octopus — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

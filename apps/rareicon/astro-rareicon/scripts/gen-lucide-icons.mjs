@@ -301,6 +301,7 @@ ${name} — ${entries.length === 1 ? 'outline glyph' : `${entries.length} varian
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />
 `;

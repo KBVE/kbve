@@ -1,0 +1,95 @@
+---
+ref: ufo
+name: Ufo
+title: Ufo Icon
+description: Ufo glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+primary_category: game
+categories:
+  - game
+  - library
+tags:
+  - tabler-generated
+  - outline
+  - mdi-generated
+  - mdi
+  - merged-multi-source
+search:
+  keywords:
+    - ufo
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: Tabler Icons (https://tabler.io/icons) — MIT License
+  author: Tabler Icons contributors
+  source_url: https://tabler.io/icons/icon/ufo
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.95 9.01c3.02 .739 5.05 2.123 5.05 3.714c0 2.367 -4.48 4.276 -10 4.276s-10 -1.909 -10 -4.276c0 -1.59 2.04 -2.985 5.07 -3.724" /> <path d="M7 9c0 1.105 2.239 2 5 2s5 -.895 5 -2v-.035c0 -2.742 -2.239 -4.965 -5 -4.965s-5 2.223 -5 4.965v.035" /> <path d="M15 17l2 3" /> <path d="M8.5 17l-1.5 3" /> <path d="M12 14h.01" /> <path d="M7 13h.01" /> <path d="M17 13h.01" /></svg>
+  - ref: mdi
+    label: Mdi
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - mdi
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M17 10.54C16.78 7.44 14.63 5 12 5s-4.78 2.44-5 5.54C4 11.23 2 12.5 2 14c0 2.21 4.5 4 10 4s10-1.79 10-4c0-1.5-2-2.77-5-3.46m-2.07 1.3c-1.9.21-3.96.21-5.86 0c-.04-.28-.07-.56-.07-.84c0-2.2 1.35-4 3-4s3 1.8 3 4c0 .28 0 .56-.07.84"/></svg>
+pagefindFilters:
+  - tabler
+  - game
+  - mdi
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Ufo — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

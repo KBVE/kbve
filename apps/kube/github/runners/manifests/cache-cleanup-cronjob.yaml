@@ -6,9 +6,17 @@
 #   3. Heavy  (every 3d)  — Phase 1 + 2 + 3: capacity gate (>80% → LRU prune largest)
 #
 # Per-cache policy via CACHE_POLICIES (space-separated NAME:MODE:CAP_GB):
-#   - mode=age: age out files older than AGE_DAYS, then enforce CAP_GB
-#   - mode=cap: NEVER age out (active build artifacts like Unity Library);
-#               only LRU-prune when directory exceeds CAP_GB
+#   - mode=age:          age out files older than AGE_DAYS, then file-level LRU
+#   - mode=cap:          NEVER age out; file-level LRU when over CAP_GB
+#                        (use only for caches WITHOUT internal manifests)
+#   - mode=cap-project:  NEVER age out; per-subdir LRU when over CAP_GB —
+#                        evicts whole project subdirs (safe for Unity Library
+#                        which has ArtifactDB/SourceAssetDB integrity)
+#
+# Unity Library structure: /cache/unity-library/<project-platform>/{ArtifactDB,
+# SourceAssetDB, Artifacts/, ShaderCache/, ...}. File-level LRU on the inner
+# Artifacts/ would orphan ArtifactDB entries → corruption on next import.
+# cap-project drops whole platform dirs; Unity reimports that platform once.
 #
 # Uses mtime (not atime) because Longhorn/NFS may mount with noatime.
 # All three share the same PVC mount at /cache.
@@ -28,7 +36,7 @@ data:
         CAPACITY_PCT="${CAPACITY_PCT:-80}"
         # Per-cache policy: NAME:MODE:CAP_GB (space-separated)
         # NEVER age unity-library — Unity rebuilds the entire Library on cache miss (~30min)
-        CACHE_POLICIES="${CACHE_POLICIES:-cargo:age:20 lfs:age:5 unity-library:cap:50}"
+        CACHE_POLICIES="${CACHE_POLICIES:-cargo:age:20 lfs:age:5 unity-library:cap-project:80}"
 
         echo "=== ${TIER} cleanup starting ==="
         echo "  age=${AGE_DAYS}d  policies='${CACHE_POLICIES}'"
@@ -82,6 +90,54 @@ data:
             echo "  $(basename "$DIR"): now $(( NEW_KB / 1024 ))Mi (cap-prune ${ELAPSED}s)"
         }
 
+        # Per-subdir LRU: when DIR exceeds cap, drop whole oldest subdirs
+        # (one nesting level). Used for caches with internal manifests where
+        # file-level deletion would corrupt state (e.g., Unity Library).
+        # Subdir freshness tracked via the most-recently-touched file inside.
+        cap_project_prune() {
+            DIR="$1"
+            CAP_GB="$2"
+            [ -d "$DIR" ] || return 0
+            CAP_KB=$(( CAP_GB * 1024 * 1024 ))
+            DIR_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
+            [ -z "${DIR_KB}" ] && return 0
+            if [ "${DIR_KB}" -le "${CAP_KB}" ]; then
+                echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap (project-LRU)"
+                return 0
+            fi
+            OVER_KB=$(( DIR_KB - CAP_KB ))
+            HEADROOM_KB=$(( CAP_KB / 10 ))
+            TARGET_PRUNE_KB=$(( OVER_KB + HEADROOM_KB ))
+            echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi over by $(( OVER_KB / 1024 ))Mi — evicting oldest projects"
+            START=$(date +%s)
+            # awk picks subdirs to evict via cumulative size; while executes rm.
+            # Freshness via -maxdepth 2 (Unity touches ArtifactDB/SourceAssetDB
+            # on every import — captures activity without walking 350K artifacts).
+            for SUB in "$DIR"/*/; do
+                [ -d "$SUB" ] || continue
+                NEWEST=$(find "$SUB" -maxdepth 2 -type f -exec stat -c '%Y' {} + 2>/dev/null \
+                    | sort -rn | head -1)
+                [ -z "${NEWEST}" ] && NEWEST=$(stat -c '%Y' "$SUB" 2>/dev/null || echo 0)
+                SUB_KB=$(du -sk "$SUB" 2>/dev/null | cut -f1)
+                [ -z "${SUB_KB}" ] && SUB_KB=0
+                printf '%s\t%s\t%s\n' "${NEWEST}" "${SUB_KB}" "$SUB"
+            done | sort -n | awk -v target="${TARGET_PRUNE_KB}" -F'\t' '
+                {
+                    cum += $2
+                    print $3
+                    if (cum >= target) exit
+                }
+              ' | while IFS= read -r EVICT_PATH; do
+                [ -d "$EVICT_PATH" ] || continue
+                EVICT_KB=$(du -sk "$EVICT_PATH" 2>/dev/null | cut -f1)
+                echo "  evict $(basename "$EVICT_PATH") ($(( EVICT_KB / 1024 ))Mi)"
+                rm -rf "$EVICT_PATH"
+            done
+            ELAPSED=$(( $(date +%s) - START ))
+            NEW_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
+            echo "  $(basename "$DIR"): now $(( NEW_KB / 1024 ))Mi (project-LRU ${ELAPSED}s)"
+        }
+
         # Phase 1: per-cache age prune (parallel; only for mode=age)
         echo "Phase 1: age prune (parallel)"
         for ENTRY in ${CACHE_POLICIES}; do
@@ -99,8 +155,19 @@ data:
             echo "Phase 2: cap enforcement"
             for ENTRY in ${CACHE_POLICIES}; do
                 NAME=$(echo "${ENTRY}" | cut -d: -f1)
+                MODE=$(echo "${ENTRY}" | cut -d: -f2)
                 CAP=$(echo "${ENTRY}" | cut -d: -f3)
-                cap_prune "${CACHE}/${NAME}" "${CAP}"
+                case "${MODE}" in
+                    age|cap)
+                        cap_prune "${CACHE}/${NAME}" "${CAP}"
+                        ;;
+                    cap-project)
+                        cap_project_prune "${CACHE}/${NAME}" "${CAP}"
+                        ;;
+                    *)
+                        echo "  $(basename "${CACHE}/${NAME}"): unknown mode '${MODE}' — skipping"
+                        ;;
+                esac
             done
             echo ""
         fi

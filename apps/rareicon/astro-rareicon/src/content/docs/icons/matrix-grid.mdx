@@ -1,0 +1,54 @@
+---
+ref: matrix-grid
+name: Matrix Grid
+title: Matrix Grid Icon
+description: Matrix Grid glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [tabler-generated, outline]
+search:
+  keywords: ["matrix-grid","matrix","grid","matrix grid"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  author: Tabler Icons contributors
+  source_url: "https://tabler.io/icons/icon/matrix"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [tabler]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16h.013" /> <path d="M12.01 16h.005" /> <path d="M16.015 16h.005" /> <path d="M16.015 12h.005" /> <path d="M8.01 12h.005" /> <path d="M12.01 12h.005" /> <path d="M16.02 8h.005" /> <path d="M8.015 8h.005" /> <path d="M12.015 8h.005" /> <path d="M7 4h-1a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h1" /> <path d="M17 4h1a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-1" /></svg>
+pagefindFilters: [tabler, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Matrix Grid — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

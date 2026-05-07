@@ -1,0 +1,51 @@
+---
+ref: flying-shuriken
+name: Flying Shuriken
+title: Flying Shuriken Icon
+description: Flying Shuriken glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["flying-shuriken","flying","shuriken","flying shuriken"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/flying-shuriken"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M357.21 397.104q-.09-.054-.178-.104l.132-.49l-.884.04c-5.936-3.526-11.136-5.927-13.142-8.434c-9.141-11.416-6.92-28.381 4.964-37.9c11.88-9.513 28.924-7.974 38.064 3.442c2.174 2.714 3.022 9.286 4.944 16.62c.23-.31.449-.624.669-.936l95.943-3.317l-81.422-52.17l-.539 1.977c-5.05 4.38-8.87 8.379-11.813 9.455c-13.73 5.029-29.11-2.477-34.345-16.775c-5.237-14.293 1.65-29.957 15.383-34.991c3.266-1.197 9.778.096 17.354.607a92 92 0 0 0-1.167-1.626l26.481-92.238l-25.68 21.058l-284.368-162.27L364.354 223.97l-20.91 17.144a10 10 0 0 1-.284-.07l.093.228l-.375.303l.703.463c2.735 6.347 5.536 11.354 5.687 14.561c.691 14.608-11.078 27.036-26.284 27.755c-15.205.717-28.093-10.541-28.784-25.15c-.162-3.473 3.01-9.286 5.761-16.35c-.352.113-.7.24-1.053.357L24.278 21.942l230.264 257.616l1.161-.927c6.764-.609 12.284-1.651 15.338-.799c14.085 3.931 22.184 19.008 18.087 33.67c-4.097 14.66-18.834 23.358-32.92 19.424c-3.35-.934-7.88-5.78-13.724-10.618c-.007.528.014 1.05.017 1.577l-23.132 18.057L24.278 78.538l167.526 282.927l-24.973 19.496l96.534-5.654l-.46-1.218c1.515-6.653 2.217-12.266 3.972-14.92c8.076-12.191 24.913-15.264 37.603-6.855c12.693 8.406 16.435 25.104 8.36 37.294c-1.92 2.904-7.928 5.723-14.328 9.8c.462.155.928.286 1.39.433l32.801 90.217l24.27-92.874q.123-.031.237-.08m-38.598-66.252c-6.756-4.444-8.628-13.524-4.185-20.281s13.523-8.632 20.279-4.188c6.755 4.443 8.628 13.522 4.185 20.28c-4.444 6.755-13.522 8.632-20.28 4.189z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Flying Shuriken — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

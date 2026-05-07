@@ -1,11 +1,13 @@
 package com.kbve.statetree;
 
 import com.kbve.statetree.chat.McChatEvents;
+import com.kbve.statetree.ship.FlightStatsRegistry;
 import com.kbve.statetree.ship.ShipCommands;
 import com.kbve.statetree.ship.ShipEntityTypes;
 import com.kbve.statetree.ship.ShipItems;
 import com.kbve.statetree.ship.ShipManager;
 import com.kbve.statetree.ship.ShipNetworking;
+import com.kbve.statetree.ship.ShipScreenHandlerTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -31,6 +33,7 @@ public class BehaviorStateTreeMod implements ModInitializer {
         // Register ship entity type + spawn items
         ShipEntityTypes.register();
         ShipItems.register();
+        ShipScreenHandlerTypes.register();
 
         // Register network payloads + server-side helm input receiver
         ShipNetworking.registerPayloads();
@@ -48,6 +51,10 @@ public class BehaviorStateTreeMod implements ModInitializer {
                 shipManager.tick(overworld);
             }
         });
+
+        // Per-model flight tuning is shipped in the mod jar (data/), so
+        // both server and integrated client load identical profiles.
+        FlightStatsRegistry.loadBuiltins();
 
         LOGGER.info("[{}] Ship system registered (entity-based, BBModel rendered)", MOD_ID);
 

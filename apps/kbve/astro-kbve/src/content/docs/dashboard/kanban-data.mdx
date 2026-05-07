@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-05-06T08:57:05.240Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-05-07T09:01:05.289Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -27,7 +27,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Todo" icon="list-format">
-    **9** items
+    **10** items
   </Card>
   <Card title="Backlog" icon="document">
     **7** items
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **1** items
+    **0** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **147** items
+    **156** items
   </Card>
 </CardGrid>
 
@@ -57,12 +57,11 @@ pie showData
     title Items by Status
     "Theory" : 20
     "AI" : 1
-    "Todo" : 9
+    "Todo" : 10
     "Backlog" : 7
     "Error" : 9
     "Staging" : 3
-    "Review" : 1
-    "Done" : 147
+    "Done" : 156
 ```
 
 ```mermaid
@@ -70,7 +69,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 9
-    "Done" : 147
+    "Done" : 156
     "Planning (Theory+AI+Backlog)" : 28
 ```
 
@@ -87,7 +86,7 @@ flowchart LR
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
-    Todo["Todo<br/><strong>9</strong>"]
+    Todo["Todo<br/><strong>10</strong>"]
     Todo --> Backlog
     Backlog["Backlog<br/><strong>7</strong>"]
     Backlog --> Error
@@ -97,9 +96,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>3</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>1</strong>"]
+    Review["Review<br/><strong>0</strong>"]
     Review --> Done
-    Done["Done<br/><strong>147</strong>"]
+    Done["Done<br/><strong>156</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,17 +115,17 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 143
-    "Issue" : 54
+    "Pull Request" : 151
+    "Issue" : 55
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 143 |
-| dev→main | 61 |
-| atomic | 59 |
+| auto-pr | 151 |
+| atomic | 65 |
+| dev→main | 63 |
 | enhancement | 28 |
 | 0 | 21 |
 | unity | 14 |
@@ -169,7 +168,7 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
 
-### Todo (9)
+### Todo (10)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -182,6 +181,7 @@ pie showData
 | [#9334](https://github.com/KBVE/kbve/issues/9334) | [ROWS] v0.4/v0.5 — Complete migration from C# OWS to Rust ROWS | — | h0lybyte | 6, enhancement, todo |
 | [#8817](https://github.com/KBVE/kbve/issues/8817) | [E2E] kilobase needs pgrx/PostgreSQL build environment | — | h0lybyte | 1, todo |
 | [#10329](https://github.com/KBVE/kbve/issues/10329) | [CICD] [Github] Custom Arc Runner Image | — | — | enhancement, update |
+| [#10560](https://github.com/KBVE/kbve/issues/10560) | chore(redis): evaluate Bitnami chart bump 21.2.13 -&gt; 25.x | — | — | update |
 
 ### Backlog (7)
 
@@ -217,13 +217,7 @@ pie showData
 | [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Review (1)
-
-| # | Title | Priority | Assignees | Labels |
-|---|-------|----------|-----------|--------|
-| [#10519](https://github.com/KBVE/kbve/pull/10519) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-
-### Done (147)
+### Done (156)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -232,10 +226,6 @@ pie showData
 | [#6436](https://github.com/KBVE/kbve/issues/6436) | [Concept] : [Unity] : NPCDB - ECS | — | h0lybyte | 0, enhancement, unity |
 | [#6446](https://github.com/KBVE/kbve/issues/6446) | [Concept] : [Unity] : MapDB - Schemas | — | h0lybyte | 0, enhancement, unity |
 | [#9327](https://github.com/KBVE/kbve/issues/9327) | feat(astro-kbve): site graph integration — polish, testing, and rollout | — | h0lybyte | 1, enhancement, todo |
-| [#10251](https://github.com/KBVE/kbve/pull/10251) | Release: 21 features, 4 fixes, 1 doc, 4 perfs, 3 refactors, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#10255](https://github.com/KBVE/kbve/pull/10255) | chore(dashboard): daily sync — 2026-04-22 | — | — | auto-pr |
-| [#10258](https://github.com/KBVE/kbve/pull/10258) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#10259](https://github.com/KBVE/kbve/pull/10259) | Atomic: axum-kbve v1.0.116 post-publish sync | — | — | auto-pr, atomic |
 | [#10260](https://github.com/KBVE/kbve/pull/10260) | Release: 5 features, 3 fixes, 2 docs, 7 perfs, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#10261](https://github.com/KBVE/kbve/pull/10261) | chore(dashboard): daily sync — 2026-04-23 | — | — | auto-pr |
 | [#10263](https://github.com/KBVE/kbve/pull/10263) | Atomic: axum-kbve v1.0.117 post-publish sync | — | — | auto-pr, atomic |
@@ -374,6 +364,19 @@ pie showData
 | [#10511](https://github.com/KBVE/kbve/pull/10511) | Atomic: mc v1.0.39 post-publish sync | — | — | auto-pr, atomic |
 | [#10512](https://github.com/KBVE/kbve/pull/10512) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
 | [#10515](https://github.com/KBVE/kbve/pull/10515) | Release: 1 feature, 1 fix, 2 CI, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#10519](https://github.com/KBVE/kbve/pull/10519) | Release: 7 features, 5 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#10523](https://github.com/KBVE/kbve/pull/10523) | Atomic: supa init timeout trim | — | — | auto-pr, atomic |
+| [#10526](https://github.com/KBVE/kbve/pull/10526) | Atomic: redirect tta project | — | — | auto-pr, atomic |
+| [#10528](https://github.com/KBVE/kbve/pull/10528) | Atomic: redirect langs jp fr es | — | — | auto-pr, atomic |
+| [#10530](https://github.com/KBVE/kbve/pull/10530) | Atomic: regen ci manifest | — | — | auto-pr, atomic |
+| [#10533](https://github.com/KBVE/kbve/pull/10533) | chore(dashboard): daily sync — 2026-05-06 | — | — | auto-pr |
+| [#10534](https://github.com/KBVE/kbve/pull/10534) | Release: 1 feature, 1 fix, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#10535](https://github.com/KBVE/kbve/pull/10535) | Atomic: mc v1.0.40 post-publish sync | — | — | auto-pr, atomic |
+| [#10536](https://github.com/KBVE/kbve/pull/10536) | Atomic: axum-kbve v1.0.135 post-publish sync | — | — | auto-pr, atomic |
+| [#10539](https://github.com/KBVE/kbve/pull/10539) | Release: 1 feature, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#10540](https://github.com/KBVE/kbve/pull/10540) | Atomic: rareicon v0.1.6 post-publish sync | — | — | auto-pr, atomic |
+| [#10546](https://github.com/KBVE/kbve/pull/10546) | Release: 1 feature, 2 fixes → Main | — | — | auto-pr, dev→main |
+| [#10550](https://github.com/KBVE/kbve/pull/10550) | Release: 3 features, 5 fixes, 1 doc, 1 CI → Main | — | — | auto-pr, dev→main |
 
 ---
 

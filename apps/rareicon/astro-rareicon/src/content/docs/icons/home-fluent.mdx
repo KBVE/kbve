@@ -1,0 +1,51 @@
+---
+ref: home-fluent
+name: Home Fluent
+title: Home Fluent Icon
+description: Home Fluent glyph from the fluent icon library, 1 variant — recolor via currentColor.
+primary_category: navigation
+categories: [navigation, library]
+tags: [fluent-generated, fluent]
+search:
+  keywords: ["home-fluent","home","fluent","home-24-regular","home fluent"]
+  primary_category: navigation
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Fluent UI System Icons (https://github.com/microsoft/fluentui-system-icons) — MIT License"
+  author: Microsoft Corporation
+  source_url: "https://github.com/microsoft/fluentui-system-icons/tree/main/assets/home-24-regular"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "fluent"
+    label: "Fluent"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [fluent]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M10.55 2.532a2.25 2.25 0 0 1 2.9 0l6.75 5.692c.507.428.8 1.057.8 1.72v9.31a1.75 1.75 0 0 1-1.75 1.75h-3.5a1.75 1.75 0 0 1-1.75-1.75v-5.007a.25.25 0 0 0-.25-.25h-3.5a.25.25 0 0 0-.25.25v5.007a1.75 1.75 0 0 1-1.75 1.75h-3.5A1.75 1.75 0 0 1 3 19.254v-9.31c0-.663.293-1.292.8-1.72zm1.933 1.147a.75.75 0 0 0-.966 0L4.767 9.37a.75.75 0 0 0-.267.573v9.31c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25v-5.007c0-.967.784-1.75 1.75-1.75h3.5c.966 0 1.75.783 1.75 1.75v5.007c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25v-9.31a.75.75 0 0 0-.267-.573z"/></svg>
+pagefindFilters: [fluent, navigation]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Home Fluent — glyph from the [Fluent icon library](https://github.com/microsoft/fluentui-system-icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

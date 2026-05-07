@@ -1,0 +1,51 @@
+---
+ref: cracked-glass
+name: Cracked Glass
+title: Cracked Glass Icon
+description: Cracked Glass glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["cracked-glass","cracked","glass","cracked glass"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/cracked-glass"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M19.188 17.406L74.624 68.72l4.938 2.155L119 88.03l48.844-70.624zm171.406 0L136.5 95.626l38.063 16.53l1.875.813l1.343 1.5l62.157 69.218l25.532 25.968l8-25.53l-.095-.032L303.97 82.72l-19.626-65.314zm113.28 0l17.407 58.063l105.345-21.5l-7.313-36.564H303.875zm134.5 0l8.407 42.032l1.814 9.124l-9.125 1.844l-119.626 24.406l-16.47 54.626l47.72 56.062l142.625-95.938V17.406zM18.907 42.594v168.03l69.03-26.03L68 87.75l-.156.188l-48.938-45.344zm69.72 52.593l18.468 89.626l51.22 19.312l35.624-43.656l-28.72-32l-76.593-33.282zm405.093 36.876L337.53 237.188l-13.717 10.53l169.906 105.845v-221.5zm-396.533 69l-78.28 29.53v166.938l181.5-103.874l47.124-33.344l-37.843-16.968l-.03.094l-57.47-21.657l-4.03-1.155l-2.282-1.22l-48.688-18.343zm242.875 78.78l-5.406 5.782l-44.5 47.625l-4.844 57.313l68.813 92.562L493.72 423v-47.406zm-151.375 42.094l-65.593 37.532L224.28 492.22h113.314l-69.375-93.376l-2.095-2.813l.28-3.53l4.033-47.72l-81.75-22.842zm-81.968 46.875l-87.814 50.25v73.157H200.78L106.72 368.81zm387 74.532L380.25 492.22h113.47v-48.876z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Cracked Glass — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

@@ -1,8 +1,14 @@
+# ServiceAccount used by the discordsh and discordsh-bot StatefulSets.
+# Neither pod calls the kube API, so the projected token is unused
+# weight — disable token mount here at the SA level. The pod specs
+# also re-state the field so any future template binding this SA
+# inherits the safe default.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: discordsh-sa
     namespace: discordsh
+automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

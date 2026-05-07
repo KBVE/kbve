@@ -1,0 +1,51 @@
+---
+ref: spiked-mace
+name: Spiked Mace
+title: Spiked Mace Icon
+description: Spiked Mace glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["spiked-mace","spiked","mace","spiked mace"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/spiked-mace"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m246.47 16.29l43.774 85.93l40.65-42.927zm179.84 23.823l-13.472 13.47l46.807 46.808l13.48-13.46zm-52.42.95L113.88 315.656l81.65 81.653L471.808 138.98L373.89 41.06zm-3.097 50.57c12.955 0 25.912 4.916 35.742 14.746c19.66 19.66 19.66 51.82 0 71.48c-19.66 19.662-51.822 19.662-71.482 0c-19.66-19.66-19.66-51.82 0-71.48c9.83-9.83 22.785-14.747 35.74-14.747zM167.367 104.97l42.176 82.48l38.86-41.044zm203.426 5.235c-8.134 0-16.266 3.13-22.525 9.39c-12.52 12.518-12.52 32.533 0 45.05c12.518 12.52 32.534 12.52 45.052 0c12.52-12.517 12.52-32.532 0-45.05c-6.26-6.26-14.394-9.39-22.527-9.39M286.88 177.14c12.524.03 25.056 4.813 34.57 14.327c19.026 19.027 19.13 50.124.146 69.107s-50.08 18.88-69.108-.148c-19.027-19.027-19.13-50.124-.146-69.108c9.49-9.49 22.01-14.21 34.537-14.18zm166.58 4.58l-43.43 40.608l86.58 44.102zM88.927 194.88l39.957 77.75l36.445-38.487l-76.402-39.264zm197.926.83c-7.704-.02-15.394 2.922-21.295 8.823c-11.804 11.803-11.776 30.756.146 42.678c11.923 11.923 30.875 11.953 42.678.15c11.804-11.804 11.777-30.756-.146-42.678c-5.96-5.962-13.68-8.95-21.382-8.97zm-84.237 67.6c12.01.068 24.032 4.693 33.164 13.825c18.263 18.264 18.496 48.085.324 66.258c-18.173 18.172-47.994 17.94-66.258-.325c-18.264-18.264-18.497-48.085-.325-66.257c9.088-9.086 21.085-13.57 33.095-13.5zm163.38.194l-41.893 39.17l83.843 42.873zM202.55 281.88a27.65 27.65 0 0 0-19.814 8.145c-10.942 10.943-10.884 28.62.325 39.83c11.21 11.207 28.886 11.265 39.83.323c10.94-10.943 10.883-28.62-.326-39.828c-5.604-5.605-12.825-8.42-20.013-8.47zm75.343 64.003l-39.666 37.088l79.8 41.01l-40.134-78.097zm-158.784 1.43L18.93 447.493V494.9h45.648l101.13-100.988l-46.6-46.6z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Spiked Mace — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

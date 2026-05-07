@@ -1,0 +1,51 @@
+---
+ref: royal-love
+name: Royal Love
+title: Royal Love Icon
+description: Royal Love glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["royal-love","royal","love","royal love"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/royal-love"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M368.916 38.908c-15.49.145-31.22 3.356-46.316 9.82c-40.01 25.788-50.568 67.182-60.502 109.32c44.02-10.522 87.27-21.872 112.422-65.44l.005 145.12c-25.506-44.172-68.58-55.153-112.44-65.492c10.338 43.86 21.32 86.932 65.493 112.436l-145.12-.002c43.563-25.152 54.914-68.402 65.435-112.42c-43.837 10.336-86.88 21.325-112.375 65.48l.002-145.12c25.14 43.545 68.36 54.902 112.357 65.417c-9.795-40.978-20.336-81.273-56.916-106.922c-75.954-34.415-171.507 8.28-168.19 112.21c4.593 143.862 210.47 227.71 232.626 310.408c20.28-75.672 236.27-172.54 231.944-310.407h.002C484.876 84.78 430.587 39.92 372.01 38.92q-1.544-.026-3.094-.012M255.094 306.645c15.93 0 28.844 12.913 28.844 28.843s-12.914 28.846-28.844 28.846s-28.844-12.916-28.844-28.846s12.914-28.843 28.844-28.843"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Royal Love — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

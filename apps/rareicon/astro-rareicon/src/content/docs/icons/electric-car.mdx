@@ -1,0 +1,51 @@
+---
+ref: electric-car
+name: Electric Car
+title: Electric Car Icon
+description: Electric Car glyph from the material-symbols icon library, 1 variant — recolor via currentColor.
+primary_category: navigation
+categories: [navigation, library]
+tags: [material-symbols-generated, material-symbols]
+search:
+  keywords: ["electric-car","electric","car","electric car"]
+  primary_category: navigation
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Symbols (https://fonts.google.com/icons) — Apache 2.0"
+  author: Google LLC
+  source_url: "https://fonts.google.com/icons?icon.query=electric-car"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "material-symbols"
+    label: "Material Symbols"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [material-symbols]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M6 15v1q0 .425-.288.713T5 17H4q-.425 0-.712-.288T3 16V8l2.1-6q.15-.45.538-.725T6.5 1h11q.475 0 .863.275T18.9 2L21 8v8q0 .425-.287.713T20 17h-1q-.425 0-.712-.288T18 16v-1zm-.2-9h12.4l-1.05-3H6.85zm1.7 6q.625 0 1.063-.437T9 10.5t-.437-1.062T7.5 9t-1.062.438T6 10.5t.438 1.063T7.5 12m9 0q.625 0 1.063-.437T18 10.5t-.437-1.062T16.5 9t-1.062.438T15 10.5t.438 1.063T16.5 12M13 23l-6-3h4v-2l6 3h-4z"/></svg>
+pagefindFilters: [material-symbols, navigation]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Electric Car — glyph from the [Material Symbols icon library](https://fonts.google.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

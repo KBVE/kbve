@@ -1,0 +1,51 @@
+---
+ref: ninja-mask
+name: Ninja Mask
+title: Ninja Mask Icon
+description: Ninja Mask glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["ninja-mask","ninja","mask","ninja mask"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/ninja-mask"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M255.063 21c-46.697 0-88.406 27.674-117.844 70.656c-29.44 42.982-47.25 101.566-47.25 166.094s17.81 123.112 47.25 166.094c29.437 42.982 71.146 70.656 117.843 70.656c46.696 0 88.405-27.674 117.843-70.656c29.44-42.982 47.25-101.567 47.25-166.094c0-64.528-17.81-123.112-47.25-166.094C343.468 48.674 301.76 21 255.062 21zM396.28 200.344c3.365 18.28 5.19 37.527 5.19 57.406c0 18.535-1.594 36.522-4.533 53.688c-37.91 12.904-87.436 20.812-141.656 20.812c-54.45 0-104.125-8.235-142.186-21.313c-2.884-17.014-4.438-34.833-4.438-53.187c0-19.868 1.827-39.103 5.188-57.375c37.903 14.565 87.35 23.25 141.47 23.25c54.136 0 103.183-8.707 140.967-23.28zM177.157 241c-15.137-.162-30.97 3.458-47.375 10.313c14.562 51.423 87.08 42.483 102.157 10.156c-17.004-13.822-35.318-20.262-54.78-20.47zm155.75 0c-19.462.208-37.808 6.648-54.812 20.47c15.078 32.326 87.596 41.266 102.156-10.158c-16.405-6.854-32.206-10.474-47.344-10.312"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Ninja Mask — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

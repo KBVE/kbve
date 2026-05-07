@@ -87,6 +87,62 @@
 				"parallel": false
 			}
 		},
+		"gen:tabler-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-tabler-icons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:phosphor-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-phosphor-icons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:game-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-gameicons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:iconify-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-iconify-icons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:merge-variants": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-merge-variants.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:all-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": [
+					"node scripts/gen-lucide-icons.mjs",
+					"node scripts/gen-simple-icons.mjs",
+					"node scripts/gen-tabler-icons.mjs",
+					"node scripts/gen-phosphor-icons.mjs",
+					"node scripts/gen-gameicons.mjs",
+					"node scripts/gen-iconify-icons.mjs",
+					"node scripts/gen-merge-variants.mjs"
+				],
+				"parallel": false
+			}
+		},
 		"proto:lint": {
 			"executor": "nx:run-commands",
 			"options": {

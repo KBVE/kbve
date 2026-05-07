@@ -1,0 +1,51 @@
+---
+ref: iceberg
+name: Iceberg
+title: Iceberg Icon
+description: Iceberg glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["iceberg"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/iceberg"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m304.28 29.19l-12.523 80.56l8.06 55.25h165.347l-8.61-97.642l-35.503 19.42l5.786 51.58L411.94 83.1l-38.042-40.565zM121 43.144v84.408h28.246c-5.08-29.13-12.29-58.546-28.246-84.407zm135.28 58.695l-16 61.808l-.243 1.354h53.313l-12.674-45.357zM61.362 145.55l8.7 21.45h85.648l17.4-21.45zM18 183v18h476v-18zm212.39 36l-6.11 34.19l7.308 39.683l-39.31 64.613l16 71.705l32-16l14.656-22.713l3.584-13.707l-7.264-53.698l24.447 49.52l-3.528 51.95l16.107 36.65L336 489.68l19.69-31.145l4.47-41.22l13.32 54.576l37.813-9.452l-6.934-167.79l14.988 99.475l28.93-28.932l23.507-144l-.258-2.19h-73.912l1.44 6.71l-23.49 101.577l7.693-96.355L372.252 219zm50.807 10.096l23.34 17.877l4.967 17.382l-9.436 44.2l-5.463-49.662z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Iceberg — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

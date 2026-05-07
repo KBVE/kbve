@@ -1,0 +1,70 @@
+---
+ref: park
+name: Park Material
+title: Park Material Icon
+description: Park Material glyph from the material-symbols icon library, 1 variant — recolor via currentColor.
+primary_category: weather
+categories:
+  - weather
+  - library
+tags:
+  - material-symbols-generated
+  - material-symbols
+search:
+  keywords:
+    - park-material
+    - park
+    - material
+    - park material
+  primary_category: weather
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: Material Symbols (https://fonts.google.com/icons) — Apache 2.0
+  author: Google LLC
+  source_url: https://fonts.google.com/icons?icon.query=park
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: material-symbols
+    label: Material Symbols
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - material-symbols
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M13.95 22h-3.9v-4H3l4-6H5l7-10l7 10h-2l4 6h-7.05z"/></svg>
+pagefindFilters:
+  - material-symbols
+  - weather
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Park Material — glyph from the [Material Symbols icon library](https://fonts.google.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>
