@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Workspace Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-06T11:53:06Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-07T09:04:35Z** — updated daily by `ci-dashboard`.
 :::
 
 ### Environment
@@ -89,19 +89,19 @@ Cache Usage: 0.00 B / 89.18 GB
 ───────────────────────────────────────────────────────────────────────────────
 Language                 Files     Lines   Blanks  Comments     Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-MDX                       6177    352798    46250         0   306548          0
-TypeScript                 822    132428    13641      8406   110381      14033
+MDX                       6317    360185    46743         0   313442          0
+TypeScript                 822    132444    13641      8406   110397      14034
 C#                         800    152037    15803     12857   123377      20004
 Rust                       621    157507    15274     17177   125056       8348
-YAML                       526     42024     2235      3109    36680          0
-JSON                       284     80999       83         0    80916          0
+YAML                       528     42104     2232      3159    36713          0
+JSON                       285     81467       83         0    81384          0
 C Header                   262    109501     9795     51019    48687       5254
-Astro                      189     36448     2760      1073    32615        843
+Astro                      189     36561     2760      1073    32728        845
 SQL                        152     39319     4964      5803    28552        262
 Python                     143     14991     2446      1463    11082       1182
-TOML                       138      2627      289       221     2117         20
-Markdown                   130     19129     5003         0    14126          0
-JavaScript                 115     56818     4513     12443    39862       7196
+TOML                       139      2629      289       221     2119         20
+Markdown                   132     19241     5041         0    14200          0
+JavaScript                 116     57197     4548     12507    40142       7212
 C                           83    381822    28720     85598   267504      47760
 C++                         83     11544     1808       394     9342       1398
 HTML                        78      7364      557        80     6727          0
@@ -109,8 +109,8 @@ Java                        72      6781      960      1148     4673        581
 Shell                       36      4853      622       901     3330        466
 SVG                         31      1329      184       242      903        113
 Protocol Buffers            29      9117     1270      1540     6307          0
+Dockerfile                  24      2944      574       758     1612        297
 Plain Text                  24      5005     1043         0     3962          0
-Dockerfile                  23      2884      570       739     1575        287
 Kotlin                      18      1970      205       314     1451        156
 XML                         17     29918      221         0    29697          0
 nuspec                      13       450        5         0      445          0
@@ -126,7 +126,7 @@ MSBuild                      4        24        0         0       24          4
 Batch                        2       124       25        10       89         17
 Powershell                   2       294       40        39      215         24
 BASH                         1        50        9        12       29          9
-CloudFormation (YAM…         1       154        7        13      134          0
+CloudFormation (YAM…         1       133        6        13      114          0
 Elixir                       1       185       30        22      133         22
 GDScript                     1        33        5         1       27          5
 GLSL                         1        10        0         0       10          0
@@ -134,9 +134,9 @@ Go Template                  1       128       15         0      113          0
 Nix                          1        44        9         9       26          3
 Properties File              1         7        0         0        7          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                    10953   1667774   160399    205369  1302006     108093
+Total                    11101   1676370   160965    205502  1309903     108122
 ───────────────────────────────────────────────────────────────────────────────
-Processed 59195878 bytes, 59.196 megabytes (SI)
+Processed 59619981 bytes, 59.620 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -190,7 +190,6 @@ Using context.ref: fallback-branch
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
 Pull request created from fallback-branch to main
 
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 80ms
 stderr | src/lib/client/github/issues.spec.ts > _$gha_createIssueComment > should throw when API call fails
 Error creating issue comment: Error: API Error
     at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:72:7
@@ -204,8 +203,14 @@ Error creating issue comment: Error: API Error
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
+stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
+No matrix labels present. Added label: 0
+
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
 GitHub Event Name: undefined
+
+stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
+Removed lower labels, kept highest label: 5
 
 stderr | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
 Unable to determine the reference branch.
@@ -221,17 +226,12 @@ Error creating or updating pull request: Error: Unable to determine the referenc
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 18ms
- ✓ src/lib/client/github/pulls.spec.ts (9 tests) 99ms
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
-No matrix labels present. Added label: 0
-
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
-Removed lower labels, kept highest label: 5
-
- ✓ src/lib/client/github/issues.spec.ts (17 tests) 182ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 81ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 85ms
+ ✓ src/lib/client/github/pulls.spec.ts (9 tests) 31ms
+ ✓ src/lib/client/github/issues.spec.ts (17 tests) 104ms
+ ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 77ms
+ ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 80ms
+ ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 79ms
+ ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 84ms
 stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on invalid port
 Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
     at sanitizePort (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:140:11)
@@ -348,25 +348,25 @@ Error removing Docker container: Error: Remove failed
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/actions.spec.ts (7 tests) 8ms
- ✓ src/lib/client/github/docker.spec.ts (10 tests) 26ms
+ ✓ src/lib/client/github/actions.spec.ts (7 tests) 64ms
+ ✓ src/lib/client/github/docker.spec.ts (10 tests) 95ms
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
 Invalid YouTube URL
 
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
 No valid video found on the page
 
- ✓ src/lib/client/yt.spec.ts (10 tests) 587ms
-     ✓ should return the title of the YouTube video  509ms
- ✓ src/lib/api.spec.ts (5 tests) 507ms
-     ✓ _message should sanitize message correctly  501ms
- ✓ src/lib/sanitization.spec.ts (48 tests) 622ms
-     ✓ should convert markdown to JSON-safe string  494ms
+ ✓ src/lib/client/yt.spec.ts (10 tests) 601ms
+     ✓ should return the title of the YouTube video  581ms
+ ✓ src/lib/api.spec.ts (5 tests) 594ms
+     ✓ _message should sanitize message correctly  585ms
+ ✓ src/lib/sanitization.spec.ts (48 tests) 751ms
+     ✓ should convert markdown to JSON-safe string  565ms
 
  Test Files  11 passed (11)
       Tests  204 passed (204)
-   Start at  11:53:14
-   Duration  5.21s (transform 3.02s, setup 0ms, collect 21.17s, tests 2.30s, environment 2ms, prepare 1.66s)
+   Start at  09:04:42
+   Duration  4.33s (transform 3.66s, setup 0ms, collect 16.90s, tests 2.56s, environment 2ms, prepare 1.47s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -403,10 +403,10 @@ All files          |   78.21 |    77.22 |   79.43 |   78.16 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/laser
       Coverage enabled with v8
 
- ✓ src/lib/core/events.spec.ts (8 tests) 10ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 12ms
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 7ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 17ms
+ ✓ src/lib/core/events.spec.ts (8 tests) 11ms
+ ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 9ms
+ ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 14ms
+ ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 13ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 The tag &lt;ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
@@ -418,16 +418,16 @@ stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 68ms
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 76ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 71ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 41ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 138ms
+ ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 39ms
+ ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 42ms
+ ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 59ms
+ ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 54ms
+ ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 145ms
 
  Test Files  9 passed (9)
       Tests  57 passed (57)
-   Start at  11:53:14
-   Duration  5.37s (transform 917ms, setup 0ms, collect 2.58s, tests 441ms, environment 36.38s, prepare 1.53s)
+   Start at  09:04:42
+   Duration  4.67s (transform 1.50s, setup 0ms, collect 3.59s, tests 387ms, environment 28.02s, prepare 1.58s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -460,16 +460,16 @@ All files          |    63.5 |    50.79 |   75.47 |   66.92 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/droid
       Coverage enabled with v8
 
- ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 32ms
- ✓ src/lib/state/auth.spec.ts (5 tests) 6ms
- ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 11ms
- ✓ src/lib/types/bento.spec.ts (13 tests) 11ms
- ✓ src/lib/types/event-schemas.spec.ts (17 tests) 16ms
- ✓ src/lib/types/event-types.spec.ts (11 tests) 14ms
- ✓ src/lib/state/toasts.spec.ts (9 tests) 21ms
- ✓ src/lib/state/ui.spec.ts (16 tests) 52ms
- ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 53ms
- ✓ src/lib/workers/events.spec.ts (13 tests) 59ms
+ ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 7ms
+ ✓ src/lib/state/auth.spec.ts (5 tests) 7ms
+ ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 12ms
+ ✓ src/lib/types/bento.spec.ts (13 tests) 57ms
+ ✓ src/lib/types/event-types.spec.ts (11 tests) 11ms
+ ✓ src/lib/state/ui.spec.ts (16 tests) 17ms
+ ✓ src/lib/types/event-schemas.spec.ts (17 tests) 18ms
+ ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 17ms
+ ✓ src/lib/state/toasts.spec.ts (9 tests) 20ms
+ ✓ src/lib/workers/events.spec.ts (13 tests) 27ms
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T>
 
@@ -492,12 +492,12 @@ stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T> => await WorkerRefs + URLs
 
- ✓ src/lib/droid.spec.ts (1 test) 214ms
+ ✓ src/lib/droid.spec.ts (1 test) 207ms
 
  Test Files  11 passed (11)
       Tests  106 passed (106)
-   Start at  11:53:14
-   Duration  5.77s (transform 1.52s, setup 994ms, collect 2.89s, tests 488ms, environment 45.00s, prepare 1.87s)
+   Start at  09:04:42
+   Duration  4.84s (transform 1.50s, setup 1.08s, collect 2.84s, tests 400ms, environment 34.01s, prepare 1.99s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -555,19 +555,19 @@ All files          |   23.14 |    15.68 |    17.8 |   23.77 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/khashvault
       Coverage enabled with v8
 
- ✓ src/lib/worker/worker.spec.ts (5 tests) 5ms
- ✓ src/lib/hash/hash.spec.ts (7 tests) 8ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 14ms
+ ✓ src/lib/worker/worker.spec.ts (5 tests) 6ms
+ ✓ src/lib/hash/hash.spec.ts (7 tests) 7ms
+ ✓ src/lib/keys/keys.spec.ts (6 tests) 13ms
  ✓ src/lib/storage/storage.spec.ts (7 tests) 11ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 16ms
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 178ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 447ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 671ms
+ ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 24ms
+ ✓ src/lib/pgp/pgp.spec.ts (4 tests) 211ms
+ ✓ src/lib/aes/aes.spec.ts (7 tests) 498ms
+ ✓ src/lib/kdf/kdf.spec.ts (5 tests) 711ms
 
  Test Files  8 passed (8)
       Tests  48 passed (48)
-   Start at  11:53:20
-   Duration  1.61s (transform 730ms, setup 1.99s, collect 596ms, tests 1.35s, environment 2.44s, prepare 399ms)
+   Start at  09:04:48
+   Duration  1.66s (transform 633ms, setup 854ms, collect 781ms, tests 1.48s, environment 3.05s, prepare 328ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|--------------------------------

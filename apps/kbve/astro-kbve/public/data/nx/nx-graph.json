@@ -52,6 +52,129 @@
           }
         }
       },
+      "firecracker-python-net": {
+        "name": "firecracker-python-net",
+        "type": "lib",
+        "data": {
+          "root": "packages/docker/firecracker/python/net",
+          "name": "firecracker-python-net",
+          "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/docker/firecracker/python/net",
+          "tags": [
+            "docker",
+            "base-image",
+            "firecracker",
+            "python",
+            "net"
+          ],
+          "targets": {
+            "container": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "npx nx run firecracker-python-net:containerx",
+                  "VERSION=$(grep -m1 'version' packages/docker/firecracker/python/net/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker tag ghcr.io/kbve/firecracker-python-net:latest ghcr.io/kbve/firecracker-python-net:${VERSION} && echo \"Tagged ghcr.io/kbve/firecracker-python-net:${VERSION}\""
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "local": {},
+                "production": {
+                  "commands": [
+                    "npx nx run firecracker-python-net:containerx:production",
+                    "VERSION=$(grep -m1 'version' packages/docker/firecracker/python/net/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker buildx imagetools create --tag ghcr.io/kbve/firecracker-python-net:${VERSION} ghcr.io/kbve/firecracker-python-net:latest && echo \"Published ghcr.io/kbve/firecracker-python-net:${VERSION}\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "options": {
+                "engine": "docker",
+                "context": "packages/docker/firecracker/python/net",
+                "file": "packages/docker/firecracker/python/net/Dockerfile",
+                "platforms": [
+                  "linux/amd64"
+                ],
+                "load": true,
+                "push": false,
+                "tags": [
+                  "ghcr.io/kbve/firecracker-python-net:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "tags": [
+                    "ghcr.io/kbve/firecracker-python-net:latest"
+                  ]
+                },
+                "production": {
+                  "tags": [
+                    "ghcr.io/kbve/firecracker-python-net:latest"
+                  ],
+                  "push": true,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/firecracker-python-net"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "extract": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "container"
+              ],
+              "options": {
+                "commands": [
+                  "mkdir -p packages/docker/firecracker/python/net/dist",
+                  "docker create --name fc-python-net-extract ghcr.io/kbve/firecracker-python-net:latest true > /dev/null 2>&1 || true",
+                  "docker cp fc-python-net-extract:/rootfs.ext4 packages/docker/firecracker/python/net/dist/python-net.ext4",
+                  "docker rm fc-python-net-extract > /dev/null 2>&1 || true",
+                  "echo 'Extracted: packages/docker/firecracker/python/net/dist/python-net.ext4'"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "container"
+              ],
+              "options": {
+                "commands": [
+                  "echo '=== firecracker-python-net rootfs tests ==='",
+                  "docker create --name fc-python-net-test ghcr.io/kbve/firecracker-python-net:latest true > /dev/null 2>&1",
+                  "docker export fc-python-net-test | tar -t | grep -q '^rootfs.ext4$' && echo 'PASS: rootfs.ext4 present'",
+                  "docker rm fc-python-net-test > /dev/null 2>&1",
+                  "echo '=== All firecracker-python-net tests passed ==='"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "astro-cryptothrone": {
         "name": "astro-cryptothrone",
         "type": "app",
@@ -3289,6 +3412,18 @@
                 "cwd": "apps/rareicon/astro-rareicon",
                 "commands": [
                   "node scripts/gen-lucide-icons.mjs"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:brand-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/astro-rareicon",
+                "commands": [
+                  "node scripts/gen-simple-icons.mjs"
                 ],
                 "parallel": false
               },
@@ -12511,6 +12646,7 @@
           "type": "implicit"
         }
       ],
+      "firecracker-python-net": [],
       "astro-cryptothrone": [
         {
           "source": "astro-cryptothrone",
