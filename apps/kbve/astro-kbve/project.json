@@ -102,6 +102,22 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"sync:openapi": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/openapi/openapi.json",
+				"{workspaceRoot}/packages/data/codegen/gen-openapi-types.mjs"
+			],
+			"outputs": [
+				"{projectRoot}/src/data/schema/openapi/types.ts",
+				"{projectRoot}/src/data/schema/openapi/index.ts"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-openapi-types.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [
