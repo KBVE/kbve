@@ -68,6 +68,7 @@ COPY Cargo.lock ./
 
 COPY apps/chuckrpg/axum-chuckrpg/Cargo.toml apps/chuckrpg/axum-chuckrpg/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
@@ -76,6 +77,7 @@ COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/chuckrpg/axum-chuckrpg/src && echo "fn main() {}" > apps/chuckrpg/axum-chuckrpg/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs
@@ -118,13 +120,14 @@ RUN mkdir -p apps/chuckrpg/axum-chuckrpg/src && \
 COPY packages/data/proto packages/data/proto
 
 COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release -p kbve -p jedi -p bevy_kbve_net -p bevy_npc
+    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -137,6 +140,7 @@ COPY --from=astro-precompressor /static /app/apps/chuckrpg/axum-chuckrpg/templat
 # Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
 COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
