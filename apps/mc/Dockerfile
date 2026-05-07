@@ -302,7 +302,13 @@ declare -A MODS=(
 
 for name in "${!MODS[@]}"; do
   read -r sha1 url <<< "${MODS[$name]}"
-  curl -fsSL -o "/mods/$name" "$url"
+  # Modrinth's CDN occasionally throws HTTP/2 stream errors (curl exit 92)
+  # on a fresh CI runner. Retry with backoff so transient flakes don't
+  # fail the whole image build. --retry-all-errors covers the HTTP/2
+  # framing-layer failures that --retry alone skips.
+  curl -fsSL --retry 5 --retry-delay 2 --retry-all-errors \
+    --connect-timeout 30 --max-time 120 \
+    -o "/mods/$name" "$url"
   echo "$sha1  /mods/$name" | sha1sum -c -
 done
 MODS
