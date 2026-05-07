@@ -35,7 +35,12 @@ import yaml from 'js-yaml';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
+const WORKSPACE_ROOT = path.resolve(__dirname, '../../../..');
+const ICONS_DIR = path.resolve(
+	WORKSPACE_ROOT,
+	'apps/rareicon/astro-rareicon/src/content/docs/icons',
+);
+const DEDUP_KEYS_FILE = path.resolve(__dirname, '../dedup-keys.json');
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 
@@ -163,11 +168,54 @@ function mergeFrontmatter(base, suffix, pack) {
 	return added;
 }
 
+/**
+ * Build a stable concept-keyed dedup ledger. For each base ref the
+ * catalog ends up holding, record which upstream pack contributed which
+ * source slug — i.e. `{ "sword": { "lucide": "sword", "tabler": "sword",
+ * "phosphor": "sword", "game": "broadsword" } }`.
+ *
+ * The ledger is committed to git (`packages/data/rareicon-icons-codegen/
+ * dedup-keys.json`) so re-runs of the codegen pipeline stay deterministic
+ * and merges are auditable — a reviewer can grep the ledger to see what
+ * a "sword" page actually pulls from upstream.
+ */
+function loadLedger() {
+	if (!fs.existsSync(DEDUP_KEYS_FILE)) return {};
+	try {
+		return JSON.parse(fs.readFileSync(DEDUP_KEYS_FILE, 'utf8'));
+	} catch {
+		return {};
+	}
+}
+
+function writeLedger(ledger) {
+	const sorted = {};
+	for (const k of Object.keys(ledger).sort()) {
+		const inner = ledger[k];
+		const sortedInner = {};
+		for (const ik of Object.keys(inner).sort()) sortedInner[ik] = inner[ik];
+		sorted[k] = sortedInner;
+	}
+	fs.writeFileSync(DEDUP_KEYS_FILE, JSON.stringify(sorted, null, 2) + '\n');
+}
+
+/**
+ * Best-effort guess at the upstream pack-source slug a variant came from.
+ * Variant frontmatter doesn't carry the original slug verbatim, so fall
+ * back to the ref + namespace the per-pack codegen wrote.
+ */
+function recordVariantOrigin(ledger, baseRef, pack, variantOrSourceSlug) {
+	if (!ledger[baseRef]) ledger[baseRef] = {};
+	ledger[baseRef][pack] = variantOrSourceSlug;
+}
+
 function main() {
 	if (!fs.existsSync(ICONS_DIR)) {
 		console.error(`icons dir not found: ${ICONS_DIR}`);
 		process.exit(1);
 	}
+
+	const ledger = loadLedger();
 
 	let merged = 0;
 	let variantsAdded = 0;
@@ -185,14 +233,19 @@ function main() {
 		const suffixDoc = readMdx(suffixFile);
 		if (!suffixDoc) continue;
 
+		// Track origin even when promoting to a fresh base (no Lucide
+		// existed for this concept) so the ledger captures pack-only refs.
+		const sourceSlug =
+			suffixDoc.frontmatter?.search?.keywords?.[0] ?? baseRef;
+
 		if (!fs.existsSync(baseFile)) {
-			// No matching base — promote suffix file to base ref.
 			const newPath = path.join(ICONS_DIR, `${baseRef}.mdx`);
 			suffixDoc.frontmatter.ref = baseRef;
 			if (!dryRun) {
 				writeMdx(newPath, suffixDoc.frontmatter, suffixDoc.body);
 				fs.unlinkSync(suffixFile);
 			}
+			recordVariantOrigin(ledger, baseRef, pack, sourceSlug);
 			skippedNoBase++;
 			continue;
 		}
@@ -212,6 +265,7 @@ function main() {
 		);
 		variantsAdded += added;
 		merged++;
+		recordVariantOrigin(ledger, baseRef, pack, sourceSlug);
 
 		if (!dryRun) {
 			writeMdx(baseFile, baseDoc.frontmatter, baseDoc.body);
@@ -219,9 +273,40 @@ function main() {
 		}
 	}
 
+	// Walk the catalog to backfill ledger entries for already-merged
+	// terms (terms that carried `merged-multi-source` from a prior run
+	// but never had their origin recorded because the suffix files were
+	// already consolidated).
+	for (const f of fs.readdirSync(ICONS_DIR)) {
+		if (!f.endsWith('.mdx') || f === 'index.mdx') continue;
+		const baseRef = f.replace(/\.mdx$/, '');
+		// Skip suffix-named files
+		if (PACK_RE.test(f)) continue;
+		const doc = readMdx(path.join(ICONS_DIR, f));
+		if (!doc?.frontmatter?.tags?.includes?.('merged-multi-source'))
+			continue;
+		if (!ledger[baseRef]) ledger[baseRef] = {};
+		// Record source pack from the variant's own ref namespace
+		// (e.g. variant ref "tabler-outline" → pack "tabler").
+		for (const variant of doc.frontmatter.icons ?? []) {
+			const ref = variant?.ref;
+			if (typeof ref !== 'string') continue;
+			const dash = ref.indexOf('-');
+			if (dash <= 0) continue;
+			const packName = ref.slice(0, dash);
+			if (!ledger[baseRef][packName]) {
+				ledger[baseRef][packName] = baseRef;
+			}
+		}
+	}
+
+	if (!dryRun) writeLedger(ledger);
+
+	const conceptsTracked = Object.keys(ledger).length;
 	console.log(
 		`merged ${merged} files (${variantsAdded} new variants), promoted ${skippedNoBase} suffix-only files to base ref, skipped ${skippedHandCrafted} hand-crafted bases${dryRun ? ' (dry-run)' : ''}`,
 	);
+	console.log(`dedup ledger: ${conceptsTracked} concepts tracked`);
 }
 
 main();

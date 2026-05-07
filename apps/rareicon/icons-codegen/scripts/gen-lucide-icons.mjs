@@ -27,12 +27,10 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../../..');
-const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
-const LUCIDE_ICONS_DIR = path.resolve(
-	WORKSPACE_ROOT,
-	'node_modules/lucide/dist/esm/icons',
-);
+const ICONS_DIR = path.resolve(WORKSPACE_ROOT, 'apps/rareicon/astro-rareicon/src/content/docs/icons');
+const LUCIDE_ICONS_DIR = path.resolve(PACKAGE_ROOT, 'node_modules/lucide/dist/esm/icons');
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');

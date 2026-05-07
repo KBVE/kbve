@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
+use utoipa::ToSchema;
 
 use super::supabase::{SupabaseClient, SupabaseConfig};
 
@@ -24,7 +25,7 @@ const SCHEMA: &str = "forum";
 // the SQL row shape.
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct FeedRow {
     pub id: String,
     pub title: String,
@@ -46,7 +47,7 @@ pub struct FeedRow {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct ThreadRow {
     pub id: String,
     pub slug: Option<String>,
@@ -66,7 +67,7 @@ pub struct ThreadRow {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct SpaceRow {
     pub id: String,
     pub slug: String,
@@ -76,7 +77,7 @@ pub struct SpaceRow {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct TagRow {
     pub id: i32,
     pub slug: String,
@@ -107,7 +108,7 @@ pub struct ForumPublicProfile {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct CommentRow {
     pub id: String,
     pub thread_id: String,

@@ -2859,21 +2859,21 @@ async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
         })
 }
 
-#[derive(serde::Deserialize, kbve::holy::Sanitize)]
-struct CreateThreadBody {
+#[derive(serde::Deserialize, kbve::holy::Sanitize, ToSchema)]
+pub(crate) struct CreateThreadBody {
     #[holy(sanitize = "trim, lowercase, slug, truncate(50)")]
-    space_slug: String,
+    pub space_slug: String,
     // No `escape_html` here — askama auto-escapes on render. Storing
     // pre-escaped HTML would double-escape `&amp;` etc.
     #[holy(sanitize = "trim, control_strip, truncate(180)")]
-    title: String,
+    pub title: String,
     // body is markdown; only nul_strip + length cap. control_strip
     // would eat \n / \t.
     #[holy(sanitize = "nul_strip, truncate(50000)")]
-    body: String,
+    pub body: String,
     #[serde(default = "default_thread_type")]
     #[holy(sanitize = "trim, lowercase, truncate(32)")]
-    thread_type: String,
+    pub thread_type: String,
 }
 fn default_thread_type() -> String {
     "discussion".to_string()
@@ -2881,7 +2881,22 @@ fn default_thread_type() -> String {
 
 /// POST /api/v1/forum/threads — Bearer-authed thread creation.
 /// Body: `{ space_slug, title, body, thread_type }`.
-async fn api_create_thread(
+#[utoipa::path(
+    post,
+    path = "/api/v1/forum/threads",
+    tag = "forum",
+    request_body = CreateThreadBody,
+    responses(
+        (status = 201, description = "Thread created — `{thread_id}`", body = serde_json::Value),
+        (status = 400, description = "RPC validation error (title length / username required / etc)"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 404, description = "Space slug not found or inactive"),
+        (status = 502, description = "Upstream forum DB error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_create_thread(
     headers: HeaderMap,
     Json(mut payload): Json<CreateThreadBody>,
 ) -> Response {
@@ -2963,18 +2978,36 @@ async fn api_create_thread(
     }
 }
 
-#[derive(serde::Deserialize, kbve::holy::Sanitize)]
-struct CreateCommentBody {
+#[derive(serde::Deserialize, kbve::holy::Sanitize, ToSchema)]
+pub(crate) struct CreateCommentBody {
     #[holy(sanitize = "nul_strip, truncate(50000)")]
-    body: String,
+    pub body: String,
     // parent_comment_id is a UUID — RPC will reject malformed values,
     // no sanitize needed.
     #[serde(default)]
-    parent_comment_id: Option<String>,
+    pub parent_comment_id: Option<String>,
 }
 
 /// POST /api/v1/forum/t/{slug_or_id}/comments — Bearer-authed comment.
-async fn api_create_comment(
+#[utoipa::path(
+    post,
+    path = "/api/v1/forum/t/{slug_or_id}/comments",
+    tag = "forum",
+    params(
+        ("slug_or_id" = String, Path, description = "Thread slug or UUID")
+    ),
+    request_body = CreateCommentBody,
+    responses(
+        (status = 201, description = "Comment created — `{comment_id, thread_id}`", body = serde_json::Value),
+        (status = 400, description = "RPC validation error"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 404, description = "Thread not found"),
+        (status = 502, description = "Upstream forum DB error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_create_comment(
     Path(slug_or_id): Path<String>,
     headers: HeaderMap,
     Json(mut payload): Json<CreateCommentBody>,
@@ -3035,20 +3068,36 @@ async fn api_create_comment(
     }
 }
 
-#[derive(serde::Deserialize, kbve::holy::Sanitize)]
-struct EditCommentBody {
+#[derive(serde::Deserialize, kbve::holy::Sanitize, ToSchema)]
+pub(crate) struct EditCommentBody {
     #[holy(sanitize = "nul_strip, truncate(50000)")]
-    body: String,
+    pub body: String,
     /// Optional moderator reason — only honored on the staff-edit /
     /// staff-remove paths. Inline text, sanitized as a title-like field.
     #[serde(default)]
     #[holy(sanitize = "trim, control_strip, truncate(500)")]
-    reason: Option<String>,
+    pub reason: Option<String>,
 }
 
 /// PATCH /api/v1/forum/c/{comment_id} — author edit-own.
 /// SQL `service_edit_comment` re-checks author ownership.
-async fn api_edit_comment(
+#[utoipa::path(
+    patch,
+    path = "/api/v1/forum/c/{comment_id}",
+    tag = "forum",
+    params(
+        ("comment_id" = String, Path, description = "Comment UUID")
+    ),
+    request_body = EditCommentBody,
+    responses(
+        (status = 200, description = "Edit applied — `{comment_id}`", body = serde_json::Value),
+        (status = 400, description = "RPC validation / author mismatch"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,
@@ -3084,7 +3133,25 @@ async fn api_edit_comment(
 /// DELETE /api/v1/forum/c/{comment_id} — staff remove.
 /// axum checks staff at the JWT layer first, then forwards to the
 /// `service_staff_remove_comment` RPC which re-checks at the SQL layer.
-async fn api_remove_comment(
+#[utoipa::path(
+    delete,
+    path = "/api/v1/forum/c/{comment_id}",
+    tag = "forum",
+    params(
+        ("comment_id" = String, Path, description = "Comment UUID")
+    ),
+    request_body = EditCommentBody,
+    responses(
+        (status = 200, description = "Removed — `{action_id, comment_id}`", body = serde_json::Value),
+        (status = 400, description = "RPC validation error"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "Caller is not staff"),
+        (status = 502, description = "Upstream staff check error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_remove_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,
@@ -3226,7 +3293,25 @@ pub(crate) async fn api_me_staff(headers: HeaderMap) -> Response {
 }
 
 /// PATCH /api/v1/forum/c/{comment_id}/moderate — staff overwrite body.
-async fn api_staff_edit_comment(
+#[utoipa::path(
+    patch,
+    path = "/api/v1/forum/c/{comment_id}/moderate",
+    tag = "forum",
+    params(
+        ("comment_id" = String, Path, description = "Comment UUID")
+    ),
+    request_body = EditCommentBody,
+    responses(
+        (status = 200, description = "Moderation edit applied — `{action_id, comment_id}`", body = serde_json::Value),
+        (status = 400, description = "RPC validation error"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "Caller is not staff"),
+        (status = 502, description = "Upstream staff check error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_staff_edit_comment(
     Path(comment_id): Path<String>,
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,

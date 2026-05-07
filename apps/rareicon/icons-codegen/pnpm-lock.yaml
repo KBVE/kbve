@@ -1,0 +1,190 @@
+lockfileVersion: '9.0'
+
+settings:
+    autoInstallPeers: true
+    excludeLinksFromLockfile: false
+
+importers:
+    .:
+        dependencies:
+            '@iconify-json/carbon':
+                specifier: ^1.2.20
+                version: 1.2.20
+            '@iconify-json/fluent':
+                specifier: ^1.2.46
+                version: 1.2.46
+            '@iconify-json/game-icons':
+                specifier: ^1.2.4
+                version: 1.2.4
+            '@iconify-json/heroicons':
+                specifier: ^1.2.3
+                version: 1.2.3
+            '@iconify-json/iconoir':
+                specifier: ^1.2.11
+                version: 1.2.11
+            '@iconify-json/material-symbols':
+                specifier: ^1.2.70
+                version: 1.2.70
+            '@iconify-json/mdi':
+                specifier: ^1.2.3
+                version: 1.2.3
+            '@iconify-json/octicon':
+                specifier: ^1.2.23
+                version: 1.2.23
+            '@phosphor-icons/core':
+                specifier: ^2.1.1
+                version: 2.1.1
+            '@tabler/icons':
+                specifier: ^3.43.0
+                version: 3.43.0
+            js-yaml:
+                specifier: ^4.1.0
+                version: 4.1.1
+            lucide:
+                specifier: ^0.575.0
+                version: 0.575.0
+            simple-icons:
+                specifier: ^13.21.0
+                version: 13.21.0
+
+packages:
+    '@iconify-json/carbon@1.2.20':
+        resolution:
+            {
+                integrity: sha512-wqyxKEbIRdzGdfCAwQqn8iSfO6jx0m1toZAAQdx1NFjxd6iFl1YY4eKI1woWt7XOxs7s7phMW530kDD867JZGw==,
+            }
+
+    '@iconify-json/fluent@1.2.46':
+        resolution:
+            {
+                integrity: sha512-D/nsKOYT8ttULt2WJGF0lc0FtVHmEYizzdrO0duAasLYnKLAcdp3I/fCIpHh5a2kKdE5pcFyXeP0UsEZ0fG7WA==,
+            }
+
+    '@iconify-json/game-icons@1.2.4':
+        resolution:
+            {
+                integrity: sha512-/HDDZxowXgDJcOEwPspUCq5RuDdl25OyZKdtxqqiPJQNTrWIym7r4StLzIVs77DyNzOWWhH5wDqwYR3WHeDfkg==,
+            }
+
+    '@iconify-json/heroicons@1.2.3':
+        resolution:
+            {
+                integrity: sha512-n+vmCEgTesRsOpp5AB5ILB6srsgsYK+bieoQBNlafvoEhjVXLq8nIGN4B0v/s4DUfa0dOrjwE/cKJgIKdJXOEg==,
+            }
+
+    '@iconify-json/iconoir@1.2.11':
+        resolution:
+            {
+                integrity: sha512-clBrCsZPkmdksYOkufVp7aoAU1j1hFQPrLUooWWmoYIMvKskUHQ+IDnwV7agTR+tGYHbud7OP2SRfYEpnqFDNw==,
+            }
+
+    '@iconify-json/material-symbols@1.2.70':
+        resolution:
+            {
+                integrity: sha512-8FljpHMgaYwqHKEt7ovTog4d5Vuz6ivv0jih3yuoo68UWM1VltL6FUxSq/HrAsgItWBy9VNIOQUSIHgNUoHrkA==,
+            }
+
+    '@iconify-json/mdi@1.2.3':
+        resolution:
+            {
+                integrity: sha512-O3cLwbDOK7NNDf2ihaQOH5F9JglnulNDFV7WprU2dSoZu3h3cWH//h74uQAB87brHmvFVxIOkuBX2sZSzYhScg==,
+            }
+
+    '@iconify-json/octicon@1.2.23':
+        resolution:
+            {
+                integrity: sha512-Orzy6EGFBuqiME4WAyyv7Wr/RCOtf2EDUiCHBr0glTMyPQWwtZqribj9UEbDPE/ZMlwx79YrQ7sOoDQv1pVqRQ==,
+            }
+
+    '@iconify/types@2.0.0':
+        resolution:
+            {
+                integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==,
+            }
+
+    '@phosphor-icons/core@2.1.1':
+        resolution:
+            {
+                integrity: sha512-v4ARvrip4qBCImOE5rmPUylOEK4iiED9ZyKjcvzuezqMaiRASCHKcRIuvvxL/twvLpkfnEODCOJp5dM4eZilxQ==,
+            }
+
+    '@tabler/icons@3.43.0':
+        resolution:
+            {
+                integrity: sha512-qXwS17Op9jqr3Asvu31fejyw8+OnRDKH7oR8nQXyUgW1pI44ET8OKG9kssy+XIvvAIyej6gZdGmviNUn1VMfPw==,
+            }
+
+    argparse@2.0.1:
+        resolution:
+            {
+                integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==,
+            }
+
+    js-yaml@4.1.1:
+        resolution:
+            {
+                integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==,
+            }
+        hasBin: true
+
+    lucide@0.575.0:
+        resolution:
+            {
+                integrity: sha512-+xwqZpvrqPioU8bSH49zH2xARfnKyZgIjdnfbex0CrURB3q4wNFhinYN1Z9Q3lE16Q/6N9iEXnStvyS3c70RKw==,
+            }
+
+    simple-icons@13.21.0:
+        resolution:
+            {
+                integrity: sha512-LI5pVJPBv6oc79OMsffwb6kEqnmB8P1Cjg1crNUlhsxPETQ5UzbCKQdxU+7MW6+DD1qfPkla/vSKlLD4IfyXpQ==,
+            }
+        engines: { node: '>=0.12.18' }
+
+snapshots:
+    '@iconify-json/carbon@1.2.20':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/fluent@1.2.46':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/game-icons@1.2.4':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/heroicons@1.2.3':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/iconoir@1.2.11':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/material-symbols@1.2.70':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/mdi@1.2.3':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/octicon@1.2.23':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify/types@2.0.0': {}
+
+    '@phosphor-icons/core@2.1.1': {}
+
+    '@tabler/icons@3.43.0': {}
+
+    argparse@2.0.1: {}
+
+    js-yaml@4.1.1:
+        dependencies:
+            argparse: 2.0.1
+
+    lucide@0.575.0: {}
+
+    simple-icons@13.21.0: {}
