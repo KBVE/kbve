@@ -71,7 +71,7 @@ const currentYear = new Date().getFullYear();
 				KBVE
 			</a>
 		</span>
-		<SocialBar variant="badges" />
+		<SocialBar variant="badges" utmCampaign="footer" />
 	</div>
 </div>
 
@@ -182,32 +182,6 @@ const currentYear = new Date().getFullYear();
 
 	.ri-footer__bottom a:hover {
 		color: var(--ri-accent);
-	}
-
-	.ri-footer__badges {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.ri-footer__badge {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		color: var(--sl-color-gray-2, #9e9480);
-		background: color-mix(in srgb, var(--ri-accent) 8%, transparent);
-		border: 1px solid color-mix(in srgb, var(--ri-accent) 15%, transparent);
-		transition: all 200ms ease;
-	}
-
-	.ri-footer__badge:hover {
-		color: var(--ri-accent);
-		border-color: color-mix(in srgb, var(--ri-accent) 40%, transparent);
-		background: color-mix(in srgb, var(--ri-accent) 15%, transparent);
-		transform: translateY(-2px);
 	}
 
 	@media (max-width: 768px) {

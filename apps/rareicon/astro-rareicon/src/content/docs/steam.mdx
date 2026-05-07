@@ -24,6 +24,7 @@ sidebar:
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import SocialBar from '@/components/social/SocialBar.astro';
 
 <div class="not-content ri-steam-widget">
 	<iframe
@@ -84,3 +85,10 @@ Every wishlist tells Steam the game matters. Click through, hit the button, take
 - [Install the Steam demo](/guides/steam-demo/) once it drops
 - Follow the [dev journal on kbve.com](https://kbve.com/journal/)
 - Join the [Discord](https://kbve.com/discord/) for patch chatter + ally recruitment
+
+<SocialBar
+	variant="cards"
+	exclude={['steam']}
+	ariaLabel="RareIcon community channels"
+	utmCampaign="steam-page"
+/>
