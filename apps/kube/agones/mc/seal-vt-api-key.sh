@@ -19,7 +19,7 @@ set -euo pipefail
 NS="arc-runners"
 SECRET_NAME="mc-vt-api-key"
 KEY="VT_API_KEY"
-OUT="$(dirname "$0")/vt-api-key-sealed-secret.yaml"
+OUT="$(dirname "$0")/manifests/vt-api-key-sealed-secret.yaml"
 CONTROLLER_NS="kube-system"
 CONTROLLER_NAME="sealed-secrets-controller"
 

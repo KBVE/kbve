@@ -4,7 +4,7 @@
 # meant to be cheap and idle. Agones is overkill when there's exactly
 # one replica that never scales.
 #
-# Topology (fits into the existing apps/kube/agones/mc/ stack):
+# Topology (fits into the existing apps/kube/agones/mc/manifests/ stack):
 #
 #   mc.kbve.com:25565
 #       ↓
