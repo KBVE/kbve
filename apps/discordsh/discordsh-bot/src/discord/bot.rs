@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use kbve::entity::client::vault::VaultClient;
 use poise::serenity_prelude as serenity;
 use tracing::{error, info, warn};
@@ -12,6 +12,13 @@ use crate::state::AppState;
 
 /// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
+
+/// Bounded retry budget for vault token fetch on startup. After exhaustion the
+/// bot returns an error and lets K8s apply CrashLoopBackOff (caps at 5 min)
+/// rather than spinning a hot in-process retry loop.
+const VAULT_TOKEN_MAX_ATTEMPTS: u32 = 5;
+const VAULT_TOKEN_BACKOFF_BASE: Duration = Duration::from_secs(1);
+const VAULT_TOKEN_BACKOFF_CAP: Duration = Duration::from_secs(8);
 
 // ── Poise type aliases ──────────────────────────────────────────────────
 
@@ -33,31 +40,74 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 ///
 /// Priority:
 /// 1. `DISCORD_TOKEN` env var (fast, for local dev)
-/// 2. Supabase Vault via `vault-reader` Edge Function (production)
-async fn resolve_token() -> Option<String> {
-    // 1. Try direct env var (dev mode / backward compatible)
+/// 2. Supabase Vault via `vault-reader` Edge Function (production), with
+///    bounded exponential backoff to ride out brief edge-function cold starts
+///
+/// Returns `Ok(Some(_))` on success, `Ok(None)` when neither source is
+/// configured (dev mode), and `Err(_)` when vault was configured but every
+/// attempt failed — the caller propagates the error so K8s restarts the pod.
+async fn resolve_token() -> Result<Option<String>> {
     if let Ok(t) = std::env::var("DISCORD_TOKEN")
         && !t.is_empty()
     {
         info!("Using Discord token from DISCORD_TOKEN env var");
-        return Some(t);
+        return Ok(Some(t));
     }
 
-    // 2. Try Supabase Vault
-    if let Some(vault) = VaultClient::from_env() {
-        info!("DISCORD_TOKEN not set, fetching from Supabase Vault");
+    let Some(vault) = VaultClient::from_env() else {
+        return Ok(None);
+    };
+
+    info!(
+        max_attempts = VAULT_TOKEN_MAX_ATTEMPTS,
+        "DISCORD_TOKEN not set, fetching from Supabase Vault"
+    );
+
+    let mut last_err: Option<String> = None;
+    for attempt in 1..=VAULT_TOKEN_MAX_ATTEMPTS {
         match vault.get_secret(DISCORD_TOKEN_VAULT_ID).await {
             Ok(token) => {
-                info!("Discord token retrieved from Supabase Vault");
-                return Some(token);
+                info!(attempt, "Discord token retrieved from Supabase Vault");
+                return Ok(Some(token));
             }
             Err(e) => {
-                warn!(error = %e, "Failed to fetch Discord token from vault");
+                let msg = e.to_string();
+                if attempt < VAULT_TOKEN_MAX_ATTEMPTS {
+                    let delay = backoff_delay(attempt);
+                    warn!(
+                        attempt,
+                        max_attempts = VAULT_TOKEN_MAX_ATTEMPTS,
+                        retry_in_ms = delay.as_millis() as u64,
+                        error = %msg,
+                        "Vault fetch failed, retrying"
+                    );
+                    tokio::time::sleep(delay).await;
+                } else {
+                    error!(
+                        attempt,
+                        max_attempts = VAULT_TOKEN_MAX_ATTEMPTS,
+                        error = %msg,
+                        "Vault fetch failed, retries exhausted"
+                    );
+                }
+                last_err = Some(msg);
             }
         }
     }
 
-    None
+    Err(anyhow!(
+        "Discord token unavailable after {} vault attempts: {}",
+        VAULT_TOKEN_MAX_ATTEMPTS,
+        last_err.unwrap_or_else(|| "unknown".to_string())
+    ))
+}
+
+/// Exponential backoff: 2^(attempt-1) * base, capped at `VAULT_TOKEN_BACKOFF_CAP`.
+fn backoff_delay(attempt: u32) -> Duration {
+    let multiplier = 1u64 << attempt.saturating_sub(1).min(16);
+    VAULT_TOKEN_BACKOFF_BASE
+        .saturating_mul(multiplier as u32)
+        .min(VAULT_TOKEN_BACKOFF_CAP)
 }
 
 // ── Event handler ───────────────────────────────────────────────────────
@@ -189,10 +239,10 @@ async fn event_handler(
 // ── Bot startup ─────────────────────────────────────────────────────────
 
 pub async fn start(app_state: Arc<AppState>) -> Result<()> {
-    let token = match resolve_token().await {
+    let token = match resolve_token().await? {
         Some(t) => t,
         None => {
-            info!("No Discord token available (env or vault), skipping Discord bot");
+            info!("No Discord token configured (env or vault), skipping Discord bot");
             // Park this task so tokio::select! doesn't immediately resolve
             std::future::pending::<()>().await;
             return Ok(());

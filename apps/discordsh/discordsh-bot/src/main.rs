@@ -45,17 +45,26 @@ async fn main() -> anyhow::Result<()> {
     let health_http = tokio::spawn(health_server::serve(Arc::clone(&app_state)));
 
     // Bot restart loop: restarts when restart_flag is set, exits otherwise
+    let mut fatal: Option<anyhow::Error> = None;
     loop {
         let app = Arc::clone(&app_state);
         let bot = tokio::spawn(discord::bot::start(app));
 
         tokio::select! {
             res = bot => {
-                if let Ok(Err(e)) = &res {
-                    tracing::error!(error = %e, "Discord bot exited with error");
+                match res {
+                    Ok(Err(e)) => {
+                        tracing::error!(error = %e, "Discord bot exited with error");
+                        fatal = Some(e);
+                    }
+                    Err(e) => {
+                        tracing::error!(error = %e, "Discord bot task panicked");
+                        fatal = Some(anyhow::anyhow!(e));
+                    }
+                    Ok(Ok(())) => {}
                 }
 
-                if app_state.restart_flag.load(Ordering::Relaxed) {
+                if fatal.is_none() && app_state.restart_flag.load(Ordering::Relaxed) {
                     app_state.restart_flag.store(false, Ordering::Relaxed);
                     info!("Restarting Discord bot in 2s...");
                     tokio::time::sleep(Duration::from_secs(2)).await;
@@ -77,5 +86,8 @@ async fn main() -> anyhow::Result<()> {
     // Let health server wind down
     health_http.abort();
 
+    if let Some(e) = fatal {
+        return Err(e);
+    }
     Ok(())
 }
