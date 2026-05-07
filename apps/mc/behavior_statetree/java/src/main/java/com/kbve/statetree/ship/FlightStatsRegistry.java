@@ -32,6 +32,8 @@ public final class FlightStatsRegistry {
     private static final Map<String, FlightStats> STATS = new ConcurrentHashMap<>();
     /** Seat positions, keyed by model name. Outer list is indexed by passenger count - 1. */
     private static final Map<String, List<List<Vec3d>>> SEATS = new ConcurrentHashMap<>();
+    /** Weapon mount offsets in ship-local space, keyed by model name. */
+    private static final Map<String, List<Vec3d>> MOUNTS = new ConcurrentHashMap<>();
 
     private FlightStatsRegistry() {}
 
@@ -39,6 +41,12 @@ public final class FlightStatsRegistry {
     public static List<List<Vec3d>> getSeats(String modelName) {
         if (modelName == null) return Collections.emptyList();
         return SEATS.getOrDefault(modelName, Collections.emptyList());
+    }
+
+    /** Weapon mount positions (ship-local). Empty = single hardcoded forward mount. */
+    public static List<Vec3d> getMounts(String modelName) {
+        if (modelName == null) return Collections.emptyList();
+        return MOUNTS.getOrDefault(modelName, Collections.emptyList());
     }
 
     /** Known aircraft profiles bundled in the mod jar. */
@@ -57,6 +65,7 @@ public final class FlightStatsRegistry {
         if (!STATS.isEmpty()) return;
         Map<String, FlightStats> nextStats = new HashMap<>();
         Map<String, List<List<Vec3d>>> nextSeats = new HashMap<>();
+        Map<String, List<Vec3d>> nextMounts = new HashMap<>();
         for (String key : BUILTIN_PROFILES) {
             String path = "/data/behavior_statetree/aircraft/" + key + ".json";
             try (InputStream in = FlightStatsRegistry.class.getResourceAsStream(path)) {
@@ -70,13 +79,29 @@ public final class FlightStatsRegistry {
                 if (root.has("passengerPositions")) {
                     nextSeats.put(key, parseSeats(root.getAsJsonArray("passengerPositions")));
                 }
+                if (root.has("weaponMounts")) {
+                    nextMounts.put(key, parseFlatPositions(root.getAsJsonArray("weaponMounts")));
+                }
             } catch (Exception ex) {
                 LOGGER.warn("[FlightStats] Failed reading {}: {}", path, ex.toString());
             }
         }
         STATS.putAll(nextStats);
         SEATS.putAll(nextSeats);
+        MOUNTS.putAll(nextMounts);
         LOGGER.info("[FlightStats] Loaded {} aircraft profiles: {}", STATS.size(), STATS.keySet());
+    }
+
+    private static List<Vec3d> parseFlatPositions(JsonArray arr) {
+        List<Vec3d> result = new ArrayList<>(arr.size());
+        for (JsonElement el : arr) {
+            JsonObject o = el.getAsJsonObject();
+            result.add(new Vec3d(
+                    o.has("x") ? o.get("x").getAsDouble() : 0.0,
+                    o.has("y") ? o.get("y").getAsDouble() : 0.0,
+                    o.has("z") ? o.get("z").getAsDouble() : 0.0));
+        }
+        return result;
     }
 
     private static List<List<Vec3d>> parseSeats(JsonArray outer) {

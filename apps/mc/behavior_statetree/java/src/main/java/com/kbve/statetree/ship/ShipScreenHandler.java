@@ -65,9 +65,18 @@ public class ShipScreenHandler extends ScreenHandler {
                         && bi.getBlock() instanceof net.minecraft.block.AbstractBannerBlock;
             }
         });
+        addSlot(new Slot(shipInv, ShipInventory.FUEL_SLOT, 108, y0) {
+            @Override
+            public boolean canInsert(ItemStack stack) {
+                return stack.isOf(net.minecraft.item.Items.COAL)
+                        || stack.isOf(net.minecraft.item.Items.CHARCOAL)
+                        || stack.isOf(net.minecraft.item.Items.COAL_BLOCK)
+                        || stack.isOf(net.minecraft.item.Items.LAVA_BUCKET);
+            }
+        });
         for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
             final int idx = ShipInventory.WEAPON_START + i;
-            addSlot(new Slot(shipInv, idx, 116 + i * 18, y0) {
+            addSlot(new Slot(shipInv, idx, 128 + i * 18, y0) {
                 @Override
                 public boolean canInsert(ItemStack stack) {
                     return ShipWeapons.isWeapon(stack.getItem());
@@ -125,6 +134,16 @@ public class ShipScreenHandler extends ScreenHandler {
                 if (!insertItem(original,
                         ShipInventory.BANNER_SLOT,
                         ShipInventory.BANNER_SLOT + 1,
+                        false)) {
+                    return tryStorage(original);
+                }
+            } else if (original.isOf(net.minecraft.item.Items.COAL)
+                    || original.isOf(net.minecraft.item.Items.CHARCOAL)
+                    || original.isOf(net.minecraft.item.Items.COAL_BLOCK)
+                    || original.isOf(net.minecraft.item.Items.LAVA_BUCKET)) {
+                if (!insertItem(original,
+                        ShipInventory.FUEL_SLOT,
+                        ShipInventory.FUEL_SLOT + 1,
                         false)) {
                     return tryStorage(original);
                 }

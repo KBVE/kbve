@@ -67,6 +67,7 @@ public class ShipEntity extends Entity {
     private float bankRoll = 0.0f;
     private double lastY = 0.0;
     private float inWaterLevel = 0.0f;
+    private float lastEnginePowerForSound = 0.0f;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -102,13 +103,15 @@ public class ShipEntity extends Entity {
         double dx = -Math.sin(yawRad) * Math.cos(pitchRad);
         double dy = -Math.sin(pitchRad);
         double dz = Math.cos(yawRad) * Math.cos(pitchRad);
-        Vec3d dir = new Vec3d(dx, dy, dz).normalize();
+        Vec3d aim = new Vec3d(dx, dy, dz).normalize();
 
-        // Mount position: forward of ship origin along ship yaw + slight Y lift.
+        // Mount positions from per-aircraft JSON (ship-local). Falls back to a
+        // single hardcoded forward mount if the model has none configured.
+        java.util.List<Vec3d> localMounts = FlightStatsRegistry.getMounts(getModelName());
+
         double shipYawRad = Math.toRadians(this.getYaw());
-        double offX = -Math.sin(shipYawRad) * 1.5;
-        double offZ = Math.cos(shipYawRad) * 1.5;
-        Vec3d origin = new Vec3d(this.getX() + offX, this.getY() + 0.6, this.getZ() + offZ);
+        double cosY = Math.cos(shipYawRad);
+        double sinY = Math.sin(shipYawRad);
 
         for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
             if (weaponCooldowns[i] > 0) continue;
@@ -118,7 +121,20 @@ public class ShipEntity extends Entity {
             ShipWeapons.Weapon weapon = ShipWeapons.weaponFor(stack.getItem());
             if (weapon == null) continue;
 
-            weapon.fire(sw, this, pilot, origin, dir);
+            // Resolve mount: pick i-th JSON mount if available, else cycle.
+            Vec3d local;
+            if (!localMounts.isEmpty()) {
+                local = localMounts.get(i % localMounts.size());
+            } else {
+                local = new Vec3d(0.0, 0.6, 1.5);
+            }
+            // Rotate ship-local mount around Y by ship yaw.
+            double wx = this.getX() + local.x * cosY - local.z * sinY;
+            double wy = this.getY() + local.y;
+            double wz = this.getZ() + local.x * sinY + local.z * cosY;
+            Vec3d origin = new Vec3d(wx, wy, wz);
+
+            weapon.fire(sw, this, pilot, origin, aim);
             stack.decrement(1);
             if (stack.isEmpty()) inventory.setStack(slot, net.minecraft.item.ItemStack.EMPTY);
             weaponCooldowns[i] = ShipWeapons.FIRE_COOLDOWN;
@@ -471,6 +487,34 @@ public class ShipEntity extends Entity {
             setFuelLevel(getFuelLevel() - burn);
         }
 
+        // Boiler feed — top off fuel from the dedicated feed slot when low.
+        // Consumes one item per top-off; lava buckets leave an empty bucket.
+        if (getFuelLevel() < MAX_FUEL - COAL_FUEL) {
+            net.minecraft.item.ItemStack feed = inventory.getStack(ShipInventory.FUEL_SLOT);
+            if (!feed.isEmpty()) {
+                float bonus = 0f;
+                boolean isLava = false;
+                if (feed.isOf(net.minecraft.item.Items.COAL)
+                        || feed.isOf(net.minecraft.item.Items.CHARCOAL)) {
+                    bonus = COAL_FUEL;
+                } else if (feed.isOf(net.minecraft.item.Items.COAL_BLOCK)) {
+                    bonus = COAL_FUEL * 9f;
+                } else if (feed.isOf(net.minecraft.item.Items.LAVA_BUCKET)) {
+                    bonus = LAVA_FUEL;
+                    isLava = true;
+                }
+                if (bonus > 0f) {
+                    setFuelLevel(getFuelLevel() + bonus);
+                    if (isLava) {
+                        inventory.setStack(ShipInventory.FUEL_SLOT,
+                                new net.minecraft.item.ItemStack(net.minecraft.item.Items.BUCKET));
+                    } else {
+                        feed.decrement(1);
+                    }
+                }
+            }
+        }
+
         // Forward direction in horizontal plane (rotorcraft style).
         double rad = Math.toRadians(heading);
         double fx = -Math.sin(rad);
@@ -568,15 +612,33 @@ public class ShipEntity extends Entity {
 
         // Engine sound — pitch scales with throttle. Cadence speeds up as
         // power rises so the audio gets more frantic at full thrust.
-        if (power > 0.05f && this.getEntityWorld() instanceof ServerWorld sw2) {
-            int cadence = Math.max(2, (int) (12 - 8 * power));
-            if (this.age % cadence == 0) {
-                float pitch = 0.5f + 0.7f * power;
+        if (this.getEntityWorld() instanceof ServerWorld sw2) {
+            // Engine spinup — distinct one-shot when throttle first kicks in.
+            if (lastEnginePowerForSound < 0.05f && power >= 0.05f) {
                 sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
-                        net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING,
+                        net.minecraft.sound.SoundEvents.ITEM_FLINTANDSTEEL_USE,
                         net.minecraft.sound.SoundCategory.NEUTRAL,
-                        0.35f + 0.3f * power, pitch);
+                        0.6f, 0.8f);
             }
+            // Engine shutdown — soft puff when throttle drops to zero.
+            if (lastEnginePowerForSound >= 0.05f && power < 0.05f) {
+                sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
+                        net.minecraft.sound.SoundEvents.BLOCK_FIRE_EXTINGUISH,
+                        net.minecraft.sound.SoundCategory.NEUTRAL,
+                        0.4f, 1.0f);
+            }
+            // Engine loop — periodic minecart-rumble while running.
+            if (power > 0.05f) {
+                int cadence = Math.max(2, (int) (12 - 8 * power));
+                if (this.age % cadence == 0) {
+                    float pitch = 0.5f + 0.7f * power;
+                    sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
+                            net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING,
+                            net.minecraft.sound.SoundCategory.NEUTRAL,
+                            0.35f + 0.3f * power, pitch);
+                }
+            }
+            lastEnginePowerForSound = power;
         }
     }
 
@@ -723,28 +785,16 @@ public class ShipEntity extends Entity {
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
         setFuelLevel(view.getFloat("FuelLevel", MAX_FUEL));
 
-        // Inventory: simple slot:item:count packing (no components).
-        // Sufficient for upgrade/weapon/cargo persistence; banner pattern
-        // data (colors) is lost on reload, which is acceptable for now.
+        // Inventory: full ItemStack codec preserves components (enchantments,
+        // banner patterns, custom names, durability) across world reload.
         for (int i = 0; i < inventory.size(); i++) inventory.setStack(i, net.minecraft.item.ItemStack.EMPTY);
-        String packed = view.getString("Inventory", "");
-        if (!packed.isEmpty()) {
-            for (String entry : packed.split(";")) {
-                if (entry.isEmpty()) continue;
-                String[] parts = entry.split(":");
-                if (parts.length != 3) continue;
-                try {
-                    int slot = Integer.parseInt(parts[0]);
-                    int count = Integer.parseInt(parts[2]);
-                    net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(parts[1]);
-                    if (id == null || slot < 0 || slot >= inventory.size()) continue;
-                    net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(id);
-                    if (item != net.minecraft.item.Items.AIR) {
-                        inventory.setStack(slot, new net.minecraft.item.ItemStack(item, count));
+        view.read("Inventory",
+                com.mojang.serialization.Codec.list(net.minecraft.item.ItemStack.OPTIONAL_CODEC))
+                .ifPresent(list -> {
+                    for (int i = 0; i < list.size() && i < inventory.size(); i++) {
+                        inventory.setStack(i, list.get(i));
                     }
-                } catch (NumberFormatException ignored) {}
-            }
-        }
+                });
         upgradesHashCache = -1;
         syncUpgradesCsv();
         syncBannerId();
@@ -762,15 +812,13 @@ public class ShipEntity extends Entity {
         view.putFloat("ShipHealth", getShipHealth());
         view.putFloat("FuelLevel", getFuelLevel());
 
-        StringBuilder packed = new StringBuilder();
+        java.util.List<net.minecraft.item.ItemStack> stacks =
+                new java.util.ArrayList<>(inventory.size());
         for (int i = 0; i < inventory.size(); i++) {
-            net.minecraft.item.ItemStack s = inventory.getStack(i);
-            if (s.isEmpty()) continue;
-            if (packed.length() > 0) packed.append(';');
-            packed.append(i).append(':')
-                    .append(net.minecraft.registry.Registries.ITEM.getId(s.getItem()).toString())
-                    .append(':').append(s.getCount());
+            stacks.add(inventory.getStack(i));
         }
-        view.putString("Inventory", packed.toString());
+        view.put("Inventory",
+                com.mojang.serialization.Codec.list(net.minecraft.item.ItemStack.OPTIONAL_CODEC),
+                stacks);
     }
 }

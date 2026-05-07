@@ -20,7 +20,9 @@ public class ShipInventory extends SimpleInventory {
     public static final int WEAPON_COUNT = 4;
     public static final int STORAGE_START = WEAPON_START + WEAPON_COUNT;        // 9
     public static final int STORAGE_COUNT = 16;
-    public static final int TOTAL_SLOTS = STORAGE_START + STORAGE_COUNT;        // 25
+    /** Boiler-style fuel feed slot (auto-consumes coal / lava buckets when fuel low). */
+    public static final int FUEL_SLOT = STORAGE_START + STORAGE_COUNT;          // 25
+    public static final int TOTAL_SLOTS = FUEL_SLOT + 1;                        // 26
 
     private final ShipEntity ship;
 
@@ -55,8 +57,17 @@ public class ShipInventory extends SimpleInventory {
         return slot >= WEAPON_START && slot < WEAPON_START + WEAPON_COUNT;
     }
 
+    public boolean isFuelSlot(int slot) {
+        return slot == FUEL_SLOT;
+    }
+
     /** Active banner item (or empty). */
     public ItemStack getBanner() {
         return getStack(BANNER_SLOT);
+    }
+
+    /** Boiler-fed fuel stack (or empty). */
+    public ItemStack getFuelFeed() {
+        return getStack(FUEL_SLOT);
     }
 }

@@ -21,7 +21,7 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
 
     public ShipScreen(ShipScreenHandler handler, PlayerInventory inv, Text title) {
         super(handler, inv, title);
-        this.backgroundWidth = 192;
+        this.backgroundWidth = 210;
         this.backgroundHeight = 208;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
@@ -42,8 +42,9 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
             slotBg(ctx, sx, sy);
         }
         slotBg(ctx, x + 88, sy);
+        slotBg(ctx, x + 108, sy);
         for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
-            int sx = x + 116 + i * 18;
+            int sx = x + 128 + i * 18;
             slotBg(ctx, sx, sy);
         }
 
@@ -72,8 +73,9 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
     protected void drawForeground(DrawContext ctx, int mouseX, int mouseY) {
         // Section labels.
         ctx.drawText(this.textRenderer, Text.literal("Upgrades"), 8, 8, LABEL_COLOR, false);
-        ctx.drawText(this.textRenderer, Text.literal("Banner"), 88, 8, LABEL_COLOR, false);
-        ctx.drawText(this.textRenderer, Text.literal("Weapons"), 116, 8, LABEL_COLOR, false);
+        ctx.drawText(this.textRenderer, Text.literal("Bnr"), 86, 8, LABEL_COLOR, false);
+        ctx.drawText(this.textRenderer, Text.literal("Fuel"), 106, 8, LABEL_COLOR, false);
+        ctx.drawText(this.textRenderer, Text.literal("Weapons"), 128, 8, LABEL_COLOR, false);
         ctx.drawText(this.textRenderer, Text.literal("Cargo"), 62, 34, LABEL_COLOR, false);
 
         // Title

@@ -21,5 +21,11 @@
 		"cameraZoom": 6.0,
 		"canExplodeOnCrash": false
 	},
-	"passengerPositions": [[{ "x": 0.0, "y": 0.6, "z": 0.0 }]]
+	"passengerPositions": [[{ "x": 0.0, "y": 0.6, "z": 0.0 }]],
+	"weaponMounts": [
+		{ "x": 0.0, "y": 0.5, "z": 1.5 },
+		{ "x": -0.6, "y": 0.4, "z": 1.2 },
+		{ "x": 0.6, "y": 0.4, "z": 1.2 },
+		{ "x": 0.0, "y": -0.2, "z": 1.0 }
+	]
 }
