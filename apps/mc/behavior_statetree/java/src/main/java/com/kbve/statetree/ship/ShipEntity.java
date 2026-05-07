@@ -1,6 +1,7 @@
 package com.kbve.statetree.ship;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.data.DataTracker;
@@ -155,6 +156,21 @@ public class ShipEntity extends Entity {
     @Override
     protected boolean canAddPassenger(Entity passenger) {
         return !this.hasPassengers() && passenger instanceof PlayerEntity;
+    }
+
+    @Override
+    protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
+        // Local-space offset; vanilla applies ship yaw rotation around Y.
+        // Tuned for the airship BBModel cabin: slight lift onto deck.
+        return new Vec3d(0.0, 0.6, 0.0);
+    }
+
+    /**
+     * Third-person camera distance while riding this ship.
+     * Read by client-side {@code CameraMixin}.
+     */
+    public float getCameraZoom() {
+        return 6.0f;
     }
 
     @Override

@@ -105,8 +105,6 @@ public final class ShipManager {
             LOGGER.warn("[Ship] Cannot board — ship {} not found", shipId);
             return;
         }
-        player.teleport(world, entity.getX(), entity.getY(), entity.getZ(),
-                java.util.Set.of(), entity.getHeading(), 0, false);
         player.startRiding(entity);
     }
 

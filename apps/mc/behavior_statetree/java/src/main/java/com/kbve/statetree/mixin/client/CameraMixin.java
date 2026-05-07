@@ -29,8 +29,8 @@ public abstract class CameraMixin {
     )
     private float kbve$extendCameraDistanceForShip(float desiredDistance) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null && client.player.getVehicle() instanceof ShipEntity) {
-            return 40.0f; // pilot zoom-out (cinematic distance)
+        if (client.player != null && client.player.getVehicle() instanceof ShipEntity ship) {
+            return ship.getCameraZoom();
         }
         return desiredDistance;
     }
