@@ -7,3 +7,5 @@ resources:
     - herbmail-externalsecret.yaml
     - herbmail-deployment.yaml
     - httproute.yaml
+    - certificate.yaml
+    - reference-grant.yaml

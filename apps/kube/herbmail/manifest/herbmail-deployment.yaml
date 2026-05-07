@@ -5,6 +5,12 @@ metadata:
     namespace: herbmail
     labels:
         app: herbmail
+    annotations:
+        # Reloader rolls this Deployment whenever the supabase-shared
+        # Secret (rendered by herbmail-supabase-secrets ExternalSecret)
+        # changes — Supabase JWT/key rotations now propagate without a
+        # manual kubectl rollout restart.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     selector:
@@ -12,12 +18,20 @@ spec:
             app: herbmail
     template:
         metadata:
-            annotations:
-                rollout-restart: '2026-04-03T22:24:57Z'
             labels:
                 app: herbmail
                 version: '0.1.1'
         spec:
+            serviceAccountName: herbmail-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: herbmail
                   image: ghcr.io/kbve/herbmail:0.1.1
@@ -47,6 +61,21 @@ spec:
                       limits:
                           memory: '1024Mi'
                           cpu: '2000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the axum binary while the rootfs
+                # itself stays read-only.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service

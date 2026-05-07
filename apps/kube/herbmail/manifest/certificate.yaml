@@ -1,0 +1,24 @@
+# cert-manager Certificate that mints the herbmail-tls Secret used by
+# the Cilium kbve-gateway listener for herbmail.com / www.herbmail.com.
+#
+# The previous flow relied on cert-manager's ingress-shim seeing the
+# cert-manager.io/cluster-issuer annotation on apps/kube/herbmail/manifest/nginx-ingress.yaml,
+# but that Ingress was never listed in kustomization.yaml so it never
+# reached the cluster. The result was a herbmail-tls Secret left
+# orphaned at 79 days old (notAfter Feb -> May 2026), with no
+# Certificate resource managing renewal. This file makes the cert
+# explicit instead of relying on the dead Ingress path.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: herbmail-tls
+    namespace: herbmail
+spec:
+    secretName: herbmail-tls
+    dnsNames:
+        - herbmail.com
+        - www.herbmail.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io
