@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-06T09:02:35Z",
+  "generated_at": "2026-05-07T09:05:04Z",
   "summary": {
     "critical": 1,
     "high": 36,
@@ -9,11 +9,11 @@
   },
   "ecosystems": {
     "npm": {
-      "total": 86,
+      "total": 85,
       "severities": {
         "critical": 1,
         "high": 36,
-        "medium": 43,
+        "medium": 42,
         "low": 6,
         "info": 0
       },
@@ -241,13 +241,6 @@
           "severity": "high",
           "package": "flatted",
           "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
-        },
-        {
-          "id": "1115393",
-          "title": "smol-toml: Denial of Service via TOML documents containing thousands of consecutive commented lines",
-          "severity": "medium",
-          "package": "smol-toml",
-          "url": "https://github.com/advisories/GHSA-v3rj-xjv7-4jmq"
         },
         {
           "id": "1115427",
@@ -623,11 +616,11 @@
       ]
     },
     "cargo": {
-      "total": 43,
+      "total": 44,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 14,
+        "medium": 15,
         "low": 0,
         "info": 29
       },
@@ -729,6 +722,13 @@
           "severity": "medium",
           "package": "sqlx",
           "url": "https://github.com/launchbadge/sqlx/issues/3440"
+        },
+        {
+          "id": "RUSTSEC-2026-0121",
+          "title": "Denial of service in Steamworks game clients/servers using P2P authentication",
+          "severity": "medium",
+          "package": "steamworks",
+          "url": "https://github.com/Noxime/steamworks-rs/issues/321"
         },
         {
           "id": "RUSTSEC-2024-0413",

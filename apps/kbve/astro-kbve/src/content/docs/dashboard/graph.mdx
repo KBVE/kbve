@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-05-06T11:53:06Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-07T09:04:35Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -23,11 +23,11 @@ Last generated: **2026-05-06T11:53:06Z** — updated daily by `ci-dashboard`.
   <Card title="22 E2es" icon="approve-check-circle">
     arc-runner-e2e, aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, astro-rareicon-e2e + 16 more
   </Card>
-  <Card title="35 Libs" icon="puzzle">
-    arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 29 more
+  <Card title="36 Libs" icon="puzzle">
+    arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 30 more
   </Card>
   <Card title="47 Dependencies" icon="random">
-    Across 96 projects in the monorepo.
+    Across 97 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -58,7 +58,7 @@ pie showData
     title Projects by Type
     "Apps" : 39
     "E2es" : 22
-    "Libs" : 35
+    "Libs" : 36
 ```
 
 ### Hub Connectivity
@@ -129,7 +129,7 @@ graph LR
     ows["ows"] --> rows["rows"]
     rows_e2e["rows-e2e"] --> rows["rows"]
     class _kbve_source,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kilobase,mc,mc_lobby,mc_velocity,memes,notification_bot,ows,pydesk,rows,unity_rareicon app
-    class arc_runner,aria2_proxy,astro,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_supa,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,steamcmd_ubuntu,uniti lib
+    class arc_runner,aria2_proxy,astro,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_supa,bevy_tasker,chisel_ubuntu_axum,data_proto,devops,droid,erust,firecracker_python_net,holy,jedi,kbve,khashvault,laser,python_fudster,python_kbve,q,steamcmd_ubuntu,uniti lib
     class arc_runner_e2e,aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,rows_e2e e2e
 ```
 
@@ -205,6 +205,7 @@ graph LR
 | **erust** | lib | `packages/rust/erust` | 0 | 0 |
 | **firecracker-ctl** | app | `apps/vm/firecracker-ctl` | 0 | 1 |
 | **firecracker-ctl-e2e** | e2e | `apps/vm/firecracker-ctl-e2e` | 1 | 0 |
+| **firecracker-python-net** | lib | `packages/docker/firecracker/python/net` | 0 | 0 |
 | **herbmail** | app | `apps/herbmail` | 0 | 0 |
 | **herbmail-e2e** | e2e | `apps/herbmail/herbmail-e2e` | 2 | 0 |
 | **holy** | lib | `packages/rust/holy` | 0 | 0 |
