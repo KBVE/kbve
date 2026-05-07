@@ -15,6 +15,7 @@ use serde_json::json;
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
+use utoipa::ToSchema;
 
 use crate::astro::askama::{
     ForumCommentPartial, ForumComposeTemplate, ForumFeedItemPartial, ForumFeedTemplate,
@@ -149,23 +150,23 @@ impl AppState {
     }
 }
 
-#[derive(Serialize)]
-struct HealthResponse {
-    status: &'static str,
-    version: &'static str,
+#[derive(Serialize, ToSchema)]
+pub(crate) struct HealthResponse {
+    pub status: &'static str,
+    pub version: &'static str,
 }
 
-#[derive(Serialize)]
-struct StatusResponse {
-    status: &'static str,
-    version: &'static str,
-    uptime_seconds: u64,
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StatusResponse {
+    pub status: &'static str,
+    pub version: &'static str,
+    pub uptime_seconds: u64,
 }
 
 /// Request body for setting username
-#[derive(Debug, serde::Deserialize)]
-struct SetUsernameRequest {
-    username: String,
+#[derive(Debug, serde::Deserialize, ToSchema)]
+pub(crate) struct SetUsernameRequest {
+    pub username: String,
 }
 
 pub async fn serve(state: AppState) -> Result<()> {
@@ -275,6 +276,7 @@ fn router(state: AppState) -> Router {
         .route("/health", get(health))
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
+        .route("/api/openapi.json", get(crate::openapi::openapi_json))
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
@@ -503,7 +505,15 @@ fn router(state: AppState) -> Router {
 // Health / status handlers (monorepo versions)
 // ---------------------------------------------------------------------------
 
-async fn health() -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/health",
+    tag = "system",
+    responses(
+        (status = 200, description = "Service liveness probe", body = HealthResponse)
+    ),
+)]
+pub(crate) async fn health() -> impl IntoResponse {
     Json(HealthResponse {
         status: "ok",
         version: env!("CARGO_PKG_VERSION"),
@@ -519,7 +529,15 @@ async fn health_html(State(state): State<AppState>) -> impl IntoResponse {
     })
 }
 
-async fn api_status(State(state): State<AppState>) -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/status",
+    tag = "system",
+    responses(
+        (status = 200, description = "Service status with uptime", body = StatusResponse)
+    ),
+)]
+pub(crate) async fn api_status(State(state): State<AppState>) -> impl IntoResponse {
     let uptime = state.inner.start_time.elapsed().as_secs();
     Json(StatusResponse {
         status: "ok",
@@ -1246,7 +1264,20 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
 ///
 /// Supports both numeric IDs (21012) and item names (dragon_hunter_crossbow).
 /// Returns current GE prices from the cache (refreshed every 60s).
-async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/v1/osrs/{item_id}",
+    tag = "osrs",
+    params(
+        ("item_id" = String, Path, description = "Numeric OSRS item id or kebab-case item name (e.g. `21012` or `dragon-hunter-crossbow`)")
+    ),
+    responses(
+        (status = 200, description = "Current Grand Exchange price snapshot", body = serde_json::Value),
+        (status = 404, description = "Item not found"),
+        (status = 503, description = "OSRS price service unavailable")
+    ),
+)]
+pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoResponse {
     let cache = match get_osrs_cache() {
         Some(c) => c,
         None => {
@@ -1321,7 +1352,16 @@ async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoResponse {
 /// GET /api/v1/mc/players
 ///
 /// Data is cached and refreshed every 15s via RCON background task.
-async fn mc_players_handler() -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/v1/mc/players",
+    tag = "mc",
+    responses(
+        (status = 200, description = "Currently-online Minecraft players (UUID + skin URL)", body = serde_json::Value),
+        (status = 503, description = "MC player service not configured (RCON env not set)")
+    ),
+)]
+pub(crate) async fn mc_players_handler() -> impl IntoResponse {
     let svc = match get_mc_service() {
         Some(s) => s,
         None => {
@@ -1352,7 +1392,21 @@ async fn mc_players_handler() -> impl IntoResponse {
 /// GET /api/v1/mc/textures/{hash}
 ///
 /// Hash must be 60-64 hex characters. Responses are immutably cached (24h).
-async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/v1/mc/textures/{hash}",
+    tag = "mc",
+    params(
+        ("hash" = String, Path, description = "60-64 character hex texture hash from Mojang")
+    ),
+    responses(
+        (status = 200, description = "PNG skin texture", content_type = "image/png"),
+        (status = 400, description = "Invalid hash format"),
+        (status = 404, description = "Texture not found upstream"),
+        (status = 503, description = "MC service not configured")
+    ),
+)]
+pub(crate) async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoResponse {
     // Validate hash: 60-64 hex chars only
     if hash.len() < 60 || hash.len() > 64 || !hash.chars().all(|c| c.is_ascii_hexdigit()) {
         return StatusCode::BAD_REQUEST.into_response();
@@ -1386,7 +1440,20 @@ async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoResponse {
 ///
 /// Returns the user's profile data including connected accounts (Discord, GitHub, Twitch)
 /// and enriched data from external APIs when available.
-async fn profile_api_handler(Path(username): Path<String>) -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/v1/profile/{username}",
+    tag = "profile",
+    params(
+        ("username" = String, Path, description = "Public username (3-24 chars, alphanumeric + underscore, must start with letter)")
+    ),
+    responses(
+        (status = 200, description = "User profile with provider enrichment", body = UserProfile),
+        (status = 400, description = "Invalid username format"),
+        (status = 404, description = "Profile not found"),
+    ),
+)]
+pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl IntoResponse {
     // Validate username format
     let validated_username = match validate_username(&username) {
         Ok(u) => u,
@@ -1452,7 +1519,18 @@ async fn profile_api_handler(Path(username): Path<String>) -> impl IntoResponse 
 /// GET /api/v1/profile/me
 ///
 /// Requires Bearer token in Authorization header.
-async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse {
+#[utoipa::path(
+    get,
+    path = "/api/v1/profile/me",
+    tag = "profile",
+    responses(
+        (status = 200, description = "Caller's profile (or basic auth info if no profile yet)", body = serde_json::Value),
+        (status = 401, description = "Missing / invalid / expired token"),
+        (status = 503, description = "Auth or profile service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse {
     // Extract Authorization header
     let auth_header = match headers.get(header::AUTHORIZATION) {
         Some(h) => match h.to_str() {
@@ -1611,7 +1689,21 @@ async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse {
 /// 1. Client-side validation (Handy app)
 /// 2. Axum-level validation (this endpoint)
 /// 3. Database-level validation (proxy_add_username RPC)
-async fn set_username_handler(
+#[utoipa::path(
+    post,
+    path = "/api/v1/profile/username",
+    tag = "profile",
+    request_body = SetUsernameRequest,
+    responses(
+        (status = 200, description = "Username set successfully", body = serde_json::Value),
+        (status = 400, description = "Invalid username format / body"),
+        (status = 401, description = "Missing / invalid / expired token"),
+        (status = 409, description = "Username already taken"),
+        (status = 503, description = "Auth or profile service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn set_username_handler(
     headers: HeaderMap,
     Json(body): Json<SetUsernameRequest>,
 ) -> impl IntoResponse {
@@ -2294,7 +2386,17 @@ async fn forum_tag_handler(
 /// GET /forum/tags — popularity-sorted tag listing.
 /// GET /api/v1/forum/tags — JSON list of popularity-sorted tags.
 /// Drives the astro-kbve build-time top-tags fetch.
-async fn api_list_tags() -> Response {
+#[utoipa::path(
+    get,
+    path = "/api/v1/forum/tags",
+    tag = "forum",
+    responses(
+        (status = 200, description = "Popularity-sorted tag list", body = serde_json::Value),
+        (status = 502, description = "Upstream forum DB error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+)]
+pub(crate) async fn api_list_tags() -> Response {
     let svc = match get_forum_service() {
         Some(s) => s,
         None => {
@@ -2325,7 +2427,17 @@ async fn api_list_tags() -> Response {
 
 /// GET /api/v1/forum/spaces — JSON list of active spaces.
 /// Drives the astro-kbve build-time spaces.json artifact.
-async fn api_list_spaces() -> Response {
+#[utoipa::path(
+    get,
+    path = "/api/v1/forum/spaces",
+    tag = "forum",
+    responses(
+        (status = 200, description = "Active forum spaces", body = serde_json::Value),
+        (status = 502, description = "Upstream forum DB error"),
+        (status = 503, description = "Forum service not configured"),
+    ),
+)]
+pub(crate) async fn api_list_spaces() -> Response {
     let svc = match get_forum_service() {
         Some(s) => s,
         None => {
@@ -3033,7 +3145,17 @@ async fn api_remove_comment(
 /// `{user_id, username, is_staff}`. Used by the compose page to
 /// gate the form (signed-in + has-username before submit) and by
 /// any client surface that needs to mirror user state.
-async fn api_me(headers: HeaderMap) -> Response {
+#[utoipa::path(
+    get,
+    path = "/api/v1/me",
+    tag = "profile",
+    responses(
+        (status = 200, description = "Caller identity probe (user_id, username, is_staff)", body = serde_json::Value),
+        (status = 401, description = "Missing / invalid bearer token"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_me(headers: HeaderMap) -> Response {
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -3060,7 +3182,18 @@ async fn api_me(headers: HeaderMap) -> Response {
         .into_response()
 }
 
-async fn api_me_staff(headers: HeaderMap) -> Response {
+#[utoipa::path(
+    get,
+    path = "/api/v1/me/staff",
+    tag = "profile",
+    responses(
+        (status = 200, description = "Staff role bundle for caller", body = serde_json::Value),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 502, description = "Upstream forum DB error"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn api_me_staff(headers: HeaderMap) -> Response {
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,

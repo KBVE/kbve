@@ -30,6 +30,9 @@ pub use forum::{
 };
 pub use mc::{get_mc_service, init_mc_service};
 pub use osrs::{get_osrs_cache, init_osrs_cache};
-pub use profile::{UserProfile, get_profile_service, init_profile_service, validate_username};
-pub use rentearth::{get_rentearth_service, init_rentearth_service};
+pub use profile::{
+    DiscordInfo, GithubInfo, TwitchInfo, UserProfile, UserProvider, get_profile_service,
+    init_profile_service, validate_username,
+};
+pub use rentearth::{RentEarthProfile, get_rentearth_service, init_rentearth_service};
 pub use twitch::{get_twitch_client, init_twitch_client};
