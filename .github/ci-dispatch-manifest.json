@@ -207,7 +207,7 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/mc",
 			"e2e_name": "mc",
-			"deployment_yaml": "apps/kube/agones/mc/fleet.yaml",
+			"deployment_yaml": "apps/kube/agones/mc/manifests/fleet.yaml",
 			"has_test": true,
 			"external_publish": {
 				"modrinth_mod_id": "QoFCg0tO",
@@ -228,7 +228,7 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/mc-lobby",
 			"e2e_name": "mc-lobby",
-			"deployment_yaml": "apps/kube/agones/mc/lobby-deployment.yaml",
+			"deployment_yaml": "apps/kube/agones/mc/manifests/lobby-deployment.yaml",
 			"has_test": true
 		},
 		{
@@ -241,7 +241,7 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/mc-velocity",
 			"e2e_name": "mc-velocity",
-			"deployment_yaml": "apps/kube/agones/mc/velocity-deployment.yaml",
+			"deployment_yaml": "apps/kube/agones/mc/manifests/velocity-deployment.yaml",
 			"has_test": true
 		},
 		{
