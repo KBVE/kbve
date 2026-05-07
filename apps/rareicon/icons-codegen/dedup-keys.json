@@ -2,6 +2,12 @@
 	"antenna": {
 		"tabler": "antenna"
 	},
+	"apps": {
+		"fluent": "apps-fluent"
+	},
+	"archive": {
+		"radix": "archive-radix"
+	},
 	"aws": {
 		"tabler": "aws"
 	},
@@ -11,8 +17,19 @@
 	"baby": {
 		"phosphor": "baby"
 	},
+	"badge": {
+		"dollar": "badge",
+		"indian": "badge",
+		"japanese": "badge",
+		"pound": "badge",
+		"question": "badge",
+		"radix": "badge-radix",
+		"russian": "badge",
+		"swiss": "badge",
+		"turkish": "badge"
+	},
 	"beaker": {
-		"hero": "beaker"
+		"hero": "beaker-hero"
 	},
 	"binary": {
 		"phosphor": "binary"
@@ -20,7 +37,11 @@
 	"bird": {
 		"phosphor": "bird"
 	},
+	"bookmark": {
+		"radix": "bookmark-radix"
+	},
 	"bot": {
+		"fluent": "bot-fluent",
 		"message": "bot"
 	},
 	"bow": {
@@ -37,26 +58,38 @@
 		"phosphor": "cake",
 		"tabler": "cake"
 	},
+	"camera": {
+		"radix": "camera-radix"
+	},
 	"campfire": {
+		"mingcute": "campfire-mingcute",
 		"phosphor": "campfire"
 	},
 	"cat": {
 		"phosphor": "cat"
 	},
-	"check-circle": {},
+	"check-circle": {
+		"iconoir": "check-circle-iconoir"
+	},
 	"cloud": {
-		"hero": "cloud",
-		"material": "cloud",
+		"fluent": "cloud-fluent",
+		"hero": "cloud-hero",
+		"iconoir": "cloud-iconoir",
+		"material": "cloud-material",
+		"mingcute": "cloud-mingcute",
 		"moon": "cloud",
 		"phosphor": "cloud",
 		"rain": "cloud",
+		"solar": "cloud-solar",
 		"sun": "cloud"
 	},
 	"cloudflare": {
 		"tabler": "cloudflare"
 	},
 	"code": {
-		"octicon": "code",
+		"fluent": "code-fluent",
+		"mingcute": "code-mingcute",
+		"octicon": "code-octicon",
 		"phosphor": "code"
 	},
 	"coffee": {
@@ -66,9 +99,12 @@
 		"phosphor": "coins"
 	},
 	"compass": {
+		"iconoir": "compass-iconoir",
+		"mingcute": "compass-mingcute",
 		"phosphor": "compass"
 	},
 	"cpu": {
+		"iconoir": "cpu-iconoir",
 		"phosphor": "cpu",
 		"tabler": "cpu"
 	},
@@ -76,11 +112,22 @@
 		"phosphor": "crosshair"
 	},
 	"crown": {
+		"iconoir": "crown-iconoir",
 		"phosphor": "crown",
+		"solar": "crown-solar",
 		"tabler": "crown"
 	},
+	"cube": {
+		"radix": "cube-radix"
+	},
+	"cup": {
+		"solar": "cup-solar"
+	},
 	"database": {
-		"phosphor": "database"
+		"fluent": "database-fluent",
+		"iconoir": "database-iconoir",
+		"phosphor": "database",
+		"solar": "database-solar"
 	},
 	"docker": {
 		"tabler": "docker"
@@ -89,14 +136,17 @@
 		"phosphor": "dog"
 	},
 	"envelope": {
-		"hero": "envelope"
+		"akar": "envelope-akar",
+		"hero": "envelope-hero"
 	},
 	"eye": {
-		"hero": "eye",
-		"octicon": "eye"
+		"fluent": "eye-fluent",
+		"hero": "eye-hero",
+		"octicon": "eye-octicon"
 	},
 	"fire": {
-		"hero": "fire"
+		"hero": "fire-hero",
+		"solar": "fire-solar"
 	},
 	"fish": {
 		"phosphor": "fish"
@@ -105,9 +155,17 @@
 		"phosphor": "flame",
 		"tabler": "flame"
 	},
-	"flash": {},
+	"flash": {
+		"fluent": "flash-fluent",
+		"iconoir": "flash-iconoir",
+		"mingcute": "flash-mingcute"
+	},
 	"flower": {
+		"mingcute": "flower-mingcute",
 		"phosphor": "flower"
+	},
+	"frame": {
+		"radix": "frame-radix"
 	},
 	"function": {
 		"phosphor": "function"
@@ -115,15 +173,27 @@
 	"gavel": {
 		"phosphor": "gavel"
 	},
+	"gear": {
+		"akar": "gear-akar"
+	},
 	"ghost": {
+		"mdi": "ghost-mdi",
 		"phosphor": "ghost"
 	},
 	"gift": {
-		"hero": "gift",
-		"phosphor": "gift"
+		"fluent": "gift-fluent",
+		"hero": "gift-hero",
+		"mingcute": "gift-mingcute",
+		"phosphor": "gift",
+		"solar": "gift-solar"
 	},
-	"globe": {},
-	"group": {},
+	"globe": {
+		"iconoir": "globe-iconoir",
+		"radix": "globe-radix"
+	},
+	"group": {
+		"iconoir": "group-iconoir"
+	},
 	"hamburger": {
 		"phosphor": "hamburger"
 	},
@@ -137,50 +207,69 @@
 		"phosphor": "ice-cream"
 	},
 	"image": {
+		"fluent": "image-fluent",
 		"phosphor": "image"
 	},
 	"info": {
 		"phosphor": "info"
 	},
 	"key": {
-		"hero": "key",
-		"octicon": "key"
+		"fluent": "key-fluent",
+		"hero": "key-hero",
+		"octicon": "key-octicon"
 	},
-	"kubernetes": {},
+	"keyboard": {
+		"radix": "keyboard-radix"
+	},
+	"kubernetes": {
+		"carbon": "kubernetes-carbon"
+	},
 	"leaf": {
 		"phosphor": "leaf",
+		"solar": "leaf-solar",
 		"tabler": "leaf"
 	},
 	"lock": {
 		"keyhole": "lock",
-		"octicon": "lock",
+		"octicon": "lock-octicon",
 		"phosphor": "lock"
 	},
-	"lock-closed": {},
+	"lock-closed": {
+		"fluent": "lock-closed-fluent",
+		"hero": "lock-closed-hero"
+	},
 	"lock-open": {
-		"hero": "lock-open"
+		"hero": "lock-open-hero"
 	},
 	"magic-wand": {
-		"phosphor": "magic-wand"
+		"phosphor": "magic-wand",
+		"radix": "magic-wand-radix"
 	},
 	"magnifying-glass": {
-		"hero": "magnifying-glass"
+		"hero": "magnifying-glass-hero",
+		"radix": "magnifying-glass-radix"
 	},
 	"mail": {
+		"fluent": "mail-fluent",
+		"iconoir": "mail-iconoir",
 		"question": "mail"
 	},
 	"medal": {
 		"phosphor": "medal"
 	},
 	"megaphone": {
-		"hero": "megaphone"
+		"hero": "megaphone-hero",
+		"iconoir": "megaphone-iconoir"
 	},
 	"memory": {
-		"material": "memory"
+		"material": "memory-material"
 	},
-	"mic": {},
+	"mic": {
+		"fluent": "mic-fluent"
+	},
 	"moon": {
-		"phosphor": "moon"
+		"phosphor": "moon",
+		"solar": "moon-solar"
 	},
 	"music": {
 		"tabler": "music"
@@ -189,18 +278,33 @@
 		"tabler": "openai"
 	},
 	"package": {
-		"octicon": "package"
+		"octicon": "package-octicon"
 	},
-	"panda": {},
-	"person": {},
+	"panda": {
+		"mdi": "panda-mdi"
+	},
+	"park": {
+		"material": "park-material"
+	},
+	"person": {
+		"akar": "person-akar",
+		"fluent": "person-fluent"
+	},
 	"piano": {
 		"tabler": "piano"
 	},
-	"pickaxe": {},
-	"pin": {},
+	"pickaxe": {
+		"mdi": "pickaxe-mdi"
+	},
+	"pin": {
+		"iconoir": "pin-iconoir"
+	},
 	"pizza": {
 		"phosphor": "pizza",
 		"tabler": "pizza"
+	},
+	"planet": {
+		"solar": "planet-solar"
 	},
 	"rabbit": {
 		"phosphor": "rabbit"
@@ -213,13 +317,19 @@
 		"phosphor": "robot"
 	},
 	"rocket": {
-		"octicon": "rocket",
-		"phosphor": "rocket"
+		"carbon": "rocket-carbon",
+		"fluent": "rocket-fluent",
+		"mingcute": "rocket-mingcute",
+		"octicon": "rocket-octicon",
+		"phosphor": "rocket",
+		"radix": "rocket-radix",
+		"solar": "rocket-solar"
 	},
 	"rocket-launch": {
-		"hero": "rocket-launch"
+		"hero": "rocket-launch-hero"
 	},
 	"router": {
+		"carbon": "router-carbon",
 		"tabler": "router"
 	},
 	"sailboat": {
@@ -232,33 +342,44 @@
 		"tabler": "satellite"
 	},
 	"school": {
-		"material": "school"
+		"material": "school-material"
 	},
 	"send": {
+		"iconoir": "send-iconoir",
 		"to": "send"
 	},
 	"server": {
-		"hero": "server"
+		"fluent": "server-fluent",
+		"hero": "server-hero"
 	},
 	"shield-check": {
-		"octicon": "shield-check"
+		"hero": "shield-check-hero",
+		"octicon": "shield-check-octicon"
 	},
-	"shopping-bag": {},
+	"shopping-bag": {
+		"fluent": "shopping-bag-fluent",
+		"hero": "shopping-bag-hero"
+	},
 	"shopping-cart": {
-		"hero": "shopping-cart",
-		"material": "shopping-cart"
+		"hero": "shopping-cart-hero",
+		"material": "shopping-cart-material",
+		"mingcute": "shopping-cart-mingcute"
 	},
 	"snowflake": {
 		"phosphor": "snowflake"
 	},
 	"sparkle": {
+		"fluent": "sparkle-fluent",
 		"phosphor": "sparkle"
 	},
 	"sparkles": {
-		"hero": "sparkles"
+		"akar": "sparkles-akar",
+		"hero": "sparkles-hero",
+		"mingcute": "sparkles-mingcute"
 	},
 	"sun": {
-		"phosphor": "sun"
+		"phosphor": "sun",
+		"solar": "sun-solar"
 	},
 	"tent": {
 		"phosphor": "tent",
@@ -267,28 +388,39 @@
 	"thermometer": {
 		"phosphor": "thermometer"
 	},
-	"trash": {},
+	"trash": {
+		"iconoir": "trash-iconoir"
+	},
 	"tree": {
 		"phosphor": "tree",
 		"tabler": "tree"
 	},
 	"trophy": {
-		"hero": "trophy",
+		"akar": "trophy-akar",
+		"fluent": "trophy-fluent",
+		"hero": "trophy-hero",
 		"phosphor": "trophy"
 	},
-	"ufo": {},
+	"ufo": {
+		"mdi": "ufo-mdi"
+	},
 	"user-circle": {
-		"hero": "user-circle"
+		"hero": "user-circle-hero"
 	},
 	"vercel": {
 		"tabler": "vercel"
 	},
-	"video": {},
+	"video": {
+		"fluent": "video-fluent"
+	},
 	"volleyball": {
 		"tabler": "volleyball"
 	},
 	"wallet": {
-		"phosphor": "wallet"
+		"fluent": "wallet-fluent",
+		"mingcute": "wallet-mingcute",
+		"phosphor": "wallet",
+		"solar": "wallet-solar"
 	},
 	"wand": {
 		"tabler": "wand"
@@ -298,9 +430,11 @@
 		"phosphor": "wind"
 	},
 	"workflow": {
-		"octicon": "workflow"
+		"octicon": "workflow-octicon"
 	},
 	"wrench": {
+		"fluent": "wrench-fluent",
+		"iconoir": "wrench-iconoir",
 		"phosphor": "wrench"
 	}
 }

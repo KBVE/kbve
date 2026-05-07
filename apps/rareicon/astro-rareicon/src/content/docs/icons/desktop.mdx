@@ -1,0 +1,51 @@
+---
+ref: desktop
+name: Desktop
+title: Desktop Icon
+description: Desktop glyph from the radix-icons icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [radix-icons-generated, radix-icons]
+search:
+  keywords: ["desktop"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Radix Icons (https://www.radix-ui.com/icons) — MIT License"
+  author: WorkOS / Radix UI
+  source_url: "https://www.radix-ui.com/iconsdesktop"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "radix-icons"
+    label: "Radix Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 15, height: 15 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [radix-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M13.878 2.007A1.25 1.25 0 0 1 15 3.25v7.5c0 .69-.56 1.25-1.25 1.25H9.927l.243 1.299l.01.125a.55.55 0 0 1-.55.526H5.37a.55.55 0 0 1-.54-.651L5.073 12H1.25C.56 12 0 11.44 0 10.75v-7.5C0 2.56.56 2 1.25 2h12.5zM5.989 12l-.196 1.05h3.414L9.011 12zM1.25 3a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.2-.245L13.75 3z"/></svg>
+pagefindFilters: [radix-icons, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Desktop — glyph from the [Radix Icons icon library](https://www.radix-ui.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

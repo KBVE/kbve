@@ -55,6 +55,11 @@ const PACK_SUFFIXES = [
 	'material',
 	'fluent',
 	'mdi',
+	'akar',
+	'radix',
+	'lab',
+	'solar',
+	'mingcute',
 ];
 const PACK_RE = new RegExp(`^(.+)-(${PACK_SUFFIXES.join('|')})\\.mdx$`);
 
@@ -103,6 +108,11 @@ function isGenerated(frontmatter) {
 			t === 'material-symbols-generated' ||
 			t === 'fluent-generated' ||
 			t === 'mdi-generated' ||
+			t === 'akar-icons-generated' ||
+			t === 'radix-icons-generated' ||
+			t === 'lucide-lab-generated' ||
+			t === 'solar-generated' ||
+			t === 'mingcute-generated' ||
 			t === 'merged-multi-source');
 	return tags.some(sentinel);
 }

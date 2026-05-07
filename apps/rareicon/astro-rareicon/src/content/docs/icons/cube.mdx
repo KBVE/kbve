@@ -2,37 +2,78 @@
 ref: cube
 name: Cube
 title: Cube Icon
-description: Cube glyph from the heroicons icon library, 1 variant — recolor via currentColor.
+description: Cube glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library]
-tags: [heroicons-generated, heroicons]
+categories:
+  - tech
+  - library
+tags:
+  - heroicons-generated
+  - heroicons
+  - radix-icons-generated
+  - radix-icons
+  - merged-multi-source
 search:
-  keywords: ["cube"]
+  keywords:
+    - cube
   primary_category: tech
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Heroicons (https://heroicons.com/) — MIT License"
+  attribution_line: Heroicons (https://heroicons.com/) — MIT License
   author: Refactoring UI Inc.
-  source_url: "https://heroicons.com/cube"
+  source_url: https://heroicons.com/cube
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "heroicons"
-    label: "Heroicons"
+  - ref: heroicons
+    label: Heroicons
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [heroicons]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
-pagefindFilters: [heroicons, tech]
+  - ref: radix-icons
+    label: Radix Icons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 15
+      height: 15
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - radix-icons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M7.393.762a.5.5 0 0 1 .319.035l6 2.8A.5.5 0 0 1 14 4.05v6.9a.5.5 0 0 1-.288.453l-6 2.8a.5.5 0 0 1-.424 0l-6-2.8A.5.5 0 0 1 1 10.95v-6.9a.5.5 0 0 1 .288-.453l6-2.8zM2 10.63l5 2.333V6.93L2 4.805zm6-3.7v6.033l5-2.333V4.805zM2.728 4.028L7.5 6.057l4.772-2.029L7.5 1.802z"/></svg>
+pagefindFilters:
+  - heroicons
+  - tech
+  - radix-icons
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

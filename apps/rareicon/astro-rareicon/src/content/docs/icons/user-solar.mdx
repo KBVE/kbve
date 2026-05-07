@@ -1,0 +1,51 @@
+---
+ref: user-solar
+name: User Solar
+title: User Solar Icon
+description: User Solar glyph from the solar icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [solar-generated, solar]
+search:
+  keywords: ["user-solar","user","solar","user-bold-duotone","user solar"]
+  primary_category: social
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Solar Icons (https://solar-icons.com/) — CC BY 4.0 — 480 Design"
+  author: 480 Design
+  source_url: "https://solar-icons.com/?icon=user-bold-duotone"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "solar"
+    label: "Solar"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [solar]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="4" fill="currentColor"/><path fill="currentColor" d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5" opacity=".5"/></svg>
+pagefindFilters: [solar, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+User Solar — glyph from the [Solar icon library](https://solar-icons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

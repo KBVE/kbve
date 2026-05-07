@@ -2,7 +2,7 @@
 ref: person
 name: Person
 title: Person Icon
-description: Person glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Person glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
 categories:
   - ui
@@ -14,6 +14,8 @@ tags:
   - fluent-generated
   - fluent
   - merged-multi-source
+  - akar-icons-generated
+  - akar-icons
 search:
   keywords:
     - person
@@ -75,11 +77,33 @@ icons:
       - fluent
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M17.755 14a2.25 2.25 0 0 1 2.248 2.25v.575c0 .894-.32 1.759-.9 2.438c-1.57 1.833-3.957 2.738-7.103 2.738s-5.532-.905-7.098-2.74a3.75 3.75 0 0 1-.898-2.434v-.578A2.25 2.25 0 0 1 6.253 14zm0 1.5H6.252a.75.75 0 0 0-.75.75v.577c0 .535.192 1.053.54 1.46c1.253 1.469 3.22 2.214 5.957 2.214c2.739 0 4.706-.745 5.963-2.213a2.25 2.25 0 0 0 .54-1.463v-.576a.75.75 0 0 0-.748-.749M12 2.005a5 5 0 1 1 0 10a5 5 0 0 1 0-10m0 1.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7"/></svg>
+  - ref: akar-icons
+    label: Akar Icons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - akar-icons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="5"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 14h.352a3 3 0 0 1 2.976 2.628l.391 3.124A2 2 0 0 1 18.734 22H5.266a2 2 0 0 1-1.985-2.248l.39-3.124A3 3 0 0 1 6.649 14H7"/></g></svg>
 pagefindFilters:
   - lucide
   - ui
   - fluent
   - social
+  - akar-icons
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
