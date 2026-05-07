@@ -1,0 +1,25 @@
+{
+	"properties": {
+		"yawSpeed": 4.0,
+		"pitchSpeed": 5.0,
+		"engineSpeed": 0.2,
+		"verticalSpeed": 0.0,
+		"glideFactor": 0.05,
+		"lift": 0.4,
+		"horizontalDecay": 0.97,
+		"verticalDecay": 0.99,
+		"rollFactor": 4.0,
+		"stabilizer": 0.05,
+		"wind": 0.1,
+		"mass": 2.0,
+		"groundFriction": 0.85,
+		"groundPitch": 5.0,
+		"engineReaction": 25.0,
+		"verticalReaction": 10.0,
+		"boundingWidth": 1.75,
+		"boundingHeight": 0.85,
+		"cameraZoom": 5.0,
+		"canExplodeOnCrash": true
+	},
+	"passengerPositions": [[{ "x": 0.0, "y": 0.3, "z": 0.0 }]]
+}

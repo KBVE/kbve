@@ -63,19 +63,21 @@ public final class ShipNetworking {
                 ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                float maxSpeed = payload.boost() ? 4.5f : 3.0f;
+                // Throttle is normalized [0..maxThrottle]; physics layer scales by stats.engineSpeed.
+                float maxThrottle = payload.boost() ? 1.5f : 1.0f;
                 float currentSpeed = ship.getTargetSpeed();
                 if (payload.forward() > 0) {
-                    ship.setTargetSpeed(Math.min(currentSpeed + 0.15f, maxSpeed));
+                    ship.setTargetSpeed(Math.min(currentSpeed + 0.05f, maxThrottle));
                 } else {
-                    ship.setTargetSpeed(Math.max(currentSpeed - 0.1f, 0f));
+                    ship.setTargetSpeed(Math.max(currentSpeed - 0.04f, 0f));
                 }
 
                 float current = ship.getHeading();
                 float diff = ((payload.targetYaw() - current) % 360f + 540f) % 360f - 180f;
                 float deadZoneDeg = 5f;
                 if (Math.abs(diff) < deadZoneDeg) diff = 0f;
-                float maxDeltaPerTick = 2.0f;
+                // Scale yaw rate with the model's yawSpeed stat for consistent feel.
+                float maxDeltaPerTick = ship.getStats().yawSpeed();
                 float step = Math.max(-maxDeltaPerTick, Math.min(maxDeltaPerTick, diff * 0.15f));
                 if (step != 0f) ship.setHeading(current + step);
 
