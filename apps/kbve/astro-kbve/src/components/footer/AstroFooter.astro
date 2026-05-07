@@ -27,7 +27,7 @@ const quickLinks = [
 const socials = [
 	{
 		platform: 'github' as const,
-		href: 'https://github.com/kbve',
+		href: 'https://kbve.com/github',
 		title: 'GitHub',
 		description:
 			'Explore our open-source repositories and contribute to the project.',
@@ -45,7 +45,7 @@ const socials = [
 	},
 	{
 		platform: 'youtube' as const,
-		href: 'https://youtube.com/@kbve',
+		href: 'https://kbve.com/youtube',
 		title: 'YouTube',
 		description: 'Watch devlogs, tutorials, and project showcases.',
 		badge: 'Video',
@@ -53,12 +53,29 @@ const socials = [
 	},
 	{
 		platform: 'twitch' as const,
-		href: 'https://twitch.tv/kbve',
+		href: 'https://kbve.com/twitch',
 		title: 'Twitch',
 		description:
 			'Catch live coding, playtests, and behind-the-scenes streams.',
 		badge: 'Live',
 		ringColor: '#9146FF',
+	},
+	{
+		platform: 'twitter' as const,
+		href: 'https://kbve.com/twitter',
+		title: 'Twitter / X',
+		description: 'Project updates, dev snippets, and release pings.',
+		badge: 'Updates',
+		ringColor: '#1d9bf0',
+	},
+	{
+		platform: 'bluesky' as const,
+		href: 'https://kbve.com/bluesky',
+		title: 'Bluesky',
+		description:
+			'Follow on the AT Protocol — decentralized social, same crew.',
+		badge: 'Decentralized',
+		ringColor: '#0085ff',
 	},
 ];
 
@@ -211,6 +228,28 @@ const currentYear = new Date().getFullYear();
 										fill="currentColor"
 										aria-hidden="true">
 										<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+									</svg>
+								)}
+								{platform === 'twitter' && (
+									<svg
+										slot="icon"
+										viewBox="0 0 24 24"
+										width="20"
+										height="20"
+										fill="currentColor"
+										aria-hidden="true">
+										<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+									</svg>
+								)}
+								{platform === 'bluesky' && (
+									<svg
+										slot="icon"
+										viewBox="0 0 24 24"
+										width="20"
+										height="20"
+										fill="currentColor"
+										aria-hidden="true">
+										<path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
 									</svg>
 								)}
 								<Fragment slot="label">{title}</Fragment>

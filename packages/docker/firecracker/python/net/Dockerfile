@@ -20,9 +20,11 @@
 
 FROM --platform=linux/amd64 alpine:3.21 AS rootfs-builder
 
-RUN apk add --no-cache e2fsprogs
+RUN apk add --no-cache e2fsprogs e2fsprogs-extra
 
-RUN mkdir -p /rootfs && \
+RUN mkdir -p /rootfs/etc/apk && \
+    cp /etc/apk/repositories /rootfs/etc/apk/repositories && \
+    cp -a /etc/apk/keys /rootfs/etc/apk/ && \
     apk add --root /rootfs --initdb --no-cache \
         alpine-baselayout \
         busybox \
