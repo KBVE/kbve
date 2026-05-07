@@ -10,6 +10,7 @@ use axum::http::{HeaderMap, StatusCode};
 use lightyear::netcode::ConnectToken;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+use utoipa::ToSchema;
 
 use bevy_kbve_net::net_config;
 
@@ -19,7 +20,7 @@ const DEFAULT_WS_PORT: u16 = 5000;
 /// Default WT port (used when deriving URL from Host header).
 const DEFAULT_WT_PORT: u16 = 5001;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct TokenRequest {
     /// Supabase JWT. Empty or absent for guest access.
     pub jwt: Option<String>,
@@ -30,7 +31,7 @@ pub struct TokenRequest {
     pub transport: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct TokenResponse {
     /// Base64-encoded ConnectToken (2048 bytes decoded).
     pub token: String,
@@ -45,12 +46,17 @@ pub struct TokenResponse {
     pub cert_type: String,
 }
 
-/// `POST /api/v1/auth/game-token`
-///
-/// Validates the optional JWT, generates a Netcode `ConnectToken`, and returns
-/// it along with the game server address. The returned URLs use the same hostname
-/// the client used to reach this endpoint (from the Host header), so they work
-/// correctly in both local dev (`localhost`) and production (`kbve.com`).
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/game-token",
+    tag = "auth",
+    request_body = TokenRequest,
+    responses(
+        (status = 200, description = "Netcode ConnectToken issued", body = TokenResponse),
+        (status = 401, description = "JWT invalid"),
+        (status = 500, description = "Token generation / DNS resolution failed"),
+    ),
+)]
 pub async fn game_token_handler(
     headers: HeaderMap,
     Json(req): Json<TokenRequest>,

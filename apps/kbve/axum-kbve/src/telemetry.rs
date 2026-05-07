@@ -19,6 +19,7 @@ use axum::http::StatusCode;
 use serde::Deserialize;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
+use utoipa::ToSchema;
 
 /// Maximum payload size (bytes). Reject anything larger.
 const MAX_BODY_BYTES: usize = 8_192;
@@ -99,7 +100,7 @@ fn is_valid_session_id(s: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct ClientEvent {
     /// "warn" or "error" — INFO is rejected.
     pub level: String,
@@ -107,6 +108,7 @@ pub struct ClientEvent {
     pub message: String,
     /// Optional structured context (max 2KB serialized, depth <= 4).
     #[serde(default)]
+    #[schema(value_type = Option<Object>)]
     pub context: Option<serde_json::Value>,
     /// Optional JS/WASM stack trace (max 4KB).
     #[serde(default)]
@@ -116,7 +118,18 @@ pub struct ClientEvent {
     pub session_id: Option<String>,
 }
 
-/// `POST /api/v1/telemetry/report`
+#[utoipa::path(
+    post,
+    path = "/api/v1/telemetry/report",
+    tag = "telemetry",
+    request_body = ClientEvent,
+    responses(
+        (status = 204, description = "Event accepted (no body)"),
+        (status = 400, description = "Invalid level / message / encoding / nesting"),
+        (status = 413, description = "Payload too large (>8KB)"),
+        (status = 429, description = "Rate limited (>120 events/min globally)"),
+    ),
+)]
 pub async fn report_handler(
     body: axum::body::Bytes,
 ) -> Result<StatusCode, (StatusCode, &'static str)> {

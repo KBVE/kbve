@@ -36,6 +36,10 @@ dotenvy = "0.15"
 prost = "0.14.1"
 chrono = { version = "0.4", features = ["serde"] }
 
+# OpenAPI spec generation. Emits /api/openapi.json which the astro side
+# renders via Scalar at /dashboard/api and consumes for /llms.txt.
+utoipa = { version = "5", features = ["axum_extras", "chrono"] }
+
 # DB + Auth (Phase 5)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }

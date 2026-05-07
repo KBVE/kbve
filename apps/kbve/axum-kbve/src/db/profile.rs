@@ -4,6 +4,7 @@ use super::supabase::{SupabaseClient, SupabaseConfig};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use utoipa::ToSchema;
 
 // Static regex for username validation
 // Rules: 3-24 characters, alphanumeric + underscore, must start with letter
@@ -76,12 +77,13 @@ pub fn validate_username(username: &str) -> Result<String, UsernameError> {
 }
 
 /// User provider information from get_user_all_providers RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserProvider {
     pub provider: String,
     pub provider_id: String,
     pub linked_at: Option<String>,
     pub last_sign_in_at: Option<String>,
+    #[schema(value_type = Option<Object>)]
     pub identity_data: Option<serde_json::Value>,
     pub email: Option<String>,
     pub username: Option<String>,
@@ -89,7 +91,7 @@ pub struct UserProvider {
 }
 
 /// Aggregated user profile with all providers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserProfile {
     pub user_id: String,
     pub username: String,
@@ -101,7 +103,7 @@ pub struct UserProfile {
 }
 
 /// Discord-specific information extracted from provider data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct DiscordInfo {
     pub id: String,
     pub username: Option<String>,
@@ -121,7 +123,7 @@ pub struct DiscordInfo {
 }
 
 /// GitHub-specific information extracted from provider data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct GithubInfo {
     pub id: String,
     pub username: Option<String>,
@@ -129,7 +131,7 @@ pub struct GithubInfo {
 }
 
 /// Twitch-specific information extracted from provider data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TwitchInfo {
     pub id: String,
     pub username: Option<String>,

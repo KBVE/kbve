@@ -4,9 +4,10 @@
 // Uses the same auth.users UUID as the profile system.
 
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 /// Character summary from database (for character select display)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct RentEarthCharacterSummary {
     pub id: String,
     pub slot: i32,
@@ -26,7 +27,7 @@ pub struct RentEarthCharacterSummary {
 }
 
 /// Position data
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct RentEarthPosition {
     pub world_x: f32,
     pub world_y: f32,
@@ -35,7 +36,7 @@ pub struct RentEarthPosition {
 }
 
 /// Core stats (8 DND-inspired attributes)
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct RentEarthCoreStats {
     pub strength: i32,
     pub agility: i32,
@@ -49,7 +50,7 @@ pub struct RentEarthCoreStats {
 }
 
 /// Derived stats (computed from core + equipment)
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct RentEarthDerivedStats {
     pub health_current: i32,
     pub health_max: i32,
@@ -68,7 +69,7 @@ pub struct RentEarthDerivedStats {
 }
 
 /// Appearance customization
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct RentEarthAppearance {
     pub skin_color: i32,
     pub body_type: i32,
@@ -90,7 +91,7 @@ pub struct RentEarthAppearance {
 }
 
 /// Full character data (summary + details)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct RentEarthCharacterFull {
     pub summary: RentEarthCharacterSummary,
     pub position: RentEarthPosition,
@@ -100,7 +101,7 @@ pub struct RentEarthCharacterFull {
 }
 
 /// Complete RentEarth profile for a user
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct RentEarthProfile {
     pub characters: Vec<RentEarthCharacterSummary>,
     pub active_character: Option<RentEarthCharacterFull>,
