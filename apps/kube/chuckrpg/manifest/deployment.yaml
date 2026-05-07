@@ -5,6 +5,12 @@ metadata:
     namespace: chuckrpg
     labels:
         app: chuckrpg
+    annotations:
+        # Stakater Reloader watches every ConfigMap/Secret referenced by
+        # this Deployment (envFrom, env.valueFrom, volumes) and triggers a
+        # rolling restart on change. Currently only chuckrpg-config exists;
+        # chuckrpg-secrets is optional until SealedSecret is added.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     strategy:
@@ -20,6 +26,16 @@ spec:
             labels:
                 app: chuckrpg
         spec:
+            serviceAccountName: chuckrpg
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: chuckrpg
                   image: ghcr.io/kbve/chuckrpg:0.1.7
@@ -44,13 +60,15 @@ spec:
                       periodSeconds: 5
                       timeoutSeconds: 3
                       failureThreshold: 3
-                  env:
-                      - name: HTTP_HOST
-                        value: '0.0.0.0'
-                      - name: HTTP_PORT
-                        value: '4322'
-                      - name: RUST_LOG
-                        value: 'info'
+                  envFrom:
+                      - configMapRef:
+                            name: chuckrpg-config
+                      # Optional so the pod still boots before the
+                      # SealedSecret lands. Once chuckrpg-secrets exists
+                      # Reloader will roll the Deployment automatically.
+                      - secretRef:
+                            name: chuckrpg-secrets
+                            optional: true
                   resources:
                       requests:
                           memory: '128Mi'
@@ -58,6 +76,22 @@ spec:
                       limits:
                           memory: '256Mi'
                           cpu: '500m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the axum binary while the rootfs
+                # itself stays read-only. Sized small — chuckrpg does not
+                # cache anything significant at runtime.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service

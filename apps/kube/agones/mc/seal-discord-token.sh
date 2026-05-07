@@ -19,7 +19,7 @@ set -euo pipefail
 NS="arc-runners"
 SECRET_NAME="mc-discord-relay"
 KEY="DISCORD_BOT_TOKEN"
-OUT="$(dirname "$0")/discord-relay-sealed-secret.yaml"
+OUT="$(dirname "$0")/manifests/discord-relay-sealed-secret.yaml"
 CONTROLLER_NS="kube-system"
 CONTROLLER_NAME="sealed-secrets-controller"
 

@@ -10,7 +10,7 @@ spec:
     source:
         repoURL: https://github.com/kbve/kbve
         targetRevision: main
-        path: apps/kube/agones/ows
+        path: apps/kube/agones/ows/manifests
     destination:
         server: https://kubernetes.default.svc
         namespace: arc-runners

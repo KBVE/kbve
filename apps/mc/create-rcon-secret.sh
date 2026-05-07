@@ -10,7 +10,7 @@ set -euo pipefail
 # Requires: kubeseal, kubectl (context pointed at target cluster)
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SEALED_OUT="$REPO_ROOT/apps/kube/agones/mc/rcon-sealed-secret.yaml"
+SEALED_OUT="$REPO_ROOT/apps/kube/agones/mc/manifests/rcon-sealed-secret.yaml"
 
 NAMESPACE="mc"
 SECRET_NAME="mc-rcon-password"

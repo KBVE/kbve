@@ -124,7 +124,7 @@ services:
             VIEW_DISTANCE: '8'
             SIMULATION_DISTANCE: '6'
             # Pinned seed — matches the canonical KBVE survival seed set on the
-            # prod fleet (apps/kube/agones/mc/fleet.yaml). Keeping these in
+            # prod fleet (apps/kube/agones/mc/manifests/fleet.yaml). Keeping these in
             # sync guarantees terrain generated locally matches production,
             # which matters when building city/port schematics that need the
             # coastline and landmarks to be in the same place everywhere.

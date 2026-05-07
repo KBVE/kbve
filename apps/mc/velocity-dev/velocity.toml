@@ -1,6 +1,6 @@
 # Dev Velocity proxy config — mounted read-only into the mc-velocity
 # container by docker-compose.dev.yml. Mirrors the prod
-# apps/kube/agones/mc/velocity-configmap.yaml but with three dev-only
+# apps/kube/agones/mc/manifests/velocity-configmap.yaml but with three dev-only
 # differences:
 #   1. online-mode = false (no Mojang auth, lets cracked clients connect)
 #   2. backend server points at the compose service name, not the k8s
