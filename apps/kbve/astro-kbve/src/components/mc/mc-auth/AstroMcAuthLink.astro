@@ -1,0 +1,8 @@
+---
+import { SupaProvider } from '@/components/providers/SupaProvider';
+import { ReactMcAuthLink } from './ReactMcAuthLink';
+---
+
+<SupaProvider client:only="react">
+	<ReactMcAuthLink client:only="react" />
+</SupaProvider>

@@ -9,6 +9,7 @@ import { handleTransfer, TRANSFER_ACTIONS } from "./transfer.ts";
 import { CHARACTER_ACTIONS, handleCharacter } from "./character.ts";
 import { handleSkill, SKILL_ACTIONS } from "./skill.ts";
 import { ADMIN_ACTIONS, handleAdmin } from "./admin.ts";
+import { handleMojang, MOJANG_ACTIONS } from "./mojang.ts";
 
 // ---------------------------------------------------------------------------
 // MC Edge Function — Unified Router
@@ -21,6 +22,7 @@ import { ADMIN_ACTIONS, handleAdmin } from "./admin.ts";
 //   character: save, load, add_xp
 //   skill:     save, load, add_xp
 //   admin:     execute, give, teleport, broadcast
+//   mojang:    lookup
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -37,6 +39,7 @@ const MODULES: Record<
   character: { handler: handleCharacter, actions: CHARACTER_ACTIONS },
   skill: { handler: handleSkill, actions: SKILL_ACTIONS },
   admin: { handler: handleAdmin, actions: ADMIN_ACTIONS },
+  mojang: { handler: handleMojang, actions: MOJANG_ACTIONS },
 };
 
 function buildHelpText(): string {
