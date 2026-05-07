@@ -20,7 +20,7 @@
 
 FROM --platform=linux/amd64 alpine:3.21 AS rootfs-builder
 
-RUN apk add --no-cache e2fsprogs
+RUN apk add --no-cache e2fsprogs e2fsprogs-extra
 
 RUN mkdir -p /rootfs/etc/apk && \
     cp /etc/apk/repositories /rootfs/etc/apk/repositories && \
