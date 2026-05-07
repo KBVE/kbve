@@ -159,6 +159,9 @@ on:
             ue_kbvesqlite:
                 description: 'KBVESQLite plugin changed'
                 value: ${{ jobs.alter.outputs.ue_kbvesqlite }}
+            firecracker_python_net:
+                description: 'Firecracker Python Net rootfs changed'
+                value: ${{ jobs.alter.outputs.firecracker_python_net }}
 
 jobs:
     alter:
@@ -214,6 +217,7 @@ jobs:
             ue_kbveyyjson: ${{ steps.delta.outputs.ue_kbveyyjson_any_changed }}
             ue_kbvezstd: ${{ steps.delta.outputs.ue_kbvezstd_any_changed }}
             ue_kbvesqlite: ${{ steps.delta.outputs.ue_kbvesqlite_any_changed }}
+            firecracker_python_net: ${{ steps.delta.outputs.firecracker_python_net_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -359,3 +363,6 @@ jobs:
                       ue_kbvesqlite:
                           - 'packages/unreal/KBVESQLite/Source/**'
                           - 'packages/unreal/KBVESQLite/KBVESQLite.uplugin'
+                      firecracker_python_net:
+                          - 'packages/docker/firecracker/python/net/**'
+                          - 'apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx'
