@@ -23,6 +23,12 @@ metadata:
     labels:
         app: discordsh
         tier: frontend
+    annotations:
+        # Reloader rolls this StatefulSet whenever any referenced
+        # Secret or ConfigMap changes — discordsh-config (envFrom),
+        # discordsh-redis-secret (envFrom), and
+        # discordsh-supabase-shared (env.valueFrom) all qualify.
+        reloader.stakater.com/auto: 'true'
 spec:
     serviceName: discordsh-headless
     replicas: 1
@@ -36,6 +42,15 @@ spec:
                 tier: frontend
         spec:
             serviceAccountName: discordsh-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: discordsh
                   image: ghcr.io/kbve/discordsh:0.1.43
@@ -78,6 +93,15 @@ spec:
                       limits:
                           memory: '512Mi'
                           cpu: '500m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -94,3 +118,9 @@ spec:
                       periodSeconds: 5
                       timeoutSeconds: 3
                       failureThreshold: 3
+            volumes:
+                # Writable scratch for the axum binary while the
+                # rootfs itself stays read-only. Sized small.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
