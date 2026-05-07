@@ -1,12 +1,135 @@
 # Tiered cache cleanup strategy for ARC runner PVC.
 #
-# Three tiers run at different intervals:
-#   1. Light  (every 6h)  — remove files not modified in 3 days
-#   2. Medium (daily)     — age cleanup + per-app 15Gi cap enforcement
-#   3. Heavy  (every 3d)  — all of the above + capacity gate (nuke largest if >80%)
+# Three tiers run the same script with TIER env, gated on phases:
+#   1. Light  (every 6h)  — Phase 1 only: per-cache age prune (parallel)
+#   2. Medium (daily)     — Phase 1 + Phase 2: cap enforcement
+#   3. Heavy  (every 3d)  — Phase 1 + 2 + 3: capacity gate (>80% → LRU prune largest)
+#
+# Per-cache policy via CACHE_POLICIES (space-separated NAME:MODE:CAP_GB):
+#   - mode=age: age out files older than AGE_DAYS, then enforce CAP_GB
+#   - mode=cap: NEVER age out (active build artifacts like Unity Library);
+#               only LRU-prune when directory exceeds CAP_GB
 #
 # Uses mtime (not atime) because Longhorn/NFS may mount with noatime.
 # All three share the same PVC mount at /cache.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: arc-cache-cleanup-script
+    namespace: arc-runners
+data:
+    cleanup.sh: |
+        #!/bin/sh
+        set -u
+        CACHE="${CACHE:-/cache}"
+        TIER="${TIER:-light}"
+        AGE_DAYS="${AGE_DAYS:-3}"
+        CAPACITY_PCT="${CAPACITY_PCT:-80}"
+        # Per-cache policy: NAME:MODE:CAP_GB (space-separated)
+        # NEVER age unity-library — Unity rebuilds the entire Library on cache miss (~30min)
+        CACHE_POLICIES="${CACHE_POLICIES:-cargo:age:20 lfs:age:5 unity-library:cap:50}"
+
+        echo "=== ${TIER} cleanup starting ==="
+        echo "  age=${AGE_DAYS}d  policies='${CACHE_POLICIES}'"
+        df -h "${CACHE}" || true
+        echo ""
+
+        age_prune() {
+            DIR="$1"
+            [ -d "$DIR" ] || return 0
+            START=$(date +%s)
+            find "$DIR" -type f -mtime +"${AGE_DAYS}" -delete 2>/dev/null || true
+            find "$DIR" -type d -empty -delete 2>/dev/null || true
+            ELAPSED=$(( $(date +%s) - START ))
+            echo "  age-pruned $(basename "$DIR") in ${ELAPSED}s"
+        }
+
+        # BusyBox-safe LRU: sort by mtime via `stat`, drop oldest until under cap.
+        cap_prune() {
+            DIR="$1"
+            CAP_GB="$2"
+            [ -d "$DIR" ] || return 0
+            CAP_KB=$(( CAP_GB * 1024 * 1024 ))
+            DIR_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
+            [ -z "${DIR_KB}" ] && return 0
+            if [ "${DIR_KB}" -le "${CAP_KB}" ]; then
+                echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap"
+                return 0
+            fi
+            OVER_KB=$(( DIR_KB - CAP_KB ))
+            echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi over cap by $(( OVER_KB / 1024 ))Mi — LRU pruning"
+            START=$(date +%s)
+            # Headroom: prune to 90% of cap to avoid thrashing on next run
+            HEADROOM_KB=$(( CAP_KB / 10 ))
+            TARGET_PRUNE_KB=$(( OVER_KB + HEADROOM_KB ))
+            find "$DIR" -type f -exec stat -c '%Y %s %n' {} + 2>/dev/null \
+                | sort -n \
+                | awk -v target="${TARGET_PRUNE_KB}" '
+                    {
+                        size_kb = int($2 / 1024) + 1
+                        cum += size_kb
+                        # %Y %s name — print everything after column 2
+                        sub(/^[0-9]+ [0-9]+ /, "")
+                        print
+                        if (cum >= target) exit
+                    }
+                  ' \
+                | xargs -r rm -f 2>/dev/null || true
+            find "$DIR" -type d -empty -delete 2>/dev/null || true
+            ELAPSED=$(( $(date +%s) - START ))
+            NEW_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
+            echo "  $(basename "$DIR"): now $(( NEW_KB / 1024 ))Mi (cap-prune ${ELAPSED}s)"
+        }
+
+        # Phase 1: per-cache age prune (parallel; only for mode=age)
+        echo "Phase 1: age prune (parallel)"
+        for ENTRY in ${CACHE_POLICIES}; do
+            NAME=$(echo "${ENTRY}" | cut -d: -f1)
+            MODE=$(echo "${ENTRY}" | cut -d: -f2)
+            if [ "${MODE}" = "age" ]; then
+                age_prune "${CACHE}/${NAME}" &
+            fi
+        done
+        wait
+        echo ""
+
+        # Phase 2: cap enforcement (medium + heavy)
+        if [ "${TIER}" = "medium" ] || [ "${TIER}" = "heavy" ]; then
+            echo "Phase 2: cap enforcement"
+            for ENTRY in ${CACHE_POLICIES}; do
+                NAME=$(echo "${ENTRY}" | cut -d: -f1)
+                CAP=$(echo "${ENTRY}" | cut -d: -f3)
+                cap_prune "${CACHE}/${NAME}" "${CAP}"
+            done
+            echo ""
+        fi
+
+        # Phase 3: capacity gate — heavy only
+        # Last-resort: cache fills despite caps (new dir not in policy?). Nuke largest.
+        if [ "${TIER}" = "heavy" ]; then
+            echo "Phase 3: capacity gate (>${CAPACITY_PCT}%)"
+            USAGE=$(df "${CACHE}" | tail -1 | awk '{gsub(/%/,""); print $5}')
+            echo "  current usage: ${USAGE}%"
+            ATTEMPTS=0
+            while [ "${USAGE}" -gt "${CAPACITY_PCT}" ] && [ "${ATTEMPTS}" -lt 5 ]; do
+                ATTEMPTS=$(( ATTEMPTS + 1 ))
+                LARGEST=$(du -sk "${CACHE}"/*/ 2>/dev/null | sort -rn | head -1 | cut -f2)
+                if [ -z "${LARGEST}" ]; then
+                    echo "  no cache dirs remain"
+                    break
+                fi
+                LNAME=$(basename "${LARGEST}")
+                LKB=$(du -sk "${LARGEST}" 2>/dev/null | cut -f1)
+                echo "  emergency: clearing ${LNAME} ($(( LKB / 1024 ))Mi) at ${USAGE}%"
+                rm -rf "${LARGEST:?}"/* 2>/dev/null || true
+                USAGE=$(df "${CACHE}" | tail -1 | awk '{gsub(/%/,""); print $5}')
+            done
+            echo ""
+        fi
+
+        df -h "${CACHE}" || true
+        echo "=== ${TIER} cleanup done ==="
 ---
 # ── Tier 1: Light — every 6 hours ──────────────────────────────────────────
 apiVersion: batch/v1
@@ -21,7 +144,7 @@ spec:
     failedJobsHistoryLimit: 3
     jobTemplate:
         spec:
-            activeDeadlineSeconds: 300
+            activeDeadlineSeconds: 1800
             ttlSecondsAfterFinished: 86400
             backoffLimit: 0
             template:
@@ -38,6 +161,8 @@ spec:
                         - name: cache-cleanup
                           image: alpine:3.21
                           env:
+                              - name: TIER
+                                value: light
                               - name: AGE_DAYS
                                 value: '3'
                           securityContext:
@@ -48,23 +173,10 @@ spec:
                                       - ALL
                           command:
                               - /bin/sh
-                              - -c
-                              - |
-                                  set -e
-                                  CACHE="/cache"
-                                  echo "=== Light Cleanup (every 6h) ==="
-                                  df -h ${CACHE}
-
-                                  echo "Removing files not modified in ${AGE_DAYS} days..."
-                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
-                                  echo "  Removed ${REMOVED} stale files"
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  df -h ${CACHE}
-                                  echo "=== Light Cleanup Done ==="
+                              - /scripts/cleanup.sh
                           resources:
                               limits:
-                                  cpu: 100m
+                                  cpu: 200m
                                   memory: 128Mi
                               requests:
                                   cpu: 50m
@@ -72,10 +184,17 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
+                              - name: cleanup-script
+                                mountPath: /scripts
+                                readOnly: true
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
+                        - name: cleanup-script
+                          configMap:
+                              name: arc-cache-cleanup-script
+                              defaultMode: 0755
 ---
 # ── Tier 2: Medium — daily at 3 AM UTC ────────────────────────────────────
 apiVersion: batch/v1
@@ -90,7 +209,7 @@ spec:
     failedJobsHistoryLimit: 3
     jobTemplate:
         spec:
-            activeDeadlineSeconds: 600
+            activeDeadlineSeconds: 2400
             ttlSecondsAfterFinished: 86400
             backoffLimit: 0
             template:
@@ -107,10 +226,10 @@ spec:
                         - name: cache-cleanup
                           image: alpine:3.21
                           env:
+                              - name: TIER
+                                value: medium
                               - name: AGE_DAYS
                                 value: '3'
-                              - name: APP_CAP_GB
-                                value: '15'
                           securityContext:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true
@@ -119,66 +238,10 @@ spec:
                                       - ALL
                           command:
                               - /bin/sh
-                              - -c
-                              - |
-                                  set -e
-                                  CACHE="/cache"
-                                  APP_CAP_KB=$((APP_CAP_GB * 1024 * 1024))
-
-                                  echo "=== Medium Cleanup (daily) ==="
-                                  echo "Config: age=${AGE_DAYS}d  app_cap=${APP_CAP_GB}Gi"
-                                  echo ""
-                                  echo "Before:"
-                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
-                                  df -h ${CACHE}
-                                  echo ""
-
-                                  # Phase 1: Age-based
-                                  echo "Phase 1: Removing files not modified in ${AGE_DAYS} days..."
-                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
-                                  echo "  Removed ${REMOVED} stale files"
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  # Phase 2: Per-app cap
-                                  echo "Phase 2: Enforcing per-app cap of ${APP_CAP_GB}Gi..."
-                                  for APP_DIR in ${CACHE}/docker/*/; do
-                                      [ -d "${APP_DIR}" ] || continue
-                                      APP_NAME=$(basename "${APP_DIR}")
-                                      APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                      if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
-                                          APP_MB=$((APP_KB / 1024))
-                                          OVER_BY=$((APP_KB - APP_CAP_KB))
-                                          OVER_MB=$((OVER_BY / 1024))
-                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap by ${OVER_MB}Mi"
-                                          # If over 3x the cap, nuke entirely (faster than file-by-file)
-                                          if [ "${APP_KB}" -gt "$((APP_CAP_KB * 3))" ]; then
-                                              echo "  ${APP_NAME}: massively over cap — removing entirely"
-                                              rm -rf "${APP_DIR}"
-                                              mkdir -p "${APP_DIR}" 2>/dev/null || true
-                                          else
-                                              echo "  ${APP_NAME}: pruning oldest files..."
-                                              find "${APP_DIR}" -type f -printf '%T+ %p\n' 2>/dev/null \
-                                                  | sort \
-                                                  | head -n "$((OVER_BY / 1024 + 100))" \
-                                                  | cut -d' ' -f2- \
-                                                  | xargs rm -f 2>/dev/null || true
-                                          fi
-                                          NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                          echo "  ${APP_NAME}: now at $((NEW_KB / 1024))Mi"
-                                      else
-                                          echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
-                                      fi
-                                  done
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  echo ""
-                                  echo "After:"
-                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
-                                  df -h ${CACHE}
-                                  echo "=== Medium Cleanup Done ==="
+                              - /scripts/cleanup.sh
                           resources:
                               limits:
-                                  cpu: 200m
+                                  cpu: 300m
                                   memory: 256Mi
                               requests:
                                   cpu: 50m
@@ -186,10 +249,17 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
+                              - name: cleanup-script
+                                mountPath: /scripts
+                                readOnly: true
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
+                        - name: cleanup-script
+                          configMap:
+                              name: arc-cache-cleanup-script
+                              defaultMode: 0755
 ---
 # ── Tier 3: Heavy — every 3 days at 4 AM UTC ──────────────────────────────
 apiVersion: batch/v1
@@ -204,7 +274,7 @@ spec:
     failedJobsHistoryLimit: 3
     jobTemplate:
         spec:
-            activeDeadlineSeconds: 900
+            activeDeadlineSeconds: 3600
             ttlSecondsAfterFinished: 86400
             backoffLimit: 0
             template:
@@ -221,10 +291,10 @@ spec:
                         - name: cache-cleanup
                           image: alpine:3.21
                           env:
+                              - name: TIER
+                                value: heavy
                               - name: AGE_DAYS
                                 value: '3'
-                              - name: APP_CAP_GB
-                                value: '15'
                               - name: CAPACITY_PCT
                                 value: '80'
                           securityContext:
@@ -235,84 +305,10 @@ spec:
                                       - ALL
                           command:
                               - /bin/sh
-                              - -c
-                              - |
-                                  set -e
-                                  CACHE="/cache"
-                                  APP_CAP_KB=$((APP_CAP_GB * 1024 * 1024))
-
-                                  echo "=== Heavy Cleanup (every 3 days) ==="
-                                  echo "Config: age=${AGE_DAYS}d  app_cap=${APP_CAP_GB}Gi  capacity_limit=${CAPACITY_PCT}%"
-                                  echo ""
-                                  echo "Before:"
-                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
-                                  df -h ${CACHE}
-                                  echo ""
-
-                                  # Phase 1: Age-based
-                                  echo "Phase 1: Removing files not modified in ${AGE_DAYS} days..."
-                                  REMOVED=$(find ${CACHE} -type f -mtime +${AGE_DAYS} -delete -print 2>/dev/null | wc -l)
-                                  echo "  Removed ${REMOVED} stale files"
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  # Phase 2: Per-app cap
-                                  echo "Phase 2: Enforcing per-app cap of ${APP_CAP_GB}Gi..."
-                                  for APP_DIR in ${CACHE}/docker/*/; do
-                                      [ -d "${APP_DIR}" ] || continue
-                                      APP_NAME=$(basename "${APP_DIR}")
-                                      APP_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                      if [ "${APP_KB}" -gt "${APP_CAP_KB}" ]; then
-                                          APP_MB=$((APP_KB / 1024))
-                                          OVER_BY=$((APP_KB - APP_CAP_KB))
-                                          OVER_MB=$((OVER_BY / 1024))
-                                          echo "  ${APP_NAME}: ${APP_MB}Mi exceeds cap by ${OVER_MB}Mi"
-                                          # If over 3x the cap, nuke entirely (faster than file-by-file)
-                                          if [ "${APP_KB}" -gt "$((APP_CAP_KB * 3))" ]; then
-                                              echo "  ${APP_NAME}: massively over cap — removing entirely"
-                                              rm -rf "${APP_DIR}"
-                                              mkdir -p "${APP_DIR}" 2>/dev/null || true
-                                          else
-                                              echo "  ${APP_NAME}: pruning oldest files..."
-                                              find "${APP_DIR}" -type f -printf '%T+ %p\n' 2>/dev/null \
-                                                  | sort \
-                                                  | head -n "$((OVER_BY / 1024 + 100))" \
-                                                  | cut -d' ' -f2- \
-                                                  | xargs rm -f 2>/dev/null || true
-                                          fi
-                                          NEW_KB=$(du -sk "${APP_DIR}" 2>/dev/null | cut -f1)
-                                          echo "  ${APP_NAME}: now at $((NEW_KB / 1024))Mi"
-                                      else
-                                          echo "  ${APP_NAME}: $((APP_KB / 1024))Mi — OK"
-                                      fi
-                                  done
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  # Phase 3: Capacity-based emergency cleanup
-                                  echo "Phase 3: Checking overall PVC capacity..."
-                                  USAGE=$(df ${CACHE} | tail -1 | awk '{gsub(/%/,""); print $5}')
-                                  echo "  Current usage: ${USAGE}%"
-                                  while [ "${USAGE}" -gt "${CAPACITY_PCT}" ]; do
-                                      LARGEST=$(du -sk ${CACHE}/docker/*/ 2>/dev/null | sort -rn | head -1 | cut -f2)
-                                      if [ -z "${LARGEST}" ]; then
-                                          echo "  No more app cache dirs to remove — giving up"
-                                          break
-                                      fi
-                                      LNAME=$(basename "${LARGEST}")
-                                      LKB=$(du -sk "${LARGEST}" 2>/dev/null | cut -f1)
-                                      echo "  Usage ${USAGE}% > ${CAPACITY_PCT}% — removing ${LNAME} ($((LKB / 1024))Mi)"
-                                      rm -rf "${LARGEST}"
-                                      USAGE=$(df ${CACHE} | tail -1 | awk '{gsub(/%/,""); print $5}')
-                                  done
-                                  find ${CACHE} -type d -empty -delete 2>/dev/null || true
-
-                                  echo ""
-                                  echo "After:"
-                                  du -sh ${CACHE}/* 2>/dev/null || echo "  (empty)"
-                                  df -h ${CACHE}
-                                  echo "=== Heavy Cleanup Done ==="
+                              - /scripts/cleanup.sh
                           resources:
                               limits:
-                                  cpu: 200m
+                                  cpu: 300m
                                   memory: 256Mi
                               requests:
                                   cpu: 50m
@@ -320,7 +316,14 @@ spec:
                           volumeMounts:
                               - name: runner-cache
                                 mountPath: /cache
+                              - name: cleanup-script
+                                mountPath: /scripts
+                                readOnly: true
                     volumes:
                         - name: runner-cache
                           persistentVolumeClaim:
                               claimName: arc-runner-cache-sdb
+                        - name: cleanup-script
+                          configMap:
+                              name: arc-cache-cleanup-script
+                              defaultMode: 0755
