@@ -48,6 +48,9 @@ public class ShipEntity extends Entity {
     /** Packed upgrade list (comma-separated registry IDs) for client visibility. */
     private static final TrackedData<String> UPGRADES_CSV =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    /** Banner item ID (e.g. "minecraft:red_banner") for client-side rendering. */
+    private static final TrackedData<String> BANNER_ITEM_ID =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 
     public static final float MAX_HEALTH = 100.0f;
     public static final float MAX_FUEL = 1000.0f;
@@ -225,7 +228,21 @@ public class ShipEntity extends Entity {
         upgradesHashCache = -1; // force getStats() recompute
         if (!this.getEntityWorld().isClient()) {
             syncUpgradesCsv();
+            syncBannerId();
         }
+    }
+
+    private void syncBannerId() {
+        net.minecraft.item.ItemStack banner = inventory.getBanner();
+        String id = banner.isEmpty()
+                ? ""
+                : net.minecraft.registry.Registries.ITEM.getId(banner.getItem()).toString();
+        this.dataTracker.set(BANNER_ITEM_ID, id);
+    }
+
+    /** Item ID of the installed banner (or empty). Read by client renderer. */
+    public String getBannerItemId() {
+        return this.dataTracker.get(BANNER_ITEM_ID);
     }
 
     private void syncUpgradesCsv() {
@@ -543,6 +560,12 @@ public class ShipEntity extends Entity {
             spawnTrailParticles(sw, power);
         }
 
+        // Banner color plume — independent of throttle so a parked ship
+        // still flies its colors.
+        if (this.getEntityWorld() instanceof ServerWorld sw3) {
+            spawnBannerParticles(sw3);
+        }
+
         // Engine sound — pitch scales with throttle. Cadence speeds up as
         // power rises so the audio gets more frantic at full thrust.
         if (power > 0.05f && this.getEntityWorld() instanceof ServerWorld sw2) {
@@ -559,6 +582,55 @@ public class ShipEntity extends Entity {
 
     private static Vec3d lerp(Vec3d a, Vec3d b, double t) {
         return new Vec3d(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+    }
+
+    /**
+     * Spawn banner-color dust above the ship as a visual flag. We can't
+     * easily inject custom geometry into the BBModel render queue in
+     * 1.21.11, so the installed banner advertises itself as a colored
+     * particle plume instead. Mirrors IA's banner indicator without
+     * needing pattern-aware mesh rendering.
+     */
+    private void spawnBannerParticles(ServerWorld sw) {
+        String bannerId = getBannerItemId();
+        if (bannerId.isEmpty() || this.age % 6 != 0) return;
+        int color = bannerColor(bannerId);
+        if (color < 0) return;
+        net.minecraft.particle.DustParticleEffect dust =
+                new net.minecraft.particle.DustParticleEffect(color, 1.4f);
+        // Two puffs offset along ship roll axis to suggest a flag waving.
+        double rad = Math.toRadians(this.getYaw());
+        double sx = Math.cos(rad) * 0.4;
+        double sz = Math.sin(rad) * 0.4;
+        sw.spawnParticles(dust,
+                this.getX() + sx, this.getY() + 2.2, this.getZ() + sz,
+                1, 0.05, 0.05, 0.05, 0.0);
+        sw.spawnParticles(dust,
+                this.getX() - sx, this.getY() + 2.4, this.getZ() - sz,
+                1, 0.05, 0.05, 0.05, 0.0);
+    }
+
+    /** Map a vanilla banner item ID to its base color (RGB int). -1 if not a banner. */
+    private static int bannerColor(String id) {
+        return switch (id) {
+            case "minecraft:white_banner"      -> 0xF9FFFE;
+            case "minecraft:orange_banner"     -> 0xF9801D;
+            case "minecraft:magenta_banner"    -> 0xC74EBD;
+            case "minecraft:light_blue_banner" -> 0x3AB3DA;
+            case "minecraft:yellow_banner"     -> 0xFED83D;
+            case "minecraft:lime_banner"       -> 0x80C71F;
+            case "minecraft:pink_banner"       -> 0xF38BAA;
+            case "minecraft:gray_banner"       -> 0x474F52;
+            case "minecraft:light_gray_banner" -> 0x9D9D97;
+            case "minecraft:cyan_banner"       -> 0x169C9C;
+            case "minecraft:purple_banner"     -> 0x8932B8;
+            case "minecraft:blue_banner"       -> 0x3C44AA;
+            case "minecraft:brown_banner"      -> 0x835432;
+            case "minecraft:green_banner"      -> 0x5E7C16;
+            case "minecraft:red_banner"        -> 0xB02E26;
+            case "minecraft:black_banner"      -> 0x1D1D21;
+            default -> -1;
+        };
     }
 
     /** Per-aircraft trail effect (server-side spawn so all clients see it). */
@@ -636,6 +708,7 @@ public class ShipEntity extends Entity {
         builder.add(VERTICAL_INTENT, 0.0f);
         builder.add(FUEL_LEVEL, MAX_FUEL);
         builder.add(UPGRADES_CSV, "");
+        builder.add(BANNER_ITEM_ID, "");
     }
 
     @Override
@@ -674,6 +747,7 @@ public class ShipEntity extends Entity {
         }
         upgradesHashCache = -1;
         syncUpgradesCsv();
+        syncBannerId();
     }
 
     @Override
