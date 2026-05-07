@@ -5,6 +5,10 @@ metadata:
     namespace: n8n
     labels:
         app: n8n-worker
+    annotations:
+        # Reloader rolls this Deployment whenever any referenced Secret
+        # or ConfigMap changes — same secret set as the main n8n pod.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     selector:
@@ -16,6 +20,14 @@ spec:
                 app: n8n-worker
         spec:
             serviceAccountName: n8n-sa
+            automountServiceAccountToken: false
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
             affinity:
                 podAntiAffinity:
                     preferredDuringSchedulingIgnoredDuringExecution:
@@ -141,6 +153,11 @@ spec:
                       limits:
                           memory: '4Gi'
                           cpu: '2000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
                   livenessProbe:
                       httpGet:
                           path: /healthz
@@ -182,6 +199,11 @@ spec:
                       limits:
                           memory: '1Gi'
                           cpu: '1000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
                   livenessProbe:
                       httpGet:
                           path: /healthz
