@@ -1,0 +1,50 @@
+---
+ref: dart
+name: Dart
+title: Dart Icon
+description: Dart brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+primary_category: tech
+categories: [tech, library, brand]
+tags: [simple-icons-generated, brand]
+search:
+  keywords: ["dart"]
+  primary_category: tech
+default_license:
+  license: cc0
+  attribution_required: false
+  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  author: Simple Icons contributors
+  source_url: "https://simpleicons.org/icons/dart"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [simple-icons, brand]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.105 4.105S9.158 1.58 11.684.316a3.079 3.079 0 0 1 1.481-.315c.766.047 1.677.788 1.677.788L24 9.948v9.789h-4.263V24H9.789l-9-9C.303 14.5 0 13.795 0 13.105c0-.319.18-.818.316-1.105l3.789-7.895zm.679.679v11.787c.002.543.021 1.024.498 1.508L10.204 23h8.533v-4.263L4.784 4.784zm12.055-.678c-.899-.896-1.809-1.78-2.74-2.643-.302-.267-.567-.468-1.07-.462-.37.014-.87.195-.87.195L6.341 4.105l10.498.001z"/></svg>
+pagefindFilters: [simple-icons, tech, brand]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Dart — filled brand glyph from the [Simple Icons library](https://simpleicons.org/) (CC0).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

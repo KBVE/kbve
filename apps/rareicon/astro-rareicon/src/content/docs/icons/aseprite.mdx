@@ -1,0 +1,50 @@
+---
+ref: aseprite
+name: Aseprite
+title: Aseprite Icon
+description: Aseprite brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+primary_category: gaming
+categories: [gaming, library, brand]
+tags: [simple-icons-generated, brand]
+search:
+  keywords: ["aseprite"]
+  primary_category: gaming
+default_license:
+  license: cc0
+  attribution_required: false
+  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  author: Simple Icons contributors
+  source_url: "https://simpleicons.org/icons/aseprite"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [simple-icons, brand]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.006 0v1.6h15.988V0zm15.988 1.6v1.6h1.6V1.6zm1.6 1.6v14.4h-1.6v1.6H4.006v-1.6h-1.6V3.2H.809v17.6h1.599v1.6h1.599V24h15.988v-1.6h1.6v-1.6h1.598V3.2zm-19.187 0h1.599V1.6h-1.6zm4.796 3.2v6.4h1.6V6.4zm7.995 0v6.4h1.599V6.4z"/></svg>
+pagefindFilters: [simple-icons, gaming, brand]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Aseprite — filled brand glyph from the [Simple Icons library](https://simpleicons.org/) (CC0).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

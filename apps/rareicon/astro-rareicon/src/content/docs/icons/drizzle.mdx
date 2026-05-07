@@ -1,0 +1,50 @@
+---
+ref: drizzle
+name: Drizzle
+title: Drizzle Icon
+description: Drizzle brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+primary_category: tech
+categories: [tech, library, brand]
+tags: [simple-icons-generated, brand]
+search:
+  keywords: ["drizzle"]
+  primary_category: tech
+default_license:
+  license: cc0
+  attribution_required: false
+  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  author: Simple Icons contributors
+  source_url: "https://simpleicons.org/icons/drizzle"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [simple-icons, brand]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.353 11.823a1.036 1.036 0 0 0-.395-1.422 1.063 1.063 0 0 0-1.437.399L.138 16.702a1.035 1.035 0 0 0 .395 1.422 1.063 1.063 0 0 0 1.437-.398l3.383-5.903Zm11.216 0a1.036 1.036 0 0 0-.394-1.422 1.064 1.064 0 0 0-1.438.399l-3.382 5.902a1.036 1.036 0 0 0 .394 1.422c.506.283 1.15.104 1.438-.398l3.382-5.903Zm7.293-4.525a1.036 1.036 0 0 0-.395-1.422 1.062 1.062 0 0 0-1.437.399l-3.383 5.902a1.036 1.036 0 0 0 .395 1.422 1.063 1.063 0 0 0 1.437-.399l3.383-5.902Zm-11.219 0a1.035 1.035 0 0 0-.394-1.422 1.064 1.064 0 0 0-1.438.398l-3.382 5.903a1.036 1.036 0 0 0 .394 1.422c.506.282 1.15.104 1.438-.399l3.382-5.902Z"/></svg>
+pagefindFilters: [simple-icons, tech, brand]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Drizzle — filled brand glyph from the [Simple Icons library](https://simpleicons.org/) (CC0).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

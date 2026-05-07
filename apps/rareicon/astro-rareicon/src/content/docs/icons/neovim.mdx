@@ -1,0 +1,50 @@
+---
+ref: neovim
+name: Neovim
+title: Neovim Icon
+description: Neovim brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+primary_category: tech
+categories: [tech, library, brand]
+tags: [simple-icons-generated, brand]
+search:
+  keywords: ["neovim"]
+  primary_category: tech
+default_license:
+  license: cc0
+  attribution_required: false
+  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  author: Simple Icons contributors
+  source_url: "https://simpleicons.org/icons/neovim"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [simple-icons, brand]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.214 4.954v13.615L7.655 24V10.314L3.312 3.845 2.214 4.954zm4.999 17.98l-4.557-4.548V5.136l.59-.596 3.967 5.908v12.485zm14.573-4.457l-.862.937-4.24-6.376V0l5.068 5.092.034 13.385zM7.431.001l12.998 19.835-3.637 3.637L3.787 3.683 7.43 0z"/></svg>
+pagefindFilters: [simple-icons, tech, brand]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Neovim — filled brand glyph from the [Simple Icons library](https://simpleicons.org/) (CC0).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

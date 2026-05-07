@@ -1,0 +1,165 @@
+---
+title: Press Kit
+description: RareIcon press kit — fact sheet, key art, screenshots, brand assets, and contact info for press, streamers, and content creators.
+template: splash
+sidebar:
+  label: Press
+  order: 90
+editUrl: false
+lastUpdated: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+<div class="ri-press not-content">
+
+## Fact Sheet
+
+<dl class="ri-press__facts">
+  <div><dt>Developer</dt><dd>KBVE</dd></div>
+  <div><dt>Publisher</dt><dd>KBVE (self-published)</dd></div>
+  <div><dt>Genre</dt><dd>2D sci-fi Action-RPG · bullet-hell roguelite</dd></div>
+  <div><dt>Platforms</dt><dd>PC (Steam) · macOS · Linux</dd></div>
+  <div><dt>Engine</dt><dd>Unity DOTS / ECS</dd></div>
+  <div><dt>Players</dt><dd>Singleplayer (multiplayer planned)</dd></div>
+  <div><dt>Status</dt><dd>In development · demo TBA</dd></div>
+  <div><dt>Pricing</dt><dd>TBA</dd></div>
+  <div><dt>Languages</dt><dd>English (more at launch)</dd></div>
+  <div><dt>Website</dt><dd><a href="https://rareicon.com">rareicon.com</a></dd></div>
+</dl>
+
+## Pitch
+
+> Chip back at the system. RareIcon is a 2D sci-fi action-RPG bullet-hell
+> roguelite set in a collapsing digital dystopia. Play as Chip, a rogue
+> process fighting through DaemonCorps territory using stolen icons,
+> recursive abilities, and a kingdom of allied units that build, gather,
+> and fight beside you between runs.
+
+## Description
+
+RareIcon mixes the fast-paced bullet-hell of arcade shoot-'em-ups with
+the long-tail systems of a kingdom-building RPG. Each run sends Chip
+into a procedurally-corrupted shard of the network — clear waves,
+recover icons, and bring the loot home to upgrade your base. Recruit
+specialists, assign them roles (builder, gatherer, fighter, scout),
+and watch the kingdom take care of itself between sorties.
+
+The DaemonCorps wants the stack back. They will keep coming.
+
+## Key Features
+
+- **Bullet-hell first.** Tight 2D combat. Hundreds of enemies, no
+  framerate excuses — built on Unity DOTS/ECS for a stable 60 FPS
+  even at high entity counts.
+- **Run + return.** Each sortie funnels resources back into a
+  persistent kingdom. Death isn't a reset — it's a checkpoint.
+- **Multi-role units.** Every unit can builder / gather / fight / scout;
+  specialization is a priority weight, not a class lock-in.
+- **Hex-grid world.** Sheltered livestock, hive bees, and pond fish
+  collapse into host-tile counts so the world keeps scaling.
+- **Recursive abilities.** Stolen icons stack. The build that broke
+  the last run might break the next one harder.
+- **Open-source ecosystem.** Built in the open at
+  [github.com/kbve/kbve](https://github.com/kbve/kbve).
+
+## Trailers & Video
+
+- Steam page: [store.steampowered.com/app/2238370/RareIcon](https://store.steampowered.com/app/2238370/RareIcon/)
+- YouTube channel: [@kbve](https://youtube.com/@kbve)
+- Twitch (dev streams): [twitch.tv/kbve](https://twitch.tv/kbve)
+
+Embedded trailer + gameplay reel coming with the demo.
+
+## Screenshots
+
+High-resolution screenshots, key art, and trailer captures will be
+hosted on the GitHub release artifacts page once the demo lands.
+Drop a contact note if you need raw footage before then — happy
+to send b-roll for previews, streams, or articles.
+
+## Logos & Brand Assets
+
+- Wordmark + glyph: SVG + PNG variants (transparent + on-color)
+- Color palette: deep purple (`#3b2566`) · accent gold (`#d4a73c`) · ink (`#15131c`)
+- Typography: Inter (UI) · JetBrains Mono (numerics)
+
+Asset bundle: `https://github.com/kbve/kbve/tree/dev/apps/rareicon/astro-rareicon/public/branding`
+(populated alongside the demo announcement).
+
+## About KBVE
+
+KBVE is an open-source collective building games, tools, and cloud
+infrastructure in the open. The monorepo behind RareIcon ships
+multiple shipped products: ChuckRPG, CryptoThrone, the KBVE icon
+library, and a Kubernetes-native platform that runs everything from
+Discord bots to dedicated Unreal Engine servers.
+
+- Site: [kbve.com](https://kbve.com)
+- Source: [github.com/kbve/kbve](https://github.com/kbve/kbve)
+- Discord: [kbve.com/discord](https://kbve.com/discord)
+
+## Contact
+
+- **Press / interviews / preview keys** — `press@kbve.com`
+- **Streaming / content creators** — `creators@kbve.com`
+- **Business / partnerships** — `kbve.ceo@gmail.com`
+- **Bug reports / feedback** — [GitHub issues](https://github.com/kbve/kbve/issues)
+
+You're cleared to use anything in this press kit — screenshots,
+quotes, gameplay footage — for coverage of RareIcon. Attribution
+appreciated but not required.
+
+</div>
+
+<Adsense />
+
+<style is:global>{`
+  .ri-press {
+    max-width: 960px;
+    margin: 1.5rem auto;
+    color: var(--sl-color-text, #e6edf3);
+  }
+  .ri-press h2 {
+    font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+    margin: 2.5rem 0 1rem;
+    border-top: 1px solid color-mix(in srgb, var(--ri-accent, #d4a73c) 18%, transparent);
+    padding-top: 1.25rem;
+  }
+  .ri-press h2:first-of-type { border-top: 0; padding-top: 0; }
+  .ri-press__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0.75rem 0 0;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    background: var(--sl-color-bg-nav, #131318);
+  }
+  .ri-press__facts > div { display: grid; gap: 0.15rem; }
+  .ri-press__facts dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-2, #a1a1aa);
+  }
+  .ri-press__facts dd {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin: 0;
+  }
+  .ri-press blockquote {
+    border-left: 3px solid var(--ri-accent, #d4a73c);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    color: var(--sl-color-text, #e6edf3);
+    background: color-mix(in srgb, var(--ri-accent, #d4a73c) 6%, transparent);
+    border-radius: 0 8px 8px 0;
+  }
+  .ri-press ul {
+    padding-left: 1.25rem;
+  }
+  .ri-press ul li { margin: 0.4rem 0; }
+`}</style>

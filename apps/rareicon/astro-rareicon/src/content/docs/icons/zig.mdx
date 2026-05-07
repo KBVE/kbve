@@ -1,0 +1,50 @@
+---
+ref: zig
+name: Zig
+title: Zig Icon
+description: Zig brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+primary_category: tech
+categories: [tech, library, brand]
+tags: [simple-icons-generated, brand]
+search:
+  keywords: ["zig"]
+  primary_category: tech
+default_license:
+  license: cc0
+  attribution_required: false
+  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  author: Simple Icons contributors
+  source_url: "https://simpleicons.org/icons/zig"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [simple-icons, brand]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="m23.53 1.02-7.686 3.45h-7.06l-2.98 3.452h7.173L.47 22.98l7.681-3.607h7.065v-.002l2.978-3.45-7.148-.001 12.482-14.9zM0 4.47v14.901h1.883l2.98-3.45H3.451v-8h.942l2.824-3.45H0zm22.117 0-2.98 3.608h1.412v7.844h-.942l-2.98 3.45H24V4.47h-1.883z"/></svg>
+pagefindFilters: [simple-icons, tech, brand]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Zig — filled brand glyph from the [Simple Icons library](https://simpleicons.org/) (CC0).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

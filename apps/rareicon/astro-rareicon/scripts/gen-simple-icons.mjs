@@ -57,8 +57,22 @@ const CURATED = [
 	{ slug: 'humblebundle', ref: 'humble-bundle', name: 'Humble Bundle', cat: 'gaming' },
 	{ slug: 'playstation', ref: 'playstation', name: 'PlayStation', cat: 'gaming' },
 	{ slug: 'nintendoswitch', ref: 'nintendo-switch', name: 'Nintendo Switch', cat: 'gaming' },
+	{ slug: 'gamejolt', ref: 'gamejolt', name: 'Game Jolt', cat: 'gaming' },
+	{ slug: 'roblox', ref: 'roblox', name: 'Roblox', cat: 'gaming' },
+
+	// Game engines / tools
 	{ slug: 'unrealengine', ref: 'unreal-engine', name: 'Unreal Engine', cat: 'gaming' },
 	{ slug: 'unity', ref: 'unity', name: 'Unity', cat: 'gaming' },
+	{ slug: 'godotengine', ref: 'godot', name: 'Godot', cat: 'gaming' },
+	{ slug: 'bevy', ref: 'bevy', name: 'Bevy', cat: 'gaming' },
+	{ slug: 'gamemaker', ref: 'gamemaker', name: 'GameMaker', cat: 'gaming' },
+	{ slug: 'construct3', ref: 'construct-3', name: 'Construct 3', cat: 'gaming' },
+	{ slug: 'aseprite', ref: 'aseprite', name: 'Aseprite', cat: 'gaming' },
+	{ slug: 'blender', ref: 'blender', name: 'Blender', cat: 'gaming' },
+	{ slug: 'krita', ref: 'krita', name: 'Krita', cat: 'gaming' },
+	{ slug: 'gimp', ref: 'gimp', name: 'GIMP', cat: 'gaming' },
+	{ slug: 'rive', ref: 'rive', name: 'Rive', cat: 'gaming' },
+	{ slug: 'minetest', ref: 'minetest', name: 'Minetest', cat: 'gaming' },
 
 	// Streaming / video
 	{ slug: 'kick', ref: 'kick', name: 'Kick', cat: 'media' },
@@ -89,6 +103,13 @@ const CURATED = [
 	{ slug: 'devdotto', ref: 'dev-to', name: 'DEV Community', cat: 'tech' },
 	{ slug: 'hashnode', ref: 'hashnode', name: 'Hashnode', cat: 'tech' },
 
+	// Editors / IDE
+	{ slug: 'neovim', ref: 'neovim', name: 'Neovim', cat: 'tech' },
+	{ slug: 'jetbrains', ref: 'jetbrains', name: 'JetBrains', cat: 'tech' },
+	{ slug: 'sublimetext', ref: 'sublime-text', name: 'Sublime Text', cat: 'tech' },
+	{ slug: 'zedindustries', ref: 'zed', name: 'Zed', cat: 'tech' },
+	{ slug: 'githubcopilot', ref: 'github-copilot', name: 'GitHub Copilot', cat: 'tech' },
+
 	// Creator support
 	{ slug: 'kofi', ref: 'kofi', name: 'Ko-fi', cat: 'commerce' },
 	{ slug: 'patreon', ref: 'patreon', name: 'Patreon', cat: 'commerce' },
@@ -96,12 +117,101 @@ const CURATED = [
 	{ slug: 'opencollective', ref: 'open-collective', name: 'Open Collective', cat: 'commerce' },
 	{ slug: 'githubsponsors', ref: 'github-sponsors', name: 'GitHub Sponsors', cat: 'commerce' },
 
-	// Cloud / infra / AI
+	// AI / ML
 	{ slug: 'openai', ref: 'openai', name: 'OpenAI', cat: 'tech' },
 	{ slug: 'anthropic', ref: 'anthropic', name: 'Anthropic', cat: 'tech' },
+	{ slug: 'perplexity', ref: 'perplexity', name: 'Perplexity', cat: 'tech' },
+	{ slug: 'huggingface', ref: 'hugging-face', name: 'Hugging Face', cat: 'tech' },
+	{ slug: 'replicate', ref: 'replicate', name: 'Replicate', cat: 'tech' },
+	{ slug: 'langchain', ref: 'langchain', name: 'LangChain', cat: 'tech' },
+	{ slug: 'ollama', ref: 'ollama', name: 'Ollama', cat: 'tech' },
+	{ slug: 'pytorch', ref: 'pytorch', name: 'PyTorch', cat: 'tech' },
+	{ slug: 'tensorflow', ref: 'tensorflow', name: 'TensorFlow', cat: 'tech' },
+	{ slug: 'keras', ref: 'keras', name: 'Keras', cat: 'tech' },
+	{ slug: 'jupyter', ref: 'jupyter', name: 'Jupyter', cat: 'tech' },
+	{ slug: 'pandas', ref: 'pandas', name: 'pandas', cat: 'tech' },
+	{ slug: 'numpy', ref: 'numpy', name: 'NumPy', cat: 'tech' },
+	{ slug: 'opencv', ref: 'opencv', name: 'OpenCV', cat: 'tech' },
+	{ slug: 'kaggle', ref: 'kaggle', name: 'Kaggle', cat: 'tech' },
+	{ slug: 'googlecolab', ref: 'google-colab', name: 'Google Colab', cat: 'tech' },
+
+	// Cloud / infra
 	{ slug: 'vercel', ref: 'vercel', name: 'Vercel', cat: 'tech' },
 	{ slug: 'netlify', ref: 'netlify', name: 'Netlify', cat: 'tech' },
 	{ slug: 'cloudflare', ref: 'cloudflare', name: 'Cloudflare', cat: 'tech' },
+	{ slug: 'amazonwebservices', ref: 'aws', name: 'AWS', cat: 'tech' },
+	{ slug: 'googlecloud', ref: 'google-cloud', name: 'Google Cloud', cat: 'tech' },
+	{ slug: 'digitalocean', ref: 'digitalocean', name: 'DigitalOcean', cat: 'tech' },
+	{ slug: 'hetzner', ref: 'hetzner', name: 'Hetzner', cat: 'tech' },
+	{ slug: 'flydotio', ref: 'fly-io', name: 'Fly.io', cat: 'tech' },
+	{ slug: 'railway', ref: 'railway', name: 'Railway', cat: 'tech' },
+	{ slug: 'render', ref: 'render', name: 'Render', cat: 'tech' },
+
+	// DevOps
+	{ slug: 'docker', ref: 'docker', name: 'Docker', cat: 'tech' },
+	{ slug: 'kubernetes', ref: 'kubernetes', name: 'Kubernetes', cat: 'tech' },
+	{ slug: 'terraform', ref: 'terraform', name: 'Terraform', cat: 'tech' },
+	{ slug: 'ansible', ref: 'ansible', name: 'Ansible', cat: 'tech' },
+	{ slug: 'githubactions', ref: 'github-actions', name: 'GitHub Actions', cat: 'tech' },
+	{ slug: 'jenkins', ref: 'jenkins', name: 'Jenkins', cat: 'tech' },
+	{ slug: 'nixos', ref: 'nixos', name: 'NixOS', cat: 'tech' },
+
+	// Languages
+	{ slug: 'rust', ref: 'rust', name: 'Rust', cat: 'tech' },
+	{ slug: 'go', ref: 'go', name: 'Go', cat: 'tech' },
+	{ slug: 'python', ref: 'python', name: 'Python', cat: 'tech' },
+	{ slug: 'typescript', ref: 'typescript', name: 'TypeScript', cat: 'tech' },
+	{ slug: 'kotlin', ref: 'kotlin', name: 'Kotlin', cat: 'tech' },
+	{ slug: 'swift', ref: 'swift', name: 'Swift', cat: 'tech' },
+	{ slug: 'zig', ref: 'zig', name: 'Zig', cat: 'tech' },
+	{ slug: 'dart', ref: 'dart', name: 'Dart', cat: 'tech' },
+	{ slug: 'elixir', ref: 'elixir', name: 'Elixir', cat: 'tech' },
+
+	// Frameworks / runtimes
+	{ slug: 'react', ref: 'react', name: 'React', cat: 'tech' },
+	{ slug: 'vuedotjs', ref: 'vue', name: 'Vue', cat: 'tech' },
+	{ slug: 'svelte', ref: 'svelte', name: 'Svelte', cat: 'tech' },
+	{ slug: 'astro', ref: 'astro', name: 'Astro', cat: 'tech' },
+	{ slug: 'nextdotjs', ref: 'next-js', name: 'Next.js', cat: 'tech' },
+	{ slug: 'remix', ref: 'remix', name: 'Remix', cat: 'tech' },
+	{ slug: 'solid', ref: 'solid-js', name: 'SolidJS', cat: 'tech' },
+	{ slug: 'qwik', ref: 'qwik', name: 'Qwik', cat: 'tech' },
+	{ slug: 'htmx', ref: 'htmx', name: 'htmx', cat: 'tech' },
+	{ slug: 'nodedotjs', ref: 'node-js', name: 'Node.js', cat: 'tech' },
+	{ slug: 'deno', ref: 'deno', name: 'Deno', cat: 'tech' },
+	{ slug: 'bun', ref: 'bun', name: 'Bun', cat: 'tech' },
+	{ slug: 'nestjs', ref: 'nest-js', name: 'NestJS', cat: 'tech' },
+	{ slug: 'django', ref: 'django', name: 'Django', cat: 'tech' },
+	{ slug: 'flask', ref: 'flask-framework', name: 'Flask', cat: 'tech' },
+	{ slug: 'fastapi', ref: 'fastapi', name: 'FastAPI', cat: 'tech' },
+	{ slug: 'laravel', ref: 'laravel', name: 'Laravel', cat: 'tech' },
+	{ slug: 'spring', ref: 'spring', name: 'Spring', cat: 'tech' },
+	{ slug: 'tauri', ref: 'tauri', name: 'Tauri', cat: 'tech' },
+	{ slug: 'electron', ref: 'electron', name: 'Electron', cat: 'tech' },
+
+	// Databases / BaaS
+	{ slug: 'postgresql', ref: 'postgresql', name: 'PostgreSQL', cat: 'tech' },
+	{ slug: 'mongodb', ref: 'mongodb', name: 'MongoDB', cat: 'tech' },
+	{ slug: 'redis', ref: 'redis', name: 'Redis', cat: 'tech' },
+	{ slug: 'mysql', ref: 'mysql', name: 'MySQL', cat: 'tech' },
+	{ slug: 'sqlite', ref: 'sqlite', name: 'SQLite', cat: 'tech' },
+	{ slug: 'supabase', ref: 'supabase', name: 'Supabase', cat: 'tech' },
+	{ slug: 'planetscale', ref: 'planetscale', name: 'PlanetScale', cat: 'tech' },
+	{ slug: 'firebase', ref: 'firebase', name: 'Firebase', cat: 'tech' },
+	{ slug: 'appwrite', ref: 'appwrite', name: 'Appwrite', cat: 'tech' },
+	{ slug: 'pocketbase', ref: 'pocketbase', name: 'PocketBase', cat: 'tech' },
+	{ slug: 'prisma', ref: 'prisma', name: 'Prisma', cat: 'tech' },
+	{ slug: 'drizzle', ref: 'drizzle', name: 'Drizzle', cat: 'tech' },
+
+	// Linux / OS
+	{ slug: 'archlinux', ref: 'arch-linux', name: 'Arch Linux', cat: 'tech' },
+	{ slug: 'ubuntu', ref: 'ubuntu', name: 'Ubuntu', cat: 'tech' },
+	{ slug: 'debian', ref: 'debian', name: 'Debian', cat: 'tech' },
+	{ slug: 'fedora', ref: 'fedora', name: 'Fedora', cat: 'tech' },
+
+	// Reference
+	{ slug: 'arxiv', ref: 'arxiv', name: 'arXiv', cat: 'tech' },
+	{ slug: 'wikipedia', ref: 'wikipedia', name: 'Wikipedia', cat: 'tech' },
 ];
 
 /**
