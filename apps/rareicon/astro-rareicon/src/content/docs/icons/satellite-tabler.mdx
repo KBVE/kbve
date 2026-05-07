@@ -1,0 +1,53 @@
+---
+ref: satellite-tabler
+name: Satellite Tabler
+title: Satellite Tabler Icon
+description: Satellite Tabler glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [tabler-generated, outline]
+search:
+  keywords: ["satellite-tabler","satellite","tabler","satellite tabler"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  author: Tabler Icons contributors
+  source_url: "https://tabler.io/icons/icon/satellite"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [tabler]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414" /> <path d="M6 10l-3 3l3 3l3 -3" /> <path d="M10 6l3 -3l3 3l-3 3" /> <path d="M12 12l1.5 1.5" /> <path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5" /> <path d="M15 21a6 6 0 0 0 6 -6" /></svg>
+pagefindFilters: [tabler, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Satellite Tabler — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

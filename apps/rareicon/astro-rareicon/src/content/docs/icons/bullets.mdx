@@ -1,0 +1,50 @@
+---
+ref: bullets
+name: Bullets
+title: Bullets Icon
+description: Bullets glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["bullets"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/bullets"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m162.322 17.943l-28.316 105.682l18.053 4.838l4.194-15.654l169.764 45.487l11.28-42.088l-169.872-45.105l4.838-18.052l169.87 45.103l4.038-15.066L176.404 37.6l3.97-14.82zM361.336 98.7l-14.453 53.943c53.99 13.97 102.986 20.59 150.95 10.964c-37.1-32.648-82.453-50.034-136.497-64.906zM128.676 145l-41.82 101.104l17.27 7.142l6.216-15.023L272.75 305.4l16.36-39.556l-162.43-67.12l7.142-17.27l162.432 67.118l6.254-15.12l-162.406-67.18l5.843-14.13zm186.818 105.95l-21.344 51.605c51.717 20.872 99.435 33.81 148.24 30.502c-32.538-37.196-75.244-60.332-126.896-82.106zM77.107 266.067l-54.705 94.752l16.186 9.346l8.133-14.086l152.23 87.893l20.472-35.452l-152.435-87.55l9.344-16.183l152.434 87.545l9.117-15.79L85.65 288.647l7.643-13.238l-16.186-9.344zM248.46 395.594l-27.92 48.363c48.526 27.46 94.13 46.532 142.942 49.647c-27.38-41.132-66.678-69.662-115.02-98.01z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Bullets — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

@@ -1,0 +1,50 @@
+---
+ref: oak-leaf
+name: Oak Leaf
+title: Oak Leaf Icon
+description: Oak Leaf glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["oak-leaf","oak","leaf","oak leaf"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/oak-leaf"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M92.239 26.432c-4.705.09-9.496.87-14.37 2.473c-19.773 6.506-41.557 59.364-7.411 112.912c9.221 14.46-41 39.289-31.803 67.056c12.387 37.399 99.437 19.933 112.104 42.211c6.44 11.328-79.773 49.284-49.663 81.625c37.951 40.763 76.062 14.109 138.553 23.864c24.685 3.853-26.357 63.343 11.031 86.498c39.948 24.739 118.742 1.986 160.846-20.254a20577 20577 0 0 0-30.19-36.098c-33.45 10.371-71.807 15.824-106.036 13.664c36.092-6.615 65.118-14.246 94.8-27.025c-21.566-25.637-43.299-51.22-65.357-76.479c-36.846 7.379-103.783 18.406-166.793 13.88c8.83-1.316 110.772-14.937 154.935-27.38a3178 3178 0 0 0-24.357-27.318a6823 6823 0 0 0-27.935-35.486a6486 6486 0 0 0-15.413-19.34l-.115.658c-31.187 1.8-90.154 3.052-142.9-10.709c7.477.02 92.983 1.716 132.031-3.637c-16.65-20.699-32.746-40.434-46.473-56.795c-7.035-8.385-13.392-15.81-19.011-22.209l.05-.056c25.401 23.275 50.132 47.542 74.329 72.506c15.57-24.254 32.931-56.653 41.664-80.655c1.469 29.363-15.963 66.66-27.586 95.325c22.456 23.61 44.458 47.79 66.125 72.287c20.118-23.976 44.105-60.316 54.869-83.707c-3.957 26.047-31.834 67.188-44.936 94.982c25.142 28.669 49.84 57.727 74.266 86.8c13.506-17.48 28.29-40.286 35.822-57.296c1.32 21.671-14.607 49.312-24.892 70.281l-.05-.014c9.624 11.49 19.211 22.974 28.766 34.428c3.016-2.12 5.604-4.173 7.582-6.095c31.459-30.573 36.26-79.699 17.842-116.51c-12.519-25.021-70.096-8.654-77.265-23.846c-9.068-19.214 51.563-76.204 28.146-104.902c-16.456-20.168-75.04 1.983-85.264-16.182c-16.343-29.04 28.13-74.832-21.763-99.244c-26.468-12.95-46.397 5.349-88.338 44.103c-21.236 19.623-62.13-63.165-113.828-64.312a49 49 0 0 0-2.012-.004m345.39 402.365l-13.982 11.336l36.848 45.444l13.98-11.336l-36.845-45.444z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Oak Leaf — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

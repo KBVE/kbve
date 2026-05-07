@@ -1,0 +1,50 @@
+---
+ref: video-camera
+name: Video Camera
+title: Video Camera Icon
+description: Video Camera glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: media
+categories: [media, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["video-camera","video","camera","video camera"]
+  primary_category: media
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=video-camera"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M251.77,73a8,8,0,0,0-8.21.39L208,97.05V72a16,16,0,0,0-16-16H32A16,16,0,0,0,16,72V184a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V159l35.56,23.71A8,8,0,0,0,248,184a8,8,0,0,0,8-8V80A8,8,0,0,0,251.77,73ZM192,184H32V72H192V184Zm48-22.95-32-21.33V116.28L240,95Z"/></svg>
+pagefindFilters: [phosphor, media]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Video Camera — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

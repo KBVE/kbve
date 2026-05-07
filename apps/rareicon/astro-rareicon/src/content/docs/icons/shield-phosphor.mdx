@@ -1,0 +1,50 @@
+---
+ref: shield-phosphor
+name: Shield Phosphor
+title: Shield Phosphor Icon
+description: Shield Phosphor glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["shield-phosphor","shield","phosphor","shield phosphor"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=shield"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.27,47,25.53a8,8,0,0,0,4.2,0c1-.26,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0Z"/></svg>
+pagefindFilters: [phosphor, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shield Phosphor — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

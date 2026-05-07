@@ -1,0 +1,50 @@
+---
+ref: microphone
+name: Microphone
+title: Microphone Icon
+description: Microphone glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: media
+categories: [media, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["microphone"]
+  primary_category: media
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=microphone"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V240a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z"/></svg>
+pagefindFilters: [phosphor, media]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Microphone — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

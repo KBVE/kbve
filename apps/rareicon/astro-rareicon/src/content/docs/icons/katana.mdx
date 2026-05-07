@@ -1,0 +1,50 @@
+---
+ref: katana
+name: Katana
+title: Katana Icon
+description: Katana glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["katana"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/katana"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M482.403 42.826c-10.537-8.76-24.84-4.167-43.264 11.643c-76.1 65.307-202.78 179.14-282.432 269.103l21.07 21.07c82.21-87.285 203.37-205.524 304.625-301.817zm-338.477 293.42l-17.17 17.028l22.302 22.303a2547 2547 0 0 1 16.41-17.79zm-56.796.03l-12.728 12.728l79.196 79.196l12.728-12.728zm2.942 54.185l-60.475 60.475c.372 11.49 10.708 22.336 22.628 22.627l60.474-60.474l-8.137-8.136c2.657 4.264 2.84 8.705.457 11.097c-3.124 3.123-9.554 1.758-14.363-3.05c4.808 4.808 6.174 11.24 3.05 14.363c-3.125 3.124-9.555 1.76-14.364-3.05c4.81 4.81 6.174 11.24 3.05 14.363c-3.124 3.125-9.555 1.76-14.363-3.05c4.808 4.81 6.173 11.24 3.05 14.364c-3.125 3.124-9.556 1.76-14.364-3.05c4.808 4.81 6.174 11.24 3.05 14.364s-9.555 1.76-14.364-3.05c-4.808-4.808-6.173-11.24-3.05-14.363c3.125-3.123 9.556-1.758 14.364 3.05c-4.808-4.808-6.173-11.238-3.05-14.362c3.125-3.125 9.555-1.76 14.364 3.05c-4.81-4.81-6.174-11.24-3.05-14.364s9.555-1.76 14.363 3.05c-4.808-4.81-6.173-11.24-3.05-14.364c3.125-3.124 9.556-1.76 14.364 3.05c-4.808-4.81-6.173-11.24-3.05-14.364c2.39-2.383 6.828-2.202 11.09.45z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Katana — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

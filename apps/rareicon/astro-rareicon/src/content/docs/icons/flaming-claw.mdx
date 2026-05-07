@@ -1,0 +1,50 @@
+---
+ref: flaming-claw
+name: Flaming Claw
+title: Flaming Claw Icon
+description: Flaming Claw glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["flaming-claw","flaming","claw","flaming claw"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/flaming-claw"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M286.344 15.22c35.747 36.387 36.18 94.69-1.875 112.78c-41.352 19.655-99.47-5.62-72.876-74.813c-74.166 45.167-89.234 119.982-63.656 192.125c-30.293-23.512-90.362-67.5-47.875-117.375c-57 11.348-71.862 59.875-42.063 90.532c49.228 50.64 13.02 118.883-28.03 46.718c-24.442 123.094 153.718 150.67 155.343 231.28h18.53C195.46 427.78 141.368 388.31 83.282 340l30.25-93.406c.142 1.064.294 2.08.44 3.125c-1.64 46.587 15.002 127.502 78.468 121.843c-14.43-6.617-26.087-15.86-35.563-26.47c20.738-4.194 38.623-63.316 32.28-156.374l88.126-31.564c-64.46 43.87-78.115 117.557-39.436 154.563l44.72-103.94l85.498-22.343c-64.875 41.348-105.853 95.667-73 144.688l57.875-80.906L458.158 265c-125.27 21.775-157.203 101.965-173.626 176.28c3.107 17.593 10.72 36.258 20.283 55.19h13.656C272.694 372.424 453 363.083 480.843 287.97c26.825-72.37 7.37-109.43-52-157.69c48.237 78.413-19.87 116.58-38.53 85.845c-38.098-62.747 70.19-152.574-103.97-200.906z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Flaming Claw — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

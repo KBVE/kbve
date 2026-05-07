@@ -1,0 +1,53 @@
+---
+ref: swords
+name: Swords
+title: Swords Icon
+description: Swords glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [tabler-generated, outline]
+search:
+  keywords: ["swords"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  author: Tabler Icons contributors
+  source_url: "https://tabler.io/icons/icon/swords"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [tabler]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3v5l-11 9l-4 4l-3 -3l4 -4l9 -11l5 0" /> <path d="M5 13l6 6" /> <path d="M14.32 17.32l3.68 3.68l3 -3l-3.365 -3.365" /> <path d="M10 5.5l-2 -2.5h-5v5l3 2.5" /></svg>
+pagefindFilters: [tabler, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Swords — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

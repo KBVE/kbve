@@ -1,0 +1,50 @@
+---
+ref: high-shot
+name: High Shot
+title: High Shot Icon
+description: High Shot glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["high-shot","high","shot","high shot"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/high-shot"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m492.656 20.406l-118.594 56.22L413.875 86l-86.97 86.97l-305.5 259.374l.69.687l104.75-47.467l-46.376 105.843l.905.906l272.5-319.875l73.22-73.218l9.342 39.81zm-473.25.063c-1.347 23.43 5 39.947 16.563 52.218l24.093 302.28l17.562-14.874l-21.72-272.438C113.879 119.609 225 112.82 272.811 194.375l66.625-56.564l1.22-1.218C292.74 38.666 86.01 99.716 19.406 20.47zm359.531 151.56l-1.156 1.157l-57.25 67.188c82.006 47.945 75.587 159.267 107.283 218.03l-272.157-24.5l-14.812 17.408l301.562 27.125c12.48 12.283 29.4 19.084 53.688 17.687c-79.95-67.2-18.36-275.754-117.156-324.094z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+High Shot — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

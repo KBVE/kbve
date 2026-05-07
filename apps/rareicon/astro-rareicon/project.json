@@ -87,6 +87,30 @@
 				"parallel": false
 			}
 		},
+		"gen:tabler-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-tabler-icons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:phosphor-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-phosphor-icons.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:game-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-gameicons.mjs"],
+				"parallel": false
+			}
+		},
 		"proto:lint": {
 			"executor": "nx:run-commands",
 			"options": {

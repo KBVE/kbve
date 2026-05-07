@@ -1,0 +1,50 @@
+---
+ref: magnifying-glass
+name: Magnifying Glass
+title: Magnifying Glass Icon
+description: Magnifying Glass glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: action
+categories: [action, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["magnifying-glass","magnifying","glass","magnifying glass"]
+  primary_category: action
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=magnifying-glass"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+pagefindFilters: [phosphor, action]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Magnifying Glass — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

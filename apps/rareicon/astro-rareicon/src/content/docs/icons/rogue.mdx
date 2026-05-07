@@ -1,0 +1,50 @@
+---
+ref: rogue
+name: Rogue
+title: Rogue Icon
+description: Rogue glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["rogue"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/rogue"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m377.47 20.72l-16.283 9.186l22.844 40.47l-114.405-10.25l-13.03 14.812l-4.47 27.5c-36.887 12.27-63.294 26.753-83.375 46.03c-22.722 21.813-38.17 50.42-51.75 90.5l-31.25 3l-12.844 14.595l2.53 106.062c-3.8 1.61-7.374 3.92-10.56 6.906c-.12.113-.228.232-.345.345l-39-25.53L15.28 360l39.595 25.875c-3.366 11.778-.637 25.006 8.344 34.594c7.98 8.52 19.12 12.27 29.905 11.186l30.688-48.375c-.246-.212-.505-.41-.75-.624a35.9 35.9 0 0 0-7.25-11.47a36 36 0 0 0-8.407-6.655l8.78-79.124l90.658-.656c-8.33-27.148-2.43-56.865 18.562-76.53c13.287-12.448 30.203-18.614 47.563-18.907c6.4-.11 12.852.597 19.217 2.062l6.22-85.938l74.124-3.343a35.85 35.85 0 0 0 9.408 19.78c3.314 3.54 7.157 6.263 11.312 8.157l.375.5l50.125-27.405c1.763-10.675-1.284-22.027-9.25-30.53c-8.932-9.538-21.832-13.137-33.75-10.626zm87.186 92.31l-75.125 41l-4.81 25.626l31.624-16.406c30.88 48.452 54.04 102.334 74.062 158.438c12.075-66.802 1.912-127.814-22.812-185.032l23.062-11.97l-26-11.655zm-191 94.876c-13.12.182-25.73 4.814-35.47 13.938c-22.26 20.854-22.1 58.245 1.876 83.844c23.98 25.6 61.27 28.23 83.532 7.375c22.26-20.855 22.104-58.274-1.875-83.875c-13.49-14.4-31.194-21.516-48.064-21.282zm-95.937 174.28l-33.282 3.408l-41.907 66.125l10.907 31.06l15.063-23.56c54.545 27.254 113.684 40.662 179.75 33.124c-53.016-22.93-103.78-48.64-149.063-81.156l18.532-29z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Rogue — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

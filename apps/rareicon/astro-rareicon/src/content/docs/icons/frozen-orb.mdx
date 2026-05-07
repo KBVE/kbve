@@ -1,0 +1,50 @@
+---
+ref: frozen-orb
+name: Frozen Orb
+title: Frozen Orb Icon
+description: Frozen Orb glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["frozen-orb","frozen","orb","frozen orb"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/frozen-orb"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M255.063 15.47c-131.508 0-238.657 107.12-238.657 238.624S123.558 491.75 255.062 491.75S493.687 385.6 493.687 254.094c0-131.504-107.117-238.625-238.625-238.625zm0 18.343c121.407 0 219.28 98.877 219.28 220.28c0 121.408-97.877 219.313-219.28 219.313S35.75 375.496 35.75 254.094c0-121.404 97.905-220.28 219.313-220.28zm-.032 19.28c-110.986 0-200.75 89.763-200.75 200.75c0 110.988 89.764 200.75 200.75 200.75c110.99 0 200.75-89.762 200.75-200.75c0-110.987-89.76-200.75-200.75-200.75m-.843 16.532l12.313 62.72l51-21.095l-46.094 46.094l6.22 31.687l-12.5 3.345L273 221.72l29.313-7.876l-3.25-12.094l31.343-10.72l16.813-62.81l7.217 54.56l60.313-20.624l-48.313 42.156l42.375 33l-61.625-16.187l-24.25 21.156l-10.03-10.03l-21.47 21.5l21.47 21.47l9.218-9.22l24.688 21.563L409.5 270.78l-43.563 33.47l48.22 42.063l-60.97-20.844l-7.406 53.186l-16.81-61.5l-30.22-10.312l3.563-13.313L273 285.657L265.125 315l12.5 3.344l-6.22 31.625l46.095 46.06l-51-21.06l-12.313 62.75l-12.375-63.033l-49.593 20.125l44.686-45.093l-6.125-31.19l13.157-3.53l-7.875-29.344l-29.343 7.875l3.624 13.533l-29.28 10.03L164.28 378.5l-7.374-53.156L96 346.188l48.188-42.063l-43.594-33.5l62.75 16.813l24.03-20.97l8.75 8.75l21.47-21.468l-21.47-21.5l-9.593 9.594l-23.56-20.563l-61.72 16.22l42.47-33.03l-48.345-42.19l60.28 20.626l7.19-54.53l16.81 62.75l30.376 10.374l-3.31 12.344l29.343 7.875l7.875-29.345l-13.188-3.53l6.156-31.25l-44.687-45.126l49.593 20.124l12.375-62.97z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Frozen Orb — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

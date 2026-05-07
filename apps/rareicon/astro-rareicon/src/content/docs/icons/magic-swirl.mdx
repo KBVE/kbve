@@ -1,0 +1,50 @@
+---
+ref: magic-swirl
+name: Magic Swirl
+title: Magic Swirl Icon
+description: Magic Swirl glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["magic-swirl","magic","swirl","magic swirl"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/magic-swirl"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M247.79 18.734C137.967 17.596 19.874 96.94 19.73 244.53l21.403-51.395c-9.485 72.28-7.75 147.236 38.79 202.502L38.2 377.355c39.24 69.774 126.333 90.976 200.855 92.51C124.11 429.9 67.87 342.277 63.912 246.492c-6.722-211.78 260.658-217.694 340.78-75.77c-3.417-19.492-8.623-38.426-15.618-56.11c77.406 89.155 59.293 214.875-21.29 253.036c-24.25 3.95-48.93 12.06-60.954 19c-58.548 33.802-6.27 126.536 53.225 92.188c9.44-5.45 23.404-17.303 36.494-31.352c64.36-59.52 98.1-118.24 93.108-188.94c-6.52 29.1-19.175 57.904-35.623 84.683c63.158-146.822 7.956-263.89-144.838-301.354c12.097 5.835 23.503 13.63 33.873 23.36c-57.415-23.752-131.123-22.62-186.884 3.505c28.066-26.2 64.776-43.73 102.2-49.642q-5.281-.307-10.597-.362zm-19.74 160.202l-19.843 100.566c-2.958 3.81-5.64 6.852-9.033 9.94l-25.688-49.096l-22.705 11.93l31.37 60.945c4.48 11.474 10.02 20.68 15.162 28.524c28.063 42.803 64.547 35.252 95.303 9.555l87.28-48.452l-12.71-22.498l-66.136 36.94c-1.517-3.154-3.266-6.552-5.056-9.51l67.818-64.96l-17.54-18.695l-66.47 63.762c-2.356-2.318-4.238-4.527-6.765-6.54l45.084-78.085l-22.733-13.127l-45.864 78.297c-3.79-1.31-7.72-2.2-11.595-2.745l15.656-81.896l-25.533-4.854z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Magic Swirl — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>
