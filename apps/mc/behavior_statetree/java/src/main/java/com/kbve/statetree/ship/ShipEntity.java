@@ -70,15 +70,61 @@ public class ShipEntity extends Entity {
     private String statsCacheKey = "";
     private int upgradesHashCache = 0;
 
-    // Installed upgrade items — server-authoritative; NBT-persisted.
-    // Capped at ShipUpgrades.MAX_SLOTS.
-    private final List<net.minecraft.item.Item> upgrades = new ArrayList<>();
+    // Backing inventory: 4 upgrade + 1 banner + 4 weapon + 16 storage slots.
+    private final ShipInventory inventory = new ShipInventory(this);
+    // Per-weapon-slot cooldown (ticks remaining).
+    private final int[] weaponCooldowns = new int[ShipInventory.WEAPON_COUNT];
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
         // Engine-modulated gravity is applied manually in tick(); disable
         // vanilla pull so a hovering airship doesn't sink at idle.
         this.setNoGravity(true);
+    }
+
+    public ShipInventory getInventory() { return inventory; }
+
+    /**
+     * Fire every loaded weapon slot. Each slot has its own cooldown
+     * and consumes one unit of its stack per shot. Mount position is
+     * a forward offset from ship origin (1.5 along heading, 0.5 up).
+     */
+    public void fireWeapons(net.minecraft.entity.LivingEntity pilot, float aimYaw, float aimPitch) {
+        if (this.getEntityWorld().isClient()) return;
+        ServerWorld sw = (ServerWorld) this.getEntityWorld();
+
+        // Aim direction from pilot's view (so weapons follow the camera).
+        double yawRad = Math.toRadians(aimYaw);
+        double pitchRad = Math.toRadians(aimPitch);
+        double dx = -Math.sin(yawRad) * Math.cos(pitchRad);
+        double dy = -Math.sin(pitchRad);
+        double dz = Math.cos(yawRad) * Math.cos(pitchRad);
+        Vec3d dir = new Vec3d(dx, dy, dz).normalize();
+
+        // Mount position: forward of ship origin along ship yaw + slight Y lift.
+        double shipYawRad = Math.toRadians(this.getYaw());
+        double offX = -Math.sin(shipYawRad) * 1.5;
+        double offZ = Math.cos(shipYawRad) * 1.5;
+        Vec3d origin = new Vec3d(this.getX() + offX, this.getY() + 0.6, this.getZ() + offZ);
+
+        for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
+            if (weaponCooldowns[i] > 0) continue;
+            int slot = ShipInventory.WEAPON_START + i;
+            net.minecraft.item.ItemStack stack = inventory.getStack(slot);
+            if (stack.isEmpty()) continue;
+            ShipWeapons.Weapon weapon = ShipWeapons.weaponFor(stack.getItem());
+            if (weapon == null) continue;
+
+            weapon.fire(sw, this, pilot, origin, dir);
+            stack.decrement(1);
+            if (stack.isEmpty()) inventory.setStack(slot, net.minecraft.item.ItemStack.EMPTY);
+            weaponCooldowns[i] = ShipWeapons.FIRE_COOLDOWN;
+        }
+    }
+
+    private String getDisplayLabel() {
+        String n = getShipName();
+        return n.isEmpty() ? "Ship" : n;
     }
 
     // -- Accessors ----------------------------------------------------------
@@ -138,22 +184,26 @@ public class ShipEntity extends Entity {
 
     public FlightStats getStats() {
         String key = getModelName();
-        int upgradesHash = upgrades.hashCode();
+        List<net.minecraft.item.Item> installed = installedUpgrades();
+        int upgradesHash = installed.hashCode();
         if (!key.equals(statsCacheKey) || upgradesHash != upgradesHashCache) {
             FlightStats base = FlightStatsRegistry.get(key);
-            statsCache = upgrades.isEmpty() ? base : ShipUpgrades.apply(base, upgrades);
+            statsCache = installed.isEmpty() ? base : ShipUpgrades.apply(base, installed);
             statsCacheKey = key;
             upgradesHashCache = upgradesHash;
-            // Refresh smoothing reaction times for the new profile.
             enginePower.setSteps(statsCache.engineReaction());
             verticalDrive.setSteps(statsCache.verticalReaction());
         }
         return statsCache;
     }
 
-    /** Read-only view of installed upgrade items (server-side authoritative). */
-    public List<net.minecraft.item.Item> getUpgrades() {
-        return java.util.Collections.unmodifiableList(upgrades);
+    private List<net.minecraft.item.Item> installedUpgrades() {
+        List<net.minecraft.item.Item> out = new ArrayList<>(ShipInventory.UPGRADE_COUNT);
+        for (int i = 0; i < ShipInventory.UPGRADE_COUNT; i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(ShipInventory.UPGRADE_START + i);
+            if (!s.isEmpty() && ShipUpgrades.isUpgrade(s.getItem())) out.add(s.getItem());
+        }
+        return out;
     }
 
     /** Number of installed upgrades — client reads via TrackedData. */
@@ -170,11 +220,20 @@ public class ShipEntity extends Entity {
         return this.dataTracker.get(UPGRADES_CSV);
     }
 
+    /** Called by ShipInventory.markDirty after any slot change. */
+    public void onInventoryChanged() {
+        upgradesHashCache = -1; // force getStats() recompute
+        if (!this.getEntityWorld().isClient()) {
+            syncUpgradesCsv();
+        }
+    }
+
     private void syncUpgradesCsv() {
+        List<net.minecraft.item.Item> installed = installedUpgrades();
         StringBuilder packed = new StringBuilder();
-        for (int i = 0; i < upgrades.size(); i++) {
+        for (int i = 0; i < installed.size(); i++) {
             if (i > 0) packed.append(',');
-            packed.append(net.minecraft.registry.Registries.ITEM.getId(upgrades.get(i)).toString());
+            packed.append(net.minecraft.registry.Registries.ITEM.getId(installed.get(i)).toString());
         }
         this.dataTracker.set(UPGRADES_CSV, packed.toString());
     }
@@ -198,10 +257,12 @@ public class ShipEntity extends Entity {
     }
 
     private void destroyAndExplode(ServerWorld world) {
-        // Drop installed upgrades so the player can salvage them.
-        for (net.minecraft.item.Item u : upgrades) {
-            this.dropStack(world, new net.minecraft.item.ItemStack(u));
+        // Drop entire inventory (upgrades + banner + weapons + cargo) for salvage.
+        for (int i = 0; i < inventory.size(); i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(i);
+            if (!s.isEmpty()) this.dropStack(world, s);
         }
+        inventory.clear();
         if (getStats().canExplodeOnCrash()) {
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
                     2.5f, World.ExplosionSourceType.MOB);
@@ -226,44 +287,44 @@ public class ShipEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
 
-        // Sneak interactions = upgrade slot management.
-        if (player.isSneaking()) {
-            // Sneak + empty hand → eject all upgrades to the ground.
-            if (stack.isEmpty()) {
-                if (!upgrades.isEmpty() && !this.getEntityWorld().isClient()) {
-                    for (net.minecraft.item.Item u : upgrades) {
-                        this.dropStack((ServerWorld) this.getEntityWorld(),
-                                new net.minecraft.item.ItemStack(u));
-                    }
-                    int n = upgrades.size();
-                    upgrades.clear();
-                    upgradesHashCache = -1;
-                    syncUpgradesCsv();
-                    player.sendMessage(net.minecraft.text.Text.of(
-                            "Ejected " + n + " upgrade" + (n == 1 ? "" : "s")), true);
-                }
-                return ActionResult.SUCCESS;
+        // Sneak + empty hand → open ship inventory GUI.
+        if (player.isSneaking() && stack.isEmpty()) {
+            if (player instanceof ServerPlayerEntity sp) {
+                sp.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
+                        (syncId, playerInv, p) -> new ShipScreenHandler(syncId, playerInv, inventory),
+                        net.minecraft.text.Text.literal(getDisplayLabel())
+                ));
             }
-            // Sneak + upgrade item → install in next free slot.
-            if (ShipUpgrades.isUpgrade(stack.getItem())) {
-                if (upgrades.size() >= ShipUpgrades.MAX_SLOTS) {
-                    if (!this.getEntityWorld().isClient()) {
-                        player.sendMessage(net.minecraft.text.Text.of(
-                                "Upgrade slots full (" + ShipUpgrades.MAX_SLOTS + ")"), true);
+            return ActionResult.SUCCESS;
+        }
+        // Sneak + upgrade item → quick-install into first free upgrade slot.
+        if (player.isSneaking() && ShipUpgrades.isUpgrade(stack.getItem())) {
+            for (int i = 0; i < ShipInventory.UPGRADE_COUNT; i++) {
+                int idx = ShipInventory.UPGRADE_START + i;
+                if (inventory.getStack(idx).isEmpty()) {
+                    inventory.setStack(idx, new net.minecraft.item.ItemStack(stack.getItem()));
+                    if (!player.getAbilities().creativeMode) stack.decrement(1);
+                    return ActionResult.SUCCESS;
+                }
+            }
+            if (!this.getEntityWorld().isClient()) {
+                player.sendMessage(net.minecraft.text.Text.of(
+                        "Upgrade slots full"), true);
+            }
+            return ActionResult.PASS;
+        }
+        // Sneak + weapon item → quick-install into first free weapon slot.
+        if (player.isSneaking() && ShipWeapons.isWeapon(stack.getItem())) {
+            for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
+                int idx = ShipInventory.WEAPON_START + i;
+                if (inventory.getStack(idx).isEmpty()) {
+                    net.minecraft.item.ItemStack copy = stack.copy();
+                    if (!player.getAbilities().creativeMode) {
+                        stack.setCount(0);
                     }
-                    return ActionResult.PASS;
+                    inventory.setStack(idx, copy);
+                    return ActionResult.SUCCESS;
                 }
-                upgrades.add(stack.getItem());
-                upgradesHashCache = -1;
-                syncUpgradesCsv();
-                if (!player.getAbilities().creativeMode) stack.decrement(1);
-                if (!this.getEntityWorld().isClient()) {
-                    player.sendMessage(net.minecraft.text.Text.of(
-                            "Installed " + stack.getItem().getName().getString()
-                                    + " (" + upgrades.size() + "/" + ShipUpgrades.MAX_SLOTS + ")"),
-                            true);
-                }
-                return ActionResult.SUCCESS;
             }
             return ActionResult.PASS;
         }
@@ -378,6 +439,11 @@ public class ShipEntity extends Entity {
         }
 
         if (this.getEntityWorld().isClient()) return;
+
+        // Decrement weapon cooldowns each tick.
+        for (int i = 0; i < weaponCooldowns.length; i++) {
+            if (weaponCooldowns[i] > 0) weaponCooldowns[i]--;
+        }
 
         float power = enginePower.getSmooth();
         float vert = verticalDrive.getSmooth();
@@ -584,15 +650,26 @@ public class ShipEntity extends Entity {
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
         setFuelLevel(view.getFloat("FuelLevel", MAX_FUEL));
 
-        upgrades.clear();
-        String packed = view.getString("Upgrades", "");
+        // Inventory: simple slot:item:count packing (no components).
+        // Sufficient for upgrade/weapon/cargo persistence; banner pattern
+        // data (colors) is lost on reload, which is acceptable for now.
+        for (int i = 0; i < inventory.size(); i++) inventory.setStack(i, net.minecraft.item.ItemStack.EMPTY);
+        String packed = view.getString("Inventory", "");
         if (!packed.isEmpty()) {
-            for (String idStr : packed.split(",")) {
-                if (idStr.isEmpty()) continue;
-                net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(idStr);
-                if (id == null) continue;
-                net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(id);
-                if (item != net.minecraft.item.Items.AIR) upgrades.add(item);
+            for (String entry : packed.split(";")) {
+                if (entry.isEmpty()) continue;
+                String[] parts = entry.split(":");
+                if (parts.length != 3) continue;
+                try {
+                    int slot = Integer.parseInt(parts[0]);
+                    int count = Integer.parseInt(parts[2]);
+                    net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(parts[1]);
+                    if (id == null || slot < 0 || slot >= inventory.size()) continue;
+                    net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(id);
+                    if (item != net.minecraft.item.Items.AIR) {
+                        inventory.setStack(slot, new net.minecraft.item.ItemStack(item, count));
+                    }
+                } catch (NumberFormatException ignored) {}
             }
         }
         upgradesHashCache = -1;
@@ -612,10 +689,14 @@ public class ShipEntity extends Entity {
         view.putFloat("FuelLevel", getFuelLevel());
 
         StringBuilder packed = new StringBuilder();
-        for (int i = 0; i < upgrades.size(); i++) {
-            if (i > 0) packed.append(',');
-            packed.append(net.minecraft.registry.Registries.ITEM.getId(upgrades.get(i)).toString());
+        for (int i = 0; i < inventory.size(); i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(i);
+            if (s.isEmpty()) continue;
+            if (packed.length() > 0) packed.append(';');
+            packed.append(i).append(':')
+                    .append(net.minecraft.registry.Registries.ITEM.getId(s.getItem()).toString())
+                    .append(':').append(s.getCount());
         }
-        view.putString("Upgrades", packed.toString());
+        view.putString("Inventory", packed.toString());
     }
 }

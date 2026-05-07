@@ -17,6 +17,7 @@ public final class ShipNetworking {
     private static final Logger LOGGER = LoggerFactory.getLogger("behavior_statetree");
 
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
+    public static final Identifier WEAPON_FIRE_ID = Identifier.of("behavior_statetree", "weapon_fire");
 
     /** Helm steering input. forward = W throttle; boost = sprint; target_yaw / target_pitch = camera-driven heading + altitude direction. */
     public record HelmInputPayload(
@@ -41,10 +42,26 @@ public final class ShipNetworking {
         public Id<? extends CustomPayload> getId() { return ID; }
     }
 
+    /** Pilot pulled the trigger — fires every loaded weapon mount. */
+    public record WeaponFirePayload(String shipId, float aimYaw, float aimPitch)
+            implements CustomPayload {
+        public static final CustomPayload.Id<WeaponFirePayload> ID = new CustomPayload.Id<>(WEAPON_FIRE_ID);
+        public static final PacketCodec<RegistryByteBuf, WeaponFirePayload> CODEC =
+                PacketCodec.tuple(
+                        PacketCodecs.STRING, WeaponFirePayload::shipId,
+                        PacketCodecs.FLOAT, WeaponFirePayload::aimYaw,
+                        PacketCodecs.FLOAT, WeaponFirePayload::aimPitch,
+                        WeaponFirePayload::new
+                );
+        @Override
+        public Id<? extends CustomPayload> getId() { return ID; }
+    }
+
     // -- Registration -------------------------------------------------------
 
     public static void registerPayloads() {
         PayloadTypeRegistry.playC2S().register(HelmInputPayload.ID, HelmInputPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(WeaponFirePayload.ID, WeaponFirePayload.CODEC);
         LOGGER.info("[Ship] Network payloads registered");
     }
 
@@ -90,6 +107,21 @@ public final class ShipNetworking {
                     verticalIntent = (float) -Math.sin(Math.toRadians(pitch));
                 }
                 ship.setVerticalIntent(verticalIntent);
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(WeaponFirePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                ServerPlayerEntity player = context.player();
+                java.util.UUID shipId;
+                try {
+                    shipId = java.util.UUID.fromString(payload.shipId());
+                } catch (IllegalArgumentException e) {
+                    return;
+                }
+                ShipEntity ship = manager.getShip(shipId);
+                if (ship == null) return;
+                ship.fireWeapons(player, payload.aimYaw(), payload.aimPitch());
             });
         });
     }
