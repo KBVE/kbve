@@ -4,7 +4,7 @@
 //! identification. Falls back to `(npc_ref, pool_index)` for entities that
 //! haven't received a ULID yet (first sync after spawn).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use bevy::prelude::*;
 use lightyear::prelude::*;
@@ -20,10 +20,34 @@ use bevy_kbve_net::{CreatureEventKind, CreaturePositionSync, CreatureStateEvent}
 // ULID → Entity index
 // ---------------------------------------------------------------------------
 
-/// O(1) lookup from server-assigned creature ULID to local ECS entity.
-/// Built incrementally as sync messages arrive.
+/// Index of server-assigned creature ULIDs to local ECS entities.
+///
+/// Two views are kept in sync:
+/// - [`Self::by_ulid`] — O(1) lookup from ULID to entity (primary path).
+/// - [`Self::indexed`] — O(1) "is this entity already bound to a ULID?" check.
+///
+/// The `indexed` mirror eliminates the O(N) `values().any(...)` scan that
+/// previously sat inside per-snapshot fallback loops, turning the worst case
+/// from O(N×K) to O(N) per snapshot. Both grow with the active creature pool.
 #[derive(Resource, Default)]
-pub struct CreatureIdIndex(pub HashMap<u128, Entity>);
+pub struct CreatureIdIndex {
+    pub by_ulid: HashMap<u128, Entity>,
+    pub indexed: HashSet<Entity>,
+}
+
+impl CreatureIdIndex {
+    /// O(1) — entity has been bound to a server ULID.
+    #[inline]
+    pub fn contains_entity(&self, entity: Entity) -> bool {
+        self.indexed.contains(&entity)
+    }
+
+    /// O(1) — ULID lookup. Returns `None` if the creature isn't tracked yet.
+    #[inline]
+    pub fn entity_for_ulid(&self, ulid: u128) -> Option<Entity> {
+        self.by_ulid.get(&ulid).copied()
+    }
+}
 
 /// Rebuild the index from all entities that have a `CreatureId`.
 /// Runs once per frame before sync reception to stay current.
@@ -31,10 +55,11 @@ pub fn update_creature_id_index(
     mut index: ResMut<CreatureIdIndex>,
     q: Query<(Entity, &CreatureId)>,
 ) {
-    index.0.clear();
+    index.by_ulid.clear();
+    index.indexed.clear();
     for (entity, cid) in &q {
-        let key: u128 = cid.as_u128();
-        index.0.insert(key, entity);
+        index.by_ulid.insert(cid.as_u128(), entity);
+        index.indexed.insert(entity);
     }
 }
 
@@ -58,7 +83,7 @@ pub fn receive_creature_events(
         for event in receiver.receive() {
             // Find entity by ULID
             let entity = if event.creature_id != 0 {
-                index.0.get(&event.creature_id).copied()
+                index.entity_for_ulid(event.creature_id)
             } else {
                 None
             };
@@ -133,17 +158,17 @@ pub fn receive_creature_sync(
             for snapshot in &sync.snapshots {
                 // ULID lookup (O(1))
                 let entity = if snapshot.creature_id != 0 {
-                    index.0.get(&snapshot.creature_id).copied()
+                    index.entity_for_ulid(snapshot.creature_id)
                 } else {
                     None
                 };
 
-                // Fall back: find an unassigned creature of the same type
+                // Fall back: find an unassigned creature of the same type.
+                // O(N) total — the inner `contains_entity` check is O(1) via
+                // the HashSet mirror, instead of the prior O(K) values() scan.
                 let entity = entity.or_else(|| {
                     creature_q.iter().find_map(|(e, marker, _, _)| {
-                        if marker.type_key == sync.npc_ref.as_str()
-                            && !index.0.values().any(|&existing| existing == e)
-                        {
+                        if marker.type_key == sync.npc_ref.as_str() && !index.contains_entity(e) {
                             Some(e)
                         } else {
                             None
@@ -219,17 +244,16 @@ pub fn receive_ambient_creature_sync(
             for snapshot in &sync.snapshots {
                 // ULID lookup
                 let entity = if snapshot.creature_id != 0 {
-                    index.0.get(&snapshot.creature_id).copied()
+                    index.entity_for_ulid(snapshot.creature_id)
                 } else {
                     None
                 };
 
-                // Fall back: find unassigned creature of matching render kind
+                // Fall back: find unassigned creature of matching render kind.
+                // O(N) total — see `receive_creature_sync` for rationale.
                 let entity = entity.or_else(|| {
                     creature_q.iter().find_map(|(e, cr)| {
-                        if cr.render_kind == kind
-                            && !index.0.values().any(|&existing| existing == e)
-                        {
+                        if cr.render_kind == kind && !index.contains_entity(e) {
                             Some(e)
                         } else {
                             None
@@ -254,5 +278,62 @@ pub fn receive_ambient_creature_sync(
                 cr.anchor = Vec3::new(snapshot.x, snapshot.y, snapshot.z);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn entity_for_ulid_returns_inserted_entity() {
+        let mut idx = CreatureIdIndex::default();
+        let e = Entity::from_bits(7u64);
+        idx.by_ulid.insert(0xdead_beef, e);
+        idx.indexed.insert(e);
+
+        assert_eq!(idx.entity_for_ulid(0xdead_beef), Some(e));
+        assert_eq!(idx.entity_for_ulid(0xfeed_face), None);
+    }
+
+    #[test]
+    fn contains_entity_is_true_only_after_insertion() {
+        let mut idx = CreatureIdIndex::default();
+        let e = Entity::from_bits(42u64);
+        assert!(!idx.contains_entity(e));
+        idx.indexed.insert(e);
+        assert!(idx.contains_entity(e));
+        // A different entity must not register as indexed.
+        assert!(!idx.contains_entity(Entity::from_bits(43u64)));
+    }
+
+    #[test]
+    fn indexed_mirror_stays_aligned_with_by_ulid() {
+        // Simulates the body of `update_creature_id_index` — both views must
+        // hold identical entity sets after a rebuild.
+        let mut idx = CreatureIdIndex::default();
+        for (ulid, raw) in [(1u128, 10u64), (2, 20), (3, 30)] {
+            let e = Entity::from_bits(raw);
+            idx.by_ulid.insert(ulid, e);
+            idx.indexed.insert(e);
+        }
+        assert_eq!(idx.by_ulid.len(), idx.indexed.len());
+        for &e in idx.by_ulid.values() {
+            assert!(idx.contains_entity(e));
+        }
+    }
+
+    #[test]
+    fn fallback_check_is_o1_via_hashset() {
+        // Regression guard: replacing `values().any(...)` with
+        // `contains_entity()` must keep equivalent semantics.
+        let mut idx = CreatureIdIndex::default();
+        let bound = Entity::from_bits(1u64);
+        let unbound = Entity::from_bits(2u64);
+        idx.by_ulid.insert(99, bound);
+        idx.indexed.insert(bound);
+
+        assert!(idx.contains_entity(bound));
+        assert!(!idx.contains_entity(unbound));
     }
 }

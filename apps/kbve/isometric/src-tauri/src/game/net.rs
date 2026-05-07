@@ -1853,7 +1853,7 @@ fn apply_captured(
     creatures: &mut Query<(&mut Creature, &mut Visibility)>,
 ) {
     captured.insert(creature_id);
-    let Some(entity) = creature_index.0.get(&creature_id).copied() else {
+    let Some(entity) = creature_index.entity_for_ulid(creature_id) else {
         warn!("[net] captured ulid={creature_id} (kind={kind:?}) not in pool index");
         return;
     };
