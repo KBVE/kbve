@@ -1,0 +1,81 @@
+---
+/**
+ * Custom Head override.
+ *
+ * Starlight's default Head emits og:title / og:description / twitter:title
+ * / twitter:description from the page's frontmatter `title` and
+ * `description`. This override layers per-page social-meta hooks on top:
+ *
+ *   ---
+ *   title: Press Kit
+ *   description: Internal description for in-app SEO.
+ *   ogTitle: "RareIcon — Wishlist on Steam now"
+ *   ogDescription: "Bullet-hell roguelite vs DaemonCorps. Demo soon."
+ *   ogImage: "/branding/og-card-1200x630.png"
+ *   ---
+ *
+ * If the override field is unset, Starlight's default tag is preserved.
+ * Otherwise the Starlight tag is dropped and ours takes its place — no
+ * duplicate meta tags in the rendered head.
+ */
+const route = Astro.locals.starlightRoute;
+const head = route.head;
+const data = route.entry.data as Record<string, unknown>;
+
+const ogTitle = typeof data.ogTitle === 'string' ? data.ogTitle : undefined;
+const ogDescription =
+	typeof data.ogDescription === 'string' ? data.ogDescription : undefined;
+const ogImage = typeof data.ogImage === 'string' ? data.ogImage : undefined;
+const twitterTitle =
+	typeof data.twitterTitle === 'string' ? data.twitterTitle : ogTitle;
+const twitterDescription =
+	typeof data.twitterDescription === 'string'
+		? data.twitterDescription
+		: ogDescription;
+const twitterImage =
+	typeof data.twitterImage === 'string' ? data.twitterImage : ogImage;
+
+// Map of meta keys we own when an override is set. Each key matches the
+// `property` (og:*) or `name` (twitter:*) attribute of the Starlight tag
+// we want to drop.
+const owned: Record<string, string | undefined> = {};
+if (ogTitle) owned['og:title'] = ogTitle;
+if (ogDescription) owned['og:description'] = ogDescription;
+if (ogImage) owned['og:image'] = ogImage;
+if (twitterTitle) owned['twitter:title'] = twitterTitle;
+if (twitterDescription) owned['twitter:description'] = twitterDescription;
+if (twitterImage) owned['twitter:image'] = twitterImage;
+
+type HeadTag = (typeof head)[number];
+
+function tagKey(t: HeadTag): string | undefined {
+	if (t.tag !== 'meta' || !t.attrs) return undefined;
+	const property = t.attrs.property;
+	const name = t.attrs.name;
+	if (typeof property === 'string') return property;
+	if (typeof name === 'string') return name;
+	return undefined;
+}
+
+const filteredHead = head.filter((t) => {
+	const key = tagKey(t);
+	return !key || !(key in owned);
+});
+
+const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
+	const isTwitter = key.startsWith('twitter:');
+	return {
+		tag: 'meta',
+		attrs: isTwitter
+			? { name: key, content: content! }
+			: { property: key, content: content! },
+	} as HeadTag;
+});
+---
+
+{
+	filteredHead.map(({ tag: Tag, attrs, content }) => (
+		<Tag {...attrs} set:html={content} />
+	))
+}
+{overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
