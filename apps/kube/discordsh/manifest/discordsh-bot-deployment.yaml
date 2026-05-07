@@ -21,6 +21,13 @@ metadata:
     namespace: discordsh
     labels:
         app: discordsh-bot
+    annotations:
+        # Reloader rolls the StatefulSet on Secret/ConfigMap rotation.
+        # The bot resolves DISCORD_TOKEN at runtime from Supabase
+        # Vault, so it does not need a Secret reference for that, but
+        # discordsh-config, discordsh-redis-secret, and
+        # discordsh-supabase-shared still benefit from auto-rolls.
+        reloader.stakater.com/auto: 'true'
 spec:
     serviceName: discordsh-bot-headless
     replicas: 1
@@ -33,6 +40,15 @@ spec:
                 app: discordsh-bot
         spec:
             serviceAccountName: discordsh-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: discordsh-bot
                   image: ghcr.io/kbve/discordsh-bot:0.1.10
@@ -74,6 +90,15 @@ spec:
                   ports:
                       - name: health
                         containerPort: 4322
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -86,3 +111,9 @@ spec:
                           port: 4322
                       initialDelaySeconds: 10
                       periodSeconds: 10
+            volumes:
+                # Writable scratch for image rendering and any temp
+                # files the bot needs while the rootfs stays read-only.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
