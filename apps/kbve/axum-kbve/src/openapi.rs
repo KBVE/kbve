@@ -16,9 +16,15 @@ use utoipa::{
     openapi::security::{Http, HttpAuthScheme, SecurityScheme},
 };
 
-use crate::db::{DiscordInfo, GithubInfo, RentEarthProfile, TwitchInfo, UserProfile, UserProvider};
+use crate::db::{
+    CommentRow, DiscordInfo, FeedRow, GithubInfo, RentEarthProfile, SpaceRow, TagRow, ThreadRow,
+    TwitchInfo, UserProfile, UserProvider,
+};
 use crate::gameserver::token::{TokenRequest, TokenResponse};
-use crate::transport::https::{HealthResponse, SetUsernameRequest, StatusResponse};
+use crate::transport::https::{
+    CreateCommentBody, CreateThreadBody, EditCommentBody, HealthResponse, SetUsernameRequest,
+    StatusResponse,
+};
 
 /// Adds the `bearerAuth` security scheme so `#[utoipa::path(security(...))]`
 /// references resolve. JWT goes in the `Authorization: Bearer ...` header.
@@ -84,6 +90,11 @@ impl Modify for SecurityAddon {
         crate::transport::https::api_me_staff,
         crate::transport::https::api_list_spaces,
         crate::transport::https::api_list_tags,
+        crate::transport::https::api_create_thread,
+        crate::transport::https::api_create_comment,
+        crate::transport::https::api_edit_comment,
+        crate::transport::https::api_remove_comment,
+        crate::transport::https::api_staff_edit_comment,
     ),
     components(
         schemas(
@@ -99,6 +110,14 @@ impl Modify for SecurityAddon {
             GithubInfo,
             TwitchInfo,
             RentEarthProfile,
+            FeedRow,
+            ThreadRow,
+            CommentRow,
+            SpaceRow,
+            TagRow,
+            CreateThreadBody,
+            CreateCommentBody,
+            EditCommentBody,
         )
     ),
     modifiers(&SecurityAddon)

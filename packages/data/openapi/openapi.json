@@ -1,0 +1,1677 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "KBVE API",
+		"description": "Public HTTP surface served by axum-kbve. Drives the website, game-server token issuance, and forum.",
+		"contact": {
+			"name": "KBVE",
+			"url": "https://kbve.com",
+			"email": "support@kbve.com"
+		},
+		"license": {
+			"name": "MIT"
+		},
+		"version": "1.0.135"
+	},
+	"servers": [
+		{
+			"url": "https://kbve.com",
+			"description": "Production"
+		},
+		{
+			"url": "http://localhost:4321",
+			"description": "Local dev"
+		}
+	],
+	"paths": {
+		"/api/status": {
+			"get": {
+				"tags": ["system"],
+				"operationId": "api_status",
+				"responses": {
+					"200": {
+						"description": "Service status with uptime",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/StatusResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/game-token": {
+			"post": {
+				"tags": ["auth"],
+				"operationId": "game_token_handler",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TokenRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Netcode ConnectToken issued",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "JWT invalid"
+					},
+					"500": {
+						"description": "Token generation / DNS resolution failed"
+					}
+				}
+			}
+		},
+		"/api/v1/forum/c/{comment_id}": {
+			"delete": {
+				"tags": ["forum"],
+				"summary": "DELETE /api/v1/forum/c/{comment_id} — staff remove.\naxum checks staff at the JWT layer first, then forwards to the\n`service_staff_remove_comment` RPC which re-checks at the SQL layer.",
+				"operationId": "api_remove_comment",
+				"parameters": [
+					{
+						"name": "comment_id",
+						"in": "path",
+						"description": "Comment UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EditCommentBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Removed — `{action_id, comment_id}`",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "RPC validation error"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"502": {
+						"description": "Upstream staff check error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			},
+			"patch": {
+				"tags": ["forum"],
+				"summary": "PATCH /api/v1/forum/c/{comment_id} — author edit-own.\nSQL `service_edit_comment` re-checks author ownership.",
+				"operationId": "api_edit_comment",
+				"parameters": [
+					{
+						"name": "comment_id",
+						"in": "path",
+						"description": "Comment UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EditCommentBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Edit applied — `{comment_id}`",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "RPC validation / author mismatch"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/forum/c/{comment_id}/moderate": {
+			"patch": {
+				"tags": ["forum"],
+				"summary": "PATCH /api/v1/forum/c/{comment_id}/moderate — staff overwrite body.",
+				"operationId": "api_staff_edit_comment",
+				"parameters": [
+					{
+						"name": "comment_id",
+						"in": "path",
+						"description": "Comment UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EditCommentBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Moderation edit applied — `{action_id, comment_id}`",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "RPC validation error"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"502": {
+						"description": "Upstream staff check error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/forum/spaces": {
+			"get": {
+				"tags": ["forum"],
+				"summary": "GET /api/v1/forum/spaces — JSON list of active spaces.\nDrives the astro-kbve build-time spaces.json artifact.",
+				"operationId": "api_list_spaces",
+				"responses": {
+					"200": {
+						"description": "Active forum spaces",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"502": {
+						"description": "Upstream forum DB error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				}
+			}
+		},
+		"/api/v1/forum/t/{slug_or_id}/comments": {
+			"post": {
+				"tags": ["forum"],
+				"summary": "POST /api/v1/forum/t/{slug_or_id}/comments — Bearer-authed comment.",
+				"operationId": "api_create_comment",
+				"parameters": [
+					{
+						"name": "slug_or_id",
+						"in": "path",
+						"description": "Thread slug or UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCommentBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Comment created — `{comment_id, thread_id}`",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "RPC validation error"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"404": {
+						"description": "Thread not found"
+					},
+					"502": {
+						"description": "Upstream forum DB error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/forum/tags": {
+			"get": {
+				"tags": ["forum"],
+				"summary": "GET /forum/tags — popularity-sorted tag listing.\nGET /api/v1/forum/tags — JSON list of popularity-sorted tags.\nDrives the astro-kbve build-time top-tags fetch.",
+				"operationId": "api_list_tags",
+				"responses": {
+					"200": {
+						"description": "Popularity-sorted tag list",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"502": {
+						"description": "Upstream forum DB error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				}
+			}
+		},
+		"/api/v1/forum/threads": {
+			"post": {
+				"tags": ["forum"],
+				"summary": "POST /api/v1/forum/threads — Bearer-authed thread creation.\nBody: `{ space_slug, title, body, thread_type }`.",
+				"operationId": "api_create_thread",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateThreadBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Thread created — `{thread_id}`",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "RPC validation error (title length / username required / etc)"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"404": {
+						"description": "Space slug not found or inactive"
+					},
+					"502": {
+						"description": "Upstream forum DB error"
+					},
+					"503": {
+						"description": "Forum service not configured"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/players": {
+			"get": {
+				"tags": ["mc"],
+				"summary": "MC players API endpoint - returns online player list with UUIDs and skin URLs.\nGET /api/v1/mc/players",
+				"description": "Data is cached and refreshed every 15s via RCON background task.",
+				"operationId": "mc_players_handler",
+				"responses": {
+					"200": {
+						"description": "Currently-online Minecraft players (UUID + skin URL)",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"503": {
+						"description": "MC player service not configured (RCON env not set)"
+					}
+				}
+			}
+		},
+		"/api/v1/mc/textures/{hash}": {
+			"get": {
+				"tags": ["mc"],
+				"summary": "MC texture proxy - fetches skin PNGs from textures.minecraft.net.\nGET /api/v1/mc/textures/{hash}",
+				"description": "Hash must be 60-64 hex characters. Responses are immutably cached (24h).",
+				"operationId": "mc_texture_handler",
+				"parameters": [
+					{
+						"name": "hash",
+						"in": "path",
+						"description": "60-64 character hex texture hash from Mojang",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "PNG skin texture",
+						"content": {
+							"image/png": {}
+						}
+					},
+					"400": {
+						"description": "Invalid hash format"
+					},
+					"404": {
+						"description": "Texture not found upstream"
+					},
+					"503": {
+						"description": "MC service not configured"
+					}
+				}
+			}
+		},
+		"/api/v1/me": {
+			"get": {
+				"tags": ["profile"],
+				"summary": "GET /api/v1/me — Bearer-authed identity probe. Returns\n`{user_id, username, is_staff}`. Used by the compose page to\ngate the form (signed-in + has-username before submit) and by\nany client surface that needs to mirror user state.",
+				"operationId": "api_me",
+				"responses": {
+					"200": {
+						"description": "Caller identity probe (user_id, username, is_staff)",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/me/staff": {
+			"get": {
+				"tags": ["profile"],
+				"operationId": "api_me_staff",
+				"responses": {
+					"200": {
+						"description": "Staff role bundle for caller",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"502": {
+						"description": "Upstream forum DB error"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/osrs/{item_id}": {
+			"get": {
+				"tags": ["osrs"],
+				"summary": "OSRS API endpoint - returns item price data as JSON.\nGET /api/v1/osrs/{item_id}",
+				"description": "Supports both numeric IDs (21012) and item names (dragon_hunter_crossbow).\nReturns current GE prices from the cache (refreshed every 60s).",
+				"operationId": "osrs_api_handler",
+				"parameters": [
+					{
+						"name": "item_id",
+						"in": "path",
+						"description": "Numeric OSRS item id or kebab-case item name (e.g. `21012` or `dragon-hunter-crossbow`)",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Current Grand Exchange price snapshot",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"404": {
+						"description": "Item not found"
+					},
+					"503": {
+						"description": "OSRS price service unavailable"
+					}
+				}
+			}
+		},
+		"/api/v1/profile/me": {
+			"get": {
+				"tags": ["profile"],
+				"summary": "Authenticated profile endpoint - returns the current user's profile.\nGET /api/v1/profile/me",
+				"description": "Requires Bearer token in Authorization header.",
+				"operationId": "profile_me_handler",
+				"responses": {
+					"200": {
+						"description": "Caller's profile (or basic auth info if no profile yet)",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid / expired token"
+					},
+					"503": {
+						"description": "Auth or profile service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/profile/username": {
+			"post": {
+				"tags": ["profile"],
+				"summary": "Set username endpoint - creates username for authenticated user.\nPOST /api/v1/profile/username",
+				"description": "Requires Bearer token in Authorization header.\nBody: { \"username\": \"desired_username\" }\n\nValidates username at multiple levels:\n1. Client-side validation (Handy app)\n2. Axum-level validation (this endpoint)\n3. Database-level validation (proxy_add_username RPC)",
+				"operationId": "set_username_handler",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetUsernameRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Username set successfully",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid username format / body"
+					},
+					"401": {
+						"description": "Missing / invalid / expired token"
+					},
+					"409": {
+						"description": "Username already taken"
+					},
+					"503": {
+						"description": "Auth or profile service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/profile/{username}": {
+			"get": {
+				"tags": ["profile"],
+				"summary": "Profile API endpoint - returns user profile data as JSON.\nGET /api/v1/profile/{username}",
+				"description": "Returns the user's profile data including connected accounts (Discord, GitHub, Twitch)\nand enriched data from external APIs when available.",
+				"operationId": "profile_api_handler",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "path",
+						"description": "Public username (3-24 chars, alphanumeric + underscore, must start with letter)",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "User profile with provider enrichment",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserProfile"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid username format"
+					},
+					"404": {
+						"description": "Profile not found"
+					}
+				}
+			}
+		},
+		"/api/v1/telemetry/report": {
+			"post": {
+				"tags": ["telemetry"],
+				"operationId": "report_handler",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ClientEvent"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Event accepted (no body)"
+					},
+					"400": {
+						"description": "Invalid level / message / encoding / nesting"
+					},
+					"413": {
+						"description": "Payload too large (>8KB)"
+					},
+					"429": {
+						"description": "Rate limited (>120 events/min globally)"
+					}
+				}
+			}
+		},
+		"/health": {
+			"get": {
+				"tags": ["system"],
+				"operationId": "health",
+				"responses": {
+					"200": {
+						"description": "Service liveness probe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ClientEvent": {
+				"type": "object",
+				"required": ["level", "message"],
+				"properties": {
+					"context": {
+						"type": ["object", "null"],
+						"description": "Optional structured context (max 2KB serialized, depth <= 4)."
+					},
+					"level": {
+						"type": "string",
+						"description": "\"warn\" or \"error\" — INFO is rejected."
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable message (max 512 chars)."
+					},
+					"session_id": {
+						"type": ["string", "null"],
+						"description": "Anonymous session id (alphanumeric, max 64 chars)."
+					},
+					"stack": {
+						"type": ["string", "null"],
+						"description": "Optional JS/WASM stack trace (max 4KB)."
+					}
+				}
+			},
+			"CommentRow": {
+				"type": "object",
+				"required": [
+					"id",
+					"thread_id",
+					"author_id",
+					"body",
+					"depth",
+					"score",
+					"status",
+					"created_at"
+				],
+				"properties": {
+					"author_id": {
+						"type": "string"
+					},
+					"body": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"depth": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"id": {
+						"type": "string"
+					},
+					"parent_comment_id": {
+						"type": ["string", "null"]
+					},
+					"score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status": {
+						"type": "string"
+					},
+					"thread_id": {
+						"type": "string"
+					}
+				}
+			},
+			"CreateCommentBody": {
+				"type": "object",
+				"required": ["body"],
+				"properties": {
+					"body": {
+						"type": "string"
+					},
+					"parent_comment_id": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"CreateThreadBody": {
+				"type": "object",
+				"required": ["space_slug", "title", "body"],
+				"properties": {
+					"body": {
+						"type": "string"
+					},
+					"space_slug": {
+						"type": "string"
+					},
+					"thread_type": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"DiscordInfo": {
+				"type": "object",
+				"description": "Discord-specific information extracted from provider data",
+				"required": ["id", "role_ids", "role_names"],
+				"properties": {
+					"avatar_url": {
+						"type": ["string", "null"]
+					},
+					"guild_nickname": {
+						"type": ["string", "null"],
+						"description": "User's nickname in the KBVE guild (if set)"
+					},
+					"id": {
+						"type": "string"
+					},
+					"is_boosting": {
+						"type": ["boolean", "null"],
+						"description": "Whether the user is boosting the server"
+					},
+					"is_guild_member": {
+						"type": ["boolean", "null"],
+						"description": "Whether the user is a member of the KBVE Discord guild"
+					},
+					"joined_at": {
+						"type": ["string", "null"],
+						"description": "When the user joined the KBVE guild (ISO8601 timestamp)"
+					},
+					"role_ids": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "Role IDs the user has in the KBVE guild"
+					},
+					"role_names": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "Role names resolved from role IDs (cached on server startup)"
+					},
+					"username": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"EditCommentBody": {
+				"type": "object",
+				"required": ["body"],
+				"properties": {
+					"body": {
+						"type": "string"
+					},
+					"reason": {
+						"type": ["string", "null"],
+						"description": "Optional moderator reason — only honored on the staff-edit /\nstaff-remove paths. Inline text, sanitized as a title-like field."
+					}
+				}
+			},
+			"FeedRow": {
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"body",
+					"author_id",
+					"space_id",
+					"thread_type",
+					"status",
+					"comment_count",
+					"view_count",
+					"score",
+					"upvote_count",
+					"downvote_count",
+					"created_at",
+					"nsfw",
+					"pinned"
+				],
+				"properties": {
+					"author_id": {
+						"type": "string"
+					},
+					"body": {
+						"type": "string"
+					},
+					"comment_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"downvote_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"id": {
+						"type": "string"
+					},
+					"last_activity_at": {
+						"type": ["string", "null"]
+					},
+					"nsfw": {
+						"type": "boolean"
+					},
+					"pinned": {
+						"type": "boolean"
+					},
+					"score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"slug": {
+						"type": ["string", "null"]
+					},
+					"space_id": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string"
+					},
+					"thread_type": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"upvote_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"view_count": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"GithubInfo": {
+				"type": "object",
+				"description": "GitHub-specific information extracted from provider data",
+				"required": ["id"],
+				"properties": {
+					"avatar_url": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "string"
+					},
+					"username": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"HealthResponse": {
+				"type": "object",
+				"required": ["status", "version"],
+				"properties": {
+					"status": {
+						"type": "string"
+					},
+					"version": {
+						"type": "string"
+					}
+				}
+			},
+			"RentEarthAppearance": {
+				"type": "object",
+				"description": "Appearance customization",
+				"required": [
+					"skin_color",
+					"body_type",
+					"body_height",
+					"face_shape",
+					"eye_color",
+					"eye_shape",
+					"eyebrow_style",
+					"eyebrow_color",
+					"nose_style",
+					"mouth_style",
+					"hair_style",
+					"hair_color",
+					"facial_hair_style",
+					"facial_hair_color",
+					"scar_style",
+					"tattoo_style",
+					"voice_type"
+				],
+				"properties": {
+					"body_height": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"body_type": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"eye_color": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"eye_shape": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"eyebrow_color": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"eyebrow_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"face_shape": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"facial_hair_color": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"facial_hair_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hair_color": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hair_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mouth_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"nose_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"scar_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"skin_color": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"tattoo_style": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"voice_type": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"RentEarthCharacterFull": {
+				"type": "object",
+				"description": "Full character data (summary + details)",
+				"required": [
+					"summary",
+					"position",
+					"core_stats",
+					"derived_stats",
+					"appearance"
+				],
+				"properties": {
+					"appearance": {
+						"$ref": "#/components/schemas/RentEarthAppearance"
+					},
+					"core_stats": {
+						"$ref": "#/components/schemas/RentEarthCoreStats"
+					},
+					"derived_stats": {
+						"$ref": "#/components/schemas/RentEarthDerivedStats"
+					},
+					"position": {
+						"$ref": "#/components/schemas/RentEarthPosition"
+					},
+					"summary": {
+						"$ref": "#/components/schemas/RentEarthCharacterSummary"
+					}
+				}
+			},
+			"RentEarthCharacterSummary": {
+				"type": "object",
+				"description": "Character summary from database (for character select display)",
+				"required": [
+					"id",
+					"slot",
+					"first_name",
+					"display_name",
+					"visual_type",
+					"archetype_flags",
+					"level",
+					"experience",
+					"gold",
+					"current_zone",
+					"health_current",
+					"health_max"
+				],
+				"properties": {
+					"archetype_flags": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"created_at": {
+						"type": ["string", "null"]
+					},
+					"current_zone": {
+						"type": "string"
+					},
+					"display_name": {
+						"type": "string"
+					},
+					"experience": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"first_name": {
+						"type": "string"
+					},
+					"gold": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"health_current": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"health_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"id": {
+						"type": "string"
+					},
+					"last_login_at": {
+						"type": ["string", "null"]
+					},
+					"level": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"slot": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"total_playtime_seconds": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"visual_type": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"RentEarthCoreStats": {
+				"type": "object",
+				"description": "Core stats (8 DND-inspired attributes)",
+				"required": [
+					"strength",
+					"agility",
+					"constitution",
+					"intelligence",
+					"wisdom",
+					"charisma",
+					"luck",
+					"faith",
+					"unspent_skill_points"
+				],
+				"properties": {
+					"agility": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"charisma": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"constitution": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"faith": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"intelligence": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"luck": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"strength": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"unspent_skill_points": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"wisdom": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"RentEarthDerivedStats": {
+				"type": "object",
+				"description": "Derived stats (computed from core + equipment)",
+				"required": [
+					"health_current",
+					"health_max",
+					"mana_current",
+					"mana_max",
+					"stamina_current",
+					"stamina_max",
+					"attack_power",
+					"spell_power",
+					"defense",
+					"magic_resist",
+					"speed",
+					"crit_chance",
+					"crit_damage",
+					"combat_rating"
+				],
+				"properties": {
+					"attack_power": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"combat_rating": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"crit_chance": {
+						"type": "number",
+						"format": "float"
+					},
+					"crit_damage": {
+						"type": "number",
+						"format": "float"
+					},
+					"defense": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"health_current": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"health_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"magic_resist": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mana_current": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"mana_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"speed": {
+						"type": "number",
+						"format": "float"
+					},
+					"spell_power": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"stamina_current": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"stamina_max": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"RentEarthPosition": {
+				"type": "object",
+				"description": "Position data",
+				"required": ["world_x", "world_y", "world_z", "rotation_yaw"],
+				"properties": {
+					"rotation_yaw": {
+						"type": "number",
+						"format": "float"
+					},
+					"world_x": {
+						"type": "number",
+						"format": "float"
+					},
+					"world_y": {
+						"type": "number",
+						"format": "float"
+					},
+					"world_z": {
+						"type": "number",
+						"format": "float"
+					}
+				}
+			},
+			"RentEarthProfile": {
+				"type": "object",
+				"description": "Complete RentEarth profile for a user",
+				"required": ["characters"],
+				"properties": {
+					"active_character": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/RentEarthCharacterFull"
+							}
+						]
+					},
+					"characters": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RentEarthCharacterSummary"
+						}
+					},
+					"last_activity_at": {
+						"type": ["string", "null"]
+					},
+					"total_playtime_seconds": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					}
+				}
+			},
+			"SetUsernameRequest": {
+				"type": "object",
+				"description": "Request body for setting username",
+				"required": ["username"],
+				"properties": {
+					"username": {
+						"type": "string"
+					}
+				}
+			},
+			"SpaceRow": {
+				"type": "object",
+				"required": ["id", "slug", "name", "status"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string"
+					}
+				}
+			},
+			"StatusResponse": {
+				"type": "object",
+				"required": ["status", "version", "uptime_seconds"],
+				"properties": {
+					"status": {
+						"type": "string"
+					},
+					"uptime_seconds": {
+						"type": "integer",
+						"format": "int64",
+						"minimum": 0
+					},
+					"version": {
+						"type": "string"
+					}
+				}
+			},
+			"TagRow": {
+				"type": "object",
+				"required": ["id", "slug", "name", "thread_count"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"thread_count": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"ThreadRow": {
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"body",
+					"author_id",
+					"space_id",
+					"thread_type",
+					"status",
+					"locked",
+					"nsfw",
+					"pinned",
+					"comment_count",
+					"score",
+					"created_at"
+				],
+				"properties": {
+					"author_id": {
+						"type": "string"
+					},
+					"body": {
+						"type": "string"
+					},
+					"comment_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"last_activity_at": {
+						"type": ["string", "null"]
+					},
+					"locked": {
+						"type": "boolean"
+					},
+					"nsfw": {
+						"type": "boolean"
+					},
+					"pinned": {
+						"type": "boolean"
+					},
+					"score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"slug": {
+						"type": ["string", "null"]
+					},
+					"space_id": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string"
+					},
+					"thread_type": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"TokenRequest": {
+				"type": "object",
+				"properties": {
+					"jwt": {
+						"type": ["string", "null"],
+						"description": "Supabase JWT. Empty or absent for guest access."
+					},
+					"transport": {
+						"type": ["string", "null"],
+						"description": "Preferred transport: \"webtransport\" or \"websocket\".\nControls the order of server addresses in the ConnectToken so\nthe Netcode handshake tries the right port first. Defaults to\n\"webtransport\" for backward compatibility (Chrome prefers WT)."
+					}
+				}
+			},
+			"TokenResponse": {
+				"type": "object",
+				"required": [
+					"token",
+					"server_url",
+					"server_wt_url",
+					"cert_digest",
+					"cert_type"
+				],
+				"properties": {
+					"cert_digest": {
+						"type": "string",
+						"description": "SHA-256 certificate digest (hex, 64 chars). Empty if using a trusted cert."
+					},
+					"cert_type": {
+						"type": "string",
+						"description": "Certificate type: \"trusted\" (CA-signed, no hash pinning) or \"self-signed\"\n(must use serverCertificateHashes with cert_digest). Empty if WT disabled."
+					},
+					"server_url": {
+						"type": "string",
+						"description": "The WebSocket URL the client should connect to."
+					},
+					"server_wt_url": {
+						"type": "string",
+						"description": "The WebTransport (HTTPS/QUIC) URL. Empty if WT is not available."
+					},
+					"token": {
+						"type": "string",
+						"description": "Base64-encoded ConnectToken (2048 bytes decoded)."
+					}
+				}
+			},
+			"TwitchInfo": {
+				"type": "object",
+				"description": "Twitch-specific information extracted from provider data",
+				"required": ["id"],
+				"properties": {
+					"avatar_url": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "string"
+					},
+					"is_live": {
+						"type": ["boolean", "null"],
+						"description": "Whether the user is currently live streaming"
+					},
+					"username": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"UserProfile": {
+				"type": "object",
+				"description": "Aggregated user profile with all providers",
+				"required": ["user_id", "username", "providers"],
+				"properties": {
+					"discord": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/DiscordInfo"
+							}
+						]
+					},
+					"github": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/GithubInfo"
+							}
+						]
+					},
+					"providers": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserProvider"
+						}
+					},
+					"rentearth": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/RentEarthProfile"
+							}
+						]
+					},
+					"twitch": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/TwitchInfo"
+							}
+						]
+					},
+					"user_id": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string"
+					}
+				}
+			},
+			"UserProvider": {
+				"type": "object",
+				"description": "User provider information from get_user_all_providers RPC",
+				"required": ["provider", "provider_id"],
+				"properties": {
+					"avatar_url": {
+						"type": ["string", "null"]
+					},
+					"email": {
+						"type": ["string", "null"]
+					},
+					"identity_data": {
+						"type": ["object", "null"]
+					},
+					"last_sign_in_at": {
+						"type": ["string", "null"]
+					},
+					"linked_at": {
+						"type": ["string", "null"]
+					},
+					"provider": {
+						"type": "string"
+					},
+					"provider_id": {
+						"type": "string"
+					},
+					"username": {
+						"type": ["string", "null"]
+					}
+				}
+			}
+		},
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		}
+	},
+	"tags": [
+		{
+			"name": "system",
+			"description": "Health + status endpoints. Used by uptime probes and the public footer."
+		},
+		{
+			"name": "auth",
+			"description": "Authentication tokens. Includes the Netcode game-server handshake."
+		},
+		{
+			"name": "profile",
+			"description": "User profile lookup + self-service. Cache-first, enriched with Discord/Twitch/RentEarth providers."
+		},
+		{
+			"name": "forum",
+			"description": "Public forum threads, comments, spaces, and tags."
+		},
+		{
+			"name": "osrs",
+			"description": "Old School RuneScape item lookups."
+		},
+		{
+			"name": "mc",
+			"description": "Minecraft RCON-backed live data: player list, head textures."
+		},
+		{
+			"name": "telemetry",
+			"description": "Client-side error reporting from WASM/JS."
+		}
+	]
+}
