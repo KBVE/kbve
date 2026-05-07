@@ -6,9 +6,11 @@ interface Props {
 	include?: string[];
 	/** Filter out platform slugs. Applied after `include`. */
 	exclude?: string[];
-	/** Visual variant — `badges` is the icon-only square row used in footers,
-	 *  `cards` is the larger labeled grid used on press / steam splashes. */
-	variant?: 'badges' | 'cards';
+	/** Visual variant —
+	 *  `badges`: icon-only square row used in footers
+	 *  `cards`: labeled grid used on press / steam splashes
+	 *  `compact`: borderless text row for inline mentions ("Follow on:") */
+	variant?: 'badges' | 'cards' | 'compact';
 	/** Optional aria-label override for the wrapping nav element. */
 	ariaLabel?: string;
 	/** UTM source for outbound kbve.com/* links. Defaults to 'rareicon'. */
@@ -144,7 +146,7 @@ function withUtm(href: string): string {
 							</svg>
 						)}
 					</span>
-					{variant === 'cards' && (
+					{(variant === 'cards' || variant === 'compact') && (
 						<span class="ri-socialbar__label">{s.label}</span>
 					)}
 				</a>
@@ -162,6 +164,9 @@ function withUtm(href: string): string {
 	}
 	.ri-socialbar--cards {
 		gap: 0.75rem;
+	}
+	.ri-socialbar--compact {
+		gap: 0.25rem 1rem;
 	}
 	.ri-socialbar__item {
 		display: inline-flex;
@@ -189,6 +194,14 @@ function withUtm(href: string): string {
 		font-size: 0.875rem;
 		font-weight: 600;
 	}
+	.ri-socialbar--compact .ri-socialbar__item {
+		gap: 0.35rem;
+		padding: 0.15rem 0;
+		border: 0;
+		background: transparent;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
 	.ri-socialbar__item:hover {
 		color: var(--ri-social-color);
 		border-color: color-mix(
@@ -199,6 +212,12 @@ function withUtm(href: string): string {
 		background: color-mix(in srgb, var(--ri-social-color) 18%, transparent);
 		transform: translateY(-2px);
 	}
+	.ri-socialbar--compact .ri-socialbar__item:hover {
+		background: transparent;
+		transform: none;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
 	.ri-socialbar__icon svg {
 		width: 18px;
 		height: 18px;
@@ -206,5 +225,9 @@ function withUtm(href: string): string {
 	.ri-socialbar--cards .ri-socialbar__icon svg {
 		width: 16px;
 		height: 16px;
+	}
+	.ri-socialbar--compact .ri-socialbar__icon svg {
+		width: 14px;
+		height: 14px;
 	}
 </style>

@@ -1,4 +1,25 @@
 /**
+ * Tag outbound `kbve.com/*` hrefs with UTM params so the analytics stack
+ * can attribute traffic back to the surface that drove the click. Internal
+ * hrefs (e.g. `/dashboard/`) and non-kbve externals are left alone.
+ */
+export function withUtm(
+	href: string,
+	source: string,
+	medium: string,
+	campaign?: string,
+): string {
+	if (!href.startsWith('http')) return href;
+	if (!/^https?:\/\/(?:[a-z0-9-]+\.)*kbve\.com(?:\/|$)/i.test(href))
+		return href;
+	const url = new URL(href);
+	url.searchParams.set('utm_source', source);
+	url.searchParams.set('utm_medium', medium);
+	if (campaign) url.searchParams.set('utm_campaign', campaign);
+	return url.toString();
+}
+
+/**
  * Single source of truth for KBVE outbound social links.
  *
  * Consumed by:

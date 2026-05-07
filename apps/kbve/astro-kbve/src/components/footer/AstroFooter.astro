@@ -3,7 +3,7 @@ import FooterQuickLinks from './FooterQuickLinks.astro';
 import AstroDroidFooter from './AstroDroidFooter.astro';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 import SocialIcon from '@/components/social/SocialIcon.astro';
-import { SOCIALS } from '@/data/socials';
+import { SOCIALS, withUtm } from '@/data/socials';
 
 const legalLinks = [
 	{ href: '/legal/privacy', label: 'Privacy' },
@@ -125,7 +125,7 @@ const currentYear = new Date().getFullYear();
 							ringColor,
 						}) => (
 							<SocialTooltip
-								href={href}
+								href={withUtm(href, 'kbve', 'footer', platform)}
 								target="_blank"
 								rel="noopener noreferrer"
 								ariaLabel={title}
