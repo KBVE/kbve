@@ -40,13 +40,11 @@
 				},
 				"production": {
 					"tags": ["ghcr.io/kbve/firecracker-python-net:latest"],
+					"load": false,
 					"push": true,
 					"metadata": {
 						"images": ["ghcr.io/kbve/firecracker-python-net"]
 					},
-					"cache-from": [
-						"type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache"
-					],
 					"cache-to": [
 						"type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache,mode=max"
 					]
