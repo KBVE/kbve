@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.135",
+			"version": "1.0.136",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -211,7 +211,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.40",
+			"version": "1.0.41",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -272,7 +272,7 @@
 		{
 			"key": "rareicon",
 			"app_name": "axum-rareicon",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "apps/rareicon/axum-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx",
 			"version_target": "apps/rareicon/axum-rareicon/Cargo.toml",

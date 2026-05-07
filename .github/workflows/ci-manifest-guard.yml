@@ -57,10 +57,34 @@ jobs:
 
             - name: Diff manifest
               run: |
-                  if ! git diff --exit-code -- .github/ci-dispatch-manifest.json; then
-                      echo "::error::ci-dispatch-manifest.json is out of sync with the MDX sources."
+                  # Block only on STRUCTURAL drift. Version-field drift is
+                  # expected: MDX prep commits bump the source version, and the
+                  # post-publish workflow (utils-update-version-toml.yml)
+                  # regenerates the manifest in a follow-up auto-PR. Failing
+                  # the guard on that gap blocks unrelated PRs without value.
+                  if git diff --exit-code -- .github/ci-dispatch-manifest.json > /dev/null; then
+                      echo "Manifest is in sync."
+                      exit 0
+                  fi
+
+                  # Filter the patch down to changed lines that AREN'T `version`
+                  # fields. `git diff -U0` keeps only +/- lines (no context).
+                  # Strip file headers, then drop any line that is purely a
+                  # `"version": "..."` change. Anything left = real drift.
+                  STRUCTURAL_DIFF=$(git diff -U0 -- .github/ci-dispatch-manifest.json \
+                      | grep -E '^[+-]' \
+                      | grep -vE '^(\+\+\+|---) ' \
+                      | grep -vE '^[+-][[:space:]]*"version":[[:space:]]*"[^"]*",?[[:space:]]*$' \
+                      || true)
+
+                  if [ -n "$STRUCTURAL_DIFF" ]; then
+                      echo "::error::ci-dispatch-manifest.json has structural drift from the MDX sources."
                       echo "::error::Run 'npx nx run astro-kbve:build && npx nx run astro-kbve:sync:ci-manifest' locally and commit the regenerated manifest."
+                      echo "Structural diff:"
+                      echo "$STRUCTURAL_DIFF"
                       git diff --stat -- .github/ci-dispatch-manifest.json
                       exit 1
                   fi
-                  echo "Manifest is in sync."
+
+                  echo "::notice::Only version-field drift detected — allowed (post-publish auto-PR will sync)."
+                  git diff --stat -- .github/ci-dispatch-manifest.json
