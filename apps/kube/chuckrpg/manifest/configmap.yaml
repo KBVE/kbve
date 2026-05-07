@@ -1,0 +1,33 @@
+# Runtime configuration for the chuckrpg axum service.
+#
+# Edits to this ConfigMap trigger a rolling restart of the Deployment
+# via the `reloader.stakater.com/auto: "true"` annotation. CI/CD only
+# bumps the image tag in deployment.yaml — runtime env lives here so
+# config and image cycles stay decoupled.
+#
+# Future integration slots are commented out below. Uncomment + populate
+# when the corresponding upstream service is reachable.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: chuckrpg-config
+    namespace: chuckrpg
+    labels:
+        app: chuckrpg
+data:
+    HTTP_HOST: '0.0.0.0'
+    HTTP_PORT: '4322'
+    RUST_LOG: 'info'
+    # --- Future integration env (uncomment when wired) -----------------
+    # PostgREST in the kilobase namespace, in-cluster DNS only.
+    # POSTGREST_URL: 'http://supabase-postgrest.kilobase.svc.cluster.local:3000'
+    #
+    # Supabase Edge Functions (Deno runtime) in kilobase.
+    # SUPABASE_FUNCTIONS_URL: 'http://supabase-edge-functions.kilobase.svc.cluster.local:9000'
+    #
+    # Postgres direct (read-write primary, CloudNativePG service).
+    # DATABASE_HOST: 'supabase-cluster-rw.kilobase.svc.cluster.local'
+    # DATABASE_PORT: '5432'
+    #
+    # Discord webhook channel name (URL/token live in the Secret).
+    # DISCORD_WEBHOOK_NAME: 'chuckrpg-events'
