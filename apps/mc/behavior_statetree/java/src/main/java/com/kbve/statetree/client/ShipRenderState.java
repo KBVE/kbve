@@ -26,4 +26,10 @@ public class ShipRenderState extends EntityRenderState {
 
     /** Smoothed render roll, lerped toward targetRoll each frame. */
     public float renderRoll = 0.0f;
+
+    /** Smoothed engine output (0..targetSpeed) — drives propeller spin + sound. */
+    public float enginePower = 0.0f;
+
+    /** Continuously-accumulated propeller rotation (degrees), engine-power scaled. */
+    public float propellerSpin = 0.0f;
 }

@@ -50,6 +50,10 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
     private static final float MODEL_SCALE = 1.0f;
 
+    // Per-render scratch — engine power gates propeller animation speed.
+    // Stored as a field instead of plumbed through every renderObject call.
+    private float currentEnginePower = 0.0f;
+
     public BBModelShipRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
         this.shadowRadius = 4.0f;
@@ -68,10 +72,16 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         String name = entity.getModelName();
         state.modelName = (name == null || name.isEmpty()) ? DEFAULT_MODEL : name;
         float lerped = entity.getLerpedYaw(tickDelta);
-        float yawDelta = wrapDegrees(lerped - state.heading);
-        state.targetRoll = clamp(-yawDelta * 4.0f, -35f, 35f);
+
+        // Server-side bankRoll already smoothed; clamp + lerp on the client
+        // for a final settle so render stays smooth across tick boundaries.
+        state.targetRoll = clamp(entity.getBankRoll(), -35f, 35f);
         state.renderRoll += (state.targetRoll - state.renderRoll) * 0.15f;
         state.heading = lerped;
+
+        state.enginePower = entity.getEnginePower();
+        // Propeller spin accumulates each frame at engine-scaled rate.
+        state.propellerSpin = (state.propellerSpin + state.enginePower * 30.0f) % 360f;
         state.animationTime = (entity.age + tickDelta) * 0.05f;
     }
 
@@ -114,6 +124,9 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         matrices.multiply(new Quaternionf().rotateZ(
                 (float) Math.toRadians(state.renderRoll)));
 
+        // Stash engine power for propeller-name-keyed time scaling.
+        currentEnginePower = state.enginePower;
+
         // Walk the model tree — submit render commands per face
         int light = 0xF000F0; // full bright (airships fly in sky)
         for (BBObject obj : model.root) {
@@ -132,21 +145,29 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Apply object origin
         matrices.translate(object.origin.x(), object.origin.y(), object.origin.z());
 
+        // Propeller-class objects spin proportional to engine power so the
+        // visual matches throttle. 0.25 idle keeps them ticking even when
+        // the engine is off — matches IA's getPropellerSpeed().
+        float effectiveTime = time;
+        if (object.name != null && object.name.toLowerCase().contains("propeller")) {
+            effectiveTime = time * (0.25f + currentEnginePower);
+        }
+
         // Apply keyframe animation (propellers spin, sails flap, etc.)
         // Only the first animation is sampled — BBModel files typically
         // use one combined looped animation per model.
         if (!model.animations.isEmpty()) {
             BBAnimation animation = model.animations.get(0);
             if (animation.hasAnimator(object.uuid)) {
-                Vector3f position = animation.sample(object.uuid, BBAnimator.Channel.POSITION, time);
+                Vector3f position = animation.sample(object.uuid, BBAnimator.Channel.POSITION, effectiveTime);
                 position.mul(1.0f / 16.0f);
                 matrices.translate(position.x(), position.y(), position.z());
 
-                Vector3f rotation = animation.sample(object.uuid, BBAnimator.Channel.ROTATION, time);
+                Vector3f rotation = animation.sample(object.uuid, BBAnimator.Channel.ROTATION, effectiveTime);
                 rotation.mul((float) (Math.PI / 180.0));
                 matrices.multiply(BBModelUtils.fromXYZ(rotation));
 
-                Vector3f scale = animation.sample(object.uuid, BBAnimator.Channel.SCALE, time);
+                Vector3f scale = animation.sample(object.uuid, BBAnimator.Channel.SCALE, effectiveTime);
                 matrices.scale(scale.x(), scale.y(), scale.z());
             }
         }

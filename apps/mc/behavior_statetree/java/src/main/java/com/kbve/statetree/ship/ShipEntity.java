@@ -41,13 +41,31 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<Float> SHIP_HEALTH =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    // Synced inputs — clients read these to run the same smoothing locally,
+    // so enginePower / bankRoll match without per-tick float spam.
+    private static final TrackedData<Float> TARGET_SPEED =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    private static final TrackedData<Float> VERTICAL_INTENT =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
     public static final float MAX_HEALTH = 100.0f;
 
+    // Flight-feel constants (ported from ImmersiveAircraft airship.json).
+    // ENGINE_REACTION_SPEED ticks for power to fully ramp toward target.
+    // Higher = more momentum / sluggish; lower = snappy.
+    private static final float ENGINE_REACTION_SPEED = 50.0f;
+    private static final float VERTICAL_REACTION_SPEED = 20.0f;
+    // Heading-banking visual hint (deg) — exposed for client roll mixin.
+    private static final float ROLL_FACTOR = 5.0f;
+
     private String ownerUuidStr = "";
-    private float heading = 0.0f;
-    private float targetSpeed = 0.0f;
-    private float verticalIntent = 0.0f;
+
+    // Smoothed flight state — runs identically on server and client so the
+    // renderer reads consistent values without per-tick TrackedData churn.
+    private final InterpolatedFloat enginePower = new InterpolatedFloat(ENGINE_REACTION_SPEED);
+    private final InterpolatedFloat verticalDrive = new InterpolatedFloat(VERTICAL_REACTION_SPEED);
+    private float lastHeading = 0.0f;
+    private float bankRoll = 0.0f;
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
@@ -83,17 +101,20 @@ public class ShipEntity extends Entity {
         this.dataTracker.set(SHIP_NAME, name != null ? name : "");
     }
 
-    public float getHeading() { return heading; }
+    public float getHeading() { return this.getYaw(); }
     public void setHeading(float heading) {
-        this.heading = heading % 360;
-        this.setYaw(this.heading);
+        this.setYaw(heading % 360f);
     }
 
-    public float getTargetSpeed() { return targetSpeed; }
-    public void setTargetSpeed(float speed) { this.targetSpeed = Math.max(0, speed); }
+    public float getTargetSpeed() { return this.dataTracker.get(TARGET_SPEED); }
+    public void setTargetSpeed(float speed) {
+        this.dataTracker.set(TARGET_SPEED, Math.max(0f, speed));
+    }
 
-    public float getVerticalIntent() { return verticalIntent; }
-    public void setVerticalIntent(float v) { this.verticalIntent = Math.max(-1f, Math.min(1f, v)); }
+    public float getVerticalIntent() { return this.dataTracker.get(VERTICAL_INTENT); }
+    public void setVerticalIntent(float v) {
+        this.dataTracker.set(VERTICAL_INTENT, Math.max(-1f, Math.min(1f, v)));
+    }
 
     public float getShipHealth() { return this.dataTracker.get(SHIP_HEALTH); }
     public void setShipHealth(float hp) {
@@ -177,22 +198,39 @@ public class ShipEntity extends Entity {
     public void tick() {
         super.tick();
 
-        this.setYaw(heading);
+        float heading = this.getYaw();
+        float ts = getTargetSpeed();
+        float vi = getVerticalIntent();
 
-        if (!this.hasPassengers()) return;
-        Entity rider = this.getFirstPassenger();
-        if (!(rider instanceof ServerPlayerEntity)) return;
+        // Smooth engine + vertical regardless of passenger so a recently-
+        // dismounted ship coasts to a stop instead of teleport-stopping.
+        // Runs both server and client side — InterpolatedFloat is deterministic
+        // given the same synced inputs, so renderer reads matching values.
+        enginePower.update(hasPassengers() ? ts : 0.0f);
+        verticalDrive.update(hasPassengers() ? vi : 0.0f);
+
+        // Bank roll tracks heading delta — used by renderer + camera mixin.
+        float headingDelta = ((heading - lastHeading + 540f) % 360f) - 180f;
+        bankRoll = bankRoll * 0.85f + headingDelta * ROLL_FACTOR * 0.15f;
+        lastHeading = heading;
+
+        // Movement is server-authoritative; client receives position updates
+        // via vanilla entity tracking and interpolates locally.
+        if (this.getEntityWorld().isClient()) return;
+
+        float power = enginePower.getSmooth();
+        float vert = verticalDrive.getSmooth();
 
         double rad = Math.toRadians(heading);
-        double dx = -Math.sin(rad) * targetSpeed * 0.05;
-        double dz = Math.cos(rad) * targetSpeed * 0.05;
-        double dy = verticalIntent * 0.15;
+        double dx = -Math.sin(rad) * power * 0.05;
+        double dz = Math.cos(rad) * power * 0.05;
+        double dy = vert * 0.15;
 
         if (dx == 0 && dy == 0 && dz == 0) return;
 
         this.move(MovementType.SELF, new Vec3d(dx, dy, dz));
 
-        if (targetSpeed > 0.5f && this.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+        if (power > 0.5f && this.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
             if (this.age % 4 == 0) {
                 sw.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
                         this.getX(), this.getY() + 1.0, this.getZ(),
@@ -201,19 +239,14 @@ public class ShipEntity extends Entity {
         }
     }
 
-    public void steerFromRider(PlayerEntity rider) {
-        float forward = rider.forwardSpeed;
-        float sideways = rider.sidewaysSpeed;
+    /** Current engine output (smoothed), 0..maxTargetSpeed. Read by client renderer. */
+    public float getEnginePower() {
+        return enginePower.getSmooth();
+    }
 
-        if (forward > 0) {
-            targetSpeed = Math.min(targetSpeed + 0.1f, 3.0f);
-        } else if (forward < 0) {
-            targetSpeed = Math.max(targetSpeed - 0.2f, 0.0f);
-        }
-
-        if (sideways != 0) {
-            heading += sideways > 0 ? -2.0f : 2.0f;
-        }
+    /** Banking roll (deg) derived from yaw rate — drives client tilt mixin. */
+    public float getBankRoll() {
+        return bankRoll;
     }
 
     @Override
@@ -222,6 +255,8 @@ public class ShipEntity extends Entity {
         builder.add(SHIP_NAME, "");
         builder.add(SHIP_ID, "");
         builder.add(SHIP_HEALTH, MAX_HEALTH);
+        builder.add(TARGET_SPEED, 0.0f);
+        builder.add(VERTICAL_INTENT, 0.0f);
     }
 
     @Override
@@ -230,8 +265,8 @@ public class ShipEntity extends Entity {
         this.ownerUuidStr = view.getString("OwnerUuid", "");
         setModelName(view.getString("ModelName", "immersive_aircraft/airship"));
         setShipName(view.getString("ShipName", ""));
-        this.heading = view.getFloat("Heading", 0.0f);
-        this.targetSpeed = view.getFloat("TargetSpeed", 0.0f);
+        this.setYaw(view.getFloat("Heading", 0.0f));
+        setTargetSpeed(view.getFloat("TargetSpeed", 0.0f));
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
     }
 
@@ -241,8 +276,8 @@ public class ShipEntity extends Entity {
         view.putString("OwnerUuid", ownerUuidStr);
         view.putString("ModelName", getModelName());
         view.putString("ShipName", getShipName());
-        view.putFloat("Heading", heading);
-        view.putFloat("TargetSpeed", targetSpeed);
+        view.putFloat("Heading", this.getYaw());
+        view.putFloat("TargetSpeed", getTargetSpeed());
         view.putFloat("ShipHealth", getShipHealth());
     }
 }
