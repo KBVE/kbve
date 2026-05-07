@@ -1597,7 +1597,8 @@ fn process_collect_requests(
     mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
     positions: Query<&Position>,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
-    mut senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -1654,8 +1655,17 @@ fn process_collect_requests(
                 kind,
                 collector_id,
             };
-            for mut sender in &mut senders {
-                sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
+            // Single serialize, fan out the bytes — no per-client clone.
+            for server in &servers {
+                let _ = multi
+                    .send::<ObjectRemoved, bevy_kbve_net::GameChannel>(
+                        &removal,
+                        server,
+                        &NetworkTarget::All,
+                    )
+                    .inspect_err(|e| {
+                        tracing::error!("[gameserver] ObjectRemoved broadcast failed: {e}")
+                    });
             }
         }
     }
@@ -1665,7 +1675,8 @@ fn process_collect_requests(
 fn tick_respawns(
     time: Res<Time>,
     mut collected: ResMut<CollectedObjects>,
-    mut senders: Query<&mut MessageSender<ObjectRespawned>, With<Connected>>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
 ) {
     let now = time.elapsed_secs_f64();
     let mut respawned = Vec::new();
@@ -1687,8 +1698,16 @@ fn tick_respawns(
             );
 
             let msg = ObjectRespawned { tile, kind };
-            for mut sender in &mut senders {
-                sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+            for server in &servers {
+                let _ = multi
+                    .send::<ObjectRespawned, bevy_kbve_net::GameChannel>(
+                        &msg,
+                        server,
+                        &NetworkTarget::All,
+                    )
+                    .inspect_err(|e| {
+                        tracing::error!("[gameserver] ObjectRespawned broadcast failed: {e}")
+                    });
             }
         }
     }
@@ -1704,7 +1723,8 @@ fn process_creature_captures(
         Without<PendingAuth>,
     >,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
-    mut senders: Query<&mut MessageSender<CreatureCaptured>, With<Connected>>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -1744,8 +1764,12 @@ fn process_creature_captures(
                 creature_id: msg.creature_id,
                 kind: msg.kind,
             });
-            for mut sender in &mut senders {
-                sender.send::<GameChannel>(broadcast.clone());
+            for server in &servers {
+                let _ = multi
+                    .send::<CreatureCaptured, GameChannel>(&broadcast, server, &NetworkTarget::All)
+                    .inspect_err(|e| {
+                        tracing::error!("[gameserver] CreatureCaptured broadcast failed: {e}")
+                    });
             }
         }
     }
@@ -1915,7 +1939,8 @@ fn broadcast_creature_sync(
     )>,
     types: Res<bevy_kbve_net::creatures::types::SpriteCreatureTypes>,
     player_positions: Res<bevy_kbve_net::creatures::types::PlayerPositions>,
-    mut senders: Query<&mut MessageSender<CreaturePositionSync>, With<Connected>>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -1968,8 +1993,18 @@ fn broadcast_creature_sync(
                 npc_ref: ctype.npc_ref.to_string(),
                 snapshots,
             };
-            for mut sender in &mut senders {
-                sender.send::<CreatureSyncChannel>(msg.clone());
+            for server in &servers {
+                let _ = multi
+                    .send::<CreaturePositionSync, CreatureSyncChannel>(
+                        &msg,
+                        server,
+                        &NetworkTarget::All,
+                    )
+                    .inspect_err(|e| {
+                        tracing::error!(
+                            "[gameserver] CreaturePositionSync (sprite) broadcast failed: {e}"
+                        )
+                    });
             }
         }
     }
@@ -2008,8 +2043,18 @@ fn broadcast_creature_sync(
             npc_ref: npc_ref.to_string(),
             snapshots,
         };
-        for mut sender in &mut senders {
-            sender.send::<CreatureSyncChannel>(msg.clone());
+        for server in &servers {
+            let _ = multi
+                .send::<CreaturePositionSync, CreatureSyncChannel>(
+                    &msg,
+                    server,
+                    &NetworkTarget::All,
+                )
+                .inspect_err(|e| {
+                    tracing::error!(
+                        "[gameserver] CreaturePositionSync (ambient) broadcast failed: {e}"
+                    )
+                });
         }
     }
 }
@@ -2021,7 +2066,8 @@ fn broadcast_time_sync(
     day: Res<DayCycle>,
     seed: Res<CreatureSeed>,
     wind: Res<WindState>,
-    mut senders: Query<&mut MessageSender<TimeSyncMessage>, With<Connected>>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -2036,8 +2082,11 @@ fn broadcast_time_sync(
         wind_direction: wind.direction,
     };
 
-    for mut sender in &mut senders {
-        sender.send::<TimeChannel>(msg.clone());
+    // Single serialize, multi-fan-out — was 1 clone per connected client every 5s.
+    for server in &servers {
+        let _ = multi
+            .send::<TimeSyncMessage, TimeChannel>(&msg, server, &NetworkTarget::All)
+            .inspect_err(|e| tracing::error!("[gameserver] TimeSyncMessage broadcast failed: {e}"));
     }
 }
 
