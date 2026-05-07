@@ -11,6 +11,13 @@
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",
+			"dependsOn": [
+				{
+					"target": "container-mods",
+					"projects": ["mc"],
+					"params": "forward"
+				}
+			],
 			"options": {
 				"engine": "docker",
 				"context": ".",
@@ -54,6 +61,27 @@
 				"production": {
 					"push": true,
 					"tags": ["ghcr.io/kbve/mc:gradle"]
+				}
+			}
+		},
+		"container-mods": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/mc/Dockerfile.mods",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["ghcr.io/kbve/mc:mods"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/mc:mods"]
 				}
 			}
 		},
