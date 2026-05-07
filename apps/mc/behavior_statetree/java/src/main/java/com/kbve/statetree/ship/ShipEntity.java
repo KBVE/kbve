@@ -472,12 +472,9 @@ public class ShipEntity extends Entity {
             this.move(MovementType.SELF, vel);
         }
 
-        // Particle smoke trail — engine running + above min throttle.
-        if (power > 0.5f && this.age % 4 == 0
-                && this.getEntityWorld() instanceof ServerWorld sw) {
-            sw.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                    this.getX(), this.getY() + 1.0, this.getZ(),
-                    1, 0.1, 0.05, 0.1, 0.01);
+        // Particle trail — per-aircraft visual style.
+        if (power > 0.3f && this.getEntityWorld() instanceof ServerWorld sw) {
+            spawnTrailParticles(sw, power);
         }
 
         // Engine sound — pitch scales with throttle. Cadence speeds up as
@@ -496,6 +493,43 @@ public class ShipEntity extends Entity {
 
     private static Vec3d lerp(Vec3d a, Vec3d b, double t) {
         return new Vec3d(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+    }
+
+    /** Per-aircraft trail effect (server-side spawn so all clients see it). */
+    private void spawnTrailParticles(ServerWorld sw, float power) {
+        String model = getModelName();
+        double rad = Math.toRadians(this.getYaw());
+        // Behind-the-aircraft offset (negative forward direction).
+        double behindX = this.getX() - (-Math.sin(rad)) * 1.2;
+        double behindZ = this.getZ() - Math.cos(rad) * 1.2;
+
+        if (model.contains("biplane")) {
+            // Wing-tip vapor — two cloud puffs offset perpendicular to heading.
+            if (this.age % 2 == 0) {
+                double wx = Math.cos(rad) * 1.4;
+                double wz = Math.sin(rad) * 1.4;
+                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                        this.getX() + wx, this.getY() + 0.3, this.getZ() + wz,
+                        1, 0.0, 0.0, 0.0, 0.0);
+                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                        this.getX() - wx, this.getY() + 0.3, this.getZ() - wz,
+                        1, 0.0, 0.0, 0.0, 0.0);
+            }
+        } else if (model.contains("gyrodyne")) {
+            // Rotor wash — small white smoke beneath the aircraft.
+            if (this.age % 3 == 0) {
+                sw.spawnParticles(net.minecraft.particle.ParticleTypes.SMOKE,
+                        this.getX(), this.getY() - 0.3, this.getZ(),
+                        2, 0.4, 0.1, 0.4, 0.02);
+            }
+        } else {
+            // Airship default — exhaust smoke trailing aft.
+            if (this.age % 4 == 0) {
+                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                        behindX, this.getY() + 0.5, behindZ,
+                        1, 0.1, 0.05, 0.1, 0.01);
+            }
+        }
     }
 
     // -- Dismount safety ---------------------------------------------------
