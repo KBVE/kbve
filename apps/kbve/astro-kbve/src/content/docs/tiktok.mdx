@@ -1,0 +1,79 @@
+---
+title: TikTok
+description: Watch KBVE short-form clips on TikTok — gamedev highlights, devlog snippets, and quick demos.
+template: splash
+sidebar:
+  label: TikTok
+  order: 10
+editUrl: false
+lastUpdated: false
+tableOfContents: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+## Follow on TikTok
+
+Short-form clips: gamedev highlights, devlog snippets, quick demos.
+
+<div class="tt-page">
+  <a
+    class="tt-cta"
+    href="https://www.tiktok.com/@kbve"
+    target="_blank"
+    rel="noopener noreferrer">
+    <span class="tt-cta__icon" aria-hidden="true">♪</span>
+    <span class="tt-cta__label">Follow @kbve on TikTok</span>
+  </a>
+
+  <div class="tt-embed">
+    <blockquote
+      class="tiktok-embed"
+      cite="https://www.tiktok.com/@kbve"
+      data-unique-id="kbve"
+      data-embed-type="creator"
+      style="max-width: 720px; min-width: 288px;">
+      <section>
+        <a target="_blank" href="https://www.tiktok.com/@kbve">@kbve</a>
+      </section>
+    </blockquote>
+    <script async src="https://www.tiktok.com/embed.js"></script>
+  </div>
+</div>
+
+<Adsense />
+
+<style is:global>{`
+  .tt-page {
+    max-width: 720px;
+    margin: 1.5rem auto;
+    display: grid;
+    gap: 1rem;
+  }
+  .tt-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+  }
+  .tt-cta:hover {
+    transform: translateY(-1px);
+    border-color: #ff0050;
+  }
+  .tt-cta__icon { font-size: 1.1rem; line-height: 1; }
+  .tt-embed {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    background: var(--sl-color-bg-nav, #131318);
+    padding: 0.5rem;
+  }
+`}</style>

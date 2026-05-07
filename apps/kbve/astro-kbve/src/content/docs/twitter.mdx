@@ -1,0 +1,79 @@
+---
+title: Twitter / X
+description: Follow KBVE on Twitter / X for project updates, dev snippets, and community highlights.
+template: splash
+sidebar:
+  label: Twitter
+  order: 7
+editUrl: false
+lastUpdated: false
+tableOfContents: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+## Follow on X (Twitter)
+
+Project updates, dev snippets, release pings, and community highlights.
+
+<div class="tw-page">
+  <a
+    class="tw-cta"
+    href="https://x.com/kbve"
+    target="_blank"
+    rel="noopener noreferrer">
+    <span class="tw-cta__icon" aria-hidden="true">𝕏</span>
+    <span class="tw-cta__label">Follow @kbve on X</span>
+  </a>
+
+  <div class="tw-embed">
+    <a
+      class="twitter-timeline"
+      data-height="600"
+      data-theme="dark"
+      href="https://twitter.com/kbve?ref_src=twsrc%5Etfw">
+      Tweets by @kbve
+    </a>
+    <script
+      async
+      src="https://platform.twitter.com/widgets.js"
+      charset="utf-8"></script>
+  </div>
+</div>
+
+<Adsense />
+
+<style is:global>{`
+  .tw-page {
+    max-width: 720px;
+    margin: 1.5rem auto;
+    display: grid;
+    gap: 1rem;
+  }
+  .tw-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+  }
+  .tw-cta:hover {
+    transform: translateY(-1px);
+    border-color: #1d9bf0;
+  }
+  .tw-cta__icon { font-size: 1.1rem; line-height: 1; }
+  .tw-embed {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    background: var(--sl-color-bg-nav, #131318);
+    padding: 0.5rem;
+  }
+`}</style>

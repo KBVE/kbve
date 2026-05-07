@@ -1,0 +1,105 @@
+---
+title: Steam
+description: KBVE games and demos on Steam — RareIcon and other indie projects.
+template: splash
+sidebar:
+  label: Steam
+  order: 11
+editUrl: false
+lastUpdated: false
+tableOfContents: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+## KBVE on Steam
+
+Indie projects shipping on Steam. Wishlist to support development.
+
+<div class="steam-page">
+  <a
+    class="steam-cta"
+    href="https://store.steampowered.com/curator/45016681"
+    target="_blank"
+    rel="noopener noreferrer">
+    <span class="steam-cta__icon" aria-hidden="true">▶</span>
+    <span class="steam-cta__label">Visit KBVE Steam Curator</span>
+  </a>
+
+  <div class="steam-grid">
+    <a
+      class="steam-card"
+      href="https://store.steampowered.com/app/2238370/RareIcon/"
+      target="_blank"
+      rel="noopener noreferrer">
+      <span class="steam-card__title">RareIcon</span>
+      <span class="steam-card__copy">
+        2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps. Demo coming soon.
+      </span>
+      <span class="steam-card__cta">Wishlist on Steam →</span>
+    </a>
+  </div>
+</div>
+
+<Adsense />
+
+<style is:global>{`
+  .steam-page {
+    max-width: 960px;
+    margin: 1.5rem auto;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .steam-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    background: #1b2838;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    border: 1px solid #66c0f4;
+    box-shadow: 0 6px 20px color-mix(in srgb, #66c0f4 25%, transparent);
+    transition: transform 0.12s ease;
+  }
+  .steam-cta:hover { transform: translateY(-1px); }
+  .steam-cta__icon { font-size: 1.1rem; line-height: 1; }
+  .steam-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .steam-card {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    background: var(--sl-color-bg-nav, #131318);
+    color: var(--sl-color-text, #e6edf3);
+    text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .steam-card:hover {
+    transform: translateY(-2px);
+    border-color: #66c0f4;
+  }
+  .steam-card__title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+  .steam-card__copy {
+    font-size: 0.875rem;
+    color: var(--sl-color-gray-2, #a1a1aa);
+    line-height: 1.5;
+  }
+  .steam-card__cta {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #66c0f4;
+    margin-top: 0.25rem;
+  }
+`}</style>

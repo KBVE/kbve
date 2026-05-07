@@ -1,0 +1,79 @@
+---
+title: Bluesky
+description: Follow KBVE on Bluesky — open social on the AT Protocol, same updates as our other channels.
+template: splash
+sidebar:
+  label: Bluesky
+  order: 8
+editUrl: false
+lastUpdated: false
+tableOfContents: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+## Follow on Bluesky
+
+Decentralized social on the AT Protocol. Same updates, no algorithm games.
+
+<div class="bsky-page">
+  <a
+    class="bsky-cta"
+    href="https://bsky.app/profile/kbve.com"
+    target="_blank"
+    rel="noopener noreferrer">
+    <span class="bsky-cta__icon" aria-hidden="true">☁</span>
+    <span class="bsky-cta__label">Follow @kbve.com on Bluesky</span>
+  </a>
+
+  <div class="bsky-embed">
+    <iframe
+      src="https://embed.bsky.app/profile/kbve.com"
+      title="KBVE Bluesky profile"
+      frameborder="0"
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</div>
+
+<Adsense />
+
+<style is:global>{`
+  .bsky-page {
+    max-width: 720px;
+    margin: 1.5rem auto;
+    display: grid;
+    gap: 1rem;
+  }
+  .bsky-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    background: #0085ff;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    box-shadow: 0 6px 20px color-mix(in srgb, #0085ff 30%, transparent);
+    transition: transform 0.12s ease;
+  }
+  .bsky-cta:hover { transform: translateY(-1px); }
+  .bsky-cta__icon { font-size: 1.1rem; line-height: 1; }
+  .bsky-embed {
+    position: relative;
+    width: 100%;
+    min-height: 600px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-gray-5, #2a2a33);
+    background: var(--sl-color-bg-nav, #131318);
+  }
+  .bsky-embed iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    border: 0;
+  }
+`}</style>
