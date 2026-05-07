@@ -111,7 +111,7 @@ checked into git so:
 
 ## Adding a new Iconify-bundle pack
 
-1. `cd packages/data/rareicon-icons-codegen && pnpm add @iconify-json/<pack> --ignore-workspace`
+1. `cd apps/rareicon/icons-codegen && pnpm add @iconify-json/<pack> --ignore-workspace`
 2. Append a config object to `PACKS` in `scripts/gen-iconify-icons.mjs`:
     ```js
     {
