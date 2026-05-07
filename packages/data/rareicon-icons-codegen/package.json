@@ -1,0 +1,33 @@
+{
+	"name": "@kbve/rareicon-icons-codegen",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Build-time codegen for the RareIcon catalog. Pulls icon SVGs from upstream FOSS packs (Lucide, Tabler, Phosphor, Simple Icons, Game Icons, Iconify bundles) and emits one IconTerm MDX per concept under apps/rareicon/astro-rareicon/src/content/docs/icons/. Owns the dedup-keys.json ledger so re-runs stay deterministic.",
+	"type": "module",
+	"scripts": {
+		"gen:lucide": "node scripts/gen-lucide-icons.mjs",
+		"gen:simple": "node scripts/gen-simple-icons.mjs",
+		"gen:tabler": "node scripts/gen-tabler-icons.mjs",
+		"gen:phosphor": "node scripts/gen-phosphor-icons.mjs",
+		"gen:gameicons": "node scripts/gen-gameicons.mjs",
+		"gen:iconify": "node scripts/gen-iconify-icons.mjs",
+		"gen:merge": "node scripts/gen-merge-variants.mjs",
+		"gen:all": "pnpm gen:lucide && pnpm gen:simple && pnpm gen:tabler && pnpm gen:phosphor && pnpm gen:gameicons && pnpm gen:iconify && pnpm gen:merge",
+		"clean:deps": "rm -rf node_modules"
+	},
+	"dependencies": {
+		"@iconify-json/carbon": "^1.2.20",
+		"@iconify-json/fluent": "^1.2.46",
+		"@iconify-json/game-icons": "^1.2.4",
+		"@iconify-json/heroicons": "^1.2.3",
+		"@iconify-json/iconoir": "^1.2.11",
+		"@iconify-json/material-symbols": "^1.2.70",
+		"@iconify-json/mdi": "^1.2.3",
+		"@iconify-json/octicon": "^1.2.23",
+		"@phosphor-icons/core": "^2.1.1",
+		"@tabler/icons": "^3.43.0",
+		"js-yaml": "^4.1.0",
+		"lucide": "^0.575.0",
+		"simple-icons": "^13.21.0"
+	}
+}

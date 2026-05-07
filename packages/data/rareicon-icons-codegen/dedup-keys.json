@@ -1,0 +1,306 @@
+{
+	"antenna": {
+		"tabler": "antenna"
+	},
+	"aws": {
+		"tabler": "aws"
+	},
+	"axe": {
+		"phosphor": "axe"
+	},
+	"baby": {
+		"phosphor": "baby"
+	},
+	"beaker": {
+		"hero": "beaker"
+	},
+	"binary": {
+		"phosphor": "binary"
+	},
+	"bird": {
+		"phosphor": "bird"
+	},
+	"bot": {
+		"message": "bot"
+	},
+	"bow": {
+		"tabler": "bow"
+	},
+	"brain": {
+		"phosphor": "brain",
+		"tabler": "brain"
+	},
+	"bus": {
+		"phosphor": "bus"
+	},
+	"cake": {
+		"phosphor": "cake",
+		"tabler": "cake"
+	},
+	"campfire": {
+		"phosphor": "campfire"
+	},
+	"cat": {
+		"phosphor": "cat"
+	},
+	"check-circle": {},
+	"cloud": {
+		"hero": "cloud",
+		"material": "cloud",
+		"moon": "cloud",
+		"phosphor": "cloud",
+		"rain": "cloud",
+		"sun": "cloud"
+	},
+	"cloudflare": {
+		"tabler": "cloudflare"
+	},
+	"code": {
+		"octicon": "code",
+		"phosphor": "code"
+	},
+	"coffee": {
+		"phosphor": "coffee"
+	},
+	"coins": {
+		"phosphor": "coins"
+	},
+	"compass": {
+		"phosphor": "compass"
+	},
+	"cpu": {
+		"phosphor": "cpu",
+		"tabler": "cpu"
+	},
+	"crosshair": {
+		"phosphor": "crosshair"
+	},
+	"crown": {
+		"phosphor": "crown",
+		"tabler": "crown"
+	},
+	"database": {
+		"phosphor": "database"
+	},
+	"docker": {
+		"tabler": "docker"
+	},
+	"dog": {
+		"phosphor": "dog"
+	},
+	"envelope": {
+		"hero": "envelope"
+	},
+	"eye": {
+		"hero": "eye",
+		"octicon": "eye"
+	},
+	"fire": {
+		"hero": "fire"
+	},
+	"fish": {
+		"phosphor": "fish"
+	},
+	"flame": {
+		"phosphor": "flame",
+		"tabler": "flame"
+	},
+	"flash": {},
+	"flower": {
+		"phosphor": "flower"
+	},
+	"function": {
+		"phosphor": "function"
+	},
+	"gavel": {
+		"phosphor": "gavel"
+	},
+	"ghost": {
+		"phosphor": "ghost"
+	},
+	"gift": {
+		"hero": "gift",
+		"phosphor": "gift"
+	},
+	"globe": {},
+	"group": {},
+	"hamburger": {
+		"phosphor": "hamburger"
+	},
+	"hammer": {
+		"phosphor": "hammer"
+	},
+	"house": {
+		"phosphor": "house"
+	},
+	"ice-cream": {
+		"phosphor": "ice-cream"
+	},
+	"image": {
+		"phosphor": "image"
+	},
+	"info": {
+		"phosphor": "info"
+	},
+	"key": {
+		"hero": "key",
+		"octicon": "key"
+	},
+	"kubernetes": {},
+	"leaf": {
+		"phosphor": "leaf",
+		"tabler": "leaf"
+	},
+	"lock": {
+		"keyhole": "lock",
+		"octicon": "lock",
+		"phosphor": "lock"
+	},
+	"lock-closed": {},
+	"lock-open": {
+		"hero": "lock-open"
+	},
+	"magic-wand": {
+		"phosphor": "magic-wand"
+	},
+	"magnifying-glass": {
+		"hero": "magnifying-glass"
+	},
+	"mail": {
+		"question": "mail"
+	},
+	"medal": {
+		"phosphor": "medal"
+	},
+	"megaphone": {
+		"hero": "megaphone"
+	},
+	"memory": {
+		"material": "memory"
+	},
+	"mic": {},
+	"moon": {
+		"phosphor": "moon"
+	},
+	"music": {
+		"tabler": "music"
+	},
+	"openai": {
+		"tabler": "openai"
+	},
+	"package": {
+		"octicon": "package"
+	},
+	"panda": {},
+	"person": {},
+	"piano": {
+		"tabler": "piano"
+	},
+	"pickaxe": {},
+	"pin": {},
+	"pizza": {
+		"phosphor": "pizza",
+		"tabler": "pizza"
+	},
+	"rabbit": {
+		"phosphor": "rabbit"
+	},
+	"recycle": {
+		"phosphor": "recycle",
+		"tabler": "recycle"
+	},
+	"robot": {
+		"phosphor": "robot"
+	},
+	"rocket": {
+		"octicon": "rocket",
+		"phosphor": "rocket"
+	},
+	"rocket-launch": {
+		"hero": "rocket-launch"
+	},
+	"router": {
+		"tabler": "router"
+	},
+	"sailboat": {
+		"phosphor": "sailboat"
+	},
+	"salad": {
+		"tabler": "salad"
+	},
+	"satellite": {
+		"tabler": "satellite"
+	},
+	"school": {
+		"material": "school"
+	},
+	"send": {
+		"to": "send"
+	},
+	"server": {
+		"hero": "server"
+	},
+	"shield-check": {
+		"octicon": "shield-check"
+	},
+	"shopping-bag": {},
+	"shopping-cart": {
+		"hero": "shopping-cart",
+		"material": "shopping-cart"
+	},
+	"snowflake": {
+		"phosphor": "snowflake"
+	},
+	"sparkle": {
+		"phosphor": "sparkle"
+	},
+	"sparkles": {
+		"hero": "sparkles"
+	},
+	"sun": {
+		"phosphor": "sun"
+	},
+	"tent": {
+		"phosphor": "tent",
+		"tabler": "tent"
+	},
+	"thermometer": {
+		"phosphor": "thermometer"
+	},
+	"trash": {},
+	"tree": {
+		"phosphor": "tree",
+		"tabler": "tree"
+	},
+	"trophy": {
+		"hero": "trophy",
+		"phosphor": "trophy"
+	},
+	"ufo": {},
+	"user-circle": {
+		"hero": "user-circle"
+	},
+	"vercel": {
+		"tabler": "vercel"
+	},
+	"video": {},
+	"volleyball": {
+		"tabler": "volleyball"
+	},
+	"wallet": {
+		"phosphor": "wallet"
+	},
+	"wand": {
+		"tabler": "wand"
+	},
+	"wind": {
+		"arrow": "wind",
+		"phosphor": "wind"
+	},
+	"workflow": {
+		"octicon": "workflow"
+	},
+	"wrench": {
+		"phosphor": "wrench"
+	}
+}

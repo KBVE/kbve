@@ -20,12 +20,10 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../../..');
-const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
-const TABLER_OUTLINE_DIR = path.resolve(
-	WORKSPACE_ROOT,
-	'node_modules/@tabler/icons/icons/outline',
-);
+const ICONS_DIR = path.resolve(WORKSPACE_ROOT, 'apps/rareicon/astro-rareicon/src/content/docs/icons');
+const TABLER_OUTLINE_DIR = path.resolve(PACKAGE_ROOT, 'node_modules/@tabler/icons/icons/outline');
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');

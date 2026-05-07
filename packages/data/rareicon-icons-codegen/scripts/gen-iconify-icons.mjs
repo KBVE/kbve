@@ -21,8 +21,9 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../../..');
-const ICONS_DIR = path.resolve(__dirname, '../src/content/docs/icons');
+const ICONS_DIR = path.resolve(WORKSPACE_ROOT, 'apps/rareicon/astro-rareicon/src/content/docs/icons');
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
@@ -379,7 +380,7 @@ function titleCase(str) {
 }
 
 function loadBundle(relPath) {
-	const file = path.resolve(WORKSPACE_ROOT, relPath);
+	const file = path.resolve(PACKAGE_ROOT, relPath);
 	if (!fs.existsSync(file)) return null;
 	return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
