@@ -137,3 +137,75 @@ data:
         end
         hs.status = "Healthy"
         return hs
+    # KubeVirt VirtualMachine: Manual/Halted runStrategy + Stopped is the
+    # steady state for builder VMs that KEDA boots on demand. Default Argo
+    # health treats any non-Running VM as Progressing forever, which leaves
+    # the angelscript app permanently STALLED. Mirror printableStatus +
+    # runStrategy so intentionally-off VMs report Healthy.
+    resource.customizations.health.kubevirt.io_VirtualMachine: |
+        hs = {}
+        local status = obj.status or {}
+        local printable = status.printableStatus or ""
+        local runStrategy = (obj.spec or {}).runStrategy or ""
+        if printable == "Running" then
+          hs.status = "Healthy"
+          hs.message = "VM running"
+          return hs
+        end
+        if printable == "Stopped" then
+          if runStrategy == "Manual" or runStrategy == "Halted" then
+            hs.status = "Healthy"
+            hs.message = "VM intentionally stopped (" .. runStrategy .. ")"
+            return hs
+          end
+          hs.status = "Degraded"
+          hs.message = "VM stopped but runStrategy=" .. runStrategy
+          return hs
+        end
+        if printable == "Paused" then
+          hs.status = "Healthy"
+          hs.message = "VM paused"
+          return hs
+        end
+        if printable == "Starting" or printable == "Stopping"
+           or printable == "Migrating" or printable == "Provisioning"
+           or printable == "WaitingForVolumeBinding" or printable == "Terminating" then
+          hs.status = "Progressing"
+          hs.message = "VM " .. string.lower(printable)
+          return hs
+        end
+        if string.find(printable, "Error") or printable == "CrashLoopBackOff"
+           or printable == "Unknown" then
+          hs.status = "Degraded"
+          hs.message = "VM " .. printable
+          return hs
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for printableStatus"
+        return hs
+    resource.customizations.health.kubevirt.io_VirtualMachineInstance: |
+        hs = {}
+        local phase = (obj.status or {}).phase or ""
+        if phase == "Running" then
+          hs.status = "Healthy"
+          hs.message = "VMI running"
+          return hs
+        end
+        if phase == "Succeeded" then
+          hs.status = "Healthy"
+          hs.message = "VMI terminated cleanly"
+          return hs
+        end
+        if phase == "Failed" or phase == "Unknown" then
+          hs.status = "Degraded"
+          hs.message = "VMI " .. phase
+          return hs
+        end
+        if phase == "Pending" or phase == "Scheduling" or phase == "Scheduled" then
+          hs.status = "Progressing"
+          hs.message = "VMI " .. phase
+          return hs
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for phase"
+        return hs
