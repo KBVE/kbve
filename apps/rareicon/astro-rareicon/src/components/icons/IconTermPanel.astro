@@ -2,6 +2,16 @@
 import type { Icon } from '@/data/schema';
 import IconVariantCard from './IconVariantCard.astro';
 
+interface LicenseInfo {
+	license?: string;
+	attribution_required?: boolean;
+	attribution_line?: string;
+	author?: string;
+	source_url?: string;
+	commercial_use?: boolean;
+	modifications_allowed?: boolean;
+}
+
 interface Props {
 	termRef: string;
 	name?: string;
@@ -11,6 +21,7 @@ interface Props {
 	tags?: string[];
 	icons: Icon[];
 	swatchSize?: number;
+	default_license?: LicenseInfo;
 }
 
 const {
@@ -22,7 +33,34 @@ const {
 	tags = [],
 	icons,
 	swatchSize = 48,
+	default_license,
 } = Astro.props;
+
+const isMerged = tags.includes('merged-multi-source');
+const variantCount = icons?.length ?? 0;
+const sourceCount = isMerged
+	? new Set(
+			icons
+				.flatMap((i) => i?.tags ?? [])
+				.filter(
+					(t) =>
+						typeof t === 'string' &&
+						![
+							'outline',
+							'filled',
+							'duotone',
+							'thin',
+							'light',
+							'regular',
+							'bold',
+							'fill',
+							'multi-weight',
+							'brand',
+							'gamedev',
+						].includes(t),
+				),
+		).size || 1
+	: 1;
 ---
 
 <section
@@ -64,6 +102,24 @@ const {
 		)
 	}
 
+	{
+		isMerged && variantCount > 1 && (
+			<div
+				class="ri-icon-term__multi-source"
+				role="note"
+				aria-label="Multi-source variants">
+				<span
+					class="ri-icon-term__multi-source-dot"
+					aria-hidden="true"
+				/>
+				<span>
+					{variantCount} variants merged from {sourceCount} FOSS icon{' '}
+					{sourceCount === 1 ? 'library' : 'libraries'}
+				</span>
+			</div>
+		)
+	}
+
 	<div class="ri-icon-term__grid" data-pagefind-body>
 		{
 			icons.map((variant) => (
@@ -75,6 +131,42 @@ const {
 			))
 		}
 	</div>
+
+	{
+		default_license &&
+			(default_license.attribution_line || default_license.license) && (
+				<footer
+					class:list={[
+						'ri-icon-term__license',
+						default_license.attribution_required &&
+							'ri-icon-term__license--required',
+					]}
+					aria-label="License + attribution">
+					{default_license.attribution_required ? (
+						<strong class="ri-icon-term__license-label">
+							Attribution required
+						</strong>
+					) : (
+						<strong class="ri-icon-term__license-label">
+							License
+						</strong>
+					)}
+					<p class="ri-icon-term__license-line">
+						{default_license.attribution_line ??
+							default_license.license}
+					</p>
+					{default_license.source_url && (
+						<a
+							class="ri-icon-term__license-link"
+							href={default_license.source_url}
+							target="_blank"
+							rel="noopener noreferrer">
+							Source page →
+						</a>
+					)}
+				</footer>
+			)
+	}
 </section>
 
 <style is:global>
@@ -130,5 +222,73 @@ const {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 		gap: 1rem;
+	}
+
+	.ri-icon-term__multi-source {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin: 0 0 0.85rem;
+		padding: 0.35rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--ri-text-secondary);
+		background: color-mix(in srgb, var(--ri-accent) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ri-accent) 25%, transparent);
+		border-radius: 999px;
+	}
+
+	.ri-icon-term__multi-source-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--ri-accent);
+		box-shadow: 0 0 8px var(--ri-accent);
+	}
+
+	.ri-icon-term__license {
+		margin-top: 1.25rem;
+		padding: 0.85rem 1rem;
+		border-radius: 0.5rem;
+		background: var(--ri-bg-panel);
+		border: 1px solid var(--ri-border);
+		font-size: 0.8125rem;
+		color: var(--ri-text-secondary);
+		line-height: 1.5;
+	}
+
+	.ri-icon-term__license--required {
+		border-color: color-mix(in srgb, #d4a73c 60%, transparent);
+		background: color-mix(in srgb, #d4a73c 6%, transparent);
+	}
+
+	.ri-icon-term__license-label {
+		display: block;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--ri-text-primary);
+		margin-bottom: 0.25rem;
+	}
+
+	.ri-icon-term__license--required .ri-icon-term__license-label {
+		color: #d4a73c;
+	}
+
+	.ri-icon-term__license-line {
+		margin: 0 0 0.4rem;
+	}
+
+	.ri-icon-term__license-link {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--ri-accent);
+		text-decoration: none;
+	}
+
+	.ri-icon-term__license-link:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
 	}
 </style>

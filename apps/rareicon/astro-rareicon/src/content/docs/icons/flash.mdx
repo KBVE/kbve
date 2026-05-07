@@ -2,37 +2,78 @@
 ref: flash
 name: Flash
 title: Flash Icon
-description: Flash glyph from the iconoir icon library, 1 variant — recolor via currentColor.
+description: Flash glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: game
-categories: [game, library]
-tags: [iconoir-generated, iconoir]
+categories:
+  - game
+  - library
+tags:
+  - iconoir-generated
+  - iconoir
+  - fluent-generated
+  - fluent
+  - merged-multi-source
 search:
-  keywords: ["flash"]
+  keywords:
+    - flash
   primary_category: game
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Iconoir (https://iconoir.com/) — MIT License"
+  attribution_line: Iconoir (https://iconoir.com/) — MIT License
   author: Iconoir contributors
-  source_url: "https://iconoir.com/flash"
+  source_url: https://iconoir.com/flash
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "iconoir"
-    label: "Iconoir"
+  - ref: iconoir
+    label: Iconoir
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [iconoir]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - iconoir
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L5 14h6v7l8-11z"/></svg>
-pagefindFilters: [iconoir, game]
+  - ref: fluent
+    label: Fluent
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - fluent
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M7.425 2.83A1.25 1.25 0 0 1 8.603 2h6.453a1.25 1.25 0 0 1 1.186 1.645L14.79 8h3.96c1.103 0 1.665 1.327.897 2.12L8.586 21.536c-1.054 1.088-2.872.106-2.541-1.372l1.27-5.668l-1.57-.006a1.75 1.75 0 0 1-1.641-2.337zm1.354.67l-3.262 9.157a.25.25 0 0 0 .234.333l2.502.01a.75.75 0 0 1 .729.914l-1.473 6.578L18.159 9.5h-4.41a.75.75 0 0 1-.71-.987l1.67-5.013z"/></svg>
+pagefindFilters:
+  - iconoir
+  - game
+  - fluent
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
@@ -46,5 +87,6 @@ Flash — glyph from the [Iconoir icon library](https://iconoir.com/).
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />

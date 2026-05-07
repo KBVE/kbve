@@ -298,6 +298,7 @@ ${name} — ${variants.length} weight${variants.length === 1 ? '' : 's'} from th
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />
 `;

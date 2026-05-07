@@ -64,6 +64,9 @@ importers:
             '@iconify-json/carbon':
                 specifier: ^1.2.20
                 version: 1.2.20
+            '@iconify-json/fluent':
+                specifier: ^1.2.46
+                version: 1.2.46
             '@iconify-json/game-icons':
                 specifier: ^1.2.4
                 version: 1.2.4
@@ -73,6 +76,12 @@ importers:
             '@iconify-json/iconoir':
                 specifier: ^1.2.11
                 version: 1.2.11
+            '@iconify-json/material-symbols':
+                specifier: ^1.2.70
+                version: 1.2.70
+            '@iconify-json/mdi':
+                specifier: ^1.2.3
+                version: 1.2.3
             '@iconify-json/octicon':
                 specifier: ^1.2.23
                 version: 1.2.23
@@ -3456,6 +3465,12 @@ packages:
                 integrity: sha512-wqyxKEbIRdzGdfCAwQqn8iSfO6jx0m1toZAAQdx1NFjxd6iFl1YY4eKI1woWt7XOxs7s7phMW530kDD867JZGw==,
             }
 
+    '@iconify-json/fluent@1.2.46':
+        resolution:
+            {
+                integrity: sha512-D/nsKOYT8ttULt2WJGF0lc0FtVHmEYizzdrO0duAasLYnKLAcdp3I/fCIpHh5a2kKdE5pcFyXeP0UsEZ0fG7WA==,
+            }
+
     '@iconify-json/game-icons@1.2.4':
         resolution:
             {
@@ -3472,6 +3487,18 @@ packages:
         resolution:
             {
                 integrity: sha512-clBrCsZPkmdksYOkufVp7aoAU1j1hFQPrLUooWWmoYIMvKskUHQ+IDnwV7agTR+tGYHbud7OP2SRfYEpnqFDNw==,
+            }
+
+    '@iconify-json/material-symbols@1.2.70':
+        resolution:
+            {
+                integrity: sha512-8FljpHMgaYwqHKEt7ovTog4d5Vuz6ivv0jih3yuoo68UWM1VltL6FUxSq/HrAsgItWBy9VNIOQUSIHgNUoHrkA==,
+            }
+
+    '@iconify-json/mdi@1.2.3':
+        resolution:
+            {
+                integrity: sha512-O3cLwbDOK7NNDf2ihaQOH5F9JglnulNDFV7WprU2dSoZu3h3cWH//h74uQAB87brHmvFVxIOkuBX2sZSzYhScg==,
             }
 
     '@iconify-json/octicon@1.2.23':
@@ -29737,6 +29764,10 @@ snapshots:
         dependencies:
             '@iconify/types': 2.0.0
 
+    '@iconify-json/fluent@1.2.46':
+        dependencies:
+            '@iconify/types': 2.0.0
+
     '@iconify-json/game-icons@1.2.4':
         dependencies:
             '@iconify/types': 2.0.0
@@ -29746,6 +29777,14 @@ snapshots:
             '@iconify/types': 2.0.0
 
     '@iconify-json/iconoir@1.2.11':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/material-symbols@1.2.70':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/mdi@1.2.3':
         dependencies:
             '@iconify/types': 2.0.0
 

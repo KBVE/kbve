@@ -2,7 +2,7 @@
 ref: eye
 name: Eye
 title: Eye Icon
-description: Eye glyph with 5 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Eye glyph with 6 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
 categories:
   - ui
@@ -16,6 +16,8 @@ tags:
   - merged-multi-source
   - octicons-generated
   - octicons
+  - fluent-generated
+  - fluent
 search:
   keywords:
     - eye
@@ -147,12 +149,34 @@ icons:
       - octicons
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M15.5 12a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0"/><path fill="currentColor" d="M12 3.5c3.432 0 6.124 1.534 8.054 3.241c1.926 1.703 3.132 3.61 3.616 4.46a1.6 1.6 0 0 1 0 1.598c-.484.85-1.69 2.757-3.616 4.461c-1.929 1.706-4.622 3.24-8.054 3.24s-6.124-1.534-8.054-3.24C2.02 15.558.814 13.65.33 12.8a1.6 1.6 0 0 1 0-1.598c.484-.85 1.69-2.757 3.616-4.462C5.875 5.034 8.568 3.5 12 3.5M1.633 11.945a.1.1 0 0 0-.017.055q.001.03.017.056c.441.774 1.551 2.527 3.307 4.08C6.691 17.685 9.045 19 12 19s5.31-1.315 7.06-2.864c1.756-1.553 2.866-3.306 3.307-4.08a.1.1 0 0 0 .017-.056a.1.1 0 0 0-.017-.056c-.441-.773-1.551-2.527-3.307-4.08C17.309 6.315 14.955 5 12 5S6.69 6.314 4.94 7.865c-1.756 1.552-2.866 3.306-3.307 4.08"/></svg>
+  - ref: fluent
+    label: Fluent
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - fluent
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M12 9.005a4 4 0 1 1 0 8a4 4 0 0 1 0-8m0 1.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5M12 5.5c4.613 0 8.596 3.15 9.701 7.564a.75.75 0 1 1-1.455.365a8.504 8.504 0 0 0-16.493.004a.75.75 0 0 1-1.456-.363A10 10 0 0 1 12 5.5"/></svg>
 pagefindFilters:
   - lucide
   - ui
   - heroicons
   - action
   - octicons
+  - fluent
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
@@ -166,5 +190,6 @@ Eye — 3 variants from the [Lucide icon library](https://lucide.dev/) (ISC).
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />

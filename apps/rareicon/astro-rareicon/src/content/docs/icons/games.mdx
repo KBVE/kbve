@@ -1,0 +1,51 @@
+---
+ref: games
+name: Games
+title: Games Icon
+description: Games glyph from the fluent icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [fluent-generated, fluent]
+search:
+  keywords: ["games","games-24-regular"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Fluent UI System Icons (https://github.com/microsoft/fluentui-system-icons) — MIT License"
+  author: Microsoft Corporation
+  source_url: "https://github.com/microsoft/fluentui-system-icons/tree/main/assets/games-24-regular"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "fluent"
+    label: "Fluent"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [fluent]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M14.998 5a7 7 0 0 1 .24 13.996l-.24.004H9.002a7 7 0 0 1-.24-13.996L9.001 5zm0 1.5H9.002a5.5 5.5 0 0 0-.221 10.996l.221.004h5.996a5.5 5.5 0 0 0 .221-10.996zM8 9a.75.75 0 0 1 .75.75v1.498h1.5a.75.75 0 0 1 0 1.5h-1.5v1.502a.75.75 0 0 1-1.5 0v-1.502h-1.5a.75.75 0 1 1 0-1.5h1.5V9.75A.75.75 0 0 1 8 9m6.75 3.5a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 0 1 0-2.5m2-3.5a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 0 1 0-2.5"/></svg>
+pagefindFilters: [fluent, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Games — glyph from the [Fluent icon library](https://github.com/microsoft/fluentui-system-icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

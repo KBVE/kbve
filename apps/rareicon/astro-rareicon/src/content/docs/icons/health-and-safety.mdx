@@ -1,0 +1,51 @@
+---
+ref: health-and-safety
+name: Health And Safety
+title: Health And Safety Icon
+description: Health And Safety glyph from the material-symbols icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [material-symbols-generated, material-symbols]
+search:
+  keywords: ["health-and-safety","health","and","safety","health and safety"]
+  primary_category: tech
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Symbols (https://fonts.google.com/icons) — Apache 2.0"
+  author: Google LLC
+  source_url: "https://fonts.google.com/icons?icon.query=health-and-safety"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "material-symbols"
+    label: "Material Symbols"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [material-symbols]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M10.5 15.5h3V13H16v-3h-2.5V7.5h-3V10H8v3h2.5zM12 22q-3.475-.875-5.738-3.988T4 11.1V5l8-3l8 3v6.1q0 3.8-2.262 6.913T12 22"/></svg>
+pagefindFilters: [material-symbols, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Health And Safety — glyph from the [Material Symbols icon library](https://fonts.google.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

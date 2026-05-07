@@ -2,7 +2,7 @@
 ref: wrench
 name: Wrench
 title: Wrench Icon
-description: Wrench glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Wrench glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
 categories:
   - ui
@@ -16,6 +16,8 @@ tags:
   - merged-multi-source
   - iconoir-generated
   - iconoir
+  - fluent-generated
+  - fluent
 search:
   keywords:
     - wrench
@@ -98,12 +100,34 @@ icons:
       - iconoir
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m10.05 10.607l-7.07 7.07a2 2 0 0 0 0 2.83v0a2 2 0 0 0 2.828 0l7.07-7.072m-2.828-2.828c-.844-2.153-.679-4.978 1.06-6.718s4.95-2.121 6.718-1.06l-3.04 3.04l-.283 3.111l3.111-.282l3.04-3.041c1.062 1.768.68 4.978-1.06 6.717c-1.74 1.74-4.564 1.905-6.717 1.061"/></svg>
+  - ref: fluent
+    label: Fluent
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - fluent
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M11 7.5a5.5 5.5 0 0 1 7.664-5.058a.75.75 0 0 1 .235 1.22L16.311 6.25l1.44 1.44l2.587-2.59a.75.75 0 0 1 1.22.236a5.5 5.5 0 0 1-6.344 7.512L6.902 21.16A2.871 2.871 0 1 1 2.84 17.1l8.311-8.312A5.5 5.5 0 0 1 11 7.5m5.5-4a4 4 0 0 0-3.794 5.27a.75.75 0 0 1-.181.768L3.902 18.16A1.371 1.371 0 0 0 5.84 20.1l8.624-8.625a.75.75 0 0 1 .768-.18a4 4 0 0 0 5.246-4.213l-1.845 1.844a1.25 1.25 0 0 1-1.767 0l-1.793-1.793a1.25 1.25 0 0 1 0-1.768l1.844-1.844A4 4 0 0 0 16.5 3.5"/></svg>
 pagefindFilters:
   - lucide
   - ui
   - phosphor
   - tech
   - iconoir
+  - fluent
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
@@ -117,5 +141,6 @@ Wrench — outline glyph from the [Lucide icon library](https://lucide.dev/) (IS
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />

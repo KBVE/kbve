@@ -1,0 +1,51 @@
+---
+ref: chess-queen
+name: Chess Queen
+title: Chess Queen Icon
+description: Chess Queen glyph from the mdi icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [mdi-generated, mdi]
+search:
+  keywords: ["chess-queen","chess","queen","chess queen"]
+  primary_category: game
+default_license:
+  license: apache_2
+  attribution_required: false
+  attribution_line: "Material Design Icons (https://pictogrammers.com/library/mdi/) — Apache 2.0"
+  author: Pictogrammers contributors
+  source_url: "https://pictogrammers.com/library/mdi/icon/chess-queen"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "mdi"
+    label: "Mdi"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [mdi]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M18 3a2 2 0 0 1 2 2c0 .81-.5 1.5-1.17 1.82L17 13.15V18H7v-4.85L5.17 6.82C4.5 6.5 4 5.81 4 5a2 2 0 0 1 2-2a2 2 0 0 1 2 2c0 .5-.18.95-.5 1.3l2.8 3.05l.53-3.73C10.33 5.26 10 4.67 10 4a2 2 0 0 1 2-2a2 2 0 0 1 2 2c0 .67-.33 1.26-.83 1.62l.53 3.73l2.77-3.06A2 2 0 0 1 16 5a2 2 0 0 1 2-2M5 20h14v2H5z"/></svg>
+pagefindFilters: [mdi, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Chess Queen — glyph from the [Mdi icon library](https://pictogrammers.com/library/mdi/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

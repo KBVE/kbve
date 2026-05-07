@@ -242,6 +242,7 @@ ${name} — outline glyph from the [Tabler Icons library](https://tabler.io/icon
 	primary_category={frontmatter.primary_category}
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
 	icons={frontmatter.icons}
 />
 `;

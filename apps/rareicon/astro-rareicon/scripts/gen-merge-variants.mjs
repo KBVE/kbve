@@ -47,6 +47,9 @@ const PACK_SUFFIXES = [
 	'octicon',
 	'iconoir',
 	'carbon',
+	'material',
+	'fluent',
+	'mdi',
 ];
 const PACK_RE = new RegExp(`^(.+)-(${PACK_SUFFIXES.join('|')})\\.mdx$`);
 
@@ -92,6 +95,9 @@ function isGenerated(frontmatter) {
 			t === 'octicons-generated' ||
 			t === 'iconoir-generated' ||
 			t === 'carbon-generated' ||
+			t === 'material-symbols-generated' ||
+			t === 'fluent-generated' ||
+			t === 'mdi-generated' ||
 			t === 'merged-multi-source');
 	return tags.some(sentinel);
 }
