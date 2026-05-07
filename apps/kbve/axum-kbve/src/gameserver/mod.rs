@@ -17,10 +17,11 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
-    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent,
-    GameChannel, ObjectRemoved, ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin,
-    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
+    AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest,
+    CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch, CreatureKind,
+    CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent, GameChannel,
+    ObjectRemoved, ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
 };
 
 /// Server tick rate: 20 Hz (matching client).
@@ -47,9 +48,40 @@ struct AuthenticatedClients(HashMap<Entity, String>);
 #[derive(Resource, Default)]
 struct ClientPlayerMap(HashMap<Entity, Entity>);
 
-/// Log of captured creature broadcasts — replayed to newly connected clients.
+/// Compact log of captured creatures — replayed to newly connected clients
+/// as a single [`CreatureCapturedBatch`] so join-time work is O(1) messages
+/// instead of O(captured) per join.
 #[derive(Resource, Default)]
-struct CapturedCreatureLog(Vec<CreatureCaptured>);
+struct CapturedCreatureLog(Vec<CapturedCreatureEntry>);
+
+/// Belt-and-suspenders fallback for the broadcast switch (issue #8189).
+///
+/// The optimized path uses [`ServerMultiMessageSender`] which serializes a
+/// message once and shares the bytes across all connected clients. If that
+/// path misbehaves in production, set `KBVE_LEGACY_BROADCAST=1` and restart
+/// the server to fall back to the original per-client `MessageSender::send`
+/// loop (one clone per connected client). No rebuild required.
+#[derive(Resource, Clone, Copy, Debug, Default)]
+struct LegacyBroadcastFlag(bool);
+
+impl LegacyBroadcastFlag {
+    fn from_env() -> Self {
+        let on = std::env::var("KBVE_LEGACY_BROADCAST")
+            .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+            .unwrap_or(false);
+        if on {
+            tracing::warn!(
+                "[gameserver] KBVE_LEGACY_BROADCAST=1 — using per-client clone fan-out (slower, see #8189)"
+            );
+        }
+        Self(on)
+    }
+
+    #[inline]
+    fn is_legacy(self) -> bool {
+        self.0
+    }
+}
 
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
@@ -610,6 +642,7 @@ fn run_bevy_app(
     app.init_resource::<WindState>();
     app.init_resource::<CapturedCreatures>();
     app.init_resource::<CapturedCreatureLog>();
+    app.insert_resource(LegacyBroadcastFlag::from_env());
     app.insert_resource(npcdb::build_creature_registry());
     app.init_resource::<TimeSyncTimer>();
     app.init_resource::<CreatureSyncTimer>();
@@ -1594,7 +1627,10 @@ fn process_collect_requests(
     mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
     positions: Query<&Position>,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
-    mut senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
+    legacy: Res<LegacyBroadcastFlag>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
+    mut legacy_senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -1651,8 +1687,24 @@ fn process_collect_requests(
                 kind,
                 collector_id,
             };
-            for mut sender in &mut senders {
-                sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
+            if legacy.is_legacy() {
+                // Suspenders: per-client clone loop (legacy path).
+                for mut sender in &mut legacy_senders {
+                    sender.send::<bevy_kbve_net::GameChannel>(removal.clone());
+                }
+            } else {
+                // Belt: serialize once, fan out the bytes.
+                for server in &servers {
+                    let _ = multi
+                        .send::<ObjectRemoved, bevy_kbve_net::GameChannel>(
+                            &removal,
+                            server,
+                            &NetworkTarget::All,
+                        )
+                        .inspect_err(|e| {
+                            tracing::error!("[gameserver] ObjectRemoved broadcast failed: {e}")
+                        });
+                }
             }
         }
     }
@@ -1662,7 +1714,10 @@ fn process_collect_requests(
 fn tick_respawns(
     time: Res<Time>,
     mut collected: ResMut<CollectedObjects>,
-    mut senders: Query<&mut MessageSender<ObjectRespawned>, With<Connected>>,
+    legacy: Res<LegacyBroadcastFlag>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
+    mut legacy_senders: Query<&mut MessageSender<ObjectRespawned>, With<Connected>>,
 ) {
     let now = time.elapsed_secs_f64();
     let mut respawned = Vec::new();
@@ -1684,8 +1739,22 @@ fn tick_respawns(
             );
 
             let msg = ObjectRespawned { tile, kind };
-            for mut sender in &mut senders {
-                sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+            if legacy.is_legacy() {
+                for mut sender in &mut legacy_senders {
+                    sender.send::<bevy_kbve_net::GameChannel>(msg.clone());
+                }
+            } else {
+                for server in &servers {
+                    let _ = multi
+                        .send::<ObjectRespawned, bevy_kbve_net::GameChannel>(
+                            &msg,
+                            server,
+                            &NetworkTarget::All,
+                        )
+                        .inspect_err(|e| {
+                            tracing::error!("[gameserver] ObjectRespawned broadcast failed: {e}")
+                        });
+                }
             }
         }
     }
@@ -1701,7 +1770,10 @@ fn process_creature_captures(
         Without<PendingAuth>,
     >,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
-    mut senders: Query<&mut MessageSender<CreatureCaptured>, With<Connected>>,
+    legacy: Res<LegacyBroadcastFlag>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
+    mut legacy_senders: Query<&mut MessageSender<CreatureCaptured>, With<Connected>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -1737,9 +1809,26 @@ fn process_creature_captures(
                 kind: msg.kind,
                 captor_player_id: captor_id,
             };
-            capture_log.0.push(broadcast.clone());
-            for mut sender in &mut senders {
-                sender.send::<GameChannel>(broadcast.clone());
+            capture_log.0.push(CapturedCreatureEntry {
+                creature_id: msg.creature_id,
+                kind: msg.kind,
+            });
+            if legacy.is_legacy() {
+                for mut sender in &mut legacy_senders {
+                    sender.send::<GameChannel>(broadcast.clone());
+                }
+            } else {
+                for server in &servers {
+                    let _ = multi
+                        .send::<CreatureCaptured, GameChannel>(
+                            &broadcast,
+                            server,
+                            &NetworkTarget::All,
+                        )
+                        .inspect_err(|e| {
+                            tracing::error!("[gameserver] CreatureCaptured broadcast failed: {e}")
+                        });
+                }
             }
         }
     }
@@ -1909,7 +1998,10 @@ fn broadcast_creature_sync(
     )>,
     types: Res<bevy_kbve_net::creatures::types::SpriteCreatureTypes>,
     player_positions: Res<bevy_kbve_net::creatures::types::PlayerPositions>,
-    mut senders: Query<&mut MessageSender<CreaturePositionSync>, With<Connected>>,
+    legacy: Res<LegacyBroadcastFlag>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
+    mut legacy_senders: Query<&mut MessageSender<CreaturePositionSync>, With<Connected>>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -1962,8 +2054,24 @@ fn broadcast_creature_sync(
                 npc_ref: ctype.npc_ref.to_string(),
                 snapshots,
             };
-            for mut sender in &mut senders {
-                sender.send::<CreatureSyncChannel>(msg.clone());
+            if legacy.is_legacy() {
+                for mut sender in &mut legacy_senders {
+                    sender.send::<CreatureSyncChannel>(msg.clone());
+                }
+            } else {
+                for server in &servers {
+                    let _ = multi
+                        .send::<CreaturePositionSync, CreatureSyncChannel>(
+                            &msg,
+                            server,
+                            &NetworkTarget::All,
+                        )
+                        .inspect_err(|e| {
+                            tracing::error!(
+                                "[gameserver] CreaturePositionSync (sprite) broadcast failed: {e}"
+                            )
+                        });
+                }
             }
         }
     }
@@ -2002,8 +2110,24 @@ fn broadcast_creature_sync(
             npc_ref: npc_ref.to_string(),
             snapshots,
         };
-        for mut sender in &mut senders {
-            sender.send::<CreatureSyncChannel>(msg.clone());
+        if legacy.is_legacy() {
+            for mut sender in &mut legacy_senders {
+                sender.send::<CreatureSyncChannel>(msg.clone());
+            }
+        } else {
+            for server in &servers {
+                let _ = multi
+                    .send::<CreaturePositionSync, CreatureSyncChannel>(
+                        &msg,
+                        server,
+                        &NetworkTarget::All,
+                    )
+                    .inspect_err(|e| {
+                        tracing::error!(
+                            "[gameserver] CreaturePositionSync (ambient) broadcast failed: {e}"
+                        )
+                    });
+            }
         }
     }
 }
@@ -2015,7 +2139,10 @@ fn broadcast_time_sync(
     day: Res<DayCycle>,
     seed: Res<CreatureSeed>,
     wind: Res<WindState>,
-    mut senders: Query<&mut MessageSender<TimeSyncMessage>, With<Connected>>,
+    legacy: Res<LegacyBroadcastFlag>,
+    mut multi: ServerMultiMessageSender<With<Connected>>,
+    servers: Query<&Server>,
+    mut legacy_senders: Query<&mut MessageSender<TimeSyncMessage>, With<Connected>>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -2030,8 +2157,19 @@ fn broadcast_time_sync(
         wind_direction: wind.direction,
     };
 
-    for mut sender in &mut senders {
-        sender.send::<TimeChannel>(msg.clone());
+    if legacy.is_legacy() {
+        for mut sender in &mut legacy_senders {
+            sender.send::<TimeChannel>(msg.clone());
+        }
+    } else {
+        // Single serialize, multi-fan-out — was 1 clone per connected client every 5s.
+        for server in &servers {
+            let _ = multi
+                .send::<TimeSyncMessage, TimeChannel>(&msg, server, &NetworkTarget::All)
+                .inspect_err(|e| {
+                    tracing::error!("[gameserver] TimeSyncMessage broadcast failed: {e}")
+                });
+        }
     }
 }
 
@@ -2061,10 +2199,14 @@ fn send_time_sync_to_new_clients(
 }
 
 /// When a new client authenticates, send them all currently captured creatures
-/// so they know which ones are unavailable.
+/// in a single batch so they know which ones are unavailable.
+///
+/// Replaces N per-creature `CreatureCaptured` sends with one
+/// `CreatureCapturedBatch`, dropping join-time message volume from
+/// O(captured) to O(1) per joining client.
 fn send_captured_state_to_new_clients(
     capture_log: Res<CapturedCreatureLog>,
-    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), With<NeedsWorldSync>>,
+    mut senders: Query<(Entity, &mut MessageSender<CreatureCapturedBatch>), With<NeedsWorldSync>>,
 ) {
     if capture_log.0.is_empty() {
         return;
@@ -2072,13 +2214,13 @@ fn send_captured_state_to_new_clients(
 
     for (entity, mut sender) in &mut senders {
         tracing::info!(
-            "[gameserver] sending {} captured creatures to new client {entity:?}",
+            "[gameserver] sending {} captured creatures (batched) to new client {entity:?}",
             capture_log.0.len()
         );
 
-        for msg in &capture_log.0 {
-            sender.send::<GameChannel>(msg.clone());
-        }
+        sender.send::<GameChannel>(CreatureCapturedBatch {
+            entries: capture_log.0.clone(),
+        });
     }
 }
 
@@ -2107,5 +2249,59 @@ fn timeout_pending_auth(
             );
             commands.entity(entity).despawn();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LegacyBroadcastFlag;
+
+    /// `LegacyBroadcastFlag` defaults to the optimized path.
+    #[test]
+    fn legacy_flag_default_is_optimized() {
+        let flag = LegacyBroadcastFlag::default();
+        assert!(
+            !flag.is_legacy(),
+            "Default must be the optimized broadcast path"
+        );
+    }
+
+    /// `LegacyBroadcastFlag::from_env` parses truthy values consistently.
+    ///
+    /// This test mutates the process-wide `KBVE_LEGACY_BROADCAST` env var
+    /// inside a single test fn so set/clear pairs stay ordered. Other tests
+    /// in this crate must not read the same var.
+    #[test]
+    fn legacy_flag_env_parsing() {
+        // SAFETY: tests in this fn drive a single env var serially. No other
+        // test reads `KBVE_LEGACY_BROADCAST`.
+        for (val, expected) in [
+            ("1", true),
+            ("true", true),
+            ("TRUE", true),
+            ("yes", true),
+            ("YES", true),
+            ("0", false),
+            ("false", false),
+            ("anything-else", false),
+        ] {
+            // SAFETY: serial within this test; no concurrent readers.
+            unsafe {
+                std::env::set_var("KBVE_LEGACY_BROADCAST", val);
+            }
+            assert_eq!(
+                LegacyBroadcastFlag::from_env().is_legacy(),
+                expected,
+                "KBVE_LEGACY_BROADCAST={val} should produce is_legacy={expected}"
+            );
+        }
+        // SAFETY: cleanup, serial within this test.
+        unsafe {
+            std::env::remove_var("KBVE_LEGACY_BROADCAST");
+        }
+        assert!(
+            !LegacyBroadcastFlag::from_env().is_legacy(),
+            "Unset → false"
+        );
     }
 }

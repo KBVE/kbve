@@ -183,6 +183,26 @@ pub struct CreatureCaptured {
     pub captor_player_id: u64,
 }
 
+/// Compact entry inside a [`CreatureCapturedBatch`].
+///
+/// Sent on initial join only — `captor_player_id` is omitted because catch-up
+/// state never grants loot to the joining client.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub struct CapturedCreatureEntry {
+    pub creature_id: u128,
+    pub kind: CreatureKind,
+}
+
+/// Server sends the full set of currently-captured creatures to a newly
+/// connected client in a **single** message.
+///
+/// Replaces N individual [`CreatureCaptured`] sends per join, eliminating the
+/// O(captured × joins) message storm noted in issue #8189.
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct CreatureCapturedBatch {
+    pub entries: Vec<CapturedCreatureEntry>,
+}
+
 // ---------------------------------------------------------------------------
 // Creature interaction messages
 // ---------------------------------------------------------------------------
@@ -339,6 +359,9 @@ impl Plugin for ProtocolPlugin {
         // CreatureCaptured: server → all clients
         app.register_message::<CreatureCaptured>()
             .add_direction(NetworkDirection::ServerToClient);
+        // CreatureCapturedBatch: server → newly joined client (catch-up snapshot)
+        app.register_message::<CreatureCapturedBatch>()
+            .add_direction(NetworkDirection::ServerToClient);
 
         // CreatureAttackRequest: client → server
         app.register_message::<CreatureAttackRequest>()
@@ -382,5 +405,33 @@ impl Plugin for ProtocolPlugin {
 
         // LinearVelocity: predicted with rollback
         app.register_component::<LinearVelocity>().add_prediction();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn creature_captured_batch_default_is_empty() {
+        let batch = CreatureCapturedBatch::default();
+        assert!(batch.entries.is_empty());
+    }
+
+    #[test]
+    fn captured_creature_entry_holds_full_id() {
+        // u128 must round-trip without truncation (catches accidental u64 swap).
+        let entry = CapturedCreatureEntry {
+            creature_id: u128::MAX,
+            kind: CreatureKind::Firefly,
+        };
+        assert_eq!(entry.creature_id, u128::MAX);
+        assert_eq!(entry.kind, CreatureKind::Firefly);
+    }
+
+    #[test]
+    fn creature_kind_equality() {
+        assert_eq!(CreatureKind::Firefly, CreatureKind::Firefly);
+        assert_ne!(CreatureKind::Firefly, CreatureKind::Frog);
     }
 }
