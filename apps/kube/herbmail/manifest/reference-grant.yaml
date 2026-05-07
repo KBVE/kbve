@@ -1,0 +1,17 @@
+# Allow kbve-gateway (in the kbve namespace) to read the herbmail-tls
+# Secret minted by the Certificate in this namespace, so the gateway's
+# HTTPS listener can serve a real cert for herbmail.com without TLS
+# Secrets having to live in the kbve namespace.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+    name: allow-gateway-tls
+    namespace: herbmail
+spec:
+    from:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          namespace: kbve
+    to:
+        - group: ''
+          kind: Secret
