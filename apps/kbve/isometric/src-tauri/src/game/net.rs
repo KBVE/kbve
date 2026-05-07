@@ -18,9 +18,9 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
-    PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
-    SetUsernameRequest, SetUsernameResponse, TileKey, TimeSyncMessage,
+    CreatureCapturedBatch, CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved,
+    ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate,
+    ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -278,6 +278,7 @@ impl Plugin for NetPlugin {
 
         // Receive creature capture broadcasts from server
         app.add_systems(Update, receive_creature_captured);
+        app.add_systems(Update, receive_creature_captured_batch);
 
         // Username display systems
         app.add_systems(
@@ -1825,26 +1826,67 @@ fn receive_creature_captured(
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
-            // Record in shared capture tracker
-            captured.insert(msg.creature_id);
+            info!(
+                "[net] creature captured: {:?} ulid={} by player={}",
+                msg.kind, msg.creature_id, msg.captor_player_id
+            );
+            apply_captured(
+                msg.creature_id,
+                msg.kind,
+                &mut captured,
+                &creature_index,
+                &mut creatures,
+            );
+        }
+    }
+}
 
-            // Find by ULID
-            let entity = creature_index.0.get(&msg.creature_id).copied();
+/// Apply a single captured-creature record to local pool state.
+///
+/// Shared by both the per-event receiver and the join-time batch receiver so
+/// the marking logic stays in one place.
+fn apply_captured(
+    creature_id: u128,
+    kind: CreatureKind,
+    captured: &mut CapturedCreatures,
+    creature_index: &crate::game::creatures::generic::net_events::CreatureIdIndex,
+    creatures: &mut Query<(&mut Creature, &mut Visibility)>,
+) {
+    captured.insert(creature_id);
+    let Some(entity) = creature_index.0.get(&creature_id).copied() else {
+        warn!("[net] captured ulid={creature_id} (kind={kind:?}) not in pool index");
+        return;
+    };
+    if let Ok((mut creature, mut vis)) = creatures.get_mut(entity) {
+        creature.state = CreatureState::Captured;
+        creature.assigned_slot = None;
+        *vis = Visibility::Hidden;
+    }
+}
 
-            if let Some(entity) = entity {
-                if let Ok((mut creature, mut vis)) = creatures.get_mut(entity) {
-                    creature.state = CreatureState::Captured;
-                    creature.assigned_slot = None;
-                    *vis = Visibility::Hidden;
-                    info!(
-                        "[net] creature captured: {:?} ulid={} by player={}",
-                        msg.kind, msg.creature_id, msg.captor_player_id
-                    );
-                }
-            } else {
-                warn!(
-                    "[net] received CreatureCaptured for {:?} ulid={} but no matching entity found",
-                    msg.kind, msg.creature_id
+/// Receive a [`CreatureCapturedBatch`] catch-up snapshot on join.
+///
+/// The server now sends one batch instead of N individual `CreatureCaptured`
+/// messages, so this system handles the join-time fast path.
+fn receive_creature_captured_batch(
+    mut captured: ResMut<CapturedCreatures>,
+    creature_index: Res<crate::game::creatures::generic::net_events::CreatureIdIndex>,
+    mut query: Query<(Entity, &mut MessageReceiver<CreatureCapturedBatch>)>,
+    mut creatures: Query<(&mut Creature, &mut Visibility)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for batch in receiver.receive() {
+            info!(
+                "[net] received CreatureCapturedBatch ({} entries)",
+                batch.entries.len()
+            );
+            for entry in batch.entries {
+                apply_captured(
+                    entry.creature_id,
+                    entry.kind,
+                    &mut captured,
+                    &creature_index,
+                    &mut creatures,
                 );
             }
         }

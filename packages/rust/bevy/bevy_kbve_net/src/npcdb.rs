@@ -572,3 +572,65 @@ pub fn slot_anchor(seed: u32, cx: i32, cz: i32, chunk_size: f32) -> Vec3 {
 pub fn slot_active(seed: u32, spawn_chance: f32) -> bool {
     hash_f32(seed.wrapping_add(3)) < spawn_chance
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn slot_seed_is_deterministic() {
+        let a = slot_seed(0xdead_beef, -3, 5, 7);
+        let b = slot_seed(0xdead_beef, -3, 5, 7);
+        assert_eq!(a, b, "same inputs must produce same slot seed");
+    }
+
+    #[test]
+    fn slot_seed_diverges_on_different_chunks() {
+        let a = slot_seed(0xdead_beef, 0, 0, 0);
+        let b = slot_seed(0xdead_beef, 1, 0, 0);
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn hash_f32_in_unit_range() {
+        for seed in [0u32, 1, 0xffff_ffff, 12345] {
+            let v = hash_f32(seed);
+            assert!((0.0..1.0).contains(&v), "hash_f32 returned {v}");
+        }
+    }
+
+    #[test]
+    fn slot_active_thresholds() {
+        // chance=0.0 → never active; chance=1.0 → always active.
+        for seed in 0u32..256 {
+            assert!(!slot_active(seed, 0.0));
+            assert!(slot_active(seed, 1.0));
+        }
+    }
+
+    #[test]
+    fn slot_anchor_within_chunk_bounds() {
+        let chunk = 10.0;
+        for cx in -3..=3 {
+            for cz in -3..=3 {
+                let v = slot_anchor(slot_seed(1, cx, cz, 0), cx, cz, chunk);
+                assert!(v.x >= cx as f32 * chunk && v.x < (cx as f32 + 1.0) * chunk);
+                assert!(v.z >= cz as f32 * chunk && v.z < (cz as f32 + 1.0) * chunk);
+            }
+        }
+    }
+
+    #[test]
+    fn build_creature_registry_has_known_creatures() {
+        let registry = build_creature_registry();
+        // Pinning the known set lets us catch accidental drops.
+        assert!(registry.config_by_ref("meadow-firefly").is_some());
+        assert!(registry.config_by_ref("woodland-butterfly").is_some());
+        assert!(registry.config_by_ref("green-toad").is_some());
+        assert!(registry.config_by_ref("forest-wolf").is_some());
+
+        // iter_creatures yields config + npc together.
+        let count = registry.iter_creatures().count();
+        assert_eq!(count, registry.creature_ids.len());
+    }
+}

@@ -17,10 +17,11 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
-    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent,
-    GameChannel, ObjectRemoved, ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin,
-    SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
+    AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest,
+    CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch, CreatureKind,
+    CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent, GameChannel,
+    ObjectRemoved, ObjectRespawned, PlayerName, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, TileKey, TimeChannel, TimeSyncMessage,
 };
 
 /// Server tick rate: 20 Hz (matching client).
@@ -47,9 +48,11 @@ struct AuthenticatedClients(HashMap<Entity, String>);
 #[derive(Resource, Default)]
 struct ClientPlayerMap(HashMap<Entity, Entity>);
 
-/// Log of captured creature broadcasts — replayed to newly connected clients.
+/// Compact log of captured creatures — replayed to newly connected clients
+/// as a single [`CreatureCapturedBatch`] so join-time work is O(1) messages
+/// instead of O(captured) per join.
 #[derive(Resource, Default)]
-struct CapturedCreatureLog(Vec<CreatureCaptured>);
+struct CapturedCreatureLog(Vec<CapturedCreatureEntry>);
 
 /// Marker: client has not yet sent a valid AuthMessage.
 #[derive(Component)]
@@ -1737,7 +1740,10 @@ fn process_creature_captures(
                 kind: msg.kind,
                 captor_player_id: captor_id,
             };
-            capture_log.0.push(broadcast.clone());
+            capture_log.0.push(CapturedCreatureEntry {
+                creature_id: msg.creature_id,
+                kind: msg.kind,
+            });
             for mut sender in &mut senders {
                 sender.send::<GameChannel>(broadcast.clone());
             }
@@ -2061,10 +2067,14 @@ fn send_time_sync_to_new_clients(
 }
 
 /// When a new client authenticates, send them all currently captured creatures
-/// so they know which ones are unavailable.
+/// in a single batch so they know which ones are unavailable.
+///
+/// Replaces N per-creature `CreatureCaptured` sends with one
+/// `CreatureCapturedBatch`, dropping join-time message volume from
+/// O(captured) to O(1) per joining client.
 fn send_captured_state_to_new_clients(
     capture_log: Res<CapturedCreatureLog>,
-    mut senders: Query<(Entity, &mut MessageSender<CreatureCaptured>), With<NeedsWorldSync>>,
+    mut senders: Query<(Entity, &mut MessageSender<CreatureCapturedBatch>), With<NeedsWorldSync>>,
 ) {
     if capture_log.0.is_empty() {
         return;
@@ -2072,13 +2082,13 @@ fn send_captured_state_to_new_clients(
 
     for (entity, mut sender) in &mut senders {
         tracing::info!(
-            "[gameserver] sending {} captured creatures to new client {entity:?}",
+            "[gameserver] sending {} captured creatures (batched) to new client {entity:?}",
             capture_log.0.len()
         );
 
-        for msg in &capture_log.0 {
-            sender.send::<GameChannel>(msg.clone());
-        }
+        sender.send::<GameChannel>(CreatureCapturedBatch {
+            entries: capture_log.0.clone(),
+        });
     }
 }
 
