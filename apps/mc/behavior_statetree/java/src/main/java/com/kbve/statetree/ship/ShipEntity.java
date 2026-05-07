@@ -19,6 +19,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,9 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
     private static final TrackedData<Float> FUEL_LEVEL =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    /** Packed upgrade list (comma-separated registry IDs) for client visibility. */
+    private static final TrackedData<String> UPGRADES_CSV =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 
     public static final float MAX_HEALTH = 100.0f;
     public static final float MAX_FUEL = 1000.0f;
@@ -61,9 +65,14 @@ public class ShipEntity extends Entity {
     private double lastY = 0.0;
     private float inWaterLevel = 0.0f;
 
-    // Cached stats — refreshed when model changes.
+    // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
     private String statsCacheKey = "";
+    private int upgradesHashCache = 0;
+
+    // Installed upgrade items — server-authoritative; NBT-persisted.
+    // Capped at ShipUpgrades.MAX_SLOTS.
+    private final List<net.minecraft.item.Item> upgrades = new ArrayList<>();
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
@@ -129,14 +138,45 @@ public class ShipEntity extends Entity {
 
     public FlightStats getStats() {
         String key = getModelName();
-        if (!key.equals(statsCacheKey)) {
-            statsCache = FlightStatsRegistry.get(key);
+        int upgradesHash = upgrades.hashCode();
+        if (!key.equals(statsCacheKey) || upgradesHash != upgradesHashCache) {
+            FlightStats base = FlightStatsRegistry.get(key);
+            statsCache = upgrades.isEmpty() ? base : ShipUpgrades.apply(base, upgrades);
             statsCacheKey = key;
+            upgradesHashCache = upgradesHash;
             // Refresh smoothing reaction times for the new profile.
             enginePower.setSteps(statsCache.engineReaction());
             verticalDrive.setSteps(statsCache.verticalReaction());
         }
         return statsCache;
+    }
+
+    /** Read-only view of installed upgrade items (server-side authoritative). */
+    public List<net.minecraft.item.Item> getUpgrades() {
+        return java.util.Collections.unmodifiableList(upgrades);
+    }
+
+    /** Number of installed upgrades — client reads via TrackedData. */
+    public int getUpgradeCount() {
+        String csv = this.dataTracker.get(UPGRADES_CSV);
+        if (csv.isEmpty()) return 0;
+        int count = 1;
+        for (int i = 0; i < csv.length(); i++) if (csv.charAt(i) == ',') count++;
+        return count;
+    }
+
+    /** Comma-separated installed upgrade registry IDs (synced to client). */
+    public String getUpgradesCsv() {
+        return this.dataTracker.get(UPGRADES_CSV);
+    }
+
+    private void syncUpgradesCsv() {
+        StringBuilder packed = new StringBuilder();
+        for (int i = 0; i < upgrades.size(); i++) {
+            if (i > 0) packed.append(',');
+            packed.append(net.minecraft.registry.Registries.ITEM.getId(upgrades.get(i)).toString());
+        }
+        this.dataTracker.set(UPGRADES_CSV, packed.toString());
     }
 
     // -- Damage / interact --------------------------------------------------
@@ -158,6 +198,10 @@ public class ShipEntity extends Entity {
     }
 
     private void destroyAndExplode(ServerWorld world) {
+        // Drop installed upgrades so the player can salvage them.
+        for (net.minecraft.item.Item u : upgrades) {
+            this.dropStack(world, new net.minecraft.item.ItemStack(u));
+        }
         if (getStats().canExplodeOnCrash()) {
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
                     2.5f, World.ExplosionSourceType.MOB);
@@ -180,9 +224,49 @@ public class ShipEntity extends Entity {
 
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
-        if (player.isSneaking()) return ActionResult.PASS;
-
         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+
+        // Sneak interactions = upgrade slot management.
+        if (player.isSneaking()) {
+            // Sneak + empty hand → eject all upgrades to the ground.
+            if (stack.isEmpty()) {
+                if (!upgrades.isEmpty() && !this.getEntityWorld().isClient()) {
+                    for (net.minecraft.item.Item u : upgrades) {
+                        this.dropStack((ServerWorld) this.getEntityWorld(),
+                                new net.minecraft.item.ItemStack(u));
+                    }
+                    int n = upgrades.size();
+                    upgrades.clear();
+                    upgradesHashCache = -1;
+                    syncUpgradesCsv();
+                    player.sendMessage(net.minecraft.text.Text.of(
+                            "Ejected " + n + " upgrade" + (n == 1 ? "" : "s")), true);
+                }
+                return ActionResult.SUCCESS;
+            }
+            // Sneak + upgrade item → install in next free slot.
+            if (ShipUpgrades.isUpgrade(stack.getItem())) {
+                if (upgrades.size() >= ShipUpgrades.MAX_SLOTS) {
+                    if (!this.getEntityWorld().isClient()) {
+                        player.sendMessage(net.minecraft.text.Text.of(
+                                "Upgrade slots full (" + ShipUpgrades.MAX_SLOTS + ")"), true);
+                    }
+                    return ActionResult.PASS;
+                }
+                upgrades.add(stack.getItem());
+                upgradesHashCache = -1;
+                syncUpgradesCsv();
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+                if (!this.getEntityWorld().isClient()) {
+                    player.sendMessage(net.minecraft.text.Text.of(
+                            "Installed " + stack.getItem().getName().getString()
+                                    + " (" + upgrades.size() + "/" + ShipUpgrades.MAX_SLOTS + ")"),
+                            true);
+                }
+                return ActionResult.SUCCESS;
+            }
+            return ActionResult.PASS;
+        }
 
         // Repair: iron ingot → +25 HP per ingot.
         if (stack.isOf(net.minecraft.item.Items.IRON_INGOT) && getShipHealth() < MAX_HEALTH) {
@@ -451,6 +535,7 @@ public class ShipEntity extends Entity {
         builder.add(TARGET_SPEED, 0.0f);
         builder.add(VERTICAL_INTENT, 0.0f);
         builder.add(FUEL_LEVEL, MAX_FUEL);
+        builder.add(UPGRADES_CSV, "");
     }
 
     @Override
@@ -464,6 +549,20 @@ public class ShipEntity extends Entity {
         setTargetSpeed(view.getFloat("TargetSpeed", 0.0f));
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
         setFuelLevel(view.getFloat("FuelLevel", MAX_FUEL));
+
+        upgrades.clear();
+        String packed = view.getString("Upgrades", "");
+        if (!packed.isEmpty()) {
+            for (String idStr : packed.split(",")) {
+                if (idStr.isEmpty()) continue;
+                net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(idStr);
+                if (id == null) continue;
+                net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(id);
+                if (item != net.minecraft.item.Items.AIR) upgrades.add(item);
+            }
+        }
+        upgradesHashCache = -1;
+        syncUpgradesCsv();
     }
 
     @Override
@@ -477,5 +576,12 @@ public class ShipEntity extends Entity {
         view.putFloat("TargetSpeed", getTargetSpeed());
         view.putFloat("ShipHealth", getShipHealth());
         view.putFloat("FuelLevel", getFuelLevel());
+
+        StringBuilder packed = new StringBuilder();
+        for (int i = 0; i < upgrades.size(); i++) {
+            if (i > 0) packed.append(',');
+            packed.append(net.minecraft.registry.Registries.ITEM.getId(upgrades.get(i)).toString());
+        }
+        view.putString("Upgrades", packed.toString());
     }
 }

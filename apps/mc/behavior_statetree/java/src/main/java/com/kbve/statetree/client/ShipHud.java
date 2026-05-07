@@ -23,6 +23,8 @@ public class ShipHud implements HudRenderCallback {
     private float maxFuel = 1000f;
     private float enginePower = 0f;
     private boolean fuelLow = false;
+    private int upgradeCount = 0;
+    private int maxUpgradeSlots = 4;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -72,6 +74,11 @@ public class ShipHud implements HudRenderCallback {
 
     public void setEnginePower(float enginePower) {
         this.enginePower = enginePower;
+    }
+
+    public void setUpgrades(int count, int maxSlots) {
+        this.upgradeCount = count;
+        this.maxUpgradeSlots = maxSlots;
     }
 
     public boolean isActive() {
@@ -206,6 +213,11 @@ public class ShipHud implements HudRenderCallback {
         int controlsWidth = client.textRenderer.getWidth(controls);
         context.drawText(client.textRenderer, Text.of("§7" + controls),
                 screenWidth - controlsWidth - 10, screenHeight - 15, 0x999999, true);
+
+        // Upgrade slots indicator (top-left).
+        String upgText = String.format("§bUPGRADES %d/%d", upgradeCount, maxUpgradeSlots);
+        context.drawText(client.textRenderer, Text.of(upgText),
+                10, 10, 0xFFFFFFFF, true);
     }
 
     private static void drawCenteredChar(DrawContext context, MinecraftClient client,
