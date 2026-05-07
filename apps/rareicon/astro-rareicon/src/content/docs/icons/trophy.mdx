@@ -2,40 +2,84 @@
 ref: trophy
 name: Trophy
 title: Trophy Icon
-description: Trophy glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Trophy glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - game
+tags:
+  - lucide
+  - outline
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
 search:
-  keywords: ["trophy"]
+  keywords:
+    - trophy
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/trophy"
+  source_url: https://lucide.dev/icons/trophy
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - phosphor
+  - game
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

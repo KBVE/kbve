@@ -2,55 +2,135 @@
 ref: tent
 name: Tent
 title: Tent Icon
-description: Tent glyph set from the Lucide icon library (ISC), 2 variants — outline stroke, recolor via currentColor.
+description: Tent glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - game
+tags:
+  - lucide
+  - outline
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
+  - tabler-generated
 search:
-  keywords: ["tent", "tree"]
+  keywords:
+    - tent
+    - tree
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/tent"
+  source_url: https://lucide.dev/icons/tent
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 21 14 3"/><path d="M20.5 21 10 3"/><path d="M15.5 21 12 15l-3.5 6"/><path d="M2 21h20"/></svg>
-  - ref: "tree"
-    label: "Tree"
+  - ref: tree
+    label: Tree
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="4" r="2"/><path d="m14 5 3-3 3 3"/><path d="m14 10 3-3 3 3"/><path d="M17 14V2"/><path d="M17 14H7l-5 8h20Z"/><path d="M8 14v8"/><path d="m9 14 5 8"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M255.31,188.75l-64-144A8,8,0,0,0,184,40H72a8,8,0,0,0-7.27,4.69.21.21,0,0,0,0,.06l0,.12,0,0L.69,188.75A8,8,0,0,0,8,200H248a8,8,0,0,0,7.31-11.25ZM64,184H20.31L64,85.7Zm16,0V85.7L123.69,184Zm61.2,0L84.31,56H178.8l56.89,128Z"/></svg>
+  - ref: tabler-outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 14l4 6h6l-9 -16l-9 16h6l4 -6" /></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - phosphor
+  - game
+  - tabler
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

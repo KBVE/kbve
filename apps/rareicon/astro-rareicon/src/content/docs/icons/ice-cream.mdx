@@ -1,0 +1,98 @@
+---
+ref: ice-cream
+name: Ice Cream
+title: Ice Cream Icon
+description: Ice Cream glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+primary_category: commerce
+categories:
+  - commerce
+  - library
+tags:
+  - tabler-generated
+  - outline
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
+search:
+  keywords:
+    - ice-cream
+    - ice
+    - cream
+    - ice cream
+  primary_category: commerce
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: Tabler Icons (https://tabler.io/icons) — MIT License
+  author: Tabler Icons contributors
+  source_url: https://tabler.io/icons/icon/ice-cream
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5v-4.5" /> <path d="M8 17h8v-10a4 4 0 1 0 -8 0v10" /> <path d="M8 10.5l8 -3.5" /> <path d="M8 14.5l8 -3.5" /></svg>
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,97.37V96A80,80,0,0,0,48,96v1.37A24,24,0,0,0,56,144h3.29l54.82,95.94a16,16,0,0,0,27.78,0L196.71,144H200a24,24,0,0,0,8-46.63ZM77.71,144H97.07l40.61,71.06L128,232Zm57.08,0,21.75,38.06-9.65,16.88L115.5,144Zm31,21.94L153.21,144h25.08ZM200,128H56a8,8,0,0,1,0-16,8,8,0,0,0,8-8V96a64,64,0,0,1,128,0v8a8,8,0,0,0,8,8,8,8,0,0,1,0,16Z"/></svg>
+pagefindFilters:
+  - tabler
+  - commerce
+  - phosphor
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Ice Cream — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

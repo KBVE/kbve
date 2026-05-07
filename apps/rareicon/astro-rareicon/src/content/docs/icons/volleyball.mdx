@@ -2,40 +2,85 @@
 ref: volleyball
 name: Volleyball
 title: Volleyball Icon
-description: Volleyball glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Volleyball glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - game
+tags:
+  - lucide
+  - outline
+  - tabler-generated
+  - merged-multi-source
 search:
-  keywords: ["volleyball"]
+  keywords:
+    - volleyball
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/volleyball"
+  source_url: https://lucide.dev/icons/volleyball
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5"/><circle cx="12" cy="12" r="10"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: tabler-outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /> <path d="M12 12a8 8 0 0 0 8 4" /> <path d="M7.5 13.5a12 12 0 0 0 8.5 6.5" /> <path d="M12 12a8 8 0 0 0 -7.464 4.928" /> <path d="M12.951 7.353a12 12 0 0 0 -9.88 4.111" /> <path d="M12 12a8 8 0 0 0 -.536 -8.928" /> <path d="M15.549 15.147a12 12 0 0 0 1.38 -10.611" /></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - tabler
+  - game
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

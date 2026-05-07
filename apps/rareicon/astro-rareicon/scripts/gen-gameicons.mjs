@@ -137,10 +137,70 @@ const CURATED = [
 	// Misc gamedev
 	{ slug: 'dice-six-faces-five', ref: 'dice-five', cat: 'game' },
 	{ slug: 'rolling-dices', ref: 'rolling-dices', cat: 'game' },
-	{ slug: 'level-up', ref: 'level-up', cat: 'game' },
-	{ slug: 'experience', ref: 'experience', cat: 'game' },
-	{ slug: 'power-lightning', ref: 'power-lightning', cat: 'game' },
 	{ slug: 'invisible', ref: 'invisible', cat: 'game' },
+
+	// Additional weapons
+	{ slug: 'spiked-mace', ref: 'spiked-mace', cat: 'game' },
+	{ slug: 'club', ref: 'club-weapon', cat: 'game' },
+	{ slug: 'battle-axe', ref: 'battle-axe', cat: 'game' },
+	{ slug: 'halberd', ref: 'halberd', cat: 'game' },
+	{ slug: 'lance', ref: 'lance', cat: 'game' },
+	{ slug: 'thrown-spear', ref: 'thrown-spear', cat: 'game' },
+	{ slug: 'flying-shuriken', ref: 'flying-shuriken', cat: 'game' },
+	{ slug: 'molotov', ref: 'molotov', cat: 'game' },
+
+	// Additional magic / spells
+	{ slug: 'ritual', ref: 'ritual', cat: 'game' },
+	{ slug: 'sun-priest', ref: 'sun-priest', cat: 'game' },
+	{ slug: 'eyeball', ref: 'eyeball', cat: 'game' },
+	{ slug: 'snake-spiral', ref: 'snake-spiral', cat: 'game' },
+	{ slug: 'evil-eyes', ref: 'evil-eyes', cat: 'game' },
+	{ slug: 'shadow-grasp', ref: 'shadow-grasp', cat: 'game' },
+	{ slug: 'pentagram-rose', ref: 'pentagram-rose', cat: 'game' },
+	{ slug: 'star-swirl', ref: 'star-swirl', cat: 'game' },
+
+	// Additional monsters / enemies
+	{ slug: 'minotaur', ref: 'minotaur', cat: 'game' },
+	{ slug: 'mummy-head', ref: 'mummy-head', cat: 'game' },
+	{ slug: 'vampire-cape', ref: 'vampire-cape', cat: 'game' },
+	{ slug: 'werewolf', ref: 'werewolf', cat: 'game' },
+	{ slug: 'shark-jaws', ref: 'shark-jaws', cat: 'game' },
+	{ slug: 'octopus', ref: 'octopus', cat: 'game' },
+	{ slug: 'snake-totem', ref: 'snake-totem', cat: 'game' },
+	{ slug: 'bat', ref: 'bat-creature', cat: 'game' },
+
+	// Additional environments
+	{ slug: 'cave-entrance', ref: 'cave-entrance', cat: 'game' },
+	{ slug: 'mountains', ref: 'mountains', cat: 'game' },
+	{ slug: 'desert', ref: 'desert', cat: 'game' },
+	{ slug: 'palm-tree', ref: 'palm-tree', cat: 'game' },
+	{ slug: 'volcano', ref: 'volcano', cat: 'game' },
+	{ slug: 'iceberg', ref: 'iceberg', cat: 'game' },
+	{ slug: 'lighthouse', ref: 'lighthouse-game', cat: 'game' },
+	{ slug: 'wooden-door', ref: 'wooden-door', cat: 'game' },
+
+	// Additional loot / economy
+	{ slug: 'emerald', ref: 'emerald', cat: 'commerce' },
+	{ slug: 'crystal-cluster', ref: 'crystal-cluster', cat: 'commerce' },
+	{ slug: 'crystals', ref: 'crystals', cat: 'commerce' },
+	{ slug: 'gold-stack', ref: 'gold-stack', cat: 'commerce' },
+	{ slug: 'mining-helmet', ref: 'mining-helmet', cat: 'commerce' },
+
+	// Additional classes / archetypes
+	{ slug: 'barbarian', ref: 'barbarian', cat: 'game' },
+	{ slug: 'monk-face', ref: 'monk-face', cat: 'game' },
+	{ slug: 'druid', ref: 'druid', cat: 'game' },
+	{ slug: 'pirate-grave', ref: 'pirate-grave', cat: 'game' },
+	{ slug: 'visored-helm', ref: 'class-visored-helm', cat: 'game' },
+
+	// Additional effects / status
+	{ slug: 'cracked-glass', ref: 'cracked-glass', cat: 'game' },
+	{ slug: 'force-field', ref: 'force-field', cat: 'game' },
+	{ slug: 'glowing-shield', ref: 'glowing-shield', cat: 'game' },
+	{ slug: 'hourglass-game', ref: 'hourglass-game', cat: 'game' },
+	{ slug: 'hypnotic-eye', ref: 'hypnotic-eye', cat: 'game' },
+	{ slug: 'time-trap', ref: 'time-trap', cat: 'game' },
+	{ slug: 'cracked-disc', ref: 'cracked-disc', cat: 'game' },
 ];
 
 function titleCase(str) {

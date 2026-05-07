@@ -138,6 +138,60 @@ const CURATED = [
 	{ slug: 'sparkle', ref: 'sparkle', cat: 'game' },
 	{ slug: 'star', ref: 'star-phosphor', cat: 'game' },
 	{ slug: 'heart', ref: 'heart-phosphor', cat: 'social' },
+
+	// Apparel / character dressing
+	{ slug: 'baseball-cap', ref: 'baseball-cap', cat: 'social' },
+	{ slug: 'hoodie', ref: 'hoodie', cat: 'social' },
+	{ slug: 't-shirt', ref: 't-shirt', cat: 'social' },
+	{ slug: 'sneaker', ref: 'sneaker', cat: 'social' },
+	{ slug: 'eyeglasses', ref: 'eyeglasses', cat: 'social' },
+
+	// Transit / travel
+	{ slug: 'airplane', ref: 'airplane', cat: 'navigation' },
+	{ slug: 'airplane-tilt', ref: 'airplane-tilt', cat: 'navigation' },
+	{ slug: 'bicycle', ref: 'bicycle', cat: 'navigation' },
+	{ slug: 'motorcycle', ref: 'motorcycle', cat: 'navigation' },
+	{ slug: 'bus', ref: 'bus', cat: 'navigation' },
+	{ slug: 'taxi', ref: 'taxi', cat: 'navigation' },
+	{ slug: 'sailboat', ref: 'sailboat', cat: 'navigation' },
+
+	// Food / drink
+	{ slug: 'pizza', ref: 'pizza-phosphor', cat: 'commerce' },
+	{ slug: 'hamburger', ref: 'hamburger-phosphor', cat: 'commerce' },
+	{ slug: 'ice-cream', ref: 'ice-cream-phosphor', cat: 'commerce' },
+	{ slug: 'beer-stein', ref: 'beer-stein', cat: 'commerce' },
+	{ slug: 'coffee', ref: 'coffee-phosphor', cat: 'commerce' },
+	{ slug: 'cake', ref: 'cake-phosphor', cat: 'commerce' },
+
+	// Mood / emoji
+	{ slug: 'smiley', ref: 'smiley', cat: 'social' },
+	{ slug: 'smiley-sad', ref: 'smiley-sad', cat: 'social' },
+	{ slug: 'smiley-angry', ref: 'smiley-angry', cat: 'social' },
+	{ slug: 'smiley-meh', ref: 'smiley-meh', cat: 'social' },
+	{ slug: 'smiley-x-eyes', ref: 'smiley-x-eyes', cat: 'social' },
+	{ slug: 'smiley-melting', ref: 'smiley-melting', cat: 'social' },
+
+	// Robot / AI / future
+	{ slug: 'robot', ref: 'robot-phosphor', cat: 'tech' },
+	{ slug: 'brain', ref: 'brain-phosphor', cat: 'tech' },
+	{ slug: 'circuitry', ref: 'circuitry', cat: 'tech' },
+	{ slug: 'brackets-curly', ref: 'brackets-curly', cat: 'tech' },
+	{ slug: 'function', ref: 'function-phosphor', cat: 'tech' },
+	{ slug: 'binary', ref: 'binary', cat: 'tech' },
+
+	// Eco / nature
+	{ slug: 'tree', ref: 'tree-phosphor', cat: 'weather' },
+	{ slug: 'plant', ref: 'plant', cat: 'weather' },
+	{ slug: 'leaf', ref: 'leaf-phosphor', cat: 'weather' },
+	{ slug: 'flower', ref: 'flower-phosphor', cat: 'weather' },
+	{ slug: 'recycle', ref: 'recycle-phosphor', cat: 'weather' },
+	{ slug: 'wind', ref: 'wind-phosphor', cat: 'weather' },
+
+	// Building / dressing
+	{ slug: 'castle-turret', ref: 'castle-turret', cat: 'game' },
+	{ slug: 'tent', ref: 'tent-phosphor', cat: 'game' },
+	{ slug: 'campfire', ref: 'campfire-phosphor', cat: 'game' },
+	{ slug: 'tree-evergreen', ref: 'tree-evergreen', cat: 'weather' },
 ];
 
 function titleCase(str) {

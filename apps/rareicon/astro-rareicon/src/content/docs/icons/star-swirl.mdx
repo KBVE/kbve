@@ -1,0 +1,50 @@
+---
+ref: star-swirl
+name: Star Swirl
+title: Star Swirl Icon
+description: Star Swirl glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["star-swirl","star","swirl","star swirl"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/star-swirl"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m436.406 29.625l-18.094 42.22l-48.562 5.905l42.156 25.656l1.375 13.47C367.938 90.74 302.435 75.36 214.78 82.31l-20.186-3.343l-24.125-38.407l.5 39.78l-49.22 16.438l55.063 4.564l7.843 33.78l17.094-37.78l17.906-2.75c203.993 22.03 277.475 204.75 77.875 207.625l5.22-37.595l36.75-43.72l-51.344-24.968l-30.22-48.468l-39.623 41.124l-4.125 1.03C-8.4 163.078-31.708 304.485 98.844 376.125l-11.938 12.688L39.844 374.5l33.03 39.406l-15.124 42.53l36.375-31.155l47.03 18.095l-30.374-43.875l4.69-15.03c62.43 28.648 153.852 42.16 270.5 20.717c-241.042 33.38-364.142-137.94-219.283-195.687l23.032 43.25l-4 56.97l56.218-9.97l19.25 7.813c218.255 102.608 297.46-83.917 171.843-177.75l14.376-22.22l46.47-16.5l-41.907-14.812l-15.564-46.655zM34.53 79.03l4.845 26.095l-19.47 22l27.22-3.25l17.563 23.344l.687-29.47l24.78-17.906l-33.218-1.72zm358.564 298.5l14.25 51.658l-31.375 41.062l49.592-12.688l33.688 34.282l-2.53-51.406l35.217-30.375l-51.593 1.562l-47.25-34.094z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Star Swirl — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

@@ -1,0 +1,50 @@
+---
+ref: sneaker
+name: Sneaker
+title: Sneaker Icon
+description: Sneaker glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["sneaker"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=sneaker"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228.65,129.11l-60.73-20.24a24,24,0,0,1-14.32-13L130.39,41.6s0-.07,0-.1A16,16,0,0,0,110.25,33L34.53,60.49A16.05,16.05,0,0,0,24,75.53V192a16,16,0,0,0,16,16H240a16,16,0,0,0,16-16V167.06A40,40,0,0,0,228.65,129.11ZM115.72,48l7.11,16.63-21.56,7.85A8,8,0,0,0,104,88a7.91,7.91,0,0,0,2.73-.49l22.4-8.14,4.74,11.07-16.6,6A8,8,0,0,0,120,112a7.91,7.91,0,0,0,2.73-.49l17.6-6.4a40.24,40.24,0,0,0,7.68,10l-14.74,5.36A8,8,0,0,0,136,136a8.14,8.14,0,0,0,2.73-.48l28-10.18,56.87,18.95A24,24,0,0,1,238.93,160H40V75.53ZM40,192h0V176H240v16Z"/></svg>
+pagefindFilters: [phosphor, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Sneaker — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

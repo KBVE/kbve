@@ -1,0 +1,53 @@
+---
+ref: robot-face
+name: Robot Face
+title: Robot Face Icon
+description: Robot Face glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [tabler-generated, outline]
+search:
+  keywords: ["robot-face","robot","face","robot face"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  author: Tabler Icons contributors
+  source_url: "https://tabler.io/icons/icon/robot-face"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [tabler]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" /> <path d="M9 16c1 .667 2 1 3 1s2 -.333 3 -1" /> <path d="M9 7l-1 -4" /> <path d="M15 7l1 -4" /> <path d="M9 12v-1" /> <path d="M15 12v-1" /></svg>
+pagefindFilters: [tabler, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Robot Face — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

@@ -1,0 +1,50 @@
+---
+ref: volcano
+name: Volcano
+title: Volcano Icon
+description: Volcano glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["volcano"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/volcano"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M26.125 19.97c59.805 21.772 99.325 56.84 127.72 105.31c20.807 35.52 35.428 78.442 46.624 128.282c.646 5.295 1.186 10.563 1.686 15.813c-48.006-64.42-118.568-102.565-181.594-103.75v.22c58.233 16.936 103.123 50.71 135.188 92.968c-29.434-17.817-63.758-23.935-115.03-25.063c88.53 26.684 116.565 46.203 136.936 91.906c-50.52-9.608-100.656 16.807-107.28 70c17.742-29.653 41.175-46.612 65.093-48.28c25.746-1.8 32.124 14.687 15.436 37.562l-6.687 8.125c-.162.176-.307.354-.47.53l.063-.03l-1.563 1.906l-75.938 51.5l-.968.686l-.78.875l-41.064 46.44h24.938l29.374-33.19l76.032-51.56l1.094-.75l.875-1.033l49.69-60.467l29.72 15.967l2.968 1.594l3.312-.686l34.656-7.03l1.375-.283l1.22-.655l16.375-8.906h2.25l53.75 57.124l.5.53l.53.438l113.408 88.907h30.03v-.19L365.782 392.97c-15.184-25.04-5.886-49.94 17.44-54.845c35.786-7.526 64.944-6.61 105.436 11.094c-44.382-35.54-97.07-46.683-146.375-30.345c27.234-63.822 87.474-107.53 153.314-132.22v-.718c-68.792 7.528-131.456 37.83-177.844 84.875c11.63-57.224 27.12-105.994 50.28-145.53c28.366-48.42 67.863-83.47 127.564-105.25v-.063h-45.406c-42.903 23.262-74.69 55.603-98.282 95.874c-12.098 20.65-22.08 43.34-30.53 67.97C332.187 116.106 353.705 53.018 394 19.968h-79.03c-28.243 100.098-41.47 200.18-52.314 300.28c-.684-100.097-.42-200.185 12-300.28H183.75c23.25 68.337 31.688 136.213 34.094 207.218c-12.94-81.71-35.23-150.175-70.313-207.22h-40.28c20.476 19.316 38.15 47.228 52.594 79.844c-22.34-32.882-51.07-59.753-88.094-79.843H26.125z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Volcano — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

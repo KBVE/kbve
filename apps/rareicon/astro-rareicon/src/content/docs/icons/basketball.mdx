@@ -1,0 +1,53 @@
+---
+ref: basketball
+name: Basketball
+title: Basketball Icon
+description: Basketball glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [tabler-generated, outline]
+search:
+  keywords: ["basketball","ball-basketball"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  author: Tabler Icons contributors
+  source_url: "https://tabler.io/icons/icon/ball-basketball"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "outline"
+    label: "Outline"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [tabler]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /> <path d="M5.65 5.65l12.7 12.7" /> <path d="M5.65 18.35l12.7 -12.7" /> <path d="M12 3a9 9 0 0 0 9 9" /> <path d="M3 12a9 9 0 0 1 9 9" /></svg>
+pagefindFilters: [tabler, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Basketball — outline glyph from the [Tabler Icons library](https://tabler.io/icons) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

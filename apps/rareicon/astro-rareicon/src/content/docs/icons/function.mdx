@@ -2,40 +2,82 @@
 ref: function
 name: Function
 title: Function Icon
-description: Function glyph from the Tabler Icons library (MIT), 1 variant — outline stroke, recolor via currentColor.
+description: Function glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library]
-tags: [tabler-generated, outline]
+categories:
+  - tech
+  - library
+tags:
+  - tabler-generated
+  - outline
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
 search:
-  keywords: ["function"]
+  keywords:
+    - function
   primary_category: tech
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Tabler Icons (https://tabler.io/icons) — MIT License"
+  attribution_line: Tabler Icons (https://tabler.io/icons) — MIT License
   author: Tabler Icons contributors
-  source_url: "https://tabler.io/icons/icon/function"
+  source_url: https://tabler.io/icons/icon/function
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [tabler]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.667a2.667 2.667 0 0 1 2.667 -2.667h10.666a2.667 2.667 0 0 1 2.667 2.667v10.666a2.667 2.667 0 0 1 -2.667 2.667h-10.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -10.666" /> <path d="M9 15.5v.25c0 .69 .56 1.25 1.25 1.25c.71 0 1.304 -.538 1.374 -1.244l.752 -7.512a1.381 1.381 0 0 1 1.374 -1.244c.69 0 1.25 .56 1.25 1.25v.25" /> <path d="M9 12h6" /></svg>
-pagefindFilters: [tabler, tech]
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,40a8,8,0,0,1-8,8H170.71a24,24,0,0,0-23.62,19.71L137.59,120H184a8,8,0,0,1,0,16H134.68l-10,55.16A40,40,0,0,1,85.29,224H56a8,8,0,0,1,0-16H85.29a24,24,0,0,0,23.62-19.71l9.5-52.29H72a8,8,0,0,1,0-16h49.32l10-55.16A40,40,0,0,1,170.71,32H200A8,8,0,0,1,208,40Z"/></svg>
+pagefindFilters:
+  - tabler
+  - tech
+  - phosphor
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

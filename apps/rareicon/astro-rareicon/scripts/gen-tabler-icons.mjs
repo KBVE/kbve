@@ -92,9 +92,54 @@ const CURATED = [
 	// Misc gamedev-relevant
 	{ slug: 'wand', ref: 'magic-wand', cat: 'game' },
 	{ slug: 'sparkles', ref: 'sparkles', cat: 'game' },
-	{ slug: 'fire', ref: 'fire-tabler', cat: 'game' },
+	{ slug: 'flame', ref: 'flame-tabler', cat: 'game' },
 	{ slug: 'ghost-2', ref: 'ghost-2', cat: 'game' },
 	{ slug: 'ufo', ref: 'ufo', cat: 'game' },
+
+	// Sports / activity
+	{ slug: 'ball-basketball', ref: 'basketball', cat: 'game' },
+	{ slug: 'ball-american-football', ref: 'football-american', cat: 'game' },
+	{ slug: 'ball-tennis', ref: 'tennis', cat: 'game' },
+	{ slug: 'ball-volleyball', ref: 'volleyball-tabler', cat: 'game' },
+	{ slug: 'soccer-field', ref: 'soccer-field', cat: 'game' },
+	{ slug: 'run', ref: 'run', cat: 'action' },
+	{ slug: 'walk', ref: 'walk', cat: 'action' },
+
+	// Mood / emoji
+	{ slug: 'mood-happy', ref: 'mood-happy', cat: 'social' },
+	{ slug: 'mood-sad', ref: 'mood-sad', cat: 'social' },
+	{ slug: 'mood-angry', ref: 'mood-angry', cat: 'social' },
+	{ slug: 'mood-neutral', ref: 'mood-neutral', cat: 'social' },
+	{ slug: 'mood-crazy-happy', ref: 'mood-crazy-happy', cat: 'social' },
+
+	// AI / robot / future
+	{ slug: 'robot', ref: 'robot', cat: 'tech' },
+	{ slug: 'robot-face', ref: 'robot-face', cat: 'tech' },
+	{ slug: 'brand-openai', ref: 'openai-tabler', cat: 'tech' },
+	{ slug: 'brain', ref: 'brain', cat: 'tech' },
+	{ slug: 'virtual-reality', ref: 'virtual-reality', cat: 'tech' },
+	{ slug: 'augmented-reality', ref: 'augmented-reality', cat: 'tech' },
+
+	// Travel / transit
+	{ slug: 'plane-tilt', ref: 'plane-tilt', cat: 'navigation' },
+	{ slug: 'helicopter-landing', ref: 'helicopter-landing', cat: 'navigation' },
+	{ slug: 'sailboat-2', ref: 'sailboat-2', cat: 'navigation' },
+	{ slug: 'submarine', ref: 'submarine', cat: 'navigation' },
+	{ slug: 'tram', ref: 'tram', cat: 'navigation' },
+
+	// Food
+	{ slug: 'pizza', ref: 'pizza-tabler', cat: 'commerce' },
+	{ slug: 'salad', ref: 'salad-tabler', cat: 'commerce' },
+	{ slug: 'meat', ref: 'meat', cat: 'commerce' },
+	{ slug: 'cake', ref: 'cake-tabler', cat: 'commerce' },
+	{ slug: 'ice-cream', ref: 'ice-cream', cat: 'commerce' },
+
+	// Eco / environment
+	{ slug: 'leaf', ref: 'leaf-tabler', cat: 'weather' },
+	{ slug: 'tree', ref: 'tree-tabler', cat: 'weather' },
+	{ slug: 'recycle', ref: 'recycle-tabler', cat: 'weather' },
+	{ slug: 'wind-electricity', ref: 'wind-electricity', cat: 'weather' },
+	{ slug: 'sun-electricity', ref: 'sun-electricity', cat: 'weather' },
 ];
 
 function titleCase(str) {

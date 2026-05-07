@@ -1,0 +1,50 @@
+---
+ref: crystal-cluster
+name: Crystal Cluster
+title: Crystal Cluster Icon
+description: Crystal Cluster glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: commerce
+categories: [commerce, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["crystal-cluster","crystal","cluster","crystal cluster"]
+  primary_category: commerce
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/crystal-cluster"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m263.563 19.063l-53.875 59.562v90.063l-34.75-60.188l-35.563-17.594l-9.344 43.53l48.376 83.783l-19.97-5.345l-28.75 10.5l19.658 23.5l30.28 8.125l-59.155 15.844l-23.407 27.97l34.25 12.498l66.875-17.937l-27.875 48.28l5.562 62.72l33.813-15.72v33.126l46.812 66.626l46.78-66.625v-72.81l21.626 68.092l35.875 27.344l13.564-43.03l-32.688-102.97l42.875 11.5l26.876-13.78l-17.78-20.22l-64.595-17.312l-.092-.25l82.25-22.03l21.125-24.064l-31.97-16.406l-73.656 19.75l39-67.594l-3.562-55.25l-58.844 18.97V78.624l-39.717-59.563zm-5.72 109.562l22.438 115.03l39.876 12.032l-39.875 12.032l-22.436 115.03l-22.375-114.53l-41.595-12.533l41.594-12.53z"/></svg>
+pagefindFilters: [game-icons, gamedev, commerce]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Crystal Cluster — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

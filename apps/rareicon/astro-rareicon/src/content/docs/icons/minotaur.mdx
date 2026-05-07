@@ -1,0 +1,50 @@
+---
+ref: minotaur
+name: Minotaur
+title: Minotaur Icon
+description: Minotaur glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["minotaur"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/minotaur"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M110 18.906c-3.766 9.014-2.938 15.91-2.938 28.032c0 26.995 24.076 48.413 52.563 52.562c19.28 2.807 39.315 4.758 59.594 5.813c-8.56 7.39-13.907 18.092-13.907 35.124c0 17.576 6.436 37.856 16.562 52.97c10.126 15.112 23.233 24.374 36.03 24.374c12.8 0 25.906-9.26 36.033-24.374c10.126-15.113 16.562-35.392 16.562-52.97c0-17.186-5.43-27.946-14.125-35.342c19.053-1.09 37.854-2.952 56-5.594c28.487-4.147 51.47-23.72 52.563-52.563c.368-9.723-1.637-18.74-2.938-28.03c-2.943 27.71-26.205 45.69-54.313 49.656c-59.833 8.443-123.54 8.443-183.375 0c-28.107-3.966-51.37-21.945-54.312-49.657zm79.78 99.313c-248.928 7.213-200.628 194.293-22.124 242.5c40.812-39.456-6.55-101.937-43.72-57.033c-23.22-43.474-20.674-82.77 4.5-95.03c48.72 27.067 83.566 88.52 86.126 148.405c-33.595 23.148-59.625 63.032-59.625 63.032l26.344 38.78l-41.31 23.5h82.124c-40.513-40.52-11.77-86.093 36.22-86.093c48.645 0 74.12 48.22 36.248 86.095h81.282l-40.47-23.5l26.345-38.78s-26.458-40.502-60.44-63.564c2.744-59.716 37.52-120.887 86.095-147.874c25.176 12.262 27.722 51.557 4.5 95.03c-37.168-44.903-84.53 17.578-43.72 57.033c178.5-48.206 226.788-235.28-22.124-242.5c2.054 6.73 3.158 14.17 3.158 22.218c0 21.95-7.423 45.024-19.72 63.375c-12.295 18.35-30.17 32.656-51.562 32.656s-39.266-14.306-51.562-32.657c-12.296-18.352-19.72-41.426-19.72-63.375c0-8.048 1.105-15.488 3.157-22.22z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Minotaur — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

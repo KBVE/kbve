@@ -1,0 +1,50 @@
+---
+ref: cracked-disc
+name: Cracked Disc
+title: Cracked Disc Icon
+description: Cracked Disc glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["cracked-disc","cracked","disc","cracked disc"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/cracked-disc"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M257.344 20.063c-10.24 0-20.324.65-30.22 1.906l28.532 69.093l44.844 33.124l68.25-11.53l-42.625 30.468l42.938 31.75l-84.313-13.344l27.125 65.657l70.844 36.25l-66.095-1.28l-50.656.843l10.342 21.906l45.032 32.188l-32.406-5.47l59.843 126.72l-84.81-88.53l-50.126 22.936l33.312-40.5l-49-51.156l-76.875 35.156l51.095-62.094l-61.22-63.906l90.907 5.72L114.188 68C56.94 111.312 20 180.002 20 257.406c0 131.19 106.154 237.344 237.344 237.344s237.344-106.154 237.344-237.344S388.533 20.062 257.344 20.062z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Cracked Disc — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

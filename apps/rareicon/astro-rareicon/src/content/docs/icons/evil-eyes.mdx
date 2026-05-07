@@ -1,0 +1,50 @@
+---
+ref: evil-eyes
+name: Evil Eyes
+title: Evil Eyes Icon
+description: Evil Eyes glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["evil-eyes","evil","eyes","evil eyes"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/evil-eyes"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M74.247 167.854C-90.602 374.671 219.872 342.307 219.872 342.307C138.961 289.214 74.247 167.854 74.247 167.854m5.027 140.538c-8.384-13.955-4.365-37.814 11.23-68.749c3.447 4.516 7.256 9.333 11.335 14.406l19.178 62.17l7.346-31.115a561 561 0 0 0 50.158 49.33c-51.874 1.67-88.197-7.677-99.247-26.027zm358.494-140.538s-64.729 121.36-145.625 174.453c-.015 0 310.459 32.364 145.61-174.453zm-5.028 140.538c-11.049 18.38-47.372 27.713-99.246 26.072a561 561 0 0 0 50.158-49.33l7.33 31.085l19.179-62.215a734 734 0 0 0 11.335-14.406c15.595 30.995 19.66 54.84 11.23 68.809z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Evil Eyes — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>

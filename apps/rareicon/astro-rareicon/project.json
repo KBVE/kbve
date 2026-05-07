@@ -111,6 +111,29 @@
 				"parallel": false
 			}
 		},
+		"gen:merge-variants": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": ["node scripts/gen-merge-variants.mjs"],
+				"parallel": false
+			}
+		},
+		"gen:all-icons": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rareicon/astro-rareicon",
+				"commands": [
+					"node scripts/gen-lucide-icons.mjs",
+					"node scripts/gen-simple-icons.mjs",
+					"node scripts/gen-tabler-icons.mjs",
+					"node scripts/gen-phosphor-icons.mjs",
+					"node scripts/gen-gameicons.mjs",
+					"node scripts/gen-merge-variants.mjs"
+				],
+				"parallel": false
+			}
+		},
 		"proto:lint": {
 			"executor": "nx:run-commands",
 			"options": {

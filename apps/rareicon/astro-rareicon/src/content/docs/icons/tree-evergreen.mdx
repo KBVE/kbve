@@ -1,0 +1,50 @@
+---
+ref: tree-evergreen
+name: Tree Evergreen
+title: Tree Evergreen Icon
+description: Tree Evergreen glyph from the Phosphor Icons library (MIT), 1 weight — recolor via currentColor.
+primary_category: weather
+categories: [weather, library]
+tags: [phosphor-generated, multi-weight]
+search:
+  keywords: ["tree-evergreen","tree","evergreen","tree evergreen"]
+  primary_category: weather
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Phosphor Icons (https://phosphoricons.com/) — MIT License"
+  author: Phosphor contributors
+  source_url: "https://phosphoricons.com/?q=tree-evergreen"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "regular"
+    label: "Regular"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 256, height: 256 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [phosphor, regular]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M230.32,187.09l-46-59.09H208a8,8,0,0,0,6.34-12.88l-80-104a8,8,0,0,0-12.68,0l-80,104A8,8,0,0,0,48,128H71.64l-46,59.09A8,8,0,0,0,32,200h88v40a8,8,0,0,0,16,0V200h88a8,8,0,0,0,6.32-12.91ZM48.36,184l46-59.09A8,8,0,0,0,88,112H64.25L128,29.12,191.75,112H168a8,8,0,0,0-6.31,12.91L207.64,184Z"/></svg>
+pagefindFilters: [phosphor, weather]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Tree Evergreen — 1 weight from the [Phosphor Icons library](https://phosphoricons.com/) (MIT).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	icons={frontmatter.icons}
+/>
