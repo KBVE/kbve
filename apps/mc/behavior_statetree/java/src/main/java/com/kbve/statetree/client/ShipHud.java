@@ -19,6 +19,10 @@ public class ShipHud implements HudRenderCallback {
     private int altitude = 0;
     private float health = 100f;
     private float maxHealth = 100f;
+    private float fuel = 0f;
+    private float maxFuel = 1000f;
+    private float enginePower = 0f;
+    private boolean fuelLow = false;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -33,6 +37,9 @@ public class ShipHud implements HudRenderCallback {
         speed = 0f;
         heading = 0f;
         altitude = 0;
+        fuel = 0f;
+        enginePower = 0f;
+        fuelLow = false;
     }
 
     public void setInputState(boolean n, boolean s, boolean e, boolean w,
@@ -55,6 +62,16 @@ public class ShipHud implements HudRenderCallback {
     public void setHealth(float health, float maxHealth) {
         this.health = health;
         this.maxHealth = maxHealth;
+    }
+
+    public void setFuel(float fuel, float maxFuel, boolean low) {
+        this.fuel = fuel;
+        this.maxFuel = maxFuel;
+        this.fuelLow = low;
+    }
+
+    public void setEnginePower(float enginePower) {
+        this.enginePower = enginePower;
     }
 
     public boolean isActive() {
@@ -138,11 +155,51 @@ public class ShipHud implements HudRenderCallback {
         context.drawText(client.textRenderer, Text.of("§f" + hpText),
                 (screenWidth - hpW) / 2, barY - 10, 0xFFFFFFFF, true);
 
+        // Engine power gauge — orange bar above hull.
+        int engY = barY - 20;
+        int engFillW = (int) (barW * Math.max(0f, Math.min(1f, enginePower)));
+        context.fill(barX - 1, engY - 1, barX + barW + 1, engY + barH + 1, 0xFF000000);
+        context.fill(barX, engY, barX + barW, engY + barH, 0xFF333333);
+        if (engFillW > 0) context.fill(barX, engY, barX + engFillW, engY + barH, 0xFFFF8822);
+
+        // Fuel gauge — yellow bar above engine. Flashes red when low.
+        int fuelY = engY - 14;
+        float fuelRatio = maxFuel > 0 ? Math.max(0f, Math.min(1f, fuel / maxFuel)) : 0f;
+        int fuelFillW = (int) (barW * fuelRatio);
+        int fuelColor;
+        if (fuel <= 0f) {
+            fuelColor = 0xFFCC2222;
+        } else if (fuelLow) {
+            fuelColor = ((System.currentTimeMillis() / 250) % 2 == 0) ? 0xFFFF4444 : 0xFFCC8822;
+        } else {
+            fuelColor = 0xFFFFCC22;
+        }
+        context.fill(barX - 1, fuelY - 1, barX + barW + 1, fuelY + barH + 1, 0xFF000000);
+        context.fill(barX, fuelY, barX + barW, fuelY + barH, 0xFF333333);
+        if (fuelFillW > 0) context.fill(barX, fuelY, barX + fuelFillW, fuelY + barH, fuelColor);
+        String fuelText = String.format("FUEL %.0f / %.0f", fuel, maxFuel);
+        int fuelTextW = client.textRenderer.getWidth(fuelText);
+        context.drawText(client.textRenderer, Text.of((fuelLow ? "§c" : "§f") + fuelText),
+                (screenWidth - fuelTextW) / 2, fuelY - 10, 0xFFFFFFFF, true);
+
+        // Low-fuel + empty warnings centered up top.
+        if (fuel <= 0f) {
+            String warn = "§c§lOUT OF FUEL — REFUEL WITH COAL OR LAVA BUCKET";
+            int ww = client.textRenderer.getWidth(warn);
+            context.drawText(client.textRenderer, Text.of(warn),
+                    (screenWidth - ww) / 2, 30, 0xFFFF2222, true);
+        } else if (fuelLow && (System.currentTimeMillis() / 500) % 2 == 0) {
+            String warn = "§e§lLOW FUEL";
+            int ww = client.textRenderer.getWidth(warn);
+            context.drawText(client.textRenderer, Text.of(warn),
+                    (screenWidth - ww) / 2, 30, 0xFFFFAA22, true);
+        }
+
         if (inputBoost && speed > 0) {
             String boostTag = "§6§lBOOST";
             int bw = client.textRenderer.getWidth(boostTag);
             context.drawText(client.textRenderer, Text.of(boostTag),
-                    (screenWidth - bw) / 2, screenHeight - 90, 0xFFFFAA00, true);
+                    (screenWidth - bw) / 2, screenHeight - 105, 0xFFFFAA00, true);
         }
 
         String controls = "Mouse Aim/Pitch  W Throttle  Ctrl Boost  Shift Dismount";

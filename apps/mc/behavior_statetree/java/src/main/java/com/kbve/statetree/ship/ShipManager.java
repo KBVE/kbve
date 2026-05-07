@@ -46,6 +46,8 @@ public final class ShipManager {
         entity.setOwnerUuid(ownerUuid);
         entity.setModelName(modelName);
         entity.setShipHealth(ShipEntity.MAX_HEALTH);
+        // Spawn with half-tank — players can refuel via coal / lava bucket interact.
+        entity.setFuelLevel(ShipEntity.MAX_FUEL * 0.5f);
         entity.refreshPositionAndAngles(
                 nearPos.getX() + 0.5,
                 nearPos.getY() + SPAWN_HEIGHT_OFFSET,

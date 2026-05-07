@@ -42,8 +42,14 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
     private static final TrackedData<Float> VERTICAL_INTENT =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    private static final TrackedData<Float> FUEL_LEVEL =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
     public static final float MAX_HEALTH = 100.0f;
+    public static final float MAX_FUEL = 1000.0f;
+    public static final float LOW_FUEL = 100.0f;
+    public static final float COAL_FUEL = 200.0f;
+    public static final float LAVA_FUEL = 2000.0f;
 
     private String ownerUuidStr = "";
 
@@ -111,6 +117,12 @@ public class ShipEntity extends Entity {
         this.dataTracker.set(SHIP_HEALTH, MathHelper.clamp(hp, 0f, MAX_HEALTH));
     }
 
+    public float getFuelLevel() { return this.dataTracker.get(FUEL_LEVEL); }
+    public void setFuelLevel(float fuel) {
+        this.dataTracker.set(FUEL_LEVEL, MathHelper.clamp(fuel, 0f, MAX_FUEL));
+    }
+    public boolean isFuelLow() { return getFuelLevel() < LOW_FUEL; }
+
     public float getEnginePower() { return enginePower.getSmooth(); }
     public float getBankRoll() { return bankRoll; }
     public float getCameraZoom() { return getStats().cameraZoom(); }
@@ -171,6 +183,8 @@ public class ShipEntity extends Entity {
         if (player.isSneaking()) return ActionResult.PASS;
 
         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+
+        // Repair: iron ingot → +25 HP per ingot.
         if (stack.isOf(net.minecraft.item.Items.IRON_INGOT) && getShipHealth() < MAX_HEALTH) {
             float before = getShipHealth();
             setShipHealth(before + 25.0f);
@@ -181,6 +195,34 @@ public class ShipEntity extends Entity {
                                 before, getShipHealth(), MAX_HEALTH)), true);
             }
             return ActionResult.SUCCESS;
+        }
+
+        // Refuel: coal → +200 fuel; lava bucket → +2000 fuel (consumes bucket).
+        if (getFuelLevel() < MAX_FUEL) {
+            float before = getFuelLevel();
+            float added = 0f;
+            if (stack.isOf(net.minecraft.item.Items.COAL) || stack.isOf(net.minecraft.item.Items.CHARCOAL)) {
+                added = COAL_FUEL;
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+            } else if (stack.isOf(net.minecraft.item.Items.COAL_BLOCK)) {
+                added = COAL_FUEL * 9f;
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+            } else if (stack.isOf(net.minecraft.item.Items.LAVA_BUCKET)) {
+                added = LAVA_FUEL;
+                if (!player.getAbilities().creativeMode) {
+                    player.setStackInHand(hand,
+                            new net.minecraft.item.ItemStack(net.minecraft.item.Items.BUCKET));
+                }
+            }
+            if (added > 0f) {
+                setFuelLevel(before + added);
+                if (!this.getEntityWorld().isClient()) {
+                    player.sendMessage(net.minecraft.text.Text.of(
+                            String.format("Fueled: %.0f → %.0f / %.0f",
+                                    before, getFuelLevel(), MAX_FUEL)), true);
+                }
+                return ActionResult.SUCCESS;
+            }
         }
 
         if (player instanceof ServerPlayerEntity && this.getPassengerList().size() < seatCapacity()) {
@@ -232,8 +274,11 @@ public class ShipEntity extends Entity {
         float ts = getTargetSpeed();
         float vi = getVerticalIntent();
         boolean ridden = hasPassengers();
+        boolean fueled = getFuelLevel() > 0f;
 
-        enginePower.update(ridden ? ts : 0.0f);
+        // Auto-cut throttle when out of fuel.
+        if (!fueled) ts = 0f;
+        enginePower.update(ridden && fueled ? ts : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
         // Bank roll from yaw delta — smoothed, used by renderer + camera.
@@ -252,6 +297,12 @@ public class ShipEntity extends Entity {
 
         float power = enginePower.getSmooth();
         float vert = verticalDrive.getSmooth();
+
+        // Burn fuel proportional to engine output. Idle = no consumption.
+        if (power > 0.01f && fueled) {
+            float burn = power * stats.engineSpeed() * 2.0f;
+            setFuelLevel(getFuelLevel() - burn);
+        }
 
         // Forward direction in horizontal plane (rotorcraft style).
         double rad = Math.toRadians(heading);
@@ -344,6 +395,19 @@ public class ShipEntity extends Entity {
                     this.getX(), this.getY() + 1.0, this.getZ(),
                     1, 0.1, 0.05, 0.1, 0.01);
         }
+
+        // Engine sound — pitch scales with throttle. Cadence speeds up as
+        // power rises so the audio gets more frantic at full thrust.
+        if (power > 0.05f && this.getEntityWorld() instanceof ServerWorld sw2) {
+            int cadence = Math.max(2, (int) (12 - 8 * power));
+            if (this.age % cadence == 0) {
+                float pitch = 0.5f + 0.7f * power;
+                sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
+                        net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING,
+                        net.minecraft.sound.SoundCategory.NEUTRAL,
+                        0.35f + 0.3f * power, pitch);
+            }
+        }
     }
 
     private static Vec3d lerp(Vec3d a, Vec3d b, double t) {
@@ -386,6 +450,7 @@ public class ShipEntity extends Entity {
         builder.add(SHIP_HEALTH, MAX_HEALTH);
         builder.add(TARGET_SPEED, 0.0f);
         builder.add(VERTICAL_INTENT, 0.0f);
+        builder.add(FUEL_LEVEL, MAX_FUEL);
     }
 
     @Override
@@ -398,6 +463,7 @@ public class ShipEntity extends Entity {
         this.setPitch(view.getFloat("Pitch", 0.0f));
         setTargetSpeed(view.getFloat("TargetSpeed", 0.0f));
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
+        setFuelLevel(view.getFloat("FuelLevel", MAX_FUEL));
     }
 
     @Override
@@ -410,5 +476,6 @@ public class ShipEntity extends Entity {
         view.putFloat("Pitch", this.getPitch());
         view.putFloat("TargetSpeed", getTargetSpeed());
         view.putFloat("ShipHealth", getShipHealth());
+        view.putFloat("FuelLevel", getFuelLevel());
     }
 }
