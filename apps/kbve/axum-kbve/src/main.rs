@@ -21,6 +21,18 @@ mod allocator {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Early exit: print the OpenAPI 3.1 spec to stdout and quit.
+    // Wired up so `nx run axum-kbve:emit-openapi` can capture the JSON into
+    // packages/data/openapi/openapi.json without booting the full service.
+    // Skips db / proxy / game-server init so it's fast + has no env deps.
+    if std::env::args().any(|arg| arg == "--emit-openapi") {
+        use utoipa::OpenApi;
+        let spec = openapi::ApiDoc::openapi();
+        let json = serde_json::to_string_pretty(&spec)?;
+        println!("{json}");
+        return Ok(());
+    }
+
     rustls::crypto::ring::default_provider()
         .install_default()
         .expect("failed to install rustls CryptoProvider");

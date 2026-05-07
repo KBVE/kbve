@@ -57,6 +57,17 @@
 				}
 			}
 		},
+		"emit-openapi": {
+			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/packages/data/openapi/openapi.json"],
+			"options": {
+				"commands": [
+					"cargo build -p axum-kbve --target-dir dist/target/axum-kbve --quiet",
+					"./dist/target/axum-kbve/debug/axum-kbve --emit-openapi > packages/data/openapi/openapi.json"
+				],
+				"parallel": false
+			}
+		},
 		"container-prep": {
 			"executor": "nx:run-commands",
 			"options": {
