@@ -31,9 +31,11 @@ import {
 import {
 	CASH_RATE,
 	COMBO,
+	HP,
 	JOKER_MULT_PER_TABLEAU,
 	ROUND_BLINDS,
 	SCORE,
+	STOCK_DRAW_COUNT,
 	STORAGE_KEY,
 } from './config';
 
@@ -92,6 +94,8 @@ export class GameState {
 	round = 1;
 	blind = ROUND_BLINDS[0];
 	cash = 0;
+	hp: number = HP.start;
+	maxHp: number = HP.max;
 	jokerVariants: Map<number, JokerVariant> = new Map();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
@@ -151,17 +155,33 @@ export class GameState {
 		}
 	}
 
-	/** Start a fresh run (round 1, score 0, blind 200, no owned jokers). */
+	/** Start a fresh run (round 1, score 0, blind 200, full HP, no owned
+	 * jokers). */
 	resetRun(rng?: () => number) {
 		this.round = 1;
 		this.blind = ROUND_BLINDS[0];
 		this.cash = 0;
+		this.hp = HP.start;
+		this.maxHp = HP.max;
 		this.ownedJokerVariants = [];
 		this.gameOver = false;
 		this.betweenRounds = false;
 		this.bestRecord.totalRuns += 1;
 		saveBestRecord(this.bestRecord);
 		this.reset(rng);
+	}
+
+	/** Take damage. HP floors at 0 + auto-triggers game over when reached. */
+	damage(amount: number) {
+		this.hp = Math.max(0, this.hp - amount);
+		if (this.hp === 0 && !this.gameOver) {
+			this.declareGameOver();
+		}
+	}
+
+	/** Heal up to maxHp. */
+	heal(amount: number) {
+		this.hp = Math.min(this.maxHp, this.hp + amount);
 	}
 
 	/** Called when the player succeeds (foundations full) on the current
@@ -294,10 +314,8 @@ export class GameState {
 		if (!snap || !score) return false;
 		this.restore(snap);
 		this.restoreScore(score);
-		// Charge the undo tax AFTER the score has been rolled back. Each
-		// undo costs flat SCORE.undoCost regardless of what was undone —
-		// soft-discourages spam undo without locking it out.
-		this.score = Math.max(0, this.score - SCORE.undoCost);
+		// Charge undo tax after restoring. Score allowed negative.
+		this.score -= SCORE.undoCost;
 		return true;
 	}
 
@@ -341,7 +359,9 @@ export class GameState {
 			this.comboMultiplier = 1;
 			delta = points;
 		}
-		this.score = Math.max(0, this.score + delta - SCORE.movePerAction);
+		// Score allowed to go negative — pressure when burn outpaces
+		// progress. HUD turns red.
+		this.score = this.score + delta - SCORE.movePerAction;
 		this.moves += 1;
 	}
 
@@ -378,22 +398,33 @@ export class GameState {
 	drawFromStock(): boolean {
 		if (this.stock.length === 0 && this.waste.length === 0) return false;
 		this.pushHistory();
+
+		// Stock empty → recycle waste back face-down.
 		if (this.stock.length === 0) {
 			while (this.waste.length > 0) {
 				const c = this.waste.pop()!;
 				this.stock.push(setFaceUp(c, false));
 			}
 			this.stockCycles += 1;
-			// First reshuffle is free (cost-wise) on the recycle penalty;
-			// later cycles cost SCORE.stockRecycle. Per-move tax applies
-			// either way via applyScore.
 			const recyclePenalty =
 				this.stockCycles > 1 ? SCORE.stockRecycle : 0;
 			this.applyScore(recyclePenalty, false);
+			// Recycles past the first also cost HP — escalating pressure
+			// when player keeps burning the deck.
+			if (this.stockCycles > 1) {
+				this.damage(HP.stockRecyclePenalty);
+			}
 			return true;
 		}
-		const c = this.stock.pop()!;
-		this.waste.push(setFaceUp(c, true));
+
+		// Draw STOCK_DRAW_COUNT cards (or whatever stock has left). All
+		// flipped face-up onto waste; only the topmost (last drawn) is
+		// grabbable per Klondike draw-3 rules.
+		const drawCount = Math.min(STOCK_DRAW_COUNT, this.stock.length);
+		for (let i = 0; i < drawCount; i++) {
+			const c = this.stock.pop()!;
+			this.waste.push(setFaceUp(c, true));
+		}
 		this.applyScore(0, false);
 		return true;
 	}

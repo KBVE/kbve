@@ -22,6 +22,7 @@ import {
 	FOUNDATION_GAP,
 	FOUNDATION_X_START,
 	HUD_COLORS,
+	STOCK_DRAW_COUNT,
 	STOCK_X,
 	TABLEAU_FAN_Y,
 	TABLEAU_FAN_Y_DOWN,
@@ -30,6 +31,7 @@ import {
 	TABLEAU_Y,
 	TIMING,
 	TOP_ROW_Y,
+	WASTE_FAN_X,
 	WASTE_X,
 } from './config';
 import {
@@ -106,6 +108,8 @@ export class SolitaireScene extends Phaser.Scene {
 	private hudBlind!: Phaser.GameObjects.Text;
 	private hudCash!: Phaser.GameObjects.Text;
 	private hudBest!: Phaser.GameObjects.Text;
+	private hudHp!: Phaser.GameObjects.Text;
+	private hudHpBar!: Phaser.GameObjects.Graphics;
 
 	/** Active modal layer (shop or game-over). Null when no modal showing. */
 	private modal: Phaser.GameObjects.Container | null = null;
@@ -448,6 +452,19 @@ export class SolitaireScene extends Phaser.Scene {
 			.setOrigin(0, 0)
 			.setResolution(2);
 
+		// HP label + bar — directly below the strip on the left.
+		this.hudHp = this.add
+			.text(28 + stripPadX, 20 + stripH + 16, 'HP 20/20', {
+				fontSize: '11px',
+				color: HUD_COLORS.hpText,
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudHpBar = this.add.graphics();
+		this.hudHpBar.setDepth(-90);
+
 		// Score + combo — center. Score is the hero number.
 		this.hudScore = this.add
 			.text(BASE_WIDTH / 2, yMid - 17, '0', {
@@ -524,12 +541,34 @@ export class SolitaireScene extends Phaser.Scene {
 		const best = this.state.bestRecord.bestScore;
 		this.hudBest.setText(best > 0 ? `Best ${best}` : 'Best —');
 
-		// Score color shifts to green when blind is met.
-		this.hudScore.setColor(
-			this.state.hasMetBlind()
-				? HUD_COLORS.cashText
-				: HUD_COLORS.scoreText,
-		);
+		// Score color: green when blind met, red when negative, gold otherwise.
+		const scoreColor =
+			this.state.score < 0
+				? HUD_COLORS.scoreNegative
+				: this.state.hasMetBlind()
+					? HUD_COLORS.cashText
+					: HUD_COLORS.scoreText;
+		this.hudScore.setColor(scoreColor);
+
+		// HP bar + label.
+		this.hudHp.setText(`HP ${this.state.hp}/${this.state.maxHp}`);
+		this.redrawHpBar();
+	}
+
+	/** HP bar — clear + redraw on every update. Cheap (one rectangle). */
+	private redrawHpBar() {
+		this.hudHpBar.clear();
+		const x = 28 + 28; // strip left + padding (matches drawHud)
+		const y = 20 + 56 + 6; // below the strip, small gap
+		const w = 160;
+		const h = 8;
+		const pct = this.state.maxHp > 0 ? this.state.hp / this.state.maxHp : 0;
+		this.hudHpBar.fillStyle(HUD_COLORS.hpBg, 1);
+		this.hudHpBar.fillRoundedRect(x, y, w, h, 4);
+		this.hudHpBar.fillStyle(HUD_COLORS.hpFill, 1);
+		this.hudHpBar.fillRoundedRect(x, y, w * pct, h, 4);
+		this.hudHpBar.lineStyle(1, HUD_COLORS.hudBorder, 0.7);
+		this.hudHpBar.strokeRoundedRect(x, y, w, h, 4);
 	}
 
 	// -------------------------------------------------------------------
@@ -840,11 +879,21 @@ export class SolitaireScene extends Phaser.Scene {
 			v.back.setVisible(true);
 		});
 
+		// Waste — fan the last 3 (draw-3 mode). Cards beneath the visible
+		// fan stack at the base position. Only the topmost (last drawn) is
+		// grabbable; onDragStart enforces this.
+		const wasteLen = this.state.waste.length;
 		this.state.waste.forEach((byte, i) => {
 			const v = this.viewFor(byte);
+			// Index from the top: 0 = topmost, 1 = under top, 2 = third, 3+ = stacked beneath
+			const fromTop = wasteLen - 1 - i;
+			const fanOffset =
+				fromTop < STOCK_DRAW_COUNT
+					? (STOCK_DRAW_COUNT - 1 - fromTop) * WASTE_FAN_X
+					: 0;
 			this.positionCard(
 				v,
-				WASTE_X + CARD_SIZE.width / 2,
+				WASTE_X + CARD_SIZE.width / 2 + fanOffset,
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				100 + i,
 				animate,

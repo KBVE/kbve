@@ -140,6 +140,25 @@ export const ROUND_BLINDS: readonly number[] = [
  * the shop on jokers / boosts. */
 export const CASH_RATE = 10;
 
+/** HP system — Balatro-style "lives". Damage from stock-recycle pressure;
+ * 0 HP triggers game over mid-round. Missing the blind at end of round is
+ * an instant game over (no HP cushion). */
+export const HP = {
+	start: 20,
+	max: 20,
+	/** Damage when stock recycle (cycle 2+) costs HP in addition to score. */
+	stockRecyclePenalty: 1,
+} as const;
+
+/** Stock draw count. Klondike traditional = 1; we run 3 for richer flow.
+ * Only the top of the fanned waste is grabbable; the two beneath show as
+ * a peek so the player can plan ahead. */
+export const STOCK_DRAW_COUNT = 3;
+
+/** Horizontal fan offset between visible waste cards. Top of pile is
+ * fully visible; cards beneath peek by this amount. */
+export const WASTE_FAN_X = 22;
+
 /** Shop offering count per round. */
 export const SHOP_OFFERS = 3;
 
@@ -149,11 +168,15 @@ export const STORAGE_KEY = 'kbve.solitaire.v1';
 
 export const HUD_COLORS = {
 	scoreText: '#fde68a',
+	scoreNegative: '#f87171', // red when score below 0
 	comboText: '#fbbf24',
 	comboPulse: '#f59e0b',
 	roundText: '#e5e7eb',
 	blindText: '#fca5a5',
 	cashText: '#86efac',
+	hpText: '#fca5a5',
+	hpFill: 0xdc2626,
+	hpBg: 0x4a1010,
 	hudBg: 0x1a2e1d,
 	hudBorder: 0xb38b3e,
 } as const;
