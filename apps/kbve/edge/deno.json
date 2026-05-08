@@ -7,7 +7,8 @@
     "strict": true
   },
   "imports": {
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "@clickhouse/client-web": "npm:@clickhouse/client-web@1.8.1"
   },
   "fmt": {
     "useTabs": false,

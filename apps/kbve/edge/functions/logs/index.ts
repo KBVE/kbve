@@ -1,5 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@clickhouse/client-web@1.8.1";
+// Resolves through Deno's `npm:` specifier (mapped in apps/kbve/edge/deno.json
+// imports) instead of esm.sh. esm.sh started returning 500 on
+// @clickhouse/client-web@1.8.1/dist/index.d.ts (2026-05-08), which crashed
+// every worker boot of this function and surfaced as 0/0/0 logs on /dashboard.
+// `npm:` resolves through Deno's own npm cache, no third-party CDN in the
+// boot path.
+import { createClient } from "@clickhouse/client-web";
 import { corsHeaders } from "../_shared/cors.ts";
 import {
   extractToken,
