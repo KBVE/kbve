@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Workspace Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-07T09:04:35Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-08T08:42:39Z** — updated daily by `ci-dashboard`.
 :::
 
 ### Environment
@@ -89,27 +89,27 @@ Cache Usage: 0.00 B / 89.18 GB
 ───────────────────────────────────────────────────────────────────────────────
 Language                 Files     Lines   Blanks  Comments     Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-MDX                       6317    360185    46743         0   313442          0
-TypeScript                 822    132444    13641      8406   110397      14034
-C#                         800    152037    15803     12857   123377      20004
-Rust                       621    157507    15274     17177   125056       8348
-YAML                       528     42104     2232      3159    36713          0
-JSON                       285     81467       83         0    81384          0
+MDX                       6793    397894    48188         0   349706          0
+TypeScript                 839    136765    13854      8952   113959      14447
+C#                         800    170723    16670     14285   139768      23177
+Rust                       625    161993    15416     17907   128670       8474
+YAML                       532     42863     2255      3364    37244          0
+JSON                       292     85676       83         0    85593          0
 C Header                   262    109501     9795     51019    48687       5254
-Astro                      189     36561     2760      1073    32728        845
+Astro                      194     37192     2808      1147    33237        897
 SQL                        152     39319     4964      5803    28552        262
-Python                     143     14991     2446      1463    11082       1182
-TOML                       139      2629      289       221     2119         20
-Markdown                   132     19241     5041         0    14200          0
-JavaScript                 116     57197     4548     12507    40142       7212
+Markdown                   151     20301     5310         0    14991          0
+Python                     143     15010     2446      1463    11101       1182
+TOML                       139      2652      292       235     2125         20
+JavaScript                 122     59808     4732     12803    42273       7320
 C                           83    381822    28720     85598   267504      47760
 C++                         83     11544     1808       394     9342       1398
+Java                        82      8503     1147      1410     5946        779
 HTML                        78      7364      557        80     6727          0
-Java                        72      6781      960      1148     4673        581
 Shell                       36      4853      622       901     3330        466
 SVG                         31      1329      184       242      903        113
 Protocol Buffers            29      9117     1270      1540     6307          0
-Dockerfile                  24      2944      574       758     1612        297
+Dockerfile                  24      2842      574       687     1581        306
 Plain Text                  24      5005     1043         0     3962          0
 Kotlin                      18      1970      205       314     1451        156
 XML                         17     29918      221         0    29697          0
@@ -134,9 +134,9 @@ Go Template                  1       128       15         0      113          0
 Nix                          1        44        9         9       26          3
 Properties File              1         7        0         0        7          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                    11101   1676370   160965    205502  1309903     108122
+Total                    11649   1752504   164346    208986  1379172     112201
 ───────────────────────────────────────────────────────────────────────────────
-Processed 59619981 bytes, 59.620 megabytes (SI)
+Processed 62671032 bytes, 62.671 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -169,6 +169,19 @@ Using github.ref: feature-branch
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
 Pull request created from feature-branch to main
 
+stderr | src/lib/client/github/issues.spec.ts > _$gha_createIssueComment > should throw when API call fails
+Error creating issue comment: Error: API Error
+    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:72:7
+    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at new Promise (&lt;anonymous>)
+    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
 GitHub Event Name: undefined
 Using github.ref: feature-branch
@@ -190,27 +203,14 @@ Using context.ref: fallback-branch
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
 Pull request created from fallback-branch to main
 
-stderr | src/lib/client/github/issues.spec.ts > _$gha_createIssueComment > should throw when API call fails
-Error creating issue comment: Error: API Error
-    at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:72:7
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
-    at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
-    at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-
 stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
 No matrix labels present. Added label: 0
 
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
-GitHub Event Name: undefined
-
 stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
 Removed lower labels, kept highest label: 5
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
+GitHub Event Name: undefined
 
 stderr | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
 Unable to determine the reference branch.
@@ -226,12 +226,12 @@ Error creating or updating pull request: Error: Unable to determine the referenc
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/pulls.spec.ts (9 tests) 31ms
- ✓ src/lib/client/github/issues.spec.ts (17 tests) 104ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 77ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 80ms
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 79ms
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 84ms
+ ✓ src/lib/client/github/pulls.spec.ts (9 tests) 98ms
+ ✓ src/lib/client/github/issues.spec.ts (17 tests) 107ms
+ ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 81ms
+ ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 14ms
+ ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 85ms
+ ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 14ms
 stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on invalid port
 Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
     at sanitizePort (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:140:11)
@@ -348,25 +348,23 @@ Error removing Docker container: Error: Remove failed
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/actions.spec.ts (7 tests) 64ms
- ✓ src/lib/client/github/docker.spec.ts (10 tests) 95ms
+ ✓ src/lib/client/github/actions.spec.ts (7 tests) 6ms
+ ✓ src/lib/client/github/docker.spec.ts (10 tests) 26ms
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
 Invalid YouTube URL
 
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
 No valid video found on the page
 
- ✓ src/lib/client/yt.spec.ts (10 tests) 601ms
-     ✓ should return the title of the YouTube video  581ms
- ✓ src/lib/api.spec.ts (5 tests) 594ms
-     ✓ _message should sanitize message correctly  585ms
- ✓ src/lib/sanitization.spec.ts (48 tests) 751ms
-     ✓ should convert markdown to JSON-safe string  565ms
+ ✓ src/lib/client/yt.spec.ts (10 tests) 317ms
+ ✓ src/lib/sanitization.spec.ts (48 tests) 532ms
+     ✓ should convert markdown to JSON-safe string  333ms
+ ✓ src/lib/api.spec.ts (5 tests) 303ms
 
  Test Files  11 passed (11)
       Tests  204 passed (204)
-   Start at  09:04:42
-   Duration  4.33s (transform 3.66s, setup 0ms, collect 16.90s, tests 2.56s, environment 2ms, prepare 1.47s)
+   Start at  08:42:46
+   Duration  3.86s (transform 3.10s, setup 0ms, collect 16.17s, tests 1.58s, environment 2ms, prepare 1.23s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -395,63 +393,6 @@ All files          |   78.21 |    77.22 |   79.43 |   78.16 |
   ...-factories.ts |    87.5 |     90.9 |   63.63 |   87.01 | ...88,319,361,385 
 -------------------|---------|----------|---------|---------|-------------------
 ::endgroup::
-::group::✅ > nx run laser:coverage
-
-> vitest run --coverage --config packages/npm/laser/vite.config.ts
-
-
- RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/laser
-      Coverage enabled with v8
-
- ✓ src/lib/core/events.spec.ts (8 tests) 11ms
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 9ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 14ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 13ms
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
-&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-The tag &lt;ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
-The tag &lt;mesh> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
-
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
-&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-
-stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
-&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
-
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 39ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 42ms
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 59ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 54ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 145ms
-
- Test Files  9 passed (9)
-      Tests  57 passed (57)
-   Start at  09:04:42
-   Duration  4.67s (transform 1.50s, setup 0ms, collect 3.59s, tests 387ms, environment 28.02s, prepare 1.58s)
-
- % Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |    63.5 |    50.79 |   75.47 |   66.92 |                   
- core              |     100 |      100 |     100 |     100 |                   
-  events.ts        |     100 |      100 |     100 |     100 |                   
- phaser            |      50 |    39.13 |   55.17 |   53.37 |                   
-  PhaserGame.tsx   |      92 |    83.33 |   83.33 |   95.83 | 36                
-  ...controller.ts |   75.43 |    66.12 |     100 |   75.43 | ...43,145,147,149 
-  ...aser-event.ts |     100 |      100 |     100 |     100 |                   
-  use-phaser.ts    |     100 |      100 |     100 |     100 |                   
-  ...l-joystick.ts |       0 |        0 |       0 |       0 | 32-162            
- phaser/monsters   |     100 |      100 |     100 |     100 |                   
-  bird.ts          |     100 |      100 |     100 |     100 |                   
- r3f/components    |     100 |      100 |     100 |     100 |                   
-  Stage.tsx        |     100 |      100 |     100 |     100 |                   
- r3f/hooks         |     100 |      100 |     100 |     100 |                   
-  use-game-loop.ts |     100 |      100 |     100 |     100 |                   
- spatial           |   82.81 |    80.85 |     100 |   86.66 |                   
-  quadtree.ts      |   82.81 |    80.85 |     100 |   86.66 | 65-68,83,93-96    
--------------------|---------|----------|---------|---------|-------------------
-::endgroup::
 ::group::✅ > nx run droid:coverage
 
 > vitest run --coverage --config packages/npm/droid/vite.config.ts
@@ -460,16 +401,16 @@ All files          |    63.5 |    50.79 |   75.47 |   66.92 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/droid
       Coverage enabled with v8
 
- ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 7ms
- ✓ src/lib/state/auth.spec.ts (5 tests) 7ms
- ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 12ms
- ✓ src/lib/types/bento.spec.ts (13 tests) 57ms
- ✓ src/lib/types/event-types.spec.ts (11 tests) 11ms
- ✓ src/lib/state/ui.spec.ts (16 tests) 17ms
- ✓ src/lib/types/event-schemas.spec.ts (17 tests) 18ms
- ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 17ms
- ✓ src/lib/state/toasts.spec.ts (9 tests) 20ms
- ✓ src/lib/workers/events.spec.ts (13 tests) 27ms
+ ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 59ms
+ ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 6ms
+ ✓ src/lib/state/auth.spec.ts (5 tests) 6ms
+ ✓ src/lib/types/bento.spec.ts (13 tests) 11ms
+ ✓ src/lib/types/event-schemas.spec.ts (17 tests) 17ms
+ ✓ src/lib/types/event-types.spec.ts (11 tests) 12ms
+ ✓ src/lib/state/toasts.spec.ts (9 tests) 15ms
+ ✓ src/lib/state/ui.spec.ts (16 tests) 21ms
+ ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 25ms
+ ✓ src/lib/workers/events.spec.ts (13 tests) 28ms
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T>
 
@@ -492,12 +433,13 @@ stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T> => await WorkerRefs + URLs
 
- ✓ src/lib/droid.spec.ts (1 test) 207ms
+ ✓ src/lib/droid.spec.ts (1 test) 869ms
+     ✓ should initialize and attach to window.kbve  866ms
 
  Test Files  11 passed (11)
       Tests  106 passed (106)
-   Start at  09:04:42
-   Duration  4.84s (transform 1.50s, setup 1.08s, collect 2.84s, tests 400ms, environment 34.01s, prepare 1.99s)
+   Start at  08:42:46
+   Duration  4.96s (transform 1.56s, setup 1.23s, collect 3.18s, tests 1.07s, environment 27.25s, prepare 2.06s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -547,6 +489,63 @@ All files          |   23.14 |    15.68 |    17.8 |   23.77 |
   ws-worker.ts     |   19.29 |     5.17 |    6.25 |      20 | ...13,127-268,283 
 -------------------|---------|----------|---------|---------|-------------------
 ::endgroup::
+::group::✅ > nx run laser:coverage
+
+> vitest run --coverage --config packages/npm/laser/vite.config.ts
+
+
+ RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/laser
+      Coverage enabled with v8
+
+ ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 43ms
+ ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 9ms
+ ✓ src/lib/core/events.spec.ts (8 tests) 12ms
+ ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 14ms
+stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
+&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
+The tag &lt;ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
+The tag &lt;mesh> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
+
+stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
+&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
+
+stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
+&lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
+
+ ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 73ms
+ ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 68ms
+ ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 76ms
+ ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 74ms
+ ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 173ms
+
+ Test Files  9 passed (9)
+      Tests  57 passed (57)
+   Start at  08:42:46
+   Duration  3.86s (transform 1.02s, setup 0ms, collect 2.92s, tests 543ms, environment 22.49s, prepare 1.67s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    63.5 |    50.79 |   75.47 |   66.92 |                   
+ core              |     100 |      100 |     100 |     100 |                   
+  events.ts        |     100 |      100 |     100 |     100 |                   
+ phaser            |      50 |    39.13 |   55.17 |   53.37 |                   
+  PhaserGame.tsx   |      92 |    83.33 |   83.33 |   95.83 | 36                
+  ...controller.ts |   75.43 |    66.12 |     100 |   75.43 | ...43,145,147,149 
+  ...aser-event.ts |     100 |      100 |     100 |     100 |                   
+  use-phaser.ts    |     100 |      100 |     100 |     100 |                   
+  ...l-joystick.ts |       0 |        0 |       0 |       0 | 32-162            
+ phaser/monsters   |     100 |      100 |     100 |     100 |                   
+  bird.ts          |     100 |      100 |     100 |     100 |                   
+ r3f/components    |     100 |      100 |     100 |     100 |                   
+  Stage.tsx        |     100 |      100 |     100 |     100 |                   
+ r3f/hooks         |     100 |      100 |     100 |     100 |                   
+  use-game-loop.ts |     100 |      100 |     100 |     100 |                   
+ spatial           |   82.81 |    80.85 |     100 |   86.66 |                   
+  quadtree.ts      |   82.81 |    80.85 |     100 |   86.66 | 65-68,83,93-96    
+-------------------|---------|----------|---------|---------|-------------------
+::endgroup::
 ::group::✅ > nx run khashvault:coverage
 
 > vitest run --coverage --config packages/npm/khashvault/vite.config.ts
@@ -555,19 +554,19 @@ All files          |   23.14 |    15.68 |    17.8 |   23.77 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/khashvault
       Coverage enabled with v8
 
- ✓ src/lib/worker/worker.spec.ts (5 tests) 6ms
- ✓ src/lib/hash/hash.spec.ts (7 tests) 7ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 13ms
- ✓ src/lib/storage/storage.spec.ts (7 tests) 11ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 24ms
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 211ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 498ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 711ms
+ ✓ src/lib/worker/worker.spec.ts (5 tests) 5ms
+ ✓ src/lib/hash/hash.spec.ts (7 tests) 6ms
+ ✓ src/lib/keys/keys.spec.ts (6 tests) 11ms
+ ✓ src/lib/storage/storage.spec.ts (7 tests) 13ms
+ ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 18ms
+ ✓ src/lib/pgp/pgp.spec.ts (4 tests) 182ms
+ ✓ src/lib/aes/aes.spec.ts (7 tests) 496ms
+ ✓ src/lib/kdf/kdf.spec.ts (5 tests) 698ms
 
  Test Files  8 passed (8)
       Tests  48 passed (48)
-   Start at  09:04:48
-   Duration  1.66s (transform 633ms, setup 854ms, collect 781ms, tests 1.48s, environment 3.05s, prepare 328ms)
+   Start at  08:42:54
+   Duration  1.56s (transform 583ms, setup 731ms, collect 637ms, tests 1.43s, environment 2.59s, prepare 376ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|--------------------------------

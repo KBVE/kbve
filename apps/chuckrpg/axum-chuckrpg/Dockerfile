@@ -72,6 +72,11 @@ COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
+# bevy_kbve_net carries an optional path dep on bevy_tasker behind the
+# "creatures" feature. cargo chef prepare reads every member manifest
+# fully — including optional path deps — so the bevy_tasker manifest
+# must exist on disk even though we never enable the feature here.
+COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -80,7 +85,8 @@ RUN mkdir -p apps/chuckrpg/axum-chuckrpg/src && echo "fn main() {}" > apps/chuck
     mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -124,6 +130,12 @@ COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+# bevy_kbve_net's optional bevy_tasker path dep — cargo resolves the
+# manifest even when the feature is off, so the source must exist on
+# disk. Copying the real crate is safer than a stub here because the
+# cached target/ inherited from chef cook references the same on-disk
+# fingerprint.
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -144,6 +156,7 @@ COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/chuckrpg/axum-chuckrpg apps/chuckrpg/axum-chuckrpg

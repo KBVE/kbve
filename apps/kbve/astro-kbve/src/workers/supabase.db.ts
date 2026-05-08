@@ -317,7 +317,9 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 				});
 		}
 	} catch (err: any) {
-		console.error(`[DB Worker] Error handling ${type}:`, err);
+		// Pass the user-controlled `type` as a separate argument rather than
+		// interpolating it into the format string (CodeQL js/tainted-format-string).
+		console.error('[DB Worker] Error handling', type, ':', err);
 		respond(id, { ok: false, error: err.message || String(err) });
 	}
 };

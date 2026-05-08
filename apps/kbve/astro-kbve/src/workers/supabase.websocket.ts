@@ -81,13 +81,41 @@ function sanitizeForLog(value: unknown): string {
 
 console.log('[WebSocket Worker] Initializing...');
 
-// Determine WebSocket URL
+// Determine WebSocket URL.
+// `customUrl` arrives via worker postMessage and is treated as user-controlled,
+// so it is validated against an allowlist before use (CodeQL
+// js/client-side-request-forgery): scheme must be ws/wss and host must equal
+// the worker's own origin host. Anything else falls back to the default.
 function getWebSocketUrl(customUrl?: string): string {
-	if (customUrl) return customUrl;
+	const fallback = 'ws://localhost:4321/ws';
+	if (!customUrl) return fallback;
 
-	// In dedicated worker, we don't have location, so use default
-	// The URL should be passed from main thread
-	return 'ws://localhost:4321/ws';
+	let parsed: URL;
+	try {
+		parsed = new URL(customUrl);
+	} catch {
+		console.warn('[WebSocket Worker] Rejected malformed customUrl');
+		return fallback;
+	}
+
+	if (parsed.protocol !== 'ws:' && parsed.protocol !== 'wss:') {
+		console.warn(
+			'[WebSocket Worker] Rejected non-ws scheme:',
+			parsed.protocol,
+		);
+		return fallback;
+	}
+
+	const expectedHost = self.location?.host;
+	if (expectedHost && parsed.host !== expectedHost) {
+		console.warn(
+			'[WebSocket Worker] Rejected cross-origin host:',
+			parsed.host,
+		);
+		return fallback;
+	}
+
+	return parsed.toString();
 }
 
 // Connect to WebSocket
