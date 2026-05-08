@@ -42,7 +42,7 @@
 					"load": true,
 					"push": false,
 					"provenance": "false",
-					"sbom": "false"
+					"sbom": false
 				}
 			}
 		},
