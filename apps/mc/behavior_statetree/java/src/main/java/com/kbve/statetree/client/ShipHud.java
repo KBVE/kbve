@@ -209,7 +209,7 @@ public class ShipHud implements HudRenderCallback {
                     (screenWidth - bw) / 2, screenHeight - 105, 0xFFFFAA00, true);
         }
 
-        String controls = "Mouse Aim/Pitch  W Throttle  Ctrl Boost  Shift Dismount";
+        String controls = "Mouse Aim  W Throttle  Space Climb  Ctrl Boost  Shift Dismount";
         int controlsWidth = client.textRenderer.getWidth(controls);
         context.drawText(client.textRenderer, Text.of("§7" + controls),
                 screenWidth - controlsWidth - 10, screenHeight - 15, 0x999999, true);

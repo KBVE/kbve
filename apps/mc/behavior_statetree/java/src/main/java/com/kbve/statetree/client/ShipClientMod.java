@@ -72,16 +72,21 @@ public class ShipClientMod implements ClientModInitializer {
         boolean n = client.options.forwardKey.isPressed();
         boolean s = client.options.backKey.isPressed();
         boolean boost = client.options.sprintKey.isPressed();
+        boolean jump = client.options.jumpKey.isPressed();
 
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
         float targetYaw = client.player.getYaw();
         float targetPitch = client.player.getPitch();
+        // Keyboard Y axis: jump = ascend (mirrors IA's pressingInterpolatedY).
+        // Sneak stays bound to vanilla dismount, so mouse-pitch handles descend.
+        float keyVertical = jump ? 1.0f : 0.0f;
 
-        boolean rise = targetPitch < -8f;
-        boolean lower = targetPitch > 8f;
+        boolean rise = jump || targetPitch < -20f;
+        boolean lower = !jump && targetPitch > 20f;
         hud.setInputState(n, s, false, false, rise, lower, boost);
 
-        ClientPlayNetworking.send(new HelmInputPayload(activeHelmShipId, forward, boost, targetYaw, targetPitch));
+        ClientPlayNetworking.send(new HelmInputPayload(
+                activeHelmShipId, forward, boost, targetYaw, targetPitch, keyVertical));
 
         // Fire weapons on attack key press (mouse left). Server enforces
         // per-slot cooldown so spamming the key doesn't desync.
