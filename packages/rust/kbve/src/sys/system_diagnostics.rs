@@ -94,19 +94,24 @@ pub async fn call_n8n_service() -> impl IntoResponse {
     let client = reqwest::Client::new();
 
     // Use env var for internal n8n URL (defaults to public HTTPS endpoint)
-    let n8n_url = std::env::var("N8N_WORKFLOWS_URL")
+    let n8n_url_raw = std::env::var("N8N_WORKFLOWS_URL")
         .unwrap_or_else(|_| "https://automation.kbve.com/workflows".to_string());
 
-    // Enforce HTTPS to prevent cleartext transmission (CodeQL CWE-319)
-    if !n8n_url.starts_with("https://") {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": "N8N_WORKFLOWS_URL must use HTTPS"})),
-        );
-    }
+    // Parse and require https. Returning a typed `reqwest::Url` keeps the
+    // scheme check visible to CodeQL `rust/non-https-url` (a `&str.starts_with`
+    // gate is not recognised as a sanitizer).
+    let n8n_url = match reqwest::Url::parse(&n8n_url_raw) {
+        Ok(url) if url.scheme() == "https" => url,
+        _ => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "N8N_WORKFLOWS_URL must use HTTPS"})),
+            );
+        }
+    };
 
     // Attempt to call the primary service
-    if let Ok(resp) = client.get(&n8n_url).send().await {
+    if let Ok(resp) = client.get(n8n_url).send().await {
         if let Ok(json) = resp.json::<Value>().await {
             return (StatusCode::OK, Json(json));
         }
