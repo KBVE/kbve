@@ -1207,6 +1207,136 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
     }
 }
 
+/// JWT-gated 302 to the noVNC UI with the rotated kasm-vnc-pw embedded.
+pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
+    use base64::Engine as _;
+    use base64::engine::general_purpose::STANDARD as B64;
+
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "KASM-Launch").await
+    {
+        return resp;
+    }
+
+    let kubevirt = match KUBEVIRT.get() {
+        Some(k) => k,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "K8s API not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let url = format!(
+        "{}/api/v1/namespaces/{}/secrets/kasm-vnc-pw",
+        kubevirt.upstream, KASM_NAMESPACE
+    );
+
+    let mut upstream_req = kubevirt
+        .client
+        .get(&url)
+        .header("Accept", "application/json");
+    if let Some(ref token) = kubevirt.upstream_token {
+        upstream_req = upstream_req.bearer_auth(token);
+    }
+
+    let resp = match upstream_req.send().await {
+        Ok(r) if r.status().is_success() => r,
+        Ok(r) => {
+            let status = r.status();
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({
+                    "error": format!("Failed to read kasm-vnc-pw Secret: {status}"),
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => {
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("K8s API request failed: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let body: serde_json::Value = match resp.json().await {
+        Ok(v) => v,
+        Err(e) => {
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("Invalid Secret response: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let b64_password = match body
+        .get("data")
+        .and_then(|d| d.get("password"))
+        .and_then(|v| v.as_str())
+    {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({
+                    "error": "kasm-vnc-pw Secret has no `password` key — pod may not be running yet",
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let password_bytes = match B64.decode(b64_password.as_bytes()) {
+        Ok(b) => b,
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": format!("Failed to decode password: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let password = match std::str::from_utf8(&password_bytes) {
+        Ok(s) => s,
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": format!("Password not valid utf-8: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    if password.len() < 16 || !password.chars().all(|c| c.is_ascii_alphanumeric()) {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            axum::Json(json!({
+                "error": "kasm-vnc-pw value outside expected charset; check the gen-vnc-pw init script",
+            })),
+        )
+            .into_response();
+    }
+
+    let location =
+        format!("/dashboard/kasm/proxy/?password={password}&autoconnect=1&resize=remote");
+
+    Response::builder()
+        .status(StatusCode::FOUND)
+        .header(header::LOCATION, location)
+        .header(header::CACHE_CONTROL, "no-store")
+        .body(Body::empty())
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
 // ---------------------------------------------------------------------------
 // Firecracker proxy singleton (reverse proxy to firecracker-ctl REST API)
 // ---------------------------------------------------------------------------
