@@ -155,8 +155,11 @@ public class ShipHud implements HudRenderCallback {
         String climbStr = climbRate >= 0
                 ? String.format("§a▲%.1f", climbRate)
                 : String.format("§c▼%.1f", -climbRate);
-        String telemetry = String.format("§eSPD %.1f  ALT %d  HDG %03d°  %s",
-                speed, altitude, ((int) ((heading % 360) + 360)) % 360, climbStr);
+        // Speed color: green cruise → yellow sprint → red boost.
+        String spdColor = speed > 1.2f ? "§c" : (speed > 0.7f ? "§e" : "§a");
+        String telemetry = String.format("%sSPD %.1f§r  §7ALT§f %d  §7HDG§f %03d°  %s",
+                spdColor, speed,
+                altitude, ((int) ((heading % 360) + 360)) % 360, climbStr);
         int telWidth = client.textRenderer.getWidth(telemetry);
         context.drawText(client.textRenderer, Text.of(telemetry),
                 (screenWidth - telWidth) / 2, screenHeight - 78, 0xFFFFFFFF, true);

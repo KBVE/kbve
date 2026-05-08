@@ -390,17 +390,28 @@ public class ShipEntity extends Entity {
             return ActionResult.PASS;
         }
 
-        // Repair: iron ingot → +25 HP per ingot.
-        if (stack.isOf(net.minecraft.item.Items.IRON_INGOT) && getShipHealth() < MAX_HEALTH) {
-            float before = getShipHealth();
-            setShipHealth(before + 25.0f);
-            if (!player.getAbilities().creativeMode) stack.decrement(1);
-            if (!this.getEntityWorld().isClient()) {
-                player.sendMessage(net.minecraft.text.Text.of(
-                        String.format("Ship repaired: %.0f → %.0f / %.0f",
-                                before, getShipHealth(), MAX_HEALTH)), true);
+        // Repair: any iron-tier material works.
+        //   IRON_INGOT      +25 HP
+        //   IRON_BLOCK      +50 HP (denser slab patches more hull)
+        //   COPPER_INGOT    +15 HP (cheaper but weaker)
+        //   NETHERITE_INGOT +60 HP (premium full-stack patch)
+        if (getShipHealth() < MAX_HEALTH) {
+            float repairAmt = 0f;
+            if (stack.isOf(net.minecraft.item.Items.IRON_INGOT))            repairAmt = 25f;
+            else if (stack.isOf(net.minecraft.item.Items.IRON_BLOCK))       repairAmt = 50f;
+            else if (stack.isOf(net.minecraft.item.Items.COPPER_INGOT))     repairAmt = 15f;
+            else if (stack.isOf(net.minecraft.item.Items.NETHERITE_INGOT))  repairAmt = 60f;
+            if (repairAmt > 0f) {
+                float before = getShipHealth();
+                setShipHealth(before + repairAmt);
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+                if (!this.getEntityWorld().isClient()) {
+                    player.sendMessage(net.minecraft.text.Text.of(
+                            String.format("Ship repaired: %.0f → %.0f / %.0f",
+                                    before, getShipHealth(), MAX_HEALTH)), true);
+                }
+                return ActionResult.SUCCESS;
             }
-            return ActionResult.SUCCESS;
         }
 
         // Refuel: coal → +200 fuel; lava bucket → +2000 fuel (consumes bucket).
