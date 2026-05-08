@@ -31,7 +31,7 @@ describe('worker-client', () => {
 		(globalThis as any).SharedWorker = original;
 	});
 
-	it('round-trips a request through a registered MessagePort', async () => {
+	it('round-trips a request through a registered MessagePort with an absolute URL', async () => {
 		const channel = new MessageChannel();
 		setSiteGraphWorker(channel.port1);
 
@@ -46,8 +46,14 @@ describe('worker-client', () => {
 		};
 		channel.port2.start();
 
-		const result = await fetchViaWorker('/api/sitegraph.json');
-		expect(result).toEqual({ mockedFor: '/api/sitegraph.json' });
+		const result = (await fetchViaWorker('/api/sitegraph.json')) as {
+			mockedFor: string;
+		};
+		// Endpoint must be resolved against window.location before crossing
+		// into the worker so the worker's `fetch()` doesn't have to resolve
+		// a relative URL against its own `blob:` origin.
+		expect(result.mockedFor).toMatch(/^https?:\/\//);
+		expect(result.mockedFor).toMatch(/\/api\/sitegraph\.json$/);
 
 		channel.port1.close();
 		channel.port2.close();
