@@ -22,7 +22,7 @@ spec:
         spec:
             containers:
                 - name: rareicon
-                  image: ghcr.io/kbve/rareicon:0.1.1
+                  image: ghcr.io/kbve/rareicon:0.1.2
                   imagePullPolicy: Always
                   ports:
                       - name: http
