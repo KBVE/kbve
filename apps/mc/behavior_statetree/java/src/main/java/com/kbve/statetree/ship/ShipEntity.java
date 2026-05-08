@@ -336,6 +336,48 @@ public class ShipEntity extends Entity {
     @Override
     public boolean isCollidable(Entity other) { return true; }
 
+    /**
+     * Ship-vs-ship collision exchanges velocity instead of vanilla's
+     * tiny shove. Two airships ramming each other now bounce off with
+     * roughly conserved momentum (scaled by stats.mass) and take a
+     * sliver of damage proportional to closing speed — so dogfighting
+     * has a melee option for free.
+     */
+    @Override
+    public void pushAwayFrom(Entity other) {
+        if (!(other instanceof ShipEntity peer)) {
+            super.pushAwayFrom(other);
+            return;
+        }
+        Vec3d delta = new Vec3d(
+                this.getX() - other.getX(),
+                this.getY() - other.getY(),
+                this.getZ() - other.getZ());
+        double dist = delta.length();
+        if (dist < 1.0e-3) return;
+        Vec3d push = delta.normalize();
+
+        float myMass = getStats().mass();
+        float theirMass = peer.getStats().mass();
+        float massSum = Math.max(0.5f, myMass + theirMass);
+        // Heavier ship bullies lighter one — push scales inversely with own mass.
+        double myShare = theirMass / massSum;
+        double theirShare = myMass / massSum;
+
+        double closingSpeed = this.getVelocity().subtract(other.getVelocity()).length();
+        double impulse = 0.08 + closingSpeed * 0.25;
+
+        this.setVelocity(this.getVelocity().add(push.multiply(impulse * myShare)));
+        peer.setVelocity(peer.getVelocity().add(push.multiply(-impulse * theirShare)));
+
+        if (closingSpeed > 0.4 && !this.getEntityWorld().isClient()
+                && this.getEntityWorld() instanceof ServerWorld sw) {
+            float dmg = (float) Math.min(8.0, closingSpeed * 4.0);
+            this.damage(sw, this.getDamageSources().generic(), dmg);
+            peer.damage(sw, peer.getDamageSources().generic(), dmg);
+        }
+    }
+
     @Override
     public boolean canHit() { return true; }
 
