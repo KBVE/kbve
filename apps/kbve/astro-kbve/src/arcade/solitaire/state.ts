@@ -47,6 +47,11 @@ interface ScoreSnapshot {
 	comboMultiplier: number;
 	lastFoundationAt: number;
 	moves: number;
+	/** Card indices that have already triggered a foundation reward this
+	 * round. Re-placing a card after foundation→tableau→foundation does NOT
+	 * re-reward — prevents loop abuse. Stored as a flat number[] for
+	 * snapshot serialization; reconstructed into the live Set on restore. */
+	scoredCards: number[];
 }
 
 /** Persistent run record stored in localStorage. */
@@ -77,6 +82,11 @@ export class GameState {
 	/** Stock-recycle counter — first pass through deck is free, recycles
 	 * after that cost SCORE.stockRecycle. */
 	private stockCycles = 0;
+	/** Card indices that have already been rewarded by foundation placement
+	 * this round. A card removed from foundation + re-placed does not score
+	 * again — prevents the foundation→tableau→foundation reward loop. The
+	 * removal penalty (SCORE.foundationToTableau) still applies. */
+	private scoredCards: Set<number> = new Set();
 
 	// --- Layer 3: run progression ------------------------------------------
 	round = 1;
@@ -120,6 +130,7 @@ export class GameState {
 		this.moves = 0;
 		this.lastFoundationAt = 0;
 		this.stockCycles = 0;
+		this.scoredCards.clear();
 
 		// Apply owned joker variants (from shop) to the dealt jokers. Variant
 		// stays bound to the card index so the variant persists across moves
@@ -255,6 +266,7 @@ export class GameState {
 			comboMultiplier: this.comboMultiplier,
 			lastFoundationAt: this.lastFoundationAt,
 			moves: this.moves,
+			scoredCards: Array.from(this.scoredCards),
 		};
 	}
 
@@ -264,6 +276,7 @@ export class GameState {
 		this.comboMultiplier = s.comboMultiplier;
 		this.lastFoundationAt = s.lastFoundationAt;
 		this.moves = s.moves;
+		this.scoredCards = new Set(s.scoredCards);
 	}
 
 	private pushHistory() {
@@ -398,7 +411,10 @@ export class GameState {
 		this.pushHistory();
 		this.waste.pop();
 		this.foundations[idx].push(c);
-		this.applyScore(SCORE.wasteToFoundation, true);
+		const cardIdx = c & 0x3f;
+		const firstTime = !this.scoredCards.has(cardIdx);
+		this.applyScore(firstTime ? SCORE.wasteToFoundation : 0, firstTime);
+		if (firstTime) this.scoredCards.add(cardIdx);
 		return true;
 	}
 
@@ -434,9 +450,15 @@ export class GameState {
 		col.pop();
 		this.foundations[foundationIdx].push(c);
 		const flipped = this.flipExposedTop(fromCol);
+		const cardIdx = c & 0x3f;
+		const firstTime = !this.scoredCards.has(cardIdx);
+		// Reveal bonus still fires even on re-placement (the flip is real
+		// progress regardless of whether the card already scored before).
 		const points =
-			SCORE.tableauToFoundation + (flipped ? SCORE.revealTableau : 0);
-		this.applyScore(points, true);
+			(firstTime ? SCORE.tableauToFoundation : 0) +
+			(flipped ? SCORE.revealTableau : 0);
+		this.applyScore(points, firstTime);
+		if (firstTime) this.scoredCards.add(cardIdx);
 		return true;
 	}
 
