@@ -15,10 +15,16 @@ ARG JAVA_BUILDER_IMAGE=gradle:jdk21
 # the published cache (ghcr.io/kbve/mc:mods); override with a local tag
 # for offline / unauthenticated builds. Bump the cache image whenever
 # apps/mc/Dockerfile.mods changes; ci-mc-mods-cache.yml rebuilds and
-# pushes on edits to that file. This ARG is referenced post-FROM only
-# inside a `COPY --from=` so the resulting image's mods layer is
-# deterministic per-tag without re-hitting Modrinth on every build.
+# pushes on edits to that file.
+#
+# Alias the cache as a named stage (mods-cache) so the runtime stage
+# can `COPY --from=mods-cache` with a literal stage name. Using
+# `COPY --from=${MODS_CACHE_IMAGE}` directly only works under BuildKit;
+# nx-container's e2e path falls back to the classic builder, which
+# treats the unsubstituted reference as a Docker Hub `library/...`
+# repo and aborts.
 ARG MODS_CACHE_IMAGE=ghcr.io/kbve/mc:mods
+FROM ${MODS_CACHE_IMAGE} AS mods-cache
 
 # ── Stage 1: Build Rust native libraries (.so) ────────────────────────
 FROM rust:1.94-bookworm AS rust-builder
@@ -108,10 +114,6 @@ RUN gradle build --no-daemon \
 # ── Stage 3: Runtime ──────────────────────────────────────────────────
 FROM itzg/minecraft-server:java25
 
-# Re-declare the global ARG inside this stage so the COPY --from below
-# resolves it. Docker scopes ARGs to the stage they're declared in.
-ARG MODS_CACHE_IMAGE
-
 ENV TYPE=FABRIC
 ENV VERSION=1.21.11
 ENV FABRIC_LOADER_VERSION=0.18.6
@@ -152,16 +154,17 @@ ENV EXISTING_OPS_FILE=SYNCHRONIZE
 ENV USE_AIKAR_FLAGS=false
 ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -XX:+ParallelRefProcEnabled"
 
-# ── Modrinth mods (pre-baked into ${MODS_CACHE_IMAGE}) ────────────────
+# ── Modrinth mods (pre-baked into the mods-cache stage) ───────────────
 # All ~50 Fabric mods come from the standalone cache image built by
 # apps/mc/Dockerfile.mods + ci-mc-mods-cache.yml. Pulling a single image
 # layer beats running 50 sequential curls against Modrinth on every
 # CI build — same payload, no CDN flakes, deterministic per-tag.
 #
-# To bump mods: edit Dockerfile.mods, push, let CI rebuild and publish
-# ghcr.io/kbve/mc:mods, then this stage picks it up automatically on
-# the next image build.
-COPY --from=${MODS_CACHE_IMAGE} /mods/ /mods/
+# Sourced via the mods-cache stage alias declared above (FROM
+# ${MODS_CACHE_IMAGE} AS mods-cache) so the COPY works under both
+# BuildKit and the classic Docker builder. To bump mods: edit
+# Dockerfile.mods, push, let CI rebuild and publish ghcr.io/kbve/mc:mods.
+COPY --from=mods-cache /mods/ /mods/
 
 # behavior_statetree mod (built in stage 2)
 COPY --from=java-builder /build/behavior_statetree/java/build/libs/*.jar /mods/
