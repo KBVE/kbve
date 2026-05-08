@@ -129,6 +129,11 @@ pub struct MapTile {
     pub exits: Vec<Direction>,
     pub visited: bool,
     pub cleared: bool,
+    /// Optional mapdb world-object ref attached to this tile. When set, card
+    /// rendering and lore lookups can fetch the proto definition from
+    /// [`bevy_mapdb::MapDb`] for richer flavor text.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub landmark_ref: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -976,6 +981,7 @@ pub fn test_map_default() -> MapState {
             ],
             visited: true,
             cleared: true,
+            landmark_ref: None,
         },
     );
     MapState {
@@ -1505,6 +1511,7 @@ mod tests {
                 exits: vec![Direction::North],
                 visited: true,
                 cleared: true,
+                landmark_ref: None,
             },
         );
         tiles.insert(
@@ -1517,6 +1524,7 @@ mod tests {
                 exits: vec![Direction::West, Direction::East],
                 visited: false,
                 cleared: false,
+                landmark_ref: None,
             },
         );
 

@@ -113,7 +113,8 @@
 				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
 				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.binpb",
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json",
-				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb"
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb",
+				"{workspaceRoot}/apps/discordsh/discordsh-bot/data/mapdb.json"
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-mapdb-data.mjs",

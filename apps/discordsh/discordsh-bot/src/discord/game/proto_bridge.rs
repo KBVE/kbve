@@ -11,8 +11,10 @@ use bevy_items::{
     EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, ProtoItemId, StatusEffectKind,
     UseEffectType, inventory_adapter::ProtoItemKind,
 };
+use bevy_mapdb::{MapDb, WorldObjectType};
 use bevy_npc::NpcDb;
 use bevy_quests::QuestDb;
+use rand::{Rng, RngExt};
 
 use super::types::*;
 
@@ -43,6 +45,139 @@ const NPCDB_JSON: &str = include_str!("../../../data/npcdb.json");
 /// The global proto NPC database, loaded once from the embedded JSON.
 static NPC_DB: LazyLock<NpcDb> =
     LazyLock::new(|| NpcDb::from_json(NPCDB_JSON).expect("embedded npcdb.json must be valid"));
+
+/// Embedded JSON snapshot of the map database (proto-canonical). Synced from
+/// the astro-kbve `sync:mapdb` target.
+const MAPDB_JSON: &str = include_str!("../../../data/mapdb.json");
+
+/// The global proto map database, loaded once from the embedded JSON.
+static MAP_DB: LazyLock<MapDb> =
+    LazyLock::new(|| MapDb::from_json(MAPDB_JSON).expect("embedded mapdb.json must be valid"));
+
+/// Buckets of `(ref, name)` pairs grouped by the `RoomType` they may decorate.
+/// Built once from `MAP_DB` at first use; ordered by ref for determinism.
+struct LandmarkBuckets {
+    boss: Vec<(String, String)>,
+    treasure: Vec<(String, String)>,
+    merchant: Vec<(String, String)>,
+    rest: Vec<(String, String)>,
+    story: Vec<(String, String)>,
+    underground_city: Vec<(String, String)>,
+}
+
+static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
+    let mut boss = Vec::new();
+    let mut treasure = Vec::new();
+    let mut merchant = Vec::new();
+    let mut rest = Vec::new();
+    let mut story = Vec::new();
+    let mut underground_city = Vec::new();
+
+    for (_id, def) in MAP_DB.object_defs() {
+        if def.drafted.unwrap_or(false) {
+            continue;
+        }
+        let kind = def.sub_kind.as_deref().unwrap_or("");
+        let pair = || (def.r#ref.clone(), def.name.clone());
+        match WorldObjectType::try_from(def.r#type).ok() {
+            Some(WorldObjectType::WorldObjectArena) => boss.push(pair()),
+            Some(WorldObjectType::WorldObjectResourceNode) => treasure.push(pair()),
+            Some(WorldObjectType::WorldObjectSettlement) => underground_city.push(pair()),
+            Some(WorldObjectType::WorldObjectBuilding) => match kind {
+                // Trade-flavored buildings → Merchant rooms
+                "market" | "trade-house" | "merchants-guild" | "dusty-bazaar"
+                | "mushroom-bazaar" | "sunken-market" | "wanderers-nook" => merchant.push(pair()),
+                // Healing / sleep / restorative buildings → RestShrine rooms
+                "inn" | "outpost" | "barracks" | "farm" => rest.push(pair()),
+                // Story-flavored civic structures
+                _ => story.push(pair()),
+            },
+            Some(WorldObjectType::WorldObjectLandmark) => {
+                // Tranquil landmarks tend to feel like rest shrines; the rest is story.
+                match kind {
+                    "spring" | "pool" | "shrine" | "alcove" => rest.push(pair()),
+                    _ => story.push(pair()),
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let sort_pairs = |v: &mut Vec<(String, String)>| v.sort_by(|a, b| a.0.cmp(&b.0));
+    sort_pairs(&mut boss);
+    sort_pairs(&mut treasure);
+    sort_pairs(&mut merchant);
+    sort_pairs(&mut rest);
+    sort_pairs(&mut story);
+    sort_pairs(&mut underground_city);
+
+    LandmarkBuckets {
+        boss,
+        treasure,
+        merchant,
+        rest,
+        story,
+        underground_city,
+    }
+});
+
+/// Probability of attaching a curated landmark to a tile of the given room
+/// type. Combat/Trap/Hallway never get landmarks (no fitting catalog buckets).
+fn landmark_attach_chance(room_type: &RoomType) -> f32 {
+    match room_type {
+        RoomType::Boss => 0.85,
+        RoomType::UndergroundCity => 0.80,
+        RoomType::Merchant => 0.60,
+        RoomType::RestShrine => 0.50,
+        RoomType::Treasure => 0.40,
+        RoomType::Story => 0.40,
+        RoomType::Combat | RoomType::Trap | RoomType::Hallway => 0.0,
+    }
+}
+
+/// Sample a curated mapdb landmark for the given room type. Returns
+/// `(ref, display_name)` when the catalog has a fitting entry and the
+/// attach roll succeeds, otherwise `None` so the caller falls back to
+/// procedural naming.
+pub fn pick_landmark_for_room_type<R: Rng + ?Sized>(
+    room_type: &RoomType,
+    rng: &mut R,
+) -> Option<(String, String)> {
+    let chance = landmark_attach_chance(room_type);
+    if chance <= 0.0 || rng.random_range(0.0f32..1.0) >= chance {
+        return None;
+    }
+    let bucket: &[(String, String)] = match room_type {
+        RoomType::Boss => &LANDMARK_BUCKETS.boss,
+        RoomType::Treasure => &LANDMARK_BUCKETS.treasure,
+        RoomType::Merchant => &LANDMARK_BUCKETS.merchant,
+        RoomType::RestShrine => &LANDMARK_BUCKETS.rest,
+        RoomType::Story => &LANDMARK_BUCKETS.story,
+        RoomType::UndergroundCity => &LANDMARK_BUCKETS.underground_city,
+        RoomType::Combat | RoomType::Trap | RoomType::Hallway => return None,
+    };
+    if bucket.is_empty() {
+        return None;
+    }
+    let idx = rng.random_range(0..bucket.len());
+    Some(bucket[idx].clone())
+}
+
+/// Look up a landmark's display name by ref. Used by card rendering to
+/// surface the curated mapdb name when a tile has a `landmark_ref`.
+#[allow(dead_code)]
+pub fn landmark_name(r#ref: &str) -> Option<&'static str> {
+    MAP_DB
+        .get_object_def_by_ref(r#ref)
+        .map(|def| def.name.as_str())
+}
+
+/// Look up a landmark's description by ref.
+pub fn landmark_description(r#ref: &str) -> Option<&'static str> {
+    MAP_DB
+        .get_object_def_by_ref(r#ref)
+        .and_then(|def| def.description.as_deref())
+}
 
 /// All discordsh-tagged consumable items, converted from proto.
 static ITEMS: LazyLock<Vec<ItemDef>> = LazyLock::new(|| {
