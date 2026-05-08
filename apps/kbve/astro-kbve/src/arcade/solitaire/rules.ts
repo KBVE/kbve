@@ -8,15 +8,14 @@
 // engine can run headless (replay verification, AI hints, etc) without
 // dragging in any UI shape.
 //
-// Joker rules (tableau wild + foundation accept variant):
+// Joker rules (tableau wild + foundation reject variant):
 //   - Joker can land on ANY tableau column (empty or not).
 //   - When a joker is the top of a tableau column, ANY card stacks on it.
-//   - Joker can land on ANY non-full foundation slot, claiming the next
-//     rank in sequence. Subsequent foundation moves treat the joker as
-//     that claimed rank when checking the next card.
+//   - Joker is REJECTED from foundations — the win condition (4 piles of
+//     A..K by suit) is preserved cleanly. Jokers are wild for tableau
+//     manipulation only.
 //   - In a multi-card tableau run, joker is wild — adjacent cards' rank
 //     and color constraints are bypassed when one of the two is a joker.
-//   - Foundation suit-lock (state.ts) is also bypassed for jokers.
 
 import {
 	type CardByte,
@@ -47,23 +46,15 @@ export function canDropOnTableau(moving: CardByte, column: number[]): boolean {
 	return colorOk && rankOk;
 }
 
-/** Foundation move: only single cards. With joker accept:
- *   - joker fills any non-full foundation (claims foundation.length+1 rank)
- *   - empty foundation accepts only A (or joker)
- *   - non-empty foundation accepts the next rank in sequence. The expected
- *     rank is `foundation.length + 1` regardless of whether the previous
- *     top was a real card or a joker (since jokers claim their position's
- *     rank).
- *
- * Note: suit-lock is enforced in `state.ts` (foundation index → expected
- * suit) and explicitly bypassed for jokers. This rule is purely about
- * rank progression. */
+/** Foundation move: only single cards. Jokers REJECTED — they live in
+ * tableau only. Foundations build A..K by rank; suit-lock is enforced
+ * separately in `state.ts` via FOUNDATION_SUITS[idx]. */
 export function canDropOnFoundation(
 	moving: CardByte,
 	foundation: number[],
 ): boolean {
+	if (isJoker(moving)) return false;
 	if (foundation.length === 13) return false;
-	if (isJoker(moving)) return true;
 	const expectedRank = foundation.length + 1;
 	return getDisplayRank(moving) === expectedRank;
 }

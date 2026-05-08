@@ -39,7 +39,6 @@ import {
 	getCardIndex,
 	getSuit,
 	isFaceUp,
-	isJoker,
 	toCardView,
 } from './cards';
 import { GameState } from './state';
@@ -349,18 +348,15 @@ export class SolitaireScene extends Phaser.Scene {
 	// -------------------------------------------------------------------
 
 	/** Visually mark which foundation + tableau slots accept the bottom of
-	 * the dragged stack. Called on dragstart. Jokers bypass the foundation
-	 * suit lock — light up all four foundation slots that have room. */
+	 * the dragged stack. Called on dragstart. Foundations are suit-locked
+	 * + reject jokers; tableau accepts jokers anywhere. */
 	private highlightLegalDrops(headCard: CardByte, fromFoundationIdx: number) {
-		const headIsJoker = isJoker(headCard);
 		for (let i = 0; i < 4; i++) {
 			const isSource = i === fromFoundationIdx;
 			let legal = false;
 			if (!isSource) {
-				const suitOk =
-					headIsJoker || getSuit(headCard) === FOUNDATION_SUITS[i];
 				legal =
-					suitOk &&
+					getSuit(headCard) === FOUNDATION_SUITS[i] &&
 					canDropOnFoundation(headCard, this.state.foundations[i]);
 			}
 			if (legal) {
