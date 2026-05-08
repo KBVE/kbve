@@ -8,7 +8,7 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 
 <section
 	id="grafana-dashboard-wrapper"
-	class="grafana-dashboard-wrapper"
+	class="grafana-dashboard-wrapper kbve-dashboard-page"
 	aria-label="Grafana monitoring dashboard">
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactGrafanaAuth client:only="react">
@@ -44,8 +44,7 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		background: transparent;
 		min-height: 100vh;
 		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
+		width: 100%;
 	}
 
 	.dashboard-content {

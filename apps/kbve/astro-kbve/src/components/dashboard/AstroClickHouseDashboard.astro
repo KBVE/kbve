@@ -10,7 +10,7 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 
 <section
 	id="clickhouse-dashboard-wrapper"
-	class="clickhouse-dashboard-wrapper"
+	class="clickhouse-dashboard-wrapper kbve-dashboard-page"
 	aria-label="ClickHouse logs dashboard">
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactCHAuth client:only="react">
@@ -57,8 +57,7 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 		background: transparent;
 		min-height: 100vh;
 		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
+		width: 100%;
 	}
 
 	.dashboard-content {
