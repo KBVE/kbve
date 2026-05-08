@@ -342,13 +342,21 @@ class IDEService {
 		this.$result.set(null);
 		this.$error.set(null);
 
+		// Network (VPN) Python presets boot the firecracker-python-net rootfs
+		// (resolv.conf + iproute2 + py3-requests/httpx baked in). All other
+		// preset/network combinations keep the preset's declared rootfs.
+		const rootfs =
+			useNetwork && preset.language === 'python'
+				? 'firecracker-python-net'
+				: preset.rootfs;
+
 		try {
 			const createResp = await fcFetch<{ vm_id: string; status: string }>(
 				token,
 				'/vm/create',
 				'POST',
 				{
-					rootfs: preset.rootfs,
+					rootfs,
 					vcpu_count: preset.vcpu_count,
 					mem_size_mib: preset.mem_size_mib,
 					timeout_ms: preset.timeout_ms,

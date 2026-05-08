@@ -5,17 +5,24 @@
 // `CardByte`. Use `toCardView(byte)` at the UI boundary to inflate.
 
 export { SolitaireScene } from './SolitaireScene';
-export { GameState } from './state';
+export { GameState, type RunRecord } from './state';
 export {
 	type CardByte,
 	type CardView,
 	type Suit,
 	type Color,
+	type DealOptions,
 	SuitByte,
 	ColorByte,
 	SUIT_LABEL,
 	SUIT_GLYPH,
 	RANK_LABEL,
+	FOUNDATION_SUITS,
+	JOKER_RANK,
+	JOKER_BLACK_BYTE,
+	JOKER_RED_BYTE,
+	JokerVariant,
+	JOKER_VARIANT_LABEL,
 	buildDeckBytes,
 	shuffleBytes,
 	dealBytes,
@@ -27,7 +34,9 @@ export {
 	setFaceUp,
 	getColor,
 	getCardId,
+	getCardIndex,
 	getCardLabel,
+	isJoker,
 	toCardView,
 } from './cards';
 export {

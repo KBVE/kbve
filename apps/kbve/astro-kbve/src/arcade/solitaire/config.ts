@@ -57,6 +57,14 @@ export const COLORS = {
 	// Suits
 	suitRed: 0xdc2626,
 	suitBlack: 0x111827,
+	// Jokers — wild card visuals. Body uses a deep purple → gold gradient
+	// (not literal — solid fill with gold accents) so jokers read distinct
+	// from the standard 52 even at a glance.
+	jokerFace: 0x312e81, // deep indigo body
+	jokerAccent: 0xfbbf24, // gold trim + glyph for both joker colors
+	jokerStripe: 0x6366f1, // mid-purple for the diagonal stripe
+	jokerRedTint: 0xf87171, // red joker pip
+	jokerBlackTint: 0x1f2937, // black joker pip
 	// HUD
 	winText: '#fbbf24',
 	hintText: '#d1d5db',
@@ -71,4 +79,63 @@ export const TIMING = {
 	dealDelay: 30, // ms between cards during initial deal
 	flipMs: 200,
 	moveMs: 180,
+} as const;
+
+// ============================================================================
+// Scoring + run progression (Balatro-flavored Klondike)
+// ============================================================================
+
+/** Score awarded per move type. Mirrors the classic Klondike value table
+ * with foundation placements weighted heavier so combo-chasing pays. */
+export const SCORE = {
+	wasteToTableau: 5,
+	wasteToFoundation: 10,
+	tableauToFoundation: 15,
+	foundationToTableau: -15,
+	revealTableau: 5, // bonus for flipping a face-down card on the move
+	stockRecycle: -100, // first pass is free; subsequent recycles cost
+} as const;
+
+/** Combo: consecutive foundation placements within `comboWindowMs` extend
+ * the combo and apply a multiplier to that placement's score. Resets on any
+ * non-foundation move or timeout. */
+export const COMBO = {
+	windowMs: 4000,
+	/** Multiplier per combo length (index = combo length - 1). Length 1 has
+	 * no multiplier; length 2 doubles; cap at 5x. */
+	tiers: [1, 1.5, 2, 3, 5] as const,
+} as const;
+
+/** Joker multiplier: each joker sitting in tableau adds +0.5x to foundation
+ * placements while it's there. Two jokers in play = ×2. Encourages keeping
+ * jokers in board instead of dumping them. */
+export const JOKER_MULT_PER_TABLEAU = 0.5;
+
+/** Round / blind progression. Index = round number - 1. After the table,
+ * blinds scale 1.6× per round indefinitely (caps in practice when player
+ * loses or quits). */
+export const ROUND_BLINDS: readonly number[] = [
+	200, 500, 900, 1500, 2400, 3600, 5200, 7200,
+];
+
+/** Currency earned at end of round = score / cashRate (rounded). Spent in
+ * the shop on jokers / boosts. */
+export const CASH_RATE = 10;
+
+/** Shop offering count per round. */
+export const SHOP_OFFERS = 3;
+
+/** Storage key for run persistence (best score, run count). Bump suffix
+ * if the schema changes. */
+export const STORAGE_KEY = 'kbve.solitaire.v1';
+
+export const HUD_COLORS = {
+	scoreText: '#fde68a',
+	comboText: '#fbbf24',
+	comboPulse: '#f59e0b',
+	roundText: '#e5e7eb',
+	blindText: '#fca5a5',
+	cashText: '#86efac',
+	hudBg: 0x1a2e1d,
+	hudBorder: 0xb38b3e,
 } as const;

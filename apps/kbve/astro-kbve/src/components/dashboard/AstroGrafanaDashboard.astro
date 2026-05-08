@@ -3,11 +3,12 @@ import ReactGrafanaAuth from './ReactGrafanaAuth';
 import ReactGrafanaHeader from './ReactGrafanaHeader';
 import ReactGrafanaNodes from './ReactGrafanaNodes';
 import ReactGrafanaK8s from './ReactGrafanaK8s';
+import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 ---
 
 <section
 	id="grafana-dashboard-wrapper"
-	class="grafana-dashboard-wrapper"
+	class="grafana-dashboard-wrapper kbve-dashboard-page"
 	aria-label="Grafana monitoring dashboard">
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactGrafanaAuth client:only="react">
@@ -15,6 +16,13 @@ import ReactGrafanaK8s from './ReactGrafanaK8s';
 				<!-- Island: Header (title, cache badge, time range, refresh) -->
 				<div id="grafana-header">
 					<ReactGrafanaHeader client:only="react" />
+				</div>
+
+				<!-- Island: Alerts (firing PrometheusRules from Grafana
+				     unified alerting). Anchor target for the firing-count
+				     chip in the header. -->
+				<div id="grafana-alerts">
+					<ReactGrafanaAlerts client:only="react" />
 				</div>
 
 				<!-- Island: Node section (stat cards, drill-downs, charts) -->
@@ -36,8 +44,7 @@ import ReactGrafanaK8s from './ReactGrafanaK8s';
 		background: transparent;
 		min-height: 100vh;
 		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
+		width: 100%;
 	}
 
 	.dashboard-content {

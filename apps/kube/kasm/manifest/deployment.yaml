@@ -1,7 +1,3 @@
-# KASM workspace with Gluetun VPN sidecar.
-# All egress from the KASM container exits through the WireGuard tunnel.
-# The KASM container shares the Gluetun network namespace (no direct internet).
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,8 +7,13 @@ metadata:
         app: kasm-vpn
         app.kubernetes.io/part-of: kasm
         app.kubernetes.io/component: workspace
+    annotations:
+        # Avoid `auto: true` — gen-vnc-pw patches kasm-vnc-pw on every
+        # pod start and `auto` would reroll forever. Explicit list keeps
+        # wireguard rotation while ignoring the per-session VNC_PW churn.
+        secret.reloader.stakater.com/reload: 'vpn-wireguard'
 spec:
-    replicas: 0 # Manual scale — set to 1 when needed
+    replicas: 0
     selector:
         matchLabels:
             app: kasm-vpn
@@ -23,21 +24,68 @@ spec:
                 app.kubernetes.io/part-of: kasm
                 app.kubernetes.io/component: workspace
         spec:
-            # kasm-user is uid 1000 — fsGroup makes the PVC group-writable.
+            serviceAccountName: kasm-init-sa
+            terminationGracePeriodSeconds: 30
             securityContext:
                 fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
             initContainers:
                 - name: fix-pvc-perms
                   image: busybox:1.37
                   command: ['sh', '-c', 'chown -R 1000:1000 /home/kasm-user']
+                  securityContext:
+                      runAsUser: 0
+                      runAsGroup: 0
+                      runAsNonRoot: false
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                          add:
+                              - CHOWN
+                              - DAC_OVERRIDE
+                              - FOWNER
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
+
+                - name: gen-vnc-pw
+                  image: curlimages/curl:8.10.1
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          set -eu
+                          PASSWORD=$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)
+                          B64=$(printf '%s' "$PASSWORD" | base64 | tr -d '\n')
+                          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+                          curl -sf -X PATCH \
+                            -H "Authorization: Bearer $TOKEN" \
+                            -H "Content-Type: application/strategic-merge-patch+json" \
+                            --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+                            -d "{\"data\":{\"password\":\"$B64\"}}" \
+                            "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/kasm-vnc-pw" >/dev/null
+                          echo "kasm-vnc-pw rotated for new session"
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 65532
+                      runAsGroup: 65532
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
             containers:
                 - name: gluetun
                   image: ghcr.io/qdm12/gluetun:v3.41.1
                   securityContext:
+                      allowPrivilegeEscalation: false
                       capabilities:
+                          drop:
+                              - ALL
                           add:
                               - NET_ADMIN
                   ports:
@@ -63,9 +111,6 @@ spec:
                         value: '6901,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
-                      # DoT off — port 853 is blocked through the tunnel
-                      # and gluetun's internal healthcheck fails every 6s
-                      # if it tries to use it.
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
@@ -99,11 +144,22 @@ spec:
 
                 - name: workspace
                   image: kasmweb/discord:1.18.0-rolling-daily
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
                   env:
-                      - name: VNC_PW
-                        value: 'changeme'
                       - name: KASM_PORT
                         value: '6901'
+                      - name: VNC_PW
+                        valueFrom:
+                            secretKeyRef:
+                                name: kasm-vnc-pw
+                                key: password
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user

@@ -1389,7 +1389,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.136"
+version = "1.0.137"
 dependencies = [
  "anyhow",
  "askama",
@@ -1478,7 +1478,7 @@ dependencies = [
 
 [[package]]
 name = "axum-rareicon"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "askama",
@@ -12711,9 +12711,9 @@ checksum = "a0d463f2884048e7153449a55166f91028d5b0ea53c79377099ce4e8cf0cf9bb"
 
 [[package]]
 name = "redb"
-version = "2.6.3"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8eca1e9d98d5a7e9002d0013e18d5a9b000aee942eb134883a82f06ebffb6c01"
+checksum = "8e925444704b5f17d32bf42f5b6e2df050bceebc3dcd6e71cc73dafe8092e839"
 dependencies = [
  "libc",
 ]

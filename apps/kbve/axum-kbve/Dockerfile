@@ -89,6 +89,10 @@ RUN find . -type f \( \
 # [STAGE C] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
+# sccache 0.14.0 refuses to wrap rustc unless CARGO_INCREMENTAL is explicitly 0.
+# Cargo-chef's first probe is `sccache rustc -vV`, which trips this guard.
+ENV CARGO_INCREMENTAL=0
+
 COPY apps/kbve/axum-kbve/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 

@@ -670,3 +670,18 @@ html[data-nav-dir='back']::view-transition-new(root) {
 	--sg-osrs-fill: #b8860b;
 	--sg-osrs-stroke: #6b4a05;
 }
+
+/* ── Dashboard pages: expand the Starlight content column ──
+   Dashboards render data-dense cards / charts and shouldn't be constrained
+   by the default ~50rem content width. Any page rendering a dashboard
+   component marks its top-level wrapper with .kbve-dashboard-page; the
+   :has() selector here applies the wide layout only on those pages. The
+   left sidebar and right TOC stay where they are — only the content area
+   between them widens. */
+body:has(.kbve-dashboard-page)
+	:is(.sl-markdown-content, main.main-pane, .content-panel article.content) {
+	max-width: 100% !important;
+}
+body:has(.kbve-dashboard-page) {
+	--sl-content-width: 100%;
+}

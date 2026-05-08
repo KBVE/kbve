@@ -301,6 +301,8 @@ ${name} — filled brand glyph from the [Simple Icons library](https://simpleico
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
 	default_license={frontmatter.default_license}
+	keywords={frontmatter.search?.keywords}
+	pagefindFilters={frontmatter.pagefindFilters}
 	icons={frontmatter.icons}
 />
 `;

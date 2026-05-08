@@ -4,13 +4,15 @@ import {
 	TIME_RANGE_KEYS,
 	type TimeRangeKey,
 } from './grafanaService';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, BellRing } from 'lucide-react';
 
 export default function ReactGrafanaHeader() {
 	const fromCache = useStore(grafanaService.$fromCache);
 	const refreshing = useStore(grafanaService.$refreshing);
 	const error = useStore(grafanaService.$error);
 	const timeRange = useStore(grafanaService.$timeRange);
+	const alertsFiring = useStore(grafanaService.$alertsFiring);
+	const alertsPending = useStore(grafanaService.$alertsPending);
 
 	return (
 		<>
@@ -48,6 +50,51 @@ export default function ReactGrafanaHeader() {
 							}}>
 							cached
 						</span>
+					)}
+					{alertsFiring > 0 && (
+						<a
+							href="#grafana-alerts"
+							title="Firing alerts"
+							style={{
+								marginLeft: '0.5rem',
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: 4,
+								padding: '2px 8px',
+								borderRadius: '4px',
+								background: 'rgba(239,68,68,0.15)',
+								color: '#fca5a5',
+								fontSize: '0.7rem',
+								fontWeight: 700,
+								textTransform: 'uppercase' as const,
+								letterSpacing: '0.05em',
+								textDecoration: 'none',
+							}}>
+							<BellRing size={11} />
+							{alertsFiring} firing
+						</a>
+					)}
+					{alertsPending > 0 && alertsFiring === 0 && (
+						<a
+							href="#grafana-alerts"
+							title="Pending alerts"
+							style={{
+								marginLeft: '0.5rem',
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: 4,
+								padding: '2px 8px',
+								borderRadius: '4px',
+								background: 'rgba(234,179,8,0.15)',
+								color: '#fde68a',
+								fontSize: '0.7rem',
+								fontWeight: 700,
+								textTransform: 'uppercase' as const,
+								letterSpacing: '0.05em',
+								textDecoration: 'none',
+							}}>
+							{alertsPending} pending
+						</a>
 					)}
 				</div>
 				<div

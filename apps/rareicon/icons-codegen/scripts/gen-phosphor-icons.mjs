@@ -339,6 +339,8 @@ ${name} — ${variants.length} weight${variants.length === 1 ? '' : 's'} from th
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
 	default_license={frontmatter.default_license}
+	keywords={frontmatter.search?.keywords}
+	pagefindFilters={frontmatter.pagefindFilters}
 	icons={frontmatter.icons}
 />
 `;

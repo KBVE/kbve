@@ -300,6 +300,8 @@ ${name} — ${entries.length === 1 ? 'outline glyph' : `${entries.length} varian
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
 	default_license={frontmatter.default_license}
+	keywords={frontmatter.search?.keywords}
+	pagefindFilters={frontmatter.pagefindFilters}
 	icons={frontmatter.icons}
 />
 `;
