@@ -120,7 +120,8 @@ public final class ShipUpgrades {
                 base.engineReaction(), base.verticalReaction(),
                 base.boundingWidth(), base.boundingHeight(),
                 base.cameraZoom(), base.canExplodeOnCrash(),
-                base.trailParticle(), base.engineSound()
+                base.trailParticle(), base.engineSound(),
+                base.propellerCount()
         );
     }
 }

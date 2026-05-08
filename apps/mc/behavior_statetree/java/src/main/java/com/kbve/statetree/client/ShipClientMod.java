@@ -77,13 +77,46 @@ public class ShipClientMod implements ClientModInitializer {
                     net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
                     (int) Math.floor(shipEntity.getX()),
                     (int) Math.floor(shipEntity.getZ()));
-            hud.setAgl(Math.max(0, (int) (shipEntity.getY() - floorY)));
+            int aglM = Math.max(0, (int) (shipEntity.getY() - floorY));
+            hud.setAgl(aglM);
+
+            // Flight mode classification — drives the [MODE] tag next to ship name.
+            float vy = (float) shipEntity.getVelocity().y;
+            float ep = shipEntity.getEnginePower();
+            float ts = shipEntity.getTargetSpeed();
+            String mode;
+            if (shipEntity.isOnGround()) {
+                mode = "GROUND";
+            } else if (vy < -0.4f && ts < 0.1f) {
+                mode = "STALL";
+            } else if (ep < 0.15f && Math.abs(vy) < 0.05f && aglM < 50) {
+                mode = "HOVER";
+            } else {
+                mode = "FLY";
+            }
+            hud.setFlightMode(mode);
+
             hud.setHealth(shipEntity.getShipHealth(), ShipEntity.MAX_HEALTH);
             hud.setFuel(shipEntity.getFuelLevel(), ShipEntity.MAX_FUEL, shipEntity.isFuelLow());
             hud.setEnginePower(shipEntity.getEnginePower());
             hud.setUpgrades(shipEntity.getUpgradeCount(),
                     com.kbve.statetree.ship.ShipUpgrades.MAX_SLOTS);
             hud.setCautions(shipEntity.getCautionBits());
+            hud.setBoostReserve(shipEntity.getBoostReserve());
+
+            // Mirror the server-side wind formula in ShipEntity.tick:
+            //   nx = cos(age/20/mass) * stats.wind * weatherMul
+            //   nz = cos(age/21/mass) * stats.wind * weatherMul
+            float mass = Math.max(0.5f, shipEntity.getStats().mass());
+            float wRaw = shipEntity.getStats().wind();
+            net.minecraft.world.World wWorld = shipEntity.getEntityWorld();
+            float weatherMul = (wWorld.isRaining() ? 1.8f : 1.0f)
+                    * (wWorld.isThundering() ? 2.2f : 1.0f);
+            float nx = (float) Math.cos(shipEntity.age / 20.0 / mass) * wRaw * weatherMul;
+            float nz = (float) Math.cos(shipEntity.age / 21.0 / mass) * wRaw * weatherMul;
+            float windAngle = (float) Math.toDegrees(Math.atan2(nx, nz));
+            float windMag = (float) Math.sqrt(nx * nx + nz * nz);
+            hud.setWind(windAngle, windMag);
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();
@@ -115,6 +148,10 @@ public class ShipClientMod implements ClientModInitializer {
         // per-slot cooldown so spamming the key doesn't desync.
         if (client.options.attackKey.isPressed()) {
             ClientPlayNetworking.send(new WeaponFirePayload(activeHelmShipId, targetYaw, targetPitch));
+            // Visual recoil — small upward camera kick read by GameRendererMixin.
+            // Server cooldown prevents abuse; if the shot didn't actually fire
+            // the kick is harmless visual.
+            com.kbve.statetree.mixin.client.GameRendererMixin.weaponRecoil = 4.0f;
         }
     }
 

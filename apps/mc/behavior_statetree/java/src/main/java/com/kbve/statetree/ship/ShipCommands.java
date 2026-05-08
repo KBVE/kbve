@@ -105,5 +105,36 @@ public final class ShipCommands {
                     ctx.getSource().sendFeedback(() -> Text.of("All ships cleared"), true);
                     return 1;
                 }));
+
+        // /listships — print every active ship's id, model, and distance
+        // from the executing player. Helpful for finding a parked ship
+        // after dismounting and wandering off.
+        dispatcher.register(CommandManager.literal("listships")
+                .requires(ServerCommandSource::isExecutedByPlayer)
+                .executes(ctx -> {
+                    ServerCommandSource src = ctx.getSource();
+                    var origin = src.getPosition();
+                    var ships = manager.getActiveShips();
+                    if (ships.isEmpty()) {
+                        src.sendFeedback(() -> Text.of("No active ships"), false);
+                        return 0;
+                    }
+                    src.sendFeedback(() -> Text.of("§eActive ships: " + ships.size()), false);
+                    ships.values().stream()
+                            .sorted((a, b) -> Double.compare(
+                                    a.squaredDistanceTo(origin.x, origin.y, origin.z),
+                                    b.squaredDistanceTo(origin.x, origin.y, origin.z)))
+                            .limit(10)
+                            .forEach(ship -> {
+                                double dist = Math.sqrt(ship.squaredDistanceTo(origin.x, origin.y, origin.z));
+                                String name = ship.getShipName().isEmpty() ? "Ship" : ship.getShipName();
+                                String label = String.format("§7• §f%s §7(%s) §a%.0fm §7@ %d, %d, %d  §8%s",
+                                        name, ship.getModelName(), dist,
+                                        (int) ship.getX(), (int) ship.getY(), (int) ship.getZ(),
+                                        ship.getShipId());
+                                src.sendFeedback(() -> Text.of(label), false);
+                            });
+                    return 1;
+                }));
     }
 }

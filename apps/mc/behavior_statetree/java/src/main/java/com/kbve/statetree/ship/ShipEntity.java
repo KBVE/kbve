@@ -59,6 +59,9 @@ public class ShipEntity extends Entity {
      */
     private static final TrackedData<Byte> CAUTION_BITS =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.BYTE);
+    /** Boost meter 0..1 — drains while sprinting at >1.0 throttle, regens otherwise. */
+    private static final TrackedData<Float> BOOST_RESERVE =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
     public static final int CAUTION_PULL_UP   = 1 << 0;
     public static final int CAUTION_VOID      = 1 << 1;
@@ -83,6 +86,7 @@ public class ShipEntity extends Entity {
     private float lastEnginePowerForSound = 0.0f;
     /** Previous tick's caution bits — used to fire one-shot warning sounds on transition. */
     private byte lastCautionBitsForSound = 0;
+    private boolean lastOnGroundForDust = true;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -220,6 +224,9 @@ public class ShipEntity extends Entity {
     public byte getCautionBits() { return this.dataTracker.get(CAUTION_BITS); }
     public boolean hasCaution(int mask) { return (getCautionBits() & mask) != 0; }
 
+    /** Boost reservoir 0..1; drains while throttle > 1.0, regens otherwise. */
+    public float getBoostReserve() { return this.dataTracker.get(BOOST_RESERVE); }
+
     public FlightStats getStats() {
         String key = getModelName();
         List<net.minecraft.item.Item> installed = installedUpgrades();
@@ -328,12 +335,61 @@ public class ShipEntity extends Entity {
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
                     power, World.ExplosionSourceType.MOB);
         }
+        // Detach any towed mobs so leads survive the ship's destruction.
+        for (net.minecraft.entity.mob.MobEntity mob : world
+                .getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class,
+                        this.getBoundingBox().expand(20.0),
+                        m -> m.isLeashed() && m.getLeashHolder() == this)) {
+            mob.detachLeash();
+        }
         this.removeAllPassengers();
         this.discard();
     }
 
     @Override
     public boolean isCollidable(Entity other) { return true; }
+
+    /**
+     * Ship-vs-ship collision exchanges velocity instead of vanilla's
+     * tiny shove. Two airships ramming each other now bounce off with
+     * roughly conserved momentum (scaled by stats.mass) and take a
+     * sliver of damage proportional to closing speed — so dogfighting
+     * has a melee option for free.
+     */
+    @Override
+    public void pushAwayFrom(Entity other) {
+        if (!(other instanceof ShipEntity peer)) {
+            super.pushAwayFrom(other);
+            return;
+        }
+        Vec3d delta = new Vec3d(
+                this.getX() - other.getX(),
+                this.getY() - other.getY(),
+                this.getZ() - other.getZ());
+        double dist = delta.length();
+        if (dist < 1.0e-3) return;
+        Vec3d push = delta.normalize();
+
+        float myMass = getStats().mass();
+        float theirMass = peer.getStats().mass();
+        float massSum = Math.max(0.5f, myMass + theirMass);
+        // Heavier ship bullies lighter one — push scales inversely with own mass.
+        double myShare = theirMass / massSum;
+        double theirShare = myMass / massSum;
+
+        double closingSpeed = this.getVelocity().subtract(other.getVelocity()).length();
+        double impulse = 0.08 + closingSpeed * 0.25;
+
+        this.setVelocity(this.getVelocity().add(push.multiply(impulse * myShare)));
+        peer.setVelocity(peer.getVelocity().add(push.multiply(-impulse * theirShare)));
+
+        if (closingSpeed > 0.4 && !this.getEntityWorld().isClient()
+                && this.getEntityWorld() instanceof ServerWorld sw) {
+            float dmg = (float) Math.min(8.0, closingSpeed * 4.0);
+            this.damage(sw, this.getDamageSources().generic(), dmg);
+            peer.damage(sw, peer.getDamageSources().generic(), dmg);
+        }
+    }
 
     @Override
     public boolean canHit() { return true; }
@@ -442,11 +498,49 @@ public class ShipEntity extends Entity {
             }
         }
 
+        // Tow rope — right-click ship while holding LEAD transfers any
+        // mob currently leashed to the player onto the ship as the new
+        // leash holder. Vanilla MobEntity tickLeash then keeps the
+        // mob within range as the ship moves.
+        if (stack.isOf(net.minecraft.item.Items.LEAD) && !this.getEntityWorld().isClient()) {
+            int transferred = 0;
+            net.minecraft.util.math.Box scan = player.getBoundingBox().expand(10.0);
+            for (net.minecraft.entity.Leashable mob : this.getEntityWorld()
+                    .getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, scan,
+                            m -> m.isLeashed() && m.getLeashHolder() == player)) {
+                mob.attachLeash(this, true);
+                transferred++;
+            }
+            if (transferred > 0) {
+                player.sendMessage(net.minecraft.text.Text.of(
+                        "Towed " + transferred + " entit" + (transferred == 1 ? "y" : "ies")), true);
+                return ActionResult.SUCCESS;
+            }
+        }
+
         if (player instanceof ServerPlayerEntity && this.getPassengerList().size() < seatCapacity()) {
             player.startRiding(this);
             return ActionResult.SUCCESS;
         }
         return ActionResult.PASS;
+    }
+
+    /**
+     * Cargo load fraction (0.0 empty .. 1.0 every storage slot full to its
+     * max stack size). Used to apply a flight penalty so heavy hauls feel
+     * sluggish — mirrors IA's mass-aware engine response without exposing
+     * an extra stat to JSON.
+     */
+    private float computeCargoLoad() {
+        int filled = 0;
+        int capacity = 0;
+        for (int i = 0; i < ShipInventory.STORAGE_COUNT; i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(ShipInventory.STORAGE_START + i);
+            int max = s.isEmpty() ? 64 : s.getMaxCount();
+            capacity += max;
+            filled += s.getCount();
+        }
+        return capacity == 0 ? 0f : (float) filled / (float) capacity;
     }
 
     private int seatCapacity() {
@@ -493,9 +587,39 @@ public class ShipEntity extends Entity {
         boolean ridden = hasPassengers();
         boolean fueled = getFuelLevel() > 0f;
 
-        // Auto-cut throttle when out of fuel.
-        if (!fueled) ts = 0f;
-        enginePower.update(ridden && fueled ? ts : 0.0f);
+        // Auto-cut throttle when out of fuel OR fully submerged. IA shuts
+        // the engine off the instant the cabin dunks because flooded
+        // intakes can't burn fuel; we mirror that gating here.
+        boolean submerged = this.isSubmergedInWater();
+        if (!fueled || submerged) ts = 0f;
+
+        // Cargo weight — heavier load throttles down max engine output
+        // and slows the engine ramp. 0.0 = empty cargo, 1.0 = every
+        // storage slot stacked. Caps the penalty at 50 % of max thrust.
+        float cargoLoad = computeCargoLoad();
+        float loadPenalty = Math.min(0.5f, cargoLoad * 0.5f);
+        float effectiveTarget = ts * (1.0f - loadPenalty);
+
+        // Boost reservoir — clamps the requested throttle to 1.0 once the
+        // pilot has burned through their 5-second boost budget. Drains
+        // 1/100 per tick (5s full burn) while ts > 1.0; regens 1/200 per
+        // tick (10s recovery) otherwise. Server-side only.
+        if (!this.getEntityWorld().isClient()) {
+            float reserve = getBoostReserve();
+            if (effectiveTarget > 1.0f) {
+                if (reserve > 0f) {
+                    reserve = Math.max(0f, reserve - 0.01f);
+                } else {
+                    effectiveTarget = Math.min(effectiveTarget, 1.0f);
+                }
+            } else {
+                reserve = Math.min(1.0f, reserve + 0.005f);
+            }
+            this.dataTracker.set(BOOST_RESERVE, reserve);
+        }
+        if (getBoostReserve() <= 0f) effectiveTarget = Math.min(effectiveTarget, 1.0f);
+
+        enginePower.update(ridden && fueled && !submerged ? effectiveTarget : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
         // Bank roll from yaw delta — smoothed, used by renderer + camera.
@@ -524,6 +648,28 @@ public class ShipEntity extends Entity {
         if (power > 0.01f && fueled) {
             float burn = power * stats.engineSpeed() * 2.0f;
             setFuelLevel(getFuelLevel() - burn);
+        }
+
+        // Cargo auto-repair — scan storage slots for iron-tier materials
+        // and consume one item per tick when hull is below max. Lets a
+        // pilot stockpile patch material in cargo and limp home.
+        if (getShipHealth() < MAX_HEALTH && this.age % 20 == 0) {
+            for (int i = 0; i < ShipInventory.STORAGE_COUNT; i++) {
+                int slot = ShipInventory.STORAGE_START + i;
+                net.minecraft.item.ItemStack patch = inventory.getStack(slot);
+                if (patch.isEmpty()) continue;
+                float repairAmt = 0f;
+                if (patch.isOf(net.minecraft.item.Items.IRON_INGOT))           repairAmt = 25f;
+                else if (patch.isOf(net.minecraft.item.Items.IRON_BLOCK))      repairAmt = 50f;
+                else if (patch.isOf(net.minecraft.item.Items.COPPER_INGOT))    repairAmt = 15f;
+                else if (patch.isOf(net.minecraft.item.Items.NETHERITE_INGOT)) repairAmt = 60f;
+                if (repairAmt > 0f) {
+                    setShipHealth(getShipHealth() + repairAmt);
+                    patch.decrement(1);
+                    if (patch.isEmpty()) inventory.setStack(slot, net.minecraft.item.ItemStack.EMPTY);
+                    break;
+                }
+            }
         }
 
         // Boiler feed — top off fuel from the dedicated feed slot when low.
@@ -573,7 +719,10 @@ public class ShipEntity extends Entity {
             float pitch = this.getPitch();
             pitch += stats.pitchSpeed() * vert;
             pitch *= (1.0f - stats.stabilizer());
-            this.setPitch(MathHelper.clamp(pitch, -90.0f, 90.0f));
+            // Clamp at ±75° instead of ±90° so a plane can't quite go
+            // vertical — leaves room for the camera to read direction
+            // and prevents the model from inverting.
+            this.setPitch(MathHelper.clamp(pitch, -75.0f, 75.0f));
 
             // Glide: forward thrust on descent.
             if (stats.glideFactor() > 0.0f) {
@@ -714,6 +863,24 @@ public class ShipEntity extends Entity {
             spawnBannerParticles(sw3);
         }
 
+        // Takeoff dust — burst of cloud particles on the tick the ship
+        // leaves the ground (or lands), suggesting backwash kicking up
+        // dirt. Mirrors IA's takeoff plume.
+        boolean nowOnGround = this.isOnGround();
+        if (nowOnGround != lastOnGroundForDust
+                && this.getEntityWorld() instanceof ServerWorld swDust) {
+            swDust.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                    this.getX(), this.getY() + 0.1, this.getZ(),
+                    14, 1.2, 0.05, 1.2, 0.05);
+            // Quieter thump for landings, no sound on takeoff (engine sound covers it).
+            if (nowOnGround) {
+                swDust.playSound(null, this.getX(), this.getY(), this.getZ(),
+                        net.minecraft.sound.SoundEvents.ENTITY_HORSE_LAND,
+                        net.minecraft.sound.SoundCategory.NEUTRAL, 0.5f, 0.8f);
+            }
+        }
+        lastOnGroundForDust = nowOnGround;
+
         // Damage smoke — leak black smoke when hull is critical so other
         // pilots can spot a wounded ship at a distance.
         if (getShipHealth() < MAX_HEALTH * 0.25f && this.age % 3 == 0
@@ -745,14 +912,18 @@ public class ShipEntity extends Entity {
                         0.4f, 1.0f);
             }
             // Engine loop — periodic rumble while running, sound from stats.
+            // propellerCount > 1 makes a multi-engine plane sound beefier
+            // (faster cadence + slightly louder) without changing the sample.
             if (power > 0.05f && loopSound != null) {
-                int cadence = Math.max(2, (int) (12 - 8 * power));
+                int props = Math.max(1, stats.propellerCount());
+                int cadence = Math.max(1, (int) ((12 - 8 * power) / Math.sqrt(props)));
                 if (this.age % cadence == 0) {
                     float pitch = 0.5f + 0.7f * power;
+                    float volume = (0.35f + 0.3f * power) * Math.min(1.6f, 0.8f + props * 0.2f);
                     sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
                             loopSound,
                             net.minecraft.sound.SoundCategory.NEUTRAL,
-                            0.35f + 0.3f * power, pitch);
+                            volume, pitch);
                 }
             }
             lastEnginePowerForSound = power;
@@ -825,9 +996,9 @@ public class ShipEntity extends Entity {
 
     /**
      * Per-aircraft trail effect (server-side spawn so all clients see it).
-     * Particle type comes from stats.trailParticle when set; spawn position
-     * is still chosen per-model (wing-tip / rotor wash / aft exhaust)
-     * since IA's TrailDescriptor JSON shape isn't ported.
+     * Particle type comes from stats.trailParticle; positions come from
+     * stats.trailOffsets when set, else fall back to legacy model-name
+     * dispatch (wing-tip / rotor wash / aft exhaust).
      */
     private void spawnTrailParticles(ServerWorld sw, float power) {
         String model = getModelName();
@@ -835,6 +1006,22 @@ public class ShipEntity extends Entity {
         net.minecraft.particle.ParticleEffect particle = resolveTrailParticle(stats.trailParticle(), model);
         if (particle == null) return;
 
+        java.util.List<Vec3d> offsets = FlightStatsRegistry.getTrailOffsets(model);
+        if (!offsets.isEmpty()) {
+            if (this.age % 3 != 0) return;
+            double yawRad = Math.toRadians(this.getYaw());
+            double cosY = Math.cos(yawRad);
+            double sinY = Math.sin(yawRad);
+            for (Vec3d local : offsets) {
+                double wx = this.getX() + local.x * cosY - local.z * sinY;
+                double wy = this.getY() + local.y;
+                double wz = this.getZ() + local.x * sinY + local.z * cosY;
+                sw.spawnParticles(particle, wx, wy, wz, 1, 0.05, 0.05, 0.05, 0.01);
+            }
+            return;
+        }
+
+        // Legacy fallback for models with no trailOffsets configured.
         double rad = Math.toRadians(this.getYaw());
         if (model.contains("biplane")) {
             if (this.age % 2 == 0) {
@@ -938,6 +1125,7 @@ public class ShipEntity extends Entity {
         builder.add(UPGRADES_CSV, "");
         builder.add(BANNER_ITEM_ID, "");
         builder.add(CAUTION_BITS, (byte) 0);
+        builder.add(BOOST_RESERVE, 1.0f);
     }
 
     @Override

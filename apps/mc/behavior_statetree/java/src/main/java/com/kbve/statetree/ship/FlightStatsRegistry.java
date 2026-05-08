@@ -34,6 +34,8 @@ public final class FlightStatsRegistry {
     private static final Map<String, List<List<Vec3d>>> SEATS = new ConcurrentHashMap<>();
     /** Weapon mount offsets in ship-local space, keyed by model name. */
     private static final Map<String, List<Vec3d>> MOUNTS = new ConcurrentHashMap<>();
+    /** Trail particle spawn offsets (ship-local), keyed by model name. */
+    private static final Map<String, List<Vec3d>> TRAIL_OFFSETS = new ConcurrentHashMap<>();
 
     private FlightStatsRegistry() {}
 
@@ -47,6 +49,12 @@ public final class FlightStatsRegistry {
     public static List<Vec3d> getMounts(String modelName) {
         if (modelName == null) return Collections.emptyList();
         return MOUNTS.getOrDefault(modelName, Collections.emptyList());
+    }
+
+    /** Trail particle spawn offsets (ship-local). Empty = legacy hardcoded fallback. */
+    public static List<Vec3d> getTrailOffsets(String modelName) {
+        if (modelName == null) return Collections.emptyList();
+        return TRAIL_OFFSETS.getOrDefault(modelName, Collections.emptyList());
     }
 
     /** Known aircraft profiles bundled in the mod jar. */
@@ -66,6 +74,7 @@ public final class FlightStatsRegistry {
         Map<String, FlightStats> nextStats = new HashMap<>();
         Map<String, List<List<Vec3d>>> nextSeats = new HashMap<>();
         Map<String, List<Vec3d>> nextMounts = new HashMap<>();
+        Map<String, List<Vec3d>> nextTrails = new HashMap<>();
         for (String key : BUILTIN_PROFILES) {
             String path = "/data/behavior_statetree/aircraft/" + key + ".json";
             try (InputStream in = FlightStatsRegistry.class.getResourceAsStream(path)) {
@@ -82,6 +91,9 @@ public final class FlightStatsRegistry {
                 if (root.has("weaponMounts")) {
                     nextMounts.put(key, parseFlatPositions(root.getAsJsonArray("weaponMounts")));
                 }
+                if (root.has("trailOffsets")) {
+                    nextTrails.put(key, parseFlatPositions(root.getAsJsonArray("trailOffsets")));
+                }
             } catch (Exception ex) {
                 LOGGER.warn("[FlightStats] Failed reading {}: {}", path, ex.toString());
             }
@@ -89,6 +101,7 @@ public final class FlightStatsRegistry {
         STATS.putAll(nextStats);
         SEATS.putAll(nextSeats);
         MOUNTS.putAll(nextMounts);
+        TRAIL_OFFSETS.putAll(nextTrails);
         LOGGER.info("[FlightStats] Loaded {} aircraft profiles: {}", STATS.size(), STATS.keySet());
     }
 
@@ -152,7 +165,8 @@ public final class FlightStatsRegistry {
                 f(p, "cameraZoom", d.cameraZoom()),
                 p.has("canExplodeOnCrash") && p.get("canExplodeOnCrash").getAsBoolean(),
                 s(p, "trailParticle", d.trailParticle()),
-                s(p, "engineSound", d.engineSound())
+                s(p, "engineSound", d.engineSound()),
+                i(p, "propellerCount", d.propellerCount())
         );
     }
 
@@ -162,5 +176,9 @@ public final class FlightStatsRegistry {
 
     private static String s(JsonObject p, String key, String def) {
         return p.has(key) ? p.get(key).getAsString() : def;
+    }
+
+    private static int i(JsonObject p, String key, int def) {
+        return p.has(key) ? p.get(key).getAsInt() : def;
     }
 }
