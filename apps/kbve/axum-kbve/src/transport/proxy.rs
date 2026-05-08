@@ -573,50 +573,133 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 // ClickHouse logs proxy singleton
 // ---------------------------------------------------------------------------
 
-static CLICKHOUSE_LOGS: OnceLock<ServiceProxy> = OnceLock::new();
+// ---------------------------------------------------------------------------
+// ClickHouse Logs — direct path
+//
+// Replaces the previous /functions/v1/logs supabase edge function fronting.
+// axum-kbve now talks straight to the ClickHouse cluster via jedi's
+// ClickHouseConfig, so a CDN outage on esm.sh (which 500'd the edge fn boot
+// graph and produced the "0 / 0 / 0 logs" outage on 2026-05-08) cannot kill
+// the dashboard logs view again.
+//
+// Auth: same DASHBOARD_VIEW gate every other dashboard proxy uses. Query
+// surface is locked down inside jedi (clamped minutes/limit/search, escaped
+// label values).
+// ---------------------------------------------------------------------------
 
-pub fn init_clickhouse_logs_proxy() -> bool {
-    let supabase_url = match std::env::var("SUPABASE_URL") {
-        Ok(u) => u.trim_end_matches('/').to_string(),
-        Err(_) => return false,
-    };
-    let upstream = format!("{supabase_url}/functions/v1/logs");
+use jedi::entity::pipe_clickhouse::logs as ch_logs;
+use jedi::state::sidecar::ClickHouseConfig;
 
-    let service_role_key = match std::env::var("SUPABASE_SERVICE_ROLE_KEY") {
-        Ok(k) => k,
-        Err(_) => return false,
-    };
+static CLICKHOUSE_DIRECT: OnceLock<ClickHouseConfig> = OnceLock::new();
 
-    let client = Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .connect_timeout(Duration::from_secs(5))
-        .timeout(Duration::from_secs(30))
-        .build()
-        .expect("failed to build reqwest client for clickhouse logs proxy");
+pub fn init_clickhouse_direct() -> bool {
+    // ClickHouseConfig::from_env defaults host=localhost / port=8123 if
+    // CLICKHOUSE_HOST / CLICKHOUSE_PORT aren't set, so a misconfigured pod
+    // would silently target localhost. Require at least one of the two to
+    // be present to consider the proxy "configured".
+    let has_env = std::env::var("CLICKHOUSE_HOST").is_ok()
+        || std::env::var("CLICKHOUSE_PORT").is_ok()
+        || std::env::var("CLICKHOUSE_USER").is_ok()
+        || std::env::var("CLICKHOUSE_DATABASE").is_ok();
+    if !has_env {
+        return false;
+    }
 
-    CLICKHOUSE_LOGS
-        .set(ServiceProxy {
-            name: "ClickHouse Logs",
-            client,
-            upstream,
-            upstream_token: Some(service_role_key),
-            iframe_safe: false,
-            streaming: false,
-        })
-        .is_ok()
+    let config = ClickHouseConfig::from_env();
+    CLICKHOUSE_DIRECT.set(config).is_ok()
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+struct ClickHouseRequest {
+    command: String,
+    #[serde(default)]
+    pod_namespace: Option<String>,
+    #[serde(default)]
+    pod_name: Option<String>,
+    #[serde(default)]
+    service: Option<String>,
+    #[serde(default)]
+    level: Option<String>,
+    #[serde(default)]
+    search: Option<String>,
+    #[serde(default)]
+    minutes: Option<u32>,
+    #[serde(default)]
+    limit: Option<u32>,
 }
 
 pub async fn clickhouse_logs_proxy_handler(
-    path: Option<Path<String>>,
-    req: Request<Body>,
+    _path: Option<Path<String>>,
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Response {
-    match CLICKHOUSE_LOGS.get() {
-        Some(proxy) => proxy.handle(path, req).await,
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "ClickHouse logs proxy not configured"})),
-        )
-            .into_response(),
+    if let Err(resp) = require_dashboard_view(&headers, "ClickHouse Logs").await {
+        return resp;
+    }
+
+    let config = match CLICKHOUSE_DIRECT.get() {
+        Some(c) => c,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "ClickHouse direct route not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let req: ClickHouseRequest = match serde_json::from_slice(&body) {
+        Ok(r) => r,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": format!("invalid JSON body: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let result = match req.command.as_str() {
+        "query" => {
+            let params = ch_logs::LogsQueryParams {
+                pod_namespace: req.pod_namespace,
+                pod_name: req.pod_name,
+                service: req.service,
+                level: req.level,
+                search: req.search,
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_logs::run_query(config, &params).await
+        }
+        "stats" => {
+            let params = ch_logs::LogsStatsParams {
+                minutes: req.minutes,
+            };
+            ch_logs::run_stats(config, &params).await
+        }
+        other => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(
+                    json!({"error": format!("unknown command '{other}', expected 'query' or 'stats'")}),
+                ),
+            )
+                .into_response();
+        }
+    };
+
+    match result {
+        Ok(out) => axum::Json(out).into_response(),
+        Err(e) => {
+            warn!("ClickHouse logs query failed: {e}");
+            (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("ClickHouse query failed: {e}")})),
+            )
+                .into_response()
+        }
     }
 }
 

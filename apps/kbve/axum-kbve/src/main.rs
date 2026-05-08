@@ -121,10 +121,14 @@ async fn main() -> anyhow::Result<()> {
         warn!("ArgoCD proxy not configured (ARGOCD_UPSTREAM_URL not set)");
     }
 
-    if transport::proxy::init_clickhouse_logs_proxy() {
-        info!("ClickHouse logs proxy initialized - /dashboard/clickhouse/proxy enabled");
+    if transport::proxy::init_clickhouse_direct() {
+        info!(
+            "ClickHouse direct route initialized - /dashboard/clickhouse/proxy now talks straight to ClickHouse via jedi"
+        );
     } else {
-        warn!("ClickHouse logs proxy not configured (CLICKHOUSE_LOGS_UPSTREAM_URL not set)");
+        warn!(
+            "ClickHouse direct route not configured (CLICKHOUSE_HOST / CLICKHOUSE_PORT / CLICKHOUSE_USER / CLICKHOUSE_DATABASE not set)"
+        );
     }
 
     if transport::proxy::init_forgejo_proxy() {
