@@ -17,8 +17,7 @@
 				"local": {},
 				"production": {
 					"commands": [
-						"npx nx run firecracker-python-net:containerx:production",
-						"VERSION=$(grep -m1 'version' packages/docker/firecracker/python/net/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker buildx imagetools create --tag ghcr.io/kbve/firecracker-python-net:${VERSION} ghcr.io/kbve/firecracker-python-net:latest && echo \"Published ghcr.io/kbve/firecracker-python-net:${VERSION}\""
+						"npx nx run firecracker-python-net:containerx:production"
 					]
 				}
 			}
@@ -40,8 +39,8 @@
 				},
 				"production": {
 					"tags": ["ghcr.io/kbve/firecracker-python-net:latest"],
-					"load": false,
-					"push": true,
+					"load": true,
+					"push": false,
 					"cache-to": [
 						"type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache,mode=max"
 					]
