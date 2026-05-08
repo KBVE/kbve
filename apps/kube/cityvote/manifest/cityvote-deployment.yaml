@@ -1,53 +1,83 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cityvote-deployment
-  namespace: cityvote
-  labels:
-    app: cityvote
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: cityvote
-  template:
-    metadata:
-      annotations:
-        rollout-restart: "2025-11-20T23:30:00Z"
-      labels:
+    name: cityvote-deployment
+    namespace: cityvote
+    labels:
         app: cityvote
-        version: "1.0.3"
-    spec:
-      containers:
-      - name: cityvote
-        image: ghcr.io/kbve/cityvote:1.0.3
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 4321
-          protocol: TCP
-        env:
-        - name: PORT
-          value: "4321"
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: cityvote
+    template:
+        metadata:
+            annotations:
+                # Manual rollout-restart trigger preserved as a fallback
+                # if a redeploy is needed without bumping the image tag.
+                rollout-restart: '2025-11-20T23:30:00Z'
+            labels:
+                app: cityvote
+                version: '1.0.3'
+        spec:
+            serviceAccountName: cityvote-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: cityvote
+                  image: ghcr.io/kbve/cityvote:1.0.3
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 4321
+                        protocol: TCP
+                  env:
+                      - name: PORT
+                        value: '4321'
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '256Mi'
+                          cpu: '200m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the binary while the rootfs
+                # itself stays read-only. Verified locally that the
+                # ghcr.io/kbve/cityvote:1.0.3 image starts cleanly
+                # under runAsUser:10001 + read-only rootfs + tmpfs /tmp
+                # (HTTP listening on 0.0.0.0:4321).
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: cityvote-service
-  namespace: cityvote
-  labels:
-    app: cityvote
+    name: cityvote-service
+    namespace: cityvote
+    labels:
+        app: cityvote
 spec:
-  type: ClusterIP
-  selector:
-    app: cityvote
-  ports:
-  - port: 4321
-    targetPort: 4321
-    protocol: TCP
+    type: ClusterIP
+    selector:
+        app: cityvote
+    ports:
+        - port: 4321
+          targetPort: 4321
+          protocol: TCP
