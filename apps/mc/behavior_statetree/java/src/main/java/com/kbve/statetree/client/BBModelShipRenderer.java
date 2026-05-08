@@ -136,6 +136,32 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         currentPitch = state.pitchDeg;
         currentOnGround = state.onGround;
 
+        // Drive ImmersiveAircraft-style bbmodel keyframe expressions.
+        // The .bbmodel files reference variable.engine_rotation,
+        // variable.pressing_interpolated_x/y/z, etc. Without these set
+        // every frame the propeller, rudder, and elevator animators
+        // evaluate to 0 and stay frozen. Globals are fine because
+        // rendering is single-threaded.
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "time", state.animationTime);
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "engine_rotation", state.propellerSpin);
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "pressing_interpolated_x",
+                clamp(-state.renderRoll / 25f, -1f, 1f));
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "pressing_interpolated_y",
+                clamp(state.enginePower, -1f, 1f));
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "pressing_interpolated_z",
+                clamp(state.enginePower, -1f, 1f));
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "yaw", state.heading);
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "pitch", state.pitchDeg);
+        com.kbve.statetree.bbmodel.BBAnimationVariables.set(
+                "roll", state.renderRoll);
+
         // Walk the model tree — submit render commands per face
         int light = 0xF000F0; // full bright (airships fly in sky)
         for (BBObject obj : model.root) {
@@ -154,29 +180,25 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Apply object origin
         matrices.translate(object.origin.x(), object.origin.y(), object.origin.z());
 
-        // Propeller-class objects spin proportional to engine power so the
-        // visual matches throttle. 0.25 idle keeps them ticking even when
-        // the engine is off — matches IA's getPropellerSpeed().
-        float effectiveTime = time;
-        if (object.name != null && object.name.toLowerCase().contains("propeller")) {
-            effectiveTime = time * (0.25f + currentEnginePower);
-        }
-
-        // Apply keyframe animation (propellers spin, sails flap, etc.)
-        // Only the first animation is sampled — BBModel files typically
-        // use one combined looped animation per model.
+        // Apply keyframe animation. Most IA-style bbmodels reference
+        // BBAnimationVariables (engine_rotation, pressing_interpolated_*)
+        // — those are now set per-frame in render() so propeller spin,
+        // rudder yaw, and elevator pitch all come from the bbmodel's
+        // own animator without extra code.
+        boolean hasAnimator = false;
         if (!model.animations.isEmpty()) {
             BBAnimation animation = model.animations.get(0);
             if (animation.hasAnimator(object.uuid)) {
-                Vector3f position = animation.sample(object.uuid, BBAnimator.Channel.POSITION, effectiveTime);
+                hasAnimator = true;
+                Vector3f position = animation.sample(object.uuid, BBAnimator.Channel.POSITION, time);
                 position.mul(1.0f / 16.0f);
                 matrices.translate(position.x(), position.y(), position.z());
 
-                Vector3f rotation = animation.sample(object.uuid, BBAnimator.Channel.ROTATION, effectiveTime);
+                Vector3f rotation = animation.sample(object.uuid, BBAnimator.Channel.ROTATION, time);
                 rotation.mul((float) (Math.PI / 180.0));
                 matrices.multiply(BBModelUtils.fromXYZ(rotation));
 
-                Vector3f scale = animation.sample(object.uuid, BBAnimator.Channel.SCALE, effectiveTime);
+                Vector3f scale = animation.sample(object.uuid, BBAnimator.Channel.SCALE, time);
                 matrices.scale(scale.x(), scale.y(), scale.z());
             }
         }
@@ -184,11 +206,11 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Apply object rotation
         matrices.multiply(BBModelUtils.fromXYZ(object.rotation));
 
-        // Control surface deflection — bbmodel objects can opt in by name.
-        //   rudder/aileron  → Y rotation tracks bank roll (yaw rate)
-        //   elevator        → X rotation tracks pitch deflection (planes)
-        //   gear            → Y rotation snaps 0°/90° based on ground state
-        if (object.name != null) {
+        // Code-driven control surface fallback — only fires when the
+        // bbmodel doesn't already have an animator for this object.
+        // Lets bbmodels without IA-style variable expressions still get
+        // visible rudder/elevator/gear deflection.
+        if (!hasAnimator && object.name != null) {
             String lname = object.name.toLowerCase();
             if (lname.contains("rudder") || lname.contains("aileron")) {
                 float def = clamp(-currentBankRoll * 0.6f, -25f, 25f);
