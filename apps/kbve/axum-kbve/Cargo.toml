@@ -77,7 +77,7 @@ tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 webpki-roots = "0.26"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
+jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
