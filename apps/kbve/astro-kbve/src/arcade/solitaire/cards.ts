@@ -117,6 +117,23 @@ export function isJoker(card: CardByte): boolean {
 	return (card & RANK_MASK) === JOKER_RANK;
 }
 
+/** Joker variants applied per-instance via a side-table on GameState (not
+ * encoded in the byte to keep the byte schema stable). Default = Wild. */
+export const enum JokerVariant {
+	/** Original wild card behavior — no scoring effect. */
+	Wild = 0,
+	/** +0.5× to foundation score multiplier while sitting in tableau. */
+	Multiplier = 1,
+	/** +50 flat points added to each foundation placement while in tableau. */
+	ScoreBoost = 2,
+}
+
+export const JOKER_VARIANT_LABEL: Record<JokerVariant, string> = {
+	[JokerVariant.Wild]: 'Wild',
+	[JokerVariant.Multiplier]: '×1.5 Mult',
+	[JokerVariant.ScoreBoost]: '+50 Score',
+};
+
 /** Stable id derived from suit + rank (face-up flag intentionally ignored
  * so the same physical card has one id regardless of orientation). Used
  * as the key for the scene's `Map<id, CardView>`.

@@ -20,6 +20,7 @@ import {
 	COLORS,
 	FOUNDATION_GAP,
 	FOUNDATION_X_START,
+	HUD_COLORS,
 	STOCK_X,
 	TABLEAU_FAN_Y,
 	TABLEAU_FAN_Y_DOWN,
@@ -34,6 +35,7 @@ import {
 	type CardByte,
 	type CardView as DisplayView,
 	FOUNDATION_SUITS,
+	JokerVariant,
 	SUIT_GLYPH,
 	getCardId,
 	getCardIndex,
@@ -96,6 +98,17 @@ export class SolitaireScene extends Phaser.Scene {
 	private winShown = false;
 	private winBanner: Phaser.GameObjects.Text | null = null;
 
+	// HUD fields — re-rendered on every state change via `updateHud`.
+	private hudScore!: Phaser.GameObjects.Text;
+	private hudCombo!: Phaser.GameObjects.Text;
+	private hudRound!: Phaser.GameObjects.Text;
+	private hudBlind!: Phaser.GameObjects.Text;
+	private hudCash!: Phaser.GameObjects.Text;
+	private hudBest!: Phaser.GameObjects.Text;
+
+	/** Active modal layer (shop or game-over). Null when no modal showing. */
+	private modal: Phaser.GameObjects.Container | null = null;
+
 	constructor() {
 		super({ key: 'SolitaireScene' });
 	}
@@ -118,6 +131,7 @@ export class SolitaireScene extends Phaser.Scene {
 
 		this.buildAllCardViews();
 		this.layoutAll(false);
+		this.updateHud();
 
 		this.input.on(
 			'gameobjectdown',
@@ -391,22 +405,117 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private drawHud() {
+		// Status strip — opaque dark band along the very top of the table.
+		const stripH = 36;
+		const strip = this.add.graphics();
+		strip.setDepth(-150);
+		strip.fillStyle(HUD_COLORS.hudBg, 0.92);
+		strip.fillRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
+		strip.lineStyle(1, HUD_COLORS.hudBorder, 0.85);
+		strip.strokeRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
+
+		const yMid = 14 + stripH / 2;
+
+		// Round / blind — left.
+		this.hudRound = this.add
+			.text(40, yMid - 9, 'Round 1', {
+				fontSize: '13px',
+				color: HUD_COLORS.roundText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudBlind = this.add
+			.text(40, yMid + 4, 'Target 200', {
+				fontSize: '11px',
+				color: HUD_COLORS.blindText,
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+
+		// Score + combo — center.
+		this.hudScore = this.add
+			.text(BASE_WIDTH / 2, yMid - 10, '0', {
+				fontSize: '20px',
+				color: HUD_COLORS.scoreText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		this.hudCombo = this.add
+			.text(BASE_WIDTH / 2, yMid + 12, '', {
+				fontSize: '11px',
+				color: HUD_COLORS.comboText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+
+		// Cash + best — right.
+		this.hudCash = this.add
+			.text(BASE_WIDTH - 40, yMid - 9, '$0', {
+				fontSize: '13px',
+				color: HUD_COLORS.cashText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		this.hudBest = this.add
+			.text(BASE_WIDTH - 40, yMid + 4, 'Best —', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+
+		// Bottom-strip help text.
 		this.add
 			.text(
 				BASE_WIDTH / 2,
-				24,
-				'Klondike Solitaire — drag to move · click stock to draw · double-click → foundation · N new game · Z undo',
+				BASE_HEIGHT - 18,
+				'drag to move · click stock to draw · dbl-click → foundation · N new game · Z undo',
 				{
-					fontSize: '13px',
+					fontSize: '11px',
 					color: COLORS.hintText,
 					fontFamily: 'system-ui, sans-serif',
 				},
 			)
-			.setOrigin(0.5, 0)
+			.setOrigin(0.5, 0.5)
 			.setResolution(2);
 
 		this.input.keyboard?.on('keydown-N', () => this.newGame());
 		this.input.keyboard?.on('keydown-Z', () => this.handleUndo());
+	}
+
+	/** Refresh HUD text from current state. Cheap; called after every move. */
+	private updateHud() {
+		this.hudScore.setText(`${this.state.score}`);
+		const combo = this.state.combo;
+		if (combo > 1) {
+			this.hudCombo.setText(
+				`×${this.state.comboMultiplier} chain (${combo})`,
+			);
+		} else {
+			this.hudCombo.setText('');
+		}
+		this.hudRound.setText(`Round ${this.state.round}`);
+		this.hudBlind.setText(`Target ${this.state.blind}`);
+		this.hudCash.setText(`$${this.state.cash}`);
+		const best = this.state.bestRecord.bestScore;
+		this.hudBest.setText(best > 0 ? `Best ${best}` : 'Best —');
+
+		// Score color shifts to green when blind is met.
+		this.hudScore.setColor(
+			this.state.hasMetBlind()
+				? HUD_COLORS.cashText
+				: HUD_COLORS.scoreText,
+		);
 	}
 
 	// -------------------------------------------------------------------
@@ -832,6 +941,7 @@ export class SolitaireScene extends Phaser.Scene {
 	private handleStockClick() {
 		this.state.drawFromStock();
 		this.layoutAll(true);
+		this.updateHud();
 	}
 
 	private handleUndo() {
@@ -839,7 +949,9 @@ export class SolitaireScene extends Phaser.Scene {
 			this.tweens.killAll();
 			this.winShown = false;
 			this.winBanner?.setVisible(false);
+			this.dismissModal();
 			this.layoutAll(true);
+			this.updateHud();
 		}
 	}
 
@@ -1027,6 +1139,7 @@ export class SolitaireScene extends Phaser.Scene {
 			});
 		}
 		this.layoutAll(true, staggerMap);
+		this.updateHud();
 
 		if (this.state.hasWon() && !this.winShown) {
 			this.winShown = true;
@@ -1113,6 +1226,8 @@ export class SolitaireScene extends Phaser.Scene {
 				if (canDropOnFoundation(wasteTop, this.state.foundations[f])) {
 					if (this.state.moveWasteToFoundation(f)) {
 						this.layoutAll(true);
+						this.updateHud();
+						this.checkRoundEnd();
 						return;
 					}
 				}
@@ -1127,12 +1242,23 @@ export class SolitaireScene extends Phaser.Scene {
 					if (canDropOnFoundation(top, this.state.foundations[f])) {
 						if (this.state.moveTableauToFoundation(col, f)) {
 							this.layoutAll(true);
+							this.updateHud();
+							this.checkRoundEnd();
 							return;
 						}
 					}
 				}
 				return;
 			}
+		}
+	}
+
+	/** After any foundation-bound move, see if the round just ended. Win
+	 * (foundations full) → finishRound + cascade + shop. */
+	private checkRoundEnd() {
+		if (this.state.hasWon() && !this.winShown) {
+			this.winShown = true;
+			this.showWin();
 		}
 	}
 
@@ -1193,24 +1319,280 @@ export class SolitaireScene extends Phaser.Scene {
 		});
 
 		this.time.delayedCall(totalDelay + 1500, () => {
-			this.winBanner?.setVisible(true);
+			this.state.finishRound();
+			this.updateHud();
+			this.showShop();
 		});
 	}
 
-	/** Reset for a new deal. Reuses the 52 card views built in `create()` —
-	 * `scene.restart()` would tear them all down and rebuild, which on a
-	 * 52-card deck means 52 containers + 52 hit zones + 52 graphics + 156
-	 * text objects re-allocated. The byte-packed `state.reset()` shuffles a
-	 * new deck in O(52); `layoutAll(true)` repositions the existing views
-	 * with a fresh deal. */
+	/** Reset full run (round 1, score 0, no owned jokers). */
 	private newGame() {
-		// Kill any in-flight cascade / move tweens so they don't fight the
-		// fresh layout tween for the same card containers.
 		this.tweens.killAll();
 		this.clearHighlights();
-		this.state.reset();
+		this.dismissModal();
+		this.state.resetRun();
 		this.winShown = false;
 		this.winBanner?.setVisible(false);
 		this.layoutAll(true);
+		this.updateHud();
+	}
+
+	// -------------------------------------------------------------------
+	// Modal layer (shop / game-over)
+	// -------------------------------------------------------------------
+
+	private dismissModal() {
+		if (!this.modal) return;
+		this.modal.destroy(true);
+		this.modal = null;
+	}
+
+	private buildModalShell(title: string): {
+		container: Phaser.GameObjects.Container;
+		contentY: number;
+	} {
+		this.dismissModal();
+		const c = this.add.container(0, 0);
+		c.setDepth(60000);
+
+		// Backdrop — semi-transparent black over the whole canvas.
+		const backdrop = this.add
+			.rectangle(
+				BASE_WIDTH / 2,
+				BASE_HEIGHT / 2,
+				BASE_WIDTH,
+				BASE_HEIGHT,
+				0x000000,
+				0.6,
+			)
+			.setInteractive(); // swallow clicks behind the modal
+		c.add(backdrop);
+
+		// Modal panel.
+		const w = 540;
+		const h = 360;
+		const x = (BASE_WIDTH - w) / 2;
+		const y = (BASE_HEIGHT - h) / 2;
+		const panel = this.add.graphics();
+		panel.fillStyle(HUD_COLORS.hudBg, 1);
+		panel.fillRoundedRect(x, y, w, h, 18);
+		panel.lineStyle(3, HUD_COLORS.hudBorder, 1);
+		panel.strokeRoundedRect(x, y, w, h, 18);
+		c.add(panel);
+
+		// Title.
+		const titleText = this.add
+			.text(BASE_WIDTH / 2, y + 20, title, {
+				fontSize: '24px',
+				color: HUD_COLORS.scoreText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		c.add(titleText);
+
+		this.modal = c;
+		return { container: c, contentY: y + 64 };
+	}
+
+	private showShop() {
+		const passed = this.state.hasMetBlind();
+		const titleStr = passed
+			? `Round ${this.state.round} cleared!`
+			: `Round ${this.state.round} — short of target`;
+		const { container, contentY } = this.buildModalShell(titleStr);
+
+		// Score / cash summary.
+		const summary = this.add
+			.text(
+				BASE_WIDTH / 2,
+				contentY,
+				`Score ${this.state.score}  ·  Target ${this.state.blind}  ·  Earned $${Math.floor(this.state.score / 10)}`,
+				{
+					fontSize: '13px',
+					color: HUD_COLORS.roundText,
+					fontFamily: 'system-ui, sans-serif',
+				},
+			)
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		container.add(summary);
+
+		// Shop offers — 3 cards. Click to buy.
+		const offers: { label: string; cost: number; apply: () => void }[] = [
+			{
+				label: 'Multiplier Joker (×1.5 mult)',
+				cost: 5,
+				apply: () => {
+					this.state.ownedJokerVariants.push(JokerVariant.Multiplier);
+				},
+			},
+			{
+				label: 'ScoreBoost Joker (+50 flat)',
+				cost: 8,
+				apply: () => {
+					this.state.ownedJokerVariants.push(JokerVariant.ScoreBoost);
+				},
+			},
+			{
+				label: 'Discount Reroll (skip)',
+				cost: 0,
+				apply: () => {
+					/* no-op; just lets player skip */
+				},
+			},
+		];
+
+		const cardW = 150;
+		const cardH = 100;
+		const gap = 18;
+		const startX = BASE_WIDTH / 2 - (cardW * 3 + gap * 2) / 2;
+		const cardY = contentY + 36;
+
+		offers.forEach((offer, i) => {
+			const cx = startX + i * (cardW + gap);
+			const card = this.add.graphics();
+			card.fillStyle(0x0d3b24, 1);
+			card.fillRoundedRect(cx, cardY, cardW, cardH, 10);
+			card.lineStyle(2, HUD_COLORS.hudBorder, 0.8);
+			card.strokeRoundedRect(cx, cardY, cardW, cardH, 10);
+			container.add(card);
+
+			const label = this.add
+				.text(cx + cardW / 2, cardY + 18, offer.label, {
+					fontSize: '12px',
+					color: HUD_COLORS.scoreText,
+					fontFamily: 'system-ui, sans-serif',
+					align: 'center',
+					wordWrap: { width: cardW - 16 },
+				})
+				.setOrigin(0.5, 0)
+				.setResolution(2);
+			container.add(label);
+
+			const cost = this.add
+				.text(cx + cardW / 2, cardY + cardH - 28, `$${offer.cost}`, {
+					fontSize: '16px',
+					color: HUD_COLORS.cashText,
+					fontStyle: 'bold',
+					fontFamily: 'system-ui, sans-serif',
+				})
+				.setOrigin(0.5, 0)
+				.setResolution(2);
+			container.add(cost);
+
+			const hit = this.add
+				.rectangle(
+					cx + cardW / 2,
+					cardY + cardH / 2,
+					cardW,
+					cardH,
+					0xffffff,
+					0.001,
+				)
+				.setInteractive({ useHandCursor: true });
+			hit.on(
+				'pointerover',
+				() => card.alpha === 1 && card.setAlpha(0.85),
+			);
+			hit.on('pointerout', () => card.setAlpha(1));
+			hit.on('pointerdown', () => {
+				if (this.state.cash < offer.cost) return;
+				this.state.cash -= offer.cost;
+				offer.apply();
+				this.updateHud();
+				// Visual: dim card to show "purchased".
+				card.setAlpha(0.4);
+				hit.disableInteractive();
+			});
+			container.add(hit);
+		});
+
+		// Continue / End-run button.
+		const btnY = contentY + 36 + cardH + 30;
+		const btnLabel = passed ? `→ Round ${this.state.round + 1}` : 'End Run';
+		const btn = this.add.graphics();
+		btn.fillStyle(passed ? 0x065f46 : 0x7f1d1d, 1);
+		btn.fillRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
+		btn.strokeRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		container.add(btn);
+		const btnText = this.add
+			.text(BASE_WIDTH / 2, btnY + 20, btnLabel, {
+				fontSize: '15px',
+				color: HUD_COLORS.scoreText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+		container.add(btnText);
+
+		const btnHit = this.add
+			.rectangle(BASE_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
+			.setInteractive({ useHandCursor: true });
+		btnHit.on('pointerdown', () => {
+			if (passed) {
+				this.dismissModal();
+				this.tweens.killAll();
+				this.winShown = false;
+				this.winBanner?.setVisible(false);
+				this.state.advanceRound();
+				this.layoutAll(true);
+				this.updateHud();
+			} else {
+				this.state.declareGameOver();
+				this.showGameOver();
+			}
+		});
+		container.add(btnHit);
+	}
+
+	private showGameOver() {
+		const { container, contentY } = this.buildModalShell('Game Over');
+
+		const summary = this.add
+			.text(
+				BASE_WIDTH / 2,
+				contentY,
+				`Final score ${this.state.score}\nRound reached: ${this.state.round}\nBest score: ${this.state.bestRecord.bestScore}\nRuns played: ${this.state.bestRecord.totalRuns}`,
+				{
+					fontSize: '14px',
+					color: HUD_COLORS.roundText,
+					fontFamily: 'system-ui, sans-serif',
+					align: 'center',
+				},
+			)
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		container.add(summary);
+
+		const btnY = contentY + 140;
+		const btn = this.add.graphics();
+		btn.fillStyle(0x065f46, 1);
+		btn.fillRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
+		btn.strokeRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		container.add(btn);
+		const btnText = this.add
+			.text(BASE_WIDTH / 2, btnY + 20, 'New Run', {
+				fontSize: '15px',
+				color: HUD_COLORS.scoreText,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+		container.add(btnText);
+
+		const btnHit = this.add
+			.rectangle(BASE_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
+			.setInteractive({ useHandCursor: true });
+		btnHit.on('pointerdown', () => {
+			this.dismissModal();
+			this.newGame();
+		});
+		container.add(btnHit);
 	}
 }
