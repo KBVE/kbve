@@ -17,6 +17,7 @@ public class ShipHud implements HudRenderCallback {
     private float speed = 0f;
     private float heading = 0f;
     private int altitude = 0;
+    private float climbRate = 0f;
     private float health = 100f;
     private float maxHealth = 100f;
     private float fuel = 0f;
@@ -60,6 +61,11 @@ public class ShipHud implements HudRenderCallback {
         this.speed = speed;
         this.heading = heading;
         this.altitude = altitude;
+    }
+
+    public void setClimbRate(float verticalVelocity) {
+        // Convert blocks/tick to blocks/sec for a more familiar readout.
+        this.climbRate = verticalVelocity * 20f;
     }
 
     public void setHealth(float health, float maxHealth) {
@@ -146,10 +152,13 @@ public class ShipHud implements HudRenderCallback {
         drawCenteredChar(context, client, "▼", vertX, compassCenterY + spacing - 8,
                 inputLower ? activeColor : inactiveColor);
 
-        String telemetry = String.format("SPD %.1f  ALT %d  HDG %03d°",
-                speed, altitude, ((int) ((heading % 360) + 360)) % 360);
+        String climbStr = climbRate >= 0
+                ? String.format("§a▲%.1f", climbRate)
+                : String.format("§c▼%.1f", -climbRate);
+        String telemetry = String.format("§eSPD %.1f  ALT %d  HDG %03d°  %s",
+                speed, altitude, ((int) ((heading % 360) + 360)) % 360, climbStr);
         int telWidth = client.textRenderer.getWidth(telemetry);
-        context.drawText(client.textRenderer, Text.of("§e" + telemetry),
+        context.drawText(client.textRenderer, Text.of(telemetry),
                 (screenWidth - telWidth) / 2, screenHeight - 78, 0xFFFFFFFF, true);
 
         int barW = 120;
@@ -214,7 +223,7 @@ public class ShipHud implements HudRenderCallback {
                     (screenWidth - bw) / 2, screenHeight - 105, 0xFFFFAA00, true);
         }
 
-        String controls = "Mouse Aim  W Throttle  Space Climb  Ctrl Boost  Shift Dismount";
+        String controls = "Mouse Aim  W Throttle  Space Up  C Down  Ctrl Boost  Shift Dismount";
         int controlsWidth = client.textRenderer.getWidth(controls);
         context.drawText(client.textRenderer, Text.of("§7" + controls),
                 screenWidth - controlsWidth - 10, screenHeight - 15, 0x999999, true);

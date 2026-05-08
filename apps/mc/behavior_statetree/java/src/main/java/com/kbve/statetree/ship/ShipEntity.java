@@ -640,6 +640,24 @@ public class ShipEntity extends Entity {
             spawnTrailParticles(sw, power);
         }
 
+        // Boost speed-lines — perpendicular cloud streaks while throttle
+        // exceeds normal max (sprint key bumps maxThrottle to 1.5). Mirrors
+        // IA's high-speed visual flourish.
+        if (power > 1.0f && this.getEntityWorld() instanceof ServerWorld swBoost
+                && this.age % 2 == 0) {
+            double radB = Math.toRadians(this.getYaw());
+            double sx = Math.cos(radB) * 0.8;
+            double sz = Math.sin(radB) * 0.8;
+            for (int i = 0; i < 2; i++) {
+                double sign = i == 0 ? 1.0 : -1.0;
+                swBoost.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                        this.getX() + sx * sign,
+                        this.getY() + 0.3,
+                        this.getZ() + sz * sign,
+                        1, 0.0, 0.0, 0.0, 0.05);
+            }
+        }
+
         // Banner color plume — independent of throttle so a parked ship
         // still flies its colors.
         if (this.getEntityWorld() instanceof ServerWorld sw3) {
