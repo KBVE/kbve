@@ -825,9 +825,9 @@ public class ShipEntity extends Entity {
 
     /**
      * Per-aircraft trail effect (server-side spawn so all clients see it).
-     * Particle type comes from stats.trailParticle when set; spawn position
-     * is still chosen per-model (wing-tip / rotor wash / aft exhaust)
-     * since IA's TrailDescriptor JSON shape isn't ported.
+     * Particle type comes from stats.trailParticle; positions come from
+     * stats.trailOffsets when set, else fall back to legacy model-name
+     * dispatch (wing-tip / rotor wash / aft exhaust).
      */
     private void spawnTrailParticles(ServerWorld sw, float power) {
         String model = getModelName();
@@ -835,6 +835,22 @@ public class ShipEntity extends Entity {
         net.minecraft.particle.ParticleEffect particle = resolveTrailParticle(stats.trailParticle(), model);
         if (particle == null) return;
 
+        java.util.List<Vec3d> offsets = FlightStatsRegistry.getTrailOffsets(model);
+        if (!offsets.isEmpty()) {
+            if (this.age % 3 != 0) return;
+            double yawRad = Math.toRadians(this.getYaw());
+            double cosY = Math.cos(yawRad);
+            double sinY = Math.sin(yawRad);
+            for (Vec3d local : offsets) {
+                double wx = this.getX() + local.x * cosY - local.z * sinY;
+                double wy = this.getY() + local.y;
+                double wz = this.getZ() + local.x * sinY + local.z * cosY;
+                sw.spawnParticles(particle, wx, wy, wz, 1, 0.05, 0.05, 0.05, 0.01);
+            }
+            return;
+        }
+
+        // Legacy fallback for models with no trailOffsets configured.
         double rad = Math.toRadians(this.getYaw());
         if (model.contains("biplane")) {
             if (this.age % 2 == 0) {
