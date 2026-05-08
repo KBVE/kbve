@@ -1,0 +1,16 @@
+---
+import ReactSolitaireApp from './ReactSolitaireApp';
+---
+
+<div class="not-content w-full h-full">
+	<div
+		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0a4d2e]"
+		style="width: 100%; aspect-ratio: 4/3;"
+		tabindex="0">
+		<ReactSolitaireApp client:only="react" />
+	</div>
+	<p class="text-xs text-gray-400 mt-2 text-center">
+		Drag cards to move. Click stock to draw. Double-click a card to send it
+		to a foundation. Press <kbd>N</kbd> for a new game · <kbd>Z</kbd> to undo.
+	</p>
+</div>

@@ -13,6 +13,23 @@ export interface LaserGameConfig {
 	scale?: Phaser.Types.Core.ScaleConfig;
 	backgroundColor?: string;
 	transparent?: boolean;
+	/** Input config — keyboard capture, mouse, touch, etc. */
+	input?: Phaser.Types.Core.InputConfig;
+	/** Render config — set `resolution: window.devicePixelRatio` for crisp
+	 * text + sprites on hidpi displays. `pixelArt: true` for nearest-neighbor
+	 * scaling on low-res sprite-based games. */
+	render?: Phaser.Types.Core.RenderConfig;
+	/** Auto-set both `render.pixelArt` and `render.antialias` from a single
+	 * field — convenience for retro vs vector games. */
+	pixelArt?: boolean;
+	/** DOM element overlay config (HTML inputs etc rendered on top of canvas). */
+	dom?: Phaser.Types.Core.DOMContainerConfig;
+	/** Audio config — sound system selection, mute defaults. */
+	audio?: Phaser.Types.Core.AudioConfig;
+	/** Lifecycle callbacks (preBoot, postBoot). */
+	callbacks?: Phaser.Types.Core.CallbacksConfig;
+	/** FPS / time-step tuning. */
+	fps?: Phaser.Types.Core.FPSConfig;
 }
 
 export type GameStatus =
