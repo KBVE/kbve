@@ -110,8 +110,24 @@ jobs:
                   mkdir -p ~/.pgrx
                   printf '[configs]\npg17 = "/usr/lib/postgresql/17/bin/pg_config"\n' > ~/.pgrx/config.toml
 
+            # Force a fresh nx project graph before affected lint/test runs.
+            # Without this, the @nx/dependency-checks ESLint rule has a known
+            # race when a dep + its first import land in back-to-back PRs:
+            # the daemon's cached graph sees the dep in package.json but
+            # not yet the import in src/, so it falsely flags the package
+            # as unused (see #10607). `nx reset` rebuilds graph + cache and
+            # NX_DAEMON=false stops a stale daemon from being reused.
+            - name: Reset nx graph
+              run: pnpm nx reset
+              env:
+                  NX_DAEMON: 'false'
+
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
+              env:
+                  NX_DAEMON: 'false'
 
             - name: Test affected projects
               run: pnpm nx affected --target=test --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
+              env:
+                  NX_DAEMON: 'false'
