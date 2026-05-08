@@ -181,6 +181,23 @@ function main() {
 		console.log(`Synced ${t.name} → ${t.dir}`);
 	}
 
+	// JSON-only sync targets — non-Unity consumers (e.g. discordsh-bot embeds
+	// the JSON via include_str! at compile time and uses bevy_mapdb::MapDb::from_json).
+	const jsonOnlyTargets = [
+		{
+			name: 'discordsh-bot',
+			path: resolve(
+				repoRoot,
+				'apps/discordsh/discordsh-bot/data/mapdb.json',
+			),
+		},
+	];
+	for (const t of jsonOnlyTargets) {
+		mkdirSync(dirname(t.path), { recursive: true });
+		writeFileSync(t.path, JSON.stringify(registryJson));
+		console.log(`Synced ${t.name} → ${t.path}`);
+	}
+
 	// 3. Regenerate C# proto classes so Unity's MapdbLoaderSystem stays in
 	// sync with the proto shape. Produces Mapdb.cs + its common.proto
 	// dependency under the per-game Generated/Proto/ folder. The runtime

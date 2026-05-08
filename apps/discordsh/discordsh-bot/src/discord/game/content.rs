@@ -2511,17 +2511,28 @@ fn generate_tile_at(seed: u64, pos: &MapPos, boss_positions: &[MapPos]) -> MapTi
         RoomType::Hallway => hallway_rooms(),
         RoomType::UndergroundCity => city_rooms(),
     };
-    let (name, description) = pick_template(pool, &mut rng);
+    let (template_name, template_description) = pick_template(pool, &mut rng);
     let exits = generate_exits(&mut rng);
+
+    // Try to attach a curated mapdb landmark for this room type. When a match
+    // is found, override the procedural name with the landmark's display name
+    // so the player sees `Boss Arena (The Shattered Crown)` etc. The procedural
+    // description still wins — landmark lore is surfaced in the card view.
+    let landmark = super::proto_bridge::pick_landmark_for_room_type(&room_type, &mut rng);
+    let (name, landmark_ref) = match landmark {
+        Some((r#ref, display_name)) => (display_name, Some(r#ref)),
+        None => (template_name, None),
+    };
 
     MapTile {
         pos: *pos,
         room_type,
         name,
-        description,
+        description: template_description,
         exits,
         visited: false,
         cleared: false,
+        landmark_ref,
     }
 }
 
@@ -2542,6 +2553,7 @@ pub fn generate_initial_map(session_id: &uuid::Uuid) -> MapState {
         exits: vec![Direction::North, Direction::South, Direction::East, Direction::West],
         visited: true,
         cleared: true,
+        landmark_ref: None,
     };
     tiles.insert(origin, origin_tile);
 
@@ -2617,11 +2629,23 @@ pub fn room_from_tile(tile: &MapTile) -> RoomState {
         None
     };
 
+    // When this tile carries a curated mapdb landmark, prefix the procedural
+    // description with the landmark's lore so the player sees both the
+    // proc-gen flavor and the canonical landmark text.
+    let description = match tile
+        .landmark_ref
+        .as_deref()
+        .and_then(super::proto_bridge::landmark_description)
+    {
+        Some(lore) => format!("{}\n\n{}", lore, tile.description),
+        None => tile.description.clone(),
+    };
+
     RoomState {
         index: depth,
         room_type: tile.room_type.clone(),
         name: tile.name.clone(),
-        description: tile.description.clone(),
+        description,
         modifiers,
         hazards,
         merchant_stock,
@@ -3183,6 +3207,7 @@ mod tests {
             exits: vec![Direction::North],
             visited: true,
             cleared: false,
+            landmark_ref: None,
         };
         let room = room_from_tile(&tile);
         assert_eq!(room.room_type, RoomType::Combat);

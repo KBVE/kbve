@@ -4984,6 +4984,7 @@ dependencies = [
  "bevy_chat",
  "bevy_inventory",
  "bevy_items",
+ "bevy_mapdb",
  "bevy_npc",
  "bevy_quests",
  "bevy_skills",
