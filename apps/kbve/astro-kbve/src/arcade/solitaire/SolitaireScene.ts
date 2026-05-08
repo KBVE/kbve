@@ -18,6 +18,7 @@ import {
 	BOARD_RADIUS,
 	CARD_SIZE,
 	COLORS,
+	FONT,
 	FOUNDATION_GAP,
 	FOUNDATION_X_START,
 	HUD_COLORS,
@@ -168,9 +169,10 @@ export class SolitaireScene extends Phaser.Scene {
 				STOCK_X + CARD_SIZE.width / 2,
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				'↻',
-				{ fontSize: '36px', color: '#0e3a25' },
+				{ fontSize: '44px', color: '#1f5e3d', fontFamily: FONT.sans },
 			)
-			.setOrigin(0.5);
+			.setOrigin(0.5)
+			.setResolution(2);
 
 		// Waste slot.
 		this.add
@@ -203,9 +205,14 @@ export class SolitaireScene extends Phaser.Scene {
 					x + CARD_SIZE.width / 2,
 					TOP_ROW_Y + CARD_SIZE.height / 2,
 					SUIT_GLYPH[FOUNDATION_SUITS[i]],
-					{ fontSize: '36px', color: '#0e3a25' },
+					{
+						fontSize: '46px',
+						color: '#1f5e3d',
+						fontFamily: FONT.sans,
+					},
 				)
-				.setOrigin(0.5);
+				.setOrigin(0.5)
+				.setResolution(2);
 		}
 
 		// Tableau slot outlines 0..6.
@@ -405,85 +412,92 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private drawHud() {
-		// Status strip — opaque dark band along the very top of the table.
-		const stripH = 36;
+		// Status strip — taller band with more breathing room.
+		const stripH = 56;
+		const stripPadX = 28;
 		const strip = this.add.graphics();
 		strip.setDepth(-150);
 		strip.fillStyle(HUD_COLORS.hudBg, 0.92);
-		strip.fillRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
-		strip.lineStyle(1, HUD_COLORS.hudBorder, 0.85);
-		strip.strokeRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
+		strip.fillRoundedRect(28, 20, BASE_WIDTH - 56, stripH, 12);
+		strip.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
+		strip.strokeRoundedRect(28, 20, BASE_WIDTH - 56, stripH, 12);
+		// Inner gold accent — thin line just inside the border for that
+		// "casino chip" detail.
+		strip.lineStyle(1, HUD_COLORS.hudBorder, 0.45);
+		strip.strokeRoundedRect(31, 23, BASE_WIDTH - 62, stripH - 6, 10);
 
-		const yMid = 14 + stripH / 2;
+		const yMid = 20 + stripH / 2;
 
-		// Round / blind — left.
+		// Round / blind — left, two-line stack.
 		this.hudRound = this.add
-			.text(40, yMid - 9, 'Round 1', {
-				fontSize: '13px',
-				color: HUD_COLORS.roundText,
+			.text(28 + stripPadX, yMid - 14, 'Round 1', {
+				fontSize: '20px',
+				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.serif,
 			})
 			.setOrigin(0, 0)
 			.setResolution(2);
 		this.hudBlind = this.add
-			.text(40, yMid + 4, 'Target 200', {
-				fontSize: '11px',
+			.text(28 + stripPadX, yMid + 7, 'Target 200', {
+				fontSize: '12px',
 				color: HUD_COLORS.blindText,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
 			})
 			.setOrigin(0, 0)
 			.setResolution(2);
 
-		// Score + combo — center.
+		// Score + combo — center. Score is the hero number.
 		this.hudScore = this.add
-			.text(BASE_WIDTH / 2, yMid - 10, '0', {
-				fontSize: '20px',
+			.text(BASE_WIDTH / 2, yMid - 17, '0', {
+				fontSize: '32px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.serif,
 			})
 			.setOrigin(0.5, 0)
 			.setResolution(2);
 		this.hudCombo = this.add
-			.text(BASE_WIDTH / 2, yMid + 12, '', {
-				fontSize: '11px',
+			.text(BASE_WIDTH / 2, yMid + 14, '', {
+				fontSize: '12px',
 				color: HUD_COLORS.comboText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5, 0)
 			.setResolution(2);
 
 		// Cash + best — right.
 		this.hudCash = this.add
-			.text(BASE_WIDTH - 40, yMid - 9, '$0', {
-				fontSize: '13px',
+			.text(BASE_WIDTH - 28 - stripPadX, yMid - 14, '$0', {
+				fontSize: '20px',
 				color: HUD_COLORS.cashText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.serif,
 			})
 			.setOrigin(1, 0)
 			.setResolution(2);
 		this.hudBest = this.add
-			.text(BASE_WIDTH - 40, yMid + 4, 'Best —', {
-				fontSize: '11px',
+			.text(BASE_WIDTH - 28 - stripPadX, yMid + 7, 'Best —', {
+				fontSize: '12px',
 				color: HUD_COLORS.roundText,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
 			})
 			.setOrigin(1, 0)
 			.setResolution(2);
 
-		// Bottom-strip help text.
+		// Bottom-strip help text — bigger + clearer.
 		this.add
 			.text(
 				BASE_WIDTH / 2,
-				BASE_HEIGHT - 18,
-				'drag to move · click stock to draw · dbl-click → foundation · N new game · Z undo',
+				BASE_HEIGHT - 24,
+				'Drag to move  ·  Click stock to draw  ·  Double-click → foundation  ·  N new game  ·  Z undo',
 				{
-					fontSize: '11px',
+					fontSize: '13px',
 					color: COLORS.hintText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0.5, 0.5)
@@ -644,7 +658,7 @@ export class SolitaireScene extends Phaser.Scene {
 					fontSize: '20px',
 					color: colorStr,
 					fontStyle: 'bold',
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0, 0)
@@ -658,7 +672,7 @@ export class SolitaireScene extends Phaser.Scene {
 				{
 					fontSize: '18px',
 					color: colorStr,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0, 0)
@@ -668,7 +682,7 @@ export class SolitaireScene extends Phaser.Scene {
 			.text(0, 8, d.glyph, {
 				fontSize: '46px',
 				color: colorStr,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
@@ -725,7 +739,7 @@ export class SolitaireScene extends Phaser.Scene {
 				fontSize: '11px',
 				color: goldStr,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0, 0)
 			.setResolution(2);
@@ -738,7 +752,7 @@ export class SolitaireScene extends Phaser.Scene {
 			.text(0, 4, '★', {
 				fontSize: '52px',
 				color: goldStr,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
@@ -1275,7 +1289,7 @@ export class SolitaireScene extends Phaser.Scene {
 					{
 						fontSize: '32px',
 						color: COLORS.winText,
-						fontFamily: 'system-ui, sans-serif',
+						fontFamily: FONT.sans,
 						fontStyle: 'bold',
 					},
 				)
@@ -1386,7 +1400,7 @@ export class SolitaireScene extends Phaser.Scene {
 				fontSize: '24px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5, 0)
 			.setResolution(2);
@@ -1412,7 +1426,7 @@ export class SolitaireScene extends Phaser.Scene {
 				{
 					fontSize: '13px',
 					color: HUD_COLORS.roundText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0.5, 0)
@@ -1463,7 +1477,7 @@ export class SolitaireScene extends Phaser.Scene {
 				.text(cx + cardW / 2, cardY + 18, offer.label, {
 					fontSize: '12px',
 					color: HUD_COLORS.scoreText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 					align: 'center',
 					wordWrap: { width: cardW - 16 },
 				})
@@ -1476,7 +1490,7 @@ export class SolitaireScene extends Phaser.Scene {
 					fontSize: '16px',
 					color: HUD_COLORS.cashText,
 					fontStyle: 'bold',
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				})
 				.setOrigin(0.5, 0)
 				.setResolution(2);
@@ -1523,7 +1537,7 @@ export class SolitaireScene extends Phaser.Scene {
 				fontSize: '15px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
@@ -1560,7 +1574,7 @@ export class SolitaireScene extends Phaser.Scene {
 				{
 					fontSize: '14px',
 					color: HUD_COLORS.roundText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 					align: 'center',
 				},
 			)
@@ -1580,7 +1594,7 @@ export class SolitaireScene extends Phaser.Scene {
 				fontSize: '15px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
