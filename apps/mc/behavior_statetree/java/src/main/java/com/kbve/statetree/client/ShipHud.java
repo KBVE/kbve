@@ -121,6 +121,18 @@ public class ShipHud implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
+        // STALL vignette — pulsing red border around the screen edges so
+        // the pilot can't miss imminent loss-of-control.
+        if ("STALL".equals(flightMode)) {
+            int alpha = (int) (((Math.sin(System.currentTimeMillis() / 120.0) + 1) * 0.5) * 80) + 40;
+            int color = (alpha << 24) | 0xCC2222;
+            int border = 24;
+            context.fill(0, 0, screenWidth, border, color);
+            context.fill(0, screenHeight - border, screenWidth, screenHeight, color);
+            context.fill(0, 0, border, screenHeight, color);
+            context.fill(screenWidth - border, 0, screenWidth, screenHeight, color);
+        }
+
         int cx = screenWidth / 2;
         int cy = screenHeight / 2;
         int crossColor = 0xFFFFFFFF;
