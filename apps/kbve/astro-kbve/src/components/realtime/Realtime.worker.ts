@@ -330,10 +330,23 @@ function renderToCanvas(event: RealtimeEvent) {
 	}
 }
 
+// Dedicated workers receive `event.origin === ''` from their owning page;
+// reject anything else to satisfy CodeQL js/missing-origin-check.
+function isAllowedOrigin(event: MessageEvent): boolean {
+	return event.origin === '' || event.origin === self.location.origin;
+}
+
 /**
  * Handle messages from main thread
  */
 self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
+	if (!isAllowedOrigin(event)) {
+		console.warn(
+			'[Realtime Worker] Rejected message from origin:',
+			event.origin,
+		);
+		return;
+	}
 	const message = event.data;
 
 	switch (message.type) {
