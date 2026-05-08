@@ -10,4 +10,6 @@
  */
 
 export { createKbveClient, kbveApi, type KbveClient } from './client';
+export { withBearerAuth, type BearerTokenResolver } from './auth';
+export { KbveApiError, extractErrorMessage, unwrap } from './errors';
 export type { components, operations, paths } from './openapi-types';
