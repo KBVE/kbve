@@ -1,0 +1,51 @@
+---
+ref: thor-hammer
+name: Thor Hammer
+title: Thor Hammer Icon
+description: Thor Hammer glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["thor-hammer","thor","hammer","thor hammer"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/thor-hammer"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m266.033 32.42l-85.238 85.238v19.799L285.832 32.42zm41.528 3.728L184.523 159.186l168.291 168.29L475.852 204.44L307.56 36.15zm172.02 190.02L374.542 331.205h19.799l85.238-85.238v-19.799zm-239.903 13.627l-9.9 9.9l32.527 32.528l9.9-9.9zm-22.627 22.627l-23.528 23.527h47.055zm-41.528 41.527l-27.255 27.256h65.054l27.256-27.256zm-45.255 45.256l-27.254 27.254h65.054l27.254-27.254zm-27.254 45.254l23.527 23.527l23.527-23.527zm-21.729 3.728l-9.898 9.899l32.527 32.527l9.898-9.898l-32.527-32.527zm-38.767 18.899l-7.504 22.512l37.388 37.388l22.512-7.504v-12.414L54.93 417.086z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Thor Hammer — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

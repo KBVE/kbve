@@ -13,6 +13,9 @@ importers:
             '@iconify-json/carbon':
                 specifier: ^1.2.20
                 version: 1.2.20
+            '@iconify-json/devicon':
+                specifier: ^1.2.62
+                version: 1.2.62
             '@iconify-json/fluent':
                 specifier: ^1.2.46
                 version: 1.2.46
@@ -73,6 +76,12 @@ packages:
         resolution:
             {
                 integrity: sha512-wqyxKEbIRdzGdfCAwQqn8iSfO6jx0m1toZAAQdx1NFjxd6iFl1YY4eKI1woWt7XOxs7s7phMW530kDD867JZGw==,
+            }
+
+    '@iconify-json/devicon@1.2.62':
+        resolution:
+            {
+                integrity: sha512-X0o0+fOJL2t5JTbDCGLRzrmvf8Pv5q8dr86+fW+F/VJ9qvXTtny6lqGIwjE9AY4VTLm3i8f/N+VtRheSW6OkEg==,
             }
 
     '@iconify-json/fluent@1.2.46':
@@ -191,6 +200,10 @@ snapshots:
             '@iconify/types': 2.0.0
 
     '@iconify-json/carbon@1.2.20':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/devicon@1.2.62':
         dependencies:
             '@iconify/types': 2.0.0
 

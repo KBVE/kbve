@@ -2,18 +2,21 @@
 ref: shield-check
 name: Shield Check
 title: Shield Check Icon
-description: Shield Check glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Shield Check glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: game
 categories:
   - game
   - library
   - tech
+  - action
 tags:
   - heroicons-generated
   - heroicons
   - octicons-generated
   - octicons
   - merged-multi-source
+  - tabler-generated
+  - outline
 search:
   keywords:
     - shield-check
@@ -95,11 +98,37 @@ icons:
       - heroicons
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15L15 9.75m-3-7.036A11.96 11.96 0 0 1 3.598 6A12 12 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623c5.176-1.332 9-6.03 9-11.622c0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285"/></svg>
+  - ref: tabler-outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" /> <path d="M15 19l2 2l4 -4" /></svg>
 pagefindFilters:
   - heroicons
   - game
   - octicons
   - tech
+  - tabler
+  - action
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

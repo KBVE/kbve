@@ -1,0 +1,51 @@
+---
+ref: sai
+name: Sai
+title: Sai Icon
+description: Sai glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["sai"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/sai"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M476.953 34.873C470.795 28.715 237.497 251.72 162.997 326.2l22.628 22.628C261.473 273.082 483.11 41.03 476.953 34.873M233.747 166.356c-.24-.24-.6-.335-1.07-.293c-9.55.855-113.11 97.3-143.888 124.035a9 9 0 0 0 0 12.728l43.84 43.842l-13.442 13.504l32.53 32.53l13.443-13.507L209 423.037a9 9 0 0 0 12.728 0c28.048-32.29 129.91-138.957 123.743-144.957L215.363 403.944l-107.48-107.48zm-120.442 213.39l-2.346 21.12l21.12-2.346zm14.072 37.406l-18.455 2.05l-2.062 18.564zM94.63 384.844L74.666 404.9l17.955-1.996zm-4.045 36.396l-32.575 3.62l28.955 28.958zM44.82 434.232l-9.9 9.9l33.122 33.12l9.902-9.896z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Sai — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

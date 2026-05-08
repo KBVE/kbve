@@ -1,6 +1,13 @@
 {
+	"alarm": {
+		"clock": "alarm",
+		"tabler": "alarm-tabler"
+	},
+	"ansible": {
+		"devicon": "ansible-devicon"
+	},
 	"antenna": {
-		"tabler": "antenna"
+		"tabler": "antenna-tabler"
 	},
 	"apps": {
 		"fluent": "apps-fluent"
@@ -8,14 +15,20 @@
 	"archive": {
 		"radix": "archive-radix"
 	},
+	"astro": {
+		"devicon": "astro-devicon"
+	},
+	"atom": {
+		"phosphor": "atom-phosphor"
+	},
 	"aws": {
-		"tabler": "aws"
+		"tabler": "aws-tabler"
 	},
 	"axe": {
-		"phosphor": "axe"
+		"phosphor": "axe-phosphor"
 	},
 	"baby": {
-		"phosphor": "baby"
+		"phosphor": "baby-phosphor"
 	},
 	"badge": {
 		"dollar": "badge",
@@ -32,10 +45,13 @@
 		"hero": "beaker-hero"
 	},
 	"binary": {
-		"phosphor": "binary"
+		"phosphor": "binary-phosphor"
 	},
 	"bird": {
-		"phosphor": "bird"
+		"phosphor": "bird-phosphor"
+	},
+	"blender": {
+		"devicon": "blender-devicon"
 	},
 	"bookmark": {
 		"radix": "bookmark-radix"
@@ -45,31 +61,47 @@
 		"message": "bot"
 	},
 	"bow": {
-		"tabler": "bow"
+		"tabler": "bow-tabler"
 	},
 	"brain": {
-		"phosphor": "brain",
-		"tabler": "brain"
+		"phosphor": "brain-phosphor",
+		"tabler": "brain-tabler"
+	},
+	"bun": {
+		"devicon": "bun-devicon"
 	},
 	"bus": {
-		"phosphor": "bus"
+		"phosphor": "bus-phosphor"
 	},
 	"cake": {
-		"phosphor": "cake",
-		"tabler": "cake"
+		"phosphor": "cake-phosphor",
+		"tabler": "cake-tabler"
 	},
 	"camera": {
 		"radix": "camera-radix"
 	},
 	"campfire": {
 		"mingcute": "campfire-mingcute",
-		"phosphor": "campfire"
+		"phosphor": "campfire-phosphor",
+		"tabler": "campfire-tabler"
 	},
 	"cat": {
-		"phosphor": "cat"
+		"phosphor": "cat-phosphor"
+	},
+	"chart-bar": {
+		"phosphor": "chart-bar-phosphor",
+		"tabler": "chart-bar-tabler"
+	},
+	"chart-line": {
+		"phosphor": "chart-line-phosphor"
+	},
+	"chart-pie": {
+		"phosphor": "chart-pie-phosphor",
+		"tabler": "chart-pie-tabler"
 	},
 	"check-circle": {
-		"iconoir": "check-circle-iconoir"
+		"iconoir": "check-circle-iconoir",
+		"phosphor": "check-circle-phosphor"
 	},
 	"cloud": {
 		"fluent": "cloud-fluent",
@@ -78,44 +110,48 @@
 		"material": "cloud-material",
 		"mingcute": "cloud-mingcute",
 		"moon": "cloud",
-		"phosphor": "cloud",
+		"phosphor": "cloud-phosphor",
 		"rain": "cloud",
 		"solar": "cloud-solar",
 		"sun": "cloud"
 	},
 	"cloudflare": {
-		"tabler": "cloudflare"
+		"tabler": "cloudflare-tabler"
 	},
 	"code": {
 		"fluent": "code-fluent",
 		"mingcute": "code-mingcute",
 		"octicon": "code-octicon",
-		"phosphor": "code"
+		"phosphor": "code-phosphor"
 	},
 	"coffee": {
-		"phosphor": "coffee"
+		"phosphor": "coffee-phosphor"
 	},
 	"coins": {
-		"phosphor": "coins"
+		"phosphor": "coins-phosphor"
 	},
 	"compass": {
 		"iconoir": "compass-iconoir",
 		"mingcute": "compass-mingcute",
-		"phosphor": "compass"
+		"phosphor": "compass-phosphor"
 	},
 	"cpu": {
 		"iconoir": "cpu-iconoir",
-		"phosphor": "cpu",
-		"tabler": "cpu"
+		"phosphor": "cpu-phosphor",
+		"tabler": "cpu-tabler"
+	},
+	"crab": {
+		"game": "crab-game",
+		"lucide": "crab"
 	},
 	"crosshair": {
-		"phosphor": "crosshair"
+		"phosphor": "crosshair-phosphor"
 	},
 	"crown": {
 		"iconoir": "crown-iconoir",
-		"phosphor": "crown",
+		"phosphor": "crown-phosphor",
 		"solar": "crown-solar",
-		"tabler": "crown"
+		"tabler": "crown-tabler"
 	},
 	"cube": {
 		"radix": "cube-radix"
@@ -123,95 +159,154 @@
 	"cup": {
 		"solar": "cup-solar"
 	},
+	"dart": {
+		"devicon": "dart-devicon"
+	},
 	"database": {
 		"fluent": "database-fluent",
 		"iconoir": "database-iconoir",
-		"phosphor": "database",
+		"phosphor": "database-phosphor",
 		"solar": "database-solar"
 	},
+	"dna": {
+		"tabler": "dna-tabler"
+	},
 	"docker": {
-		"tabler": "docker"
+		"devicon": "docker-devicon",
+		"tabler": "docker-tabler"
 	},
 	"dog": {
-		"phosphor": "dog"
+		"phosphor": "dog-phosphor"
+	},
+	"elixir": {
+		"devicon": "elixir-devicon"
 	},
 	"envelope": {
 		"akar": "envelope-akar",
-		"hero": "envelope-hero"
+		"hero": "envelope-hero",
+		"phosphor": "envelope-phosphor"
 	},
 	"eye": {
 		"fluent": "eye-fluent",
 		"hero": "eye-hero",
 		"octicon": "eye-octicon"
 	},
+	"fastapi": {
+		"devicon": "fastapi-devicon"
+	},
+	"fingerprint": {
+		"tabler": "fingerprint-tabler"
+	},
 	"fire": {
 		"hero": "fire-hero",
 		"solar": "fire-solar"
 	},
 	"fish": {
-		"phosphor": "fish"
+		"phosphor": "fish-phosphor"
 	},
 	"flame": {
-		"phosphor": "flame",
-		"tabler": "flame"
+		"phosphor": "flame-phosphor",
+		"tabler": "flame-tabler"
 	},
 	"flash": {
 		"fluent": "flash-fluent",
 		"iconoir": "flash-iconoir",
 		"mingcute": "flash-mingcute"
 	},
+	"flask": {
+		"conical": "flask",
+		"devicon": "flask-devicon",
+		"phosphor": "flask-phosphor",
+		"tabler": "flask-tabler"
+	},
 	"flower": {
 		"mingcute": "flower-mingcute",
-		"phosphor": "flower"
+		"phosphor": "flower-phosphor"
+	},
+	"fountain": {
+		"game": "fountain-game"
 	},
 	"frame": {
 		"radix": "frame-radix"
 	},
 	"function": {
-		"phosphor": "function"
+		"phosphor": "function-phosphor",
+		"tabler": "function-tabler"
 	},
 	"gavel": {
-		"phosphor": "gavel"
+		"phosphor": "gavel-phosphor"
 	},
 	"gear": {
-		"akar": "gear-akar"
+		"akar": "gear-akar",
+		"phosphor": "gear-phosphor"
 	},
 	"ghost": {
 		"mdi": "ghost-mdi",
-		"phosphor": "ghost"
+		"phosphor": "ghost-phosphor"
 	},
 	"gift": {
 		"fluent": "gift-fluent",
 		"hero": "gift-hero",
 		"mingcute": "gift-mingcute",
-		"phosphor": "gift",
+		"phosphor": "gift-phosphor",
 		"solar": "gift-solar"
+	},
+	"git-branch": {
+		"phosphor": "git-branch-phosphor"
+	},
+	"git-commit": {
+		"phosphor": "git-commit-phosphor"
 	},
 	"globe": {
 		"iconoir": "globe-iconoir",
 		"radix": "globe-radix"
 	},
+	"go": {
+		"devicon": "go-devicon"
+	},
+	"godot": {
+		"devicon": "godot-devicon"
+	},
 	"group": {
 		"iconoir": "group-iconoir"
 	},
+	"guitar": {
+		"phosphor": "guitar-phosphor"
+	},
 	"hamburger": {
-		"phosphor": "hamburger"
+		"phosphor": "hamburger-phosphor"
 	},
 	"hammer": {
-		"phosphor": "hammer"
+		"phosphor": "hammer-phosphor"
+	},
+	"headphones": {
+		"phosphor": "headphones-phosphor"
+	},
+	"horse": {
+		"phosphor": "horse-phosphor"
+	},
+	"hourglass": {
+		"tabler": "hourglass-tabler"
 	},
 	"house": {
-		"phosphor": "house"
+		"phosphor": "house-phosphor"
 	},
 	"ice-cream": {
-		"phosphor": "ice-cream"
+		"phosphor": "ice-cream-phosphor",
+		"tabler": "ice-cream-tabler"
 	},
 	"image": {
 		"fluent": "image-fluent",
-		"phosphor": "image"
+		"phosphor": "image-phosphor"
 	},
 	"info": {
-		"phosphor": "info"
+		"phosphor": "info-phosphor"
+	},
+	"jenkins": {
+		"devicon": "jenkins-devicon"
+	},
+	"kanban": {
+		"phosphor": "kanban-phosphor"
 	},
 	"key": {
 		"fluent": "key-fluent",
@@ -221,32 +316,42 @@
 	"keyboard": {
 		"radix": "keyboard-radix"
 	},
+	"kotlin": {
+		"devicon": "kotlin-devicon"
+	},
 	"kubernetes": {
-		"carbon": "kubernetes-carbon"
+		"carbon": "kubernetes-carbon",
+		"devicon": "kubernetes-devicon"
 	},
 	"leaf": {
-		"phosphor": "leaf",
+		"phosphor": "leaf-phosphor",
 		"solar": "leaf-solar",
-		"tabler": "leaf"
+		"tabler": "leaf-tabler"
+	},
+	"lighthouse": {
+		"game": "lighthouse-game"
 	},
 	"lock": {
 		"keyhole": "lock",
 		"octicon": "lock-octicon",
-		"phosphor": "lock"
+		"phosphor": "lock-phosphor"
 	},
 	"lock-closed": {
 		"fluent": "lock-closed-fluent",
 		"hero": "lock-closed-hero"
 	},
 	"lock-open": {
-		"hero": "lock-open-hero"
+		"hero": "lock-open-hero",
+		"phosphor": "lock-open-phosphor"
 	},
 	"magic-wand": {
-		"phosphor": "magic-wand",
-		"radix": "magic-wand-radix"
+		"phosphor": "magic-wand-phosphor",
+		"radix": "magic-wand-radix",
+		"tabler": "magic-wand-tabler"
 	},
 	"magnifying-glass": {
 		"hero": "magnifying-glass-hero",
+		"phosphor": "magnifying-glass-phosphor",
 		"radix": "magnifying-glass-radix"
 	},
 	"mail": {
@@ -255,7 +360,7 @@
 		"question": "mail"
 	},
 	"medal": {
-		"phosphor": "medal"
+		"phosphor": "medal-phosphor"
 	},
 	"megaphone": {
 		"hero": "megaphone-hero",
@@ -264,18 +369,30 @@
 	"memory": {
 		"material": "memory-material"
 	},
+	"metronome": {
+		"phosphor": "metronome-phosphor"
+	},
 	"mic": {
 		"fluent": "mic-fluent"
 	},
+	"microscope": {
+		"tabler": "microscope-tabler"
+	},
+	"mongodb": {
+		"devicon": "mongodb-devicon"
+	},
 	"moon": {
-		"phosphor": "moon",
+		"phosphor": "moon-phosphor",
 		"solar": "moon-solar"
 	},
 	"music": {
-		"tabler": "music"
+		"tabler": "music-tabler"
+	},
+	"mysql": {
+		"devicon": "mysql-devicon"
 	},
 	"openai": {
-		"tabler": "openai"
+		"tabler": "openai-tabler"
 	},
 	"package": {
 		"octicon": "package-octicon"
@@ -291,55 +408,83 @@
 		"fluent": "person-fluent"
 	},
 	"piano": {
-		"tabler": "piano"
+		"tabler": "piano-tabler"
 	},
 	"pickaxe": {
 		"mdi": "pickaxe-mdi"
+	},
+	"pill": {
+		"phosphor": "pill-phosphor",
+		"tabler": "pill-tabler"
 	},
 	"pin": {
 		"iconoir": "pin-iconoir"
 	},
 	"pizza": {
-		"phosphor": "pizza",
-		"tabler": "pizza"
+		"phosphor": "pizza-phosphor",
+		"tabler": "pizza-tabler"
 	},
 	"planet": {
+		"phosphor": "planet-phosphor",
 		"solar": "planet-solar"
 	},
+	"postgresql": {
+		"devicon": "postgresql-devicon"
+	},
+	"python": {
+		"devicon": "python-devicon"
+	},
 	"rabbit": {
-		"phosphor": "rabbit"
+		"phosphor": "rabbit-phosphor"
+	},
+	"rat": {
+		"game": "rat-game"
+	},
+	"react": {
+		"devicon": "react-devicon"
 	},
 	"recycle": {
-		"phosphor": "recycle",
-		"tabler": "recycle"
+		"phosphor": "recycle-phosphor",
+		"tabler": "recycle-tabler"
+	},
+	"redis": {
+		"devicon": "redis-devicon"
 	},
 	"robot": {
-		"phosphor": "robot"
+		"phosphor": "robot-phosphor",
+		"tabler": "robot-tabler"
 	},
 	"rocket": {
 		"carbon": "rocket-carbon",
 		"fluent": "rocket-fluent",
 		"mingcute": "rocket-mingcute",
 		"octicon": "rocket-octicon",
-		"phosphor": "rocket",
+		"phosphor": "rocket-phosphor",
 		"radix": "rocket-radix",
 		"solar": "rocket-solar"
 	},
 	"rocket-launch": {
-		"hero": "rocket-launch-hero"
+		"hero": "rocket-launch-hero",
+		"phosphor": "rocket-launch-phosphor"
 	},
 	"router": {
 		"carbon": "router-carbon",
-		"tabler": "router"
+		"tabler": "router-tabler"
+	},
+	"rss": {
+		"tabler": "rss-tabler"
+	},
+	"rust": {
+		"devicon": "rust-devicon"
 	},
 	"sailboat": {
-		"phosphor": "sailboat"
+		"phosphor": "sailboat-phosphor"
 	},
 	"salad": {
-		"tabler": "salad"
+		"tabler": "salad-tabler"
 	},
 	"satellite": {
-		"tabler": "satellite"
+		"tabler": "satellite-tabler"
 	},
 	"school": {
 		"material": "school-material"
@@ -354,7 +499,8 @@
 	},
 	"shield-check": {
 		"hero": "shield-check-hero",
-		"octicon": "shield-check-octicon"
+		"octicon": "shield-check-octicon",
+		"tabler": "shield-check-tabler"
 	},
 	"shopping-bag": {
 		"fluent": "shopping-bag-fluent",
@@ -363,71 +509,120 @@
 	"shopping-cart": {
 		"hero": "shopping-cart-hero",
 		"material": "shopping-cart-material",
-		"mingcute": "shopping-cart-mingcute"
+		"mingcute": "shopping-cart-mingcute",
+		"phosphor": "shopping-cart-phosphor"
+	},
+	"shrimp": {
+		"phosphor": "shrimp-phosphor"
 	},
 	"snowflake": {
-		"phosphor": "snowflake"
+		"phosphor": "snowflake-phosphor"
 	},
 	"sparkle": {
 		"fluent": "sparkle-fluent",
-		"phosphor": "sparkle"
+		"phosphor": "sparkle-phosphor"
 	},
 	"sparkles": {
 		"akar": "sparkles-akar",
 		"hero": "sparkles-hero",
-		"mingcute": "sparkles-mingcute"
+		"mingcute": "sparkles-mingcute",
+		"tabler": "sparkles-tabler"
+	},
+	"spring": {
+		"devicon": "spring-devicon"
+	},
+	"sqlite": {
+		"devicon": "sqlite-devicon"
+	},
+	"stethoscope": {
+		"phosphor": "stethoscope-phosphor",
+		"tabler": "stethoscope-tabler"
 	},
 	"sun": {
-		"phosphor": "sun",
+		"phosphor": "sun-phosphor",
 		"solar": "sun-solar"
 	},
+	"svelte": {
+		"devicon": "svelte-devicon"
+	},
+	"swift": {
+		"devicon": "swift-devicon"
+	},
+	"syringe": {
+		"phosphor": "syringe-phosphor"
+	},
 	"tent": {
-		"phosphor": "tent",
-		"tabler": "tent"
+		"phosphor": "tent-phosphor",
+		"tabler": "tent-tabler"
+	},
+	"terraform": {
+		"devicon": "terraform-devicon"
 	},
 	"thermometer": {
-		"phosphor": "thermometer"
+		"phosphor": "thermometer-phosphor"
+	},
+	"tram": {
+		"phosphor": "tram-phosphor"
 	},
 	"trash": {
 		"iconoir": "trash-iconoir"
 	},
 	"tree": {
-		"phosphor": "tree",
-		"tabler": "tree"
+		"phosphor": "tree-phosphor",
+		"tabler": "tree-tabler"
 	},
 	"trophy": {
 		"akar": "trophy-akar",
 		"fluent": "trophy-fluent",
 		"hero": "trophy-hero",
-		"phosphor": "trophy"
+		"phosphor": "trophy-phosphor"
+	},
+	"truck": {
+		"phosphor": "truck-phosphor"
+	},
+	"typescript": {
+		"devicon": "typescript-devicon"
 	},
 	"ufo": {
-		"mdi": "ufo-mdi"
+		"mdi": "ufo-mdi",
+		"tabler": "ufo-tabler"
+	},
+	"unicorn": {
+		"game": "unicorn-game"
+	},
+	"unity": {
+		"devicon": "unity-devicon"
+	},
+	"unreal-engine": {
+		"devicon": "unreal-engine-devicon"
 	},
 	"user-circle": {
-		"hero": "user-circle-hero"
+		"hero": "user-circle-hero",
+		"phosphor": "user-circle-phosphor"
 	},
 	"vercel": {
-		"tabler": "vercel"
+		"tabler": "vercel-tabler"
 	},
 	"video": {
-		"fluent": "video-fluent"
+		"fluent": "video-fluent",
+		"tabler": "video-tabler"
 	},
 	"volleyball": {
-		"tabler": "volleyball"
+		"tabler": "volleyball-tabler"
 	},
 	"wallet": {
 		"fluent": "wallet-fluent",
 		"mingcute": "wallet-mingcute",
-		"phosphor": "wallet",
-		"solar": "wallet-solar"
+		"phosphor": "wallet-phosphor",
+		"solar": "wallet-solar",
+		"tabler": "wallet-tabler"
 	},
 	"wand": {
-		"tabler": "wand"
+		"tabler": "wand-tabler"
 	},
 	"wind": {
 		"arrow": "wind",
-		"phosphor": "wind"
+		"phosphor": "wind-phosphor"
 	},
 	"workflow": {
 		"octicon": "workflow-octicon"
@@ -435,6 +630,6 @@
 	"wrench": {
 		"fluent": "wrench-fluent",
 		"iconoir": "wrench-iconoir",
-		"phosphor": "wrench"
+		"phosphor": "wrench-phosphor"
 	}
 }

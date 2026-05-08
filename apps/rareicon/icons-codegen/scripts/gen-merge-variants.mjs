@@ -60,6 +60,7 @@ const PACK_SUFFIXES = [
 	'lab',
 	'solar',
 	'mingcute',
+	'devicon',
 ];
 const PACK_RE = new RegExp(`^(.+)-(${PACK_SUFFIXES.join('|')})\\.mdx$`);
 
@@ -113,6 +114,7 @@ function isGenerated(frontmatter) {
 			t === 'lucide-lab-generated' ||
 			t === 'solar-generated' ||
 			t === 'mingcute-generated' ||
+			t === 'devicon-generated' ||
 			t === 'merged-multi-source');
 	return tags.some(sentinel);
 }

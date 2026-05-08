@@ -1,0 +1,51 @@
+---
+ref: celebration-fire
+name: Celebration Fire
+title: Celebration Fire Icon
+description: Celebration Fire glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["celebration-fire","celebration","fire","celebration fire"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/celebration-fire"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M290.72 13.396c-79.94 38.87 9.013 152.854-74.402 191.567c21.946-43.348 30.93-118.453-39.69-169.342v.003c57.41 92.152-39.578 101.073 10.68 235.037c.884 2.098 1.724 4.216 2.467 6.383q-1.29-3.239-2.468-6.383c-17.056-40.42-58.356-69.442-47.875-146.558c-92.397 139.136 61.726 179.234 39.968 296.226c-20.22-52.322-96.068-38.077-65.88-94.582c-81.617 64.483 68 99.77-25.282 168.19h349.006c-44.892-35.722-38.733-108.488-9.29-92.71c-14.63-42.75-54.515-10.383-56.477 22.604c-15.55-101.866 86.23-108.78 74.388-226.197c-19.395 67.794-73.366 65.522-92.71 55.322c68.964-32.598 91.818-125.04 17.15-161.248c23.033 28.635 15.785 123.762-33.243 84.998c-18.193-14.385-70.182-60.235-46.34-163.31zm-165.656 4.778c-6.35.16-12.967 2.232-19.62 6.578c38.005 7.337 57.7 61.682 52.892 122.08c34.38-59.225 5.54-129.638-33.272-128.658m218.29 44.633c8.507 47.444-17.105 75.028-38.82 30.52c22.306 83.01 95.766 93.25 38.82-30.52m103.84 93.88c35.616 36.454 25.294 104.74-14.133 160.057c81.137-36.52 81.26-153.81 14.133-160.057m-379.22 78.917c19.553 54.61-90.043 56.077 5.62 157.767c-38.953-68.595 67.41-69.424-5.62-157.766z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Celebration Fire — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>
