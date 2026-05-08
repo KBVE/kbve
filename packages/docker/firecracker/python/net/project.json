@@ -41,8 +41,8 @@
 					"tags": ["ghcr.io/kbve/firecracker-python-net:latest"],
 					"load": true,
 					"push": false,
-					"provenance": false,
-					"sbom": false
+					"provenance": "false",
+					"sbom": "false"
 				}
 			}
 		},
