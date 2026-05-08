@@ -25,6 +25,7 @@ use crate::transport::https::{
     CreateCommentBody, CreateThreadBody, EditCommentBody, HealthResponse, SetUsernameRequest,
     StatusResponse,
 };
+use crate::transport::proxy::{ClickHouseLogsRequest, ClickHouseLogsResponse};
 
 /// Adds the `bearerAuth` security scheme so `#[utoipa::path(security(...))]`
 /// references resolve. JWT goes in the `Authorization: Bearer ...` header.
@@ -66,7 +67,8 @@ impl Modify for SecurityAddon {
         (name = "forum", description = "Public forum threads, comments, spaces, and tags."),
         (name = "osrs", description = "Old School RuneScape item lookups."),
         (name = "mc", description = "Minecraft RCON-backed live data: player list, head textures."),
-        (name = "telemetry", description = "Client-side error reporting from WASM/JS.")
+        (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
+        (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW.")
     ),
     paths(
         // system
@@ -95,6 +97,8 @@ impl Modify for SecurityAddon {
         crate::transport::https::api_edit_comment,
         crate::transport::https::api_remove_comment,
         crate::transport::https::api_staff_edit_comment,
+        // dashboard
+        crate::transport::proxy::clickhouse_logs_proxy_handler,
     ),
     components(
         schemas(
@@ -118,6 +122,8 @@ impl Modify for SecurityAddon {
             CreateThreadBody,
             CreateCommentBody,
             EditCommentBody,
+            ClickHouseLogsRequest,
+            ClickHouseLogsResponse,
         )
     ),
     modifiers(&SecurityAddon)
