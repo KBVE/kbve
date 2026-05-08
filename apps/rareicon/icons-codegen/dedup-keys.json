@@ -16,12 +16,14 @@
 		"radix": "archive-radix"
 	},
 	"astro": {
-		"devicon": "astro-devicon"
+		"devicon": "astro-devicon",
+		"logos": "astro-logos"
 	},
 	"atom": {
 		"phosphor": "atom-phosphor"
 	},
 	"aws": {
+		"logos": "aws-logos",
 		"tabler": "aws-tabler"
 	},
 	"axe": {
@@ -51,7 +53,8 @@
 		"phosphor": "bird-phosphor"
 	},
 	"blender": {
-		"devicon": "blender-devicon"
+		"devicon": "blender-devicon",
+		"logos": "blender-logos"
 	},
 	"bookmark": {
 		"radix": "bookmark-radix"
@@ -68,7 +71,8 @@
 		"tabler": "brain-tabler"
 	},
 	"bun": {
-		"devicon": "bun-devicon"
+		"devicon": "bun-devicon",
+		"logos": "bun-logos"
 	},
 	"bus": {
 		"phosphor": "bus-phosphor"
@@ -116,6 +120,7 @@
 		"sun": "cloud"
 	},
 	"cloudflare": {
+		"logos": "cloudflare-logos",
 		"tabler": "cloudflare-tabler"
 	},
 	"code": {
@@ -160,7 +165,8 @@
 		"solar": "cup-solar"
 	},
 	"dart": {
-		"devicon": "dart-devicon"
+		"devicon": "dart-devicon",
+		"logos": "dart-logos"
 	},
 	"database": {
 		"fluent": "database-fluent",
@@ -168,11 +174,15 @@
 		"phosphor": "database-phosphor",
 		"solar": "database-solar"
 	},
+	"deno": {
+		"logos": "deno-logos"
+	},
 	"dna": {
 		"tabler": "dna-tabler"
 	},
 	"docker": {
 		"devicon": "docker-devicon",
+		"logos": "docker-logos",
 		"tabler": "docker-tabler"
 	},
 	"dog": {
@@ -193,6 +203,9 @@
 	},
 	"fastapi": {
 		"devicon": "fastapi-devicon"
+	},
+	"figma": {
+		"logos": "figma-logos"
 	},
 	"fingerprint": {
 		"tabler": "fingerprint-tabler"
@@ -257,6 +270,9 @@
 	"git-commit": {
 		"phosphor": "git-commit-phosphor"
 	},
+	"github": {
+		"logos": "github-logos"
+	},
 	"globe": {
 		"iconoir": "globe-iconoir",
 		"radix": "globe-radix"
@@ -265,7 +281,11 @@
 		"devicon": "go-devicon"
 	},
 	"godot": {
-		"devicon": "godot-devicon"
+		"devicon": "godot-devicon",
+		"logos": "godot-logos"
+	},
+	"google-cloud": {
+		"logos": "google-cloud-logos"
 	},
 	"group": {
 		"iconoir": "group-iconoir"
@@ -278,6 +298,9 @@
 	},
 	"hammer": {
 		"phosphor": "hammer-phosphor"
+	},
+	"haskell": {
+		"logos": "haskell-logos"
 	},
 	"headphones": {
 		"phosphor": "headphones-phosphor"
@@ -302,6 +325,9 @@
 	"info": {
 		"phosphor": "info-phosphor"
 	},
+	"javascript": {
+		"logos": "javascript-logos"
+	},
 	"jenkins": {
 		"devicon": "jenkins-devicon"
 	},
@@ -317,11 +343,13 @@
 		"radix": "keyboard-radix"
 	},
 	"kotlin": {
-		"devicon": "kotlin-devicon"
+		"devicon": "kotlin-devicon",
+		"logos": "kotlin-logos"
 	},
 	"kubernetes": {
 		"carbon": "kubernetes-carbon",
-		"devicon": "kubernetes-devicon"
+		"devicon": "kubernetes-devicon",
+		"logos": "kubernetes-logos"
 	},
 	"leaf": {
 		"phosphor": "leaf-phosphor",
@@ -343,6 +371,9 @@
 	"lock-open": {
 		"hero": "lock-open-hero",
 		"phosphor": "lock-open-phosphor"
+	},
+	"lua": {
+		"logos": "lua-logos"
 	},
 	"magic-wand": {
 		"phosphor": "magic-wand-phosphor",
@@ -379,7 +410,8 @@
 		"tabler": "microscope-tabler"
 	},
 	"mongodb": {
-		"devicon": "mongodb-devicon"
+		"devicon": "mongodb-devicon",
+		"logos": "mongodb-logos"
 	},
 	"moon": {
 		"phosphor": "moon-phosphor",
@@ -391,7 +423,17 @@
 	"mysql": {
 		"devicon": "mysql-devicon"
 	},
+	"netlify": {
+		"logos": "netlify-logos"
+	},
+	"next-js": {
+		"logos": "next-js-logos"
+	},
+	"node-js": {
+		"logos": "node-js-logos"
+	},
 	"openai": {
+		"logos": "openai-logos",
 		"tabler": "openai-tabler"
 	},
 	"package": {
@@ -429,10 +471,15 @@
 		"solar": "planet-solar"
 	},
 	"postgresql": {
-		"devicon": "postgresql-devicon"
+		"devicon": "postgresql-devicon",
+		"logos": "postgresql-logos"
 	},
 	"python": {
-		"devicon": "python-devicon"
+		"devicon": "python-devicon",
+		"logos": "python-logos"
+	},
+	"pytorch": {
+		"logos": "pytorch-logos"
 	},
 	"rabbit": {
 		"phosphor": "rabbit-phosphor"
@@ -441,14 +488,16 @@
 		"game": "rat-game"
 	},
 	"react": {
-		"devicon": "react-devicon"
+		"devicon": "react-devicon",
+		"logos": "react-logos"
 	},
 	"recycle": {
 		"phosphor": "recycle-phosphor",
 		"tabler": "recycle-tabler"
 	},
 	"redis": {
-		"devicon": "redis-devicon"
+		"devicon": "redis-devicon",
+		"logos": "redis-logos"
 	},
 	"robot": {
 		"phosphor": "robot-phosphor",
@@ -475,7 +524,8 @@
 		"tabler": "rss-tabler"
 	},
 	"rust": {
-		"devicon": "rust-devicon"
+		"devicon": "rust-devicon",
+		"logos": "rust-logos"
 	},
 	"sailboat": {
 		"phosphor": "sailboat-phosphor"
@@ -532,7 +582,8 @@
 		"devicon": "spring-devicon"
 	},
 	"sqlite": {
-		"devicon": "sqlite-devicon"
+		"devicon": "sqlite-devicon",
+		"logos": "sqlite-logos"
 	},
 	"stethoscope": {
 		"phosphor": "stethoscope-phosphor",
@@ -543,20 +594,29 @@
 		"solar": "sun-solar"
 	},
 	"svelte": {
-		"devicon": "svelte-devicon"
+		"devicon": "svelte-devicon",
+		"logos": "svelte-logos"
 	},
 	"swift": {
-		"devicon": "swift-devicon"
+		"devicon": "swift-devicon",
+		"logos": "swift-logos"
 	},
 	"syringe": {
 		"phosphor": "syringe-phosphor"
+	},
+	"tailwindcss": {
+		"logos": "tailwindcss-logos"
+	},
+	"tensorflow": {
+		"logos": "tensorflow-logos"
 	},
 	"tent": {
 		"phosphor": "tent-phosphor",
 		"tabler": "tent-tabler"
 	},
 	"terraform": {
-		"devicon": "terraform-devicon"
+		"devicon": "terraform-devicon",
+		"logos": "terraform-logos"
 	},
 	"thermometer": {
 		"phosphor": "thermometer-phosphor"
@@ -581,7 +641,8 @@
 		"phosphor": "truck-phosphor"
 	},
 	"typescript": {
-		"devicon": "typescript-devicon"
+		"devicon": "typescript-devicon",
+		"logos": "typescript-logos"
 	},
 	"ufo": {
 		"mdi": "ufo-mdi",
@@ -591,7 +652,8 @@
 		"game": "unicorn-game"
 	},
 	"unity": {
-		"devicon": "unity-devicon"
+		"devicon": "unity-devicon",
+		"logos": "unity-logos"
 	},
 	"unreal-engine": {
 		"devicon": "unreal-engine-devicon"
@@ -601,6 +663,7 @@
 		"phosphor": "user-circle-phosphor"
 	},
 	"vercel": {
+		"logos": "vercel-logos",
 		"tabler": "vercel-tabler"
 	},
 	"video": {
@@ -609,6 +672,9 @@
 	},
 	"volleyball": {
 		"tabler": "volleyball-tabler"
+	},
+	"vue": {
+		"logos": "vue-logos"
 	},
 	"wallet": {
 		"fluent": "wallet-fluent",
