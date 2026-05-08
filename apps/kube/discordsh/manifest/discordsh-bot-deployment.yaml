@@ -80,6 +80,11 @@ spec:
                             secretKeyRef:
                                 name: discordsh-supabase-shared
                                 key: service-role-key
+                      # Local KV cache (redb) — DungeonProfile L2 cache
+                      # backed by a Longhorn PVC. Survives pod restarts so
+                      # profiles stay warm during Supabase outages.
+                      - name: DB_PATH
+                        value: '/data/discordsh.redb'
                   resources:
                       requests:
                           memory: '256Mi'
@@ -99,6 +104,8 @@ spec:
                   volumeMounts:
                       - name: tmp
                         mountPath: /tmp
+                      - name: data
+                        mountPath: /data
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -117,3 +124,13 @@ spec:
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
+    volumeClaimTemplates:
+        - metadata:
+              name: data
+          spec:
+              accessModes:
+                  - ReadWriteOnce
+              storageClassName: longhorn
+              resources:
+                  requests:
+                      storage: 1Gi

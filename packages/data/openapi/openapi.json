@@ -11,7 +11,7 @@
 		"license": {
 			"name": "MIT"
 		},
-		"version": "1.0.135"
+		"version": "1.0.136"
 	},
 	"servers": [
 		{
@@ -678,6 +678,54 @@
 				}
 			}
 		},
+		"/dashboard/clickhouse/proxy": {
+			"post": {
+				"tags": ["dashboard"],
+				"operationId": "clickhouse_logs_proxy_handler",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ClickHouseLogsRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Rows from observability.logs_distributed (query) or aggregated counts (stats)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ClickHouseLogsResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Malformed JSON body or unknown `command`"
+					},
+					"401": {
+						"description": "Missing or invalid Bearer token"
+					},
+					"403": {
+						"description": "Token lacks DASHBOARD_VIEW staff permission"
+					},
+					"502": {
+						"description": "ClickHouse cluster returned an error or was unreachable"
+					},
+					"503": {
+						"description": "ClickHouse direct route not configured (CLICKHOUSE_* env vars unset)"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
 		"/health": {
 			"get": {
 				"tags": ["system"],
@@ -699,6 +747,65 @@
 	},
 	"components": {
 		"schemas": {
+			"ClickHouseLogsRequest": {
+				"type": "object",
+				"description": "Body schema for `POST /dashboard/clickhouse/proxy`. Mirrors the legacy\nsupabase edge function at `/functions/v1/logs` so the dashboard JS in\n`clickhouseService.ts` doesn't have to change. Bounds are enforced inside\njedi (`pipe_clickhouse::logs`):\n- `minutes` clamped to `1..=10080`\n- `limit` clamped to `1..=500`\n- `search` truncated to 100 chars",
+				"required": ["command"],
+				"properties": {
+					"command": {
+						"type": "string",
+						"description": "Either `\"query\"` (filtered SELECT) or `\"stats\"` (GROUP BY)."
+					},
+					"level": {
+						"type": ["string", "null"],
+						"description": "Filter by log level (`\"error\"`, `\"warn\"`, `\"info\"`, ...). Lowercased\nbefore matching."
+					},
+					"limit": {
+						"type": ["integer", "null"],
+						"format": "int32",
+						"description": "Max rows returned. Defaults to 100, clamped 1..=500. Stats responses\nalways return up to 200 rows regardless of this value.",
+						"minimum": 0
+					},
+					"minutes": {
+						"type": ["integer", "null"],
+						"format": "int32",
+						"description": "Lookback window in minutes. Defaults to 60, clamped 1..=10080.",
+						"minimum": 0
+					},
+					"pod_name": {
+						"type": ["string", "null"],
+						"description": "Filter by exact pod name."
+					},
+					"pod_namespace": {
+						"type": ["string", "null"],
+						"description": "Filter by Kubernetes namespace (e.g. `\"kbve\"`, `\"kilobase\"`)."
+					},
+					"search": {
+						"type": ["string", "null"],
+						"description": "`ILIKE %search%` against the message body."
+					},
+					"service": {
+						"type": ["string", "null"],
+						"description": "Filter by `service` label as emitted by Vector (e.g. `\"axum-kbve\"`)."
+					}
+				}
+			},
+			"ClickHouseLogsResponse": {
+				"type": "object",
+				"description": "Response shape for the ClickHouse logs route. `rows` is the raw\n`JSONEachRow` output from ClickHouse — one object per record with keys\nmatching `observability.logs_distributed` columns for `\"query\"`, or\n`{ pod_namespace, service, level, cnt }` for `\"stats\"`.",
+				"required": ["rows", "count"],
+				"properties": {
+					"count": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"rows": {
+						"type": "array",
+						"items": {},
+						"description": "One JSON object per row. Shape depends on `command`:\n- `\"query\"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`\n- `\"stats\"` → `{ pod_namespace, service, level, cnt }`"
+					}
+				}
+			},
 			"ClientEvent": {
 				"type": "object",
 				"required": ["level", "message"],
@@ -1672,6 +1779,10 @@
 		{
 			"name": "telemetry",
 			"description": "Client-side error reporting from WASM/JS."
+		},
+		{
+			"name": "dashboard",
+			"description": "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."
 		}
 	]
 }

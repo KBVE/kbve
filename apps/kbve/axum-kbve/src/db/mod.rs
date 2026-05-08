@@ -10,16 +10,19 @@ mod rentearth;
 mod supabase;
 mod twitch;
 
-/// Validate that a URL uses HTTPS before transmitting sensitive data.
-/// Returns `Err` if the URL does not start with `https://`.
-pub(crate) fn ensure_https(url: &str) -> Result<&str, String> {
-    if url.starts_with("https://") {
-        Ok(url)
-    } else {
-        Err(format!(
+/// Parse a URL and require an `https` scheme before transmitting sensitive
+/// data. Returns a typed `reqwest::Url` so callers pass it straight to
+/// `Client::get` — this also makes the scheme check visible to CodeQL's
+/// `rust/cleartext-transmission` query (a string `starts_with` check on a
+/// `&str` is not recognized as a sanitizer).
+pub(crate) fn ensure_https(url: &str) -> Result<reqwest::Url, String> {
+    let parsed = reqwest::Url::parse(url).map_err(|e| format!("invalid URL: {e}"))?;
+    if parsed.scheme() != "https" {
+        return Err(format!(
             "refusing to transmit sensitive data over non-HTTPS URL: {url}"
-        ))
+        ));
     }
+    Ok(parsed)
 }
 
 pub use cache::{get_profile_cache, init_profile_cache};

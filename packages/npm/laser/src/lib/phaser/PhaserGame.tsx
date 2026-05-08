@@ -43,6 +43,13 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(
 		useEffect(() => {
 			if (!containerRef.current) return;
 
+			// StrictMode-safe: skip if a game instance already lives on this
+			// component. React's dev-mode double-effect would otherwise
+			// create a Phaser.Game, immediately tear it down, and recreate —
+			// which leaves Phaser's canvas + WebGL context in a half-init
+			// state (manifests as the green-canvas-no-sprites failure).
+			if (gameRef.current) return;
+
 			setStatus('booting');
 
 			const game = new Phaser.Game({
@@ -56,6 +63,14 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(
 				scale: config.scale,
 				backgroundColor: config.backgroundColor,
 				transparent: config.transparent,
+				input: config.input,
+				render: config.pixelArt
+					? { pixelArt: true, antialias: false, ...config.render }
+					: config.render,
+				dom: config.dom,
+				audio: config.audio,
+				callbacks: config.callbacks,
+				fps: config.fps,
 			});
 
 			gameRef.current = game;
@@ -67,10 +82,12 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(
 			});
 
 			return () => {
+				const current = gameRef.current;
+				if (!current) return;
 				setStatus('destroyed');
 				laserEvents.emit('game:destroy', undefined as never);
 				onDestroy?.();
-				game.destroy(true);
+				current.destroy(true);
 				gameRef.current = null;
 			};
 		}, [config, onReady, onDestroy]);
