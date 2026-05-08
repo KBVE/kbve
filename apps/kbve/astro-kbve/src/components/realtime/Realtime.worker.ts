@@ -286,7 +286,7 @@ function renderToCanvas(event: RealtimeEvent) {
 		const radius = 5;
 
 		// Color based on event type
-		let color = '#ffffff';
+		let color: string;
 		switch (event.type) {
 			case 'INSERT' as RealtimeEventType:
 				color = '#4CAF50'; // Green

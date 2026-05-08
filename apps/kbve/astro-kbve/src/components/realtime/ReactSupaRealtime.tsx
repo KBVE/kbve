@@ -4,9 +4,9 @@
  * Uses the Supa SharedWorker for actual connections, Web Worker for data processing
  */
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { FC } from 'react';
-import { useSupa, useSession } from '@/components/providers/SupaProvider';
+import { useSession } from '@/components/providers/SupaProvider';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supa';
 import { WorkerMessageType } from './typeRealtime';
 import type {
@@ -16,7 +16,6 @@ import type {
 	ChannelSubscription,
 	WorkerInboundMessage,
 	WorkerOutboundMessage,
-	RealtimeConnectionState,
 	SubscriptionCallback,
 } from './typeRealtime';
 
@@ -35,8 +34,7 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 	reconnectDelay = 5000,
 }) => {
 	// Supa context
-	const supa = useSupa();
-	const { session, ready: sessionReady } = useSession();
+	const { session } = useSession();
 
 	// Worker ref
 	const workerRef = useRef<Worker | null>(null);
@@ -55,19 +53,6 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 
 	// Subscription callbacks
 	const callbacksRef = useRef<Map<string, SubscriptionCallback>>(new Map());
-
-	/**
-	 * Connection state
-	 */
-	const connectionState: RealtimeConnectionState = useMemo(
-		() => ({
-			status,
-			error: error || undefined,
-			subscriptionCount: subscriptions.size,
-			lastConnected: lastConnected || undefined,
-		}),
-		[status, error, subscriptions.size, lastConnected],
-	);
 
 	/**
 	 * Handle worker messages
@@ -266,35 +251,6 @@ export const ReactSupaRealtime: FC<RealtimeContainerProps> = ({
 			setSubscriptions((prev) => new Map(prev).set(id, fullSubscription));
 
 			return id;
-		},
-		[],
-	);
-
-	/**
-	 * Unsubscribe from a channel
-	 */
-	const unsubscribe = useCallback(
-		async (subscriptionId: string): Promise<void> => {
-			if (!workerRef.current) {
-				throw new Error('Worker not initialized');
-			}
-
-			// Send unsubscribe message to worker
-			const message: WorkerInboundMessage = {
-				type: WorkerMessageType.UNSUBSCRIBE,
-				payload: { id: subscriptionId },
-			};
-			workerRef.current.postMessage(message);
-
-			// Remove callback
-			callbacksRef.current.delete(subscriptionId);
-
-			// Update local state
-			setSubscriptions((prev) => {
-				const next = new Map(prev);
-				next.delete(subscriptionId);
-				return next;
-			});
 		},
 		[],
 	);
