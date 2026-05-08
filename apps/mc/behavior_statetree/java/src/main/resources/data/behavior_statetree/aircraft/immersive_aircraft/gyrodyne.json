@@ -21,7 +21,8 @@
 		"cameraZoom": 2.0,
 		"canExplodeOnCrash": true,
 		"trailParticle": "minecraft:smoke",
-		"engineSound": "minecraft:entity.minecart.inside.underwater"
+		"engineSound": "minecraft:entity.minecart.inside.underwater",
+		"propellerCount": 1
 	},
 	"passengerPositions": [[{ "x": 0.0, "y": 0.2, "z": 0.0 }]],
 	"weaponMounts": [

@@ -21,7 +21,8 @@
 		"cameraZoom": 6.0,
 		"canExplodeOnCrash": false,
 		"trailParticle": "minecraft:campfire_cosy_smoke",
-		"engineSound": "minecraft:entity.minecart.riding"
+		"engineSound": "minecraft:entity.minecart.riding",
+		"propellerCount": 2
 	},
 	"passengerPositions": [[{ "x": 0.0, "y": 0.6, "z": 0.0 }]],
 	"weaponMounts": [

@@ -31,6 +31,10 @@ package com.kbve.statetree.ship;
  *                         in {@code ShipEntity.spawnTrailParticles}.
  * @param engineSound      Vanilla SoundEvent ID for the engine loop.
  *                         Empty falls back to {@code minecraft:entity.minecart.riding}.
+ * @param propellerCount   Approximate number of engines/propellers on the
+ *                         aircraft. Scales engine loop volume + cadence
+ *                         so a 4-engine bomber sounds beefier than a
+ *                         single-prop trainer. Defaults to 1.
  */
 public record FlightStats(
         float yawSpeed,
@@ -54,7 +58,8 @@ public record FlightStats(
         float cameraZoom,
         boolean canExplodeOnCrash,
         String trailParticle,
-        String engineSound
+        String engineSound,
+        int propellerCount
 ) {
     /** Default fallback when no JSON is found — tuned for an airship. */
     public static final FlightStats DEFAULT = new FlightStats(
@@ -63,6 +68,6 @@ public record FlightStats(
             5.0f, 0.1f, 0.05f, 3.0f,
             0.5f, 0.0f, 50.0f, 20.0f,
             5.0f, 2.0f, 6.0f, false,
-            "", ""
+            "", "", 1
     );
 }

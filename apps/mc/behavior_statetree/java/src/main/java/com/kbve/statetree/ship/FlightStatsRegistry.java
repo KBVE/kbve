@@ -165,7 +165,8 @@ public final class FlightStatsRegistry {
                 f(p, "cameraZoom", d.cameraZoom()),
                 p.has("canExplodeOnCrash") && p.get("canExplodeOnCrash").getAsBoolean(),
                 s(p, "trailParticle", d.trailParticle()),
-                s(p, "engineSound", d.engineSound())
+                s(p, "engineSound", d.engineSound()),
+                i(p, "propellerCount", d.propellerCount())
         );
     }
 
@@ -175,5 +176,9 @@ public final class FlightStatsRegistry {
 
     private static String s(JsonObject p, String key, String def) {
         return p.has(key) ? p.get(key).getAsString() : def;
+    }
+
+    private static int i(JsonObject p, String key, int def) {
+        return p.has(key) ? p.get(key).getAsInt() : def;
     }
 }

@@ -831,14 +831,18 @@ public class ShipEntity extends Entity {
                         0.4f, 1.0f);
             }
             // Engine loop — periodic rumble while running, sound from stats.
+            // propellerCount > 1 makes a multi-engine plane sound beefier
+            // (faster cadence + slightly louder) without changing the sample.
             if (power > 0.05f && loopSound != null) {
-                int cadence = Math.max(2, (int) (12 - 8 * power));
+                int props = Math.max(1, stats.propellerCount());
+                int cadence = Math.max(1, (int) ((12 - 8 * power) / Math.sqrt(props)));
                 if (this.age % cadence == 0) {
                     float pitch = 0.5f + 0.7f * power;
+                    float volume = (0.35f + 0.3f * power) * Math.min(1.6f, 0.8f + props * 0.2f);
                     sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
                             loopSound,
                             net.minecraft.sound.SoundCategory.NEUTRAL,
-                            0.35f + 0.3f * power, pitch);
+                            volume, pitch);
                 }
             }
             lastEnginePowerForSound = power;
