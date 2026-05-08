@@ -10,6 +10,7 @@ import {
 	type ResourceSelector,
 } from './argoService';
 import { fetchIndexedLogs, type LogRow } from './clickhouseService';
+import ReactArgoGrafanaPanel from './ReactArgoGrafanaPanel';
 import { Loader2, X, AlertCircle } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -78,6 +79,7 @@ type TabId =
 	| 'diff'
 	| 'logs'
 	| 'indexed'
+	| 'grafana'
 	| 'conditions'
 	| 'containers';
 
@@ -1694,6 +1696,7 @@ export default function ReactArgoResourceDetail({
 		{ id: 'diff', label: 'Diff' },
 		...(isPod ? [{ id: 'logs' as TabId, label: 'Logs' }] : []),
 		{ id: 'indexed', label: 'Clickhouse Logs' },
+		{ id: 'grafana', label: 'Grafana' },
 	];
 
 	useEffect(() => {
@@ -1909,6 +1912,10 @@ export default function ReactArgoResourceDetail({
 
 			{tab === 'indexed' && (
 				<IndexedLogsTab token={token} sel={sel} isPod={isPod} />
+			)}
+
+			{tab === 'grafana' && (
+				<ReactArgoGrafanaPanel token={token} sel={sel} />
 			)}
 
 			{tab === 'containers' && (

@@ -889,3 +889,243 @@ class GrafanaService {
 }
 
 export const grafanaService = new GrafanaService();
+
+// ---------------------------------------------------------------------------
+// Pod-scoped metrics — used by ReactArgoGrafanaPanel inside the Argo
+// resource-detail drawer. Reuses the same Grafana proxy + datasource cache,
+// just with namespace+pod-scoped Prometheus expressions.
+// ---------------------------------------------------------------------------
+
+export interface PodMetricsSnapshot {
+	cpuCores: number | null;
+	memoryBytes: number | null;
+	memoryLimitBytes: number | null;
+	netRxBytesPerSec: number | null;
+	netTxBytesPerSec: number | null;
+	fsBytes: number | null;
+	restarts: number | null;
+	running: boolean | null;
+}
+
+export interface PodTimeSeriesPoint {
+	timestamp: number;
+	cpu: number | null;
+	memory: number | null;
+}
+
+export interface PodNetTimeSeriesPoint {
+	timestamp: number;
+	rx: number | null;
+	tx: number | null;
+}
+
+export interface PodMetrics {
+	snapshot: PodMetricsSnapshot;
+	cpuMemSeries: PodTimeSeriesPoint[];
+	netSeries: PodNetTimeSeriesPoint[];
+	fromCache: boolean;
+}
+
+interface CachedPodMetrics {
+	metrics: PodMetrics;
+	cached_at: number;
+	user_id: string;
+}
+
+const POD_CACHE_KEY_PREFIX = 'cache:grafana:pod';
+const POD_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function podCacheKey(
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+): string {
+	return `${POD_CACHE_KEY_PREFIX}:${uid}:${ns}:${pod}:${tr}`;
+}
+
+function getCachedPodMetrics(
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+): PodMetrics | null {
+	try {
+		const raw = localStorage.getItem(podCacheKey(uid, ns, pod, tr));
+		if (!raw) return null;
+		const cached: CachedPodMetrics = JSON.parse(raw);
+		if (cached.user_id !== uid) {
+			localStorage.removeItem(podCacheKey(uid, ns, pod, tr));
+			return null;
+		}
+		if (Date.now() - cached.cached_at > POD_CACHE_TTL_MS) return null;
+		return { ...cached.metrics, fromCache: true };
+	} catch {
+		return null;
+	}
+}
+
+function setCachedPodMetrics(
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+	metrics: PodMetrics,
+): void {
+	try {
+		const payload: CachedPodMetrics = {
+			metrics: { ...metrics, fromCache: false },
+			cached_at: Date.now(),
+			user_id: uid,
+		};
+		localStorage.setItem(
+			podCacheKey(uid, ns, pod, tr),
+			JSON.stringify(payload),
+		);
+	} catch {
+		/* quota exceeded */
+	}
+}
+
+function escapeLabel(v: string): string {
+	return v.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function podQueries(
+	ns: string,
+	pod: string,
+): {
+	cpu: string;
+	memory: string;
+	memoryLimit: string;
+	netRx: string;
+	netTx: string;
+	fs: string;
+	restarts: string;
+	running: string;
+} {
+	const sel = `namespace="${escapeLabel(ns)}",pod="${escapeLabel(pod)}"`;
+	const containerSel = `${sel},container!="POD",container!=""`;
+	return {
+		cpu: `sum(rate(container_cpu_usage_seconds_total{${containerSel}}[5m]))`,
+		memory: `sum(container_memory_working_set_bytes{${containerSel}})`,
+		memoryLimit: `sum(kube_pod_container_resource_limits{${sel},resource="memory"})`,
+		netRx: `sum(rate(container_network_receive_bytes_total{${sel}}[5m]))`,
+		netTx: `sum(rate(container_network_transmit_bytes_total{${sel}}[5m]))`,
+		fs: `sum(container_fs_usage_bytes{${containerSel}})`,
+		restarts: `sum(kube_pod_container_status_restarts_total{${sel}})`,
+		running: `kube_pod_status_phase{${sel},phase="Running"}`,
+	};
+}
+
+export async function fetchPodMetrics(
+	token: string,
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+	skipCache = false,
+): Promise<PodMetrics | null> {
+	if (!skipCache) {
+		const cached = getCachedPodMetrics(uid, ns, pod, tr);
+		if (cached) return cached;
+	}
+
+	const dsId = await findPrometheusDatasourceId(token);
+	if (dsId == null) return null;
+
+	const config = TIME_RANGES[tr];
+	const now = Math.floor(Date.now() / 1000);
+	const rangeStart = now - config.seconds;
+	const q = podQueries(ns, pod);
+
+	const [
+		cpuCores,
+		memoryBytes,
+		memoryLimitBytes,
+		netRx,
+		netTx,
+		fsBytes,
+		restarts,
+		runningRaw,
+	] = await Promise.all([
+		queryInstant(token, dsId, q.cpu),
+		queryInstant(token, dsId, q.memory),
+		queryInstant(token, dsId, q.memoryLimit),
+		queryInstant(token, dsId, q.netRx),
+		queryInstant(token, dsId, q.netTx),
+		queryInstant(token, dsId, q.fs),
+		queryInstant(token, dsId, q.restarts),
+		queryInstant(token, dsId, q.running),
+	]);
+
+	const [cpuRange, memRange, rxRange, txRange] = await Promise.all([
+		queryRange(token, dsId, q.cpu, rangeStart, now, config.step),
+		queryRange(token, dsId, q.memory, rangeStart, now, config.step),
+		queryRange(token, dsId, q.netRx, rangeStart, now, config.step),
+		queryRange(token, dsId, q.netTx, rangeStart, now, config.step),
+	]);
+
+	const cpuMemMap = new Map<number, PodTimeSeriesPoint>();
+	for (const [ts, val] of cpuRange) {
+		cpuMemMap.set(ts, {
+			timestamp: ts,
+			cpu: parseFloat(val),
+			memory: null,
+		});
+	}
+	for (const [ts, val] of memRange) {
+		const existing = cpuMemMap.get(ts);
+		if (existing) {
+			existing.memory = parseFloat(val);
+		} else {
+			cpuMemMap.set(ts, {
+				timestamp: ts,
+				cpu: null,
+				memory: parseFloat(val),
+			});
+		}
+	}
+	const cpuMemSeries = Array.from(cpuMemMap.values()).sort(
+		(a, b) => a.timestamp - b.timestamp,
+	);
+
+	const netMap = new Map<number, PodNetTimeSeriesPoint>();
+	for (const [ts, val] of rxRange) {
+		netMap.set(ts, { timestamp: ts, rx: parseFloat(val), tx: null });
+	}
+	for (const [ts, val] of txRange) {
+		const existing = netMap.get(ts);
+		if (existing) {
+			existing.tx = parseFloat(val);
+		} else {
+			netMap.set(ts, {
+				timestamp: ts,
+				rx: null,
+				tx: parseFloat(val),
+			});
+		}
+	}
+	const netSeries = Array.from(netMap.values()).sort(
+		(a, b) => a.timestamp - b.timestamp,
+	);
+
+	const metrics: PodMetrics = {
+		snapshot: {
+			cpuCores,
+			memoryBytes,
+			memoryLimitBytes,
+			netRxBytesPerSec: netRx,
+			netTxBytesPerSec: netTx,
+			fsBytes,
+			restarts: restarts != null ? Math.round(restarts) : null,
+			running: runningRaw != null ? runningRaw >= 1 : null,
+		},
+		cpuMemSeries,
+		netSeries,
+		fromCache: false,
+	};
+
+	setCachedPodMetrics(uid, ns, pod, tr, metrics);
+	return metrics;
+}
