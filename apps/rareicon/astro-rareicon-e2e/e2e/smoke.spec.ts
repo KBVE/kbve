@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { CONTENT_ROUTES, ICON_ROUTES, SPLASH_ROUTES } from './helpers/routes';
+import {
+	ATTRIBUTION_REQUIRED_ROUTES,
+	BRAND_ICON_ROUTES,
+	CONTENT_ROUTES,
+	ICON_ROUTES,
+	MULTI_SOURCE_ICON_ROUTES,
+	SPLASH_ROUTES,
+} from './helpers/routes';
 
 test.describe('astro-rareicon smoke tests', () => {
 	test('homepage loads with 200 and has RareIcon title', async ({ page }) => {
@@ -29,6 +36,27 @@ test.describe('astro-rareicon smoke tests', () => {
 	}
 
 	for (const route of ICON_ROUTES) {
+		test(`${route.label} loads with 200`, async ({ page }) => {
+			const response = await page.goto(route.path);
+			expect(response?.status()).toBe(200);
+		});
+	}
+
+	for (const route of BRAND_ICON_ROUTES) {
+		test(`${route.label} loads with 200`, async ({ page }) => {
+			const response = await page.goto(route.path);
+			expect(response?.status()).toBe(200);
+		});
+	}
+
+	for (const route of MULTI_SOURCE_ICON_ROUTES) {
+		test(`${route.label} loads with 200`, async ({ page }) => {
+			const response = await page.goto(route.path);
+			expect(response?.status()).toBe(200);
+		});
+	}
+
+	for (const route of ATTRIBUTION_REQUIRED_ROUTES) {
 		test(`${route.label} loads with 200`, async ({ page }) => {
 			const response = await page.goto(route.path);
 			expect(response?.status()).toBe(200);
