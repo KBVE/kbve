@@ -85,7 +85,17 @@ const memoryStorage = {
 
 console.log('[DB Worker] Initializing...');
 
+// Dedicated workers receive `event.origin === ''` from their owning page;
+// reject anything else to satisfy CodeQL js/missing-origin-check.
+function isAllowedOrigin(event: MessageEvent): boolean {
+	return event.origin === '' || event.origin === self.location.origin;
+}
+
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+	if (!isAllowedOrigin(e)) {
+		console.warn('[DB Worker] Rejected message from origin:', e.origin);
+		return;
+	}
 	const msg = e.data;
 	const { id, type, payload } = msg;
 
