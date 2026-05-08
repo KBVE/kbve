@@ -20,13 +20,20 @@ import {
 	YAxis,
 } from 'recharts';
 import {
+	fetchAlerts,
 	fetchPodMetrics,
 	formatBytes,
 	grafanaService,
 	TIME_RANGE_KEYS,
+	type Alert,
 	type PodMetrics,
 	type TimeRangeKey,
 } from './grafanaService';
+import {
+	alertMatchesNamespace,
+	alertMatchesPod,
+	AlertRow,
+} from './grafanaAlertHelpers';
 import type { ResourceSelector } from './argoService';
 
 const tickFormatter = (t: number) =>
@@ -172,6 +179,9 @@ export default function ReactArgoGrafanaPanel({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	const [scopedAlerts, setScopedAlerts] = useState<Alert[]>([]);
+	const [alertsError, setAlertsError] = useState<string | null>(null);
+
 	const isPod = sel.kind === 'Pod';
 	const ns = sel.namespace;
 	const name = sel.name;
@@ -208,6 +218,38 @@ export default function ReactArgoGrafanaPanel({
 		};
 	}, [token, userId, ns, name, tr, isPod]);
 
+	// Scoped alerts — reuses the global alerts cache populated on the main
+	// /dashboard/grafana page. Filters to alerts whose labels mention this
+	// pod (or namespace, for non-Pod kinds). 60s cache absorbs repeat
+	// drawer opens for the same resource.
+	useEffect(() => {
+		if (!userId || !ns || !name) return;
+		let cancelled = false;
+		(async () => {
+			setAlertsError(null);
+			try {
+				const snap = await fetchAlerts(token, userId);
+				if (cancelled || !snap) return;
+				const filtered = snap.alerts.filter((a) =>
+					isPod
+						? alertMatchesPod(a, ns, name)
+						: alertMatchesNamespace(a, ns),
+				);
+				setScopedAlerts(filtered);
+			} catch (e: unknown) {
+				if (!cancelled)
+					setAlertsError(
+						e instanceof Error
+							? e.message
+							: 'Failed to load alerts',
+					);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [token, userId, ns, name, isPod]);
+
 	const handleRefresh = async () => {
 		if (!userId || !isPod || loading) return;
 		setLoading(true);
@@ -242,33 +284,98 @@ export default function ReactArgoGrafanaPanel({
 		}
 	};
 
+	const alertsBlock = (
+		<>
+			{alertsError && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.4rem 0.65rem',
+						borderRadius: 6,
+						background: 'rgba(239,68,68,0.1)',
+						border: '1px solid rgba(239,68,68,0.3)',
+						color: '#fca5a5',
+						fontSize: '0.75rem',
+					}}>
+					<AlertCircle size={12} />
+					{alertsError}
+				</div>
+			)}
+			{scopedAlerts.length > 0 && (
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: '0.4rem',
+					}}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 6,
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							fontSize: '0.7rem',
+							fontWeight: 600,
+							textTransform: 'uppercase',
+							letterSpacing: '0.05em',
+						}}>
+						Alerts
+						<span
+							style={{
+								color: '#fca5a5',
+								fontWeight: 700,
+							}}>
+							({scopedAlerts.length})
+						</span>
+					</div>
+					{scopedAlerts.map((a, i) => (
+						<AlertRow
+							key={`${a.labels.alertname ?? 'alert'}-${i}`}
+							alert={a}
+						/>
+					))}
+				</div>
+			)}
+		</>
+	);
+
 	if (!isPod) {
 		return (
 			<div
 				style={{
-					padding: '0.85rem 1rem',
-					color: 'var(--sl-color-gray-3, #8b949e)',
-					fontSize: '0.85rem',
 					display: 'flex',
 					flexDirection: 'column',
-					gap: '0.5rem',
+					gap: '0.6rem',
 				}}>
-				<span>
-					Per-resource Prometheus metrics are scoped to Pods. Open one
-					of the pods owned by this {sel.kind} to view CPU, memory,
-					network, and restart history.
-				</span>
-				<a
-					href="/dashboard/grafana"
-					target="_blank"
-					rel="noopener noreferrer"
+				{alertsBlock}
+				<div
 					style={{
-						color: 'var(--sl-color-accent, #06b6d4)',
-						fontSize: '0.8rem',
-						width: 'fit-content',
+						padding: '0.85rem 1rem',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.85rem',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: '0.5rem',
 					}}>
-					Open cluster overview ↗
-				</a>
+					<span>
+						Per-resource Prometheus metrics are scoped to Pods. Open
+						one of the pods owned by this {sel.kind} to view CPU,
+						memory, network, and restart history.
+					</span>
+					<a
+						href="/dashboard/grafana"
+						target="_blank"
+						rel="noopener noreferrer"
+						style={{
+							color: 'var(--sl-color-accent, #06b6d4)',
+							fontSize: '0.8rem',
+							width: 'fit-content',
+						}}>
+						Open cluster overview ↗
+					</a>
+				</div>
 			</div>
 		);
 	}
@@ -280,6 +387,7 @@ export default function ReactArgoGrafanaPanel({
 				flexDirection: 'column',
 				gap: '0.75rem',
 			}}>
+			{alertsBlock}
 			<div
 				style={{
 					display: 'flex',
