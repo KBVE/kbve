@@ -5,6 +5,12 @@ rustflags = [
     "-C", "link-arg=--import-memory",
     "-C", "link-arg=--shared-memory",
     "-C", "link-arg=--max-memory=4294967296",
+    # Threading exports — wasm-bindgen needs every one of these to inject the
+    # per-worker thread-id glue. Recent nightly rustc no longer emits
+    # __heap_base by default, so wasm-bindgen-cli fails with
+    #   "failed to prepare module for threading … failed to find __heap_base"
+    # if it is omitted. Keep the full set.
+    "-C", "link-arg=--export=__heap_base",
     "-C", "link-arg=--export=__wasm_init_tls",
     "-C", "link-arg=--export=__tls_size",
     "-C", "link-arg=--export=__tls_align",
