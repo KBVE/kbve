@@ -6,5 +6,6 @@ export * from './osrs';
 export * from './ICiProjectSchema';
 export * from './IClickHouseSchema';
 export * from './IForumSchema';
-// OpenAPI-derived path/operation/component types (read-only, generated)
-export type * from './openapi';
+// OpenAPI-derived path/operation/component types now live in @kbve/devops
+// — published with the typed kbveApi client so any TS consumer can
+// `import { kbveApi, type paths, type components } from '@kbve/devops'`.
