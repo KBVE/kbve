@@ -39,6 +39,9 @@ bevy_quests = { path = "../../../packages/rust/bevy/bevy_quests" }
 bevy_skills = { path = "../../../packages/rust/bevy/bevy_skills" }
 bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
 bevy_mapdb = { path = "../../../packages/rust/bevy/bevy_mapdb" }
+bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder", default-features = false, features = [
+    "tile-graph",
+] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
