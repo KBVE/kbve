@@ -77,7 +77,25 @@ public class ShipClientMod implements ClientModInitializer {
                     net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
                     (int) Math.floor(shipEntity.getX()),
                     (int) Math.floor(shipEntity.getZ()));
-            hud.setAgl(Math.max(0, (int) (shipEntity.getY() - floorY)));
+            int aglM = Math.max(0, (int) (shipEntity.getY() - floorY));
+            hud.setAgl(aglM);
+
+            // Flight mode classification — drives the [MODE] tag next to ship name.
+            float vy = (float) shipEntity.getVelocity().y;
+            float ep = shipEntity.getEnginePower();
+            float ts = shipEntity.getTargetSpeed();
+            String mode;
+            if (shipEntity.isOnGround()) {
+                mode = "GROUND";
+            } else if (vy < -0.4f && ts < 0.1f) {
+                mode = "STALL";
+            } else if (ep < 0.15f && Math.abs(vy) < 0.05f && aglM < 50) {
+                mode = "HOVER";
+            } else {
+                mode = "FLY";
+            }
+            hud.setFlightMode(mode);
+
             hud.setHealth(shipEntity.getShipHealth(), ShipEntity.MAX_HEALTH);
             hud.setFuel(shipEntity.getFuelLevel(), ShipEntity.MAX_FUEL, shipEntity.isFuelLow());
             hud.setEnginePower(shipEntity.getEnginePower());

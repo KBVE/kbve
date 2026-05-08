@@ -28,6 +28,7 @@ public class ShipHud implements HudRenderCallback {
     private int upgradeCount = 0;
     private int maxUpgradeSlots = 4;
     private byte cautionBits = 0;
+    private String flightMode = "FLY";
 
     public void setActive(String shipName) {
         this.active = true;
@@ -97,6 +98,10 @@ public class ShipHud implements HudRenderCallback {
         this.cautionBits = bits;
     }
 
+    public void setFlightMode(String mode) {
+        this.flightMode = mode;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -121,7 +126,13 @@ public class ShipHud implements HudRenderCallback {
         context.fill(cx - 1, cy - 1, cx + 2, cy + 2, 0x80000000);
 
         if (!shipName.isEmpty()) {
-            String nameText = "§l" + shipName;
+            String modeColor = switch (flightMode) {
+                case "HOVER" -> "§b";
+                case "GROUND" -> "§7";
+                case "STALL" -> "§c";
+                default -> "§a";
+            };
+            String nameText = "§l" + shipName + " " + modeColor + "§l[" + flightMode + "]";
             int nameWidth = client.textRenderer.getWidth(nameText);
             context.drawText(client.textRenderer, Text.of(nameText),
                     (screenWidth - nameWidth) / 2, 10, 0xFFFFFF, true);
