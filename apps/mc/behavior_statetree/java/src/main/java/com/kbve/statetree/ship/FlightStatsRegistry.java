@@ -150,11 +150,17 @@ public final class FlightStatsRegistry {
                 f(p, "boundingWidth", d.boundingWidth()),
                 f(p, "boundingHeight", d.boundingHeight()),
                 f(p, "cameraZoom", d.cameraZoom()),
-                p.has("canExplodeOnCrash") && p.get("canExplodeOnCrash").getAsBoolean()
+                p.has("canExplodeOnCrash") && p.get("canExplodeOnCrash").getAsBoolean(),
+                s(p, "trailParticle", d.trailParticle()),
+                s(p, "engineSound", d.engineSound())
         );
     }
 
     private static float f(JsonObject p, String key, float def) {
         return p.has(key) ? p.get(key).getAsFloat() : def;
+    }
+
+    private static String s(JsonObject p, String key, String def) {
+        return p.has(key) ? p.get(key).getAsString() : def;
     }
 }

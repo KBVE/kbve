@@ -51,6 +51,19 @@ public class ShipEntity extends Entity {
     /** Banner item ID (e.g. "minecraft:red_banner") for client-side rendering. */
     private static final TrackedData<String> BANNER_ITEM_ID =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    /**
+     * Bit-packed caution flags — bit 0 PULL_UP (low altitude near ground),
+     * bit 1 VOID (below world bottom), bit 2 DAMAGED (hp under 25%),
+     * bit 3 LOW_FUEL (already exposed via getFuelLevel but mirrored here
+     * for HUD-side parity with IA's Cautions enum).
+     */
+    private static final TrackedData<Byte> CAUTION_BITS =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.BYTE);
+
+    public static final int CAUTION_PULL_UP   = 1 << 0;
+    public static final int CAUTION_VOID      = 1 << 1;
+    public static final int CAUTION_DAMAGED   = 1 << 2;
+    public static final int CAUTION_LOW_FUEL  = 1 << 3;
 
     public static final float MAX_HEALTH = 100.0f;
     public static final float MAX_FUEL = 1000.0f;
@@ -200,6 +213,10 @@ public class ShipEntity extends Entity {
     public float getEnginePower() { return enginePower.getSmooth(); }
     public float getBankRoll() { return bankRoll; }
     public float getCameraZoom() { return getStats().cameraZoom(); }
+
+    /** Bit-packed caution flags — see CAUTION_* constants. Read by HUD. */
+    public byte getCautionBits() { return this.dataTracker.get(CAUTION_BITS); }
+    public boolean hasCaution(int mask) { return (getCautionBits() & mask) != 0; }
 
     public FlightStats getStats() {
         String key = getModelName();
@@ -594,6 +611,25 @@ public class ShipEntity extends Entity {
             }
         }
 
+        // Caution flags — refreshed every tick, synced via TrackedData byte.
+        int caution = 0;
+        ServerWorld sworld = (ServerWorld) this.getEntityWorld();
+        // PULL_UP: descending fast and within 6 blocks of the next solid block below.
+        if (vel.y < -0.15) {
+            int floorY = sworld.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
+                    (int) Math.floor(this.getX()), (int) Math.floor(this.getZ()));
+            if (this.getY() - floorY < 6.0) caution |= CAUTION_PULL_UP;
+        }
+        // VOID: under the world bottom.
+        if (this.getY() < sworld.getBottomY() + 4) caution |= CAUTION_VOID;
+        // DAMAGED: hp below 25%.
+        if (getShipHealth() < MAX_HEALTH * 0.25f) caution |= CAUTION_DAMAGED;
+        // LOW_FUEL: fuel below threshold.
+        if (isFuelLow()) caution |= CAUTION_LOW_FUEL;
+        if (caution != getCautionBits()) {
+            this.dataTracker.set(CAUTION_BITS, (byte) caution);
+        }
+
         this.setVelocity(vel);
         if (vel.lengthSquared() > 1.0e-6) {
             this.move(MovementType.SELF, vel);
@@ -613,12 +649,16 @@ public class ShipEntity extends Entity {
         // Engine sound — pitch scales with throttle. Cadence speeds up as
         // power rises so the audio gets more frantic at full thrust.
         if (this.getEntityWorld() instanceof ServerWorld sw2) {
-            // Engine spinup — distinct one-shot when throttle first kicks in.
+            net.minecraft.sound.SoundEvent loopSound = resolveEngineSound(stats.engineSound());
+            // Engine spinup — distinct one-shot + visible smoke burst.
             if (lastEnginePowerForSound < 0.05f && power >= 0.05f) {
                 sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
                         net.minecraft.sound.SoundEvents.ITEM_FLINTANDSTEEL_USE,
                         net.minecraft.sound.SoundCategory.NEUTRAL,
                         0.6f, 0.8f);
+                sw2.spawnParticles(net.minecraft.particle.ParticleTypes.LARGE_SMOKE,
+                        this.getX(), this.getY() + 0.6, this.getZ(),
+                        12, 0.5, 0.2, 0.5, 0.04);
             }
             // Engine shutdown — soft puff when throttle drops to zero.
             if (lastEnginePowerForSound >= 0.05f && power < 0.05f) {
@@ -627,19 +667,30 @@ public class ShipEntity extends Entity {
                         net.minecraft.sound.SoundCategory.NEUTRAL,
                         0.4f, 1.0f);
             }
-            // Engine loop — periodic minecart-rumble while running.
-            if (power > 0.05f) {
+            // Engine loop — periodic rumble while running, sound from stats.
+            if (power > 0.05f && loopSound != null) {
                 int cadence = Math.max(2, (int) (12 - 8 * power));
                 if (this.age % cadence == 0) {
                     float pitch = 0.5f + 0.7f * power;
                     sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
-                            net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING,
+                            loopSound,
                             net.minecraft.sound.SoundCategory.NEUTRAL,
                             0.35f + 0.3f * power, pitch);
                 }
             }
             lastEnginePowerForSound = power;
         }
+    }
+
+    /** Resolve a SoundEvent by registry ID. Falls back to minecart riding. */
+    private static net.minecraft.sound.SoundEvent resolveEngineSound(String id) {
+        if (id == null || id.isEmpty()) {
+            return net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING;
+        }
+        net.minecraft.util.Identifier soundId = net.minecraft.util.Identifier.tryParse(id);
+        if (soundId == null) return net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING;
+        net.minecraft.sound.SoundEvent ev = net.minecraft.registry.Registries.SOUND_EVENT.get(soundId);
+        return ev != null ? ev : net.minecraft.sound.SoundEvents.ENTITY_MINECART_RIDING;
     }
 
     private static Vec3d lerp(Vec3d a, Vec3d b, double t) {
@@ -695,40 +746,78 @@ public class ShipEntity extends Entity {
         };
     }
 
-    /** Per-aircraft trail effect (server-side spawn so all clients see it). */
+    /**
+     * Per-aircraft trail effect (server-side spawn so all clients see it).
+     * Particle type comes from stats.trailParticle when set; spawn position
+     * is still chosen per-model (wing-tip / rotor wash / aft exhaust)
+     * since IA's TrailDescriptor JSON shape isn't ported.
+     */
     private void spawnTrailParticles(ServerWorld sw, float power) {
         String model = getModelName();
-        double rad = Math.toRadians(this.getYaw());
-        // Behind-the-aircraft offset (negative forward direction).
-        double behindX = this.getX() - (-Math.sin(rad)) * 1.2;
-        double behindZ = this.getZ() - Math.cos(rad) * 1.2;
+        FlightStats stats = getStats();
+        net.minecraft.particle.ParticleEffect particle = resolveTrailParticle(stats.trailParticle(), model);
+        if (particle == null) return;
 
+        double rad = Math.toRadians(this.getYaw());
         if (model.contains("biplane")) {
-            // Wing-tip vapor — two cloud puffs offset perpendicular to heading.
             if (this.age % 2 == 0) {
                 double wx = Math.cos(rad) * 1.4;
                 double wz = Math.sin(rad) * 1.4;
-                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                sw.spawnParticles(particle,
                         this.getX() + wx, this.getY() + 0.3, this.getZ() + wz,
                         1, 0.0, 0.0, 0.0, 0.0);
-                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                sw.spawnParticles(particle,
                         this.getX() - wx, this.getY() + 0.3, this.getZ() - wz,
                         1, 0.0, 0.0, 0.0, 0.0);
             }
         } else if (model.contains("gyrodyne")) {
-            // Rotor wash — small white smoke beneath the aircraft.
             if (this.age % 3 == 0) {
-                sw.spawnParticles(net.minecraft.particle.ParticleTypes.SMOKE,
+                sw.spawnParticles(particle,
                         this.getX(), this.getY() - 0.3, this.getZ(),
                         2, 0.4, 0.1, 0.4, 0.02);
             }
         } else {
-            // Airship default — exhaust smoke trailing aft.
             if (this.age % 4 == 0) {
-                sw.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                double behindX = this.getX() - (-Math.sin(rad)) * 1.2;
+                double behindZ = this.getZ() - Math.cos(rad) * 1.2;
+                sw.spawnParticles(particle,
                         behindX, this.getY() + 0.5, behindZ,
                         1, 0.1, 0.05, 0.1, 0.01);
             }
+        }
+    }
+
+    private static net.minecraft.particle.ParticleEffect resolveTrailParticle(String id, String model) {
+        if (id != null && !id.isEmpty()) {
+            net.minecraft.util.Identifier pid = net.minecraft.util.Identifier.tryParse(id);
+            if (pid != null) {
+                net.minecraft.particle.ParticleType<?> pt =
+                        net.minecraft.registry.Registries.PARTICLE_TYPE.get(pid);
+                if (pt instanceof net.minecraft.particle.ParticleEffect pe) return pe;
+            }
+        }
+        if (model.contains("biplane")) return net.minecraft.particle.ParticleTypes.CLOUD;
+        if (model.contains("gyrodyne")) return net.minecraft.particle.ParticleTypes.SMOKE;
+        return net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE;
+    }
+
+    /**
+     * Granted to riders dismounting at altitude so they don't take fall
+     * damage from a long drop. Mirrors the courtesy IA's vehicles extend.
+     */
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        if (this.getEntityWorld().isClient()) return;
+        if (!(passenger instanceof net.minecraft.entity.LivingEntity living)) return;
+        ServerWorld sw = (ServerWorld) this.getEntityWorld();
+        int floorY = sw.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
+                (int) Math.floor(living.getX()), (int) Math.floor(living.getZ()));
+        double altitude = living.getY() - floorY;
+        if (altitude > 5.0) {
+            living.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.SLOW_FALLING,
+                    200, 0, false, false, true));
         }
     }
 
@@ -771,6 +860,7 @@ public class ShipEntity extends Entity {
         builder.add(FUEL_LEVEL, MAX_FUEL);
         builder.add(UPGRADES_CSV, "");
         builder.add(BANNER_ITEM_ID, "");
+        builder.add(CAUTION_BITS, (byte) 0);
     }
 
     @Override
