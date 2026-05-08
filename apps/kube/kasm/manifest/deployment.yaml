@@ -11,6 +11,11 @@ metadata:
         app: kasm-vpn
         app.kubernetes.io/part-of: kasm
         app.kubernetes.io/component: workspace
+    annotations:
+        # Reloader rolls this Deployment whenever the vpn-wireguard
+        # SealedSecret rotates — re-keying the WireGuard tunnel takes
+        # effect on the next pod start without a manual rollout.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 0 # Manual scale — set to 1 when needed
     selector:
@@ -23,21 +28,56 @@ spec:
                 app.kubernetes.io/part-of: kasm
                 app.kubernetes.io/component: workspace
         spec:
-            # kasm-user is uid 1000 — fsGroup makes the PVC group-writable.
+            serviceAccountName: kasm-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            # Pod-level only sets fsGroup + seccomp. Per-container UIDs
+            # are pinned individually because the init container must
+            # run as root to chown the PVC, while the workspace and
+            # gluetun containers run with their image defaults.
             securityContext:
                 fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
             initContainers:
                 - name: fix-pvc-perms
                   image: busybox:1.37
                   command: ['sh', '-c', 'chown -R 1000:1000 /home/kasm-user']
+                  # Init must run as root to chown an existing PVC
+                  # (fsGroup only sets the volume root, not files
+                  # written by previous runs as different UIDs).
+                  # Caps are minimised to just what chown needs.
+                  securityContext:
+                      runAsUser: 0
+                      runAsGroup: 0
+                      runAsNonRoot: false
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                          add:
+                              - CHOWN
+                              - DAC_OVERRIDE
+                              - FOWNER
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
             containers:
                 - name: gluetun
                   image: ghcr.io/qdm12/gluetun:v3.41.1
+                  # Gluetun needs NET_ADMIN to set up the tun device
+                  # and write iptables rules for the kill-switch. All
+                  # other caps are dropped. The image runs as its
+                  # default user (root) because it manages the network
+                  # namespace shared with the workspace container;
+                  # pinning runAsNonRoot here would break the
+                  # WireGuard handshake.
                   securityContext:
+                      allowPrivilegeEscalation: false
                       capabilities:
+                          drop:
+                              - ALL
                           add:
                               - NET_ADMIN
                   ports:
@@ -99,7 +139,29 @@ spec:
 
                 - name: workspace
                   image: kasmweb/discord:1.18.0-rolling-daily
+                  # KASM workspace images bake `kasm-user` at UID 1000.
+                  # Pin runAsNonRoot + the matching UID/GID; drop every
+                  # Linux capability — the desktop session does not
+                  # need any of them. Privilege escalation is off so a
+                  # process inside the workspace cannot setuid.
+                  # readOnlyRootFilesystem is intentionally NOT set
+                  # because the upstream image writes to /tmp, /var,
+                  # /home/kasm-user/.cache during boot; flipping it on
+                  # without staging the matched emptyDir mounts would
+                  # crash-loop the pod. Tracked as a follow-up.
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
                   env:
+                      # FIXME(kasm): VNC_PW is plaintext here. Move to
+                      # a SealedSecret (kasm-vnc-secret) with kubeseal
+                      # before scaling this Deployment > 0. Tracked in
+                      # apps/kube/kasm/README.md.
                       - name: VNC_PW
                         value: 'changeme'
                       - name: KASM_PORT
