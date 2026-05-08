@@ -7,6 +7,16 @@
 // than the renderer, but keeping the rule layer byte-native means the
 // engine can run headless (replay verification, AI hints, etc) without
 // dragging in any UI shape.
+//
+// Joker rules (tableau wild + foundation accept variant):
+//   - Joker can land on ANY tableau column (empty or not).
+//   - When a joker is the top of a tableau column, ANY card stacks on it.
+//   - Joker can land on ANY non-full foundation slot, claiming the next
+//     rank in sequence. Subsequent foundation moves treat the joker as
+//     that claimed rank when checking the next card.
+//   - In a multi-card tableau run, joker is wild — adjacent cards' rank
+//     and color constraints are bypassed when one of the two is a joker.
+//   - Foundation suit-lock (state.ts) is also bypassed for jokers.
 
 import {
 	type CardByte,
@@ -14,43 +24,56 @@ import {
 	getDisplayRank,
 	getSuit,
 	isFaceUp,
+	isJoker,
 } from './cards';
 
 /** Tableau move: card(s) can land on a tableau column iff
+ *   - moving card is a joker (always valid), OR
  *   - column empty AND moving card is K, OR
+ *   - column top is face-up joker (always valid), OR
  *   - column top is face-up AND opposite color AND exactly one rank higher. */
 export function canDropOnTableau(moving: CardByte, column: number[]): boolean {
-	const movingRank = getDisplayRank(moving);
-	if (column.length === 0) return movingRank === 13;
+	if (isJoker(moving)) return true;
+
+	if (column.length === 0) return getDisplayRank(moving) === 13;
 
 	const top = column[column.length - 1];
 	if (!isFaceUp(top)) return false;
 
+	if (isJoker(top)) return true;
+
 	const colorOk = getColor(moving) !== getColor(top);
-	const rankOk = movingRank === getDisplayRank(top) - 1;
+	const rankOk = getDisplayRank(moving) === getDisplayRank(top) - 1;
 	return colorOk && rankOk;
 }
 
-/** Foundation move: only single cards.
- *   - empty foundation accepts only A
- *   - non-empty foundation accepts same suit, exactly one rank higher than top */
+/** Foundation move: only single cards. With joker accept:
+ *   - joker fills any non-full foundation (claims foundation.length+1 rank)
+ *   - empty foundation accepts only A (or joker)
+ *   - non-empty foundation accepts the next rank in sequence. The expected
+ *     rank is `foundation.length + 1` regardless of whether the previous
+ *     top was a real card or a joker (since jokers claim their position's
+ *     rank).
+ *
+ * Note: suit-lock is enforced in `state.ts` (foundation index → expected
+ * suit) and explicitly bypassed for jokers. This rule is purely about
+ * rank progression. */
 export function canDropOnFoundation(
 	moving: CardByte,
 	foundation: number[],
 ): boolean {
-	const movingRank = getDisplayRank(moving);
-	if (foundation.length === 0) return movingRank === 1;
-
-	const top = foundation[foundation.length - 1];
-	return (
-		getSuit(moving) === getSuit(top) &&
-		movingRank === getDisplayRank(top) + 1
-	);
+	if (foundation.length === 13) return false;
+	if (isJoker(moving)) return true;
+	const expectedRank = foundation.length + 1;
+	return getDisplayRank(moving) === expectedRank;
 }
 
 /** A run of cards in a tableau column is "movable" iff every card from the
- * grabbed index to the bottom is face-up AND alternating-color AND
- * descending by rank. Returns the slice (as a fresh array) if movable. */
+ * grabbed index to the bottom is face-up AND adjacent pairs satisfy the
+ * tableau alternation rule (opposite color, descending rank).
+ *
+ * Joker handling: if either card in an adjacent pair is a joker, the pair
+ * is automatically valid (joker substitutes for whatever the rule needs). */
 export function movableRun(
 	column: number[],
 	fromIndex: number,
@@ -63,6 +86,8 @@ export function movableRun(
 		if (!isFaceUp(c)) return null;
 		if (i === 0) continue;
 		const prev = slice[i - 1];
+		// Joker is wild — bypasses both color + rank checks for this link.
+		if (isJoker(c) || isJoker(prev)) continue;
 		const colorOk = getColor(c) !== getColor(prev);
 		const rankOk = getDisplayRank(c) === getDisplayRank(prev) - 1;
 		if (!(colorOk && rankOk)) return null;
@@ -70,13 +95,16 @@ export function movableRun(
 	return slice;
 }
 
-/** All four foundations holding K = win. */
+/** All four foundations holding 13 cards = win. With jokers in the mix the
+ * top of a winning foundation may be a joker (claiming K), which we count
+ * as a valid 13-card stack. */
 export function isWin(foundations: number[][]): boolean {
 	if (foundations.length !== 4) return false;
 	for (let i = 0; i < 4; i++) {
-		const f = foundations[i];
-		if (f.length !== 13) return false;
-		if (getDisplayRank(f[12]) !== 13) return false;
+		if (foundations[i].length !== 13) return false;
 	}
 	return true;
 }
+
+// Re-export so consumers can import everything joker-related from one place.
+export { isJoker, getSuit };

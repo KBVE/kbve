@@ -22,6 +22,7 @@ import {
 	FOUNDATION_SUITS,
 	getSuit,
 	isFaceUp,
+	isJoker,
 	setFaceUp,
 	type CardByte,
 } from './cards';
@@ -46,7 +47,9 @@ export class GameState {
 	private static readonly MAX_HISTORY = 256;
 
 	reset(rng?: () => number) {
-		const { tableaus, stock } = dealBytes(rng);
+		// Jokers on by default — variant requested for the KBVE arcade build.
+		// Future Balatro-style variants can flip this off via a config param.
+		const { tableaus, stock } = dealBytes(rng, { withJokers: true });
 		this.tableaus = tableaus;
 		this.stock = stock;
 		this.waste = [];
@@ -159,10 +162,9 @@ export class GameState {
 	moveWasteToFoundation(idx: number): boolean {
 		const c = this.waste[this.waste.length - 1];
 		if (c === undefined) return false;
-		// Foundation slot is suit-locked: slot index determines which suit
-		// it accepts. Prevents the "Ace of Spades on Hearts slot, stuck"
-		// trap.
-		if (getSuit(c) !== FOUNDATION_SUITS[idx]) return false;
+		// Foundation slot is suit-locked. Jokers bypass the suit lock —
+		// they're wild + can fill any foundation's next-rank slot.
+		if (!isJoker(c) && getSuit(c) !== FOUNDATION_SUITS[idx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[idx])) return false;
 		this.pushHistory();
 		this.waste.pop();
@@ -192,7 +194,9 @@ export class GameState {
 		const col = this.tableaus[fromCol];
 		const c = col[col.length - 1];
 		if (c === undefined || !isFaceUp(c)) return false;
-		if (getSuit(c) !== FOUNDATION_SUITS[foundationIdx]) return false;
+		// Suit lock; jokers bypass.
+		if (!isJoker(c) && getSuit(c) !== FOUNDATION_SUITS[foundationIdx])
+			return false;
 		if (!canDropOnFoundation(c, this.foundations[foundationIdx]))
 			return false;
 

@@ -57,6 +57,14 @@ export const COLORS = {
 	// Suits
 	suitRed: 0xdc2626,
 	suitBlack: 0x111827,
+	// Jokers — wild card visuals. Body uses a deep purple → gold gradient
+	// (not literal — solid fill with gold accents) so jokers read distinct
+	// from the standard 52 even at a glance.
+	jokerFace: 0x312e81, // deep indigo body
+	jokerAccent: 0xfbbf24, // gold trim + glyph for both joker colors
+	jokerStripe: 0x6366f1, // mid-purple for the diagonal stripe
+	jokerRedTint: 0xf87171, // red joker pip
+	jokerBlackTint: 0x1f2937, // black joker pip
 	// HUD
 	winText: '#fbbf24',
 	hintText: '#d1d5db',

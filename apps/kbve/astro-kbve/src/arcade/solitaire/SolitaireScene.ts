@@ -39,6 +39,7 @@ import {
 	getCardIndex,
 	getSuit,
 	isFaceUp,
+	isJoker,
 	toCardView,
 } from './cards';
 import { GameState } from './state';
@@ -348,14 +349,18 @@ export class SolitaireScene extends Phaser.Scene {
 	// -------------------------------------------------------------------
 
 	/** Visually mark which foundation + tableau slots accept the bottom of
-	 * the dragged stack. Called on dragstart. */
+	 * the dragged stack. Called on dragstart. Jokers bypass the foundation
+	 * suit lock — light up all four foundation slots that have room. */
 	private highlightLegalDrops(headCard: CardByte, fromFoundationIdx: number) {
+		const headIsJoker = isJoker(headCard);
 		for (let i = 0; i < 4; i++) {
 			const isSource = i === fromFoundationIdx;
 			let legal = false;
 			if (!isSource) {
+				const suitOk =
+					headIsJoker || getSuit(headCard) === FOUNDATION_SUITS[i];
 				legal =
-					getSuit(headCard) === FOUNDATION_SUITS[i] &&
+					suitOk &&
 					canDropOnFoundation(headCard, this.state.foundations[i]);
 			}
 			if (legal) {
@@ -500,6 +505,8 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private makeFace(d: DisplayView): Phaser.GameObjects.Container {
+		if (d.joker) return this.makeJokerFace(d);
+
 		const face = this.add.container(0, 0);
 		const bg = this.add.graphics();
 		bg.fillStyle(COLORS.cardFace, 1);
@@ -562,6 +569,76 @@ export class SolitaireScene extends Phaser.Scene {
 			.setResolution(2);
 
 		face.add([rankTL, suitTL, suitCenter]);
+		return face;
+	}
+
+	/** Joker face — distinct visual so wild cards read at a glance:
+	 *   - deep indigo body with diagonal mid-purple stripe
+	 *   - gold "JOKER" label top + bottom (rotated)
+	 *   - centered gold ★ glyph
+	 *   - red/black pip in the corners to hint which joker variant. */
+	private makeJokerFace(d: DisplayView): Phaser.GameObjects.Container {
+		const face = this.add.container(0, 0);
+		const w = CARD_SIZE.width;
+		const h = CARD_SIZE.height;
+
+		const bg = this.add.graphics();
+		// Body
+		bg.fillStyle(COLORS.jokerFace, 1);
+		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		// Diagonal stripe (clipped via shape — Phaser graphics don't clip,
+		// so we approximate with a rotated rectangle path).
+		bg.fillStyle(COLORS.jokerStripe, 0.55);
+		bg.beginPath();
+		bg.moveTo(-w / 2, -h / 2 + h * 0.35);
+		bg.lineTo(w / 2, -h / 2);
+		bg.lineTo(w / 2, -h / 2 + h * 0.15);
+		bg.lineTo(-w / 2, -h / 2 + h * 0.5);
+		bg.closePath();
+		bg.fillPath();
+		// Gold border
+		bg.lineStyle(2, COLORS.jokerAccent, 1);
+		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		// Inner accent border
+		bg.lineStyle(1, COLORS.jokerAccent, 0.5);
+		bg.strokeRoundedRect(
+			-w / 2 + 5,
+			-h / 2 + 5,
+			w - 10,
+			h - 10,
+			CARD_SIZE.radius - 2,
+		);
+		face.add(bg);
+
+		const goldStr = `#${COLORS.jokerAccent.toString(16).padStart(6, '0')}`;
+		const pipColor =
+			d.color === 'red' ? COLORS.jokerRedTint : COLORS.jokerBlackTint;
+
+		// Top-left: small "JOKER" + colored pip beneath.
+		const labelTL = this.add
+			.text(-w / 2 + 6, -h / 2 + 6, 'JOKER', {
+				fontSize: '11px',
+				color: goldStr,
+				fontStyle: 'bold',
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		const pipTL = this.add
+			.rectangle(-w / 2 + 12, -h / 2 + 26, 8, 8, pipColor)
+			.setOrigin(0.5);
+
+		// Big center star.
+		const star = this.add
+			.text(0, 4, '★', {
+				fontSize: '52px',
+				color: goldStr,
+				fontFamily: 'system-ui, sans-serif',
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+
+		face.add([labelTL, pipTL, star]);
 		return face;
 	}
 

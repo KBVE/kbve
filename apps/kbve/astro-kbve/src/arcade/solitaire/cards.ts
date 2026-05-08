@@ -101,13 +101,29 @@ export function getColor(card: CardByte): ColorByte {
 		: ColorByte.Black;
 }
 
+/** Sentinel rank for joker cards. Real ranks are 0..12 (A..K); 13 is
+ * reserved for jokers so a single byte still encodes the whole deck +
+ * jokers. The "suit" bit on a joker just picks black vs red color (used
+ * for visuals — joker is wild for rule purposes). */
+export const JOKER_RANK = 13;
+
+/** Pre-built joker bytes for convenience. Black joker rides on the spades
+ * suit slot, red joker on the hearts slot — those are the two color
+ * indices that read correctly through `getColor`. */
+export const JOKER_BLACK_BYTE: CardByte = (SuitByte.Spades << 4) | JOKER_RANK;
+export const JOKER_RED_BYTE: CardByte = (SuitByte.Hearts << 4) | JOKER_RANK;
+
+export function isJoker(card: CardByte): boolean {
+	return (card & RANK_MASK) === JOKER_RANK;
+}
+
 /** Stable id derived from suit + rank (face-up flag intentionally ignored
  * so the same physical card has one id regardless of orientation). Used
  * as the key for the scene's `Map<id, CardView>`.
  *
  * Memoized — the rule + scene layers call this dozens of times per move
- * (every hover hit-test scans 52 cards). 52 unique outputs total, so a
- * pre-filled lookup table is the cheapest win possible. */
+ * (every hover hit-test scans 52 cards). 54 unique outputs total (52 +
+ * 2 jokers), so a pre-filled lookup table is the cheapest win possible. */
 const ID_CACHE: string[] = (() => {
 	const out: string[] = new Array(64);
 	for (let suit = 0; suit < 4; suit++) {
@@ -116,6 +132,8 @@ const ID_CACHE: string[] = (() => {
 			out[idx] = `${SUIT_LABEL[suit][0].toUpperCase()}-${rank + 1}`;
 		}
 	}
+	out[JOKER_BLACK_BYTE] = 'JOKER-BLACK';
+	out[JOKER_RED_BYTE] = 'JOKER-RED';
 	return out;
 })();
 
@@ -133,6 +151,7 @@ export function getCardIndex(card: CardByte): number {
 }
 
 export function getCardLabel(card: CardByte): string {
+	if (isJoker(card)) return 'JOKER';
 	return `${RANK_LABEL[getRank(card)]}${SUIT_GLYPH[getSuit(card)]}`;
 }
 
@@ -170,8 +189,30 @@ export interface ByteDeal {
 	stock: number[];
 }
 
-export function dealBytes(rng: () => number = Math.random): ByteDeal {
-	const deck = shuffleBytes(buildDeckBytes(), rng);
+export interface DealOptions {
+	/** Add 2 jokers (1 black, 1 red) to the deck before shuffle. Resulting
+	 * stock is 26 cards instead of 24; tableau layout (1..7) unchanged. */
+	withJokers?: boolean;
+}
+
+export function dealBytes(
+	rng: () => number = Math.random,
+	options: DealOptions = {},
+): ByteDeal {
+	let working: Uint8Array;
+	if (options.withJokers) {
+		// Allocate a 54-byte deck: standard 52 + 2 jokers, then shuffle the
+		// whole thing so jokers end up anywhere in the deal.
+		const base = buildDeckBytes();
+		working = new Uint8Array(54);
+		working.set(base, 0);
+		working[52] = JOKER_BLACK_BYTE;
+		working[53] = JOKER_RED_BYTE;
+	} else {
+		working = buildDeckBytes();
+	}
+	const deck = shuffleBytes(working, rng);
+
 	const tableaus: number[][] = new Array(7);
 	let cursor = 0;
 
@@ -206,6 +247,11 @@ export interface CardView {
 	rank: number;
 	label: string;
 	faceUp: boolean;
+	/** True for the wild jokers added when `withJokers` deal option is on.
+	 * Suit / glyph fields are still populated (with the suit byte the
+	 * joker rides on) for convenience but rule logic should branch on
+	 * this flag, not on suit. */
+	joker: boolean;
 }
 
 export function toCardView(card: CardByte): CardView {
@@ -219,5 +265,6 @@ export function toCardView(card: CardByte): CardView {
 		rank: getDisplayRank(card),
 		label: getCardLabel(card),
 		faceUp: isFaceUp(card),
+		joker: isJoker(card),
 	};
 }
