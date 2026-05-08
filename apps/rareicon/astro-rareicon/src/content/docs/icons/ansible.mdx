@@ -2,37 +2,81 @@
 ref: ansible
 name: Ansible
 title: Ansible Icon
-description: Ansible brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Ansible glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - devicon-generated
+  - devicon
+  - merged-multi-source
 search:
-  keywords: ["ansible"]
+  keywords:
+    - ansible
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/ansible"
+  source_url: https://simpleicons.org/icons/ansible
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.617 11.473l4.686 3.695-3.102-7.662zM12 0C5.371 0 0 5.371 0 12s5.371 12 12 12 12-5.371 12-12S18.629 0 12 0zm5.797 17.305c-.011.471-.403.842-.875.83-.236 0-.416-.09-.664-.293l-6.19-5-2.079 5.203H6.191L11.438 5.44c.124-.314.427-.52.764-.506.326-.014.63.189.742.506l4.774 11.494c.045.111.08.234.08.348-.001.009-.001.009-.001.023z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: devicon
+    label: Devicon
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 128
+      height: 128
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - devicon
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="currentColor"><path fill="#1a1918" d="M126 64c0 34.2-27.8 62-62 62S2 98.2 2 64S29.8 2 64 2s62 27.8 62 62"/><path fill="#fff" d="m65 39.9l16 39.6l-24.1-19.1zm28.5 48.7L68.9 29.2c-.7-1.7-2.1-2.6-3.8-2.6s-3.2.9-3.9 2.6L34 94.3h9.3L54 67.5l32 25.9c1.3 1 2.2 1.5 3.4 1.5c2.4 0 4.5-1.8 4.5-4.4c.1-.5-.1-1.2-.4-1.9"/></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - devicon
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

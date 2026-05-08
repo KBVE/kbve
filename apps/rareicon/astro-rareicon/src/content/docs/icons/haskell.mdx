@@ -1,0 +1,51 @@
+---
+ref: haskell
+name: Haskell
+title: Haskell Icon
+description: Haskell glyph from the devicon icon library, 1 variant — recolor via currentColor.
+primary_category: tech
+categories: [tech, library]
+tags: [devicon-generated, devicon]
+search:
+  keywords: ["haskell"]
+  primary_category: tech
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Devicon (https://devicon.dev/) — MIT License"
+  author: Devicon contributors
+  source_url: "https://devicon.dev/?icon=haskell"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "devicon"
+    label: "Devicon"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 128, height: 128 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [devicon]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="currentColor"><path fill="#463b63" d="M0 110.2L30.1 65L0 19.9h22.6L52.7 65l-30.1 45.1H0z"/><path fill="#5e5187" d="M30.1 110.2L60.2 65L30.1 19.9h22.6l60.2 90.3H90.4L71.5 81.9l-18.8 28.2H30.1z"/><path fill="#904f8c" d="m102.9 83.8l-10-15.1H128v15.1zM87.8 61.3l-10-15.1H128v15.1z"/></svg>
+pagefindFilters: [devicon, tech]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Haskell — glyph from the [Devicon icon library](https://devicon.dev/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

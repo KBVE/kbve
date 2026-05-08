@@ -138,6 +138,46 @@ const CURATED = [
 	{ slug: 'recycle', ref: 'recycle-tabler', cat: 'weather' },
 	{ slug: 'wind-electricity', ref: 'wind-electricity', cat: 'weather' },
 	{ slug: 'sun-electricity', ref: 'sun-electricity', cat: 'weather' },
+
+	// Medical / science
+	{ slug: 'stethoscope', ref: 'stethoscope', cat: 'tech' },
+	{ slug: 'first-aid-kit', ref: 'first-aid-kit', cat: 'tech' },
+	{ slug: 'vaccine', ref: 'vaccine', cat: 'tech' },
+	{ slug: 'pill', ref: 'pill', cat: 'tech' },
+	{ slug: 'dna', ref: 'dna', cat: 'tech' },
+	{ slug: 'microscope', ref: 'microscope', cat: 'tech' },
+	{ slug: 'flask', ref: 'flask-tabler', cat: 'tech' },
+	{ slug: 'test-pipe', ref: 'test-pipe', cat: 'tech' },
+
+	// Crypto / blockchain
+	{ slug: 'brand-bitcoin', ref: 'brand-bitcoin', cat: 'commerce' },
+	{ slug: 'brand-ethereum', ref: 'brand-ethereum', cat: 'commerce' },
+	{ slug: 'wallet', ref: 'wallet-tabler', cat: 'commerce' },
+
+	// Charts / analytics
+	{ slug: 'chart-line', ref: 'chart-line', cat: 'tech' },
+	{ slug: 'chart-bar', ref: 'chart-bar', cat: 'tech' },
+	{ slug: 'chart-pie', ref: 'chart-pie', cat: 'tech' },
+	{ slug: 'chart-candle', ref: 'chart-candle', cat: 'tech' },
+	{ slug: 'chart-radar', ref: 'chart-radar', cat: 'tech' },
+
+	// Time / calendar
+	{ slug: 'calendar-event', ref: 'calendar-event', cat: 'navigation' },
+	{ slug: 'clock', ref: 'clock-tabler', cat: 'navigation' },
+	{ slug: 'hourglass', ref: 'hourglass-tabler', cat: 'navigation' },
+	{ slug: 'alarm', ref: 'alarm-tabler', cat: 'comms' },
+
+	// Security
+	{ slug: 'fingerprint', ref: 'fingerprint', cat: 'action' },
+	{ slug: 'shield-lock', ref: 'shield-lock', cat: 'action' },
+	{ slug: 'shield-check', ref: 'shield-check-tabler', cat: 'action' },
+	{ slug: 'eye-off', ref: 'eye-off', cat: 'action' },
+
+	// Communication / collab
+	{ slug: 'phone-call', ref: 'phone-call', cat: 'comms' },
+	{ slug: 'video', ref: 'video-tabler', cat: 'comms' },
+	{ slug: 'broadcast', ref: 'broadcast', cat: 'comms' },
+	{ slug: 'rss', ref: 'rss-tabler', cat: 'comms' },
 ];
 
 function titleCase(str) {

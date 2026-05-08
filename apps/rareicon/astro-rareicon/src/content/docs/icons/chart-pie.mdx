@@ -2,37 +2,109 @@
 ref: chart-pie
 name: Chart Pie
 title: Chart Pie Icon
-description: Chart Pie glyph from the heroicons icon library, 1 variant — recolor via currentColor.
+description: Chart Pie glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library]
-tags: [heroicons-generated, heroicons]
+categories:
+  - tech
+  - library
+tags:
+  - heroicons-generated
+  - heroicons
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
+  - tabler-generated
+  - outline
 search:
-  keywords: ["chart-pie","chart","pie","chart pie"]
+  keywords:
+    - chart-pie
+    - chart
+    - pie
+    - chart pie
   primary_category: tech
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Heroicons (https://heroicons.com/) — MIT License"
+  attribution_line: Heroicons (https://heroicons.com/) — MIT License
   author: Refactoring UI Inc.
-  source_url: "https://heroicons.com/chart-pie"
+  source_url: https://heroicons.com/chart-pie
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "heroicons"
-    label: "Heroicons"
+  - ref: heroicons
+    label: Heroicons
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [heroicons]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - heroicons
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5z"/><path d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3z"/></g></svg>
-pagefindFilters: [heroicons, tech]
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm71.87,53.27L136,114.14V40.37A88,88,0,0,1,199.87,77.27ZM120,40.37v83l-71.89,41.5A88,88,0,0,1,120,40.37ZM128,216a88,88,0,0,1-71.87-37.27L207.89,91.12A88,88,0,0,1,128,216Z"/></svg>
+  - ref: tabler-outline
+    label: Outline
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+      stroke_width: 2
+      stroke_cap: round
+      stroke_join: round
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - tabler
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8" /> <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a1 1 0 0 1 -1 -1v-4.5" /></svg>
+pagefindFilters:
+  - heroicons
+  - tech
+  - phosphor
+  - tabler
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

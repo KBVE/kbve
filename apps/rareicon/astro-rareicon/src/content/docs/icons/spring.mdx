@@ -2,37 +2,81 @@
 ref: spring
 name: Spring
 title: Spring Icon
-description: Spring brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Spring glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - devicon-generated
+  - devicon
+  - merged-multi-source
 search:
-  keywords: ["spring"]
+  keywords:
+    - spring
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/spring"
+  source_url: https://simpleicons.org/icons/spring
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.8537 1.4158a10.4504 10.4504 0 0 1-1.284 2.2471A11.9666 11.9666 0 1 0 3.8518 20.7757l.4445.3951a11.9543 11.9543 0 0 0 19.6316-8.2971c.3457-3.0126-.568-6.8649-2.0743-11.458zM5.5805 20.8745a1.0174 1.0174 0 1 1-.1482-1.4323 1.0396 1.0396 0 0 1 .1482 1.4323zm16.1991-3.5806c-2.9385 3.9263-9.2601 2.5928-13.2852 2.7904 0 0-.7161.0494-1.4323.1481 0 0 .2717-.1234.6174-.2469 2.8398-.9877 4.1732-1.1853 5.9018-2.0743 3.2349-1.6545 6.4698-5.2844 7.1118-9.0379-1.2347 3.6053-4.9881 6.7167-8.3959 7.9761-2.3459.8643-6.5685 1.7039-6.5685 1.7039l-.1729-.0988c-2.8645-1.4076-2.9632-7.6304 2.2718-9.6306 2.2966-.889 4.4696-.395 6.9637-.9877 2.6422-.6174 5.7043-2.5929 6.939-5.1857 1.3828 4.1732 3.062 10.643.0493 14.6434z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: devicon
+    label: Devicon
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 128
+      height: 128
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - devicon
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="currentColor"><path fill="#77bc1f" d="M116.452 6.643a59 59 0 0 1-6.837 12.136A64.25 64.25 0 0 0 64.205-.026C28.984-.026 0 28.982 0 64.242a64.32 64.32 0 0 0 19.945 46.562l2.368 2.1a64.22 64.22 0 0 0 41.358 15.122c33.487 0 61.637-26.24 64.021-59.683c1.751-16.371-3.051-37.077-11.24-61.7M29.067 111.17a5.5 5.5 0 0 1-4.269 2.034c-3.018 0-5.487-2.484-5.487-5.502s2.485-5.501 5.487-5.501c1.25 0 2.485.433 3.452 1.234c2.351 1.9 2.718 5.384.817 7.735m87.119-19.238c-15.843 21.122-49.68 14.003-71.376 15.02c0 0-3.852.234-7.721.867c0 0 1.45-.617 3.335-1.334c15.226-5.301 22.43-6.335 31.685-11.086c17.427-8.869 34.654-28.274 38.24-48.463c-6.637 19.422-26.75 36.11-45.077 42.895c-12.557 4.635-35.238 9.136-35.238 9.136l-.917-.484c-15.442-7.518-15.91-40.977 12.157-51.78c12.291-4.735 24.048-2.134 37.323-5.302c14.175-3.367 30.568-14.004 37.238-27.874c7.471 22.19 16.46 56.932.35 78.405z"/></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - devicon
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

@@ -2,37 +2,81 @@
 ref: kotlin
 name: Kotlin
 title: Kotlin Icon
-description: Kotlin brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Kotlin glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - devicon-generated
+  - devicon
+  - merged-multi-source
 search:
-  keywords: ["kotlin"]
+  keywords:
+    - kotlin
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/kotlin"
+  source_url: https://simpleicons.org/icons/kotlin
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24 24H0V0h24L12 12Z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: devicon
+    label: Devicon
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 128
+      height: 128
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - devicon
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="currentColor"><defs><linearGradient id="SVG1miIGGch" x1="500.003" x2="-.097" y1="579.106" y2="1079.206" gradientTransform="translate(15.534 -96.774)scale(.1939)" gradientUnits="userSpaceOnUse"><stop offset=".003" stop-color="#e44857"/><stop offset=".469" stop-color="#c711e1"/><stop offset="1" stop-color="#7f52ff"/></linearGradient></defs><path fill="url(#SVG1miIGGch)" d="M112.484 112.484H15.516V15.516h96.968L64 64Zm0 0"/></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - devicon
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
