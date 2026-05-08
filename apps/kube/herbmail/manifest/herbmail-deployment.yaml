@@ -18,6 +18,11 @@ spec:
             app: herbmail
     template:
         metadata:
+            annotations:
+                # Manual rollout-restart trigger preserved as a fallback
+                # if Reloader misses a Secret rotation — bump the value
+                # to force the Deployment controller to roll the pods.
+                rollout-restart: '2026-04-03T22:24:57Z'
             labels:
                 app: herbmail
                 version: '0.1.1'
