@@ -558,68 +558,84 @@ const discordRolesBlock = `{% if let Some(is_member) = discord_is_guild_member %
 {% endif %}`;
 
 // Forum activity section — only renders when the user has a row in
-// `forum.public_user_profiles`. Stats grid + recent threads + recent
-// comments. The recent_*_html slots arrive as already-sanitized HTML
-// composed server-side by axum-kbve from per-row askama partials.
+// `forum.public_user_profiles`. Mirrors the premium glassmorphism
+// shell used by the Twitch / RentEarth / Quick Stats cards above
+// (outer gradient article + colored header strip with skewed notch
+// labelling the section). The recent_*_html slots arrive as
+// already-sanitized HTML composed server-side by axum-kbve from
+// per-row askama partials.
 const forumProfileSection = `{% if forum_present %}
-<article class="profile-forum" aria-labelledby="forum-heading">
-    <header class="profile-forum__header">
-        <div class="profile-forum__header-row">
-            <div>
-                <p class="profile-forum__eyebrow">Forum activity</p>
-                <h2 id="forum-heading" class="profile-forum__title">@{{ username }} on the forum</h2>
+<article class="profile-forum" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;" aria-labelledby="forum-heading">
+    <!-- Gradient Top Section -->
+    <div style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 50%, rgba(168, 85, 247, 0.9) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch on LEFT side with FORUM text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 24px; width: 120px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">FORUM</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 95px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="profile-forum__body">
+        <header class="profile-forum__header">
+            <div class="profile-forum__header-row">
+                <div>
+                    <p class="profile-forum__eyebrow">Forum activity</p>
+                    <h2 id="forum-heading" class="profile-forum__title">@{{ username }} on the forum</h2>
+                </div>
+                <a class="profile-forum__cta" href="/forum/">Visit forum →</a>
             </div>
-            <a class="profile-forum__cta" href="/forum/">Visit forum →</a>
-        </div>
-        {% if let Some(sig) = forum_signature %}
-        <p class="profile-forum__signature">{{ sig }}</p>
-        {% endif %}
-    </header>
-
-    <dl class="profile-forum__stats">
-        <div class="profile-forum__stat">
-            <dt>Karma</dt>
-            <dd>{{ forum_karma }}</dd>
-        </div>
-        <div class="profile-forum__stat">
-            <dt>Threads</dt>
-            <dd>{{ forum_post_count }}</dd>
-        </div>
-        <div class="profile-forum__stat">
-            <dt>Comments</dt>
-            <dd>{{ forum_comment_count }}</dd>
-        </div>
-        <div class="profile-forum__stat">
-            <dt>Upvotes</dt>
-            <dd>{{ forum_upvotes_received }}</dd>
-        </div>
-        <div class="profile-forum__stat">
-            <dt>Trust</dt>
-            <dd>L{{ forum_trust_level }}</dd>
-        </div>
-        <div class="profile-forum__stat">
-            <dt>Joined</dt>
-            <dd class="profile-forum__joined-date" data-date="{{ forum_joined_human }}">{{ forum_joined_human }}</dd>
-        </div>
-    </dl>
-
-    <div class="profile-forum__columns">
-        <section class="profile-forum__col">
-            <h3 class="profile-forum__col-title">Recent threads</h3>
-            {% if forum_post_count > 0 %}
-            <div class="profile-forum__list">{{ forum_recent_threads_html|safe }}</div>
-            {% else %}
-            <p class="profile-forum__empty">No threads yet.</p>
+            {% if let Some(sig) = forum_signature %}
+            <p class="profile-forum__signature">{{ sig }}</p>
             {% endif %}
-        </section>
-        <section class="profile-forum__col">
-            <h3 class="profile-forum__col-title">Recent comments</h3>
-            {% if forum_comment_count > 0 %}
-            <div class="profile-forum__list">{{ forum_recent_comments_html|safe }}</div>
-            {% else %}
-            <p class="profile-forum__empty">No comments yet.</p>
-            {% endif %}
-        </section>
+        </header>
+
+        <dl class="profile-forum__stats">
+            <div class="profile-forum__stat">
+                <dt>Karma</dt>
+                <dd>{{ forum_karma }}</dd>
+            </div>
+            <div class="profile-forum__stat">
+                <dt>Threads</dt>
+                <dd>{{ forum_post_count }}</dd>
+            </div>
+            <div class="profile-forum__stat">
+                <dt>Comments</dt>
+                <dd>{{ forum_comment_count }}</dd>
+            </div>
+            <div class="profile-forum__stat">
+                <dt>Upvotes</dt>
+                <dd>{{ forum_upvotes_received }}</dd>
+            </div>
+            <div class="profile-forum__stat">
+                <dt>Trust</dt>
+                <dd>L{{ forum_trust_level }}</dd>
+            </div>
+            <div class="profile-forum__stat">
+                <dt>Joined</dt>
+                <dd class="profile-forum__joined-date" data-date="{{ forum_joined_human }}">{{ forum_joined_human }}</dd>
+            </div>
+        </dl>
+
+        <div class="profile-forum__columns">
+            <section class="profile-forum__col">
+                <h3 class="profile-forum__col-title">Recent threads</h3>
+                {% if forum_post_count > 0 %}
+                <div class="profile-forum__list">{{ forum_recent_threads_html|safe }}</div>
+                {% else %}
+                <p class="profile-forum__empty">No threads yet.</p>
+                {% endif %}
+            </section>
+            <section class="profile-forum__col">
+                <h3 class="profile-forum__col-title">Recent comments</h3>
+                {% if forum_comment_count > 0 %}
+                <div class="profile-forum__list">{{ forum_recent_comments_html|safe }}</div>
+                {% else %}
+                <p class="profile-forum__empty">No comments yet.</p>
+                {% endif %}
+            </section>
+        </div>
     </div>
 </article>
 {% endif %}`;
@@ -2823,26 +2839,12 @@ const forumProfileSection = `{% if forum_present %}
 	 * Astro's data-astro-cid scoping doesn't reach it. Every selector
 	 * here is wrapped in :global() so the styles still apply, matching
 	 * the same pattern used by the .profile-hero* rules above. */
+	/* `.profile-forum` outer card uses inline styles for the shared
+	 * glassmorphism shell (background/border-radius/padding/box-shadow),
+	 * matching the RentEarth / Quick Stats / Twitch cards. Layout-only
+	 * rules live here; the inner `.profile-forum__body` owns the grid. */
 	:global(.profile-forum) {
-		background: linear-gradient(
-			145deg,
-			rgba(30, 41, 59, 0.9) 0%,
-			rgba(15, 23, 42, 0.95) 100%
-		);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 20px;
-		padding: 1.75rem 2rem;
-		box-shadow:
-			0 25px 50px -12px rgba(0, 0, 0, 0.5),
-			0 0 0 1px rgba(255, 255, 255, 0.05),
-			inset 0 1px 0 rgba(255, 255, 255, 0.05),
-			inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-		display: grid;
-		gap: 1.5rem;
 		color: #fafafa;
-		transition:
-			transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-			box-shadow 0.4s ease;
 	}
 	:global(.profile-forum:hover) {
 		transform: translateY(-4px);
@@ -2852,9 +2854,14 @@ const forumProfileSection = `{% if forum_present %}
 			inset 0 1px 0 rgba(255, 255, 255, 0.05),
 			inset 0 -2px 4px rgba(0, 0, 0, 0.2);
 	}
+	:global(.profile-forum__body) {
+		display: grid;
+		gap: 1.5rem;
+		padding: 20px 16px 16px;
+	}
 	@media (max-width: 640px) {
-		:global(.profile-forum) {
-			padding: 1.5rem 1.5rem;
+		:global(.profile-forum__body) {
+			padding: 16px 12px 12px;
 		}
 	}
 	:global(.profile-forum__header) {
