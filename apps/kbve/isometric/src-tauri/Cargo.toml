@@ -1,3 +1,10 @@
+# NOTE: every shared `bevy_*` path-dep below is mirrored in
+# `.github/workflows/utils-file-alterations.yml` under the `isometric:` glob.
+# When you add a new path-dep here, add the matching path filter there or the
+# WASM client will skip rebuilds on shared-crate changes — the lightyear
+# ProtocolPlugin registry will drift between client and server and the
+# protocol-check observer will panic on connect ("the message protocol doesn't match").
+
 [package]
 name = "isometric-game"
 version = "0.1.0"
