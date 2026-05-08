@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-05-07T09:01:05.289Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-05-08T08:39:17.938Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **0** items
+    **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **156** items
+    **165** items
   </Card>
 </CardGrid>
 
@@ -61,15 +61,16 @@ pie showData
     "Backlog" : 7
     "Error" : 9
     "Staging" : 3
-    "Done" : 156
+    "Review" : 1
+    "Done" : 165
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 13
+    "Active (Todo+Staging+Review)" : 14
     "Blocked (Error+Support)" : 9
-    "Done" : 156
+    "Done" : 165
     "Planning (Theory+AI+Backlog)" : 28
 ```
 
@@ -96,9 +97,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>3</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>0</strong>"]
+    Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>156</strong>"]
+    Done["Done<br/><strong>165</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -115,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 151
-    "Issue" : 55
+    "Pull Request" : 160
+    "Issue" : 56
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 151 |
-| atomic | 65 |
-| dev→main | 63 |
-| enhancement | 28 |
+| auto-pr | 160 |
+| atomic | 70 |
+| dev→main | 67 |
+| enhancement | 29 |
 | 0 | 21 |
 | unity | 14 |
 | 1 | 13 |
@@ -153,7 +154,6 @@ pie showData
 | [#7730](https://github.com/KBVE/kbve/issues/7730) | [DISCORDSH] Rust-First Vote Process — Rate-Limited Server Voting Pipeline | — | h0lybyte | 1, enhancement, security |
 | [#7593](https://github.com/KBVE/kbve/issues/7593) | [PG] Deploy CNPG Pooler (PgBouncer) and migrate services from direct -rw connect | — | h0lybyte | 2, enhancement, dependencies |
 | [#8180](https://github.com/KBVE/kbve/issues/8180) | [DISCORDSH] POC: Mockoon docker-compose for local E2E testing | — | h0lybyte | 1, enhancement |
-| [#8189](https://github.com/KBVE/kbve/issues/8189) | [BEVY] NPC Creatures — Performance Audit | — | — | enhancement |
 | [#8245](https://github.com/KBVE/kbve/issues/8245) | perf(dashboard): migrate ClickHouse queries to @kbve/droid worker pipeline with  | — | — | 1, enhancement |
 | [#9789](https://github.com/KBVE/kbve/issues/9789) | [Dashboard] Forgejo dashboard expansion — token scopes, user management, DB role | — | — | 3, enhancement, ci |
 | [#9724](https://github.com/KBVE/kbve/issues/9724) | [ISOMETRIC] [BEVY] Convert sprite atlases from PNG to KTX2 with basis universal  | — | h0lybyte | 1, enhancement |
@@ -161,6 +161,7 @@ pie showData
 | [#9850](https://github.com/KBVE/kbve/issues/9850) | feat(mud): data population, IRC deployment, and isometric integration for MUD co | — | h0lybyte | 2, enhancement |
 | [#8254](https://github.com/KBVE/kbve/issues/8254) | feat(unreal): CI/CD pipeline for UEDevOps plugin (itch.io + Fab) | — | h0lybyte | 2, enhancement |
 | [#10194](https://github.com/KBVE/kbve/issues/10194) | [DISCORDSH] [BEVY] Key Integration Gaps | — | — | enhancement |
+| [#10601](https://github.com/KBVE/kbve/issues/10601) | [DISCORDSH] - [BEVY] - Crate Integration State | — | — | enhancement, rust |
 
 ### AI (1)
 
@@ -217,7 +218,13 @@ pie showData
 | [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Done (156)
+### Review (1)
+
+| # | Title | Priority | Assignees | Labels |
+|---|-------|----------|-----------|--------|
+| [#10631](https://github.com/KBVE/kbve/pull/10631) | Release: 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+
+### Done (165)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -225,10 +232,8 @@ pie showData
 | [#4797](https://github.com/KBVE/kbve/issues/4797) | [Bug] : [Unity] : Enemy Ai should attack player structures, if players are not a | — | h0lybyte | 4, bug, unity |
 | [#6436](https://github.com/KBVE/kbve/issues/6436) | [Concept] : [Unity] : NPCDB - ECS | — | h0lybyte | 0, enhancement, unity |
 | [#6446](https://github.com/KBVE/kbve/issues/6446) | [Concept] : [Unity] : MapDB - Schemas | — | h0lybyte | 0, enhancement, unity |
+| [#8189](https://github.com/KBVE/kbve/issues/8189) | [BEVY] NPC Creatures — Performance Audit | — | — | enhancement |
 | [#9327](https://github.com/KBVE/kbve/issues/9327) | feat(astro-kbve): site graph integration — polish, testing, and rollout | — | h0lybyte | 1, enhancement, todo |
-| [#10260](https://github.com/KBVE/kbve/pull/10260) | Release: 5 features, 3 fixes, 2 docs, 7 perfs, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#10261](https://github.com/KBVE/kbve/pull/10261) | chore(dashboard): daily sync — 2026-04-23 | — | — | auto-pr |
-| [#10263](https://github.com/KBVE/kbve/pull/10263) | Atomic: axum-kbve v1.0.117 post-publish sync | — | — | auto-pr, atomic |
 | [#10264](https://github.com/KBVE/kbve/pull/10264) | Release: 11 features, 1 doc, 1 refactor, 3 chores → Main | — | — | auto-pr, dev→main |
 | [#10265](https://github.com/KBVE/kbve/pull/10265) | Release: 24 features, 5 fixes, 1 CI, 4 refactors, 14 chores → Main | — | — | auto-pr, dev→main |
 | [#10266](https://github.com/KBVE/kbve/pull/10266) | chore(dashboard): daily sync — 2026-04-24 | — | — | auto-pr |
@@ -377,6 +382,17 @@ pie showData
 | [#10540](https://github.com/KBVE/kbve/pull/10540) | Atomic: rareicon v0.1.6 post-publish sync | — | — | auto-pr, atomic |
 | [#10546](https://github.com/KBVE/kbve/pull/10546) | Release: 1 feature, 2 fixes → Main | — | — | auto-pr, dev→main |
 | [#10550](https://github.com/KBVE/kbve/pull/10550) | Release: 3 features, 5 fixes, 1 doc, 1 CI → Main | — | — | auto-pr, dev→main |
+| [#10562](https://github.com/KBVE/kbve/pull/10562) | chore(dashboard): daily sync — 2026-05-07 | — | — | auto-pr |
+| [#10563](https://github.com/KBVE/kbve/pull/10563) | Release: 20 features, 5 fixes, 1 doc, 1 CI, 1 perf, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#10585](https://github.com/KBVE/kbve/pull/10585) | Atomic: mc v1.0.41 post-publish sync | — | — | auto-pr, atomic |
+| [#10586](https://github.com/KBVE/kbve/pull/10586) | Release: 2 features, 3 fixes, 2 docs, 2 refactors, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#10587](https://github.com/KBVE/kbve/pull/10587) | Atomic: axum-kbve v1.0.136 post-publish sync | — | — | auto-pr, atomic |
+| [#10593](https://github.com/KBVE/kbve/pull/10593) | Release: 8 features, 7 fixes, 1 doc, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#10616](https://github.com/KBVE/kbve/pull/10616) | Atomic: edge v0.1.30 post-publish sync | — | — | auto-pr, atomic |
+| [#10617](https://github.com/KBVE/kbve/pull/10617) | Release: 1 feature, 4 fixes, 1 CI, 1 test, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#10618](https://github.com/KBVE/kbve/pull/10618) | Atomic: mc v1.0.42 post-publish sync | — | — | auto-pr, atomic |
+| [#10619](https://github.com/KBVE/kbve/pull/10619) | Atomic: discordsh-bot v0.1.11 post-publish sync | — | — | auto-pr, atomic |
+| [#10621](https://github.com/KBVE/kbve/pull/10621) | Atomic: discordsh v0.1.44 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 
