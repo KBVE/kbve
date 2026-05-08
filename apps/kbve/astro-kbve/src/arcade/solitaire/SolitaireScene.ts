@@ -36,6 +36,7 @@ import {
 	FOUNDATION_SUITS,
 	SUIT_GLYPH,
 	getCardId,
+	getCardIndex,
 	getSuit,
 	isFaceUp,
 	toCardView,
@@ -73,7 +74,12 @@ const DRAG_SCALE = 1.08;
 
 export class SolitaireScene extends Phaser.Scene {
 	private state!: GameState;
-	private views = new Map<string, SceneCardView>();
+	/** Flat-array view lookup keyed by `getCardIndex(byte)` (suit+rank, 0..63
+	 * with 52 populated). Replaces the previous `Map<string, view>` —
+	 * dozens of lookups per move now resolve via a single array dereference
+	 * instead of a string hash. The 64-slot array trades ~12 unused slots
+	 * for branch-free lookup. */
+	private viewByIndex: SceneCardView[] = new Array(64);
 	private dropTargets: DropTarget[] = [];
 	/** Slot rectangles tracked for legal-drop highlighting during a drag. */
 	private foundationSlots: Phaser.GameObjects.Rectangle[] = [];
@@ -408,8 +414,7 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private buildAllCardViews() {
 		for (const byte of this.state.allCards()) {
-			const id = getCardId(byte);
-			this.views.set(id, this.makeCardView(byte));
+			this.viewByIndex[getCardIndex(byte)] = this.makeCardView(byte);
 		}
 	}
 
@@ -693,9 +698,10 @@ export class SolitaireScene extends Phaser.Scene {
 		});
 	}
 
-	/** Resolve the SceneCardView for a given byte (id is suit+rank-stable). */
+	/** Resolve the SceneCardView for a given byte. Index = lower 6 bits of
+	 * the byte (suit+rank, ignoring face-up). Constant-time array access. */
 	private viewFor(byte: CardByte): SceneCardView {
-		const v = this.views.get(getCardId(byte));
+		const v = this.viewByIndex[getCardIndex(byte)];
 		if (!v) throw new Error(`No view for card ${getCardId(byte)}`);
 		return v;
 	}
@@ -713,15 +719,30 @@ export class SolitaireScene extends Phaser.Scene {
 		v.container.setScale(1);
 		v.shadow.setVisible(false);
 		v.hovered = false;
+
 		if (!animate) {
 			v.container.setPosition(x, y);
 			v.container.setRotation(0);
 			return;
 		}
+
+		// Skip the tween allocation if the container is already at the
+		// target with no rotation. layoutAll fires on every state change
+		// and most cards don't actually move per move (39+/52 typical) —
+		// this used to allocate ~40 redundant tween objects per move.
+		// Threshold of 0.5px absorbs sub-pixel rounding from prior tweens.
+		const c = v.container;
+		const noMove = Math.abs(c.x - x) < 0.5 && Math.abs(c.y - y) < 0.5;
+		const noRotation = Math.abs(c.rotation) < 0.001;
+		if (noMove && noRotation) {
+			c.setPosition(x, y); // snap to exact integer for crisp render
+			return;
+		}
+
 		// Reset rotation as part of the tween so cascaded cards (post-win)
 		// rotate back to upright on new game.
 		this.tweens.add({
-			targets: v.container,
+			targets: c,
 			x,
 			y,
 			rotation: 0,

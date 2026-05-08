@@ -27,6 +27,7 @@ export {
 	setFaceUp,
 	getColor,
 	getCardId,
+	getCardIndex,
 	getCardLabel,
 	toCardView,
 } from './cards';

@@ -124,6 +124,14 @@ export function getCardId(card: CardByte): string {
 	return ID_CACHE[card & (RANK_MASK | SUIT_MASK)];
 }
 
+/** Stable integer index for a card's identity (suit + rank, face-up
+ * agnostic). Lower 6 bits of the byte. Used as a flat-array key for
+ * scene-side view lookup — faster than `Map<string>` because there's no
+ * string hashing on every access. Range: 0..63 (only 0..52 populated). */
+export function getCardIndex(card: CardByte): number {
+	return card & (RANK_MASK | SUIT_MASK);
+}
+
 export function getCardLabel(card: CardByte): string {
 	return `${RANK_LABEL[getRank(card)]}${SUIT_GLYPH[getSuit(card)]}`;
 }
