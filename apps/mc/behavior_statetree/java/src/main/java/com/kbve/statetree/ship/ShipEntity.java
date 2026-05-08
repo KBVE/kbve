@@ -83,6 +83,7 @@ public class ShipEntity extends Entity {
     private float lastEnginePowerForSound = 0.0f;
     /** Previous tick's caution bits — used to fire one-shot warning sounds on transition. */
     private byte lastCautionBitsForSound = 0;
+    private boolean lastOnGroundForDust = true;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -713,6 +714,24 @@ public class ShipEntity extends Entity {
         if (this.getEntityWorld() instanceof ServerWorld sw3) {
             spawnBannerParticles(sw3);
         }
+
+        // Takeoff dust — burst of cloud particles on the tick the ship
+        // leaves the ground (or lands), suggesting backwash kicking up
+        // dirt. Mirrors IA's takeoff plume.
+        boolean nowOnGround = this.isOnGround();
+        if (nowOnGround != lastOnGroundForDust
+                && this.getEntityWorld() instanceof ServerWorld swDust) {
+            swDust.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                    this.getX(), this.getY() + 0.1, this.getZ(),
+                    14, 1.2, 0.05, 1.2, 0.05);
+            // Quieter thump for landings, no sound on takeoff (engine sound covers it).
+            if (nowOnGround) {
+                swDust.playSound(null, this.getX(), this.getY(), this.getZ(),
+                        net.minecraft.sound.SoundEvents.ENTITY_HORSE_LAND,
+                        net.minecraft.sound.SoundCategory.NEUTRAL, 0.5f, 0.8f);
+            }
+        }
+        lastOnGroundForDust = nowOnGround;
 
         // Damage smoke — leak black smoke when hull is critical so other
         // pilots can spot a wounded ship at a distance.
