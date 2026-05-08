@@ -133,6 +133,10 @@ public class ShipClientMod implements ClientModInitializer {
         // per-slot cooldown so spamming the key doesn't desync.
         if (client.options.attackKey.isPressed()) {
             ClientPlayNetworking.send(new WeaponFirePayload(activeHelmShipId, targetYaw, targetPitch));
+            // Visual recoil — small upward camera kick read by GameRendererMixin.
+            // Server cooldown prevents abuse; if the shot didn't actually fire
+            // the kick is harmless visual.
+            com.kbve.statetree.mixin.client.GameRendererMixin.weaponRecoil = 4.0f;
         }
     }
 
