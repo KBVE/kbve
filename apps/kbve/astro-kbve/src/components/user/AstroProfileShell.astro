@@ -2,18 +2,20 @@
 /**
  * AstroProfileShell — static HTML shell for all profile states.
  *
- * Every state (loading, unauthenticated, username-setup, profile) is
- * pre-rendered as hidden HTML. The profile-controller.ts script swaps
- * visibility via element IDs — O(1) DOM operations, no React needed
- * for layout-level transitions.
+ * Loading / unauth / username-setup live in a single shared card.
+ * The signed-in `profile` state stacks per-integration cards (KBVE,
+ * Minecraft, …) so each surface owns its own data fetch + skeleton.
  *
- * React is only used for truly interactive islands (OAuth modal via
- * the NavDropdown, not here).
+ * profile-controller.ts swaps visibility via element IDs — O(1) DOM
+ * ops, no React for layout-level transitions.
  */
+
+import KbveProfileCard from './cards/KbveProfileCard.astro';
+import MinecraftProfileCard from './cards/MinecraftProfileCard.astro';
 ---
 
 <div id="profile-shell" class="not-content">
-	<div class="profile-card">
+	<div class="profile-card profile-card--state">
 		{/* ── State: Loading ─────────────────────────────────────────── */}
 		<div id="profile-state-loading">
 			<div class="profile-loading">
@@ -117,130 +119,28 @@
 				</form>
 			</div>
 		</div>
+	</div>
 
-		{/* ── State: Authenticated Profile ───────────────────────────── */}
-		<div id="profile-state-profile" hidden>
-			{/* Header */}
-			<header class="profile-header">
-				<div class="profile-avatar" id="profile-slot-avatar">
-					<span
-						id="profile-slot-avatar-letter"
-						class="profile-avatar-letter">
-						U
-					</span>
-					<img
-						id="profile-slot-avatar-img"
-						class="profile-avatar-img"
-						src=""
-						alt=""
-						hidden
-					/>
-				</div>
-				<div class="profile-info">
-					<h1 id="profile-slot-name" class="profile-name"></h1>
-					<p id="profile-slot-email" class="profile-email"></p>
-					<div id="profile-slot-badges" class="profile-badges">
-						<span class="profile-badge">KBVE Member</span>
-					</div>
-				</div>
-			</header>
+	{/* ── State: Authenticated Profile (card stack) ───────────────── */}
+	<div id="profile-state-profile" class="profile-card-stack" hidden>
+		<KbveProfileCard />
+		<MinecraftProfileCard />
 
-			{/* Public profile link */}
-			<a
-				id="profile-slot-public-link"
-				href="#"
-				class="profile-public-link"
-				target="_blank"
-				rel="noopener noreferrer"
-				hidden>
-				<svg
-					width="14"
-					height="14"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round">
-					<path
-						d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6">
-					</path>
-					<polyline points="15 3 21 3 21 9"></polyline>
-					<line x1="10" y1="14" x2="21" y2="3"></line>
-				</svg>
-				View Public Profile
-			</a>
-
-			{/* Connected accounts */}
-			<section class="profile-section">
-				<h2 class="profile-section-title">Connected Accounts</h2>
-				<div id="profile-slot-providers" class="profile-providers">
-					<p class="profile-providers-empty">
-						Loading connected accounts...
-					</p>
-				</div>
-			</section>
-
-			{/* Account actions */}
-			<section class="profile-section">
-				<h2 class="profile-section-title">Account</h2>
-				<div class="profile-actions">
-					<a href="/settings" class="profile-action-card">
-						<svg
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round">
-							<circle cx="12" cy="12" r="3"></circle>
-							<path
-								d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42">
-							</path>
-						</svg>
-						<span>Settings</span>
-					</a>
-					<button
-						id="profile-logout-btn"
-						type="button"
-						class="profile-action-card profile-action-danger">
-						<svg
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round">
-							<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4">
-							</path>
-							<polyline points="16 17 21 12 16 7"></polyline>
-							<line x1="21" y1="12" x2="9" y2="12"></line>
-						</svg>
-						<span>Sign Out</span>
-					</button>
-				</div>
-			</section>
-
-			<a href="/" class="profile-back-link">
-				<svg
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round">
-					<line x1="19" y1="12" x2="5" y2="12"></line>
-					<polyline points="12 19 5 12 12 5"></polyline>
-				</svg>
-				Back to KBVE
-			</a>
-		</div>
+		<a href="/" class="profile-back-link">
+			<svg
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<line x1="19" y1="12" x2="5" y2="12"></line>
+				<polyline points="12 19 5 12 12 5"></polyline>
+			</svg>
+			Back to KBVE
+		</a>
 	</div>
 
 	{/* ── Footer (always visible) ────────────────────────────────── */}
@@ -297,6 +197,17 @@
 			0% calc(100% - 0.75rem),
 			0% 0.75rem
 		);
+	}
+
+	.profile-card-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		max-width: 480px;
+		margin: 0 auto;
+	}
+	.profile-card-stack > .profile-card {
+		margin: 0;
 	}
 
 	/* ── Loading ──────────────────────────────────────────────────── */

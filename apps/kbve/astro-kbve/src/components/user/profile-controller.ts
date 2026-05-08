@@ -16,6 +16,10 @@
 
 import { setAuth, AuthPresets } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
+import {
+	bootMinecraftCard,
+	clearMinecraftCardCache,
+} from './cards/minecraft-card.controller';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -127,6 +131,7 @@ function setCachedProfile(profile: ApiProfile) {
 function clearProfileCache() {
 	try {
 		localStorage.removeItem(PROFILE_CACHE_KEY);
+		clearMinecraftCardCache();
 	} catch {
 		/* best effort */
 	}
@@ -386,6 +391,7 @@ async function handleSession(session: any) {
 	if (cached?.username) {
 		populateProfile(cached, session);
 		switchState('profile');
+		bootMinecraftCard(userId, token).catch(() => {});
 	}
 
 	// Fetch fresh from API
@@ -394,6 +400,7 @@ async function handleSession(session: any) {
 		if (fresh.username) {
 			populateProfile(fresh, session);
 			switchState('profile');
+			bootMinecraftCard(userId, token).catch(() => {});
 		} else {
 			// No username — show setup form
 			switchState('usernameSetup');
@@ -407,6 +414,7 @@ async function handleSession(session: any) {
 				populateProfile(updated, session);
 				setAuth({ username: newUsername });
 				switchState('profile');
+				bootMinecraftCard(userId, token).catch(() => {});
 			});
 		}
 	} else if (!cached) {
@@ -416,6 +424,7 @@ async function handleSession(session: any) {
 			session,
 		);
 		switchState('profile');
+		bootMinecraftCard(userId, token).catch(() => {});
 	}
 }
 
