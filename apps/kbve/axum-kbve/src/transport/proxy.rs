@@ -609,31 +609,72 @@ pub fn init_clickhouse_direct() -> bool {
     CLICKHOUSE_DIRECT.set(config).is_ok()
 }
 
-#[derive(serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
-struct ClickHouseRequest {
-    command: String,
+/// Body schema for `POST /dashboard/clickhouse/proxy`. Mirrors the legacy
+/// supabase edge function at `/functions/v1/logs` so the dashboard JS in
+/// `clickhouseService.ts` doesn't have to change. Bounds are enforced inside
+/// jedi (`pipe_clickhouse::logs`):
+/// - `minutes` clamped to `1..=10080`
+/// - `limit` clamped to `1..=500`
+/// - `search` truncated to 100 chars
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct ClickHouseLogsRequest {
+    /// Either `"query"` (filtered SELECT) or `"stats"` (GROUP BY).
+    pub command: String,
+    /// Filter by Kubernetes namespace (e.g. `"kbve"`, `"kilobase"`).
     #[serde(default)]
-    pod_namespace: Option<String>,
+    pub pod_namespace: Option<String>,
+    /// Filter by exact pod name.
     #[serde(default)]
-    pod_name: Option<String>,
+    pub pod_name: Option<String>,
+    /// Filter by `service` label as emitted by Vector (e.g. `"axum-kbve"`).
     #[serde(default)]
-    service: Option<String>,
+    pub service: Option<String>,
+    /// Filter by log level (`"error"`, `"warn"`, `"info"`, ...). Lowercased
+    /// before matching.
     #[serde(default)]
-    level: Option<String>,
+    pub level: Option<String>,
+    /// `ILIKE %search%` against the message body.
     #[serde(default)]
-    search: Option<String>,
+    pub search: Option<String>,
+    /// Lookback window in minutes. Defaults to 60, clamped 1..=10080.
     #[serde(default)]
-    minutes: Option<u32>,
+    pub minutes: Option<u32>,
+    /// Max rows returned. Defaults to 100, clamped 1..=500. Stats responses
+    /// always return up to 200 rows regardless of this value.
     #[serde(default)]
-    limit: Option<u32>,
+    pub limit: Option<u32>,
 }
 
-pub async fn clickhouse_logs_proxy_handler(
-    _path: Option<Path<String>>,
-    headers: HeaderMap,
-    body: Bytes,
-) -> Response {
+/// Response shape for the ClickHouse logs route. `rows` is the raw
+/// `JSONEachRow` output from ClickHouse — one object per record with keys
+/// matching `observability.logs_distributed` columns for `"query"`, or
+/// `{ pod_namespace, service, level, cnt }` for `"stats"`.
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct ClickHouseLogsResponse {
+    /// One JSON object per row. Shape depends on `command`:
+    /// - `"query"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`
+    /// - `"stats"` → `{ pod_namespace, service, level, cnt }`
+    #[schema(value_type = Vec<serde_json::Value>)]
+    pub rows: Vec<serde_json::Value>,
+    pub count: usize,
+}
+
+#[utoipa::path(
+    post,
+    path = "/dashboard/clickhouse/proxy",
+    tag = "dashboard",
+    request_body = ClickHouseLogsRequest,
+    security(("bearerAuth" = [])),
+    responses(
+        (status = 200, description = "Rows from observability.logs_distributed (query) or aggregated counts (stats)", body = ClickHouseLogsResponse),
+        (status = 400, description = "Malformed JSON body or unknown `command`"),
+        (status = 401, description = "Missing or invalid Bearer token"),
+        (status = 403, description = "Token lacks DASHBOARD_VIEW staff permission"),
+        (status = 502, description = "ClickHouse cluster returned an error or was unreachable"),
+        (status = 503, description = "ClickHouse direct route not configured (CLICKHOUSE_* env vars unset)")
+    )
+)]
+pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> Response {
     if let Err(resp) = require_dashboard_view(&headers, "ClickHouse Logs").await {
         return resp;
     }
@@ -649,7 +690,7 @@ pub async fn clickhouse_logs_proxy_handler(
         }
     };
 
-    let req: ClickHouseRequest = match serde_json::from_slice(&body) {
+    let req: ClickHouseLogsRequest = match serde_json::from_slice(&body) {
         Ok(r) => r,
         Err(e) => {
             return (
@@ -691,7 +732,11 @@ pub async fn clickhouse_logs_proxy_handler(
     };
 
     match result {
-        Ok(out) => axum::Json(out).into_response(),
+        Ok(out) => axum::Json(ClickHouseLogsResponse {
+            rows: out.rows,
+            count: out.count,
+        })
+        .into_response(),
         Err(e) => {
             warn!("ClickHouse logs query failed: {e}");
             (
