@@ -6,12 +6,12 @@ use poise::serenity_prelude as serenity;
 use kbve::MemberStatus;
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::game::{self, card, content, persistence, render, types::*};
+use crate::discord::game::{self, card, content, pathfinding, persistence, render, types::*};
 
 /// Dungeon crawler game — stress-test embeds, buttons, and select menus.
 #[poise::command(
     slash_command,
-    subcommands("start", "join", "leave", "status", "end", "leaderboard")
+    subcommands("start", "join", "leave", "status", "end", "leaderboard", "route")
 )]
 pub async fn dungeon(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
@@ -634,6 +634,107 @@ async fn leaderboard(
         .color(0xFFD700);
 
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
+
+    Ok(())
+}
+
+/// Shortest revealed-tile route to the nearest tile of the given kind.
+#[poise::command(slash_command)]
+async fn route(
+    ctx: Context<'_>,
+    #[description = "Where to head: boss / city / merchant / rest / treasure / story"]
+    target: String,
+) -> Result<(), Error> {
+    let user = ctx.author().id;
+
+    let goal_room_type = match target.to_lowercase().as_str() {
+        "boss" => RoomType::Boss,
+        "city" | "town" => RoomType::UndergroundCity,
+        "merchant" | "market" | "shop" => RoomType::Merchant,
+        "rest" | "shrine" | "campfire" => RoomType::RestShrine,
+        "treasure" | "loot" => RoomType::Treasure,
+        "story" | "lore" => RoomType::Story,
+        other => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(format!(
+                        "Unknown target `{other}`. Try: boss / city / merchant / rest / treasure / story.",
+                    ))
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+
+    let sid = match ctx.data().app.sessions.find_by_user(user) {
+        Some(s) => s,
+        None => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content("You're not in any active session.")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
+
+    let handle = match ctx.data().app.sessions.get(&sid) {
+        Some(h) => h,
+        None => return Ok(()),
+    };
+
+    let session = handle.lock().await;
+    let from = session.map.position;
+    let path = pathfinding::path_to_goal(
+        &session.map,
+        from,
+        pathfinding::GoalKind::Room(goal_room_type.clone()),
+    );
+    let goal_tile = path
+        .as_ref()
+        .and_then(|p| p.last())
+        .and_then(|p| session.map.tiles.get(p))
+        .cloned();
+    drop(session);
+
+    let target_label = match goal_room_type {
+        RoomType::Boss => "boss arena",
+        RoomType::UndergroundCity => "underground city",
+        RoomType::Merchant => "merchant",
+        RoomType::RestShrine => "rest shrine",
+        RoomType::Treasure => "treasure room",
+        RoomType::Story => "story room",
+        _ => "tile",
+    };
+
+    let body = match (path, goal_tile) {
+        (Some(path), Some(goal_tile)) if path.len() >= 2 => {
+            let dirs = pathfinding::directions_along_path(&path);
+            let route = dirs
+                .iter()
+                .map(|d| d.label())
+                .collect::<Vec<_>>()
+                .join(" \u{2192} "); // " → "
+            let hops = dirs.len();
+            format!(
+                "{} hop(s) to **{}** ({}):\n{}",
+                hops, goal_tile.name, target_label, route
+            )
+        }
+        (Some(path), Some(goal_tile)) if path.len() == 1 => format!(
+            "You're already in **{}** ({}).",
+            goal_tile.name, target_label
+        ),
+        _ => format!(
+            "No revealed path to a {} from your current room. Explore further first.",
+            target_label
+        ),
+    };
+
+    ctx.send(poise::CreateReply::default().content(body).ephemeral(true))
+        .await?;
 
     Ok(())
 }
