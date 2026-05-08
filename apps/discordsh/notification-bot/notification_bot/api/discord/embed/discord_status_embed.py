@@ -47,7 +47,8 @@ class BotStatusView(ui.View):
         except Exception as e:
             # Fallback to basic status without health data if health collection fails
             import logging
-            logging.warning(f"Health data collection failed, using basic status: {e}")
+            logging.warning(
+                f"Health data collection failed, using basic status: {e}")
             status_dict = self.__bot_instance.get_status()
             return BotStatusModel.from_status_dict(status_dict)
 
@@ -254,16 +255,19 @@ class BotStatusView(ui.View):
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(
+            f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(
+                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(
+                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
@@ -318,16 +322,19 @@ class BotStatusView(ui.View):
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(
+            f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(
+                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(
+                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
@@ -338,7 +345,8 @@ class BotStatusView(ui.View):
             # Clean up old messages
             logger.info("Starting thread cleanup...")
             deleted_count = await self.__bot_instance.cleanup_thread_messages()
-            logger.info(f"Thread cleanup completed, deleted {deleted_count} messages")
+            logger.info(
+                f"Thread cleanup completed, deleted {deleted_count} messages")
 
             await interaction.followup.send(
                 f"🧹 Cleaned up {deleted_count} old messages from thread",
@@ -362,30 +370,36 @@ class BotStatusView(ui.View):
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(
+            f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(
+                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(
+                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
+        old_text: Optional[str] = None
         try:
             # Check if user has permission to restart
             if not self._has_restart_permission(interaction.user, interaction.guild):
-                logger.info(f"User {interaction.user} denied restart permission")
+                logger.info(
+                    f"User {interaction.user} denied restart permission")
                 await interaction.response.send_message(
                     "❌ You don't have permission to restart the bot. Admin role required.",
                     ephemeral=True
                 )
                 return
 
-            logger.info(f"User {interaction.user} has restart permission, proceeding...")
+            logger.info(
+                f"User {interaction.user} has restart permission, proceeding...")
             await interaction.response.defer()
 
             # Update status to show pending restart
@@ -411,7 +425,7 @@ class BotStatusView(ui.View):
 
         except Exception as e:
             # Restore original text if error
-            if 'old_text' in locals():
+            if old_text is not None:
                 self.status_text = old_text
                 embed = self.create_status_embed()
                 await interaction.followup.edit_message(
