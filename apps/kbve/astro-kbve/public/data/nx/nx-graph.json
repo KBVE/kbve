@@ -82,8 +82,7 @@
                 "local": {},
                 "production": {
                   "commands": [
-                    "npx nx run firecracker-python-net:containerx:production",
-                    "VERSION=$(grep -m1 'version' packages/docker/firecracker/python/net/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker buildx imagetools create --tag ghcr.io/kbve/firecracker-python-net:${VERSION} ghcr.io/kbve/firecracker-python-net:latest && echo \"Published ghcr.io/kbve/firecracker-python-net:${VERSION}\""
+                    "npx nx run firecracker-python-net:containerx:production"
                   ]
                 }
               },
@@ -114,18 +113,10 @@
                   "tags": [
                     "ghcr.io/kbve/firecracker-python-net:latest"
                   ],
-                  "push": true,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/firecracker-python-net"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/firecracker-python-net:buildcache,mode=max"
-                  ]
+                  "load": true,
+                  "push": false,
+                  "provenance": "false",
+                  "sbom": "false"
                 }
               },
               "parallelism": true
@@ -832,23 +823,45 @@
               ],
               "options": {
                 "commands": [
-                  "echo '=== Runtime image tests ==='",
-                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.User}}' | grep -q 10001 && echo 'PASS: non-root user 10001'",
-                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.WorkingDir}}' | grep -q /app && echo 'PASS: workdir /app'",
-                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q LD_PRELOAD && echo 'PASS: jemalloc LD_PRELOAD set'",
-                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q MALLOC_CONF && echo 'PASS: jemalloc MALLOC_CONF set'",
-                  "docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test | tar -t | grep -q libjemalloc && echo 'PASS: libjemalloc.so present' && docker rm chisel-runtime-test > /dev/null 2>&1",
-                  "docker create --name chisel-runtime-test2 ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test2 | tar -t | grep -q libpq && echo 'PASS: libpq.so present' && docker rm chisel-runtime-test2 > /dev/null 2>&1",
-                  "echo '=== Builder image tests ==='",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo --version",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder cargo chef --version",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder node --version",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pnpm --version",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder protoc --version",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder pkg-config --libs libpq",
+                  "echo '=== Runtime image — config tests ==='",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.User}}' | grep -q '^10001:10001$' && echo 'PASS: non-root user 10001:10001'",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Config.WorkingDir}}' | grep -q '^/app$' && echo 'PASS: workdir /app'",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2$' && echo 'PASS: jemalloc LD_PRELOAD set'",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MALLOC_CONF=' && echo 'PASS: jemalloc MALLOC_CONF set'",
+                  "echo '=== Runtime image — content tests ==='",
+                  "docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test > /tmp/chisel-runtime.tar && docker rm chisel-runtime-test > /dev/null 2>&1",
+                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libjemalloc.so.2' && echo 'PASS: libjemalloc.so.2 present'",
+                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libpq.so.5' && echo 'PASS: libpq.so.5 present'",
+                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libssl.so' && echo 'PASS: libssl present (TLS)'",
+                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'etc/ssl/certs/ca-certificates.crt' && echo 'PASS: CA bundle present'",
+                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'lib/x86_64-linux-gnu/libc.so' && echo 'PASS: libc present'",
+                  "! tar -tf /tmp/chisel-runtime.tar | grep -qE '^bin/(sh|bash|dash)$' && echo 'PASS: no shell in runtime (chiseled)'",
+                  "! tar -tf /tmp/chisel-runtime.tar | grep -qE '^usr/bin/(apt|dpkg)$' && echo 'PASS: no package manager in runtime'",
+                  "! tar -tf /tmp/chisel-runtime.tar | grep -q '^etc/shadow$' && echo 'PASS: no /etc/shadow leaked'",
+                  "echo '=== Runtime image — size guard ==='",
+                  "RUNTIME_BYTES=$(docker image inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Size}}') && echo \"Runtime size: $((RUNTIME_BYTES / 1024 / 1024)) MiB\" && [ $RUNTIME_BYTES -lt 41943040 ] && echo 'PASS: runtime under 40 MiB'",
+                  "rm -f /tmp/chisel-runtime.tar",
+                  "echo '=== Builder image — toolchain tests ==='",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustc --version | grep -q \"rustc 1.94\"' && echo 'PASS: rustc 1.94 pinned'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo --version' && echo 'PASS: cargo present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo chef --version' && echo 'PASS: cargo-chef present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'sccache --version' && echo 'PASS: sccache present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'mold --version' && echo 'PASS: mold linker present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustup target list --installed | grep -q x86_64-unknown-linux-gnu' && echo 'PASS: x86_64-unknown-linux-gnu target installed'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'protoc --version | grep -q libprotoc' && echo 'PASS: protoc present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'brotli --version' && echo 'PASS: brotli present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'gzip --version | head -1' && echo 'PASS: gzip present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'pkg-config --libs libpq | grep -q lpq' && echo 'PASS: libpq-dev linkable via pkg-config'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'pkg-config --libs openssl | grep -q lssl' && echo 'PASS: libssl-dev linkable via pkg-config'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'node --version | grep -q ^v24' && echo 'PASS: node v24 active'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'pnpm --version' && echo 'PASS: pnpm present'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'echo | openssl s_client -servername github.com -connect github.com:443 -verify_return_error -brief 2>&1 | grep -q \"Verification: OK\"' && echo 'PASS: builder CA bundle validates real TLS'",
+                  "echo '=== Builder image — env hygiene ==='",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^RUSTC_WRAPPER=/usr/local/cargo/bin/sccache$' && echo 'PASS: RUSTC_WRAPPER=sccache'",
+                  "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
                   "echo '=== All chisel base image tests passed ==='",
-                  "echo 'Runtime: user, workdir, jemalloc, libpq OK'",
-                  "echo 'Builder: cargo, cargo-chef, node, pnpm, protoc, libpq-dev OK'"
+                  "echo 'Runtime: user, workdir, jemalloc, libpq, libssl, CA bundle, no-shell, size<40MiB'",
+                  "echo 'Builder: rustc 1.94, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
                 ],
                 "parallel": false
               },
@@ -3406,12 +3419,36 @@
               "configurations": {},
               "parallelism": true
             },
+            "gen:icons-install": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm install --ignore-workspace"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:icons-clean": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm clean:deps"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "gen:icons": {
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "apps/rareicon/astro-rareicon",
+                "cwd": "apps/rareicon/icons-codegen",
                 "commands": [
-                  "node scripts/gen-lucide-icons.mjs"
+                  "pnpm gen:lucide"
                 ],
                 "parallel": false
               },
@@ -3421,9 +3458,81 @@
             "gen:brand-icons": {
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "apps/rareicon/astro-rareicon",
+                "cwd": "apps/rareicon/icons-codegen",
                 "commands": [
-                  "node scripts/gen-simple-icons.mjs"
+                  "pnpm gen:simple"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:tabler-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:tabler"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:phosphor-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:phosphor"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:game-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:gameicons"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:iconify-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:iconify"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:merge-variants": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:merge"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:all-icons": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm gen:all"
                 ],
                 "parallel": false
               },
@@ -7546,7 +7655,8 @@
                 "{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
                 "{workspaceRoot}/packages/data/codegen/generated/mapdb-data.binpb",
                 "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json",
-                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb"
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb",
+                "{workspaceRoot}/apps/discordsh/discordsh-bot/data/mapdb.json"
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-mapdb-data.mjs",
@@ -8186,6 +8296,21 @@
               },
               "parallelism": true
             },
+            "emit-openapi": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/packages/data/openapi/openapi.json"
+              ],
+              "options": {
+                "commands": [
+                  "cargo build -p axum-kbve --target-dir dist/target/axum-kbve --quiet",
+                  "./dist/target/axum-kbve/debug/axum-kbve --emit-openapi > packages/data/openapi/openapi.json"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "container-prep": {
               "executor": "nx:run-commands",
               "options": {
@@ -8622,6 +8747,23 @@
                 "default",
                 "^production"
               ]
+            },
+            "sync:openapi": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/openapi/openapi.json",
+                "{workspaceRoot}/packages/data/codegen/gen-openapi-types.mjs"
+              ],
+              "outputs": [
+                "{projectRoot}/src/lib/client/kbve/openapi-types.ts"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-openapi-types.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
             },
             "publish": {
               "executor": "nx:run-commands",
@@ -12405,6 +12547,15 @@
             "container": {
               "executor": "@nx-tools/nx-container:build",
               "defaultConfiguration": "local",
+              "dependsOn": [
+                {
+                  "target": "container-mods",
+                  "projects": [
+                    "mc"
+                  ],
+                  "params": "forward"
+                }
+              ],
               "options": {
                 "engine": "docker",
                 "context": ".",
@@ -12458,6 +12609,32 @@
                   "push": true,
                   "tags": [
                     "ghcr.io/kbve/mc:gradle"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "container-mods": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/mc/Dockerfile.mods",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "ghcr.io/kbve/mc:mods"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/mc:mods"
                   ]
                 }
               },
@@ -12921,6 +13098,11 @@
         {
           "source": "astro-kbve",
           "target": "droid",
+          "type": "static"
+        },
+        {
+          "source": "astro-kbve",
+          "target": "devops",
           "type": "static"
         },
         {
