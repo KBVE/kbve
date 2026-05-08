@@ -28,6 +28,9 @@ importers:
             '@iconify-json/iconoir':
                 specifier: ^1.2.11
                 version: 1.2.11
+            '@iconify-json/logos':
+                specifier: ^1.2.11
+                version: 1.2.11
             '@iconify-json/lucide-lab':
                 specifier: ^1.2.3
                 version: 1.2.3
@@ -106,6 +109,12 @@ packages:
         resolution:
             {
                 integrity: sha512-clBrCsZPkmdksYOkufVp7aoAU1j1hFQPrLUooWWmoYIMvKskUHQ+IDnwV7agTR+tGYHbud7OP2SRfYEpnqFDNw==,
+            }
+
+    '@iconify-json/logos@1.2.11':
+        resolution:
+            {
+                integrity: sha512-fOo4pGEatuyuCFNL+cwquYMa2Im0oJHRHV7lt/Qqs5Ode/lPImHCQcfTtPzZj7qYMPb/h8YHN3TG54uEowrjNQ==,
             }
 
     '@iconify-json/lucide-lab@1.2.3':
@@ -220,6 +229,10 @@ snapshots:
             '@iconify/types': 2.0.0
 
     '@iconify-json/iconoir@1.2.11':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/logos@1.2.11':
         dependencies:
             '@iconify/types': 2.0.0
 
