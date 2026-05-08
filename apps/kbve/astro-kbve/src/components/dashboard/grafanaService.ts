@@ -454,6 +454,15 @@ class GrafanaService {
 	public readonly $namespacePods = atom<NamespacePodCount[]>([]);
 	public readonly $drillDownLoading = atom<boolean>(false);
 
+	// Alerts (populated by ReactGrafanaAlerts island; exposed here so the
+	// header island can subscribe to firing-count + state without a second
+	// fetch).
+	public readonly $alerts = atom<Alert[]>([]);
+	public readonly $alertsFiring = atom<number>(0);
+	public readonly $alertsPending = atom<number>(0);
+	public readonly $alertsLoaded = atom<boolean>(false);
+	public readonly $alertsError = atom<string | null>(null);
+
 	// --- Init ---
 
 	private _loadTimeRange(): TimeRangeKey {
@@ -1128,4 +1137,122 @@ export async function fetchPodMetrics(
 
 	setCachedPodMetrics(uid, ns, pod, tr, metrics);
 	return metrics;
+}
+
+// ---------------------------------------------------------------------------
+// Alerts — surfaces firing PrometheusRules through Grafana's unified
+// alerting Prometheus-compatible API. One endpoint, no datasource lookup,
+// matches the same proxy auth path the rest of the dashboard uses.
+//
+// Endpoint: GET /api/prometheus/grafana/api/v1/alerts (proxied)
+// Response: { status: "success", data: { alerts: Alert[] } }
+//
+// Cached per-user (no time-range key — alert state is "now") with a 60s
+// TTL so the alerts panel stays close to live without hammering Grafana.
+// ---------------------------------------------------------------------------
+
+export interface Alert {
+	labels: Record<string, string>;
+	annotations: Record<string, string>;
+	state: 'firing' | 'pending' | 'inactive' | string;
+	activeAt: string | null;
+	value: string | null;
+}
+
+export interface AlertsSnapshot {
+	alerts: Alert[];
+	firingCount: number;
+	pendingCount: number;
+	fetchedAt: number;
+	fromCache: boolean;
+}
+
+interface CachedAlerts {
+	snapshot: AlertsSnapshot;
+	user_id: string;
+}
+
+const ALERTS_CACHE_KEY = 'cache:grafana:alerts';
+const ALERTS_CACHE_TTL_MS = 60 * 1000;
+
+function getCachedAlerts(uid: string): AlertsSnapshot | null {
+	try {
+		const raw = localStorage.getItem(ALERTS_CACHE_KEY);
+		if (!raw) return null;
+		const cached: CachedAlerts = JSON.parse(raw);
+		if (cached.user_id !== uid) {
+			localStorage.removeItem(ALERTS_CACHE_KEY);
+			return null;
+		}
+		if (Date.now() - cached.snapshot.fetchedAt > ALERTS_CACHE_TTL_MS) {
+			return null;
+		}
+		return { ...cached.snapshot, fromCache: true };
+	} catch {
+		return null;
+	}
+}
+
+function setCachedAlerts(uid: string, snapshot: AlertsSnapshot): void {
+	try {
+		const payload: CachedAlerts = {
+			snapshot: { ...snapshot, fromCache: false },
+			user_id: uid,
+		};
+		localStorage.setItem(ALERTS_CACHE_KEY, JSON.stringify(payload));
+	} catch {
+		/* quota exceeded */
+	}
+}
+
+function rankAlert(a: Alert): number {
+	const sev = (a.labels.severity ?? '').toLowerCase();
+	if (sev === 'critical') return 0;
+	if (sev === 'high') return 1;
+	if (sev === 'warning' || sev === 'medium') return 2;
+	if (sev === 'info' || sev === 'low') return 3;
+	return 4;
+}
+
+export async function fetchAlerts(
+	token: string,
+	uid: string,
+	skipCache = false,
+): Promise<AlertsSnapshot | null> {
+	if (!skipCache) {
+		const cached = getCachedAlerts(uid);
+		if (cached) return cached;
+	}
+
+	const resp = await fetch(
+		`${PROXY_BASE}/api/prometheus/grafana/api/v1/alerts`,
+		{ headers: { Authorization: `Bearer ${token}` } },
+	);
+
+	if (resp.status === 403) {
+		throw new AccessRestrictedError();
+	}
+	if (!resp.ok) return null;
+
+	const body: { data?: { alerts?: Alert[] } } = await resp.json();
+	const raw = body?.data?.alerts ?? [];
+
+	const sorted = [...raw].sort((a, b) => {
+		const sevDiff = rankAlert(a) - rankAlert(b);
+		if (sevDiff !== 0) return sevDiff;
+		return (a.labels.alertname ?? '').localeCompare(
+			b.labels.alertname ?? '',
+		);
+	});
+
+	const snapshot: AlertsSnapshot = {
+		alerts: sorted,
+		firingCount: sorted.filter((a) => a.state === 'firing').length,
+		pendingCount: sorted.filter((a) => a.state === 'pending').length,
+		fetchedAt: Date.now(),
+		fromCache: false,
+	};
+
+	setCachedAlerts(uid, snapshot);
+	return snapshot;
 }
