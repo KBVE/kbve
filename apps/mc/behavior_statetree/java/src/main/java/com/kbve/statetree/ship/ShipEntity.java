@@ -81,6 +81,8 @@ public class ShipEntity extends Entity {
     private double lastY = 0.0;
     private float inWaterLevel = 0.0f;
     private float lastEnginePowerForSound = 0.0f;
+    /** Previous tick's caution bits — used to fire one-shot warning sounds on transition. */
+    private byte lastCautionBitsForSound = 0;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -307,15 +309,24 @@ public class ShipEntity extends Entity {
     }
 
     private void destroyAndExplode(ServerWorld world) {
+        // Tally TNT in cargo before clearing — boosts explosion radius so
+        // hauling TNT around becomes a calculated risk (mirrors IA behaviour).
+        int tntCount = 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(i);
+            if (s.isOf(net.minecraft.item.Items.TNT)) tntCount += s.getCount();
+        }
+
         // Drop entire inventory (upgrades + banner + weapons + cargo) for salvage.
         for (int i = 0; i < inventory.size(); i++) {
             net.minecraft.item.ItemStack s = inventory.getStack(i);
             if (!s.isEmpty()) this.dropStack(world, s);
         }
         inventory.clear();
-        if (getStats().canExplodeOnCrash()) {
+        if (getStats().canExplodeOnCrash() || tntCount > 0) {
+            float power = 2.5f + Math.min(8.0f, tntCount * 0.5f);
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
-                    2.5f, World.ExplosionSourceType.MOB);
+                    power, World.ExplosionSourceType.MOB);
         }
         this.removeAllPassengers();
         this.discard();
@@ -379,17 +390,28 @@ public class ShipEntity extends Entity {
             return ActionResult.PASS;
         }
 
-        // Repair: iron ingot → +25 HP per ingot.
-        if (stack.isOf(net.minecraft.item.Items.IRON_INGOT) && getShipHealth() < MAX_HEALTH) {
-            float before = getShipHealth();
-            setShipHealth(before + 25.0f);
-            if (!player.getAbilities().creativeMode) stack.decrement(1);
-            if (!this.getEntityWorld().isClient()) {
-                player.sendMessage(net.minecraft.text.Text.of(
-                        String.format("Ship repaired: %.0f → %.0f / %.0f",
-                                before, getShipHealth(), MAX_HEALTH)), true);
+        // Repair: any iron-tier material works.
+        //   IRON_INGOT      +25 HP
+        //   IRON_BLOCK      +50 HP (denser slab patches more hull)
+        //   COPPER_INGOT    +15 HP (cheaper but weaker)
+        //   NETHERITE_INGOT +60 HP (premium full-stack patch)
+        if (getShipHealth() < MAX_HEALTH) {
+            float repairAmt = 0f;
+            if (stack.isOf(net.minecraft.item.Items.IRON_INGOT))            repairAmt = 25f;
+            else if (stack.isOf(net.minecraft.item.Items.IRON_BLOCK))       repairAmt = 50f;
+            else if (stack.isOf(net.minecraft.item.Items.COPPER_INGOT))     repairAmt = 15f;
+            else if (stack.isOf(net.minecraft.item.Items.NETHERITE_INGOT))  repairAmt = 60f;
+            if (repairAmt > 0f) {
+                float before = getShipHealth();
+                setShipHealth(before + repairAmt);
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+                if (!this.getEntityWorld().isClient()) {
+                    player.sendMessage(net.minecraft.text.Text.of(
+                            String.format("Ship repaired: %.0f → %.0f / %.0f",
+                                    before, getShipHealth(), MAX_HEALTH)), true);
+                }
+                return ActionResult.SUCCESS;
             }
-            return ActionResult.SUCCESS;
         }
 
         // Refuel: coal → +200 fuel; lava bucket → +2000 fuel (consumes bucket).
@@ -630,6 +652,34 @@ public class ShipEntity extends Entity {
             this.dataTracker.set(CAUTION_BITS, (byte) caution);
         }
 
+        // Audio warnings — one-shot when a caution flag flips ON. Volume kept
+        // tame so the cockpit isn't a constant siren when the pilot is
+        // already grazing terrain.
+        int newCautions = caution & ~lastCautionBitsForSound;
+        if ((newCautions & CAUTION_PULL_UP) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.6f, 0.6f);
+        }
+        if ((newCautions & CAUTION_DAMAGED) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_ANVIL_LAND,
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.4f, 1.6f);
+        }
+        if ((newCautions & CAUTION_LOW_FUEL) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.5f, 1.4f);
+        }
+        // PULL_UP keeps beeping while held — fire every 8 ticks for urgency.
+        if ((caution & CAUTION_PULL_UP) != 0 && this.age % 8 == 0
+                && (newCautions & CAUTION_PULL_UP) == 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.4f, 0.6f);
+        }
+        lastCautionBitsForSound = (byte) caution;
+
         this.setVelocity(vel);
         if (vel.lengthSquared() > 1.0e-6) {
             this.move(MovementType.SELF, vel);
@@ -640,10 +690,37 @@ public class ShipEntity extends Entity {
             spawnTrailParticles(sw, power);
         }
 
+        // Boost speed-lines — perpendicular cloud streaks while throttle
+        // exceeds normal max (sprint key bumps maxThrottle to 1.5). Mirrors
+        // IA's high-speed visual flourish.
+        if (power > 1.0f && this.getEntityWorld() instanceof ServerWorld swBoost
+                && this.age % 2 == 0) {
+            double radB = Math.toRadians(this.getYaw());
+            double sx = Math.cos(radB) * 0.8;
+            double sz = Math.sin(radB) * 0.8;
+            for (int i = 0; i < 2; i++) {
+                double sign = i == 0 ? 1.0 : -1.0;
+                swBoost.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                        this.getX() + sx * sign,
+                        this.getY() + 0.3,
+                        this.getZ() + sz * sign,
+                        1, 0.0, 0.0, 0.0, 0.05);
+            }
+        }
+
         // Banner color plume — independent of throttle so a parked ship
         // still flies its colors.
         if (this.getEntityWorld() instanceof ServerWorld sw3) {
             spawnBannerParticles(sw3);
+        }
+
+        // Damage smoke — leak black smoke when hull is critical so other
+        // pilots can spot a wounded ship at a distance.
+        if (getShipHealth() < MAX_HEALTH * 0.25f && this.age % 3 == 0
+                && this.getEntityWorld() instanceof ServerWorld swDmg) {
+            swDmg.spawnParticles(net.minecraft.particle.ParticleTypes.LARGE_SMOKE,
+                    this.getX(), this.getY() + 0.8, this.getZ(),
+                    1, 0.2, 0.1, 0.2, 0.02);
         }
 
         // Engine sound — pitch scales with throttle. Cadence speeds up as
