@@ -599,7 +599,7 @@ const forumProfileSection = `{% if forum_present %}
         </div>
         <div class="profile-forum__stat">
             <dt>Joined</dt>
-            <dd>{{ forum_joined_human }}</dd>
+            <dd class="profile-forum__joined-date" data-date="{{ forum_joined_human }}">{{ forum_joined_human }}</dd>
         </div>
     </dl>
 
@@ -2942,6 +2942,10 @@ const forumProfileSection = `{% if forum_present %}
 		font-weight: 700;
 		color: #fafafa;
 	}
+	:global(.profile-forum__joined-date) {
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
 
 	:global(.profile-forum__columns) {
 		display: grid;
@@ -3084,6 +3088,27 @@ const forumProfileSection = `{% if forum_present %}
 			dateEl.textContent = date.toLocaleDateString('en-US', options);
 		} catch (e) {
 			console.warn('Failed to parse date:', e);
+		}
+	})();
+
+	// Format forum joined date — strip the trailing time so the stat fits
+	// in a single column. axum-kbve currently emits "YYYY-MM-DD HH:MM:SS"
+	// from humanize_ts; we want just the date portion in the stats grid.
+	(function () {
+		const dateEl = document.querySelector('.profile-forum__joined-date');
+		if (!dateEl) return;
+
+		const rawDate = dateEl.getAttribute('data-date');
+		if (!rawDate) return;
+
+		try {
+			const isoLike = rawDate.replace(' ', 'T');
+			const date = new Date(isoLike);
+			if (Number.isNaN(date.getTime())) return;
+			const options = { year: 'numeric', month: 'short', day: 'numeric' };
+			dateEl.textContent = date.toLocaleDateString('en-US', options);
+		} catch (e) {
+			console.warn('Failed to parse forum joined date:', e);
 		}
 	})();
 
