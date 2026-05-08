@@ -5,6 +5,12 @@ metadata:
     namespace: memes
     labels:
         app: memes
+    annotations:
+        # Reloader rolls this Deployment whenever supabase-shared
+        # rotates (rendered hourly by memes-supabase-secrets
+        # ExternalSecret) — Supabase JWT/key rotations propagate
+        # without a manual kubectl rollout restart.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     selector:
@@ -13,11 +19,24 @@ spec:
     template:
         metadata:
             annotations:
+                # Manual rollout-restart trigger preserved as a fallback
+                # if Reloader misses a Secret rotation — bump the value
+                # to force the Deployment controller to roll the pods.
                 rollout-restart: '2026-04-03T22:25:16Z'
             labels:
                 app: memes
                 version: '0.1.8'
         spec:
+            serviceAccountName: memes-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: memes
                   image: ghcr.io/kbve/memes:0.1.8
@@ -47,6 +66,21 @@ spec:
                       limits:
                           memory: '1024Mi'
                           cpu: '2000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the axum binary while the
+                # rootfs itself stays read-only.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service
