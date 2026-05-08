@@ -22,6 +22,8 @@ interface Props {
 	icons: Icon[];
 	swatchSize?: number;
 	default_license?: LicenseInfo;
+	keywords?: string[];
+	pagefindFilters?: string[];
 }
 
 const {
@@ -34,7 +36,49 @@ const {
 	icons,
 	swatchSize = 48,
 	default_license,
+	keywords = [],
+	pagefindFilters = [],
 } = Astro.props;
+
+/**
+ * Derive a flat set of source-pack identifiers from the variants. Each
+ * pack-codegen tags its variant with the pack name (e.g. `lucide`,
+ * `simple-icons`, `phosphor`, `tabler`, `game-icons`, `solar`,
+ * `mingcute`, `devicon`, `logos`). Surfaced to Pagefind as filter
+ * facets so users can narrow search by source library.
+ */
+const KNOWN_PACK_TAGS = new Set([
+	'lucide',
+	'simple-icons',
+	'phosphor',
+	'tabler',
+	'game-icons',
+	'gamedev',
+	'heroicons',
+	'octicons',
+	'iconoir',
+	'carbon',
+	'material-symbols',
+	'fluent',
+	'mdi',
+	'akar-icons',
+	'radix-icons',
+	'lucide-lab',
+	'solar',
+	'mingcute',
+	'devicon',
+	'logos',
+]);
+const sourcePacks = Array.from(
+	new Set(
+		icons
+			.flatMap((i) => i?.tags ?? [])
+			.filter(
+				(t): t is string =>
+					typeof t === 'string' && KNOWN_PACK_TAGS.has(t),
+			),
+	),
+);
 
 const isMerged = tags.includes('merged-multi-source');
 const variantCount = icons?.length ?? 0;
@@ -66,9 +110,44 @@ const sourceCount = isMerged
 <section
 	class="ri-icon-term"
 	data-icon-term={termRef}
+	data-pagefind-body
+	data-pagefind-meta={`ref:${termRef}${name ? `|title:${name}` : ''}`}
 	data-pagefind-filter={primary_category
 		? `category:${primary_category}`
 		: undefined}>
+	{
+		/**
+		 * Hidden Pagefind weight + keyword carrier. The `[data-pagefind-
+		 * weight]` div is invisible (display: none) but its contents are
+		 * still indexed by Pagefind, with a 5x weight boost so a search
+		 * for "blade" or "weapon" surfaces the sword page even when
+		 * those exact tokens never appear in visible body copy.
+		 */
+	}
+	<div class="ri-icon-term__pagefind-weight" data-pagefind-weight="5.0">
+		{name}
+		{termRef.replace(/-/g, ' ')}
+		{keywords.join(' ')}
+		{categories.join(' ')}
+		{tags.filter((t) => t !== 'merged-multi-source').join(' ')}
+		{sourcePacks.join(' ')}
+	</div>
+	{
+		pagefindFilters.map((f) => {
+			const [key, value] = f.includes(':') ? f.split(':', 2) : [f, ''];
+			return (
+				<span
+					hidden
+					data-pagefind-filter={value ? `${key}:${value}` : key}
+				/>
+			);
+		})
+	}
+	{
+		sourcePacks.map((pack) => (
+			<span hidden data-pagefind-filter={`source:${pack}`} />
+		))
+	}
 	{
 		(name || description) && (
 			<header class="ri-icon-term__header">
@@ -120,7 +199,7 @@ const sourceCount = isMerged
 		)
 	}
 
-	<div class="ri-icon-term__grid" data-pagefind-body>
+	<div class="ri-icon-term__grid">
 		{
 			icons.map((variant) => (
 				<IconVariantCard
@@ -172,6 +251,18 @@ const sourceCount = isMerged
 <style is:global>
 	.ri-icon-term {
 		margin: 1.5rem 0 2rem;
+	}
+
+	.ri-icon-term__pagefind-weight {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.ri-icon-term__header {

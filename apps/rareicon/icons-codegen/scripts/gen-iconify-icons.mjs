@@ -772,6 +772,8 @@ ${name} — glyph from the [${titleCase(pack.prefix)} icon library](${pack.homeU
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
 	default_license={frontmatter.default_license}
+	keywords={frontmatter.search?.keywords}
+	pagefindFilters={frontmatter.pagefindFilters}
 	icons={frontmatter.icons}
 />
 `;
