@@ -719,7 +719,10 @@ public class ShipEntity extends Entity {
             float pitch = this.getPitch();
             pitch += stats.pitchSpeed() * vert;
             pitch *= (1.0f - stats.stabilizer());
-            this.setPitch(MathHelper.clamp(pitch, -90.0f, 90.0f));
+            // Clamp at ±75° instead of ±90° so a plane can't quite go
+            // vertical — leaves room for the camera to read direction
+            // and prevents the model from inverting.
+            this.setPitch(MathHelper.clamp(pitch, -75.0f, 75.0f));
 
             // Glide: forward thrust on descent.
             if (stats.glideFactor() > 0.0f) {
