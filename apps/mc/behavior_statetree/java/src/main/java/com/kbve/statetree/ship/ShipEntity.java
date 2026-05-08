@@ -81,6 +81,8 @@ public class ShipEntity extends Entity {
     private double lastY = 0.0;
     private float inWaterLevel = 0.0f;
     private float lastEnginePowerForSound = 0.0f;
+    /** Previous tick's caution bits — used to fire one-shot warning sounds on transition. */
+    private byte lastCautionBitsForSound = 0;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -307,15 +309,24 @@ public class ShipEntity extends Entity {
     }
 
     private void destroyAndExplode(ServerWorld world) {
+        // Tally TNT in cargo before clearing — boosts explosion radius so
+        // hauling TNT around becomes a calculated risk (mirrors IA behaviour).
+        int tntCount = 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(i);
+            if (s.isOf(net.minecraft.item.Items.TNT)) tntCount += s.getCount();
+        }
+
         // Drop entire inventory (upgrades + banner + weapons + cargo) for salvage.
         for (int i = 0; i < inventory.size(); i++) {
             net.minecraft.item.ItemStack s = inventory.getStack(i);
             if (!s.isEmpty()) this.dropStack(world, s);
         }
         inventory.clear();
-        if (getStats().canExplodeOnCrash()) {
+        if (getStats().canExplodeOnCrash() || tntCount > 0) {
+            float power = 2.5f + Math.min(8.0f, tntCount * 0.5f);
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
-                    2.5f, World.ExplosionSourceType.MOB);
+                    power, World.ExplosionSourceType.MOB);
         }
         this.removeAllPassengers();
         this.discard();
@@ -629,6 +640,34 @@ public class ShipEntity extends Entity {
         if (caution != getCautionBits()) {
             this.dataTracker.set(CAUTION_BITS, (byte) caution);
         }
+
+        // Audio warnings — one-shot when a caution flag flips ON. Volume kept
+        // tame so the cockpit isn't a constant siren when the pilot is
+        // already grazing terrain.
+        int newCautions = caution & ~lastCautionBitsForSound;
+        if ((newCautions & CAUTION_PULL_UP) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.6f, 0.6f);
+        }
+        if ((newCautions & CAUTION_DAMAGED) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_ANVIL_LAND,
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.4f, 1.6f);
+        }
+        if ((newCautions & CAUTION_LOW_FUEL) != 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.5f, 1.4f);
+        }
+        // PULL_UP keeps beeping while held — fire every 8 ticks for urgency.
+        if ((caution & CAUTION_PULL_UP) != 0 && this.age % 8 == 0
+                && (newCautions & CAUTION_PULL_UP) == 0) {
+            sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(),
+                    net.minecraft.sound.SoundCategory.NEUTRAL, 0.4f, 0.6f);
+        }
+        lastCautionBitsForSound = (byte) caution;
 
         this.setVelocity(vel);
         if (vel.lengthSquared() > 1.0e-6) {
