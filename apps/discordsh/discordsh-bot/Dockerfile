@@ -98,6 +98,11 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
+# bevy_db carries an optional path dep on bevy_tasker behind the
+# "bevy-plugin" feature; cargo reads the dep manifest even when the
+# feature is off, so the source must exist on disk in this stage too
+# (planner stage already copies it — see #10668).
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -129,6 +134,8 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
+# bevy_db -> bevy_tasker (optional path dep, gated on bevy-plugin feature)
+COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot
