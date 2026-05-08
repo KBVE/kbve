@@ -19,6 +19,7 @@
 	"author": "KBVE <hello@kbve.com>",
 	"license": "MIT",
 	"type": "module",
+	"sideEffects": false,
 	"main": "./devops.es.js",
 	"module": "./devops.es.js",
 	"types": "./index.d.ts",
