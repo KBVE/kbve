@@ -53,6 +53,9 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
     // Per-render scratch — engine power gates propeller animation speed.
     // Stored as a field instead of plumbed through every renderObject call.
     private float currentEnginePower = 0.0f;
+    private float currentBankRoll = 0.0f;
+    private float currentPitch = 0.0f;
+    private boolean currentOnGround = true;
 
     public BBModelShipRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
@@ -83,6 +86,9 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         // Propeller spin accumulates each frame at engine-scaled rate.
         state.propellerSpin = (state.propellerSpin + state.enginePower * 30.0f) % 360f;
         state.animationTime = (entity.age + tickDelta) * 0.05f;
+        // Pitch + ground state for control surface deflection / landing gear.
+        state.pitchDeg = entity.getPitch();
+        state.onGround = entity.isOnGround();
     }
 
     private static float wrapDegrees(float a) {
@@ -126,6 +132,9 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
         // Stash engine power for propeller-name-keyed time scaling.
         currentEnginePower = state.enginePower;
+        currentBankRoll = state.renderRoll;
+        currentPitch = state.pitchDeg;
+        currentOnGround = state.onGround;
 
         // Walk the model tree — submit render commands per face
         int light = 0xF000F0; // full bright (airships fly in sky)
@@ -174,6 +183,25 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
         // Apply object rotation
         matrices.multiply(BBModelUtils.fromXYZ(object.rotation));
+
+        // Control surface deflection — bbmodel objects can opt in by name.
+        //   rudder/aileron  → Y rotation tracks bank roll (yaw rate)
+        //   elevator        → X rotation tracks pitch deflection (planes)
+        //   gear            → Y rotation snaps 0°/90° based on ground state
+        if (object.name != null) {
+            String lname = object.name.toLowerCase();
+            if (lname.contains("rudder") || lname.contains("aileron")) {
+                float def = clamp(-currentBankRoll * 0.6f, -25f, 25f);
+                matrices.multiply(new Quaternionf().rotateY((float) Math.toRadians(def)));
+            } else if (lname.contains("elevator")) {
+                float def = clamp(currentPitch * 0.4f, -20f, 20f);
+                matrices.multiply(new Quaternionf().rotateX((float) Math.toRadians(def)));
+            } else if (lname.contains("gear") || lname.contains("landing")) {
+                if (!currentOnGround) {
+                    matrices.multiply(new Quaternionf().rotateZ((float) Math.toRadians(85.0)));
+                }
+            }
+        }
 
         if (object instanceof BBBone bone) {
             // Bones pivot around their origin — translate back before recursing

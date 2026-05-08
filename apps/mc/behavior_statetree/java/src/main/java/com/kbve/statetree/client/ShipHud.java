@@ -25,6 +25,7 @@ public class ShipHud implements HudRenderCallback {
     private boolean fuelLow = false;
     private int upgradeCount = 0;
     private int maxUpgradeSlots = 4;
+    private byte cautionBits = 0;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -79,6 +80,10 @@ public class ShipHud implements HudRenderCallback {
     public void setUpgrades(int count, int maxSlots) {
         this.upgradeCount = count;
         this.maxUpgradeSlots = maxSlots;
+    }
+
+    public void setCautions(byte bits) {
+        this.cautionBits = bits;
     }
 
     public boolean isActive() {
@@ -218,6 +223,40 @@ public class ShipHud implements HudRenderCallback {
         String upgText = String.format("§bUPGRADES %d/%d", upgradeCount, maxUpgradeSlots);
         context.drawText(client.textRenderer, Text.of(upgText),
                 10, 10, 0xFFFFFFFF, true);
+
+        // Cautions stack (just above the controls hint, right side).
+        // Mirrors IA's PULL_UP / VOID / DAMAGED indicators; LOW_FUEL is
+        // already shown via the fuel bar, but it's mirrored here as a
+        // pulsing red word for parity at a glance.
+        boolean blink = (System.currentTimeMillis() / 300) % 2 == 0;
+        int row = 0;
+        if ((cautionBits & 0x1) != 0) { // PULL_UP
+            String t = "§4§lPULL UP";
+            context.drawText(client.textRenderer, Text.of(t),
+                    screenWidth - client.textRenderer.getWidth(t) - 10,
+                    30 + row * 12, blink ? 0xFFFF3333 : 0xFFAA0000, true);
+            row++;
+        }
+        if ((cautionBits & 0x2) != 0) { // VOID
+            String t = "§4§lVOID";
+            context.drawText(client.textRenderer, Text.of(t),
+                    screenWidth - client.textRenderer.getWidth(t) - 10,
+                    30 + row * 12, blink ? 0xFFFF3333 : 0xFFAA0000, true);
+            row++;
+        }
+        if ((cautionBits & 0x4) != 0) { // DAMAGED
+            String t = "§c§lDAMAGED";
+            context.drawText(client.textRenderer, Text.of(t),
+                    screenWidth - client.textRenderer.getWidth(t) - 10,
+                    30 + row * 12, blink ? 0xFFFF6666 : 0xFFCC2222, true);
+            row++;
+        }
+        if ((cautionBits & 0x8) != 0 && fuel > 0f) { // LOW_FUEL (out-of-fuel handled elsewhere)
+            String t = "§e§lLOW FUEL";
+            context.drawText(client.textRenderer, Text.of(t),
+                    screenWidth - client.textRenderer.getWidth(t) - 10,
+                    30 + row * 12, blink ? 0xFFFFCC22 : 0xFFAA8800, true);
+        }
     }
 
     private static void drawCenteredChar(DrawContext context, MinecraftClient client,

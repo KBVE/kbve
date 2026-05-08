@@ -26,6 +26,11 @@ package com.kbve.statetree.ship;
  * @param boundingHeight   Entity bounding box height (blocks).
  * @param cameraZoom       Third-person camera distance while riding.
  * @param canExplodeOnCrash Whether a hard impact triggers an explosion.
+ * @param trailParticle    Vanilla particle ID for the engine trail. Empty
+ *                         falls back to the legacy model-name-keyed dispatch
+ *                         in {@code ShipEntity.spawnTrailParticles}.
+ * @param engineSound      Vanilla SoundEvent ID for the engine loop.
+ *                         Empty falls back to {@code minecraft:entity.minecart.riding}.
  */
 public record FlightStats(
         float yawSpeed,
@@ -47,7 +52,9 @@ public record FlightStats(
         float boundingWidth,
         float boundingHeight,
         float cameraZoom,
-        boolean canExplodeOnCrash
+        boolean canExplodeOnCrash,
+        String trailParticle,
+        String engineSound
 ) {
     /** Default fallback when no JSON is found — tuned for an airship. */
     public static final FlightStats DEFAULT = new FlightStats(
@@ -55,6 +62,7 @@ public record FlightStats(
             0.0f, 0.1f, 0.97f, 0.925f,
             5.0f, 0.1f, 0.05f, 3.0f,
             0.5f, 0.0f, 50.0f, 20.0f,
-            5.0f, 2.0f, 6.0f, false
+            5.0f, 2.0f, 6.0f, false,
+            "", ""
     );
 }

@@ -1,9 +1,12 @@
 package com.kbve.statetree.ship;
 
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -11,6 +14,8 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
+
+import java.util.function.Consumer;
 
 public class ShipItem extends Item {
 
@@ -57,5 +62,31 @@ public class ShipItem extends Item {
         }
 
         return ActionResult.SUCCESS;
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext ctx,
+                              TooltipDisplayComponent display,
+                              Consumer<Text> tooltip,
+                              TooltipType type) {
+        super.appendTooltip(stack, ctx, display, tooltip, type);
+        FlightStats s = FlightStatsRegistry.get(modelName);
+        boolean isPlane = s.pitchSpeed() > 0f;
+        tooltip.accept(Text.literal(isPlane ? "§7Type: §fPlane" : "§7Type: §fRotorcraft"));
+        tooltip.accept(Text.literal(String.format("§7Engine: §a%.2f §7m/tick", s.engineSpeed())));
+        if (isPlane) {
+            tooltip.accept(Text.literal(String.format("§7Pitch: §a%.1f° §7Glide: §a%.2f",
+                    s.pitchSpeed(), s.glideFactor())));
+        } else {
+            tooltip.accept(Text.literal(String.format("§7Vertical: §a%.2f §7m/tick", s.verticalSpeed())));
+        }
+        tooltip.accept(Text.literal(String.format("§7Yaw: §a%.1f°/tick §7Lift: §a%.2f",
+                s.yawSpeed(), s.lift())));
+        tooltip.accept(Text.literal(String.format("§7Bbox: §a%.1f×%.1f §7Wind: §a%.2f",
+                s.boundingWidth(), s.boundingHeight(), s.wind())));
+        if (s.canExplodeOnCrash()) {
+            tooltip.accept(Text.literal("§c⚠ Explodes on hard impact"));
+        }
+        tooltip.accept(Text.literal("§8Sneak + right-click ship to open inventory"));
     }
 }

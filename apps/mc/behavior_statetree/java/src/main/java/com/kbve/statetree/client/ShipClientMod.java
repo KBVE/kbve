@@ -62,6 +62,7 @@ public class ShipClientMod implements ClientModInitializer {
             hud.setEnginePower(shipEntity.getEnginePower());
             hud.setUpgrades(shipEntity.getUpgradeCount(),
                     com.kbve.statetree.ship.ShipUpgrades.MAX_SLOTS);
+            hud.setCautions(shipEntity.getCautionBits());
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();

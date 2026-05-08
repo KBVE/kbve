@@ -32,4 +32,11 @@ public class ShipRenderState extends EntityRenderState {
 
     /** Continuously-accumulated propeller rotation (degrees), engine-power scaled. */
     public float propellerSpin = 0.0f;
+
+    /** Pitch in degrees — used for elevator deflection on planes. */
+    public float pitchDeg = 0.0f;
+
+    /** True when the ship is on/near the ground — drives landing-gear visibility. */
+    public boolean onGround = false;
 }
+
