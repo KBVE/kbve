@@ -33,19 +33,39 @@ export const TABLEAU_X_GAP = (BASE_WIDTH - 112 - CARD_SIZE.width) / 6;
 export const TABLEAU_Y = TOP_ROW_Y + CARD_SIZE.height + 40;
 
 export const COLORS = {
-	background: 0x0a4d2e, // felt green
+	// Table layers (bottom → top)
+	tableEdge: 0x081a12, // very dark — outer "wood" frame
+	tableTrim: 0xb38b3e, // muted gold trim between edge and felt
+	tableTrimDark: 0x6e5022, // shadow side of the trim
+	background: 0x0d5a35, // felt green (canvas clear color)
+	feltCenter: 0x0f6b3f, // slightly brighter at center for vignette
+	feltEdge: 0x062a18, // darker at edges to fake a soft vignette
+	boardFill: 0x0a4f2e, // play-zone panel
+	boardBorder: 0xb38b3e, // gold board border (matches trim)
+	boardInnerStroke: 0x0d3b24, // dark inner stroke for inset depth
+	// Cards
 	cardFace: 0xffffff,
-	cardBack: 0x1e3a8a, // dark blue
+	cardBack: 0x1e3a8a,
 	cardBackPattern: 0x3b82f6,
 	cardBorder: 0x111827,
-	slot: 0x064529, // empty slot tint (slightly darker felt)
+	// Slots
+	slot: 0x064529,
 	slotBorder: 0x064e36,
-	highlight: 0xfbbf24, // legal-drop highlight
+	slotHighlight: 0x10b981,
+	slotHighlightBorder: 0xfbbf24,
+	highlight: 0xfbbf24,
+	// Suits
 	suitRed: 0xdc2626,
 	suitBlack: 0x111827,
+	// HUD
 	winText: '#fbbf24',
 	hintText: '#d1d5db',
 } as const;
+
+/** Padding around each board zone (top row + tableau). Used to size the
+ * darker felt panel that subdivides the play surface. */
+export const BOARD_PADDING = 18;
+export const BOARD_RADIUS = 14;
 
 export const TIMING = {
 	dealDelay: 30, // ms between cards during initial deal

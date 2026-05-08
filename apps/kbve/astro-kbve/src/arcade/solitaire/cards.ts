@@ -37,6 +37,16 @@ const FACE_UP = 0b0100_0000;
 
 export const SUIT_LABEL = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
 export const SUIT_GLYPH = ['♠', '♥', '♦', '♣'] as const;
+
+/** Each foundation slot is locked to a specific suit. Order MUST match the
+ * scene's foundation slot rendering (left → right) so the visual ♠♥♦♣
+ * hints accurately reflect the validation rule. */
+export const FOUNDATION_SUITS: readonly SuitByte[] = [
+	SuitByte.Spades,
+	SuitByte.Hearts,
+	SuitByte.Diamonds,
+	SuitByte.Clubs,
+] as const;
 export const RANK_LABEL = [
 	'A',
 	'2',
@@ -93,11 +103,25 @@ export function getColor(card: CardByte): ColorByte {
 
 /** Stable id derived from suit + rank (face-up flag intentionally ignored
  * so the same physical card has one id regardless of orientation). Used
- * as the key for the scene's `Map<id, CardView>`. */
+ * as the key for the scene's `Map<id, CardView>`.
+ *
+ * Memoized — the rule + scene layers call this dozens of times per move
+ * (every hover hit-test scans 52 cards). 52 unique outputs total, so a
+ * pre-filled lookup table is the cheapest win possible. */
+const ID_CACHE: string[] = (() => {
+	const out: string[] = new Array(64);
+	for (let suit = 0; suit < 4; suit++) {
+		for (let rank = 0; rank < 13; rank++) {
+			const idx = (suit << 4) | rank;
+			out[idx] = `${SUIT_LABEL[suit][0].toUpperCase()}-${rank + 1}`;
+		}
+	}
+	return out;
+})();
+
 export function getCardId(card: CardByte): string {
-	const suit = getSuit(card);
-	const rank = getDisplayRank(card);
-	return `${SUIT_LABEL[suit][0].toUpperCase()}-${rank}`;
+	// Strip face-up bit; only suit+rank identify a card.
+	return ID_CACHE[card & (RANK_MASK | SUIT_MASK)];
 }
 
 export function getCardLabel(card: CardByte): string {

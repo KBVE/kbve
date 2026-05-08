@@ -14,6 +14,8 @@ import Phaser from 'phaser';
 import {
 	BASE_HEIGHT,
 	BASE_WIDTH,
+	BOARD_PADDING,
+	BOARD_RADIUS,
 	CARD_SIZE,
 	COLORS,
 	FOUNDATION_GAP,
@@ -31,13 +33,15 @@ import {
 import {
 	type CardByte,
 	type CardView as DisplayView,
+	FOUNDATION_SUITS,
 	SUIT_GLYPH,
 	getCardId,
+	getSuit,
 	isFaceUp,
 	toCardView,
 } from './cards';
 import { GameState } from './state';
-import { canDropOnFoundation, movableRun } from './rules';
+import { canDropOnFoundation, canDropOnTableau, movableRun } from './rules';
 
 interface DropTarget {
 	pile: 'tableau' | 'foundation';
@@ -71,6 +75,9 @@ export class SolitaireScene extends Phaser.Scene {
 	private state!: GameState;
 	private views = new Map<string, SceneCardView>();
 	private dropTargets: DropTarget[] = [];
+	/** Slot rectangles tracked for legal-drop highlighting during a drag. */
+	private foundationSlots: Phaser.GameObjects.Rectangle[] = [];
+	private tableauSlots: Phaser.GameObjects.Rectangle[] = [];
 	private dragging: {
 		cards: CardByte[];
 		fromPile: 'waste' | 'tableau';
@@ -81,6 +88,7 @@ export class SolitaireScene extends Phaser.Scene {
 		offset: { x: number; y: number };
 	} | null = null;
 	private winShown = false;
+	private winBanner: Phaser.GameObjects.Text | null = null;
 
 	constructor() {
 		super({ key: 'SolitaireScene' });
@@ -95,6 +103,7 @@ export class SolitaireScene extends Phaser.Scene {
 		// burn CPU running rule checks for cards the user can't see.
 		this.input.setTopOnly(true);
 
+		this.drawTableFelt();
 		this.drawSlots();
 		this.drawHud();
 
@@ -119,6 +128,9 @@ export class SolitaireScene extends Phaser.Scene {
 	// -------------------------------------------------------------------
 
 	private drawSlots() {
+		this.drawBoards();
+
+		// Stock — clickable rectangle slot.
 		const stock = this.add
 			.rectangle(
 				STOCK_X + CARD_SIZE.width / 2,
@@ -140,6 +152,7 @@ export class SolitaireScene extends Phaser.Scene {
 			)
 			.setOrigin(0.5);
 
+		// Waste slot.
 		this.add
 			.rectangle(
 				WASTE_X + CARD_SIZE.width / 2,
@@ -150,10 +163,12 @@ export class SolitaireScene extends Phaser.Scene {
 			)
 			.setStrokeStyle(2, COLORS.slotBorder);
 
-		// Foundations 0..3 with suit hint glyph.
+		// Foundations 0..3 — suit-locked. Glyph is now an accurate hint
+		// (state.ts rejects mismatched-suit drops on each slot).
+		this.foundationSlots = [];
 		for (let i = 0; i < 4; i++) {
 			const x = FOUNDATION_X_START + i * FOUNDATION_GAP;
-			this.add
+			const slot = this.add
 				.rectangle(
 					x + CARD_SIZE.width / 2,
 					TOP_ROW_Y + CARD_SIZE.height / 2,
@@ -162,20 +177,22 @@ export class SolitaireScene extends Phaser.Scene {
 					COLORS.slot,
 				)
 				.setStrokeStyle(2, COLORS.slotBorder);
+			this.foundationSlots.push(slot);
 			this.add
 				.text(
 					x + CARD_SIZE.width / 2,
 					TOP_ROW_Y + CARD_SIZE.height / 2,
-					SUIT_GLYPH[i],
+					SUIT_GLYPH[FOUNDATION_SUITS[i]],
 					{ fontSize: '36px', color: '#0e3a25' },
 				)
 				.setOrigin(0.5);
 		}
 
 		// Tableau slot outlines 0..6.
+		this.tableauSlots = [];
 		for (let i = 0; i < 7; i++) {
 			const x = TABLEAU_X_START + i * TABLEAU_X_GAP;
-			this.add
+			const slot = this.add
 				.rectangle(
 					x + CARD_SIZE.width / 2,
 					TABLEAU_Y + CARD_SIZE.height / 2,
@@ -184,6 +201,7 @@ export class SolitaireScene extends Phaser.Scene {
 					COLORS.slot,
 				)
 				.setStrokeStyle(2, COLORS.slotBorder);
+			this.tableauSlots.push(slot);
 		}
 
 		this.dropTargets = [];
@@ -202,6 +220,166 @@ export class SolitaireScene extends Phaser.Scene {
 				x: TABLEAU_X_START + i * TABLEAU_X_GAP,
 				y: TABLEAU_Y,
 			});
+		}
+	}
+
+	/** Layered felt: outer "wood + gold trim" frame, then a soft radial
+	 * vignette to fake an overhead light, then the two play-zone panels
+	 * with gold borders. Result reads as a real card table instead of a
+	 * flat green rectangle. */
+	private drawTableFelt() {
+		const g = this.add.graphics();
+		g.setDepth(-200);
+
+		// Outer wood frame.
+		g.fillStyle(COLORS.tableEdge, 1);
+		g.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+		// Gold trim (8px ring).
+		const trim = 8;
+		g.fillStyle(COLORS.tableTrim, 1);
+		g.fillRoundedRect(
+			trim / 2,
+			trim / 2,
+			BASE_WIDTH - trim,
+			BASE_HEIGHT - trim,
+			18,
+		);
+		// Trim shadow for depth — slightly inset, darker tone underneath.
+		g.fillStyle(COLORS.tableTrimDark, 0.45);
+		g.fillRoundedRect(
+			trim / 2 + 2,
+			trim / 2 + 2,
+			BASE_WIDTH - trim - 4,
+			BASE_HEIGHT - trim - 4,
+			16,
+		);
+
+		// Inner felt panel (the green playing surface).
+		const inset = trim + 6;
+		g.fillStyle(COLORS.background, 1);
+		g.fillRoundedRect(
+			inset,
+			inset,
+			BASE_WIDTH - inset * 2,
+			BASE_HEIGHT - inset * 2,
+			12,
+		);
+
+		// Soft radial vignette — stack 6 concentric, increasingly transparent
+		// rectangles from edge inward to fake an overhead light. Cheap +
+		// works on any GPU without shaders.
+		const cx = BASE_WIDTH / 2;
+		const cy = BASE_HEIGHT / 2;
+		for (let i = 0; i < 6; i++) {
+			const t = i / 6;
+			const w = (BASE_WIDTH - inset * 2) * (1 - t * 0.7);
+			const h = (BASE_HEIGHT - inset * 2) * (1 - t * 0.7);
+			g.fillStyle(COLORS.feltCenter, 0.08);
+			g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 12);
+		}
+
+		// Edge darkening (vignette tail) — outer ring with feltEdge color.
+		g.lineStyle(28, COLORS.feltEdge, 0.35);
+		g.strokeRoundedRect(
+			inset + 14,
+			inset + 14,
+			BASE_WIDTH - inset * 2 - 28,
+			BASE_HEIGHT - inset * 2 - 28,
+			10,
+		);
+	}
+
+	/** Two darker felt panels — one behind the deal/discard row, one behind
+	 * the tableau columns. Each board has a gold border + dark inner stroke
+	 * for an inset bezel feel. */
+	private drawBoards() {
+		const g = this.add.graphics();
+		g.setDepth(-100);
+
+		const drawPanel = (x: number, y: number, w: number, h: number) => {
+			// Drop shadow.
+			g.fillStyle(0x000000, 0.28);
+			g.fillRoundedRect(x + 2, y + 4, w, h, BOARD_RADIUS);
+			// Panel fill.
+			g.fillStyle(COLORS.boardFill, 1);
+			g.fillRoundedRect(x, y, w, h, BOARD_RADIUS);
+			// Dark inner stroke (1px in) for inset depth.
+			g.lineStyle(2, COLORS.boardInnerStroke, 1);
+			g.strokeRoundedRect(x + 1, y + 1, w - 2, h - 2, BOARD_RADIUS - 1);
+			// Gold trim outline.
+			g.lineStyle(2, COLORS.boardBorder, 1);
+			g.strokeRoundedRect(x, y, w, h, BOARD_RADIUS);
+		};
+
+		// Top-row board: stock + waste + foundations.
+		const topX = STOCK_X - BOARD_PADDING;
+		const topY = TOP_ROW_Y - BOARD_PADDING;
+		const topW =
+			FOUNDATION_X_START +
+			3 * FOUNDATION_GAP +
+			CARD_SIZE.width +
+			BOARD_PADDING -
+			topX;
+		const topH = CARD_SIZE.height + BOARD_PADDING * 2;
+		drawPanel(topX, topY, topW, topH);
+
+		// Tableau board: 7 columns. Tall enough to hold a full face-up run.
+		const tabX = TABLEAU_X_START - BOARD_PADDING;
+		const tabY = TABLEAU_Y - BOARD_PADDING;
+		const tabW =
+			TABLEAU_X_START +
+			6 * TABLEAU_X_GAP +
+			CARD_SIZE.width +
+			BOARD_PADDING -
+			tabX;
+		const tabH = BASE_HEIGHT - tabY - BOARD_PADDING - 12;
+		drawPanel(tabX, tabY, tabW, tabH);
+	}
+
+	// -------------------------------------------------------------------
+	// Legal-drop highlighting
+	// -------------------------------------------------------------------
+
+	/** Visually mark which foundation + tableau slots accept the bottom of
+	 * the dragged stack. Called on dragstart. */
+	private highlightLegalDrops(headCard: CardByte, fromFoundationIdx: number) {
+		for (let i = 0; i < 4; i++) {
+			const isSource = i === fromFoundationIdx;
+			let legal = false;
+			if (!isSource) {
+				legal =
+					getSuit(headCard) === FOUNDATION_SUITS[i] &&
+					canDropOnFoundation(headCard, this.state.foundations[i]);
+			}
+			if (legal) {
+				this.foundationSlots[i]
+					.setFillStyle(COLORS.slotHighlight, 0.35)
+					.setStrokeStyle(3, COLORS.slotHighlightBorder);
+			}
+		}
+		for (let i = 0; i < 7; i++) {
+			const legal = canDropOnTableau(headCard, this.state.tableaus[i]);
+			if (legal) {
+				this.tableauSlots[i]
+					.setFillStyle(COLORS.slotHighlight, 0.35)
+					.setStrokeStyle(3, COLORS.slotHighlightBorder);
+			}
+		}
+	}
+
+	private clearHighlights() {
+		for (const slot of this.foundationSlots) {
+			slot.setFillStyle(COLORS.slot, 1).setStrokeStyle(
+				2,
+				COLORS.slotBorder,
+			);
+		}
+		for (const slot of this.tableauSlots) {
+			slot.setFillStyle(COLORS.slot, 1).setStrokeStyle(
+				2,
+				COLORS.slotBorder,
+			);
 		}
 	}
 
@@ -444,7 +622,9 @@ export class SolitaireScene extends Phaser.Scene {
 	// Layout — called whenever state changes; cheap O(52) repositioning.
 	// -------------------------------------------------------------------
 
-	private layoutAll(animate = false) {
+	private layoutAll(animate = false, staggerByCardId?: Map<string, number>) {
+		const stagger = (id: string) => staggerByCardId?.get(id) ?? 0;
+
 		this.state.stock.forEach((byte, i) => {
 			const v = this.viewFor(byte);
 			this.positionCard(
@@ -453,6 +633,7 @@ export class SolitaireScene extends Phaser.Scene {
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				i,
 				animate,
+				stagger(getCardId(byte)),
 			);
 			v.face.setVisible(false);
 			v.back.setVisible(true);
@@ -466,6 +647,7 @@ export class SolitaireScene extends Phaser.Scene {
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				100 + i,
 				animate,
+				stagger(getCardId(byte)),
 			);
 			v.face.setVisible(true);
 			v.back.setVisible(false);
@@ -482,6 +664,7 @@ export class SolitaireScene extends Phaser.Scene {
 					TOP_ROW_Y + CARD_SIZE.height / 2,
 					200 + idx * 20 + i,
 					animate,
+					stagger(getCardId(byte)),
 				);
 				v.face.setVisible(true);
 				v.back.setVisible(false);
@@ -494,7 +677,14 @@ export class SolitaireScene extends Phaser.Scene {
 			let y = TABLEAU_Y + CARD_SIZE.height / 2;
 			column.forEach((byte, i) => {
 				const v = this.viewFor(byte);
-				this.positionCard(v, x, y, 400 + col * 20 + i, animate);
+				this.positionCard(
+					v,
+					x,
+					y,
+					400 + col * 20 + i,
+					animate,
+					stagger(getCardId(byte)),
+				);
 				const up = isFaceUp(byte);
 				v.face.setVisible(up);
 				v.back.setVisible(!up);
@@ -516,6 +706,7 @@ export class SolitaireScene extends Phaser.Scene {
 		y: number,
 		depth: number,
 		animate: boolean,
+		delay = 0,
 	) {
 		v.container.setDepth(depth);
 		v.restY = y;
@@ -524,13 +715,18 @@ export class SolitaireScene extends Phaser.Scene {
 		v.hovered = false;
 		if (!animate) {
 			v.container.setPosition(x, y);
+			v.container.setRotation(0);
 			return;
 		}
+		// Reset rotation as part of the tween so cascaded cards (post-win)
+		// rotate back to upright on new game.
 		this.tweens.add({
 			targets: v.container,
 			x,
 			y,
+			rotation: 0,
 			duration: TIMING.moveMs,
+			delay,
 			ease: 'Cubic.Out',
 		});
 	}
@@ -546,7 +742,9 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private handleUndo() {
 		if (this.state.undo()) {
+			this.tweens.killAll();
 			this.winShown = false;
+			this.winBanner?.setVisible(false);
 			this.layoutAll(true);
 		}
 	}
@@ -664,6 +862,13 @@ export class SolitaireScene extends Phaser.Scene {
 			offset: { x: 0, y: 0 },
 		};
 
+		// Highlight slots that accept the bottom of the drag stack. Source
+		// foundation (if any) is excluded so the user doesn't see their own
+		// slot glow.
+		const sourceFoundation =
+			fromCol !== undefined && fromCol < 0 ? -fromCol - 1 : -1;
+		this.highlightLegalDrops(cards[0], sourceFoundation);
+
 		cards.forEach((byte, i) => {
 			const v = this.viewFor(byte);
 			v.container.setDepth(10000 + i);
@@ -695,6 +900,7 @@ export class SolitaireScene extends Phaser.Scene {
 		if (!this.dragging) return;
 		const drag = this.dragging;
 		this.dragging = null;
+		this.clearHighlights();
 
 		for (const byte of drag.cards) {
 			const v = this.viewFor(byte);
@@ -714,11 +920,19 @@ export class SolitaireScene extends Phaser.Scene {
 
 		const chosen = this.findDropTarget(cx, cy);
 		const applied = chosen ? this.applyMove(drag, chosen) : false;
-		this.layoutAll(true);
 
-		if (!applied) {
-			// snap-back implicit via layoutAll
+		// Multi-card moves stagger their layout tween so the run "flows"
+		// into the destination column instead of all snapping at once.
+		// 30ms between cards → a 5-card run lands over 120ms total of
+		// staggered onset on top of the base move duration.
+		let staggerMap: Map<string, number> | undefined;
+		if (applied && drag.cards.length > 1) {
+			staggerMap = new Map();
+			drag.cards.forEach((byte, i) => {
+				staggerMap!.set(getCardId(byte), i * 30);
+			});
 		}
+		this.layoutAll(true, staggerMap);
 
 		if (this.state.hasWon() && !this.winShown) {
 			this.winShown = true;
@@ -829,24 +1043,80 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private showWin() {
-		this.add
-			.text(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				'You won! 🎉  Press N for new game.',
-				{
-					fontSize: '32px',
-					color: COLORS.winText,
-					fontFamily: 'system-ui, sans-serif',
-					fontStyle: 'bold',
-				},
-			)
-			.setOrigin(0.5)
-			.setDepth(99999)
-			.setResolution(2);
+		// Lazily build the banner once + just toggle visibility on subsequent
+		// wins. Avoids leaking a fresh Text object every win after undo /
+		// new-game.
+		if (!this.winBanner) {
+			this.winBanner = this.add
+				.text(
+					BASE_WIDTH / 2,
+					BASE_HEIGHT / 2,
+					'You won! 🎉  Press N for new game.',
+					{
+						fontSize: '32px',
+						color: COLORS.winText,
+						fontFamily: 'system-ui, sans-serif',
+						fontStyle: 'bold',
+					},
+				)
+				.setOrigin(0.5)
+				.setDepth(99999)
+				.setResolution(2);
+			this.winBanner.setVisible(false);
+		}
+
+		// Cascade animation: each foundation card flies off-screen with
+		// a randomized arc + spin. Flat list across all four foundations
+		// so the stagger advances cleanly through the deck. Banner appears
+		// after the cascade settles.
+		const all: CardByte[] = [];
+		for (const f of this.state.foundations) for (const c of f) all.push(c);
+
+		const totalDelay = all.length * 35;
+		all.forEach((byte, i) => {
+			const v = this.viewFor(byte);
+			v.container.setDepth(50000 + i);
+
+			// Random direction, biased downward + outward so cards exit the
+			// bottom of the canvas like the classic Klondike "fountain".
+			const dirX = (Math.random() - 0.5) * 1.6;
+			const dirY = 0.7 + Math.random() * 0.6;
+			const distance = BASE_WIDTH * 0.9;
+			const targetX = v.container.x + dirX * distance;
+			const targetY = v.container.y + dirY * distance + BASE_HEIGHT * 0.4;
+			const spin = (Math.random() - 0.5) * Math.PI * 4; // up to 2 full turns
+
+			this.tweens.add({
+				targets: v.container,
+				x: targetX,
+				y: targetY,
+				rotation: spin,
+				scale: 0.85 + Math.random() * 0.3,
+				duration: 1200 + Math.random() * 600,
+				delay: i * 35,
+				ease: 'Cubic.In',
+			});
+		});
+
+		this.time.delayedCall(totalDelay + 1500, () => {
+			this.winBanner?.setVisible(true);
+		});
 	}
 
+	/** Reset for a new deal. Reuses the 52 card views built in `create()` —
+	 * `scene.restart()` would tear them all down and rebuild, which on a
+	 * 52-card deck means 52 containers + 52 hit zones + 52 graphics + 156
+	 * text objects re-allocated. The byte-packed `state.reset()` shuffles a
+	 * new deck in O(52); `layoutAll(true)` repositions the existing views
+	 * with a fresh deal. */
 	private newGame() {
-		this.scene.restart();
+		// Kill any in-flight cascade / move tweens so they don't fight the
+		// fresh layout tween for the same card containers.
+		this.tweens.killAll();
+		this.clearHighlights();
+		this.state.reset();
+		this.winShown = false;
+		this.winBanner?.setVisible(false);
+		this.layoutAll(true);
 	}
 }

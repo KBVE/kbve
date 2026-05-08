@@ -17,7 +17,14 @@
 //                          stock, waste, fnd0, fnd1, fnd2, fnd3,
 //                          tab0, tab1, tab2, tab3, tab4, tab5, tab6
 
-import { dealBytes, isFaceUp, setFaceUp, type CardByte } from './cards';
+import {
+	dealBytes,
+	FOUNDATION_SUITS,
+	getSuit,
+	isFaceUp,
+	setFaceUp,
+	type CardByte,
+} from './cards';
 import {
 	canDropOnFoundation,
 	canDropOnTableau,
@@ -152,6 +159,10 @@ export class GameState {
 	moveWasteToFoundation(idx: number): boolean {
 		const c = this.waste[this.waste.length - 1];
 		if (c === undefined) return false;
+		// Foundation slot is suit-locked: slot index determines which suit
+		// it accepts. Prevents the "Ace of Spades on Hearts slot, stuck"
+		// trap.
+		if (getSuit(c) !== FOUNDATION_SUITS[idx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[idx])) return false;
 		this.pushHistory();
 		this.waste.pop();
@@ -181,6 +192,7 @@ export class GameState {
 		const col = this.tableaus[fromCol];
 		const c = col[col.length - 1];
 		if (c === undefined || !isFaceUp(c)) return false;
+		if (getSuit(c) !== FOUNDATION_SUITS[foundationIdx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[foundationIdx]))
 			return false;
 
