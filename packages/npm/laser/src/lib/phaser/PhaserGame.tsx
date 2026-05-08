@@ -91,26 +91,39 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(
 
 			setStatus('booting');
 
-			const game = new Phaser.Game({
+			// Build Phaser config conditionally — Phaser treats `field:
+			// undefined` differently from `field` absent, and at least the
+			// `audio` slot crashes (`audioConfig.noAudio` lookup) when set
+			// to undefined. Spread only the fields the caller supplied.
+			const phaserConfig: Phaser.Types.Core.GameConfig = {
 				type: Phaser.AUTO,
 				width: config.width ?? 800,
 				height: config.height ?? 600,
 				parent: container,
 				scene: config.scenes,
-				physics: config.physics,
-				plugins: config.plugins,
-				scale: config.scale,
 				backgroundColor: config.backgroundColor,
 				transparent: config.transparent,
-				input: config.input,
-				render: config.pixelArt
-					? { pixelArt: true, antialias: false, ...config.render }
-					: config.render,
-				dom: config.dom,
-				audio: config.audio,
-				callbacks: config.callbacks,
-				fps: config.fps,
-			});
+				...(config.physics && { physics: config.physics }),
+				...(config.plugins && { plugins: config.plugins }),
+				...(config.scale && { scale: config.scale }),
+				...(config.input && { input: config.input }),
+				...(config.render || config.pixelArt
+					? {
+							render: config.pixelArt
+								? {
+										pixelArt: true,
+										antialias: false,
+										...config.render,
+									}
+								: config.render,
+						}
+					: {}),
+				...(config.dom && { dom: config.dom }),
+				...(config.audio && { audio: config.audio }),
+				...(config.callbacks && { callbacks: config.callbacks }),
+				...(config.fps && { fps: config.fps }),
+			};
+			const game = new Phaser.Game(phaserConfig);
 
 			gameRef.current = game;
 
