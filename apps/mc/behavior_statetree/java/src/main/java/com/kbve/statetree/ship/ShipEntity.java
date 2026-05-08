@@ -329,6 +329,13 @@ public class ShipEntity extends Entity {
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
                     power, World.ExplosionSourceType.MOB);
         }
+        // Detach any towed mobs so leads survive the ship's destruction.
+        for (net.minecraft.entity.mob.MobEntity mob : world
+                .getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class,
+                        this.getBoundingBox().expand(20.0),
+                        m -> m.isLeashed() && m.getLeashHolder() == this)) {
+            mob.detachLeash();
+        }
         this.removeAllPassengers();
         this.discard();
     }
@@ -481,6 +488,26 @@ public class ShipEntity extends Entity {
                             String.format("Fueled: %.0f → %.0f / %.0f",
                                     before, getFuelLevel(), MAX_FUEL)), true);
                 }
+                return ActionResult.SUCCESS;
+            }
+        }
+
+        // Tow rope — right-click ship while holding LEAD transfers any
+        // mob currently leashed to the player onto the ship as the new
+        // leash holder. Vanilla MobEntity tickLeash then keeps the
+        // mob within range as the ship moves.
+        if (stack.isOf(net.minecraft.item.Items.LEAD) && !this.getEntityWorld().isClient()) {
+            int transferred = 0;
+            net.minecraft.util.math.Box scan = player.getBoundingBox().expand(10.0);
+            for (net.minecraft.entity.Leashable mob : this.getEntityWorld()
+                    .getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class, scan,
+                            m -> m.isLeashed() && m.getLeashHolder() == player)) {
+                mob.attachLeash(this, true);
+                transferred++;
+            }
+            if (transferred > 0) {
+                player.sendMessage(net.minecraft.text.Text.of(
+                        "Towed " + transferred + " entit" + (transferred == 1 ? "y" : "ies")), true);
                 return ActionResult.SUCCESS;
             }
         }
