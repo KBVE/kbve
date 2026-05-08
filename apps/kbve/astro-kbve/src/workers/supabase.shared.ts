@@ -146,6 +146,22 @@ const storage = new IDBStorage();
 // ---- Shared communication layer ----
 const comm = getWorkerCommunication();
 
+// Strip CR/LF/control chars before logging untrusted server payloads so a
+// hostile message can't forge log lines (CodeQL js/log-injection).
+function sanitizeForLog(value: unknown): string {
+	const raw =
+		typeof value === 'string'
+			? value
+			: (() => {
+					try {
+						return JSON.stringify(value);
+					} catch {
+						return String(value);
+					}
+				})();
+	return raw.replace(/[\r\n\0-\x1F\x7F]/g, ' ').slice(0, 1024);
+}
+
 const subscriptions = new Map<
 	string,
 	{ unsubscribe: () => Promise<void> | void }
@@ -250,7 +266,7 @@ async function connectWebSocket(wsUrl?: string) {
 				const message = JSON.parse(event.data);
 				console.log(
 					'[SharedWorker] WebSocket message:',
-					JSON.stringify(message),
+					sanitizeForLog(message),
 				);
 
 				// Handle pong response

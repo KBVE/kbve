@@ -63,6 +63,22 @@ const subscriptions = new Map<
 // Shared communication layer
 const comm = getWorkerCommunication();
 
+// Strip CR/LF/control chars before logging untrusted server payloads so a
+// hostile message can't forge log lines (CodeQL js/log-injection).
+function sanitizeForLog(value: unknown): string {
+	const raw =
+		typeof value === 'string'
+			? value
+			: (() => {
+					try {
+						return JSON.stringify(value);
+					} catch {
+						return String(value);
+					}
+				})();
+	return raw.replace(/[\r\n\0-\x1F\x7F]/g, ' ').slice(0, 1024);
+}
+
 console.log('[WebSocket Worker] Initializing...');
 
 // Determine WebSocket URL
@@ -137,7 +153,10 @@ async function connectWebSocket(wsUrl?: string) {
 					return;
 				}
 
-				console.log('[WebSocket Worker] Message:', message);
+				console.log(
+					'[WebSocket Worker] Message:',
+					sanitizeForLog(message),
+				);
 
 				// Broadcast to all workers via BroadcastChannel
 				comm.broadcast({

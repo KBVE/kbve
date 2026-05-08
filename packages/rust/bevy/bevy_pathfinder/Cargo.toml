@@ -20,6 +20,14 @@ default = []
 # suitable for JNI cdylibs (behavior_statetree) and CLI tools.
 bevy = ["dep:bevy"]
 
+# Sparse graph pathfinding for abstract tile games (per-node edge list,
+# not a uniform 2D grid). Use this when nodes are arbitrary coordinates
+# and adjacency is governed by per-node connectivity (e.g. a dungeon
+# whose tiles each declare which directions are open). Disjoint from
+# the dense `BlockGrid` API, which stays the right tool for voxel /
+# walkability-grid worlds.
+tile-graph = []
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 

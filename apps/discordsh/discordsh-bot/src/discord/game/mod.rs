@@ -4,6 +4,7 @@ pub mod content;
 pub mod github_cards;
 pub mod irc_events;
 pub mod logic;
+pub mod pathfinding;
 pub mod persistence;
 pub mod proto_bridge;
 pub mod render;
