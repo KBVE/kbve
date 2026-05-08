@@ -10,6 +10,13 @@ interface CacheState {
 
 const $cache = atom<CacheState>({ data: null, error: null, promise: null });
 
+function directFetch(endpoint: string): Promise<SiteGraphData> {
+	return fetch(endpoint).then((res) => {
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		return res.json() as Promise<SiteGraphData>;
+	});
+}
+
 /**
  * Single-flight fetch for the site graph endpoint.
  *
@@ -20,8 +27,10 @@ const $cache = atom<CacheState>({ data: null, error: null, promise: null });
  *
  * If a SharedWorker has been wired via `createSiteGraphWorker` /
  * `setSiteGraphWorker`, the request is delegated to the worker so all
- * tabs share the same cached payload. Otherwise the function falls back
- * to a direct `fetch` keyed by endpoint.
+ * tabs share the same cached payload. If the worker rejects (CSP, blob
+ * URL revoked, structured-clone surprise, anything) the cache falls
+ * back to a direct `fetch` so the graph renders rather than dying with
+ * "Graph unavailable".
  */
 export function fetchSiteGraph(
 	endpoint = '/api/sitegraph.json',
@@ -31,19 +40,28 @@ export function fetchSiteGraph(
 	if (state.promise) return state.promise;
 
 	const workerPromise = fetchViaWorker(endpoint);
-	const promise = (
-		workerPromise ??
-		fetch(endpoint).then((res) => {
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			return res.json() as Promise<SiteGraphData>;
-		})
-	)
+	const base = workerPromise
+		? workerPromise.catch((err) => {
+				if (typeof console !== 'undefined') {
+					console.warn(
+						'[sitegraph] worker fetch failed, falling back to direct fetch:',
+						err,
+					);
+				}
+				return directFetch(endpoint);
+			})
+		: directFetch(endpoint);
+
+	const promise = base
 		.then((data) => {
 			$cache.set({ data, error: null, promise: null });
 			return data;
 		})
 		.catch((err) => {
 			const message = err instanceof Error ? err.message : String(err);
+			if (typeof console !== 'undefined') {
+				console.error('[sitegraph] fetch failed:', err);
+			}
 			$cache.set({ data: null, error: message, promise: null });
 			throw err;
 		});
