@@ -115,19 +115,15 @@ jobs:
             # race when a dep + its first import land in back-to-back PRs:
             # the daemon's cached graph sees the dep in package.json but
             # not yet the import in src/, so it falsely flags the package
-            # as unused (see #10607). `nx reset` rebuilds graph + cache and
-            # NX_DAEMON=false stops a stale daemon from being reused.
+            # as unused (see #10607). `nx reset` clears the cache and stops
+            # any stale daemon — the next nx invocation spawns a fresh daemon
+            # and rebuilds the graph from disk, so daemon caching still helps
+            # the rest of the run.
             - name: Reset nx graph
               run: pnpm nx reset
-              env:
-                  NX_DAEMON: 'false'
 
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
-              env:
-                  NX_DAEMON: 'false'
 
             - name: Test affected projects
               run: pnpm nx affected --target=test --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
-              env:
-                  NX_DAEMON: 'false'
