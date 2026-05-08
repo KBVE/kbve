@@ -71,6 +71,13 @@ public class ShipClientMod implements ClientModInitializer {
             }
             hud.setTelemetry(shipEntity.getTargetSpeed(), shipEntity.getYaw(), (int) Math.floor(shipEntity.getY()));
             hud.setClimbRate((float) shipEntity.getVelocity().y);
+            // Radar altitude — distance above the highest motion-blocking
+            // surface beneath the ship. -1 means 'no terrain below' (void).
+            int floorY = shipEntity.getEntityWorld().getTopY(
+                    net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
+                    (int) Math.floor(shipEntity.getX()),
+                    (int) Math.floor(shipEntity.getZ()));
+            hud.setAgl(Math.max(0, (int) (shipEntity.getY() - floorY)));
             hud.setHealth(shipEntity.getShipHealth(), ShipEntity.MAX_HEALTH);
             hud.setFuel(shipEntity.getFuelLevel(), ShipEntity.MAX_FUEL, shipEntity.isFuelLow());
             hud.setEnginePower(shipEntity.getEnginePower());

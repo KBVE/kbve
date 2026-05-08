@@ -18,6 +18,7 @@ public class ShipHud implements HudRenderCallback {
     private float heading = 0f;
     private int altitude = 0;
     private float climbRate = 0f;
+    private int aglMeters = 0;
     private float health = 100f;
     private float maxHealth = 100f;
     private float fuel = 0f;
@@ -66,6 +67,10 @@ public class ShipHud implements HudRenderCallback {
     public void setClimbRate(float verticalVelocity) {
         // Convert blocks/tick to blocks/sec for a more familiar readout.
         this.climbRate = verticalVelocity * 20f;
+    }
+
+    public void setAgl(int aglMeters) {
+        this.aglMeters = aglMeters;
     }
 
     public void setHealth(float health, float maxHealth) {
@@ -157,9 +162,13 @@ public class ShipHud implements HudRenderCallback {
                 : String.format("§c▼%.1f", -climbRate);
         // Speed color: green cruise → yellow sprint → red boost.
         String spdColor = speed > 1.2f ? "§c" : (speed > 0.7f ? "§e" : "§a");
-        String telemetry = String.format("%sSPD %.1f§r  §7ALT§f %d  §7HDG§f %03d°  %s",
+        // AGL color — red if low (< 8), yellow if borderline (< 16), white otherwise.
+        String aglColor = aglMeters < 8 ? "§c" : (aglMeters < 16 ? "§e" : "§f");
+        String telemetry = String.format(
+                "%sSPD %.1f§r  §7ALT§f %d  %sAGL %d§r  §7HDG§f %03d°  %s",
                 spdColor, speed,
-                altitude, ((int) ((heading % 360) + 360)) % 360, climbStr);
+                altitude, aglColor, aglMeters,
+                ((int) ((heading % 360) + 360)) % 360, climbStr);
         int telWidth = client.textRenderer.getWidth(telemetry);
         context.drawText(client.textRenderer, Text.of(telemetry),
                 (screenWidth - telWidth) / 2, screenHeight - 78, 0xFFFFFFFF, true);

@@ -714,6 +714,15 @@ public class ShipEntity extends Entity {
             spawnBannerParticles(sw3);
         }
 
+        // Damage smoke — leak black smoke when hull is critical so other
+        // pilots can spot a wounded ship at a distance.
+        if (getShipHealth() < MAX_HEALTH * 0.25f && this.age % 3 == 0
+                && this.getEntityWorld() instanceof ServerWorld swDmg) {
+            swDmg.spawnParticles(net.minecraft.particle.ParticleTypes.LARGE_SMOKE,
+                    this.getX(), this.getY() + 0.8, this.getZ(),
+                    1, 0.2, 0.1, 0.2, 0.02);
+        }
+
         // Engine sound — pitch scales with throttle. Cadence speeds up as
         // power rises so the audio gets more frantic at full thrust.
         if (this.getEntityWorld() instanceof ServerWorld sw2) {
