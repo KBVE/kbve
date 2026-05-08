@@ -19,13 +19,26 @@ public final class ShipNetworking {
     public static final Identifier HELM_INPUT_ID = Identifier.of("behavior_statetree", "helm_input");
     public static final Identifier WEAPON_FIRE_ID = Identifier.of("behavior_statetree", "weapon_fire");
 
-    /** Helm steering input. forward = W throttle; boost = sprint; target_yaw / target_pitch = camera-driven heading + altitude direction. */
+    /**
+     * Helm steering input.
+     *  - forward      W throttle (1) / S brake (-1) / 0 idle
+     *  - boost        sprint key
+     *  - targetYaw    camera-driven heading
+     *  - targetPitch  camera pitch (mouse), kept as a fallback signal so a
+     *                 player without an Y-axis keybind still has some way
+     *                 to descend by looking down
+     *  - keyVertical  keyboard Y axis: jump (+1) ascend, sneak (-1) descend.
+     *                 Mirrors ImmersiveAircraft's pressingInterpolatedY axis
+     *                 — keyboard Y wins over camera-pitch when nonzero so
+     *                 the pilot can climb without aiming the camera up.
+     */
     public record HelmInputPayload(
             String shipId,
             float forward,
             boolean boost,
             float targetYaw,
-            float targetPitch
+            float targetPitch,
+            float keyVertical
     ) implements CustomPayload {
         public static final CustomPayload.Id<HelmInputPayload> ID = new CustomPayload.Id<>(HELM_INPUT_ID);
         public static final PacketCodec<RegistryByteBuf, HelmInputPayload> CODEC =
@@ -35,6 +48,7 @@ public final class ShipNetworking {
                         PacketCodecs.BOOLEAN, HelmInputPayload::boost,
                         PacketCodecs.FLOAT, HelmInputPayload::targetYaw,
                         PacketCodecs.FLOAT, HelmInputPayload::targetPitch,
+                        PacketCodecs.FLOAT, HelmInputPayload::keyVertical,
                         HelmInputPayload::new
                 );
 
@@ -98,13 +112,21 @@ public final class ShipNetworking {
                 float step = Math.max(-maxDeltaPerTick, Math.min(maxDeltaPerTick, diff * 0.15f));
                 if (step != 0f) ship.setHeading(current + step);
 
-                float pitchDeadZone = 8f;
-                float pitch = payload.targetPitch();
+                // Keyboard Y axis (jump / sneak) wins over camera pitch when
+                // pressed — matches IA's pressingInterpolatedY semantics. Mouse
+                // pitch only contributes if the keyboard is idle, and even
+                // then only past a wide dead-zone so cruise flight feels stable.
                 float verticalIntent;
-                if (Math.abs(pitch) < pitchDeadZone) {
-                    verticalIntent = 0f;
+                if (Math.abs(payload.keyVertical()) > 0.01f) {
+                    verticalIntent = Math.max(-1f, Math.min(1f, payload.keyVertical()));
                 } else {
-                    verticalIntent = (float) -Math.sin(Math.toRadians(pitch));
+                    float pitch = payload.targetPitch();
+                    float pitchDeadZone = 20f;
+                    if (Math.abs(pitch) < pitchDeadZone) {
+                        verticalIntent = 0f;
+                    } else {
+                        verticalIntent = (float) -Math.sin(Math.toRadians(pitch)) * 0.5f;
+                    }
                 }
                 ship.setVerticalIntent(verticalIntent);
             });
