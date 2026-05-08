@@ -51,10 +51,16 @@ RUN rustup target add x86_64-unknown-linux-gnu && \
 
 # sccache wraps rustc to cache compilation artifacts across builds.
 # Consumers mount --mount=type=cache,target=/usr/local/sccache for persistence.
-# NOTE: sccache is incompatible with incremental compilation — do NOT set
-# CARGO_INCREMENTAL=1 when RUSTC_WRAPPER=sccache.
+#
+# sccache 0.14.0 hard-aborts with
+#   "incremental compilation is prohibited: Unset CARGO_INCREMENTAL to continue"
+# whenever CARGO_INCREMENTAL is unset (defaults to 1 for cargo dev profile)
+# OR set to anything other than 0. Pin it to 0 here so every consumer of
+# this builder image inherits the correct value automatically — otherwise
+# `cargo chef cook` panics in `recipe.rs:224` on its first `rustc -vV` probe.
 ENV RUSTC_WRAPPER=/usr/local/cargo/bin/sccache
 ENV SCCACHE_DIR=/usr/local/sccache
+ENV CARGO_INCREMENTAL=0
 
 # ── Node.js + pnpm (for Astro frontend builds) ──────────────────────
 ARG NODE_VERSION=24

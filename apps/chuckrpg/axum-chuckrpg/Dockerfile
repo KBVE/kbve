@@ -95,6 +95,12 @@ RUN cargo chef prepare --recipe-path recipe.json
 # ============================================================================
 FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
 
+# sccache 0.14.0 refuses to wrap rustc unless CARGO_INCREMENTAL is explicitly 0.
+# The builder image now sets this by default, but keep an explicit override
+# here so this Dockerfile is correct even if rebuilt against an older builder
+# tag that predates the upstream fix.
+ENV CARGO_INCREMENTAL=0
+
 WORKDIR /app
 
 COPY --from=planner /app/recipe.json recipe.json
