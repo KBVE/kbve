@@ -13,6 +13,7 @@
 				"../../../packages/npm/astro/src/components/*"
 			],
 			"@kbve/astro/utils/*": ["../../../packages/npm/astro/src/utils/*"],
+			"@kbve/devops": ["../../../packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"]
 		}

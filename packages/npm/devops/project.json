@@ -41,6 +41,19 @@
 				"command": "vitest run --coverage --config packages/npm/devops/vite.config.ts"
 			}
 		},
+		"sync:openapi": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/openapi/openapi.json",
+				"{workspaceRoot}/packages/data/codegen/gen-openapi-types.mjs"
+			],
+			"outputs": ["{projectRoot}/src/lib/client/kbve/openapi-types.ts"],
+			"options": {
+				"command": "node packages/data/codegen/gen-openapi-types.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"publish": {
 			"executor": "nx:run-commands",
 			"options": {

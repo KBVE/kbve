@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { kbveApi, extractErrorMessage } from '@kbve/devops';
 
 const usernameSchema = z.object({
 	username: z
@@ -49,27 +50,25 @@ export default function UsernameSetup({
 		setServerError(null);
 
 		try {
-			const res = await fetch('/api/v1/profile/username', {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					'Content-Type': 'application/json',
+			const { data: body, error } = await kbveApi.POST(
+				'/api/v1/profile/username',
+				{
+					headers: { Authorization: `Bearer ${accessToken}` },
+					body: { username: data.username },
 				},
-				body: JSON.stringify({ username: data.username }),
-			});
+			);
 
-			if (!res.ok) {
-				const body = await res.json().catch(() => ({}));
-				setServerError(
-					body.error || body.message || 'Failed to set username',
-				);
+			if (error) {
+				setServerError(extractErrorMessage(error));
 				return;
 			}
 
-			const body = await res.json();
-			onComplete(body.username || data.username);
-		} catch (e: any) {
-			setServerError(e?.message || 'Network error — please try again');
+			const result = body as { username?: string } | undefined;
+			onComplete(result?.username ?? data.username);
+		} catch (e: unknown) {
+			setServerError(
+				extractErrorMessage(e) || 'Network error — please try again',
+			);
 		}
 	}
 
