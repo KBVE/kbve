@@ -26,6 +26,7 @@ COPY packages/rust/bevy/bevy_skills/Cargo.toml packages/rust/bevy/bevy_skills/Ca
 COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
 COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
 COPY packages/rust/bevy/bevy_pathfinder/Cargo.toml packages/rust/bevy/bevy_pathfinder/Cargo.toml
+COPY packages/rust/bevy/bevy_db/Cargo.toml packages/rust/bevy/bevy_db/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -42,7 +43,8 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
     mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_mapdb/src && echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_db/src && echo "" > packages/rust/bevy/bevy_db/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -89,11 +91,12 @@ COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
+COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat -p bevy_mapdb -p bevy_pathfinder
+    cargo build --release -p kbve -p jedi -p holy -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat -p bevy_mapdb -p bevy_pathfinder -p bevy_db
 
 # ============================================================================
 # [STAGE D] - Build Application
@@ -119,6 +122,7 @@ COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
+COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot

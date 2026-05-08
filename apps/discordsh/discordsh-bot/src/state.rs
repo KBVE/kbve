@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
@@ -5,6 +6,7 @@ use std::time::Instant;
 use poise::serenity_prelude as serenity;
 use tokio::sync::{Notify, RwLock};
 
+use bevy_db::NativeStore;
 use kbve::{FontDb, MemberCache};
 
 use bevy_chat::ChatClient;
@@ -71,6 +73,42 @@ pub struct AppState {
     /// Optional IRC client for cross-platform chat and world events.
     /// `None` if IRC is unavailable or not configured.
     pub irc: Option<ChatClient>,
+
+    /// Optional persistent KV store (redb). Opened from `DB_PATH` env var
+    /// at startup. `None` when the variable is unset or the file fails to
+    /// open — callers must treat persistence as best-effort. Used today
+    /// as an L2 cache for [`ProfileStore`]; reserved for future
+    /// `SessionStore` snapshot persistence.
+    #[allow(dead_code)]
+    pub local_db: Option<Arc<NativeStore>>,
+}
+
+/// Resolve the local KV store path from `DB_PATH`. Returns `None` when
+/// the variable is unset; logs and returns `None` if the file fails to
+/// open so the bot can still run with Supabase-only persistence.
+fn open_local_db() -> Option<Arc<NativeStore>> {
+    let raw = std::env::var("DB_PATH").ok()?;
+    if raw.trim().is_empty() {
+        return None;
+    }
+    let path = PathBuf::from(&raw);
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+        && let Err(e) = std::fs::create_dir_all(parent)
+    {
+        tracing::warn!(error = %e, parent = %parent.display(), "Failed to create local DB parent dir");
+        return None;
+    }
+    match NativeStore::open(path.clone()) {
+        Ok(store) => {
+            tracing::info!(path = %path.display(), "Local KV store opened (redb)");
+            Some(Arc::new(store))
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, path = %path.display(), "Failed to open local KV store; running Supabase-only");
+            None
+        }
+    }
 }
 
 /// Resolve the default GitHub repo from env vars (checked once at startup).
@@ -132,6 +170,9 @@ impl AppState {
             None
         };
 
+        let local_db = open_local_db();
+        let profiles = Arc::new(ProfileStore::from_env_with_local(local_db.clone()));
+
         Self {
             health_monitor,
             tracker,
@@ -142,13 +183,14 @@ impl AppState {
             bot_http: RwLock::new(None),
             sessions: Arc::new(SessionStore::new()),
             members: Arc::new(MemberCache::from_env()),
-            profiles: Arc::new(ProfileStore::from_env()),
+            profiles,
             fontdb,
             default_repo: resolve_default_repo(),
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
             irc,
+            local_db,
         }
     }
 }

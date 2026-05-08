@@ -1,11 +1,15 @@
 //! Dungeon player persistence — Supabase-backed profile storage.
 //!
-//! Follows the `MemberCache` pattern: LRU cache + Supabase RPC + graceful
-//! degradation (if Supabase is unavailable, games still work in-memory).
+//! Cache hierarchy: in-mem LRU → optional redb L2 (bevy_db) → Supabase RPC.
+//! All layers degrade gracefully — when Supabase is offline the bot can
+//! still serve cached profiles from redb across pod restarts; when redb
+//! isn't configured the bot falls back to LRU + Supabase as before.
 
 use std::num::NonZeroUsize;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use bevy_db::NativeStore;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 use tracing::{debug, error, warn};
@@ -20,6 +24,8 @@ use super::types::{
 const SCHEMA: &str = "discordsh";
 const CACHE_CAP: usize = 512;
 const CACHE_TTL: Duration = Duration::from_secs(300);
+/// redb table name for the persistent profile L2 cache.
+const REDB_PROFILE_TABLE: &str = "discordsh:profiles";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -96,30 +102,87 @@ pub struct ProfileStore {
     client: Option<SupabaseClient>,
     cache: Mutex<lru::LruCache<u64, CachedProfile>>,
     ttl: Duration,
+    /// Optional persistent L2 cache (redb). Survives pod restarts and
+    /// covers Supabase outages. `None` when `DB_PATH` is unset.
+    local_db: Option<Arc<NativeStore>>,
 }
 
 impl ProfileStore {
-    /// Build from environment. Returns a no-op store if Supabase is unavailable.
+    /// Build from environment without an L2 cache. Kept for tests and
+    /// callers that don't need redb-backed persistence.
+    #[cfg(test)]
     pub fn from_env() -> Self {
+        Self::from_env_with_local(None)
+    }
+
+    /// Build from environment, optionally backing the LRU with a redb L2
+    /// cache. Returns a no-op store when Supabase is unavailable; the L2
+    /// cache still works in that case (last known profile per player).
+    pub fn from_env_with_local(local_db: Option<Arc<NativeStore>>) -> Self {
         Self {
             client: SupabaseClient::from_env(),
             cache: Mutex::new(lru::LruCache::new(NonZeroUsize::new(CACHE_CAP).unwrap())),
             ttl: CACHE_TTL,
+            local_db,
         }
     }
 
-    /// Load a profile, checking cache first then Supabase RPC.
+    /// Hydrate the LRU + return a profile from the L2 redb cache, if
+    /// any. Errors and missing keys both yield `None` so the caller
+    /// transparently falls through to Supabase.
+    async fn read_local(&self, discord_id: u64) -> Option<DungeonProfile> {
+        let db = self.local_db.as_ref()?;
+        let key = discord_id.to_string();
+        match db.get::<DungeonProfile>(REDB_PROFILE_TABLE, &key).await {
+            Ok(Some(profile)) => {
+                let mut cache = self.cache.lock().await;
+                cache.put(
+                    discord_id,
+                    CachedProfile {
+                        profile: profile.clone(),
+                        fetched_at: Instant::now(),
+                    },
+                );
+                Some(profile)
+            }
+            Ok(None) => None,
+            Err(e) => {
+                warn!(error = %e, discord_id, "L2 redb read failed");
+                None
+            }
+        }
+    }
+
+    /// Best-effort write to the redb L2 cache. Failures are logged and
+    /// swallowed — the in-mem LRU + Supabase remain authoritative.
+    async fn write_local(&self, discord_id: u64, profile: &DungeonProfile) {
+        let Some(db) = self.local_db.as_ref() else {
+            return;
+        };
+        let key = discord_id.to_string();
+        if let Err(e) = db.put(REDB_PROFILE_TABLE, &key, profile).await {
+            warn!(error = %e, discord_id, "L2 redb write failed");
+        }
+    }
+
+    /// Load a profile. Path: in-mem LRU → redb L2 → Supabase RPC.
     pub async fn load(&self, discord_id: u64) -> Option<DungeonProfile> {
-        // Check cache
+        // L0: in-mem LRU
         {
             let mut cache = self.cache.lock().await;
-            if let Some(entry) = cache.get(&discord_id) {
-                if entry.fetched_at.elapsed() < self.ttl {
-                    return Some(entry.profile.clone());
-                }
+            if let Some(entry) = cache.get(&discord_id)
+                && entry.fetched_at.elapsed() < self.ttl
+            {
+                return Some(entry.profile.clone());
             }
         }
 
+        // L1: redb (also re-hydrates the LRU on hit)
+        if let Some(profile) = self.read_local(discord_id).await {
+            return Some(profile);
+        }
+
+        // L2: Supabase RPC
         let client = self.client.as_ref()?;
         let params = serde_json::json!({ "p_discord_id": discord_id as i64 });
 
@@ -139,14 +202,17 @@ impl ProfileStore {
                 match resp.json::<Vec<DungeonProfile>>().await {
                     Ok(rows) if !rows.is_empty() => {
                         let profile = rows.into_iter().next().unwrap();
-                        let mut cache = self.cache.lock().await;
-                        cache.put(
-                            discord_id,
-                            CachedProfile {
-                                profile: profile.clone(),
-                                fetched_at: Instant::now(),
-                            },
-                        );
+                        {
+                            let mut cache = self.cache.lock().await;
+                            cache.put(
+                                discord_id,
+                                CachedProfile {
+                                    profile: profile.clone(),
+                                    fetched_at: Instant::now(),
+                                },
+                            );
+                        }
+                        self.write_local(discord_id, &profile).await;
                         Some(profile)
                     }
                     Ok(_) => None,
@@ -164,7 +230,20 @@ impl ProfileStore {
     }
 
     /// Save a profile + run summary (fire-and-forget via tokio::spawn).
+    /// Writes the profile to the redb L2 cache synchronously before
+    /// dispatching to Supabase so a pod restart between RPC failure and
+    /// next load still serves the latest snapshot.
     pub fn save_async(&self, profile: DungeonProfile, run: RunSummary) {
+        if let Some(db) = self.local_db.clone() {
+            let profile_for_local = profile.clone();
+            tokio::spawn(async move {
+                let key = profile_for_local.discord_id.to_string();
+                if let Err(e) = db.put(REDB_PROFILE_TABLE, &key, &profile_for_local).await {
+                    warn!(error = %e, discord_id = profile_for_local.discord_id, "L2 redb mirror write failed");
+                }
+            });
+        }
+
         let Some(client) = self.client.clone() else {
             return;
         };
