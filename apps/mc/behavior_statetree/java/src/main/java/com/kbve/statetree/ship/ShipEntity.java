@@ -494,9 +494,12 @@ public class ShipEntity extends Entity {
         boolean ridden = hasPassengers();
         boolean fueled = getFuelLevel() > 0f;
 
-        // Auto-cut throttle when out of fuel.
-        if (!fueled) ts = 0f;
-        enginePower.update(ridden && fueled ? ts : 0.0f);
+        // Auto-cut throttle when out of fuel OR fully submerged. IA shuts
+        // the engine off the instant the cabin dunks because flooded
+        // intakes can't burn fuel; we mirror that gating here.
+        boolean submerged = this.isSubmergedInWater();
+        if (!fueled || submerged) ts = 0f;
+        enginePower.update(ridden && fueled && !submerged ? ts : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
         // Bank roll from yaw delta — smoothed, used by renderer + camera.
