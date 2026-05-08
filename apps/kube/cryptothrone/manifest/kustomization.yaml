@@ -4,5 +4,8 @@ namespace: cryptothrone
 
 resources:
     - cryptothrone-serviceaccount.yaml
+    - cryptothrone-externalsecret.yaml
     - cryptothrone-deployment.yaml
     - httproute.yaml
+    - certificate.yaml
+    - reference-grant.yaml

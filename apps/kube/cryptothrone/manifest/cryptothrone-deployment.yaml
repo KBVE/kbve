@@ -5,6 +5,13 @@ metadata:
     namespace: cryptothrone
     labels:
         app: cryptothrone
+    annotations:
+        # Reloader rolls this Deployment whenever the supabase-shared
+        # Secret (rendered by cryptothrone-supabase-secrets ExternalSecret)
+        # rotates. Today the deployment only consumes HTTP_PORT, but the
+        # envFrom + secretRef block is wired now so future KBVE / Supabase
+        # integration adds become a Secret edit, not a manifest rewrite.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     strategy:
@@ -21,6 +28,16 @@ spec:
                 app: cryptothrone
                 version: '0.1.0'
         spec:
+            serviceAccountName: cryptothrone-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: cryptothrone
                   image: ghcr.io/kbve/cryptothrone:0.1.5
@@ -48,6 +65,14 @@ spec:
                   env:
                       - name: HTTP_PORT
                         value: '4321'
+                  envFrom:
+                      # Optional so the pod still boots before the
+                      # ExternalSecret has rendered or the kilobase
+                      # RBAC has been wired. Once supabase-shared
+                      # exists Reloader rolls the Deployment automatically.
+                      - secretRef:
+                            name: supabase-shared
+                            optional: true
                   resources:
                       requests:
                           memory: '256Mi'
@@ -55,6 +80,21 @@ spec:
                       limits:
                           memory: '512Mi'
                           cpu: '2000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the axum binary while the rootfs
+                # itself stays read-only.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service
