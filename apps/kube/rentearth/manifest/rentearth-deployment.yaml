@@ -5,6 +5,12 @@ metadata:
     namespace: rentearth
     labels:
         app: rentearth
+    annotations:
+        # Reloader rolls this Deployment whenever supabase-shared
+        # rotates (rendered hourly by rentearth-supabase-secrets
+        # ExternalSecret) — Supabase JWT/key rotations propagate
+        # without a manual kubectl rollout restart.
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     selector:
@@ -13,11 +19,24 @@ spec:
     template:
         metadata:
             annotations:
+                # Manual rollout-restart trigger preserved as a fallback
+                # if Reloader misses a Secret rotation — bump the value
+                # to force the Deployment controller to roll the pods.
                 rollout-restart: '2026-01-12T02:11:58Z'
             labels:
                 app: rentearth
                 version: '1.0.18'
         spec:
+            serviceAccountName: rentearth-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: rentearth
                   image: ghcr.io/kbve/rentearth:1.0.18
@@ -56,6 +75,23 @@ spec:
                       limits:
                           memory: '1024Mi'
                           cpu: '2000m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                # Writable scratch for the binary while the rootfs
+                # itself stays read-only. Verified locally that the
+                # ghcr.io/kbve/rentearth:1.0.18 image starts cleanly
+                # under runAsUser:10001 + read-only rootfs + tmpfs /tmp.
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service
