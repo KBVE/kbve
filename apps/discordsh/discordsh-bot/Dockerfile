@@ -27,6 +27,11 @@ COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.
 COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
 COPY packages/rust/bevy/bevy_pathfinder/Cargo.toml packages/rust/bevy/bevy_pathfinder/Cargo.toml
 COPY packages/rust/bevy/bevy_db/Cargo.toml packages/rust/bevy/bevy_db/Cargo.toml
+# bevy_db carries an optional path dep on bevy_tasker behind the
+# "bevy-plugin" feature. cargo chef prepare reads every member manifest
+# fully — including optional path deps — so the bevy_tasker manifest
+# must exist on disk even though we never enable the feature here.
+COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -44,7 +49,8 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
     mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_mapdb/src && echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_db/src && echo "" > packages/rust/bevy/bevy_db/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_db/src && echo "" > packages/rust/bevy/bevy_db/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
