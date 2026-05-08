@@ -1,0 +1,25 @@
+# cert-manager Certificate that mints the cryptothrone-tls Secret used
+# by the Cilium kbve-gateway listener for cryptothrone.com.
+#
+# The previous flow relied on cert-manager's ingress-shim seeing the
+# cert-manager.io/cluster-issuer annotation on
+# apps/kube/cryptothrone/manifest/cryptothrone-ingress.yaml, but that
+# Ingress was never listed in kustomization.yaml so it never reached
+# the cluster. The result was a cryptothrone-tls Secret left orphaned
+# at 62 days old with no Certificate resource managing renewal. This
+# file makes the cert explicit instead of relying on the dead Ingress
+# path (mirrors apps/kube/chuckrpg/manifest/certificate.yaml and the
+# herbmail equivalent).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: cryptothrone-tls
+    namespace: cryptothrone
+spec:
+    secretName: cryptothrone-tls
+    dnsNames:
+        - cryptothrone.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io
