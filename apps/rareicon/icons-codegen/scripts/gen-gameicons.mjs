@@ -329,6 +329,8 @@ ${name} — gamedev glyph from the [Game Icons library](https://game-icons.net/)
 	categories={frontmatter.categories}
 	tags={frontmatter.tags}
 	default_license={frontmatter.default_license}
+	keywords={frontmatter.search?.keywords}
+	pagefindFilters={frontmatter.pagefindFilters}
 	icons={frontmatter.icons}
 />
 `;
