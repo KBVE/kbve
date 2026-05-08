@@ -344,6 +344,21 @@ jobs:
                           - 'apps/kbve/isometric/src-tauri/tauri.conf.json'
                           - 'apps/kbve/isometric/package.json'
                           - 'apps/kbve/isometric/vite.config.ts'
+                          # Shared Rust crates (path = ... in src-tauri/Cargo.toml).
+                          # Any change here MUST rebuild the WASM client otherwise
+                          # the lightyear ProtocolPlugin registry hashes drift
+                          # from the gameserver and the protocol-check observer
+                          # panics on connect ("the message protocol doesn't match").
+                          - 'packages/rust/bevy/bevy_behavior/**'
+                          - 'packages/rust/bevy/bevy_cam/**'
+                          - 'packages/rust/bevy/bevy_chat/**'
+                          - 'packages/rust/bevy/bevy_db/**'
+                          - 'packages/rust/bevy/bevy_inventory/**'
+                          - 'packages/rust/bevy/bevy_items/**'
+                          - 'packages/rust/bevy/bevy_kbve_net/**'
+                          - 'packages/rust/bevy/bevy_npc/**'
+                          - 'packages/rust/bevy/bevy_pathfinder/**'
+                          - 'packages/rust/bevy/bevy_skills/**'
                           - 'packages/rust/bevy/bevy_tasker/**'
                       ue_devops:
                           - 'packages/unreal/UEDevOps/Source/**'
