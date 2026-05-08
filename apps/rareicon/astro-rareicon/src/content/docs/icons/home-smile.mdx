@@ -1,0 +1,51 @@
+---
+ref: home-smile
+name: Home Smile
+title: Home Smile Icon
+description: Home Smile glyph from the solar icon library, 1 variant — recolor via currentColor.
+primary_category: navigation
+categories: [navigation, library]
+tags: [solar-generated, solar]
+search:
+  keywords: ["home-smile","home","smile","home-smile-bold-duotone","home smile"]
+  primary_category: navigation
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Solar Icons (https://solar-icons.com/) — CC BY 4.0 — 480 Design"
+  author: 480 Design
+  source_url: "https://solar-icons.com/?icon=home-smile-bold-duotone"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "solar"
+    label: "Solar"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [solar]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M2 12.204c0-2.289 0-3.433.52-4.381c.518-.949 1.467-1.537 3.364-2.715l2-1.241C9.889 2.622 10.892 2 12 2s2.11.622 4.116 1.867l2 1.241c1.897 1.178 2.846 1.766 3.365 2.715S22 9.915 22 12.203v1.522c0 3.9 0 5.851-1.172 7.063S17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.212S2 17.626 2 13.725z" opacity=".5"/><path fill="currentColor" d="M9.447 15.398a.75.75 0 0 0-.894 1.205A5.77 5.77 0 0 0 12 17.75a5.77 5.77 0 0 0 3.447-1.147a.75.75 0 0 0-.894-1.206A4.27 4.27 0 0 1 12 16.25a4.27 4.27 0 0 1-2.553-.852"/></svg>
+pagefindFilters: [solar, navigation]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Home Smile — glyph from the [Solar icon library](https://solar-icons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

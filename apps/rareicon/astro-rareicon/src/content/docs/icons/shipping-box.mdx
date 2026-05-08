@@ -1,0 +1,51 @@
+---
+ref: shipping-box
+name: Shipping Box
+title: Shipping Box Icon
+description: Shipping Box glyph from the akar-icons icon library, 1 variant — recolor via currentColor.
+primary_category: commerce
+categories: [commerce, library]
+tags: [akar-icons-generated, akar-icons]
+search:
+  keywords: ["shipping-box","shipping","box","shipping-box-01","shipping box"]
+  primary_category: commerce
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Akar Icons (https://akaricons.com/) — MIT License"
+  author: Arturo Wibawa
+  source_url: "https://akaricons.com/shipping-box-01"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "akar-icons"
+    label: "Akar Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [akar-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"><path stroke-linecap="round" d="M11.029 2.54a2 2 0 0 1 1.942 0l7.515 4.174a1 1 0 0 1 .514.874v8.235a2 2 0 0 1-1.029 1.749l-7 3.888a2 2 0 0 1-1.942 0l-7-3.889A2 2 0 0 1 3 15.824V7.588a1 1 0 0 1 .514-.874z"/><path d="m3 7l9 5m0 0l9-5m-9 5v10"/><path stroke-linecap="round" d="m7.5 9.5l9-5M6 12.328L9 14"/></g></svg>
+pagefindFilters: [akar-icons, commerce]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shipping Box — glyph from the [Akar Icons icon library](https://akaricons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

@@ -7,6 +7,9 @@ settings:
 importers:
     .:
         dependencies:
+            '@iconify-json/akar-icons':
+                specifier: ^1.2.7
+                version: 1.2.7
             '@iconify-json/carbon':
                 specifier: ^1.2.20
                 version: 1.2.20
@@ -22,15 +25,27 @@ importers:
             '@iconify-json/iconoir':
                 specifier: ^1.2.11
                 version: 1.2.11
+            '@iconify-json/lucide-lab':
+                specifier: ^1.2.3
+                version: 1.2.3
             '@iconify-json/material-symbols':
                 specifier: ^1.2.70
                 version: 1.2.70
             '@iconify-json/mdi':
                 specifier: ^1.2.3
                 version: 1.2.3
+            '@iconify-json/mingcute':
+                specifier: ^1.2.7
+                version: 1.2.7
             '@iconify-json/octicon':
                 specifier: ^1.2.23
                 version: 1.2.23
+            '@iconify-json/radix-icons':
+                specifier: ^1.2.6
+                version: 1.2.6
+            '@iconify-json/solar':
+                specifier: ^1.2.5
+                version: 1.2.5
             '@phosphor-icons/core':
                 specifier: ^2.1.1
                 version: 2.1.1
@@ -48,6 +63,12 @@ importers:
                 version: 13.21.0
 
 packages:
+    '@iconify-json/akar-icons@1.2.7':
+        resolution:
+            {
+                integrity: sha512-cw44dCnZgGhm6Tywxm0WALAnDB9AyGkDk7kiLMo2B/Ayt7duZu/uyrsqb55weWUN8Ge2sQAOl8MRtT6bFcLzPg==,
+            }
+
     '@iconify-json/carbon@1.2.20':
         resolution:
             {
@@ -78,6 +99,12 @@ packages:
                 integrity: sha512-clBrCsZPkmdksYOkufVp7aoAU1j1hFQPrLUooWWmoYIMvKskUHQ+IDnwV7agTR+tGYHbud7OP2SRfYEpnqFDNw==,
             }
 
+    '@iconify-json/lucide-lab@1.2.3':
+        resolution:
+            {
+                integrity: sha512-N+8vnVt4IY/6FZi81f6nh5VhJSMYrs5KTVsT2Z/E0Wn7Lu4jJKO5fOfiTVX1YWVI4FFwQ1zVXPFb8kLAwskrjA==,
+            }
+
     '@iconify-json/material-symbols@1.2.70':
         resolution:
             {
@@ -90,10 +117,28 @@ packages:
                 integrity: sha512-O3cLwbDOK7NNDf2ihaQOH5F9JglnulNDFV7WprU2dSoZu3h3cWH//h74uQAB87brHmvFVxIOkuBX2sZSzYhScg==,
             }
 
+    '@iconify-json/mingcute@1.2.7':
+        resolution:
+            {
+                integrity: sha512-bp4z6F53KAQp99aSL7qPCHL7HWUNGMNKIhfo/dx9pwVHiad/WusUbTOFXEZfpA44syJPzSOxa3O6Pwiq7qZz1g==,
+            }
+
     '@iconify-json/octicon@1.2.23':
         resolution:
             {
                 integrity: sha512-Orzy6EGFBuqiME4WAyyv7Wr/RCOtf2EDUiCHBr0glTMyPQWwtZqribj9UEbDPE/ZMlwx79YrQ7sOoDQv1pVqRQ==,
+            }
+
+    '@iconify-json/radix-icons@1.2.6':
+        resolution:
+            {
+                integrity: sha512-izgVBJwk37dSvsma1QsRMfCWQ4FIImbBmJId1WUURzRZA5fFyKlCcG/nZC8se0KhOBWszo2mYgLmhKJv/DFPoA==,
+            }
+
+    '@iconify-json/solar@1.2.5':
+        resolution:
+            {
+                integrity: sha512-WMAiNwchU8zhfrySww6KQBRIBbsQ6SvgIu2yA+CHGyMima/0KQwT5MXogrZPJGoQF+1Ye3Qj6K+1CiyNn3YkoA==,
             }
 
     '@iconify/types@2.0.0':
@@ -141,6 +186,10 @@ packages:
         engines: { node: '>=0.12.18' }
 
 snapshots:
+    '@iconify-json/akar-icons@1.2.7':
+        dependencies:
+            '@iconify/types': 2.0.0
+
     '@iconify-json/carbon@1.2.20':
         dependencies:
             '@iconify/types': 2.0.0
@@ -161,6 +210,10 @@ snapshots:
         dependencies:
             '@iconify/types': 2.0.0
 
+    '@iconify-json/lucide-lab@1.2.3':
+        dependencies:
+            '@iconify/types': 2.0.0
+
     '@iconify-json/material-symbols@1.2.70':
         dependencies:
             '@iconify/types': 2.0.0
@@ -169,7 +222,19 @@ snapshots:
         dependencies:
             '@iconify/types': 2.0.0
 
+    '@iconify-json/mingcute@1.2.7':
+        dependencies:
+            '@iconify/types': 2.0.0
+
     '@iconify-json/octicon@1.2.23':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/radix-icons@1.2.6':
+        dependencies:
+            '@iconify/types': 2.0.0
+
+    '@iconify-json/solar@1.2.5':
         dependencies:
             '@iconify/types': 2.0.0
 

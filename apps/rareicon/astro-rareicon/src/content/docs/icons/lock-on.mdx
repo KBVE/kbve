@@ -1,0 +1,51 @@
+---
+ref: lock-on
+name: Lock On
+title: Lock On Icon
+description: Lock On glyph from the akar-icons icon library, 1 variant — recolor via currentColor.
+primary_category: action
+categories: [action, library]
+tags: [akar-icons-generated, akar-icons]
+search:
+  keywords: ["lock-on","lock","on","lock on"]
+  primary_category: action
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Akar Icons (https://akaricons.com/) — MIT License"
+  author: Arturo Wibawa
+  source_url: "https://akaricons.com/lock-on"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "akar-icons"
+    label: "Akar Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [akar-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="18" height="12" x="3" y="10" rx="2"/><path d="M6 6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4H6z"/></g></svg>
+pagefindFilters: [akar-icons, action]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Lock On — glyph from the [Akar Icons icon library](https://akaricons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

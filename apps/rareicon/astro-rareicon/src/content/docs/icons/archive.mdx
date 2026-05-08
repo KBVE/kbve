@@ -2,70 +2,133 @@
 ref: archive
 name: Archive
 title: Archive Icon
-description: Archive glyph set from the Lucide icon library (ISC), 3 variants — outline stroke, recolor via currentColor.
+description: Archive glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: file
-categories: [file, library]
-tags: [lucide, outline]
+categories:
+  - file
+  - library
+  - tech
+tags:
+  - lucide
+  - outline
+  - radix-icons-generated
+  - radix-icons
+  - merged-multi-source
 search:
-  keywords: ["archive", "restore", "x"]
+  keywords:
+    - archive
+    - restore
+    - x
   primary_category: file
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/archive"
+  source_url: https://lucide.dev/icons/archive
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
-  - ref: "restore"
-    label: "Restore"
+  - ref: restore
+    label: Restore
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2"/><path d="M20 8v11a2 2 0 0 1-2 2h-2"/><path d="m9 15 3-3 3 3"/><path d="M12 12v9"/></svg>
-  - ref: "x"
-    label: "X"
+  - ref: x
+    label: X
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="m9.5 17 5-5"/><path d="m9.5 12 5 5"/></svg>
-pagefindFilters: [lucide, file]
+  - ref: radix-icons
+    label: Radix Icons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 15
+      height: 15
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - radix-icons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M11.691 1a1 1 0 0 1 .894.553l1.362 2.723l.04.109A.5.5 0 0 1 14 4.5V13a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4.5a.5.5 0 0 1 .053-.224l1.362-2.723l.071-.121A1 1 0 0 1 3.31 1zM2 13h11V5H2zm7.5-6a.5.5 0 0 1 0 1h-4a.5.5 0 0 1 0-1zM2.309 4H7V2H3.309zM8 4h4.691l-1-2H8z"/></svg>
+pagefindFilters:
+  - lucide
+  - file
+  - radix-icons
+  - tech
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

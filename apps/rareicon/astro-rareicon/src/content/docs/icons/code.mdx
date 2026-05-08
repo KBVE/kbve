@@ -2,7 +2,7 @@
 ref: code
 name: Code
 title: Code Icon
-description: Code glyph with 5 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Code glyph with 6 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
 categories:
   - tech
@@ -17,6 +17,8 @@ tags:
   - octicons
   - fluent-generated
   - fluent
+  - mingcute-generated
+  - mingcute
 search:
   keywords:
     - code
@@ -145,12 +147,34 @@ icons:
       - fluent
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="m8.066 18.943l6.5-14.5a.75.75 0 0 1 1.404.518l-.036.096l-6.5 14.5a.75.75 0 0 1-1.404-.518zl6.5-14.5zM2.22 11.47l4.25-4.25a.75.75 0 0 1 1.133.976l-.073.085L3.81 12l3.72 3.719a.75.75 0 0 1-.976 1.133l-.084-.073l-4.25-4.25a.75.75 0 0 1-.073-.976zl4.25-4.25zm14.25-4.25a.75.75 0 0 1 .976-.073l.084.073l4.25 4.25a.75.75 0 0 1 .073.976l-.073.085l-4.25 4.25a.75.75 0 0 1-1.133-.977l.073-.084L20.19 12l-3.72-3.72a.75.75 0 0 1 0-1.06"/></svg>
+  - ref: mingcute
+    label: Mingcute
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - mingcute
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none"><path d="M0 0h24v24H0z"/><path fill="currentColor" d="M14.486 3.143a1 1 0 0 1 .692 1.233l-4.43 15.788a1 1 0 0 1-1.926-.54l4.43-15.788a1 1 0 0 1 1.234-.693M7.207 7.05a1 1 0 0 1 0 1.414L3.672 12l3.535 3.535a1 1 0 1 1-1.414 1.415L1.55 12.707a1 1 0 0 1 0-1.414L5.793 7.05a1 1 0 0 1 1.414 0m9.586 1.414a1 1 0 1 1 1.414-1.414l4.243 4.243a1 1 0 0 1 0 1.414l-4.243 4.243a1 1 0 0 1-1.414-1.415L20.328 12z"/></g></svg>
 pagefindFilters:
   - lucide
   - tech
   - phosphor
   - octicons
   - fluent
+  - mingcute
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

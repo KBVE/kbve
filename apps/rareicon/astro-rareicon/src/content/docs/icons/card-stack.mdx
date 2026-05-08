@@ -1,0 +1,51 @@
+---
+ref: card-stack
+name: Card Stack
+title: Card Stack Icon
+description: Card Stack glyph from the radix-icons icon library, 1 variant — recolor via currentColor.
+primary_category: commerce
+categories: [commerce, library]
+tags: [radix-icons-generated, radix-icons]
+search:
+  keywords: ["card-stack","card","stack","card stack"]
+  primary_category: commerce
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Radix Icons (https://www.radix-ui.com/icons) — MIT License"
+  author: WorkOS / Radix UI
+  source_url: "https://www.radix-ui.com/iconscard-stack"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "radix-icons"
+    label: "Radix Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 15, height: 15 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [radix-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M12.5 2A1.5 1.5 0 0 1 14 3.5v6c0 .653-.418 1.206-1 1.412v.588a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 11.5v-.588A1.5 1.5 0 0 1 1 9.5v-6A1.5 1.5 0 0 1 2.5 2zM3 11v.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5V11zm-.5-8a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5z"/></svg>
+pagefindFilters: [radix-icons, commerce]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Card Stack — glyph from the [Radix Icons icon library](https://www.radix-ui.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

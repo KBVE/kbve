@@ -1,0 +1,51 @@
+---
+ref: envelope-closed
+name: Envelope Closed
+title: Envelope Closed Icon
+description: Envelope Closed glyph from the radix-icons icon library, 1 variant — recolor via currentColor.
+primary_category: comms
+categories: [comms, library]
+tags: [radix-icons-generated, radix-icons]
+search:
+  keywords: ["envelope-closed","envelope","closed","envelope closed"]
+  primary_category: comms
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Radix Icons (https://www.radix-ui.com/icons) — MIT License"
+  author: WorkOS / Radix UI
+  source_url: "https://www.radix-ui.com/iconsenvelope-closed"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "radix-icons"
+    label: "Radix Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 15, height: 15 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [radix-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M14 2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM7.741 8.88a.45.45 0 0 1-.426.03l-.056-.03L1 4.907V12h13V4.907zM1 3.925q.08 0 .16.03l.081.04L7.5 7.967l6.259-3.972a.45.45 0 0 1 .241-.07V3H1z"/></svg>
+pagefindFilters: [radix-icons, comms]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Envelope Closed — glyph from the [Radix Icons icon library](https://www.radix-ui.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

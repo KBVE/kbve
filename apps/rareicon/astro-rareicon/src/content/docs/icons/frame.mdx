@@ -2,40 +2,83 @@
 ref: frame
 name: Frame
 title: Frame Icon
-description: Frame glyph set from the Lucide icon library (ISC), 1 variant — outline stroke, recolor via currentColor.
+description: Frame glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
-categories: [ui, library]
-tags: [lucide, outline]
+categories:
+  - ui
+  - library
+  - tech
+tags:
+  - lucide
+  - outline
+  - radix-icons-generated
+  - radix-icons
+  - merged-multi-source
 search:
-  keywords: ["frame"]
+  keywords:
+    - frame
   primary_category: ui
 default_license:
   license: isc
   attribution_required: true
-  attribution_line: "Lucide (https://lucide.dev/) — ISC License"
+  attribution_line: Lucide (https://lucide.dev/) — ISC License
   author: Lucide contributors
-  source_url: "https://lucide.dev/icons/frame"
+  source_url: https://lucide.dev/icons/frame
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "outline"
-    label: "Outline"
+  - ref: outline
+    label: Outline
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
       stroke_width: 2
       stroke_cap: round
       stroke_join: round
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [lucide]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - lucide
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="2" y1="6" y2="6"/><line x1="22" x2="2" y1="18" y2="18"/><line x1="6" x2="6" y1="2" y2="22"/><line x1="18" x2="18" y1="2" y2="22"/></svg>
-pagefindFilters: [lucide, ui]
+  - ref: radix-icons
+    label: Radix Icons
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 15
+      height: 15
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - radix-icons
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M10.5 1a.5.5 0 0 1 .5.5V4h2.5l.1.01a.5.5 0 0 1 0 .98l-.1.01H11v5h2.5l.1.01a.5.5 0 0 1 0 .98l-.1.01H11v2.5l-.01.1a.5.5 0 0 1-.98 0l-.01-.1V11H5v2.5a.5.5 0 0 1-1 0V11H1.5a.5.5 0 0 1 0-1H4V5H1.5a.5.5 0 0 1 0-1H4V1.5a.5.5 0 0 1 1 0V4h5V1.5a.5.5 0 0 1 .5-.5M5 10h5V5H5z"/></svg>
+pagefindFilters:
+  - lucide
+  - ui
+  - radix-icons
+  - tech
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';
