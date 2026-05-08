@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 export interface ReactDiscordProfileProps {
 	username: string;
 	avatarUrl?: string;
