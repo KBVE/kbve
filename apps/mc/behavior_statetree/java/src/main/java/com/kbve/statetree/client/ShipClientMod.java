@@ -103,6 +103,20 @@ public class ShipClientMod implements ClientModInitializer {
                     com.kbve.statetree.ship.ShipUpgrades.MAX_SLOTS);
             hud.setCautions(shipEntity.getCautionBits());
             hud.setBoostReserve(shipEntity.getBoostReserve());
+
+            // Mirror the server-side wind formula in ShipEntity.tick:
+            //   nx = cos(age/20/mass) * stats.wind * weatherMul
+            //   nz = cos(age/21/mass) * stats.wind * weatherMul
+            float mass = Math.max(0.5f, shipEntity.getStats().mass());
+            float wRaw = shipEntity.getStats().wind();
+            net.minecraft.world.World wWorld = shipEntity.getEntityWorld();
+            float weatherMul = (wWorld.isRaining() ? 1.8f : 1.0f)
+                    * (wWorld.isThundering() ? 2.2f : 1.0f);
+            float nx = (float) Math.cos(shipEntity.age / 20.0 / mass) * wRaw * weatherMul;
+            float nz = (float) Math.cos(shipEntity.age / 21.0 / mass) * wRaw * weatherMul;
+            float windAngle = (float) Math.toDegrees(Math.atan2(nx, nz));
+            float windMag = (float) Math.sqrt(nx * nx + nz * nz);
+            hud.setWind(windAngle, windMag);
         } else if (activeHelmShipId != null) {
             LOGGER.info("[Ship Client] Dismounted — clearing helm");
             clearActiveHelm();

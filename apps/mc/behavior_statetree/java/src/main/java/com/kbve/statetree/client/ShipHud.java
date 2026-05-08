@@ -30,6 +30,8 @@ public class ShipHud implements HudRenderCallback {
     private byte cautionBits = 0;
     private String flightMode = "FLY";
     private float boostReserve = 1f;
+    private float windAngleDeg = 0f;
+    private float windStrength = 0f;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -105,6 +107,11 @@ public class ShipHud implements HudRenderCallback {
 
     public void setBoostReserve(float reserve) {
         this.boostReserve = reserve;
+    }
+
+    public void setWind(float angleDeg, float strength) {
+        this.windAngleDeg = angleDeg;
+        this.windStrength = strength;
     }
 
     public boolean isActive() {
@@ -278,6 +285,18 @@ public class ShipHud implements HudRenderCallback {
         String upgText = String.format("§bUPGRADES %d/%d", upgradeCount, maxUpgradeSlots);
         context.drawText(client.textRenderer, Text.of(upgText),
                 10, 10, 0xFFFFFFFF, true);
+
+        // Wind indicator (top-left under upgrades). Arrow rotates by
+        // windAngleDeg, color fades from gray (calm) → cyan (gusty).
+        if (windStrength > 0.001f) {
+            String[] arrows = {"↑", "↗", "→", "↘", "↓", "↙", "←", "↖"};
+            int idx = (int) (((windAngleDeg % 360 + 360) % 360) / 45f) % 8;
+            int wColor = windStrength > 0.08f ? 0xFF44CCFF
+                       : windStrength > 0.04f ? 0xFF77AACC : 0xFF88AAAA;
+            String windText = String.format("§7WIND %s §f%.2f", arrows[idx], windStrength);
+            context.drawText(client.textRenderer, Text.of(windText),
+                    10, 22, wColor, true);
+        }
 
         // Cautions stack (just above the controls hint, right side).
         // Mirrors IA's PULL_UP / VOID / DAMAGED indicators; LOW_FUEL is
