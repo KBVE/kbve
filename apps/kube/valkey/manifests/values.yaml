@@ -1,6 +1,15 @@
 # Valkey configuration — secondary key-value store alongside Redis
 # Official valkey-io/valkey-helm chart (not Bitnami)
 
+# Stakater Reloader watches workloads with this annotation and rolls
+# the pod when any referenced ConfigMap/Secret changes. valkey-helm
+# 0.9.4 added `workloadAnnotations` which lands the annotation on the
+# Deployment metadata itself — that is the surface Reloader watches by
+# default, so a rotation of the valkey-auth SealedSecret triggers an
+# automatic roll of the master pod.
+workloadAnnotations:
+    reloader.stakater.com/auto: 'true'
+
 auth:
     enabled: true
     aclUsers:

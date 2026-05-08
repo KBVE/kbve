@@ -7,7 +7,14 @@ spec:
     project: default
     sources:
         - repoURL: https://valkey-io.github.io/valkey-helm/
-          targetRevision: 0.9.3
+          # Bumped 0.9.3 -> 0.9.4 (Valkey app 9.0.1 -> 9.0.2, patch only)
+          # to pick up the new `workloadAnnotations` value (annotates the
+          # Deployment metadata directly — cleaner Reloader wiring than
+          # podAnnotations) plus chart-default seccompProfile RuntimeDefault
+          # and allowPrivilegeEscalation: false. Selector labels are
+          # identical between 0.9.3 and 0.9.4 (verified via helm template
+          # diff), so no immutability conflict on upgrade.
+          targetRevision: 0.9.4
           chart: valkey
           helm:
               releaseName: valkey
