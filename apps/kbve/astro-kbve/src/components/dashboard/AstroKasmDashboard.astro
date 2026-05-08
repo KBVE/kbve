@@ -5,7 +5,7 @@ import ReactKasmViewer from './ReactKasmViewer';
 
 <section
 	id="kasm-dashboard-wrapper"
-	class="kasm-dashboard-wrapper"
+	class="kasm-dashboard-wrapper kbve-dashboard-page"
 	aria-label="KASM Workspace Viewer">
 	<div id="kasm-content" class="kasm-content">
 		<ReactVMAuth client:only="react">
@@ -21,8 +21,7 @@ import ReactKasmViewer from './ReactKasmViewer';
 		background: transparent;
 		min-height: 100vh;
 		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
+		width: 100%;
 	}
 
 	.kasm-content {
