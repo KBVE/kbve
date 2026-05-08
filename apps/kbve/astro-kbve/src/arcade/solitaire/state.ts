@@ -35,6 +35,7 @@ import {
 	JOKER_MULT_PER_TABLEAU,
 	ROUND_BLINDS,
 	SCORE,
+	STARTING_CASH,
 	STATS,
 	STOCK_DRAW_COUNT,
 	STORAGE_KEY,
@@ -94,7 +95,7 @@ export class GameState {
 	// --- Layer 3: run progression ------------------------------------------
 	round = 1;
 	blind = ROUND_BLINDS[0];
-	cash = 0;
+	cash = STARTING_CASH;
 	hp: number = HP.start;
 	maxHp: number = HP.max;
 	armor: number = STATS.startArmor;
@@ -163,7 +164,7 @@ export class GameState {
 	resetRun(rng?: () => number) {
 		this.round = 1;
 		this.blind = ROUND_BLINDS[0];
-		this.cash = 0;
+		this.cash = STARTING_CASH;
 		this.hp = HP.start;
 		this.maxHp = HP.max;
 		this.armor = STATS.startArmor;

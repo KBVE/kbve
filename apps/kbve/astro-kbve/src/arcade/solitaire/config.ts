@@ -140,6 +140,10 @@ export const ROUND_BLINDS: readonly number[] = [
  * the shop on jokers / boosts. */
 export const CASH_RATE = 10;
 
+/** Starting cash for a fresh run — gives the player a small budget to
+ * grab a shop item after round 1 even on a rough first deal. */
+export const STARTING_CASH = 100;
+
 /** HP system — Balatro-style "lives". Damage from stock-recycle pressure;
  * 0 HP triggers game over mid-round. Missing the blind at end of round is
  * an instant game over (no HP cushion). */

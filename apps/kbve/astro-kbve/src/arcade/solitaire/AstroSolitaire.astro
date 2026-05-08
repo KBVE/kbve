@@ -2,10 +2,9 @@
 import ReactSolitaireApp from './ReactSolitaireApp';
 ---
 
-<div class="not-content w-full h-full">
+<div class="not-content solitaire-stage">
 	<div
-		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0a4d2e]"
-		style="width: 100%; aspect-ratio: 6/5;"
+		class="solitaire-frame rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0a4d2e]"
 		tabindex="0">
 		<ReactSolitaireApp client:only="react" />
 	</div>
@@ -14,3 +13,17 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 		to a foundation. Press <kbd>N</kbd> for a new game · <kbd>Z</kbd> to undo.
 	</p>
 </div>
+
+<style>
+	/* Stage breaks out of Starlight's narrow content column to claim the
+	   full splash content width (capped). The 6/5 frame stays centered. */
+	.solitaire-stage {
+		width: 100%;
+		max-width: 1400px;
+		margin-inline: auto;
+	}
+	.solitaire-frame {
+		width: 100%;
+		aspect-ratio: 6 / 5;
+	}
+</style>
