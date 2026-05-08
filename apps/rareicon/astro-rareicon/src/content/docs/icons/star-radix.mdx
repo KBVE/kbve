@@ -1,0 +1,51 @@
+---
+ref: star-radix
+name: Star Radix
+title: Star Radix Icon
+description: Star Radix glyph from the radix-icons icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [radix-icons-generated, radix-icons]
+search:
+  keywords: ["star-radix","star","radix","star radix"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Radix Icons (https://www.radix-ui.com/icons) — MIT License"
+  author: WorkOS / Radix UI
+  source_url: "https://www.radix-ui.com/iconsstar"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "radix-icons"
+    label: "Radix Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 15, height: 15 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [radix-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M7.223.666a.3.3 0 0 1 .554 0L9.413 4.6a.3.3 0 0 0 .253.184l4.248.34a.3.3 0 0 1 .171.527l-.23.195l-3.006 2.578a.3.3 0 0 0-.097.296l.919 3.852l.07.294a.3.3 0 0 1-.361.362l-.087-.037l-.258-.158l-3.379-2.062a.3.3 0 0 0-.312 0l-3.637 2.22l-.087.037a.3.3 0 0 1-.361-.362l.07-.294l.92-3.852a.3.3 0 0 0-.043-.235l-.055-.061L.915 5.65a.3.3 0 0 1 .171-.526l.3-.025l3.948-.316a.3.3 0 0 0 .211-.112l.042-.072zM6.51 4.984a1.3 1.3 0 0 1-.917.77l-.18.027l-2.57.205l1.959 1.678l.129.127c.237.269.353.626.319.983l-.03.179l-.598 2.507l2.2-1.343l.161-.083a1.3 1.3 0 0 1 1.034 0l.16.083l2.2 1.343l-.598-2.507a1.3 1.3 0 0 1 .42-1.29l1.957-1.677l-2.569-.205a1.3 1.3 0 0 1-1.016-.635l-.08-.162l-.99-2.38z"/></svg>
+pagefindFilters: [radix-icons, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Star Radix — glyph from the [Radix Icons icon library](https://www.radix-ui.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

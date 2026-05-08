@@ -2,7 +2,7 @@
 ref: leaf
 name: Leaf
 title: Leaf Icon
-description: Leaf glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Leaf glyph with 4 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: ui
 categories:
   - ui
@@ -15,6 +15,8 @@ tags:
   - multi-weight
   - merged-multi-source
   - tabler-generated
+  - solar-generated
+  - solar
 search:
   keywords:
     - leaf
@@ -100,12 +102,34 @@ icons:
       - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21c.5 -4.5 2.5 -8 7 -10" /> <path d="M9 18c6.218 0 10.5 -3.288 11 -12v-2h-4.014c-9 0 -11.986 4 -12 9c0 1 0 3 2 5h3l.014 0" /></svg>
+  - ref: solar
+    label: Solar
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - solar
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" fill-rule="evenodd" d="M12 22c-4.418 0-8-3.646-8-8.143c0-4.462 2.553-9.67 6.537-11.531A3.45 3.45 0 0 1 12 2z" clip-rule="evenodd"/><path fill="currentColor" d="M13.463 2.326A3.45 3.45 0 0 0 12 2v7l4.432-4.432c-.863-.947-1.86-1.724-2.97-2.242" opacity=".3"/><path fill="currentColor" d="M12 9v5.5l6.614-6.614c-.572-1.22-1.308-2.357-2.182-3.318z" opacity=".4"/><path fill="currentColor" d="m12 19.5l7.811-7.811a15 15 0 0 0-1.197-3.803L12 14.5z" opacity=".6"/><path fill="currentColor" d="M19.811 11.689L12 19.5V22c4.418 0 8-3.646 8-8.143c0-.71-.064-1.438-.189-2.168" opacity=".7"/></svg>
 pagefindFilters:
   - lucide
   - ui
   - phosphor
   - weather
   - tabler
+  - solar
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

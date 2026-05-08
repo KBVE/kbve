@@ -1,0 +1,51 @@
+---
+ref: people-multiple
+name: People Multiple
+title: People Multiple Icon
+description: People Multiple glyph from the akar-icons icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [akar-icons-generated, akar-icons]
+search:
+  keywords: ["people-multiple","people","multiple","people multiple"]
+  primary_category: social
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Akar Icons (https://akaricons.com/) — MIT License"
+  author: Arturo Wibawa
+  source_url: "https://akaricons.com/people-multiple"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "akar-icons"
+    label: "Akar Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [akar-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="6" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 13H5.818a3 3 0 0 0-2.964 2.537L2.36 18.69A2 2 0 0 0 4.337 21H9m12.64-2.309l-.494-3.154A3 3 0 0 0 18.182 13h-2.364a3 3 0 0 0-2.964 2.537l-.493 3.154A2 2 0 0 0 14.337 21h5.326a2 2 0 0 0 1.976-2.309"/><circle cx="17" cy="6" r="3"/></g></svg>
+pagefindFilters: [akar-icons, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+People Multiple — glyph from the [Akar Icons icon library](https://akaricons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

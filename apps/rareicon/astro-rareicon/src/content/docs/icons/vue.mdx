@@ -2,37 +2,82 @@
 ref: vue
 name: Vue
 title: Vue Icon
-description: Vue brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Vue glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - logos-generated
+  - logos
+  - merged-multi-source
 search:
-  keywords: ["vue","vuedotjs"]
+  keywords:
+    - vue
+    - vuedotjs
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/vuedotjs"
+  source_url: https://simpleicons.org/icons/vuedotjs
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: logos
+    label: Logos
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 221
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - logos
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 221" fill="currentColor"><path fill="#41b883" d="M204.8 0H256L128 220.8L0 0h97.92L128 51.2L157.44 0z"/><path fill="#41b883" d="m0 0l128 220.8L256 0h-51.2L128 132.48L50.56 0z"/><path fill="#35495e" d="M50.56 0L128 133.12L204.8 0h-47.36L128 51.2L97.92 0z"/></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - logos
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

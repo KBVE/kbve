@@ -1,0 +1,51 @@
+---
+ref: shuriken
+name: Shuriken
+title: Shuriken Icon
+description: Shuriken glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["shuriken"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/shuriken"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="m114.875 18.844l.406 16.593l2.94 136.594h.06c26.11 0 47.314 21.205 47.314 47.314c0 26.108-21.204 47.312-47.313 47.312c-8.59 0-16.644-2.3-23.593-6.312L23.814 376.906l-8.657 14.156l17.5-.156l132.063-3c-.004-.198 0-.395 0-.594c0-26.108 21.17-47.28 47.28-47.28s47.313 21.172 47.313 47.28a47 47 0 0 1-5.563 22.22l119.438 72.624l15.093 8.906l-.405-16.625l-2.938-128.937a47 47 0 0 1-3.78.156c-26.11 0-47.313-21.204-47.313-47.312c0-26.11 21.204-47.313 47.312-47.313c8.363 0 16.21 2.186 23.03 6L479.377 133l8.655-14.188l-17.53.157l-136.094 3.093c.005.28.03.56.03.843c.002 26.11-21.202 47.313-47.31 47.313c-26.11 0-47.313-21.205-47.313-47.314c0-8.885 2.45-17.206 6.718-24.312L129.97 27.72zm19.25 33.28l17.094 10.407l64 110.876a88 88 0 0 0-16.251 9.25L134.562 71.094zm320.594 85.94l-9.814 16.124l-112.312 64.843a89 89 0 0 0-4.28-8.436a89 89 0 0 0-5.033-7.78l111.376-64.283zM250.56 189.218a61 61 0 0 1 2.22 0c22.475.253 44.167 11.71 56.187 32.53c18.315 31.725 6.6 72.12-25.126 90.438c-31.725 18.316-71.496 7.662-89.813-24.063c-18.315-31.725-7.66-71.496 24.064-89.813a67.74 67.74 0 0 1 32.47-9.093zM170.5 291.03a91 91 0 0 0 9.375 16.19L68.75 371.374l-20.313.47l9.688-15.94L170.5 291.032zM304 327.126l64.625 111.97l.438 18.655l-17.344-10.563l-63.876-110.625a88 88 0 0 0 7.78-3.968a88 88 0 0 0 8.376-5.47z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shuriken — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

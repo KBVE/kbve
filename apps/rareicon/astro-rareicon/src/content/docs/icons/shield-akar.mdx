@@ -1,0 +1,51 @@
+---
+ref: shield-akar
+name: Shield Akar
+title: Shield Akar Icon
+description: Shield Akar glyph from the akar-icons icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [akar-icons-generated, akar-icons]
+search:
+  keywords: ["shield-akar","shield","akar","shield akar"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Akar Icons (https://akaricons.com/) — MIT License"
+  author: Arturo Wibawa
+  source_url: "https://akaricons.com/shield"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "akar-icons"
+    label: "Akar Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [akar-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m13.147 21.197l1.67-1.168a13.39 13.39 0 0 0 5.447-13.624a.84.84 0 0 0-.453-.586L12 2L4.19 5.819a.84.84 0 0 0-.454.586a13.39 13.39 0 0 0 5.448 13.624l1.67 1.168a2 2 0 0 0 2.293 0"/></svg>
+pagefindFilters: [akar-icons, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Shield Akar — glyph from the [Akar Icons icon library](https://akaricons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

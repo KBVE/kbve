@@ -1,0 +1,51 @@
+---
+ref: lightning-bolt
+name: Lightning Bolt
+title: Lightning Bolt Icon
+description: Lightning Bolt glyph from the radix-icons icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [radix-icons-generated, radix-icons]
+search:
+  keywords: ["lightning-bolt","lightning","bolt","lightning bolt"]
+  primary_category: game
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Radix Icons (https://www.radix-ui.com/icons) — MIT License"
+  author: WorkOS / Radix UI
+  source_url: "https://www.radix-ui.com/iconslightning-bolt"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "radix-icons"
+    label: "Radix Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 15, height: 15 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [radix-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" fill="currentColor"><path fill="currentColor" d="M8.156.137a.5.5 0 0 1 .837.445L8.09 6h4.41a.5.5 0 0 1 .4.8l-6 8a.5.5 0 0 1-.893-.382L6.91 9H2.5a.5.5 0 0 1-.4-.8l6-8zM3.5 8h4a.5.5 0 0 1 .493.582l-.663 3.977L11.5 7h-4a.5.5 0 0 1-.493-.582l.662-3.977z"/></svg>
+pagefindFilters: [radix-icons, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Lightning Bolt — glyph from the [Radix Icons icon library](https://www.radix-ui.com/icons).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

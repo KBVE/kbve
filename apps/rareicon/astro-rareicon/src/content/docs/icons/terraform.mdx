@@ -2,37 +2,105 @@
 ref: terraform
 name: Terraform
 title: Terraform Icon
-description: Terraform brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Terraform glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - devicon-generated
+  - devicon
+  - merged-multi-source
+  - logos-generated
+  - logos
 search:
-  keywords: ["terraform"]
+  keywords:
+    - terraform
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/terraform"
+  source_url: https://simpleicons.org/icons/terraform
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1.44 0v7.575l6.561 3.79V3.787zm21.12 4.227l-6.561 3.791v7.574l6.56-3.787zM8.72 4.23v7.575l6.561 3.787V8.018zm0 8.405v7.575L15.28 24v-7.578z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: devicon
+    label: Devicon
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 128
+      height: 128
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - devicon
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="currentColor"><g fill-rule="evenodd"><path fill="#5c4ee5" d="M77.941 44.5v36.836L46.324 62.918V26.082zm0 0"/><path fill="#4040b2" d="m81.41 81.336l31.633-18.418V26.082L81.41 44.5zm0 0"/><path fill="#5c4ee5" d="M11.242 42.36L42.86 60.776V23.941L11.242 5.523zm66.699 43.015L46.324 66.957v36.82l31.617 18.418zm0 0"/></g></svg>
+  - ref: logos
+    label: Logos
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 291
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - logos
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 291" fill="currentColor"><path fill="#4040b2" d="M176.485 188.994L256 143.127V51.249l-79.515 45.963z"/><path fill="#5c4ee5" d="m88.243 51.249l79.515 45.963v91.782L88.243 143.08M0 91.83l79.515 45.916v-91.83L0 0m88.243 244.994l79.515 45.915v-91.83l-79.515-45.915"/></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - devicon
+  - logos
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

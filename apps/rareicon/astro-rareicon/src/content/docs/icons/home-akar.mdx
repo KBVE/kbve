@@ -1,0 +1,51 @@
+---
+ref: home-akar
+name: Home Akar
+title: Home Akar Icon
+description: Home Akar glyph from the akar-icons icon library, 1 variant — recolor via currentColor.
+primary_category: navigation
+categories: [navigation, library]
+tags: [akar-icons-generated, akar-icons]
+search:
+  keywords: ["home-akar","home","akar","home akar"]
+  primary_category: navigation
+default_license:
+  license: mit
+  attribution_required: false
+  attribution_line: "Akar Icons (https://akaricons.com/) — MIT License"
+  author: Arturo Wibawa
+  source_url: "https://akaricons.com/home"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "akar-icons"
+    label: "Akar Icons"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [akar-icons]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 19v-6.733a4 4 0 0 0-1.245-2.9L13.378 3.31a2 2 0 0 0-2.755 0L4.245 9.367A4 4 0 0 0 3 12.267V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2"/></svg>
+pagefindFilters: [akar-icons, navigation]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Home Akar — glyph from the [Akar Icons icon library](https://akaricons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

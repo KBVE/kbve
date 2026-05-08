@@ -1,0 +1,51 @@
+---
+ref: tower-fall
+name: Tower Fall
+title: Tower Fall Icon
+description: Tower Fall glyph from the Game Icons library (CC BY 3.0), 1 variant — filled, recolor via currentColor.
+primary_category: game
+categories: [game, library, gamedev]
+tags: [game-icons-generated, gamedev, filled]
+search:
+  keywords: ["tower-fall","tower","fall","tower fall"]
+  primary_category: game
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Game Icons (https://game-icons.net/) — CC BY 3.0 — credit listed per artist on source page"
+  author: Game Icons contributors
+  source_url: "https://game-icons.net/1x1/tower-fall"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "filled"
+    label: "Filled"
+    style: filled
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 512, height: 512 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [24, 32, 48, 64]
+    tags: [game-icons, gamedev]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path fill="currentColor" d="M91.033 22.14v84.368l46.434 57.56v16.166l98.93 44.13l27.29-34.305l65.9 4.01v-30l46.433-57.562v-84.37h-48.916v39.796H297.33V22.14h-49.45v39.794h-29.24V22.14h-49.45v39.794h-29.243V22.14zm46.434 178.557v195.17h-29.88l-21.792 94.695h295.463l-21.79-94.695h-29.882V370.02l-38.72-24.07l-23.712 29.292l28.432 25.737l-12.543 13.854L241.5 377.23l33.37-41.222l-91.65-56.973l33.288-43.082zm155.013 19.11l19.04 34.994l31.005-5.405l-17.287-29.588H292.48zm66.682 10.088l17.293 74.527l55.553 2.068l-13.442-57.967zm-135.47 27.328l-13.034 16.865l37.393 23.244l18.167-20.61l-42.526-19.5zm73.115 13.056l-32.66 37.056l65.44 40.68V298.2zm85.154 51.745l-5.16 29.584l33.49 18.158l-.093-31.258zm79.91 6.928l-23.073 23.197l8.697 33.106l25.717-18.08l-11.34-38.223zm-65.85 68.992l-10.97 36.977l24.88 17.49l8.414-32.025z"/></svg>
+pagefindFilters: [game-icons, gamedev, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Tower Fall — gamedev glyph from the [Game Icons library](https://game-icons.net/) (CC BY 3.0). Attribution required: see the source page for the per-artist credit.
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

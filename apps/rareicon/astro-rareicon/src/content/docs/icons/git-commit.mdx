@@ -2,37 +2,83 @@
 ref: git-commit
 name: Git Commit
 title: Git Commit Icon
-description: Git Commit glyph from the octicons icon library, 1 variant — recolor via currentColor.
+description: Git Commit glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library]
-tags: [octicons-generated, octicons]
+categories:
+  - tech
+  - library
+tags:
+  - octicons-generated
+  - octicons
+  - phosphor-generated
+  - multi-weight
+  - merged-multi-source
 search:
-  keywords: ["git-commit","git","commit","git-commit-24","git commit"]
+  keywords:
+    - git-commit
+    - git
+    - commit
+    - git-commit-24
+    - git commit
   primary_category: tech
 default_license:
   license: mit
   attribution_required: false
-  attribution_line: "Octicons (https://primer.style/foundations/icons) — MIT License"
+  attribution_line: Octicons (https://primer.style/foundations/icons) — MIT License
   author: GitHub Inc.
-  source_url: "https://primer.style/foundations/icons/git-commit-24"
+  source_url: https://primer.style/foundations/icons/git-commit-24
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "octicons"
-    label: "Octicons"
+  - ref: octicons
+    label: Octicons
     style: outline
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [octicons]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - octicons
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M16.944 11h4.306a.75.75 0 0 1 0 1.5h-4.306a5.001 5.001 0 0 1-9.888 0H2.75a.75.75 0 0 1 0-1.5h4.306a5.001 5.001 0 0 1 9.888 0m-1.444.75a3.5 3.5 0 1 0-7 0a3.5 3.5 0 0 0 7 0"/></svg>
-pagefindFilters: [octicons, tech]
+  - ref: phosphor-regular
+    label: Regular
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - phosphor
+      - regular
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M248,120H183.42a56,56,0,0,0-110.84,0H8a8,8,0,0,0,0,16H72.58a56,56,0,0,0,110.84,0H248a8,8,0,0,0,0-16ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"/></svg>
+pagefindFilters:
+  - octicons
+  - tech
+  - phosphor
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

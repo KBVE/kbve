@@ -199,6 +199,50 @@ const CURATED = [
 	{ slug: 'hypnotic-eye', ref: 'hypnotic-eye', cat: 'game' },
 	{ slug: 'time-trap', ref: 'time-trap', cat: 'game' },
 	{ slug: 'cracked-disc', ref: 'cracked-disc', cat: 'game' },
+
+	// Mythology / legendary
+	{ slug: 'thor-hammer', ref: 'thor-hammer', cat: 'game' },
+	{ slug: 'horus', ref: 'horus', cat: 'game' },
+	{ slug: 'sphinx', ref: 'sphinx', cat: 'game' },
+	{ slug: 'medusa-head', ref: 'medusa-head', cat: 'game' },
+	{ slug: 'eye-of-horus', ref: 'eye-of-horus', cat: 'game' },
+	{ slug: 'sun-cloud', ref: 'sun-cloud', cat: 'weather' },
+	{ slug: 'celebration-fire', ref: 'celebration-fire', cat: 'game' },
+
+	// More weapons
+	{ slug: 'flail', ref: 'flail', cat: 'game' },
+	{ slug: 'mace-head', ref: 'mace-head', cat: 'game' },
+	{ slug: 'pike', ref: 'pike', cat: 'game' },
+	{ slug: 'pirate-hook', ref: 'pirate-hook', cat: 'game' },
+	{ slug: 'sai', ref: 'sai', cat: 'game' },
+	{ slug: 'shuriken', ref: 'shuriken', cat: 'game' },
+	{ slug: 'wood-axe', ref: 'wood-axe', cat: 'game' },
+
+	// More monsters
+	{ slug: 'frog-prince', ref: 'frog-prince', cat: 'game' },
+	{ slug: 'rat', ref: 'rat-game', cat: 'game' },
+	{ slug: 'wolverine-claws', ref: 'wolverine-claws', cat: 'game' },
+	{ slug: 'centaur', ref: 'centaur', cat: 'game' },
+	{ slug: 'unicorn', ref: 'unicorn-game', cat: 'game' },
+	{ slug: 'phoenix', ref: 'phoenix', cat: 'game' },
+	{ slug: 'crab', ref: 'crab-game', cat: 'game' },
+
+	// More environments
+	{ slug: 'oak', ref: 'oak', cat: 'game' },
+	{ slug: 'wooden-fence', ref: 'wooden-fence', cat: 'game' },
+	{ slug: 'mushroom-house', ref: 'mushroom-house', cat: 'game' },
+	{ slug: 'fountain', ref: 'fountain-game', cat: 'game' },
+	{ slug: 'moon-temple', ref: 'moon-temple', cat: 'game' },
+	{ slug: 'tower-fall', ref: 'tower-fall', cat: 'game' },
+
+	// Survival / crafting
+	{ slug: 'wood-cabin', ref: 'wood-cabin', cat: 'game' },
+	{ slug: 'mining', ref: 'mining', cat: 'game' },
+	{ slug: 'meat-cleaver', ref: 'meat-cleaver', cat: 'game' },
+	{ slug: 'cooking-pot', ref: 'cooking-pot', cat: 'game' },
+	{ slug: 'water-bottle', ref: 'water-bottle', cat: 'game' },
+	{ slug: 'canteen', ref: 'canteen', cat: 'game' },
+	{ slug: 'campfire-game', ref: 'campfire-game', cat: 'game' },
 ];
 
 function titleCase(str) {

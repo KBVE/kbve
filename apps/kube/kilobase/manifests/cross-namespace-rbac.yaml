@@ -63,6 +63,9 @@ subjects:
     - kind: ServiceAccount
       name: ows-external-secrets
       namespace: ows
+    - kind: ServiceAccount
+      name: cryptothrone-external-secrets
+      namespace: cryptothrone
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1

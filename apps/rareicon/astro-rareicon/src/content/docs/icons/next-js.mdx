@@ -2,37 +2,85 @@
 ref: next-js
 name: Next.js
 title: Next.js Icon
-description: Next.js brand glyph from the Simple Icons library (CC0), 1 variant — filled brand glyph, recolor via currentColor.
+description: Next.js glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
-categories: [tech, library, brand]
-tags: [simple-icons-generated, brand]
+categories:
+  - tech
+  - library
+  - brand
+tags:
+  - simple-icons-generated
+  - brand
+  - logos-generated
+  - logos
+  - merged-multi-source
 search:
-  keywords: ["next-js","next","js","next.js","nextdotjs"]
+  keywords:
+    - next-js
+    - next
+    - js
+    - next.js
+    - nextdotjs
   primary_category: tech
 default_license:
   license: cc0
   attribution_required: false
-  attribution_line: "Simple Icons (https://simpleicons.org/) — CC0"
+  attribution_line: Simple Icons (https://simpleicons.org/) — CC0
   author: Simple Icons contributors
-  source_url: "https://simpleicons.org/icons/nextdotjs"
+  source_url: https://simpleicons.org/icons/nextdotjs
   commercial_use: true
   modifications_allowed: true
 default_offering:
   offering: free
 icons:
-  - ref: "filled"
-    label: "Filled"
+  - ref: filled
+    label: Filled
     style: filled
     format: svg
-    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 24
+      height: 24
     render:
       uses_current_color: true
       monochrome: true
-    recommended_sizes: [16, 20, 24, 32]
-    tags: [simple-icons, brand]
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - simple-icons
+      - brand
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.665 21.978C16.758 23.255 14.465 24 12 24 5.377 24 0 18.623 0 12S5.377 0 12 0s12 5.377 12 12c0 3.583-1.574 6.801-4.067 9.001L9.219 7.2H7.2v9.596h1.615V9.251l9.85 12.727Zm-3.332-8.533 1.6 2.061V7.2h-1.6v6.245Z"/></svg>
-pagefindFilters: [simple-icons, tech, brand]
+  - ref: logos
+    label: Logos
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 256
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - logos
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><defs><linearGradient id="SVGrDou6dwg" x1="55.633%" x2="83.228%" y1="56.385%" y2="96.08%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="SVG9onTObtB" x1="50%" x2="49.953%" y1="0%" y2="73.438%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient><circle id="SVGN5eQqeMK" cx="128" cy="128" r="128"/></defs><mask id="SVGMX2wGdvm" fill="#fff"><use href="#SVGN5eQqeMK"/></mask><g mask="url(#SVGMX2wGdvm)"><circle cx="128" cy="128" r="128"/><path fill="url(#SVGrDou6dwg)" d="M212.634 224.028L98.335 76.8H76.8v102.357h17.228V98.68L199.11 234.446a128 128 0 0 0 13.524-10.418"/><path fill="url(#SVG9onTObtB)" d="M163.556 76.8h17.067v102.4h-17.067z"/></g></svg>
+pagefindFilters:
+  - simple-icons
+  - tech
+  - brand
+  - logos
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

@@ -1,0 +1,51 @@
+---
+ref: unicorn-head
+name: Unicorn Head
+title: Unicorn Head Icon
+description: Unicorn Head glyph from the lucide-lab icon library, 1 variant — recolor via currentColor.
+primary_category: game
+categories: [game, library]
+tags: [lucide-lab-generated, lucide-lab]
+search:
+  keywords: ["unicorn-head","unicorn","head","unicorn head"]
+  primary_category: game
+default_license:
+  license: isc
+  attribution_required: false
+  attribution_line: "Lucide Lab (https://lucide.dev/lab) — ISC License"
+  author: Lucide contributors
+  source_url: "https://lucide.dev/icons/unicorn-head"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "lucide-lab"
+    label: "Lucide Lab"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [lucide-lab]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m15.6 4.8l2.7 2.3M15.5 10S19 7 22 2c-6 2-10 5-10 5m-.5 5H11"/><path d="M5 15a4 4 0 0 0 4 4h7.8l.3.3a3 3 0 0 0 4-4.46L12 7c0-3-1-5-1-5S8 3 8 7c-4 1-6 3-6 3"/><path d="M2 4.5C4 3 6 3 6 3l2 4M6.14 17.8S4 19 2 22"/></g></svg>
+pagefindFilters: [lucide-lab, game]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Unicorn Head — glyph from the [Lucide Lab icon library](https://lucide.dev/lab).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

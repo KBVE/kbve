@@ -1,4 +1,12 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import {
+	useState,
+	useEffect,
+	useMemo,
+	useCallback,
+	lazy,
+	Suspense,
+} from 'react';
+import { createKbveClient, extractErrorMessage } from '@kbve/devops';
 
 const McSkinViewer = lazy(() => import('./McSkinViewer'));
 
@@ -380,18 +388,29 @@ export default function McPlayerList({
 	const [selectedPlayer, setSelectedPlayer] = useState<McPlayer | null>(null);
 	const [panelVisible, setPanelVisible] = useState(false);
 
+	// Memoize the typed client so we don't rebuild it every render. The
+	// `apiBaseUrl` prop lets a parent point this at a non-default origin
+	// (e.g. a staging API) — same-origin '/' is the default.
+	const client = useMemo(
+		() => createKbveClient({ baseUrl: apiBaseUrl || '/' }),
+		[apiBaseUrl],
+	);
+
 	const fetchPlayers = useCallback(async () => {
 		try {
-			const resp = await fetch(`${apiBaseUrl}/api/v1/mc/players`);
-			if (!resp.ok) {
+			const {
+				data: json,
+				error: apiError,
+				response,
+			} = await client.GET('/api/v1/mc/players');
+			if (apiError !== undefined || !response.ok) {
 				throw new Error(
-					resp.status === 503
+					response.status === 503
 						? 'MC server not connected'
-						: `Failed to fetch: ${resp.status}`,
+						: extractErrorMessage(apiError ?? response),
 				);
 			}
-			const json: McPlayerListData = await resp.json();
-			setData(json);
+			setData(json as McPlayerListData);
 			setError(null);
 		} catch (err) {
 			setError(
@@ -400,7 +419,7 @@ export default function McPlayerList({
 		} finally {
 			setLoading(false);
 		}
-	}, [apiBaseUrl]);
+	}, [client]);
 
 	useEffect(() => {
 		fetchPlayers();

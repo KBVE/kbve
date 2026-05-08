@@ -15,6 +15,7 @@
  */
 
 import { setAuth, AuthPresets } from '@kbve/droid';
+import { kbveApi } from '@kbve/devops';
 import { initSupa, getSupa } from '@/lib/supa';
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -136,16 +137,14 @@ function clearProfileCache() {
 
 async function fetchProfile(token: string): Promise<ApiProfile | null> {
 	try {
-		const res = await fetch('/api/v1/profile/me', {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
-		});
-		if (!res.ok) return null;
-		const data: ApiProfile = await res.json();
-		setCachedProfile(data);
-		return data;
+		const { data, error, response } = await kbveApi.GET(
+			'/api/v1/profile/me',
+			{ headers: { Authorization: `Bearer ${token}` } },
+		);
+		if (error !== undefined || !response.ok || !data) return null;
+		const profile = data as unknown as ApiProfile;
+		setCachedProfile(profile);
+		return profile;
 	} catch {
 		return null;
 	}

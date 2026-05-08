@@ -190,6 +190,48 @@ const CURATED = [
 	{ slug: 'tent', ref: 'tent-phosphor', cat: 'game' },
 	{ slug: 'campfire', ref: 'campfire-phosphor', cat: 'game' },
 	{ slug: 'tree-evergreen', ref: 'tree-evergreen', cat: 'weather' },
+
+	// Music instruments
+	{ slug: 'guitar', ref: 'guitar', cat: 'media' },
+	{ slug: 'piano-keys', ref: 'piano-keys', cat: 'media' },
+	{ slug: 'drum', ref: 'drum-phosphor', cat: 'media' },
+	{ slug: 'metronome', ref: 'metronome', cat: 'media' },
+	{ slug: 'headphones', ref: 'headphones-phosphor', cat: 'media' },
+
+	// Charts / analytics
+	{ slug: 'chart-bar', ref: 'chart-bar-phosphor', cat: 'tech' },
+	{ slug: 'chart-line', ref: 'chart-line', cat: 'tech' },
+	{ slug: 'chart-pie', ref: 'chart-pie', cat: 'tech' },
+	{ slug: 'chart-donut', ref: 'chart-donut', cat: 'tech' },
+	{ slug: 'trend-up', ref: 'trend-up', cat: 'tech' },
+	{ slug: 'trend-down', ref: 'trend-down', cat: 'tech' },
+
+	// Medical / science
+	{ slug: 'stethoscope', ref: 'stethoscope-phosphor', cat: 'tech' },
+	{ slug: 'first-aid', ref: 'first-aid', cat: 'tech' },
+	{ slug: 'pill', ref: 'pill-phosphor', cat: 'tech' },
+	{ slug: 'syringe', ref: 'syringe', cat: 'tech' },
+	{ slug: 'flask', ref: 'flask-phosphor', cat: 'tech' },
+	{ slug: 'atom', ref: 'atom-phosphor', cat: 'tech' },
+
+	// Animals expanded
+	{ slug: 'butterfly', ref: 'butterfly', cat: 'social' },
+	{ slug: 'dog', ref: 'dog-phosphor', cat: 'social' },
+	{ slug: 'horse', ref: 'horse-phosphor', cat: 'social' },
+	{ slug: 'shrimp', ref: 'shrimp', cat: 'social' },
+	{ slug: 'snail', ref: 'snail-phosphor', cat: 'social' },
+
+	// Tech infra
+	{ slug: 'graph', ref: 'graph', cat: 'tech' },
+	{ slug: 'tree-structure', ref: 'tree-structure', cat: 'tech' },
+	{ slug: 'kanban', ref: 'kanban', cat: 'tech' },
+	{ slug: 'git-branch', ref: 'git-branch-phosphor', cat: 'tech' },
+	{ slug: 'git-commit', ref: 'git-commit-phosphor', cat: 'tech' },
+
+	// Travel / transit extra
+	{ slug: 'tram', ref: 'tram', cat: 'navigation' },
+	{ slug: 'jeep', ref: 'jeep', cat: 'navigation' },
+	{ slug: 'truck', ref: 'truck-phosphor', cat: 'navigation' },
 ];
 
 function titleCase(str) {

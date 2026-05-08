@@ -31,7 +31,7 @@ namespace KBVE.Proto.Map {
             "LldvcmxkUG9zIkYKCEJvdW5kczJEEg0KBW1pbl94GAEgASgFEg0KBW1pbl95",
             "GAIgASgFEg0KBW1heF94GAMgASgFEg0KBW1heF95GAQgASgFIj4KBUNvbG9y",
             "EgkKAXIYASABKAISCQoBZxgCIAEoAhIJCgFiGAMgASgCEg4KAWEYBCABKAJI",
-            "AIgBAUIECgJfYSK0DAoEWm9uZRIKCgJpZBgBIAEoCRILCgNyZWYYAiABKAkS",
+            "AIgBAUIECgJfYSLSDgoEWm9uZRIKCgJpZBgBIAEoCRILCgNyZWYYAiABKAkS",
             "DAoEbmFtZRgDIAEoCRIYCgtkZXNjcmlwdGlvbhgEIAEoCUgAiAEBEhEKBGxv",
             "cmUYBSABKAlIAYgBARIbCgR0eXBlGAYgASgOMg0ubWFwLlpvbmVUeXBlEhkK",
             "BWJpb21lGAcgASgOMgoubWFwLkJpb21lEgwKBHRhZ3MYCCADKAkSIgoGYm91",
@@ -57,8 +57,13 @@ namespace KBVE.Proto.Map {
             "FYgBARIuCgtyZXBsaWNhdGlvbhgkIAEoDjIULm1hcC5SZXBsaWNhdGlvbkhp",
             "bnRIFogBARIwCgtlbnZpcm9ubWVudBglIAEoCzIWLm1hcC5FbnZpcm9ubWVu",
             "dENvbmZpZ0gXiAEBEikKC3NlZWRfcG9saWN5GCYgASgLMg8ubWFwLlNlZWRQ",
-            "b2xpY3lIGIgBARIUCgdjcmVkaXRzGCAgASgJSBmIAQESFAoHZHJhZnRlZBgh",
-            "IAEoCEgaiAEBQg4KDF9kZXNjcmlwdGlvbkIHCgVfbG9yZUIJCgdfYm91bmRz",
+            "b2xpY3lIGIgBARIYCgtmYWN0aW9uX3JlZhgoIAEoCUgZiAEBEhcKD3NldHRs",
+            "ZW1lbnRfcmVmcxgpIAMoCRIcChR0ZXJyaXRvcnlfY2xhaW1fcmVmcxgqIAMo",
+            "CRIVCg1sYW5kbWFya19yZWZzGCsgAygJEhgKEHRyYWRlX3JvdXRlX3JlZnMY",
+            "LCADKAkSGAoLY3VsdHVyZV9yZWYYLSABKAlIGogBARIZCgxyZWxpZ2lvbl9y",
+            "ZWYYLiABKAlIG4gBARIoCgdjbGltYXRlGC8gASgLMhIubWFwLkNsaW1hdGVD",
+            "b25maWdIHIgBARIUCgdjcmVkaXRzGCAgASgJSB2IAQESFAoHZHJhZnRlZBgh",
+            "IAEoCEgeiAEBQg4KDF9kZXNjcmlwdGlvbkIHCgVfbG9yZUIJCgdfYm91bmRz",
             "QgwKCl9ib3VuZHNfM2RCDAoKX2xldmVsX21pbkIMCgpfbGV2ZWxfbWF4QhkK",
             "F19yZWNvbW1lbmRlZF9wYXJ0eV9zaXplQgYKBF9pbWdCBwoFX2ljb25CDAoK",
             "X211c2ljX3JlZkIOCgxfYW1iaWVudF9yZWZCDgoMX3B2cF9lbmFibGVkQgwK",
@@ -66,198 +71,207 @@ namespace KBVE.Proto.Map {
             "X3RlcnJhaW5CCAoGX3dhdGVyQgoKCF9kdW5nZW9uQgwKCl9ldmVudF9yZWZC",
             "DQoLX2dlbmVyYXRpb25CDgoMX3BlcnNpc3RlbmNlQgwKCl9zdHJlYW1pbmdC",
             "DgoMX3JlcGxpY2F0aW9uQg4KDF9lbnZpcm9ubWVudEIOCgxfc2VlZF9wb2xp",
-            "Y3lCCgoIX2NyZWRpdHNCCgoIX2RyYWZ0ZWQiyAIKDlpvbmVDb25uZWN0aW9u",
-            "EhcKD3RhcmdldF96b25lX3JlZhgBIAEoCRIRCgRuYW1lGAIgASgJSACIAQES",
-            "JgoJZGlyZWN0aW9uGAMgASgOMg4ubWFwLkRpcmVjdGlvbkgBiAEBEiQKCHBv",
-            "c2l0aW9uGAQgASgLMg0ubWFwLldvcmxkUG9zSAKIAQESHgoRbGV2ZWxfcmVx",
-            "dWlyZW1lbnQYBSABKAVIA4gBARIeChFxdWVzdF9yZXF1aXJlbWVudBgGIAEo",
-            "CUgEiAEBEhoKDWJpZGlyZWN0aW9uYWwYByABKAhIBYgBAUIHCgVfbmFtZUIM",
-            "CgpfZGlyZWN0aW9uQgsKCV9wb3NpdGlvbkIUChJfbGV2ZWxfcmVxdWlyZW1l",
-            "bnRCFAoSX3F1ZXN0X3JlcXVpcmVtZW50QhAKDl9iaWRpcmVjdGlvbmFsIuIE",
-            "Cg9Qb2ludE9mSW50ZXJlc3QSCgoCaWQYASABKAkSCwoDcmVmGAIgASgJEgwK",
-            "BG5hbWUYAyABKAkSGAoLZGVzY3JpcHRpb24YBCABKAlIAIgBARIaCgR0eXBl",
-            "GAUgASgOMgwubWFwLlBvaVR5cGUSJAoIcG9zaXRpb24YBiABKAsyDS5tYXAu",
-            "V29ybGRQb3NIAYgBARIjCghncmlkX3BvcxgHIAEoCzIMLm1hcC5HcmlkUG9z",
-            "SAKIAQESEwoGcmFkaXVzGAggASgCSAOIAQESEQoEaWNvbhgJIAEoCUgEiAEB",
-            "EhgKC21hcmtlcl9pY29uGAogASgJSAWIAQESEAoIbnBjX3JlZnMYCyADKAkS",
-            "EgoKcXVlc3RfcmVmcxgMIAMoCRIVCghzaG9wX3JlZhgNIAEoCUgGiAEBEhUK",
-            "CHpvbmVfcmVmGA4gASgJSAeIAQESGQoMZGlzY292ZXJhYmxlGA8gASgISAiI",
-            "AQESGAoLZmFzdF90cmF2ZWwYECABKAhICYgBARIaCg1yZXNwYXduX3BvaW50",
-            "GBEgASgISAqIAQESJQoKZXh0ZW5zaW9ucxgSIAMoCzIRLm1hcC5NYXBFeHRl",
-            "bnNpb25CDgoMX2Rlc2NyaXB0aW9uQgsKCV9wb3NpdGlvbkILCglfZ3JpZF9w",
-            "b3NCCQoHX3JhZGl1c0IHCgVfaWNvbkIOCgxfbWFya2VyX2ljb25CCwoJX3No",
-            "b3BfcmVmQgsKCV96b25lX3JlZkIPCg1fZGlzY292ZXJhYmxlQg4KDF9mYXN0",
-            "X3RyYXZlbEIQCg5fcmVzcGF3bl9wb2ludCLyAQoNRHVuZ2VvbkNvbmZpZxIR",
-            "CgRzZWVkGAEgASgDSACIAQESFgoJbWF4X2RlcHRoGAIgASgFSAGIAQESGwoT",
-            "Ym9zc19yaW5nX2Rpc3RhbmNlcxgDIAMoBRIcCg9ib3NzZXNfcGVyX3JpbmcY",
-            "BCABKAVIAogBARIkCg50aWxlX3RlbXBsYXRlcxgFIAMoCzIMLm1hcC5UaWxl",
-            "RGVmEioKDHJvb21fd2VpZ2h0cxgGIAMoCzIULm1hcC5Sb29tU3Bhd25XZWln",
-            "aHRCBwoFX3NlZWRCDAoKX21heF9kZXB0aEISChBfYm9zc2VzX3Blcl9yaW5n",
-            "Io8BCg9Sb29tU3Bhd25XZWlnaHQSIAoJcm9vbV90eXBlGAEgASgOMg0ubWFw",
-            "LlJvb21UeXBlEg4KBndlaWdodBgCIAEoAhIWCgltaW5fZGVwdGgYAyABKAVI",
-            "AIgBARIWCgltYXhfZGVwdGgYBCABKAVIAYgBAUIMCgpfbWluX2RlcHRoQgwK",
-            "Cl9tYXhfZGVwdGgi4QMKB1RpbGVEZWYSCgoCaWQYASABKAkSEQoEbmFtZRgC",
-            "IAEoCUgAiAEBEhgKC2Rlc2NyaXB0aW9uGAMgASgJSAGIAQESIAoJcm9vbV90",
-            "eXBlGAQgASgOMg0ubWFwLlJvb21UeXBlEh0KBWV4aXRzGAUgAygOMg4ubWFw",
-            "LkRpcmVjdGlvbhIkCgltb2RpZmllcnMYBiADKA4yES5tYXAuUm9vbU1vZGlm",
-            "aWVyEiAKB2hhemFyZHMYByADKAsyDy5tYXAuVGlsZUhhemFyZBISCgplbmVt",
-            "eV9yZWZzGAggAygJEhEKCWxvb3RfcmVmcxgJIAMoCRIZCgxtZXJjaGFudF9y",
-            "ZWYYCiABKAlIAogBARIcCg9zdG9yeV9ldmVudF9yZWYYCyABKAlIA4gBARIa",
-            "Cg10ZW1wbGF0ZV9uYW1lGAwgASgJSASIAQESEAoDaW1nGA0gASgJSAWIAQES",
-            "GwoObXVzaWNfb3ZlcnJpZGUYDiABKAlIBogBAUIHCgVfbmFtZUIOCgxfZGVz",
-            "Y3JpcHRpb25CDwoNX21lcmNoYW50X3JlZkISChBfc3RvcnlfZXZlbnRfcmVm",
-            "QhAKDl90ZW1wbGF0ZV9uYW1lQgYKBF9pbWdCEQoPX211c2ljX292ZXJyaWRl",
-            "Iu4BCgpUaWxlSGF6YXJkEgwKBHR5cGUYASABKAkSEwoGZGFtYWdlGAIgASgF",
-            "SACIAQESGAoLZWZmZWN0X2tpbmQYAyABKAlIAYgBARIaCg1lZmZlY3Rfc3Rh",
-            "Y2tzGAQgASgFSAKIAQESGQoMZWZmZWN0X3R1cm5zGAUgASgFSAOIAQESGwoO",
-            "dHJpZ2dlcl9jaGFuY2UYBiABKAJIBIgBAUIJCgdfZGFtYWdlQg4KDF9lZmZl",
-            "Y3Rfa2luZEIQCg5fZWZmZWN0X3N0YWNrc0IPCg1fZWZmZWN0X3R1cm5zQhEK",
-            "D190cmlnZ2VyX2NoYW5jZSKNAwoNVGVycmFpbkNvbmZpZxIRCgRzZWVkGAEg",
-            "ASgDSACIAQESGAoLbm9pc2Vfc2NhbGUYAiABKAJIAYgBARIUCgdvY3RhdmVz",
-            "GAMgASgFSAKIAQESFwoKbWF4X2hlaWdodBgEIAEoAkgDiAEBEhgKC3BlcnNp",
-            "c3RlbmNlGAUgASgCSASIAQESFwoKbGFjdW5hcml0eRgGIAEoAkgFiAEBEhcK",
-            "CmNodW5rX3NpemUYByABKAVIBogBARIYCgtsb2FkX3JhZGl1cxgIIAEoBUgH",
-            "iAEBEhYKCXRpbGVfc2l6ZRgJIAEoAkgIiAEBEiIKBWJhbmRzGAogAygLMhMu",
-            "bWFwLlRlcnJhaW5CYW5kRGVmQgcKBV9zZWVkQg4KDF9ub2lzZV9zY2FsZUIK",
-            "Cghfb2N0YXZlc0INCgtfbWF4X2hlaWdodEIOCgxfcGVyc2lzdGVuY2VCDQoL",
-            "X2xhY3VuYXJpdHlCDQoLX2NodW5rX3NpemVCDgoMX2xvYWRfcmFkaXVzQgwK",
-            "Cl90aWxlX3NpemUiogEKDlRlcnJhaW5CYW5kRGVmEh4KBHR5cGUYASABKA4y",
-            "EC5tYXAuVGVycmFpbkJhbmQSEgoKbWluX2hlaWdodBgCIAEoAhISCgptYXhf",
-            "aGVpZ2h0GAMgASgCEhoKBmNvbG9ycxgEIAMoCzIKLm1hcC5Db2xvchIaCg1i",
-            "b2R5X2RhcmtuZXNzGAUgASgCSACIAQFCEAoOX2JvZHlfZGFya25lc3MisQMK",
-            "C1dhdGVyQ29uZmlnEhgKC3dhdGVyX2xldmVsGAEgASgCSACIAQESIwoKYmFz",
-            "ZV9jb2xvchgCIAEoCzIKLm1hcC5Db2xvckgBiAEBEiMKCmRlZXBfY29sb3IY",
-            "AyABKAsyCi5tYXAuQ29sb3JIAogBARIZCgxyaXBwbGVfc3BlZWQYBCABKAJI",
-            "A4gBARIZCgxyaXBwbGVfc2NhbGUYBSABKAJIBIgBARIfChJoaWdobGlnaHRf",
-            "c3RyZW5ndGgYBiABKAJIBYgBARIbCg5mb2FtX2ludGVuc2l0eRgHIAEoAkgG",
-            "iAEBEhYKCXN3aW1tYWJsZRgIIAEoCEgHiAEBEhkKDGRyb3duX2RhbWFnZRgJ",
-            "IAEoBUgIiAEBQg4KDF93YXRlcl9sZXZlbEINCgtfYmFzZV9jb2xvckINCgtf",
-            "ZGVlcF9jb2xvckIPCg1fcmlwcGxlX3NwZWVkQg8KDV9yaXBwbGVfc2NhbGVC",
-            "FQoTX2hpZ2hsaWdodF9zdHJlbmd0aEIRCg9fZm9hbV9pbnRlbnNpdHlCDAoK",
-            "X3N3aW1tYWJsZUIPCg1fZHJvd25fZGFtYWdlIjIKDkluZ3JlZGllbnRTcGVj",
-            "EhAKCGl0ZW1fcmVmGAEgASgJEg4KBmFtb3VudBgCIAEoBSJXChFTZXJ2aWNl",
-            "Q2FwYWJpbGl0eRIeCgRraW5kGAEgASgOMhAubWFwLlNlcnZpY2VLaW5kEhAK",
-            "CHByaW9yaXR5GAIgASgFEhAKCGNhcGFjaXR5GAMgASgFIlAKClRlbmRlclNw",
-            "ZWMSFgoOcHJvZmVzc2lvbl9yZWYYASABKAkSGAoQZm9vdHByaW50X3JhZGl1",
-            "cxgCIAEoBRIQCghyZXF1aXJlZBgDIAEoCCImChRUZXJyaXRvcnlFbWl0dGVy",
-            "U3BlYxIOCgZyYWRpdXMYASABKAUikgEKFFByb2R1Y3Rpb25SZWNpcGVTcGVj",
-            "EiMKBmlucHV0cxgBIAMoCzITLm1hcC5JbmdyZWRpZW50U3BlYxIkCgdvdXRw",
-            "dXRzGAIgAygLMhMubWFwLkluZ3JlZGllbnRTcGVjEhIKCmN5Y2xlX3NlY3MY",
-            "AyABKAISGwoTcHVsbHNfZnJvbV90cmVhc3VyeRgEIAEoCCI0ChFTdXJwbHVz",
-            "RXhwb3J0U3BlYxIQCghpdGVtX3JlZhgBIAEoCRINCgVmbG9vchgCIAEoBSJw",
-            "ChVQYXNzaXZlUHJvZHVjdGlvblNwZWMSFwoPb3V0cHV0X2l0ZW1fcmVmGAEg",
-            "ASgJEhUKDW91dHB1dF9hbW91bnQYAiABKAUSEgoKY3ljbGVfc2VjcxgDIAEo",
-            "AhITCgtkZXN0aW5hdGlvbhgEIAEoCSKOAgoQUmFuZ2VkQXR0YWNrU3BlYxIV",
-            "Cg1jb29sZG93bl9zZWNzGAEgASgCEg0KBXJhbmdlGAIgASgCEhgKEHNob3Rz",
-            "X3Blcl92b2xsZXkYAyABKAUSHAoUYW1tb19wZXJfdm9sbGV5X2Nvc3QYBCAB",
-            "KAUSFwoPZGFtYWdlX3Blcl9zaG90GAUgASgCEh0KFXNwcmVhZF9oYWxmX2Fu",
-            "Z2xlX3JhZBgGIAEoAhIYChBwcm9qZWN0aWxlX3NwZWVkGAcgASgCEhsKE3By",
-            "b2plY3RpbGVfbGlmZXRpbWUYCCABKAISFgoOcHJvamVjdGlsZV9yZWYYCSAB",
-            "KAkSFQoNYW1tb19jYXBhY2l0eRgKIAEoBSKgAQoTUG9wdWxhdGlvblNwYXdu",
-            "U3BlYxIYChBzcGF3bl9lbnRpdHlfcmVmGAEgASgJEhUKDWNhZGVuY2VfdHVy",
-            "bnMYAiABKAUSMAoOY29zdF9wZXJfc3Bhd24YAyABKAsyEy5tYXAuSW5ncmVk",
-            "aWVudFNwZWNIAIgBARITCgtzdG9yYWdlX2NhcBgEIAEoBUIRCg9fY29zdF9w",
-            "ZXJfc3Bhd24iYgoIUmFpZFNwZWMSFQoNY2FkZW5jZV90dXJucxgBIAEoBRIS",
-            "CgpwYXJ0eV9zaXplGAIgASgFEhYKDnBhcnR5X3VuaXRfcmVmGAMgASgJEhMK",
-            "C3RhcmdldF9raW5kGAQgASgJIkcKC1VwZ3JhZGVTcGVjEhQKDG5leHRfZGVm",
-            "X3JlZhgBIAEoCRIiCgVjb3N0cxgCIAMoCzITLm1hcC5JbmdyZWRpZW50U3Bl",
-            "YyIzChBVcGdyYWRlQ2hhaW5TcGVjEh8KBXRpZXJzGAEgAygLMhAubWFwLlVw",
-            "Z3JhZGVTcGVjIsYCCgpTaHJpbmVTcGVjEhUKDWNhZGVuY2VfdHVybnMYASAB",
-            "KAUSEwoLcmV3YXJkX2NvaW4YAiABKAUSKQoMcmV3YXJkX2l0ZW1zGAMgAygL",
-            "MhMubWFwLkluZ3JlZGllbnRTcGVjEhgKEHRlcnJpdG9yeV9hY3RpdmUYBCAB",
-            "KAgSGQoRa2luZ192aXNpdF9hY3RpdmUYBSABKAgSGQoMeHBfc2tpbGxfcmVm",
-            "GAYgASgJSACIAQESFgoJeHBfYW1vdW50GAcgASgFSAGIAQESFQoIYnVmZl9y",
-            "ZWYYCCABKAlIAogBARIfChJidWZmX2R1cmF0aW9uX3NlY3MYCSABKAJIA4gB",
-            "AUIPCg1feHBfc2tpbGxfcmVmQgwKCl94cF9hbW91bnRCCwoJX2J1ZmZfcmVm",
-            "QhUKE19idWZmX2R1cmF0aW9uX3NlY3MiqAEKCVNob3BPZmZlchIQCghpdGVt",
-            "X3JlZhgBIAEoCRIRCglidXlfcHJpY2UYAiABKAUSFwoKc2VsbF9wcmljZRgD",
-            "IAEoBUgAiAEBEhIKBXN0b2NrGAQgASgFSAGIAQESHAoPcmVzdG9ja19zZWNv",
-            "bmRzGAUgASgFSAKIAQFCDQoLX3NlbGxfcHJpY2VCCAoGX3N0b2NrQhIKEF9y",
-            "ZXN0b2NrX3NlY29uZHMiLQoIU2hvcFNwZWMSIQoJaW52ZW50b3J5GAEgAygL",
-            "Mg4ubWFwLlNob3BPZmZlciLeAQoLRHVuZ2VvblNwZWMSEQoJc2NlbmVfcmVm",
-            "GAEgASgJEh0KEG1pbl9wbGF5ZXJfbGV2ZWwYAiABKAVIAIgBARIbCg5wYXJ0",
-            "eV9zaXplX21heBgDIAEoBUgBiAEBEhcKCmRpZmZpY3VsdHkYBCABKAlIAogB",
-            "ARIcCg9lbnRyeV9xdWVzdF9yZWYYBSABKAlIA4gBAUITChFfbWluX3BsYXll",
-            "cl9sZXZlbEIRCg9fcGFydHlfc2l6ZV9tYXhCDQoLX2RpZmZpY3VsdHlCEgoQ",
-            "X2VudHJ5X3F1ZXN0X3JlZiJiCg5RdWVzdEdpdmVyU3BlYxISCgpxdWVzdF9y",
-            "ZWZzGAEgAygJEiIKFWdyZWV0aW5nX2RpYWxvZ3VlX3JlZhgCIAEoCUgAiAEB",
-            "QhgKFl9ncmVldGluZ19kaWFsb2d1ZV9yZWYiQgoIQXVyYVNwZWMSDgoGcmFk",
-            "aXVzGAEgASgFEhIKCmJvbnVzX2tpbmQYAiABKAkSEgoKbXVsdGlwbGllchgD",
-            "IAEoAiLUFwoOV29ybGRPYmplY3REZWYSCgoCaWQYASABKAkSCwoDcmVmGAIg",
-            "ASgJEgwKBG5hbWUYAyABKAkSGAoLZGVzY3JpcHRpb24YBCABKAlIAIgBARIi",
-            "CgR0eXBlGAUgASgOMhQubWFwLldvcmxkT2JqZWN0VHlwZRIVCghzdWJfa2lu",
-            "ZBgGIAEoCUgBiAEBEi0KDXJlc291cmNlX3R5cGUYJSABKA4yES5tYXAuUmVz",
-            "b3VyY2VUeXBlSAKIAQESLwoOY29udGFpbmVyX3R5cGUYJiABKA4yEi5tYXAu",
-            "Q29udGFpbmVyVHlwZUgDiAEBEjwKFWNyYWZ0aW5nX3N0YXRpb25fdHlwZRgn",
-            "IAEoDjIYLm1hcC5DcmFmdGluZ1N0YXRpb25UeXBlSASIAQESFgoJbW9kZWxf",
-            "cmVmGAcgASgJSAWIAQESEQoEaWNvbhgIIAEoCUgGiAEBEhIKBXNjYWxlGAkg",
-            "ASgCSAeIAQESGwoHcGFsZXR0ZRgKIAMoCzIKLm1hcC5Db2xvchIQCgNpbWcY",
-            "GSABKAlICIgBARIZCgxpbnRlcmFjdGFibGUYCyABKAhICYgBARIZCgxkZXN0",
-            "cnVjdGlibGUYDCABKAhICogBARIaCg1sb290X2l0ZW1fcmVmGA0gASgJSAuI",
-            "AQESHAoPaGFydmVzdF90aW1lX21zGA4gASgFSAyIAQESGgoNdG9vbF9yZXF1",
-            "aXJlZBgPIAEoCUgNiAEBEhgKC3NraWxsX2xldmVsGBAgASgFSA6IAQESFwoK",
-            "c2tpbGxfdHlwZRgRIAEoCUgPiAEBEhoKDWhhcnZlc3RfeWllbGQYGiABKAVI",
-            "EIgBARIXCgptYXhfYW1vdW50GBsgASgFSBGIAQESGwoOaW5pdGlhbF9hbW91",
-            "bnQYHCABKAVIEogBARIXCgptYXhfaGVhbHRoGB0gASgFSBOIAQESHAoPZm9v",
-            "dHByaW50X3dpZHRoGB4gASgFSBSIAQESHQoQZm9vdHByaW50X2hlaWdodBgf",
-            "IAEoBUgViAEBEh0KEGJsb2Nrc19wbGFjZW1lbnQYICABKAhIFogBARIjChZj",
-            "b25zdHJ1Y3Rpb25fdGltZV9zZWNzGCEgASgCSBeIAQESIwoLYnVpbGRfY29z",
-            "dHMYIiADKAsyDi5tYXAuQnVpbGRDb3N0EhkKDHNwYXduX3dlaWdodBgjIAEo",
-            "AkgYiAEBEhgKC3NwYXduX2NvdW50GCQgASgFSBmIAQESHQoQY29sbGlzaW9u",
-            "X3JhZGl1cxgSIAEoAkgaiAEBEh0KEGNvbGxpc2lvbl9oZWlnaHQYEyABKAJI",
-            "G4gBARIcCg9ibG9ja3NfbW92ZW1lbnQYFCABKAhIHIgBARIcCg9vY2NsdWRl",
-            "c19wbGF5ZXIYFSABKAhIHYgBARIeChFyZXNwYXduX3RpbWVfc2VjcxgWIAEo",
-            "BUgeiAEBEh0KEHJlc3Bhd25fdmFyaWFuY2UYFyABKAVIH4gBARIlCgpleHRl",
-            "bnNpb25zGBggAygLMhEubWFwLk1hcEV4dGVuc2lvbhIUCgdjcmVkaXRzGCgg",
-            "ASgJSCCIAQESFAoHZHJhZnRlZBgpIAEoCEghiAEBEhYKDmFsbG93ZWRfYmlv",
-            "bWVzGCogAygFEh8KEnNwYXduc19mdWxseV9idWlsdBgrIAEoCEgiiAEBEiIK",
-            "FXJlcXVpcmVzX2luX3RlcnJpdG9yeRgsIAEoCEgjiAEBEjEKD2Zvb3Rwcmlu",
-            "dF9zaGFwZRgtIAEoDjITLm1hcC5Gb290cHJpbnRTaGFwZUgkiAEBEiUKD2Zv",
-            "b3RwcmludF9jZWxscxguIAMoCzIMLm1hcC5HcmlkUG9zEikKC2Nvc3Rfc291",
-            "cmNlGC8gASgOMg8ubWFwLkNvc3RTb3VyY2VIJYgBARIoCghzZXJ2aWNlcxgw",
-            "IAMoCzIWLm1hcC5TZXJ2aWNlQ2FwYWJpbGl0eRIkCgZ0ZW5kZXIYMSABKAsy",
-            "Dy5tYXAuVGVuZGVyU3BlY0gmiAEBEjEKCXRlcnJpdG9yeRgyIAEoCzIZLm1h",
-            "cC5UZXJyaXRvcnlFbWl0dGVyU3BlY0gniAEBEioKB3JlY2lwZXMYMyADKAsy",
-            "GS5tYXAuUHJvZHVjdGlvblJlY2lwZVNwZWMSJwoHc3VycGx1cxg0IAMoCzIW",
-            "Lm1hcC5TdXJwbHVzRXhwb3J0U3BlYxI7ChJwYXNzaXZlX3Byb2R1Y3Rpb24Y",
-            "NSABKAsyGi5tYXAuUGFzc2l2ZVByb2R1Y3Rpb25TcGVjSCiIAQESMQoNcmFu",
-            "Z2VkX2F0dGFjaxg2IAEoCzIVLm1hcC5SYW5nZWRBdHRhY2tTcGVjSCmIAQES",
-            "NwoQcG9wdWxhdGlvbl9zcGF3bhg3IAEoCzIYLm1hcC5Qb3B1bGF0aW9uU3Bh",
-            "d25TcGVjSCqIAQESIAoEcmFpZBg4IAEoCzINLm1hcC5SYWlkU3BlY0griAEB",
-            "EjEKDXVwZ3JhZGVfY2hhaW4YOSABKAsyFS5tYXAuVXBncmFkZUNoYWluU3Bl",
-            "Y0gsiAEBEi4KC2ludGVyYWN0aW9uGDogASgOMhQubWFwLkludGVyYWN0aW9u",
-            "S2luZEgtiAEBEiQKBnNocmluZRg8IAEoCzIPLm1hcC5TaHJpbmVTcGVjSC6I",
-            "AQESIAoEc2hvcBg9IAEoCzINLm1hcC5TaG9wU3BlY0gviAEBEiYKB2R1bmdl",
-            "b24YPiABKAsyEC5tYXAuRHVuZ2VvblNwZWNIMIgBARItCgtxdWVzdF9naXZl",
-            "chg/IAEoCzITLm1hcC5RdWVzdEdpdmVyU3BlY0gxiAEBEiAKBGF1cmEYQCAB",
-            "KAsyDS5tYXAuQXVyYVNwZWNIMogBARIUCgdmYWN0aW9uGEEgASgJSDOIAQFC",
-            "DgoMX2Rlc2NyaXB0aW9uQgsKCV9zdWJfa2luZEIQCg5fcmVzb3VyY2VfdHlw",
-            "ZUIRCg9fY29udGFpbmVyX3R5cGVCGAoWX2NyYWZ0aW5nX3N0YXRpb25fdHlw",
-            "ZUIMCgpfbW9kZWxfcmVmQgcKBV9pY29uQggKBl9zY2FsZUIGCgRfaW1nQg8K",
-            "DV9pbnRlcmFjdGFibGVCDwoNX2Rlc3RydWN0aWJsZUIQCg5fbG9vdF9pdGVt",
-            "X3JlZkISChBfaGFydmVzdF90aW1lX21zQhAKDl90b29sX3JlcXVpcmVkQg4K",
-            "DF9za2lsbF9sZXZlbEINCgtfc2tpbGxfdHlwZUIQCg5faGFydmVzdF95aWVs",
-            "ZEINCgtfbWF4X2Ftb3VudEIRCg9faW5pdGlhbF9hbW91bnRCDQoLX21heF9o",
-            "ZWFsdGhCEgoQX2Zvb3RwcmludF93aWR0aEITChFfZm9vdHByaW50X2hlaWdo",
-            "dEITChFfYmxvY2tzX3BsYWNlbWVudEIZChdfY29uc3RydWN0aW9uX3RpbWVf",
-            "c2Vjc0IPCg1fc3Bhd25fd2VpZ2h0Qg4KDF9zcGF3bl9jb3VudEITChFfY29s",
-            "bGlzaW9uX3JhZGl1c0ITChFfY29sbGlzaW9uX2hlaWdodEISChBfYmxvY2tz",
-            "X21vdmVtZW50QhIKEF9vY2NsdWRlc19wbGF5ZXJCFAoSX3Jlc3Bhd25fdGlt",
-            "ZV9zZWNzQhMKEV9yZXNwYXduX3ZhcmlhbmNlQgoKCF9jcmVkaXRzQgoKCF9k",
-            "cmFmdGVkQhUKE19zcGF3bnNfZnVsbHlfYnVpbHRCGAoWX3JlcXVpcmVzX2lu",
-            "X3RlcnJpdG9yeUISChBfZm9vdHByaW50X3NoYXBlQg4KDF9jb3N0X3NvdXJj",
-            "ZUIJCgdfdGVuZGVyQgwKCl90ZXJyaXRvcnlCFQoTX3Bhc3NpdmVfcHJvZHVj",
-            "dGlvbkIQCg5fcmFuZ2VkX2F0dGFja0ITChFfcG9wdWxhdGlvbl9zcGF3bkIH",
-            "CgVfcmFpZEIQCg5fdXBncmFkZV9jaGFpbkIOCgxfaW50ZXJhY3Rpb25CCQoH",
-            "X3NocmluZUIHCgVfc2hvcEIKCghfZHVuZ2VvbkIOCgxfcXVlc3RfZ2l2ZXJC",
-            "BwoFX2F1cmFCCgoIX2ZhY3Rpb24iMgoJQnVpbGRDb3N0EhUKDXJlc291cmNl",
+            "Y3lCDgoMX2ZhY3Rpb25fcmVmQg4KDF9jdWx0dXJlX3JlZkIPCg1fcmVsaWdp",
+            "b25fcmVmQgoKCF9jbGltYXRlQgoKCF9jcmVkaXRzQgoKCF9kcmFmdGVkIsgC",
+            "Cg5ab25lQ29ubmVjdGlvbhIXCg90YXJnZXRfem9uZV9yZWYYASABKAkSEQoE",
+            "bmFtZRgCIAEoCUgAiAEBEiYKCWRpcmVjdGlvbhgDIAEoDjIOLm1hcC5EaXJl",
+            "Y3Rpb25IAYgBARIkCghwb3NpdGlvbhgEIAEoCzINLm1hcC5Xb3JsZFBvc0gC",
+            "iAEBEh4KEWxldmVsX3JlcXVpcmVtZW50GAUgASgFSAOIAQESHgoRcXVlc3Rf",
+            "cmVxdWlyZW1lbnQYBiABKAlIBIgBARIaCg1iaWRpcmVjdGlvbmFsGAcgASgI",
+            "SAWIAQFCBwoFX25hbWVCDAoKX2RpcmVjdGlvbkILCglfcG9zaXRpb25CFAoS",
+            "X2xldmVsX3JlcXVpcmVtZW50QhQKEl9xdWVzdF9yZXF1aXJlbWVudEIQCg5f",
+            "YmlkaXJlY3Rpb25hbCLiBAoPUG9pbnRPZkludGVyZXN0EgoKAmlkGAEgASgJ",
+            "EgsKA3JlZhgCIAEoCRIMCgRuYW1lGAMgASgJEhgKC2Rlc2NyaXB0aW9uGAQg",
+            "ASgJSACIAQESGgoEdHlwZRgFIAEoDjIMLm1hcC5Qb2lUeXBlEiQKCHBvc2l0",
+            "aW9uGAYgASgLMg0ubWFwLldvcmxkUG9zSAGIAQESIwoIZ3JpZF9wb3MYByAB",
+            "KAsyDC5tYXAuR3JpZFBvc0gCiAEBEhMKBnJhZGl1cxgIIAEoAkgDiAEBEhEK",
+            "BGljb24YCSABKAlIBIgBARIYCgttYXJrZXJfaWNvbhgKIAEoCUgFiAEBEhAK",
+            "CG5wY19yZWZzGAsgAygJEhIKCnF1ZXN0X3JlZnMYDCADKAkSFQoIc2hvcF9y",
+            "ZWYYDSABKAlIBogBARIVCgh6b25lX3JlZhgOIAEoCUgHiAEBEhkKDGRpc2Nv",
+            "dmVyYWJsZRgPIAEoCEgIiAEBEhgKC2Zhc3RfdHJhdmVsGBAgASgISAmIAQES",
+            "GgoNcmVzcGF3bl9wb2ludBgRIAEoCEgKiAEBEiUKCmV4dGVuc2lvbnMYEiAD",
+            "KAsyES5tYXAuTWFwRXh0ZW5zaW9uQg4KDF9kZXNjcmlwdGlvbkILCglfcG9z",
+            "aXRpb25CCwoJX2dyaWRfcG9zQgkKB19yYWRpdXNCBwoFX2ljb25CDgoMX21h",
+            "cmtlcl9pY29uQgsKCV9zaG9wX3JlZkILCglfem9uZV9yZWZCDwoNX2Rpc2Nv",
+            "dmVyYWJsZUIOCgxfZmFzdF90cmF2ZWxCEAoOX3Jlc3Bhd25fcG9pbnQi8gEK",
+            "DUR1bmdlb25Db25maWcSEQoEc2VlZBgBIAEoA0gAiAEBEhYKCW1heF9kZXB0",
+            "aBgCIAEoBUgBiAEBEhsKE2Jvc3NfcmluZ19kaXN0YW5jZXMYAyADKAUSHAoP",
+            "Ym9zc2VzX3Blcl9yaW5nGAQgASgFSAKIAQESJAoOdGlsZV90ZW1wbGF0ZXMY",
+            "BSADKAsyDC5tYXAuVGlsZURlZhIqCgxyb29tX3dlaWdodHMYBiADKAsyFC5t",
+            "YXAuUm9vbVNwYXduV2VpZ2h0QgcKBV9zZWVkQgwKCl9tYXhfZGVwdGhCEgoQ",
+            "X2Jvc3Nlc19wZXJfcmluZyKPAQoPUm9vbVNwYXduV2VpZ2h0EiAKCXJvb21f",
+            "dHlwZRgBIAEoDjINLm1hcC5Sb29tVHlwZRIOCgZ3ZWlnaHQYAiABKAISFgoJ",
+            "bWluX2RlcHRoGAMgASgFSACIAQESFgoJbWF4X2RlcHRoGAQgASgFSAGIAQFC",
+            "DAoKX21pbl9kZXB0aEIMCgpfbWF4X2RlcHRoIuEDCgdUaWxlRGVmEgoKAmlk",
+            "GAEgASgJEhEKBG5hbWUYAiABKAlIAIgBARIYCgtkZXNjcmlwdGlvbhgDIAEo",
+            "CUgBiAEBEiAKCXJvb21fdHlwZRgEIAEoDjINLm1hcC5Sb29tVHlwZRIdCgVl",
+            "eGl0cxgFIAMoDjIOLm1hcC5EaXJlY3Rpb24SJAoJbW9kaWZpZXJzGAYgAygO",
+            "MhEubWFwLlJvb21Nb2RpZmllchIgCgdoYXphcmRzGAcgAygLMg8ubWFwLlRp",
+            "bGVIYXphcmQSEgoKZW5lbXlfcmVmcxgIIAMoCRIRCglsb290X3JlZnMYCSAD",
+            "KAkSGQoMbWVyY2hhbnRfcmVmGAogASgJSAKIAQESHAoPc3RvcnlfZXZlbnRf",
+            "cmVmGAsgASgJSAOIAQESGgoNdGVtcGxhdGVfbmFtZRgMIAEoCUgEiAEBEhAK",
+            "A2ltZxgNIAEoCUgFiAEBEhsKDm11c2ljX292ZXJyaWRlGA4gASgJSAaIAQFC",
+            "BwoFX25hbWVCDgoMX2Rlc2NyaXB0aW9uQg8KDV9tZXJjaGFudF9yZWZCEgoQ",
+            "X3N0b3J5X2V2ZW50X3JlZkIQCg5fdGVtcGxhdGVfbmFtZUIGCgRfaW1nQhEK",
+            "D19tdXNpY19vdmVycmlkZSLuAQoKVGlsZUhhemFyZBIMCgR0eXBlGAEgASgJ",
+            "EhMKBmRhbWFnZRgCIAEoBUgAiAEBEhgKC2VmZmVjdF9raW5kGAMgASgJSAGI",
+            "AQESGgoNZWZmZWN0X3N0YWNrcxgEIAEoBUgCiAEBEhkKDGVmZmVjdF90dXJu",
+            "cxgFIAEoBUgDiAEBEhsKDnRyaWdnZXJfY2hhbmNlGAYgASgCSASIAQFCCQoH",
+            "X2RhbWFnZUIOCgxfZWZmZWN0X2tpbmRCEAoOX2VmZmVjdF9zdGFja3NCDwoN",
+            "X2VmZmVjdF90dXJuc0IRCg9fdHJpZ2dlcl9jaGFuY2UijQMKDVRlcnJhaW5D",
+            "b25maWcSEQoEc2VlZBgBIAEoA0gAiAEBEhgKC25vaXNlX3NjYWxlGAIgASgC",
+            "SAGIAQESFAoHb2N0YXZlcxgDIAEoBUgCiAEBEhcKCm1heF9oZWlnaHQYBCAB",
+            "KAJIA4gBARIYCgtwZXJzaXN0ZW5jZRgFIAEoAkgEiAEBEhcKCmxhY3VuYXJp",
+            "dHkYBiABKAJIBYgBARIXCgpjaHVua19zaXplGAcgASgFSAaIAQESGAoLbG9h",
+            "ZF9yYWRpdXMYCCABKAVIB4gBARIWCgl0aWxlX3NpemUYCSABKAJICIgBARIi",
+            "CgViYW5kcxgKIAMoCzITLm1hcC5UZXJyYWluQmFuZERlZkIHCgVfc2VlZEIO",
+            "Cgxfbm9pc2Vfc2NhbGVCCgoIX29jdGF2ZXNCDQoLX21heF9oZWlnaHRCDgoM",
+            "X3BlcnNpc3RlbmNlQg0KC19sYWN1bmFyaXR5Qg0KC19jaHVua19zaXplQg4K",
+            "DF9sb2FkX3JhZGl1c0IMCgpfdGlsZV9zaXplIqIBCg5UZXJyYWluQmFuZERl",
+            "ZhIeCgR0eXBlGAEgASgOMhAubWFwLlRlcnJhaW5CYW5kEhIKCm1pbl9oZWln",
+            "aHQYAiABKAISEgoKbWF4X2hlaWdodBgDIAEoAhIaCgZjb2xvcnMYBCADKAsy",
+            "Ci5tYXAuQ29sb3ISGgoNYm9keV9kYXJrbmVzcxgFIAEoAkgAiAEBQhAKDl9i",
+            "b2R5X2RhcmtuZXNzIrEDCgtXYXRlckNvbmZpZxIYCgt3YXRlcl9sZXZlbBgB",
+            "IAEoAkgAiAEBEiMKCmJhc2VfY29sb3IYAiABKAsyCi5tYXAuQ29sb3JIAYgB",
+            "ARIjCgpkZWVwX2NvbG9yGAMgASgLMgoubWFwLkNvbG9ySAKIAQESGQoMcmlw",
+            "cGxlX3NwZWVkGAQgASgCSAOIAQESGQoMcmlwcGxlX3NjYWxlGAUgASgCSASI",
+            "AQESHwoSaGlnaGxpZ2h0X3N0cmVuZ3RoGAYgASgCSAWIAQESGwoOZm9hbV9p",
+            "bnRlbnNpdHkYByABKAJIBogBARIWCglzd2ltbWFibGUYCCABKAhIB4gBARIZ",
+            "Cgxkcm93bl9kYW1hZ2UYCSABKAVICIgBAUIOCgxfd2F0ZXJfbGV2ZWxCDQoL",
+            "X2Jhc2VfY29sb3JCDQoLX2RlZXBfY29sb3JCDwoNX3JpcHBsZV9zcGVlZEIP",
+            "Cg1fcmlwcGxlX3NjYWxlQhUKE19oaWdobGlnaHRfc3RyZW5ndGhCEQoPX2Zv",
+            "YW1faW50ZW5zaXR5QgwKCl9zd2ltbWFibGVCDwoNX2Ryb3duX2RhbWFnZSIy",
+            "Cg5JbmdyZWRpZW50U3BlYxIQCghpdGVtX3JlZhgBIAEoCRIOCgZhbW91bnQY",
+            "AiABKAUiVwoRU2VydmljZUNhcGFiaWxpdHkSHgoEa2luZBgBIAEoDjIQLm1h",
+            "cC5TZXJ2aWNlS2luZBIQCghwcmlvcml0eRgCIAEoBRIQCghjYXBhY2l0eRgD",
+            "IAEoBSJQCgpUZW5kZXJTcGVjEhYKDnByb2Zlc3Npb25fcmVmGAEgASgJEhgK",
+            "EGZvb3RwcmludF9yYWRpdXMYAiABKAUSEAoIcmVxdWlyZWQYAyABKAgiJgoU",
+            "VGVycml0b3J5RW1pdHRlclNwZWMSDgoGcmFkaXVzGAEgASgFIpIBChRQcm9k",
+            "dWN0aW9uUmVjaXBlU3BlYxIjCgZpbnB1dHMYASADKAsyEy5tYXAuSW5ncmVk",
+            "aWVudFNwZWMSJAoHb3V0cHV0cxgCIAMoCzITLm1hcC5JbmdyZWRpZW50U3Bl",
+            "YxISCgpjeWNsZV9zZWNzGAMgASgCEhsKE3B1bGxzX2Zyb21fdHJlYXN1cnkY",
+            "BCABKAgiNAoRU3VycGx1c0V4cG9ydFNwZWMSEAoIaXRlbV9yZWYYASABKAkS",
+            "DQoFZmxvb3IYAiABKAUicAoVUGFzc2l2ZVByb2R1Y3Rpb25TcGVjEhcKD291",
+            "dHB1dF9pdGVtX3JlZhgBIAEoCRIVCg1vdXRwdXRfYW1vdW50GAIgASgFEhIK",
+            "CmN5Y2xlX3NlY3MYAyABKAISEwoLZGVzdGluYXRpb24YBCABKAkijgIKEFJh",
+            "bmdlZEF0dGFja1NwZWMSFQoNY29vbGRvd25fc2VjcxgBIAEoAhINCgVyYW5n",
+            "ZRgCIAEoAhIYChBzaG90c19wZXJfdm9sbGV5GAMgASgFEhwKFGFtbW9fcGVy",
+            "X3ZvbGxleV9jb3N0GAQgASgFEhcKD2RhbWFnZV9wZXJfc2hvdBgFIAEoAhId",
+            "ChVzcHJlYWRfaGFsZl9hbmdsZV9yYWQYBiABKAISGAoQcHJvamVjdGlsZV9z",
+            "cGVlZBgHIAEoAhIbChNwcm9qZWN0aWxlX2xpZmV0aW1lGAggASgCEhYKDnBy",
+            "b2plY3RpbGVfcmVmGAkgASgJEhUKDWFtbW9fY2FwYWNpdHkYCiABKAUioAEK",
+            "E1BvcHVsYXRpb25TcGF3blNwZWMSGAoQc3Bhd25fZW50aXR5X3JlZhgBIAEo",
+            "CRIVCg1jYWRlbmNlX3R1cm5zGAIgASgFEjAKDmNvc3RfcGVyX3NwYXduGAMg",
+            "ASgLMhMubWFwLkluZ3JlZGllbnRTcGVjSACIAQESEwoLc3RvcmFnZV9jYXAY",
+            "BCABKAVCEQoPX2Nvc3RfcGVyX3NwYXduImIKCFJhaWRTcGVjEhUKDWNhZGVu",
+            "Y2VfdHVybnMYASABKAUSEgoKcGFydHlfc2l6ZRgCIAEoBRIWCg5wYXJ0eV91",
+            "bml0X3JlZhgDIAEoCRITCgt0YXJnZXRfa2luZBgEIAEoCSJHCgtVcGdyYWRl",
+            "U3BlYxIUCgxuZXh0X2RlZl9yZWYYASABKAkSIgoFY29zdHMYAiADKAsyEy5t",
+            "YXAuSW5ncmVkaWVudFNwZWMiMwoQVXBncmFkZUNoYWluU3BlYxIfCgV0aWVy",
+            "cxgBIAMoCzIQLm1hcC5VcGdyYWRlU3BlYyLGAgoKU2hyaW5lU3BlYxIVCg1j",
+            "YWRlbmNlX3R1cm5zGAEgASgFEhMKC3Jld2FyZF9jb2luGAIgASgFEikKDHJl",
+            "d2FyZF9pdGVtcxgDIAMoCzITLm1hcC5JbmdyZWRpZW50U3BlYxIYChB0ZXJy",
+            "aXRvcnlfYWN0aXZlGAQgASgIEhkKEWtpbmdfdmlzaXRfYWN0aXZlGAUgASgI",
+            "EhkKDHhwX3NraWxsX3JlZhgGIAEoCUgAiAEBEhYKCXhwX2Ftb3VudBgHIAEo",
+            "BUgBiAEBEhUKCGJ1ZmZfcmVmGAggASgJSAKIAQESHwoSYnVmZl9kdXJhdGlv",
+            "bl9zZWNzGAkgASgCSAOIAQFCDwoNX3hwX3NraWxsX3JlZkIMCgpfeHBfYW1v",
+            "dW50QgsKCV9idWZmX3JlZkIVChNfYnVmZl9kdXJhdGlvbl9zZWNzIqgBCglT",
+            "aG9wT2ZmZXISEAoIaXRlbV9yZWYYASABKAkSEQoJYnV5X3ByaWNlGAIgASgF",
+            "EhcKCnNlbGxfcHJpY2UYAyABKAVIAIgBARISCgVzdG9jaxgEIAEoBUgBiAEB",
+            "EhwKD3Jlc3RvY2tfc2Vjb25kcxgFIAEoBUgCiAEBQg0KC19zZWxsX3ByaWNl",
+            "QggKBl9zdG9ja0ISChBfcmVzdG9ja19zZWNvbmRzIi0KCFNob3BTcGVjEiEK",
+            "CWludmVudG9yeRgBIAMoCzIOLm1hcC5TaG9wT2ZmZXIi3gEKC0R1bmdlb25T",
+            "cGVjEhEKCXNjZW5lX3JlZhgBIAEoCRIdChBtaW5fcGxheWVyX2xldmVsGAIg",
+            "ASgFSACIAQESGwoOcGFydHlfc2l6ZV9tYXgYAyABKAVIAYgBARIXCgpkaWZm",
+            "aWN1bHR5GAQgASgJSAKIAQESHAoPZW50cnlfcXVlc3RfcmVmGAUgASgJSAOI",
+            "AQFCEwoRX21pbl9wbGF5ZXJfbGV2ZWxCEQoPX3BhcnR5X3NpemVfbWF4Qg0K",
+            "C19kaWZmaWN1bHR5QhIKEF9lbnRyeV9xdWVzdF9yZWYiYgoOUXVlc3RHaXZl",
+            "clNwZWMSEgoKcXVlc3RfcmVmcxgBIAMoCRIiChVncmVldGluZ19kaWFsb2d1",
+            "ZV9yZWYYAiABKAlIAIgBAUIYChZfZ3JlZXRpbmdfZGlhbG9ndWVfcmVmIkIK",
+            "CEF1cmFTcGVjEg4KBnJhZGl1cxgBIAEoBRISCgpib251c19raW5kGAIgASgJ",
+            "EhIKCm11bHRpcGxpZXIYAyABKAIirBoKDldvcmxkT2JqZWN0RGVmEgoKAmlk",
+            "GAEgASgJEgsKA3JlZhgCIAEoCRIMCgRuYW1lGAMgASgJEhgKC2Rlc2NyaXB0",
+            "aW9uGAQgASgJSACIAQESIgoEdHlwZRgFIAEoDjIULm1hcC5Xb3JsZE9iamVj",
+            "dFR5cGUSFQoIc3ViX2tpbmQYBiABKAlIAYgBARItCg1yZXNvdXJjZV90eXBl",
+            "GCUgASgOMhEubWFwLlJlc291cmNlVHlwZUgCiAEBEi8KDmNvbnRhaW5lcl90",
+            "eXBlGCYgASgOMhIubWFwLkNvbnRhaW5lclR5cGVIA4gBARI8ChVjcmFmdGlu",
+            "Z19zdGF0aW9uX3R5cGUYJyABKA4yGC5tYXAuQ3JhZnRpbmdTdGF0aW9uVHlw",
+            "ZUgEiAEBEhYKCW1vZGVsX3JlZhgHIAEoCUgFiAEBEhEKBGljb24YCCABKAlI",
+            "BogBARISCgVzY2FsZRgJIAEoAkgHiAEBEhsKB3BhbGV0dGUYCiADKAsyCi5t",
+            "YXAuQ29sb3ISEAoDaW1nGBkgASgJSAiIAQESGQoMaW50ZXJhY3RhYmxlGAsg",
+            "ASgISAmIAQESGQoMZGVzdHJ1Y3RpYmxlGAwgASgISAqIAQESGgoNbG9vdF9p",
+            "dGVtX3JlZhgNIAEoCUgLiAEBEhwKD2hhcnZlc3RfdGltZV9tcxgOIAEoBUgM",
+            "iAEBEhoKDXRvb2xfcmVxdWlyZWQYDyABKAlIDYgBARIYCgtza2lsbF9sZXZl",
+            "bBgQIAEoBUgOiAEBEhcKCnNraWxsX3R5cGUYESABKAlID4gBARIaCg1oYXJ2",
+            "ZXN0X3lpZWxkGBogASgFSBCIAQESFwoKbWF4X2Ftb3VudBgbIAEoBUgRiAEB",
+            "EhsKDmluaXRpYWxfYW1vdW50GBwgASgFSBKIAQESFwoKbWF4X2hlYWx0aBgd",
+            "IAEoBUgTiAEBEhwKD2Zvb3RwcmludF93aWR0aBgeIAEoBUgUiAEBEh0KEGZv",
+            "b3RwcmludF9oZWlnaHQYHyABKAVIFYgBARIdChBibG9ja3NfcGxhY2VtZW50",
+            "GCAgASgISBaIAQESIwoWY29uc3RydWN0aW9uX3RpbWVfc2VjcxghIAEoAkgX",
+            "iAEBEiMKC2J1aWxkX2Nvc3RzGCIgAygLMg4ubWFwLkJ1aWxkQ29zdBIZCgxz",
+            "cGF3bl93ZWlnaHQYIyABKAJIGIgBARIYCgtzcGF3bl9jb3VudBgkIAEoBUgZ",
+            "iAEBEh0KEGNvbGxpc2lvbl9yYWRpdXMYEiABKAJIGogBARIdChBjb2xsaXNp",
+            "b25faGVpZ2h0GBMgASgCSBuIAQESHAoPYmxvY2tzX21vdmVtZW50GBQgASgI",
+            "SByIAQESHAoPb2NjbHVkZXNfcGxheWVyGBUgASgISB2IAQESHgoRcmVzcGF3",
+            "bl90aW1lX3NlY3MYFiABKAVIHogBARIdChByZXNwYXduX3ZhcmlhbmNlGBcg",
+            "ASgFSB+IAQESJQoKZXh0ZW5zaW9ucxgYIAMoCzIRLm1hcC5NYXBFeHRlbnNp",
+            "b24SFAoHY3JlZGl0cxgoIAEoCUggiAEBEhQKB2RyYWZ0ZWQYKSABKAhIIYgB",
+            "ARIWCg5hbGxvd2VkX2Jpb21lcxgqIAMoBRIfChJzcGF3bnNfZnVsbHlfYnVp",
+            "bHQYKyABKAhIIogBARIiChVyZXF1aXJlc19pbl90ZXJyaXRvcnkYLCABKAhI",
+            "I4gBARIxCg9mb290cHJpbnRfc2hhcGUYLSABKA4yEy5tYXAuRm9vdHByaW50",
+            "U2hhcGVIJIgBARIlCg9mb290cHJpbnRfY2VsbHMYLiADKAsyDC5tYXAuR3Jp",
+            "ZFBvcxIpCgtjb3N0X3NvdXJjZRgvIAEoDjIPLm1hcC5Db3N0U291cmNlSCWI",
+            "AQESKAoIc2VydmljZXMYMCADKAsyFi5tYXAuU2VydmljZUNhcGFiaWxpdHkS",
+            "JAoGdGVuZGVyGDEgASgLMg8ubWFwLlRlbmRlclNwZWNIJogBARIxCgl0ZXJy",
+            "aXRvcnkYMiABKAsyGS5tYXAuVGVycml0b3J5RW1pdHRlclNwZWNIJ4gBARIq",
+            "CgdyZWNpcGVzGDMgAygLMhkubWFwLlByb2R1Y3Rpb25SZWNpcGVTcGVjEicK",
+            "B3N1cnBsdXMYNCADKAsyFi5tYXAuU3VycGx1c0V4cG9ydFNwZWMSOwoScGFz",
+            "c2l2ZV9wcm9kdWN0aW9uGDUgASgLMhoubWFwLlBhc3NpdmVQcm9kdWN0aW9u",
+            "U3BlY0goiAEBEjEKDXJhbmdlZF9hdHRhY2sYNiABKAsyFS5tYXAuUmFuZ2Vk",
+            "QXR0YWNrU3BlY0gpiAEBEjcKEHBvcHVsYXRpb25fc3Bhd24YNyABKAsyGC5t",
+            "YXAuUG9wdWxhdGlvblNwYXduU3BlY0gqiAEBEiAKBHJhaWQYOCABKAsyDS5t",
+            "YXAuUmFpZFNwZWNIK4gBARIxCg11cGdyYWRlX2NoYWluGDkgASgLMhUubWFw",
+            "LlVwZ3JhZGVDaGFpblNwZWNILIgBARIuCgtpbnRlcmFjdGlvbhg6IAEoDjIU",
+            "Lm1hcC5JbnRlcmFjdGlvbktpbmRILYgBARIkCgZzaHJpbmUYPCABKAsyDy5t",
+            "YXAuU2hyaW5lU3BlY0guiAEBEiAKBHNob3AYPSABKAsyDS5tYXAuU2hvcFNw",
+            "ZWNIL4gBARImCgdkdW5nZW9uGD4gASgLMhAubWFwLkR1bmdlb25TcGVjSDCI",
+            "AQESLQoLcXVlc3RfZ2l2ZXIYPyABKAsyEy5tYXAuUXVlc3RHaXZlclNwZWNI",
+            "MYgBARIgCgRhdXJhGEAgASgLMg0ubWFwLkF1cmFTcGVjSDKIAQESFAoHZmFj",
+            "dGlvbhhBIAEoCUgziAEBEhgKC2ZhY3Rpb25fcmVmGEIgASgJSDSIAQESGwoO",
+            "c2V0dGxlbWVudF9yZWYYQyABKAlINYgBARIZCgxkaXN0cmljdF9yZWYYRCAB",
+            "KAlINogBARIYCgtjdWx0dXJlX3JlZhhFIAEoCUg3iAEBEhkKDHJlbGlnaW9u",
+            "X3JlZhhGIAEoCUg4iAEBEh4KEWRpYWxvZ3VlX3RyZWVfcmVmGEcgASgJSDmI",
+            "AQESJgoZaW50ZXJhY3Rpb25fY29vbGRvd25fc2VjcxhIIAEoAkg6iAEBQg4K",
+            "DF9kZXNjcmlwdGlvbkILCglfc3ViX2tpbmRCEAoOX3Jlc291cmNlX3R5cGVC",
+            "EQoPX2NvbnRhaW5lcl90eXBlQhgKFl9jcmFmdGluZ19zdGF0aW9uX3R5cGVC",
+            "DAoKX21vZGVsX3JlZkIHCgVfaWNvbkIICgZfc2NhbGVCBgoEX2ltZ0IPCg1f",
+            "aW50ZXJhY3RhYmxlQg8KDV9kZXN0cnVjdGlibGVCEAoOX2xvb3RfaXRlbV9y",
+            "ZWZCEgoQX2hhcnZlc3RfdGltZV9tc0IQCg5fdG9vbF9yZXF1aXJlZEIOCgxf",
+            "c2tpbGxfbGV2ZWxCDQoLX3NraWxsX3R5cGVCEAoOX2hhcnZlc3RfeWllbGRC",
+            "DQoLX21heF9hbW91bnRCEQoPX2luaXRpYWxfYW1vdW50Qg0KC19tYXhfaGVh",
+            "bHRoQhIKEF9mb290cHJpbnRfd2lkdGhCEwoRX2Zvb3RwcmludF9oZWlnaHRC",
+            "EwoRX2Jsb2Nrc19wbGFjZW1lbnRCGQoXX2NvbnN0cnVjdGlvbl90aW1lX3Nl",
+            "Y3NCDwoNX3NwYXduX3dlaWdodEIOCgxfc3Bhd25fY291bnRCEwoRX2NvbGxp",
+            "c2lvbl9yYWRpdXNCEwoRX2NvbGxpc2lvbl9oZWlnaHRCEgoQX2Jsb2Nrc19t",
+            "b3ZlbWVudEISChBfb2NjbHVkZXNfcGxheWVyQhQKEl9yZXNwYXduX3RpbWVf",
+            "c2Vjc0ITChFfcmVzcGF3bl92YXJpYW5jZUIKCghfY3JlZGl0c0IKCghfZHJh",
+            "ZnRlZEIVChNfc3Bhd25zX2Z1bGx5X2J1aWx0QhgKFl9yZXF1aXJlc19pbl90",
+            "ZXJyaXRvcnlCEgoQX2Zvb3RwcmludF9zaGFwZUIOCgxfY29zdF9zb3VyY2VC",
+            "CQoHX3RlbmRlckIMCgpfdGVycml0b3J5QhUKE19wYXNzaXZlX3Byb2R1Y3Rp",
+            "b25CEAoOX3JhbmdlZF9hdHRhY2tCEwoRX3BvcHVsYXRpb25fc3Bhd25CBwoF",
+            "X3JhaWRCEAoOX3VwZ3JhZGVfY2hhaW5CDgoMX2ludGVyYWN0aW9uQgkKB19z",
+            "aHJpbmVCBwoFX3Nob3BCCgoIX2R1bmdlb25CDgoMX3F1ZXN0X2dpdmVyQgcK",
+            "BV9hdXJhQgoKCF9mYWN0aW9uQg4KDF9mYWN0aW9uX3JlZkIRCg9fc2V0dGxl",
+            "bWVudF9yZWZCDwoNX2Rpc3RyaWN0X3JlZkIOCgxfY3VsdHVyZV9yZWZCDwoN",
+            "X3JlbGlnaW9uX3JlZkIUChJfZGlhbG9ndWVfdHJlZV9yZWZCHAoaX2ludGVy",
+            "YWN0aW9uX2Nvb2xkb3duX3NlY3MiMgoJQnVpbGRDb3N0EhUKDXJlc291cmNl",
             "X3R5cGUYASABKAkSDgoGYW1vdW50GAIgASgFIocCChRXb3JsZE9iamVjdFBs",
             "YWNlbWVudBIWCg5vYmplY3RfZGVmX3JlZhgBIAEoCRIkCghwb3NpdGlvbhgC",
             "IAEoCzINLm1hcC5Xb3JsZFBvc0gAiAEBEiMKCGdyaWRfcG9zGAMgASgLMgwu",
             "bWFwLkdyaWRQb3NIAYgBARIXCgpyb3RhdGlvbl95GAQgASgCSAKIAQESGwoO",
             "c2NhbGVfb3ZlcnJpZGUYBSABKAJIA4gBARIRCgRzZWVkGAYgASgDSASIAQFC",
             "CwoJX3Bvc2l0aW9uQgsKCV9ncmlkX3Bvc0INCgtfcm90YXRpb25feUIRCg9f",
-            "c2NhbGVfb3ZlcnJpZGVCBwoFX3NlZWQinQYKClNwYXduUG9pbnQSCgoCaWQY",
+            "c2NhbGVfb3ZlcnJpZGVCBwoFX3NlZWQi4AgKClNwYXduUG9pbnQSCgoCaWQY",
             "ASABKAkSJAoIY2F0ZWdvcnkYAiABKA4yEi5tYXAuU3Bhd25DYXRlZ29yeRIX",
             "CgplbnRpdHlfcmVmGAMgASgJSACIAQESJAoIcG9zaXRpb24YBCABKAsyDS5t",
             "YXAuV29ybGRQb3NIAYgBARIjCghncmlkX3BvcxgFIAEoCzIMLm1hcC5Hcmlk",
@@ -269,176 +283,561 @@ namespace KBVE.Proto.Map {
             "dGhlchgOIAEoCUgLiAEBEhYKCWV2ZW50X3JlZhgPIAEoCUgMiAEBEhYKCXF1",
             "ZXN0X3JlZhgQIAEoCUgNiAEBEhYKDnJlcXVpcmVkX2ZsYWdzGBEgAygJEhYK",
             "CWdyb3VwX21pbhgSIAEoBUgOiAEBEhYKCWdyb3VwX21heBgTIAEoBUgPiAEB",
-            "EhkKDGdyb3VwX3JhZGl1cxgUIAEoAkgQiAEBQg0KC19lbnRpdHlfcmVmQgsK",
-            "CV9wb3NpdGlvbkILCglfZ3JpZF9wb3NCCQoHX3JhZGl1c0IPCg1fc3Bhd25f",
-            "d2VpZ2h0Qg0KC19tYXhfYWN0aXZlQgwKCl9sZXZlbF9taW5CDAoKX2xldmVs",
-            "X21heEIUChJfcmVzcGF3bl90aW1lX3NlY3NCEwoRX3Jlc3Bhd25fdmFyaWFu",
-            "Y2VCDgoMX3RpbWVfb2ZfZGF5QgoKCF93ZWF0aGVyQgwKCl9ldmVudF9yZWZC",
-            "DAoKX3F1ZXN0X3JlZkIMCgpfZ3JvdXBfbWluQgwKCl9ncm91cF9tYXhCDwoN",
-            "X2dyb3VwX3JhZGl1cyK3AgoGUmVnaW9uEgoKAmlkGAEgASgJEgsKA3JlZhgC",
-            "IAEoCRIMCgRuYW1lGAMgASgJEhgKC2Rlc2NyaXB0aW9uGAQgASgJSACIAQES",
-            "EQoEbG9yZRgFIAEoCUgBiAEBEhEKCXpvbmVfcmVmcxgGIAMoCRIQCgNpbWcY",
-            "ByABKAlIAogBARIRCgRpY29uGAggASgJSAOIAQESFAoHZ3Jhdml0eRgJIAEo",
-            "AkgEiAEBEhsKDmRheV9jeWNsZV9zZWNzGAogASgCSAWIAQESJQoKZXh0ZW5z",
-            "aW9ucxgLIAMoCzIRLm1hcC5NYXBFeHRlbnNpb25CDgoMX2Rlc2NyaXB0aW9u",
-            "QgcKBV9sb3JlQgYKBF9pbWdCBwoFX2ljb25CCgoIX2dyYXZpdHlCEQoPX2Rh",
-            "eV9jeWNsZV9zZWNzIiAKCEhleENvb3JkEgkKAXEYASABKAUSCQoBchgCIAEo",
-            "BSI5CgpTZWVkUG9saWN5EhIKCndvcmxkX3NlZWQYASABKAMSFwoPY29udGVu",
-            "dF92ZXJzaW9uGAIgASgFIvICCg1IZXhUcmF2ZWxMaW5rEhsKBGZyb20YASAB",
-            "KAsyDS5tYXAuSGV4Q29vcmQSGQoCdG8YAiABKAsyDS5tYXAuSGV4Q29vcmQS",
-            "MgoLdHJhdmVsX3R5cGUYAyABKA4yHS5tYXAuSGV4VHJhdmVsTGluay5UcmF2",
-            "ZWxUeXBlEh4KEWxldmVsX3JlcXVpcmVtZW50GAQgASgFSACIAQESHgoRcXVl",
-            "c3RfcmVxdWlyZW1lbnQYBSABKAlIAYgBARIQCgN0YWcYBiABKAlIAogBASJv",
-            "CgpUcmF2ZWxUeXBlEhYKElRSQVZFTF9VTlNQRUNJRklFRBAAEg8KC1RSQVZF",
-            "TF9PUEVOEAESEAoMVFJBVkVMX0dBVEVEEAISEgoOVFJBVkVMX09ORV9XQVkQ",
-            "AxISCg5UUkFWRUxfQkxPQ0tFRBAEQhQKEl9sZXZlbF9yZXF1aXJlbWVudEIU",
-            "ChJfcXVlc3RfcmVxdWlyZW1lbnRCBgoEX3RhZyKTBQoRRW52aXJvbm1lbnRD",
-            "b25maWcSFgoJc3VuX3BpdGNoGAEgASgCSACIAQESFAoHc3VuX3lhdxgCIAEo",
-            "AkgBiAEBEhoKDXN1bl9pbnRlbnNpdHkYAyABKAJIAogBARIiCglzdW5fY29s",
-            "b3IYBCABKAsyCi5tYXAuQ29sb3JIA4gBARIaCg1za3lfaW50ZW5zaXR5GAUg",
-            "ASgCSASIAQESJgoZYXRtb3NwaGVyZV9yYXlsZWlnaF9zY2FsZRgGIAEoAkgF",
-            "iAEBEiEKFGF0bW9zcGhlcmVfbWllX3NjYWxlGAcgASgCSAaIAQESGAoLZm9n",
-            "X2RlbnNpdHkYCCABKAJIB4gBARIfChJmb2dfaGVpZ2h0X2ZhbGxvZmYYCSAB",
-            "KAJICIgBARIiCglmb2dfY29sb3IYCiABKAsyCi5tYXAuQ29sb3JICYgBARIf",
-            "ChJmb2dfc3RhcnRfZGlzdGFuY2UYCyABKAJICogBARIeChFhbWJpZW50X3Nv",
-            "dW5kX3JlZhgMIAEoCUgLiAEBEhYKCW11c2ljX3JlZhgNIAEoCUgMiAEBQgwK",
-            "Cl9zdW5fcGl0Y2hCCgoIX3N1bl95YXdCEAoOX3N1bl9pbnRlbnNpdHlCDAoK",
-            "X3N1bl9jb2xvckIQCg5fc2t5X2ludGVuc2l0eUIcChpfYXRtb3NwaGVyZV9y",
-            "YXlsZWlnaF9zY2FsZUIXChVfYXRtb3NwaGVyZV9taWVfc2NhbGVCDgoMX2Zv",
-            "Z19kZW5zaXR5QhUKE19mb2dfaGVpZ2h0X2ZhbGxvZmZCDAoKX2ZvZ19jb2xv",
-            "ckIVChNfZm9nX3N0YXJ0X2Rpc3RhbmNlQhQKEl9hbWJpZW50X3NvdW5kX3Jl",
-            "ZkIMCgpfbXVzaWNfcmVmIowDCg1IZXhab25lUmVjb3JkEhwKBWNvb3JkGAEg",
-            "ASgLMg0ubWFwLkhleENvb3JkEhAKCHpvbmVfcmVmGAIgASgJEicKCmdlbmVy",
-            "YXRpb24YCSABKA4yEy5tYXAuR2VuZXJhdGlvbk1vZGUSKQoLcGVyc2lzdGVu",
-            "Y2UYAyABKA4yFC5tYXAuUGVyc2lzdGVuY2VNb2RlEiUKCXN0cmVhbWluZxgE",
-            "IAEoDjISLm1hcC5TdHJlYW1pbmdIaW50EikKC3JlcGxpY2F0aW9uGAUgASgO",
-            "MhQubWFwLlJlcGxpY2F0aW9uSGludBIpCgtzZWVkX3BvbGljeRgGIAEoCzIP",
-            "Lm1hcC5TZWVkUG9saWN5SACIAQESMAoLZW52aXJvbm1lbnQYByABKAsyFi5t",
-            "YXAuRW52aXJvbm1lbnRDb25maWdIAYgBARIoCgx0cmF2ZWxfbGlua3MYCCAD",
-            "KAsyEi5tYXAuSGV4VHJhdmVsTGlua0IOCgxfc2VlZF9wb2xpY3lCDgoMX2Vu",
-            "dmlyb25tZW50IqwBCgtIZXhXb3JsZE1hcBIKCgJpZBgBIAEoCRIMCgRuYW1l",
-            "GAIgASgJEhgKC2Rlc2NyaXB0aW9uGAMgASgJSACIAQESJAoLc2VlZF9wb2xp",
-            "Y3kYBCABKAsyDy5tYXAuU2VlZFBvbGljeRIQCghoZXhfc2l6ZRgFIAEoARIh",
-            "CgVoZXhlcxgGIAMoCzISLm1hcC5IZXhab25lUmVjb3JkQg4KDF9kZXNjcmlw",
-            "dGlvbiKVAQoMTWFwRXh0ZW5zaW9uEgsKA2tleRgBIAEoCRIWCgxzdHJpbmdf",
-            "dmFsdWUYAiABKAlIABITCglpbnRfdmFsdWUYAyABKANIABIVCgtmbG9hdF92",
-            "YWx1ZRgEIAEoAUgAEhQKCmJvb2xfdmFsdWUYBSABKAhIABIVCgtieXRlc192",
-            "YWx1ZRgGIAEoDEgAQgcKBXZhbHVlIpUBCgtNYXBSZWdpc3RyeRIcCgdyZWdp",
-            "b25zGAEgAygLMgsubWFwLlJlZ2lvbhIYCgV6b25lcxgCIAMoCzIJLm1hcC5a",
-            "b25lEigKC29iamVjdF9kZWZzGAMgAygLMhMubWFwLldvcmxkT2JqZWN0RGVm",
-            "EiQKCmhleF93b3JsZHMYBCADKAsyEC5tYXAuSGV4V29ybGRNYXAqhwMKBUJp",
-            "b21lEhUKEUJJT01FX1VOU1BFQ0lGSUVEEAASEwoPQklPTUVfR1JBU1NMQU5E",
-            "EAESEAoMQklPTUVfRk9SRVNUEAISEAoMQklPTUVfREVTRVJUEAMSEAoMQklP",
-            "TUVfVFVORFJBEAQSDwoLQklPTUVfU1dBTVAQBRISCg5CSU9NRV9NT1VOVEFJ",
-            "ThAGEhIKDkJJT01FX1ZPTENBTklDEAcSDwoLQklPTUVfT0NFQU4QCBIOCgpC",
-            "SU9NRV9DQVZFEAkSEQoNQklPTUVfRFVOR0VPThAKEg4KCkJJT01FX0NJVFkQ",
-            "CxIPCgtCSU9NRV9SVUlOUxAMEhUKEUJJT01FX1VOREVSR1JPVU5EEA0SEgoO",
-            "QklPTUVfRkxPQVRJTkcQDhIOCgpCSU9NRV9WT0lEEA8SEQoNQklPTUVfQ09B",
-            "U1RBTBAQEg8KC0JJT01FX1JJVkVSEBESDgoKQklPTUVfRElSVBASEg4KCkJJ",
-            "T01FX1NOT1cQExIPCgtCSU9NRV9TVE9ORRAUKoUCCghab25lVHlwZRIZChVa",
-            "T05FX1RZUEVfVU5TUEVDSUZJRUQQABIXChNaT05FX1RZUEVfT1ZFUldPUkxE",
-            "EAESFQoRWk9ORV9UWVBFX0RVTkdFT04QAhIWChJaT05FX1RZUEVfSU5TVEFO",
-            "Q0UQAxISCg5aT05FX1RZUEVfQ0lUWRAEEhMKD1pPTkVfVFlQRV9BUkVOQRAF",
-            "EhIKDlpPTkVfVFlQRV9TQUZFEAYSGAoUWk9ORV9UWVBFX1dJTERFUk5FU1MQ",
-            "BxISCg5aT05FX1RZUEVfUkFJRBAIEhYKElpPTkVfVFlQRV9UVVRPUklBTBAJ",
-            "EhMKD1pPTkVfVFlQRV9FVkVOVBAKKtECCghSb29tVHlwZRIZChVST09NX1RZ",
-            "UEVfVU5TUEVDSUZJRUQQABITCg9ST09NX1RZUEVfRU1QVFkQARIUChBST09N",
-            "X1RZUEVfQ09NQkFUEAISFgoSUk9PTV9UWVBFX1RSRUFTVVJFEAMSEgoOUk9P",
-            "TV9UWVBFX1RSQVAQBBIZChVST09NX1RZUEVfUkVTVF9TSFJJTkUQBRIWChJS",
-            "T09NX1RZUEVfTUVSQ0hBTlQQBhISCg5ST09NX1RZUEVfQk9TUxAHEhMKD1JP",
-            "T01fVFlQRV9TVE9SWRAIEhUKEVJPT01fVFlQRV9IQUxMV0FZEAkSHgoaUk9P",
-            "TV9UWVBFX1VOREVSR1JPVU5EX0NJVFkQChIUChBST09NX1RZUEVfUFVaWkxF",
-            "EAsSFAoQUk9PTV9UWVBFX1NFQ1JFVBAMEhQKEFJPT01fVFlQRV9QT1JUQUwQ",
-            "DSqeAQoJRGlyZWN0aW9uEhkKFURJUkVDVElPTl9VTlNQRUNJRklFRBAAEhMK",
-            "D0RJUkVDVElPTl9OT1JUSBABEhMKD0RJUkVDVElPTl9TT1VUSBACEhIKDkRJ",
-            "UkVDVElPTl9FQVNUEAMSEgoORElSRUNUSU9OX1dFU1QQBBIQCgxESVJFQ1RJ",
-            "T05fVVAQBRISCg5ESVJFQ1RJT05fRE9XThAGKsUCCgxSb29tTW9kaWZpZXIS",
-            "HQoZUk9PTV9NT0RJRklFUl9VTlNQRUNJRklFRBAAEhYKElJPT01fTU9ESUZJ",
-            "RVJfTk9ORRABEhUKEVJPT01fTU9ESUZJRVJfRk9HEAISGgoWUk9PTV9NT0RJ",
-            "RklFUl9CTEVTU0lORxADEhgKFFJPT01fTU9ESUZJRVJfQ1VSU0VEEAQSGQoV",
-            "Uk9PTV9NT0RJRklFUl9GTE9PREVEEAUSGQoVUk9PTV9NT0RJRklFUl9CVVJO",
-            "SU5HEAYSGAoUUk9PTV9NT0RJRklFUl9GUk9aRU4QBxIXChNST09NX01PRElG",
-            "SUVSX1RPWElDEAgSFgoSUk9PTV9NT0RJRklFUl9EQVJLEAkSFgoSUk9PTV9N",
-            "T0RJRklFUl9IT0xZEAoSGAoUUk9PTV9NT0RJRklFUl9BUkNBTkUQCyqrAwoP",
-            "V29ybGRPYmplY3RUeXBlEhwKGFdPUkxEX09CSkVDVF9VTlNQRUNJRklFRBAA",
-            "Eh4KGldPUkxEX09CSkVDVF9SRVNPVVJDRV9OT0RFEAESGgoWV09STERfT0JK",
-            "RUNUX0NPTlRBSU5FUhACEiEKHVdPUkxEX09CSkVDVF9DUkFGVElOR19TVEFU",
-            "SU9OEAMSFQoRV09STERfT0JKRUNUX1BST1AQBBIWChJXT1JMRF9PQkpFQ1Rf",
-            "TElHSFQQBRIXChNXT1JMRF9PQkpFQ1RfUE9SVEFMEAYSGAoUV09STERfT0JK",
-            "RUNUX0JBUlJJRVIQBxIbChdXT1JMRF9PQkpFQ1RfTlBDX01BUktFUhAIEhgK",
-            "FFdPUkxEX09CSkVDVF9UUklHR0VSEAkSGwoXV09STERfT0JKRUNUX1NFVFRM",
-            "RU1FTlQQChIZChVXT1JMRF9PQkpFQ1RfQlVJTERJTkcQCxIWChJXT1JMRF9P",
-            "QkpFQ1RfQVJFTkEQDBIZChVXT1JMRF9PQkpFQ1RfTEFORE1BUksQDRIXChNX",
-            "T1JMRF9PQkpFQ1RfQ1VTVE9NEGQqtwEKDFJlc291cmNlVHlwZRIYChRSRVNP",
-            "VVJDRV9VTlNQRUNJRklFRBAAEhEKDVJFU09VUkNFX1dPT0QQARISCg5SRVNP",
-            "VVJDRV9TVE9ORRACEhMKD1JFU09VUkNFX0ZMT1dFUhADEhUKEVJFU09VUkNF",
-            "X01VU0hST09NEAQSFAoQUkVTT1VSQ0VfQ1JZU1RBTBAFEhIKDlJFU09VUkNF",
-            "X1dBVEVSEAYSEAoMUkVTT1VSQ0VfT1JFEAcqagoNQ29udGFpbmVyVHlwZRIZ",
-            "ChVDT05UQUlORVJfVU5TUEVDSUZJRUQQABITCg9DT05UQUlORVJfQ1JBVEUQ",
-            "ARITCg9DT05UQUlORVJfQ0hFU1QQAhIUChBDT05UQUlORVJfQkFSUkVMEAMq",
-            "kQEKE0NyYWZ0aW5nU3RhdGlvblR5cGUSIAocQ1JBRlRJTkdfU1RBVElPTl9V",
-            "TlNQRUNJRklFRBAAEh4KGkNSQUZUSU5HX1NUQVRJT05fV09SS0JFTkNIEAES",
-            "HAoYQ1JBRlRJTkdfU1RBVElPTl9GVVJOQUNFEAISGgoWQ1JBRlRJTkdfU1RB",
-            "VElPTl9BTlZJTBADKpABCg5Gb290cHJpbnRTaGFwZRIfChtGT09UUFJJTlRf",
-            "U0hBUEVfVU5TUEVDSUZJRUQQABIfChtGT09UUFJJTlRfU0hBUEVfUkVDVEFO",
-            "R1VMQVIQARIeChpGT09UUFJJTlRfU0hBUEVfSEVYX0ZMT1dFUhACEhwKGEZP",
-            "T1RQUklOVF9TSEFQRV9FWFBMSUNJVBADKoIBCgpDb3N0U291cmNlEhsKF0NP",
-            "U1RfU09VUkNFX1VOU1BFQ0lGSUVEEAASIAocQ09TVF9TT1VSQ0VfRkFDVElP",
-            "Tl9UUkVBU1VSWRABEh8KG0NPU1RfU09VUkNFX09XTkVSX0lOVkVOVE9SWRAC",
-            "EhQKEENPU1RfU09VUkNFX0ZSRUUQAyrnAQoPSW50ZXJhY3Rpb25LaW5kEiAK",
-            "HElOVEVSQUNUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIZChVJTlRFUkFDVElP",
-            "Tl9LSU5EX05PTkUQARIbChdJTlRFUkFDVElPTl9LSU5EX1NIUklORRACEhkK",
-            "FUlOVEVSQUNUSU9OX0tJTkRfU0hPUBADEiAKHElOVEVSQUNUSU9OX0tJTkRf",
-            "UVVFU1RfR0lWRVIQBBIcChhJTlRFUkFDVElPTl9LSU5EX0RVTkdFT04QBRIf",
-            "ChtJTlRFUkFDVElPTl9LSU5EX05QQ19ESUFMT0cQBir4AQoLU2VydmljZUtp",
-            "bmQSHAoYU0VSVklDRV9LSU5EX1VOU1BFQ0lGSUVEEAASFQoRU0VSVklDRV9L",
-            "SU5EX0ZPT0QQARIWChJTRVJWSUNFX0tJTkRfU0xFRVAQAhIYChRTRVJWSUNF",
-            "X0tJTkRfSEVBTElORxADEhkKFVNFUlZJQ0VfS0lORF9UUkFJTklORxAEEhkK",
-            "FVNFUlZJQ0VfS0lORF9URUxFUE9SVBAFEhgKFFNFUlZJQ0VfS0lORF9TVE9S",
-            "QUdFEAYSGQoVU0VSVklDRV9LSU5EX01FUkNIQU5UEAcSFwoTU0VSVklDRV9L",
-            "SU5EX0JBTktFUhAIKs8CCgdQb2lUeXBlEhMKD1BPSV9VTlNQRUNJRklFRBAA",
-            "EgwKCFBPSV9DSVRZEAESDAoIUE9JX1RPV04QAhIPCgtQT0lfVklMTEFHRRAD",
-            "Eg8KC1BPSV9EVU5HRU9OEAQSEAoMUE9JX0xBTkRNQVJLEAUSDgoKUE9JX1NI",
-            "UklORRAGEhAKDFBPSV9NRVJDSEFOVBAHEgwKCFBPSV9DQU1QEAgSDQoJUE9J",
-            "X1JVSU5TEAkSDAoIUE9JX01JTkUQChIMCghQT0lfRkFSTRALEgwKCFBPSV9Q",
-            "T1JUEAwSDQoJUE9JX1RPV0VSEA0SDAoIUE9JX0NBVkUQDhINCglQT0lfQVJF",
-            "TkEQDxISCg5QT0lfR1VJTERfSEFMTBAQEhMKD1BPSV9TUEFXTl9QT0lOVBAR",
-            "EhEKDVBPSV9RVUVTVF9IVUIQEhIOCgpQT0lfQ1VTVE9NEBMqzwEKC1RlcnJh",
-            "aW5CYW5kEhwKGFRFUlJBSU5fQkFORF9VTlNQRUNJRklFRBAAEhYKElRFUlJB",
-            "SU5fQkFORF9XQVRFUhABEhUKEVRFUlJBSU5fQkFORF9TQU5EEAISFgoSVEVS",
-            "UkFJTl9CQU5EX0dSQVNTEAMSFQoRVEVSUkFJTl9CQU5EX0RJUlQQBBIWChJU",
-            "RVJSQUlOX0JBTkRfU1RPTkUQBRIVChFURVJSQUlOX0JBTkRfU05PVxAGEhUK",
-            "EVRFUlJBSU5fQkFORF9MQVZBEAcq6AEKDVNwYXduQ2F0ZWdvcnkSHgoaU1BB",
-            "V05fQ0FURUdPUllfVU5TUEVDSUZJRUQQABIWChJTUEFXTl9DQVRFR09SWV9O",
-            "UEMQARIbChdTUEFXTl9DQVRFR09SWV9SRVNPVVJDRRACEhkKFVNQQVdOX0NB",
-            "VEVHT1JZX09CSkVDVBADEhgKFFNQQVdOX0NBVEVHT1JZX0VORU1ZEAQSFwoT",
-            "U1BBV05fQ0FURUdPUllfQk9TUxAFEhgKFFNQQVdOX0NBVEVHT1JZX0VWRU5U",
-            "EAYSGgoWU1BBV05fQ0FURUdPUllfQU1CSUVOVBAHKsQBCg5HZW5lcmF0aW9u",
-            "TW9kZRIaChZHRU5FUkFUSU9OX1VOU1BFQ0lGSUVEEAASHgoaR0VORVJBVElP",
-            "Tl9TVEFUSUNfQVVUSE9SRUQQARIgChxHRU5FUkFUSU9OX0ZJTklURV9QUk9D",
-            "RURVUkFMEAISIgoeR0VORVJBVElPTl9JTkZJTklURV9QUk9DRURVUkFMEAMS",
-            "GAoUR0VORVJBVElPTl9JTlNUQU5DRUQQBBIWChJHRU5FUkFUSU9OX1RSQU5T",
-            "SVQQBSqjAQoPUGVyc2lzdGVuY2VNb2RlEhsKF1BFUlNJU1RFTkNFX1VOU1BF",
-            "Q0lGSUVEEAASGQoVUEVSU0lTVEVOQ0VfQ0FOT05JQ0FMEAESIwofUEVSU0lT",
-            "VEVOQ0VfREVURVJNSU5JU1RJQ19SRUdFThACEhUKEVBFUlNJU1RFTkNFX0RF",
-            "TFRBEAMSHAoYUEVSU0lTVEVOQ0VfU0VTU0lPTl9PTkxZEAQqogEKDVN0cmVh",
-            "bWluZ0hpbnQSGQoVU1RSRUFNSU5HX1VOU1BFQ0lGSUVEEAASGQoVU1RSRUFN",
-            "SU5HX1BBUlRJVElPTkVEEAESGAoUU1RSRUFNSU5HX0NIVU5LX1JJTkcQAhIi",
-            "Ch5TVFJFQU1JTkdfREVTQ1JJUFRPUl9BQ1RJVkFURUQQAxIdChlTVFJFQU1J",
-            "TkdfSU5TVEFOQ0VfTE9BREVEEAQqpwEKD1JlcGxpY2F0aW9uSGludBIbChdS",
-            "RVBMSUNBVElPTl9VTlNQRUNJRklFRBAAEhsKF1JFUExJQ0FUSU9OX1NUQVRJ",
-            "Q19PTkxZEAESHQoZUkVQTElDQVRJT05fTE9DQUxfRFlOQU1JQxACEhwKGFJF",
-            "UExJQ0FUSU9OX0NIVU5LX1NDT1BFRBADEh0KGVJFUExJQ0FUSU9OX0ZVTExf",
-            "SU5TVEFOQ0UQBEIRqgIOS0JWRS5Qcm90by5NYXBiBnByb3RvMw=="));
+            "EhkKDGdyb3VwX3JhZGl1cxgUIAEoAkgQiAEBEi0KEHRpbWVfb2ZfZGF5X2tp",
+            "bmQYFSABKA4yDi5tYXAuVGltZU9mRGF5SBGIAQESKwoMd2VhdGhlcl9raW5k",
+            "GBYgASgOMhAubWFwLldlYXRoZXJLaW5kSBKIAQESIAoGc2Vhc29uGBcgASgO",
+            "MgsubWFwLlNlYXNvbkgTiAEBEhgKC2ZhY3Rpb25fcmVmGBggASgJSBSIAQES",
+            "IAoTdGVycml0b3J5X2NsYWltX3JlZhgZIAEoCUgViAEBEhsKDnNldHRsZW1l",
+            "bnRfcmVmGBogASgJSBaIAQFCDQoLX2VudGl0eV9yZWZCCwoJX3Bvc2l0aW9u",
+            "QgsKCV9ncmlkX3Bvc0IJCgdfcmFkaXVzQg8KDV9zcGF3bl93ZWlnaHRCDQoL",
+            "X21heF9hY3RpdmVCDAoKX2xldmVsX21pbkIMCgpfbGV2ZWxfbWF4QhQKEl9y",
+            "ZXNwYXduX3RpbWVfc2Vjc0ITChFfcmVzcGF3bl92YXJpYW5jZUIOCgxfdGlt",
+            "ZV9vZl9kYXlCCgoIX3dlYXRoZXJCDAoKX2V2ZW50X3JlZkIMCgpfcXVlc3Rf",
+            "cmVmQgwKCl9ncm91cF9taW5CDAoKX2dyb3VwX21heEIPCg1fZ3JvdXBfcmFk",
+            "aXVzQhMKEV90aW1lX29mX2RheV9raW5kQg8KDV93ZWF0aGVyX2tpbmRCCQoH",
+            "X3NlYXNvbkIOCgxfZmFjdGlvbl9yZWZCFgoUX3RlcnJpdG9yeV9jbGFpbV9y",
+            "ZWZCEQoPX3NldHRsZW1lbnRfcmVmIpIFCgZSZWdpb24SCgoCaWQYASABKAkS",
+            "CwoDcmVmGAIgASgJEgwKBG5hbWUYAyABKAkSGAoLZGVzY3JpcHRpb24YBCAB",
+            "KAlIAIgBARIRCgRsb3JlGAUgASgJSAGIAQESEQoJem9uZV9yZWZzGAYgAygJ",
+            "EhAKA2ltZxgHIAEoCUgCiAEBEhEKBGljb24YCCABKAlIA4gBARIUCgdncmF2",
+            "aXR5GAkgASgCSASIAQESGwoOZGF5X2N5Y2xlX3NlY3MYCiABKAJIBYgBARIl",
+            "CgpleHRlbnNpb25zGAsgAygLMhEubWFwLk1hcEV4dGVuc2lvbhIUCgxmYWN0",
+            "aW9uX3JlZnMYDCADKAkSFwoPc2V0dGxlbWVudF9yZWZzGA0gAygJEhwKFHRl",
+            "cnJpdG9yeV9jbGFpbV9yZWZzGA4gAygJEhgKEHRyYWRlX3JvdXRlX3JlZnMY",
+            "DyADKAkSFQoNbGFuZG1hcmtfcmVmcxgQIAMoCRIUCgxjdWx0dXJlX3JlZnMY",
+            "ESADKAkSFQoNcmVsaWdpb25fcmVmcxgSIAMoCRIoCgdjbGltYXRlGBMgASgL",
+            "MhIubWFwLkNsaW1hdGVDb25maWdIBogBARIhChRkb21pbmFudF9jdWx0dXJl",
+            "X3JlZhgUIAEoCUgHiAEBEiIKFWRvbWluYW50X3JlbGlnaW9uX3JlZhgVIAEo",
+            "CUgIiAEBQg4KDF9kZXNjcmlwdGlvbkIHCgVfbG9yZUIGCgRfaW1nQgcKBV9p",
+            "Y29uQgoKCF9ncmF2aXR5QhEKD19kYXlfY3ljbGVfc2Vjc0IKCghfY2xpbWF0",
+            "ZUIXChVfZG9taW5hbnRfY3VsdHVyZV9yZWZCGAoWX2RvbWluYW50X3JlbGln",
+            "aW9uX3JlZiIgCghIZXhDb29yZBIJCgFxGAEgASgFEgkKAXIYAiABKAUiOQoK",
+            "U2VlZFBvbGljeRISCgp3b3JsZF9zZWVkGAEgASgDEhcKD2NvbnRlbnRfdmVy",
+            "c2lvbhgCIAEoBSLyAgoNSGV4VHJhdmVsTGluaxIbCgRmcm9tGAEgASgLMg0u",
+            "bWFwLkhleENvb3JkEhkKAnRvGAIgASgLMg0ubWFwLkhleENvb3JkEjIKC3Ry",
+            "YXZlbF90eXBlGAMgASgOMh0ubWFwLkhleFRyYXZlbExpbmsuVHJhdmVsVHlw",
+            "ZRIeChFsZXZlbF9yZXF1aXJlbWVudBgEIAEoBUgAiAEBEh4KEXF1ZXN0X3Jl",
+            "cXVpcmVtZW50GAUgASgJSAGIAQESEAoDdGFnGAYgASgJSAKIAQEibwoKVHJh",
+            "dmVsVHlwZRIWChJUUkFWRUxfVU5TUEVDSUZJRUQQABIPCgtUUkFWRUxfT1BF",
+            "ThABEhAKDFRSQVZFTF9HQVRFRBACEhIKDlRSQVZFTF9PTkVfV0FZEAMSEgoO",
+            "VFJBVkVMX0JMT0NLRUQQBEIUChJfbGV2ZWxfcmVxdWlyZW1lbnRCFAoSX3F1",
+            "ZXN0X3JlcXVpcmVtZW50QgYKBF90YWcikwUKEUVudmlyb25tZW50Q29uZmln",
+            "EhYKCXN1bl9waXRjaBgBIAEoAkgAiAEBEhQKB3N1bl95YXcYAiABKAJIAYgB",
+            "ARIaCg1zdW5faW50ZW5zaXR5GAMgASgCSAKIAQESIgoJc3VuX2NvbG9yGAQg",
+            "ASgLMgoubWFwLkNvbG9ySAOIAQESGgoNc2t5X2ludGVuc2l0eRgFIAEoAkgE",
+            "iAEBEiYKGWF0bW9zcGhlcmVfcmF5bGVpZ2hfc2NhbGUYBiABKAJIBYgBARIh",
+            "ChRhdG1vc3BoZXJlX21pZV9zY2FsZRgHIAEoAkgGiAEBEhgKC2ZvZ19kZW5z",
+            "aXR5GAggASgCSAeIAQESHwoSZm9nX2hlaWdodF9mYWxsb2ZmGAkgASgCSAiI",
+            "AQESIgoJZm9nX2NvbG9yGAogASgLMgoubWFwLkNvbG9ySAmIAQESHwoSZm9n",
+            "X3N0YXJ0X2Rpc3RhbmNlGAsgASgCSAqIAQESHgoRYW1iaWVudF9zb3VuZF9y",
+            "ZWYYDCABKAlIC4gBARIWCgltdXNpY19yZWYYDSABKAlIDIgBAUIMCgpfc3Vu",
+            "X3BpdGNoQgoKCF9zdW5feWF3QhAKDl9zdW5faW50ZW5zaXR5QgwKCl9zdW5f",
+            "Y29sb3JCEAoOX3NreV9pbnRlbnNpdHlCHAoaX2F0bW9zcGhlcmVfcmF5bGVp",
+            "Z2hfc2NhbGVCFwoVX2F0bW9zcGhlcmVfbWllX3NjYWxlQg4KDF9mb2dfZGVu",
+            "c2l0eUIVChNfZm9nX2hlaWdodF9mYWxsb2ZmQgwKCl9mb2dfY29sb3JCFQoT",
+            "X2ZvZ19zdGFydF9kaXN0YW5jZUIUChJfYW1iaWVudF9zb3VuZF9yZWZCDAoK",
+            "X211c2ljX3JlZiKMAwoNSGV4Wm9uZVJlY29yZBIcCgVjb29yZBgBIAEoCzIN",
+            "Lm1hcC5IZXhDb29yZBIQCgh6b25lX3JlZhgCIAEoCRInCgpnZW5lcmF0aW9u",
+            "GAkgASgOMhMubWFwLkdlbmVyYXRpb25Nb2RlEikKC3BlcnNpc3RlbmNlGAMg",
+            "ASgOMhQubWFwLlBlcnNpc3RlbmNlTW9kZRIlCglzdHJlYW1pbmcYBCABKA4y",
+            "Ei5tYXAuU3RyZWFtaW5nSGludBIpCgtyZXBsaWNhdGlvbhgFIAEoDjIULm1h",
+            "cC5SZXBsaWNhdGlvbkhpbnQSKQoLc2VlZF9wb2xpY3kYBiABKAsyDy5tYXAu",
+            "U2VlZFBvbGljeUgAiAEBEjAKC2Vudmlyb25tZW50GAcgASgLMhYubWFwLkVu",
+            "dmlyb25tZW50Q29uZmlnSAGIAQESKAoMdHJhdmVsX2xpbmtzGAggAygLMhIu",
+            "bWFwLkhleFRyYXZlbExpbmtCDgoMX3NlZWRfcG9saWN5Qg4KDF9lbnZpcm9u",
+            "bWVudCKsAQoLSGV4V29ybGRNYXASCgoCaWQYASABKAkSDAoEbmFtZRgCIAEo",
+            "CRIYCgtkZXNjcmlwdGlvbhgDIAEoCUgAiAEBEiQKC3NlZWRfcG9saWN5GAQg",
+            "ASgLMg8ubWFwLlNlZWRQb2xpY3kSEAoIaGV4X3NpemUYBSABKAESIQoFaGV4",
+            "ZXMYBiADKAsyEi5tYXAuSGV4Wm9uZVJlY29yZEIOCgxfZGVzY3JpcHRpb24i",
+            "sgIKBkJhbm5lchIgCgdwcmltYXJ5GAEgASgLMgoubWFwLkNvbG9ySACIAQES",
+            "IgoJc2Vjb25kYXJ5GAIgASgLMgoubWFwLkNvbG9ySAGIAQESIQoIdGVydGlh",
+            "cnkYAyABKAsyCi5tYXAuQ29sb3JIAogBARIWCglzaWdpbF9yZWYYBCABKAlI",
+            "A4gBARISCgVtb3R0bxgFIAEoCUgEiAEBEhcKCmFudGhlbV9yZWYYBiABKAlI",
+            "BYgBARIaCg1jcmVzdF9wYXR0ZXJuGAcgASgJSAaIAQFCCgoIX3ByaW1hcnlC",
+            "DAoKX3NlY29uZGFyeUILCglfdGVydGlhcnlCDAoKX3NpZ2lsX3JlZkIICgZf",
+            "bW90dG9CDQoLX2FudGhlbV9yZWZCEAoOX2NyZXN0X3BhdHRlcm4izAIKDlJl",
+            "c291cmNlTGVkZ2VyEjUKCXJlc291cmNlcxgBIAMoCzIiLm1hcC5SZXNvdXJj",
+            "ZUxlZGdlci5SZXNvdXJjZXNFbnRyeRJDChFjYXBhY2l0eV9wZXJfaXRlbRgC",
+            "IAMoCzIoLm1hcC5SZXNvdXJjZUxlZGdlci5DYXBhY2l0eVBlckl0ZW1FbnRy",
+            "eRIbCg50b3RhbF9jYXBhY2l0eRgDIAEoA0gAiAEBEhYKCXVubGltaXRlZBgE",
+            "IAEoCEgBiAEBGjAKDlJlc291cmNlc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2",
+            "YWx1ZRgCIAEoAzoCOAEaNgoUQ2FwYWNpdHlQZXJJdGVtRW50cnkSCwoDa2V5",
+            "GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4AUIRCg9fdG90YWxfY2FwYWNpdHlC",
+            "DAoKX3VubGltaXRlZCK4AgoHQ3VsdHVyZRIKCgJpZBgBIAEoCRILCgNyZWYY",
+            "AiABKAkSDAoEbmFtZRgDIAEoCRIoCglhcmNoZXR5cGUYBCABKA4yFS5tYXAu",
+            "Q3VsdHVyZUFyY2hldHlwZRIYCgtkZXNjcmlwdGlvbhgFIAEoCUgAiAEBEhEK",
+            "BGxvcmUYBiABKAlIAYgBARIZCgxsYW5ndWFnZV9yZWYYByABKAlIAogBARIW",
+            "Cg5uYW1lX3Bvb2xfcmVmcxgIIAMoCRIgCgZiYW5uZXIYCSABKAsyCy5tYXAu",
+            "QmFubmVySAOIAQESJQoKZXh0ZW5zaW9ucxgKIAMoCzIRLm1hcC5NYXBFeHRl",
+            "bnNpb25CDgoMX2Rlc2NyaXB0aW9uQgcKBV9sb3JlQg8KDV9sYW5ndWFnZV9y",
+            "ZWZCCQoHX2Jhbm5lciLdAgoIUmVsaWdpb24SCgoCaWQYASABKAkSCwoDcmVm",
+            "GAIgASgJEgwKBG5hbWUYAyABKAkSKQoJYWxpZ25tZW50GAQgASgOMhYubWFw",
+            "LlJlbGlnaW9uQWxpZ25tZW50EhgKC2Rlc2NyaXB0aW9uGAUgASgJSACIAQES",
+            "EQoEbG9yZRgGIAEoCUgBiAEBEhIKCmRlaXR5X3JlZnMYByADKAkSFgoOaG9s",
+            "eV9zaXRlX3JlZnMYCCADKAkSHQoVZm9yYmlkZGVuX2FjdGlvbl9yZWZzGAkg",
+            "AygJEhoKEmJsZXNzZWRfc2tpbGxfcmVmcxgKIAMoCRIgCgZiYW5uZXIYCyAB",
+            "KAsyCy5tYXAuQmFubmVySAKIAQESJQoKZXh0ZW5zaW9ucxgMIAMoCzIRLm1h",
+            "cC5NYXBFeHRlbnNpb25CDgoMX2Rlc2NyaXB0aW9uQgcKBV9sb3JlQgkKB19i",
+            "YW5uZXIilQIKEkRpcGxvbWF0aWNSZWxhdGlvbhIYChBmcm9tX2ZhY3Rpb25f",
+            "cmVmGAEgASgJEhYKDnRvX2ZhY3Rpb25fcmVmGAIgASgJEiUKBnN0YW5jZRgD",
+            "IAEoDjIVLm1hcC5EaXBsb21hdGljU3RhbmNlEhIKCnJlcHV0YXRpb24YBCAB",
+            "KAUSFwoKdHJlYXR5X3JlZhgFIAEoCUgAiAEBEhwKD2V4cGlyZXNfYXRfdHVy",
+            "bhgGIAEoA0gBiAEBEiAKE2VzdGFibGlzaGVkX2F0X3R1cm4YByABKANIAogB",
+            "AUINCgtfdHJlYXR5X3JlZkISChBfZXhwaXJlc19hdF90dXJuQhYKFF9lc3Rh",
+            "Ymxpc2hlZF9hdF90dXJuIpcCCgZUcmVhdHkSCgoCaWQYASABKAkSCwoDcmVm",
+            "GAIgASgJEgwKBG5hbWUYAyABKAkSHgoWc2lnbmF0b3J5X2ZhY3Rpb25fcmVm",
+            "cxgEIAMoCRIYCgtkZXNjcmlwdGlvbhgFIAEoCUgAiAEBEhsKDnNpZ25lZF9h",
+            "dF90dXJuGAYgASgDSAGIAQESHAoPZXhwaXJlc19hdF90dXJuGAcgASgDSAKI",
+            "AQESEwoLY2xhdXNlX3JlZnMYCCADKAkSJQoKZXh0ZW5zaW9ucxgJIAMoCzIR",
+            "Lm1hcC5NYXBFeHRlbnNpb25CDgoMX2Rlc2NyaXB0aW9uQhEKD19zaWduZWRf",
+            "YXRfdHVybkISChBfZXhwaXJlc19hdF90dXJuIocMCgdGYWN0aW9uEgoKAmlk",
+            "GAEgASgJEgsKA3JlZhgCIAEoCRIMCgRuYW1lGAMgASgJEhcKCnNob3J0X25h",
+            "bWUYBCABKAlIAIgBARIYCgtkZXNjcmlwdGlvbhgFIAEoCUgBiAEBEhEKBGxv",
+            "cmUYBiABKAlIAogBARInCgpnb3Zlcm5tZW50GAcgASgOMhMubWFwLkdvdmVy",
+            "bm1lbnRUeXBlEiAKBmJhbm5lchgIIAEoCzILLm1hcC5CYW5uZXJIA4gBARIY",
+            "CgtjdWx0dXJlX3JlZhgJIAEoCUgEiAEBEhkKDHJlbGlnaW9uX3JlZhgKIAEo",
+            "CUgFiAEBEi0KCWFyY2hldHlwZRgLIAEoDjIVLm1hcC5DdWx0dXJlQXJjaGV0",
+            "eXBlSAaIAQESGwoOcnVsZXJfdW5pdF9yZWYYDCABKAlIB4gBARIaCg1oZWly",
+            "X3VuaXRfcmVmGA0gASgJSAiIAQESGQoRY291bmNpbF91bml0X3JlZnMYDiAD",
+            "KAkSIwoWY2FwaXRhbF9zZXR0bGVtZW50X3JlZhgPIAEoCUgJiAEBEh4KFm1l",
+            "bWJlcl9zZXR0bGVtZW50X3JlZnMYECADKAkSGAoQbWVtYmVyX3pvbmVfcmVm",
+            "cxgRIAMoCRIYChBtZW1iZXJfdW5pdF9yZWZzGBIgAygJEhsKE3Zhc3NhbF9m",
+            "YWN0aW9uX3JlZnMYEyADKAkSIQoUb3ZlcmxvcmRfZmFjdGlvbl9yZWYYFCAB",
+            "KAlICogBARIqCgh0cmVhc3VyeRgVIAEoCzITLm1hcC5SZXNvdXJjZUxlZGdl",
+            "ckgLiAEBEhgKEHRyYWRlX3JvdXRlX3JlZnMYFiADKAkSGgoNdGF4YXRpb25f",
+            "cmF0ZRgXIAEoAkgMiAEBEhkKDHRyaWJ1dGVfcmF0ZRgYIAEoAkgNiAEBEioK",
+            "CXJlbGF0aW9ucxgZIAMoCzIXLm1hcC5EaXBsb21hdGljUmVsYXRpb24SGwoT",
+            "YWxsaWVkX2ZhY3Rpb25fcmVmcxgaIAMoCRIcChRob3N0aWxlX2ZhY3Rpb25f",
+            "cmVmcxgbIAMoCRITCgt0cmVhdHlfcmVmcxgcIAMoCRIVCghwcmVzdGlnZRgd",
+            "IAEoBUgOiAEBEhYKCXN0YWJpbGl0eRgeIAEoBUgPiAEBEhcKCnRlY2hfbGV2",
+            "ZWwYHyABKAVIEIgBARIVCghtYW5wb3dlchggIAEoBUgRiAEBEhcKCmFnZ3Jl",
+            "c3Npb24YISABKAJIEogBARISCgp0cmFpdF9yZWZzGCIgAygJEhYKCWNvbG9y",
+            "X2hleBgjIAEoCUgTiAEBEhYKCWRlc3Ryb3llZBgkIAEoCEgUiAEBEhwKD2Zv",
+            "dW5kZWRfYXRfdHVybhglIAEoA0gViAEBEh4KEWRlc3Ryb3llZF9hdF90dXJu",
+            "GCYgASgDSBaIAQESFAoHY3JlZGl0cxgnIAEoCUgXiAEBEhQKB2RyYWZ0ZWQY",
+            "KCABKAhIGIgBARIlCgpleHRlbnNpb25zGCkgAygLMhEubWFwLk1hcEV4dGVu",
+            "c2lvbkINCgtfc2hvcnRfbmFtZUIOCgxfZGVzY3JpcHRpb25CBwoFX2xvcmVC",
+            "CQoHX2Jhbm5lckIOCgxfY3VsdHVyZV9yZWZCDwoNX3JlbGlnaW9uX3JlZkIM",
+            "CgpfYXJjaGV0eXBlQhEKD19ydWxlcl91bml0X3JlZkIQCg5faGVpcl91bml0",
+            "X3JlZkIZChdfY2FwaXRhbF9zZXR0bGVtZW50X3JlZkIXChVfb3ZlcmxvcmRf",
+            "ZmFjdGlvbl9yZWZCCwoJX3RyZWFzdXJ5QhAKDl90YXhhdGlvbl9yYXRlQg8K",
+            "DV90cmlidXRlX3JhdGVCCwoJX3ByZXN0aWdlQgwKCl9zdGFiaWxpdHlCDQoL",
+            "X3RlY2hfbGV2ZWxCCwoJX21hbnBvd2VyQg0KC19hZ2dyZXNzaW9uQgwKCl9j",
+            "b2xvcl9oZXhCDAoKX2Rlc3Ryb3llZEISChBfZm91bmRlZF9hdF90dXJuQhQK",
+            "El9kZXN0cm95ZWRfYXRfdHVybkIKCghfY3JlZGl0c0IKCghfZHJhZnRlZCLI",
+            "BQoIRGlzdHJpY3QSCgoCaWQYASABKAkSCwoDcmVmGAIgASgJEgwKBG5hbWUY",
+            "AyABKAkSHwoEdHlwZRgEIAEoDjIRLm1hcC5EaXN0cmljdFR5cGUSGAoLZGVz",
+            "Y3JpcHRpb24YBSABKAlIAIgBARIiCgZib3VuZHMYBiABKAsyDS5tYXAuQm91",
+            "bmRzMkRIAYgBARIgCgpncmlkX2NlbGxzGAcgAygLMgwubWFwLkdyaWRQb3MS",
+            "HAoFaGV4ZXMYCCADKAsyDS5tYXAuSGV4Q29vcmQSFwoKcG9wdWxhdGlvbhgJ",
+            "IAEoBUgCiAEBEhsKDnBvcHVsYXRpb25fY2FwGAogASgFSAOIAQESGQoMd2Vh",
+            "bHRoX2luZGV4GAsgASgCSASIAQESFwoKY3JpbWVfcmF0ZRgMIAEoAkgFiAEB",
+            "EhYKCWhhcHBpbmVzcxgNIAEoAkgGiAEBEhYKCXBvbGx1dGlvbhgOIAEoAkgH",
+            "iAEBEhUKDWJ1aWxkaW5nX3JlZnMYDyADKAkSEAoIbnBjX3JlZnMYECADKAkS",
+            "FQoNc2VydmljZV9raW5kcxgRIAMoCRIfChJkaXN0cmljdF9xdWVzdF9yZWYY",
+            "EiABKAlICIgBARITCgZ3YWxsZWQYEyABKAhICYgBARIWCglkZXN0cm95ZWQY",
+            "FCABKAhICogBARIlCgpleHRlbnNpb25zGBUgAygLMhEubWFwLk1hcEV4dGVu",
+            "c2lvbkIOCgxfZGVzY3JpcHRpb25CCQoHX2JvdW5kc0INCgtfcG9wdWxhdGlv",
+            "bkIRCg9fcG9wdWxhdGlvbl9jYXBCDwoNX3dlYWx0aF9pbmRleEINCgtfY3Jp",
+            "bWVfcmF0ZUIMCgpfaGFwcGluZXNzQgwKCl9wb2xsdXRpb25CFQoTX2Rpc3Ry",
+            "aWN0X3F1ZXN0X3JlZkIJCgdfd2FsbGVkQgwKCl9kZXN0cm95ZWQi4RAKClNl",
+            "dHRsZW1lbnQSCgoCaWQYASABKAkSCwoDcmVmGAIgASgJEgwKBG5hbWUYAyAB",
+            "KAkSGAoLZGVzY3JpcHRpb24YBCABKAlIAIgBARIRCgRsb3JlGAUgASgJSAGI",
+            "AQESIQoEdGllchgGIAEoDjITLm1hcC5TZXR0bGVtZW50VGllchIYCgtmYWN0",
+            "aW9uX3JlZhgHIAEoCUgCiAEBEhgKC2N1bHR1cmVfcmVmGAggASgJSAOIAQES",
+            "GQoMcmVsaWdpb25fcmVmGAkgASgJSASIAQESGwoObWF5b3JfdW5pdF9yZWYY",
+            "CiABKAlIBYgBARIZChFjb3VuY2lsX3VuaXRfcmVmcxgLIAMoCRIXCgpyZWdp",
+            "b25fcmVmGAwgASgJSAaIAQESFQoIem9uZV9yZWYYDSABKAlIB4gBARIVCg1h",
+            "dXhfem9uZV9yZWZzGA4gAygJEiQKCHBvc2l0aW9uGA8gASgLMg0ubWFwLldv",
+            "cmxkUG9zSAiIAQESIwoIZ3JpZF9wb3MYECABKAsyDC5tYXAuR3JpZFBvc0gJ",
+            "iAEBEh8KA2hleBgRIAEoCzINLm1hcC5IZXhDb29yZEgKiAEBEiwKEGZvb3Rw",
+            "cmludF9ib3VuZHMYEiABKAsyDS5tYXAuQm91bmRzMkRIC4gBARImCg9mb290",
+            "cHJpbnRfaGV4ZXMYEyADKAsyDS5tYXAuSGV4Q29vcmQSFwoKcG9wdWxhdGlv",
+            "bhgUIAEoBUgMiAEBEhsKDnBvcHVsYXRpb25fY2FwGBUgASgFSA2IAQESGAoL",
+            "Z3Jvd3RoX3JhdGUYFiABKAJIDogBARIaCg1nYXJyaXNvbl9zaXplGBcgASgF",
+            "SA+IAQESGgoNbWFucG93ZXJfcG9vbBgYIAEoBUgQiAEBEioKCHRyZWFzdXJ5",
+            "GBkgASgLMhMubWFwLlJlc291cmNlTGVkZ2VySBGIAQESKQoHZ3JhbmFyeRga",
+            "IAEoCzITLm1hcC5SZXNvdXJjZUxlZGdlckgSiAEBEhUKCHRheF9yYXRlGBsg",
+            "ASgCSBOIAQESGAoLdGFyaWZmX3JhdGUYHCABKAJIFIgBARIYChB0cmFkZV9y",
+            "b3V0ZV9yZWZzGB0gAygJEhgKEGV4cG9ydF9pdGVtX3JlZnMYHiADKAkSGAoQ",
+            "aW1wb3J0X2l0ZW1fcmVmcxgfIAMoCRIgCglkaXN0cmljdHMYICADKAsyDS5t",
+            "YXAuRGlzdHJpY3QSFQoNYnVpbGRpbmdfcmVmcxghIAMoCRIVCg1sYW5kbWFy",
+            "a19yZWZzGCIgAygJEhAKCHBvaV9yZWZzGCMgAygJEhUKDXNlcnZpY2Vfa2lu",
+            "ZHMYJCADKAkSFAoHY2FwaXRhbBglIAEoCEgViAEBEhMKBndhbGxlZBgmIAEo",
+            "CEgWiAEBEhgKC3dhbGxfaGVhbHRoGCcgASgFSBeIAQESFQoIYmVzaWVnZWQY",
+            "KCABKAhIGIgBARIiChViZXNpZWdpbmdfZmFjdGlvbl9yZWYYKSABKAlIGYgB",
+            "ARIWCglkZXN0cm95ZWQYKiABKAhIGogBARIVCghvY2N1cGllZBgrIAEoCEgb",
+            "iAEBEiEKFG9jY3VwaWVyX2ZhY3Rpb25fcmVmGCwgASgJSByIAQESGQoMZGlz",
+            "Y292ZXJhYmxlGC0gASgISB2IAQESIAoTZGlzY292ZXJ5X3F1ZXN0X3JlZhgu",
+            "IAEoCUgeiAEBEh8KF3ByZXJlcXVpc2l0ZV9xdWVzdF9yZWZzGC8gAygJEiAK",
+            "BmJhbm5lchgwIAEoCzILLm1hcC5CYW5uZXJIH4gBARIRCgRpY29uGDEgASgJ",
+            "SCCIAQESGAoLbWFya2VyX2ljb24YMiABKAlIIYgBARIQCgNpbWcYMyABKAlI",
+            "IogBARIcCg9mb3VuZGVkX2F0X3R1cm4YNCABKANII4gBARIeChFkZXN0cm95",
+            "ZWRfYXRfdHVybhg1IAEoA0gkiAEBEhQKB2NyZWRpdHMYNiABKAlIJYgBARIU",
+            "CgdkcmFmdGVkGDcgASgISCaIAQESJQoKZXh0ZW5zaW9ucxg4IAMoCzIRLm1h",
+            "cC5NYXBFeHRlbnNpb25CDgoMX2Rlc2NyaXB0aW9uQgcKBV9sb3JlQg4KDF9m",
+            "YWN0aW9uX3JlZkIOCgxfY3VsdHVyZV9yZWZCDwoNX3JlbGlnaW9uX3JlZkIR",
+            "Cg9fbWF5b3JfdW5pdF9yZWZCDQoLX3JlZ2lvbl9yZWZCCwoJX3pvbmVfcmVm",
+            "QgsKCV9wb3NpdGlvbkILCglfZ3JpZF9wb3NCBgoEX2hleEITChFfZm9vdHBy",
+            "aW50X2JvdW5kc0INCgtfcG9wdWxhdGlvbkIRCg9fcG9wdWxhdGlvbl9jYXBC",
+            "DgoMX2dyb3d0aF9yYXRlQhAKDl9nYXJyaXNvbl9zaXplQhAKDl9tYW5wb3dl",
+            "cl9wb29sQgsKCV90cmVhc3VyeUIKCghfZ3JhbmFyeUILCglfdGF4X3JhdGVC",
+            "DgoMX3RhcmlmZl9yYXRlQgoKCF9jYXBpdGFsQgkKB193YWxsZWRCDgoMX3dh",
+            "bGxfaGVhbHRoQgsKCV9iZXNpZWdlZEIYChZfYmVzaWVnaW5nX2ZhY3Rpb25f",
+            "cmVmQgwKCl9kZXN0cm95ZWRCCwoJX29jY3VwaWVkQhcKFV9vY2N1cGllcl9m",
+            "YWN0aW9uX3JlZkIPCg1fZGlzY292ZXJhYmxlQhYKFF9kaXNjb3ZlcnlfcXVl",
+            "c3RfcmVmQgkKB19iYW5uZXJCBwoFX2ljb25CDgoMX21hcmtlcl9pY29uQgYK",
+            "BF9pbWdCEgoQX2ZvdW5kZWRfYXRfdHVybkIUChJfZGVzdHJveWVkX2F0X3R1",
+            "cm5CCgoIX2NyZWRpdHNCCgoIX2RyYWZ0ZWQihQUKDlRlcnJpdG9yeUNsYWlt",
+            "EgoKAmlkGAEgASgJEgsKA3JlZhgCIAEoCRITCgtmYWN0aW9uX3JlZhgDIAEo",
+            "CRIlCgRraW5kGAQgASgOMhcubWFwLlRlcnJpdG9yeUNsYWltS2luZBIcCgVo",
+            "ZXhlcxgFIAMoCzINLm1hcC5IZXhDb29yZBIiCgZib3VuZHMYBiABKAsyDS5t",
+            "YXAuQm91bmRzMkRIAIgBARIRCgl6b25lX3JlZnMYByADKAkSFwoPc2V0dGxl",
+            "bWVudF9yZWZzGAggAygJEhUKCHN0cmVuZ3RoGAkgASgFSAGIAQESGgoNZ2Fy",
+            "cmlzb25fc2l6ZRgKIAEoBUgCiAEBEiUKGGNvbnRlc3RlZF9ieV9mYWN0aW9u",
+            "X3JlZhgLIAEoCUgDiAEBEh0KEGNvbnRlc3RfcHJvZ3Jlc3MYDCABKAVIBIgB",
+            "ARIcCg9jbGFpbWVkX2F0X3R1cm4YDSABKANIBYgBARIcCg9leHBpcmVzX2F0",
+            "X3R1cm4YDiABKANIBogBARITCgZzYWNyZWQYDyABKAhIB4gBARIcCg9jYXN1",
+            "c19iZWxsaV9yZWYYECABKAlICIgBARIlCgpleHRlbnNpb25zGBEgAygLMhEu",
+            "bWFwLk1hcEV4dGVuc2lvbkIJCgdfYm91bmRzQgsKCV9zdHJlbmd0aEIQCg5f",
+            "Z2Fycmlzb25fc2l6ZUIbChlfY29udGVzdGVkX2J5X2ZhY3Rpb25fcmVmQhMK",
+            "EV9jb250ZXN0X3Byb2dyZXNzQhIKEF9jbGFpbWVkX2F0X3R1cm5CEgoQX2V4",
+            "cGlyZXNfYXRfdHVybkIJCgdfc2FjcmVkQhIKEF9jYXN1c19iZWxsaV9yZWYi",
+            "gAIKDlRyYWRlUm91dGVTdG9wEhsKDnNldHRsZW1lbnRfcmVmGAEgASgJSACI",
+            "AQESHwoDaGV4GAIgASgLMg0ubWFwLkhleENvb3JkSAGIAQESJAoIcG9zaXRp",
+            "b24YAyABKAsyDS5tYXAuV29ybGRQb3NIAogBARIXCgpkd2VsbF9zZWNzGAQg",
+            "ASgCSAOIAQESEwoGcmVmdWVsGAUgASgISASIAQESEQoEdG9sbBgGIAEoCEgF",
+            "iAEBQhEKD19zZXR0bGVtZW50X3JlZkIGCgRfaGV4QgsKCV9wb3NpdGlvbkIN",
+            "CgtfZHdlbGxfc2Vjc0IJCgdfcmVmdWVsQgcKBV90b2xsIrQCCgpUcmFkZUNh",
+            "cmdvEhAKCGl0ZW1fcmVmGAEgASgJEhoKEmFtb3VudF9wZXJfY2FyYXZhbhgC",
+            "IAEoBRIoCghjYXRlZ29yeRgDIAEoDjIWLm1hcC5UcmFkZUdvb2RDYXRlZ29y",
+            "eRIgChNidXlfcHJpY2VfYXRfb3JpZ2luGAQgASgFSACIAQESJgoZc2VsbF9w",
+            "cmljZV9hdF9kZXN0aW5hdGlvbhgFIAEoBUgBiAEBEhcKCnBlcmlzaGFibGUY",
+            "BiABKAhIAogBARIXCgpyZXN0cmljdGVkGAcgASgISAOIAQFCFgoUX2J1eV9w",
+            "cmljZV9hdF9vcmlnaW5CHAoaX3NlbGxfcHJpY2VfYXRfZGVzdGluYXRpb25C",
+            "DQoLX3BlcmlzaGFibGVCDQoLX3Jlc3RyaWN0ZWQilAYKClRyYWRlUm91dGUS",
+            "CgoCaWQYASABKAkSCwoDcmVmGAIgASgJEgwKBG5hbWUYAyABKAkSGAoLZGVz",
+            "Y3JpcHRpb24YBCABKAlIAIgBARIbChNmcm9tX3NldHRsZW1lbnRfcmVmGAUg",
+            "ASgJEhkKEXRvX3NldHRsZW1lbnRfcmVmGAYgASgJEiIKBXN0b3BzGAcgAygL",
+            "MhMubWFwLlRyYWRlUm91dGVTdG9wEiIKCnJvdXRlX2tpbmQYCCABKA4yDi5t",
+            "YXAuUm91dGVLaW5kEh4KBWNhcmdvGAkgAygLMg8ubWFwLlRyYWRlQ2FyZ28S",
+            "GQoMY2FkZW5jZV9zZWNzGAogASgCSAGIAQESFQoIZGlzdGFuY2UYCyABKAJI",
+            "AogBARIZCgxjYXJhdmFuX3NpemUYDCABKAVIA4gBARIbCg5jYXJhdmFuX2hl",
+            "YWx0aBgNIAEoBUgEiAEBEhkKDGRhbmdlcl9sZXZlbBgOIAEoAkgFiAEBEhwK",
+            "FHByb3RlY3Rpb25fdW5pdF9yZWZzGA8gAygJEiEKFG9wZXJhdG9yX2ZhY3Rp",
+            "b25fcmVmGBAgASgJSAaIAQESGwoOcHJvZml0X3Blcl9ydW4YESABKAJIB4gB",
+            "ARITCgZhY3RpdmUYEiABKAhICIgBARIgChNlc3RhYmxpc2hlZF9hdF90dXJu",
+            "GBMgASgDSAmIAQESHQoQbGFzdF9ydW5fYXRfdHVybhgUIAEoA0gKiAEBEiUK",
+            "CmV4dGVuc2lvbnMYFSADKAsyES5tYXAuTWFwRXh0ZW5zaW9uQg4KDF9kZXNj",
+            "cmlwdGlvbkIPCg1fY2FkZW5jZV9zZWNzQgsKCV9kaXN0YW5jZUIPCg1fY2Fy",
+            "YXZhbl9zaXplQhEKD19jYXJhdmFuX2hlYWx0aEIPCg1fZGFuZ2VyX2xldmVs",
+            "QhcKFV9vcGVyYXRvcl9mYWN0aW9uX3JlZkIRCg9fcHJvZml0X3Blcl9ydW5C",
+            "CQoHX2FjdGl2ZUIWChRfZXN0YWJsaXNoZWRfYXRfdHVybkITChFfbGFzdF9y",
+            "dW5fYXRfdHVybiK0CwoITGFuZG1hcmsSCgoCaWQYASABKAkSCwoDcmVmGAIg",
+            "ASgJEgwKBG5hbWUYAyABKAkSGAoLZGVzY3JpcHRpb24YBCABKAlIAIgBARIR",
+            "CgRsb3JlGAUgASgJSAGIAQESLwoMc2lnbmlmaWNhbmNlGAYgASgOMhkubWFw",
+            "LkxhbmRtYXJrU2lnbmlmaWNhbmNlEhUKCHpvbmVfcmVmGAcgASgJSAKIAQES",
+            "FwoKcmVnaW9uX3JlZhgIIAEoCUgDiAEBEhsKDnNldHRsZW1lbnRfcmVmGAkg",
+            "ASgJSASIAQESGAoLZmFjdGlvbl9yZWYYCiABKAlIBYgBARIYCgtjdWx0dXJl",
+            "X3JlZhgLIAEoCUgGiAEBEhkKDHJlbGlnaW9uX3JlZhgMIAEoCUgHiAEBEiQK",
+            "CHBvc2l0aW9uGA0gASgLMg0ubWFwLldvcmxkUG9zSAiIAQESIwoIZ3JpZF9w",
+            "b3MYDiABKAsyDC5tYXAuR3JpZFBvc0gJiAEBEh8KA2hleBgPIAEoCzINLm1h",
+            "cC5IZXhDb29yZEgKiAEBEh0KEGRpc2NvdmVyeV9yYWRpdXMYECABKAJIC4gB",
+            "ARIQCgNpbWcYESABKAlIDIgBARIRCgRpY29uGBIgASgJSA2IAQESGAoLbWFy",
+            "a2VyX2ljb24YEyABKAlIDogBARIlCgxtYXJrZXJfY29sb3IYFCABKAsyCi5t",
+            "YXAuQ29sb3JID4gBARIpChxpbnRlcmFjdGlvbl93b3JsZF9vYmplY3RfcmVm",
+            "GBUgASgJSBCIAQESGQoMZGlzY292ZXJhYmxlGBYgASgISBGIAQESGAoLZmFz",
+            "dF90cmF2ZWwYFyABKAhIEogBARIaCg1yZXNwYXduX3BvaW50GBggASgISBOI",
+            "AQESEwoGdW5pcXVlGBkgASgISBSIAQESFgoJZGVzdHJveWVkGBogASgISBWI",
+            "AQESIAoTZGlzY292ZXJ5X3F1ZXN0X3JlZhgbIAEoCUgWiAEBEh8KF3ByZXJl",
+            "cXVpc2l0ZV9xdWVzdF9yZWZzGBwgAygJEhYKCWV2ZW50X3JlZhgdIAEoCUgX",
+            "iAEBEhAKCG5wY19yZWZzGB4gAygJEhIKCnF1ZXN0X3JlZnMYHyADKAkSHgoR",
+            "ZGlhbG9ndWVfdHJlZV9yZWYYICABKAlIGIgBARIVCghzaG9wX3JlZhghIAEo",
+            "CUgZiAEBEh0KEGR1bmdlb25fem9uZV9yZWYYIiABKAlIGogBARIUCgdjcmVk",
+            "aXRzGCMgASgJSBuIAQESFAoHZHJhZnRlZBgkIAEoCEgciAEBEiUKCmV4dGVu",
+            "c2lvbnMYJSADKAsyES5tYXAuTWFwRXh0ZW5zaW9uQg4KDF9kZXNjcmlwdGlv",
+            "bkIHCgVfbG9yZUILCglfem9uZV9yZWZCDQoLX3JlZ2lvbl9yZWZCEQoPX3Nl",
+            "dHRsZW1lbnRfcmVmQg4KDF9mYWN0aW9uX3JlZkIOCgxfY3VsdHVyZV9yZWZC",
+            "DwoNX3JlbGlnaW9uX3JlZkILCglfcG9zaXRpb25CCwoJX2dyaWRfcG9zQgYK",
+            "BF9oZXhCEwoRX2Rpc2NvdmVyeV9yYWRpdXNCBgoEX2ltZ0IHCgVfaWNvbkIO",
+            "CgxfbWFya2VyX2ljb25CDwoNX21hcmtlcl9jb2xvckIfCh1faW50ZXJhY3Rp",
+            "b25fd29ybGRfb2JqZWN0X3JlZkIPCg1fZGlzY292ZXJhYmxlQg4KDF9mYXN0",
+            "X3RyYXZlbEIQCg5fcmVzcGF3bl9wb2ludEIJCgdfdW5pcXVlQgwKCl9kZXN0",
+            "cm95ZWRCFgoUX2Rpc2NvdmVyeV9xdWVzdF9yZWZCDAoKX2V2ZW50X3JlZkIU",
+            "ChJfZGlhbG9ndWVfdHJlZV9yZWZCCwoJX3Nob3BfcmVmQhMKEV9kdW5nZW9u",
+            "X3pvbmVfcmVmQgoKCF9jcmVkaXRzQgoKCF9kcmFmdGVkIowCCg5EaWFsb2d1",
+            "ZUNob2ljZRIMCgR0ZXh0GAEgASgJEhQKDG5leHRfbm9kZV9pZBgCIAEoCRIa",
+            "ChJyZXF1aXJlZF9mbGFnX3JlZnMYAyADKAkSHAoPc2tpbGxfY2hlY2tfcmVm",
+            "GAQgASgJSACIAQESGQoMc2V0X2ZsYWdfcmVmGAUgASgJSAGIAQESHQoQcmVw",
+            "dXRhdGlvbl9kZWx0YRgGIAEoBUgCiAEBEhgKC2ZhY3Rpb25fcmVmGAcgASgJ",
+            "SAOIAQFCEgoQX3NraWxsX2NoZWNrX3JlZkIPCg1fc2V0X2ZsYWdfcmVmQhMK",
+            "EV9yZXB1dGF0aW9uX2RlbHRhQg4KDF9mYWN0aW9uX3JlZiKiAwoMRGlhbG9n",
+            "dWVOb2RlEgoKAmlkGAEgASgJEiMKBGtpbmQYAiABKA4yFS5tYXAuRGlhbG9n",
+            "dWVOb2RlS2luZBIYCgtzcGVha2VyX3JlZhgDIAEoCUgAiAEBEhEKBHRleHQY",
+            "BCABKAlIAYgBARIWCgl2b2ljZV9yZWYYBSABKAlIAogBARIkCgdjaG9pY2Vz",
+            "GAYgAygLMhMubWFwLkRpYWxvZ3VlQ2hvaWNlEhkKDG5leHRfbm9kZV9pZBgH",
+            "IAEoCUgDiAEBEhYKCXF1ZXN0X3JlZhgIIAEoCUgEiAEBEhUKCHNob3BfcmVm",
+            "GAkgASgJSAWIAQESFwoKc2NyaXB0X3JlZhgKIAEoCUgGiAEBEhoKEnJlcXVp",
+            "cmVkX2ZsYWdfcmVmcxgLIAMoCRIVCg1zZXRfZmxhZ19yZWZzGAwgAygJQg4K",
+            "DF9zcGVha2VyX3JlZkIHCgVfdGV4dEIMCgpfdm9pY2VfcmVmQg8KDV9uZXh0",
+            "X25vZGVfaWRCDAoKX3F1ZXN0X3JlZkILCglfc2hvcF9yZWZCDQoLX3Njcmlw",
+            "dF9yZWYi+AEKDERpYWxvZ3VlVHJlZRIKCgJpZBgBIAEoCRILCgNyZWYYAiAB",
+            "KAkSDAoEbmFtZRgDIAEoCRIYCgtkZXNjcmlwdGlvbhgEIAEoCUgAiAEBEhQK",
+            "DHJvb3Rfbm9kZV9pZBgFIAEoCRIgCgVub2RlcxgGIAMoCzIRLm1hcC5EaWFs",
+            "b2d1ZU5vZGUSIAoTZGVmYXVsdF9zcGVha2VyX3JlZhgHIAEoCUgBiAEBEiUK",
+            "CmV4dGVuc2lvbnMYCCADKAsyES5tYXAuTWFwRXh0ZW5zaW9uQg4KDF9kZXNj",
+            "cmlwdGlvbkIWChRfZGVmYXVsdF9zcGVha2VyX3JlZiKFAgoOV2VhdGhlclBy",
+            "b2ZpbGUSHgoEa2luZBgBIAEoDjIQLm1hcC5XZWF0aGVyS2luZBIOCgZ3ZWln",
+            "aHQYAiABKAISGgoNZHVyYXRpb25fc2VjcxgDIAEoAkgAiAEBEicKDXNlYXNv",
+            "bl9maWx0ZXIYBCABKA4yCy5tYXAuU2Vhc29uSAGIAQESLwoSdGltZV9vZl9k",
+            "YXlfZmlsdGVyGAUgASgOMg4ubWFwLlRpbWVPZkRheUgCiAEBEhIKCmV2ZW50",
+            "X3JlZnMYBiADKAlCEAoOX2R1cmF0aW9uX3NlY3NCEAoOX3NlYXNvbl9maWx0",
+            "ZXJCFQoTX3RpbWVfb2ZfZGF5X2ZpbHRlciLBAwoNQ2xpbWF0ZUNvbmZpZxIo",
+            "Cg5kZWZhdWx0X3NlYXNvbhgBIAEoDjILLm1hcC5TZWFzb25IAIgBARIeChFz",
+            "ZWFzb25fY3ljbGVfc2VjcxgCIAEoAkgBiAEBEi0KEHdlYXRoZXJfcm90YXRp",
+            "b24YAyADKAsyEy5tYXAuV2VhdGhlclByb2ZpbGUSIQoUYmFzZWxpbmVfdGVt",
+            "cGVyYXR1cmUYBCABKAJIAogBARIhChR0ZW1wZXJhdHVyZV92YXJpYW5jZRgF",
+            "IAEoAkgDiAEBEhoKEmhvbGlkYXlfZXZlbnRfcmVmcxgGIAMoCRIdChBkYXlf",
+            "bmlnaHRfbG9ja2VkGAcgASgISASIAQESLwoSbG9ja2VkX3RpbWVfb2ZfZGF5",
+            "GAggASgOMg4ubWFwLlRpbWVPZkRheUgFiAEBQhEKD19kZWZhdWx0X3NlYXNv",
+            "bkIUChJfc2Vhc29uX2N5Y2xlX3NlY3NCFwoVX2Jhc2VsaW5lX3RlbXBlcmF0",
+            "dXJlQhcKFV90ZW1wZXJhdHVyZV92YXJpYW5jZUITChFfZGF5X25pZ2h0X2xv",
+            "Y2tlZEIVChNfbG9ja2VkX3RpbWVfb2ZfZGF5IpUBCgxNYXBFeHRlbnNpb24S",
+            "CwoDa2V5GAEgASgJEhYKDHN0cmluZ192YWx1ZRgCIAEoCUgAEhMKCWludF92",
+            "YWx1ZRgDIAEoA0gAEhUKC2Zsb2F0X3ZhbHVlGAQgASgBSAASFAoKYm9vbF92",
+            "YWx1ZRgFIAEoCEgAEhUKC2J5dGVzX3ZhbHVlGAYgASgMSABCBwoFdmFsdWUi",
+            "hQQKC01hcFJlZ2lzdHJ5EhwKB3JlZ2lvbnMYASADKAsyCy5tYXAuUmVnaW9u",
+            "EhgKBXpvbmVzGAIgAygLMgkubWFwLlpvbmUSKAoLb2JqZWN0X2RlZnMYAyAD",
+            "KAsyEy5tYXAuV29ybGRPYmplY3REZWYSJAoKaGV4X3dvcmxkcxgEIAMoCzIQ",
+            "Lm1hcC5IZXhXb3JsZE1hcBIeCghmYWN0aW9ucxgFIAMoCzIMLm1hcC5GYWN0",
+            "aW9uEiQKC3NldHRsZW1lbnRzGAYgAygLMg8ubWFwLlNldHRsZW1lbnQSLQoQ",
+            "dGVycml0b3J5X2NsYWltcxgHIAMoCzITLm1hcC5UZXJyaXRvcnlDbGFpbRIl",
+            "Cgx0cmFkZV9yb3V0ZXMYCCADKAsyDy5tYXAuVHJhZGVSb3V0ZRIgCglsYW5k",
+            "bWFya3MYCSADKAsyDS5tYXAuTGFuZG1hcmsSHgoIY3VsdHVyZXMYCiADKAsy",
+            "DC5tYXAuQ3VsdHVyZRIgCglyZWxpZ2lvbnMYCyADKAsyDS5tYXAuUmVsaWdp",
+            "b24SHQoIdHJlYXRpZXMYDCADKAsyCy5tYXAuVHJlYXR5EikKDmRpYWxvZ3Vl",
+            "X3RyZWVzGA0gAygLMhEubWFwLkRpYWxvZ3VlVHJlZRIkCghjbGltYXRlcxgO",
+            "IAMoCzISLm1hcC5DbGltYXRlQ29uZmlnKocDCgVCaW9tZRIVChFCSU9NRV9V",
+            "TlNQRUNJRklFRBAAEhMKD0JJT01FX0dSQVNTTEFORBABEhAKDEJJT01FX0ZP",
+            "UkVTVBACEhAKDEJJT01FX0RFU0VSVBADEhAKDEJJT01FX1RVTkRSQRAEEg8K",
+            "C0JJT01FX1NXQU1QEAUSEgoOQklPTUVfTU9VTlRBSU4QBhISCg5CSU9NRV9W",
+            "T0xDQU5JQxAHEg8KC0JJT01FX09DRUFOEAgSDgoKQklPTUVfQ0FWRRAJEhEK",
+            "DUJJT01FX0RVTkdFT04QChIOCgpCSU9NRV9DSVRZEAsSDwoLQklPTUVfUlVJ",
+            "TlMQDBIVChFCSU9NRV9VTkRFUkdST1VORBANEhIKDkJJT01FX0ZMT0FUSU5H",
+            "EA4SDgoKQklPTUVfVk9JRBAPEhEKDUJJT01FX0NPQVNUQUwQEBIPCgtCSU9N",
+            "RV9SSVZFUhAREg4KCkJJT01FX0RJUlQQEhIOCgpCSU9NRV9TTk9XEBMSDwoL",
+            "QklPTUVfU1RPTkUQFCqFAgoIWm9uZVR5cGUSGQoVWk9ORV9UWVBFX1VOU1BF",
+            "Q0lGSUVEEAASFwoTWk9ORV9UWVBFX09WRVJXT1JMRBABEhUKEVpPTkVfVFlQ",
+            "RV9EVU5HRU9OEAISFgoSWk9ORV9UWVBFX0lOU1RBTkNFEAMSEgoOWk9ORV9U",
+            "WVBFX0NJVFkQBBITCg9aT05FX1RZUEVfQVJFTkEQBRISCg5aT05FX1RZUEVf",
+            "U0FGRRAGEhgKFFpPTkVfVFlQRV9XSUxERVJORVNTEAcSEgoOWk9ORV9UWVBF",
+            "X1JBSUQQCBIWChJaT05FX1RZUEVfVFVUT1JJQUwQCRITCg9aT05FX1RZUEVf",
+            "RVZFTlQQCirRAgoIUm9vbVR5cGUSGQoVUk9PTV9UWVBFX1VOU1BFQ0lGSUVE",
+            "EAASEwoPUk9PTV9UWVBFX0VNUFRZEAESFAoQUk9PTV9UWVBFX0NPTUJBVBAC",
+            "EhYKElJPT01fVFlQRV9UUkVBU1VSRRADEhIKDlJPT01fVFlQRV9UUkFQEAQS",
+            "GQoVUk9PTV9UWVBFX1JFU1RfU0hSSU5FEAUSFgoSUk9PTV9UWVBFX01FUkNI",
+            "QU5UEAYSEgoOUk9PTV9UWVBFX0JPU1MQBxITCg9ST09NX1RZUEVfU1RPUlkQ",
+            "CBIVChFST09NX1RZUEVfSEFMTFdBWRAJEh4KGlJPT01fVFlQRV9VTkRFUkdS",
+            "T1VORF9DSVRZEAoSFAoQUk9PTV9UWVBFX1BVWlpMRRALEhQKEFJPT01fVFlQ",
+            "RV9TRUNSRVQQDBIUChBST09NX1RZUEVfUE9SVEFMEA0qngEKCURpcmVjdGlv",
+            "bhIZChVESVJFQ1RJT05fVU5TUEVDSUZJRUQQABITCg9ESVJFQ1RJT05fTk9S",
+            "VEgQARITCg9ESVJFQ1RJT05fU09VVEgQAhISCg5ESVJFQ1RJT05fRUFTVBAD",
+            "EhIKDkRJUkVDVElPTl9XRVNUEAQSEAoMRElSRUNUSU9OX1VQEAUSEgoORElS",
+            "RUNUSU9OX0RPV04QBirFAgoMUm9vbU1vZGlmaWVyEh0KGVJPT01fTU9ESUZJ",
+            "RVJfVU5TUEVDSUZJRUQQABIWChJST09NX01PRElGSUVSX05PTkUQARIVChFS",
+            "T09NX01PRElGSUVSX0ZPRxACEhoKFlJPT01fTU9ESUZJRVJfQkxFU1NJTkcQ",
+            "AxIYChRST09NX01PRElGSUVSX0NVUlNFRBAEEhkKFVJPT01fTU9ESUZJRVJf",
+            "RkxPT0RFRBAFEhkKFVJPT01fTU9ESUZJRVJfQlVSTklORxAGEhgKFFJPT01f",
+            "TU9ESUZJRVJfRlJPWkVOEAcSFwoTUk9PTV9NT0RJRklFUl9UT1hJQxAIEhYK",
+            "ElJPT01fTU9ESUZJRVJfREFSSxAJEhYKElJPT01fTU9ESUZJRVJfSE9MWRAK",
+            "EhgKFFJPT01fTU9ESUZJRVJfQVJDQU5FEAsqqwMKD1dvcmxkT2JqZWN0VHlw",
+            "ZRIcChhXT1JMRF9PQkpFQ1RfVU5TUEVDSUZJRUQQABIeChpXT1JMRF9PQkpF",
+            "Q1RfUkVTT1VSQ0VfTk9ERRABEhoKFldPUkxEX09CSkVDVF9DT05UQUlORVIQ",
+            "AhIhCh1XT1JMRF9PQkpFQ1RfQ1JBRlRJTkdfU1RBVElPThADEhUKEVdPUkxE",
+            "X09CSkVDVF9QUk9QEAQSFgoSV09STERfT0JKRUNUX0xJR0hUEAUSFwoTV09S",
+            "TERfT0JKRUNUX1BPUlRBTBAGEhgKFFdPUkxEX09CSkVDVF9CQVJSSUVSEAcS",
+            "GwoXV09STERfT0JKRUNUX05QQ19NQVJLRVIQCBIYChRXT1JMRF9PQkpFQ1Rf",
+            "VFJJR0dFUhAJEhsKF1dPUkxEX09CSkVDVF9TRVRUTEVNRU5UEAoSGQoVV09S",
+            "TERfT0JKRUNUX0JVSUxESU5HEAsSFgoSV09STERfT0JKRUNUX0FSRU5BEAwS",
+            "GQoVV09STERfT0JKRUNUX0xBTkRNQVJLEA0SFwoTV09STERfT0JKRUNUX0NV",
+            "U1RPTRBkKrcBCgxSZXNvdXJjZVR5cGUSGAoUUkVTT1VSQ0VfVU5TUEVDSUZJ",
+            "RUQQABIRCg1SRVNPVVJDRV9XT09EEAESEgoOUkVTT1VSQ0VfU1RPTkUQAhIT",
+            "Cg9SRVNPVVJDRV9GTE9XRVIQAxIVChFSRVNPVVJDRV9NVVNIUk9PTRAEEhQK",
+            "EFJFU09VUkNFX0NSWVNUQUwQBRISCg5SRVNPVVJDRV9XQVRFUhAGEhAKDFJF",
+            "U09VUkNFX09SRRAHKmoKDUNvbnRhaW5lclR5cGUSGQoVQ09OVEFJTkVSX1VO",
+            "U1BFQ0lGSUVEEAASEwoPQ09OVEFJTkVSX0NSQVRFEAESEwoPQ09OVEFJTkVS",
+            "X0NIRVNUEAISFAoQQ09OVEFJTkVSX0JBUlJFTBADKpEBChNDcmFmdGluZ1N0",
+            "YXRpb25UeXBlEiAKHENSQUZUSU5HX1NUQVRJT05fVU5TUEVDSUZJRUQQABIe",
+            "ChpDUkFGVElOR19TVEFUSU9OX1dPUktCRU5DSBABEhwKGENSQUZUSU5HX1NU",
+            "QVRJT05fRlVSTkFDRRACEhoKFkNSQUZUSU5HX1NUQVRJT05fQU5WSUwQAyqQ",
+            "AQoORm9vdHByaW50U2hhcGUSHwobRk9PVFBSSU5UX1NIQVBFX1VOU1BFQ0lG",
+            "SUVEEAASHwobRk9PVFBSSU5UX1NIQVBFX1JFQ1RBTkdVTEFSEAESHgoaRk9P",
+            "VFBSSU5UX1NIQVBFX0hFWF9GTE9XRVIQAhIcChhGT09UUFJJTlRfU0hBUEVf",
+            "RVhQTElDSVQQAyqCAQoKQ29zdFNvdXJjZRIbChdDT1NUX1NPVVJDRV9VTlNQ",
+            "RUNJRklFRBAAEiAKHENPU1RfU09VUkNFX0ZBQ1RJT05fVFJFQVNVUlkQARIf",
+            "ChtDT1NUX1NPVVJDRV9PV05FUl9JTlZFTlRPUlkQAhIUChBDT1NUX1NPVVJD",
+            "RV9GUkVFEAMq5wEKD0ludGVyYWN0aW9uS2luZBIgChxJTlRFUkFDVElPTl9L",
+            "SU5EX1VOU1BFQ0lGSUVEEAASGQoVSU5URVJBQ1RJT05fS0lORF9OT05FEAES",
+            "GwoXSU5URVJBQ1RJT05fS0lORF9TSFJJTkUQAhIZChVJTlRFUkFDVElPTl9L",
+            "SU5EX1NIT1AQAxIgChxJTlRFUkFDVElPTl9LSU5EX1FVRVNUX0dJVkVSEAQS",
+            "HAoYSU5URVJBQ1RJT05fS0lORF9EVU5HRU9OEAUSHwobSU5URVJBQ1RJT05f",
+            "S0lORF9OUENfRElBTE9HEAYq+AEKC1NlcnZpY2VLaW5kEhwKGFNFUlZJQ0Vf",
+            "S0lORF9VTlNQRUNJRklFRBAAEhUKEVNFUlZJQ0VfS0lORF9GT09EEAESFgoS",
+            "U0VSVklDRV9LSU5EX1NMRUVQEAISGAoUU0VSVklDRV9LSU5EX0hFQUxJTkcQ",
+            "AxIZChVTRVJWSUNFX0tJTkRfVFJBSU5JTkcQBBIZChVTRVJWSUNFX0tJTkRf",
+            "VEVMRVBPUlQQBRIYChRTRVJWSUNFX0tJTkRfU1RPUkFHRRAGEhkKFVNFUlZJ",
+            "Q0VfS0lORF9NRVJDSEFOVBAHEhcKE1NFUlZJQ0VfS0lORF9CQU5LRVIQCCrP",
+            "AgoHUG9pVHlwZRITCg9QT0lfVU5TUEVDSUZJRUQQABIMCghQT0lfQ0lUWRAB",
+            "EgwKCFBPSV9UT1dOEAISDwoLUE9JX1ZJTExBR0UQAxIPCgtQT0lfRFVOR0VP",
+            "ThAEEhAKDFBPSV9MQU5ETUFSSxAFEg4KClBPSV9TSFJJTkUQBhIQCgxQT0lf",
+            "TUVSQ0hBTlQQBxIMCghQT0lfQ0FNUBAIEg0KCVBPSV9SVUlOUxAJEgwKCFBP",
+            "SV9NSU5FEAoSDAoIUE9JX0ZBUk0QCxIMCghQT0lfUE9SVBAMEg0KCVBPSV9U",
+            "T1dFUhANEgwKCFBPSV9DQVZFEA4SDQoJUE9JX0FSRU5BEA8SEgoOUE9JX0dV",
+            "SUxEX0hBTEwQEBITCg9QT0lfU1BBV05fUE9JTlQQERIRCg1QT0lfUVVFU1Rf",
+            "SFVCEBISDgoKUE9JX0NVU1RPTRATKs8BCgtUZXJyYWluQmFuZBIcChhURVJS",
+            "QUlOX0JBTkRfVU5TUEVDSUZJRUQQABIWChJURVJSQUlOX0JBTkRfV0FURVIQ",
+            "ARIVChFURVJSQUlOX0JBTkRfU0FORBACEhYKElRFUlJBSU5fQkFORF9HUkFT",
+            "UxADEhUKEVRFUlJBSU5fQkFORF9ESVJUEAQSFgoSVEVSUkFJTl9CQU5EX1NU",
+            "T05FEAUSFQoRVEVSUkFJTl9CQU5EX1NOT1cQBhIVChFURVJSQUlOX0JBTkRf",
+            "TEFWQRAHKugBCg1TcGF3bkNhdGVnb3J5Eh4KGlNQQVdOX0NBVEVHT1JZX1VO",
+            "U1BFQ0lGSUVEEAASFgoSU1BBV05fQ0FURUdPUllfTlBDEAESGwoXU1BBV05f",
+            "Q0FURUdPUllfUkVTT1VSQ0UQAhIZChVTUEFXTl9DQVRFR09SWV9PQkpFQ1QQ",
+            "AxIYChRTUEFXTl9DQVRFR09SWV9FTkVNWRAEEhcKE1NQQVdOX0NBVEVHT1JZ",
+            "X0JPU1MQBRIYChRTUEFXTl9DQVRFR09SWV9FVkVOVBAGEhoKFlNQQVdOX0NB",
+            "VEVHT1JZX0FNQklFTlQQByqaAQoJVGltZU9mRGF5EhsKF1RJTUVfT0ZfREFZ",
+            "X1VOU1BFQ0lGSUVEEAASFAoQVElNRV9PRl9EQVlfREFXThABEhMKD1RJTUVf",
+            "T0ZfREFZX0RBWRACEhQKEFRJTUVfT0ZfREFZX0RVU0sQAxIVChFUSU1FX09G",
+            "X0RBWV9OSUdIVBAEEhgKFFRJTUVfT0ZfREFZX01JRE5JR0hUEAUq2AIKC1dl",
+            "YXRoZXJLaW5kEhwKGFdFQVRIRVJfS0lORF9VTlNQRUNJRklFRBAAEhYKEldF",
+            "QVRIRVJfS0lORF9DTEVBUhABEhkKFVdFQVRIRVJfS0lORF9PVkVSQ0FTVBAC",
+            "EhUKEVdFQVRIRVJfS0lORF9SQUlOEAMSFgoSV0VBVEhFUl9LSU5EX1NUT1JN",
+            "EAQSFQoRV0VBVEhFUl9LSU5EX1NOT1cQBRIZChVXRUFUSEVSX0tJTkRfQkxJ",
+            "WlpBUkQQBhIUChBXRUFUSEVSX0tJTkRfRk9HEAcSGgoWV0VBVEhFUl9LSU5E",
+            "X1NBTkRTVE9STRAIEhkKFVdFQVRIRVJfS0lORF9IRUFUV0FWRRAJEhgKFFdF",
+            "QVRIRVJfS0lORF9BU0hGQUxMEAoSFwoTV0VBVEhFUl9LSU5EX0FSQ0FORRAL",
+            "EhcKE1dFQVRIRVJfS0lORF9DVVJTRUQQDCqxAQoGU2Vhc29uEhYKElNFQVNP",
+            "Tl9VTlNQRUNJRklFRBAAEhEKDVNFQVNPTl9TUFJJTkcQARIRCg1TRUFTT05f",
+            "U1VNTUVSEAISEQoNU0VBU09OX0FVVFVNThADEhEKDVNFQVNPTl9XSU5URVIQ",
+            "BBIOCgpTRUFTT05fRFJZEAUSDgoKU0VBU09OX1dFVBAGEhIKDlNFQVNPTl9I",
+            "QVJWRVNUEAcSDwoLU0VBU09OX0RFQUQQCCqxAgoOU2V0dGxlbWVudFRpZXIS",
+            "HwobU0VUVExFTUVOVF9USUVSX1VOU1BFQ0lGSUVEEAASGwoXU0VUVExFTUVO",
+            "VF9USUVSX09VVFBPU1QQARIaChZTRVRUTEVNRU5UX1RJRVJfSEFNTEVUEAIS",
+            "GwoXU0VUVExFTUVOVF9USUVSX1ZJTExBR0UQAxIYChRTRVRUTEVNRU5UX1RJ",
+            "RVJfVE9XThAEEhgKFFNFVFRMRU1FTlRfVElFUl9DSVRZEAUSHgoaU0VUVExF",
+            "TUVOVF9USUVSX01FVFJPUE9MSVMQBhIbChdTRVRUTEVNRU5UX1RJRVJfQ0FQ",
+            "SVRBTBAHEhoKFlNFVFRMRU1FTlRfVElFUl9SVUlORUQQCBIbChdTRVRUTEVN",
+            "RU5UX1RJRVJfTk9NQURJQxAJKo4ECgxEaXN0cmljdFR5cGUSHQoZRElTVFJJ",
+            "Q1RfVFlQRV9VTlNQRUNJRklFRBAAEh0KGURJU1RSSUNUX1RZUEVfUkVTSURF",
+            "TlRJQUwQARIcChhESVNUUklDVF9UWVBFX0NPTU1FUkNJQUwQAhIcChhESVNU",
+            "UklDVF9UWVBFX0lORFVTVFJJQUwQAxIeChpESVNUUklDVF9UWVBFX0FHUklD",
+            "VUxUVVJBTBAEEhoKFkRJU1RSSUNUX1RZUEVfTUlMSVRBUlkQBRIbChdESVNU",
+            "UklDVF9UWVBFX1JFTElHSU9VUxAGEiAKHERJU1RSSUNUX1RZUEVfQURNSU5J",
+            "U1RSQVRJVkUQBxIYChRESVNUUklDVF9UWVBFX0hBUkJPUhAIEhgKFERJU1RS",
+            "SUNUX1RZUEVfQVJDQU5FEAkSFwoTRElTVFJJQ1RfVFlQRV9OT0JMRRAKEhYK",
+            "EkRJU1RSSUNUX1RZUEVfU0xVTRALEhsKF0RJU1RSSUNUX1RZUEVfVU5ERVJD",
+            "SVRZEAwSFwoTRElTVFJJQ1RfVFlQRV9HVUlMRBANEh8KG0RJU1RSSUNUX1RZ",
+            "UEVfRU5URVJUQUlOTUVOVBAOEhsKF0RJU1RSSUNUX1RZUEVfR1JBVkVZQVJE",
+            "EA8SFgoSRElTVFJJQ1RfVFlQRV9QQVJLEBASGAoURElTVFJJQ1RfVFlQRV9D",
+            "VVNUT00QZCrRAwoOR292ZXJubWVudFR5cGUSHwobR09WRVJOTUVOVF9UWVBF",
+            "X1VOU1BFQ0lGSUVEEAASGwoXR09WRVJOTUVOVF9UWVBFX0FOQVJDSFkQARIa",
+            "ChZHT1ZFUk5NRU5UX1RZUEVfVFJJQkFMEAISGgoWR09WRVJOTUVOVF9UWVBF",
+            "X0ZFVURBTBADEhwKGEdPVkVSTk1FTlRfVFlQRV9NT05BUkNIWRAEEhwKGEdP",
+            "VkVSTk1FTlRfVFlQRV9SRVBVQkxJQxAFEh0KGUdPVkVSTk1FTlRfVFlQRV9E",
+            "RU1PQ1JBQ1kQBhIdChlHT1ZFUk5NRU5UX1RZUEVfT0xJR0FSQ0hZEAcSHQoZ",
+            "R09WRVJOTUVOVF9UWVBFX1RIRU9DUkFDWRAIEhoKFkdPVkVSTk1FTlRfVFlQ",
+            "RV9FTVBJUkUQCRIZChVHT1ZFUk5NRU5UX1RZUEVfR1VJTEQQChIdChlHT1ZF",
+            "Uk5NRU5UX1RZUEVfSElWRV9NSU5EEAsSHQoZR09WRVJOTUVOVF9UWVBFX0NP",
+            "UlBPUkFURRAMEh0KGUdPVkVSTk1FTlRfVFlQRV9NRVJDRU5BUlkQDRIcChhH",
+            "T1ZFUk5NRU5UX1RZUEVfT0NDVVBJRUQQDiquAwoQRGlwbG9tYXRpY1N0YW5j",
+            "ZRIhCh1ESVBMT01BVElDX1NUQU5DRV9VTlNQRUNJRklFRBAAEh0KGURJUExP",
+            "TUFUSUNfU1RBTkNFX05FVVRSQUwQARIeChpESVBMT01BVElDX1NUQU5DRV9G",
+            "UklFTkRMWRACEhwKGERJUExPTUFUSUNfU1RBTkNFX0FMTElFRBADEhsKF0RJ",
+            "UExPTUFUSUNfU1RBTkNFX1RSQURFEAQSJAogRElQTE9NQVRJQ19TVEFOQ0Vf",
+            "Tk9OX0FHR1JFU1NJT04QBRIbChdESVBMT01BVElDX1NUQU5DRV9SSVZBTBAG",
+            "Eh0KGURJUExPTUFUSUNfU1RBTkNFX0hPU1RJTEUQBxIcChhESVBMT01BVElD",
+            "X1NUQU5DRV9BVF9XQVIQCBIcChhESVBMT01BVElDX1NUQU5DRV9WQVNTQUwQ",
+            "CRIeChpESVBMT01BVElDX1NUQU5DRV9PVkVSTE9SRBAKEh8KG0RJUExPTUFU",
+            "SUNfU1RBTkNFX1RSSUJVVEFSWRALEh4KGkRJUExPTUFUSUNfU1RBTkNFX1ZF",
+            "TkRFVFRBEAwq/wEKElRlcnJpdG9yeUNsYWltS2luZBIfChtURVJSSVRPUllf",
+            "Q0xBSU1fVU5TUEVDSUZJRUQQABIYChRURVJSSVRPUllfQ0xBSU1fSEFSRBAB",
+            "EhgKFFRFUlJJVE9SWV9DTEFJTV9TT0ZUEAISHQoZVEVSUklUT1JZX0NMQUlN",
+            "X0NPTlRFU1RFRBADEhwKGFRFUlJJVE9SWV9DTEFJTV9PQ0NVUElFRBAEEh4K",
+            "GlRFUlJJVE9SWV9DTEFJTV9ISVNUT1JJQ0FMEAUSGwoXVEVSUklUT1JZX0NM",
+            "QUlNX05FVVRSQUwQBhIaChZURVJSSVRPUllfQ0xBSU1fU0FDUkVEEAcqmQMK",
+            "EVRyYWRlR29vZENhdGVnb3J5EhoKFlRSQURFX0dPT0RfVU5TUEVDSUZJRUQQ",
+            "ABIbChdUUkFERV9HT09EX1JBV19NQVRFUklBTBABEhMKD1RSQURFX0dPT0Rf",
+            "Rk9PRBACEhYKElRSQURFX0dPT0RfVEVYVElMRRADEhUKEVRSQURFX0dPT0Rf",
+            "TFVYVVJZEAQSEwoPVFJBREVfR09PRF9UT09MEAUSFQoRVFJBREVfR09PRF9X",
+            "RUFQT04QBhIUChBUUkFERV9HT09EX0FSTU9SEAcSFgoSVFJBREVfR09PRF9N",
+            "QUdJQ0FMEAgSGgoWVFJBREVfR09PRF9JTkZPUk1BVElPThAJEhgKFFRSQURF",
+            "X0dPT0RfTElWRVNUT0NLEAoSFwoTVFJBREVfR09PRF9BUlRJRkFDVBALEhkK",
+            "FVRSQURFX0dPT0RfQ09OVFJBQkFORBAMEhQKEFRSQURFX0dPT0RfU0xBVkUQ",
+            "DRIUChBUUkFERV9HT09EX1JFTElDEA4SFwoTVFJBREVfR09PRF9DVVJSRU5D",
+            "WRAPKsIBCglSb3V0ZUtpbmQSGgoWUk9VVEVfS0lORF9VTlNQRUNJRklFRBAA",
+            "EhMKD1JPVVRFX0tJTkRfTEFORBABEhIKDlJPVVRFX0tJTkRfU0VBEAISFAoQ",
+            "Uk9VVEVfS0lORF9SSVZFUhADEhIKDlJPVVRFX0tJTkRfQUlSEAQSFQoRUk9V",
+            "VEVfS0lORF9QT1JUQUwQBRITCg9ST1VURV9LSU5EX1JBSUwQBhIaChZST1VU",
+            "RV9LSU5EX1VOREVSR1JPVU5EEAcqjAIKFExhbmRtYXJrU2lnbmlmaWNhbmNl",
+            "EiUKIUxBTkRNQVJLX1NJR05JRklDQU5DRV9VTlNQRUNJRklFRBAAEh8KG0xB",
+            "TkRNQVJLX1NJR05JRklDQU5DRV9MT0NBTBABEiIKHkxBTkRNQVJLX1NJR05J",
+            "RklDQU5DRV9SRUdJT05BTBACEiUKIUxBTkRNQVJLX1NJR05JRklDQU5DRV9D",
+            "T05USU5FTlRBTBADEh8KG0xBTkRNQVJLX1NJR05JRklDQU5DRV9XT1JMRBAE",
+            "EiAKHExBTkRNQVJLX1NJR05JRklDQU5DRV9NWVRISUMQBRIeChpMQU5ETUFS",
+            "S19TSUdOSUZJQ0FOQ0VfUlVJThAGKsYEChBDdWx0dXJlQXJjaGV0eXBlEiEK",
+            "HUNVTFRVUkVfQVJDSEVUWVBFX1VOU1BFQ0lGSUVEEAASIgoeQ1VMVFVSRV9B",
+            "UkNIRVRZUEVfSFVNQU5fRkVVREFMEAESHAoYQ1VMVFVSRV9BUkNIRVRZUEVf",
+            "Tk9SRElDEAISHAoYQ1VMVFVSRV9BUkNIRVRZUEVfREVTRVJUEAMSGwoXQ1VM",
+            "VFVSRV9BUkNIRVRZUEVfRUxWRU4QBBIdChlDVUxUVVJFX0FSQ0hFVFlQRV9E",
+            "V0FSVkVOEAUSHAoYQ1VMVFVSRV9BUkNIRVRZUEVfT1JDSVNIEAYSHAoYQ1VM",
+            "VFVSRV9BUkNIRVRZUEVfR09CTElOEAcSHAoYQ1VMVFVSRV9BUkNIRVRZUEVf",
+            "VU5ERUFEEAgSHQoZQ1VMVFVSRV9BUkNIRVRZUEVfT0NFQU5JQxAJEhsKF0NV",
+            "TFRVUkVfQVJDSEVUWVBFX05PTUFEEAoSHAoYQ1VMVFVSRV9BUkNIRVRZUEVf",
+            "QVJDQU5FEAsSHgoaQ1VMVFVSRV9BUkNIRVRZUEVfSU5GRVJOQUwQDBIfChtD",
+            "VUxUVVJFX0FSQ0hFVFlQRV9DRUxFU1RJQUwQDRIfChtDVUxUVVJFX0FSQ0hF",
+            "VFlQRV9JTlNFQ1RPSUQQDhIgChxDVUxUVVJFX0FSQ0hFVFlQRV9NRUNIQU5J",
+            "Q0FMEA8SHQoZQ1VMVFVSRV9BUkNIRVRZUEVfUFNJT05JQxAQEhwKGENVTFRV",
+            "UkVfQVJDSEVUWVBFX0NVU1RPTRBkKosDChFSZWxpZ2lvbkFsaWdubWVudBIi",
+            "Ch5SRUxJR0lPTl9BTElHTk1FTlRfVU5TUEVDSUZJRUQQABIcChhSRUxJR0lP",
+            "Tl9BTElHTk1FTlRfTElHSFQQARIbChdSRUxJR0lPTl9BTElHTk1FTlRfREFS",
+            "SxACEh0KGVJFTElHSU9OX0FMSUdOTUVOVF9OQVRVUkUQAxIdChlSRUxJR0lP",
+            "Tl9BTElHTk1FTlRfQVJDQU5FEAQSHAoYUkVMSUdJT05fQUxJR05NRU5UX0RF",
+            "QVRIEAUSGwoXUkVMSUdJT05fQUxJR05NRU5UX0xJRkUQBhIcChhSRUxJR0lP",
+            "Tl9BTElHTk1FTlRfT1JERVIQBxIcChhSRUxJR0lPTl9BTElHTk1FTlRfQ0hB",
+            "T1MQCBIeChpSRUxJR0lPTl9BTElHTk1FTlRfTkVVVFJBTBAJEiAKHFJFTElH",
+            "SU9OX0FMSUdOTUVOVF9BTkNFU1RSQUwQChIgChxSRUxJR0lPTl9BTElHTk1F",
+            "TlRfRUxFTUVOVEFMEAsqtgIKEERpYWxvZ3VlTm9kZUtpbmQSIgoeRElBTE9H",
+            "VUVfTk9ERV9LSU5EX1VOU1BFQ0lGSUVEEAASGwoXRElBTE9HVUVfTk9ERV9L",
+            "SU5EX0xJTkUQARIdChlESUFMT0dVRV9OT0RFX0tJTkRfQ0hPSUNFEAISIgoe",
+            "RElBTE9HVUVfTk9ERV9LSU5EX1FVRVNUX09GRkVSEAMSJAogRElBTE9HVUVf",
+            "Tk9ERV9LSU5EX1FVRVNUX1RVUk5fSU4QBBIgChxESUFMT0dVRV9OT0RFX0tJ",
+            "TkRfU0hPUF9PUEVOEAUSGgoWRElBTE9HVUVfTk9ERV9LSU5EX0VORBAGEhsK",
+            "F0RJQUxPR1VFX05PREVfS0lORF9HT1RPEAcSHQoZRElBTE9HVUVfTk9ERV9L",
+            "SU5EX1NDUklQVBAIKsQBCg5HZW5lcmF0aW9uTW9kZRIaChZHRU5FUkFUSU9O",
+            "X1VOU1BFQ0lGSUVEEAASHgoaR0VORVJBVElPTl9TVEFUSUNfQVVUSE9SRUQQ",
+            "ARIgChxHRU5FUkFUSU9OX0ZJTklURV9QUk9DRURVUkFMEAISIgoeR0VORVJB",
+            "VElPTl9JTkZJTklURV9QUk9DRURVUkFMEAMSGAoUR0VORVJBVElPTl9JTlNU",
+            "QU5DRUQQBBIWChJHRU5FUkFUSU9OX1RSQU5TSVQQBSqjAQoPUGVyc2lzdGVu",
+            "Y2VNb2RlEhsKF1BFUlNJU1RFTkNFX1VOU1BFQ0lGSUVEEAASGQoVUEVSU0lT",
+            "VEVOQ0VfQ0FOT05JQ0FMEAESIwofUEVSU0lTVEVOQ0VfREVURVJNSU5JU1RJ",
+            "Q19SRUdFThACEhUKEVBFUlNJU1RFTkNFX0RFTFRBEAMSHAoYUEVSU0lTVEVO",
+            "Q0VfU0VTU0lPTl9PTkxZEAQqogEKDVN0cmVhbWluZ0hpbnQSGQoVU1RSRUFN",
+            "SU5HX1VOU1BFQ0lGSUVEEAASGQoVU1RSRUFNSU5HX1BBUlRJVElPTkVEEAES",
+            "GAoUU1RSRUFNSU5HX0NIVU5LX1JJTkcQAhIiCh5TVFJFQU1JTkdfREVTQ1JJ",
+            "UFRPUl9BQ1RJVkFURUQQAxIdChlTVFJFQU1JTkdfSU5TVEFOQ0VfTE9BREVE",
+            "EAQqpwEKD1JlcGxpY2F0aW9uSGludBIbChdSRVBMSUNBVElPTl9VTlNQRUNJ",
+            "RklFRBAAEhsKF1JFUExJQ0FUSU9OX1NUQVRJQ19PTkxZEAESHQoZUkVQTElD",
+            "QVRJT05fTE9DQUxfRFlOQU1JQxACEhwKGFJFUExJQ0FUSU9OX0NIVU5LX1ND",
+            "T1BFRBADEh0KGVJFUExJQ0FUSU9OX0ZVTExfSU5TVEFOQ0UQBEIRqgIOS0JW",
+            "RS5Qcm90by5NYXBiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::KBVE.Proto.Common.CommonReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Map.Biome), typeof(global::KBVE.Proto.Map.ZoneType), typeof(global::KBVE.Proto.Map.RoomType), typeof(global::KBVE.Proto.Map.Direction), typeof(global::KBVE.Proto.Map.RoomModifier), typeof(global::KBVE.Proto.Map.WorldObjectType), typeof(global::KBVE.Proto.Map.ResourceType), typeof(global::KBVE.Proto.Map.ContainerType), typeof(global::KBVE.Proto.Map.CraftingStationType), typeof(global::KBVE.Proto.Map.FootprintShape), typeof(global::KBVE.Proto.Map.CostSource), typeof(global::KBVE.Proto.Map.InteractionKind), typeof(global::KBVE.Proto.Map.ServiceKind), typeof(global::KBVE.Proto.Map.PoiType), typeof(global::KBVE.Proto.Map.TerrainBand), typeof(global::KBVE.Proto.Map.SpawnCategory), typeof(global::KBVE.Proto.Map.GenerationMode), typeof(global::KBVE.Proto.Map.PersistenceMode), typeof(global::KBVE.Proto.Map.StreamingHint), typeof(global::KBVE.Proto.Map.ReplicationHint), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Map.Biome), typeof(global::KBVE.Proto.Map.ZoneType), typeof(global::KBVE.Proto.Map.RoomType), typeof(global::KBVE.Proto.Map.Direction), typeof(global::KBVE.Proto.Map.RoomModifier), typeof(global::KBVE.Proto.Map.WorldObjectType), typeof(global::KBVE.Proto.Map.ResourceType), typeof(global::KBVE.Proto.Map.ContainerType), typeof(global::KBVE.Proto.Map.CraftingStationType), typeof(global::KBVE.Proto.Map.FootprintShape), typeof(global::KBVE.Proto.Map.CostSource), typeof(global::KBVE.Proto.Map.InteractionKind), typeof(global::KBVE.Proto.Map.ServiceKind), typeof(global::KBVE.Proto.Map.PoiType), typeof(global::KBVE.Proto.Map.TerrainBand), typeof(global::KBVE.Proto.Map.SpawnCategory), typeof(global::KBVE.Proto.Map.TimeOfDay), typeof(global::KBVE.Proto.Map.WeatherKind), typeof(global::KBVE.Proto.Map.Season), typeof(global::KBVE.Proto.Map.SettlementTier), typeof(global::KBVE.Proto.Map.DistrictType), typeof(global::KBVE.Proto.Map.GovernmentType), typeof(global::KBVE.Proto.Map.DiplomaticStance), typeof(global::KBVE.Proto.Map.TerritoryClaimKind), typeof(global::KBVE.Proto.Map.TradeGoodCategory), typeof(global::KBVE.Proto.Map.RouteKind), typeof(global::KBVE.Proto.Map.LandmarkSignificance), typeof(global::KBVE.Proto.Map.CultureArchetype), typeof(global::KBVE.Proto.Map.ReligionAlignment), typeof(global::KBVE.Proto.Map.DialogueNodeKind), typeof(global::KBVE.Proto.Map.GenerationMode), typeof(global::KBVE.Proto.Map.PersistenceMode), typeof(global::KBVE.Proto.Map.StreamingHint), typeof(global::KBVE.Proto.Map.ReplicationHint), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.GridPos), global::KBVE.Proto.Map.GridPos.Parser, new[]{ "X", "Y" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.WorldPos), global::KBVE.Proto.Map.WorldPos.Parser, new[]{ "X", "Y", "Z" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.BoundsAABB), global::KBVE.Proto.Map.BoundsAABB.Parser, new[]{ "Min", "Max" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Bounds2D), global::KBVE.Proto.Map.Bounds2D.Parser, new[]{ "MinX", "MinY", "MaxX", "MaxY" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Color), global::KBVE.Proto.Map.Color.Parser, new[]{ "R", "G", "B", "A" }, new[]{ "A" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Zone), global::KBVE.Proto.Map.Zone.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "Type", "Biome", "Tags", "Bounds", "Bounds3D", "LevelMin", "LevelMax", "RecommendedPartySize", "Connections", "Img", "Icon", "MusicRef", "AmbientRef", "PvpEnabled", "SafeZone", "Instanced", "MaxPlayers", "Terrain", "Water", "Pois", "SpawnPoints", "Objects", "Dungeon", "PrerequisiteQuestRefs", "EventRef", "Extensions", "Generation", "Persistence", "Streaming", "Replication", "Environment", "SeedPolicy", "Credits", "Drafted" }, new[]{ "Description", "Lore", "Bounds", "Bounds3D", "LevelMin", "LevelMax", "RecommendedPartySize", "Img", "Icon", "MusicRef", "AmbientRef", "PvpEnabled", "SafeZone", "Instanced", "MaxPlayers", "Terrain", "Water", "Dungeon", "EventRef", "Generation", "Persistence", "Streaming", "Replication", "Environment", "SeedPolicy", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Zone), global::KBVE.Proto.Map.Zone.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "Type", "Biome", "Tags", "Bounds", "Bounds3D", "LevelMin", "LevelMax", "RecommendedPartySize", "Connections", "Img", "Icon", "MusicRef", "AmbientRef", "PvpEnabled", "SafeZone", "Instanced", "MaxPlayers", "Terrain", "Water", "Pois", "SpawnPoints", "Objects", "Dungeon", "PrerequisiteQuestRefs", "EventRef", "Extensions", "Generation", "Persistence", "Streaming", "Replication", "Environment", "SeedPolicy", "FactionRef", "SettlementRefs", "TerritoryClaimRefs", "LandmarkRefs", "TradeRouteRefs", "CultureRef", "ReligionRef", "Climate", "Credits", "Drafted" }, new[]{ "Description", "Lore", "Bounds", "Bounds3D", "LevelMin", "LevelMax", "RecommendedPartySize", "Img", "Icon", "MusicRef", "AmbientRef", "PvpEnabled", "SafeZone", "Instanced", "MaxPlayers", "Terrain", "Water", "Dungeon", "EventRef", "Generation", "Persistence", "Streaming", "Replication", "Environment", "SeedPolicy", "FactionRef", "CultureRef", "ReligionRef", "Climate", "Credits", "Drafted" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.ZoneConnection), global::KBVE.Proto.Map.ZoneConnection.Parser, new[]{ "TargetZoneRef", "Name", "Direction", "Position", "LevelRequirement", "QuestRequirement", "Bidirectional" }, new[]{ "Name", "Direction", "Position", "LevelRequirement", "QuestRequirement", "Bidirectional" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.PointOfInterest), global::KBVE.Proto.Map.PointOfInterest.Parser, new[]{ "Id", "Ref", "Name", "Description", "Type", "Position", "GridPos", "Radius", "Icon", "MarkerIcon", "NpcRefs", "QuestRefs", "ShopRef", "ZoneRef", "Discoverable", "FastTravel", "RespawnPoint", "Extensions" }, new[]{ "Description", "Position", "GridPos", "Radius", "Icon", "MarkerIcon", "ShopRef", "ZoneRef", "Discoverable", "FastTravel", "RespawnPoint" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DungeonConfig), global::KBVE.Proto.Map.DungeonConfig.Parser, new[]{ "Seed", "MaxDepth", "BossRingDistances", "BossesPerRing", "TileTemplates", "RoomWeights" }, new[]{ "Seed", "MaxDepth", "BossesPerRing" }, null, null, null),
@@ -466,19 +865,38 @@ namespace KBVE.Proto.Map {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DungeonSpec), global::KBVE.Proto.Map.DungeonSpec.Parser, new[]{ "SceneRef", "MinPlayerLevel", "PartySizeMax", "Difficulty", "EntryQuestRef" }, new[]{ "MinPlayerLevel", "PartySizeMax", "Difficulty", "EntryQuestRef" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.QuestGiverSpec), global::KBVE.Proto.Map.QuestGiverSpec.Parser, new[]{ "QuestRefs", "GreetingDialogueRef" }, new[]{ "GreetingDialogueRef" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.AuraSpec), global::KBVE.Proto.Map.AuraSpec.Parser, new[]{ "Radius", "BonusKind", "Multiplier" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.WorldObjectDef), global::KBVE.Proto.Map.WorldObjectDef.Parser, new[]{ "Id", "Ref", "Name", "Description", "Type", "SubKind", "ResourceType", "ContainerType", "CraftingStationType", "ModelRef", "Icon", "Scale", "Palette", "Img", "Interactable", "Destructible", "LootItemRef", "HarvestTimeMs", "ToolRequired", "SkillLevel", "SkillType", "HarvestYield", "MaxAmount", "InitialAmount", "MaxHealth", "FootprintWidth", "FootprintHeight", "BlocksPlacement", "ConstructionTimeSecs", "BuildCosts", "SpawnWeight", "SpawnCount", "CollisionRadius", "CollisionHeight", "BlocksMovement", "OccludesPlayer", "RespawnTimeSecs", "RespawnVariance", "Extensions", "Credits", "Drafted", "AllowedBiomes", "SpawnsFullyBuilt", "RequiresInTerritory", "FootprintShape", "FootprintCells", "CostSource", "Services", "Tender", "Territory", "Recipes", "Surplus", "PassiveProduction", "RangedAttack", "PopulationSpawn", "Raid", "UpgradeChain", "Interaction", "Shrine", "Shop", "Dungeon", "QuestGiver", "Aura", "Faction" }, new[]{ "Description", "SubKind", "ResourceType", "ContainerType", "CraftingStationType", "ModelRef", "Icon", "Scale", "Img", "Interactable", "Destructible", "LootItemRef", "HarvestTimeMs", "ToolRequired", "SkillLevel", "SkillType", "HarvestYield", "MaxAmount", "InitialAmount", "MaxHealth", "FootprintWidth", "FootprintHeight", "BlocksPlacement", "ConstructionTimeSecs", "SpawnWeight", "SpawnCount", "CollisionRadius", "CollisionHeight", "BlocksMovement", "OccludesPlayer", "RespawnTimeSecs", "RespawnVariance", "Credits", "Drafted", "SpawnsFullyBuilt", "RequiresInTerritory", "FootprintShape", "CostSource", "Tender", "Territory", "PassiveProduction", "RangedAttack", "PopulationSpawn", "Raid", "UpgradeChain", "Interaction", "Shrine", "Shop", "Dungeon", "QuestGiver", "Aura", "Faction" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.WorldObjectDef), global::KBVE.Proto.Map.WorldObjectDef.Parser, new[]{ "Id", "Ref", "Name", "Description", "Type", "SubKind", "ResourceType", "ContainerType", "CraftingStationType", "ModelRef", "Icon", "Scale", "Palette", "Img", "Interactable", "Destructible", "LootItemRef", "HarvestTimeMs", "ToolRequired", "SkillLevel", "SkillType", "HarvestYield", "MaxAmount", "InitialAmount", "MaxHealth", "FootprintWidth", "FootprintHeight", "BlocksPlacement", "ConstructionTimeSecs", "BuildCosts", "SpawnWeight", "SpawnCount", "CollisionRadius", "CollisionHeight", "BlocksMovement", "OccludesPlayer", "RespawnTimeSecs", "RespawnVariance", "Extensions", "Credits", "Drafted", "AllowedBiomes", "SpawnsFullyBuilt", "RequiresInTerritory", "FootprintShape", "FootprintCells", "CostSource", "Services", "Tender", "Territory", "Recipes", "Surplus", "PassiveProduction", "RangedAttack", "PopulationSpawn", "Raid", "UpgradeChain", "Interaction", "Shrine", "Shop", "Dungeon", "QuestGiver", "Aura", "Faction", "FactionRef", "SettlementRef", "DistrictRef", "CultureRef", "ReligionRef", "DialogueTreeRef", "InteractionCooldownSecs" }, new[]{ "Description", "SubKind", "ResourceType", "ContainerType", "CraftingStationType", "ModelRef", "Icon", "Scale", "Img", "Interactable", "Destructible", "LootItemRef", "HarvestTimeMs", "ToolRequired", "SkillLevel", "SkillType", "HarvestYield", "MaxAmount", "InitialAmount", "MaxHealth", "FootprintWidth", "FootprintHeight", "BlocksPlacement", "ConstructionTimeSecs", "SpawnWeight", "SpawnCount", "CollisionRadius", "CollisionHeight", "BlocksMovement", "OccludesPlayer", "RespawnTimeSecs", "RespawnVariance", "Credits", "Drafted", "SpawnsFullyBuilt", "RequiresInTerritory", "FootprintShape", "CostSource", "Tender", "Territory", "PassiveProduction", "RangedAttack", "PopulationSpawn", "Raid", "UpgradeChain", "Interaction", "Shrine", "Shop", "Dungeon", "QuestGiver", "Aura", "Faction", "FactionRef", "SettlementRef", "DistrictRef", "CultureRef", "ReligionRef", "DialogueTreeRef", "InteractionCooldownSecs" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.BuildCost), global::KBVE.Proto.Map.BuildCost.Parser, new[]{ "ResourceType", "Amount" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.WorldObjectPlacement), global::KBVE.Proto.Map.WorldObjectPlacement.Parser, new[]{ "ObjectDefRef", "Position", "GridPos", "RotationY", "ScaleOverride", "Seed" }, new[]{ "Position", "GridPos", "RotationY", "ScaleOverride", "Seed" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.SpawnPoint), global::KBVE.Proto.Map.SpawnPoint.Parser, new[]{ "Id", "Category", "EntityRef", "Position", "GridPos", "Radius", "SpawnWeight", "MaxActive", "LevelMin", "LevelMax", "RespawnTimeSecs", "RespawnVariance", "TimeOfDay", "Weather", "EventRef", "QuestRef", "RequiredFlags", "GroupMin", "GroupMax", "GroupRadius" }, new[]{ "EntityRef", "Position", "GridPos", "Radius", "SpawnWeight", "MaxActive", "LevelMin", "LevelMax", "RespawnTimeSecs", "RespawnVariance", "TimeOfDay", "Weather", "EventRef", "QuestRef", "GroupMin", "GroupMax", "GroupRadius" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Region), global::KBVE.Proto.Map.Region.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "ZoneRefs", "Img", "Icon", "Gravity", "DayCycleSecs", "Extensions" }, new[]{ "Description", "Lore", "Img", "Icon", "Gravity", "DayCycleSecs" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.SpawnPoint), global::KBVE.Proto.Map.SpawnPoint.Parser, new[]{ "Id", "Category", "EntityRef", "Position", "GridPos", "Radius", "SpawnWeight", "MaxActive", "LevelMin", "LevelMax", "RespawnTimeSecs", "RespawnVariance", "TimeOfDay", "Weather", "EventRef", "QuestRef", "RequiredFlags", "GroupMin", "GroupMax", "GroupRadius", "TimeOfDayKind", "WeatherKind", "Season", "FactionRef", "TerritoryClaimRef", "SettlementRef" }, new[]{ "EntityRef", "Position", "GridPos", "Radius", "SpawnWeight", "MaxActive", "LevelMin", "LevelMax", "RespawnTimeSecs", "RespawnVariance", "TimeOfDay", "Weather", "EventRef", "QuestRef", "GroupMin", "GroupMax", "GroupRadius", "TimeOfDayKind", "WeatherKind", "Season", "FactionRef", "TerritoryClaimRef", "SettlementRef" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Region), global::KBVE.Proto.Map.Region.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "ZoneRefs", "Img", "Icon", "Gravity", "DayCycleSecs", "Extensions", "FactionRefs", "SettlementRefs", "TerritoryClaimRefs", "TradeRouteRefs", "LandmarkRefs", "CultureRefs", "ReligionRefs", "Climate", "DominantCultureRef", "DominantReligionRef" }, new[]{ "Description", "Lore", "Img", "Icon", "Gravity", "DayCycleSecs", "Climate", "DominantCultureRef", "DominantReligionRef" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.HexCoord), global::KBVE.Proto.Map.HexCoord.Parser, new[]{ "Q", "R" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.SeedPolicy), global::KBVE.Proto.Map.SeedPolicy.Parser, new[]{ "WorldSeed", "ContentVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.HexTravelLink), global::KBVE.Proto.Map.HexTravelLink.Parser, new[]{ "From", "To", "TravelType", "LevelRequirement", "QuestRequirement", "Tag" }, new[]{ "LevelRequirement", "QuestRequirement", "Tag" }, new[]{ typeof(global::KBVE.Proto.Map.HexTravelLink.Types.TravelType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.EnvironmentConfig), global::KBVE.Proto.Map.EnvironmentConfig.Parser, new[]{ "SunPitch", "SunYaw", "SunIntensity", "SunColor", "SkyIntensity", "AtmosphereRayleighScale", "AtmosphereMieScale", "FogDensity", "FogHeightFalloff", "FogColor", "FogStartDistance", "AmbientSoundRef", "MusicRef" }, new[]{ "SunPitch", "SunYaw", "SunIntensity", "SunColor", "SkyIntensity", "AtmosphereRayleighScale", "AtmosphereMieScale", "FogDensity", "FogHeightFalloff", "FogColor", "FogStartDistance", "AmbientSoundRef", "MusicRef" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.HexZoneRecord), global::KBVE.Proto.Map.HexZoneRecord.Parser, new[]{ "Coord", "ZoneRef", "Generation", "Persistence", "Streaming", "Replication", "SeedPolicy", "Environment", "TravelLinks" }, new[]{ "SeedPolicy", "Environment" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.HexWorldMap), global::KBVE.Proto.Map.HexWorldMap.Parser, new[]{ "Id", "Name", "Description", "SeedPolicy", "HexSize", "Hexes" }, new[]{ "Description" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Banner), global::KBVE.Proto.Map.Banner.Parser, new[]{ "Primary", "Secondary", "Tertiary", "SigilRef", "Motto", "AnthemRef", "CrestPattern" }, new[]{ "Primary", "Secondary", "Tertiary", "SigilRef", "Motto", "AnthemRef", "CrestPattern" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.ResourceLedger), global::KBVE.Proto.Map.ResourceLedger.Parser, new[]{ "Resources", "CapacityPerItem", "TotalCapacity", "Unlimited" }, new[]{ "TotalCapacity", "Unlimited" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Culture), global::KBVE.Proto.Map.Culture.Parser, new[]{ "Id", "Ref", "Name", "Archetype", "Description", "Lore", "LanguageRef", "NamePoolRefs", "Banner", "Extensions" }, new[]{ "Description", "Lore", "LanguageRef", "Banner" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Religion), global::KBVE.Proto.Map.Religion.Parser, new[]{ "Id", "Ref", "Name", "Alignment", "Description", "Lore", "DeityRefs", "HolySiteRefs", "ForbiddenActionRefs", "BlessedSkillRefs", "Banner", "Extensions" }, new[]{ "Description", "Lore", "Banner" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DiplomaticRelation), global::KBVE.Proto.Map.DiplomaticRelation.Parser, new[]{ "FromFactionRef", "ToFactionRef", "Stance", "Reputation", "TreatyRef", "ExpiresAtTurn", "EstablishedAtTurn" }, new[]{ "TreatyRef", "ExpiresAtTurn", "EstablishedAtTurn" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Treaty), global::KBVE.Proto.Map.Treaty.Parser, new[]{ "Id", "Ref", "Name", "SignatoryFactionRefs", "Description", "SignedAtTurn", "ExpiresAtTurn", "ClauseRefs", "Extensions" }, new[]{ "Description", "SignedAtTurn", "ExpiresAtTurn" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Faction), global::KBVE.Proto.Map.Faction.Parser, new[]{ "Id", "Ref", "Name", "ShortName", "Description", "Lore", "Government", "Banner", "CultureRef", "ReligionRef", "Archetype", "RulerUnitRef", "HeirUnitRef", "CouncilUnitRefs", "CapitalSettlementRef", "MemberSettlementRefs", "MemberZoneRefs", "MemberUnitRefs", "VassalFactionRefs", "OverlordFactionRef", "Treasury", "TradeRouteRefs", "TaxationRate", "TributeRate", "Relations", "AlliedFactionRefs", "HostileFactionRefs", "TreatyRefs", "Prestige", "Stability", "TechLevel", "Manpower", "Aggression", "TraitRefs", "ColorHex", "Destroyed", "FoundedAtTurn", "DestroyedAtTurn", "Credits", "Drafted", "Extensions" }, new[]{ "ShortName", "Description", "Lore", "Banner", "CultureRef", "ReligionRef", "Archetype", "RulerUnitRef", "HeirUnitRef", "CapitalSettlementRef", "OverlordFactionRef", "Treasury", "TaxationRate", "TributeRate", "Prestige", "Stability", "TechLevel", "Manpower", "Aggression", "ColorHex", "Destroyed", "FoundedAtTurn", "DestroyedAtTurn", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.District), global::KBVE.Proto.Map.District.Parser, new[]{ "Id", "Ref", "Name", "Type", "Description", "Bounds", "GridCells", "Hexes", "Population", "PopulationCap", "WealthIndex", "CrimeRate", "Happiness", "Pollution", "BuildingRefs", "NpcRefs", "ServiceKinds", "DistrictQuestRef", "Walled", "Destroyed", "Extensions" }, new[]{ "Description", "Bounds", "Population", "PopulationCap", "WealthIndex", "CrimeRate", "Happiness", "Pollution", "DistrictQuestRef", "Walled", "Destroyed" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Settlement), global::KBVE.Proto.Map.Settlement.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "Tier", "FactionRef", "CultureRef", "ReligionRef", "MayorUnitRef", "CouncilUnitRefs", "RegionRef", "ZoneRef", "AuxZoneRefs", "Position", "GridPos", "Hex", "FootprintBounds", "FootprintHexes", "Population", "PopulationCap", "GrowthRate", "GarrisonSize", "ManpowerPool", "Treasury", "Granary", "TaxRate", "TariffRate", "TradeRouteRefs", "ExportItemRefs", "ImportItemRefs", "Districts", "BuildingRefs", "LandmarkRefs", "PoiRefs", "ServiceKinds", "Capital", "Walled", "WallHealth", "Besieged", "BesiegingFactionRef", "Destroyed", "Occupied", "OccupierFactionRef", "Discoverable", "DiscoveryQuestRef", "PrerequisiteQuestRefs", "Banner", "Icon", "MarkerIcon", "Img", "FoundedAtTurn", "DestroyedAtTurn", "Credits", "Drafted", "Extensions" }, new[]{ "Description", "Lore", "FactionRef", "CultureRef", "ReligionRef", "MayorUnitRef", "RegionRef", "ZoneRef", "Position", "GridPos", "Hex", "FootprintBounds", "Population", "PopulationCap", "GrowthRate", "GarrisonSize", "ManpowerPool", "Treasury", "Granary", "TaxRate", "TariffRate", "Capital", "Walled", "WallHealth", "Besieged", "BesiegingFactionRef", "Destroyed", "Occupied", "OccupierFactionRef", "Discoverable", "DiscoveryQuestRef", "Banner", "Icon", "MarkerIcon", "Img", "FoundedAtTurn", "DestroyedAtTurn", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.TerritoryClaim), global::KBVE.Proto.Map.TerritoryClaim.Parser, new[]{ "Id", "Ref", "FactionRef", "Kind", "Hexes", "Bounds", "ZoneRefs", "SettlementRefs", "Strength", "GarrisonSize", "ContestedByFactionRef", "ContestProgress", "ClaimedAtTurn", "ExpiresAtTurn", "Sacred", "CasusBelliRef", "Extensions" }, new[]{ "Bounds", "Strength", "GarrisonSize", "ContestedByFactionRef", "ContestProgress", "ClaimedAtTurn", "ExpiresAtTurn", "Sacred", "CasusBelliRef" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.TradeRouteStop), global::KBVE.Proto.Map.TradeRouteStop.Parser, new[]{ "SettlementRef", "Hex", "Position", "DwellSecs", "Refuel", "Toll" }, new[]{ "SettlementRef", "Hex", "Position", "DwellSecs", "Refuel", "Toll" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.TradeCargo), global::KBVE.Proto.Map.TradeCargo.Parser, new[]{ "ItemRef", "AmountPerCaravan", "Category", "BuyPriceAtOrigin", "SellPriceAtDestination", "Perishable", "Restricted" }, new[]{ "BuyPriceAtOrigin", "SellPriceAtDestination", "Perishable", "Restricted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.TradeRoute), global::KBVE.Proto.Map.TradeRoute.Parser, new[]{ "Id", "Ref", "Name", "Description", "FromSettlementRef", "ToSettlementRef", "Stops", "RouteKind", "Cargo", "CadenceSecs", "Distance", "CaravanSize", "CaravanHealth", "DangerLevel", "ProtectionUnitRefs", "OperatorFactionRef", "ProfitPerRun", "Active", "EstablishedAtTurn", "LastRunAtTurn", "Extensions" }, new[]{ "Description", "CadenceSecs", "Distance", "CaravanSize", "CaravanHealth", "DangerLevel", "OperatorFactionRef", "ProfitPerRun", "Active", "EstablishedAtTurn", "LastRunAtTurn" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.Landmark), global::KBVE.Proto.Map.Landmark.Parser, new[]{ "Id", "Ref", "Name", "Description", "Lore", "Significance", "ZoneRef", "RegionRef", "SettlementRef", "FactionRef", "CultureRef", "ReligionRef", "Position", "GridPos", "Hex", "DiscoveryRadius", "Img", "Icon", "MarkerIcon", "MarkerColor", "InteractionWorldObjectRef", "Discoverable", "FastTravel", "RespawnPoint", "Unique", "Destroyed", "DiscoveryQuestRef", "PrerequisiteQuestRefs", "EventRef", "NpcRefs", "QuestRefs", "DialogueTreeRef", "ShopRef", "DungeonZoneRef", "Credits", "Drafted", "Extensions" }, new[]{ "Description", "Lore", "ZoneRef", "RegionRef", "SettlementRef", "FactionRef", "CultureRef", "ReligionRef", "Position", "GridPos", "Hex", "DiscoveryRadius", "Img", "Icon", "MarkerIcon", "MarkerColor", "InteractionWorldObjectRef", "Discoverable", "FastTravel", "RespawnPoint", "Unique", "Destroyed", "DiscoveryQuestRef", "EventRef", "DialogueTreeRef", "ShopRef", "DungeonZoneRef", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DialogueChoice), global::KBVE.Proto.Map.DialogueChoice.Parser, new[]{ "Text", "NextNodeId", "RequiredFlagRefs", "SkillCheckRef", "SetFlagRef", "ReputationDelta", "FactionRef" }, new[]{ "SkillCheckRef", "SetFlagRef", "ReputationDelta", "FactionRef" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DialogueNode), global::KBVE.Proto.Map.DialogueNode.Parser, new[]{ "Id", "Kind", "SpeakerRef", "Text", "VoiceRef", "Choices", "NextNodeId", "QuestRef", "ShopRef", "ScriptRef", "RequiredFlagRefs", "SetFlagRefs" }, new[]{ "SpeakerRef", "Text", "VoiceRef", "NextNodeId", "QuestRef", "ShopRef", "ScriptRef" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.DialogueTree), global::KBVE.Proto.Map.DialogueTree.Parser, new[]{ "Id", "Ref", "Name", "Description", "RootNodeId", "Nodes", "DefaultSpeakerRef", "Extensions" }, new[]{ "Description", "DefaultSpeakerRef" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.WeatherProfile), global::KBVE.Proto.Map.WeatherProfile.Parser, new[]{ "Kind", "Weight", "DurationSecs", "SeasonFilter", "TimeOfDayFilter", "EventRefs" }, new[]{ "DurationSecs", "SeasonFilter", "TimeOfDayFilter" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.ClimateConfig), global::KBVE.Proto.Map.ClimateConfig.Parser, new[]{ "DefaultSeason", "SeasonCycleSecs", "WeatherRotation", "BaselineTemperature", "TemperatureVariance", "HolidayEventRefs", "DayNightLocked", "LockedTimeOfDay" }, new[]{ "DefaultSeason", "SeasonCycleSecs", "BaselineTemperature", "TemperatureVariance", "DayNightLocked", "LockedTimeOfDay" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.MapExtension), global::KBVE.Proto.Map.MapExtension.Parser, new[]{ "Key", "StringValue", "IntValue", "FloatValue", "BoolValue", "BytesValue" }, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.MapRegistry), global::KBVE.Proto.Map.MapRegistry.Parser, new[]{ "Regions", "Zones", "ObjectDefs", "HexWorlds" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Map.MapRegistry), global::KBVE.Proto.Map.MapRegistry.Parser, new[]{ "Regions", "Zones", "ObjectDefs", "HexWorlds", "Factions", "Settlements", "TerritoryClaims", "TradeRoutes", "Landmarks", "Cultures", "Religions", "Treaties", "DialogueTrees", "Climates" }, null, null, null, null)
           }));
     }
     #endregion
@@ -864,6 +1282,441 @@ namespace KBVE.Proto.Map {
     /// Critters, birds, particles
     /// </summary>
     [pbr::OriginalName("SPAWN_CATEGORY_AMBIENT")] Ambient = 7,
+  }
+
+  /// <summary>
+  /// Time-of-day window — canonical replacement for stringly-typed
+  /// SpawnPoint.time_of_day. Wired to WorldClock when available.
+  /// </summary>
+  public enum TimeOfDay {
+    [pbr::OriginalName("TIME_OF_DAY_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("TIME_OF_DAY_DAWN")] Dawn = 1,
+    [pbr::OriginalName("TIME_OF_DAY_DAY")] Day = 2,
+    [pbr::OriginalName("TIME_OF_DAY_DUSK")] Dusk = 3,
+    [pbr::OriginalName("TIME_OF_DAY_NIGHT")] Night = 4,
+    /// <summary>
+    /// Deep night — special spawn window
+    /// </summary>
+    [pbr::OriginalName("TIME_OF_DAY_MIDNIGHT")] Midnight = 5,
+  }
+
+  /// <summary>
+  /// Weather state — climate / spawn / movement gating.
+  /// </summary>
+  public enum WeatherKind {
+    [pbr::OriginalName("WEATHER_KIND_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("WEATHER_KIND_CLEAR")] Clear = 1,
+    [pbr::OriginalName("WEATHER_KIND_OVERCAST")] Overcast = 2,
+    [pbr::OriginalName("WEATHER_KIND_RAIN")] Rain = 3,
+    [pbr::OriginalName("WEATHER_KIND_STORM")] Storm = 4,
+    [pbr::OriginalName("WEATHER_KIND_SNOW")] Snow = 5,
+    [pbr::OriginalName("WEATHER_KIND_BLIZZARD")] Blizzard = 6,
+    [pbr::OriginalName("WEATHER_KIND_FOG")] Fog = 7,
+    [pbr::OriginalName("WEATHER_KIND_SANDSTORM")] Sandstorm = 8,
+    [pbr::OriginalName("WEATHER_KIND_HEATWAVE")] Heatwave = 9,
+    /// <summary>
+    /// Volcanic / apocalyptic
+    /// </summary>
+    [pbr::OriginalName("WEATHER_KIND_ASHFALL")] Ashfall = 10,
+    /// <summary>
+    /// Magic storm — affects mana / spell mods
+    /// </summary>
+    [pbr::OriginalName("WEATHER_KIND_ARCANE")] Arcane = 11,
+    /// <summary>
+    /// Story-flagged dread weather
+    /// </summary>
+    [pbr::OriginalName("WEATHER_KIND_CURSED")] Cursed = 12,
+  }
+
+  /// <summary>
+  /// Season — long-cadence climate band. Drives crop yields, NPC mood,
+  /// holiday events, world music, and ambient palettes.
+  /// </summary>
+  public enum Season {
+    [pbr::OriginalName("SEASON_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("SEASON_SPRING")] Spring = 1,
+    [pbr::OriginalName("SEASON_SUMMER")] Summer = 2,
+    [pbr::OriginalName("SEASON_AUTUMN")] Autumn = 3,
+    [pbr::OriginalName("SEASON_WINTER")] Winter = 4,
+    /// <summary>
+    /// Equatorial / two-season worlds
+    /// </summary>
+    [pbr::OriginalName("SEASON_DRY")] Dry = 5,
+    [pbr::OriginalName("SEASON_WET")] Wet = 6,
+    /// <summary>
+    /// Festival / event banding
+    /// </summary>
+    [pbr::OriginalName("SEASON_HARVEST")] Harvest = 7,
+    /// <summary>
+    /// Apocalyptic / nuclear / undead overrun
+    /// </summary>
+    [pbr::OriginalName("SEASON_DEAD")] Dead = 8,
+  }
+
+  /// <summary>
+  /// Settlement size tier — population class drives services, taxes,
+  /// growth ceiling, and visual density.
+  /// </summary>
+  public enum SettlementTier {
+    [pbr::OriginalName("SETTLEMENT_TIER_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// &lt;50, frontier
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_OUTPOST")] Outpost = 1,
+    /// <summary>
+    /// 50–200
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_HAMLET")] Hamlet = 2,
+    /// <summary>
+    /// 200–1000
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_VILLAGE")] Village = 3,
+    /// <summary>
+    /// 1k–5k
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_TOWN")] Town = 4,
+    /// <summary>
+    /// 5k–50k
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_CITY")] City = 5,
+    /// <summary>
+    /// 50k+
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_METROPOLIS")] Metropolis = 6,
+    /// <summary>
+    /// Faction seat (any pop class)
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_CAPITAL")] Capital = 7,
+    /// <summary>
+    /// Destroyed / abandoned
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_RUINED")] Ruined = 8,
+    /// <summary>
+    /// Mobile camp (caravan / horde)
+    /// </summary>
+    [pbr::OriginalName("SETTLEMENT_TIER_NOMADIC")] Nomadic = 9,
+  }
+
+  /// <summary>
+  /// District functional zoning inside a Settlement.
+  /// </summary>
+  public enum DistrictType {
+    [pbr::OriginalName("DISTRICT_TYPE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("DISTRICT_TYPE_RESIDENTIAL")] Residential = 1,
+    /// <summary>
+    /// Markets / shops
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_COMMERCIAL")] Commercial = 2,
+    /// <summary>
+    /// Smithies, mills
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_INDUSTRIAL")] Industrial = 3,
+    /// <summary>
+    /// Farms within walls
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_AGRICULTURAL")] Agricultural = 4,
+    /// <summary>
+    /// Barracks / training
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_MILITARY")] Military = 5,
+    /// <summary>
+    /// Temples / shrines
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_RELIGIOUS")] Religious = 6,
+    /// <summary>
+    /// Palace / town hall
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_ADMINISTRATIVE")] Administrative = 7,
+    /// <summary>
+    /// Docks / shipyards
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_HARBOR")] Harbor = 8,
+    /// <summary>
+    /// Mage quarter / library
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_ARCANE")] Arcane = 9,
+    [pbr::OriginalName("DISTRICT_TYPE_NOBLE")] Noble = 10,
+    [pbr::OriginalName("DISTRICT_TYPE_SLUM")] Slum = 11,
+    /// <summary>
+    /// Sewer / criminal
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_UNDERCITY")] Undercity = 12,
+    /// <summary>
+    /// Faction lodges
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_GUILD")] Guild = 13,
+    /// <summary>
+    /// Arena / theatre / brothel
+    /// </summary>
+    [pbr::OriginalName("DISTRICT_TYPE_ENTERTAINMENT")] Entertainment = 14,
+    [pbr::OriginalName("DISTRICT_TYPE_GRAVEYARD")] Graveyard = 15,
+    [pbr::OriginalName("DISTRICT_TYPE_PARK")] Park = 16,
+    [pbr::OriginalName("DISTRICT_TYPE_CUSTOM")] Custom = 100,
+  }
+
+  /// <summary>
+  /// Form of government — selects ruler model, succession rules, and
+  /// applicable buffs/policies in civ-style games.
+  /// </summary>
+  public enum GovernmentType {
+    [pbr::OriginalName("GOVERNMENT_TYPE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("GOVERNMENT_TYPE_ANARCHY")] Anarchy = 1,
+    [pbr::OriginalName("GOVERNMENT_TYPE_TRIBAL")] Tribal = 2,
+    [pbr::OriginalName("GOVERNMENT_TYPE_FEUDAL")] Feudal = 3,
+    [pbr::OriginalName("GOVERNMENT_TYPE_MONARCHY")] Monarchy = 4,
+    [pbr::OriginalName("GOVERNMENT_TYPE_REPUBLIC")] Republic = 5,
+    [pbr::OriginalName("GOVERNMENT_TYPE_DEMOCRACY")] Democracy = 6,
+    [pbr::OriginalName("GOVERNMENT_TYPE_OLIGARCHY")] Oligarchy = 7,
+    [pbr::OriginalName("GOVERNMENT_TYPE_THEOCRACY")] Theocracy = 8,
+    [pbr::OriginalName("GOVERNMENT_TYPE_EMPIRE")] Empire = 9,
+    /// <summary>
+    /// Mercantile / craft-guild rule
+    /// </summary>
+    [pbr::OriginalName("GOVERNMENT_TYPE_GUILD")] Guild = 10,
+    [pbr::OriginalName("GOVERNMENT_TYPE_HIVE_MIND")] HiveMind = 11,
+    /// <summary>
+    /// Sci-fi / cyberpunk
+    /// </summary>
+    [pbr::OriginalName("GOVERNMENT_TYPE_CORPORATE")] Corporate = 12,
+    [pbr::OriginalName("GOVERNMENT_TYPE_MERCENARY")] Mercenary = 13,
+    /// <summary>
+    /// Foreign rule — controlled by another faction
+    /// </summary>
+    [pbr::OriginalName("GOVERNMENT_TYPE_OCCUPIED")] Occupied = 14,
+  }
+
+  /// <summary>
+  /// Pair-wise diplomatic stance between two factions.
+  /// </summary>
+  public enum DiplomaticStance {
+    [pbr::OriginalName("DIPLOMATIC_STANCE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_NEUTRAL")] Neutral = 1,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_FRIENDLY")] Friendly = 2,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_ALLIED")] Allied = 3,
+    /// <summary>
+    /// Trade-only agreement
+    /// </summary>
+    [pbr::OriginalName("DIPLOMATIC_STANCE_TRADE")] Trade = 4,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_NON_AGGRESSION")] NonAggression = 5,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_RIVAL")] Rival = 6,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_HOSTILE")] Hostile = 7,
+    [pbr::OriginalName("DIPLOMATIC_STANCE_AT_WAR")] AtWar = 8,
+    /// <summary>
+    /// Subordinate faction
+    /// </summary>
+    [pbr::OriginalName("DIPLOMATIC_STANCE_VASSAL")] Vassal = 9,
+    /// <summary>
+    /// Dominant faction in vassalage
+    /// </summary>
+    [pbr::OriginalName("DIPLOMATIC_STANCE_OVERLORD")] Overlord = 10,
+    /// <summary>
+    /// Pays tribute, otherwise free
+    /// </summary>
+    [pbr::OriginalName("DIPLOMATIC_STANCE_TRIBUTARY")] Tributary = 11,
+    /// <summary>
+    /// Personal blood feud (clan / honour systems)
+    /// </summary>
+    [pbr::OriginalName("DIPLOMATIC_STANCE_VENDETTA")] Vendetta = 12,
+  }
+
+  /// <summary>
+  /// How a faction holds territory.
+  /// </summary>
+  public enum TerritoryClaimKind {
+    [pbr::OriginalName("TERRITORY_CLAIM_UNSPECIFIED")] TerritoryClaimUnspecified = 0,
+    /// <summary>
+    /// Owned, defended, patrolled
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_HARD")] TerritoryClaimHard = 1,
+    /// <summary>
+    /// Influence only, no garrison
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_SOFT")] TerritoryClaimSoft = 2,
+    /// <summary>
+    /// Two factions overlap claim
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_CONTESTED")] TerritoryClaimContested = 3,
+    /// <summary>
+    /// Held by enemy, original claimant survives
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_OCCUPIED")] TerritoryClaimOccupied = 4,
+    /// <summary>
+    /// Lost long ago, used for casus belli
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_HISTORICAL")] TerritoryClaimHistorical = 5,
+    /// <summary>
+    /// Unowned, recognized as neutral ground
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_NEUTRAL")] TerritoryClaimNeutral = 6,
+    /// <summary>
+    /// Religious / cultural — non-military claim
+    /// </summary>
+    [pbr::OriginalName("TERRITORY_CLAIM_SACRED")] TerritoryClaimSacred = 7,
+  }
+
+  /// <summary>
+  /// Trade-good classification — drives tariffs, contraband checks, caravan AI.
+  /// </summary>
+  public enum TradeGoodCategory {
+    [pbr::OriginalName("TRADE_GOOD_UNSPECIFIED")] TradeGoodUnspecified = 0,
+    /// <summary>
+    /// Ore, timber, hide
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_RAW_MATERIAL")] TradeGoodRawMaterial = 1,
+    [pbr::OriginalName("TRADE_GOOD_FOOD")] TradeGoodFood = 2,
+    [pbr::OriginalName("TRADE_GOOD_TEXTILE")] TradeGoodTextile = 3,
+    /// <summary>
+    /// Silk, spice, gemstone
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_LUXURY")] TradeGoodLuxury = 4,
+    [pbr::OriginalName("TRADE_GOOD_TOOL")] TradeGoodTool = 5,
+    [pbr::OriginalName("TRADE_GOOD_WEAPON")] TradeGoodWeapon = 6,
+    [pbr::OriginalName("TRADE_GOOD_ARMOR")] TradeGoodArmor = 7,
+    [pbr::OriginalName("TRADE_GOOD_MAGICAL")] TradeGoodMagical = 8,
+    /// <summary>
+    /// Letters, maps, intel
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_INFORMATION")] TradeGoodInformation = 9,
+    [pbr::OriginalName("TRADE_GOOD_LIVESTOCK")] TradeGoodLivestock = 10,
+    /// <summary>
+    /// Quest-tier
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_ARTIFACT")] TradeGoodArtifact = 11,
+    /// <summary>
+    /// Smuggled / illegal
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_CONTRABAND")] TradeGoodContraband = 12,
+    /// <summary>
+    /// Dark themes / opt-in
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_SLAVE")] TradeGoodSlave = 13,
+    [pbr::OriginalName("TRADE_GOOD_RELIC")] TradeGoodRelic = 14,
+    /// <summary>
+    /// Specie / bullion
+    /// </summary>
+    [pbr::OriginalName("TRADE_GOOD_CURRENCY")] TradeGoodCurrency = 15,
+  }
+
+  /// <summary>
+  /// Trade-route medium — gates which units can traverse.
+  /// </summary>
+  public enum RouteKind {
+    [pbr::OriginalName("ROUTE_KIND_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("ROUTE_KIND_LAND")] Land = 1,
+    [pbr::OriginalName("ROUTE_KIND_SEA")] Sea = 2,
+    [pbr::OriginalName("ROUTE_KIND_RIVER")] River = 3,
+    [pbr::OriginalName("ROUTE_KIND_AIR")] Air = 4,
+    /// <summary>
+    /// Magical / instant
+    /// </summary>
+    [pbr::OriginalName("ROUTE_KIND_PORTAL")] Portal = 5,
+    [pbr::OriginalName("ROUTE_KIND_RAIL")] Rail = 6,
+    [pbr::OriginalName("ROUTE_KIND_UNDERGROUND")] Underground = 7,
+  }
+
+  /// <summary>
+  /// Landmark significance scope — controls discovery sound, fast-travel
+  /// availability, lore reveal weight, minimap symbol size.
+  /// </summary>
+  public enum LandmarkSignificance {
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// Inside one zone
+    /// </summary>
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_LOCAL")] Local = 1,
+    /// <summary>
+    /// Visible across a region
+    /// </summary>
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_REGIONAL")] Regional = 2,
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_CONTINENTAL")] Continental = 3,
+    /// <summary>
+    /// Wonder / unique
+    /// </summary>
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_WORLD")] World = 4,
+    /// <summary>
+    /// Lore-only / quest-tier
+    /// </summary>
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_MYTHIC")] Mythic = 5,
+    /// <summary>
+    /// Ancient, decayed
+    /// </summary>
+    [pbr::OriginalName("LANDMARK_SIGNIFICANCE_RUIN")] Ruin = 6,
+  }
+
+  /// <summary>
+  /// Cultural archetype — flavours unit names, music, dialect, faction visuals.
+  /// </summary>
+  public enum CultureArchetype {
+    [pbr::OriginalName("CULTURE_ARCHETYPE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_HUMAN_FEUDAL")] HumanFeudal = 1,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_NORDIC")] Nordic = 2,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_DESERT")] Desert = 3,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_ELVEN")] Elven = 4,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_DWARVEN")] Dwarven = 5,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_ORCISH")] Orcish = 6,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_GOBLIN")] Goblin = 7,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_UNDEAD")] Undead = 8,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_OCEANIC")] Oceanic = 9,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_NOMAD")] Nomad = 10,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_ARCANE")] Arcane = 11,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_INFERNAL")] Infernal = 12,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_CELESTIAL")] Celestial = 13,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_INSECTOID")] Insectoid = 14,
+    /// <summary>
+    /// Constructs / robots
+    /// </summary>
+    [pbr::OriginalName("CULTURE_ARCHETYPE_MECHANICAL")] Mechanical = 15,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_PSIONIC")] Psionic = 16,
+    [pbr::OriginalName("CULTURE_ARCHETYPE_CUSTOM")] Custom = 100,
+  }
+
+  /// <summary>
+  /// Religion / pantheon alignment — drives shrine bonuses, holy / unholy
+  /// damage, NPC alignment.
+  /// </summary>
+  public enum ReligionAlignment {
+    [pbr::OriginalName("RELIGION_ALIGNMENT_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_LIGHT")] Light = 1,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_DARK")] Dark = 2,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_NATURE")] Nature = 3,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_ARCANE")] Arcane = 4,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_DEATH")] Death = 5,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_LIFE")] Life = 6,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_ORDER")] Order = 7,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_CHAOS")] Chaos = 8,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_NEUTRAL")] Neutral = 9,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_ANCESTRAL")] Ancestral = 10,
+    [pbr::OriginalName("RELIGION_ALIGNMENT_ELEMENTAL")] Elemental = 11,
+  }
+
+  /// <summary>
+  /// Quest hub dialogue node kind — branching conversation atom.
+  /// </summary>
+  public enum DialogueNodeKind {
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// Plain dialogue line
+    /// </summary>
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_LINE")] Line = 1,
+    /// <summary>
+    /// Player chooses next
+    /// </summary>
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_CHOICE")] Choice = 2,
+    /// <summary>
+    /// Offers a quest_ref
+    /// </summary>
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_QUEST_OFFER")] QuestOffer = 3,
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_QUEST_TURN_IN")] QuestTurnIn = 4,
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_SHOP_OPEN")] ShopOpen = 5,
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_END")] End = 6,
+    /// <summary>
+    /// Jump to another node id
+    /// </summary>
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_GOTO")] Goto = 7,
+    /// <summary>
+    /// Call out to script_ref
+    /// </summary>
+    [pbr::OriginalName("DIALOGUE_NODE_KIND_SCRIPT")] Script = 8,
   }
 
   /// <summary>
@@ -2458,6 +3311,14 @@ namespace KBVE.Proto.Map {
       replication_ = other.replication_;
       environment_ = other.environment_ != null ? other.environment_.Clone() : null;
       seedPolicy_ = other.seedPolicy_ != null ? other.seedPolicy_.Clone() : null;
+      factionRef_ = other.factionRef_;
+      settlementRefs_ = other.settlementRefs_.Clone();
+      territoryClaimRefs_ = other.territoryClaimRefs_.Clone();
+      landmarkRefs_ = other.landmarkRefs_.Clone();
+      tradeRouteRefs_ = other.tradeRouteRefs_.Clone();
+      cultureRef_ = other.cultureRef_;
+      religionRef_ = other.religionRef_;
+      climate_ = other.climate_ != null ? other.climate_.Clone() : null;
       credits_ = other.credits_;
       drafted_ = other.drafted_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -3241,6 +4102,161 @@ namespace KBVE.Proto.Map {
       }
     }
 
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 40;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    /// <summary>
+    /// Empire / city / territory wiring
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    /// <summary>Field number for the "settlement_refs" field.</summary>
+    public const int SettlementRefsFieldNumber = 41;
+    private static readonly pb::FieldCodec<string> _repeated_settlementRefs_codec
+        = pb::FieldCodec.ForString(330);
+    private readonly pbc::RepeatedField<string> settlementRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Settlements anchored in this zone
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SettlementRefs {
+      get { return settlementRefs_; }
+    }
+
+    /// <summary>Field number for the "territory_claim_refs" field.</summary>
+    public const int TerritoryClaimRefsFieldNumber = 42;
+    private static readonly pb::FieldCodec<string> _repeated_territoryClaimRefs_codec
+        = pb::FieldCodec.ForString(338);
+    private readonly pbc::RepeatedField<string> territoryClaimRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Active claims overlapping this zone
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TerritoryClaimRefs {
+      get { return territoryClaimRefs_; }
+    }
+
+    /// <summary>Field number for the "landmark_refs" field.</summary>
+    public const int LandmarkRefsFieldNumber = 43;
+    private static readonly pb::FieldCodec<string> _repeated_landmarkRefs_codec
+        = pb::FieldCodec.ForString(346);
+    private readonly pbc::RepeatedField<string> landmarkRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Landmarks in this zone
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> LandmarkRefs {
+      get { return landmarkRefs_; }
+    }
+
+    /// <summary>Field number for the "trade_route_refs" field.</summary>
+    public const int TradeRouteRefsFieldNumber = 44;
+    private static readonly pb::FieldCodec<string> _repeated_tradeRouteRefs_codec
+        = pb::FieldCodec.ForString(354);
+    private readonly pbc::RepeatedField<string> tradeRouteRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Routes passing through
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TradeRouteRefs {
+      get { return tradeRouteRefs_; }
+    }
+
+    /// <summary>Field number for the "culture_ref" field.</summary>
+    public const int CultureRefFieldNumber = 45;
+    private readonly static string CultureRefDefaultValue = "";
+
+    private string cultureRef_;
+    /// <summary>
+    /// Cultural / religious flavour overrides
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CultureRef {
+      get { return cultureRef_ ?? CultureRefDefaultValue; }
+      set {
+        cultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCultureRef {
+      get { return cultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCultureRef() {
+      cultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "religion_ref" field.</summary>
+    public const int ReligionRefFieldNumber = 46;
+    private readonly static string ReligionRefDefaultValue = "";
+
+    private string religionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ReligionRef {
+      get { return religionRef_ ?? ReligionRefDefaultValue; }
+      set {
+        religionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReligionRef {
+      get { return religionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReligionRef() {
+      religionRef_ = null;
+    }
+
+    /// <summary>Field number for the "climate" field.</summary>
+    public const int ClimateFieldNumber = 47;
+    private global::KBVE.Proto.Map.ClimateConfig climate_;
+    /// <summary>
+    /// Climate authoring — overrides region climate when set
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ClimateConfig Climate {
+      get { return climate_; }
+      set {
+        climate_ = value;
+      }
+    }
+
     /// <summary>Field number for the "credits" field.</summary>
     public const int CreditsFieldNumber = 32;
     private readonly static string CreditsDefaultValue = "";
@@ -3349,6 +4365,14 @@ namespace KBVE.Proto.Map {
       if (Replication != other.Replication) return false;
       if (!object.Equals(Environment, other.Environment)) return false;
       if (!object.Equals(SeedPolicy, other.SeedPolicy)) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if(!settlementRefs_.Equals(other.settlementRefs_)) return false;
+      if(!territoryClaimRefs_.Equals(other.territoryClaimRefs_)) return false;
+      if(!landmarkRefs_.Equals(other.landmarkRefs_)) return false;
+      if(!tradeRouteRefs_.Equals(other.tradeRouteRefs_)) return false;
+      if (CultureRef != other.CultureRef) return false;
+      if (ReligionRef != other.ReligionRef) return false;
+      if (!object.Equals(Climate, other.Climate)) return false;
       if (Credits != other.Credits) return false;
       if (Drafted != other.Drafted) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -3395,6 +4419,14 @@ namespace KBVE.Proto.Map {
       if (HasReplication) hash ^= Replication.GetHashCode();
       if (environment_ != null) hash ^= Environment.GetHashCode();
       if (seedPolicy_ != null) hash ^= SeedPolicy.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      hash ^= settlementRefs_.GetHashCode();
+      hash ^= territoryClaimRefs_.GetHashCode();
+      hash ^= landmarkRefs_.GetHashCode();
+      hash ^= tradeRouteRefs_.GetHashCode();
+      if (HasCultureRef) hash ^= CultureRef.GetHashCode();
+      if (HasReligionRef) hash ^= ReligionRef.GetHashCode();
+      if (climate_ != null) hash ^= Climate.GetHashCode();
       if (HasCredits) hash ^= Credits.GetHashCode();
       if (HasDrafted) hash ^= Drafted.GetHashCode();
       if (_unknownFields != null) {
@@ -3550,6 +4582,26 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(184, 2);
         output.WriteEnum((int) Generation);
       }
+      if (HasFactionRef) {
+        output.WriteRawTag(194, 2);
+        output.WriteString(FactionRef);
+      }
+      settlementRefs_.WriteTo(output, _repeated_settlementRefs_codec);
+      territoryClaimRefs_.WriteTo(output, _repeated_territoryClaimRefs_codec);
+      landmarkRefs_.WriteTo(output, _repeated_landmarkRefs_codec);
+      tradeRouteRefs_.WriteTo(output, _repeated_tradeRouteRefs_codec);
+      if (HasCultureRef) {
+        output.WriteRawTag(234, 2);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(242, 2);
+        output.WriteString(ReligionRef);
+      }
+      if (climate_ != null) {
+        output.WriteRawTag(250, 2);
+        output.WriteMessage(Climate);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3695,6 +4747,26 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(184, 2);
         output.WriteEnum((int) Generation);
       }
+      if (HasFactionRef) {
+        output.WriteRawTag(194, 2);
+        output.WriteString(FactionRef);
+      }
+      settlementRefs_.WriteTo(ref output, _repeated_settlementRefs_codec);
+      territoryClaimRefs_.WriteTo(ref output, _repeated_territoryClaimRefs_codec);
+      landmarkRefs_.WriteTo(ref output, _repeated_landmarkRefs_codec);
+      tradeRouteRefs_.WriteTo(ref output, _repeated_tradeRouteRefs_codec);
+      if (HasCultureRef) {
+        output.WriteRawTag(234, 2);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(242, 2);
+        output.WriteString(ReligionRef);
+      }
+      if (climate_ != null) {
+        output.WriteRawTag(250, 2);
+        output.WriteMessage(Climate);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3801,6 +4873,22 @@ namespace KBVE.Proto.Map {
       }
       if (seedPolicy_ != null) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(SeedPolicy);
+      }
+      if (HasFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      size += settlementRefs_.CalculateSize(_repeated_settlementRefs_codec);
+      size += territoryClaimRefs_.CalculateSize(_repeated_territoryClaimRefs_codec);
+      size += landmarkRefs_.CalculateSize(_repeated_landmarkRefs_codec);
+      size += tradeRouteRefs_.CalculateSize(_repeated_tradeRouteRefs_codec);
+      if (HasCultureRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(CultureRef);
+      }
+      if (HasReligionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(ReligionRef);
+      }
+      if (climate_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Climate);
       }
       if (HasCredits) {
         size += 2 + pb::CodedOutputStream.ComputeStringSize(Credits);
@@ -3937,6 +5025,25 @@ namespace KBVE.Proto.Map {
           SeedPolicy = new global::KBVE.Proto.Map.SeedPolicy();
         }
         SeedPolicy.MergeFrom(other.SeedPolicy);
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      settlementRefs_.Add(other.settlementRefs_);
+      territoryClaimRefs_.Add(other.territoryClaimRefs_);
+      landmarkRefs_.Add(other.landmarkRefs_);
+      tradeRouteRefs_.Add(other.tradeRouteRefs_);
+      if (other.HasCultureRef) {
+        CultureRef = other.CultureRef;
+      }
+      if (other.HasReligionRef) {
+        ReligionRef = other.ReligionRef;
+      }
+      if (other.climate_ != null) {
+        if (climate_ == null) {
+          Climate = new global::KBVE.Proto.Map.ClimateConfig();
+        }
+        Climate.MergeFrom(other.Climate);
       }
       if (other.HasCredits) {
         Credits = other.Credits;
@@ -4140,6 +5247,41 @@ namespace KBVE.Proto.Map {
             Generation = (global::KBVE.Proto.Map.GenerationMode) input.ReadEnum();
             break;
           }
+          case 322: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 330: {
+            settlementRefs_.AddEntriesFrom(input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 338: {
+            territoryClaimRefs_.AddEntriesFrom(input, _repeated_territoryClaimRefs_codec);
+            break;
+          }
+          case 346: {
+            landmarkRefs_.AddEntriesFrom(input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 354: {
+            tradeRouteRefs_.AddEntriesFrom(input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 362: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 370: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 378: {
+            if (climate_ == null) {
+              Climate = new global::KBVE.Proto.Map.ClimateConfig();
+            }
+            input.ReadMessage(Climate);
+            break;
+          }
         }
       }
     #endif
@@ -4334,6 +5476,41 @@ namespace KBVE.Proto.Map {
           }
           case 312: {
             Generation = (global::KBVE.Proto.Map.GenerationMode) input.ReadEnum();
+            break;
+          }
+          case 322: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 330: {
+            settlementRefs_.AddEntriesFrom(ref input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 338: {
+            territoryClaimRefs_.AddEntriesFrom(ref input, _repeated_territoryClaimRefs_codec);
+            break;
+          }
+          case 346: {
+            landmarkRefs_.AddEntriesFrom(ref input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 354: {
+            tradeRouteRefs_.AddEntriesFrom(ref input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 362: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 370: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 378: {
+            if (climate_ == null) {
+              Climate = new global::KBVE.Proto.Map.ClimateConfig();
+            }
+            input.ReadMessage(Climate);
             break;
           }
         }
@@ -15191,6 +16368,13 @@ namespace KBVE.Proto.Map {
       questGiver_ = other.questGiver_ != null ? other.questGiver_.Clone() : null;
       aura_ = other.aura_ != null ? other.aura_.Clone() : null;
       faction_ = other.faction_;
+      factionRef_ = other.factionRef_;
+      settlementRef_ = other.settlementRef_;
+      districtRef_ = other.districtRef_;
+      cultureRef_ = other.cultureRef_;
+      religionRef_ = other.religionRef_;
+      dialogueTreeRef_ = other.dialogueTreeRef_;
+      interactionCooldownSecs_ = other.interactionCooldownSecs_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -16669,6 +17853,198 @@ namespace KBVE.Proto.Map {
       faction_ = null;
     }
 
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 66;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    /// <summary>
+    /// Empire / city / culture wiring (added with the Faction/Settlement layer).
+    /// `faction` (above) stays as a slug for legacy use; `faction_ref` is the
+    /// canonical pointer to a Faction record. `settlement_ref` tags a structure
+    /// as belonging to a Settlement's roster (used by district / siege logic).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    /// <summary>Field number for the "settlement_ref" field.</summary>
+    public const int SettlementRefFieldNumber = 67;
+    private readonly static string SettlementRefDefaultValue = "";
+
+    private string settlementRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SettlementRef {
+      get { return settlementRef_ ?? SettlementRefDefaultValue; }
+      set {
+        settlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "settlement_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSettlementRef {
+      get { return settlementRef_ != null; }
+    }
+    /// <summary>Clears the value of the "settlement_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSettlementRef() {
+      settlementRef_ = null;
+    }
+
+    /// <summary>Field number for the "district_ref" field.</summary>
+    public const int DistrictRefFieldNumber = 68;
+    private readonly static string DistrictRefDefaultValue = "";
+
+    private string districtRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DistrictRef {
+      get { return districtRef_ ?? DistrictRefDefaultValue; }
+      set {
+        districtRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "district_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDistrictRef {
+      get { return districtRef_ != null; }
+    }
+    /// <summary>Clears the value of the "district_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDistrictRef() {
+      districtRef_ = null;
+    }
+
+    /// <summary>Field number for the "culture_ref" field.</summary>
+    public const int CultureRefFieldNumber = 69;
+    private readonly static string CultureRefDefaultValue = "";
+
+    private string cultureRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CultureRef {
+      get { return cultureRef_ ?? CultureRefDefaultValue; }
+      set {
+        cultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCultureRef {
+      get { return cultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCultureRef() {
+      cultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "religion_ref" field.</summary>
+    public const int ReligionRefFieldNumber = 70;
+    private readonly static string ReligionRefDefaultValue = "";
+
+    private string religionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ReligionRef {
+      get { return religionRef_ ?? ReligionRefDefaultValue; }
+      set {
+        religionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReligionRef {
+      get { return religionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReligionRef() {
+      religionRef_ = null;
+    }
+
+    /// <summary>Field number for the "dialogue_tree_ref" field.</summary>
+    public const int DialogueTreeRefFieldNumber = 71;
+    private readonly static string DialogueTreeRefDefaultValue = "";
+
+    private string dialogueTreeRef_;
+    /// <summary>
+    /// Upgrade for QuestGiverSpec / NPC dialog
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DialogueTreeRef {
+      get { return dialogueTreeRef_ ?? DialogueTreeRefDefaultValue; }
+      set {
+        dialogueTreeRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "dialogue_tree_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDialogueTreeRef {
+      get { return dialogueTreeRef_ != null; }
+    }
+    /// <summary>Clears the value of the "dialogue_tree_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDialogueTreeRef() {
+      dialogueTreeRef_ = null;
+    }
+
+    /// <summary>Field number for the "interaction_cooldown_secs" field.</summary>
+    public const int InteractionCooldownSecsFieldNumber = 72;
+    private readonly static float InteractionCooldownSecsDefaultValue = 0F;
+
+    private float interactionCooldownSecs_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float InteractionCooldownSecs {
+      get { if ((_hasBits0 & 1073741824) != 0) { return interactionCooldownSecs_; } else { return InteractionCooldownSecsDefaultValue; } }
+      set {
+        _hasBits0 |= 1073741824;
+        interactionCooldownSecs_ = value;
+      }
+    }
+    /// <summary>Gets whether the "interaction_cooldown_secs" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasInteractionCooldownSecs {
+      get { return (_hasBits0 & 1073741824) != 0; }
+    }
+    /// <summary>Clears the value of the "interaction_cooldown_secs" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearInteractionCooldownSecs() {
+      _hasBits0 &= ~1073741824;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -16748,6 +18124,13 @@ namespace KBVE.Proto.Map {
       if (!object.Equals(QuestGiver, other.QuestGiver)) return false;
       if (!object.Equals(Aura, other.Aura)) return false;
       if (Faction != other.Faction) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if (SettlementRef != other.SettlementRef) return false;
+      if (DistrictRef != other.DistrictRef) return false;
+      if (CultureRef != other.CultureRef) return false;
+      if (ReligionRef != other.ReligionRef) return false;
+      if (DialogueTreeRef != other.DialogueTreeRef) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(InteractionCooldownSecs, other.InteractionCooldownSecs)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -16819,6 +18202,13 @@ namespace KBVE.Proto.Map {
       if (questGiver_ != null) hash ^= QuestGiver.GetHashCode();
       if (aura_ != null) hash ^= Aura.GetHashCode();
       if (HasFaction) hash ^= Faction.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      if (HasSettlementRef) hash ^= SettlementRef.GetHashCode();
+      if (HasDistrictRef) hash ^= DistrictRef.GetHashCode();
+      if (HasCultureRef) hash ^= CultureRef.GetHashCode();
+      if (HasReligionRef) hash ^= ReligionRef.GetHashCode();
+      if (HasDialogueTreeRef) hash ^= DialogueTreeRef.GetHashCode();
+      if (HasInteractionCooldownSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(InteractionCooldownSecs);
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -17069,6 +18459,34 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(138, 4);
         output.WriteString(Faction);
       }
+      if (HasFactionRef) {
+        output.WriteRawTag(146, 4);
+        output.WriteString(FactionRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(154, 4);
+        output.WriteString(SettlementRef);
+      }
+      if (HasDistrictRef) {
+        output.WriteRawTag(162, 4);
+        output.WriteString(DistrictRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(170, 4);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(178, 4);
+        output.WriteString(ReligionRef);
+      }
+      if (HasDialogueTreeRef) {
+        output.WriteRawTag(186, 4);
+        output.WriteString(DialogueTreeRef);
+      }
+      if (HasInteractionCooldownSecs) {
+        output.WriteRawTag(197, 4);
+        output.WriteFloat(InteractionCooldownSecs);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -17311,6 +18729,34 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(138, 4);
         output.WriteString(Faction);
       }
+      if (HasFactionRef) {
+        output.WriteRawTag(146, 4);
+        output.WriteString(FactionRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(154, 4);
+        output.WriteString(SettlementRef);
+      }
+      if (HasDistrictRef) {
+        output.WriteRawTag(162, 4);
+        output.WriteString(DistrictRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(170, 4);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(178, 4);
+        output.WriteString(ReligionRef);
+      }
+      if (HasDialogueTreeRef) {
+        output.WriteRawTag(186, 4);
+        output.WriteString(DialogueTreeRef);
+      }
+      if (HasInteractionCooldownSecs) {
+        output.WriteRawTag(197, 4);
+        output.WriteFloat(InteractionCooldownSecs);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -17496,6 +18942,27 @@ namespace KBVE.Proto.Map {
       }
       if (HasFaction) {
         size += 2 + pb::CodedOutputStream.ComputeStringSize(Faction);
+      }
+      if (HasFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (HasSettlementRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(SettlementRef);
+      }
+      if (HasDistrictRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DistrictRef);
+      }
+      if (HasCultureRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(CultureRef);
+      }
+      if (HasReligionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(ReligionRef);
+      }
+      if (HasDialogueTreeRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DialogueTreeRef);
+      }
+      if (HasInteractionCooldownSecs) {
+        size += 2 + 4;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -17720,6 +19187,27 @@ namespace KBVE.Proto.Map {
       }
       if (other.HasFaction) {
         Faction = other.Faction;
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      if (other.HasSettlementRef) {
+        SettlementRef = other.SettlementRef;
+      }
+      if (other.HasDistrictRef) {
+        DistrictRef = other.DistrictRef;
+      }
+      if (other.HasCultureRef) {
+        CultureRef = other.CultureRef;
+      }
+      if (other.HasReligionRef) {
+        ReligionRef = other.ReligionRef;
+      }
+      if (other.HasDialogueTreeRef) {
+        DialogueTreeRef = other.DialogueTreeRef;
+      }
+      if (other.HasInteractionCooldownSecs) {
+        InteractionCooldownSecs = other.InteractionCooldownSecs;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -18033,6 +19521,34 @@ namespace KBVE.Proto.Map {
             Faction = input.ReadString();
             break;
           }
+          case 530: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 538: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 546: {
+            DistrictRef = input.ReadString();
+            break;
+          }
+          case 554: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 562: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 570: {
+            DialogueTreeRef = input.ReadString();
+            break;
+          }
+          case 581: {
+            InteractionCooldownSecs = input.ReadFloat();
+            break;
+          }
         }
       }
     #endif
@@ -18343,6 +19859,34 @@ namespace KBVE.Proto.Map {
           }
           case 522: {
             Faction = input.ReadString();
+            break;
+          }
+          case 530: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 538: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 546: {
+            DistrictRef = input.ReadString();
+            break;
+          }
+          case 554: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 562: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 570: {
+            DialogueTreeRef = input.ReadString();
+            break;
+          }
+          case 581: {
+            InteractionCooldownSecs = input.ReadFloat();
             break;
           }
         }
@@ -19119,6 +20663,12 @@ namespace KBVE.Proto.Map {
       groupMin_ = other.groupMin_;
       groupMax_ = other.groupMax_;
       groupRadius_ = other.groupRadius_;
+      timeOfDayKind_ = other.timeOfDayKind_;
+      weatherKind_ = other.weatherKind_;
+      season_ = other.season_;
+      factionRef_ = other.factionRef_;
+      territoryClaimRef_ = other.territoryClaimRef_;
+      settlementRef_ = other.settlementRef_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -19623,6 +21173,179 @@ namespace KBVE.Proto.Map {
       _hasBits0 &= ~512;
     }
 
+    /// <summary>Field number for the "time_of_day_kind" field.</summary>
+    public const int TimeOfDayKindFieldNumber = 21;
+    private readonly static global::KBVE.Proto.Map.TimeOfDay TimeOfDayKindDefaultValue = global::KBVE.Proto.Map.TimeOfDay.Unspecified;
+
+    private global::KBVE.Proto.Map.TimeOfDay timeOfDayKind_;
+    /// <summary>
+    /// Typed condition gates — preferred over the stringly-typed
+    /// `time_of_day` / `weather` fields above. Generators should set the
+    /// typed enums; the string fields stay for backward-compat reads.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.TimeOfDay TimeOfDayKind {
+      get { if ((_hasBits0 & 1024) != 0) { return timeOfDayKind_; } else { return TimeOfDayKindDefaultValue; } }
+      set {
+        _hasBits0 |= 1024;
+        timeOfDayKind_ = value;
+      }
+    }
+    /// <summary>Gets whether the "time_of_day_kind" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTimeOfDayKind {
+      get { return (_hasBits0 & 1024) != 0; }
+    }
+    /// <summary>Clears the value of the "time_of_day_kind" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTimeOfDayKind() {
+      _hasBits0 &= ~1024;
+    }
+
+    /// <summary>Field number for the "weather_kind" field.</summary>
+    public const int WeatherKindFieldNumber = 22;
+    private readonly static global::KBVE.Proto.Map.WeatherKind WeatherKindDefaultValue = global::KBVE.Proto.Map.WeatherKind.Unspecified;
+
+    private global::KBVE.Proto.Map.WeatherKind weatherKind_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.WeatherKind WeatherKind {
+      get { if ((_hasBits0 & 2048) != 0) { return weatherKind_; } else { return WeatherKindDefaultValue; } }
+      set {
+        _hasBits0 |= 2048;
+        weatherKind_ = value;
+      }
+    }
+    /// <summary>Gets whether the "weather_kind" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWeatherKind {
+      get { return (_hasBits0 & 2048) != 0; }
+    }
+    /// <summary>Clears the value of the "weather_kind" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWeatherKind() {
+      _hasBits0 &= ~2048;
+    }
+
+    /// <summary>Field number for the "season" field.</summary>
+    public const int SeasonFieldNumber = 23;
+    private readonly static global::KBVE.Proto.Map.Season SeasonDefaultValue = global::KBVE.Proto.Map.Season.Unspecified;
+
+    private global::KBVE.Proto.Map.Season season_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Season Season {
+      get { if ((_hasBits0 & 4096) != 0) { return season_; } else { return SeasonDefaultValue; } }
+      set {
+        _hasBits0 |= 4096;
+        season_ = value;
+      }
+    }
+    /// <summary>Gets whether the "season" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSeason {
+      get { return (_hasBits0 & 4096) != 0; }
+    }
+    /// <summary>Clears the value of the "season" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSeason() {
+      _hasBits0 &= ~4096;
+    }
+
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 24;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    /// <summary>
+    /// Faction / territory gating
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    /// <summary>Field number for the "territory_claim_ref" field.</summary>
+    public const int TerritoryClaimRefFieldNumber = 25;
+    private readonly static string TerritoryClaimRefDefaultValue = "";
+
+    private string territoryClaimRef_;
+    /// <summary>
+    /// Only spawn inside this claim
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string TerritoryClaimRef {
+      get { return territoryClaimRef_ ?? TerritoryClaimRefDefaultValue; }
+      set {
+        territoryClaimRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "territory_claim_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTerritoryClaimRef {
+      get { return territoryClaimRef_ != null; }
+    }
+    /// <summary>Clears the value of the "territory_claim_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTerritoryClaimRef() {
+      territoryClaimRef_ = null;
+    }
+
+    /// <summary>Field number for the "settlement_ref" field.</summary>
+    public const int SettlementRefFieldNumber = 26;
+    private readonly static string SettlementRefDefaultValue = "";
+
+    private string settlementRef_;
+    /// <summary>
+    /// Pinned to a specific settlement
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SettlementRef {
+      get { return settlementRef_ ?? SettlementRefDefaultValue; }
+      set {
+        settlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "settlement_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSettlementRef {
+      get { return settlementRef_ != null; }
+    }
+    /// <summary>Clears the value of the "settlement_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSettlementRef() {
+      settlementRef_ = null;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -19658,6 +21381,12 @@ namespace KBVE.Proto.Map {
       if (GroupMin != other.GroupMin) return false;
       if (GroupMax != other.GroupMax) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(GroupRadius, other.GroupRadius)) return false;
+      if (TimeOfDayKind != other.TimeOfDayKind) return false;
+      if (WeatherKind != other.WeatherKind) return false;
+      if (Season != other.Season) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if (TerritoryClaimRef != other.TerritoryClaimRef) return false;
+      if (SettlementRef != other.SettlementRef) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -19685,6 +21414,12 @@ namespace KBVE.Proto.Map {
       if (HasGroupMin) hash ^= GroupMin.GetHashCode();
       if (HasGroupMax) hash ^= GroupMax.GetHashCode();
       if (HasGroupRadius) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(GroupRadius);
+      if (HasTimeOfDayKind) hash ^= TimeOfDayKind.GetHashCode();
+      if (HasWeatherKind) hash ^= WeatherKind.GetHashCode();
+      if (HasSeason) hash ^= Season.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      if (HasTerritoryClaimRef) hash ^= TerritoryClaimRef.GetHashCode();
+      if (HasSettlementRef) hash ^= SettlementRef.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -19780,6 +21515,30 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(165, 1);
         output.WriteFloat(GroupRadius);
       }
+      if (HasTimeOfDayKind) {
+        output.WriteRawTag(168, 1);
+        output.WriteEnum((int) TimeOfDayKind);
+      }
+      if (HasWeatherKind) {
+        output.WriteRawTag(176, 1);
+        output.WriteEnum((int) WeatherKind);
+      }
+      if (HasSeason) {
+        output.WriteRawTag(184, 1);
+        output.WriteEnum((int) Season);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(194, 1);
+        output.WriteString(FactionRef);
+      }
+      if (HasTerritoryClaimRef) {
+        output.WriteRawTag(202, 1);
+        output.WriteString(TerritoryClaimRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(210, 1);
+        output.WriteString(SettlementRef);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -19867,6 +21626,30 @@ namespace KBVE.Proto.Map {
         output.WriteRawTag(165, 1);
         output.WriteFloat(GroupRadius);
       }
+      if (HasTimeOfDayKind) {
+        output.WriteRawTag(168, 1);
+        output.WriteEnum((int) TimeOfDayKind);
+      }
+      if (HasWeatherKind) {
+        output.WriteRawTag(176, 1);
+        output.WriteEnum((int) WeatherKind);
+      }
+      if (HasSeason) {
+        output.WriteRawTag(184, 1);
+        output.WriteEnum((int) Season);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(194, 1);
+        output.WriteString(FactionRef);
+      }
+      if (HasTerritoryClaimRef) {
+        output.WriteRawTag(202, 1);
+        output.WriteString(TerritoryClaimRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(210, 1);
+        output.WriteString(SettlementRef);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -19934,6 +21717,24 @@ namespace KBVE.Proto.Map {
       }
       if (HasGroupRadius) {
         size += 2 + 4;
+      }
+      if (HasTimeOfDayKind) {
+        size += 2 + pb::CodedOutputStream.ComputeEnumSize((int) TimeOfDayKind);
+      }
+      if (HasWeatherKind) {
+        size += 2 + pb::CodedOutputStream.ComputeEnumSize((int) WeatherKind);
+      }
+      if (HasSeason) {
+        size += 2 + pb::CodedOutputStream.ComputeEnumSize((int) Season);
+      }
+      if (HasFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (HasTerritoryClaimRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(TerritoryClaimRef);
+      }
+      if (HasSettlementRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(SettlementRef);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -20010,6 +21811,24 @@ namespace KBVE.Proto.Map {
       }
       if (other.HasGroupRadius) {
         GroupRadius = other.GroupRadius;
+      }
+      if (other.HasTimeOfDayKind) {
+        TimeOfDayKind = other.TimeOfDayKind;
+      }
+      if (other.HasWeatherKind) {
+        WeatherKind = other.WeatherKind;
+      }
+      if (other.HasSeason) {
+        Season = other.Season;
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      if (other.HasTerritoryClaimRef) {
+        TerritoryClaimRef = other.TerritoryClaimRef;
+      }
+      if (other.HasSettlementRef) {
+        SettlementRef = other.SettlementRef;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -20114,6 +21933,30 @@ namespace KBVE.Proto.Map {
           }
           case 165: {
             GroupRadius = input.ReadFloat();
+            break;
+          }
+          case 168: {
+            TimeOfDayKind = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+          case 176: {
+            WeatherKind = (global::KBVE.Proto.Map.WeatherKind) input.ReadEnum();
+            break;
+          }
+          case 184: {
+            Season = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 194: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 202: {
+            TerritoryClaimRef = input.ReadString();
+            break;
+          }
+          case 210: {
+            SettlementRef = input.ReadString();
             break;
           }
         }
@@ -20221,6 +22064,30 @@ namespace KBVE.Proto.Map {
             GroupRadius = input.ReadFloat();
             break;
           }
+          case 168: {
+            TimeOfDayKind = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+          case 176: {
+            WeatherKind = (global::KBVE.Proto.Map.WeatherKind) input.ReadEnum();
+            break;
+          }
+          case 184: {
+            Season = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 194: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 202: {
+            TerritoryClaimRef = input.ReadString();
+            break;
+          }
+          case 210: {
+            SettlementRef = input.ReadString();
+            break;
+          }
         }
       }
     }
@@ -20279,6 +22146,16 @@ namespace KBVE.Proto.Map {
       gravity_ = other.gravity_;
       dayCycleSecs_ = other.dayCycleSecs_;
       extensions_ = other.extensions_.Clone();
+      factionRefs_ = other.factionRefs_.Clone();
+      settlementRefs_ = other.settlementRefs_.Clone();
+      territoryClaimRefs_ = other.territoryClaimRefs_.Clone();
+      tradeRouteRefs_ = other.tradeRouteRefs_.Clone();
+      landmarkRefs_ = other.landmarkRefs_.Clone();
+      cultureRefs_ = other.cultureRefs_.Clone();
+      religionRefs_ = other.religionRefs_.Clone();
+      climate_ = other.climate_ != null ? other.climate_.Clone() : null;
+      dominantCultureRef_ = other.dominantCultureRef_;
+      dominantReligionRef_ = other.dominantReligionRef_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -20522,6 +22399,156 @@ namespace KBVE.Proto.Map {
       get { return extensions_; }
     }
 
+    /// <summary>Field number for the "faction_refs" field.</summary>
+    public const int FactionRefsFieldNumber = 12;
+    private static readonly pb::FieldCodec<string> _repeated_factionRefs_codec
+        = pb::FieldCodec.ForString(98);
+    private readonly pbc::RepeatedField<string> factionRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Empire / city / culture wiring
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> FactionRefs {
+      get { return factionRefs_; }
+    }
+
+    /// <summary>Field number for the "settlement_refs" field.</summary>
+    public const int SettlementRefsFieldNumber = 13;
+    private static readonly pb::FieldCodec<string> _repeated_settlementRefs_codec
+        = pb::FieldCodec.ForString(106);
+    private readonly pbc::RepeatedField<string> settlementRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Settlements anchored in this region
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SettlementRefs {
+      get { return settlementRefs_; }
+    }
+
+    /// <summary>Field number for the "territory_claim_refs" field.</summary>
+    public const int TerritoryClaimRefsFieldNumber = 14;
+    private static readonly pb::FieldCodec<string> _repeated_territoryClaimRefs_codec
+        = pb::FieldCodec.ForString(114);
+    private readonly pbc::RepeatedField<string> territoryClaimRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TerritoryClaimRefs {
+      get { return territoryClaimRefs_; }
+    }
+
+    /// <summary>Field number for the "trade_route_refs" field.</summary>
+    public const int TradeRouteRefsFieldNumber = 15;
+    private static readonly pb::FieldCodec<string> _repeated_tradeRouteRefs_codec
+        = pb::FieldCodec.ForString(122);
+    private readonly pbc::RepeatedField<string> tradeRouteRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TradeRouteRefs {
+      get { return tradeRouteRefs_; }
+    }
+
+    /// <summary>Field number for the "landmark_refs" field.</summary>
+    public const int LandmarkRefsFieldNumber = 16;
+    private static readonly pb::FieldCodec<string> _repeated_landmarkRefs_codec
+        = pb::FieldCodec.ForString(130);
+    private readonly pbc::RepeatedField<string> landmarkRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> LandmarkRefs {
+      get { return landmarkRefs_; }
+    }
+
+    /// <summary>Field number for the "culture_refs" field.</summary>
+    public const int CultureRefsFieldNumber = 17;
+    private static readonly pb::FieldCodec<string> _repeated_cultureRefs_codec
+        = pb::FieldCodec.ForString(138);
+    private readonly pbc::RepeatedField<string> cultureRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> CultureRefs {
+      get { return cultureRefs_; }
+    }
+
+    /// <summary>Field number for the "religion_refs" field.</summary>
+    public const int ReligionRefsFieldNumber = 18;
+    private static readonly pb::FieldCodec<string> _repeated_religionRefs_codec
+        = pb::FieldCodec.ForString(146);
+    private readonly pbc::RepeatedField<string> religionRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ReligionRefs {
+      get { return religionRefs_; }
+    }
+
+    /// <summary>Field number for the "climate" field.</summary>
+    public const int ClimateFieldNumber = 19;
+    private global::KBVE.Proto.Map.ClimateConfig climate_;
+    /// <summary>
+    /// Default climate for child zones
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ClimateConfig Climate {
+      get { return climate_; }
+      set {
+        climate_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "dominant_culture_ref" field.</summary>
+    public const int DominantCultureRefFieldNumber = 20;
+    private readonly static string DominantCultureRefDefaultValue = "";
+
+    private string dominantCultureRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DominantCultureRef {
+      get { return dominantCultureRef_ ?? DominantCultureRefDefaultValue; }
+      set {
+        dominantCultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "dominant_culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDominantCultureRef {
+      get { return dominantCultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "dominant_culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDominantCultureRef() {
+      dominantCultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "dominant_religion_ref" field.</summary>
+    public const int DominantReligionRefFieldNumber = 21;
+    private readonly static string DominantReligionRefDefaultValue = "";
+
+    private string dominantReligionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DominantReligionRef {
+      get { return dominantReligionRef_ ?? DominantReligionRefDefaultValue; }
+      set {
+        dominantReligionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "dominant_religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDominantReligionRef {
+      get { return dominantReligionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "dominant_religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDominantReligionRef() {
+      dominantReligionRef_ = null;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -20548,6 +22575,16 @@ namespace KBVE.Proto.Map {
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Gravity, other.Gravity)) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(DayCycleSecs, other.DayCycleSecs)) return false;
       if(!extensions_.Equals(other.extensions_)) return false;
+      if(!factionRefs_.Equals(other.factionRefs_)) return false;
+      if(!settlementRefs_.Equals(other.settlementRefs_)) return false;
+      if(!territoryClaimRefs_.Equals(other.territoryClaimRefs_)) return false;
+      if(!tradeRouteRefs_.Equals(other.tradeRouteRefs_)) return false;
+      if(!landmarkRefs_.Equals(other.landmarkRefs_)) return false;
+      if(!cultureRefs_.Equals(other.cultureRefs_)) return false;
+      if(!religionRefs_.Equals(other.religionRefs_)) return false;
+      if (!object.Equals(Climate, other.Climate)) return false;
+      if (DominantCultureRef != other.DominantCultureRef) return false;
+      if (DominantReligionRef != other.DominantReligionRef) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -20566,6 +22603,16 @@ namespace KBVE.Proto.Map {
       if (HasGravity) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Gravity);
       if (HasDayCycleSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(DayCycleSecs);
       hash ^= extensions_.GetHashCode();
+      hash ^= factionRefs_.GetHashCode();
+      hash ^= settlementRefs_.GetHashCode();
+      hash ^= territoryClaimRefs_.GetHashCode();
+      hash ^= tradeRouteRefs_.GetHashCode();
+      hash ^= landmarkRefs_.GetHashCode();
+      hash ^= cultureRefs_.GetHashCode();
+      hash ^= religionRefs_.GetHashCode();
+      if (climate_ != null) hash ^= Climate.GetHashCode();
+      if (HasDominantCultureRef) hash ^= DominantCultureRef.GetHashCode();
+      if (HasDominantReligionRef) hash ^= DominantReligionRef.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -20622,6 +22669,25 @@ namespace KBVE.Proto.Map {
         output.WriteFloat(DayCycleSecs);
       }
       extensions_.WriteTo(output, _repeated_extensions_codec);
+      factionRefs_.WriteTo(output, _repeated_factionRefs_codec);
+      settlementRefs_.WriteTo(output, _repeated_settlementRefs_codec);
+      territoryClaimRefs_.WriteTo(output, _repeated_territoryClaimRefs_codec);
+      tradeRouteRefs_.WriteTo(output, _repeated_tradeRouteRefs_codec);
+      landmarkRefs_.WriteTo(output, _repeated_landmarkRefs_codec);
+      cultureRefs_.WriteTo(output, _repeated_cultureRefs_codec);
+      religionRefs_.WriteTo(output, _repeated_religionRefs_codec);
+      if (climate_ != null) {
+        output.WriteRawTag(154, 1);
+        output.WriteMessage(Climate);
+      }
+      if (HasDominantCultureRef) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(DominantCultureRef);
+      }
+      if (HasDominantReligionRef) {
+        output.WriteRawTag(170, 1);
+        output.WriteString(DominantReligionRef);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -20670,6 +22736,25 @@ namespace KBVE.Proto.Map {
         output.WriteFloat(DayCycleSecs);
       }
       extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      factionRefs_.WriteTo(ref output, _repeated_factionRefs_codec);
+      settlementRefs_.WriteTo(ref output, _repeated_settlementRefs_codec);
+      territoryClaimRefs_.WriteTo(ref output, _repeated_territoryClaimRefs_codec);
+      tradeRouteRefs_.WriteTo(ref output, _repeated_tradeRouteRefs_codec);
+      landmarkRefs_.WriteTo(ref output, _repeated_landmarkRefs_codec);
+      cultureRefs_.WriteTo(ref output, _repeated_cultureRefs_codec);
+      religionRefs_.WriteTo(ref output, _repeated_religionRefs_codec);
+      if (climate_ != null) {
+        output.WriteRawTag(154, 1);
+        output.WriteMessage(Climate);
+      }
+      if (HasDominantCultureRef) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(DominantCultureRef);
+      }
+      if (HasDominantReligionRef) {
+        output.WriteRawTag(170, 1);
+        output.WriteString(DominantReligionRef);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -20709,6 +22794,22 @@ namespace KBVE.Proto.Map {
         size += 1 + 4;
       }
       size += extensions_.CalculateSize(_repeated_extensions_codec);
+      size += factionRefs_.CalculateSize(_repeated_factionRefs_codec);
+      size += settlementRefs_.CalculateSize(_repeated_settlementRefs_codec);
+      size += territoryClaimRefs_.CalculateSize(_repeated_territoryClaimRefs_codec);
+      size += tradeRouteRefs_.CalculateSize(_repeated_tradeRouteRefs_codec);
+      size += landmarkRefs_.CalculateSize(_repeated_landmarkRefs_codec);
+      size += cultureRefs_.CalculateSize(_repeated_cultureRefs_codec);
+      size += religionRefs_.CalculateSize(_repeated_religionRefs_codec);
+      if (climate_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Climate);
+      }
+      if (HasDominantCultureRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DominantCultureRef);
+      }
+      if (HasDominantReligionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DominantReligionRef);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -20750,6 +22851,25 @@ namespace KBVE.Proto.Map {
         DayCycleSecs = other.DayCycleSecs;
       }
       extensions_.Add(other.extensions_);
+      factionRefs_.Add(other.factionRefs_);
+      settlementRefs_.Add(other.settlementRefs_);
+      territoryClaimRefs_.Add(other.territoryClaimRefs_);
+      tradeRouteRefs_.Add(other.tradeRouteRefs_);
+      landmarkRefs_.Add(other.landmarkRefs_);
+      cultureRefs_.Add(other.cultureRefs_);
+      religionRefs_.Add(other.religionRefs_);
+      if (other.climate_ != null) {
+        if (climate_ == null) {
+          Climate = new global::KBVE.Proto.Map.ClimateConfig();
+        }
+        Climate.MergeFrom(other.Climate);
+      }
+      if (other.HasDominantCultureRef) {
+        DominantCultureRef = other.DominantCultureRef;
+      }
+      if (other.HasDominantReligionRef) {
+        DominantReligionRef = other.DominantReligionRef;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -20813,6 +22933,49 @@ namespace KBVE.Proto.Map {
             extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
             break;
           }
+          case 98: {
+            factionRefs_.AddEntriesFrom(input, _repeated_factionRefs_codec);
+            break;
+          }
+          case 106: {
+            settlementRefs_.AddEntriesFrom(input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 114: {
+            territoryClaimRefs_.AddEntriesFrom(input, _repeated_territoryClaimRefs_codec);
+            break;
+          }
+          case 122: {
+            tradeRouteRefs_.AddEntriesFrom(input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 130: {
+            landmarkRefs_.AddEntriesFrom(input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 138: {
+            cultureRefs_.AddEntriesFrom(input, _repeated_cultureRefs_codec);
+            break;
+          }
+          case 146: {
+            religionRefs_.AddEntriesFrom(input, _repeated_religionRefs_codec);
+            break;
+          }
+          case 154: {
+            if (climate_ == null) {
+              Climate = new global::KBVE.Proto.Map.ClimateConfig();
+            }
+            input.ReadMessage(Climate);
+            break;
+          }
+          case 162: {
+            DominantCultureRef = input.ReadString();
+            break;
+          }
+          case 170: {
+            DominantReligionRef = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -20874,6 +23037,49 @@ namespace KBVE.Proto.Map {
           }
           case 90: {
             extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+          case 98: {
+            factionRefs_.AddEntriesFrom(ref input, _repeated_factionRefs_codec);
+            break;
+          }
+          case 106: {
+            settlementRefs_.AddEntriesFrom(ref input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 114: {
+            territoryClaimRefs_.AddEntriesFrom(ref input, _repeated_territoryClaimRefs_codec);
+            break;
+          }
+          case 122: {
+            tradeRouteRefs_.AddEntriesFrom(ref input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 130: {
+            landmarkRefs_.AddEntriesFrom(ref input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 138: {
+            cultureRefs_.AddEntriesFrom(ref input, _repeated_cultureRefs_codec);
+            break;
+          }
+          case 146: {
+            religionRefs_.AddEntriesFrom(ref input, _repeated_religionRefs_codec);
+            break;
+          }
+          case 154: {
+            if (climate_ == null) {
+              Climate = new global::KBVE.Proto.Map.ClimateConfig();
+            }
+            input.ReadMessage(Climate);
+            break;
+          }
+          case 162: {
+            DominantCultureRef = input.ReadString();
+            break;
+          }
+          case 170: {
+            DominantReligionRef = input.ReadString();
             break;
           }
         }
@@ -23624,6 +25830,16226 @@ namespace KBVE.Proto.Map {
   }
 
   /// <summary>
+  /// Visual identity block — banner / sigil / motto. Reused by Faction,
+  /// Settlement, GuildHall, and any nameable owning entity.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Banner : pb::IMessage<Banner>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Banner> _parser = new pb::MessageParser<Banner>(() => new Banner());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Banner> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[44]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Banner() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Banner(Banner other) : this() {
+      primary_ = other.primary_ != null ? other.primary_.Clone() : null;
+      secondary_ = other.secondary_ != null ? other.secondary_.Clone() : null;
+      tertiary_ = other.tertiary_ != null ? other.tertiary_.Clone() : null;
+      sigilRef_ = other.sigilRef_;
+      motto_ = other.motto_;
+      anthemRef_ = other.anthemRef_;
+      crestPattern_ = other.crestPattern_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Banner Clone() {
+      return new Banner(this);
+    }
+
+    /// <summary>Field number for the "primary" field.</summary>
+    public const int PrimaryFieldNumber = 1;
+    private global::KBVE.Proto.Map.Color primary_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Color Primary {
+      get { return primary_; }
+      set {
+        primary_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "secondary" field.</summary>
+    public const int SecondaryFieldNumber = 2;
+    private global::KBVE.Proto.Map.Color secondary_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Color Secondary {
+      get { return secondary_; }
+      set {
+        secondary_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tertiary" field.</summary>
+    public const int TertiaryFieldNumber = 3;
+    private global::KBVE.Proto.Map.Color tertiary_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Color Tertiary {
+      get { return tertiary_; }
+      set {
+        tertiary_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sigil_ref" field.</summary>
+    public const int SigilRefFieldNumber = 4;
+    private readonly static string SigilRefDefaultValue = "";
+
+    private string sigilRef_;
+    /// <summary>
+    /// icon / sprite slug
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SigilRef {
+      get { return sigilRef_ ?? SigilRefDefaultValue; }
+      set {
+        sigilRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "sigil_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSigilRef {
+      get { return sigilRef_ != null; }
+    }
+    /// <summary>Clears the value of the "sigil_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSigilRef() {
+      sigilRef_ = null;
+    }
+
+    /// <summary>Field number for the "motto" field.</summary>
+    public const int MottoFieldNumber = 5;
+    private readonly static string MottoDefaultValue = "";
+
+    private string motto_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Motto {
+      get { return motto_ ?? MottoDefaultValue; }
+      set {
+        motto_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "motto" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasMotto {
+      get { return motto_ != null; }
+    }
+    /// <summary>Clears the value of the "motto" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMotto() {
+      motto_ = null;
+    }
+
+    /// <summary>Field number for the "anthem_ref" field.</summary>
+    public const int AnthemRefFieldNumber = 6;
+    private readonly static string AnthemRefDefaultValue = "";
+
+    private string anthemRef_;
+    /// <summary>
+    /// music ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string AnthemRef {
+      get { return anthemRef_ ?? AnthemRefDefaultValue; }
+      set {
+        anthemRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "anthem_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasAnthemRef {
+      get { return anthemRef_ != null; }
+    }
+    /// <summary>Clears the value of the "anthem_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearAnthemRef() {
+      anthemRef_ = null;
+    }
+
+    /// <summary>Field number for the "crest_pattern" field.</summary>
+    public const int CrestPatternFieldNumber = 7;
+    private readonly static string CrestPatternDefaultValue = "";
+
+    private string crestPattern_;
+    /// <summary>
+    /// pattern slug ("checker", "rampant_lion")
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CrestPattern {
+      get { return crestPattern_ ?? CrestPatternDefaultValue; }
+      set {
+        crestPattern_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "crest_pattern" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCrestPattern {
+      get { return crestPattern_ != null; }
+    }
+    /// <summary>Clears the value of the "crest_pattern" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCrestPattern() {
+      crestPattern_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Banner);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Banner other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Primary, other.Primary)) return false;
+      if (!object.Equals(Secondary, other.Secondary)) return false;
+      if (!object.Equals(Tertiary, other.Tertiary)) return false;
+      if (SigilRef != other.SigilRef) return false;
+      if (Motto != other.Motto) return false;
+      if (AnthemRef != other.AnthemRef) return false;
+      if (CrestPattern != other.CrestPattern) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (primary_ != null) hash ^= Primary.GetHashCode();
+      if (secondary_ != null) hash ^= Secondary.GetHashCode();
+      if (tertiary_ != null) hash ^= Tertiary.GetHashCode();
+      if (HasSigilRef) hash ^= SigilRef.GetHashCode();
+      if (HasMotto) hash ^= Motto.GetHashCode();
+      if (HasAnthemRef) hash ^= AnthemRef.GetHashCode();
+      if (HasCrestPattern) hash ^= CrestPattern.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (primary_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Primary);
+      }
+      if (secondary_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Secondary);
+      }
+      if (tertiary_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Tertiary);
+      }
+      if (HasSigilRef) {
+        output.WriteRawTag(34);
+        output.WriteString(SigilRef);
+      }
+      if (HasMotto) {
+        output.WriteRawTag(42);
+        output.WriteString(Motto);
+      }
+      if (HasAnthemRef) {
+        output.WriteRawTag(50);
+        output.WriteString(AnthemRef);
+      }
+      if (HasCrestPattern) {
+        output.WriteRawTag(58);
+        output.WriteString(CrestPattern);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (primary_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Primary);
+      }
+      if (secondary_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Secondary);
+      }
+      if (tertiary_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Tertiary);
+      }
+      if (HasSigilRef) {
+        output.WriteRawTag(34);
+        output.WriteString(SigilRef);
+      }
+      if (HasMotto) {
+        output.WriteRawTag(42);
+        output.WriteString(Motto);
+      }
+      if (HasAnthemRef) {
+        output.WriteRawTag(50);
+        output.WriteString(AnthemRef);
+      }
+      if (HasCrestPattern) {
+        output.WriteRawTag(58);
+        output.WriteString(CrestPattern);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (primary_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Primary);
+      }
+      if (secondary_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Secondary);
+      }
+      if (tertiary_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Tertiary);
+      }
+      if (HasSigilRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SigilRef);
+      }
+      if (HasMotto) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Motto);
+      }
+      if (HasAnthemRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AnthemRef);
+      }
+      if (HasCrestPattern) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CrestPattern);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Banner other) {
+      if (other == null) {
+        return;
+      }
+      if (other.primary_ != null) {
+        if (primary_ == null) {
+          Primary = new global::KBVE.Proto.Map.Color();
+        }
+        Primary.MergeFrom(other.Primary);
+      }
+      if (other.secondary_ != null) {
+        if (secondary_ == null) {
+          Secondary = new global::KBVE.Proto.Map.Color();
+        }
+        Secondary.MergeFrom(other.Secondary);
+      }
+      if (other.tertiary_ != null) {
+        if (tertiary_ == null) {
+          Tertiary = new global::KBVE.Proto.Map.Color();
+        }
+        Tertiary.MergeFrom(other.Tertiary);
+      }
+      if (other.HasSigilRef) {
+        SigilRef = other.SigilRef;
+      }
+      if (other.HasMotto) {
+        Motto = other.Motto;
+      }
+      if (other.HasAnthemRef) {
+        AnthemRef = other.AnthemRef;
+      }
+      if (other.HasCrestPattern) {
+        CrestPattern = other.CrestPattern;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (primary_ == null) {
+              Primary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Primary);
+            break;
+          }
+          case 18: {
+            if (secondary_ == null) {
+              Secondary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Secondary);
+            break;
+          }
+          case 26: {
+            if (tertiary_ == null) {
+              Tertiary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Tertiary);
+            break;
+          }
+          case 34: {
+            SigilRef = input.ReadString();
+            break;
+          }
+          case 42: {
+            Motto = input.ReadString();
+            break;
+          }
+          case 50: {
+            AnthemRef = input.ReadString();
+            break;
+          }
+          case 58: {
+            CrestPattern = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (primary_ == null) {
+              Primary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Primary);
+            break;
+          }
+          case 18: {
+            if (secondary_ == null) {
+              Secondary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Secondary);
+            break;
+          }
+          case 26: {
+            if (tertiary_ == null) {
+              Tertiary = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(Tertiary);
+            break;
+          }
+          case 34: {
+            SigilRef = input.ReadString();
+            break;
+          }
+          case 42: {
+            Motto = input.ReadString();
+            break;
+          }
+          case 50: {
+            AnthemRef = input.ReadString();
+            break;
+          }
+          case 58: {
+            CrestPattern = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Generic resource ledger — used as treasury, granary, armoury,
+  /// reserve. Maps free-form item slugs (itemdb refs) to integer
+  /// quantities; per-item caps are optional.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ResourceLedger : pb::IMessage<ResourceLedger>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ResourceLedger> _parser = new pb::MessageParser<ResourceLedger>(() => new ResourceLedger());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ResourceLedger> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[45]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResourceLedger() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResourceLedger(ResourceLedger other) : this() {
+      _hasBits0 = other._hasBits0;
+      resources_ = other.resources_.Clone();
+      capacityPerItem_ = other.capacityPerItem_.Clone();
+      totalCapacity_ = other.totalCapacity_;
+      unlimited_ = other.unlimited_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResourceLedger Clone() {
+      return new ResourceLedger(this);
+    }
+
+    /// <summary>Field number for the "resources" field.</summary>
+    public const int ResourcesFieldNumber = 1;
+    private static readonly pbc::MapField<string, long>.Codec _map_resources_codec
+        = new pbc::MapField<string, long>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForInt64(16, 0L), 10);
+    private readonly pbc::MapField<string, long> resources_ = new pbc::MapField<string, long>();
+    /// <summary>
+    /// item_ref → amount
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::MapField<string, long> Resources {
+      get { return resources_; }
+    }
+
+    /// <summary>Field number for the "capacity_per_item" field.</summary>
+    public const int CapacityPerItemFieldNumber = 2;
+    private static readonly pbc::MapField<string, long>.Codec _map_capacityPerItem_codec
+        = new pbc::MapField<string, long>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForInt64(16, 0L), 18);
+    private readonly pbc::MapField<string, long> capacityPerItem_ = new pbc::MapField<string, long>();
+    /// <summary>
+    /// optional ceiling per item
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::MapField<string, long> CapacityPerItem {
+      get { return capacityPerItem_; }
+    }
+
+    /// <summary>Field number for the "total_capacity" field.</summary>
+    public const int TotalCapacityFieldNumber = 3;
+    private readonly static long TotalCapacityDefaultValue = 0L;
+
+    private long totalCapacity_;
+    /// <summary>
+    /// optional aggregate ceiling
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long TotalCapacity {
+      get { if ((_hasBits0 & 1) != 0) { return totalCapacity_; } else { return TotalCapacityDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        totalCapacity_ = value;
+      }
+    }
+    /// <summary>Gets whether the "total_capacity" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTotalCapacity {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "total_capacity" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTotalCapacity() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "unlimited" field.</summary>
+    public const int UnlimitedFieldNumber = 4;
+    private readonly static bool UnlimitedDefaultValue = false;
+
+    private bool unlimited_;
+    /// <summary>
+    /// sandbox / cheats / godmode
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Unlimited {
+      get { if ((_hasBits0 & 2) != 0) { return unlimited_; } else { return UnlimitedDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        unlimited_ = value;
+      }
+    }
+    /// <summary>Gets whether the "unlimited" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasUnlimited {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "unlimited" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearUnlimited() {
+      _hasBits0 &= ~2;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ResourceLedger);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ResourceLedger other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!Resources.Equals(other.Resources)) return false;
+      if (!CapacityPerItem.Equals(other.CapacityPerItem)) return false;
+      if (TotalCapacity != other.TotalCapacity) return false;
+      if (Unlimited != other.Unlimited) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= Resources.GetHashCode();
+      hash ^= CapacityPerItem.GetHashCode();
+      if (HasTotalCapacity) hash ^= TotalCapacity.GetHashCode();
+      if (HasUnlimited) hash ^= Unlimited.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      resources_.WriteTo(output, _map_resources_codec);
+      capacityPerItem_.WriteTo(output, _map_capacityPerItem_codec);
+      if (HasTotalCapacity) {
+        output.WriteRawTag(24);
+        output.WriteInt64(TotalCapacity);
+      }
+      if (HasUnlimited) {
+        output.WriteRawTag(32);
+        output.WriteBool(Unlimited);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      resources_.WriteTo(ref output, _map_resources_codec);
+      capacityPerItem_.WriteTo(ref output, _map_capacityPerItem_codec);
+      if (HasTotalCapacity) {
+        output.WriteRawTag(24);
+        output.WriteInt64(TotalCapacity);
+      }
+      if (HasUnlimited) {
+        output.WriteRawTag(32);
+        output.WriteBool(Unlimited);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += resources_.CalculateSize(_map_resources_codec);
+      size += capacityPerItem_.CalculateSize(_map_capacityPerItem_codec);
+      if (HasTotalCapacity) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(TotalCapacity);
+      }
+      if (HasUnlimited) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ResourceLedger other) {
+      if (other == null) {
+        return;
+      }
+      resources_.MergeFrom(other.resources_);
+      capacityPerItem_.MergeFrom(other.capacityPerItem_);
+      if (other.HasTotalCapacity) {
+        TotalCapacity = other.TotalCapacity;
+      }
+      if (other.HasUnlimited) {
+        Unlimited = other.Unlimited;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            resources_.AddEntriesFrom(input, _map_resources_codec);
+            break;
+          }
+          case 18: {
+            capacityPerItem_.AddEntriesFrom(input, _map_capacityPerItem_codec);
+            break;
+          }
+          case 24: {
+            TotalCapacity = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            Unlimited = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            resources_.AddEntriesFrom(ref input, _map_resources_codec);
+            break;
+          }
+          case 18: {
+            capacityPerItem_.AddEntriesFrom(ref input, _map_capacityPerItem_codec);
+            break;
+          }
+          case 24: {
+            TotalCapacity = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            Unlimited = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Cultural identity — drives names, music, dialect, faction palettes.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Culture : pb::IMessage<Culture>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Culture> _parser = new pb::MessageParser<Culture>(() => new Culture());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Culture> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[46]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Culture() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Culture(Culture other) : this() {
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      archetype_ = other.archetype_;
+      description_ = other.description_;
+      lore_ = other.lore_;
+      languageRef_ = other.languageRef_;
+      namePoolRefs_ = other.namePoolRefs_.Clone();
+      banner_ = other.banner_ != null ? other.banner_.Clone() : null;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Culture Clone() {
+      return new Culture(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    /// <summary>
+    /// ULID
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "archetype" field.</summary>
+    public const int ArchetypeFieldNumber = 4;
+    private global::KBVE.Proto.Map.CultureArchetype archetype_ = global::KBVE.Proto.Map.CultureArchetype.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.CultureArchetype Archetype {
+      get { return archetype_; }
+      set {
+        archetype_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 5;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "lore" field.</summary>
+    public const int LoreFieldNumber = 6;
+    private readonly static string LoreDefaultValue = "";
+
+    private string lore_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Lore {
+      get { return lore_ ?? LoreDefaultValue; }
+      set {
+        lore_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "lore" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLore {
+      get { return lore_ != null; }
+    }
+    /// <summary>Clears the value of the "lore" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLore() {
+      lore_ = null;
+    }
+
+    /// <summary>Field number for the "language_ref" field.</summary>
+    public const int LanguageRefFieldNumber = 7;
+    private readonly static string LanguageRefDefaultValue = "";
+
+    private string languageRef_;
+    /// <summary>
+    /// links to a language pack
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string LanguageRef {
+      get { return languageRef_ ?? LanguageRefDefaultValue; }
+      set {
+        languageRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "language_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLanguageRef {
+      get { return languageRef_ != null; }
+    }
+    /// <summary>Clears the value of the "language_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLanguageRef() {
+      languageRef_ = null;
+    }
+
+    /// <summary>Field number for the "name_pool_refs" field.</summary>
+    public const int NamePoolRefsFieldNumber = 8;
+    private static readonly pb::FieldCodec<string> _repeated_namePoolRefs_codec
+        = pb::FieldCodec.ForString(66);
+    private readonly pbc::RepeatedField<string> namePoolRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// NPC / settlement name pools
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> NamePoolRefs {
+      get { return namePoolRefs_; }
+    }
+
+    /// <summary>Field number for the "banner" field.</summary>
+    public const int BannerFieldNumber = 9;
+    private global::KBVE.Proto.Map.Banner banner_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Banner Banner {
+      get { return banner_; }
+      set {
+        banner_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 10;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(82, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Culture);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Culture other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Archetype != other.Archetype) return false;
+      if (Description != other.Description) return false;
+      if (Lore != other.Lore) return false;
+      if (LanguageRef != other.LanguageRef) return false;
+      if(!namePoolRefs_.Equals(other.namePoolRefs_)) return false;
+      if (!object.Equals(Banner, other.Banner)) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Archetype != global::KBVE.Proto.Map.CultureArchetype.Unspecified) hash ^= Archetype.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasLore) hash ^= Lore.GetHashCode();
+      if (HasLanguageRef) hash ^= LanguageRef.GetHashCode();
+      hash ^= namePoolRefs_.GetHashCode();
+      if (banner_ != null) hash ^= Banner.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Archetype != global::KBVE.Proto.Map.CultureArchetype.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Archetype);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      if (HasLanguageRef) {
+        output.WriteRawTag(58);
+        output.WriteString(LanguageRef);
+      }
+      namePoolRefs_.WriteTo(output, _repeated_namePoolRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(Banner);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Archetype != global::KBVE.Proto.Map.CultureArchetype.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Archetype);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      if (HasLanguageRef) {
+        output.WriteRawTag(58);
+        output.WriteString(LanguageRef);
+      }
+      namePoolRefs_.WriteTo(ref output, _repeated_namePoolRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(Banner);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Archetype != global::KBVE.Proto.Map.CultureArchetype.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Archetype);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasLore) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Lore);
+      }
+      if (HasLanguageRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(LanguageRef);
+      }
+      size += namePoolRefs_.CalculateSize(_repeated_namePoolRefs_codec);
+      if (banner_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Banner);
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Culture other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Archetype != global::KBVE.Proto.Map.CultureArchetype.Unspecified) {
+        Archetype = other.Archetype;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasLore) {
+        Lore = other.Lore;
+      }
+      if (other.HasLanguageRef) {
+        LanguageRef = other.LanguageRef;
+      }
+      namePoolRefs_.Add(other.namePoolRefs_);
+      if (other.banner_ != null) {
+        if (banner_ == null) {
+          Banner = new global::KBVE.Proto.Map.Banner();
+        }
+        Banner.MergeFrom(other.Banner);
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Archetype = (global::KBVE.Proto.Map.CultureArchetype) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 58: {
+            LanguageRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            namePoolRefs_.AddEntriesFrom(input, _repeated_namePoolRefs_codec);
+            break;
+          }
+          case 74: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 82: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Archetype = (global::KBVE.Proto.Map.CultureArchetype) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 58: {
+            LanguageRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            namePoolRefs_.AddEntriesFrom(ref input, _repeated_namePoolRefs_codec);
+            break;
+          }
+          case 74: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 82: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Religion / pantheon — shrines, altars, holy units link via religion_ref.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Religion : pb::IMessage<Religion>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Religion> _parser = new pb::MessageParser<Religion>(() => new Religion());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Religion> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[47]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Religion() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Religion(Religion other) : this() {
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      alignment_ = other.alignment_;
+      description_ = other.description_;
+      lore_ = other.lore_;
+      deityRefs_ = other.deityRefs_.Clone();
+      holySiteRefs_ = other.holySiteRefs_.Clone();
+      forbiddenActionRefs_ = other.forbiddenActionRefs_.Clone();
+      blessedSkillRefs_ = other.blessedSkillRefs_.Clone();
+      banner_ = other.banner_ != null ? other.banner_.Clone() : null;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Religion Clone() {
+      return new Religion(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "alignment" field.</summary>
+    public const int AlignmentFieldNumber = 4;
+    private global::KBVE.Proto.Map.ReligionAlignment alignment_ = global::KBVE.Proto.Map.ReligionAlignment.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ReligionAlignment Alignment {
+      get { return alignment_; }
+      set {
+        alignment_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 5;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "lore" field.</summary>
+    public const int LoreFieldNumber = 6;
+    private readonly static string LoreDefaultValue = "";
+
+    private string lore_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Lore {
+      get { return lore_ ?? LoreDefaultValue; }
+      set {
+        lore_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "lore" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLore {
+      get { return lore_ != null; }
+    }
+    /// <summary>Clears the value of the "lore" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLore() {
+      lore_ = null;
+    }
+
+    /// <summary>Field number for the "deity_refs" field.</summary>
+    public const int DeityRefsFieldNumber = 7;
+    private static readonly pb::FieldCodec<string> _repeated_deityRefs_codec
+        = pb::FieldCodec.ForString(58);
+    private readonly pbc::RepeatedField<string> deityRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// pantheon members
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> DeityRefs {
+      get { return deityRefs_; }
+    }
+
+    /// <summary>Field number for the "holy_site_refs" field.</summary>
+    public const int HolySiteRefsFieldNumber = 8;
+    private static readonly pb::FieldCodec<string> _repeated_holySiteRefs_codec
+        = pb::FieldCodec.ForString(66);
+    private readonly pbc::RepeatedField<string> holySiteRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// landmark / shrine refs
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> HolySiteRefs {
+      get { return holySiteRefs_; }
+    }
+
+    /// <summary>Field number for the "forbidden_action_refs" field.</summary>
+    public const int ForbiddenActionRefsFieldNumber = 9;
+    private static readonly pb::FieldCodec<string> _repeated_forbiddenActionRefs_codec
+        = pb::FieldCodec.ForString(74);
+    private readonly pbc::RepeatedField<string> forbiddenActionRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// taboos (slug list)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ForbiddenActionRefs {
+      get { return forbiddenActionRefs_; }
+    }
+
+    /// <summary>Field number for the "blessed_skill_refs" field.</summary>
+    public const int BlessedSkillRefsFieldNumber = 10;
+    private static readonly pb::FieldCodec<string> _repeated_blessedSkillRefs_codec
+        = pb::FieldCodec.ForString(82);
+    private readonly pbc::RepeatedField<string> blessedSkillRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// skills with bonus
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> BlessedSkillRefs {
+      get { return blessedSkillRefs_; }
+    }
+
+    /// <summary>Field number for the "banner" field.</summary>
+    public const int BannerFieldNumber = 11;
+    private global::KBVE.Proto.Map.Banner banner_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Banner Banner {
+      get { return banner_; }
+      set {
+        banner_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 12;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(98, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Religion);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Religion other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Alignment != other.Alignment) return false;
+      if (Description != other.Description) return false;
+      if (Lore != other.Lore) return false;
+      if(!deityRefs_.Equals(other.deityRefs_)) return false;
+      if(!holySiteRefs_.Equals(other.holySiteRefs_)) return false;
+      if(!forbiddenActionRefs_.Equals(other.forbiddenActionRefs_)) return false;
+      if(!blessedSkillRefs_.Equals(other.blessedSkillRefs_)) return false;
+      if (!object.Equals(Banner, other.Banner)) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Alignment != global::KBVE.Proto.Map.ReligionAlignment.Unspecified) hash ^= Alignment.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasLore) hash ^= Lore.GetHashCode();
+      hash ^= deityRefs_.GetHashCode();
+      hash ^= holySiteRefs_.GetHashCode();
+      hash ^= forbiddenActionRefs_.GetHashCode();
+      hash ^= blessedSkillRefs_.GetHashCode();
+      if (banner_ != null) hash ^= Banner.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Alignment != global::KBVE.Proto.Map.ReligionAlignment.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Alignment);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      deityRefs_.WriteTo(output, _repeated_deityRefs_codec);
+      holySiteRefs_.WriteTo(output, _repeated_holySiteRefs_codec);
+      forbiddenActionRefs_.WriteTo(output, _repeated_forbiddenActionRefs_codec);
+      blessedSkillRefs_.WriteTo(output, _repeated_blessedSkillRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(90);
+        output.WriteMessage(Banner);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Alignment != global::KBVE.Proto.Map.ReligionAlignment.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Alignment);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      deityRefs_.WriteTo(ref output, _repeated_deityRefs_codec);
+      holySiteRefs_.WriteTo(ref output, _repeated_holySiteRefs_codec);
+      forbiddenActionRefs_.WriteTo(ref output, _repeated_forbiddenActionRefs_codec);
+      blessedSkillRefs_.WriteTo(ref output, _repeated_blessedSkillRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(90);
+        output.WriteMessage(Banner);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Alignment != global::KBVE.Proto.Map.ReligionAlignment.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Alignment);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasLore) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Lore);
+      }
+      size += deityRefs_.CalculateSize(_repeated_deityRefs_codec);
+      size += holySiteRefs_.CalculateSize(_repeated_holySiteRefs_codec);
+      size += forbiddenActionRefs_.CalculateSize(_repeated_forbiddenActionRefs_codec);
+      size += blessedSkillRefs_.CalculateSize(_repeated_blessedSkillRefs_codec);
+      if (banner_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Banner);
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Religion other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Alignment != global::KBVE.Proto.Map.ReligionAlignment.Unspecified) {
+        Alignment = other.Alignment;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasLore) {
+        Lore = other.Lore;
+      }
+      deityRefs_.Add(other.deityRefs_);
+      holySiteRefs_.Add(other.holySiteRefs_);
+      forbiddenActionRefs_.Add(other.forbiddenActionRefs_);
+      blessedSkillRefs_.Add(other.blessedSkillRefs_);
+      if (other.banner_ != null) {
+        if (banner_ == null) {
+          Banner = new global::KBVE.Proto.Map.Banner();
+        }
+        Banner.MergeFrom(other.Banner);
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Alignment = (global::KBVE.Proto.Map.ReligionAlignment) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 58: {
+            deityRefs_.AddEntriesFrom(input, _repeated_deityRefs_codec);
+            break;
+          }
+          case 66: {
+            holySiteRefs_.AddEntriesFrom(input, _repeated_holySiteRefs_codec);
+            break;
+          }
+          case 74: {
+            forbiddenActionRefs_.AddEntriesFrom(input, _repeated_forbiddenActionRefs_codec);
+            break;
+          }
+          case 82: {
+            blessedSkillRefs_.AddEntriesFrom(input, _repeated_blessedSkillRefs_codec);
+            break;
+          }
+          case 90: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 98: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Alignment = (global::KBVE.Proto.Map.ReligionAlignment) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 58: {
+            deityRefs_.AddEntriesFrom(ref input, _repeated_deityRefs_codec);
+            break;
+          }
+          case 66: {
+            holySiteRefs_.AddEntriesFrom(ref input, _repeated_holySiteRefs_codec);
+            break;
+          }
+          case 74: {
+            forbiddenActionRefs_.AddEntriesFrom(ref input, _repeated_forbiddenActionRefs_codec);
+            break;
+          }
+          case 82: {
+            blessedSkillRefs_.AddEntriesFrom(ref input, _repeated_blessedSkillRefs_codec);
+            break;
+          }
+          case 90: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 98: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Single diplomatic relation between two factions.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DiplomaticRelation : pb::IMessage<DiplomaticRelation>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DiplomaticRelation> _parser = new pb::MessageParser<DiplomaticRelation>(() => new DiplomaticRelation());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DiplomaticRelation> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[48]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DiplomaticRelation() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DiplomaticRelation(DiplomaticRelation other) : this() {
+      _hasBits0 = other._hasBits0;
+      fromFactionRef_ = other.fromFactionRef_;
+      toFactionRef_ = other.toFactionRef_;
+      stance_ = other.stance_;
+      reputation_ = other.reputation_;
+      treatyRef_ = other.treatyRef_;
+      expiresAtTurn_ = other.expiresAtTurn_;
+      establishedAtTurn_ = other.establishedAtTurn_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DiplomaticRelation Clone() {
+      return new DiplomaticRelation(this);
+    }
+
+    /// <summary>Field number for the "from_faction_ref" field.</summary>
+    public const int FromFactionRefFieldNumber = 1;
+    private string fromFactionRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FromFactionRef {
+      get { return fromFactionRef_; }
+      set {
+        fromFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "to_faction_ref" field.</summary>
+    public const int ToFactionRefFieldNumber = 2;
+    private string toFactionRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ToFactionRef {
+      get { return toFactionRef_; }
+      set {
+        toFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "stance" field.</summary>
+    public const int StanceFieldNumber = 3;
+    private global::KBVE.Proto.Map.DiplomaticStance stance_ = global::KBVE.Proto.Map.DiplomaticStance.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.DiplomaticStance Stance {
+      get { return stance_; }
+      set {
+        stance_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "reputation" field.</summary>
+    public const int ReputationFieldNumber = 4;
+    private int reputation_;
+    /// <summary>
+    /// -100..100
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Reputation {
+      get { return reputation_; }
+      set {
+        reputation_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "treaty_ref" field.</summary>
+    public const int TreatyRefFieldNumber = 5;
+    private readonly static string TreatyRefDefaultValue = "";
+
+    private string treatyRef_;
+    /// <summary>
+    /// links to Treaty.ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string TreatyRef {
+      get { return treatyRef_ ?? TreatyRefDefaultValue; }
+      set {
+        treatyRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "treaty_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTreatyRef {
+      get { return treatyRef_ != null; }
+    }
+    /// <summary>Clears the value of the "treaty_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTreatyRef() {
+      treatyRef_ = null;
+    }
+
+    /// <summary>Field number for the "expires_at_turn" field.</summary>
+    public const int ExpiresAtTurnFieldNumber = 6;
+    private readonly static long ExpiresAtTurnDefaultValue = 0L;
+
+    private long expiresAtTurn_;
+    /// <summary>
+    /// 0 = permanent
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long ExpiresAtTurn {
+      get { if ((_hasBits0 & 1) != 0) { return expiresAtTurn_; } else { return ExpiresAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        expiresAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "expires_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasExpiresAtTurn {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "expires_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearExpiresAtTurn() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "established_at_turn" field.</summary>
+    public const int EstablishedAtTurnFieldNumber = 7;
+    private readonly static long EstablishedAtTurnDefaultValue = 0L;
+
+    private long establishedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long EstablishedAtTurn {
+      get { if ((_hasBits0 & 2) != 0) { return establishedAtTurn_; } else { return EstablishedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        establishedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "established_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasEstablishedAtTurn {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "established_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearEstablishedAtTurn() {
+      _hasBits0 &= ~2;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DiplomaticRelation);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DiplomaticRelation other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FromFactionRef != other.FromFactionRef) return false;
+      if (ToFactionRef != other.ToFactionRef) return false;
+      if (Stance != other.Stance) return false;
+      if (Reputation != other.Reputation) return false;
+      if (TreatyRef != other.TreatyRef) return false;
+      if (ExpiresAtTurn != other.ExpiresAtTurn) return false;
+      if (EstablishedAtTurn != other.EstablishedAtTurn) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FromFactionRef.Length != 0) hash ^= FromFactionRef.GetHashCode();
+      if (ToFactionRef.Length != 0) hash ^= ToFactionRef.GetHashCode();
+      if (Stance != global::KBVE.Proto.Map.DiplomaticStance.Unspecified) hash ^= Stance.GetHashCode();
+      if (Reputation != 0) hash ^= Reputation.GetHashCode();
+      if (HasTreatyRef) hash ^= TreatyRef.GetHashCode();
+      if (HasExpiresAtTurn) hash ^= ExpiresAtTurn.GetHashCode();
+      if (HasEstablishedAtTurn) hash ^= EstablishedAtTurn.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (FromFactionRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FromFactionRef);
+      }
+      if (ToFactionRef.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ToFactionRef);
+      }
+      if (Stance != global::KBVE.Proto.Map.DiplomaticStance.Unspecified) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Stance);
+      }
+      if (Reputation != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(Reputation);
+      }
+      if (HasTreatyRef) {
+        output.WriteRawTag(42);
+        output.WriteString(TreatyRef);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(48);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      if (HasEstablishedAtTurn) {
+        output.WriteRawTag(56);
+        output.WriteInt64(EstablishedAtTurn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FromFactionRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FromFactionRef);
+      }
+      if (ToFactionRef.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ToFactionRef);
+      }
+      if (Stance != global::KBVE.Proto.Map.DiplomaticStance.Unspecified) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Stance);
+      }
+      if (Reputation != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(Reputation);
+      }
+      if (HasTreatyRef) {
+        output.WriteRawTag(42);
+        output.WriteString(TreatyRef);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(48);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      if (HasEstablishedAtTurn) {
+        output.WriteRawTag(56);
+        output.WriteInt64(EstablishedAtTurn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (FromFactionRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FromFactionRef);
+      }
+      if (ToFactionRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ToFactionRef);
+      }
+      if (Stance != global::KBVE.Proto.Map.DiplomaticStance.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Stance);
+      }
+      if (Reputation != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Reputation);
+      }
+      if (HasTreatyRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(TreatyRef);
+      }
+      if (HasExpiresAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ExpiresAtTurn);
+      }
+      if (HasEstablishedAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EstablishedAtTurn);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DiplomaticRelation other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FromFactionRef.Length != 0) {
+        FromFactionRef = other.FromFactionRef;
+      }
+      if (other.ToFactionRef.Length != 0) {
+        ToFactionRef = other.ToFactionRef;
+      }
+      if (other.Stance != global::KBVE.Proto.Map.DiplomaticStance.Unspecified) {
+        Stance = other.Stance;
+      }
+      if (other.Reputation != 0) {
+        Reputation = other.Reputation;
+      }
+      if (other.HasTreatyRef) {
+        TreatyRef = other.TreatyRef;
+      }
+      if (other.HasExpiresAtTurn) {
+        ExpiresAtTurn = other.ExpiresAtTurn;
+      }
+      if (other.HasEstablishedAtTurn) {
+        EstablishedAtTurn = other.EstablishedAtTurn;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FromFactionRef = input.ReadString();
+            break;
+          }
+          case 18: {
+            ToFactionRef = input.ReadString();
+            break;
+          }
+          case 24: {
+            Stance = (global::KBVE.Proto.Map.DiplomaticStance) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            Reputation = input.ReadInt32();
+            break;
+          }
+          case 42: {
+            TreatyRef = input.ReadString();
+            break;
+          }
+          case 48: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            EstablishedAtTurn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FromFactionRef = input.ReadString();
+            break;
+          }
+          case 18: {
+            ToFactionRef = input.ReadString();
+            break;
+          }
+          case 24: {
+            Stance = (global::KBVE.Proto.Map.DiplomaticStance) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            Reputation = input.ReadInt32();
+            break;
+          }
+          case 42: {
+            TreatyRef = input.ReadString();
+            break;
+          }
+          case 48: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            EstablishedAtTurn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Formal agreement between factions — gates wars, trade, marriages.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Treaty : pb::IMessage<Treaty>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Treaty> _parser = new pb::MessageParser<Treaty>(() => new Treaty());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Treaty> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[49]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Treaty() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Treaty(Treaty other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      signatoryFactionRefs_ = other.signatoryFactionRefs_.Clone();
+      description_ = other.description_;
+      signedAtTurn_ = other.signedAtTurn_;
+      expiresAtTurn_ = other.expiresAtTurn_;
+      clauseRefs_ = other.clauseRefs_.Clone();
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Treaty Clone() {
+      return new Treaty(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "signatory_faction_refs" field.</summary>
+    public const int SignatoryFactionRefsFieldNumber = 4;
+    private static readonly pb::FieldCodec<string> _repeated_signatoryFactionRefs_codec
+        = pb::FieldCodec.ForString(34);
+    private readonly pbc::RepeatedField<string> signatoryFactionRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SignatoryFactionRefs {
+      get { return signatoryFactionRefs_; }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 5;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "signed_at_turn" field.</summary>
+    public const int SignedAtTurnFieldNumber = 6;
+    private readonly static long SignedAtTurnDefaultValue = 0L;
+
+    private long signedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long SignedAtTurn {
+      get { if ((_hasBits0 & 1) != 0) { return signedAtTurn_; } else { return SignedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        signedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "signed_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSignedAtTurn {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "signed_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSignedAtTurn() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "expires_at_turn" field.</summary>
+    public const int ExpiresAtTurnFieldNumber = 7;
+    private readonly static long ExpiresAtTurnDefaultValue = 0L;
+
+    private long expiresAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long ExpiresAtTurn {
+      get { if ((_hasBits0 & 2) != 0) { return expiresAtTurn_; } else { return ExpiresAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        expiresAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "expires_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasExpiresAtTurn {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "expires_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearExpiresAtTurn() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "clause_refs" field.</summary>
+    public const int ClauseRefsFieldNumber = 8;
+    private static readonly pb::FieldCodec<string> _repeated_clauseRefs_codec
+        = pb::FieldCodec.ForString(66);
+    private readonly pbc::RepeatedField<string> clauseRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// game-defined clause types
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ClauseRefs {
+      get { return clauseRefs_; }
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 9;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(74, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Treaty);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Treaty other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if(!signatoryFactionRefs_.Equals(other.signatoryFactionRefs_)) return false;
+      if (Description != other.Description) return false;
+      if (SignedAtTurn != other.SignedAtTurn) return false;
+      if (ExpiresAtTurn != other.ExpiresAtTurn) return false;
+      if(!clauseRefs_.Equals(other.clauseRefs_)) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      hash ^= signatoryFactionRefs_.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasSignedAtTurn) hash ^= SignedAtTurn.GetHashCode();
+      if (HasExpiresAtTurn) hash ^= ExpiresAtTurn.GetHashCode();
+      hash ^= clauseRefs_.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      signatoryFactionRefs_.WriteTo(output, _repeated_signatoryFactionRefs_codec);
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasSignedAtTurn) {
+        output.WriteRawTag(48);
+        output.WriteInt64(SignedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(56);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      clauseRefs_.WriteTo(output, _repeated_clauseRefs_codec);
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      signatoryFactionRefs_.WriteTo(ref output, _repeated_signatoryFactionRefs_codec);
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasSignedAtTurn) {
+        output.WriteRawTag(48);
+        output.WriteInt64(SignedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(56);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      clauseRefs_.WriteTo(ref output, _repeated_clauseRefs_codec);
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      size += signatoryFactionRefs_.CalculateSize(_repeated_signatoryFactionRefs_codec);
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasSignedAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(SignedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ExpiresAtTurn);
+      }
+      size += clauseRefs_.CalculateSize(_repeated_clauseRefs_codec);
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Treaty other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      signatoryFactionRefs_.Add(other.signatoryFactionRefs_);
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasSignedAtTurn) {
+        SignedAtTurn = other.SignedAtTurn;
+      }
+      if (other.HasExpiresAtTurn) {
+        ExpiresAtTurn = other.ExpiresAtTurn;
+      }
+      clauseRefs_.Add(other.clauseRefs_);
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            signatoryFactionRefs_.AddEntriesFrom(input, _repeated_signatoryFactionRefs_codec);
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 48: {
+            SignedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 66: {
+            clauseRefs_.AddEntriesFrom(input, _repeated_clauseRefs_codec);
+            break;
+          }
+          case 74: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            signatoryFactionRefs_.AddEntriesFrom(ref input, _repeated_signatoryFactionRefs_codec);
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 48: {
+            SignedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 66: {
+            clauseRefs_.AddEntriesFrom(ref input, _repeated_clauseRefs_codec);
+            break;
+          }
+          case 74: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Faction / empire / clan / guild — top-level political entity.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Faction : pb::IMessage<Faction>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Faction> _parser = new pb::MessageParser<Faction>(() => new Faction());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Faction> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[50]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Faction() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Faction(Faction other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      shortName_ = other.shortName_;
+      description_ = other.description_;
+      lore_ = other.lore_;
+      government_ = other.government_;
+      banner_ = other.banner_ != null ? other.banner_.Clone() : null;
+      cultureRef_ = other.cultureRef_;
+      religionRef_ = other.religionRef_;
+      archetype_ = other.archetype_;
+      rulerUnitRef_ = other.rulerUnitRef_;
+      heirUnitRef_ = other.heirUnitRef_;
+      councilUnitRefs_ = other.councilUnitRefs_.Clone();
+      capitalSettlementRef_ = other.capitalSettlementRef_;
+      memberSettlementRefs_ = other.memberSettlementRefs_.Clone();
+      memberZoneRefs_ = other.memberZoneRefs_.Clone();
+      memberUnitRefs_ = other.memberUnitRefs_.Clone();
+      vassalFactionRefs_ = other.vassalFactionRefs_.Clone();
+      overlordFactionRef_ = other.overlordFactionRef_;
+      treasury_ = other.treasury_ != null ? other.treasury_.Clone() : null;
+      tradeRouteRefs_ = other.tradeRouteRefs_.Clone();
+      taxationRate_ = other.taxationRate_;
+      tributeRate_ = other.tributeRate_;
+      relations_ = other.relations_.Clone();
+      alliedFactionRefs_ = other.alliedFactionRefs_.Clone();
+      hostileFactionRefs_ = other.hostileFactionRefs_.Clone();
+      treatyRefs_ = other.treatyRefs_.Clone();
+      prestige_ = other.prestige_;
+      stability_ = other.stability_;
+      techLevel_ = other.techLevel_;
+      manpower_ = other.manpower_;
+      aggression_ = other.aggression_;
+      traitRefs_ = other.traitRefs_.Clone();
+      colorHex_ = other.colorHex_;
+      destroyed_ = other.destroyed_;
+      foundedAtTurn_ = other.foundedAtTurn_;
+      destroyedAtTurn_ = other.destroyedAtTurn_;
+      credits_ = other.credits_;
+      drafted_ = other.drafted_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Faction Clone() {
+      return new Faction(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    /// <summary>
+    /// ULID
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "short_name" field.</summary>
+    public const int ShortNameFieldNumber = 4;
+    private readonly static string ShortNameDefaultValue = "";
+
+    private string shortName_;
+    /// <summary>
+    /// For tags / mentions
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ShortName {
+      get { return shortName_ ?? ShortNameDefaultValue; }
+      set {
+        shortName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "short_name" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasShortName {
+      get { return shortName_ != null; }
+    }
+    /// <summary>Clears the value of the "short_name" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearShortName() {
+      shortName_ = null;
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 5;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "lore" field.</summary>
+    public const int LoreFieldNumber = 6;
+    private readonly static string LoreDefaultValue = "";
+
+    private string lore_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Lore {
+      get { return lore_ ?? LoreDefaultValue; }
+      set {
+        lore_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "lore" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLore {
+      get { return lore_ != null; }
+    }
+    /// <summary>Clears the value of the "lore" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLore() {
+      lore_ = null;
+    }
+
+    /// <summary>Field number for the "government" field.</summary>
+    public const int GovernmentFieldNumber = 7;
+    private global::KBVE.Proto.Map.GovernmentType government_ = global::KBVE.Proto.Map.GovernmentType.Unspecified;
+    /// <summary>
+    /// Identity
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.GovernmentType Government {
+      get { return government_; }
+      set {
+        government_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "banner" field.</summary>
+    public const int BannerFieldNumber = 8;
+    private global::KBVE.Proto.Map.Banner banner_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Banner Banner {
+      get { return banner_; }
+      set {
+        banner_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "culture_ref" field.</summary>
+    public const int CultureRefFieldNumber = 9;
+    private readonly static string CultureRefDefaultValue = "";
+
+    private string cultureRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CultureRef {
+      get { return cultureRef_ ?? CultureRefDefaultValue; }
+      set {
+        cultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCultureRef {
+      get { return cultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCultureRef() {
+      cultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "religion_ref" field.</summary>
+    public const int ReligionRefFieldNumber = 10;
+    private readonly static string ReligionRefDefaultValue = "";
+
+    private string religionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ReligionRef {
+      get { return religionRef_ ?? ReligionRefDefaultValue; }
+      set {
+        religionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReligionRef {
+      get { return religionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReligionRef() {
+      religionRef_ = null;
+    }
+
+    /// <summary>Field number for the "archetype" field.</summary>
+    public const int ArchetypeFieldNumber = 11;
+    private readonly static global::KBVE.Proto.Map.CultureArchetype ArchetypeDefaultValue = global::KBVE.Proto.Map.CultureArchetype.Unspecified;
+
+    private global::KBVE.Proto.Map.CultureArchetype archetype_;
+    /// <summary>
+    /// Quick lookup w/o culture_ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.CultureArchetype Archetype {
+      get { if ((_hasBits0 & 1) != 0) { return archetype_; } else { return ArchetypeDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        archetype_ = value;
+      }
+    }
+    /// <summary>Gets whether the "archetype" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasArchetype {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "archetype" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearArchetype() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "ruler_unit_ref" field.</summary>
+    public const int RulerUnitRefFieldNumber = 12;
+    private readonly static string RulerUnitRefDefaultValue = "";
+
+    private string rulerUnitRef_;
+    /// <summary>
+    /// Leadership
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string RulerUnitRef {
+      get { return rulerUnitRef_ ?? RulerUnitRefDefaultValue; }
+      set {
+        rulerUnitRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "ruler_unit_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRulerUnitRef {
+      get { return rulerUnitRef_ != null; }
+    }
+    /// <summary>Clears the value of the "ruler_unit_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRulerUnitRef() {
+      rulerUnitRef_ = null;
+    }
+
+    /// <summary>Field number for the "heir_unit_ref" field.</summary>
+    public const int HeirUnitRefFieldNumber = 13;
+    private readonly static string HeirUnitRefDefaultValue = "";
+
+    private string heirUnitRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string HeirUnitRef {
+      get { return heirUnitRef_ ?? HeirUnitRefDefaultValue; }
+      set {
+        heirUnitRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "heir_unit_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasHeirUnitRef {
+      get { return heirUnitRef_ != null; }
+    }
+    /// <summary>Clears the value of the "heir_unit_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearHeirUnitRef() {
+      heirUnitRef_ = null;
+    }
+
+    /// <summary>Field number for the "council_unit_refs" field.</summary>
+    public const int CouncilUnitRefsFieldNumber = 14;
+    private static readonly pb::FieldCodec<string> _repeated_councilUnitRefs_codec
+        = pb::FieldCodec.ForString(114);
+    private readonly pbc::RepeatedField<string> councilUnitRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Advisors / nobles
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> CouncilUnitRefs {
+      get { return councilUnitRefs_; }
+    }
+
+    /// <summary>Field number for the "capital_settlement_ref" field.</summary>
+    public const int CapitalSettlementRefFieldNumber = 15;
+    private readonly static string CapitalSettlementRefDefaultValue = "";
+
+    private string capitalSettlementRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CapitalSettlementRef {
+      get { return capitalSettlementRef_ ?? CapitalSettlementRefDefaultValue; }
+      set {
+        capitalSettlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "capital_settlement_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCapitalSettlementRef {
+      get { return capitalSettlementRef_ != null; }
+    }
+    /// <summary>Clears the value of the "capital_settlement_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCapitalSettlementRef() {
+      capitalSettlementRef_ = null;
+    }
+
+    /// <summary>Field number for the "member_settlement_refs" field.</summary>
+    public const int MemberSettlementRefsFieldNumber = 16;
+    private static readonly pb::FieldCodec<string> _repeated_memberSettlementRefs_codec
+        = pb::FieldCodec.ForString(130);
+    private readonly pbc::RepeatedField<string> memberSettlementRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Membership
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> MemberSettlementRefs {
+      get { return memberSettlementRefs_; }
+    }
+
+    /// <summary>Field number for the "member_zone_refs" field.</summary>
+    public const int MemberZoneRefsFieldNumber = 17;
+    private static readonly pb::FieldCodec<string> _repeated_memberZoneRefs_codec
+        = pb::FieldCodec.ForString(138);
+    private readonly pbc::RepeatedField<string> memberZoneRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> MemberZoneRefs {
+      get { return memberZoneRefs_; }
+    }
+
+    /// <summary>Field number for the "member_unit_refs" field.</summary>
+    public const int MemberUnitRefsFieldNumber = 18;
+    private static readonly pb::FieldCodec<string> _repeated_memberUnitRefs_codec
+        = pb::FieldCodec.ForString(146);
+    private readonly pbc::RepeatedField<string> memberUnitRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Standing army roster
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> MemberUnitRefs {
+      get { return memberUnitRefs_; }
+    }
+
+    /// <summary>Field number for the "vassal_faction_refs" field.</summary>
+    public const int VassalFactionRefsFieldNumber = 19;
+    private static readonly pb::FieldCodec<string> _repeated_vassalFactionRefs_codec
+        = pb::FieldCodec.ForString(154);
+    private readonly pbc::RepeatedField<string> vassalFactionRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> VassalFactionRefs {
+      get { return vassalFactionRefs_; }
+    }
+
+    /// <summary>Field number for the "overlord_faction_ref" field.</summary>
+    public const int OverlordFactionRefFieldNumber = 20;
+    private readonly static string OverlordFactionRefDefaultValue = "";
+
+    private string overlordFactionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string OverlordFactionRef {
+      get { return overlordFactionRef_ ?? OverlordFactionRefDefaultValue; }
+      set {
+        overlordFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "overlord_faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasOverlordFactionRef {
+      get { return overlordFactionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "overlord_faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearOverlordFactionRef() {
+      overlordFactionRef_ = null;
+    }
+
+    /// <summary>Field number for the "treasury" field.</summary>
+    public const int TreasuryFieldNumber = 21;
+    private global::KBVE.Proto.Map.ResourceLedger treasury_;
+    /// <summary>
+    /// Economy
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ResourceLedger Treasury {
+      get { return treasury_; }
+      set {
+        treasury_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "trade_route_refs" field.</summary>
+    public const int TradeRouteRefsFieldNumber = 22;
+    private static readonly pb::FieldCodec<string> _repeated_tradeRouteRefs_codec
+        = pb::FieldCodec.ForString(178);
+    private readonly pbc::RepeatedField<string> tradeRouteRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TradeRouteRefs {
+      get { return tradeRouteRefs_; }
+    }
+
+    /// <summary>Field number for the "taxation_rate" field.</summary>
+    public const int TaxationRateFieldNumber = 23;
+    private readonly static float TaxationRateDefaultValue = 0F;
+
+    private float taxationRate_;
+    /// <summary>
+    /// 0.0–1.0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float TaxationRate {
+      get { if ((_hasBits0 & 2) != 0) { return taxationRate_; } else { return TaxationRateDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        taxationRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "taxation_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTaxationRate {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "taxation_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTaxationRate() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "tribute_rate" field.</summary>
+    public const int TributeRateFieldNumber = 24;
+    private readonly static float TributeRateDefaultValue = 0F;
+
+    private float tributeRate_;
+    /// <summary>
+    /// Owed to overlord
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float TributeRate {
+      get { if ((_hasBits0 & 4) != 0) { return tributeRate_; } else { return TributeRateDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        tributeRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "tribute_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTributeRate {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "tribute_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTributeRate() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "relations" field.</summary>
+    public const int RelationsFieldNumber = 25;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.DiplomaticRelation> _repeated_relations_codec
+        = pb::FieldCodec.ForMessage(202, global::KBVE.Proto.Map.DiplomaticRelation.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.DiplomaticRelation> relations_ = new pbc::RepeatedField<global::KBVE.Proto.Map.DiplomaticRelation>();
+    /// <summary>
+    /// Diplomacy
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.DiplomaticRelation> Relations {
+      get { return relations_; }
+    }
+
+    /// <summary>Field number for the "allied_faction_refs" field.</summary>
+    public const int AlliedFactionRefsFieldNumber = 26;
+    private static readonly pb::FieldCodec<string> _repeated_alliedFactionRefs_codec
+        = pb::FieldCodec.ForString(210);
+    private readonly pbc::RepeatedField<string> alliedFactionRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Denormalized for fast reads
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> AlliedFactionRefs {
+      get { return alliedFactionRefs_; }
+    }
+
+    /// <summary>Field number for the "hostile_faction_refs" field.</summary>
+    public const int HostileFactionRefsFieldNumber = 27;
+    private static readonly pb::FieldCodec<string> _repeated_hostileFactionRefs_codec
+        = pb::FieldCodec.ForString(218);
+    private readonly pbc::RepeatedField<string> hostileFactionRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> HostileFactionRefs {
+      get { return hostileFactionRefs_; }
+    }
+
+    /// <summary>Field number for the "treaty_refs" field.</summary>
+    public const int TreatyRefsFieldNumber = 28;
+    private static readonly pb::FieldCodec<string> _repeated_treatyRefs_codec
+        = pb::FieldCodec.ForString(226);
+    private readonly pbc::RepeatedField<string> treatyRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TreatyRefs {
+      get { return treatyRefs_; }
+    }
+
+    /// <summary>Field number for the "prestige" field.</summary>
+    public const int PrestigeFieldNumber = 29;
+    private readonly static int PrestigeDefaultValue = 0;
+
+    private int prestige_;
+    /// <summary>
+    /// Power / metrics
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Prestige {
+      get { if ((_hasBits0 & 8) != 0) { return prestige_; } else { return PrestigeDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        prestige_ = value;
+      }
+    }
+    /// <summary>Gets whether the "prestige" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPrestige {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "prestige" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPrestige() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "stability" field.</summary>
+    public const int StabilityFieldNumber = 30;
+    private readonly static int StabilityDefaultValue = 0;
+
+    private int stability_;
+    /// <summary>
+    /// -100..100, civil unrest gauge
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Stability {
+      get { if ((_hasBits0 & 16) != 0) { return stability_; } else { return StabilityDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        stability_ = value;
+      }
+    }
+    /// <summary>Gets whether the "stability" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasStability {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "stability" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearStability() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "tech_level" field.</summary>
+    public const int TechLevelFieldNumber = 31;
+    private readonly static int TechLevelDefaultValue = 0;
+
+    private int techLevel_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int TechLevel {
+      get { if ((_hasBits0 & 32) != 0) { return techLevel_; } else { return TechLevelDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        techLevel_ = value;
+      }
+    }
+    /// <summary>Gets whether the "tech_level" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTechLevel {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "tech_level" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTechLevel() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "manpower" field.</summary>
+    public const int ManpowerFieldNumber = 32;
+    private readonly static int ManpowerDefaultValue = 0;
+
+    private int manpower_;
+    /// <summary>
+    /// Recruitable population pool
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Manpower {
+      get { if ((_hasBits0 & 64) != 0) { return manpower_; } else { return ManpowerDefaultValue; } }
+      set {
+        _hasBits0 |= 64;
+        manpower_ = value;
+      }
+    }
+    /// <summary>Gets whether the "manpower" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasManpower {
+      get { return (_hasBits0 & 64) != 0; }
+    }
+    /// <summary>Clears the value of the "manpower" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearManpower() {
+      _hasBits0 &= ~64;
+    }
+
+    /// <summary>Field number for the "aggression" field.</summary>
+    public const int AggressionFieldNumber = 33;
+    private readonly static float AggressionDefaultValue = 0F;
+
+    private float aggression_;
+    /// <summary>
+    /// 0.0–1.0 AI temperament
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Aggression {
+      get { if ((_hasBits0 & 128) != 0) { return aggression_; } else { return AggressionDefaultValue; } }
+      set {
+        _hasBits0 |= 128;
+        aggression_ = value;
+      }
+    }
+    /// <summary>Gets whether the "aggression" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasAggression {
+      get { return (_hasBits0 & 128) != 0; }
+    }
+    /// <summary>Clears the value of the "aggression" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearAggression() {
+      _hasBits0 &= ~128;
+    }
+
+    /// <summary>Field number for the "trait_refs" field.</summary>
+    public const int TraitRefsFieldNumber = 34;
+    private static readonly pb::FieldCodec<string> _repeated_traitRefs_codec
+        = pb::FieldCodec.ForString(274);
+    private readonly pbc::RepeatedField<string> traitRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// "seafaring", "magical", etc.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TraitRefs {
+      get { return traitRefs_; }
+    }
+
+    /// <summary>Field number for the "color_hex" field.</summary>
+    public const int ColorHexFieldNumber = 35;
+    private readonly static string ColorHexDefaultValue = "";
+
+    private string colorHex_;
+    /// <summary>
+    /// Cosmetic / metadata
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ColorHex {
+      get { return colorHex_ ?? ColorHexDefaultValue; }
+      set {
+        colorHex_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "color_hex" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasColorHex {
+      get { return colorHex_ != null; }
+    }
+    /// <summary>Clears the value of the "color_hex" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearColorHex() {
+      colorHex_ = null;
+    }
+
+    /// <summary>Field number for the "destroyed" field.</summary>
+    public const int DestroyedFieldNumber = 36;
+    private readonly static bool DestroyedDefaultValue = false;
+
+    private bool destroyed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Destroyed {
+      get { if ((_hasBits0 & 256) != 0) { return destroyed_; } else { return DestroyedDefaultValue; } }
+      set {
+        _hasBits0 |= 256;
+        destroyed_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyed {
+      get { return (_hasBits0 & 256) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyed() {
+      _hasBits0 &= ~256;
+    }
+
+    /// <summary>Field number for the "founded_at_turn" field.</summary>
+    public const int FoundedAtTurnFieldNumber = 37;
+    private readonly static long FoundedAtTurnDefaultValue = 0L;
+
+    private long foundedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long FoundedAtTurn {
+      get { if ((_hasBits0 & 512) != 0) { return foundedAtTurn_; } else { return FoundedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 512;
+        foundedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "founded_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFoundedAtTurn {
+      get { return (_hasBits0 & 512) != 0; }
+    }
+    /// <summary>Clears the value of the "founded_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFoundedAtTurn() {
+      _hasBits0 &= ~512;
+    }
+
+    /// <summary>Field number for the "destroyed_at_turn" field.</summary>
+    public const int DestroyedAtTurnFieldNumber = 38;
+    private readonly static long DestroyedAtTurnDefaultValue = 0L;
+
+    private long destroyedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DestroyedAtTurn {
+      get { if ((_hasBits0 & 1024) != 0) { return destroyedAtTurn_; } else { return DestroyedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 1024;
+        destroyedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyedAtTurn {
+      get { return (_hasBits0 & 1024) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyedAtTurn() {
+      _hasBits0 &= ~1024;
+    }
+
+    /// <summary>Field number for the "credits" field.</summary>
+    public const int CreditsFieldNumber = 39;
+    private readonly static string CreditsDefaultValue = "";
+
+    private string credits_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Credits {
+      get { return credits_ ?? CreditsDefaultValue; }
+      set {
+        credits_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "credits" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCredits {
+      get { return credits_ != null; }
+    }
+    /// <summary>Clears the value of the "credits" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCredits() {
+      credits_ = null;
+    }
+
+    /// <summary>Field number for the "drafted" field.</summary>
+    public const int DraftedFieldNumber = 40;
+    private readonly static bool DraftedDefaultValue = false;
+
+    private bool drafted_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Drafted {
+      get { if ((_hasBits0 & 2048) != 0) { return drafted_; } else { return DraftedDefaultValue; } }
+      set {
+        _hasBits0 |= 2048;
+        drafted_ = value;
+      }
+    }
+    /// <summary>Gets whether the "drafted" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDrafted {
+      get { return (_hasBits0 & 2048) != 0; }
+    }
+    /// <summary>Clears the value of the "drafted" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDrafted() {
+      _hasBits0 &= ~2048;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 41;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(330, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Faction);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Faction other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (ShortName != other.ShortName) return false;
+      if (Description != other.Description) return false;
+      if (Lore != other.Lore) return false;
+      if (Government != other.Government) return false;
+      if (!object.Equals(Banner, other.Banner)) return false;
+      if (CultureRef != other.CultureRef) return false;
+      if (ReligionRef != other.ReligionRef) return false;
+      if (Archetype != other.Archetype) return false;
+      if (RulerUnitRef != other.RulerUnitRef) return false;
+      if (HeirUnitRef != other.HeirUnitRef) return false;
+      if(!councilUnitRefs_.Equals(other.councilUnitRefs_)) return false;
+      if (CapitalSettlementRef != other.CapitalSettlementRef) return false;
+      if(!memberSettlementRefs_.Equals(other.memberSettlementRefs_)) return false;
+      if(!memberZoneRefs_.Equals(other.memberZoneRefs_)) return false;
+      if(!memberUnitRefs_.Equals(other.memberUnitRefs_)) return false;
+      if(!vassalFactionRefs_.Equals(other.vassalFactionRefs_)) return false;
+      if (OverlordFactionRef != other.OverlordFactionRef) return false;
+      if (!object.Equals(Treasury, other.Treasury)) return false;
+      if(!tradeRouteRefs_.Equals(other.tradeRouteRefs_)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(TaxationRate, other.TaxationRate)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(TributeRate, other.TributeRate)) return false;
+      if(!relations_.Equals(other.relations_)) return false;
+      if(!alliedFactionRefs_.Equals(other.alliedFactionRefs_)) return false;
+      if(!hostileFactionRefs_.Equals(other.hostileFactionRefs_)) return false;
+      if(!treatyRefs_.Equals(other.treatyRefs_)) return false;
+      if (Prestige != other.Prestige) return false;
+      if (Stability != other.Stability) return false;
+      if (TechLevel != other.TechLevel) return false;
+      if (Manpower != other.Manpower) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Aggression, other.Aggression)) return false;
+      if(!traitRefs_.Equals(other.traitRefs_)) return false;
+      if (ColorHex != other.ColorHex) return false;
+      if (Destroyed != other.Destroyed) return false;
+      if (FoundedAtTurn != other.FoundedAtTurn) return false;
+      if (DestroyedAtTurn != other.DestroyedAtTurn) return false;
+      if (Credits != other.Credits) return false;
+      if (Drafted != other.Drafted) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasShortName) hash ^= ShortName.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasLore) hash ^= Lore.GetHashCode();
+      if (Government != global::KBVE.Proto.Map.GovernmentType.Unspecified) hash ^= Government.GetHashCode();
+      if (banner_ != null) hash ^= Banner.GetHashCode();
+      if (HasCultureRef) hash ^= CultureRef.GetHashCode();
+      if (HasReligionRef) hash ^= ReligionRef.GetHashCode();
+      if (HasArchetype) hash ^= Archetype.GetHashCode();
+      if (HasRulerUnitRef) hash ^= RulerUnitRef.GetHashCode();
+      if (HasHeirUnitRef) hash ^= HeirUnitRef.GetHashCode();
+      hash ^= councilUnitRefs_.GetHashCode();
+      if (HasCapitalSettlementRef) hash ^= CapitalSettlementRef.GetHashCode();
+      hash ^= memberSettlementRefs_.GetHashCode();
+      hash ^= memberZoneRefs_.GetHashCode();
+      hash ^= memberUnitRefs_.GetHashCode();
+      hash ^= vassalFactionRefs_.GetHashCode();
+      if (HasOverlordFactionRef) hash ^= OverlordFactionRef.GetHashCode();
+      if (treasury_ != null) hash ^= Treasury.GetHashCode();
+      hash ^= tradeRouteRefs_.GetHashCode();
+      if (HasTaxationRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(TaxationRate);
+      if (HasTributeRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(TributeRate);
+      hash ^= relations_.GetHashCode();
+      hash ^= alliedFactionRefs_.GetHashCode();
+      hash ^= hostileFactionRefs_.GetHashCode();
+      hash ^= treatyRefs_.GetHashCode();
+      if (HasPrestige) hash ^= Prestige.GetHashCode();
+      if (HasStability) hash ^= Stability.GetHashCode();
+      if (HasTechLevel) hash ^= TechLevel.GetHashCode();
+      if (HasManpower) hash ^= Manpower.GetHashCode();
+      if (HasAggression) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Aggression);
+      hash ^= traitRefs_.GetHashCode();
+      if (HasColorHex) hash ^= ColorHex.GetHashCode();
+      if (HasDestroyed) hash ^= Destroyed.GetHashCode();
+      if (HasFoundedAtTurn) hash ^= FoundedAtTurn.GetHashCode();
+      if (HasDestroyedAtTurn) hash ^= DestroyedAtTurn.GetHashCode();
+      if (HasCredits) hash ^= Credits.GetHashCode();
+      if (HasDrafted) hash ^= Drafted.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasShortName) {
+        output.WriteRawTag(34);
+        output.WriteString(ShortName);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      if (Government != global::KBVE.Proto.Map.GovernmentType.Unspecified) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) Government);
+      }
+      if (banner_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Banner);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(74);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(82);
+        output.WriteString(ReligionRef);
+      }
+      if (HasArchetype) {
+        output.WriteRawTag(88);
+        output.WriteEnum((int) Archetype);
+      }
+      if (HasRulerUnitRef) {
+        output.WriteRawTag(98);
+        output.WriteString(RulerUnitRef);
+      }
+      if (HasHeirUnitRef) {
+        output.WriteRawTag(106);
+        output.WriteString(HeirUnitRef);
+      }
+      councilUnitRefs_.WriteTo(output, _repeated_councilUnitRefs_codec);
+      if (HasCapitalSettlementRef) {
+        output.WriteRawTag(122);
+        output.WriteString(CapitalSettlementRef);
+      }
+      memberSettlementRefs_.WriteTo(output, _repeated_memberSettlementRefs_codec);
+      memberZoneRefs_.WriteTo(output, _repeated_memberZoneRefs_codec);
+      memberUnitRefs_.WriteTo(output, _repeated_memberUnitRefs_codec);
+      vassalFactionRefs_.WriteTo(output, _repeated_vassalFactionRefs_codec);
+      if (HasOverlordFactionRef) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(OverlordFactionRef);
+      }
+      if (treasury_ != null) {
+        output.WriteRawTag(170, 1);
+        output.WriteMessage(Treasury);
+      }
+      tradeRouteRefs_.WriteTo(output, _repeated_tradeRouteRefs_codec);
+      if (HasTaxationRate) {
+        output.WriteRawTag(189, 1);
+        output.WriteFloat(TaxationRate);
+      }
+      if (HasTributeRate) {
+        output.WriteRawTag(197, 1);
+        output.WriteFloat(TributeRate);
+      }
+      relations_.WriteTo(output, _repeated_relations_codec);
+      alliedFactionRefs_.WriteTo(output, _repeated_alliedFactionRefs_codec);
+      hostileFactionRefs_.WriteTo(output, _repeated_hostileFactionRefs_codec);
+      treatyRefs_.WriteTo(output, _repeated_treatyRefs_codec);
+      if (HasPrestige) {
+        output.WriteRawTag(232, 1);
+        output.WriteInt32(Prestige);
+      }
+      if (HasStability) {
+        output.WriteRawTag(240, 1);
+        output.WriteInt32(Stability);
+      }
+      if (HasTechLevel) {
+        output.WriteRawTag(248, 1);
+        output.WriteInt32(TechLevel);
+      }
+      if (HasManpower) {
+        output.WriteRawTag(128, 2);
+        output.WriteInt32(Manpower);
+      }
+      if (HasAggression) {
+        output.WriteRawTag(141, 2);
+        output.WriteFloat(Aggression);
+      }
+      traitRefs_.WriteTo(output, _repeated_traitRefs_codec);
+      if (HasColorHex) {
+        output.WriteRawTag(154, 2);
+        output.WriteString(ColorHex);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(160, 2);
+        output.WriteBool(Destroyed);
+      }
+      if (HasFoundedAtTurn) {
+        output.WriteRawTag(168, 2);
+        output.WriteInt64(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        output.WriteRawTag(176, 2);
+        output.WriteInt64(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(186, 2);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(192, 2);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasShortName) {
+        output.WriteRawTag(34);
+        output.WriteString(ShortName);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(50);
+        output.WriteString(Lore);
+      }
+      if (Government != global::KBVE.Proto.Map.GovernmentType.Unspecified) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) Government);
+      }
+      if (banner_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Banner);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(74);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(82);
+        output.WriteString(ReligionRef);
+      }
+      if (HasArchetype) {
+        output.WriteRawTag(88);
+        output.WriteEnum((int) Archetype);
+      }
+      if (HasRulerUnitRef) {
+        output.WriteRawTag(98);
+        output.WriteString(RulerUnitRef);
+      }
+      if (HasHeirUnitRef) {
+        output.WriteRawTag(106);
+        output.WriteString(HeirUnitRef);
+      }
+      councilUnitRefs_.WriteTo(ref output, _repeated_councilUnitRefs_codec);
+      if (HasCapitalSettlementRef) {
+        output.WriteRawTag(122);
+        output.WriteString(CapitalSettlementRef);
+      }
+      memberSettlementRefs_.WriteTo(ref output, _repeated_memberSettlementRefs_codec);
+      memberZoneRefs_.WriteTo(ref output, _repeated_memberZoneRefs_codec);
+      memberUnitRefs_.WriteTo(ref output, _repeated_memberUnitRefs_codec);
+      vassalFactionRefs_.WriteTo(ref output, _repeated_vassalFactionRefs_codec);
+      if (HasOverlordFactionRef) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(OverlordFactionRef);
+      }
+      if (treasury_ != null) {
+        output.WriteRawTag(170, 1);
+        output.WriteMessage(Treasury);
+      }
+      tradeRouteRefs_.WriteTo(ref output, _repeated_tradeRouteRefs_codec);
+      if (HasTaxationRate) {
+        output.WriteRawTag(189, 1);
+        output.WriteFloat(TaxationRate);
+      }
+      if (HasTributeRate) {
+        output.WriteRawTag(197, 1);
+        output.WriteFloat(TributeRate);
+      }
+      relations_.WriteTo(ref output, _repeated_relations_codec);
+      alliedFactionRefs_.WriteTo(ref output, _repeated_alliedFactionRefs_codec);
+      hostileFactionRefs_.WriteTo(ref output, _repeated_hostileFactionRefs_codec);
+      treatyRefs_.WriteTo(ref output, _repeated_treatyRefs_codec);
+      if (HasPrestige) {
+        output.WriteRawTag(232, 1);
+        output.WriteInt32(Prestige);
+      }
+      if (HasStability) {
+        output.WriteRawTag(240, 1);
+        output.WriteInt32(Stability);
+      }
+      if (HasTechLevel) {
+        output.WriteRawTag(248, 1);
+        output.WriteInt32(TechLevel);
+      }
+      if (HasManpower) {
+        output.WriteRawTag(128, 2);
+        output.WriteInt32(Manpower);
+      }
+      if (HasAggression) {
+        output.WriteRawTag(141, 2);
+        output.WriteFloat(Aggression);
+      }
+      traitRefs_.WriteTo(ref output, _repeated_traitRefs_codec);
+      if (HasColorHex) {
+        output.WriteRawTag(154, 2);
+        output.WriteString(ColorHex);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(160, 2);
+        output.WriteBool(Destroyed);
+      }
+      if (HasFoundedAtTurn) {
+        output.WriteRawTag(168, 2);
+        output.WriteInt64(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        output.WriteRawTag(176, 2);
+        output.WriteInt64(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(186, 2);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(192, 2);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasShortName) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ShortName);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasLore) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Lore);
+      }
+      if (Government != global::KBVE.Proto.Map.GovernmentType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Government);
+      }
+      if (banner_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Banner);
+      }
+      if (HasCultureRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CultureRef);
+      }
+      if (HasReligionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ReligionRef);
+      }
+      if (HasArchetype) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Archetype);
+      }
+      if (HasRulerUnitRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RulerUnitRef);
+      }
+      if (HasHeirUnitRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(HeirUnitRef);
+      }
+      size += councilUnitRefs_.CalculateSize(_repeated_councilUnitRefs_codec);
+      if (HasCapitalSettlementRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CapitalSettlementRef);
+      }
+      size += memberSettlementRefs_.CalculateSize(_repeated_memberSettlementRefs_codec);
+      size += memberZoneRefs_.CalculateSize(_repeated_memberZoneRefs_codec);
+      size += memberUnitRefs_.CalculateSize(_repeated_memberUnitRefs_codec);
+      size += vassalFactionRefs_.CalculateSize(_repeated_vassalFactionRefs_codec);
+      if (HasOverlordFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(OverlordFactionRef);
+      }
+      if (treasury_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Treasury);
+      }
+      size += tradeRouteRefs_.CalculateSize(_repeated_tradeRouteRefs_codec);
+      if (HasTaxationRate) {
+        size += 2 + 4;
+      }
+      if (HasTributeRate) {
+        size += 2 + 4;
+      }
+      size += relations_.CalculateSize(_repeated_relations_codec);
+      size += alliedFactionRefs_.CalculateSize(_repeated_alliedFactionRefs_codec);
+      size += hostileFactionRefs_.CalculateSize(_repeated_hostileFactionRefs_codec);
+      size += treatyRefs_.CalculateSize(_repeated_treatyRefs_codec);
+      if (HasPrestige) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(Prestige);
+      }
+      if (HasStability) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(Stability);
+      }
+      if (HasTechLevel) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(TechLevel);
+      }
+      if (HasManpower) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(Manpower);
+      }
+      if (HasAggression) {
+        size += 2 + 4;
+      }
+      size += traitRefs_.CalculateSize(_repeated_traitRefs_codec);
+      if (HasColorHex) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(ColorHex);
+      }
+      if (HasDestroyed) {
+        size += 2 + 1;
+      }
+      if (HasFoundedAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Credits);
+      }
+      if (HasDrafted) {
+        size += 2 + 1;
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Faction other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.HasShortName) {
+        ShortName = other.ShortName;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasLore) {
+        Lore = other.Lore;
+      }
+      if (other.Government != global::KBVE.Proto.Map.GovernmentType.Unspecified) {
+        Government = other.Government;
+      }
+      if (other.banner_ != null) {
+        if (banner_ == null) {
+          Banner = new global::KBVE.Proto.Map.Banner();
+        }
+        Banner.MergeFrom(other.Banner);
+      }
+      if (other.HasCultureRef) {
+        CultureRef = other.CultureRef;
+      }
+      if (other.HasReligionRef) {
+        ReligionRef = other.ReligionRef;
+      }
+      if (other.HasArchetype) {
+        Archetype = other.Archetype;
+      }
+      if (other.HasRulerUnitRef) {
+        RulerUnitRef = other.RulerUnitRef;
+      }
+      if (other.HasHeirUnitRef) {
+        HeirUnitRef = other.HeirUnitRef;
+      }
+      councilUnitRefs_.Add(other.councilUnitRefs_);
+      if (other.HasCapitalSettlementRef) {
+        CapitalSettlementRef = other.CapitalSettlementRef;
+      }
+      memberSettlementRefs_.Add(other.memberSettlementRefs_);
+      memberZoneRefs_.Add(other.memberZoneRefs_);
+      memberUnitRefs_.Add(other.memberUnitRefs_);
+      vassalFactionRefs_.Add(other.vassalFactionRefs_);
+      if (other.HasOverlordFactionRef) {
+        OverlordFactionRef = other.OverlordFactionRef;
+      }
+      if (other.treasury_ != null) {
+        if (treasury_ == null) {
+          Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+        }
+        Treasury.MergeFrom(other.Treasury);
+      }
+      tradeRouteRefs_.Add(other.tradeRouteRefs_);
+      if (other.HasTaxationRate) {
+        TaxationRate = other.TaxationRate;
+      }
+      if (other.HasTributeRate) {
+        TributeRate = other.TributeRate;
+      }
+      relations_.Add(other.relations_);
+      alliedFactionRefs_.Add(other.alliedFactionRefs_);
+      hostileFactionRefs_.Add(other.hostileFactionRefs_);
+      treatyRefs_.Add(other.treatyRefs_);
+      if (other.HasPrestige) {
+        Prestige = other.Prestige;
+      }
+      if (other.HasStability) {
+        Stability = other.Stability;
+      }
+      if (other.HasTechLevel) {
+        TechLevel = other.TechLevel;
+      }
+      if (other.HasManpower) {
+        Manpower = other.Manpower;
+      }
+      if (other.HasAggression) {
+        Aggression = other.Aggression;
+      }
+      traitRefs_.Add(other.traitRefs_);
+      if (other.HasColorHex) {
+        ColorHex = other.ColorHex;
+      }
+      if (other.HasDestroyed) {
+        Destroyed = other.Destroyed;
+      }
+      if (other.HasFoundedAtTurn) {
+        FoundedAtTurn = other.FoundedAtTurn;
+      }
+      if (other.HasDestroyedAtTurn) {
+        DestroyedAtTurn = other.DestroyedAtTurn;
+      }
+      if (other.HasCredits) {
+        Credits = other.Credits;
+      }
+      if (other.HasDrafted) {
+        Drafted = other.Drafted;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            ShortName = input.ReadString();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 56: {
+            Government = (global::KBVE.Proto.Map.GovernmentType) input.ReadEnum();
+            break;
+          }
+          case 66: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 74: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 88: {
+            Archetype = (global::KBVE.Proto.Map.CultureArchetype) input.ReadEnum();
+            break;
+          }
+          case 98: {
+            RulerUnitRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            HeirUnitRef = input.ReadString();
+            break;
+          }
+          case 114: {
+            councilUnitRefs_.AddEntriesFrom(input, _repeated_councilUnitRefs_codec);
+            break;
+          }
+          case 122: {
+            CapitalSettlementRef = input.ReadString();
+            break;
+          }
+          case 130: {
+            memberSettlementRefs_.AddEntriesFrom(input, _repeated_memberSettlementRefs_codec);
+            break;
+          }
+          case 138: {
+            memberZoneRefs_.AddEntriesFrom(input, _repeated_memberZoneRefs_codec);
+            break;
+          }
+          case 146: {
+            memberUnitRefs_.AddEntriesFrom(input, _repeated_memberUnitRefs_codec);
+            break;
+          }
+          case 154: {
+            vassalFactionRefs_.AddEntriesFrom(input, _repeated_vassalFactionRefs_codec);
+            break;
+          }
+          case 162: {
+            OverlordFactionRef = input.ReadString();
+            break;
+          }
+          case 170: {
+            if (treasury_ == null) {
+              Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Treasury);
+            break;
+          }
+          case 178: {
+            tradeRouteRefs_.AddEntriesFrom(input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 189: {
+            TaxationRate = input.ReadFloat();
+            break;
+          }
+          case 197: {
+            TributeRate = input.ReadFloat();
+            break;
+          }
+          case 202: {
+            relations_.AddEntriesFrom(input, _repeated_relations_codec);
+            break;
+          }
+          case 210: {
+            alliedFactionRefs_.AddEntriesFrom(input, _repeated_alliedFactionRefs_codec);
+            break;
+          }
+          case 218: {
+            hostileFactionRefs_.AddEntriesFrom(input, _repeated_hostileFactionRefs_codec);
+            break;
+          }
+          case 226: {
+            treatyRefs_.AddEntriesFrom(input, _repeated_treatyRefs_codec);
+            break;
+          }
+          case 232: {
+            Prestige = input.ReadInt32();
+            break;
+          }
+          case 240: {
+            Stability = input.ReadInt32();
+            break;
+          }
+          case 248: {
+            TechLevel = input.ReadInt32();
+            break;
+          }
+          case 256: {
+            Manpower = input.ReadInt32();
+            break;
+          }
+          case 269: {
+            Aggression = input.ReadFloat();
+            break;
+          }
+          case 274: {
+            traitRefs_.AddEntriesFrom(input, _repeated_traitRefs_codec);
+            break;
+          }
+          case 282: {
+            ColorHex = input.ReadString();
+            break;
+          }
+          case 288: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 296: {
+            FoundedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 304: {
+            DestroyedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 314: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 320: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 330: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            ShortName = input.ReadString();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 56: {
+            Government = (global::KBVE.Proto.Map.GovernmentType) input.ReadEnum();
+            break;
+          }
+          case 66: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 74: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 88: {
+            Archetype = (global::KBVE.Proto.Map.CultureArchetype) input.ReadEnum();
+            break;
+          }
+          case 98: {
+            RulerUnitRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            HeirUnitRef = input.ReadString();
+            break;
+          }
+          case 114: {
+            councilUnitRefs_.AddEntriesFrom(ref input, _repeated_councilUnitRefs_codec);
+            break;
+          }
+          case 122: {
+            CapitalSettlementRef = input.ReadString();
+            break;
+          }
+          case 130: {
+            memberSettlementRefs_.AddEntriesFrom(ref input, _repeated_memberSettlementRefs_codec);
+            break;
+          }
+          case 138: {
+            memberZoneRefs_.AddEntriesFrom(ref input, _repeated_memberZoneRefs_codec);
+            break;
+          }
+          case 146: {
+            memberUnitRefs_.AddEntriesFrom(ref input, _repeated_memberUnitRefs_codec);
+            break;
+          }
+          case 154: {
+            vassalFactionRefs_.AddEntriesFrom(ref input, _repeated_vassalFactionRefs_codec);
+            break;
+          }
+          case 162: {
+            OverlordFactionRef = input.ReadString();
+            break;
+          }
+          case 170: {
+            if (treasury_ == null) {
+              Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Treasury);
+            break;
+          }
+          case 178: {
+            tradeRouteRefs_.AddEntriesFrom(ref input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 189: {
+            TaxationRate = input.ReadFloat();
+            break;
+          }
+          case 197: {
+            TributeRate = input.ReadFloat();
+            break;
+          }
+          case 202: {
+            relations_.AddEntriesFrom(ref input, _repeated_relations_codec);
+            break;
+          }
+          case 210: {
+            alliedFactionRefs_.AddEntriesFrom(ref input, _repeated_alliedFactionRefs_codec);
+            break;
+          }
+          case 218: {
+            hostileFactionRefs_.AddEntriesFrom(ref input, _repeated_hostileFactionRefs_codec);
+            break;
+          }
+          case 226: {
+            treatyRefs_.AddEntriesFrom(ref input, _repeated_treatyRefs_codec);
+            break;
+          }
+          case 232: {
+            Prestige = input.ReadInt32();
+            break;
+          }
+          case 240: {
+            Stability = input.ReadInt32();
+            break;
+          }
+          case 248: {
+            TechLevel = input.ReadInt32();
+            break;
+          }
+          case 256: {
+            Manpower = input.ReadInt32();
+            break;
+          }
+          case 269: {
+            Aggression = input.ReadFloat();
+            break;
+          }
+          case 274: {
+            traitRefs_.AddEntriesFrom(ref input, _repeated_traitRefs_codec);
+            break;
+          }
+          case 282: {
+            ColorHex = input.ReadString();
+            break;
+          }
+          case 288: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 296: {
+            FoundedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 304: {
+            DestroyedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 314: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 320: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 330: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Sub-region of a Settlement — districts let cities split into
+  /// residential / commercial / military quarters with their own
+  /// stats and building rosters.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class District : pb::IMessage<District>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<District> _parser = new pb::MessageParser<District>(() => new District());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<District> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[51]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public District() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public District(District other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      type_ = other.type_;
+      description_ = other.description_;
+      bounds_ = other.bounds_ != null ? other.bounds_.Clone() : null;
+      gridCells_ = other.gridCells_.Clone();
+      hexes_ = other.hexes_.Clone();
+      population_ = other.population_;
+      populationCap_ = other.populationCap_;
+      wealthIndex_ = other.wealthIndex_;
+      crimeRate_ = other.crimeRate_;
+      happiness_ = other.happiness_;
+      pollution_ = other.pollution_;
+      buildingRefs_ = other.buildingRefs_.Clone();
+      npcRefs_ = other.npcRefs_.Clone();
+      serviceKinds_ = other.serviceKinds_.Clone();
+      districtQuestRef_ = other.districtQuestRef_;
+      walled_ = other.walled_;
+      destroyed_ = other.destroyed_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public District Clone() {
+      return new District(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "type" field.</summary>
+    public const int TypeFieldNumber = 4;
+    private global::KBVE.Proto.Map.DistrictType type_ = global::KBVE.Proto.Map.DistrictType.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.DistrictType Type {
+      get { return type_; }
+      set {
+        type_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 5;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "bounds" field.</summary>
+    public const int BoundsFieldNumber = 6;
+    private global::KBVE.Proto.Map.Bounds2D bounds_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Bounds2D Bounds {
+      get { return bounds_; }
+      set {
+        bounds_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "grid_cells" field.</summary>
+    public const int GridCellsFieldNumber = 7;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.GridPos> _repeated_gridCells_codec
+        = pb::FieldCodec.ForMessage(58, global::KBVE.Proto.Map.GridPos.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.GridPos> gridCells_ = new pbc::RepeatedField<global::KBVE.Proto.Map.GridPos>();
+    /// <summary>
+    /// For tile-grid cities
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.GridPos> GridCells {
+      get { return gridCells_; }
+    }
+
+    /// <summary>Field number for the "hexes" field.</summary>
+    public const int HexesFieldNumber = 8;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.HexCoord> _repeated_hexes_codec
+        = pb::FieldCodec.ForMessage(66, global::KBVE.Proto.Map.HexCoord.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> hexes_ = new pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord>();
+    /// <summary>
+    /// For hex-grid cities
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> Hexes {
+      get { return hexes_; }
+    }
+
+    /// <summary>Field number for the "population" field.</summary>
+    public const int PopulationFieldNumber = 9;
+    private readonly static int PopulationDefaultValue = 0;
+
+    private int population_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Population {
+      get { if ((_hasBits0 & 1) != 0) { return population_; } else { return PopulationDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        population_ = value;
+      }
+    }
+    /// <summary>Gets whether the "population" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPopulation {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "population" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPopulation() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "population_cap" field.</summary>
+    public const int PopulationCapFieldNumber = 10;
+    private readonly static int PopulationCapDefaultValue = 0;
+
+    private int populationCap_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int PopulationCap {
+      get { if ((_hasBits0 & 2) != 0) { return populationCap_; } else { return PopulationCapDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        populationCap_ = value;
+      }
+    }
+    /// <summary>Gets whether the "population_cap" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPopulationCap {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "population_cap" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPopulationCap() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "wealth_index" field.</summary>
+    public const int WealthIndexFieldNumber = 11;
+    private readonly static float WealthIndexDefaultValue = 0F;
+
+    private float wealthIndex_;
+    /// <summary>
+    /// 0.0–1.0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float WealthIndex {
+      get { if ((_hasBits0 & 4) != 0) { return wealthIndex_; } else { return WealthIndexDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        wealthIndex_ = value;
+      }
+    }
+    /// <summary>Gets whether the "wealth_index" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWealthIndex {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "wealth_index" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWealthIndex() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "crime_rate" field.</summary>
+    public const int CrimeRateFieldNumber = 12;
+    private readonly static float CrimeRateDefaultValue = 0F;
+
+    private float crimeRate_;
+    /// <summary>
+    /// 0.0–1.0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float CrimeRate {
+      get { if ((_hasBits0 & 8) != 0) { return crimeRate_; } else { return CrimeRateDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        crimeRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "crime_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCrimeRate {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "crime_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCrimeRate() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "happiness" field.</summary>
+    public const int HappinessFieldNumber = 13;
+    private readonly static float HappinessDefaultValue = 0F;
+
+    private float happiness_;
+    /// <summary>
+    /// 0.0–1.0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Happiness {
+      get { if ((_hasBits0 & 16) != 0) { return happiness_; } else { return HappinessDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        happiness_ = value;
+      }
+    }
+    /// <summary>Gets whether the "happiness" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasHappiness {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "happiness" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearHappiness() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "pollution" field.</summary>
+    public const int PollutionFieldNumber = 14;
+    private readonly static float PollutionDefaultValue = 0F;
+
+    private float pollution_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Pollution {
+      get { if ((_hasBits0 & 32) != 0) { return pollution_; } else { return PollutionDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        pollution_ = value;
+      }
+    }
+    /// <summary>Gets whether the "pollution" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPollution {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "pollution" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPollution() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "building_refs" field.</summary>
+    public const int BuildingRefsFieldNumber = 15;
+    private static readonly pb::FieldCodec<string> _repeated_buildingRefs_codec
+        = pb::FieldCodec.ForString(122);
+    private readonly pbc::RepeatedField<string> buildingRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// WorldObjectPlacement / building IDs
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> BuildingRefs {
+      get { return buildingRefs_; }
+    }
+
+    /// <summary>Field number for the "npc_refs" field.</summary>
+    public const int NpcRefsFieldNumber = 16;
+    private static readonly pb::FieldCodec<string> _repeated_npcRefs_codec
+        = pb::FieldCodec.ForString(130);
+    private readonly pbc::RepeatedField<string> npcRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> NpcRefs {
+      get { return npcRefs_; }
+    }
+
+    /// <summary>Field number for the "service_kinds" field.</summary>
+    public const int ServiceKindsFieldNumber = 17;
+    private static readonly pb::FieldCodec<string> _repeated_serviceKinds_codec
+        = pb::FieldCodec.ForString(138);
+    private readonly pbc::RepeatedField<string> serviceKinds_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Denormalized list of ServiceKind names
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ServiceKinds {
+      get { return serviceKinds_; }
+    }
+
+    /// <summary>Field number for the "district_quest_ref" field.</summary>
+    public const int DistrictQuestRefFieldNumber = 18;
+    private readonly static string DistrictQuestRefDefaultValue = "";
+
+    private string districtQuestRef_;
+    /// <summary>
+    /// District-tied storyline
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DistrictQuestRef {
+      get { return districtQuestRef_ ?? DistrictQuestRefDefaultValue; }
+      set {
+        districtQuestRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "district_quest_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDistrictQuestRef {
+      get { return districtQuestRef_ != null; }
+    }
+    /// <summary>Clears the value of the "district_quest_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDistrictQuestRef() {
+      districtQuestRef_ = null;
+    }
+
+    /// <summary>Field number for the "walled" field.</summary>
+    public const int WalledFieldNumber = 19;
+    private readonly static bool WalledDefaultValue = false;
+
+    private bool walled_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Walled {
+      get { if ((_hasBits0 & 64) != 0) { return walled_; } else { return WalledDefaultValue; } }
+      set {
+        _hasBits0 |= 64;
+        walled_ = value;
+      }
+    }
+    /// <summary>Gets whether the "walled" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWalled {
+      get { return (_hasBits0 & 64) != 0; }
+    }
+    /// <summary>Clears the value of the "walled" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWalled() {
+      _hasBits0 &= ~64;
+    }
+
+    /// <summary>Field number for the "destroyed" field.</summary>
+    public const int DestroyedFieldNumber = 20;
+    private readonly static bool DestroyedDefaultValue = false;
+
+    private bool destroyed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Destroyed {
+      get { if ((_hasBits0 & 128) != 0) { return destroyed_; } else { return DestroyedDefaultValue; } }
+      set {
+        _hasBits0 |= 128;
+        destroyed_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyed {
+      get { return (_hasBits0 & 128) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyed() {
+      _hasBits0 &= ~128;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 21;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(170, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as District);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(District other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Type != other.Type) return false;
+      if (Description != other.Description) return false;
+      if (!object.Equals(Bounds, other.Bounds)) return false;
+      if(!gridCells_.Equals(other.gridCells_)) return false;
+      if(!hexes_.Equals(other.hexes_)) return false;
+      if (Population != other.Population) return false;
+      if (PopulationCap != other.PopulationCap) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(WealthIndex, other.WealthIndex)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CrimeRate, other.CrimeRate)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Happiness, other.Happiness)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Pollution, other.Pollution)) return false;
+      if(!buildingRefs_.Equals(other.buildingRefs_)) return false;
+      if(!npcRefs_.Equals(other.npcRefs_)) return false;
+      if(!serviceKinds_.Equals(other.serviceKinds_)) return false;
+      if (DistrictQuestRef != other.DistrictQuestRef) return false;
+      if (Walled != other.Walled) return false;
+      if (Destroyed != other.Destroyed) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Type != global::KBVE.Proto.Map.DistrictType.Unspecified) hash ^= Type.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (bounds_ != null) hash ^= Bounds.GetHashCode();
+      hash ^= gridCells_.GetHashCode();
+      hash ^= hexes_.GetHashCode();
+      if (HasPopulation) hash ^= Population.GetHashCode();
+      if (HasPopulationCap) hash ^= PopulationCap.GetHashCode();
+      if (HasWealthIndex) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(WealthIndex);
+      if (HasCrimeRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CrimeRate);
+      if (HasHappiness) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Happiness);
+      if (HasPollution) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Pollution);
+      hash ^= buildingRefs_.GetHashCode();
+      hash ^= npcRefs_.GetHashCode();
+      hash ^= serviceKinds_.GetHashCode();
+      if (HasDistrictQuestRef) hash ^= DistrictQuestRef.GetHashCode();
+      if (HasWalled) hash ^= Walled.GetHashCode();
+      if (HasDestroyed) hash ^= Destroyed.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Type != global::KBVE.Proto.Map.DistrictType.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Type);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (bounds_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Bounds);
+      }
+      gridCells_.WriteTo(output, _repeated_gridCells_codec);
+      hexes_.WriteTo(output, _repeated_hexes_codec);
+      if (HasPopulation) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Population);
+      }
+      if (HasPopulationCap) {
+        output.WriteRawTag(80);
+        output.WriteInt32(PopulationCap);
+      }
+      if (HasWealthIndex) {
+        output.WriteRawTag(93);
+        output.WriteFloat(WealthIndex);
+      }
+      if (HasCrimeRate) {
+        output.WriteRawTag(101);
+        output.WriteFloat(CrimeRate);
+      }
+      if (HasHappiness) {
+        output.WriteRawTag(109);
+        output.WriteFloat(Happiness);
+      }
+      if (HasPollution) {
+        output.WriteRawTag(117);
+        output.WriteFloat(Pollution);
+      }
+      buildingRefs_.WriteTo(output, _repeated_buildingRefs_codec);
+      npcRefs_.WriteTo(output, _repeated_npcRefs_codec);
+      serviceKinds_.WriteTo(output, _repeated_serviceKinds_codec);
+      if (HasDistrictQuestRef) {
+        output.WriteRawTag(146, 1);
+        output.WriteString(DistrictQuestRef);
+      }
+      if (HasWalled) {
+        output.WriteRawTag(152, 1);
+        output.WriteBool(Walled);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(160, 1);
+        output.WriteBool(Destroyed);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (Type != global::KBVE.Proto.Map.DistrictType.Unspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Type);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(42);
+        output.WriteString(Description);
+      }
+      if (bounds_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Bounds);
+      }
+      gridCells_.WriteTo(ref output, _repeated_gridCells_codec);
+      hexes_.WriteTo(ref output, _repeated_hexes_codec);
+      if (HasPopulation) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Population);
+      }
+      if (HasPopulationCap) {
+        output.WriteRawTag(80);
+        output.WriteInt32(PopulationCap);
+      }
+      if (HasWealthIndex) {
+        output.WriteRawTag(93);
+        output.WriteFloat(WealthIndex);
+      }
+      if (HasCrimeRate) {
+        output.WriteRawTag(101);
+        output.WriteFloat(CrimeRate);
+      }
+      if (HasHappiness) {
+        output.WriteRawTag(109);
+        output.WriteFloat(Happiness);
+      }
+      if (HasPollution) {
+        output.WriteRawTag(117);
+        output.WriteFloat(Pollution);
+      }
+      buildingRefs_.WriteTo(ref output, _repeated_buildingRefs_codec);
+      npcRefs_.WriteTo(ref output, _repeated_npcRefs_codec);
+      serviceKinds_.WriteTo(ref output, _repeated_serviceKinds_codec);
+      if (HasDistrictQuestRef) {
+        output.WriteRawTag(146, 1);
+        output.WriteString(DistrictQuestRef);
+      }
+      if (HasWalled) {
+        output.WriteRawTag(152, 1);
+        output.WriteBool(Walled);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(160, 1);
+        output.WriteBool(Destroyed);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Type != global::KBVE.Proto.Map.DistrictType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Type);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (bounds_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Bounds);
+      }
+      size += gridCells_.CalculateSize(_repeated_gridCells_codec);
+      size += hexes_.CalculateSize(_repeated_hexes_codec);
+      if (HasPopulation) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Population);
+      }
+      if (HasPopulationCap) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(PopulationCap);
+      }
+      if (HasWealthIndex) {
+        size += 1 + 4;
+      }
+      if (HasCrimeRate) {
+        size += 1 + 4;
+      }
+      if (HasHappiness) {
+        size += 1 + 4;
+      }
+      if (HasPollution) {
+        size += 1 + 4;
+      }
+      size += buildingRefs_.CalculateSize(_repeated_buildingRefs_codec);
+      size += npcRefs_.CalculateSize(_repeated_npcRefs_codec);
+      size += serviceKinds_.CalculateSize(_repeated_serviceKinds_codec);
+      if (HasDistrictQuestRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DistrictQuestRef);
+      }
+      if (HasWalled) {
+        size += 2 + 1;
+      }
+      if (HasDestroyed) {
+        size += 2 + 1;
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(District other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Type != global::KBVE.Proto.Map.DistrictType.Unspecified) {
+        Type = other.Type;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.bounds_ != null) {
+        if (bounds_ == null) {
+          Bounds = new global::KBVE.Proto.Map.Bounds2D();
+        }
+        Bounds.MergeFrom(other.Bounds);
+      }
+      gridCells_.Add(other.gridCells_);
+      hexes_.Add(other.hexes_);
+      if (other.HasPopulation) {
+        Population = other.Population;
+      }
+      if (other.HasPopulationCap) {
+        PopulationCap = other.PopulationCap;
+      }
+      if (other.HasWealthIndex) {
+        WealthIndex = other.WealthIndex;
+      }
+      if (other.HasCrimeRate) {
+        CrimeRate = other.CrimeRate;
+      }
+      if (other.HasHappiness) {
+        Happiness = other.Happiness;
+      }
+      if (other.HasPollution) {
+        Pollution = other.Pollution;
+      }
+      buildingRefs_.Add(other.buildingRefs_);
+      npcRefs_.Add(other.npcRefs_);
+      serviceKinds_.Add(other.serviceKinds_);
+      if (other.HasDistrictQuestRef) {
+        DistrictQuestRef = other.DistrictQuestRef;
+      }
+      if (other.HasWalled) {
+        Walled = other.Walled;
+      }
+      if (other.HasDestroyed) {
+        Destroyed = other.Destroyed;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Type = (global::KBVE.Proto.Map.DistrictType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            if (bounds_ == null) {
+              Bounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(Bounds);
+            break;
+          }
+          case 58: {
+            gridCells_.AddEntriesFrom(input, _repeated_gridCells_codec);
+            break;
+          }
+          case 66: {
+            hexes_.AddEntriesFrom(input, _repeated_hexes_codec);
+            break;
+          }
+          case 72: {
+            Population = input.ReadInt32();
+            break;
+          }
+          case 80: {
+            PopulationCap = input.ReadInt32();
+            break;
+          }
+          case 93: {
+            WealthIndex = input.ReadFloat();
+            break;
+          }
+          case 101: {
+            CrimeRate = input.ReadFloat();
+            break;
+          }
+          case 109: {
+            Happiness = input.ReadFloat();
+            break;
+          }
+          case 117: {
+            Pollution = input.ReadFloat();
+            break;
+          }
+          case 122: {
+            buildingRefs_.AddEntriesFrom(input, _repeated_buildingRefs_codec);
+            break;
+          }
+          case 130: {
+            npcRefs_.AddEntriesFrom(input, _repeated_npcRefs_codec);
+            break;
+          }
+          case 138: {
+            serviceKinds_.AddEntriesFrom(input, _repeated_serviceKinds_codec);
+            break;
+          }
+          case 146: {
+            DistrictQuestRef = input.ReadString();
+            break;
+          }
+          case 152: {
+            Walled = input.ReadBool();
+            break;
+          }
+          case 160: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 170: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 32: {
+            Type = (global::KBVE.Proto.Map.DistrictType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            Description = input.ReadString();
+            break;
+          }
+          case 50: {
+            if (bounds_ == null) {
+              Bounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(Bounds);
+            break;
+          }
+          case 58: {
+            gridCells_.AddEntriesFrom(ref input, _repeated_gridCells_codec);
+            break;
+          }
+          case 66: {
+            hexes_.AddEntriesFrom(ref input, _repeated_hexes_codec);
+            break;
+          }
+          case 72: {
+            Population = input.ReadInt32();
+            break;
+          }
+          case 80: {
+            PopulationCap = input.ReadInt32();
+            break;
+          }
+          case 93: {
+            WealthIndex = input.ReadFloat();
+            break;
+          }
+          case 101: {
+            CrimeRate = input.ReadFloat();
+            break;
+          }
+          case 109: {
+            Happiness = input.ReadFloat();
+            break;
+          }
+          case 117: {
+            Pollution = input.ReadFloat();
+            break;
+          }
+          case 122: {
+            buildingRefs_.AddEntriesFrom(ref input, _repeated_buildingRefs_codec);
+            break;
+          }
+          case 130: {
+            npcRefs_.AddEntriesFrom(ref input, _repeated_npcRefs_codec);
+            break;
+          }
+          case 138: {
+            serviceKinds_.AddEntriesFrom(ref input, _repeated_serviceKinds_codec);
+            break;
+          }
+          case 146: {
+            DistrictQuestRef = input.ReadString();
+            break;
+          }
+          case 152: {
+            Walled = input.ReadBool();
+            break;
+          }
+          case 160: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 170: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Settlement / city / town / village — owns a footprint inside one
+  /// or more zones, optionally split into districts. Ownership chains up
+  /// to a Faction; supplied by TradeRoutes; defended by structures whose
+  /// services list TerritoryEmitterSpec.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Settlement : pb::IMessage<Settlement>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Settlement> _parser = new pb::MessageParser<Settlement>(() => new Settlement());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Settlement> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[52]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Settlement() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Settlement(Settlement other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      description_ = other.description_;
+      lore_ = other.lore_;
+      tier_ = other.tier_;
+      factionRef_ = other.factionRef_;
+      cultureRef_ = other.cultureRef_;
+      religionRef_ = other.religionRef_;
+      mayorUnitRef_ = other.mayorUnitRef_;
+      councilUnitRefs_ = other.councilUnitRefs_.Clone();
+      regionRef_ = other.regionRef_;
+      zoneRef_ = other.zoneRef_;
+      auxZoneRefs_ = other.auxZoneRefs_.Clone();
+      position_ = other.position_ != null ? other.position_.Clone() : null;
+      gridPos_ = other.gridPos_ != null ? other.gridPos_.Clone() : null;
+      hex_ = other.hex_ != null ? other.hex_.Clone() : null;
+      footprintBounds_ = other.footprintBounds_ != null ? other.footprintBounds_.Clone() : null;
+      footprintHexes_ = other.footprintHexes_.Clone();
+      population_ = other.population_;
+      populationCap_ = other.populationCap_;
+      growthRate_ = other.growthRate_;
+      garrisonSize_ = other.garrisonSize_;
+      manpowerPool_ = other.manpowerPool_;
+      treasury_ = other.treasury_ != null ? other.treasury_.Clone() : null;
+      granary_ = other.granary_ != null ? other.granary_.Clone() : null;
+      taxRate_ = other.taxRate_;
+      tariffRate_ = other.tariffRate_;
+      tradeRouteRefs_ = other.tradeRouteRefs_.Clone();
+      exportItemRefs_ = other.exportItemRefs_.Clone();
+      importItemRefs_ = other.importItemRefs_.Clone();
+      districts_ = other.districts_.Clone();
+      buildingRefs_ = other.buildingRefs_.Clone();
+      landmarkRefs_ = other.landmarkRefs_.Clone();
+      poiRefs_ = other.poiRefs_.Clone();
+      serviceKinds_ = other.serviceKinds_.Clone();
+      capital_ = other.capital_;
+      walled_ = other.walled_;
+      wallHealth_ = other.wallHealth_;
+      besieged_ = other.besieged_;
+      besiegingFactionRef_ = other.besiegingFactionRef_;
+      destroyed_ = other.destroyed_;
+      occupied_ = other.occupied_;
+      occupierFactionRef_ = other.occupierFactionRef_;
+      discoverable_ = other.discoverable_;
+      discoveryQuestRef_ = other.discoveryQuestRef_;
+      prerequisiteQuestRefs_ = other.prerequisiteQuestRefs_.Clone();
+      banner_ = other.banner_ != null ? other.banner_.Clone() : null;
+      icon_ = other.icon_;
+      markerIcon_ = other.markerIcon_;
+      img_ = other.img_;
+      foundedAtTurn_ = other.foundedAtTurn_;
+      destroyedAtTurn_ = other.destroyedAtTurn_;
+      credits_ = other.credits_;
+      drafted_ = other.drafted_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Settlement Clone() {
+      return new Settlement(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    /// <summary>
+    /// ULID
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 4;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "lore" field.</summary>
+    public const int LoreFieldNumber = 5;
+    private readonly static string LoreDefaultValue = "";
+
+    private string lore_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Lore {
+      get { return lore_ ?? LoreDefaultValue; }
+      set {
+        lore_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "lore" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLore {
+      get { return lore_ != null; }
+    }
+    /// <summary>Clears the value of the "lore" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLore() {
+      lore_ = null;
+    }
+
+    /// <summary>Field number for the "tier" field.</summary>
+    public const int TierFieldNumber = 6;
+    private global::KBVE.Proto.Map.SettlementTier tier_ = global::KBVE.Proto.Map.SettlementTier.Unspecified;
+    /// <summary>
+    /// Class
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.SettlementTier Tier {
+      get { return tier_; }
+      set {
+        tier_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 7;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    /// <summary>Field number for the "culture_ref" field.</summary>
+    public const int CultureRefFieldNumber = 8;
+    private readonly static string CultureRefDefaultValue = "";
+
+    private string cultureRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CultureRef {
+      get { return cultureRef_ ?? CultureRefDefaultValue; }
+      set {
+        cultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCultureRef {
+      get { return cultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCultureRef() {
+      cultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "religion_ref" field.</summary>
+    public const int ReligionRefFieldNumber = 9;
+    private readonly static string ReligionRefDefaultValue = "";
+
+    private string religionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ReligionRef {
+      get { return religionRef_ ?? ReligionRefDefaultValue; }
+      set {
+        religionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReligionRef {
+      get { return religionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReligionRef() {
+      religionRef_ = null;
+    }
+
+    /// <summary>Field number for the "mayor_unit_ref" field.</summary>
+    public const int MayorUnitRefFieldNumber = 10;
+    private readonly static string MayorUnitRefDefaultValue = "";
+
+    private string mayorUnitRef_;
+    /// <summary>
+    /// Leadership
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string MayorUnitRef {
+      get { return mayorUnitRef_ ?? MayorUnitRefDefaultValue; }
+      set {
+        mayorUnitRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "mayor_unit_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasMayorUnitRef {
+      get { return mayorUnitRef_ != null; }
+    }
+    /// <summary>Clears the value of the "mayor_unit_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMayorUnitRef() {
+      mayorUnitRef_ = null;
+    }
+
+    /// <summary>Field number for the "council_unit_refs" field.</summary>
+    public const int CouncilUnitRefsFieldNumber = 11;
+    private static readonly pb::FieldCodec<string> _repeated_councilUnitRefs_codec
+        = pb::FieldCodec.ForString(90);
+    private readonly pbc::RepeatedField<string> councilUnitRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> CouncilUnitRefs {
+      get { return councilUnitRefs_; }
+    }
+
+    /// <summary>Field number for the "region_ref" field.</summary>
+    public const int RegionRefFieldNumber = 12;
+    private readonly static string RegionRefDefaultValue = "";
+
+    private string regionRef_;
+    /// <summary>
+    /// Geography
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string RegionRef {
+      get { return regionRef_ ?? RegionRefDefaultValue; }
+      set {
+        regionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "region_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRegionRef {
+      get { return regionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "region_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRegionRef() {
+      regionRef_ = null;
+    }
+
+    /// <summary>Field number for the "zone_ref" field.</summary>
+    public const int ZoneRefFieldNumber = 13;
+    private readonly static string ZoneRefDefaultValue = "";
+
+    private string zoneRef_;
+    /// <summary>
+    /// Primary zone the settlement sits in
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ZoneRef {
+      get { return zoneRef_ ?? ZoneRefDefaultValue; }
+      set {
+        zoneRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "zone_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasZoneRef {
+      get { return zoneRef_ != null; }
+    }
+    /// <summary>Clears the value of the "zone_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearZoneRef() {
+      zoneRef_ = null;
+    }
+
+    /// <summary>Field number for the "aux_zone_refs" field.</summary>
+    public const int AuxZoneRefsFieldNumber = 14;
+    private static readonly pb::FieldCodec<string> _repeated_auxZoneRefs_codec
+        = pb::FieldCodec.ForString(114);
+    private readonly pbc::RepeatedField<string> auxZoneRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Secondary / sub-zones
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> AuxZoneRefs {
+      get { return auxZoneRefs_; }
+    }
+
+    /// <summary>Field number for the "position" field.</summary>
+    public const int PositionFieldNumber = 15;
+    private global::KBVE.Proto.Map.WorldPos position_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.WorldPos Position {
+      get { return position_; }
+      set {
+        position_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "grid_pos" field.</summary>
+    public const int GridPosFieldNumber = 16;
+    private global::KBVE.Proto.Map.GridPos gridPos_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.GridPos GridPos {
+      get { return gridPos_; }
+      set {
+        gridPos_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hex" field.</summary>
+    public const int HexFieldNumber = 17;
+    private global::KBVE.Proto.Map.HexCoord hex_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.HexCoord Hex {
+      get { return hex_; }
+      set {
+        hex_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "footprint_bounds" field.</summary>
+    public const int FootprintBoundsFieldNumber = 18;
+    private global::KBVE.Proto.Map.Bounds2D footprintBounds_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Bounds2D FootprintBounds {
+      get { return footprintBounds_; }
+      set {
+        footprintBounds_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "footprint_hexes" field.</summary>
+    public const int FootprintHexesFieldNumber = 19;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.HexCoord> _repeated_footprintHexes_codec
+        = pb::FieldCodec.ForMessage(154, global::KBVE.Proto.Map.HexCoord.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> footprintHexes_ = new pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> FootprintHexes {
+      get { return footprintHexes_; }
+    }
+
+    /// <summary>Field number for the "population" field.</summary>
+    public const int PopulationFieldNumber = 20;
+    private readonly static int PopulationDefaultValue = 0;
+
+    private int population_;
+    /// <summary>
+    /// Demographics
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Population {
+      get { if ((_hasBits0 & 1) != 0) { return population_; } else { return PopulationDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        population_ = value;
+      }
+    }
+    /// <summary>Gets whether the "population" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPopulation {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "population" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPopulation() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "population_cap" field.</summary>
+    public const int PopulationCapFieldNumber = 21;
+    private readonly static int PopulationCapDefaultValue = 0;
+
+    private int populationCap_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int PopulationCap {
+      get { if ((_hasBits0 & 2) != 0) { return populationCap_; } else { return PopulationCapDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        populationCap_ = value;
+      }
+    }
+    /// <summary>Gets whether the "population_cap" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPopulationCap {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "population_cap" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPopulationCap() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "growth_rate" field.</summary>
+    public const int GrowthRateFieldNumber = 22;
+    private readonly static float GrowthRateDefaultValue = 0F;
+
+    private float growthRate_;
+    /// <summary>
+    /// Per-turn or per-tick
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float GrowthRate {
+      get { if ((_hasBits0 & 4) != 0) { return growthRate_; } else { return GrowthRateDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        growthRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "growth_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasGrowthRate {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "growth_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearGrowthRate() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "garrison_size" field.</summary>
+    public const int GarrisonSizeFieldNumber = 23;
+    private readonly static int GarrisonSizeDefaultValue = 0;
+
+    private int garrisonSize_;
+    /// <summary>
+    /// Defending militia
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int GarrisonSize {
+      get { if ((_hasBits0 & 8) != 0) { return garrisonSize_; } else { return GarrisonSizeDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        garrisonSize_ = value;
+      }
+    }
+    /// <summary>Gets whether the "garrison_size" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasGarrisonSize {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "garrison_size" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearGarrisonSize() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "manpower_pool" field.</summary>
+    public const int ManpowerPoolFieldNumber = 24;
+    private readonly static int ManpowerPoolDefaultValue = 0;
+
+    private int manpowerPool_;
+    /// <summary>
+    /// Recruitable
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int ManpowerPool {
+      get { if ((_hasBits0 & 16) != 0) { return manpowerPool_; } else { return ManpowerPoolDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        manpowerPool_ = value;
+      }
+    }
+    /// <summary>Gets whether the "manpower_pool" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasManpowerPool {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "manpower_pool" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearManpowerPool() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "treasury" field.</summary>
+    public const int TreasuryFieldNumber = 25;
+    private global::KBVE.Proto.Map.ResourceLedger treasury_;
+    /// <summary>
+    /// Economy
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ResourceLedger Treasury {
+      get { return treasury_; }
+      set {
+        treasury_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "granary" field.</summary>
+    public const int GranaryFieldNumber = 26;
+    private global::KBVE.Proto.Map.ResourceLedger granary_;
+    /// <summary>
+    /// Food / supplies separate
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.ResourceLedger Granary {
+      get { return granary_; }
+      set {
+        granary_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "tax_rate" field.</summary>
+    public const int TaxRateFieldNumber = 27;
+    private readonly static float TaxRateDefaultValue = 0F;
+
+    private float taxRate_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float TaxRate {
+      get { if ((_hasBits0 & 32) != 0) { return taxRate_; } else { return TaxRateDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        taxRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "tax_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTaxRate {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "tax_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTaxRate() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "tariff_rate" field.</summary>
+    public const int TariffRateFieldNumber = 28;
+    private readonly static float TariffRateDefaultValue = 0F;
+
+    private float tariffRate_;
+    /// <summary>
+    /// For inbound trade
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float TariffRate {
+      get { if ((_hasBits0 & 64) != 0) { return tariffRate_; } else { return TariffRateDefaultValue; } }
+      set {
+        _hasBits0 |= 64;
+        tariffRate_ = value;
+      }
+    }
+    /// <summary>Gets whether the "tariff_rate" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTariffRate {
+      get { return (_hasBits0 & 64) != 0; }
+    }
+    /// <summary>Clears the value of the "tariff_rate" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTariffRate() {
+      _hasBits0 &= ~64;
+    }
+
+    /// <summary>Field number for the "trade_route_refs" field.</summary>
+    public const int TradeRouteRefsFieldNumber = 29;
+    private static readonly pb::FieldCodec<string> _repeated_tradeRouteRefs_codec
+        = pb::FieldCodec.ForString(234);
+    private readonly pbc::RepeatedField<string> tradeRouteRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> TradeRouteRefs {
+      get { return tradeRouteRefs_; }
+    }
+
+    /// <summary>Field number for the "export_item_refs" field.</summary>
+    public const int ExportItemRefsFieldNumber = 30;
+    private static readonly pb::FieldCodec<string> _repeated_exportItemRefs_codec
+        = pb::FieldCodec.ForString(242);
+    private readonly pbc::RepeatedField<string> exportItemRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Denormalized: what this settlement produces
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ExportItemRefs {
+      get { return exportItemRefs_; }
+    }
+
+    /// <summary>Field number for the "import_item_refs" field.</summary>
+    public const int ImportItemRefsFieldNumber = 31;
+    private static readonly pb::FieldCodec<string> _repeated_importItemRefs_codec
+        = pb::FieldCodec.ForString(250);
+    private readonly pbc::RepeatedField<string> importItemRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Denormalized: what it needs
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ImportItemRefs {
+      get { return importItemRefs_; }
+    }
+
+    /// <summary>Field number for the "districts" field.</summary>
+    public const int DistrictsFieldNumber = 32;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.District> _repeated_districts_codec
+        = pb::FieldCodec.ForMessage(258, global::KBVE.Proto.Map.District.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.District> districts_ = new pbc::RepeatedField<global::KBVE.Proto.Map.District>();
+    /// <summary>
+    /// Districts &amp; contents
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.District> Districts {
+      get { return districts_; }
+    }
+
+    /// <summary>Field number for the "building_refs" field.</summary>
+    public const int BuildingRefsFieldNumber = 33;
+    private static readonly pb::FieldCodec<string> _repeated_buildingRefs_codec
+        = pb::FieldCodec.ForString(266);
+    private readonly pbc::RepeatedField<string> buildingRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Building placement refs at settlement scope
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> BuildingRefs {
+      get { return buildingRefs_; }
+    }
+
+    /// <summary>Field number for the "landmark_refs" field.</summary>
+    public const int LandmarkRefsFieldNumber = 34;
+    private static readonly pb::FieldCodec<string> _repeated_landmarkRefs_codec
+        = pb::FieldCodec.ForString(274);
+    private readonly pbc::RepeatedField<string> landmarkRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Featured landmarks within the settlement
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> LandmarkRefs {
+      get { return landmarkRefs_; }
+    }
+
+    /// <summary>Field number for the "poi_refs" field.</summary>
+    public const int PoiRefsFieldNumber = 35;
+    private static readonly pb::FieldCodec<string> _repeated_poiRefs_codec
+        = pb::FieldCodec.ForString(282);
+    private readonly pbc::RepeatedField<string> poiRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Featured POIs
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> PoiRefs {
+      get { return poiRefs_; }
+    }
+
+    /// <summary>Field number for the "service_kinds" field.</summary>
+    public const int ServiceKindsFieldNumber = 36;
+    private static readonly pb::FieldCodec<string> _repeated_serviceKinds_codec
+        = pb::FieldCodec.ForString(290);
+    private readonly pbc::RepeatedField<string> serviceKinds_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Services denormalized for quick capability queries.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ServiceKinds {
+      get { return serviceKinds_; }
+    }
+
+    /// <summary>Field number for the "capital" field.</summary>
+    public const int CapitalFieldNumber = 37;
+    private readonly static bool CapitalDefaultValue = false;
+
+    private bool capital_;
+    /// <summary>
+    /// Defenses &amp; status
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Capital {
+      get { if ((_hasBits0 & 128) != 0) { return capital_; } else { return CapitalDefaultValue; } }
+      set {
+        _hasBits0 |= 128;
+        capital_ = value;
+      }
+    }
+    /// <summary>Gets whether the "capital" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCapital {
+      get { return (_hasBits0 & 128) != 0; }
+    }
+    /// <summary>Clears the value of the "capital" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCapital() {
+      _hasBits0 &= ~128;
+    }
+
+    /// <summary>Field number for the "walled" field.</summary>
+    public const int WalledFieldNumber = 38;
+    private readonly static bool WalledDefaultValue = false;
+
+    private bool walled_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Walled {
+      get { if ((_hasBits0 & 256) != 0) { return walled_; } else { return WalledDefaultValue; } }
+      set {
+        _hasBits0 |= 256;
+        walled_ = value;
+      }
+    }
+    /// <summary>Gets whether the "walled" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWalled {
+      get { return (_hasBits0 & 256) != 0; }
+    }
+    /// <summary>Clears the value of the "walled" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWalled() {
+      _hasBits0 &= ~256;
+    }
+
+    /// <summary>Field number for the "wall_health" field.</summary>
+    public const int WallHealthFieldNumber = 39;
+    private readonly static int WallHealthDefaultValue = 0;
+
+    private int wallHealth_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int WallHealth {
+      get { if ((_hasBits0 & 512) != 0) { return wallHealth_; } else { return WallHealthDefaultValue; } }
+      set {
+        _hasBits0 |= 512;
+        wallHealth_ = value;
+      }
+    }
+    /// <summary>Gets whether the "wall_health" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWallHealth {
+      get { return (_hasBits0 & 512) != 0; }
+    }
+    /// <summary>Clears the value of the "wall_health" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWallHealth() {
+      _hasBits0 &= ~512;
+    }
+
+    /// <summary>Field number for the "besieged" field.</summary>
+    public const int BesiegedFieldNumber = 40;
+    private readonly static bool BesiegedDefaultValue = false;
+
+    private bool besieged_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Besieged {
+      get { if ((_hasBits0 & 1024) != 0) { return besieged_; } else { return BesiegedDefaultValue; } }
+      set {
+        _hasBits0 |= 1024;
+        besieged_ = value;
+      }
+    }
+    /// <summary>Gets whether the "besieged" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBesieged {
+      get { return (_hasBits0 & 1024) != 0; }
+    }
+    /// <summary>Clears the value of the "besieged" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBesieged() {
+      _hasBits0 &= ~1024;
+    }
+
+    /// <summary>Field number for the "besieging_faction_ref" field.</summary>
+    public const int BesiegingFactionRefFieldNumber = 41;
+    private readonly static string BesiegingFactionRefDefaultValue = "";
+
+    private string besiegingFactionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string BesiegingFactionRef {
+      get { return besiegingFactionRef_ ?? BesiegingFactionRefDefaultValue; }
+      set {
+        besiegingFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "besieging_faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBesiegingFactionRef {
+      get { return besiegingFactionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "besieging_faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBesiegingFactionRef() {
+      besiegingFactionRef_ = null;
+    }
+
+    /// <summary>Field number for the "destroyed" field.</summary>
+    public const int DestroyedFieldNumber = 42;
+    private readonly static bool DestroyedDefaultValue = false;
+
+    private bool destroyed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Destroyed {
+      get { if ((_hasBits0 & 2048) != 0) { return destroyed_; } else { return DestroyedDefaultValue; } }
+      set {
+        _hasBits0 |= 2048;
+        destroyed_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyed {
+      get { return (_hasBits0 & 2048) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyed() {
+      _hasBits0 &= ~2048;
+    }
+
+    /// <summary>Field number for the "occupied" field.</summary>
+    public const int OccupiedFieldNumber = 43;
+    private readonly static bool OccupiedDefaultValue = false;
+
+    private bool occupied_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Occupied {
+      get { if ((_hasBits0 & 4096) != 0) { return occupied_; } else { return OccupiedDefaultValue; } }
+      set {
+        _hasBits0 |= 4096;
+        occupied_ = value;
+      }
+    }
+    /// <summary>Gets whether the "occupied" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasOccupied {
+      get { return (_hasBits0 & 4096) != 0; }
+    }
+    /// <summary>Clears the value of the "occupied" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearOccupied() {
+      _hasBits0 &= ~4096;
+    }
+
+    /// <summary>Field number for the "occupier_faction_ref" field.</summary>
+    public const int OccupierFactionRefFieldNumber = 44;
+    private readonly static string OccupierFactionRefDefaultValue = "";
+
+    private string occupierFactionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string OccupierFactionRef {
+      get { return occupierFactionRef_ ?? OccupierFactionRefDefaultValue; }
+      set {
+        occupierFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "occupier_faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasOccupierFactionRef {
+      get { return occupierFactionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "occupier_faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearOccupierFactionRef() {
+      occupierFactionRef_ = null;
+    }
+
+    /// <summary>Field number for the "discoverable" field.</summary>
+    public const int DiscoverableFieldNumber = 45;
+    private readonly static bool DiscoverableDefaultValue = false;
+
+    private bool discoverable_;
+    /// <summary>
+    /// Phasing / unlock
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Discoverable {
+      get { if ((_hasBits0 & 8192) != 0) { return discoverable_; } else { return DiscoverableDefaultValue; } }
+      set {
+        _hasBits0 |= 8192;
+        discoverable_ = value;
+      }
+    }
+    /// <summary>Gets whether the "discoverable" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDiscoverable {
+      get { return (_hasBits0 & 8192) != 0; }
+    }
+    /// <summary>Clears the value of the "discoverable" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDiscoverable() {
+      _hasBits0 &= ~8192;
+    }
+
+    /// <summary>Field number for the "discovery_quest_ref" field.</summary>
+    public const int DiscoveryQuestRefFieldNumber = 46;
+    private readonly static string DiscoveryQuestRefDefaultValue = "";
+
+    private string discoveryQuestRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DiscoveryQuestRef {
+      get { return discoveryQuestRef_ ?? DiscoveryQuestRefDefaultValue; }
+      set {
+        discoveryQuestRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "discovery_quest_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDiscoveryQuestRef {
+      get { return discoveryQuestRef_ != null; }
+    }
+    /// <summary>Clears the value of the "discovery_quest_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDiscoveryQuestRef() {
+      discoveryQuestRef_ = null;
+    }
+
+    /// <summary>Field number for the "prerequisite_quest_refs" field.</summary>
+    public const int PrerequisiteQuestRefsFieldNumber = 47;
+    private static readonly pb::FieldCodec<string> _repeated_prerequisiteQuestRefs_codec
+        = pb::FieldCodec.ForString(378);
+    private readonly pbc::RepeatedField<string> prerequisiteQuestRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> PrerequisiteQuestRefs {
+      get { return prerequisiteQuestRefs_; }
+    }
+
+    /// <summary>Field number for the "banner" field.</summary>
+    public const int BannerFieldNumber = 48;
+    private global::KBVE.Proto.Map.Banner banner_;
+    /// <summary>
+    /// Visual / map
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Banner Banner {
+      get { return banner_; }
+      set {
+        banner_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "icon" field.</summary>
+    public const int IconFieldNumber = 49;
+    private readonly static string IconDefaultValue = "";
+
+    private string icon_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Icon {
+      get { return icon_ ?? IconDefaultValue; }
+      set {
+        icon_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "icon" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasIcon {
+      get { return icon_ != null; }
+    }
+    /// <summary>Clears the value of the "icon" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearIcon() {
+      icon_ = null;
+    }
+
+    /// <summary>Field number for the "marker_icon" field.</summary>
+    public const int MarkerIconFieldNumber = 50;
+    private readonly static string MarkerIconDefaultValue = "";
+
+    private string markerIcon_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string MarkerIcon {
+      get { return markerIcon_ ?? MarkerIconDefaultValue; }
+      set {
+        markerIcon_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "marker_icon" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasMarkerIcon {
+      get { return markerIcon_ != null; }
+    }
+    /// <summary>Clears the value of the "marker_icon" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMarkerIcon() {
+      markerIcon_ = null;
+    }
+
+    /// <summary>Field number for the "img" field.</summary>
+    public const int ImgFieldNumber = 51;
+    private readonly static string ImgDefaultValue = "";
+
+    private string img_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Img {
+      get { return img_ ?? ImgDefaultValue; }
+      set {
+        img_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "img" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasImg {
+      get { return img_ != null; }
+    }
+    /// <summary>Clears the value of the "img" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearImg() {
+      img_ = null;
+    }
+
+    /// <summary>Field number for the "founded_at_turn" field.</summary>
+    public const int FoundedAtTurnFieldNumber = 52;
+    private readonly static long FoundedAtTurnDefaultValue = 0L;
+
+    private long foundedAtTurn_;
+    /// <summary>
+    /// Lifecycle
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long FoundedAtTurn {
+      get { if ((_hasBits0 & 16384) != 0) { return foundedAtTurn_; } else { return FoundedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 16384;
+        foundedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "founded_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFoundedAtTurn {
+      get { return (_hasBits0 & 16384) != 0; }
+    }
+    /// <summary>Clears the value of the "founded_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFoundedAtTurn() {
+      _hasBits0 &= ~16384;
+    }
+
+    /// <summary>Field number for the "destroyed_at_turn" field.</summary>
+    public const int DestroyedAtTurnFieldNumber = 53;
+    private readonly static long DestroyedAtTurnDefaultValue = 0L;
+
+    private long destroyedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long DestroyedAtTurn {
+      get { if ((_hasBits0 & 32768) != 0) { return destroyedAtTurn_; } else { return DestroyedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 32768;
+        destroyedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyedAtTurn {
+      get { return (_hasBits0 & 32768) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyedAtTurn() {
+      _hasBits0 &= ~32768;
+    }
+
+    /// <summary>Field number for the "credits" field.</summary>
+    public const int CreditsFieldNumber = 54;
+    private readonly static string CreditsDefaultValue = "";
+
+    private string credits_;
+    /// <summary>
+    /// Metadata
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Credits {
+      get { return credits_ ?? CreditsDefaultValue; }
+      set {
+        credits_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "credits" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCredits {
+      get { return credits_ != null; }
+    }
+    /// <summary>Clears the value of the "credits" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCredits() {
+      credits_ = null;
+    }
+
+    /// <summary>Field number for the "drafted" field.</summary>
+    public const int DraftedFieldNumber = 55;
+    private readonly static bool DraftedDefaultValue = false;
+
+    private bool drafted_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Drafted {
+      get { if ((_hasBits0 & 65536) != 0) { return drafted_; } else { return DraftedDefaultValue; } }
+      set {
+        _hasBits0 |= 65536;
+        drafted_ = value;
+      }
+    }
+    /// <summary>Gets whether the "drafted" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDrafted {
+      get { return (_hasBits0 & 65536) != 0; }
+    }
+    /// <summary>Clears the value of the "drafted" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDrafted() {
+      _hasBits0 &= ~65536;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 56;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(450, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Settlement);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Settlement other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Description != other.Description) return false;
+      if (Lore != other.Lore) return false;
+      if (Tier != other.Tier) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if (CultureRef != other.CultureRef) return false;
+      if (ReligionRef != other.ReligionRef) return false;
+      if (MayorUnitRef != other.MayorUnitRef) return false;
+      if(!councilUnitRefs_.Equals(other.councilUnitRefs_)) return false;
+      if (RegionRef != other.RegionRef) return false;
+      if (ZoneRef != other.ZoneRef) return false;
+      if(!auxZoneRefs_.Equals(other.auxZoneRefs_)) return false;
+      if (!object.Equals(Position, other.Position)) return false;
+      if (!object.Equals(GridPos, other.GridPos)) return false;
+      if (!object.Equals(Hex, other.Hex)) return false;
+      if (!object.Equals(FootprintBounds, other.FootprintBounds)) return false;
+      if(!footprintHexes_.Equals(other.footprintHexes_)) return false;
+      if (Population != other.Population) return false;
+      if (PopulationCap != other.PopulationCap) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(GrowthRate, other.GrowthRate)) return false;
+      if (GarrisonSize != other.GarrisonSize) return false;
+      if (ManpowerPool != other.ManpowerPool) return false;
+      if (!object.Equals(Treasury, other.Treasury)) return false;
+      if (!object.Equals(Granary, other.Granary)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(TaxRate, other.TaxRate)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(TariffRate, other.TariffRate)) return false;
+      if(!tradeRouteRefs_.Equals(other.tradeRouteRefs_)) return false;
+      if(!exportItemRefs_.Equals(other.exportItemRefs_)) return false;
+      if(!importItemRefs_.Equals(other.importItemRefs_)) return false;
+      if(!districts_.Equals(other.districts_)) return false;
+      if(!buildingRefs_.Equals(other.buildingRefs_)) return false;
+      if(!landmarkRefs_.Equals(other.landmarkRefs_)) return false;
+      if(!poiRefs_.Equals(other.poiRefs_)) return false;
+      if(!serviceKinds_.Equals(other.serviceKinds_)) return false;
+      if (Capital != other.Capital) return false;
+      if (Walled != other.Walled) return false;
+      if (WallHealth != other.WallHealth) return false;
+      if (Besieged != other.Besieged) return false;
+      if (BesiegingFactionRef != other.BesiegingFactionRef) return false;
+      if (Destroyed != other.Destroyed) return false;
+      if (Occupied != other.Occupied) return false;
+      if (OccupierFactionRef != other.OccupierFactionRef) return false;
+      if (Discoverable != other.Discoverable) return false;
+      if (DiscoveryQuestRef != other.DiscoveryQuestRef) return false;
+      if(!prerequisiteQuestRefs_.Equals(other.prerequisiteQuestRefs_)) return false;
+      if (!object.Equals(Banner, other.Banner)) return false;
+      if (Icon != other.Icon) return false;
+      if (MarkerIcon != other.MarkerIcon) return false;
+      if (Img != other.Img) return false;
+      if (FoundedAtTurn != other.FoundedAtTurn) return false;
+      if (DestroyedAtTurn != other.DestroyedAtTurn) return false;
+      if (Credits != other.Credits) return false;
+      if (Drafted != other.Drafted) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasLore) hash ^= Lore.GetHashCode();
+      if (Tier != global::KBVE.Proto.Map.SettlementTier.Unspecified) hash ^= Tier.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      if (HasCultureRef) hash ^= CultureRef.GetHashCode();
+      if (HasReligionRef) hash ^= ReligionRef.GetHashCode();
+      if (HasMayorUnitRef) hash ^= MayorUnitRef.GetHashCode();
+      hash ^= councilUnitRefs_.GetHashCode();
+      if (HasRegionRef) hash ^= RegionRef.GetHashCode();
+      if (HasZoneRef) hash ^= ZoneRef.GetHashCode();
+      hash ^= auxZoneRefs_.GetHashCode();
+      if (position_ != null) hash ^= Position.GetHashCode();
+      if (gridPos_ != null) hash ^= GridPos.GetHashCode();
+      if (hex_ != null) hash ^= Hex.GetHashCode();
+      if (footprintBounds_ != null) hash ^= FootprintBounds.GetHashCode();
+      hash ^= footprintHexes_.GetHashCode();
+      if (HasPopulation) hash ^= Population.GetHashCode();
+      if (HasPopulationCap) hash ^= PopulationCap.GetHashCode();
+      if (HasGrowthRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(GrowthRate);
+      if (HasGarrisonSize) hash ^= GarrisonSize.GetHashCode();
+      if (HasManpowerPool) hash ^= ManpowerPool.GetHashCode();
+      if (treasury_ != null) hash ^= Treasury.GetHashCode();
+      if (granary_ != null) hash ^= Granary.GetHashCode();
+      if (HasTaxRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(TaxRate);
+      if (HasTariffRate) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(TariffRate);
+      hash ^= tradeRouteRefs_.GetHashCode();
+      hash ^= exportItemRefs_.GetHashCode();
+      hash ^= importItemRefs_.GetHashCode();
+      hash ^= districts_.GetHashCode();
+      hash ^= buildingRefs_.GetHashCode();
+      hash ^= landmarkRefs_.GetHashCode();
+      hash ^= poiRefs_.GetHashCode();
+      hash ^= serviceKinds_.GetHashCode();
+      if (HasCapital) hash ^= Capital.GetHashCode();
+      if (HasWalled) hash ^= Walled.GetHashCode();
+      if (HasWallHealth) hash ^= WallHealth.GetHashCode();
+      if (HasBesieged) hash ^= Besieged.GetHashCode();
+      if (HasBesiegingFactionRef) hash ^= BesiegingFactionRef.GetHashCode();
+      if (HasDestroyed) hash ^= Destroyed.GetHashCode();
+      if (HasOccupied) hash ^= Occupied.GetHashCode();
+      if (HasOccupierFactionRef) hash ^= OccupierFactionRef.GetHashCode();
+      if (HasDiscoverable) hash ^= Discoverable.GetHashCode();
+      if (HasDiscoveryQuestRef) hash ^= DiscoveryQuestRef.GetHashCode();
+      hash ^= prerequisiteQuestRefs_.GetHashCode();
+      if (banner_ != null) hash ^= Banner.GetHashCode();
+      if (HasIcon) hash ^= Icon.GetHashCode();
+      if (HasMarkerIcon) hash ^= MarkerIcon.GetHashCode();
+      if (HasImg) hash ^= Img.GetHashCode();
+      if (HasFoundedAtTurn) hash ^= FoundedAtTurn.GetHashCode();
+      if (HasDestroyedAtTurn) hash ^= DestroyedAtTurn.GetHashCode();
+      if (HasCredits) hash ^= Credits.GetHashCode();
+      if (HasDrafted) hash ^= Drafted.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(42);
+        output.WriteString(Lore);
+      }
+      if (Tier != global::KBVE.Proto.Map.SettlementTier.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Tier);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(58);
+        output.WriteString(FactionRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(66);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(74);
+        output.WriteString(ReligionRef);
+      }
+      if (HasMayorUnitRef) {
+        output.WriteRawTag(82);
+        output.WriteString(MayorUnitRef);
+      }
+      councilUnitRefs_.WriteTo(output, _repeated_councilUnitRefs_codec);
+      if (HasRegionRef) {
+        output.WriteRawTag(98);
+        output.WriteString(RegionRef);
+      }
+      if (HasZoneRef) {
+        output.WriteRawTag(106);
+        output.WriteString(ZoneRef);
+      }
+      auxZoneRefs_.WriteTo(output, _repeated_auxZoneRefs_codec);
+      if (position_ != null) {
+        output.WriteRawTag(122);
+        output.WriteMessage(Position);
+      }
+      if (gridPos_ != null) {
+        output.WriteRawTag(130, 1);
+        output.WriteMessage(GridPos);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(138, 1);
+        output.WriteMessage(Hex);
+      }
+      if (footprintBounds_ != null) {
+        output.WriteRawTag(146, 1);
+        output.WriteMessage(FootprintBounds);
+      }
+      footprintHexes_.WriteTo(output, _repeated_footprintHexes_codec);
+      if (HasPopulation) {
+        output.WriteRawTag(160, 1);
+        output.WriteInt32(Population);
+      }
+      if (HasPopulationCap) {
+        output.WriteRawTag(168, 1);
+        output.WriteInt32(PopulationCap);
+      }
+      if (HasGrowthRate) {
+        output.WriteRawTag(181, 1);
+        output.WriteFloat(GrowthRate);
+      }
+      if (HasGarrisonSize) {
+        output.WriteRawTag(184, 1);
+        output.WriteInt32(GarrisonSize);
+      }
+      if (HasManpowerPool) {
+        output.WriteRawTag(192, 1);
+        output.WriteInt32(ManpowerPool);
+      }
+      if (treasury_ != null) {
+        output.WriteRawTag(202, 1);
+        output.WriteMessage(Treasury);
+      }
+      if (granary_ != null) {
+        output.WriteRawTag(210, 1);
+        output.WriteMessage(Granary);
+      }
+      if (HasTaxRate) {
+        output.WriteRawTag(221, 1);
+        output.WriteFloat(TaxRate);
+      }
+      if (HasTariffRate) {
+        output.WriteRawTag(229, 1);
+        output.WriteFloat(TariffRate);
+      }
+      tradeRouteRefs_.WriteTo(output, _repeated_tradeRouteRefs_codec);
+      exportItemRefs_.WriteTo(output, _repeated_exportItemRefs_codec);
+      importItemRefs_.WriteTo(output, _repeated_importItemRefs_codec);
+      districts_.WriteTo(output, _repeated_districts_codec);
+      buildingRefs_.WriteTo(output, _repeated_buildingRefs_codec);
+      landmarkRefs_.WriteTo(output, _repeated_landmarkRefs_codec);
+      poiRefs_.WriteTo(output, _repeated_poiRefs_codec);
+      serviceKinds_.WriteTo(output, _repeated_serviceKinds_codec);
+      if (HasCapital) {
+        output.WriteRawTag(168, 2);
+        output.WriteBool(Capital);
+      }
+      if (HasWalled) {
+        output.WriteRawTag(176, 2);
+        output.WriteBool(Walled);
+      }
+      if (HasWallHealth) {
+        output.WriteRawTag(184, 2);
+        output.WriteInt32(WallHealth);
+      }
+      if (HasBesieged) {
+        output.WriteRawTag(192, 2);
+        output.WriteBool(Besieged);
+      }
+      if (HasBesiegingFactionRef) {
+        output.WriteRawTag(202, 2);
+        output.WriteString(BesiegingFactionRef);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(208, 2);
+        output.WriteBool(Destroyed);
+      }
+      if (HasOccupied) {
+        output.WriteRawTag(216, 2);
+        output.WriteBool(Occupied);
+      }
+      if (HasOccupierFactionRef) {
+        output.WriteRawTag(226, 2);
+        output.WriteString(OccupierFactionRef);
+      }
+      if (HasDiscoverable) {
+        output.WriteRawTag(232, 2);
+        output.WriteBool(Discoverable);
+      }
+      if (HasDiscoveryQuestRef) {
+        output.WriteRawTag(242, 2);
+        output.WriteString(DiscoveryQuestRef);
+      }
+      prerequisiteQuestRefs_.WriteTo(output, _repeated_prerequisiteQuestRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(130, 3);
+        output.WriteMessage(Banner);
+      }
+      if (HasIcon) {
+        output.WriteRawTag(138, 3);
+        output.WriteString(Icon);
+      }
+      if (HasMarkerIcon) {
+        output.WriteRawTag(146, 3);
+        output.WriteString(MarkerIcon);
+      }
+      if (HasImg) {
+        output.WriteRawTag(154, 3);
+        output.WriteString(Img);
+      }
+      if (HasFoundedAtTurn) {
+        output.WriteRawTag(160, 3);
+        output.WriteInt64(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        output.WriteRawTag(168, 3);
+        output.WriteInt64(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(178, 3);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(184, 3);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(42);
+        output.WriteString(Lore);
+      }
+      if (Tier != global::KBVE.Proto.Map.SettlementTier.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Tier);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(58);
+        output.WriteString(FactionRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(66);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(74);
+        output.WriteString(ReligionRef);
+      }
+      if (HasMayorUnitRef) {
+        output.WriteRawTag(82);
+        output.WriteString(MayorUnitRef);
+      }
+      councilUnitRefs_.WriteTo(ref output, _repeated_councilUnitRefs_codec);
+      if (HasRegionRef) {
+        output.WriteRawTag(98);
+        output.WriteString(RegionRef);
+      }
+      if (HasZoneRef) {
+        output.WriteRawTag(106);
+        output.WriteString(ZoneRef);
+      }
+      auxZoneRefs_.WriteTo(ref output, _repeated_auxZoneRefs_codec);
+      if (position_ != null) {
+        output.WriteRawTag(122);
+        output.WriteMessage(Position);
+      }
+      if (gridPos_ != null) {
+        output.WriteRawTag(130, 1);
+        output.WriteMessage(GridPos);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(138, 1);
+        output.WriteMessage(Hex);
+      }
+      if (footprintBounds_ != null) {
+        output.WriteRawTag(146, 1);
+        output.WriteMessage(FootprintBounds);
+      }
+      footprintHexes_.WriteTo(ref output, _repeated_footprintHexes_codec);
+      if (HasPopulation) {
+        output.WriteRawTag(160, 1);
+        output.WriteInt32(Population);
+      }
+      if (HasPopulationCap) {
+        output.WriteRawTag(168, 1);
+        output.WriteInt32(PopulationCap);
+      }
+      if (HasGrowthRate) {
+        output.WriteRawTag(181, 1);
+        output.WriteFloat(GrowthRate);
+      }
+      if (HasGarrisonSize) {
+        output.WriteRawTag(184, 1);
+        output.WriteInt32(GarrisonSize);
+      }
+      if (HasManpowerPool) {
+        output.WriteRawTag(192, 1);
+        output.WriteInt32(ManpowerPool);
+      }
+      if (treasury_ != null) {
+        output.WriteRawTag(202, 1);
+        output.WriteMessage(Treasury);
+      }
+      if (granary_ != null) {
+        output.WriteRawTag(210, 1);
+        output.WriteMessage(Granary);
+      }
+      if (HasTaxRate) {
+        output.WriteRawTag(221, 1);
+        output.WriteFloat(TaxRate);
+      }
+      if (HasTariffRate) {
+        output.WriteRawTag(229, 1);
+        output.WriteFloat(TariffRate);
+      }
+      tradeRouteRefs_.WriteTo(ref output, _repeated_tradeRouteRefs_codec);
+      exportItemRefs_.WriteTo(ref output, _repeated_exportItemRefs_codec);
+      importItemRefs_.WriteTo(ref output, _repeated_importItemRefs_codec);
+      districts_.WriteTo(ref output, _repeated_districts_codec);
+      buildingRefs_.WriteTo(ref output, _repeated_buildingRefs_codec);
+      landmarkRefs_.WriteTo(ref output, _repeated_landmarkRefs_codec);
+      poiRefs_.WriteTo(ref output, _repeated_poiRefs_codec);
+      serviceKinds_.WriteTo(ref output, _repeated_serviceKinds_codec);
+      if (HasCapital) {
+        output.WriteRawTag(168, 2);
+        output.WriteBool(Capital);
+      }
+      if (HasWalled) {
+        output.WriteRawTag(176, 2);
+        output.WriteBool(Walled);
+      }
+      if (HasWallHealth) {
+        output.WriteRawTag(184, 2);
+        output.WriteInt32(WallHealth);
+      }
+      if (HasBesieged) {
+        output.WriteRawTag(192, 2);
+        output.WriteBool(Besieged);
+      }
+      if (HasBesiegingFactionRef) {
+        output.WriteRawTag(202, 2);
+        output.WriteString(BesiegingFactionRef);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(208, 2);
+        output.WriteBool(Destroyed);
+      }
+      if (HasOccupied) {
+        output.WriteRawTag(216, 2);
+        output.WriteBool(Occupied);
+      }
+      if (HasOccupierFactionRef) {
+        output.WriteRawTag(226, 2);
+        output.WriteString(OccupierFactionRef);
+      }
+      if (HasDiscoverable) {
+        output.WriteRawTag(232, 2);
+        output.WriteBool(Discoverable);
+      }
+      if (HasDiscoveryQuestRef) {
+        output.WriteRawTag(242, 2);
+        output.WriteString(DiscoveryQuestRef);
+      }
+      prerequisiteQuestRefs_.WriteTo(ref output, _repeated_prerequisiteQuestRefs_codec);
+      if (banner_ != null) {
+        output.WriteRawTag(130, 3);
+        output.WriteMessage(Banner);
+      }
+      if (HasIcon) {
+        output.WriteRawTag(138, 3);
+        output.WriteString(Icon);
+      }
+      if (HasMarkerIcon) {
+        output.WriteRawTag(146, 3);
+        output.WriteString(MarkerIcon);
+      }
+      if (HasImg) {
+        output.WriteRawTag(154, 3);
+        output.WriteString(Img);
+      }
+      if (HasFoundedAtTurn) {
+        output.WriteRawTag(160, 3);
+        output.WriteInt64(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        output.WriteRawTag(168, 3);
+        output.WriteInt64(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(178, 3);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(184, 3);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasLore) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Lore);
+      }
+      if (Tier != global::KBVE.Proto.Map.SettlementTier.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Tier);
+      }
+      if (HasFactionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (HasCultureRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CultureRef);
+      }
+      if (HasReligionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ReligionRef);
+      }
+      if (HasMayorUnitRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(MayorUnitRef);
+      }
+      size += councilUnitRefs_.CalculateSize(_repeated_councilUnitRefs_codec);
+      if (HasRegionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RegionRef);
+      }
+      if (HasZoneRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ZoneRef);
+      }
+      size += auxZoneRefs_.CalculateSize(_repeated_auxZoneRefs_codec);
+      if (position_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Position);
+      }
+      if (gridPos_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(GridPos);
+      }
+      if (hex_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Hex);
+      }
+      if (footprintBounds_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(FootprintBounds);
+      }
+      size += footprintHexes_.CalculateSize(_repeated_footprintHexes_codec);
+      if (HasPopulation) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(Population);
+      }
+      if (HasPopulationCap) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(PopulationCap);
+      }
+      if (HasGrowthRate) {
+        size += 2 + 4;
+      }
+      if (HasGarrisonSize) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(GarrisonSize);
+      }
+      if (HasManpowerPool) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(ManpowerPool);
+      }
+      if (treasury_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Treasury);
+      }
+      if (granary_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Granary);
+      }
+      if (HasTaxRate) {
+        size += 2 + 4;
+      }
+      if (HasTariffRate) {
+        size += 2 + 4;
+      }
+      size += tradeRouteRefs_.CalculateSize(_repeated_tradeRouteRefs_codec);
+      size += exportItemRefs_.CalculateSize(_repeated_exportItemRefs_codec);
+      size += importItemRefs_.CalculateSize(_repeated_importItemRefs_codec);
+      size += districts_.CalculateSize(_repeated_districts_codec);
+      size += buildingRefs_.CalculateSize(_repeated_buildingRefs_codec);
+      size += landmarkRefs_.CalculateSize(_repeated_landmarkRefs_codec);
+      size += poiRefs_.CalculateSize(_repeated_poiRefs_codec);
+      size += serviceKinds_.CalculateSize(_repeated_serviceKinds_codec);
+      if (HasCapital) {
+        size += 2 + 1;
+      }
+      if (HasWalled) {
+        size += 2 + 1;
+      }
+      if (HasWallHealth) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(WallHealth);
+      }
+      if (HasBesieged) {
+        size += 2 + 1;
+      }
+      if (HasBesiegingFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(BesiegingFactionRef);
+      }
+      if (HasDestroyed) {
+        size += 2 + 1;
+      }
+      if (HasOccupied) {
+        size += 2 + 1;
+      }
+      if (HasOccupierFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(OccupierFactionRef);
+      }
+      if (HasDiscoverable) {
+        size += 2 + 1;
+      }
+      if (HasDiscoveryQuestRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DiscoveryQuestRef);
+      }
+      size += prerequisiteQuestRefs_.CalculateSize(_repeated_prerequisiteQuestRefs_codec);
+      if (banner_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(Banner);
+      }
+      if (HasIcon) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Icon);
+      }
+      if (HasMarkerIcon) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(MarkerIcon);
+      }
+      if (HasImg) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Img);
+      }
+      if (HasFoundedAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(FoundedAtTurn);
+      }
+      if (HasDestroyedAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(DestroyedAtTurn);
+      }
+      if (HasCredits) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Credits);
+      }
+      if (HasDrafted) {
+        size += 2 + 1;
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Settlement other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasLore) {
+        Lore = other.Lore;
+      }
+      if (other.Tier != global::KBVE.Proto.Map.SettlementTier.Unspecified) {
+        Tier = other.Tier;
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      if (other.HasCultureRef) {
+        CultureRef = other.CultureRef;
+      }
+      if (other.HasReligionRef) {
+        ReligionRef = other.ReligionRef;
+      }
+      if (other.HasMayorUnitRef) {
+        MayorUnitRef = other.MayorUnitRef;
+      }
+      councilUnitRefs_.Add(other.councilUnitRefs_);
+      if (other.HasRegionRef) {
+        RegionRef = other.RegionRef;
+      }
+      if (other.HasZoneRef) {
+        ZoneRef = other.ZoneRef;
+      }
+      auxZoneRefs_.Add(other.auxZoneRefs_);
+      if (other.position_ != null) {
+        if (position_ == null) {
+          Position = new global::KBVE.Proto.Map.WorldPos();
+        }
+        Position.MergeFrom(other.Position);
+      }
+      if (other.gridPos_ != null) {
+        if (gridPos_ == null) {
+          GridPos = new global::KBVE.Proto.Map.GridPos();
+        }
+        GridPos.MergeFrom(other.GridPos);
+      }
+      if (other.hex_ != null) {
+        if (hex_ == null) {
+          Hex = new global::KBVE.Proto.Map.HexCoord();
+        }
+        Hex.MergeFrom(other.Hex);
+      }
+      if (other.footprintBounds_ != null) {
+        if (footprintBounds_ == null) {
+          FootprintBounds = new global::KBVE.Proto.Map.Bounds2D();
+        }
+        FootprintBounds.MergeFrom(other.FootprintBounds);
+      }
+      footprintHexes_.Add(other.footprintHexes_);
+      if (other.HasPopulation) {
+        Population = other.Population;
+      }
+      if (other.HasPopulationCap) {
+        PopulationCap = other.PopulationCap;
+      }
+      if (other.HasGrowthRate) {
+        GrowthRate = other.GrowthRate;
+      }
+      if (other.HasGarrisonSize) {
+        GarrisonSize = other.GarrisonSize;
+      }
+      if (other.HasManpowerPool) {
+        ManpowerPool = other.ManpowerPool;
+      }
+      if (other.treasury_ != null) {
+        if (treasury_ == null) {
+          Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+        }
+        Treasury.MergeFrom(other.Treasury);
+      }
+      if (other.granary_ != null) {
+        if (granary_ == null) {
+          Granary = new global::KBVE.Proto.Map.ResourceLedger();
+        }
+        Granary.MergeFrom(other.Granary);
+      }
+      if (other.HasTaxRate) {
+        TaxRate = other.TaxRate;
+      }
+      if (other.HasTariffRate) {
+        TariffRate = other.TariffRate;
+      }
+      tradeRouteRefs_.Add(other.tradeRouteRefs_);
+      exportItemRefs_.Add(other.exportItemRefs_);
+      importItemRefs_.Add(other.importItemRefs_);
+      districts_.Add(other.districts_);
+      buildingRefs_.Add(other.buildingRefs_);
+      landmarkRefs_.Add(other.landmarkRefs_);
+      poiRefs_.Add(other.poiRefs_);
+      serviceKinds_.Add(other.serviceKinds_);
+      if (other.HasCapital) {
+        Capital = other.Capital;
+      }
+      if (other.HasWalled) {
+        Walled = other.Walled;
+      }
+      if (other.HasWallHealth) {
+        WallHealth = other.WallHealth;
+      }
+      if (other.HasBesieged) {
+        Besieged = other.Besieged;
+      }
+      if (other.HasBesiegingFactionRef) {
+        BesiegingFactionRef = other.BesiegingFactionRef;
+      }
+      if (other.HasDestroyed) {
+        Destroyed = other.Destroyed;
+      }
+      if (other.HasOccupied) {
+        Occupied = other.Occupied;
+      }
+      if (other.HasOccupierFactionRef) {
+        OccupierFactionRef = other.OccupierFactionRef;
+      }
+      if (other.HasDiscoverable) {
+        Discoverable = other.Discoverable;
+      }
+      if (other.HasDiscoveryQuestRef) {
+        DiscoveryQuestRef = other.DiscoveryQuestRef;
+      }
+      prerequisiteQuestRefs_.Add(other.prerequisiteQuestRefs_);
+      if (other.banner_ != null) {
+        if (banner_ == null) {
+          Banner = new global::KBVE.Proto.Map.Banner();
+        }
+        Banner.MergeFrom(other.Banner);
+      }
+      if (other.HasIcon) {
+        Icon = other.Icon;
+      }
+      if (other.HasMarkerIcon) {
+        MarkerIcon = other.MarkerIcon;
+      }
+      if (other.HasImg) {
+        Img = other.Img;
+      }
+      if (other.HasFoundedAtTurn) {
+        FoundedAtTurn = other.FoundedAtTurn;
+      }
+      if (other.HasDestroyedAtTurn) {
+        DestroyedAtTurn = other.DestroyedAtTurn;
+      }
+      if (other.HasCredits) {
+        Credits = other.Credits;
+      }
+      if (other.HasDrafted) {
+        Drafted = other.Drafted;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 48: {
+            Tier = (global::KBVE.Proto.Map.SettlementTier) input.ReadEnum();
+            break;
+          }
+          case 58: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            MayorUnitRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            councilUnitRefs_.AddEntriesFrom(input, _repeated_councilUnitRefs_codec);
+            break;
+          }
+          case 98: {
+            RegionRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            ZoneRef = input.ReadString();
+            break;
+          }
+          case 114: {
+            auxZoneRefs_.AddEntriesFrom(input, _repeated_auxZoneRefs_codec);
+            break;
+          }
+          case 122: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 130: {
+            if (gridPos_ == null) {
+              GridPos = new global::KBVE.Proto.Map.GridPos();
+            }
+            input.ReadMessage(GridPos);
+            break;
+          }
+          case 138: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 146: {
+            if (footprintBounds_ == null) {
+              FootprintBounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(FootprintBounds);
+            break;
+          }
+          case 154: {
+            footprintHexes_.AddEntriesFrom(input, _repeated_footprintHexes_codec);
+            break;
+          }
+          case 160: {
+            Population = input.ReadInt32();
+            break;
+          }
+          case 168: {
+            PopulationCap = input.ReadInt32();
+            break;
+          }
+          case 181: {
+            GrowthRate = input.ReadFloat();
+            break;
+          }
+          case 184: {
+            GarrisonSize = input.ReadInt32();
+            break;
+          }
+          case 192: {
+            ManpowerPool = input.ReadInt32();
+            break;
+          }
+          case 202: {
+            if (treasury_ == null) {
+              Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Treasury);
+            break;
+          }
+          case 210: {
+            if (granary_ == null) {
+              Granary = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Granary);
+            break;
+          }
+          case 221: {
+            TaxRate = input.ReadFloat();
+            break;
+          }
+          case 229: {
+            TariffRate = input.ReadFloat();
+            break;
+          }
+          case 234: {
+            tradeRouteRefs_.AddEntriesFrom(input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 242: {
+            exportItemRefs_.AddEntriesFrom(input, _repeated_exportItemRefs_codec);
+            break;
+          }
+          case 250: {
+            importItemRefs_.AddEntriesFrom(input, _repeated_importItemRefs_codec);
+            break;
+          }
+          case 258: {
+            districts_.AddEntriesFrom(input, _repeated_districts_codec);
+            break;
+          }
+          case 266: {
+            buildingRefs_.AddEntriesFrom(input, _repeated_buildingRefs_codec);
+            break;
+          }
+          case 274: {
+            landmarkRefs_.AddEntriesFrom(input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 282: {
+            poiRefs_.AddEntriesFrom(input, _repeated_poiRefs_codec);
+            break;
+          }
+          case 290: {
+            serviceKinds_.AddEntriesFrom(input, _repeated_serviceKinds_codec);
+            break;
+          }
+          case 296: {
+            Capital = input.ReadBool();
+            break;
+          }
+          case 304: {
+            Walled = input.ReadBool();
+            break;
+          }
+          case 312: {
+            WallHealth = input.ReadInt32();
+            break;
+          }
+          case 320: {
+            Besieged = input.ReadBool();
+            break;
+          }
+          case 330: {
+            BesiegingFactionRef = input.ReadString();
+            break;
+          }
+          case 336: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 344: {
+            Occupied = input.ReadBool();
+            break;
+          }
+          case 354: {
+            OccupierFactionRef = input.ReadString();
+            break;
+          }
+          case 360: {
+            Discoverable = input.ReadBool();
+            break;
+          }
+          case 370: {
+            DiscoveryQuestRef = input.ReadString();
+            break;
+          }
+          case 378: {
+            prerequisiteQuestRefs_.AddEntriesFrom(input, _repeated_prerequisiteQuestRefs_codec);
+            break;
+          }
+          case 386: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 394: {
+            Icon = input.ReadString();
+            break;
+          }
+          case 402: {
+            MarkerIcon = input.ReadString();
+            break;
+          }
+          case 410: {
+            Img = input.ReadString();
+            break;
+          }
+          case 416: {
+            FoundedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 424: {
+            DestroyedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 434: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 440: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 450: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 48: {
+            Tier = (global::KBVE.Proto.Map.SettlementTier) input.ReadEnum();
+            break;
+          }
+          case 58: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            MayorUnitRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            councilUnitRefs_.AddEntriesFrom(ref input, _repeated_councilUnitRefs_codec);
+            break;
+          }
+          case 98: {
+            RegionRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            ZoneRef = input.ReadString();
+            break;
+          }
+          case 114: {
+            auxZoneRefs_.AddEntriesFrom(ref input, _repeated_auxZoneRefs_codec);
+            break;
+          }
+          case 122: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 130: {
+            if (gridPos_ == null) {
+              GridPos = new global::KBVE.Proto.Map.GridPos();
+            }
+            input.ReadMessage(GridPos);
+            break;
+          }
+          case 138: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 146: {
+            if (footprintBounds_ == null) {
+              FootprintBounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(FootprintBounds);
+            break;
+          }
+          case 154: {
+            footprintHexes_.AddEntriesFrom(ref input, _repeated_footprintHexes_codec);
+            break;
+          }
+          case 160: {
+            Population = input.ReadInt32();
+            break;
+          }
+          case 168: {
+            PopulationCap = input.ReadInt32();
+            break;
+          }
+          case 181: {
+            GrowthRate = input.ReadFloat();
+            break;
+          }
+          case 184: {
+            GarrisonSize = input.ReadInt32();
+            break;
+          }
+          case 192: {
+            ManpowerPool = input.ReadInt32();
+            break;
+          }
+          case 202: {
+            if (treasury_ == null) {
+              Treasury = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Treasury);
+            break;
+          }
+          case 210: {
+            if (granary_ == null) {
+              Granary = new global::KBVE.Proto.Map.ResourceLedger();
+            }
+            input.ReadMessage(Granary);
+            break;
+          }
+          case 221: {
+            TaxRate = input.ReadFloat();
+            break;
+          }
+          case 229: {
+            TariffRate = input.ReadFloat();
+            break;
+          }
+          case 234: {
+            tradeRouteRefs_.AddEntriesFrom(ref input, _repeated_tradeRouteRefs_codec);
+            break;
+          }
+          case 242: {
+            exportItemRefs_.AddEntriesFrom(ref input, _repeated_exportItemRefs_codec);
+            break;
+          }
+          case 250: {
+            importItemRefs_.AddEntriesFrom(ref input, _repeated_importItemRefs_codec);
+            break;
+          }
+          case 258: {
+            districts_.AddEntriesFrom(ref input, _repeated_districts_codec);
+            break;
+          }
+          case 266: {
+            buildingRefs_.AddEntriesFrom(ref input, _repeated_buildingRefs_codec);
+            break;
+          }
+          case 274: {
+            landmarkRefs_.AddEntriesFrom(ref input, _repeated_landmarkRefs_codec);
+            break;
+          }
+          case 282: {
+            poiRefs_.AddEntriesFrom(ref input, _repeated_poiRefs_codec);
+            break;
+          }
+          case 290: {
+            serviceKinds_.AddEntriesFrom(ref input, _repeated_serviceKinds_codec);
+            break;
+          }
+          case 296: {
+            Capital = input.ReadBool();
+            break;
+          }
+          case 304: {
+            Walled = input.ReadBool();
+            break;
+          }
+          case 312: {
+            WallHealth = input.ReadInt32();
+            break;
+          }
+          case 320: {
+            Besieged = input.ReadBool();
+            break;
+          }
+          case 330: {
+            BesiegingFactionRef = input.ReadString();
+            break;
+          }
+          case 336: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 344: {
+            Occupied = input.ReadBool();
+            break;
+          }
+          case 354: {
+            OccupierFactionRef = input.ReadString();
+            break;
+          }
+          case 360: {
+            Discoverable = input.ReadBool();
+            break;
+          }
+          case 370: {
+            DiscoveryQuestRef = input.ReadString();
+            break;
+          }
+          case 378: {
+            prerequisiteQuestRefs_.AddEntriesFrom(ref input, _repeated_prerequisiteQuestRefs_codec);
+            break;
+          }
+          case 386: {
+            if (banner_ == null) {
+              Banner = new global::KBVE.Proto.Map.Banner();
+            }
+            input.ReadMessage(Banner);
+            break;
+          }
+          case 394: {
+            Icon = input.ReadString();
+            break;
+          }
+          case 402: {
+            MarkerIcon = input.ReadString();
+            break;
+          }
+          case 410: {
+            Img = input.ReadString();
+            break;
+          }
+          case 416: {
+            FoundedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 424: {
+            DestroyedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 434: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 440: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 450: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Faction territorial claim — explicit hex / rect / zone ownership
+  /// with strength + contestation. Empire AI reads claims to drive
+  /// expansion goals; rendering uses claims to draw map borders.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TerritoryClaim : pb::IMessage<TerritoryClaim>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TerritoryClaim> _parser = new pb::MessageParser<TerritoryClaim>(() => new TerritoryClaim());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TerritoryClaim> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[53]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TerritoryClaim() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TerritoryClaim(TerritoryClaim other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      factionRef_ = other.factionRef_;
+      kind_ = other.kind_;
+      hexes_ = other.hexes_.Clone();
+      bounds_ = other.bounds_ != null ? other.bounds_.Clone() : null;
+      zoneRefs_ = other.zoneRefs_.Clone();
+      settlementRefs_ = other.settlementRefs_.Clone();
+      strength_ = other.strength_;
+      garrisonSize_ = other.garrisonSize_;
+      contestedByFactionRef_ = other.contestedByFactionRef_;
+      contestProgress_ = other.contestProgress_;
+      claimedAtTurn_ = other.claimedAtTurn_;
+      expiresAtTurn_ = other.expiresAtTurn_;
+      sacred_ = other.sacred_;
+      casusBelliRef_ = other.casusBelliRef_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TerritoryClaim Clone() {
+      return new TerritoryClaim(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 3;
+    private string factionRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "kind" field.</summary>
+    public const int KindFieldNumber = 4;
+    private global::KBVE.Proto.Map.TerritoryClaimKind kind_ = global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.TerritoryClaimKind Kind {
+      get { return kind_; }
+      set {
+        kind_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hexes" field.</summary>
+    public const int HexesFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.HexCoord> _repeated_hexes_codec
+        = pb::FieldCodec.ForMessage(42, global::KBVE.Proto.Map.HexCoord.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> hexes_ = new pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord>();
+    /// <summary>
+    /// Claimed area — pick the form matching the world topology
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.HexCoord> Hexes {
+      get { return hexes_; }
+    }
+
+    /// <summary>Field number for the "bounds" field.</summary>
+    public const int BoundsFieldNumber = 6;
+    private global::KBVE.Proto.Map.Bounds2D bounds_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Bounds2D Bounds {
+      get { return bounds_; }
+      set {
+        bounds_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "zone_refs" field.</summary>
+    public const int ZoneRefsFieldNumber = 7;
+    private static readonly pb::FieldCodec<string> _repeated_zoneRefs_codec
+        = pb::FieldCodec.ForString(58);
+    private readonly pbc::RepeatedField<string> zoneRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Whole-zone claims
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ZoneRefs {
+      get { return zoneRefs_; }
+    }
+
+    /// <summary>Field number for the "settlement_refs" field.</summary>
+    public const int SettlementRefsFieldNumber = 8;
+    private static readonly pb::FieldCodec<string> _repeated_settlementRefs_codec
+        = pb::FieldCodec.ForString(66);
+    private readonly pbc::RepeatedField<string> settlementRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Anchored to specific cities
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SettlementRefs {
+      get { return settlementRefs_; }
+    }
+
+    /// <summary>Field number for the "strength" field.</summary>
+    public const int StrengthFieldNumber = 9;
+    private readonly static int StrengthDefaultValue = 0;
+
+    private int strength_;
+    /// <summary>
+    /// 0..100 — defensive weight
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Strength {
+      get { if ((_hasBits0 & 1) != 0) { return strength_; } else { return StrengthDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        strength_ = value;
+      }
+    }
+    /// <summary>Gets whether the "strength" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasStrength {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "strength" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearStrength() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "garrison_size" field.</summary>
+    public const int GarrisonSizeFieldNumber = 10;
+    private readonly static int GarrisonSizeDefaultValue = 0;
+
+    private int garrisonSize_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int GarrisonSize {
+      get { if ((_hasBits0 & 2) != 0) { return garrisonSize_; } else { return GarrisonSizeDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        garrisonSize_ = value;
+      }
+    }
+    /// <summary>Gets whether the "garrison_size" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasGarrisonSize {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "garrison_size" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearGarrisonSize() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "contested_by_faction_ref" field.</summary>
+    public const int ContestedByFactionRefFieldNumber = 11;
+    private readonly static string ContestedByFactionRefDefaultValue = "";
+
+    private string contestedByFactionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ContestedByFactionRef {
+      get { return contestedByFactionRef_ ?? ContestedByFactionRefDefaultValue; }
+      set {
+        contestedByFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "contested_by_faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasContestedByFactionRef {
+      get { return contestedByFactionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "contested_by_faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearContestedByFactionRef() {
+      contestedByFactionRef_ = null;
+    }
+
+    /// <summary>Field number for the "contest_progress" field.</summary>
+    public const int ContestProgressFieldNumber = 12;
+    private readonly static int ContestProgressDefaultValue = 0;
+
+    private int contestProgress_;
+    /// <summary>
+    /// 0..100 toward flip
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int ContestProgress {
+      get { if ((_hasBits0 & 4) != 0) { return contestProgress_; } else { return ContestProgressDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        contestProgress_ = value;
+      }
+    }
+    /// <summary>Gets whether the "contest_progress" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasContestProgress {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "contest_progress" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearContestProgress() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "claimed_at_turn" field.</summary>
+    public const int ClaimedAtTurnFieldNumber = 13;
+    private readonly static long ClaimedAtTurnDefaultValue = 0L;
+
+    private long claimedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long ClaimedAtTurn {
+      get { if ((_hasBits0 & 8) != 0) { return claimedAtTurn_; } else { return ClaimedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        claimedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "claimed_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasClaimedAtTurn {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "claimed_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearClaimedAtTurn() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "expires_at_turn" field.</summary>
+    public const int ExpiresAtTurnFieldNumber = 14;
+    private readonly static long ExpiresAtTurnDefaultValue = 0L;
+
+    private long expiresAtTurn_;
+    /// <summary>
+    /// 0 = permanent
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long ExpiresAtTurn {
+      get { if ((_hasBits0 & 16) != 0) { return expiresAtTurn_; } else { return ExpiresAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        expiresAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "expires_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasExpiresAtTurn {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "expires_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearExpiresAtTurn() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "sacred" field.</summary>
+    public const int SacredFieldNumber = 15;
+    private readonly static bool SacredDefaultValue = false;
+
+    private bool sacred_;
+    /// <summary>
+    /// Religion-linked, non-military
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Sacred {
+      get { if ((_hasBits0 & 32) != 0) { return sacred_; } else { return SacredDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        sacred_ = value;
+      }
+    }
+    /// <summary>Gets whether the "sacred" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSacred {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "sacred" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSacred() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "casus_belli_ref" field.</summary>
+    public const int CasusBelliRefFieldNumber = 16;
+    private readonly static string CasusBelliRefDefaultValue = "";
+
+    private string casusBelliRef_;
+    /// <summary>
+    /// Why it's claimed (lore / war goal)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CasusBelliRef {
+      get { return casusBelliRef_ ?? CasusBelliRefDefaultValue; }
+      set {
+        casusBelliRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "casus_belli_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCasusBelliRef {
+      get { return casusBelliRef_ != null; }
+    }
+    /// <summary>Clears the value of the "casus_belli_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCasusBelliRef() {
+      casusBelliRef_ = null;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 17;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(138, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TerritoryClaim);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TerritoryClaim other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if (Kind != other.Kind) return false;
+      if(!hexes_.Equals(other.hexes_)) return false;
+      if (!object.Equals(Bounds, other.Bounds)) return false;
+      if(!zoneRefs_.Equals(other.zoneRefs_)) return false;
+      if(!settlementRefs_.Equals(other.settlementRefs_)) return false;
+      if (Strength != other.Strength) return false;
+      if (GarrisonSize != other.GarrisonSize) return false;
+      if (ContestedByFactionRef != other.ContestedByFactionRef) return false;
+      if (ContestProgress != other.ContestProgress) return false;
+      if (ClaimedAtTurn != other.ClaimedAtTurn) return false;
+      if (ExpiresAtTurn != other.ExpiresAtTurn) return false;
+      if (Sacred != other.Sacred) return false;
+      if (CasusBelliRef != other.CasusBelliRef) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (FactionRef.Length != 0) hash ^= FactionRef.GetHashCode();
+      if (Kind != global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified) hash ^= Kind.GetHashCode();
+      hash ^= hexes_.GetHashCode();
+      if (bounds_ != null) hash ^= Bounds.GetHashCode();
+      hash ^= zoneRefs_.GetHashCode();
+      hash ^= settlementRefs_.GetHashCode();
+      if (HasStrength) hash ^= Strength.GetHashCode();
+      if (HasGarrisonSize) hash ^= GarrisonSize.GetHashCode();
+      if (HasContestedByFactionRef) hash ^= ContestedByFactionRef.GetHashCode();
+      if (HasContestProgress) hash ^= ContestProgress.GetHashCode();
+      if (HasClaimedAtTurn) hash ^= ClaimedAtTurn.GetHashCode();
+      if (HasExpiresAtTurn) hash ^= ExpiresAtTurn.GetHashCode();
+      if (HasSacred) hash ^= Sacred.GetHashCode();
+      if (HasCasusBelliRef) hash ^= CasusBelliRef.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (FactionRef.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(FactionRef);
+      }
+      if (Kind != global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Kind);
+      }
+      hexes_.WriteTo(output, _repeated_hexes_codec);
+      if (bounds_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Bounds);
+      }
+      zoneRefs_.WriteTo(output, _repeated_zoneRefs_codec);
+      settlementRefs_.WriteTo(output, _repeated_settlementRefs_codec);
+      if (HasStrength) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Strength);
+      }
+      if (HasGarrisonSize) {
+        output.WriteRawTag(80);
+        output.WriteInt32(GarrisonSize);
+      }
+      if (HasContestedByFactionRef) {
+        output.WriteRawTag(90);
+        output.WriteString(ContestedByFactionRef);
+      }
+      if (HasContestProgress) {
+        output.WriteRawTag(96);
+        output.WriteInt32(ContestProgress);
+      }
+      if (HasClaimedAtTurn) {
+        output.WriteRawTag(104);
+        output.WriteInt64(ClaimedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(112);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      if (HasSacred) {
+        output.WriteRawTag(120);
+        output.WriteBool(Sacred);
+      }
+      if (HasCasusBelliRef) {
+        output.WriteRawTag(130, 1);
+        output.WriteString(CasusBelliRef);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (FactionRef.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(FactionRef);
+      }
+      if (Kind != global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Kind);
+      }
+      hexes_.WriteTo(ref output, _repeated_hexes_codec);
+      if (bounds_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Bounds);
+      }
+      zoneRefs_.WriteTo(ref output, _repeated_zoneRefs_codec);
+      settlementRefs_.WriteTo(ref output, _repeated_settlementRefs_codec);
+      if (HasStrength) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Strength);
+      }
+      if (HasGarrisonSize) {
+        output.WriteRawTag(80);
+        output.WriteInt32(GarrisonSize);
+      }
+      if (HasContestedByFactionRef) {
+        output.WriteRawTag(90);
+        output.WriteString(ContestedByFactionRef);
+      }
+      if (HasContestProgress) {
+        output.WriteRawTag(96);
+        output.WriteInt32(ContestProgress);
+      }
+      if (HasClaimedAtTurn) {
+        output.WriteRawTag(104);
+        output.WriteInt64(ClaimedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        output.WriteRawTag(112);
+        output.WriteInt64(ExpiresAtTurn);
+      }
+      if (HasSacred) {
+        output.WriteRawTag(120);
+        output.WriteBool(Sacred);
+      }
+      if (HasCasusBelliRef) {
+        output.WriteRawTag(130, 1);
+        output.WriteString(CasusBelliRef);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (FactionRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (Kind != global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Kind);
+      }
+      size += hexes_.CalculateSize(_repeated_hexes_codec);
+      if (bounds_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Bounds);
+      }
+      size += zoneRefs_.CalculateSize(_repeated_zoneRefs_codec);
+      size += settlementRefs_.CalculateSize(_repeated_settlementRefs_codec);
+      if (HasStrength) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Strength);
+      }
+      if (HasGarrisonSize) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(GarrisonSize);
+      }
+      if (HasContestedByFactionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ContestedByFactionRef);
+      }
+      if (HasContestProgress) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ContestProgress);
+      }
+      if (HasClaimedAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ClaimedAtTurn);
+      }
+      if (HasExpiresAtTurn) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ExpiresAtTurn);
+      }
+      if (HasSacred) {
+        size += 1 + 1;
+      }
+      if (HasCasusBelliRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(CasusBelliRef);
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TerritoryClaim other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.FactionRef.Length != 0) {
+        FactionRef = other.FactionRef;
+      }
+      if (other.Kind != global::KBVE.Proto.Map.TerritoryClaimKind.TerritoryClaimUnspecified) {
+        Kind = other.Kind;
+      }
+      hexes_.Add(other.hexes_);
+      if (other.bounds_ != null) {
+        if (bounds_ == null) {
+          Bounds = new global::KBVE.Proto.Map.Bounds2D();
+        }
+        Bounds.MergeFrom(other.Bounds);
+      }
+      zoneRefs_.Add(other.zoneRefs_);
+      settlementRefs_.Add(other.settlementRefs_);
+      if (other.HasStrength) {
+        Strength = other.Strength;
+      }
+      if (other.HasGarrisonSize) {
+        GarrisonSize = other.GarrisonSize;
+      }
+      if (other.HasContestedByFactionRef) {
+        ContestedByFactionRef = other.ContestedByFactionRef;
+      }
+      if (other.HasContestProgress) {
+        ContestProgress = other.ContestProgress;
+      }
+      if (other.HasClaimedAtTurn) {
+        ClaimedAtTurn = other.ClaimedAtTurn;
+      }
+      if (other.HasExpiresAtTurn) {
+        ExpiresAtTurn = other.ExpiresAtTurn;
+      }
+      if (other.HasSacred) {
+        Sacred = other.Sacred;
+      }
+      if (other.HasCasusBelliRef) {
+        CasusBelliRef = other.CasusBelliRef;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 32: {
+            Kind = (global::KBVE.Proto.Map.TerritoryClaimKind) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            hexes_.AddEntriesFrom(input, _repeated_hexes_codec);
+            break;
+          }
+          case 50: {
+            if (bounds_ == null) {
+              Bounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(Bounds);
+            break;
+          }
+          case 58: {
+            zoneRefs_.AddEntriesFrom(input, _repeated_zoneRefs_codec);
+            break;
+          }
+          case 66: {
+            settlementRefs_.AddEntriesFrom(input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 72: {
+            Strength = input.ReadInt32();
+            break;
+          }
+          case 80: {
+            GarrisonSize = input.ReadInt32();
+            break;
+          }
+          case 90: {
+            ContestedByFactionRef = input.ReadString();
+            break;
+          }
+          case 96: {
+            ContestProgress = input.ReadInt32();
+            break;
+          }
+          case 104: {
+            ClaimedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 112: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 120: {
+            Sacred = input.ReadBool();
+            break;
+          }
+          case 130: {
+            CasusBelliRef = input.ReadString();
+            break;
+          }
+          case 138: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 32: {
+            Kind = (global::KBVE.Proto.Map.TerritoryClaimKind) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            hexes_.AddEntriesFrom(ref input, _repeated_hexes_codec);
+            break;
+          }
+          case 50: {
+            if (bounds_ == null) {
+              Bounds = new global::KBVE.Proto.Map.Bounds2D();
+            }
+            input.ReadMessage(Bounds);
+            break;
+          }
+          case 58: {
+            zoneRefs_.AddEntriesFrom(ref input, _repeated_zoneRefs_codec);
+            break;
+          }
+          case 66: {
+            settlementRefs_.AddEntriesFrom(ref input, _repeated_settlementRefs_codec);
+            break;
+          }
+          case 72: {
+            Strength = input.ReadInt32();
+            break;
+          }
+          case 80: {
+            GarrisonSize = input.ReadInt32();
+            break;
+          }
+          case 90: {
+            ContestedByFactionRef = input.ReadString();
+            break;
+          }
+          case 96: {
+            ContestProgress = input.ReadInt32();
+            break;
+          }
+          case 104: {
+            ClaimedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 112: {
+            ExpiresAtTurn = input.ReadInt64();
+            break;
+          }
+          case 120: {
+            Sacred = input.ReadBool();
+            break;
+          }
+          case 130: {
+            CasusBelliRef = input.ReadString();
+            break;
+          }
+          case 138: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// One stop along a trade route — caravan halts here for `dwell_secs`
+  /// before moving to the next stop.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TradeRouteStop : pb::IMessage<TradeRouteStop>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TradeRouteStop> _parser = new pb::MessageParser<TradeRouteStop>(() => new TradeRouteStop());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TradeRouteStop> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[54]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRouteStop() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRouteStop(TradeRouteStop other) : this() {
+      _hasBits0 = other._hasBits0;
+      settlementRef_ = other.settlementRef_;
+      hex_ = other.hex_ != null ? other.hex_.Clone() : null;
+      position_ = other.position_ != null ? other.position_.Clone() : null;
+      dwellSecs_ = other.dwellSecs_;
+      refuel_ = other.refuel_;
+      toll_ = other.toll_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRouteStop Clone() {
+      return new TradeRouteStop(this);
+    }
+
+    /// <summary>Field number for the "settlement_ref" field.</summary>
+    public const int SettlementRefFieldNumber = 1;
+    private readonly static string SettlementRefDefaultValue = "";
+
+    private string settlementRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SettlementRef {
+      get { return settlementRef_ ?? SettlementRefDefaultValue; }
+      set {
+        settlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "settlement_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSettlementRef {
+      get { return settlementRef_ != null; }
+    }
+    /// <summary>Clears the value of the "settlement_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSettlementRef() {
+      settlementRef_ = null;
+    }
+
+    /// <summary>Field number for the "hex" field.</summary>
+    public const int HexFieldNumber = 2;
+    private global::KBVE.Proto.Map.HexCoord hex_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.HexCoord Hex {
+      get { return hex_; }
+      set {
+        hex_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "position" field.</summary>
+    public const int PositionFieldNumber = 3;
+    private global::KBVE.Proto.Map.WorldPos position_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.WorldPos Position {
+      get { return position_; }
+      set {
+        position_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "dwell_secs" field.</summary>
+    public const int DwellSecsFieldNumber = 4;
+    private readonly static float DwellSecsDefaultValue = 0F;
+
+    private float dwellSecs_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float DwellSecs {
+      get { if ((_hasBits0 & 1) != 0) { return dwellSecs_; } else { return DwellSecsDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        dwellSecs_ = value;
+      }
+    }
+    /// <summary>Gets whether the "dwell_secs" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDwellSecs {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "dwell_secs" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDwellSecs() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "refuel" field.</summary>
+    public const int RefuelFieldNumber = 5;
+    private readonly static bool RefuelDefaultValue = false;
+
+    private bool refuel_;
+    /// <summary>
+    /// Restocks caravan supplies
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Refuel {
+      get { if ((_hasBits0 & 2) != 0) { return refuel_; } else { return RefuelDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        refuel_ = value;
+      }
+    }
+    /// <summary>Gets whether the "refuel" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRefuel {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "refuel" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRefuel() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "toll" field.</summary>
+    public const int TollFieldNumber = 6;
+    private readonly static bool TollDefaultValue = false;
+
+    private bool toll_;
+    /// <summary>
+    /// Pays tariff to local faction
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Toll {
+      get { if ((_hasBits0 & 4) != 0) { return toll_; } else { return TollDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        toll_ = value;
+      }
+    }
+    /// <summary>Gets whether the "toll" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasToll {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "toll" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearToll() {
+      _hasBits0 &= ~4;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TradeRouteStop);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TradeRouteStop other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SettlementRef != other.SettlementRef) return false;
+      if (!object.Equals(Hex, other.Hex)) return false;
+      if (!object.Equals(Position, other.Position)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(DwellSecs, other.DwellSecs)) return false;
+      if (Refuel != other.Refuel) return false;
+      if (Toll != other.Toll) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasSettlementRef) hash ^= SettlementRef.GetHashCode();
+      if (hex_ != null) hash ^= Hex.GetHashCode();
+      if (position_ != null) hash ^= Position.GetHashCode();
+      if (HasDwellSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(DwellSecs);
+      if (HasRefuel) hash ^= Refuel.GetHashCode();
+      if (HasToll) hash ^= Toll.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasSettlementRef) {
+        output.WriteRawTag(10);
+        output.WriteString(SettlementRef);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Hex);
+      }
+      if (position_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Position);
+      }
+      if (HasDwellSecs) {
+        output.WriteRawTag(37);
+        output.WriteFloat(DwellSecs);
+      }
+      if (HasRefuel) {
+        output.WriteRawTag(40);
+        output.WriteBool(Refuel);
+      }
+      if (HasToll) {
+        output.WriteRawTag(48);
+        output.WriteBool(Toll);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasSettlementRef) {
+        output.WriteRawTag(10);
+        output.WriteString(SettlementRef);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Hex);
+      }
+      if (position_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Position);
+      }
+      if (HasDwellSecs) {
+        output.WriteRawTag(37);
+        output.WriteFloat(DwellSecs);
+      }
+      if (HasRefuel) {
+        output.WriteRawTag(40);
+        output.WriteBool(Refuel);
+      }
+      if (HasToll) {
+        output.WriteRawTag(48);
+        output.WriteBool(Toll);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasSettlementRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SettlementRef);
+      }
+      if (hex_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Hex);
+      }
+      if (position_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Position);
+      }
+      if (HasDwellSecs) {
+        size += 1 + 4;
+      }
+      if (HasRefuel) {
+        size += 1 + 1;
+      }
+      if (HasToll) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TradeRouteStop other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasSettlementRef) {
+        SettlementRef = other.SettlementRef;
+      }
+      if (other.hex_ != null) {
+        if (hex_ == null) {
+          Hex = new global::KBVE.Proto.Map.HexCoord();
+        }
+        Hex.MergeFrom(other.Hex);
+      }
+      if (other.position_ != null) {
+        if (position_ == null) {
+          Position = new global::KBVE.Proto.Map.WorldPos();
+        }
+        Position.MergeFrom(other.Position);
+      }
+      if (other.HasDwellSecs) {
+        DwellSecs = other.DwellSecs;
+      }
+      if (other.HasRefuel) {
+        Refuel = other.Refuel;
+      }
+      if (other.HasToll) {
+        Toll = other.Toll;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 26: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 37: {
+            DwellSecs = input.ReadFloat();
+            break;
+          }
+          case 40: {
+            Refuel = input.ReadBool();
+            break;
+          }
+          case 48: {
+            Toll = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 26: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 37: {
+            DwellSecs = input.ReadFloat();
+            break;
+          }
+          case 40: {
+            Refuel = input.ReadBool();
+            break;
+          }
+          case 48: {
+            Toll = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// One cargo line carried along a trade route.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TradeCargo : pb::IMessage<TradeCargo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TradeCargo> _parser = new pb::MessageParser<TradeCargo>(() => new TradeCargo());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TradeCargo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[55]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeCargo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeCargo(TradeCargo other) : this() {
+      _hasBits0 = other._hasBits0;
+      itemRef_ = other.itemRef_;
+      amountPerCaravan_ = other.amountPerCaravan_;
+      category_ = other.category_;
+      buyPriceAtOrigin_ = other.buyPriceAtOrigin_;
+      sellPriceAtDestination_ = other.sellPriceAtDestination_;
+      perishable_ = other.perishable_;
+      restricted_ = other.restricted_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeCargo Clone() {
+      return new TradeCargo(this);
+    }
+
+    /// <summary>Field number for the "item_ref" field.</summary>
+    public const int ItemRefFieldNumber = 1;
+    private string itemRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ItemRef {
+      get { return itemRef_; }
+      set {
+        itemRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "amount_per_caravan" field.</summary>
+    public const int AmountPerCaravanFieldNumber = 2;
+    private int amountPerCaravan_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int AmountPerCaravan {
+      get { return amountPerCaravan_; }
+      set {
+        amountPerCaravan_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "category" field.</summary>
+    public const int CategoryFieldNumber = 3;
+    private global::KBVE.Proto.Map.TradeGoodCategory category_ = global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.TradeGoodCategory Category {
+      get { return category_; }
+      set {
+        category_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "buy_price_at_origin" field.</summary>
+    public const int BuyPriceAtOriginFieldNumber = 4;
+    private readonly static int BuyPriceAtOriginDefaultValue = 0;
+
+    private int buyPriceAtOrigin_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int BuyPriceAtOrigin {
+      get { if ((_hasBits0 & 1) != 0) { return buyPriceAtOrigin_; } else { return BuyPriceAtOriginDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        buyPriceAtOrigin_ = value;
+      }
+    }
+    /// <summary>Gets whether the "buy_price_at_origin" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBuyPriceAtOrigin {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "buy_price_at_origin" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBuyPriceAtOrigin() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "sell_price_at_destination" field.</summary>
+    public const int SellPriceAtDestinationFieldNumber = 5;
+    private readonly static int SellPriceAtDestinationDefaultValue = 0;
+
+    private int sellPriceAtDestination_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int SellPriceAtDestination {
+      get { if ((_hasBits0 & 2) != 0) { return sellPriceAtDestination_; } else { return SellPriceAtDestinationDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        sellPriceAtDestination_ = value;
+      }
+    }
+    /// <summary>Gets whether the "sell_price_at_destination" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSellPriceAtDestination {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "sell_price_at_destination" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSellPriceAtDestination() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "perishable" field.</summary>
+    public const int PerishableFieldNumber = 6;
+    private readonly static bool PerishableDefaultValue = false;
+
+    private bool perishable_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Perishable {
+      get { if ((_hasBits0 & 4) != 0) { return perishable_; } else { return PerishableDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        perishable_ = value;
+      }
+    }
+    /// <summary>Gets whether the "perishable" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPerishable {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "perishable" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPerishable() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "restricted" field.</summary>
+    public const int RestrictedFieldNumber = 7;
+    private readonly static bool RestrictedDefaultValue = false;
+
+    private bool restricted_;
+    /// <summary>
+    /// Faction-locked / contraband
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Restricted {
+      get { if ((_hasBits0 & 8) != 0) { return restricted_; } else { return RestrictedDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        restricted_ = value;
+      }
+    }
+    /// <summary>Gets whether the "restricted" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRestricted {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "restricted" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRestricted() {
+      _hasBits0 &= ~8;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TradeCargo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TradeCargo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ItemRef != other.ItemRef) return false;
+      if (AmountPerCaravan != other.AmountPerCaravan) return false;
+      if (Category != other.Category) return false;
+      if (BuyPriceAtOrigin != other.BuyPriceAtOrigin) return false;
+      if (SellPriceAtDestination != other.SellPriceAtDestination) return false;
+      if (Perishable != other.Perishable) return false;
+      if (Restricted != other.Restricted) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (ItemRef.Length != 0) hash ^= ItemRef.GetHashCode();
+      if (AmountPerCaravan != 0) hash ^= AmountPerCaravan.GetHashCode();
+      if (Category != global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified) hash ^= Category.GetHashCode();
+      if (HasBuyPriceAtOrigin) hash ^= BuyPriceAtOrigin.GetHashCode();
+      if (HasSellPriceAtDestination) hash ^= SellPriceAtDestination.GetHashCode();
+      if (HasPerishable) hash ^= Perishable.GetHashCode();
+      if (HasRestricted) hash ^= Restricted.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (ItemRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ItemRef);
+      }
+      if (AmountPerCaravan != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(AmountPerCaravan);
+      }
+      if (Category != global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Category);
+      }
+      if (HasBuyPriceAtOrigin) {
+        output.WriteRawTag(32);
+        output.WriteInt32(BuyPriceAtOrigin);
+      }
+      if (HasSellPriceAtDestination) {
+        output.WriteRawTag(40);
+        output.WriteInt32(SellPriceAtDestination);
+      }
+      if (HasPerishable) {
+        output.WriteRawTag(48);
+        output.WriteBool(Perishable);
+      }
+      if (HasRestricted) {
+        output.WriteRawTag(56);
+        output.WriteBool(Restricted);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ItemRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ItemRef);
+      }
+      if (AmountPerCaravan != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(AmountPerCaravan);
+      }
+      if (Category != global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) Category);
+      }
+      if (HasBuyPriceAtOrigin) {
+        output.WriteRawTag(32);
+        output.WriteInt32(BuyPriceAtOrigin);
+      }
+      if (HasSellPriceAtDestination) {
+        output.WriteRawTag(40);
+        output.WriteInt32(SellPriceAtDestination);
+      }
+      if (HasPerishable) {
+        output.WriteRawTag(48);
+        output.WriteBool(Perishable);
+      }
+      if (HasRestricted) {
+        output.WriteRawTag(56);
+        output.WriteBool(Restricted);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (ItemRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ItemRef);
+      }
+      if (AmountPerCaravan != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(AmountPerCaravan);
+      }
+      if (Category != global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Category);
+      }
+      if (HasBuyPriceAtOrigin) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(BuyPriceAtOrigin);
+      }
+      if (HasSellPriceAtDestination) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(SellPriceAtDestination);
+      }
+      if (HasPerishable) {
+        size += 1 + 1;
+      }
+      if (HasRestricted) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TradeCargo other) {
+      if (other == null) {
+        return;
+      }
+      if (other.ItemRef.Length != 0) {
+        ItemRef = other.ItemRef;
+      }
+      if (other.AmountPerCaravan != 0) {
+        AmountPerCaravan = other.AmountPerCaravan;
+      }
+      if (other.Category != global::KBVE.Proto.Map.TradeGoodCategory.TradeGoodUnspecified) {
+        Category = other.Category;
+      }
+      if (other.HasBuyPriceAtOrigin) {
+        BuyPriceAtOrigin = other.BuyPriceAtOrigin;
+      }
+      if (other.HasSellPriceAtDestination) {
+        SellPriceAtDestination = other.SellPriceAtDestination;
+      }
+      if (other.HasPerishable) {
+        Perishable = other.Perishable;
+      }
+      if (other.HasRestricted) {
+        Restricted = other.Restricted;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            ItemRef = input.ReadString();
+            break;
+          }
+          case 16: {
+            AmountPerCaravan = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            Category = (global::KBVE.Proto.Map.TradeGoodCategory) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            BuyPriceAtOrigin = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            SellPriceAtDestination = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            Perishable = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Restricted = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ItemRef = input.ReadString();
+            break;
+          }
+          case 16: {
+            AmountPerCaravan = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            Category = (global::KBVE.Proto.Map.TradeGoodCategory) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            BuyPriceAtOrigin = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            SellPriceAtDestination = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            Perishable = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Restricted = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Recurring caravan / shipping line between settlements.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TradeRoute : pb::IMessage<TradeRoute>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TradeRoute> _parser = new pb::MessageParser<TradeRoute>(() => new TradeRoute());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TradeRoute> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[56]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRoute() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRoute(TradeRoute other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      description_ = other.description_;
+      fromSettlementRef_ = other.fromSettlementRef_;
+      toSettlementRef_ = other.toSettlementRef_;
+      stops_ = other.stops_.Clone();
+      routeKind_ = other.routeKind_;
+      cargo_ = other.cargo_.Clone();
+      cadenceSecs_ = other.cadenceSecs_;
+      distance_ = other.distance_;
+      caravanSize_ = other.caravanSize_;
+      caravanHealth_ = other.caravanHealth_;
+      dangerLevel_ = other.dangerLevel_;
+      protectionUnitRefs_ = other.protectionUnitRefs_.Clone();
+      operatorFactionRef_ = other.operatorFactionRef_;
+      profitPerRun_ = other.profitPerRun_;
+      active_ = other.active_;
+      establishedAtTurn_ = other.establishedAtTurn_;
+      lastRunAtTurn_ = other.lastRunAtTurn_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TradeRoute Clone() {
+      return new TradeRoute(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 4;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "from_settlement_ref" field.</summary>
+    public const int FromSettlementRefFieldNumber = 5;
+    private string fromSettlementRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FromSettlementRef {
+      get { return fromSettlementRef_; }
+      set {
+        fromSettlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "to_settlement_ref" field.</summary>
+    public const int ToSettlementRefFieldNumber = 6;
+    private string toSettlementRef_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ToSettlementRef {
+      get { return toSettlementRef_; }
+      set {
+        toSettlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "stops" field.</summary>
+    public const int StopsFieldNumber = 7;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.TradeRouteStop> _repeated_stops_codec
+        = pb::FieldCodec.ForMessage(58, global::KBVE.Proto.Map.TradeRouteStop.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.TradeRouteStop> stops_ = new pbc::RepeatedField<global::KBVE.Proto.Map.TradeRouteStop>();
+    /// <summary>
+    /// Optional waypoints
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.TradeRouteStop> Stops {
+      get { return stops_; }
+    }
+
+    /// <summary>Field number for the "route_kind" field.</summary>
+    public const int RouteKindFieldNumber = 8;
+    private global::KBVE.Proto.Map.RouteKind routeKind_ = global::KBVE.Proto.Map.RouteKind.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.RouteKind RouteKind {
+      get { return routeKind_; }
+      set {
+        routeKind_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "cargo" field.</summary>
+    public const int CargoFieldNumber = 9;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.TradeCargo> _repeated_cargo_codec
+        = pb::FieldCodec.ForMessage(74, global::KBVE.Proto.Map.TradeCargo.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.TradeCargo> cargo_ = new pbc::RepeatedField<global::KBVE.Proto.Map.TradeCargo>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.TradeCargo> Cargo {
+      get { return cargo_; }
+    }
+
+    /// <summary>Field number for the "cadence_secs" field.</summary>
+    public const int CadenceSecsFieldNumber = 10;
+    private readonly static float CadenceSecsDefaultValue = 0F;
+
+    private float cadenceSecs_;
+    /// <summary>
+    /// How often a caravan launches
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float CadenceSecs {
+      get { if ((_hasBits0 & 1) != 0) { return cadenceSecs_; } else { return CadenceSecsDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        cadenceSecs_ = value;
+      }
+    }
+    /// <summary>Gets whether the "cadence_secs" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCadenceSecs {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "cadence_secs" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCadenceSecs() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "distance" field.</summary>
+    public const int DistanceFieldNumber = 11;
+    private readonly static float DistanceDefaultValue = 0F;
+
+    private float distance_;
+    /// <summary>
+    /// World units / hex count
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Distance {
+      get { if ((_hasBits0 & 2) != 0) { return distance_; } else { return DistanceDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        distance_ = value;
+      }
+    }
+    /// <summary>Gets whether the "distance" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDistance {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "distance" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDistance() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "caravan_size" field.</summary>
+    public const int CaravanSizeFieldNumber = 12;
+    private readonly static int CaravanSizeDefaultValue = 0;
+
+    private int caravanSize_;
+    /// <summary>
+    /// Number of carriers
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CaravanSize {
+      get { if ((_hasBits0 & 4) != 0) { return caravanSize_; } else { return CaravanSizeDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        caravanSize_ = value;
+      }
+    }
+    /// <summary>Gets whether the "caravan_size" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCaravanSize {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "caravan_size" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCaravanSize() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "caravan_health" field.</summary>
+    public const int CaravanHealthFieldNumber = 13;
+    private readonly static int CaravanHealthDefaultValue = 0;
+
+    private int caravanHealth_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CaravanHealth {
+      get { if ((_hasBits0 & 8) != 0) { return caravanHealth_; } else { return CaravanHealthDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        caravanHealth_ = value;
+      }
+    }
+    /// <summary>Gets whether the "caravan_health" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCaravanHealth {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "caravan_health" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCaravanHealth() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "danger_level" field.</summary>
+    public const int DangerLevelFieldNumber = 14;
+    private readonly static float DangerLevelDefaultValue = 0F;
+
+    private float dangerLevel_;
+    /// <summary>
+    /// 0.0–1.0 — bandit / pirate density
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float DangerLevel {
+      get { if ((_hasBits0 & 16) != 0) { return dangerLevel_; } else { return DangerLevelDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        dangerLevel_ = value;
+      }
+    }
+    /// <summary>Gets whether the "danger_level" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDangerLevel {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "danger_level" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDangerLevel() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "protection_unit_refs" field.</summary>
+    public const int ProtectionUnitRefsFieldNumber = 15;
+    private static readonly pb::FieldCodec<string> _repeated_protectionUnitRefs_codec
+        = pb::FieldCodec.ForString(122);
+    private readonly pbc::RepeatedField<string> protectionUnitRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Escort unit refs
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ProtectionUnitRefs {
+      get { return protectionUnitRefs_; }
+    }
+
+    /// <summary>Field number for the "operator_faction_ref" field.</summary>
+    public const int OperatorFactionRefFieldNumber = 16;
+    private readonly static string OperatorFactionRefDefaultValue = "";
+
+    private string operatorFactionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string OperatorFactionRef {
+      get { return operatorFactionRef_ ?? OperatorFactionRefDefaultValue; }
+      set {
+        operatorFactionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "operator_faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasOperatorFactionRef {
+      get { return operatorFactionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "operator_faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearOperatorFactionRef() {
+      operatorFactionRef_ = null;
+    }
+
+    /// <summary>Field number for the "profit_per_run" field.</summary>
+    public const int ProfitPerRunFieldNumber = 17;
+    private readonly static float ProfitPerRunDefaultValue = 0F;
+
+    private float profitPerRun_;
+    /// <summary>
+    /// Estimated, for AI evaluation
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float ProfitPerRun {
+      get { if ((_hasBits0 & 32) != 0) { return profitPerRun_; } else { return ProfitPerRunDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        profitPerRun_ = value;
+      }
+    }
+    /// <summary>Gets whether the "profit_per_run" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasProfitPerRun {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "profit_per_run" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearProfitPerRun() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "active" field.</summary>
+    public const int ActiveFieldNumber = 18;
+    private readonly static bool ActiveDefaultValue = false;
+
+    private bool active_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Active {
+      get { if ((_hasBits0 & 64) != 0) { return active_; } else { return ActiveDefaultValue; } }
+      set {
+        _hasBits0 |= 64;
+        active_ = value;
+      }
+    }
+    /// <summary>Gets whether the "active" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasActive {
+      get { return (_hasBits0 & 64) != 0; }
+    }
+    /// <summary>Clears the value of the "active" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearActive() {
+      _hasBits0 &= ~64;
+    }
+
+    /// <summary>Field number for the "established_at_turn" field.</summary>
+    public const int EstablishedAtTurnFieldNumber = 19;
+    private readonly static long EstablishedAtTurnDefaultValue = 0L;
+
+    private long establishedAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long EstablishedAtTurn {
+      get { if ((_hasBits0 & 128) != 0) { return establishedAtTurn_; } else { return EstablishedAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 128;
+        establishedAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "established_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasEstablishedAtTurn {
+      get { return (_hasBits0 & 128) != 0; }
+    }
+    /// <summary>Clears the value of the "established_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearEstablishedAtTurn() {
+      _hasBits0 &= ~128;
+    }
+
+    /// <summary>Field number for the "last_run_at_turn" field.</summary>
+    public const int LastRunAtTurnFieldNumber = 20;
+    private readonly static long LastRunAtTurnDefaultValue = 0L;
+
+    private long lastRunAtTurn_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long LastRunAtTurn {
+      get { if ((_hasBits0 & 256) != 0) { return lastRunAtTurn_; } else { return LastRunAtTurnDefaultValue; } }
+      set {
+        _hasBits0 |= 256;
+        lastRunAtTurn_ = value;
+      }
+    }
+    /// <summary>Gets whether the "last_run_at_turn" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLastRunAtTurn {
+      get { return (_hasBits0 & 256) != 0; }
+    }
+    /// <summary>Clears the value of the "last_run_at_turn" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLastRunAtTurn() {
+      _hasBits0 &= ~256;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 21;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(170, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TradeRoute);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TradeRoute other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Description != other.Description) return false;
+      if (FromSettlementRef != other.FromSettlementRef) return false;
+      if (ToSettlementRef != other.ToSettlementRef) return false;
+      if(!stops_.Equals(other.stops_)) return false;
+      if (RouteKind != other.RouteKind) return false;
+      if(!cargo_.Equals(other.cargo_)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CadenceSecs, other.CadenceSecs)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Distance, other.Distance)) return false;
+      if (CaravanSize != other.CaravanSize) return false;
+      if (CaravanHealth != other.CaravanHealth) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(DangerLevel, other.DangerLevel)) return false;
+      if(!protectionUnitRefs_.Equals(other.protectionUnitRefs_)) return false;
+      if (OperatorFactionRef != other.OperatorFactionRef) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(ProfitPerRun, other.ProfitPerRun)) return false;
+      if (Active != other.Active) return false;
+      if (EstablishedAtTurn != other.EstablishedAtTurn) return false;
+      if (LastRunAtTurn != other.LastRunAtTurn) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (FromSettlementRef.Length != 0) hash ^= FromSettlementRef.GetHashCode();
+      if (ToSettlementRef.Length != 0) hash ^= ToSettlementRef.GetHashCode();
+      hash ^= stops_.GetHashCode();
+      if (RouteKind != global::KBVE.Proto.Map.RouteKind.Unspecified) hash ^= RouteKind.GetHashCode();
+      hash ^= cargo_.GetHashCode();
+      if (HasCadenceSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CadenceSecs);
+      if (HasDistance) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Distance);
+      if (HasCaravanSize) hash ^= CaravanSize.GetHashCode();
+      if (HasCaravanHealth) hash ^= CaravanHealth.GetHashCode();
+      if (HasDangerLevel) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(DangerLevel);
+      hash ^= protectionUnitRefs_.GetHashCode();
+      if (HasOperatorFactionRef) hash ^= OperatorFactionRef.GetHashCode();
+      if (HasProfitPerRun) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(ProfitPerRun);
+      if (HasActive) hash ^= Active.GetHashCode();
+      if (HasEstablishedAtTurn) hash ^= EstablishedAtTurn.GetHashCode();
+      if (HasLastRunAtTurn) hash ^= LastRunAtTurn.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (FromSettlementRef.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(FromSettlementRef);
+      }
+      if (ToSettlementRef.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(ToSettlementRef);
+      }
+      stops_.WriteTo(output, _repeated_stops_codec);
+      if (RouteKind != global::KBVE.Proto.Map.RouteKind.Unspecified) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) RouteKind);
+      }
+      cargo_.WriteTo(output, _repeated_cargo_codec);
+      if (HasCadenceSecs) {
+        output.WriteRawTag(85);
+        output.WriteFloat(CadenceSecs);
+      }
+      if (HasDistance) {
+        output.WriteRawTag(93);
+        output.WriteFloat(Distance);
+      }
+      if (HasCaravanSize) {
+        output.WriteRawTag(96);
+        output.WriteInt32(CaravanSize);
+      }
+      if (HasCaravanHealth) {
+        output.WriteRawTag(104);
+        output.WriteInt32(CaravanHealth);
+      }
+      if (HasDangerLevel) {
+        output.WriteRawTag(117);
+        output.WriteFloat(DangerLevel);
+      }
+      protectionUnitRefs_.WriteTo(output, _repeated_protectionUnitRefs_codec);
+      if (HasOperatorFactionRef) {
+        output.WriteRawTag(130, 1);
+        output.WriteString(OperatorFactionRef);
+      }
+      if (HasProfitPerRun) {
+        output.WriteRawTag(141, 1);
+        output.WriteFloat(ProfitPerRun);
+      }
+      if (HasActive) {
+        output.WriteRawTag(144, 1);
+        output.WriteBool(Active);
+      }
+      if (HasEstablishedAtTurn) {
+        output.WriteRawTag(152, 1);
+        output.WriteInt64(EstablishedAtTurn);
+      }
+      if (HasLastRunAtTurn) {
+        output.WriteRawTag(160, 1);
+        output.WriteInt64(LastRunAtTurn);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (FromSettlementRef.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(FromSettlementRef);
+      }
+      if (ToSettlementRef.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(ToSettlementRef);
+      }
+      stops_.WriteTo(ref output, _repeated_stops_codec);
+      if (RouteKind != global::KBVE.Proto.Map.RouteKind.Unspecified) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) RouteKind);
+      }
+      cargo_.WriteTo(ref output, _repeated_cargo_codec);
+      if (HasCadenceSecs) {
+        output.WriteRawTag(85);
+        output.WriteFloat(CadenceSecs);
+      }
+      if (HasDistance) {
+        output.WriteRawTag(93);
+        output.WriteFloat(Distance);
+      }
+      if (HasCaravanSize) {
+        output.WriteRawTag(96);
+        output.WriteInt32(CaravanSize);
+      }
+      if (HasCaravanHealth) {
+        output.WriteRawTag(104);
+        output.WriteInt32(CaravanHealth);
+      }
+      if (HasDangerLevel) {
+        output.WriteRawTag(117);
+        output.WriteFloat(DangerLevel);
+      }
+      protectionUnitRefs_.WriteTo(ref output, _repeated_protectionUnitRefs_codec);
+      if (HasOperatorFactionRef) {
+        output.WriteRawTag(130, 1);
+        output.WriteString(OperatorFactionRef);
+      }
+      if (HasProfitPerRun) {
+        output.WriteRawTag(141, 1);
+        output.WriteFloat(ProfitPerRun);
+      }
+      if (HasActive) {
+        output.WriteRawTag(144, 1);
+        output.WriteBool(Active);
+      }
+      if (HasEstablishedAtTurn) {
+        output.WriteRawTag(152, 1);
+        output.WriteInt64(EstablishedAtTurn);
+      }
+      if (HasLastRunAtTurn) {
+        output.WriteRawTag(160, 1);
+        output.WriteInt64(LastRunAtTurn);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (FromSettlementRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FromSettlementRef);
+      }
+      if (ToSettlementRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ToSettlementRef);
+      }
+      size += stops_.CalculateSize(_repeated_stops_codec);
+      if (RouteKind != global::KBVE.Proto.Map.RouteKind.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) RouteKind);
+      }
+      size += cargo_.CalculateSize(_repeated_cargo_codec);
+      if (HasCadenceSecs) {
+        size += 1 + 4;
+      }
+      if (HasDistance) {
+        size += 1 + 4;
+      }
+      if (HasCaravanSize) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(CaravanSize);
+      }
+      if (HasCaravanHealth) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(CaravanHealth);
+      }
+      if (HasDangerLevel) {
+        size += 1 + 4;
+      }
+      size += protectionUnitRefs_.CalculateSize(_repeated_protectionUnitRefs_codec);
+      if (HasOperatorFactionRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(OperatorFactionRef);
+      }
+      if (HasProfitPerRun) {
+        size += 2 + 4;
+      }
+      if (HasActive) {
+        size += 2 + 1;
+      }
+      if (HasEstablishedAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(EstablishedAtTurn);
+      }
+      if (HasLastRunAtTurn) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(LastRunAtTurn);
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TradeRoute other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.FromSettlementRef.Length != 0) {
+        FromSettlementRef = other.FromSettlementRef;
+      }
+      if (other.ToSettlementRef.Length != 0) {
+        ToSettlementRef = other.ToSettlementRef;
+      }
+      stops_.Add(other.stops_);
+      if (other.RouteKind != global::KBVE.Proto.Map.RouteKind.Unspecified) {
+        RouteKind = other.RouteKind;
+      }
+      cargo_.Add(other.cargo_);
+      if (other.HasCadenceSecs) {
+        CadenceSecs = other.CadenceSecs;
+      }
+      if (other.HasDistance) {
+        Distance = other.Distance;
+      }
+      if (other.HasCaravanSize) {
+        CaravanSize = other.CaravanSize;
+      }
+      if (other.HasCaravanHealth) {
+        CaravanHealth = other.CaravanHealth;
+      }
+      if (other.HasDangerLevel) {
+        DangerLevel = other.DangerLevel;
+      }
+      protectionUnitRefs_.Add(other.protectionUnitRefs_);
+      if (other.HasOperatorFactionRef) {
+        OperatorFactionRef = other.OperatorFactionRef;
+      }
+      if (other.HasProfitPerRun) {
+        ProfitPerRun = other.ProfitPerRun;
+      }
+      if (other.HasActive) {
+        Active = other.Active;
+      }
+      if (other.HasEstablishedAtTurn) {
+        EstablishedAtTurn = other.EstablishedAtTurn;
+      }
+      if (other.HasLastRunAtTurn) {
+        LastRunAtTurn = other.LastRunAtTurn;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            FromSettlementRef = input.ReadString();
+            break;
+          }
+          case 50: {
+            ToSettlementRef = input.ReadString();
+            break;
+          }
+          case 58: {
+            stops_.AddEntriesFrom(input, _repeated_stops_codec);
+            break;
+          }
+          case 64: {
+            RouteKind = (global::KBVE.Proto.Map.RouteKind) input.ReadEnum();
+            break;
+          }
+          case 74: {
+            cargo_.AddEntriesFrom(input, _repeated_cargo_codec);
+            break;
+          }
+          case 85: {
+            CadenceSecs = input.ReadFloat();
+            break;
+          }
+          case 93: {
+            Distance = input.ReadFloat();
+            break;
+          }
+          case 96: {
+            CaravanSize = input.ReadInt32();
+            break;
+          }
+          case 104: {
+            CaravanHealth = input.ReadInt32();
+            break;
+          }
+          case 117: {
+            DangerLevel = input.ReadFloat();
+            break;
+          }
+          case 122: {
+            protectionUnitRefs_.AddEntriesFrom(input, _repeated_protectionUnitRefs_codec);
+            break;
+          }
+          case 130: {
+            OperatorFactionRef = input.ReadString();
+            break;
+          }
+          case 141: {
+            ProfitPerRun = input.ReadFloat();
+            break;
+          }
+          case 144: {
+            Active = input.ReadBool();
+            break;
+          }
+          case 152: {
+            EstablishedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 160: {
+            LastRunAtTurn = input.ReadInt64();
+            break;
+          }
+          case 170: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            FromSettlementRef = input.ReadString();
+            break;
+          }
+          case 50: {
+            ToSettlementRef = input.ReadString();
+            break;
+          }
+          case 58: {
+            stops_.AddEntriesFrom(ref input, _repeated_stops_codec);
+            break;
+          }
+          case 64: {
+            RouteKind = (global::KBVE.Proto.Map.RouteKind) input.ReadEnum();
+            break;
+          }
+          case 74: {
+            cargo_.AddEntriesFrom(ref input, _repeated_cargo_codec);
+            break;
+          }
+          case 85: {
+            CadenceSecs = input.ReadFloat();
+            break;
+          }
+          case 93: {
+            Distance = input.ReadFloat();
+            break;
+          }
+          case 96: {
+            CaravanSize = input.ReadInt32();
+            break;
+          }
+          case 104: {
+            CaravanHealth = input.ReadInt32();
+            break;
+          }
+          case 117: {
+            DangerLevel = input.ReadFloat();
+            break;
+          }
+          case 122: {
+            protectionUnitRefs_.AddEntriesFrom(ref input, _repeated_protectionUnitRefs_codec);
+            break;
+          }
+          case 130: {
+            OperatorFactionRef = input.ReadString();
+            break;
+          }
+          case 141: {
+            ProfitPerRun = input.ReadFloat();
+            break;
+          }
+          case 144: {
+            Active = input.ReadBool();
+            break;
+          }
+          case 152: {
+            EstablishedAtTurn = input.ReadInt64();
+            break;
+          }
+          case 160: {
+            LastRunAtTurn = input.ReadInt64();
+            break;
+          }
+          case 170: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Landmark — a positioned, named, optionally interactive point of
+  /// interest. Bridges PoiType.POI_LANDMARK + WorldObjectType.LANDMARK
+  /// into a single addressable record. Click behavior is delegated to a
+  /// referenced WorldObjectDef (via interaction_world_object_ref).
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class Landmark : pb::IMessage<Landmark>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<Landmark> _parser = new pb::MessageParser<Landmark>(() => new Landmark());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<Landmark> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[57]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Landmark() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Landmark(Landmark other) : this() {
+      _hasBits0 = other._hasBits0;
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      description_ = other.description_;
+      lore_ = other.lore_;
+      significance_ = other.significance_;
+      zoneRef_ = other.zoneRef_;
+      regionRef_ = other.regionRef_;
+      settlementRef_ = other.settlementRef_;
+      factionRef_ = other.factionRef_;
+      cultureRef_ = other.cultureRef_;
+      religionRef_ = other.religionRef_;
+      position_ = other.position_ != null ? other.position_.Clone() : null;
+      gridPos_ = other.gridPos_ != null ? other.gridPos_.Clone() : null;
+      hex_ = other.hex_ != null ? other.hex_.Clone() : null;
+      discoveryRadius_ = other.discoveryRadius_;
+      img_ = other.img_;
+      icon_ = other.icon_;
+      markerIcon_ = other.markerIcon_;
+      markerColor_ = other.markerColor_ != null ? other.markerColor_.Clone() : null;
+      interactionWorldObjectRef_ = other.interactionWorldObjectRef_;
+      discoverable_ = other.discoverable_;
+      fastTravel_ = other.fastTravel_;
+      respawnPoint_ = other.respawnPoint_;
+      unique_ = other.unique_;
+      destroyed_ = other.destroyed_;
+      discoveryQuestRef_ = other.discoveryQuestRef_;
+      prerequisiteQuestRefs_ = other.prerequisiteQuestRefs_.Clone();
+      eventRef_ = other.eventRef_;
+      npcRefs_ = other.npcRefs_.Clone();
+      questRefs_ = other.questRefs_.Clone();
+      dialogueTreeRef_ = other.dialogueTreeRef_;
+      shopRef_ = other.shopRef_;
+      dungeonZoneRef_ = other.dungeonZoneRef_;
+      credits_ = other.credits_;
+      drafted_ = other.drafted_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public Landmark Clone() {
+      return new Landmark(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 4;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "lore" field.</summary>
+    public const int LoreFieldNumber = 5;
+    private readonly static string LoreDefaultValue = "";
+
+    private string lore_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Lore {
+      get { return lore_ ?? LoreDefaultValue; }
+      set {
+        lore_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "lore" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLore {
+      get { return lore_ != null; }
+    }
+    /// <summary>Clears the value of the "lore" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLore() {
+      lore_ = null;
+    }
+
+    /// <summary>Field number for the "significance" field.</summary>
+    public const int SignificanceFieldNumber = 6;
+    private global::KBVE.Proto.Map.LandmarkSignificance significance_ = global::KBVE.Proto.Map.LandmarkSignificance.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.LandmarkSignificance Significance {
+      get { return significance_; }
+      set {
+        significance_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "zone_ref" field.</summary>
+    public const int ZoneRefFieldNumber = 7;
+    private readonly static string ZoneRefDefaultValue = "";
+
+    private string zoneRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ZoneRef {
+      get { return zoneRef_ ?? ZoneRefDefaultValue; }
+      set {
+        zoneRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "zone_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasZoneRef {
+      get { return zoneRef_ != null; }
+    }
+    /// <summary>Clears the value of the "zone_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearZoneRef() {
+      zoneRef_ = null;
+    }
+
+    /// <summary>Field number for the "region_ref" field.</summary>
+    public const int RegionRefFieldNumber = 8;
+    private readonly static string RegionRefDefaultValue = "";
+
+    private string regionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string RegionRef {
+      get { return regionRef_ ?? RegionRefDefaultValue; }
+      set {
+        regionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "region_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRegionRef {
+      get { return regionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "region_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRegionRef() {
+      regionRef_ = null;
+    }
+
+    /// <summary>Field number for the "settlement_ref" field.</summary>
+    public const int SettlementRefFieldNumber = 9;
+    private readonly static string SettlementRefDefaultValue = "";
+
+    private string settlementRef_;
+    /// <summary>
+    /// If inside a settlement
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SettlementRef {
+      get { return settlementRef_ ?? SettlementRefDefaultValue; }
+      set {
+        settlementRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "settlement_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSettlementRef {
+      get { return settlementRef_ != null; }
+    }
+    /// <summary>Clears the value of the "settlement_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSettlementRef() {
+      settlementRef_ = null;
+    }
+
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 10;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    /// <summary>
+    /// Owning faction (if any)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    /// <summary>Field number for the "culture_ref" field.</summary>
+    public const int CultureRefFieldNumber = 11;
+    private readonly static string CultureRefDefaultValue = "";
+
+    private string cultureRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CultureRef {
+      get { return cultureRef_ ?? CultureRefDefaultValue; }
+      set {
+        cultureRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "culture_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCultureRef {
+      get { return cultureRef_ != null; }
+    }
+    /// <summary>Clears the value of the "culture_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCultureRef() {
+      cultureRef_ = null;
+    }
+
+    /// <summary>Field number for the "religion_ref" field.</summary>
+    public const int ReligionRefFieldNumber = 12;
+    private readonly static string ReligionRefDefaultValue = "";
+
+    private string religionRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ReligionRef {
+      get { return religionRef_ ?? ReligionRefDefaultValue; }
+      set {
+        religionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "religion_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReligionRef {
+      get { return religionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "religion_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReligionRef() {
+      religionRef_ = null;
+    }
+
+    /// <summary>Field number for the "position" field.</summary>
+    public const int PositionFieldNumber = 13;
+    private global::KBVE.Proto.Map.WorldPos position_;
+    /// <summary>
+    /// Position
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.WorldPos Position {
+      get { return position_; }
+      set {
+        position_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "grid_pos" field.</summary>
+    public const int GridPosFieldNumber = 14;
+    private global::KBVE.Proto.Map.GridPos gridPos_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.GridPos GridPos {
+      get { return gridPos_; }
+      set {
+        gridPos_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "hex" field.</summary>
+    public const int HexFieldNumber = 15;
+    private global::KBVE.Proto.Map.HexCoord hex_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.HexCoord Hex {
+      get { return hex_; }
+      set {
+        hex_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "discovery_radius" field.</summary>
+    public const int DiscoveryRadiusFieldNumber = 16;
+    private readonly static float DiscoveryRadiusDefaultValue = 0F;
+
+    private float discoveryRadius_;
+    /// <summary>
+    /// Auto-discover within this range
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float DiscoveryRadius {
+      get { if ((_hasBits0 & 1) != 0) { return discoveryRadius_; } else { return DiscoveryRadiusDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        discoveryRadius_ = value;
+      }
+    }
+    /// <summary>Gets whether the "discovery_radius" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDiscoveryRadius {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "discovery_radius" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDiscoveryRadius() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "img" field.</summary>
+    public const int ImgFieldNumber = 17;
+    private readonly static string ImgDefaultValue = "";
+
+    private string img_;
+    /// <summary>
+    /// Visual
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Img {
+      get { return img_ ?? ImgDefaultValue; }
+      set {
+        img_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "img" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasImg {
+      get { return img_ != null; }
+    }
+    /// <summary>Clears the value of the "img" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearImg() {
+      img_ = null;
+    }
+
+    /// <summary>Field number for the "icon" field.</summary>
+    public const int IconFieldNumber = 18;
+    private readonly static string IconDefaultValue = "";
+
+    private string icon_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Icon {
+      get { return icon_ ?? IconDefaultValue; }
+      set {
+        icon_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "icon" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasIcon {
+      get { return icon_ != null; }
+    }
+    /// <summary>Clears the value of the "icon" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearIcon() {
+      icon_ = null;
+    }
+
+    /// <summary>Field number for the "marker_icon" field.</summary>
+    public const int MarkerIconFieldNumber = 19;
+    private readonly static string MarkerIconDefaultValue = "";
+
+    private string markerIcon_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string MarkerIcon {
+      get { return markerIcon_ ?? MarkerIconDefaultValue; }
+      set {
+        markerIcon_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "marker_icon" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasMarkerIcon {
+      get { return markerIcon_ != null; }
+    }
+    /// <summary>Clears the value of the "marker_icon" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMarkerIcon() {
+      markerIcon_ = null;
+    }
+
+    /// <summary>Field number for the "marker_color" field.</summary>
+    public const int MarkerColorFieldNumber = 20;
+    private global::KBVE.Proto.Map.Color markerColor_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Color MarkerColor {
+      get { return markerColor_; }
+      set {
+        markerColor_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "interaction_world_object_ref" field.</summary>
+    public const int InteractionWorldObjectRefFieldNumber = 21;
+    private readonly static string InteractionWorldObjectRefDefaultValue = "";
+
+    private string interactionWorldObjectRef_;
+    /// <summary>
+    /// Behavior
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string InteractionWorldObjectRef {
+      get { return interactionWorldObjectRef_ ?? InteractionWorldObjectRefDefaultValue; }
+      set {
+        interactionWorldObjectRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "interaction_world_object_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasInteractionWorldObjectRef {
+      get { return interactionWorldObjectRef_ != null; }
+    }
+    /// <summary>Clears the value of the "interaction_world_object_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearInteractionWorldObjectRef() {
+      interactionWorldObjectRef_ = null;
+    }
+
+    /// <summary>Field number for the "discoverable" field.</summary>
+    public const int DiscoverableFieldNumber = 22;
+    private readonly static bool DiscoverableDefaultValue = false;
+
+    private bool discoverable_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Discoverable {
+      get { if ((_hasBits0 & 2) != 0) { return discoverable_; } else { return DiscoverableDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        discoverable_ = value;
+      }
+    }
+    /// <summary>Gets whether the "discoverable" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDiscoverable {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "discoverable" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDiscoverable() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "fast_travel" field.</summary>
+    public const int FastTravelFieldNumber = 23;
+    private readonly static bool FastTravelDefaultValue = false;
+
+    private bool fastTravel_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool FastTravel {
+      get { if ((_hasBits0 & 4) != 0) { return fastTravel_; } else { return FastTravelDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        fastTravel_ = value;
+      }
+    }
+    /// <summary>Gets whether the "fast_travel" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFastTravel {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "fast_travel" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFastTravel() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "respawn_point" field.</summary>
+    public const int RespawnPointFieldNumber = 24;
+    private readonly static bool RespawnPointDefaultValue = false;
+
+    private bool respawnPoint_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RespawnPoint {
+      get { if ((_hasBits0 & 8) != 0) { return respawnPoint_; } else { return RespawnPointDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        respawnPoint_ = value;
+      }
+    }
+    /// <summary>Gets whether the "respawn_point" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasRespawnPoint {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "respawn_point" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearRespawnPoint() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "unique" field.</summary>
+    public const int UniqueFieldNumber = 25;
+    private readonly static bool UniqueDefaultValue = false;
+
+    private bool unique_;
+    /// <summary>
+    /// One-of-a-kind landmark
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Unique {
+      get { if ((_hasBits0 & 16) != 0) { return unique_; } else { return UniqueDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        unique_ = value;
+      }
+    }
+    /// <summary>Gets whether the "unique" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasUnique {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "unique" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearUnique() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "destroyed" field.</summary>
+    public const int DestroyedFieldNumber = 26;
+    private readonly static bool DestroyedDefaultValue = false;
+
+    private bool destroyed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Destroyed {
+      get { if ((_hasBits0 & 32) != 0) { return destroyed_; } else { return DestroyedDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        destroyed_ = value;
+      }
+    }
+    /// <summary>Gets whether the "destroyed" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDestroyed {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "destroyed" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDestroyed() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "discovery_quest_ref" field.</summary>
+    public const int DiscoveryQuestRefFieldNumber = 27;
+    private readonly static string DiscoveryQuestRefDefaultValue = "";
+
+    private string discoveryQuestRef_;
+    /// <summary>
+    /// Phasing / unlock
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DiscoveryQuestRef {
+      get { return discoveryQuestRef_ ?? DiscoveryQuestRefDefaultValue; }
+      set {
+        discoveryQuestRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "discovery_quest_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDiscoveryQuestRef {
+      get { return discoveryQuestRef_ != null; }
+    }
+    /// <summary>Clears the value of the "discovery_quest_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDiscoveryQuestRef() {
+      discoveryQuestRef_ = null;
+    }
+
+    /// <summary>Field number for the "prerequisite_quest_refs" field.</summary>
+    public const int PrerequisiteQuestRefsFieldNumber = 28;
+    private static readonly pb::FieldCodec<string> _repeated_prerequisiteQuestRefs_codec
+        = pb::FieldCodec.ForString(226);
+    private readonly pbc::RepeatedField<string> prerequisiteQuestRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> PrerequisiteQuestRefs {
+      get { return prerequisiteQuestRefs_; }
+    }
+
+    /// <summary>Field number for the "event_ref" field.</summary>
+    public const int EventRefFieldNumber = 29;
+    private readonly static string EventRefDefaultValue = "";
+
+    private string eventRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string EventRef {
+      get { return eventRef_ ?? EventRefDefaultValue; }
+      set {
+        eventRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "event_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasEventRef {
+      get { return eventRef_ != null; }
+    }
+    /// <summary>Clears the value of the "event_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearEventRef() {
+      eventRef_ = null;
+    }
+
+    /// <summary>Field number for the "npc_refs" field.</summary>
+    public const int NpcRefsFieldNumber = 30;
+    private static readonly pb::FieldCodec<string> _repeated_npcRefs_codec
+        = pb::FieldCodec.ForString(242);
+    private readonly pbc::RepeatedField<string> npcRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Linkage
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> NpcRefs {
+      get { return npcRefs_; }
+    }
+
+    /// <summary>Field number for the "quest_refs" field.</summary>
+    public const int QuestRefsFieldNumber = 31;
+    private static readonly pb::FieldCodec<string> _repeated_questRefs_codec
+        = pb::FieldCodec.ForString(250);
+    private readonly pbc::RepeatedField<string> questRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> QuestRefs {
+      get { return questRefs_; }
+    }
+
+    /// <summary>Field number for the "dialogue_tree_ref" field.</summary>
+    public const int DialogueTreeRefFieldNumber = 32;
+    private readonly static string DialogueTreeRefDefaultValue = "";
+
+    private string dialogueTreeRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DialogueTreeRef {
+      get { return dialogueTreeRef_ ?? DialogueTreeRefDefaultValue; }
+      set {
+        dialogueTreeRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "dialogue_tree_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDialogueTreeRef {
+      get { return dialogueTreeRef_ != null; }
+    }
+    /// <summary>Clears the value of the "dialogue_tree_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDialogueTreeRef() {
+      dialogueTreeRef_ = null;
+    }
+
+    /// <summary>Field number for the "shop_ref" field.</summary>
+    public const int ShopRefFieldNumber = 33;
+    private readonly static string ShopRefDefaultValue = "";
+
+    private string shopRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ShopRef {
+      get { return shopRef_ ?? ShopRefDefaultValue; }
+      set {
+        shopRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "shop_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasShopRef {
+      get { return shopRef_ != null; }
+    }
+    /// <summary>Clears the value of the "shop_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearShopRef() {
+      shopRef_ = null;
+    }
+
+    /// <summary>Field number for the "dungeon_zone_ref" field.</summary>
+    public const int DungeonZoneRefFieldNumber = 34;
+    private readonly static string DungeonZoneRefDefaultValue = "";
+
+    private string dungeonZoneRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DungeonZoneRef {
+      get { return dungeonZoneRef_ ?? DungeonZoneRefDefaultValue; }
+      set {
+        dungeonZoneRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "dungeon_zone_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDungeonZoneRef {
+      get { return dungeonZoneRef_ != null; }
+    }
+    /// <summary>Clears the value of the "dungeon_zone_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDungeonZoneRef() {
+      dungeonZoneRef_ = null;
+    }
+
+    /// <summary>Field number for the "credits" field.</summary>
+    public const int CreditsFieldNumber = 35;
+    private readonly static string CreditsDefaultValue = "";
+
+    private string credits_;
+    /// <summary>
+    /// Metadata
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Credits {
+      get { return credits_ ?? CreditsDefaultValue; }
+      set {
+        credits_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "credits" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCredits {
+      get { return credits_ != null; }
+    }
+    /// <summary>Clears the value of the "credits" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCredits() {
+      credits_ = null;
+    }
+
+    /// <summary>Field number for the "drafted" field.</summary>
+    public const int DraftedFieldNumber = 36;
+    private readonly static bool DraftedDefaultValue = false;
+
+    private bool drafted_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Drafted {
+      get { if ((_hasBits0 & 64) != 0) { return drafted_; } else { return DraftedDefaultValue; } }
+      set {
+        _hasBits0 |= 64;
+        drafted_ = value;
+      }
+    }
+    /// <summary>Gets whether the "drafted" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDrafted {
+      get { return (_hasBits0 & 64) != 0; }
+    }
+    /// <summary>Clears the value of the "drafted" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDrafted() {
+      _hasBits0 &= ~64;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 37;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(298, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as Landmark);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Landmark other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Description != other.Description) return false;
+      if (Lore != other.Lore) return false;
+      if (Significance != other.Significance) return false;
+      if (ZoneRef != other.ZoneRef) return false;
+      if (RegionRef != other.RegionRef) return false;
+      if (SettlementRef != other.SettlementRef) return false;
+      if (FactionRef != other.FactionRef) return false;
+      if (CultureRef != other.CultureRef) return false;
+      if (ReligionRef != other.ReligionRef) return false;
+      if (!object.Equals(Position, other.Position)) return false;
+      if (!object.Equals(GridPos, other.GridPos)) return false;
+      if (!object.Equals(Hex, other.Hex)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(DiscoveryRadius, other.DiscoveryRadius)) return false;
+      if (Img != other.Img) return false;
+      if (Icon != other.Icon) return false;
+      if (MarkerIcon != other.MarkerIcon) return false;
+      if (!object.Equals(MarkerColor, other.MarkerColor)) return false;
+      if (InteractionWorldObjectRef != other.InteractionWorldObjectRef) return false;
+      if (Discoverable != other.Discoverable) return false;
+      if (FastTravel != other.FastTravel) return false;
+      if (RespawnPoint != other.RespawnPoint) return false;
+      if (Unique != other.Unique) return false;
+      if (Destroyed != other.Destroyed) return false;
+      if (DiscoveryQuestRef != other.DiscoveryQuestRef) return false;
+      if(!prerequisiteQuestRefs_.Equals(other.prerequisiteQuestRefs_)) return false;
+      if (EventRef != other.EventRef) return false;
+      if(!npcRefs_.Equals(other.npcRefs_)) return false;
+      if(!questRefs_.Equals(other.questRefs_)) return false;
+      if (DialogueTreeRef != other.DialogueTreeRef) return false;
+      if (ShopRef != other.ShopRef) return false;
+      if (DungeonZoneRef != other.DungeonZoneRef) return false;
+      if (Credits != other.Credits) return false;
+      if (Drafted != other.Drafted) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (HasLore) hash ^= Lore.GetHashCode();
+      if (Significance != global::KBVE.Proto.Map.LandmarkSignificance.Unspecified) hash ^= Significance.GetHashCode();
+      if (HasZoneRef) hash ^= ZoneRef.GetHashCode();
+      if (HasRegionRef) hash ^= RegionRef.GetHashCode();
+      if (HasSettlementRef) hash ^= SettlementRef.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      if (HasCultureRef) hash ^= CultureRef.GetHashCode();
+      if (HasReligionRef) hash ^= ReligionRef.GetHashCode();
+      if (position_ != null) hash ^= Position.GetHashCode();
+      if (gridPos_ != null) hash ^= GridPos.GetHashCode();
+      if (hex_ != null) hash ^= Hex.GetHashCode();
+      if (HasDiscoveryRadius) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(DiscoveryRadius);
+      if (HasImg) hash ^= Img.GetHashCode();
+      if (HasIcon) hash ^= Icon.GetHashCode();
+      if (HasMarkerIcon) hash ^= MarkerIcon.GetHashCode();
+      if (markerColor_ != null) hash ^= MarkerColor.GetHashCode();
+      if (HasInteractionWorldObjectRef) hash ^= InteractionWorldObjectRef.GetHashCode();
+      if (HasDiscoverable) hash ^= Discoverable.GetHashCode();
+      if (HasFastTravel) hash ^= FastTravel.GetHashCode();
+      if (HasRespawnPoint) hash ^= RespawnPoint.GetHashCode();
+      if (HasUnique) hash ^= Unique.GetHashCode();
+      if (HasDestroyed) hash ^= Destroyed.GetHashCode();
+      if (HasDiscoveryQuestRef) hash ^= DiscoveryQuestRef.GetHashCode();
+      hash ^= prerequisiteQuestRefs_.GetHashCode();
+      if (HasEventRef) hash ^= EventRef.GetHashCode();
+      hash ^= npcRefs_.GetHashCode();
+      hash ^= questRefs_.GetHashCode();
+      if (HasDialogueTreeRef) hash ^= DialogueTreeRef.GetHashCode();
+      if (HasShopRef) hash ^= ShopRef.GetHashCode();
+      if (HasDungeonZoneRef) hash ^= DungeonZoneRef.GetHashCode();
+      if (HasCredits) hash ^= Credits.GetHashCode();
+      if (HasDrafted) hash ^= Drafted.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(42);
+        output.WriteString(Lore);
+      }
+      if (Significance != global::KBVE.Proto.Map.LandmarkSignificance.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Significance);
+      }
+      if (HasZoneRef) {
+        output.WriteRawTag(58);
+        output.WriteString(ZoneRef);
+      }
+      if (HasRegionRef) {
+        output.WriteRawTag(66);
+        output.WriteString(RegionRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(74);
+        output.WriteString(SettlementRef);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(82);
+        output.WriteString(FactionRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(90);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(98);
+        output.WriteString(ReligionRef);
+      }
+      if (position_ != null) {
+        output.WriteRawTag(106);
+        output.WriteMessage(Position);
+      }
+      if (gridPos_ != null) {
+        output.WriteRawTag(114);
+        output.WriteMessage(GridPos);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(122);
+        output.WriteMessage(Hex);
+      }
+      if (HasDiscoveryRadius) {
+        output.WriteRawTag(133, 1);
+        output.WriteFloat(DiscoveryRadius);
+      }
+      if (HasImg) {
+        output.WriteRawTag(138, 1);
+        output.WriteString(Img);
+      }
+      if (HasIcon) {
+        output.WriteRawTag(146, 1);
+        output.WriteString(Icon);
+      }
+      if (HasMarkerIcon) {
+        output.WriteRawTag(154, 1);
+        output.WriteString(MarkerIcon);
+      }
+      if (markerColor_ != null) {
+        output.WriteRawTag(162, 1);
+        output.WriteMessage(MarkerColor);
+      }
+      if (HasInteractionWorldObjectRef) {
+        output.WriteRawTag(170, 1);
+        output.WriteString(InteractionWorldObjectRef);
+      }
+      if (HasDiscoverable) {
+        output.WriteRawTag(176, 1);
+        output.WriteBool(Discoverable);
+      }
+      if (HasFastTravel) {
+        output.WriteRawTag(184, 1);
+        output.WriteBool(FastTravel);
+      }
+      if (HasRespawnPoint) {
+        output.WriteRawTag(192, 1);
+        output.WriteBool(RespawnPoint);
+      }
+      if (HasUnique) {
+        output.WriteRawTag(200, 1);
+        output.WriteBool(Unique);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(208, 1);
+        output.WriteBool(Destroyed);
+      }
+      if (HasDiscoveryQuestRef) {
+        output.WriteRawTag(218, 1);
+        output.WriteString(DiscoveryQuestRef);
+      }
+      prerequisiteQuestRefs_.WriteTo(output, _repeated_prerequisiteQuestRefs_codec);
+      if (HasEventRef) {
+        output.WriteRawTag(234, 1);
+        output.WriteString(EventRef);
+      }
+      npcRefs_.WriteTo(output, _repeated_npcRefs_codec);
+      questRefs_.WriteTo(output, _repeated_questRefs_codec);
+      if (HasDialogueTreeRef) {
+        output.WriteRawTag(130, 2);
+        output.WriteString(DialogueTreeRef);
+      }
+      if (HasShopRef) {
+        output.WriteRawTag(138, 2);
+        output.WriteString(ShopRef);
+      }
+      if (HasDungeonZoneRef) {
+        output.WriteRawTag(146, 2);
+        output.WriteString(DungeonZoneRef);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(154, 2);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(160, 2);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (HasLore) {
+        output.WriteRawTag(42);
+        output.WriteString(Lore);
+      }
+      if (Significance != global::KBVE.Proto.Map.LandmarkSignificance.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Significance);
+      }
+      if (HasZoneRef) {
+        output.WriteRawTag(58);
+        output.WriteString(ZoneRef);
+      }
+      if (HasRegionRef) {
+        output.WriteRawTag(66);
+        output.WriteString(RegionRef);
+      }
+      if (HasSettlementRef) {
+        output.WriteRawTag(74);
+        output.WriteString(SettlementRef);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(82);
+        output.WriteString(FactionRef);
+      }
+      if (HasCultureRef) {
+        output.WriteRawTag(90);
+        output.WriteString(CultureRef);
+      }
+      if (HasReligionRef) {
+        output.WriteRawTag(98);
+        output.WriteString(ReligionRef);
+      }
+      if (position_ != null) {
+        output.WriteRawTag(106);
+        output.WriteMessage(Position);
+      }
+      if (gridPos_ != null) {
+        output.WriteRawTag(114);
+        output.WriteMessage(GridPos);
+      }
+      if (hex_ != null) {
+        output.WriteRawTag(122);
+        output.WriteMessage(Hex);
+      }
+      if (HasDiscoveryRadius) {
+        output.WriteRawTag(133, 1);
+        output.WriteFloat(DiscoveryRadius);
+      }
+      if (HasImg) {
+        output.WriteRawTag(138, 1);
+        output.WriteString(Img);
+      }
+      if (HasIcon) {
+        output.WriteRawTag(146, 1);
+        output.WriteString(Icon);
+      }
+      if (HasMarkerIcon) {
+        output.WriteRawTag(154, 1);
+        output.WriteString(MarkerIcon);
+      }
+      if (markerColor_ != null) {
+        output.WriteRawTag(162, 1);
+        output.WriteMessage(MarkerColor);
+      }
+      if (HasInteractionWorldObjectRef) {
+        output.WriteRawTag(170, 1);
+        output.WriteString(InteractionWorldObjectRef);
+      }
+      if (HasDiscoverable) {
+        output.WriteRawTag(176, 1);
+        output.WriteBool(Discoverable);
+      }
+      if (HasFastTravel) {
+        output.WriteRawTag(184, 1);
+        output.WriteBool(FastTravel);
+      }
+      if (HasRespawnPoint) {
+        output.WriteRawTag(192, 1);
+        output.WriteBool(RespawnPoint);
+      }
+      if (HasUnique) {
+        output.WriteRawTag(200, 1);
+        output.WriteBool(Unique);
+      }
+      if (HasDestroyed) {
+        output.WriteRawTag(208, 1);
+        output.WriteBool(Destroyed);
+      }
+      if (HasDiscoveryQuestRef) {
+        output.WriteRawTag(218, 1);
+        output.WriteString(DiscoveryQuestRef);
+      }
+      prerequisiteQuestRefs_.WriteTo(ref output, _repeated_prerequisiteQuestRefs_codec);
+      if (HasEventRef) {
+        output.WriteRawTag(234, 1);
+        output.WriteString(EventRef);
+      }
+      npcRefs_.WriteTo(ref output, _repeated_npcRefs_codec);
+      questRefs_.WriteTo(ref output, _repeated_questRefs_codec);
+      if (HasDialogueTreeRef) {
+        output.WriteRawTag(130, 2);
+        output.WriteString(DialogueTreeRef);
+      }
+      if (HasShopRef) {
+        output.WriteRawTag(138, 2);
+        output.WriteString(ShopRef);
+      }
+      if (HasDungeonZoneRef) {
+        output.WriteRawTag(146, 2);
+        output.WriteString(DungeonZoneRef);
+      }
+      if (HasCredits) {
+        output.WriteRawTag(154, 2);
+        output.WriteString(Credits);
+      }
+      if (HasDrafted) {
+        output.WriteRawTag(160, 2);
+        output.WriteBool(Drafted);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (HasLore) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Lore);
+      }
+      if (Significance != global::KBVE.Proto.Map.LandmarkSignificance.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Significance);
+      }
+      if (HasZoneRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ZoneRef);
+      }
+      if (HasRegionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RegionRef);
+      }
+      if (HasSettlementRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SettlementRef);
+      }
+      if (HasFactionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (HasCultureRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CultureRef);
+      }
+      if (HasReligionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ReligionRef);
+      }
+      if (position_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Position);
+      }
+      if (gridPos_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GridPos);
+      }
+      if (hex_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Hex);
+      }
+      if (HasDiscoveryRadius) {
+        size += 2 + 4;
+      }
+      if (HasImg) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Img);
+      }
+      if (HasIcon) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Icon);
+      }
+      if (HasMarkerIcon) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(MarkerIcon);
+      }
+      if (markerColor_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(MarkerColor);
+      }
+      if (HasInteractionWorldObjectRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(InteractionWorldObjectRef);
+      }
+      if (HasDiscoverable) {
+        size += 2 + 1;
+      }
+      if (HasFastTravel) {
+        size += 2 + 1;
+      }
+      if (HasRespawnPoint) {
+        size += 2 + 1;
+      }
+      if (HasUnique) {
+        size += 2 + 1;
+      }
+      if (HasDestroyed) {
+        size += 2 + 1;
+      }
+      if (HasDiscoveryQuestRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DiscoveryQuestRef);
+      }
+      size += prerequisiteQuestRefs_.CalculateSize(_repeated_prerequisiteQuestRefs_codec);
+      if (HasEventRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(EventRef);
+      }
+      size += npcRefs_.CalculateSize(_repeated_npcRefs_codec);
+      size += questRefs_.CalculateSize(_repeated_questRefs_codec);
+      if (HasDialogueTreeRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DialogueTreeRef);
+      }
+      if (HasShopRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(ShopRef);
+      }
+      if (HasDungeonZoneRef) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(DungeonZoneRef);
+      }
+      if (HasCredits) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(Credits);
+      }
+      if (HasDrafted) {
+        size += 2 + 1;
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(Landmark other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.HasLore) {
+        Lore = other.Lore;
+      }
+      if (other.Significance != global::KBVE.Proto.Map.LandmarkSignificance.Unspecified) {
+        Significance = other.Significance;
+      }
+      if (other.HasZoneRef) {
+        ZoneRef = other.ZoneRef;
+      }
+      if (other.HasRegionRef) {
+        RegionRef = other.RegionRef;
+      }
+      if (other.HasSettlementRef) {
+        SettlementRef = other.SettlementRef;
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      if (other.HasCultureRef) {
+        CultureRef = other.CultureRef;
+      }
+      if (other.HasReligionRef) {
+        ReligionRef = other.ReligionRef;
+      }
+      if (other.position_ != null) {
+        if (position_ == null) {
+          Position = new global::KBVE.Proto.Map.WorldPos();
+        }
+        Position.MergeFrom(other.Position);
+      }
+      if (other.gridPos_ != null) {
+        if (gridPos_ == null) {
+          GridPos = new global::KBVE.Proto.Map.GridPos();
+        }
+        GridPos.MergeFrom(other.GridPos);
+      }
+      if (other.hex_ != null) {
+        if (hex_ == null) {
+          Hex = new global::KBVE.Proto.Map.HexCoord();
+        }
+        Hex.MergeFrom(other.Hex);
+      }
+      if (other.HasDiscoveryRadius) {
+        DiscoveryRadius = other.DiscoveryRadius;
+      }
+      if (other.HasImg) {
+        Img = other.Img;
+      }
+      if (other.HasIcon) {
+        Icon = other.Icon;
+      }
+      if (other.HasMarkerIcon) {
+        MarkerIcon = other.MarkerIcon;
+      }
+      if (other.markerColor_ != null) {
+        if (markerColor_ == null) {
+          MarkerColor = new global::KBVE.Proto.Map.Color();
+        }
+        MarkerColor.MergeFrom(other.MarkerColor);
+      }
+      if (other.HasInteractionWorldObjectRef) {
+        InteractionWorldObjectRef = other.InteractionWorldObjectRef;
+      }
+      if (other.HasDiscoverable) {
+        Discoverable = other.Discoverable;
+      }
+      if (other.HasFastTravel) {
+        FastTravel = other.FastTravel;
+      }
+      if (other.HasRespawnPoint) {
+        RespawnPoint = other.RespawnPoint;
+      }
+      if (other.HasUnique) {
+        Unique = other.Unique;
+      }
+      if (other.HasDestroyed) {
+        Destroyed = other.Destroyed;
+      }
+      if (other.HasDiscoveryQuestRef) {
+        DiscoveryQuestRef = other.DiscoveryQuestRef;
+      }
+      prerequisiteQuestRefs_.Add(other.prerequisiteQuestRefs_);
+      if (other.HasEventRef) {
+        EventRef = other.EventRef;
+      }
+      npcRefs_.Add(other.npcRefs_);
+      questRefs_.Add(other.questRefs_);
+      if (other.HasDialogueTreeRef) {
+        DialogueTreeRef = other.DialogueTreeRef;
+      }
+      if (other.HasShopRef) {
+        ShopRef = other.ShopRef;
+      }
+      if (other.HasDungeonZoneRef) {
+        DungeonZoneRef = other.DungeonZoneRef;
+      }
+      if (other.HasCredits) {
+        Credits = other.Credits;
+      }
+      if (other.HasDrafted) {
+        Drafted = other.Drafted;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 48: {
+            Significance = (global::KBVE.Proto.Map.LandmarkSignificance) input.ReadEnum();
+            break;
+          }
+          case 58: {
+            ZoneRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            RegionRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 98: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 114: {
+            if (gridPos_ == null) {
+              GridPos = new global::KBVE.Proto.Map.GridPos();
+            }
+            input.ReadMessage(GridPos);
+            break;
+          }
+          case 122: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 133: {
+            DiscoveryRadius = input.ReadFloat();
+            break;
+          }
+          case 138: {
+            Img = input.ReadString();
+            break;
+          }
+          case 146: {
+            Icon = input.ReadString();
+            break;
+          }
+          case 154: {
+            MarkerIcon = input.ReadString();
+            break;
+          }
+          case 162: {
+            if (markerColor_ == null) {
+              MarkerColor = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(MarkerColor);
+            break;
+          }
+          case 170: {
+            InteractionWorldObjectRef = input.ReadString();
+            break;
+          }
+          case 176: {
+            Discoverable = input.ReadBool();
+            break;
+          }
+          case 184: {
+            FastTravel = input.ReadBool();
+            break;
+          }
+          case 192: {
+            RespawnPoint = input.ReadBool();
+            break;
+          }
+          case 200: {
+            Unique = input.ReadBool();
+            break;
+          }
+          case 208: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 218: {
+            DiscoveryQuestRef = input.ReadString();
+            break;
+          }
+          case 226: {
+            prerequisiteQuestRefs_.AddEntriesFrom(input, _repeated_prerequisiteQuestRefs_codec);
+            break;
+          }
+          case 234: {
+            EventRef = input.ReadString();
+            break;
+          }
+          case 242: {
+            npcRefs_.AddEntriesFrom(input, _repeated_npcRefs_codec);
+            break;
+          }
+          case 250: {
+            questRefs_.AddEntriesFrom(input, _repeated_questRefs_codec);
+            break;
+          }
+          case 258: {
+            DialogueTreeRef = input.ReadString();
+            break;
+          }
+          case 266: {
+            ShopRef = input.ReadString();
+            break;
+          }
+          case 274: {
+            DungeonZoneRef = input.ReadString();
+            break;
+          }
+          case 282: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 288: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 298: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            Lore = input.ReadString();
+            break;
+          }
+          case 48: {
+            Significance = (global::KBVE.Proto.Map.LandmarkSignificance) input.ReadEnum();
+            break;
+          }
+          case 58: {
+            ZoneRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            RegionRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            SettlementRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            FactionRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            CultureRef = input.ReadString();
+            break;
+          }
+          case 98: {
+            ReligionRef = input.ReadString();
+            break;
+          }
+          case 106: {
+            if (position_ == null) {
+              Position = new global::KBVE.Proto.Map.WorldPos();
+            }
+            input.ReadMessage(Position);
+            break;
+          }
+          case 114: {
+            if (gridPos_ == null) {
+              GridPos = new global::KBVE.Proto.Map.GridPos();
+            }
+            input.ReadMessage(GridPos);
+            break;
+          }
+          case 122: {
+            if (hex_ == null) {
+              Hex = new global::KBVE.Proto.Map.HexCoord();
+            }
+            input.ReadMessage(Hex);
+            break;
+          }
+          case 133: {
+            DiscoveryRadius = input.ReadFloat();
+            break;
+          }
+          case 138: {
+            Img = input.ReadString();
+            break;
+          }
+          case 146: {
+            Icon = input.ReadString();
+            break;
+          }
+          case 154: {
+            MarkerIcon = input.ReadString();
+            break;
+          }
+          case 162: {
+            if (markerColor_ == null) {
+              MarkerColor = new global::KBVE.Proto.Map.Color();
+            }
+            input.ReadMessage(MarkerColor);
+            break;
+          }
+          case 170: {
+            InteractionWorldObjectRef = input.ReadString();
+            break;
+          }
+          case 176: {
+            Discoverable = input.ReadBool();
+            break;
+          }
+          case 184: {
+            FastTravel = input.ReadBool();
+            break;
+          }
+          case 192: {
+            RespawnPoint = input.ReadBool();
+            break;
+          }
+          case 200: {
+            Unique = input.ReadBool();
+            break;
+          }
+          case 208: {
+            Destroyed = input.ReadBool();
+            break;
+          }
+          case 218: {
+            DiscoveryQuestRef = input.ReadString();
+            break;
+          }
+          case 226: {
+            prerequisiteQuestRefs_.AddEntriesFrom(ref input, _repeated_prerequisiteQuestRefs_codec);
+            break;
+          }
+          case 234: {
+            EventRef = input.ReadString();
+            break;
+          }
+          case 242: {
+            npcRefs_.AddEntriesFrom(ref input, _repeated_npcRefs_codec);
+            break;
+          }
+          case 250: {
+            questRefs_.AddEntriesFrom(ref input, _repeated_questRefs_codec);
+            break;
+          }
+          case 258: {
+            DialogueTreeRef = input.ReadString();
+            break;
+          }
+          case 266: {
+            ShopRef = input.ReadString();
+            break;
+          }
+          case 274: {
+            DungeonZoneRef = input.ReadString();
+            break;
+          }
+          case 282: {
+            Credits = input.ReadString();
+            break;
+          }
+          case 288: {
+            Drafted = input.ReadBool();
+            break;
+          }
+          case 298: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// A choice line within a CHOICE node.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DialogueChoice : pb::IMessage<DialogueChoice>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DialogueChoice> _parser = new pb::MessageParser<DialogueChoice>(() => new DialogueChoice());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DialogueChoice> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[58]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueChoice() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueChoice(DialogueChoice other) : this() {
+      _hasBits0 = other._hasBits0;
+      text_ = other.text_;
+      nextNodeId_ = other.nextNodeId_;
+      requiredFlagRefs_ = other.requiredFlagRefs_.Clone();
+      skillCheckRef_ = other.skillCheckRef_;
+      setFlagRef_ = other.setFlagRef_;
+      reputationDelta_ = other.reputationDelta_;
+      factionRef_ = other.factionRef_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueChoice Clone() {
+      return new DialogueChoice(this);
+    }
+
+    /// <summary>Field number for the "text" field.</summary>
+    public const int TextFieldNumber = 1;
+    private string text_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Text {
+      get { return text_; }
+      set {
+        text_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "next_node_id" field.</summary>
+    public const int NextNodeIdFieldNumber = 2;
+    private string nextNodeId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string NextNodeId {
+      get { return nextNodeId_; }
+      set {
+        nextNodeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "required_flag_refs" field.</summary>
+    public const int RequiredFlagRefsFieldNumber = 3;
+    private static readonly pb::FieldCodec<string> _repeated_requiredFlagRefs_codec
+        = pb::FieldCodec.ForString(26);
+    private readonly pbc::RepeatedField<string> requiredFlagRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Gating world flags
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> RequiredFlagRefs {
+      get { return requiredFlagRefs_; }
+    }
+
+    /// <summary>Field number for the "skill_check_ref" field.</summary>
+    public const int SkillCheckRefFieldNumber = 4;
+    private readonly static string SkillCheckRefDefaultValue = "";
+
+    private string skillCheckRef_;
+    /// <summary>
+    /// e.g. "persuasion:30"
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SkillCheckRef {
+      get { return skillCheckRef_ ?? SkillCheckRefDefaultValue; }
+      set {
+        skillCheckRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "skill_check_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSkillCheckRef {
+      get { return skillCheckRef_ != null; }
+    }
+    /// <summary>Clears the value of the "skill_check_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSkillCheckRef() {
+      skillCheckRef_ = null;
+    }
+
+    /// <summary>Field number for the "set_flag_ref" field.</summary>
+    public const int SetFlagRefFieldNumber = 5;
+    private readonly static string SetFlagRefDefaultValue = "";
+
+    private string setFlagRef_;
+    /// <summary>
+    /// Sets this flag when chosen
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SetFlagRef {
+      get { return setFlagRef_ ?? SetFlagRefDefaultValue; }
+      set {
+        setFlagRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "set_flag_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSetFlagRef {
+      get { return setFlagRef_ != null; }
+    }
+    /// <summary>Clears the value of the "set_flag_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSetFlagRef() {
+      setFlagRef_ = null;
+    }
+
+    /// <summary>Field number for the "reputation_delta" field.</summary>
+    public const int ReputationDeltaFieldNumber = 6;
+    private readonly static int ReputationDeltaDefaultValue = 0;
+
+    private int reputationDelta_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int ReputationDelta {
+      get { if ((_hasBits0 & 1) != 0) { return reputationDelta_; } else { return ReputationDeltaDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        reputationDelta_ = value;
+      }
+    }
+    /// <summary>Gets whether the "reputation_delta" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReputationDelta {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "reputation_delta" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReputationDelta() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "faction_ref" field.</summary>
+    public const int FactionRefFieldNumber = 7;
+    private readonly static string FactionRefDefaultValue = "";
+
+    private string factionRef_;
+    /// <summary>
+    /// Reputation target
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FactionRef {
+      get { return factionRef_ ?? FactionRefDefaultValue; }
+      set {
+        factionRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "faction_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasFactionRef {
+      get { return factionRef_ != null; }
+    }
+    /// <summary>Clears the value of the "faction_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearFactionRef() {
+      factionRef_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DialogueChoice);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DialogueChoice other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Text != other.Text) return false;
+      if (NextNodeId != other.NextNodeId) return false;
+      if(!requiredFlagRefs_.Equals(other.requiredFlagRefs_)) return false;
+      if (SkillCheckRef != other.SkillCheckRef) return false;
+      if (SetFlagRef != other.SetFlagRef) return false;
+      if (ReputationDelta != other.ReputationDelta) return false;
+      if (FactionRef != other.FactionRef) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Text.Length != 0) hash ^= Text.GetHashCode();
+      if (NextNodeId.Length != 0) hash ^= NextNodeId.GetHashCode();
+      hash ^= requiredFlagRefs_.GetHashCode();
+      if (HasSkillCheckRef) hash ^= SkillCheckRef.GetHashCode();
+      if (HasSetFlagRef) hash ^= SetFlagRef.GetHashCode();
+      if (HasReputationDelta) hash ^= ReputationDelta.GetHashCode();
+      if (HasFactionRef) hash ^= FactionRef.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Text.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Text);
+      }
+      if (NextNodeId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(NextNodeId);
+      }
+      requiredFlagRefs_.WriteTo(output, _repeated_requiredFlagRefs_codec);
+      if (HasSkillCheckRef) {
+        output.WriteRawTag(34);
+        output.WriteString(SkillCheckRef);
+      }
+      if (HasSetFlagRef) {
+        output.WriteRawTag(42);
+        output.WriteString(SetFlagRef);
+      }
+      if (HasReputationDelta) {
+        output.WriteRawTag(48);
+        output.WriteInt32(ReputationDelta);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(58);
+        output.WriteString(FactionRef);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Text.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Text);
+      }
+      if (NextNodeId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(NextNodeId);
+      }
+      requiredFlagRefs_.WriteTo(ref output, _repeated_requiredFlagRefs_codec);
+      if (HasSkillCheckRef) {
+        output.WriteRawTag(34);
+        output.WriteString(SkillCheckRef);
+      }
+      if (HasSetFlagRef) {
+        output.WriteRawTag(42);
+        output.WriteString(SetFlagRef);
+      }
+      if (HasReputationDelta) {
+        output.WriteRawTag(48);
+        output.WriteInt32(ReputationDelta);
+      }
+      if (HasFactionRef) {
+        output.WriteRawTag(58);
+        output.WriteString(FactionRef);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Text.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Text);
+      }
+      if (NextNodeId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(NextNodeId);
+      }
+      size += requiredFlagRefs_.CalculateSize(_repeated_requiredFlagRefs_codec);
+      if (HasSkillCheckRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SkillCheckRef);
+      }
+      if (HasSetFlagRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SetFlagRef);
+      }
+      if (HasReputationDelta) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ReputationDelta);
+      }
+      if (HasFactionRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FactionRef);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DialogueChoice other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Text.Length != 0) {
+        Text = other.Text;
+      }
+      if (other.NextNodeId.Length != 0) {
+        NextNodeId = other.NextNodeId;
+      }
+      requiredFlagRefs_.Add(other.requiredFlagRefs_);
+      if (other.HasSkillCheckRef) {
+        SkillCheckRef = other.SkillCheckRef;
+      }
+      if (other.HasSetFlagRef) {
+        SetFlagRef = other.SetFlagRef;
+      }
+      if (other.HasReputationDelta) {
+        ReputationDelta = other.ReputationDelta;
+      }
+      if (other.HasFactionRef) {
+        FactionRef = other.FactionRef;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Text = input.ReadString();
+            break;
+          }
+          case 18: {
+            NextNodeId = input.ReadString();
+            break;
+          }
+          case 26: {
+            requiredFlagRefs_.AddEntriesFrom(input, _repeated_requiredFlagRefs_codec);
+            break;
+          }
+          case 34: {
+            SkillCheckRef = input.ReadString();
+            break;
+          }
+          case 42: {
+            SetFlagRef = input.ReadString();
+            break;
+          }
+          case 48: {
+            ReputationDelta = input.ReadInt32();
+            break;
+          }
+          case 58: {
+            FactionRef = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Text = input.ReadString();
+            break;
+          }
+          case 18: {
+            NextNodeId = input.ReadString();
+            break;
+          }
+          case 26: {
+            requiredFlagRefs_.AddEntriesFrom(ref input, _repeated_requiredFlagRefs_codec);
+            break;
+          }
+          case 34: {
+            SkillCheckRef = input.ReadString();
+            break;
+          }
+          case 42: {
+            SetFlagRef = input.ReadString();
+            break;
+          }
+          case 48: {
+            ReputationDelta = input.ReadInt32();
+            break;
+          }
+          case 58: {
+            FactionRef = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// One node in a dialogue tree.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DialogueNode : pb::IMessage<DialogueNode>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DialogueNode> _parser = new pb::MessageParser<DialogueNode>(() => new DialogueNode());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DialogueNode> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[59]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueNode() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueNode(DialogueNode other) : this() {
+      id_ = other.id_;
+      kind_ = other.kind_;
+      speakerRef_ = other.speakerRef_;
+      text_ = other.text_;
+      voiceRef_ = other.voiceRef_;
+      choices_ = other.choices_.Clone();
+      nextNodeId_ = other.nextNodeId_;
+      questRef_ = other.questRef_;
+      shopRef_ = other.shopRef_;
+      scriptRef_ = other.scriptRef_;
+      requiredFlagRefs_ = other.requiredFlagRefs_.Clone();
+      setFlagRefs_ = other.setFlagRefs_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueNode Clone() {
+      return new DialogueNode(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "kind" field.</summary>
+    public const int KindFieldNumber = 2;
+    private global::KBVE.Proto.Map.DialogueNodeKind kind_ = global::KBVE.Proto.Map.DialogueNodeKind.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.DialogueNodeKind Kind {
+      get { return kind_; }
+      set {
+        kind_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "speaker_ref" field.</summary>
+    public const int SpeakerRefFieldNumber = 3;
+    private readonly static string SpeakerRefDefaultValue = "";
+
+    private string speakerRef_;
+    /// <summary>
+    /// NPC ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SpeakerRef {
+      get { return speakerRef_ ?? SpeakerRefDefaultValue; }
+      set {
+        speakerRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "speaker_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSpeakerRef {
+      get { return speakerRef_ != null; }
+    }
+    /// <summary>Clears the value of the "speaker_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSpeakerRef() {
+      speakerRef_ = null;
+    }
+
+    /// <summary>Field number for the "text" field.</summary>
+    public const int TextFieldNumber = 4;
+    private readonly static string TextDefaultValue = "";
+
+    private string text_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Text {
+      get { return text_ ?? TextDefaultValue; }
+      set {
+        text_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "text" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasText {
+      get { return text_ != null; }
+    }
+    /// <summary>Clears the value of the "text" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearText() {
+      text_ = null;
+    }
+
+    /// <summary>Field number for the "voice_ref" field.</summary>
+    public const int VoiceRefFieldNumber = 5;
+    private readonly static string VoiceRefDefaultValue = "";
+
+    private string voiceRef_;
+    /// <summary>
+    /// Audio ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string VoiceRef {
+      get { return voiceRef_ ?? VoiceRefDefaultValue; }
+      set {
+        voiceRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "voice_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasVoiceRef {
+      get { return voiceRef_ != null; }
+    }
+    /// <summary>Clears the value of the "voice_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearVoiceRef() {
+      voiceRef_ = null;
+    }
+
+    /// <summary>Field number for the "choices" field.</summary>
+    public const int ChoicesFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.DialogueChoice> _repeated_choices_codec
+        = pb::FieldCodec.ForMessage(50, global::KBVE.Proto.Map.DialogueChoice.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.DialogueChoice> choices_ = new pbc::RepeatedField<global::KBVE.Proto.Map.DialogueChoice>();
+    /// <summary>
+    /// For CHOICE nodes
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.DialogueChoice> Choices {
+      get { return choices_; }
+    }
+
+    /// <summary>Field number for the "next_node_id" field.</summary>
+    public const int NextNodeIdFieldNumber = 7;
+    private readonly static string NextNodeIdDefaultValue = "";
+
+    private string nextNodeId_;
+    /// <summary>
+    /// For LINE / GOTO nodes
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string NextNodeId {
+      get { return nextNodeId_ ?? NextNodeIdDefaultValue; }
+      set {
+        nextNodeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "next_node_id" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasNextNodeId {
+      get { return nextNodeId_ != null; }
+    }
+    /// <summary>Clears the value of the "next_node_id" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearNextNodeId() {
+      nextNodeId_ = null;
+    }
+
+    /// <summary>Field number for the "quest_ref" field.</summary>
+    public const int QuestRefFieldNumber = 8;
+    private readonly static string QuestRefDefaultValue = "";
+
+    private string questRef_;
+    /// <summary>
+    /// For QUEST_OFFER / QUEST_TURN_IN
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string QuestRef {
+      get { return questRef_ ?? QuestRefDefaultValue; }
+      set {
+        questRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "quest_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasQuestRef {
+      get { return questRef_ != null; }
+    }
+    /// <summary>Clears the value of the "quest_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearQuestRef() {
+      questRef_ = null;
+    }
+
+    /// <summary>Field number for the "shop_ref" field.</summary>
+    public const int ShopRefFieldNumber = 9;
+    private readonly static string ShopRefDefaultValue = "";
+
+    private string shopRef_;
+    /// <summary>
+    /// For SHOP_OPEN
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ShopRef {
+      get { return shopRef_ ?? ShopRefDefaultValue; }
+      set {
+        shopRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "shop_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasShopRef {
+      get { return shopRef_ != null; }
+    }
+    /// <summary>Clears the value of the "shop_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearShopRef() {
+      shopRef_ = null;
+    }
+
+    /// <summary>Field number for the "script_ref" field.</summary>
+    public const int ScriptRefFieldNumber = 10;
+    private readonly static string ScriptRefDefaultValue = "";
+
+    private string scriptRef_;
+    /// <summary>
+    /// For SCRIPT
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ScriptRef {
+      get { return scriptRef_ ?? ScriptRefDefaultValue; }
+      set {
+        scriptRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "script_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasScriptRef {
+      get { return scriptRef_ != null; }
+    }
+    /// <summary>Clears the value of the "script_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearScriptRef() {
+      scriptRef_ = null;
+    }
+
+    /// <summary>Field number for the "required_flag_refs" field.</summary>
+    public const int RequiredFlagRefsFieldNumber = 11;
+    private static readonly pb::FieldCodec<string> _repeated_requiredFlagRefs_codec
+        = pb::FieldCodec.ForString(90);
+    private readonly pbc::RepeatedField<string> requiredFlagRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> RequiredFlagRefs {
+      get { return requiredFlagRefs_; }
+    }
+
+    /// <summary>Field number for the "set_flag_refs" field.</summary>
+    public const int SetFlagRefsFieldNumber = 12;
+    private static readonly pb::FieldCodec<string> _repeated_setFlagRefs_codec
+        = pb::FieldCodec.ForString(98);
+    private readonly pbc::RepeatedField<string> setFlagRefs_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SetFlagRefs {
+      get { return setFlagRefs_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DialogueNode);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DialogueNode other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Kind != other.Kind) return false;
+      if (SpeakerRef != other.SpeakerRef) return false;
+      if (Text != other.Text) return false;
+      if (VoiceRef != other.VoiceRef) return false;
+      if(!choices_.Equals(other.choices_)) return false;
+      if (NextNodeId != other.NextNodeId) return false;
+      if (QuestRef != other.QuestRef) return false;
+      if (ShopRef != other.ShopRef) return false;
+      if (ScriptRef != other.ScriptRef) return false;
+      if(!requiredFlagRefs_.Equals(other.requiredFlagRefs_)) return false;
+      if(!setFlagRefs_.Equals(other.setFlagRefs_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Kind != global::KBVE.Proto.Map.DialogueNodeKind.Unspecified) hash ^= Kind.GetHashCode();
+      if (HasSpeakerRef) hash ^= SpeakerRef.GetHashCode();
+      if (HasText) hash ^= Text.GetHashCode();
+      if (HasVoiceRef) hash ^= VoiceRef.GetHashCode();
+      hash ^= choices_.GetHashCode();
+      if (HasNextNodeId) hash ^= NextNodeId.GetHashCode();
+      if (HasQuestRef) hash ^= QuestRef.GetHashCode();
+      if (HasShopRef) hash ^= ShopRef.GetHashCode();
+      if (HasScriptRef) hash ^= ScriptRef.GetHashCode();
+      hash ^= requiredFlagRefs_.GetHashCode();
+      hash ^= setFlagRefs_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Kind != global::KBVE.Proto.Map.DialogueNodeKind.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Kind);
+      }
+      if (HasSpeakerRef) {
+        output.WriteRawTag(26);
+        output.WriteString(SpeakerRef);
+      }
+      if (HasText) {
+        output.WriteRawTag(34);
+        output.WriteString(Text);
+      }
+      if (HasVoiceRef) {
+        output.WriteRawTag(42);
+        output.WriteString(VoiceRef);
+      }
+      choices_.WriteTo(output, _repeated_choices_codec);
+      if (HasNextNodeId) {
+        output.WriteRawTag(58);
+        output.WriteString(NextNodeId);
+      }
+      if (HasQuestRef) {
+        output.WriteRawTag(66);
+        output.WriteString(QuestRef);
+      }
+      if (HasShopRef) {
+        output.WriteRawTag(74);
+        output.WriteString(ShopRef);
+      }
+      if (HasScriptRef) {
+        output.WriteRawTag(82);
+        output.WriteString(ScriptRef);
+      }
+      requiredFlagRefs_.WriteTo(output, _repeated_requiredFlagRefs_codec);
+      setFlagRefs_.WriteTo(output, _repeated_setFlagRefs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Kind != global::KBVE.Proto.Map.DialogueNodeKind.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Kind);
+      }
+      if (HasSpeakerRef) {
+        output.WriteRawTag(26);
+        output.WriteString(SpeakerRef);
+      }
+      if (HasText) {
+        output.WriteRawTag(34);
+        output.WriteString(Text);
+      }
+      if (HasVoiceRef) {
+        output.WriteRawTag(42);
+        output.WriteString(VoiceRef);
+      }
+      choices_.WriteTo(ref output, _repeated_choices_codec);
+      if (HasNextNodeId) {
+        output.WriteRawTag(58);
+        output.WriteString(NextNodeId);
+      }
+      if (HasQuestRef) {
+        output.WriteRawTag(66);
+        output.WriteString(QuestRef);
+      }
+      if (HasShopRef) {
+        output.WriteRawTag(74);
+        output.WriteString(ShopRef);
+      }
+      if (HasScriptRef) {
+        output.WriteRawTag(82);
+        output.WriteString(ScriptRef);
+      }
+      requiredFlagRefs_.WriteTo(ref output, _repeated_requiredFlagRefs_codec);
+      setFlagRefs_.WriteTo(ref output, _repeated_setFlagRefs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Kind != global::KBVE.Proto.Map.DialogueNodeKind.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Kind);
+      }
+      if (HasSpeakerRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SpeakerRef);
+      }
+      if (HasText) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Text);
+      }
+      if (HasVoiceRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(VoiceRef);
+      }
+      size += choices_.CalculateSize(_repeated_choices_codec);
+      if (HasNextNodeId) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(NextNodeId);
+      }
+      if (HasQuestRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(QuestRef);
+      }
+      if (HasShopRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ShopRef);
+      }
+      if (HasScriptRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ScriptRef);
+      }
+      size += requiredFlagRefs_.CalculateSize(_repeated_requiredFlagRefs_codec);
+      size += setFlagRefs_.CalculateSize(_repeated_setFlagRefs_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DialogueNode other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Kind != global::KBVE.Proto.Map.DialogueNodeKind.Unspecified) {
+        Kind = other.Kind;
+      }
+      if (other.HasSpeakerRef) {
+        SpeakerRef = other.SpeakerRef;
+      }
+      if (other.HasText) {
+        Text = other.Text;
+      }
+      if (other.HasVoiceRef) {
+        VoiceRef = other.VoiceRef;
+      }
+      choices_.Add(other.choices_);
+      if (other.HasNextNodeId) {
+        NextNodeId = other.NextNodeId;
+      }
+      if (other.HasQuestRef) {
+        QuestRef = other.QuestRef;
+      }
+      if (other.HasShopRef) {
+        ShopRef = other.ShopRef;
+      }
+      if (other.HasScriptRef) {
+        ScriptRef = other.ScriptRef;
+      }
+      requiredFlagRefs_.Add(other.requiredFlagRefs_);
+      setFlagRefs_.Add(other.setFlagRefs_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 16: {
+            Kind = (global::KBVE.Proto.Map.DialogueNodeKind) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            SpeakerRef = input.ReadString();
+            break;
+          }
+          case 34: {
+            Text = input.ReadString();
+            break;
+          }
+          case 42: {
+            VoiceRef = input.ReadString();
+            break;
+          }
+          case 50: {
+            choices_.AddEntriesFrom(input, _repeated_choices_codec);
+            break;
+          }
+          case 58: {
+            NextNodeId = input.ReadString();
+            break;
+          }
+          case 66: {
+            QuestRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            ShopRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            ScriptRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            requiredFlagRefs_.AddEntriesFrom(input, _repeated_requiredFlagRefs_codec);
+            break;
+          }
+          case 98: {
+            setFlagRefs_.AddEntriesFrom(input, _repeated_setFlagRefs_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 16: {
+            Kind = (global::KBVE.Proto.Map.DialogueNodeKind) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            SpeakerRef = input.ReadString();
+            break;
+          }
+          case 34: {
+            Text = input.ReadString();
+            break;
+          }
+          case 42: {
+            VoiceRef = input.ReadString();
+            break;
+          }
+          case 50: {
+            choices_.AddEntriesFrom(ref input, _repeated_choices_codec);
+            break;
+          }
+          case 58: {
+            NextNodeId = input.ReadString();
+            break;
+          }
+          case 66: {
+            QuestRef = input.ReadString();
+            break;
+          }
+          case 74: {
+            ShopRef = input.ReadString();
+            break;
+          }
+          case 82: {
+            ScriptRef = input.ReadString();
+            break;
+          }
+          case 90: {
+            requiredFlagRefs_.AddEntriesFrom(ref input, _repeated_requiredFlagRefs_codec);
+            break;
+          }
+          case 98: {
+            setFlagRefs_.AddEntriesFrom(ref input, _repeated_setFlagRefs_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// A whole branching conversation tree, addressable by ref.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DialogueTree : pb::IMessage<DialogueTree>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DialogueTree> _parser = new pb::MessageParser<DialogueTree>(() => new DialogueTree());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DialogueTree> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[60]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueTree() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueTree(DialogueTree other) : this() {
+      id_ = other.id_;
+      ref_ = other.ref_;
+      name_ = other.name_;
+      description_ = other.description_;
+      rootNodeId_ = other.rootNodeId_;
+      nodes_ = other.nodes_.Clone();
+      defaultSpeakerRef_ = other.defaultSpeakerRef_;
+      extensions_ = other.extensions_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DialogueTree Clone() {
+      return new DialogueTree(this);
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ref" field.</summary>
+    public const int RefFieldNumber = 2;
+    private string ref_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Ref {
+      get { return ref_; }
+      set {
+        ref_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "description" field.</summary>
+    public const int DescriptionFieldNumber = 4;
+    private readonly static string DescriptionDefaultValue = "";
+
+    private string description_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Description {
+      get { return description_ ?? DescriptionDefaultValue; }
+      set {
+        description_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "description" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDescription {
+      get { return description_ != null; }
+    }
+    /// <summary>Clears the value of the "description" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDescription() {
+      description_ = null;
+    }
+
+    /// <summary>Field number for the "root_node_id" field.</summary>
+    public const int RootNodeIdFieldNumber = 5;
+    private string rootNodeId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string RootNodeId {
+      get { return rootNodeId_; }
+      set {
+        rootNodeId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "nodes" field.</summary>
+    public const int NodesFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.DialogueNode> _repeated_nodes_codec
+        = pb::FieldCodec.ForMessage(50, global::KBVE.Proto.Map.DialogueNode.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.DialogueNode> nodes_ = new pbc::RepeatedField<global::KBVE.Proto.Map.DialogueNode>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.DialogueNode> Nodes {
+      get { return nodes_; }
+    }
+
+    /// <summary>Field number for the "default_speaker_ref" field.</summary>
+    public const int DefaultSpeakerRefFieldNumber = 7;
+    private readonly static string DefaultSpeakerRefDefaultValue = "";
+
+    private string defaultSpeakerRef_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DefaultSpeakerRef {
+      get { return defaultSpeakerRef_ ?? DefaultSpeakerRefDefaultValue; }
+      set {
+        defaultSpeakerRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "default_speaker_ref" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDefaultSpeakerRef {
+      get { return defaultSpeakerRef_ != null; }
+    }
+    /// <summary>Clears the value of the "default_speaker_ref" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDefaultSpeakerRef() {
+      defaultSpeakerRef_ = null;
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 8;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.MapExtension> _repeated_extensions_codec
+        = pb::FieldCodec.ForMessage(66, global::KBVE.Proto.Map.MapExtension.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> extensions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.MapExtension> Extensions {
+      get { return extensions_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DialogueTree);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DialogueTree other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Ref != other.Ref) return false;
+      if (Name != other.Name) return false;
+      if (Description != other.Description) return false;
+      if (RootNodeId != other.RootNodeId) return false;
+      if(!nodes_.Equals(other.nodes_)) return false;
+      if (DefaultSpeakerRef != other.DefaultSpeakerRef) return false;
+      if(!extensions_.Equals(other.extensions_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Ref.Length != 0) hash ^= Ref.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasDescription) hash ^= Description.GetHashCode();
+      if (RootNodeId.Length != 0) hash ^= RootNodeId.GetHashCode();
+      hash ^= nodes_.GetHashCode();
+      if (HasDefaultSpeakerRef) hash ^= DefaultSpeakerRef.GetHashCode();
+      hash ^= extensions_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (RootNodeId.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(RootNodeId);
+      }
+      nodes_.WriteTo(output, _repeated_nodes_codec);
+      if (HasDefaultSpeakerRef) {
+        output.WriteRawTag(58);
+        output.WriteString(DefaultSpeakerRef);
+      }
+      extensions_.WriteTo(output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Ref.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Ref);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (HasDescription) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (RootNodeId.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(RootNodeId);
+      }
+      nodes_.WriteTo(ref output, _repeated_nodes_codec);
+      if (HasDefaultSpeakerRef) {
+        output.WriteRawTag(58);
+        output.WriteString(DefaultSpeakerRef);
+      }
+      extensions_.WriteTo(ref output, _repeated_extensions_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Ref.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Ref);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasDescription) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Description);
+      }
+      if (RootNodeId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RootNodeId);
+      }
+      size += nodes_.CalculateSize(_repeated_nodes_codec);
+      if (HasDefaultSpeakerRef) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DefaultSpeakerRef);
+      }
+      size += extensions_.CalculateSize(_repeated_extensions_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DialogueTree other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Ref.Length != 0) {
+        Ref = other.Ref;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.HasDescription) {
+        Description = other.Description;
+      }
+      if (other.RootNodeId.Length != 0) {
+        RootNodeId = other.RootNodeId;
+      }
+      nodes_.Add(other.nodes_);
+      if (other.HasDefaultSpeakerRef) {
+        DefaultSpeakerRef = other.DefaultSpeakerRef;
+      }
+      extensions_.Add(other.extensions_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            RootNodeId = input.ReadString();
+            break;
+          }
+          case 50: {
+            nodes_.AddEntriesFrom(input, _repeated_nodes_codec);
+            break;
+          }
+          case 58: {
+            DefaultSpeakerRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            extensions_.AddEntriesFrom(input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Ref = input.ReadString();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 42: {
+            RootNodeId = input.ReadString();
+            break;
+          }
+          case 50: {
+            nodes_.AddEntriesFrom(ref input, _repeated_nodes_codec);
+            break;
+          }
+          case 58: {
+            DefaultSpeakerRef = input.ReadString();
+            break;
+          }
+          case 66: {
+            extensions_.AddEntriesFrom(ref input, _repeated_extensions_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// One entry in a weather rotation — weight-driven random pick that
+  /// runs for `duration_secs` before a re-roll.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class WeatherProfile : pb::IMessage<WeatherProfile>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<WeatherProfile> _parser = new pb::MessageParser<WeatherProfile>(() => new WeatherProfile());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<WeatherProfile> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[61]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public WeatherProfile() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public WeatherProfile(WeatherProfile other) : this() {
+      _hasBits0 = other._hasBits0;
+      kind_ = other.kind_;
+      weight_ = other.weight_;
+      durationSecs_ = other.durationSecs_;
+      seasonFilter_ = other.seasonFilter_;
+      timeOfDayFilter_ = other.timeOfDayFilter_;
+      eventRefs_ = other.eventRefs_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public WeatherProfile Clone() {
+      return new WeatherProfile(this);
+    }
+
+    /// <summary>Field number for the "kind" field.</summary>
+    public const int KindFieldNumber = 1;
+    private global::KBVE.Proto.Map.WeatherKind kind_ = global::KBVE.Proto.Map.WeatherKind.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.WeatherKind Kind {
+      get { return kind_; }
+      set {
+        kind_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "weight" field.</summary>
+    public const int WeightFieldNumber = 2;
+    private float weight_;
+    /// <summary>
+    /// Relative likelihood
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Weight {
+      get { return weight_; }
+      set {
+        weight_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "duration_secs" field.</summary>
+    public const int DurationSecsFieldNumber = 3;
+    private readonly static float DurationSecsDefaultValue = 0F;
+
+    private float durationSecs_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float DurationSecs {
+      get { if ((_hasBits0 & 1) != 0) { return durationSecs_; } else { return DurationSecsDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        durationSecs_ = value;
+      }
+    }
+    /// <summary>Gets whether the "duration_secs" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDurationSecs {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "duration_secs" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDurationSecs() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "season_filter" field.</summary>
+    public const int SeasonFilterFieldNumber = 4;
+    private readonly static global::KBVE.Proto.Map.Season SeasonFilterDefaultValue = global::KBVE.Proto.Map.Season.Unspecified;
+
+    private global::KBVE.Proto.Map.Season seasonFilter_;
+    /// <summary>
+    /// Only pick during this season
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Season SeasonFilter {
+      get { if ((_hasBits0 & 2) != 0) { return seasonFilter_; } else { return SeasonFilterDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        seasonFilter_ = value;
+      }
+    }
+    /// <summary>Gets whether the "season_filter" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSeasonFilter {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "season_filter" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSeasonFilter() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "time_of_day_filter" field.</summary>
+    public const int TimeOfDayFilterFieldNumber = 5;
+    private readonly static global::KBVE.Proto.Map.TimeOfDay TimeOfDayFilterDefaultValue = global::KBVE.Proto.Map.TimeOfDay.Unspecified;
+
+    private global::KBVE.Proto.Map.TimeOfDay timeOfDayFilter_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.TimeOfDay TimeOfDayFilter {
+      get { if ((_hasBits0 & 4) != 0) { return timeOfDayFilter_; } else { return TimeOfDayFilterDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        timeOfDayFilter_ = value;
+      }
+    }
+    /// <summary>Gets whether the "time_of_day_filter" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTimeOfDayFilter {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "time_of_day_filter" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTimeOfDayFilter() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "event_refs" field.</summary>
+    public const int EventRefsFieldNumber = 6;
+    private static readonly pb::FieldCodec<string> _repeated_eventRefs_codec
+        = pb::FieldCodec.ForString(50);
+    private readonly pbc::RepeatedField<string> eventRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Seasonal event hooks
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> EventRefs {
+      get { return eventRefs_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as WeatherProfile);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(WeatherProfile other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Kind != other.Kind) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Weight, other.Weight)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(DurationSecs, other.DurationSecs)) return false;
+      if (SeasonFilter != other.SeasonFilter) return false;
+      if (TimeOfDayFilter != other.TimeOfDayFilter) return false;
+      if(!eventRefs_.Equals(other.eventRefs_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Kind != global::KBVE.Proto.Map.WeatherKind.Unspecified) hash ^= Kind.GetHashCode();
+      if (Weight != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Weight);
+      if (HasDurationSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(DurationSecs);
+      if (HasSeasonFilter) hash ^= SeasonFilter.GetHashCode();
+      if (HasTimeOfDayFilter) hash ^= TimeOfDayFilter.GetHashCode();
+      hash ^= eventRefs_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Kind != global::KBVE.Proto.Map.WeatherKind.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Kind);
+      }
+      if (Weight != 0F) {
+        output.WriteRawTag(21);
+        output.WriteFloat(Weight);
+      }
+      if (HasDurationSecs) {
+        output.WriteRawTag(29);
+        output.WriteFloat(DurationSecs);
+      }
+      if (HasSeasonFilter) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) SeasonFilter);
+      }
+      if (HasTimeOfDayFilter) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) TimeOfDayFilter);
+      }
+      eventRefs_.WriteTo(output, _repeated_eventRefs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Kind != global::KBVE.Proto.Map.WeatherKind.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Kind);
+      }
+      if (Weight != 0F) {
+        output.WriteRawTag(21);
+        output.WriteFloat(Weight);
+      }
+      if (HasDurationSecs) {
+        output.WriteRawTag(29);
+        output.WriteFloat(DurationSecs);
+      }
+      if (HasSeasonFilter) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) SeasonFilter);
+      }
+      if (HasTimeOfDayFilter) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) TimeOfDayFilter);
+      }
+      eventRefs_.WriteTo(ref output, _repeated_eventRefs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Kind != global::KBVE.Proto.Map.WeatherKind.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Kind);
+      }
+      if (Weight != 0F) {
+        size += 1 + 4;
+      }
+      if (HasDurationSecs) {
+        size += 1 + 4;
+      }
+      if (HasSeasonFilter) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SeasonFilter);
+      }
+      if (HasTimeOfDayFilter) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimeOfDayFilter);
+      }
+      size += eventRefs_.CalculateSize(_repeated_eventRefs_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(WeatherProfile other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Kind != global::KBVE.Proto.Map.WeatherKind.Unspecified) {
+        Kind = other.Kind;
+      }
+      if (other.Weight != 0F) {
+        Weight = other.Weight;
+      }
+      if (other.HasDurationSecs) {
+        DurationSecs = other.DurationSecs;
+      }
+      if (other.HasSeasonFilter) {
+        SeasonFilter = other.SeasonFilter;
+      }
+      if (other.HasTimeOfDayFilter) {
+        TimeOfDayFilter = other.TimeOfDayFilter;
+      }
+      eventRefs_.Add(other.eventRefs_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Kind = (global::KBVE.Proto.Map.WeatherKind) input.ReadEnum();
+            break;
+          }
+          case 21: {
+            Weight = input.ReadFloat();
+            break;
+          }
+          case 29: {
+            DurationSecs = input.ReadFloat();
+            break;
+          }
+          case 32: {
+            SeasonFilter = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            TimeOfDayFilter = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            eventRefs_.AddEntriesFrom(input, _repeated_eventRefs_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Kind = (global::KBVE.Proto.Map.WeatherKind) input.ReadEnum();
+            break;
+          }
+          case 21: {
+            Weight = input.ReadFloat();
+            break;
+          }
+          case 29: {
+            DurationSecs = input.ReadFloat();
+            break;
+          }
+          case 32: {
+            SeasonFilter = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            TimeOfDayFilter = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            eventRefs_.AddEntriesFrom(ref input, _repeated_eventRefs_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Climate band for a zone — drives weather rotation, season cadence,
+  /// crop yields, ambient music swap.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ClimateConfig : pb::IMessage<ClimateConfig>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ClimateConfig> _parser = new pb::MessageParser<ClimateConfig>(() => new ClimateConfig());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ClimateConfig> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[62]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ClimateConfig() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ClimateConfig(ClimateConfig other) : this() {
+      _hasBits0 = other._hasBits0;
+      defaultSeason_ = other.defaultSeason_;
+      seasonCycleSecs_ = other.seasonCycleSecs_;
+      weatherRotation_ = other.weatherRotation_.Clone();
+      baselineTemperature_ = other.baselineTemperature_;
+      temperatureVariance_ = other.temperatureVariance_;
+      holidayEventRefs_ = other.holidayEventRefs_.Clone();
+      dayNightLocked_ = other.dayNightLocked_;
+      lockedTimeOfDay_ = other.lockedTimeOfDay_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ClimateConfig Clone() {
+      return new ClimateConfig(this);
+    }
+
+    /// <summary>Field number for the "default_season" field.</summary>
+    public const int DefaultSeasonFieldNumber = 1;
+    private readonly static global::KBVE.Proto.Map.Season DefaultSeasonDefaultValue = global::KBVE.Proto.Map.Season.Unspecified;
+
+    private global::KBVE.Proto.Map.Season defaultSeason_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.Season DefaultSeason {
+      get { if ((_hasBits0 & 1) != 0) { return defaultSeason_; } else { return DefaultSeasonDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        defaultSeason_ = value;
+      }
+    }
+    /// <summary>Gets whether the "default_season" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDefaultSeason {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "default_season" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDefaultSeason() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "season_cycle_secs" field.</summary>
+    public const int SeasonCycleSecsFieldNumber = 2;
+    private readonly static float SeasonCycleSecsDefaultValue = 0F;
+
+    private float seasonCycleSecs_;
+    /// <summary>
+    /// Length of a full season cycle
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float SeasonCycleSecs {
+      get { if ((_hasBits0 & 2) != 0) { return seasonCycleSecs_; } else { return SeasonCycleSecsDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        seasonCycleSecs_ = value;
+      }
+    }
+    /// <summary>Gets whether the "season_cycle_secs" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSeasonCycleSecs {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "season_cycle_secs" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSeasonCycleSecs() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "weather_rotation" field.</summary>
+    public const int WeatherRotationFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.WeatherProfile> _repeated_weatherRotation_codec
+        = pb::FieldCodec.ForMessage(26, global::KBVE.Proto.Map.WeatherProfile.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.WeatherProfile> weatherRotation_ = new pbc::RepeatedField<global::KBVE.Proto.Map.WeatherProfile>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.WeatherProfile> WeatherRotation {
+      get { return weatherRotation_; }
+    }
+
+    /// <summary>Field number for the "baseline_temperature" field.</summary>
+    public const int BaselineTemperatureFieldNumber = 4;
+    private readonly static float BaselineTemperatureDefaultValue = 0F;
+
+    private float baselineTemperature_;
+    /// <summary>
+    /// For survival games
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float BaselineTemperature {
+      get { if ((_hasBits0 & 4) != 0) { return baselineTemperature_; } else { return BaselineTemperatureDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        baselineTemperature_ = value;
+      }
+    }
+    /// <summary>Gets whether the "baseline_temperature" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBaselineTemperature {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "baseline_temperature" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBaselineTemperature() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "temperature_variance" field.</summary>
+    public const int TemperatureVarianceFieldNumber = 5;
+    private readonly static float TemperatureVarianceDefaultValue = 0F;
+
+    private float temperatureVariance_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float TemperatureVariance {
+      get { if ((_hasBits0 & 8) != 0) { return temperatureVariance_; } else { return TemperatureVarianceDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        temperatureVariance_ = value;
+      }
+    }
+    /// <summary>Gets whether the "temperature_variance" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasTemperatureVariance {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "temperature_variance" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearTemperatureVariance() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "holiday_event_refs" field.</summary>
+    public const int HolidayEventRefsFieldNumber = 6;
+    private static readonly pb::FieldCodec<string> _repeated_holidayEventRefs_codec
+        = pb::FieldCodec.ForString(50);
+    private readonly pbc::RepeatedField<string> holidayEventRefs_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Calendar events
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> HolidayEventRefs {
+      get { return holidayEventRefs_; }
+    }
+
+    /// <summary>Field number for the "day_night_locked" field.</summary>
+    public const int DayNightLockedFieldNumber = 7;
+    private readonly static bool DayNightLockedDefaultValue = false;
+
+    private bool dayNightLocked_;
+    /// <summary>
+    /// Eternal day / night zones
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool DayNightLocked {
+      get { if ((_hasBits0 & 16) != 0) { return dayNightLocked_; } else { return DayNightLockedDefaultValue; } }
+      set {
+        _hasBits0 |= 16;
+        dayNightLocked_ = value;
+      }
+    }
+    /// <summary>Gets whether the "day_night_locked" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasDayNightLocked {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "day_night_locked" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearDayNightLocked() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "locked_time_of_day" field.</summary>
+    public const int LockedTimeOfDayFieldNumber = 8;
+    private readonly static global::KBVE.Proto.Map.TimeOfDay LockedTimeOfDayDefaultValue = global::KBVE.Proto.Map.TimeOfDay.Unspecified;
+
+    private global::KBVE.Proto.Map.TimeOfDay lockedTimeOfDay_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Map.TimeOfDay LockedTimeOfDay {
+      get { if ((_hasBits0 & 32) != 0) { return lockedTimeOfDay_; } else { return LockedTimeOfDayDefaultValue; } }
+      set {
+        _hasBits0 |= 32;
+        lockedTimeOfDay_ = value;
+      }
+    }
+    /// <summary>Gets whether the "locked_time_of_day" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLockedTimeOfDay {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "locked_time_of_day" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLockedTimeOfDay() {
+      _hasBits0 &= ~32;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ClimateConfig);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ClimateConfig other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (DefaultSeason != other.DefaultSeason) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(SeasonCycleSecs, other.SeasonCycleSecs)) return false;
+      if(!weatherRotation_.Equals(other.weatherRotation_)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(BaselineTemperature, other.BaselineTemperature)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(TemperatureVariance, other.TemperatureVariance)) return false;
+      if(!holidayEventRefs_.Equals(other.holidayEventRefs_)) return false;
+      if (DayNightLocked != other.DayNightLocked) return false;
+      if (LockedTimeOfDay != other.LockedTimeOfDay) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasDefaultSeason) hash ^= DefaultSeason.GetHashCode();
+      if (HasSeasonCycleSecs) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(SeasonCycleSecs);
+      hash ^= weatherRotation_.GetHashCode();
+      if (HasBaselineTemperature) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(BaselineTemperature);
+      if (HasTemperatureVariance) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(TemperatureVariance);
+      hash ^= holidayEventRefs_.GetHashCode();
+      if (HasDayNightLocked) hash ^= DayNightLocked.GetHashCode();
+      if (HasLockedTimeOfDay) hash ^= LockedTimeOfDay.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasDefaultSeason) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) DefaultSeason);
+      }
+      if (HasSeasonCycleSecs) {
+        output.WriteRawTag(21);
+        output.WriteFloat(SeasonCycleSecs);
+      }
+      weatherRotation_.WriteTo(output, _repeated_weatherRotation_codec);
+      if (HasBaselineTemperature) {
+        output.WriteRawTag(37);
+        output.WriteFloat(BaselineTemperature);
+      }
+      if (HasTemperatureVariance) {
+        output.WriteRawTag(45);
+        output.WriteFloat(TemperatureVariance);
+      }
+      holidayEventRefs_.WriteTo(output, _repeated_holidayEventRefs_codec);
+      if (HasDayNightLocked) {
+        output.WriteRawTag(56);
+        output.WriteBool(DayNightLocked);
+      }
+      if (HasLockedTimeOfDay) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) LockedTimeOfDay);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasDefaultSeason) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) DefaultSeason);
+      }
+      if (HasSeasonCycleSecs) {
+        output.WriteRawTag(21);
+        output.WriteFloat(SeasonCycleSecs);
+      }
+      weatherRotation_.WriteTo(ref output, _repeated_weatherRotation_codec);
+      if (HasBaselineTemperature) {
+        output.WriteRawTag(37);
+        output.WriteFloat(BaselineTemperature);
+      }
+      if (HasTemperatureVariance) {
+        output.WriteRawTag(45);
+        output.WriteFloat(TemperatureVariance);
+      }
+      holidayEventRefs_.WriteTo(ref output, _repeated_holidayEventRefs_codec);
+      if (HasDayNightLocked) {
+        output.WriteRawTag(56);
+        output.WriteBool(DayNightLocked);
+      }
+      if (HasLockedTimeOfDay) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) LockedTimeOfDay);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasDefaultSeason) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DefaultSeason);
+      }
+      if (HasSeasonCycleSecs) {
+        size += 1 + 4;
+      }
+      size += weatherRotation_.CalculateSize(_repeated_weatherRotation_codec);
+      if (HasBaselineTemperature) {
+        size += 1 + 4;
+      }
+      if (HasTemperatureVariance) {
+        size += 1 + 4;
+      }
+      size += holidayEventRefs_.CalculateSize(_repeated_holidayEventRefs_codec);
+      if (HasDayNightLocked) {
+        size += 1 + 1;
+      }
+      if (HasLockedTimeOfDay) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) LockedTimeOfDay);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ClimateConfig other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasDefaultSeason) {
+        DefaultSeason = other.DefaultSeason;
+      }
+      if (other.HasSeasonCycleSecs) {
+        SeasonCycleSecs = other.SeasonCycleSecs;
+      }
+      weatherRotation_.Add(other.weatherRotation_);
+      if (other.HasBaselineTemperature) {
+        BaselineTemperature = other.BaselineTemperature;
+      }
+      if (other.HasTemperatureVariance) {
+        TemperatureVariance = other.TemperatureVariance;
+      }
+      holidayEventRefs_.Add(other.holidayEventRefs_);
+      if (other.HasDayNightLocked) {
+        DayNightLocked = other.DayNightLocked;
+      }
+      if (other.HasLockedTimeOfDay) {
+        LockedTimeOfDay = other.LockedTimeOfDay;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            DefaultSeason = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 21: {
+            SeasonCycleSecs = input.ReadFloat();
+            break;
+          }
+          case 26: {
+            weatherRotation_.AddEntriesFrom(input, _repeated_weatherRotation_codec);
+            break;
+          }
+          case 37: {
+            BaselineTemperature = input.ReadFloat();
+            break;
+          }
+          case 45: {
+            TemperatureVariance = input.ReadFloat();
+            break;
+          }
+          case 50: {
+            holidayEventRefs_.AddEntriesFrom(input, _repeated_holidayEventRefs_codec);
+            break;
+          }
+          case 56: {
+            DayNightLocked = input.ReadBool();
+            break;
+          }
+          case 64: {
+            LockedTimeOfDay = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            DefaultSeason = (global::KBVE.Proto.Map.Season) input.ReadEnum();
+            break;
+          }
+          case 21: {
+            SeasonCycleSecs = input.ReadFloat();
+            break;
+          }
+          case 26: {
+            weatherRotation_.AddEntriesFrom(ref input, _repeated_weatherRotation_codec);
+            break;
+          }
+          case 37: {
+            BaselineTemperature = input.ReadFloat();
+            break;
+          }
+          case 45: {
+            TemperatureVariance = input.ReadFloat();
+            break;
+          }
+          case 50: {
+            holidayEventRefs_.AddEntriesFrom(ref input, _repeated_holidayEventRefs_codec);
+            break;
+          }
+          case 56: {
+            DayNightLocked = input.ReadBool();
+            break;
+          }
+          case 64: {
+            LockedTimeOfDay = (global::KBVE.Proto.Map.TimeOfDay) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// Generic extension slot
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -23641,7 +42067,7 @@ namespace KBVE.Proto.Map {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[44]; }
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[63]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -24139,7 +42565,7 @@ namespace KBVE.Proto.Map {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[45]; }
+      get { return global::KBVE.Proto.Map.MapdbReflection.Descriptor.MessageTypes[64]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -24163,6 +42589,16 @@ namespace KBVE.Proto.Map {
       zones_ = other.zones_.Clone();
       objectDefs_ = other.objectDefs_.Clone();
       hexWorlds_ = other.hexWorlds_.Clone();
+      factions_ = other.factions_.Clone();
+      settlements_ = other.settlements_.Clone();
+      territoryClaims_ = other.territoryClaims_.Clone();
+      tradeRoutes_ = other.tradeRoutes_.Clone();
+      landmarks_ = other.landmarks_.Clone();
+      cultures_ = other.cultures_.Clone();
+      religions_ = other.religions_.Clone();
+      treaties_ = other.treaties_.Clone();
+      dialogueTrees_ = other.dialogueTrees_.Clone();
+      climates_ = other.climates_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -24216,6 +42652,116 @@ namespace KBVE.Proto.Map {
       get { return hexWorlds_; }
     }
 
+    /// <summary>Field number for the "factions" field.</summary>
+    public const int FactionsFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Faction> _repeated_factions_codec
+        = pb::FieldCodec.ForMessage(42, global::KBVE.Proto.Map.Faction.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Faction> factions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Faction>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Faction> Factions {
+      get { return factions_; }
+    }
+
+    /// <summary>Field number for the "settlements" field.</summary>
+    public const int SettlementsFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Settlement> _repeated_settlements_codec
+        = pb::FieldCodec.ForMessage(50, global::KBVE.Proto.Map.Settlement.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Settlement> settlements_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Settlement>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Settlement> Settlements {
+      get { return settlements_; }
+    }
+
+    /// <summary>Field number for the "territory_claims" field.</summary>
+    public const int TerritoryClaimsFieldNumber = 7;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.TerritoryClaim> _repeated_territoryClaims_codec
+        = pb::FieldCodec.ForMessage(58, global::KBVE.Proto.Map.TerritoryClaim.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.TerritoryClaim> territoryClaims_ = new pbc::RepeatedField<global::KBVE.Proto.Map.TerritoryClaim>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.TerritoryClaim> TerritoryClaims {
+      get { return territoryClaims_; }
+    }
+
+    /// <summary>Field number for the "trade_routes" field.</summary>
+    public const int TradeRoutesFieldNumber = 8;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.TradeRoute> _repeated_tradeRoutes_codec
+        = pb::FieldCodec.ForMessage(66, global::KBVE.Proto.Map.TradeRoute.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.TradeRoute> tradeRoutes_ = new pbc::RepeatedField<global::KBVE.Proto.Map.TradeRoute>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.TradeRoute> TradeRoutes {
+      get { return tradeRoutes_; }
+    }
+
+    /// <summary>Field number for the "landmarks" field.</summary>
+    public const int LandmarksFieldNumber = 9;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Landmark> _repeated_landmarks_codec
+        = pb::FieldCodec.ForMessage(74, global::KBVE.Proto.Map.Landmark.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Landmark> landmarks_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Landmark>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Landmark> Landmarks {
+      get { return landmarks_; }
+    }
+
+    /// <summary>Field number for the "cultures" field.</summary>
+    public const int CulturesFieldNumber = 10;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Culture> _repeated_cultures_codec
+        = pb::FieldCodec.ForMessage(82, global::KBVE.Proto.Map.Culture.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Culture> cultures_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Culture>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Culture> Cultures {
+      get { return cultures_; }
+    }
+
+    /// <summary>Field number for the "religions" field.</summary>
+    public const int ReligionsFieldNumber = 11;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Religion> _repeated_religions_codec
+        = pb::FieldCodec.ForMessage(90, global::KBVE.Proto.Map.Religion.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Religion> religions_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Religion>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Religion> Religions {
+      get { return religions_; }
+    }
+
+    /// <summary>Field number for the "treaties" field.</summary>
+    public const int TreatiesFieldNumber = 12;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.Treaty> _repeated_treaties_codec
+        = pb::FieldCodec.ForMessage(98, global::KBVE.Proto.Map.Treaty.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.Treaty> treaties_ = new pbc::RepeatedField<global::KBVE.Proto.Map.Treaty>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.Treaty> Treaties {
+      get { return treaties_; }
+    }
+
+    /// <summary>Field number for the "dialogue_trees" field.</summary>
+    public const int DialogueTreesFieldNumber = 13;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.DialogueTree> _repeated_dialogueTrees_codec
+        = pb::FieldCodec.ForMessage(106, global::KBVE.Proto.Map.DialogueTree.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.DialogueTree> dialogueTrees_ = new pbc::RepeatedField<global::KBVE.Proto.Map.DialogueTree>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.DialogueTree> DialogueTrees {
+      get { return dialogueTrees_; }
+    }
+
+    /// <summary>Field number for the "climates" field.</summary>
+    public const int ClimatesFieldNumber = 14;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Map.ClimateConfig> _repeated_climates_codec
+        = pb::FieldCodec.ForMessage(114, global::KBVE.Proto.Map.ClimateConfig.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Map.ClimateConfig> climates_ = new pbc::RepeatedField<global::KBVE.Proto.Map.ClimateConfig>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Map.ClimateConfig> Climates {
+      get { return climates_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -24235,6 +42781,16 @@ namespace KBVE.Proto.Map {
       if(!zones_.Equals(other.zones_)) return false;
       if(!objectDefs_.Equals(other.objectDefs_)) return false;
       if(!hexWorlds_.Equals(other.hexWorlds_)) return false;
+      if(!factions_.Equals(other.factions_)) return false;
+      if(!settlements_.Equals(other.settlements_)) return false;
+      if(!territoryClaims_.Equals(other.territoryClaims_)) return false;
+      if(!tradeRoutes_.Equals(other.tradeRoutes_)) return false;
+      if(!landmarks_.Equals(other.landmarks_)) return false;
+      if(!cultures_.Equals(other.cultures_)) return false;
+      if(!religions_.Equals(other.religions_)) return false;
+      if(!treaties_.Equals(other.treaties_)) return false;
+      if(!dialogueTrees_.Equals(other.dialogueTrees_)) return false;
+      if(!climates_.Equals(other.climates_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -24246,6 +42802,16 @@ namespace KBVE.Proto.Map {
       hash ^= zones_.GetHashCode();
       hash ^= objectDefs_.GetHashCode();
       hash ^= hexWorlds_.GetHashCode();
+      hash ^= factions_.GetHashCode();
+      hash ^= settlements_.GetHashCode();
+      hash ^= territoryClaims_.GetHashCode();
+      hash ^= tradeRoutes_.GetHashCode();
+      hash ^= landmarks_.GetHashCode();
+      hash ^= cultures_.GetHashCode();
+      hash ^= religions_.GetHashCode();
+      hash ^= treaties_.GetHashCode();
+      hash ^= dialogueTrees_.GetHashCode();
+      hash ^= climates_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -24268,6 +42834,16 @@ namespace KBVE.Proto.Map {
       zones_.WriteTo(output, _repeated_zones_codec);
       objectDefs_.WriteTo(output, _repeated_objectDefs_codec);
       hexWorlds_.WriteTo(output, _repeated_hexWorlds_codec);
+      factions_.WriteTo(output, _repeated_factions_codec);
+      settlements_.WriteTo(output, _repeated_settlements_codec);
+      territoryClaims_.WriteTo(output, _repeated_territoryClaims_codec);
+      tradeRoutes_.WriteTo(output, _repeated_tradeRoutes_codec);
+      landmarks_.WriteTo(output, _repeated_landmarks_codec);
+      cultures_.WriteTo(output, _repeated_cultures_codec);
+      religions_.WriteTo(output, _repeated_religions_codec);
+      treaties_.WriteTo(output, _repeated_treaties_codec);
+      dialogueTrees_.WriteTo(output, _repeated_dialogueTrees_codec);
+      climates_.WriteTo(output, _repeated_climates_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -24282,6 +42858,16 @@ namespace KBVE.Proto.Map {
       zones_.WriteTo(ref output, _repeated_zones_codec);
       objectDefs_.WriteTo(ref output, _repeated_objectDefs_codec);
       hexWorlds_.WriteTo(ref output, _repeated_hexWorlds_codec);
+      factions_.WriteTo(ref output, _repeated_factions_codec);
+      settlements_.WriteTo(ref output, _repeated_settlements_codec);
+      territoryClaims_.WriteTo(ref output, _repeated_territoryClaims_codec);
+      tradeRoutes_.WriteTo(ref output, _repeated_tradeRoutes_codec);
+      landmarks_.WriteTo(ref output, _repeated_landmarks_codec);
+      cultures_.WriteTo(ref output, _repeated_cultures_codec);
+      religions_.WriteTo(ref output, _repeated_religions_codec);
+      treaties_.WriteTo(ref output, _repeated_treaties_codec);
+      dialogueTrees_.WriteTo(ref output, _repeated_dialogueTrees_codec);
+      climates_.WriteTo(ref output, _repeated_climates_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -24296,6 +42882,16 @@ namespace KBVE.Proto.Map {
       size += zones_.CalculateSize(_repeated_zones_codec);
       size += objectDefs_.CalculateSize(_repeated_objectDefs_codec);
       size += hexWorlds_.CalculateSize(_repeated_hexWorlds_codec);
+      size += factions_.CalculateSize(_repeated_factions_codec);
+      size += settlements_.CalculateSize(_repeated_settlements_codec);
+      size += territoryClaims_.CalculateSize(_repeated_territoryClaims_codec);
+      size += tradeRoutes_.CalculateSize(_repeated_tradeRoutes_codec);
+      size += landmarks_.CalculateSize(_repeated_landmarks_codec);
+      size += cultures_.CalculateSize(_repeated_cultures_codec);
+      size += religions_.CalculateSize(_repeated_religions_codec);
+      size += treaties_.CalculateSize(_repeated_treaties_codec);
+      size += dialogueTrees_.CalculateSize(_repeated_dialogueTrees_codec);
+      size += climates_.CalculateSize(_repeated_climates_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -24312,6 +42908,16 @@ namespace KBVE.Proto.Map {
       zones_.Add(other.zones_);
       objectDefs_.Add(other.objectDefs_);
       hexWorlds_.Add(other.hexWorlds_);
+      factions_.Add(other.factions_);
+      settlements_.Add(other.settlements_);
+      territoryClaims_.Add(other.territoryClaims_);
+      tradeRoutes_.Add(other.tradeRoutes_);
+      landmarks_.Add(other.landmarks_);
+      cultures_.Add(other.cultures_);
+      religions_.Add(other.religions_);
+      treaties_.Add(other.treaties_);
+      dialogueTrees_.Add(other.dialogueTrees_);
+      climates_.Add(other.climates_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -24347,6 +42953,46 @@ namespace KBVE.Proto.Map {
             hexWorlds_.AddEntriesFrom(input, _repeated_hexWorlds_codec);
             break;
           }
+          case 42: {
+            factions_.AddEntriesFrom(input, _repeated_factions_codec);
+            break;
+          }
+          case 50: {
+            settlements_.AddEntriesFrom(input, _repeated_settlements_codec);
+            break;
+          }
+          case 58: {
+            territoryClaims_.AddEntriesFrom(input, _repeated_territoryClaims_codec);
+            break;
+          }
+          case 66: {
+            tradeRoutes_.AddEntriesFrom(input, _repeated_tradeRoutes_codec);
+            break;
+          }
+          case 74: {
+            landmarks_.AddEntriesFrom(input, _repeated_landmarks_codec);
+            break;
+          }
+          case 82: {
+            cultures_.AddEntriesFrom(input, _repeated_cultures_codec);
+            break;
+          }
+          case 90: {
+            religions_.AddEntriesFrom(input, _repeated_religions_codec);
+            break;
+          }
+          case 98: {
+            treaties_.AddEntriesFrom(input, _repeated_treaties_codec);
+            break;
+          }
+          case 106: {
+            dialogueTrees_.AddEntriesFrom(input, _repeated_dialogueTrees_codec);
+            break;
+          }
+          case 114: {
+            climates_.AddEntriesFrom(input, _repeated_climates_codec);
+            break;
+          }
         }
       }
     #endif
@@ -24380,6 +43026,46 @@ namespace KBVE.Proto.Map {
           }
           case 34: {
             hexWorlds_.AddEntriesFrom(ref input, _repeated_hexWorlds_codec);
+            break;
+          }
+          case 42: {
+            factions_.AddEntriesFrom(ref input, _repeated_factions_codec);
+            break;
+          }
+          case 50: {
+            settlements_.AddEntriesFrom(ref input, _repeated_settlements_codec);
+            break;
+          }
+          case 58: {
+            territoryClaims_.AddEntriesFrom(ref input, _repeated_territoryClaims_codec);
+            break;
+          }
+          case 66: {
+            tradeRoutes_.AddEntriesFrom(ref input, _repeated_tradeRoutes_codec);
+            break;
+          }
+          case 74: {
+            landmarks_.AddEntriesFrom(ref input, _repeated_landmarks_codec);
+            break;
+          }
+          case 82: {
+            cultures_.AddEntriesFrom(ref input, _repeated_cultures_codec);
+            break;
+          }
+          case 90: {
+            religions_.AddEntriesFrom(ref input, _repeated_religions_codec);
+            break;
+          }
+          case 98: {
+            treaties_.AddEntriesFrom(ref input, _repeated_treaties_codec);
+            break;
+          }
+          case 106: {
+            dialogueTrees_.AddEntriesFrom(ref input, _repeated_dialogueTrees_codec);
+            break;
+          }
+          case 114: {
+            climates_.AddEntriesFrom(ref input, _repeated_climates_codec);
             break;
           }
         }

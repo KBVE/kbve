@@ -1,0 +1,51 @@
+---
+ref: users-group-rounded
+name: Users Group Rounded
+title: Users Group Rounded Icon
+description: Users Group Rounded glyph from the solar icon library, 1 variant — recolor via currentColor.
+primary_category: social
+categories: [social, library]
+tags: [solar-generated, solar]
+search:
+  keywords: ["users-group-rounded","users","group","rounded","users-group-rounded-bold-duotone","users group rounded"]
+  primary_category: social
+default_license:
+  license: cc_by
+  attribution_required: true
+  attribution_line: "Solar Icons (https://solar-icons.com/) — CC BY 4.0 — 480 Design"
+  author: 480 Design
+  source_url: "https://solar-icons.com/?icon=users-group-rounded-bold-duotone"
+  commercial_use: true
+  modifications_allowed: true
+default_offering:
+  offering: free
+icons:
+  - ref: "solar"
+    label: "Solar"
+    style: outline
+    format: svg
+    viewbox: { min_x: 0, min_y: 0, width: 24, height: 24 }
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes: [16, 20, 24, 32]
+    tags: [solar]
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><circle cx="15" cy="6" r="3" fill="currentColor" opacity=".4"/><ellipse cx="16" cy="17" fill="currentColor" opacity=".4" rx="5" ry="3"/><circle cx="9.001" cy="6" r="4" fill="currentColor"/><ellipse cx="9.001" cy="17.001" fill="currentColor" rx="7" ry="4"/></svg>
+pagefindFilters: [solar, social]
+---
+
+import IconTermPanel from '@/components/icons/IconTermPanel.astro';
+
+Users Group Rounded — glyph from the [Solar icon library](https://solar-icons.com/).
+
+<IconTermPanel
+	termRef={frontmatter.ref}
+	name={frontmatter.name}
+	description={frontmatter.description}
+	primary_category={frontmatter.primary_category}
+	categories={frontmatter.categories}
+	tags={frontmatter.tags}
+	default_license={frontmatter.default_license}
+	icons={frontmatter.icons}
+/>

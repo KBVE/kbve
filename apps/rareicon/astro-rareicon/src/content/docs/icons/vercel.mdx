@@ -2,7 +2,7 @@
 ref: vercel
 name: Vercel
 title: Vercel Icon
-description: Vercel glyph with 2 variants from multiple FOSS icon libraries — recolor via currentColor.
+description: Vercel glyph with 3 variants from multiple FOSS icon libraries — recolor via currentColor.
 primary_category: tech
 categories:
   - tech
@@ -14,6 +14,8 @@ tags:
   - tabler-generated
   - outline
   - merged-multi-source
+  - logos-generated
+  - logos
 search:
   keywords:
     - vercel
@@ -75,11 +77,33 @@ icons:
       - tabler
     svg_body: |
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18l-9 -15l-9 15" /></svg>
+  - ref: logos
+    label: Logos
+    style: outline
+    format: svg
+    viewbox:
+      min_x: 0
+      min_y: 0
+      width: 256
+      height: 222
+    render:
+      uses_current_color: true
+      monochrome: true
+    recommended_sizes:
+      - 16
+      - 20
+      - 24
+      - 32
+    tags:
+      - logos
+    svg_body: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 222" fill="currentColor"><path d="m128 0l128 221.705H0z"/></svg>
 pagefindFilters:
   - simple-icons
   - tech
   - brand
   - tabler
+  - logos
 ---
 
 import IconTermPanel from '@/components/icons/IconTermPanel.astro';

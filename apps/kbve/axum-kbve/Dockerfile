@@ -29,6 +29,12 @@ COPY packages/npm/laser/ packages/npm/laser/
 # Copy generated schemas used by astro-kbve content collections
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
+# Copy on-disk OpenAPI spec consumed by astro-kbve at build time.
+# src/pages/llms.txt.ts imports packages/data/openapi/openapi.json so
+# /llms.txt is generated from the same utoipa-emitted spec the live
+# API serves at /api/openapi.json.
+COPY packages/data/openapi/ packages/data/openapi/
+
 # Crate READMEs imported by astro-kbve project pages (e.g.
 # /project/holy-crate uses `import { Content } from '...README.md'`
 # so the crate doc and the kbve.com page stay in sync from one file).
