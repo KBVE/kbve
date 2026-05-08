@@ -150,6 +150,29 @@ export const HP = {
 	stockRecyclePenalty: 1,
 } as const;
 
+/** Combat stats — Armor reduces incoming damage, Attack multiplies
+ * foundation score on top of combo + joker mults. Both buyable in shop. */
+export const STATS = {
+	startArmor: 0,
+	startAttack: 1,
+	/** Per-point armor: incoming damage reduced by this amount (min 1 still
+	 * goes through unless armor is high enough to fully absorb). */
+	armorReduction: 1,
+	/** Per-point attack adds this much to the multiplier (1 base + n×step). */
+	attackStep: 0.25,
+} as const;
+
+/** Shop offering catalogue. Each round shuffles a subset of these into
+ * the modal. */
+export const SHOP_PRICES = {
+	jokerMultiplier: 5,
+	jokerScoreBoost: 8,
+	armorPoint: 6,
+	attackPoint: 10,
+	healSmall: 3, // +5 HP (capped at maxHp)
+	maxHpUp: 12, // +5 maxHp + heal that much
+} as const;
+
 /** Stock draw count. Klondike traditional = 1; we run 3 for richer flow.
  * Only the top of the fanned waste is grabbable; the two beneath show as
  * a peek so the player can plan ahead. */

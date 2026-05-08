@@ -22,6 +22,8 @@ import {
 	FOUNDATION_GAP,
 	FOUNDATION_X_START,
 	HUD_COLORS,
+	SHOP_PRICES,
+	STATS,
 	STOCK_DRAW_COUNT,
 	STOCK_X,
 	TABLEAU_FAN_Y,
@@ -110,6 +112,7 @@ export class SolitaireScene extends Phaser.Scene {
 	private hudBest!: Phaser.GameObjects.Text;
 	private hudHp!: Phaser.GameObjects.Text;
 	private hudHpBar!: Phaser.GameObjects.Graphics;
+	private hudStats!: Phaser.GameObjects.Text;
 
 	/** Active modal layer (shop or game-over). Null when no modal showing. */
 	private modal: Phaser.GameObjects.Container | null = null;
@@ -465,6 +468,22 @@ export class SolitaireScene extends Phaser.Scene {
 		this.hudHpBar = this.add.graphics();
 		this.hudHpBar.setDepth(-90);
 
+		// Armor + Attack pips below the strip on the right side.
+		this.hudStats = this.add
+			.text(
+				BASE_WIDTH - 28 - stripPadX,
+				20 + stripH + 16,
+				'ATK ×1.0  ARM 0',
+				{
+					fontSize: '11px',
+					color: HUD_COLORS.scoreText,
+					fontStyle: 'bold',
+					fontFamily: FONT.sans,
+				},
+			)
+			.setOrigin(1, 0)
+			.setResolution(2);
+
 		// Score + combo — center. Score is the hero number.
 		this.hudScore = this.add
 			.text(BASE_WIDTH / 2, yMid - 17, '0', {
@@ -553,6 +572,11 @@ export class SolitaireScene extends Phaser.Scene {
 		// HP bar + label.
 		this.hudHp.setText(`HP ${this.state.hp}/${this.state.maxHp}`);
 		this.redrawHpBar();
+
+		// Armor + Attack pips.
+		this.hudStats.setText(
+			`ATK ×${this.state.attack.toFixed(2)}  ARM ${this.state.armor}`,
+		);
 	}
 
 	/** HP bar — clear + redraw on every update. Cheap (one rectangle). */
@@ -1431,9 +1455,9 @@ export class SolitaireScene extends Phaser.Scene {
 			.setInteractive(); // swallow clicks behind the modal
 		c.add(backdrop);
 
-		// Modal panel.
-		const w = 540;
-		const h = 360;
+		// Modal panel — sized to fit a 5-up shop row + summary + button.
+		const w = 700;
+		const h = 380;
 		const x = (BASE_WIDTH - w) / 2;
 		const y = (BASE_HEIGHT - h) / 2;
 		const panel = this.add.graphics();
@@ -1485,32 +1509,48 @@ export class SolitaireScene extends Phaser.Scene {
 		// Shop offers — 3 cards. Click to buy.
 		const offers: { label: string; cost: number; apply: () => void }[] = [
 			{
-				label: 'Multiplier Joker (×1.5 mult)',
-				cost: 5,
+				label: 'Multiplier Joker\n(×1.5 mult)',
+				cost: SHOP_PRICES.jokerMultiplier,
 				apply: () => {
 					this.state.ownedJokerVariants.push(JokerVariant.Multiplier);
 				},
 			},
 			{
-				label: 'ScoreBoost Joker (+50 flat)',
-				cost: 8,
+				label: 'ScoreBoost Joker\n(+50 flat)',
+				cost: SHOP_PRICES.jokerScoreBoost,
 				apply: () => {
 					this.state.ownedJokerVariants.push(JokerVariant.ScoreBoost);
 				},
 			},
 			{
-				label: 'Discount Reroll (skip)',
-				cost: 0,
+				label: '+1 Armor\n(reduce damage)',
+				cost: SHOP_PRICES.armorPoint,
 				apply: () => {
-					/* no-op; just lets player skip */
+					this.state.armor += 1;
+				},
+			},
+			{
+				label: '+1 Attack\n(×0.25 score boost)',
+				cost: SHOP_PRICES.attackPoint,
+				apply: () => {
+					this.state.attack += STATS.attackStep;
+				},
+			},
+			{
+				label: 'Heal +5 HP',
+				cost: SHOP_PRICES.healSmall,
+				apply: () => {
+					this.state.heal(5);
 				},
 			},
 		];
 
-		const cardW = 150;
-		const cardH = 100;
-		const gap = 18;
-		const startX = BASE_WIDTH / 2 - (cardW * 3 + gap * 2) / 2;
+		// 5-up shop laid out across the panel; cards are smaller than before
+		// to fit. Cost still fits comfortably with the new card height.
+		const cardW = 120;
+		const cardH = 110;
+		const gap = 12;
+		const startX = BASE_WIDTH / 2 - (cardW * 5 + gap * 4) / 2;
 		const cardY = contentY + 36;
 
 		offers.forEach((offer, i) => {

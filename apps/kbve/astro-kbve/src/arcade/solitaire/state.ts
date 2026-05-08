@@ -35,6 +35,7 @@ import {
 	JOKER_MULT_PER_TABLEAU,
 	ROUND_BLINDS,
 	SCORE,
+	STATS,
 	STOCK_DRAW_COUNT,
 	STORAGE_KEY,
 } from './config';
@@ -96,6 +97,8 @@ export class GameState {
 	cash = 0;
 	hp: number = HP.start;
 	maxHp: number = HP.max;
+	armor: number = STATS.startArmor;
+	attack: number = STATS.startAttack;
 	jokerVariants: Map<number, JokerVariant> = new Map();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
@@ -163,6 +166,8 @@ export class GameState {
 		this.cash = 0;
 		this.hp = HP.start;
 		this.maxHp = HP.max;
+		this.armor = STATS.startArmor;
+		this.attack = STATS.startAttack;
 		this.ownedJokerVariants = [];
 		this.gameOver = false;
 		this.betweenRounds = false;
@@ -171,9 +176,12 @@ export class GameState {
 		this.reset(rng);
 	}
 
-	/** Take damage. HP floors at 0 + auto-triggers game over when reached. */
+	/** Take damage. Armor reduces incoming amount by `armor × armorReduction`,
+	 * floor 1 — at least 1 damage always lands so armor never makes the
+	 * player fully invincible. HP clamps at 0 + auto-fires game over. */
 	damage(amount: number) {
-		this.hp = Math.max(0, this.hp - amount);
+		const reduced = Math.max(1, amount - this.armor * STATS.armorReduction);
+		this.hp = Math.max(0, this.hp - reduced);
 		if (this.hp === 0 && !this.gameOver) {
 			this.declareGameOver();
 		}
@@ -352,7 +360,12 @@ export class GameState {
 			const flatBonus = this.tableauScoreBoostBonus();
 
 			const base = points + flatBonus;
-			delta = Math.round(base * this.comboMultiplier * jokerMult);
+			// Attack stat multiplies the final foundation score on top of
+			// combo + joker mults. Default attack=1 = no-op; bought
+			// upgrades push it past 1.0 in increments of attackStep (0.25).
+			delta = Math.round(
+				base * this.comboMultiplier * jokerMult * this.attack,
+			);
 		} else {
 			// Non-foundation move OR negative-point foundation rollback.
 			this.combo = 0;
