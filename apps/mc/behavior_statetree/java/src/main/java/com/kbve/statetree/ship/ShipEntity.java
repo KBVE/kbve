@@ -519,6 +519,24 @@ public class ShipEntity extends Entity {
         return ActionResult.PASS;
     }
 
+    /**
+     * Cargo load fraction (0.0 empty .. 1.0 every storage slot full to its
+     * max stack size). Used to apply a flight penalty so heavy hauls feel
+     * sluggish — mirrors IA's mass-aware engine response without exposing
+     * an extra stat to JSON.
+     */
+    private float computeCargoLoad() {
+        int filled = 0;
+        int capacity = 0;
+        for (int i = 0; i < ShipInventory.STORAGE_COUNT; i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(ShipInventory.STORAGE_START + i);
+            int max = s.isEmpty() ? 64 : s.getMaxCount();
+            capacity += max;
+            filled += s.getCount();
+        }
+        return capacity == 0 ? 0f : (float) filled / (float) capacity;
+    }
+
     private int seatCapacity() {
         List<List<Vec3d>> seats = FlightStatsRegistry.getSeats(getModelName());
         return seats.isEmpty() ? 1 : seats.get(seats.size() - 1).size();
@@ -568,7 +586,14 @@ public class ShipEntity extends Entity {
         // intakes can't burn fuel; we mirror that gating here.
         boolean submerged = this.isSubmergedInWater();
         if (!fueled || submerged) ts = 0f;
-        enginePower.update(ridden && fueled && !submerged ? ts : 0.0f);
+
+        // Cargo weight — heavier load throttles down max engine output
+        // and slows the engine ramp. 0.0 = empty cargo, 1.0 = every
+        // storage slot stacked. Caps the penalty at 50 % of max thrust.
+        float cargoLoad = computeCargoLoad();
+        float loadPenalty = Math.min(0.5f, cargoLoad * 0.5f);
+        float effectiveTarget = ts * (1.0f - loadPenalty);
+        enginePower.update(ridden && fueled && !submerged ? effectiveTarget : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
         // Bank roll from yaw delta — smoothed, used by renderer + camera.
