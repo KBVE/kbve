@@ -1,9 +1,15 @@
 /**
  * Integration tests that verify the built @kbve/devops package
  * can be imported and its exports are accessible.
+ *
+ * The top-level barrel only re-exports browser-safe modules so
+ * Astro/Vite consumers can pull `kbveApi` etc. without dragging
+ * Node-only deps (jsdom, child_process, fs) into client bundles.
+ * Server-only helpers (yt, github actions, codegen) live behind
+ * deep imports.
  */
 describe('ESM Import', () => {
-	it('should export all expected functions from the barrel', async () => {
+	it('should export browser-safe functions from the top-level barrel', async () => {
 		const devops = await import('@kbve/devops');
 
 		// Sanitization
@@ -21,15 +27,20 @@ describe('ESM Import', () => {
 		expect(typeof devops._message).toBe('function');
 		expect(typeof devops._groq).toBe('function');
 
-		// YouTube
-		expect(typeof devops.fetchYoutubeTitle).toBe('function');
-		expect(typeof devops.extractYoutubeLink).toBe('function');
-		expect(typeof devops.extractYoutubeId).toBe('function');
+		// KBVE typed client
+		expect(typeof devops.createKbveClient).toBe('function');
+	});
 
-		// GitHub Actions helpers
-		expect(typeof devops._$gha_kbve_ActionProcess).toBe('function');
-		expect(typeof devops._$gha_createIssueComment).toBe('function');
-		expect(typeof devops._$gha_addLabel).toBe('function');
-		expect(typeof devops._$gha_removeLabel).toBe('function');
+	it('should expose server-only helpers via deep source imports', async () => {
+		const yt = await import('../../devops/src/lib/client/yt');
+		expect(typeof yt.fetchYoutubeTitle).toBe('function');
+		expect(typeof yt.extractYoutubeLink).toBe('function');
+		expect(typeof yt.extractYoutubeId).toBe('function');
+
+		const gh = await import('../../devops/src/lib/client/github');
+		expect(typeof gh._$gha_kbve_ActionProcess).toBe('function');
+		expect(typeof gh._$gha_createIssueComment).toBe('function');
+		expect(typeof gh._$gha_addLabel).toBe('function');
+		expect(typeof gh._$gha_removeLabel).toBe('function');
 	});
 });
