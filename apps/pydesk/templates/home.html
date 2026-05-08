@@ -2343,13 +2343,23 @@
 					
 					try {
 						if (window.kbve && window.kbve !== null) {
-							// Use the KBVE system
-							outputDiv.innerHTML = `
-								<div class="text-blue-600">Command: ${command}</div>
-								<div class="text-gray-600">Executing via KBVE system...</div>
-								<div class="text-xs text-gray-500">User: ${window.AuthStateManager.getCurrentUser()?.email}</div>
-								<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
-							`;
+							// Use the KBVE system. Build the status block via the DOM
+							// API so user-controlled `command` and `email` go through
+							// `textContent` rather than `innerHTML` (CodeQL js/xss-through-dom).
+							outputDiv.replaceChildren();
+							const cmdLine = document.createElement('div');
+							cmdLine.className = 'text-blue-600';
+							cmdLine.textContent = `Command: ${command}`;
+							const execLine = document.createElement('div');
+							execLine.className = 'text-gray-600';
+							execLine.textContent = 'Executing via KBVE system...';
+							const userLine = document.createElement('div');
+							userLine.className = 'text-xs text-gray-500';
+							userLine.textContent = `User: ${window.AuthStateManager.getCurrentUser()?.email ?? ''}`;
+							const tsLine = document.createElement('div');
+							tsLine.className = 'text-xs text-gray-500';
+							tsLine.textContent = `Timestamp: ${new Date().toISOString()}`;
+							outputDiv.append(cmdLine, execLine, userLine, tsLine);
 							
 							// Clear the input
 							commandInput.value = '';
