@@ -527,6 +527,28 @@ public class ShipEntity extends Entity {
             setFuelLevel(getFuelLevel() - burn);
         }
 
+        // Cargo auto-repair — scan storage slots for iron-tier materials
+        // and consume one item per tick when hull is below max. Lets a
+        // pilot stockpile patch material in cargo and limp home.
+        if (getShipHealth() < MAX_HEALTH && this.age % 20 == 0) {
+            for (int i = 0; i < ShipInventory.STORAGE_COUNT; i++) {
+                int slot = ShipInventory.STORAGE_START + i;
+                net.minecraft.item.ItemStack patch = inventory.getStack(slot);
+                if (patch.isEmpty()) continue;
+                float repairAmt = 0f;
+                if (patch.isOf(net.minecraft.item.Items.IRON_INGOT))           repairAmt = 25f;
+                else if (patch.isOf(net.minecraft.item.Items.IRON_BLOCK))      repairAmt = 50f;
+                else if (patch.isOf(net.minecraft.item.Items.COPPER_INGOT))    repairAmt = 15f;
+                else if (patch.isOf(net.minecraft.item.Items.NETHERITE_INGOT)) repairAmt = 60f;
+                if (repairAmt > 0f) {
+                    setShipHealth(getShipHealth() + repairAmt);
+                    patch.decrement(1);
+                    if (patch.isEmpty()) inventory.setStack(slot, net.minecraft.item.ItemStack.EMPTY);
+                    break;
+                }
+            }
+        }
+
         // Boiler feed — top off fuel from the dedicated feed slot when low.
         // Consumes one item per top-off; lava buckets leave an empty bucket.
         if (getFuelLevel() < MAX_FUEL - COAL_FUEL) {
