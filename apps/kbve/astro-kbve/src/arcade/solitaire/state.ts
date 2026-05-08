@@ -294,6 +294,10 @@ export class GameState {
 		if (!snap || !score) return false;
 		this.restore(snap);
 		this.restoreScore(score);
+		// Charge the undo tax AFTER the score has been rolled back. Each
+		// undo costs flat SCORE.undoCost regardless of what was undone —
+		// soft-discourages spam undo without locking it out.
+		this.score = Math.max(0, this.score - SCORE.undoCost);
 		return true;
 	}
 
@@ -307,8 +311,10 @@ export class GameState {
 
 	/** Tally a move. `isFoundation` extends combo + applies joker multiplier
 	 * on positive points. Negative points (e.g. foundation→tableau) reset
-	 * combo and skip multipliers. */
+	 * combo and skip multipliers. SCORE.movePerAction is subtracted AFTER
+	 * any multipliers so the per-move tax is flat. */
 	private applyScore(points: number, isFoundation: boolean) {
+		let delta: number;
 		if (isFoundation && points > 0) {
 			const now = nowMs();
 			if (now - this.lastFoundationAt < COMBO.windowMs) {
@@ -328,14 +334,14 @@ export class GameState {
 			const flatBonus = this.tableauScoreBoostBonus();
 
 			const base = points + flatBonus;
-			const final = Math.round(base * this.comboMultiplier * jokerMult);
-			this.score = Math.max(0, this.score + final);
+			delta = Math.round(base * this.comboMultiplier * jokerMult);
 		} else {
 			// Non-foundation move OR negative-point foundation rollback.
 			this.combo = 0;
 			this.comboMultiplier = 1;
-			this.score = Math.max(0, this.score + points);
+			delta = points;
 		}
+		this.score = Math.max(0, this.score + delta - SCORE.movePerAction);
 		this.moves += 1;
 	}
 
@@ -378,17 +384,17 @@ export class GameState {
 				this.stock.push(setFaceUp(c, false));
 			}
 			this.stockCycles += 1;
-			// First reshuffle is free; later cycles cost.
-			if (this.stockCycles > 1) {
-				this.applyScore(SCORE.stockRecycle, false);
-			} else {
-				this.moves += 1;
-			}
+			// First reshuffle is free (cost-wise) on the recycle penalty;
+			// later cycles cost SCORE.stockRecycle. Per-move tax applies
+			// either way via applyScore.
+			const recyclePenalty =
+				this.stockCycles > 1 ? SCORE.stockRecycle : 0;
+			this.applyScore(recyclePenalty, false);
 			return true;
 		}
 		const c = this.stock.pop()!;
 		this.waste.push(setFaceUp(c, true));
-		this.moves += 1;
+		this.applyScore(0, false);
 		return true;
 	}
 

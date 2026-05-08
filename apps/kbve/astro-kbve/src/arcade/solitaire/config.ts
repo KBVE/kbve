@@ -94,6 +94,16 @@ export const SCORE = {
 	foundationToTableau: -15,
 	revealTableau: 5, // bonus for flipping a face-down card on the move
 	stockRecycle: -100, // first pass is free; subsequent recycles cost
+
+	/** Flat cost levied on every move (any pile-mutating action — drag drop,
+	 * stock click, double-click auto-foundation). Spaces play out so brute
+	 * forcing isn't free. Subtracted AFTER combo + joker multipliers, so a
+	 * big chain still nets positive. Tune downward if rounds feel grindy. */
+	movePerAction: 5,
+	/** Flat cost on each undo. Discourages spam-undo for trial-and-error
+	 * exploration without locking it out entirely. Applied after the
+	 * restore (so undoing repeatedly stacks the cost). */
+	undoCost: 5,
 } as const;
 
 /** Combo: consecutive foundation placements within `comboWindowMs` extend
