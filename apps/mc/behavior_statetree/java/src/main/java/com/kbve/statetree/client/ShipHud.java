@@ -29,6 +29,7 @@ public class ShipHud implements HudRenderCallback {
     private int maxUpgradeSlots = 4;
     private byte cautionBits = 0;
     private String flightMode = "FLY";
+    private float boostReserve = 1f;
 
     public void setActive(String shipName) {
         this.active = true;
@@ -100,6 +101,10 @@ public class ShipHud implements HudRenderCallback {
 
     public void setFlightMode(String mode) {
         this.flightMode = mode;
+    }
+
+    public void setBoostReserve(float reserve) {
+        this.boostReserve = reserve;
     }
 
     public boolean isActive() {
@@ -205,6 +210,12 @@ public class ShipHud implements HudRenderCallback {
         context.fill(barX - 1, engY - 1, barX + barW + 1, engY + barH + 1, 0xFF000000);
         context.fill(barX, engY, barX + barW, engY + barH, 0xFF333333);
         if (engFillW > 0) context.fill(barX, engY, barX + engFillW, engY + barH, 0xFFFF8822);
+
+        // Boost reservoir — narrow strip on top of engine bar (purple).
+        int boostFillW = (int) (barW * Math.max(0f, Math.min(1f, boostReserve)));
+        int boostColor = boostReserve <= 0.05f ? 0xFFCC2222 : 0xFFAA22DD;
+        context.fill(barX, engY - 4, barX + barW, engY - 1, 0xFF111111);
+        if (boostFillW > 0) context.fill(barX, engY - 4, barX + boostFillW, engY - 1, boostColor);
 
         // Fuel gauge — yellow bar above engine. Flashes red when low.
         int fuelY = engY - 14;

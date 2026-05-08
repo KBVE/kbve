@@ -59,6 +59,9 @@ public class ShipEntity extends Entity {
      */
     private static final TrackedData<Byte> CAUTION_BITS =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.BYTE);
+    /** Boost meter 0..1 — drains while sprinting at >1.0 throttle, regens otherwise. */
+    private static final TrackedData<Float> BOOST_RESERVE =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
     public static final int CAUTION_PULL_UP   = 1 << 0;
     public static final int CAUTION_VOID      = 1 << 1;
@@ -220,6 +223,9 @@ public class ShipEntity extends Entity {
     /** Bit-packed caution flags — see CAUTION_* constants. Read by HUD. */
     public byte getCautionBits() { return this.dataTracker.get(CAUTION_BITS); }
     public boolean hasCaution(int mask) { return (getCautionBits() & mask) != 0; }
+
+    /** Boost reservoir 0..1; drains while throttle > 1.0, regens otherwise. */
+    public float getBoostReserve() { return this.dataTracker.get(BOOST_RESERVE); }
 
     public FlightStats getStats() {
         String key = getModelName();
@@ -593,6 +599,26 @@ public class ShipEntity extends Entity {
         float cargoLoad = computeCargoLoad();
         float loadPenalty = Math.min(0.5f, cargoLoad * 0.5f);
         float effectiveTarget = ts * (1.0f - loadPenalty);
+
+        // Boost reservoir — clamps the requested throttle to 1.0 once the
+        // pilot has burned through their 5-second boost budget. Drains
+        // 1/100 per tick (5s full burn) while ts > 1.0; regens 1/200 per
+        // tick (10s recovery) otherwise. Server-side only.
+        if (!this.getEntityWorld().isClient()) {
+            float reserve = getBoostReserve();
+            if (effectiveTarget > 1.0f) {
+                if (reserve > 0f) {
+                    reserve = Math.max(0f, reserve - 0.01f);
+                } else {
+                    effectiveTarget = Math.min(effectiveTarget, 1.0f);
+                }
+            } else {
+                reserve = Math.min(1.0f, reserve + 0.005f);
+            }
+            this.dataTracker.set(BOOST_RESERVE, reserve);
+        }
+        if (getBoostReserve() <= 0f) effectiveTarget = Math.min(effectiveTarget, 1.0f);
+
         enginePower.update(ridden && fueled && !submerged ? effectiveTarget : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
@@ -1096,6 +1122,7 @@ public class ShipEntity extends Entity {
         builder.add(UPGRADES_CSV, "");
         builder.add(BANNER_ITEM_ID, "");
         builder.add(CAUTION_BITS, (byte) 0);
+        builder.add(BOOST_RESERVE, 1.0f);
     }
 
     @Override
