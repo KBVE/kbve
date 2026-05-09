@@ -48,6 +48,7 @@ public class ShipItem extends Item {
             ShipEntity entity = new ShipEntity(ShipEntityTypes.SHIP, world);
             entity.setShipId(java.util.UUID.randomUUID());
             entity.setOwnerUuid(user.getUuid());
+            entity.setOwnerName(user.getName().getString());
             entity.setModelName(modelName);
             entity.refreshPositionAndAngles(pos.x, pos.y + 1.0, pos.z, user.getYaw(), 0);
 

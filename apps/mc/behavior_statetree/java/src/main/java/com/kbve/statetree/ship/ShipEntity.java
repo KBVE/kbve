@@ -37,6 +37,8 @@ public class ShipEntity extends Entity {
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<String> SHIP_ID =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<String> OWNER_NAME =
+            DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<Float> SHIP_HEALTH =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
     private static final TrackedData<Float> TARGET_SPEED =
@@ -231,6 +233,13 @@ public class ShipEntity extends Entity {
     }
     public void setOwnerUuid(UUID uuid) {
         this.ownerUuidStr = uuid != null ? uuid.toString() : "";
+    }
+
+    public String getOwnerName() {
+        return this.dataTracker.get(OWNER_NAME);
+    }
+    public void setOwnerName(String name) {
+        this.dataTracker.set(OWNER_NAME, name != null ? name : "");
     }
 
     public String getModelName() { return this.dataTracker.get(MODEL_NAME); }
@@ -444,6 +453,27 @@ public class ShipEntity extends Entity {
 
     @Override
     public boolean canHit() { return true; }
+
+    @Override
+    public net.minecraft.text.Text getName() {
+        String owner = getOwnerName();
+        String ship = getShipName();
+        if (owner.isEmpty() && ship.isEmpty()) return super.getName();
+        String label;
+        if (!ship.isEmpty() && !owner.isEmpty()) {
+            label = owner + "'s " + ship;
+        } else if (!ship.isEmpty()) {
+            label = ship;
+        } else {
+            label = owner + "'s Ship";
+        }
+        return net.minecraft.text.Text.literal(label);
+    }
+
+    @Override
+    public boolean shouldRenderName() {
+        return !getOwnerName().isEmpty() || !getShipName().isEmpty();
+    }
 
     @Override
     public EntityDimensions getDimensions(net.minecraft.entity.EntityPose pose) {
@@ -1213,6 +1243,7 @@ public class ShipEntity extends Entity {
         builder.add(MODEL_NAME, "immersive_aircraft/airship");
         builder.add(SHIP_NAME, "");
         builder.add(SHIP_ID, "");
+        builder.add(OWNER_NAME, "");
         builder.add(SHIP_HEALTH, MAX_HEALTH);
         builder.add(TARGET_SPEED, 0.0f);
         builder.add(VERTICAL_INTENT, 0.0f);
@@ -1227,6 +1258,7 @@ public class ShipEntity extends Entity {
     public void readCustomData(ReadView view) {
         this.dataTracker.set(SHIP_ID, view.getString("ShipId", ""));
         this.ownerUuidStr = view.getString("OwnerUuid", "");
+        setOwnerName(view.getString("OwnerName", ""));
         setModelName(view.getString("ModelName", "immersive_aircraft/airship"));
         setShipName(view.getString("ShipName", ""));
         this.setYaw(view.getFloat("Heading", 0.0f));
@@ -1254,6 +1286,7 @@ public class ShipEntity extends Entity {
     public void writeCustomData(WriteView view) {
         view.putString("ShipId", this.dataTracker.get(SHIP_ID));
         view.putString("OwnerUuid", ownerUuidStr);
+        view.putString("OwnerName", getOwnerName());
         view.putString("ModelName", getModelName());
         view.putString("ShipName", getShipName());
         view.putFloat("Heading", this.getYaw());

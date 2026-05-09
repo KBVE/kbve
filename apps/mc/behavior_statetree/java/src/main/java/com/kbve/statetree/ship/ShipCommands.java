@@ -45,7 +45,8 @@ public final class ShipCommands {
                             String modelName = resolveModelPath(input);
                             ServerWorld world = ctx.getSource().getWorld();
                             ShipEntity ship = manager.placeShip(world, modelName,
-                                    player.getUuid(), player.getBlockPos());
+                                    player.getUuid(), player.getName().getString(),
+                                    player.getBlockPos());
                             if (ship != null) {
                                 ctx.getSource().sendFeedback(
                                         () -> Text.of("Spawned " + modelName + " (id=" + ship.getShipId() + "). /boardship " + ship.getShipId() + " to teleport on."), true);

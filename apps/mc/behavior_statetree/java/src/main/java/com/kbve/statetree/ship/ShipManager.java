@@ -39,11 +39,17 @@ public final class ShipManager {
      */
     public ShipEntity placeShip(ServerWorld world, String modelName,
                                 UUID ownerUuid, BlockPos nearPos) {
+        return placeShip(world, modelName, ownerUuid, "", nearPos);
+    }
+
+    public ShipEntity placeShip(ServerWorld world, String modelName,
+                                UUID ownerUuid, String ownerName, BlockPos nearPos) {
         UUID shipId = UUID.randomUUID();
 
         ShipEntity entity = new ShipEntity(ShipEntityTypes.SHIP, world);
         entity.setShipId(shipId);
         entity.setOwnerUuid(ownerUuid);
+        entity.setOwnerName(ownerName);
         entity.setModelName(modelName);
         entity.setShipHealth(ShipEntity.MAX_HEALTH);
         // Spawn with half-tank — players can refuel via coal / lava bucket interact.
