@@ -593,19 +593,23 @@ use jedi::state::sidecar::ClickHouseConfig;
 static CLICKHOUSE_DIRECT: OnceLock<ClickHouseConfig> = OnceLock::new();
 
 pub fn init_clickhouse_direct() -> bool {
-    // ClickHouseConfig::from_env defaults host=localhost / port=8123 if
-    // CLICKHOUSE_HOST / CLICKHOUSE_PORT aren't set, so a misconfigured pod
-    // would silently target localhost. Require at least one of the two to
-    // be present to consider the proxy "configured".
-    let has_env = std::env::var("CLICKHOUSE_HOST").is_ok()
-        || std::env::var("CLICKHOUSE_PORT").is_ok()
-        || std::env::var("CLICKHOUSE_USER").is_ok()
-        || std::env::var("CLICKHOUSE_DATABASE").is_ok();
-    if !has_env {
+    let (config, url_explicit) = ClickHouseConfig::from_env_resolved();
+
+    if !url_explicit {
+        warn!(
+            "ClickHouse direct route refused — set CLICKHOUSE_ENDPOINT (preferred) or \
+             CLICKHOUSE_HOST/PORT in the deployment env."
+        );
         return false;
     }
 
-    let config = ClickHouseConfig::from_env();
+    if config.database == "default" && std::env::var("CLICKHOUSE_DATABASE").is_err() {
+        warn!(
+            "ClickHouse direct route initialized with database=default — set \
+             CLICKHOUSE_DATABASE (e.g. observability) so queries hit the right schema."
+        );
+    }
+
     CLICKHOUSE_DIRECT.set(config).is_ok()
 }
 
