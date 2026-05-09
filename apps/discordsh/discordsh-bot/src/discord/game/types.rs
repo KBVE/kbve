@@ -435,6 +435,8 @@ pub struct PlayerState {
     pub inventory: GameInventory,
     pub accuracy: f32,
     pub alive: bool,
+    #[serde(default)]
+    pub downed: bool,
     pub member_status: MemberStatusTag,
     pub class: ClassType,
     pub level: u8,
@@ -475,6 +477,7 @@ impl Default for PlayerState {
             inventory: GameInventory::new(MAX_INVENTORY_SLOTS),
             accuracy: 1.0,
             alive: true,
+            downed: false,
             member_status: MemberStatusTag::Guest,
             class: ClassType::Warrior,
             level: 1,
@@ -891,9 +894,8 @@ impl SessionState {
             .expect("player must exist in session")
     }
 
-    /// Check if all players are dead.
     pub fn all_players_dead(&self) -> bool {
-        self.players.values().all(|p| !p.alive)
+        self.players.values().all(|p| !p.alive || p.downed)
     }
 
     /// Ordered list of (UserId, &PlayerState) for roster display.
@@ -945,14 +947,17 @@ impl SessionState {
         dead
     }
 
-    /// Get alive player IDs in roster order.
     pub fn alive_player_ids(&self) -> Vec<serenity::UserId> {
         let mut ids = Vec::new();
-        if self.players.get(&self.owner).is_some_and(|p| p.alive) {
+        if self
+            .players
+            .get(&self.owner)
+            .is_some_and(|p| p.alive && !p.downed)
+        {
             ids.push(self.owner);
         }
         for &uid in &self.party {
-            if self.players.get(&uid).is_some_and(|p| p.alive) {
+            if self.players.get(&uid).is_some_and(|p| p.alive && !p.downed) {
                 ids.push(uid);
             }
         }

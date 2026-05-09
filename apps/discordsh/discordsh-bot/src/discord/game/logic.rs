@@ -437,7 +437,6 @@ fn validate_actor(session: &SessionState, actor: serenity::UserId) -> Result<(),
         return Err("You are not part of this session.".to_owned());
     }
 
-    // Check if the player is still alive
     if let Some(player) = session.players.get(&actor)
         && !player.alive
     {
@@ -455,6 +454,16 @@ fn validate_action(
 ) -> Result<(), String> {
     if matches!(session.phase, GamePhase::GameOver(_)) {
         return Err("This session is over.".to_owned());
+    }
+
+    if let Some(player) = session.players.get(&actor)
+        && player.downed
+        && !matches!(
+            action,
+            GameAction::Move(_) | GameAction::ViewMap | GameAction::ViewInventory
+        )
+    {
+        return Err("You're Downed. Crawl back to the city to recover.".to_owned());
     }
 
     match action {
@@ -1651,7 +1660,8 @@ fn single_enemy_turn(
                 let player = session.player_mut(uid);
                 player.hp -= actual;
                 if player.hp <= 0 {
-                    player.alive = false;
+                    player.downed = true;
+                    player.hp = 0;
                 }
             }
             // No thorns reflect for AoE
@@ -1693,7 +1703,8 @@ fn single_enemy_turn(
     for uid in all_uids {
         let player = session.player_mut(uid);
         if player.hp <= 0 && player.alive {
-            player.alive = false;
+            player.downed = true;
+            player.hp = 0;
             let defeated_name = player.name.clone();
             logs.push(format!("{} has been defeated...", defeated_name));
         }
@@ -2159,6 +2170,20 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
 
     logs.push(format!("You arrive at: {}.", session.room.name));
 
+    if matches!(session.room.room_type, RoomType::UndergroundCity) {
+        for player in session.players.values_mut() {
+            if player.alive && player.downed {
+                player.downed = false;
+                player.hp = player.max_hp;
+                player.effects.clear();
+                logs.push(format!(
+                    "{} stumbles into the city hospital and is patched up. ({} HP)",
+                    player.name, player.hp
+                ));
+            }
+        }
+    }
+
     // Increment lifetime_rooms_cleared for all alive players
     let alive_ids = session.alive_player_ids();
     let depth = pos.depth();
@@ -2215,7 +2240,8 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     for &uid in &alive_ids {
         let player = session.player_mut(uid);
         if player.hp <= 0 {
-            player.alive = false;
+            player.downed = true;
+            player.hp = 0;
         }
     }
     if session.all_players_dead() {
@@ -2336,7 +2362,7 @@ fn apply_revive(
         .get(&target_uid)
         .ok_or_else(|| "Player not found in session.".to_owned())?;
 
-    if target_player.alive {
+    if target_player.alive && !target_player.downed {
         return Err("That player is already alive!".to_owned());
     }
 
@@ -2346,6 +2372,7 @@ fn apply_revive(
     session.player_mut(actor).gold -= cost;
     let target = session.player_mut(target_uid);
     target.alive = true;
+    target.downed = false;
     target.hp = revive_hp;
     target.effects.clear();
 
@@ -2758,7 +2785,8 @@ fn apply_trap_choice(
                     let player = session.player_mut(uid);
                     player.hp -= dmg;
                     if player.hp <= 0 {
-                        player.alive = false;
+                        player.downed = true;
+                        player.hp = 0;
                     }
                 }
             }
@@ -2775,7 +2803,8 @@ fn apply_trap_choice(
                 let player = session.player_mut(uid);
                 player.hp -= reduced;
                 if player.hp <= 0 {
-                    player.alive = false;
+                    player.downed = true;
+                    player.hp = 0;
                 }
             }
         }
@@ -2840,7 +2869,8 @@ fn apply_treasure_choice(
                     player.gold += standard_gold;
                     player.lifetime_gold_earned += standard_gold as u32;
                     if player.hp <= 0 {
-                        player.alive = false;
+                        player.downed = true;
+                        player.hp = 0;
                     }
                 }
                 logs.push(format!(
@@ -9687,6 +9717,32 @@ mod tests {
         let p2 = serenity::UserId::new(2);
         let result = apply_action(&mut session, GameAction::Revive(p2), OWNER);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn downed_player_blocked_from_combat_actions() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies.push(test_enemy());
+        session.player_mut(OWNER).downed = true;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_err());
+        let msg = result.unwrap_err();
+        assert!(msg.contains("Downed"));
+    }
+
+    #[test]
+    fn arrive_at_city_revives_downed_player() {
+        let mut session = test_session();
+        session.player_mut(OWNER).downed = true;
+        session.player_mut(OWNER).hp = 0;
+        let prior_max = session.player(OWNER).max_hp;
+        let logs = arrive_at_tile(&mut session, MapPos::new(0, 0));
+
+        assert!(!session.player(OWNER).downed);
+        assert_eq!(session.player(OWNER).hp, prior_max);
+        assert!(logs.iter().any(|l| l.contains("city hospital")));
     }
 
     #[test]
