@@ -158,6 +158,11 @@ export class GameState {
 	 * stays face-down in its tableau column (so rules + drag stay correct)
 	 * but the scene shows its face on hover. Cleared on each new deal. */
 	peekedCards: Set<number> = new Set();
+	/** Card indices that are currently "frozen" — cannot be moved or sent
+	 * to a foundation until the freeze rotates on the next stock click.
+	 * Always 0 or 1 entries. Monsters are excluded from the freeze pool
+	 * so the player can still engage them. */
+	frozenCards: Set<number> = new Set();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
 	ownedJokerVariants: JokerVariant[] = [];
@@ -201,6 +206,7 @@ export class GameState {
 		this.stockCycles = 0;
 		this.scoredCards.clear();
 		this.peekedCards.clear();
+		this.frozenCards.clear();
 
 		// Apply owned joker variants (from shop) to the dealt jokers. Variant
 		// stays bound to the card index so the variant persists across moves
@@ -553,6 +559,9 @@ export class GameState {
 		// fight them. Refill the waste from stock to keep the visible draw
 		// count consistent with `STOCK_DRAW_COUNT`.
 		this.divertMonstersFromWaste();
+		// Freeze rotates each stock click — previous frozen card thaws,
+		// a fresh face-up tableau card gets locked for the next turn.
+		this.rotateFreeze();
 		while (this.waste.length < STOCK_DRAW_COUNT && this.stock.length > 0) {
 			const c = setFaceUp(this.stock.pop()!, true);
 			if (isMonster(c)) {
@@ -575,6 +584,39 @@ export class GameState {
 			this.waste.splice(i, 1);
 			this.placeMonsterInTableau(c);
 		}
+	}
+
+	/** Pick a fresh card to freeze and clear the previous one. Skips
+	 * monsters (combat targets stay engageable) and face-down cards (the
+	 * player can't see what's frozen). No-op when no candidates exist. */
+	private rotateFreeze() {
+		this.frozenCards.clear();
+		const candidates: number[] = [];
+		for (const col of this.tableaus) {
+			for (const c of col) {
+				if (!isFaceUp(c)) continue;
+				if (isMonster(c)) continue;
+				candidates.push(c & 0x3f);
+			}
+		}
+		if (candidates.length === 0) return;
+		const pick = candidates[Math.floor(Math.random() * candidates.length)];
+		this.frozenCards.add(pick);
+	}
+
+	/** True when the card index is currently frozen. Exposed to the scene
+	 * for hover/drag-start checks + frozen-ring visibility. */
+	isFrozen(idx: number): boolean {
+		return this.frozenCards.has(idx);
+	}
+
+	/** Helper used by `moveTableauRun` to reject runs whose first card —
+	 * or any card — is frozen. */
+	private runHasFrozen(run: number[]): boolean {
+		for (const c of run) {
+			if (this.frozenCards.has(c & 0x3f)) return true;
+		}
+		return false;
 	}
 
 	/** Append a monster card face-up to the least-crowded tableau column,
@@ -634,6 +676,7 @@ export class GameState {
 		if (fromCol === toCol) return false;
 		const run = movableRun(this.tableaus[fromCol], fromCardIndex);
 		if (!run) return false;
+		if (this.runHasFrozen(run)) return false;
 		const bottom = run[0];
 		if (!canDropOnTableau(bottom, this.tableaus[toCol])) return false;
 
@@ -650,6 +693,7 @@ export class GameState {
 		const col = this.tableaus[fromCol];
 		const c = col[col.length - 1];
 		if (c === undefined || !isFaceUp(c)) return false;
+		if (this.frozenCards.has(c & 0x3f)) return false;
 		if (getSuit(c) !== FOUNDATION_SUITS[foundationIdx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[foundationIdx]))
 			return false;
@@ -756,6 +800,7 @@ export class GameState {
 		const pile = this.tableaus[col];
 		const c = pile[pile.length - 1];
 		if (c === undefined || !isFaceUp(c) || !isBonus(c)) return false;
+		if (this.frozenCards.has(c & 0x3f)) return false;
 		this.pushHistory();
 		pile.pop();
 		this.applyBonusEffect(getBonusType(c));

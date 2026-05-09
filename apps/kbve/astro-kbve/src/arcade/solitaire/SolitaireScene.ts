@@ -86,9 +86,12 @@ interface SceneCardView {
 	monsterNameText?: Phaser.GameObjects.Text;
 	/** Red engaged-glow ring drawn on the face of an engaged monster. */
 	monsterEngagedRing?: Phaser.GameObjects.Graphics;
-	/** Purple-glow ring drawn over the card back when the card is "peeked"
+	/** Light-green ring drawn over the card back when the card is "peeked"
 	 * (revealed by a Reveal bonus) — hints the player can hover to see it. */
 	peekRing: Phaser.GameObjects.Graphics;
+	/** Purple frost ring drawn over a face-up card while it is frozen for
+	 * the current turn — hints the card cannot be moved. */
+	frozenRing: Phaser.GameObjects.Graphics;
 	/** Transparent rectangle child that owns the interactive hit area.
 	 * Phaser's Container hit-testing with a custom centered Rectangle was
 	 * unreliable — only the top-left quadrant registered events. Using a
@@ -1151,6 +1154,29 @@ export class SolitaireScene extends Phaser.Scene {
 		);
 		peekRing.setVisible(false);
 
+		// Frost / freeze ring — purple double-stroke drawn over the face
+		// while the card is in `state.frozenCards`. Reuses the visual
+		// language we reserved for the (now-distinct) curse status while
+		// the curse mechanic itself remains a future Phase C concern.
+		const frozenRing = this.add.graphics();
+		frozenRing.lineStyle(3, 0xa855f7, 0.95);
+		frozenRing.strokeRoundedRect(
+			-CARD_SIZE.width / 2 + 2,
+			-CARD_SIZE.height / 2 + 2,
+			CARD_SIZE.width - 4,
+			CARD_SIZE.height - 4,
+			CARD_SIZE.radius - 2,
+		);
+		frozenRing.lineStyle(1, 0xe9d5ff, 0.75);
+		frozenRing.strokeRoundedRect(
+			-CARD_SIZE.width / 2 + 5,
+			-CARD_SIZE.height / 2 + 5,
+			CARD_SIZE.width - 10,
+			CARD_SIZE.height - 10,
+			CARD_SIZE.radius - 4,
+		);
+		frozenRing.setVisible(false);
+
 		// Transparent full-card hit zone. Lives ABOVE face/back in the child
 		// stack so pointer events always land here regardless of which
 		// graphics children happen to be visible. `alpha: 0.001` instead of
@@ -1167,7 +1193,7 @@ export class SolitaireScene extends Phaser.Scene {
 		hitZone.setOrigin(0.5);
 		hitZone.setInteractive({ useHandCursor: true });
 
-		container.add([shadow, back, peekRing, face, hitZone]);
+		container.add([shadow, back, peekRing, face, frozenRing, hitZone]);
 		face.setVisible(display.faceUp);
 		back.setVisible(!display.faceUp);
 
@@ -1182,6 +1208,7 @@ export class SolitaireScene extends Phaser.Scene {
 			back,
 			shadow,
 			peekRing,
+			frozenRing,
 			hitZone,
 			restY: 0,
 			restDepth: 0,
@@ -1681,6 +1708,7 @@ export class SolitaireScene extends Phaser.Scene {
 			v.face.setVisible(false);
 			v.back.setVisible(true);
 			v.peekRing.setVisible(false);
+			v.frozenRing.setVisible(false);
 		});
 
 		// Waste — fan the last 3 (draw-3 mode). Cards beneath the visible
@@ -1707,6 +1735,7 @@ export class SolitaireScene extends Phaser.Scene {
 			v.face.setVisible(true);
 			v.back.setVisible(false);
 			v.peekRing.setVisible(false);
+			v.frozenRing.setVisible(false);
 		});
 
 		this.state.foundations.forEach((pile, idx) => {
@@ -1726,6 +1755,7 @@ export class SolitaireScene extends Phaser.Scene {
 				v.face.setVisible(true);
 				v.back.setVisible(false);
 				v.peekRing.setVisible(false);
+				v.frozenRing.setVisible(false);
 			});
 		});
 
@@ -1747,12 +1777,16 @@ export class SolitaireScene extends Phaser.Scene {
 				const up = isFaceUp(byte);
 				v.face.setVisible(up);
 				v.back.setVisible(!up);
-				// Purple peek-ring on the back of face-down cards the player
-				// has been allowed to peek (Reveal bonus). Hover handler
-				// flips face/back; the ring is the discoverability hint.
+				// Light-green peek-ring on the back of face-down cards the
+				// player has been allowed to peek (Reveal bonus). Hover
+				// handler flips face/back; the ring is the discoverability
+				// hint.
 				v.peekRing.setVisible(
 					!up && this.state.peekedCards.has(v.cardIndex),
 				);
+				// Purple frost-ring on face-up frozen cards. Drag/move
+				// guards in state.ts reject the card while it's lit.
+				v.frozenRing.setVisible(up && this.state.isFrozen(v.cardIndex));
 				y += up ? TABLEAU_FAN_Y : TABLEAU_FAN_Y_DOWN;
 			});
 		});
@@ -1955,6 +1989,15 @@ export class SolitaireScene extends Phaser.Scene {
 			if (!run) {
 				this.dragging = null;
 				return;
+			}
+			// Frozen guard — any frozen card in the run blocks the drag so
+			// it never visually starts. State methods reject the same way
+			// for safety if a stale view sneaks through.
+			for (const c of run) {
+				if (this.state.isFrozen(c & 0x3f)) {
+					this.dragging = null;
+					return;
+				}
 			}
 			this.beginDrag(run, 'tableau', col, idx, head);
 			return;
