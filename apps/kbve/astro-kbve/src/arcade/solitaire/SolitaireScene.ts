@@ -42,6 +42,7 @@ import {
 } from './config';
 import {
 	ALL_BONUS_BYTES,
+	ALL_MONSTER_BYTES,
 	BonusType,
 	type CardByte,
 	type CardView as DisplayView,
@@ -49,12 +50,14 @@ import {
 	JOKER_BLACK_BYTE,
 	JOKER_RED_BYTE,
 	JokerVariant,
+	MonsterKind,
 	SUIT_GLYPH,
 	getCardId,
 	getCardIndex,
 	getSuit,
 	isBonus,
 	isFaceUp,
+	isMonster,
 	toCardView,
 } from './cards';
 import { GameState } from './state';
@@ -76,6 +79,13 @@ interface SceneCardView {
 	face: Phaser.GameObjects.Container;
 	back: Phaser.GameObjects.Container;
 	shadow: Phaser.GameObjects.Graphics;
+	/** Live "HP/maxHP" label drawn on monster faces. Only set for monster
+	 * cards; updated by `updateMonsterOverlay` after each combat tick. */
+	monsterHpText?: Phaser.GameObjects.Text;
+	monsterAtkText?: Phaser.GameObjects.Text;
+	monsterNameText?: Phaser.GameObjects.Text;
+	/** Red engaged-glow ring drawn on the face of an engaged monster. */
+	monsterEngagedRing?: Phaser.GameObjects.Graphics;
 	/** Purple-glow ring drawn over the card back when the card is "peeked"
 	 * (revealed by a Reveal bonus) — hints the player can hover to see it. */
 	peekRing: Phaser.GameObjects.Graphics;
@@ -159,6 +169,121 @@ export class SolitaireScene extends Phaser.Scene {
 		super({ key: 'SolitaireScene' });
 	}
 
+	preload() {
+		// NPC catalog — Astro renders this endpoint to a static JSON file at
+		// build time, so the fetch is just a static asset read at runtime.
+		// Used to scale monster card stats against the project-wide npcdb so
+		// the game inherits balance changes for free.
+		this.load.json('npcdb', '/api/npcdb.json');
+
+		// Monster placeholder texture — runtime-generated via Graphics +
+		// `generateTexture`. Used as the body of every monster face until a
+		// real PNG ships. Overlays (name, HP, ATK) are drawn separately.
+		this.buildMonsterPlaceholderTexture();
+	}
+
+	/** Heuristic mapping from npcdb-style stats to monster-card stats so the
+	 * card combat stays manageable. Big NPC HP numbers (50+) compress to
+	 * 2..6 hits; ATK compresses to 1..4 damage. */
+	private scaleNpcToMonster(
+		npc: { name?: string; stats?: { hp?: number; attack?: number } },
+		fallback: { name: string; hp: number; atk: number },
+	): { name: string; hp: number; atk: number } {
+		const hp = Math.max(
+			2,
+			Math.min(8, Math.floor((npc.stats?.hp ?? 0) / 10)),
+		);
+		const atk = Math.max(
+			1,
+			Math.min(5, Math.floor((npc.stats?.attack ?? 0) / 2)),
+		);
+		return {
+			name: typeof npc.name === 'string' ? npc.name : fallback.name,
+			hp: hp || fallback.hp,
+			atk: atk || fallback.atk,
+		};
+	}
+
+	/** Pull three random enemy NPCs from the cached `npcdb` payload and
+	 * bind them to the three monster card slots. Falls back silently if
+	 * the fetch failed or returned an empty list — the state already has
+	 * `MONSTER_KIND_PRESETS` seeded. */
+	private bindNpcDataToMonsters() {
+		const payload = this.cache.json.get('npcdb') as
+			| {
+					npcs?: {
+						name?: string;
+						stats?: Record<string, number>;
+						type_flags?: number;
+					}[];
+			  }
+			| undefined;
+		const all = payload?.npcs;
+		if (!Array.isArray(all) || all.length === 0) return;
+		// type_flags integer for ENEMY = 1 (matches NpcTypeFlag enum index).
+		const enemies = all.filter((n) => (n.type_flags ?? 0) & 1);
+		const pool = enemies.length > 0 ? enemies : all;
+		// Stable per-run sample without burning a seeded RNG — Math.random
+		// is fine; the deal RNG already controls placement.
+		const pickAt = (i: number) =>
+			pool[
+				(i * 7 + Math.floor(Math.random() * pool.length)) % pool.length
+			];
+		const goblin = pickAt(0);
+		const skeleton = pickAt(1);
+		const ghoul = pickAt(2);
+		this.state.bindMonstersFromNpcs({
+			[MonsterKind.Goblin]: this.scaleNpcToMonster(goblin, {
+				name: 'Goblin',
+				hp: 2,
+				atk: 1,
+			}),
+			[MonsterKind.Skeleton]: this.scaleNpcToMonster(skeleton, {
+				name: 'Skeleton',
+				hp: 4,
+				atk: 2,
+			}),
+			[MonsterKind.Ghoul]: this.scaleNpcToMonster(ghoul, {
+				name: 'Ghoul',
+				hp: 6,
+				atk: 3,
+			}),
+		});
+	}
+
+	/** Build the monster placeholder texture (a stylised skull silhouette
+	 * on a crimson card body) once at preload + register it under the key
+	 * `monster-placeholder`. Swap out for a real PNG by overriding the
+	 * texture key in the asset pipeline later. */
+	private buildMonsterPlaceholderTexture() {
+		const w = 70;
+		const h = 90;
+		const g = this.make.graphics({ x: 0, y: 0 }, false);
+		// Crimson body w/ rounded corners.
+		g.fillStyle(0x7f1d1d, 1);
+		g.fillRoundedRect(0, 0, w, h, 10);
+		// Inner panel — slightly darker.
+		g.fillStyle(0x4c1010, 1);
+		g.fillRoundedRect(6, 6, w - 12, h - 12, 8);
+		// Skull silhouette — two eye sockets + jaw notch.
+		g.fillStyle(0xfde68a, 1);
+		// Cranium dome
+		g.fillCircle(w / 2, h / 2 - 6, 18);
+		// Jaw rectangle
+		g.fillRect(w / 2 - 12, h / 2 + 6, 24, 12);
+		// Eye sockets
+		g.fillStyle(0x4c1010, 1);
+		g.fillCircle(w / 2 - 7, h / 2 - 8, 4);
+		g.fillCircle(w / 2 + 7, h / 2 - 8, 4);
+		// Tooth gap
+		g.fillRect(w / 2 - 1, h / 2 + 6, 2, 12);
+		// Outer gold border
+		g.lineStyle(2, 0xfbbf24, 1);
+		g.strokeRoundedRect(0, 0, w, h, 10);
+		g.generateTexture('monster-placeholder', w, h);
+		g.destroy();
+	}
+
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 
@@ -174,6 +299,7 @@ export class SolitaireScene extends Phaser.Scene {
 
 		this.state = new GameState();
 		this.state.reset();
+		this.bindNpcDataToMonsters();
 
 		this.buildAllCardViews();
 		this.layoutAll(false);
@@ -902,6 +1028,10 @@ export class SolitaireScene extends Phaser.Scene {
 
 		this.hudAttack.setText(`×${this.state.attack.toFixed(2)}`);
 		this.hudArmor.setText(`${this.state.armor}`);
+
+		// Monster card overlays piggyback on the same per-move refresh —
+		// piles change → HUD redraws → monster stats redraw.
+		this.updateMonsterOverlays();
 	}
 
 	/** HP bar — clear + redraw on every update. Gold-trimmed: dark backing,
@@ -955,6 +1085,28 @@ export class SolitaireScene extends Phaser.Scene {
 			this.makeCardView(JOKER_RED_BYTE);
 		for (const b of ALL_BONUS_BYTES) {
 			this.viewByIndex[getCardIndex(b)] = this.makeCardView(b);
+		}
+		for (const b of ALL_MONSTER_BYTES) {
+			this.viewByIndex[getCardIndex(b)] = this.makeCardView(b);
+		}
+	}
+
+	/** Refresh monster card overlays (name, ATK, HP, engaged ring) from
+	 * `state.monsters`. Cheap; called after every move + on initial deal. */
+	private updateMonsterOverlays() {
+		for (const b of ALL_MONSTER_BYTES) {
+			const v = this.viewByIndex[getCardIndex(b)];
+			if (!v) continue;
+			const mob = this.state.monsters.get(v.cardIndex);
+			if (!mob) {
+				// Defeated — view is also hidden by layoutAll's visited check.
+				v.monsterEngagedRing?.setVisible(false);
+				continue;
+			}
+			v.monsterNameText?.setText(mob.name);
+			v.monsterAtkText?.setText(`ATK ${mob.atk}`);
+			v.monsterHpText?.setText(`${mob.hp}/${mob.maxHp}`);
+			v.monsterEngagedRing?.setVisible(mob.engaged);
 		}
 	}
 
@@ -1038,6 +1190,27 @@ export class SolitaireScene extends Phaser.Scene {
 			cardIndex: getCardIndex(byte),
 		};
 
+		// Harvest monster-face refs (HP text, ATK text, name, engaged ring)
+		// from the role-tagged children so update methods can rewrite them
+		// without re-creating the face.
+		if (display.monster !== undefined) {
+			for (const child of face.list) {
+				const role = (child as Phaser.GameObjects.GameObject).getData(
+					'role',
+				);
+				if (role === 'monsterHp') {
+					view.monsterHpText = child as Phaser.GameObjects.Text;
+				} else if (role === 'monsterAtk') {
+					view.monsterAtkText = child as Phaser.GameObjects.Text;
+				} else if (role === 'monsterName') {
+					view.monsterNameText = child as Phaser.GameObjects.Text;
+				} else if (role === 'monsterEngagedRing') {
+					view.monsterEngagedRing =
+						child as Phaser.GameObjects.Graphics;
+				}
+			}
+		}
+
 		hitZone.on('pointerover', () => this.onHoverEnter(view));
 		hitZone.on('pointerout', () => this.onHoverLeave(view));
 		hitZone.on('dragstart', (pointer: Phaser.Input.Pointer) =>
@@ -1051,6 +1224,26 @@ export class SolitaireScene extends Phaser.Scene {
 			if (pointer.event.detail === 2) {
 				this.tryAutoFoundation(view.id);
 				return;
+			}
+			// Single click on a tableau-top monster → attack it. State
+			// validates (face-up + at top of column) so we don't double-spend
+			// movePerAction on a stale view.
+			for (let col = 0; col < 7; col++) {
+				const top =
+					this.state.tableaus[col][
+						this.state.tableaus[col].length - 1
+					];
+				if (
+					top !== undefined &&
+					isMonster(top) &&
+					getCardId(top) === view.id
+				) {
+					if (this.state.attackMonster(col)) {
+						this.layoutAll(true);
+						this.updateHud();
+					}
+					return;
+				}
 			}
 			// Single click on the top of stock → draw a card. The face-down
 			// stock cards cover the stock slot rectangle (setTopOnly + higher
@@ -1069,6 +1262,7 @@ export class SolitaireScene extends Phaser.Scene {
 	private makeFace(d: DisplayView): Phaser.GameObjects.Container {
 		if (d.joker) return this.makeJokerFace(d);
 		if (d.bonus !== undefined) return this.makeBonusFace(d);
+		if (d.monster !== undefined) return this.makeMonsterFace(d);
 
 		const face = this.add.container(0, 0);
 		const bg = this.add.graphics();
@@ -1317,6 +1511,90 @@ export class SolitaireScene extends Phaser.Scene {
 					payoff: 'flip 1',
 				};
 		}
+	}
+
+	/** Monster card face — placeholder skull texture as the body, with the
+	 * NPC name + ATK + HP overlaid. The HP text is stored on the view via
+	 * `attachMonsterTextRefs` so updateMonsterOverlay can rewrite it after
+	 * each combat tick without rebuilding the face. */
+	private makeMonsterFace(d: DisplayView): Phaser.GameObjects.Container {
+		const face = this.add.container(0, 0);
+		const w = CARD_SIZE.width;
+		const h = CARD_SIZE.height;
+
+		// Card surround — slightly darker red than the placeholder body so
+		// the placeholder reads as an inset portrait.
+		const bg = this.add.graphics();
+		bg.fillStyle(0x4c0519, 1);
+		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		bg.lineStyle(2, 0xfbbf24, 1);
+		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		face.add(bg);
+
+		// Placeholder portrait — runtime-generated texture, swap to a real
+		// PNG by overriding the `monster-placeholder` texture key.
+		const portrait = this.add
+			.image(0, -8, 'monster-placeholder')
+			.setOrigin(0.5);
+		face.add(portrait);
+
+		// Top-left ATK pip — sword glyph + number.
+		const atkPip = this.add
+			.text(-w / 2 + 6, -h / 2 + 6, 'ATK —', {
+				fontSize: '11px',
+				color: '#fde68a',
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		face.add(atkPip);
+		atkPip.setData('role', 'monsterAtk');
+
+		// Top-right HP pip — current/max.
+		const hpText = this.add
+			.text(w / 2 - 6, -h / 2 + 6, '—/—', {
+				fontSize: '11px',
+				color: '#fecaca',
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		face.add(hpText);
+		hpText.setData('role', 'monsterHp');
+
+		// Bottom name strip.
+		const name = this.add
+			.text(0, h / 2 - 18, '???', {
+				fontSize: '11px',
+				color: '#fde68a',
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+				align: 'center',
+				wordWrap: { width: w - 12 },
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+		face.add(name);
+		name.setData('role', 'monsterName');
+
+		// Engaged red ring overlay — rebuilt graphic visible only once the
+		// monster is engaged. Pulses subtly via redraw on update.
+		const ring = this.add.graphics();
+		ring.lineStyle(3, 0xef4444, 1);
+		ring.strokeRoundedRect(
+			-w / 2 + 2,
+			-h / 2 + 2,
+			w - 4,
+			h - 4,
+			CARD_SIZE.radius - 2,
+		);
+		ring.setVisible(false);
+		face.add(ring);
+		ring.setData('role', 'monsterEngagedRing');
+
+		return face;
 	}
 
 	private makeBack(): Phaser.GameObjects.Container {
@@ -2032,6 +2310,7 @@ export class SolitaireScene extends Phaser.Scene {
 		this.clearHighlights();
 		this.dismissModal();
 		this.state.resetRun();
+		this.bindNpcDataToMonsters();
 		this.winShown = false;
 		this.winBanner?.setVisible(false);
 		this.layoutAll(true);
@@ -2258,6 +2537,7 @@ export class SolitaireScene extends Phaser.Scene {
 				this.winShown = false;
 				this.winBanner?.setVisible(false);
 				this.state.advanceRound();
+				this.bindNpcDataToMonsters();
 				this.layoutAll(true);
 				this.updateHud();
 			} else {
