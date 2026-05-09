@@ -31,9 +31,25 @@ const statusClass: Record<NonNullable<Props['status']>, string> = {
 };
 const isLink = status !== 'soon';
 const Tag = isLink ? 'a' : 'div';
+
+const slug = title
+	.toLowerCase()
+	.replace(/[^a-z0-9]+/g, '-')
+	.replace(/^-|-$/g, '');
+const cardId = `arcade-card-${slug}`;
+const tooltipLines = [
+	`${statusLabel[status]} · ${title}`,
+	description,
+	tags.length > 0 ? tags.join(' · ') : null,
+	isLink ? 'Click to play →' : 'On the roadmap',
+].filter(Boolean) as string[];
+const tooltipText = tooltipLines.join('\n');
 ---
 
 <Tag
+	id={cardId}
+	data-arcade-card
+	data-arcade-tooltip={tooltipText}
 	{...isLink ? { href } : {}}
 	class:list={[
 		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-200 ease-[cubic-bezier(0.2,0.7,0.2,1)]',
