@@ -54,7 +54,11 @@ const {
 								'flex flex-col gap-0.5 border-purple-500/30 pr-6',
 								i < stats.length - 1 && 'border-r',
 							]}>
-							<span class="font-serif text-[22px] font-bold text-amber-200">
+							<span
+								class="font-serif text-[22px] font-bold text-amber-200"
+								data-arcade-stat
+								data-arcade-stat-value={s.value}
+								data-arcade-stat-delay={i * 140}>
 								{s.value}
 							</span>
 							<span class="font-mono text-[11px] uppercase tracking-[0.12em] text-purple-300">
@@ -87,3 +91,87 @@ const {
 		}
 	}
 </style>
+
+<script is:inline>
+	(() => {
+		const reduceMotion =
+			typeof window !== 'undefined' &&
+			window.matchMedia &&
+			window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const NUMERIC = /^\d+$/;
+
+		function rollOdometer(el, target, baseDelay) {
+			const digits = String(target).split('');
+			el.textContent = '';
+			el.style.display = 'inline-flex';
+			el.style.gap = '0';
+			el.style.lineHeight = '1';
+			el.style.verticalAlign = 'baseline';
+
+			digits.forEach((digit, i) => {
+				const col = document.createElement('span');
+				col.style.cssText =
+					'display:inline-block;height:1em;overflow:hidden;line-height:1;vertical-align:baseline;';
+				const reel = document.createElement('span');
+				reel.style.cssText =
+					'display:block;transition:transform 1400ms cubic-bezier(0.16,1,0.3,1);will-change:transform;';
+				/* 30 digits stacked = 2 full spins + landing digit. */
+				for (let rep = 0; rep < 3; rep++) {
+					for (let n = 0; n <= 9; n++) {
+						const d = document.createElement('span');
+						d.textContent = String(n);
+						d.style.cssText =
+							'display:block;height:1em;line-height:1;';
+						reel.appendChild(d);
+					}
+				}
+				col.appendChild(reel);
+				el.appendChild(col);
+				const targetDigit = parseInt(digit, 10);
+				const finalIdx = 20 + targetDigit;
+				const colDelay = baseDelay + i * 90;
+				if (reduceMotion) {
+					reel.style.transition = 'none';
+					reel.style.transform = `translateY(-${finalIdx}em)`;
+				} else {
+					requestAnimationFrame(() => {
+						setTimeout(() => {
+							reel.style.transform = `translateY(-${finalIdx}em)`;
+						}, colDelay);
+					});
+				}
+			});
+		}
+
+		function fadeIn(el, baseDelay) {
+			if (reduceMotion) return;
+			el.style.opacity = '0';
+			el.style.transition = 'opacity 800ms cubic-bezier(0.16,1,0.3,1)';
+			setTimeout(() => {
+				el.style.opacity = '1';
+			}, baseDelay);
+		}
+
+		function init() {
+			const stats = document.querySelectorAll('[data-arcade-stat]');
+			stats.forEach((el) => {
+				const val = el.dataset.arcadeStatValue ?? '';
+				const baseDelay = parseInt(
+					el.dataset.arcadeStatDelay ?? '0',
+					10,
+				);
+				if (NUMERIC.test(val)) {
+					rollOdometer(el, parseInt(val, 10), baseDelay);
+				} else {
+					fadeIn(el, baseDelay);
+				}
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', init);
+		} else {
+			init();
+		}
+	})();
+</script>
