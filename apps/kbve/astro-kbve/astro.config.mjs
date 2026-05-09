@@ -213,11 +213,13 @@ export default defineConfig({
 					label: 'Gaming',
 					collapsed: true,
 					items: [
-						{ autogenerate: { directory: 'gaming' } },
-						{
-							label: 'OSRS',
-							link: '/osrs/',
-						},
+						{ slug: 'gaming' },
+						{ slug: 'gaming/bitcraft' },
+						{ slug: 'gaming/lol' },
+						{ slug: 'gaming/rimworld' },
+						{ slug: 'gaming/titanfall' },
+						{ slug: 'gaming/wow' },
+						{ label: 'OSRS', link: '/osrs/' },
 					],
 				},
 				{
