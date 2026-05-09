@@ -31,10 +31,8 @@ pub mod json;
 mod proto;
 mod registry;
 
-// Re-export all proto-generated quest types
 pub use proto::quest::*;
 
-// Re-export registry types
 pub use registry::{ProtoQuestId, QuestDb};
 
 use bevy::prelude::*;

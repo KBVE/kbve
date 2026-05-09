@@ -6,10 +6,6 @@
 use std::any::TypeId;
 use std::collections::HashMap;
 
-// ---------------------------------------------------------------------------
-// Snapshot entry
-// ---------------------------------------------------------------------------
-
 #[derive(Clone, Default)]
 pub(crate) struct SnapshotEntry {
     #[cfg(feature = "serde")]
@@ -18,10 +14,6 @@ pub(crate) struct SnapshotEntry {
     pub binary: Option<Vec<u8>>,
     pub version: u64,
 }
-
-// ---------------------------------------------------------------------------
-// Platform-specific store
-// ---------------------------------------------------------------------------
 
 #[cfg(not(target_arch = "wasm32"))]
 mod inner {
@@ -90,10 +82,6 @@ mod inner {
         });
     }
 }
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
 
 /// Write a snapshot for type `T`. Called internally by the snapshot system.
 ///

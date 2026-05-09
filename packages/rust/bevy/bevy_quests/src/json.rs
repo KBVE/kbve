@@ -117,10 +117,6 @@ fn json_value_to_quest(v: &Value) -> Option<quest::Quest> {
     })
 }
 
-// ---------------------------------------------------------------------------
-// Enum parsers (string → i32)
-// ---------------------------------------------------------------------------
-
 fn parse_category(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
         Some("main") => quest::QuestCategory::Main as i32,
@@ -187,10 +183,6 @@ fn parse_reward_policy(v: Option<&Value>) -> i32 {
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
-
-// ---------------------------------------------------------------------------
-// Sub-message parsers
-// ---------------------------------------------------------------------------
 
 fn parse_objective(v: &Value) -> Option<quest::QuestObjective> {
     let obj = v.as_object()?;
@@ -561,10 +553,6 @@ fn parse_extensions(v: Option<&Value>) -> Vec<quest::QuestExtension> {
         })
         .unwrap_or_default()
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 fn str_opt(v: &Value, key: &str) -> Option<String> {
     v.get(key).and_then(|v| v.as_str()).map(String::from)

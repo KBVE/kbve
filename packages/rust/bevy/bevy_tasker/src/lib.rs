@@ -81,7 +81,6 @@ where
     {
         #[cfg(target_feature = "atomics")]
         {
-            // Dispatch to web workers via the shared work queue.
             let schedule = |runnable| worker::push_work(runnable);
             let (runnable, task) = async_task::spawn(future, schedule);
             runnable.schedule();

@@ -27,17 +27,14 @@ impl ProtoMapId {
 /// and world object definitions.
 #[derive(Resource, Default)]
 pub struct MapDb {
-    // Zones
     zones_by_id: HashMap<ProtoMapId, map::Zone>,
     zones_by_ref: HashMap<String, ProtoMapId>,
     zones_by_ulid: HashMap<String, ProtoMapId>,
 
-    // Regions
     regions_by_id: HashMap<ProtoMapId, map::Region>,
     regions_by_ref: HashMap<String, ProtoMapId>,
     regions_by_ulid: HashMap<String, ProtoMapId>,
 
-    // World object definitions
     object_defs_by_id: HashMap<ProtoMapId, map::WorldObjectDef>,
     object_defs_by_ref: HashMap<String, ProtoMapId>,
     object_defs_by_ulid: HashMap<String, ProtoMapId>,
@@ -70,10 +67,6 @@ impl MapDb {
         let registry: map::MapRegistry = serde_json::from_str(json_str)?;
         Ok(Self::from_proto(registry))
     }
-
-    // -------------------------------------------------------------------------
-    // Zone operations
-    // -------------------------------------------------------------------------
 
     /// Insert a zone into the database.
     pub fn insert_zone(&mut self, zone: map::Zone) {
@@ -128,10 +121,6 @@ impl MapDb {
         self.zones_by_id.iter().map(|(&id, zone)| (id, zone))
     }
 
-    // -------------------------------------------------------------------------
-    // Region operations
-    // -------------------------------------------------------------------------
-
     /// Insert a region into the database.
     pub fn insert_region(&mut self, region: map::Region) {
         let id = ProtoMapId::from_ref(&region.r#ref);
@@ -168,10 +157,6 @@ impl MapDb {
     pub fn regions(&self) -> impl Iterator<Item = (ProtoMapId, &map::Region)> {
         self.regions_by_id.iter().map(|(&id, region)| (id, region))
     }
-
-    // -------------------------------------------------------------------------
-    // World object definition operations
-    // -------------------------------------------------------------------------
 
     /// Insert a world object definition into the database.
     pub fn insert_object_def(&mut self, obj_def: map::WorldObjectDef) {
@@ -220,10 +205,6 @@ impl MapDb {
     pub fn object_defs(&self) -> impl Iterator<Item = (ProtoMapId, &map::WorldObjectDef)> {
         self.object_defs_by_id.iter().map(|(&id, def)| (id, def))
     }
-
-    // -------------------------------------------------------------------------
-    // Aggregate
-    // -------------------------------------------------------------------------
 
     /// Whether the entire database is empty.
     pub fn is_empty(&self) -> bool {

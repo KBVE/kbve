@@ -34,13 +34,8 @@ pub fn spawn_player_entity(
             PlayerPhysics::default(),
             RigidBody::Kinematic,
             Collider::cuboid(config.half_x * 2.0, config.height, config.half_z * 2.0),
-            // Ground detection: short downward shape cast from player's feet.
             ShapeCaster::new(
-                Collider::cuboid(
-                    config.half_x * 2.0 * 0.9,
-                    0.1,
-                    config.half_z * 2.0 * 0.9,
-                ),
+                Collider::cuboid(config.half_x * 2.0 * 0.9, 0.1, config.half_z * 2.0 * 0.9),
                 Vec3::new(0.0, -(config.height / 2.0), 0.0),
                 Quat::IDENTITY,
                 Dir3::NEG_Y,

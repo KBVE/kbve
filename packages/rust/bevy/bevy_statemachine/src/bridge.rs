@@ -10,10 +10,6 @@ use bevy::prelude::*;
 
 use crate::store;
 
-// ---------------------------------------------------------------------------
-// Snapshot wrapper types
-// ---------------------------------------------------------------------------
-
 /// Wrapper that stores the current FSM state value in the snapshot store.
 ///
 /// External consumers read the current state via
@@ -62,10 +58,6 @@ pub struct StateTransitionRecord<S> {
     /// The state that was entered (`None` if state was removed).
     pub entered: Option<S>,
 }
-
-// ---------------------------------------------------------------------------
-// StateBridgePlugin<S> — FSM → snapshot bridge
-// ---------------------------------------------------------------------------
 
 /// Bevy plugin that bridges a `States` type to the snapshot system.
 ///
@@ -162,10 +154,6 @@ where
     }
 }
 
-// ---------------------------------------------------------------------------
-// ScopedSnapshotPlugin<S, R> — state-scoped resource snapshots
-// ---------------------------------------------------------------------------
-
 /// Bevy plugin that snapshots a resource `R` only while in a specific state.
 ///
 /// When the FSM exits the target state, the snapshot is automatically cleared.
@@ -247,10 +235,6 @@ where
 fn scoped_clear_system<R: 'static>() {
     store::clear_snapshot::<R>();
 }
-
-// ---------------------------------------------------------------------------
-// Batch version query macro
-// ---------------------------------------------------------------------------
 
 /// Query snapshot versions for multiple types at once.
 ///
