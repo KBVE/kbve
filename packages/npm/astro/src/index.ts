@@ -1,4 +1,3 @@
-// Hooks
 export { useDroid } from './hooks/useDroid';
 export type { DroidState } from './hooks/useDroid';
 export { useDroidEvents } from './hooks/useDroidEvents';
@@ -6,7 +5,6 @@ export { useToast } from './hooks/useToast';
 export { useTooltip } from './hooks/useTooltip';
 export { useModal } from './hooks/useModal';
 
-// React components
 export { DroidProvider, useDroidContext } from './react/DroidProvider';
 export { DroidStatus } from './react/DroidStatus';
 export { ToastContainer } from './react/ToastContainer';
@@ -16,12 +14,14 @@ export type { ModalOverlayProps } from './react/ModalOverlay';
 export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
 
-// Auth
 export {
 	AuthBridge,
 	useAuthBridge,
 	bootAuth,
 	resolveStaffFlag,
+	bootAuthHint,
+	clearAuthHint,
+	writeAuthHint,
 	IDBStorage,
 	setSharedToken,
 	getSharedToken,
@@ -29,10 +29,8 @@ export {
 } from './auth';
 export type { OAuthProvider } from './auth';
 
-// Icons
 export { DiscordIcon, GitHubIcon, TwitchIcon } from './icons';
 
-// State stores (pass-through from @kbve/droid)
 export {
 	$auth,
 	setAuth,
@@ -54,7 +52,6 @@ export {
 } from '@kbve/droid';
 export type { AuthTone, AuthState } from '@kbve/droid';
 
-// Types (pass-through from @kbve/droid)
 export type {
 	ToastPayload,
 	ToastSeverity,
@@ -71,21 +68,16 @@ export {
 	ModalPayloadSchema,
 } from '@kbve/droid';
 
-// Canvas overlay
 export { CanvasOverlay } from './react/CanvasOverlay';
 export type { CanvasOverlayProps } from './react/CanvasOverlay';
 
-// Overlay manager (pass-through from @kbve/droid)
 export { OverlayManager } from '@kbve/droid';
 export type { RenderPath } from '@kbve/droid';
 
-// Gateway (pass-through from @kbve/droid)
 export { SupabaseGateway } from '@kbve/droid';
 
-// Utilities
 export { cn } from './utils/cn';
 
-// Sitegraph
 export type {
 	SiteGraphData,
 	SiteGraphNode,

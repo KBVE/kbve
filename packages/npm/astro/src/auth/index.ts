@@ -1,6 +1,7 @@
 export { AuthBridge, type OAuthProvider } from './AuthBridge';
 export { useAuthBridge } from './useAuthBridge';
 export { bootAuth, resolveStaffFlag } from './bootAuth';
+export { bootAuthHint, clearAuthHint, writeAuthHint } from './authHint';
 export { IDBStorage } from './IDBStorage';
 export {
 	setSharedToken,

@@ -1,10 +1,7 @@
-// src/lib/supa.ts
-// Unified Supabase gateway — powered by @kbve/droid
 import { SupabaseGateway } from '@kbve/droid';
-import { bootAuth, resolveStaffFlag } from '@kbve/astro';
+import { bootAuth, resolveStaffFlag, bootAuthHint } from '@kbve/astro';
 import { migrateAuthStorage } from './storage-migration';
 
-// Vite ?worker&url imports — resolves to hashed URLs at build time
 import SharedWorkerUrl from '../workers/supabase.shared?worker&url';
 import DbWorkerUrl from '../workers/supabase.db?worker&url';
 
@@ -70,9 +67,10 @@ async function autoRecoverStaleClient(): Promise<void> {
 	window.location.reload();
 }
 
-/** Call once early (e.g. in a provider) or on-demand anywhere */
 export function initSupa(options?: Record<string, unknown>): Promise<void> {
 	if (_initPromise) return _initPromise;
+
+	bootAuthHint();
 
 	const gateway = ensureClient();
 	_initPromise = (async () => {
@@ -109,7 +107,6 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 	return _initPromise;
 }
 
-/** Get the gateway instance (make sure you called initSupa() somewhere first) */
 export function getSupa(): SupabaseGateway {
 	return ensureClient();
 }
