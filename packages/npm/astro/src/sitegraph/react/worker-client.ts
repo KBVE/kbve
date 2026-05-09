@@ -87,6 +87,24 @@ export function createSiteGraphWorker(): SharedWorker | null {
 }
 
 /**
+ * Resolve `endpoint` to an absolute URL against the page origin before
+ * posting it to the SharedWorker. Blob URL workers have
+ * `self.location.href = blob:https://origin/uuid`, and relative-URL
+ * resolution against a `blob:` base is browser-dependent: some resolve
+ * to the parent origin, others fail or throw. Sending an absolute URL
+ * sidesteps that ambiguity entirely so the worker's `fetch(endpoint)`
+ * always hits the right host.
+ */
+function resolveEndpoint(endpoint: string): string {
+	try {
+		if (typeof window === 'undefined') return endpoint;
+		return new URL(endpoint, window.location.href).toString();
+	} catch {
+		return endpoint;
+	}
+}
+
+/**
  * Issues a `get` request through the registered worker port, if any.
  * Returns `null` when no worker is wired so callers can fall back to a
  * direct fetch.
@@ -97,10 +115,15 @@ export function fetchViaWorker(
 	const port = activePort;
 	if (!port) return null;
 	const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+	const absoluteEndpoint = resolveEndpoint(endpoint);
 	return new Promise<SiteGraphData>((resolve, reject) => {
 		pending.set(requestId, { resolve, reject });
 		try {
-			port.postMessage({ type: 'get', endpoint, requestId });
+			port.postMessage({
+				type: 'get',
+				endpoint: absoluteEndpoint,
+				requestId,
+			});
 		} catch (err) {
 			pending.delete(requestId);
 			reject(err instanceof Error ? err : new Error(String(err)));

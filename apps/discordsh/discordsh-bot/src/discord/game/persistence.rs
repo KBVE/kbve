@@ -785,6 +785,19 @@ fn class_to_id(class: &ClassType) -> i16 {
     }
 }
 
+/// Resolve a class from a persisted profile. Returns `None` when the
+/// profile has no character set (`class_id == 0`) — used by the
+/// `/dungeon start` flow to decide whether to launch directly or send
+/// the class picker. Existing profiles always carry a valid class id;
+/// the `0` sentinel is reserved for the future permadeath path that
+/// clears a character without deleting the row.
+pub fn class_from_profile(profile: &DungeonProfile) -> Option<ClassType> {
+    if profile.class_id == 0 {
+        return None;
+    }
+    Some(class_from_id(profile.class_id))
+}
+
 fn reason_to_outcome(reason: &GameOverReason) -> i16 {
     match reason {
         GameOverReason::Victory => 1,

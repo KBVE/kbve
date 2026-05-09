@@ -12,10 +12,13 @@
 // only advance on round-end, never via undo).
 
 import {
+	BonusType,
 	dealBytes,
 	FOUNDATION_SUITS,
+	getBonusType,
 	getDisplayRank,
 	getSuit,
+	isBonus,
 	isFaceUp,
 	isJoker,
 	JokerVariant,
@@ -31,14 +34,19 @@ import {
 import {
 	CASH_RATE,
 	COMBO,
+	HP,
 	JOKER_MULT_PER_TABLEAU,
 	ROUND_BLINDS,
 	SCORE,
+	STARTING_CASH,
+	STATS,
+	STOCK_DRAW_COUNT,
 	STORAGE_KEY,
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 54; // 52 standard + up to 2 jokers
+// 52 standard + up to 2 jokers + up to 3 bonus cards = 57 max in play.
+const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 57;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
 interface ScoreSnapshot {
@@ -47,6 +55,11 @@ interface ScoreSnapshot {
 	comboMultiplier: number;
 	lastFoundationAt: number;
 	moves: number;
+	/** Card indices that have already triggered a foundation reward this
+	 * round. Re-placing a card after foundation→tableau→foundation does NOT
+	 * re-reward — prevents loop abuse. Stored as a flat number[] for
+	 * snapshot serialization; reconstructed into the live Set on restore. */
+	scoredCards: number[];
 }
 
 /** Persistent run record stored in localStorage. */
@@ -77,12 +90,25 @@ export class GameState {
 	/** Stock-recycle counter — first pass through deck is free, recycles
 	 * after that cost SCORE.stockRecycle. */
 	private stockCycles = 0;
+	/** Card indices that have already been rewarded by foundation placement
+	 * this round. A card removed from foundation + re-placed does not score
+	 * again — prevents the foundation→tableau→foundation reward loop. The
+	 * removal penalty (SCORE.foundationToTableau) still applies. */
+	private scoredCards: Set<number> = new Set();
 
 	// --- Layer 3: run progression ------------------------------------------
 	round = 1;
 	blind = ROUND_BLINDS[0];
-	cash = 0;
+	cash = STARTING_CASH;
+	hp: number = HP.start;
+	maxHp: number = HP.max;
+	armor: number = STATS.startArmor;
+	attack: number = STATS.startAttack;
 	jokerVariants: Map<number, JokerVariant> = new Map();
+	/** Card indices the player has "peeked" via the Reveal bonus. The card
+	 * stays face-down in its tableau column (so rules + drag stay correct)
+	 * but the scene shows its face on hover. Cleared on each new deal. */
+	peekedCards: Set<number> = new Set();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
 	ownedJokerVariants: JokerVariant[] = [];
@@ -105,7 +131,10 @@ export class GameState {
 	}
 
 	reset(rng?: () => number) {
-		const { tableaus, stock } = dealBytes(rng, { withJokers: true });
+		const { tableaus, stock } = dealBytes(rng, {
+			withJokers: true,
+			withBonuses: true,
+		});
 		this.tableaus = tableaus;
 		this.stock = stock;
 		this.waste = [];
@@ -120,6 +149,8 @@ export class GameState {
 		this.moves = 0;
 		this.lastFoundationAt = 0;
 		this.stockCycles = 0;
+		this.scoredCards.clear();
+		this.peekedCards.clear();
 
 		// Apply owned joker variants (from shop) to the dealt jokers. Variant
 		// stays bound to the card index so the variant persists across moves
@@ -140,17 +171,38 @@ export class GameState {
 		}
 	}
 
-	/** Start a fresh run (round 1, score 0, blind 200, no owned jokers). */
+	/** Start a fresh run (round 1, score 0, blind 200, full HP, no owned
+	 * jokers). */
 	resetRun(rng?: () => number) {
 		this.round = 1;
 		this.blind = ROUND_BLINDS[0];
-		this.cash = 0;
+		this.cash = STARTING_CASH;
+		this.hp = HP.start;
+		this.maxHp = HP.max;
+		this.armor = STATS.startArmor;
+		this.attack = STATS.startAttack;
 		this.ownedJokerVariants = [];
 		this.gameOver = false;
 		this.betweenRounds = false;
 		this.bestRecord.totalRuns += 1;
 		saveBestRecord(this.bestRecord);
 		this.reset(rng);
+	}
+
+	/** Take damage. Armor reduces incoming amount by `armor × armorReduction`,
+	 * floor 1 — at least 1 damage always lands so armor never makes the
+	 * player fully invincible. HP clamps at 0 + auto-fires game over. */
+	damage(amount: number) {
+		const reduced = Math.max(1, amount - this.armor * STATS.armorReduction);
+		this.hp = Math.max(0, this.hp - reduced);
+		if (this.hp === 0 && !this.gameOver) {
+			this.declareGameOver();
+		}
+	}
+
+	/** Heal up to maxHp. */
+	heal(amount: number) {
+		this.hp = Math.min(this.maxHp, this.hp + amount);
 	}
 
 	/** Called when the player succeeds (foundations full) on the current
@@ -255,6 +307,7 @@ export class GameState {
 			comboMultiplier: this.comboMultiplier,
 			lastFoundationAt: this.lastFoundationAt,
 			moves: this.moves,
+			scoredCards: Array.from(this.scoredCards),
 		};
 	}
 
@@ -264,6 +317,7 @@ export class GameState {
 		this.comboMultiplier = s.comboMultiplier;
 		this.lastFoundationAt = s.lastFoundationAt;
 		this.moves = s.moves;
+		this.scoredCards = new Set(s.scoredCards);
 	}
 
 	private pushHistory() {
@@ -281,6 +335,8 @@ export class GameState {
 		if (!snap || !score) return false;
 		this.restore(snap);
 		this.restoreScore(score);
+		// Charge undo tax after restoring. Score allowed negative.
+		this.score -= SCORE.undoCost;
 		return true;
 	}
 
@@ -294,8 +350,10 @@ export class GameState {
 
 	/** Tally a move. `isFoundation` extends combo + applies joker multiplier
 	 * on positive points. Negative points (e.g. foundation→tableau) reset
-	 * combo and skip multipliers. */
+	 * combo and skip multipliers. SCORE.movePerAction is subtracted AFTER
+	 * any multipliers so the per-move tax is flat. */
 	private applyScore(points: number, isFoundation: boolean) {
+		let delta: number;
 		if (isFoundation && points > 0) {
 			const now = nowMs();
 			if (now - this.lastFoundationAt < COMBO.windowMs) {
@@ -315,14 +373,21 @@ export class GameState {
 			const flatBonus = this.tableauScoreBoostBonus();
 
 			const base = points + flatBonus;
-			const final = Math.round(base * this.comboMultiplier * jokerMult);
-			this.score = Math.max(0, this.score + final);
+			// Attack stat multiplies the final foundation score on top of
+			// combo + joker mults. Default attack=1 = no-op; bought
+			// upgrades push it past 1.0 in increments of attackStep (0.25).
+			delta = Math.round(
+				base * this.comboMultiplier * jokerMult * this.attack,
+			);
 		} else {
 			// Non-foundation move OR negative-point foundation rollback.
 			this.combo = 0;
 			this.comboMultiplier = 1;
-			this.score = Math.max(0, this.score + points);
+			delta = points;
 		}
+		// Score allowed to go negative — pressure when burn outpaces
+		// progress. HUD turns red.
+		this.score = this.score + delta - SCORE.movePerAction;
 		this.moves += 1;
 	}
 
@@ -359,46 +424,71 @@ export class GameState {
 	drawFromStock(): boolean {
 		if (this.stock.length === 0 && this.waste.length === 0) return false;
 		this.pushHistory();
+
+		// Played-3 model: any leftover waste cards (cards the player chose
+		// not to claim from the previous draw) cycle back to the BOTTOM of
+		// the stock face-down. Waste therefore only ever holds the current
+		// draw window of up to STOCK_DRAW_COUNT cards, and ALL of them are
+		// player-selectable.
+		let recyclePoints = 0;
+		let recycleHp = 0;
+		if (this.waste.length > 0) {
+			const wasEmpty = this.stock.length === 0;
+			const returned = this.waste.map((c) => setFaceUp(c, false));
+			this.waste = [];
+			// stock[0] = bottom (pop draws from end). Prepend returned cards
+			// so the freshly-drawn batch comes off fresh stock first.
+			this.stock = [...returned, ...this.stock];
+			if (wasEmpty) {
+				this.stockCycles += 1;
+				if (this.stockCycles > 1) {
+					recyclePoints = SCORE.stockRecycle;
+					recycleHp = HP.stockRecyclePenalty;
+				}
+			}
+		}
+
 		if (this.stock.length === 0) {
-			while (this.waste.length > 0) {
-				const c = this.waste.pop()!;
-				this.stock.push(setFaceUp(c, false));
-			}
-			this.stockCycles += 1;
-			// First reshuffle is free; later cycles cost.
-			if (this.stockCycles > 1) {
-				this.applyScore(SCORE.stockRecycle, false);
-			} else {
-				this.moves += 1;
-			}
+			this.applyScore(recyclePoints, false);
+			if (recycleHp) this.damage(recycleHp);
 			return true;
 		}
-		const c = this.stock.pop()!;
-		this.waste.push(setFaceUp(c, true));
-		this.moves += 1;
+
+		const drawCount = Math.min(STOCK_DRAW_COUNT, this.stock.length);
+		for (let i = 0; i < drawCount; i++) {
+			const c = this.stock.pop()!;
+			this.waste.push(setFaceUp(c, true));
+		}
+		this.applyScore(recyclePoints, false);
+		if (recycleHp) this.damage(recycleHp);
 		return true;
 	}
 
-	moveWasteToTableau(toCol: number): boolean {
-		const c = this.waste[this.waste.length - 1];
+	moveWasteToTableau(toCol: number, wasteIdx?: number): boolean {
+		const idx = wasteIdx ?? this.waste.length - 1;
+		const c = this.waste[idx];
 		if (c === undefined) return false;
 		if (!canDropOnTableau(c, this.tableaus[toCol])) return false;
 		this.pushHistory();
-		this.waste.pop();
+		this.waste.splice(idx, 1);
 		this.tableaus[toCol].push(c);
 		this.applyScore(SCORE.wasteToTableau, false);
 		return true;
 	}
 
-	moveWasteToFoundation(idx: number): boolean {
-		const c = this.waste[this.waste.length - 1];
+	moveWasteToFoundation(foundIdx: number, wasteIdx?: number): boolean {
+		const idx = wasteIdx ?? this.waste.length - 1;
+		const c = this.waste[idx];
 		if (c === undefined) return false;
-		if (getSuit(c) !== FOUNDATION_SUITS[idx]) return false;
-		if (!canDropOnFoundation(c, this.foundations[idx])) return false;
+		if (getSuit(c) !== FOUNDATION_SUITS[foundIdx]) return false;
+		if (!canDropOnFoundation(c, this.foundations[foundIdx])) return false;
 		this.pushHistory();
-		this.waste.pop();
-		this.foundations[idx].push(c);
-		this.applyScore(SCORE.wasteToFoundation, true);
+		this.waste.splice(idx, 1);
+		this.foundations[foundIdx].push(c);
+		const cardIdx = c & 0x3f;
+		const firstTime = !this.scoredCards.has(cardIdx);
+		this.applyScore(firstTime ? SCORE.wasteToFoundation : 0, firstTime);
+		if (firstTime) this.scoredCards.add(cardIdx);
 		return true;
 	}
 
@@ -434,9 +524,15 @@ export class GameState {
 		col.pop();
 		this.foundations[foundationIdx].push(c);
 		const flipped = this.flipExposedTop(fromCol);
+		const cardIdx = c & 0x3f;
+		const firstTime = !this.scoredCards.has(cardIdx);
+		// Reveal bonus still fires even on re-placement (the flip is real
+		// progress regardless of whether the card already scored before).
 		const points =
-			SCORE.tableauToFoundation + (flipped ? SCORE.revealTableau : 0);
-		this.applyScore(points, true);
+			(firstTime ? SCORE.tableauToFoundation : 0) +
+			(flipped ? SCORE.revealTableau : 0);
+		this.applyScore(points, firstTime);
+		if (firstTime) this.scoredCards.add(cardIdx);
 		return true;
 	}
 
@@ -463,6 +559,67 @@ export class GameState {
 			return true;
 		}
 		return false;
+	}
+
+	/** Player drag-drops a bonus card from the waste onto the activate
+	 * slot. Validates the index is a bonus, applies the effect, splices it
+	 * out, pushes history, and pays the per-action cost. */
+	activateBonusFromWaste(wasteIdx: number): boolean {
+		const c = this.waste[wasteIdx];
+		if (c === undefined || !isBonus(c)) return false;
+		this.pushHistory();
+		this.waste.splice(wasteIdx, 1);
+		this.applyBonusEffect(getBonusType(c));
+		this.applyScore(0, false);
+		return true;
+	}
+
+	/** Player drag-drops a bonus card from the top of a tableau column onto
+	 * the activate slot. Bonus must be the topmost card and face-up. */
+	activateBonusFromTableau(col: number): boolean {
+		const pile = this.tableaus[col];
+		const c = pile[pile.length - 1];
+		if (c === undefined || !isFaceUp(c) || !isBonus(c)) return false;
+		this.pushHistory();
+		pile.pop();
+		this.applyBonusEffect(getBonusType(c));
+		this.flipExposedTop(col);
+		this.applyScore(0, false);
+		return true;
+	}
+
+	private applyBonusEffect(type: BonusType) {
+		switch (type) {
+			case BonusType.HP:
+				this.heal(5);
+				break;
+			case BonusType.Cash:
+				this.cash += 5;
+				break;
+			case BonusType.Reveal:
+				this.revealRandomHiddenCard();
+				break;
+		}
+	}
+
+	/** Mark one random face-down tableau card as "peeked" — the byte stays
+	 * face-down (so rules + drag are unchanged) but the scene reveals its
+	 * face on hover. Skips cards already peeked. No-op when every tableau
+	 * card is face-up or peeked. */
+	private revealRandomHiddenCard() {
+		const candidates: number[] = [];
+		for (let col = 0; col < 7; col++) {
+			for (let i = 0; i < this.tableaus[col].length; i++) {
+				const c = this.tableaus[col][i];
+				const idx = c & 0x3f;
+				if (!isFaceUp(c) && !this.peekedCards.has(idx)) {
+					candidates.push(idx);
+				}
+			}
+		}
+		if (candidates.length === 0) return;
+		const pick = candidates[Math.floor(Math.random() * candidates.length)];
+		this.peekedCards.add(pick);
 	}
 
 	hasWon(): boolean {

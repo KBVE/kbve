@@ -2,35 +2,53 @@
 // Solitaire — game configuration
 // ============================================================================
 
-export const BASE_WIDTH = 960;
-/** Tall enough to fit a worst-case 13-card face-up tableau column without
- * clipping the bottom. (TABLEAU_Y + 12*24 + CARD_HEIGHT ≈ 240 + 288 + 112 = 640) */
-export const BASE_HEIGHT = 760;
+/** Logical canvas + play-area split. Play layout is computed against
+ * `PLAY_WIDTH`; the canvas itself extends past that to host a sidebar
+ * panel on the right (HP / stats / cash). The Astro frame's aspect-ratio
+ * matches `BASE_WIDTH / BASE_HEIGHT`. */
+export const PLAY_WIDTH = 1080;
+export const SIDEBAR_W = 240;
+export const BASE_WIDTH = PLAY_WIDTH + SIDEBAR_W;
+export const BASE_HEIGHT = 900;
+
+/** Sidebar panel geometry. Lives flush against the right of the play area
+ * with a small inset for the gold trim ring. */
+export const SIDEBAR_X = PLAY_WIDTH + 12;
+export const SIDEBAR_PADDING_X = 16;
 
 export const CARD_SIZE = {
-	width: 84,
-	height: 118,
-	radius: 8,
+	width: 100,
+	height: 140,
+	radius: 10,
 } as const;
 
 /** Vertical offset between stacked face-up cards in a tableau column.
- * Compact enough to fit ~13 cards in a column without overflowing. */
-export const TABLEAU_FAN_Y = 26;
+ * Roomier fan reads better at the new card size. */
+export const TABLEAU_FAN_Y = 32;
 /** Vertical offset between stacked face-DOWN cards (tighter than face-up). */
-export const TABLEAU_FAN_Y_DOWN = 14;
+export const TABLEAU_FAN_Y_DOWN = 18;
 
-/** Top-row layout: foundations on the right, stock + waste on the left. */
-export const TOP_ROW_Y = 64;
-export const STOCK_X = 56;
-export const WASTE_X = STOCK_X + CARD_SIZE.width + 24;
+/** Top-row layout: foundations on the right, stock + waste on the left.
+ * Right edge anchored to PLAY_WIDTH (sidebar lives past that). */
+export const TOP_ROW_Y = 96;
+export const STOCK_X = 60;
+export const WASTE_X = STOCK_X + CARD_SIZE.width + 28;
 export const FOUNDATION_X_START =
-	BASE_WIDTH - 56 - CARD_SIZE.width * 4 - 22 * 3;
-export const FOUNDATION_GAP = CARD_SIZE.width + 22;
+	PLAY_WIDTH - 60 - CARD_SIZE.width * 4 - 24 * 3;
+export const FOUNDATION_GAP = CARD_SIZE.width + 24;
 
 /** Tableau (7 columns) — first column at TABLEAU_X_START, gap between. */
-export const TABLEAU_X_START = 56;
-export const TABLEAU_X_GAP = (BASE_WIDTH - 112 - CARD_SIZE.width) / 6;
-export const TABLEAU_Y = TOP_ROW_Y + CARD_SIZE.height + 40;
+export const TABLEAU_X_START = 60;
+export const TABLEAU_X_GAP = (PLAY_WIDTH - 120 - CARD_SIZE.width) / 6;
+export const TABLEAU_Y = TOP_ROW_Y + CARD_SIZE.height + 52;
+
+/** Font stacks. Serif for prestige numbers (score, round, banner) — reads
+ * "card table at the casino". Sans for utility (controls hint, card pips). */
+export const FONT = {
+	serif: '"Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif',
+	sans: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+	mono: '"JetBrains Mono", "Fira Code", ui-monospace, monospace',
+} as const;
 
 export const COLORS = {
 	// Table layers (bottom → top)
@@ -94,6 +112,16 @@ export const SCORE = {
 	foundationToTableau: -15,
 	revealTableau: 5, // bonus for flipping a face-down card on the move
 	stockRecycle: -100, // first pass is free; subsequent recycles cost
+
+	/** Flat cost levied on every move (any pile-mutating action — drag drop,
+	 * stock click, double-click auto-foundation). Spaces play out so brute
+	 * forcing isn't free. Subtracted AFTER combo + joker multipliers, so a
+	 * big chain still nets positive. Tune downward if rounds feel grindy. */
+	movePerAction: 5,
+	/** Flat cost on each undo. Discourages spam-undo for trial-and-error
+	 * exploration without locking it out entirely. Applied after the
+	 * restore (so undoing repeatedly stacks the cost). */
+	undoCost: 5,
 } as const;
 
 /** Combo: consecutive foundation placements within `comboWindowMs` extend
@@ -122,6 +150,54 @@ export const ROUND_BLINDS: readonly number[] = [
  * the shop on jokers / boosts. */
 export const CASH_RATE = 10;
 
+/** Starting cash for a fresh run — gives the player a small budget to
+ * grab a shop item after round 1 even on a rough first deal. */
+export const STARTING_CASH = 100;
+
+/** HP system — Balatro-style "lives". Damage from stock-recycle pressure;
+ * 0 HP triggers game over mid-round. Missing the blind at end of round is
+ * an instant game over (no HP cushion). */
+export const HP = {
+	start: 20,
+	max: 20,
+	/** Damage when stock recycle (cycle 2+) costs HP in addition to score. */
+	stockRecyclePenalty: 1,
+} as const;
+
+/** Combat stats — Armor reduces incoming damage, Attack multiplies
+ * foundation score on top of combo + joker mults. Both buyable in shop. */
+export const STATS = {
+	startArmor: 0,
+	startAttack: 1,
+	/** Per-point armor: incoming damage reduced by this amount (min 1 still
+	 * goes through unless armor is high enough to fully absorb). */
+	armorReduction: 1,
+	/** Per-point attack adds this much to the multiplier (1 base + n×step). */
+	attackStep: 0.25,
+} as const;
+
+/** Shop offering catalogue. Each round shuffles a subset of these into
+ * the modal. */
+export const SHOP_PRICES = {
+	jokerMultiplier: 5,
+	jokerScoreBoost: 8,
+	armorPoint: 6,
+	attackPoint: 10,
+	healSmall: 3, // +5 HP (capped at maxHp)
+	maxHpUp: 12, // +5 maxHp + heal that much
+} as const;
+
+/** Stock draw count. Klondike traditional = 1; we run 3 for richer flow.
+ * Only the top of the fanned waste is grabbable; the two beneath show as
+ * a peek so the player can plan ahead. */
+export const STOCK_DRAW_COUNT = 3;
+
+/** Horizontal fan offset between visible waste cards. Top of pile is
+ * fully visible; cards beneath peek by this amount. Sized so each peek
+ * strip is a comfortable click target since draw-3 lets the player grab
+ * any of the three. */
+export const WASTE_FAN_X = 42;
+
 /** Shop offering count per round. */
 export const SHOP_OFFERS = 3;
 
@@ -131,11 +207,15 @@ export const STORAGE_KEY = 'kbve.solitaire.v1';
 
 export const HUD_COLORS = {
 	scoreText: '#fde68a',
+	scoreNegative: '#f87171', // red when score below 0
 	comboText: '#fbbf24',
 	comboPulse: '#f59e0b',
 	roundText: '#e5e7eb',
 	blindText: '#fca5a5',
 	cashText: '#86efac',
+	hpText: '#fca5a5',
+	hpFill: 0xdc2626,
+	hpBg: 0x4a1010,
 	hudBg: 0x1a2e1d,
 	hudBorder: 0xb38b3e,
 } as const;

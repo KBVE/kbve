@@ -789,8 +789,21 @@ export function SiteGraph({
 					display: 'flex',
 					alignItems: 'center',
 					gap: '8px',
+					flexWrap: 'wrap',
 				}}>
 				<span>Graph unavailable</span>
+				<code
+					title={error}
+					style={{
+						fontSize: '10px',
+						color: 'var(--sl-color-gray-3)',
+						maxWidth: '200px',
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+						whiteSpace: 'nowrap',
+					}}>
+					{error}
+				</code>
 				<button
 					onClick={() => setRetryNonce((n) => n + 1)}
 					style={{

@@ -18,9 +18,17 @@ import {
 	BOARD_RADIUS,
 	CARD_SIZE,
 	COLORS,
+	FONT,
 	FOUNDATION_GAP,
 	FOUNDATION_X_START,
 	HUD_COLORS,
+	PLAY_WIDTH,
+	SHOP_PRICES,
+	SIDEBAR_PADDING_X,
+	SIDEBAR_W,
+	SIDEBAR_X,
+	STATS,
+	STOCK_DRAW_COUNT,
 	STOCK_X,
 	TABLEAU_FAN_Y,
 	TABLEAU_FAN_Y_DOWN,
@@ -29,17 +37,25 @@ import {
 	TABLEAU_Y,
 	TIMING,
 	TOP_ROW_Y,
+	WASTE_FAN_X,
 	WASTE_X,
 } from './config';
 import {
+	BONUS_CASH_BYTE,
+	BONUS_HP_BYTE,
+	BONUS_REVEAL_BYTE,
+	BonusType,
 	type CardByte,
 	type CardView as DisplayView,
 	FOUNDATION_SUITS,
+	JOKER_BLACK_BYTE,
+	JOKER_RED_BYTE,
 	JokerVariant,
 	SUIT_GLYPH,
 	getCardId,
 	getCardIndex,
 	getSuit,
+	isBonus,
 	isFaceUp,
 	toCardView,
 } from './cards';
@@ -47,10 +63,12 @@ import { GameState } from './state';
 import { canDropOnFoundation, canDropOnTableau, movableRun } from './rules';
 
 interface DropTarget {
-	pile: 'tableau' | 'foundation';
+	pile: 'tableau' | 'foundation' | 'activate';
 	index: number;
 	x: number;
 	y: number;
+	w?: number;
+	h?: number;
 }
 
 interface SceneCardView {
@@ -60,6 +78,9 @@ interface SceneCardView {
 	face: Phaser.GameObjects.Container;
 	back: Phaser.GameObjects.Container;
 	shadow: Phaser.GameObjects.Graphics;
+	/** Purple-glow ring drawn over the card back when the card is "peeked"
+	 * (revealed by a Reveal bonus) — hints the player can hover to see it. */
+	peekRing: Phaser.GameObjects.Graphics;
 	/** Transparent rectangle child that owns the interactive hit area.
 	 * Phaser's Container hit-testing with a custom centered Rectangle was
 	 * unreliable — only the top-left quadrant registered events. Using a
@@ -67,7 +88,18 @@ interface SceneCardView {
 	 * container origin makes the entire visible card surface clickable. */
 	hitZone: Phaser.GameObjects.Rectangle;
 	restY: number;
+	/** Resting depth set by `positionCard`. Hover handlers temporarily bump
+	 * the container's depth above siblings (so a hovered waste-fan card
+	 * renders on top of the cards it overlaps), then restore from this. */
+	restDepth: number;
 	hovered: boolean;
+	/** True while this view is showing its face purely because the player
+	 * is hovering a peeked face-down tableau card. Triggers reverse on
+	 * hover-leave to flip back to the card back. */
+	peeking: boolean;
+	/** Stable byte index (suit+rank, 0..63). Lets hover handlers cheaply
+	 * check membership in `state.peekedCards`. */
+	cardIndex: number;
 }
 
 const HOVER_LIFT = 6;
@@ -86,6 +118,14 @@ export class SolitaireScene extends Phaser.Scene {
 	/** Slot rectangles tracked for legal-drop highlighting during a drag. */
 	private foundationSlots: Phaser.GameObjects.Rectangle[] = [];
 	private tableauSlots: Phaser.GameObjects.Rectangle[] = [];
+	/** Activate slot — sidebar bottom drop target for bonus cards. */
+	private activateSlot!: Phaser.GameObjects.Rectangle;
+	private activateSlotGeom: { x: number; y: number; w: number; h: number } = {
+		x: 0,
+		y: 0,
+		w: 0,
+		h: 0,
+	};
 	private dragging: {
 		cards: CardByte[];
 		fromPile: 'waste' | 'tableau';
@@ -99,12 +139,20 @@ export class SolitaireScene extends Phaser.Scene {
 	private winBanner: Phaser.GameObjects.Text | null = null;
 
 	// HUD fields — re-rendered on every state change via `updateHud`.
+	// Top strip: round/blind + score/combo only. Cash, HP, and combat stats
+	// live in the right sidebar so the eye can find run-state at a glance
+	// without it competing with the score for the center-of-screen real estate.
 	private hudScore!: Phaser.GameObjects.Text;
 	private hudCombo!: Phaser.GameObjects.Text;
 	private hudRound!: Phaser.GameObjects.Text;
 	private hudBlind!: Phaser.GameObjects.Text;
+	// Sidebar fields.
 	private hudCash!: Phaser.GameObjects.Text;
 	private hudBest!: Phaser.GameObjects.Text;
+	private hudHpNumber!: Phaser.GameObjects.Text;
+	private hudHpBar!: Phaser.GameObjects.Graphics;
+	private hudAttack!: Phaser.GameObjects.Text;
+	private hudArmor!: Phaser.GameObjects.Text;
 
 	/** Active modal layer (shop or game-over). Null when no modal showing. */
 	private modal: Phaser.GameObjects.Container | null = null;
@@ -168,9 +216,10 @@ export class SolitaireScene extends Phaser.Scene {
 				STOCK_X + CARD_SIZE.width / 2,
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				'↻',
-				{ fontSize: '36px', color: '#0e3a25' },
+				{ fontSize: '44px', color: '#1f5e3d', fontFamily: FONT.sans },
 			)
-			.setOrigin(0.5);
+			.setOrigin(0.5)
+			.setResolution(2);
 
 		// Waste slot.
 		this.add
@@ -203,9 +252,14 @@ export class SolitaireScene extends Phaser.Scene {
 					x + CARD_SIZE.width / 2,
 					TOP_ROW_Y + CARD_SIZE.height / 2,
 					SUIT_GLYPH[FOUNDATION_SUITS[i]],
-					{ fontSize: '36px', color: '#0e3a25' },
+					{
+						fontSize: '46px',
+						color: '#1f5e3d',
+						fontFamily: FONT.sans,
+					},
 				)
-				.setOrigin(0.5);
+				.setOrigin(0.5)
+				.setResolution(2);
 		}
 
 		// Tableau slot outlines 0..6.
@@ -241,6 +295,17 @@ export class SolitaireScene extends Phaser.Scene {
 				y: TABLEAU_Y,
 			});
 		}
+		// Activate slot is registered here too so findDropTarget can match
+		// drops to it. Geometry is filled in by drawSidebar; we push a
+		// placeholder and patch the coords once the slot is built.
+		this.dropTargets.push({
+			pile: 'activate',
+			index: 0,
+			x: 0,
+			y: 0,
+			w: 0,
+			h: 0,
+		});
 	}
 
 	/** Layered felt: outer "wood + gold trim" frame, then a soft radial
@@ -363,8 +428,15 @@ export class SolitaireScene extends Phaser.Scene {
 
 	/** Visually mark which foundation + tableau slots accept the bottom of
 	 * the dragged stack. Called on dragstart. Foundations are suit-locked
-	 * + reject jokers; tableau accepts jokers anywhere. */
+	 * + reject jokers; tableau accepts jokers anywhere. Bonus cards light
+	 * the activate slot only — they aren't legal anywhere else. */
 	private highlightLegalDrops(headCard: CardByte, fromFoundationIdx: number) {
+		if (isBonus(headCard)) {
+			this.activateSlot
+				.setFillStyle(COLORS.slotHighlight, 0.35)
+				.setStrokeStyle(3, COLORS.slotHighlightBorder);
+			return;
+		}
 		for (let i = 0; i < 4; i++) {
 			const isSource = i === fromFoundationIdx;
 			let legal = false;
@@ -402,88 +474,26 @@ export class SolitaireScene extends Phaser.Scene {
 				COLORS.slotBorder,
 			);
 		}
+		this.activateSlot
+			.setFillStyle(COLORS.slot, 1)
+			.setStrokeStyle(2, COLORS.slotBorder);
 	}
 
 	private drawHud() {
-		// Status strip — opaque dark band along the very top of the table.
-		const stripH = 36;
-		const strip = this.add.graphics();
-		strip.setDepth(-150);
-		strip.fillStyle(HUD_COLORS.hudBg, 0.92);
-		strip.fillRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
-		strip.lineStyle(1, HUD_COLORS.hudBorder, 0.85);
-		strip.strokeRoundedRect(20, 14, BASE_WIDTH - 40, stripH, 10);
+		this.drawTopHud();
+		this.drawSidebar();
 
-		const yMid = 14 + stripH / 2;
-
-		// Round / blind — left.
-		this.hudRound = this.add
-			.text(40, yMid - 9, 'Round 1', {
-				fontSize: '13px',
-				color: HUD_COLORS.roundText,
-				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(0, 0)
-			.setResolution(2);
-		this.hudBlind = this.add
-			.text(40, yMid + 4, 'Target 200', {
-				fontSize: '11px',
-				color: HUD_COLORS.blindText,
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(0, 0)
-			.setResolution(2);
-
-		// Score + combo — center.
-		this.hudScore = this.add
-			.text(BASE_WIDTH / 2, yMid - 10, '0', {
-				fontSize: '20px',
-				color: HUD_COLORS.scoreText,
-				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(0.5, 0)
-			.setResolution(2);
-		this.hudCombo = this.add
-			.text(BASE_WIDTH / 2, yMid + 12, '', {
-				fontSize: '11px',
-				color: HUD_COLORS.comboText,
-				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(0.5, 0)
-			.setResolution(2);
-
-		// Cash + best — right.
-		this.hudCash = this.add
-			.text(BASE_WIDTH - 40, yMid - 9, '$0', {
-				fontSize: '13px',
-				color: HUD_COLORS.cashText,
-				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(1, 0)
-			.setResolution(2);
-		this.hudBest = this.add
-			.text(BASE_WIDTH - 40, yMid + 4, 'Best —', {
-				fontSize: '11px',
-				color: HUD_COLORS.roundText,
-				fontFamily: 'system-ui, sans-serif',
-			})
-			.setOrigin(1, 0)
-			.setResolution(2);
-
-		// Bottom-strip help text.
+		// Bottom-strip help text — centered on the play area, not the full
+		// canvas, so it stays visually anchored to where the action happens.
 		this.add
 			.text(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT - 18,
-				'drag to move · click stock to draw · dbl-click → foundation · N new game · Z undo',
+				PLAY_WIDTH / 2,
+				BASE_HEIGHT - 24,
+				'Drag to move  ·  Click stock to draw  ·  Double-click → foundation  ·  N new game  ·  Z undo',
 				{
-					fontSize: '11px',
+					fontSize: '13px',
 					color: COLORS.hintText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0.5, 0.5)
@@ -492,6 +502,375 @@ export class SolitaireScene extends Phaser.Scene {
 		this.input.keyboard?.on('keydown-N', () => this.newGame());
 		this.input.keyboard?.on('keydown-Z', () => this.handleUndo());
 	}
+
+	private drawTopHud() {
+		// Compact score plate — centered on the play area. Run-state
+		// (round / target / hp / cash) lives in the sidebar so the player's
+		// eye lands on a single hero number here.
+		const plateW = 360;
+		const plateH = 64;
+		const plateX = PLAY_WIDTH / 2 - plateW / 2;
+		const plateY = 18;
+
+		const plate = this.add.graphics();
+		plate.setDepth(-150);
+		plate.fillStyle(HUD_COLORS.hudBg, 0.92);
+		plate.fillRoundedRect(plateX, plateY, plateW, plateH, 14);
+		plate.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
+		plate.strokeRoundedRect(plateX, plateY, plateW, plateH, 14);
+		plate.lineStyle(1, HUD_COLORS.hudBorder, 0.45);
+		plate.strokeRoundedRect(
+			plateX + 3,
+			plateY + 3,
+			plateW - 6,
+			plateH - 6,
+			12,
+		);
+
+		this.hudScore = this.add
+			.text(PLAY_WIDTH / 2, plateY + 8, '0', {
+				fontSize: '36px',
+				color: HUD_COLORS.scoreText,
+				fontStyle: 'bold',
+				fontFamily: FONT.serif,
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		this.hudCombo = this.add
+			.text(PLAY_WIDTH / 2, plateY + plateH - 18, '', {
+				fontSize: '12px',
+				color: HUD_COLORS.comboText,
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+	}
+
+	/** Right-side panel hosting HP, combat stats, cash, and best score. */
+	private drawSidebar() {
+		const x = SIDEBAR_X;
+		const y = 20;
+		const w = SIDEBAR_W - 24;
+		const h = BASE_HEIGHT - 40;
+
+		// Panel chrome — same gold-trim treatment as the play boards so the
+		// sidebar reads as part of the table, not a tacked-on widget.
+		const panel = this.add.graphics();
+		panel.setDepth(-130);
+		panel.fillStyle(0x000000, 0.28);
+		panel.fillRoundedRect(x + 2, y + 4, w, h, BOARD_RADIUS);
+		panel.fillStyle(COLORS.boardFill, 1);
+		panel.fillRoundedRect(x, y, w, h, BOARD_RADIUS);
+		panel.lineStyle(2, COLORS.boardInnerStroke, 1);
+		panel.strokeRoundedRect(x + 1, y + 1, w - 2, h - 2, BOARD_RADIUS - 1);
+		panel.lineStyle(2, COLORS.boardBorder, 1);
+		panel.strokeRoundedRect(x, y, w, h, BOARD_RADIUS);
+
+		const innerX = x + SIDEBAR_PADDING_X;
+		const innerW = w - SIDEBAR_PADDING_X * 2;
+		let cursorY = y + 16;
+
+		// Section title.
+		this.add
+			.text(x + w / 2, cursorY, 'STATUS', {
+				fontSize: '14px',
+				color: HUD_COLORS.hpText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+		cursorY += 24;
+
+		// Divider.
+		this.drawSidebarDivider(innerX, cursorY, innerW);
+		cursorY += 12;
+
+		// Round + target block — top of the sidebar so the player's first
+		// glance answers "what round / what's the goal".
+		this.add
+			.text(innerX, cursorY, 'ROUND', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudRound = this.add
+			.text(innerX + innerW, cursorY - 6, '1', {
+				fontSize: '22px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		cursorY += 28;
+
+		this.add
+			.text(innerX, cursorY, 'TARGET', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudBlind = this.add
+			.text(innerX + innerW, cursorY - 4, '200', {
+				fontSize: '18px',
+				color: HUD_COLORS.blindText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		cursorY += 28;
+
+		this.drawSidebarDivider(innerX, cursorY, innerW);
+		cursorY += 12;
+
+		// HP block — label + big number + wide bar.
+		this.add
+			.text(innerX, cursorY, 'HEALTH', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudHpNumber = this.add
+			.text(innerX + innerW, cursorY - 6, '20 / 20', {
+				fontSize: '22px',
+				color: HUD_COLORS.hpText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		cursorY += 26;
+
+		this.hudHpBar = this.add.graphics();
+		this.hudHpBar.setDepth(-90);
+		// Bar geometry stored on instance for redrawHpBar.
+		this.hpBarGeom = { x: innerX, y: cursorY, w: innerW, h: 14 };
+		cursorY += 14 + 16;
+
+		// Combat stats — Attack and Armor as labeled rows.
+		this.drawSidebarDivider(innerX, cursorY, innerW);
+		cursorY += 12;
+
+		this.add
+			.text(innerX, cursorY, 'COMBAT', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		cursorY += 22;
+
+		this.add
+			.text(innerX, cursorY, 'Attack', {
+				fontSize: '13px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudAttack = this.add
+			.text(innerX + innerW, cursorY, '×1.00', {
+				fontSize: '15px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		cursorY += 22;
+
+		this.add
+			.text(innerX, cursorY + 8, 'Armor', {
+				fontSize: '13px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		// Heraldic shield with the armor count inside — gold-trimmed,
+		// right-aligned on the row. Shield body is static; updateHud only
+		// rewrites the number text.
+		const shieldW = 30;
+		const shieldH = 34;
+		const shieldCx = innerX + innerW - shieldW / 2;
+		const shieldCy = cursorY + shieldH / 2;
+		this.drawShield(shieldCx, shieldCy, shieldW, shieldH);
+		this.hudArmor = this.add
+			.text(shieldCx, shieldCy + 1, '0', {
+				fontSize: '15px',
+				color: '#fde68a',
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+		cursorY += shieldH + 8;
+
+		// Cash + Best.
+		this.drawSidebarDivider(innerX, cursorY, innerW);
+		cursorY += 12;
+
+		this.add
+			.text(innerX, cursorY, 'CASH', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudCash = this.add
+			.text(innerX + innerW, cursorY - 6, '$0', {
+				fontSize: '24px',
+				color: HUD_COLORS.cashText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+		cursorY += 32;
+
+		this.add
+			.text(innerX, cursorY, 'BEST', {
+				fontSize: '11px',
+				color: HUD_COLORS.roundText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+		this.hudBest = this.add
+			.text(innerX + innerW, cursorY, '—', {
+				fontSize: '14px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.serif,
+				fontStyle: 'bold',
+			})
+			.setOrigin(1, 0)
+			.setResolution(2);
+
+		// Activate slot — anchored to the BOTTOM of the sidebar so it doesn't
+		// drift if upper sections grow. Card-sized drop target; player drags
+		// HP/Cash/Reveal cards here to apply their effect.
+		const slotW = innerW;
+		const slotH = 96;
+		const slotX = innerX;
+		const slotY = y + h - slotH - 16;
+
+		this.add
+			.text(x + w / 2, slotY - 18, 'ACTIVATE', {
+				fontSize: '12px',
+				color: HUD_COLORS.scoreText,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5, 0)
+			.setResolution(2);
+
+		const slot = this.add
+			.rectangle(
+				slotX + slotW / 2,
+				slotY + slotH / 2,
+				slotW,
+				slotH,
+				COLORS.slot,
+			)
+			.setStrokeStyle(2, COLORS.slotBorder);
+		this.activateSlot = slot;
+		this.activateSlotGeom = { x: slotX, y: slotY, w: slotW, h: slotH };
+		// Patch the activate entry in dropTargets with real geometry now
+		// that the sidebar has rendered (drawSlots ran before drawSidebar).
+		const activateTarget = this.dropTargets.find(
+			(t) => t.pile === 'activate',
+		);
+		if (activateTarget) {
+			activateTarget.x = slotX;
+			activateTarget.y = slotY;
+			activateTarget.w = slotW;
+			activateTarget.h = slotH;
+		}
+
+		// Lightning bolt glyph as a hint of "use / activate".
+		this.add
+			.text(slotX + slotW / 2, slotY + slotH / 2, '⚡', {
+				fontSize: '40px',
+				color: '#1f5e3d',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+	}
+
+	private drawSidebarDivider(x: number, y: number, w: number) {
+		const g = this.add.graphics();
+		g.setDepth(-120);
+		g.lineStyle(1, HUD_COLORS.hudBorder, 0.45);
+		g.lineBetween(x, y, x + w, y);
+	}
+
+	/** Heraldic shield — flat top, rounded shoulders, tapered to a point.
+	 * Drawn once at sidebar build time; the armor number text is overlaid
+	 * separately and updated by updateHud. */
+	private drawShield(cx: number, cy: number, w: number, h: number) {
+		const g = this.add.graphics();
+		g.setDepth(-110);
+		const top = cy - h / 2;
+		const left = cx - w / 2;
+		const right = cx + w / 2;
+		const midY = top + h * 0.55;
+		const bottom = cy + h / 2;
+
+		// Body — deep navy.
+		g.fillStyle(0x1e3a8a, 1);
+		g.beginPath();
+		g.moveTo(left, top);
+		g.lineTo(right, top);
+		g.lineTo(right, midY);
+		g.lineTo(cx, bottom);
+		g.lineTo(left, midY);
+		g.closePath();
+		g.fillPath();
+
+		// Outer gold rim.
+		g.lineStyle(2, HUD_COLORS.hudBorder, 1);
+		g.strokePath();
+
+		// Inner highlight rim — light gold, inset.
+		const ix = 3;
+		const iyTop = top + ix;
+		const iyMid = midY - 2;
+		const iyBot = bottom - ix * 1.5;
+		g.lineStyle(1, 0xfde68a, 0.55);
+		g.beginPath();
+		g.moveTo(left + ix, iyTop);
+		g.lineTo(right - ix, iyTop);
+		g.lineTo(right - ix, iyMid);
+		g.lineTo(cx, iyBot);
+		g.lineTo(left + ix, iyMid);
+		g.closePath();
+		g.strokePath();
+	}
+
+	private hpBarGeom: { x: number; y: number; w: number; h: number } = {
+		x: 0,
+		y: 0,
+		w: 0,
+		h: 0,
+	};
 
 	/** Refresh HUD text from current state. Cheap; called after every move. */
 	private updateHud() {
@@ -504,18 +883,56 @@ export class SolitaireScene extends Phaser.Scene {
 		} else {
 			this.hudCombo.setText('');
 		}
-		this.hudRound.setText(`Round ${this.state.round}`);
-		this.hudBlind.setText(`Target ${this.state.blind}`);
+		this.hudRound.setText(`${this.state.round}`);
+		this.hudBlind.setText(`${this.state.blind}`);
 		this.hudCash.setText(`$${this.state.cash}`);
 		const best = this.state.bestRecord.bestScore;
-		this.hudBest.setText(best > 0 ? `Best ${best}` : 'Best —');
+		this.hudBest.setText(best > 0 ? `${best}` : '—');
 
-		// Score color shifts to green when blind is met.
-		this.hudScore.setColor(
-			this.state.hasMetBlind()
-				? HUD_COLORS.cashText
-				: HUD_COLORS.scoreText,
-		);
+		// Score color: green when blind met, red when negative, gold otherwise.
+		const scoreColor =
+			this.state.score < 0
+				? HUD_COLORS.scoreNegative
+				: this.state.hasMetBlind()
+					? HUD_COLORS.cashText
+					: HUD_COLORS.scoreText;
+		this.hudScore.setColor(scoreColor);
+
+		// HP — number + bar in sidebar.
+		this.hudHpNumber.setText(`${this.state.hp} / ${this.state.maxHp}`);
+		this.redrawHpBar();
+
+		this.hudAttack.setText(`×${this.state.attack.toFixed(2)}`);
+		this.hudArmor.setText(`${this.state.armor}`);
+	}
+
+	/** HP bar — clear + redraw on every update. Gold-trimmed: dark backing,
+	 * red fill, thick gold outer border, and a lighter gold inner highlight
+	 * line so the bar reads as a casino-trim element rather than a plain
+	 * progress widget. Cheap; one Graphics object reused per call. */
+	private redrawHpBar() {
+		const { x, y, w, h } = this.hpBarGeom;
+		this.hudHpBar.clear();
+		const pct = this.state.maxHp > 0 ? this.state.hp / this.state.maxHp : 0;
+
+		// Dark backing.
+		this.hudHpBar.fillStyle(HUD_COLORS.hpBg, 1);
+		this.hudHpBar.fillRoundedRect(x, y, w, h, 5);
+
+		// HP fill — only render when there's something to show so we don't
+		// leave a 0px-wide rounded rect artifact at low HP.
+		if (pct > 0) {
+			this.hudHpBar.fillStyle(HUD_COLORS.hpFill, 1);
+			this.hudHpBar.fillRoundedRect(x, y, Math.max(2, w * pct), h, 5);
+		}
+
+		// Outer gold border — thick, prominent.
+		this.hudHpBar.lineStyle(2, HUD_COLORS.hudBorder, 1);
+		this.hudHpBar.strokeRoundedRect(x, y, w, h, 5);
+
+		// Inner gold highlight — softer, sits 1.5px inside the outer rim.
+		this.hudHpBar.lineStyle(1, 0xfde68a, 0.55);
+		this.hudHpBar.strokeRoundedRect(x + 1.5, y + 1.5, w - 3, h - 3, 4);
 	}
 
 	// -------------------------------------------------------------------
@@ -523,9 +940,27 @@ export class SolitaireScene extends Phaser.Scene {
 	// -------------------------------------------------------------------
 
 	private buildAllCardViews() {
-		for (const byte of this.state.allCards()) {
-			this.viewByIndex[getCardIndex(byte)] = this.makeCardView(byte);
+		// Build views for every possible byte slot — standard 52 + 2 jokers
+		// + 3 bonus cards. Bonus cards may be consumed mid-run (popped from
+		// piles), so building views from the live state would fail to make
+		// a view for a card that's not currently dealt; enumerating the full
+		// deck up front guarantees `viewFor(byte)` never misses.
+		for (let suit = 0; suit < 4; suit++) {
+			for (let rank = 0; rank < 13; rank++) {
+				const byte = (suit << 4) | rank;
+				this.viewByIndex[byte] = this.makeCardView(byte);
+			}
 		}
+		this.viewByIndex[getCardIndex(JOKER_BLACK_BYTE)] =
+			this.makeCardView(JOKER_BLACK_BYTE);
+		this.viewByIndex[getCardIndex(JOKER_RED_BYTE)] =
+			this.makeCardView(JOKER_RED_BYTE);
+		this.viewByIndex[getCardIndex(BONUS_HP_BYTE)] =
+			this.makeCardView(BONUS_HP_BYTE);
+		this.viewByIndex[getCardIndex(BONUS_CASH_BYTE)] =
+			this.makeCardView(BONUS_CASH_BYTE);
+		this.viewByIndex[getCardIndex(BONUS_REVEAL_BYTE)] =
+			this.makeCardView(BONUS_REVEAL_BYTE);
 	}
 
 	private makeCardView(byte: CardByte): SceneCardView {
@@ -546,6 +981,29 @@ export class SolitaireScene extends Phaser.Scene {
 		const face = this.makeFace(display);
 		const back = this.makeBack();
 
+		// Peek ring — light-green glow drawn over the back. Hidden by default;
+		// layoutAll toggles visibility for tableau face-down cards whose
+		// index is in `state.peekedCards`. Green so purple stays reserved
+		// for the upcoming curse-card visual treatment.
+		const peekRing = this.add.graphics();
+		peekRing.lineStyle(3, 0x4ade80, 0.95);
+		peekRing.strokeRoundedRect(
+			-CARD_SIZE.width / 2 + 2,
+			-CARD_SIZE.height / 2 + 2,
+			CARD_SIZE.width - 4,
+			CARD_SIZE.height - 4,
+			CARD_SIZE.radius - 2,
+		);
+		peekRing.lineStyle(1, 0xbbf7d0, 0.75);
+		peekRing.strokeRoundedRect(
+			-CARD_SIZE.width / 2 + 5,
+			-CARD_SIZE.height / 2 + 5,
+			CARD_SIZE.width - 10,
+			CARD_SIZE.height - 10,
+			CARD_SIZE.radius - 4,
+		);
+		peekRing.setVisible(false);
+
 		// Transparent full-card hit zone. Lives ABOVE face/back in the child
 		// stack so pointer events always land here regardless of which
 		// graphics children happen to be visible. `alpha: 0.001` instead of
@@ -562,7 +1020,7 @@ export class SolitaireScene extends Phaser.Scene {
 		hitZone.setOrigin(0.5);
 		hitZone.setInteractive({ useHandCursor: true });
 
-		container.add([shadow, back, face, hitZone]);
+		container.add([shadow, back, peekRing, face, hitZone]);
 		face.setVisible(display.faceUp);
 		back.setVisible(!display.faceUp);
 
@@ -576,9 +1034,13 @@ export class SolitaireScene extends Phaser.Scene {
 			face,
 			back,
 			shadow,
+			peekRing,
 			hitZone,
 			restY: 0,
+			restDepth: 0,
 			hovered: false,
+			peeking: false,
+			cardIndex: getCardIndex(byte),
 		};
 
 		hitZone.on('pointerover', () => this.onHoverEnter(view));
@@ -611,6 +1073,7 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private makeFace(d: DisplayView): Phaser.GameObjects.Container {
 		if (d.joker) return this.makeJokerFace(d);
+		if (d.bonus !== undefined) return this.makeBonusFace(d);
 
 		const face = this.add.container(0, 0);
 		const bg = this.add.graphics();
@@ -644,7 +1107,7 @@ export class SolitaireScene extends Phaser.Scene {
 					fontSize: '20px',
 					color: colorStr,
 					fontStyle: 'bold',
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0, 0)
@@ -658,7 +1121,7 @@ export class SolitaireScene extends Phaser.Scene {
 				{
 					fontSize: '18px',
 					color: colorStr,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0, 0)
@@ -668,7 +1131,7 @@ export class SolitaireScene extends Phaser.Scene {
 			.text(0, 8, d.glyph, {
 				fontSize: '46px',
 				color: colorStr,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
@@ -725,7 +1188,7 @@ export class SolitaireScene extends Phaser.Scene {
 				fontSize: '11px',
 				color: goldStr,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0, 0)
 			.setResolution(2);
@@ -738,13 +1201,127 @@ export class SolitaireScene extends Phaser.Scene {
 			.text(0, 4, '★', {
 				fontSize: '52px',
 				color: goldStr,
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
 
 		face.add([labelTL, pipTL, star]);
 		return face;
+	}
+
+	/** Bonus card face — distinct visuals per subtype so the player knows
+	 * what kind of surprise just landed. Each variant gets its own body
+	 * color, glyph, and label. Bonus cards auto-consume the moment they
+	 * flip face-up, so this view is on-screen only for the brief reveal
+	 * frame before layoutAll hides it. */
+	private makeBonusFace(d: DisplayView): Phaser.GameObjects.Container {
+		const face = this.add.container(0, 0);
+		const w = CARD_SIZE.width;
+		const h = CARD_SIZE.height;
+
+		const variant = this.bonusVariantStyle(d.bonus!);
+		const bg = this.add.graphics();
+		bg.fillStyle(variant.bodyColor, 1);
+		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		// Diagonal sheen — same shape as the joker face for visual kinship.
+		bg.fillStyle(variant.sheenColor, 0.45);
+		bg.beginPath();
+		bg.moveTo(-w / 2, -h / 2 + h * 0.35);
+		bg.lineTo(w / 2, -h / 2);
+		bg.lineTo(w / 2, -h / 2 + h * 0.15);
+		bg.lineTo(-w / 2, -h / 2 + h * 0.5);
+		bg.closePath();
+		bg.fillPath();
+		// Gold border + inner accent.
+		bg.lineStyle(2, COLORS.jokerAccent, 1);
+		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
+		bg.lineStyle(1, COLORS.jokerAccent, 0.5);
+		bg.strokeRoundedRect(
+			-w / 2 + 5,
+			-h / 2 + 5,
+			w - 10,
+			h - 10,
+			CARD_SIZE.radius - 2,
+		);
+		face.add(bg);
+
+		const goldStr = `#${COLORS.jokerAccent.toString(16).padStart(6, '0')}`;
+
+		// Top-left tag.
+		const tag = this.add
+			.text(-w / 2 + 6, -h / 2 + 6, variant.tag, {
+				fontSize: '10px',
+				color: goldStr,
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0, 0)
+			.setResolution(2);
+
+		// Big center glyph.
+		const glyph = this.add
+			.text(0, -8, variant.glyph, {
+				fontSize: '54px',
+				color: goldStr,
+				fontFamily: FONT.sans,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+
+		// Bottom payoff label.
+		const payoff = this.add
+			.text(0, h / 2 - 22, variant.payoff, {
+				fontSize: '13px',
+				color: goldStr,
+				fontStyle: 'bold',
+				fontFamily: FONT.sans,
+			})
+			.setOrigin(0.5)
+			.setResolution(2);
+
+		face.add([tag, glyph, payoff]);
+		return face;
+	}
+
+	private bonusVariantStyle(type: BonusType): {
+		bodyColor: number;
+		sheenColor: number;
+		glyph: string;
+		tag: string;
+		payoff: string;
+	} {
+		switch (type) {
+			case BonusType.HP:
+				// Crimson body, white cross — health potion read.
+				return {
+					bodyColor: 0x991b1b,
+					sheenColor: 0xf87171,
+					glyph: '✚',
+					tag: 'HEALTH',
+					payoff: '+5 HP',
+				};
+			case BonusType.Cash:
+				// Emerald body, dollar — cash bag read.
+				return {
+					bodyColor: 0x065f46,
+					sheenColor: 0x34d399,
+					glyph: '$',
+					tag: 'CASH',
+					payoff: '+$5',
+				};
+			case BonusType.Reveal:
+			default:
+				// Royal purple body, eye — reveal-the-hidden read.
+				return {
+					bodyColor: 0x4c1d95,
+					sheenColor: 0xa78bfa,
+					glyph: '◉',
+					tag: 'REVEAL',
+					payoff: 'flip 1',
+				};
+		}
 	}
 
 	private makeBack(): Phaser.GameObjects.Container {
@@ -811,8 +1388,14 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private layoutAll(animate = false, staggerByCardId?: Map<string, number>) {
 		const stagger = (id: string) => staggerByCardId?.get(id) ?? 0;
+		// Track which card indices are still in some pile this frame. After
+		// the layout pass, any view not in the set gets hidden — that's how
+		// auto-consumed bonus cards disappear from the board.
+		const visited = new Set<number>();
+		const visit = (byte: CardByte) => visited.add(getCardIndex(byte));
 
 		this.state.stock.forEach((byte, i) => {
+			visit(byte);
 			const v = this.viewFor(byte);
 			this.positionCard(
 				v,
@@ -824,13 +1407,25 @@ export class SolitaireScene extends Phaser.Scene {
 			);
 			v.face.setVisible(false);
 			v.back.setVisible(true);
+			v.peekRing.setVisible(false);
 		});
 
+		// Waste — fan the last 3 (draw-3 mode). Cards beneath the visible
+		// fan stack at the base position. Only the topmost (last drawn) is
+		// grabbable; onDragStart enforces this.
+		const wasteLen = this.state.waste.length;
 		this.state.waste.forEach((byte, i) => {
+			visit(byte);
 			const v = this.viewFor(byte);
+			// Index from the top: 0 = topmost, 1 = under top, 2 = third, 3+ = stacked beneath
+			const fromTop = wasteLen - 1 - i;
+			const fanOffset =
+				fromTop < STOCK_DRAW_COUNT
+					? (STOCK_DRAW_COUNT - 1 - fromTop) * WASTE_FAN_X
+					: 0;
 			this.positionCard(
 				v,
-				WASTE_X + CARD_SIZE.width / 2,
+				WASTE_X + CARD_SIZE.width / 2 + fanOffset,
 				TOP_ROW_Y + CARD_SIZE.height / 2,
 				100 + i,
 				animate,
@@ -838,12 +1433,14 @@ export class SolitaireScene extends Phaser.Scene {
 			);
 			v.face.setVisible(true);
 			v.back.setVisible(false);
+			v.peekRing.setVisible(false);
 		});
 
 		this.state.foundations.forEach((pile, idx) => {
 			const x =
 				FOUNDATION_X_START + idx * FOUNDATION_GAP + CARD_SIZE.width / 2;
 			pile.forEach((byte, i) => {
+				visit(byte);
 				const v = this.viewFor(byte);
 				this.positionCard(
 					v,
@@ -855,6 +1452,7 @@ export class SolitaireScene extends Phaser.Scene {
 				);
 				v.face.setVisible(true);
 				v.back.setVisible(false);
+				v.peekRing.setVisible(false);
 			});
 		});
 
@@ -863,6 +1461,7 @@ export class SolitaireScene extends Phaser.Scene {
 				TABLEAU_X_START + col * TABLEAU_X_GAP + CARD_SIZE.width / 2;
 			let y = TABLEAU_Y + CARD_SIZE.height / 2;
 			column.forEach((byte, i) => {
+				visit(byte);
 				const v = this.viewFor(byte);
 				this.positionCard(
 					v,
@@ -875,9 +1474,24 @@ export class SolitaireScene extends Phaser.Scene {
 				const up = isFaceUp(byte);
 				v.face.setVisible(up);
 				v.back.setVisible(!up);
+				// Purple peek-ring on the back of face-down cards the player
+				// has been allowed to peek (Reveal bonus). Hover handler
+				// flips face/back; the ring is the discoverability hint.
+				v.peekRing.setVisible(
+					!up && this.state.peekedCards.has(v.cardIndex),
+				);
 				y += up ? TABLEAU_FAN_Y : TABLEAU_FAN_Y_DOWN;
 			});
 		});
+
+		// Hide views for cards that no longer live in any pile (auto-consumed
+		// bonus cards). The container stays in the display list so we don't
+		// rebuild it on the next reset, but it's hidden until a new run.
+		for (let i = 0; i < this.viewByIndex.length; i++) {
+			const v = this.viewByIndex[i];
+			if (!v) continue;
+			v.container.setVisible(visited.has(i));
+		}
 	}
 
 	/** Resolve the SceneCardView for a given byte. Index = lower 6 bits of
@@ -898,6 +1512,7 @@ export class SolitaireScene extends Phaser.Scene {
 	) {
 		v.container.setDepth(depth);
 		v.restY = y;
+		v.restDepth = depth;
 		v.container.setScale(1);
 		v.shadow.setVisible(false);
 		v.hovered = false;
@@ -961,9 +1576,10 @@ export class SolitaireScene extends Phaser.Scene {
 
 	/** True if this card is currently grab-eligible (face-up + reachable). */
 	private isInteractableTop(id: string): boolean {
-		// Waste top.
-		const wasteTop = this.state.waste[this.state.waste.length - 1];
-		if (wasteTop !== undefined && getCardId(wasteTop) === id) return true;
+		// Any visible waste card — draw-3 with all selectable.
+		for (const byte of this.state.waste) {
+			if (getCardId(byte) === id) return true;
+		}
 
 		// Foundation tops.
 		for (const pile of this.state.foundations) {
@@ -983,8 +1599,26 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private onHoverEnter(view: SceneCardView) {
 		if (this.dragging) return;
+
+		// Peek path — face-down peeked tableau card shows its face while
+		// the cursor is over it. Card is NOT interactable (no drag/lift),
+		// just a visual reveal. Checked before `isInteractableTop` so
+		// face-down cards still get the hover.
+		if (view.back.visible && this.state.peekedCards.has(view.cardIndex)) {
+			view.peeking = true;
+			view.hovered = true;
+			view.face.setVisible(true);
+			view.back.setVisible(false);
+			view.container.setDepth(9000);
+			return;
+		}
+
 		if (!this.isInteractableTop(view.id)) return;
 		view.hovered = true;
+		// Pop above sibling cards so the hovered card's lift + scale isn't
+		// occluded by adjacent waste-fan cards. Restored on hover-leave from
+		// `restDepth` (set by positionCard on the last layout pass).
+		view.container.setDepth(9000);
 		this.tweens.add({
 			targets: view.container,
 			y: view.restY - HOVER_LIFT,
@@ -999,6 +1633,17 @@ export class SolitaireScene extends Phaser.Scene {
 	private onHoverLeave(view: SceneCardView) {
 		if (!view.hovered) return;
 		view.hovered = false;
+
+		// Peek leave — flip the card back to its face-down look. No tween.
+		if (view.peeking) {
+			view.peeking = false;
+			view.face.setVisible(false);
+			view.back.setVisible(true);
+			view.container.setDepth(view.restDepth);
+			return;
+		}
+
+		view.container.setDepth(view.restDepth);
 		this.tweens.add({
 			targets: view.container,
 			y: view.restY,
@@ -1016,10 +1661,14 @@ export class SolitaireScene extends Phaser.Scene {
 	private onDragStart(_pointer: Phaser.Input.Pointer, head: SceneCardView) {
 		const id = head.id;
 
-		// Waste top → drag single.
-		const wasteTop = this.state.waste[this.state.waste.length - 1];
-		if (wasteTop !== undefined && getCardId(wasteTop) === id) {
-			this.beginDrag([wasteTop], 'waste', undefined, undefined, head);
+		// Any waste card → drag single. fromCardIndex carries the waste-array
+		// index so applyMove can splice the right card out (not always top).
+		const wasteIdx = this.state.waste.findIndex(
+			(byte) => getCardId(byte) === id,
+		);
+		if (wasteIdx !== -1) {
+			const card = this.state.waste[wasteIdx];
+			this.beginDrag([card], 'waste', undefined, wasteIdx, head);
 			return;
 		}
 
@@ -1149,6 +1798,18 @@ export class SolitaireScene extends Phaser.Scene {
 
 	private findDropTarget(cx: number, cy: number): DropTarget | null {
 		for (const t of this.dropTargets) {
+			if (t.pile === 'activate') {
+				// Activate slot uses its own geometry (sidebar-bottom rect).
+				const tx = t.x + (t.w ?? 0) / 2;
+				const ty = t.y + (t.h ?? 0) / 2;
+				if (
+					Math.abs(cx - tx) < (t.w ?? 0) / 2 &&
+					Math.abs(cy - ty) < (t.h ?? 0) / 2
+				) {
+					return t;
+				}
+				continue;
+			}
 			const tx = t.x + CARD_SIZE.width / 2;
 			const ty = t.y + CARD_SIZE.height / 2;
 			const hitW = CARD_SIZE.width + 24;
@@ -1178,6 +1839,26 @@ export class SolitaireScene extends Phaser.Scene {
 		drag: NonNullable<typeof this.dragging>,
 		target: DropTarget,
 	): boolean {
+		// Activate slot — only valid for a single bonus card from waste or
+		// the top of a tableau column. State methods validate "is bonus".
+		if (target.pile === 'activate') {
+			if (drag.cards.length !== 1) return false;
+			if (!isBonus(drag.cards[0])) return false;
+			if (drag.fromPile === 'waste') {
+				return this.state.activateBonusFromWaste(
+					drag.fromCardIndex ?? this.state.waste.length - 1,
+				);
+			}
+			if (
+				drag.fromPile === 'tableau' &&
+				drag.fromCol !== undefined &&
+				drag.fromCol >= 0
+			) {
+				return this.state.activateBonusFromTableau(drag.fromCol);
+			}
+			return false;
+		}
+
 		// Foundation drag (sentinel encoded in fromCol).
 		if (drag.fromCol !== undefined && drag.fromCol < 0) {
 			const fromFoundation = -drag.fromCol - 1;
@@ -1192,10 +1873,16 @@ export class SolitaireScene extends Phaser.Scene {
 
 		if (drag.fromPile === 'waste') {
 			if (target.pile === 'foundation') {
-				return this.state.moveWasteToFoundation(target.index);
+				return this.state.moveWasteToFoundation(
+					target.index,
+					drag.fromCardIndex,
+				);
 			}
 			if (target.pile === 'tableau') {
-				return this.state.moveWasteToTableau(target.index);
+				return this.state.moveWasteToTableau(
+					target.index,
+					drag.fromCardIndex,
+				);
 			}
 		} else if (drag.fromPile === 'tableau') {
 			if (drag.cards.length === 1 && target.pile === 'foundation') {
@@ -1220,11 +1907,23 @@ export class SolitaireScene extends Phaser.Scene {
 	// -------------------------------------------------------------------
 
 	private tryAutoFoundation(id: string) {
-		const wasteTop = this.state.waste[this.state.waste.length - 1];
-		if (wasteTop !== undefined && getCardId(wasteTop) === id) {
+		const wasteIdx = this.state.waste.findIndex(
+			(byte) => getCardId(byte) === id,
+		);
+		if (wasteIdx !== -1) {
+			const c = this.state.waste[wasteIdx];
+			// Bonus cards short-circuit to the activate slot — double-click
+			// is the keyboard-free shortcut for "use this card now".
+			if (isBonus(c)) {
+				if (this.state.activateBonusFromWaste(wasteIdx)) {
+					this.layoutAll(true);
+					this.updateHud();
+				}
+				return;
+			}
 			for (let f = 0; f < 4; f++) {
-				if (canDropOnFoundation(wasteTop, this.state.foundations[f])) {
-					if (this.state.moveWasteToFoundation(f)) {
+				if (canDropOnFoundation(c, this.state.foundations[f])) {
+					if (this.state.moveWasteToFoundation(f, wasteIdx)) {
 						this.layoutAll(true);
 						this.updateHud();
 						this.checkRoundEnd();
@@ -1238,6 +1937,13 @@ export class SolitaireScene extends Phaser.Scene {
 			const top =
 				this.state.tableaus[col][this.state.tableaus[col].length - 1];
 			if (top !== undefined && getCardId(top) === id) {
+				if (isBonus(top)) {
+					if (this.state.activateBonusFromTableau(col)) {
+						this.layoutAll(true);
+						this.updateHud();
+					}
+					return;
+				}
 				for (let f = 0; f < 4; f++) {
 					if (canDropOnFoundation(top, this.state.foundations[f])) {
 						if (this.state.moveTableauToFoundation(col, f)) {
@@ -1269,13 +1975,13 @@ export class SolitaireScene extends Phaser.Scene {
 		if (!this.winBanner) {
 			this.winBanner = this.add
 				.text(
-					BASE_WIDTH / 2,
+					PLAY_WIDTH / 2,
 					BASE_HEIGHT / 2,
 					'You won! 🎉  Press N for new game.',
 					{
 						fontSize: '32px',
 						color: COLORS.winText,
-						fontFamily: 'system-ui, sans-serif',
+						fontFamily: FONT.sans,
 						fontStyle: 'bold',
 					},
 				)
@@ -1368,10 +2074,12 @@ export class SolitaireScene extends Phaser.Scene {
 			.setInteractive(); // swallow clicks behind the modal
 		c.add(backdrop);
 
-		// Modal panel.
-		const w = 540;
-		const h = 360;
-		const x = (BASE_WIDTH - w) / 2;
+		// Modal panel — sized to fit a 5-up shop row + summary + button.
+		// Centered on the play area (not the full canvas, so the sidebar
+		// stays visible and the modal sits over the cards).
+		const w = 700;
+		const h = 380;
+		const x = (PLAY_WIDTH - w) / 2;
 		const y = (BASE_HEIGHT - h) / 2;
 		const panel = this.add.graphics();
 		panel.fillStyle(HUD_COLORS.hudBg, 1);
@@ -1382,11 +2090,11 @@ export class SolitaireScene extends Phaser.Scene {
 
 		// Title.
 		const titleText = this.add
-			.text(BASE_WIDTH / 2, y + 20, title, {
+			.text(PLAY_WIDTH / 2, y + 20, title, {
 				fontSize: '24px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5, 0)
 			.setResolution(2);
@@ -1406,13 +2114,13 @@ export class SolitaireScene extends Phaser.Scene {
 		// Score / cash summary.
 		const summary = this.add
 			.text(
-				BASE_WIDTH / 2,
+				PLAY_WIDTH / 2,
 				contentY,
 				`Score ${this.state.score}  ·  Target ${this.state.blind}  ·  Earned $${Math.floor(this.state.score / 10)}`,
 				{
 					fontSize: '13px',
 					color: HUD_COLORS.roundText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				},
 			)
 			.setOrigin(0.5, 0)
@@ -1422,32 +2130,48 @@ export class SolitaireScene extends Phaser.Scene {
 		// Shop offers — 3 cards. Click to buy.
 		const offers: { label: string; cost: number; apply: () => void }[] = [
 			{
-				label: 'Multiplier Joker (×1.5 mult)',
-				cost: 5,
+				label: 'Multiplier Joker\n(×1.5 mult)',
+				cost: SHOP_PRICES.jokerMultiplier,
 				apply: () => {
 					this.state.ownedJokerVariants.push(JokerVariant.Multiplier);
 				},
 			},
 			{
-				label: 'ScoreBoost Joker (+50 flat)',
-				cost: 8,
+				label: 'ScoreBoost Joker\n(+50 flat)',
+				cost: SHOP_PRICES.jokerScoreBoost,
 				apply: () => {
 					this.state.ownedJokerVariants.push(JokerVariant.ScoreBoost);
 				},
 			},
 			{
-				label: 'Discount Reroll (skip)',
-				cost: 0,
+				label: '+1 Armor\n(reduce damage)',
+				cost: SHOP_PRICES.armorPoint,
 				apply: () => {
-					/* no-op; just lets player skip */
+					this.state.armor += 1;
+				},
+			},
+			{
+				label: '+1 Attack\n(×0.25 score boost)',
+				cost: SHOP_PRICES.attackPoint,
+				apply: () => {
+					this.state.attack += STATS.attackStep;
+				},
+			},
+			{
+				label: 'Heal +5 HP',
+				cost: SHOP_PRICES.healSmall,
+				apply: () => {
+					this.state.heal(5);
 				},
 			},
 		];
 
-		const cardW = 150;
-		const cardH = 100;
-		const gap = 18;
-		const startX = BASE_WIDTH / 2 - (cardW * 3 + gap * 2) / 2;
+		// 5-up shop laid out across the panel; cards are smaller than before
+		// to fit. Cost still fits comfortably with the new card height.
+		const cardW = 120;
+		const cardH = 110;
+		const gap = 12;
+		const startX = PLAY_WIDTH / 2 - (cardW * 5 + gap * 4) / 2;
 		const cardY = contentY + 36;
 
 		offers.forEach((offer, i) => {
@@ -1463,7 +2187,7 @@ export class SolitaireScene extends Phaser.Scene {
 				.text(cx + cardW / 2, cardY + 18, offer.label, {
 					fontSize: '12px',
 					color: HUD_COLORS.scoreText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 					align: 'center',
 					wordWrap: { width: cardW - 16 },
 				})
@@ -1476,7 +2200,7 @@ export class SolitaireScene extends Phaser.Scene {
 					fontSize: '16px',
 					color: HUD_COLORS.cashText,
 					fontStyle: 'bold',
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 				})
 				.setOrigin(0.5, 0)
 				.setResolution(2);
@@ -1514,23 +2238,23 @@ export class SolitaireScene extends Phaser.Scene {
 		const btnLabel = passed ? `→ Round ${this.state.round + 1}` : 'End Run';
 		const btn = this.add.graphics();
 		btn.fillStyle(passed ? 0x065f46 : 0x7f1d1d, 1);
-		btn.fillRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.fillRoundedRect(PLAY_WIDTH / 2 - 90, btnY, 180, 40, 10);
 		btn.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
-		btn.strokeRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.strokeRoundedRect(PLAY_WIDTH / 2 - 90, btnY, 180, 40, 10);
 		container.add(btn);
 		const btnText = this.add
-			.text(BASE_WIDTH / 2, btnY + 20, btnLabel, {
+			.text(PLAY_WIDTH / 2, btnY + 20, btnLabel, {
 				fontSize: '15px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
 		container.add(btnText);
 
 		const btnHit = this.add
-			.rectangle(BASE_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
+			.rectangle(PLAY_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
 			.setInteractive({ useHandCursor: true });
 		btnHit.on('pointerdown', () => {
 			if (passed) {
@@ -1554,13 +2278,13 @@ export class SolitaireScene extends Phaser.Scene {
 
 		const summary = this.add
 			.text(
-				BASE_WIDTH / 2,
+				PLAY_WIDTH / 2,
 				contentY,
 				`Final score ${this.state.score}\nRound reached: ${this.state.round}\nBest score: ${this.state.bestRecord.bestScore}\nRuns played: ${this.state.bestRecord.totalRuns}`,
 				{
 					fontSize: '14px',
 					color: HUD_COLORS.roundText,
-					fontFamily: 'system-ui, sans-serif',
+					fontFamily: FONT.sans,
 					align: 'center',
 				},
 			)
@@ -1571,23 +2295,23 @@ export class SolitaireScene extends Phaser.Scene {
 		const btnY = contentY + 140;
 		const btn = this.add.graphics();
 		btn.fillStyle(0x065f46, 1);
-		btn.fillRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.fillRoundedRect(PLAY_WIDTH / 2 - 90, btnY, 180, 40, 10);
 		btn.lineStyle(2, HUD_COLORS.hudBorder, 0.9);
-		btn.strokeRoundedRect(BASE_WIDTH / 2 - 90, btnY, 180, 40, 10);
+		btn.strokeRoundedRect(PLAY_WIDTH / 2 - 90, btnY, 180, 40, 10);
 		container.add(btn);
 		const btnText = this.add
-			.text(BASE_WIDTH / 2, btnY + 20, 'New Run', {
+			.text(PLAY_WIDTH / 2, btnY + 20, 'New Run', {
 				fontSize: '15px',
 				color: HUD_COLORS.scoreText,
 				fontStyle: 'bold',
-				fontFamily: 'system-ui, sans-serif',
+				fontFamily: FONT.sans,
 			})
 			.setOrigin(0.5)
 			.setResolution(2);
 		container.add(btnText);
 
 		const btnHit = this.add
-			.rectangle(BASE_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
+			.rectangle(PLAY_WIDTH / 2, btnY + 20, 180, 40, 0xffffff, 0.001)
 			.setInteractive({ useHandCursor: true });
 		btnHit.on('pointerdown', () => {
 			this.dismissModal();

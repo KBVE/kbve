@@ -71,4 +71,36 @@ describe('fetchSiteGraph', () => {
 		);
 		await expect(fetchSiteGraph()).resolves.toEqual(sample);
 	});
+
+	it('falls back to direct fetch when the worker rejects', async () => {
+		// Wire a "worker" port that responds with an error to every request,
+		// the same shape the real SharedWorker posts on its error path.
+		const port = {
+			postMessage: vi.fn(function (
+				this: void,
+				msg: { requestId: string },
+			) {
+				queueMicrotask(() => {
+					(port.onmessage as (e: MessageEvent) => void)?.({
+						data: {
+							type: 'error',
+							requestId: msg.requestId,
+							message: 'simulated worker fetch failure',
+						},
+					} as MessageEvent);
+				});
+			}),
+			onmessage: null as ((e: MessageEvent) => void) | null,
+			start: () => {},
+		} as unknown as MessagePort;
+		setSiteGraphWorker(port);
+
+		const fetchMock = globalThis.fetch as unknown as ReturnType<
+			typeof vi.fn
+		>;
+		const result = await fetchSiteGraph();
+		expect(result).toEqual(sample);
+		// Fallback path called the global fetch exactly once.
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
 });

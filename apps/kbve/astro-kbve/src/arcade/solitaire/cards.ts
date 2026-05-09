@@ -107,6 +107,38 @@ export function getColor(card: CardByte): ColorByte {
  * for visuals — joker is wild for rule purposes). */
 export const JOKER_RANK = 13;
 
+/** Sentinel rank for "bonus" cards — non-rule cards that auto-consume
+ * the moment they flip face-up, applying a side-effect (heal, cash, or
+ * reveal-a-hidden). The suit byte slot identifies the bonus subtype so
+ * each bonus card has a stable id + view. Rank 14 is outside the 0..12
+ * playing-card range and outside the joker rank, so the existing rule
+ * helpers (`canDropOnTableau`, `canDropOnFoundation`) reject bonus cards
+ * automatically — they can never legally be moved by the player. */
+export const BONUS_RANK = 14;
+
+export const enum BonusType {
+	/** +5 HP (capped at maxHp). */
+	HP = 0,
+	/** +$5 cash. */
+	Cash = 1,
+	/** Flip a random face-down tableau card. */
+	Reveal = 2,
+}
+
+export const BONUS_HP_BYTE: CardByte = (BonusType.HP << 4) | BONUS_RANK;
+export const BONUS_CASH_BYTE: CardByte = (BonusType.Cash << 4) | BONUS_RANK;
+export const BONUS_REVEAL_BYTE: CardByte = (BonusType.Reveal << 4) | BONUS_RANK;
+
+export function isBonus(card: CardByte): boolean {
+	return (card & RANK_MASK) === BONUS_RANK;
+}
+
+export function getBonusType(card: CardByte): BonusType {
+	// Bonus subtype rides on the suit slot — same byte layout as the
+	// joker red/black trick, just repurposed for HP/Cash/Reveal.
+	return ((card & SUIT_MASK) >> 4) as BonusType;
+}
+
 /** Pre-built joker bytes for convenience. Black joker rides on the spades
  * suit slot, red joker on the hearts slot — those are the two color
  * indices that read correctly through `getColor`. */
@@ -151,6 +183,9 @@ const ID_CACHE: string[] = (() => {
 	}
 	out[JOKER_BLACK_BYTE] = 'JOKER-BLACK';
 	out[JOKER_RED_BYTE] = 'JOKER-RED';
+	out[BONUS_HP_BYTE] = 'BONUS-HP';
+	out[BONUS_CASH_BYTE] = 'BONUS-CASH';
+	out[BONUS_REVEAL_BYTE] = 'BONUS-REVEAL';
 	return out;
 })();
 
@@ -210,23 +245,33 @@ export interface DealOptions {
 	/** Add 2 jokers (1 black, 1 red) to the deck before shuffle. Resulting
 	 * stock is 26 cards instead of 24; tableau layout (1..7) unchanged. */
 	withJokers?: boolean;
+	/** Add 3 bonus cards (HP / Cash / Reveal) to the deck before shuffle.
+	 * Bonus cards auto-consume the moment they flip face-up, so they show
+	 * up as positive surprises during play and never sit in the rule layer. */
+	withBonuses?: boolean;
 }
 
 export function dealBytes(
 	rng: () => number = Math.random,
 	options: DealOptions = {},
 ): ByteDeal {
-	let working: Uint8Array;
+	const extras: number[] = [];
 	if (options.withJokers) {
-		// Allocate a 54-byte deck: standard 52 + 2 jokers, then shuffle the
-		// whole thing so jokers end up anywhere in the deal.
-		const base = buildDeckBytes();
-		working = new Uint8Array(54);
+		extras.push(JOKER_BLACK_BYTE, JOKER_RED_BYTE);
+	}
+	if (options.withBonuses) {
+		extras.push(BONUS_HP_BYTE, BONUS_CASH_BYTE, BONUS_REVEAL_BYTE);
+	}
+	const base = buildDeckBytes();
+	let working: Uint8Array;
+	if (extras.length > 0) {
+		working = new Uint8Array(base.length + extras.length);
 		working.set(base, 0);
-		working[52] = JOKER_BLACK_BYTE;
-		working[53] = JOKER_RED_BYTE;
+		for (let i = 0; i < extras.length; i++) {
+			working[base.length + i] = extras[i];
+		}
 	} else {
-		working = buildDeckBytes();
+		working = base;
 	}
 	const deck = shuffleBytes(working, rng);
 
@@ -269,11 +314,14 @@ export interface CardView {
 	 * joker rides on) for convenience but rule logic should branch on
 	 * this flag, not on suit. */
 	joker: boolean;
+	/** Bonus card subtype — undefined for normal cards + jokers. */
+	bonus?: BonusType;
 }
 
 export function toCardView(card: CardByte): CardView {
 	const suit = getSuit(card);
 	const color = getColor(card) === ColorByte.Red ? 'red' : 'black';
+	const bonus = isBonus(card) ? getBonusType(card) : undefined;
 	return {
 		id: getCardId(card),
 		suit: SUIT_LABEL[suit],
@@ -283,5 +331,6 @@ export function toCardView(card: CardByte): CardView {
 		label: getCardLabel(card),
 		faceUp: isFaceUp(card),
 		joker: isJoker(card),
+		bonus,
 	};
 }
