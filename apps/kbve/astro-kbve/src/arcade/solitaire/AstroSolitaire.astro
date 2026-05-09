@@ -148,16 +148,20 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 		line-height: 1;
 	}
 
-	/* Theater mode: pin the stage over the viewport with a dimmed backdrop
-	   and scale the frame to fit BOTH dimensions. No window resize needed
-	   to play at the largest legible size; toggling theater off restores
-	   the inline layout. Esc / button click leaves the mode. */
+	/* Theater mode pins the stage over the viewport with a dimmed felt
+	   backdrop and scales the frame to fit BOTH dimensions. The top edge
+	   sits below Starlight's sticky nav so the site header remains usable
+	   instead of bleeding through behind the overlay. Esc / button click
+	   exits. */
 	.solitaire-stage.is-theater {
 		position: fixed;
-		inset: 0;
+		top: var(--sl-nav-height, 0px);
+		left: 0;
+		right: 0;
+		bottom: 0;
 		max-width: none;
 		width: 100vw;
-		height: 100vh;
+		height: calc(100vh - var(--sl-nav-height, 0px));
 		margin: 0;
 		padding: 16px;
 		z-index: 50;
@@ -174,8 +178,13 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 	}
 	.solitaire-stage.is-theater .solitaire-frame {
 		/* Pick the smaller of viewport width or viewport-height-derived
-		   width (so the 22:15 aspect ratio always fits without scroll). */
-		width: min(100%, calc((100vh - 110px) * 22 / 15));
+		   width (so the 22:15 aspect ratio always fits without scroll).
+		   Height budget = stage height - toolbar (~36) - help (~24) -
+		   padding (~32). */
+		width: min(
+			100%,
+			calc((100vh - var(--sl-nav-height, 0px) - 110px) * 22 / 15)
+		);
 		max-width: 100%;
 		height: auto;
 	}
