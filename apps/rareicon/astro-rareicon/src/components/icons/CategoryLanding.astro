@@ -1,0 +1,223 @@
+---
+/**
+ * Category-scoped catalog landing. Pre-filters the term summaries down
+ * to one primary_category value, renders breadcrumb + count + a grid
+ * matching the global IconsBrowser layout — minus the filter chips
+ * (single category by definition) and minus the Featured row (every
+ * card is already on-topic). Direct term pages at /icons/<ref>/ stay
+ * 1:1 reachable; this is an additive landing surface.
+ */
+import { getCollection } from 'astro:content';
+import { collectTermSummaries } from '@/lib/icons/terms';
+
+interface Props {
+	category: string;
+	headline?: string;
+	lede?: string;
+}
+
+const { category, headline, lede } = Astro.props;
+const docs = await getCollection('docs');
+const allTerms = collectTermSummaries(docs);
+const terms = allTerms.filter((t) => t.primary_category === category);
+
+const categoryLabel =
+	headline ?? category.charAt(0).toUpperCase() + category.slice(1);
+---
+
+<section class="ri-cat-landing" data-category={category}>
+	<header class="ri-cat-landing__header">
+		<nav class="ri-cat-landing__crumbs" aria-label="Breadcrumb">
+			<a href="/icons/">All icons</a>
+			<span aria-hidden="true">/</span>
+			<span class="ri-cat-landing__crumbs-current">{categoryLabel}</span>
+		</nav>
+		<h1 class="ri-cat-landing__title">
+			{categoryLabel}
+			<span class="ri-cat-landing__count">{terms.length}</span>
+		</h1>
+		{lede && <p class="ri-cat-landing__lede">{lede}</p>}
+	</header>
+
+	{
+		terms.length === 0 ? (
+			<p class="ri-cat-landing__empty">
+				No icons in this category yet. Browse the
+				<a href="/icons/">full catalog</a>.
+			</p>
+		) : (
+			<ul class="ri-cat-landing__grid">
+				{terms.map((t) => (
+					<li class="ri-cat-landing__item">
+						<a
+							href={`/icons/${t.ref}/`}
+							class="ri-cat-landing__card">
+							<div
+								class="ri-cat-landing__thumb"
+								set:html={t.previewSvg ?? ''}
+							/>
+							<div class="ri-cat-landing__meta">
+								<span class="ri-cat-landing__name">
+									{t.name}
+								</span>
+								<span class="ri-cat-landing__pill">
+									{t.variantCount}
+									{t.variantCount === 1
+										? ' variant'
+										: ' variants'}
+								</span>
+							</div>
+						</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</section>
+
+<style is:global>
+	.ri-cat-landing {
+		max-width: 72rem;
+		margin: 1.5rem auto 3rem;
+	}
+
+	.ri-cat-landing__header {
+		margin-bottom: 1.5rem;
+	}
+
+	.ri-cat-landing__crumbs {
+		display: flex;
+		gap: 0.45rem;
+		font-size: 0.8125rem;
+		color: var(--ri-text-disabled, #6b6356);
+		margin-bottom: 0.5rem;
+	}
+
+	.ri-cat-landing__crumbs a {
+		color: var(--ri-accent, #d4a73c);
+		text-decoration: none;
+	}
+
+	.ri-cat-landing__crumbs a:hover {
+		text-decoration: underline;
+	}
+
+	.ri-cat-landing__crumbs-current {
+		color: var(--ri-text-secondary, #9e9480);
+		font-weight: 500;
+	}
+
+	.ri-cat-landing__title {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin: 0;
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		color: var(--ri-text-primary, #e8dcc8);
+	}
+
+	.ri-cat-landing__count {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		padding: 0.25rem 0.6rem;
+		border-radius: 999px;
+		background: color-mix(
+			in srgb,
+			var(--ri-accent, #d4a73c) 12%,
+			transparent
+		);
+		border: 1px solid
+			color-mix(in srgb, var(--ri-accent, #d4a73c) 35%, transparent);
+		color: var(--ri-accent, #d4a73c);
+	}
+
+	.ri-cat-landing__lede {
+		margin: 0.75rem 0 0;
+		color: var(--ri-text-secondary, #9e9480);
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		max-width: 56rem;
+	}
+
+	.ri-cat-landing__grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.ri-cat-landing__item {
+		margin: 0;
+	}
+
+	.ri-cat-landing__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-radius: 8px;
+		background: var(--ri-bg-panel, #15131c);
+		border: 1px solid var(--ri-border, #2a2a33);
+		text-decoration: none !important;
+		color: var(--ri-text-primary, #e8dcc8);
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s,
+			transform 0.15s;
+	}
+
+	.ri-cat-landing__card:hover {
+		border-color: var(--ri-accent, #d4a73c);
+		box-shadow: 0 0 24px rgba(212, 167, 60, 0.15);
+		transform: translateY(-2px);
+	}
+
+	.ri-cat-landing__thumb {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: var(--ri-bg-panel-elevated, #1a1a1f);
+		border-radius: 6px;
+		color: var(--ri-accent, #d4a73c);
+		min-height: 80px;
+	}
+
+	.ri-cat-landing__thumb svg {
+		width: 48px;
+		height: 48px;
+	}
+
+	.ri-cat-landing__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.ri-cat-landing__name {
+		font-weight: 600;
+		flex: 1 1 auto;
+	}
+
+	.ri-cat-landing__pill {
+		font-size: 0.6875rem;
+		padding: 0.125rem 0.45rem;
+		border-radius: 999px;
+		background: var(--ri-bg-app, #0c0c10);
+		border: 1px solid var(--ri-border, #2a2a33);
+		color: var(--ri-text-disabled, #6b6356);
+	}
+
+	.ri-cat-landing__empty {
+		padding: 2rem;
+		text-align: center;
+		color: var(--ri-text-disabled, #6b6356);
+		border: 1px dashed var(--ri-border, #2a2a33);
+		border-radius: 8px;
+	}
+</style>
