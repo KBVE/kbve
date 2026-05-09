@@ -205,9 +205,8 @@ impl ForumService {
         space_slug: Option<&str>,
         slug_or_id: &str,
     ) -> Result<Option<(ThreadRow, SpaceRow)>, String> {
-        // Distinguish ULID (26 chars, Crockford alphabet) from a slug.
-        let looks_like_ulid =
-            slug_or_id.len() == 26 && slug_or_id.bytes().all(|b| b.is_ascii_alphanumeric());
+        let looks_like_ulid = matches!(slug_or_id.len(), 26 | 32)
+            && slug_or_id.bytes().all(|b| b.is_ascii_alphanumeric());
 
         let url = format!("{}/threads", self.client.config().rest_url());
         let headers = self.client.rpc_headers(SCHEMA)?;
