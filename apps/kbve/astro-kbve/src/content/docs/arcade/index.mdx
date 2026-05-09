@@ -1,27 +1,121 @@
 ---
 title: Arcade
 description: |
-    The KBVE Arcade!
+    KBVE Arcade — the home for our in-browser games. Card games, action
+    RPGs, endless runners, and (soon) classic Flash titles via Ruffle.
 unsplash: 1688413399498-e35ed74b554f
 img: https://images.unsplash.com/photo-1688413399498-e35ed74b554f?fit=crop&w=1400&h=700&q=75
 sidebar:
     label: Arcade Navigator
     order: 1
+tags:
+    - arcade
+    - games
+    - browser-games
+    - flash
+    - ruffle
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 import { Adsense } from '@/components/astropad';
 
 ## KBVE Arcade
 
+Welcome to the **KBVE Arcade**!
+A curated collection of browser games we build and host in-house.
+Every title runs natively in the page, no download, no install, no plugins.
+Click a card below to play.
 
+If you used to play Flash games on portals like Miniclip, Newgrounds, or Kongregate in the late 2000s, the long-term goal here is the same vibe:
+a single hub with a deep library, plus a few first-party titles you
+can't get anywhere else.
+
+## Available now
+
+<CardGrid>
+    <LinkCard
+        title="Solitaire"
+        href="/arcade/solitaire/"
+        description="Klondike with a roguelite twist — bonus HP/cash cards, monster encounters pulled from npcdb, frozen-card status, and a Balatro-style blind/shop loop."
+    />
+    <LinkCard
+        title="RareIcon (WebGL)"
+        href="/arcade/rareicon/"
+        description="A playable demo of RareIcon — our 2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps, in your browser."
+    />
+    <LinkCard
+        title="Isometric"
+        href="/arcade/isometric/"
+        description="WebGPU-powered isometric world prototype, built on Bevy + Rust + WASM."
+    />
+    <LinkCard
+        title="Endless Runner"
+        href="/arcade/runner/"
+        description="A quick endless-runner palette cleanser. Pick up speed, dodge what you can, see how far you get."
+    />
+</CardGrid>
+
+## Coming soon
+
+We're working on a **[Ruffle](/application/rust/)** integration so the
+arcade can host classic Flash (`.swf`) games in-browser via the WASM
+emulator. No browser plugin, no Adobe runtime — Ruffle just plays the
+file. Once the integration is stable we'll seed the library with a few
+fan-favorite classics and grow from there.
+
+<CardGrid>
+    <Card title="Ruffle Flash player" icon="puzzle">
+        WASM-based Flash player so we can bring SWF-era games back to
+        life inside the arcade. Tracking integration, save-state, and
+        controller mapping before we open the catalog.
+    </Card>
+    <Card title="More first-party titles" icon="rocket">
+        KBVE Studio keeps shipping. New titles drop here first; track
+        the [project changelog](/project/) for what's cooking.
+    </Card>
+    <Card title="Mobile-friendly" icon="seti:lock">
+        Every game we ship plays on touch — drag, tap, and gesture
+        support are first-class. Rotate your phone to landscape and the
+        same canvas you play on desktop fits the screen.
+    </Card>
+    <Card title="Open source" icon="github">
+        Most of the arcade lives in the public KBVE monorepo. PRs and
+        bug reports welcome — see
+        [github.com/KBVE/kbve](https://github.com/KBVE/kbve).
+    </Card>
+</CardGrid>
+
+## How it's built
+
+The arcade is part of [kbve.com](https://kbve.com), a static Astro
+Starlight site. Each game embeds via a `client:only` React island so
+the heavy runtime (Phaser, Bevy/WASM, R3F) is only fetched when you
+actually open the game's page — the rest of the site stays light.
+
+<Aside type="tip" title="Performance">
+    First-load on a brand-new game page kicks off a one-time bundle
+    download. Subsequent navigations inside the arcade share cached
+    assets and feel near-instant.
+</Aside>
+
+<Adsense />
+
+## Controls cheatsheet
+
+A few common patterns across the arcade:
+
+- **Drag** with the mouse or finger to move cards / units.
+- **Tap / double-click** a card to send it home (e.g. solitaire
+    foundation).
+- **Click stock / deck** to draw.
+- Most pages support a **Theater** button (focus mode) and a
+    **Fullscreen** button up top.
+- Keyboard shortcuts where applicable: `N` = new game, `Z` = undo.
+
+<Aside type="note" title="Spot a bug?">
+    The arcade is under active development — if a game misbehaves,
+    please [open an issue](https://github.com/KBVE/kbve/issues) with
+    the title and your browser/device. We move fast on player feedback.
+</Aside>
 
 <Adsense />
