@@ -205,11 +205,6 @@ export default defineConfig({
 					autogenerate: { directory: 'project' },
 				},
 				{
-					label: 'Memes',
-					collapsed: true,
-					autogenerate: { directory: 'memes' },
-				},
-				{
 					label: 'Minecraft',
 					collapsed: true,
 					autogenerate: { directory: 'mc' },
