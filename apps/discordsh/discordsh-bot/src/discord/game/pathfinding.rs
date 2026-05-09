@@ -47,9 +47,8 @@ pub enum GoalKind<'a> {
     /// Any tile whose `room_type` matches the given variant.
     Room(RoomType),
     /// A specific landmark by `mapdb` ref (e.g. `"shattered-crown"`).
-    /// Reserved for future `/dungeon route landmark:<ref>` queries; the
-    /// current `/dungeon route` command only exposes `Room` goals.
-    #[allow(dead_code)]
+    /// Used by `/dungeon route landmark:<slug>` to navigate to a known
+    /// curated room.
     Landmark(&'a str),
 }
 

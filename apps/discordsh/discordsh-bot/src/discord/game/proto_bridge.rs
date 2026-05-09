@@ -163,9 +163,8 @@ pub fn pick_landmark_for_room_type<R: Rng + ?Sized>(
     Some(bucket[idx].clone())
 }
 
-/// Look up a landmark's display name by ref. Used by card rendering to
-/// surface the curated mapdb name when a tile has a `landmark_ref`.
-#[allow(dead_code)]
+/// Look up a landmark's display name by ref. Used by `/dungeon route
+/// landmark:<slug>` to surface the curated mapdb name in the result.
 pub fn landmark_name(r#ref: &str) -> Option<&'static str> {
     MAP_DB
         .get_object_def_by_ref(r#ref)
