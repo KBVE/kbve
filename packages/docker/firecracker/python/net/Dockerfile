@@ -13,9 +13,11 @@
 # Pairs with: firecracker-ctl-net (FC_PERSISTENT_ENDPOINTS_ENABLED=true).
 # Sandbox quick-mode VMs use the no-network alpine-python image.
 #
-# Usage:
-#   docker build -f Dockerfile -t fc-python-net .
-#   docker run --rm fc-python-net cat /rootfs.ext4 > python-net.ext4
+# Final image is a tiny alpine layer with /rootfs.ext4 + a `cp` entrypoint so
+# the in-cluster stage Job (apps/kube/firecracker/manifests/firecracker-net-
+# rootfs-stage.yaml) can run the image directly:
+#   image: ghcr.io/kbve/firecracker-python-net:<version>
+#   args:  ["/rootfs.ext4", "/dest/firecracker-python-net.ext4"]
 # ============================================================================
 
 FROM --platform=linux/amd64 alpine:3.21 AS rootfs-builder
@@ -56,5 +58,7 @@ fi\n' > /rootfs/init && \
     mkfs.ext4 -F -d /rootfs /rootfs.ext4 && \
     resize2fs -M /rootfs.ext4
 
-FROM scratch
+FROM --platform=linux/amd64 alpine:3.21
 COPY --from=rootfs-builder /rootfs.ext4 /rootfs.ext4
+ENTRYPOINT ["/bin/cp"]
+CMD ["/rootfs.ext4", "/dest/firecracker-python-net.ext4"]
