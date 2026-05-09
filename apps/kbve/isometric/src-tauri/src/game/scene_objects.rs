@@ -537,7 +537,7 @@ fn update_hovered_snapshot(
 /// On left-click, if a hovered entity has Interactable, write its data to the snapshot.
 /// React polls this snapshot to open a modal with object-specific content.
 fn detect_click_selection(
-    mut commands: Commands,
+    mut _commands: Commands,
     mouse: Res<ButtonInput<MouseButton>>,
     hovered_query: Query<
         (
@@ -556,7 +556,7 @@ fn detect_click_selection(
         return;
     }
 
-    let Some((entity, gt, interactable, flower, rock, mushroom, tile_coord)) =
+    let Some((entity, gt, interactable, flower, rock, mushroom, _tile_coord)) =
         hovered_query.iter().next()
     else {
         return;
