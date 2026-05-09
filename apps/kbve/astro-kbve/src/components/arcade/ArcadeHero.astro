@@ -51,11 +51,11 @@ const {
 					{stats.map((s, i) => (
 						<li
 							class:list={[
-								'flex flex-col gap-0.5 border-purple-500/30 pr-6',
+								'flex flex-col gap-1 border-purple-500/30 pr-6',
 								i < stats.length - 1 && 'border-r',
 							]}>
 							<span
-								class="font-serif text-[22px] font-bold text-amber-200"
+								class="block h-[22px] font-serif text-[22px] font-bold leading-none text-amber-200"
 								data-arcade-stat
 								data-arcade-stat-value={s.value}
 								data-arcade-stat-delay={i * 140}>
