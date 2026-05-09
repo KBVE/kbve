@@ -31,6 +31,19 @@ spec:
         - toCIDR:
               - 10.0.0.0/8
               - 172.16.0.0/12
+        # Cilium service translation rewrites kubernetes.default.svc
+        # (10.96.0.1) to the actual kube-apiserver endpoint IP, which on
+        # this Talos cluster is the public node IP outside RFC1918.
+        # Without this rule the gen-vnc-pw init container's PATCH to
+        # kubernetes.default.svc:443 gets dropped by the egress lockdown.
+        - toEntities:
+              - kube-apiserver
+          toPorts:
+              - ports:
+                    - port: '443'
+                      protocol: TCP
+                    - port: '6443'
+                      protocol: TCP
         # Allow WireGuard tunnel establishment (UDP 51820 to any)
         - toCIDR:
               - 0.0.0.0/0
