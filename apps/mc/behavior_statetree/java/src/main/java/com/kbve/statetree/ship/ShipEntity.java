@@ -107,6 +107,56 @@ public class ShipEntity extends Entity {
 
     public ShipInventory getInventory() { return inventory; }
 
+    /** Owner UUID match OR creative-mode op-level-2 admin (vanilla check). */
+    private boolean ownerOrOpCanModify(PlayerEntity player) {
+        UUID owner = getOwnerUuid();
+        if (owner == null || owner.equals(player.getUuid())) return true;
+        return player.isCreativeLevelTwoOp();
+    }
+
+    /**
+     * Pack this ship back into an inventory item carrying its name, HP,
+     * and fuel. Drops cargo + banner + weapon + upgrade slots at the
+     * ship position so the player can collect and re-install. Returns
+     * the resulting ItemStack to the player's inventory (or drops it
+     * if their inventory is full).
+     */
+    public void pickupAsItem(PlayerEntity player) {
+        if (this.getEntityWorld().isClient()) return;
+        ServerWorld world = (ServerWorld) this.getEntityWorld();
+
+        net.minecraft.item.Item itemForm = ShipItems.forModel(getModelName());
+        if (itemForm == null) {
+            player.sendMessage(net.minecraft.text.Text.of(
+                    "Unknown ship model " + getModelName() + " — can't pack"), true);
+            return;
+        }
+
+        // Drop everything in the inventory (player gathers + re-stuffs after redeploy).
+        for (int i = 0; i < inventory.size(); i++) {
+            net.minecraft.item.ItemStack s = inventory.getStack(i);
+            if (!s.isEmpty()) this.dropStack(world, s);
+        }
+        inventory.clear();
+
+        net.minecraft.item.ItemStack shipItem = new net.minecraft.item.ItemStack(itemForm);
+        net.minecraft.nbt.NbtCompound nbt = new net.minecraft.nbt.NbtCompound();
+        nbt.putString("Name", getShipName());
+        nbt.putFloat("Health", getShipHealth());
+        nbt.putFloat("Fuel", getFuelLevel());
+        shipItem.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+
+        if (!player.getInventory().insertStack(shipItem)) {
+            this.dropStack(world, shipItem);
+        }
+
+        this.removeAllPassengers();
+        this.discard();
+        player.sendMessage(net.minecraft.text.Text.of(
+                "Ship packed up — cargo dropped at site"), true);
+    }
+
     /**
      * Fire every loaded weapon slot. Each slot has its own cooldown
      * and consumes one unit of its stack per shot. Mount position is
@@ -502,6 +552,21 @@ public class ShipEntity extends Entity {
         // mob currently leashed to the player onto the ship as the new
         // leash holder. Vanilla MobEntity tickLeash then keeps the
         // mob within range as the ship moves.
+        // Pickup — sneak + shears packs the ship back into an item with
+        // its core state preserved (name, HP, fuel). Cargo + weapons +
+        // upgrades drop at the pickup site so the player can re-stuff
+        // when they redeploy. Only owner / op may pack up.
+        if (player.isSneaking() && stack.isOf(net.minecraft.item.Items.SHEARS)) {
+            if (!ownerOrOpCanModify(player)) {
+                if (!this.getEntityWorld().isClient()) {
+                    player.sendMessage(net.minecraft.text.Text.of("Not your ship"), true);
+                }
+                return ActionResult.PASS;
+            }
+            pickupAsItem(player);
+            return ActionResult.SUCCESS;
+        }
+
         if (stack.isOf(net.minecraft.item.Items.LEAD) && !this.getEntityWorld().isClient()) {
             int transferred = 0;
             net.minecraft.util.math.Box scan = player.getBoundingBox().expand(10.0);
