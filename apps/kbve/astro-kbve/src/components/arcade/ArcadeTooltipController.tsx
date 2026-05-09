@@ -142,14 +142,20 @@ export default function ArcadeTooltipController() {
 				left: visible ? pos.left : -9999,
 				transform: visible
 					? pos.placement === 'top'
-						? 'translate(-50%, -100%)'
-						: 'translate(-50%, 0)'
-					: 'translate(-50%, 0)',
+						? 'translate(-50%, -100%) scale(1)'
+						: 'translate(-50%, 0) scale(1)'
+					: pos?.placement === 'top'
+						? 'translate(-50%, calc(-100% + 6px)) scale(0.96)'
+						: 'translate(-50%, -6px) scale(0.96)',
+				transformOrigin:
+					pos?.placement === 'top' ? 'bottom center' : 'top center',
 				zIndex: 9997,
 				pointerEvents: 'none',
 				opacity: visible ? 1 : 0,
-				transition: 'opacity 150ms ease',
+				transition:
+					'opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 320ms cubic-bezier(0.16, 1, 0.3, 1)',
 				width: 288,
+				willChange: 'opacity, transform',
 			}}>
 			{tip && (
 				<div className="relative isolate overflow-hidden rounded-xl border border-purple-500/40 bg-slate-950/95 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.7),0_0_22px_-4px_rgba(168,85,247,0.45)] backdrop-blur-md">

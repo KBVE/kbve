@@ -50,7 +50,7 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 	data-arcade-tooltip-cta={tooltipCta}
 	{...isLink ? { href } : {}}
 	class:list={[
-		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-200 ease-[cubic-bezier(0.2,0.7,0.2,1)]',
+		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
 		isLink &&
 			'cursor-pointer hover:-translate-y-1 hover:border-pink-500/55 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.55),0_0_0_1px_rgba(236,72,153,0.4)] focus-visible:-translate-y-1 focus-visible:border-pink-500/55',
 		!isLink && 'cursor-default opacity-85',
@@ -60,7 +60,7 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 		class="relative flex aspect-[16/9] items-center justify-center overflow-hidden after:pointer-events-none after:absolute after:inset-0 after:mix-blend-overlay after:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.18)_0,rgba(0,0,0,0.18)_1px,transparent_1px,transparent_3px)]"
 		style={`background: ${gradient};`}>
 		<div
-			class="text-[64px] text-white/95 transition-transform duration-200 [text-shadow:0_0_16px_rgba(0,0,0,0.45),0_0_30px_rgba(255,255,255,0.18)] group-hover:scale-110 group-hover:-rotate-2">
+			class="text-[64px] text-white/95 transition-transform duration-[520ms] ease-[cubic-bezier(0.16,1,0.3,1)] [text-shadow:0_0_16px_rgba(0,0,0,0.45),0_0_30px_rgba(255,255,255,0.18)] group-hover:scale-110 group-hover:-rotate-2">
 			{icon}
 		</div>
 		<div
@@ -103,7 +103,7 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 						<span>Play</span>
 						<span
 							aria-hidden="true"
-							class="transition-transform duration-200 group-hover:translate-x-1">
+							class="transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1">
 							→
 						</span>
 					</>
