@@ -204,8 +204,24 @@ function loadLedger() {
 
 function writeLedger(ledger) {
 	const sorted = {};
+	// `synonyms` carries a curated alias map (`{ ref: [...aliases] }`)
+	// distinct from the per-concept pack-source entries below — keep it
+	// pinned at the top so reviewers find it first.
+	if (ledger['synonyms'] && typeof ledger['synonyms'] === 'object') {
+		const synonymsSorted = {};
+		const synKeys = Object.keys(ledger['synonyms']).sort();
+		for (const sk of synKeys) {
+			const arr = ledger['synonyms'][sk];
+			synonymsSorted[sk] = Array.isArray(arr)
+				? Array.from(new Set(arr)).sort()
+				: arr;
+		}
+		sorted['synonyms'] = synonymsSorted;
+	}
 	for (const k of Object.keys(ledger).sort()) {
+		if (k === 'synonyms') continue;
 		const inner = ledger[k];
+		if (!inner || typeof inner !== 'object') continue;
 		const sortedInner = {};
 		for (const ik of Object.keys(inner).sort()) sortedInner[ik] = inner[ik];
 		sorted[k] = sortedInner;
