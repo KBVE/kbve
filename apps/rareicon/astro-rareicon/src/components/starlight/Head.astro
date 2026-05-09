@@ -71,6 +71,138 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 			: { property: key, content: content! },
 	} as HeadTag;
 });
+
+const SITE = 'https://rareicon.com';
+const slug = (route.entry.id ?? '').replace(/\.mdx?$/, '');
+const canonical = `${SITE}/${slug}/`.replace(/\/+$/, '/');
+const pageTitle = (data.title as string) ?? 'RareIcon';
+const pageDesc = (data.description as string) ?? undefined;
+const defaultImage = `${SITE}/assets/steam/rareicon_library_header_920_x_430px.png`;
+const pageImage = ogImage
+	? ogImage.startsWith('http')
+		? ogImage
+		: `${SITE}${ogImage}`
+	: defaultImage;
+
+function jsonLd(obj: Record<string, unknown>): string {
+	return JSON.stringify({ '@context': 'https://schema.org', ...obj });
+}
+
+const structured: string[] = [];
+
+if (slug === 'index' || slug === '') {
+	structured.push(
+		jsonLd({
+			'@type': 'VideoGame',
+			name: 'RareIcon',
+			description: pageDesc,
+			url: SITE,
+			image: pageImage,
+			genre: ['Bullet-hell', 'Roguelite', 'Action-RPG'],
+			gamePlatform: ['PC', 'macOS', 'Linux'],
+			applicationCategory: 'GameApplication',
+			operatingSystem: 'Windows, macOS, Linux',
+			publisher: {
+				'@type': 'Organization',
+				name: 'KBVE',
+				url: 'https://kbve.com',
+			},
+			author: {
+				'@type': 'Organization',
+				name: 'KBVE',
+				url: 'https://kbve.com',
+			},
+			sameAs: [
+				'https://store.steampowered.com/app/2238370/RareIcon/',
+				'https://kbve.com/github/',
+				'https://kbve.com/discord/',
+			],
+		}),
+	);
+}
+
+if (slug.startsWith('icons/category/')) {
+	const cat = slug.replace('icons/category/', '');
+	structured.push(
+		jsonLd({
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{
+					'@type': 'ListItem',
+					position: 1,
+					name: 'RareIcon',
+					item: SITE,
+				},
+				{
+					'@type': 'ListItem',
+					position: 2,
+					name: 'Icons',
+					item: `${SITE}/icons/`,
+				},
+				{
+					'@type': 'ListItem',
+					position: 3,
+					name: pageTitle,
+					item: canonical,
+				},
+			],
+		}),
+	);
+	structured.push(
+		jsonLd({
+			'@type': 'CollectionPage',
+			name: pageTitle,
+			description: pageDesc,
+			url: canonical,
+			isPartOf: { '@type': 'WebSite', name: 'RareIcon', url: SITE },
+			about: cat,
+		}),
+	);
+} else if (slug.startsWith('icons/') && slug !== 'icons/index') {
+	const ref = slug.replace('icons/', '').replace(/\/index$/, '');
+	const iconsArr = (data.icons as Array<{ svg_body?: string }>) ?? [];
+	const license = (data.default_license as Record<string, unknown>) ?? {};
+	const variantCount = iconsArr.length;
+	structured.push(
+		jsonLd({
+			'@type': 'ImageObject',
+			name: pageTitle,
+			description: pageDesc ?? `${pageTitle} icon`,
+			url: canonical,
+			contentUrl: canonical,
+			encodingFormat: 'image/svg+xml',
+			creditText: (license.author as string) ?? 'KBVE',
+			license: (license.source_url as string) ?? undefined,
+			isAccessibleForFree: true,
+			isPartOf: {
+				'@type': 'CollectionPage',
+				name: 'RareIcon Icons',
+				url: `${SITE}/icons/`,
+			},
+			keywords: [
+				ref,
+				...((data.search as { keywords?: string[] })?.keywords ?? []),
+			].join(', '),
+			additionalProperty: [
+				{
+					'@type': 'PropertyValue',
+					name: 'variantCount',
+					value: variantCount,
+				},
+			],
+		}),
+	);
+} else if (slug === 'icons/index' || slug === 'icons') {
+	structured.push(
+		jsonLd({
+			'@type': 'CollectionPage',
+			name: 'RareIcon Icon Library',
+			description: pageDesc ?? 'Open-source icon catalog',
+			url: `${SITE}/icons/`,
+			isPartOf: { '@type': 'WebSite', name: 'RareIcon', url: SITE },
+		}),
+	);
+}
 ---
 
 {
@@ -79,3 +211,8 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 	))
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
+{
+	structured.map((json) => (
+		<script type="application/ld+json" set:html={json} />
+	))
+}

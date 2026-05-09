@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TermSummary } from '@/lib/icons/terms';
+
+const PAGE_SIZE = 60;
 
 interface Props {
 	terms: TermSummary[];
@@ -107,6 +109,40 @@ export default function IconsBrowser({
 		attributionOnly,
 		synonyms,
 	]);
+
+	const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+	useEffect(() => {
+		setVisibleCount(PAGE_SIZE);
+	}, [
+		query,
+		activeCategory,
+		activeStyle,
+		activeTheme,
+		activeSource,
+		multiSourceOnly,
+		attributionOnly,
+	]);
+
+	const sentinelRef = useRef<HTMLLIElement | null>(null);
+	useEffect(() => {
+		const el = sentinelRef.current;
+		if (!el) return;
+		const obs = new IntersectionObserver(
+			(entries) => {
+				if (entries[0]?.isIntersecting) {
+					setVisibleCount((c) =>
+						Math.min(c + PAGE_SIZE, filtered.length),
+					);
+				}
+			},
+			{ rootMargin: '600px 0px' },
+		);
+		obs.observe(el);
+		return () => obs.disconnect();
+	}, [filtered.length, visibleCount]);
+
+	const visible = filtered.slice(0, visibleCount);
 
 	const toggle = <T extends string>(
 		current: T | null,
@@ -232,7 +268,7 @@ export default function IconsBrowser({
 				</div>
 			) : (
 				<ul className="ri-icons-browser__grid">
-					{filtered.map((t) => (
+					{visible.map((t) => (
 						<li key={t.ref} className="ri-icons-browser__item">
 							<a
 								href={`${basePath}/${t.ref}/`}
@@ -260,6 +296,14 @@ export default function IconsBrowser({
 							</a>
 						</li>
 					))}
+					{visibleCount < filtered.length && (
+						<li
+							ref={sentinelRef}
+							className="ri-icons-browser__sentinel"
+							aria-hidden="true">
+							Loading {filtered.length - visibleCount} more…
+						</li>
+					)}
 				</ul>
 			)}
 		</div>
