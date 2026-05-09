@@ -53,6 +53,20 @@ export default function IconsBrowser({
 	const [multiSourceOnly, setMultiSourceOnly] = useState(false);
 	const [attributionOnly, setAttributionOnly] = useState(false);
 
+	const hasActiveFilter =
+		!!query.trim() ||
+		activeCategory !== null ||
+		activeStyle !== null ||
+		activeTheme !== null ||
+		activeSource !== null ||
+		multiSourceOnly ||
+		attributionOnly;
+
+	const featuredTerms = useMemo(
+		() => terms.filter((t) => t.featured).slice(0, 12),
+		[terms],
+	);
+
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
 		const synonymHits = refsMatchingSynonym(q, synonyms);
@@ -168,6 +182,48 @@ export default function IconsBrowser({
 					Attribution required (CC BY)
 				</button>
 			</div>
+
+			{!hasActiveFilter && featuredTerms.length > 0 && (
+				<section
+					className="ri-icons-browser__featured"
+					aria-label="Featured icons">
+					<header className="ri-icons-browser__featured-header">
+						<span className="ri-icons-browser__featured-label">
+							Featured
+						</span>
+						<span className="ri-icons-browser__featured-hint">
+							Hand-picked terms across the catalog
+						</span>
+					</header>
+					<ul className="ri-icons-browser__grid">
+						{featuredTerms.map((t) => (
+							<li key={t.ref} className="ri-icons-browser__item">
+								<a
+									href={`${basePath}/${t.ref}/`}
+									className="ri-icons-browser__card">
+									<div
+										className="ri-icons-browser__thumb"
+										dangerouslySetInnerHTML={{
+											__html: t.previewSvg ?? '',
+										}}
+									/>
+									<div className="ri-icons-browser__meta">
+										<span className="ri-icons-browser__name">
+											{t.name}
+										</span>
+										<span className="ri-icons-browser__count-pill">
+											{t.variantCount}
+											{t.variantCount === 1
+												? ' variant'
+												: ' variants'}
+										</span>
+									</div>
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
 
 			{filtered.length === 0 ? (
 				<div className="ri-icons-browser__empty">

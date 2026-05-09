@@ -149,6 +149,36 @@ const synonyms = buildSynonymMap();
 		gap: 0.75rem;
 	}
 
+	.ri-icons-browser__featured {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		padding: 1rem;
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--ri-accent) 6%, transparent);
+		border: 1px solid color-mix(in srgb, var(--ri-accent) 25%, transparent);
+	}
+
+	.ri-icons-browser__featured-header {
+		display: flex;
+		align-items: baseline;
+		gap: 0.65rem;
+		flex-wrap: wrap;
+	}
+
+	.ri-icons-browser__featured-label {
+		font-size: 0.6875rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		font-weight: 700;
+		color: var(--ri-accent);
+	}
+
+	.ri-icons-browser__featured-hint {
+		font-size: 0.75rem;
+		color: var(--ri-text-disabled);
+	}
+
 	.ri-icons-browser__item {
 		margin: 0;
 	}
