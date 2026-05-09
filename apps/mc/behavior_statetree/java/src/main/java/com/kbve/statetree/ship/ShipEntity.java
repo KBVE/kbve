@@ -778,7 +778,19 @@ public class ShipEntity extends Entity {
 
         // Vertical thrust (rotorcraft) — pitchSpeed > 0 means plane (uses pitch instead).
         if (stats.pitchSpeed() <= 0.0f) {
-            vel = vel.add(0.0, vert * power * stats.verticalSpeed(), 0.0);
+            // Takeoff assist — bonus climb thrust when within 5 blocks of
+            // the ground while ascending. Helps a stalled / heavy ship
+            // unstick from terrain instead of bouncing helplessly.
+            float verticalBonus = 1.0f;
+            if (vert > 0.1f && this.getEntityWorld() instanceof ServerWorld swT) {
+                int floorY = swT.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
+                        (int) Math.floor(this.getX()), (int) Math.floor(this.getZ()));
+                double agl = this.getY() - floorY;
+                if (agl < 5.0 && agl >= 0.0) {
+                    verticalBonus = 1.0f + (float) ((5.0 - agl) / 5.0) * 1.5f;
+                }
+            }
+            vel = vel.add(0.0, vert * power * stats.verticalSpeed() * verticalBonus, 0.0);
         } else {
             // Plane — input drives pitch; pitch + forward velocity yields lift.
             float pitch = this.getPitch();
