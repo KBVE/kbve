@@ -125,7 +125,7 @@ spec:
             networks:
                 - name: default
                   pod: {}
-            terminationGracePeriodSeconds: 3600
+            terminationGracePeriodSeconds: 60
             volumes:
                 - name: rootdisk
                   persistentVolumeClaim:
