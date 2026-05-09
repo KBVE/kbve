@@ -3,6 +3,7 @@ pub mod card;
 pub mod content;
 pub mod github_cards;
 pub mod irc_events;
+pub mod launch;
 pub mod logic;
 pub mod pathfinding;
 pub mod persistence;
