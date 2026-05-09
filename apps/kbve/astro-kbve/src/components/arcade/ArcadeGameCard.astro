@@ -37,19 +37,17 @@ const slug = title
 	.replace(/[^a-z0-9]+/g, '-')
 	.replace(/^-|-$/g, '');
 const cardId = `arcade-card-${slug}`;
-const tooltipLines = [
-	`${statusLabel[status]} · ${title}`,
-	description,
-	tags.length > 0 ? tags.join(' · ') : null,
-	isLink ? 'Click to play →' : 'On the roadmap',
-].filter(Boolean) as string[];
-const tooltipText = tooltipLines.join('\n');
+const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 ---
 
 <Tag
 	id={cardId}
 	data-arcade-card
-	data-arcade-tooltip={tooltipText}
+	data-arcade-tooltip-title={title}
+	data-arcade-tooltip-status={status}
+	data-arcade-tooltip-desc={description}
+	data-arcade-tooltip-tags={tags.join('|')}
+	data-arcade-tooltip-cta={tooltipCta}
 	{...isLink ? { href } : {}}
 	class:list={[
 		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-200 ease-[cubic-bezier(0.2,0.7,0.2,1)]',
