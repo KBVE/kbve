@@ -88,6 +88,10 @@ spec:
                               - ALL
                           add:
                               - NET_ADMIN
+                              - MKNOD
+                  volumeMounts:
+                      - name: dev-net-tun
+                        mountPath: /dev/net/tun
                   ports:
                       - name: kasm-web
                         containerPort: 6901
@@ -174,6 +178,10 @@ spec:
                 - name: discord-profile
                   persistentVolumeClaim:
                       claimName: kasm-discord-profile
+                - name: dev-net-tun
+                  hostPath:
+                      path: /dev/net/tun
+                      type: CharDevice
 
 ---
 apiVersion: v1
