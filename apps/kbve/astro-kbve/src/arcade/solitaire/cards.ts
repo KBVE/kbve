@@ -107,36 +107,113 @@ export function getColor(card: CardByte): ColorByte {
  * for visuals — joker is wild for rule purposes). */
 export const JOKER_RANK = 13;
 
-/** Sentinel rank for "bonus" cards — non-rule cards that auto-consume
- * the moment they flip face-up, applying a side-effect (heal, cash, or
- * reveal-a-hidden). The suit byte slot identifies the bonus subtype so
- * each bonus card has a stable id + view. Rank 14 is outside the 0..12
- * playing-card range and outside the joker rank, so the existing rule
- * helpers (`canDropOnTableau`, `canDropOnFoundation`) reject bonus cards
- * automatically — they can never legally be moved by the player. */
-export const BONUS_RANK = 14;
+/** Sentinel ranks for "bonus" cards — non-rule cards the player drags to
+ * the sidebar's ACTIVATE slot to apply a side-effect (heal, cash, or
+ * reveal-a-hidden). Ranks 14 + 15 are outside the 0..12 playing-card
+ * range and outside the joker rank, so the existing rule helpers
+ * (`canDropOnTableau`, `canDropOnFoundation`) reject bonus cards from
+ * standard piles automatically. Two ranks lets us encode duplicate
+ * variants (e.g. two HP cards) inside the same single-byte schema —
+ * each (rank, suit) pair maps to one bonus subtype via the lookup below. */
+export const BONUS_RANK_A = 14;
+export const BONUS_RANK_B = 15;
+const BONUS_RANK_SET = new Set<number>([BONUS_RANK_A, BONUS_RANK_B]);
+/** Backwards-compat alias — pre-multi-bonus code referenced this name. */
+export const BONUS_RANK = BONUS_RANK_A;
 
 export const enum BonusType {
 	/** +5 HP (capped at maxHp). */
 	HP = 0,
 	/** +$5 cash. */
 	Cash = 1,
-	/** Flip a random face-down tableau card. */
+	/** Mark a random face-down tableau card as peekable on hover. */
 	Reveal = 2,
 }
 
-export const BONUS_HP_BYTE: CardByte = (BonusType.HP << 4) | BONUS_RANK;
-export const BONUS_CASH_BYTE: CardByte = (BonusType.Cash << 4) | BONUS_RANK;
-export const BONUS_REVEAL_BYTE: CardByte = (BonusType.Reveal << 4) | BONUS_RANK;
+// Bonus byte slots. (rank, suit) is the addressable id; the player sees
+// the variant via the face-renderer (HP/Cash/Reveal). Two each of HP +
+// Cash, one Reveal — Reveal already cascades + peeks a card, so it stays
+// rare while the support cards (heal, cash) come up more often.
+export const BONUS_HP_BYTE: CardByte = (0 << 4) | BONUS_RANK_A;
+export const BONUS_HP_BYTE_2: CardByte = (3 << 4) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE: CardByte = (1 << 4) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE_2: CardByte = (0 << 4) | BONUS_RANK_B;
+export const BONUS_REVEAL_BYTE: CardByte = (2 << 4) | BONUS_RANK_A;
+
+/** Every bonus card byte the deal can produce, in stable iteration order.
+ * Used by `dealBytes` to seed the deck and by the scene to pre-build
+ * card views. Adding a new bonus card = add a byte constant + its entry
+ * here + a row in `BONUS_TYPE_BY_BYTE`. */
+export const ALL_BONUS_BYTES: readonly CardByte[] = [
+	BONUS_HP_BYTE,
+	BONUS_HP_BYTE_2,
+	BONUS_CASH_BYTE,
+	BONUS_CASH_BYTE_2,
+	BONUS_REVEAL_BYTE,
+] as const;
+
+const BONUS_TYPE_BY_BYTE: Map<CardByte, BonusType> = new Map([
+	[BONUS_HP_BYTE, BonusType.HP],
+	[BONUS_HP_BYTE_2, BonusType.HP],
+	[BONUS_CASH_BYTE, BonusType.Cash],
+	[BONUS_CASH_BYTE_2, BonusType.Cash],
+	[BONUS_REVEAL_BYTE, BonusType.Reveal],
+]);
 
 export function isBonus(card: CardByte): boolean {
-	return (card & RANK_MASK) === BONUS_RANK;
+	// Map-based check (not rank-only) so monster cards — which share rank=15
+	// with one of the bonus variants — are NOT mistaken for bonuses.
+	return BONUS_TYPE_BY_BYTE.has(card & (RANK_MASK | SUIT_MASK));
 }
 
 export function getBonusType(card: CardByte): BonusType {
-	// Bonus subtype rides on the suit slot — same byte layout as the
-	// joker red/black trick, just repurposed for HP/Cash/Reveal.
-	return ((card & SUIT_MASK) >> 4) as BonusType;
+	return (
+		BONUS_TYPE_BY_BYTE.get(card & (RANK_MASK | SUIT_MASK)) ?? BonusType.HP
+	);
+}
+
+// ============================================================================
+// Monster cards — combat encounters mixed into the tableau
+// ============================================================================
+//
+// Monster cards reuse the bonus-rank slot (rank=15) but on suits 1/2/3 (suit 0
+// is taken by BONUS_CASH_BYTE_2). Each byte slot is one monster KIND; the
+// per-instance state (current HP, ATK, name pulled from npcdb) lives in
+// `GameState.monsters` keyed by card index. The rules layer treats these
+// like "blocking" tableau cards — nothing stacks on them, can't be dragged,
+// and must be defeated by clicking to attack.
+
+export const enum MonsterKind {
+	Goblin = 0,
+	Skeleton = 1,
+	Ghoul = 2,
+}
+
+export const MONSTER_GOBLIN_BYTE: CardByte = (1 << 4) | BONUS_RANK_B;
+export const MONSTER_SKELETON_BYTE: CardByte = (2 << 4) | BONUS_RANK_B;
+export const MONSTER_GHOUL_BYTE: CardByte = (3 << 4) | BONUS_RANK_B;
+
+export const ALL_MONSTER_BYTES: readonly CardByte[] = [
+	MONSTER_GOBLIN_BYTE,
+	MONSTER_SKELETON_BYTE,
+	MONSTER_GHOUL_BYTE,
+] as const;
+
+const MONSTER_KIND_BY_BYTE: Map<CardByte, MonsterKind> = new Map([
+	[MONSTER_GOBLIN_BYTE, MonsterKind.Goblin],
+	[MONSTER_SKELETON_BYTE, MonsterKind.Skeleton],
+	[MONSTER_GHOUL_BYTE, MonsterKind.Ghoul],
+]);
+
+export function isMonster(card: CardByte): boolean {
+	return MONSTER_KIND_BY_BYTE.has(card & (RANK_MASK | SUIT_MASK));
+}
+
+export function getMonsterKind(card: CardByte): MonsterKind {
+	return (
+		MONSTER_KIND_BY_BYTE.get(card & (RANK_MASK | SUIT_MASK)) ??
+		MonsterKind.Goblin
+	);
 }
 
 /** Pre-built joker bytes for convenience. Black joker rides on the spades
@@ -183,9 +260,14 @@ const ID_CACHE: string[] = (() => {
 	}
 	out[JOKER_BLACK_BYTE] = 'JOKER-BLACK';
 	out[JOKER_RED_BYTE] = 'JOKER-RED';
-	out[BONUS_HP_BYTE] = 'BONUS-HP';
-	out[BONUS_CASH_BYTE] = 'BONUS-CASH';
+	out[BONUS_HP_BYTE] = 'BONUS-HP-1';
+	out[BONUS_HP_BYTE_2] = 'BONUS-HP-2';
+	out[BONUS_CASH_BYTE] = 'BONUS-CASH-1';
+	out[BONUS_CASH_BYTE_2] = 'BONUS-CASH-2';
 	out[BONUS_REVEAL_BYTE] = 'BONUS-REVEAL';
+	out[MONSTER_GOBLIN_BYTE] = 'MONSTER-GOBLIN';
+	out[MONSTER_SKELETON_BYTE] = 'MONSTER-SKELETON';
+	out[MONSTER_GHOUL_BYTE] = 'MONSTER-GHOUL';
 	return out;
 })();
 
@@ -245,10 +327,14 @@ export interface DealOptions {
 	/** Add 2 jokers (1 black, 1 red) to the deck before shuffle. Resulting
 	 * stock is 26 cards instead of 24; tableau layout (1..7) unchanged. */
 	withJokers?: boolean;
-	/** Add 3 bonus cards (HP / Cash / Reveal) to the deck before shuffle.
-	 * Bonus cards auto-consume the moment they flip face-up, so they show
-	 * up as positive surprises during play and never sit in the rule layer. */
+	/** Add the full bonus card set (HP / Cash / Reveal variants) to the
+	 * deck before shuffle. Player drags bonuses to the sidebar's activate
+	 * slot to apply their effect. */
 	withBonuses?: boolean;
+	/** Add the full monster card set (Goblin / Skeleton / Ghoul) to the
+	 * deck before shuffle. Monsters block columns + must be defeated by
+	 * clicking. Per-instance combat stats live in `GameState.monsters`. */
+	withMonsters?: boolean;
 }
 
 export function dealBytes(
@@ -260,7 +346,10 @@ export function dealBytes(
 		extras.push(JOKER_BLACK_BYTE, JOKER_RED_BYTE);
 	}
 	if (options.withBonuses) {
-		extras.push(BONUS_HP_BYTE, BONUS_CASH_BYTE, BONUS_REVEAL_BYTE);
+		for (const b of ALL_BONUS_BYTES) extras.push(b);
+	}
+	if (options.withMonsters) {
+		for (const b of ALL_MONSTER_BYTES) extras.push(b);
 	}
 	const base = buildDeckBytes();
 	let working: Uint8Array;
@@ -316,12 +405,15 @@ export interface CardView {
 	joker: boolean;
 	/** Bonus card subtype — undefined for normal cards + jokers. */
 	bonus?: BonusType;
+	/** Monster kind — undefined for non-monster cards. */
+	monster?: MonsterKind;
 }
 
 export function toCardView(card: CardByte): CardView {
 	const suit = getSuit(card);
 	const color = getColor(card) === ColorByte.Red ? 'red' : 'black';
 	const bonus = isBonus(card) ? getBonusType(card) : undefined;
+	const monster = isMonster(card) ? getMonsterKind(card) : undefined;
 	return {
 		id: getCardId(card),
 		suit: SUIT_LABEL[suit],
@@ -332,5 +424,6 @@ export function toCardView(card: CardByte): CardView {
 		faceUp: isFaceUp(card),
 		joker: isJoker(card),
 		bonus,
+		monster,
 	};
 }

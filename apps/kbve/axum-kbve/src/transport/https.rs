@@ -144,7 +144,7 @@ impl AppState {
         Self {
             inner: Arc::new(AppStateInner {
                 start_time: std::time::Instant::now(),
-                version: env!("CARGO_PKG_VERSION"),
+                version: crate::version::current(),
             }),
         }
     }
@@ -520,7 +520,7 @@ fn router(state: AppState) -> Router {
 pub(crate) async fn health() -> impl IntoResponse {
     Json(HealthResponse {
         status: "ok",
-        version: env!("CARGO_PKG_VERSION"),
+        version: crate::version::current(),
     })
 }
 
@@ -3418,7 +3418,7 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["status"], "ok");
-        assert_eq!(json["version"], env!("CARGO_PKG_VERSION"));
+        assert_eq!(json["version"], crate::version::current());
     }
 
     #[tokio::test]

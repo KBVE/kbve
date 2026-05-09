@@ -6,6 +6,7 @@ mod openapi;
 mod proto;
 mod telemetry;
 mod transport;
+pub mod version;
 
 use tracing::{info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -52,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    info!("KBVE v{}", env!("CARGO_PKG_VERSION"));
+    info!("KBVE v{}", version::current());
 
     if db::init_profile_service() {
         info!("ProfileService initialized successfully");

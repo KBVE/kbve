@@ -24,6 +24,7 @@ import {
 	getSuit,
 	isFaceUp,
 	isJoker,
+	isMonster,
 } from './cards';
 
 /** Tableau move: card(s) can land on a tableau column iff
@@ -32,12 +33,18 @@ import {
  *   - column top is face-up joker (always valid), OR
  *   - column top is face-up AND opposite color AND exactly one rank higher. */
 export function canDropOnTableau(moving: CardByte, column: number[]): boolean {
+	// Monsters can't be moved (they engage in combat instead of stacking).
+	if (isMonster(moving)) return false;
+
 	if (isJoker(moving)) return true;
 
 	if (column.length === 0) return getDisplayRank(moving) === 13;
 
 	const top = column[column.length - 1];
 	if (!isFaceUp(top)) return false;
+
+	// Monster on top blocks the column — combat first, stacking later.
+	if (isMonster(top)) return false;
 
 	if (isJoker(top)) return true;
 
@@ -53,7 +60,7 @@ export function canDropOnFoundation(
 	moving: CardByte,
 	foundation: number[],
 ): boolean {
-	if (isJoker(moving)) return false;
+	if (isJoker(moving) || isMonster(moving)) return false;
 	if (foundation.length === 13) return false;
 	const expectedRank = foundation.length + 1;
 	return getDisplayRank(moving) === expectedRank;
@@ -75,6 +82,8 @@ export function movableRun(
 	for (let i = 0; i < slice.length; i++) {
 		const c = slice[i];
 		if (!isFaceUp(c)) return null;
+		// Monsters refuse to be picked up — engage them with a click instead.
+		if (isMonster(c)) return null;
 		if (i === 0) continue;
 		const prev = slice[i - 1];
 		// Joker is wild — bypasses both color + rank checks for this link.

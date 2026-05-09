@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { collectTermSummaries, collectFacet } from '@/lib/icons/terms';
 import IconsBrowserReact from './IconsBrowser';
+import synonymsJson from '../../../../icons-codegen/dedup-keys.json';
 
 interface Props {
 	basePath?: string;
@@ -14,6 +15,40 @@ const terms = collectTermSummaries(docs);
 const categories = collectFacet(terms, (t) => t.categories);
 const styles = collectFacet(terms, (t) => t.styles);
 const themes = collectFacet(terms, (t) => t.themes);
+const sources = collectFacet(terms, (t) => t.sourcePacks);
+
+/**
+ * Extract synonyms from the dedup ledger so the in-memory search can
+ * expand a query like "blade" → ["sword", "dagger"]. The ledger may
+ * carry a `synonyms` top-level key (curated by hand) and each
+ * per-concept entry's pack-source slugs (auto-tracked by merger).
+ * Form one map: `{ baseRef: [searchAlias, ...] }`.
+ */
+function buildSynonymMap(): Record<string, string[]> {
+	const ledger = synonymsJson as Record<string, unknown>;
+	const out: Record<string, string[]> = {};
+	const explicit = ledger['synonyms'] as Record<string, string[]> | undefined;
+	if (explicit) {
+		for (const [baseRef, aliases] of Object.entries(explicit)) {
+			if (!Array.isArray(aliases)) continue;
+			out[baseRef] = (out[baseRef] ?? []).concat(aliases);
+		}
+	}
+	for (const [baseRef, value] of Object.entries(ledger)) {
+		if (baseRef === 'synonyms' || typeof value !== 'object' || !value)
+			continue;
+		const inner = value as Record<string, string>;
+		const aliases = Object.values(inner).filter(
+			(v) => typeof v === 'string' && v !== baseRef,
+		);
+		if (aliases.length > 0) {
+			out[baseRef] = (out[baseRef] ?? []).concat(aliases);
+		}
+	}
+	return out;
+}
+
+const synonyms = buildSynonymMap();
 ---
 
 <IconsBrowserReact
@@ -22,6 +57,8 @@ const themes = collectFacet(terms, (t) => t.themes);
 	categories={categories}
 	styles={styles}
 	themes={themes}
+	sources={sources}
+	synonyms={synonyms}
 	basePath={basePath}
 />
 

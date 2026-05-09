@@ -17,11 +17,14 @@ import {
 	FOUNDATION_SUITS,
 	getBonusType,
 	getDisplayRank,
+	getMonsterKind,
 	getSuit,
 	isBonus,
 	isFaceUp,
 	isJoker,
+	isMonster,
 	JokerVariant,
+	MonsterKind,
 	setFaceUp,
 	type CardByte,
 } from './cards';
@@ -45,8 +48,8 @@ import {
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-// 52 standard + up to 2 jokers + up to 3 bonus cards = 57 max in play.
-const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 57;
+// 52 standard + 2 jokers + 5 bonus + 3 monsters = 62 max in play.
+const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 62;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
 interface ScoreSnapshot {
@@ -61,6 +64,47 @@ interface ScoreSnapshot {
 	 * snapshot serialization; reconstructed into the live Set on restore. */
 	scoredCards: number[];
 }
+
+/** Per-monster combat stats. Lives in a Map<cardIndex, MonsterState> on
+ * GameState. `name` defaults to the kind label but can be overwritten
+ * with an npcdb entry's display name once data loads. */
+export interface MonsterState {
+	kind: MonsterKind;
+	name: string;
+	hp: number;
+	maxHp: number;
+	atk: number;
+	engaged: boolean;
+}
+
+/** Default monster stats used when no npcdb data is bound (e.g. before
+ * `/api/npcdb.json` has loaded). Numbers tuned for early-round play. */
+export const MONSTER_KIND_PRESETS: Record<
+	MonsterKind,
+	Omit<MonsterState, 'engaged'>
+> = {
+	[MonsterKind.Goblin]: {
+		kind: MonsterKind.Goblin,
+		name: 'Goblin',
+		hp: 2,
+		maxHp: 2,
+		atk: 1,
+	},
+	[MonsterKind.Skeleton]: {
+		kind: MonsterKind.Skeleton,
+		name: 'Skeleton',
+		hp: 4,
+		maxHp: 4,
+		atk: 2,
+	},
+	[MonsterKind.Ghoul]: {
+		kind: MonsterKind.Ghoul,
+		name: 'Ghoul',
+		hp: 6,
+		maxHp: 6,
+		atk: 3,
+	},
+};
 
 /** Persistent run record stored in localStorage. */
 export interface RunRecord {
@@ -105,10 +149,20 @@ export class GameState {
 	armor: number = STATS.startArmor;
 	attack: number = STATS.startAttack;
 	jokerVariants: Map<number, JokerVariant> = new Map();
+	/** Per-instance monster combat stats keyed by card index. Populated at
+	 * `reset` from `MONSTER_KIND_PRESETS` (or scene-supplied npcdb data via
+	 * `bindMonstersFromNpcs`). HP is per-encounter; `engaged` flips true on
+	 * the first reveal so the engage hit only fires once. */
+	monsters: Map<number, MonsterState> = new Map();
 	/** Card indices the player has "peeked" via the Reveal bonus. The card
 	 * stays face-down in its tableau column (so rules + drag stay correct)
 	 * but the scene shows its face on hover. Cleared on each new deal. */
 	peekedCards: Set<number> = new Set();
+	/** Card indices that are currently "frozen" — cannot be moved or sent
+	 * to a foundation until the freeze rotates on the next stock click.
+	 * Always 0 or 1 entries. Monsters are excluded from the freeze pool
+	 * so the player can still engage them. */
+	frozenCards: Set<number> = new Set();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
 	ownedJokerVariants: JokerVariant[] = [];
@@ -134,6 +188,7 @@ export class GameState {
 		const { tableaus, stock } = dealBytes(rng, {
 			withJokers: true,
 			withBonuses: true,
+			withMonsters: true,
 		});
 		this.tableaus = tableaus;
 		this.stock = stock;
@@ -151,6 +206,7 @@ export class GameState {
 		this.stockCycles = 0;
 		this.scoredCards.clear();
 		this.peekedCards.clear();
+		this.frozenCards.clear();
 
 		// Apply owned joker variants (from shop) to the dealt jokers. Variant
 		// stays bound to the card index so the variant persists across moves
@@ -168,6 +224,45 @@ export class GameState {
 		for (let i = 0; i < dealtJokerIndices.length; i++) {
 			const variant = this.ownedJokerVariants[i] ?? JokerVariant.Wild;
 			this.jokerVariants.set(dealtJokerIndices[i], variant);
+		}
+
+		// Seed monster combat stats from the preset table so a fresh run is
+		// playable even before the scene fetches `/api/npcdb.json`. Once
+		// `bindMonstersFromNpcs` runs the scene replaces matching entries
+		// with real npcdb-driven names + scaled stats.
+		this.monsters.clear();
+		const allCards = [
+			...this.stock,
+			...this.waste,
+			...this.tableaus.flat(),
+		];
+		for (const c of allCards) {
+			if (!isMonster(c)) continue;
+			const idx = c & 0x3f;
+			if (this.monsters.has(idx)) continue;
+			const kind = getMonsterKind(c);
+			const preset = MONSTER_KIND_PRESETS[kind];
+			this.monsters.set(idx, { ...preset, engaged: false });
+		}
+	}
+
+	/** Replace the preset monster stats with values pulled from the npcdb
+	 * content collection. Called by the scene once `/api/npcdb.json`
+	 * resolves; safe to call multiple times. The map keys are the
+	 * `MonsterKind` values so the scene can pass any sample of NPCs. */
+	bindMonstersFromNpcs(
+		assignments: Partial<
+			Record<MonsterKind, { name: string; hp: number; atk: number }>
+		>,
+	) {
+		for (const [idx, mob] of this.monsters) {
+			const a = assignments[mob.kind];
+			if (!a) continue;
+			mob.name = a.name;
+			mob.maxHp = a.hp;
+			mob.hp = a.hp;
+			mob.atk = a.atk;
+			this.monsters.set(idx, mob);
 		}
 	}
 
@@ -459,9 +554,90 @@ export class GameState {
 			const c = this.stock.pop()!;
 			this.waste.push(setFaceUp(c, true));
 		}
+		// Monster cards drawn into the waste don't sit in the discard pile —
+		// they immediately march into a tableau column so the player can
+		// fight them. Refill the waste from stock to keep the visible draw
+		// count consistent with `STOCK_DRAW_COUNT`.
+		this.divertMonstersFromWaste();
+		// Freeze rotates each stock click — previous frozen card thaws,
+		// a fresh face-up tableau card gets locked for the next turn.
+		this.rotateFreeze();
+		while (this.waste.length < STOCK_DRAW_COUNT && this.stock.length > 0) {
+			const c = setFaceUp(this.stock.pop()!, true);
+			if (isMonster(c)) {
+				this.placeMonsterInTableau(c);
+			} else {
+				this.waste.push(c);
+			}
+		}
 		this.applyScore(recyclePoints, false);
 		if (recycleHp) this.damage(recycleHp);
 		return true;
+	}
+
+	/** Pull any face-up monster cards out of the waste and route them to a
+	 * tableau column so combat happens in-board, not in the discard pile. */
+	private divertMonstersFromWaste() {
+		for (let i = this.waste.length - 1; i >= 0; i--) {
+			const c = this.waste[i];
+			if (!isMonster(c)) continue;
+			this.waste.splice(i, 1);
+			this.placeMonsterInTableau(c);
+		}
+	}
+
+	/** Pick a fresh card to freeze and clear the previous one. Skips
+	 * monsters (combat targets stay engageable) and face-down cards (the
+	 * player can't see what's frozen). No-op when no candidates exist. */
+	private rotateFreeze() {
+		this.frozenCards.clear();
+		const candidates: number[] = [];
+		for (const col of this.tableaus) {
+			for (const c of col) {
+				if (!isFaceUp(c)) continue;
+				if (isMonster(c)) continue;
+				candidates.push(c & 0x3f);
+			}
+		}
+		if (candidates.length === 0) return;
+		const pick = candidates[Math.floor(Math.random() * candidates.length)];
+		this.frozenCards.add(pick);
+	}
+
+	/** True when the card index is currently frozen. Exposed to the scene
+	 * for hover/drag-start checks + frozen-ring visibility. */
+	isFrozen(idx: number): boolean {
+		return this.frozenCards.has(idx);
+	}
+
+	/** Helper used by `moveTableauRun` to reject runs whose first card —
+	 * or any card — is frozen. */
+	private runHasFrozen(run: number[]): boolean {
+		for (const c of run) {
+			if (this.frozenCards.has(c & 0x3f)) return true;
+		}
+		return false;
+	}
+
+	/** Append a monster card face-up to the least-crowded tableau column,
+	 * then trigger the engage hit (one-time `atk` damage to the player).
+	 * Bypasses `canDropOnTableau` on purpose — the monster crashing into
+	 * the column is a state event, not a player move. */
+	private placeMonsterInTableau(card: CardByte) {
+		const placed = setFaceUp(card, true);
+		let target = 0;
+		for (let col = 1; col < 7; col++) {
+			if (this.tableaus[col].length < this.tableaus[target].length) {
+				target = col;
+			}
+		}
+		this.tableaus[target].push(placed);
+		const idx = placed & 0x3f;
+		const mob = this.monsters.get(idx);
+		if (mob && !mob.engaged) {
+			mob.engaged = true;
+			this.damage(mob.atk);
+		}
 	}
 
 	moveWasteToTableau(toCol: number, wasteIdx?: number): boolean {
@@ -500,6 +676,7 @@ export class GameState {
 		if (fromCol === toCol) return false;
 		const run = movableRun(this.tableaus[fromCol], fromCardIndex);
 		if (!run) return false;
+		if (this.runHasFrozen(run)) return false;
 		const bottom = run[0];
 		if (!canDropOnTableau(bottom, this.tableaus[toCol])) return false;
 
@@ -516,6 +693,7 @@ export class GameState {
 		const col = this.tableaus[fromCol];
 		const c = col[col.length - 1];
 		if (c === undefined || !isFaceUp(c)) return false;
+		if (this.frozenCards.has(c & 0x3f)) return false;
 		if (getSuit(c) !== FOUNDATION_SUITS[foundationIdx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[foundationIdx]))
 			return false;
@@ -552,13 +730,55 @@ export class GameState {
 	private flipExposedTop(col: number): boolean {
 		const top = this.tableaus[col][this.tableaus[col].length - 1];
 		if (top !== undefined && !isFaceUp(top)) {
-			this.tableaus[col][this.tableaus[col].length - 1] = setFaceUp(
-				top,
-				true,
-			);
+			const flipped = setFaceUp(top, true);
+			this.tableaus[col][this.tableaus[col].length - 1] = flipped;
+			// First reveal of a monster: it engages — deals its ATK as a
+			// one-time hit to the player. Subsequent attacks come from the
+			// player clicking the monster (engaged stays true).
+			if (isMonster(flipped)) {
+				const idx = flipped & 0x3f;
+				const mob = this.monsters.get(idx);
+				if (mob && !mob.engaged) {
+					mob.engaged = true;
+					this.damage(mob.atk);
+				}
+			}
 			return true;
 		}
 		return false;
+	}
+
+	/** Player clicks a monster card sitting on top of a tableau column to
+	 * attack it. Damage = floor(player.attack rounded up to at least 1).
+	 * Each click costs SCORE.movePerAction (charged via applyScore). When
+	 * monster HP hits 0 the card is removed and `flipExposedTop` runs on
+	 * the column so the next card surfaces. Returns true on a valid hit. */
+	attackMonster(col: number): boolean {
+		const pile = this.tableaus[col];
+		const top = pile[pile.length - 1];
+		if (top === undefined || !isFaceUp(top) || !isMonster(top))
+			return false;
+		const idx = top & 0x3f;
+		const mob = this.monsters.get(idx);
+		if (!mob) return false;
+
+		this.pushHistory();
+		const dmg = Math.max(1, Math.floor(this.attack));
+		mob.hp = Math.max(0, mob.hp - dmg);
+
+		// Reward + tax: per-hit score nudge so combat feels productive even
+		// against tougher mobs; movePerAction is taken inside applyScore.
+		const points = SCORE.wasteToTableau; // reuse small-positive points
+		if (mob.hp === 0) {
+			pile.pop();
+			this.monsters.delete(idx);
+			this.flipExposedTop(col);
+			// Bigger reward on kill — scaled by maxHp so harder mobs pay more.
+			this.applyScore(points + mob.maxHp * 5, false);
+		} else {
+			this.applyScore(points, false);
+		}
+		return true;
 	}
 
 	/** Player drag-drops a bonus card from the waste onto the activate
@@ -580,6 +800,7 @@ export class GameState {
 		const pile = this.tableaus[col];
 		const c = pile[pile.length - 1];
 		if (c === undefined || !isFaceUp(c) || !isBonus(c)) return false;
+		if (this.frozenCards.has(c & 0x3f)) return false;
 		this.pushHistory();
 		pile.pop();
 		this.applyBonusEffect(getBonusType(c));
