@@ -5,9 +5,13 @@ use tracing::debug;
 
 use super::battle_bridge;
 use super::content;
+use super::pathfinding;
 use super::proto_bridge;
 use super::skills;
 use super::types::*;
+
+/// Player moves a fled enemy group will pursue before despawning.
+const PURSUIT_MAX_HOPS: u8 = 5;
 
 /// Result of applying a game action, including optional ECS combat snapshot.
 #[derive(Debug)]
@@ -433,7 +437,6 @@ fn validate_actor(session: &SessionState, actor: serenity::UserId) -> Result<(),
         return Err("You are not part of this session.".to_owned());
     }
 
-    // Check if the player is still alive
     if let Some(player) = session.players.get(&actor)
         && !player.alive
     {
@@ -451,6 +454,16 @@ fn validate_action(
 ) -> Result<(), String> {
     if matches!(session.phase, GamePhase::GameOver(_)) {
         return Err("This session is over.".to_owned());
+    }
+
+    if let Some(player) = session.players.get(&actor)
+        && player.downed
+        && !matches!(
+            action,
+            GameAction::Move(_) | GameAction::ViewMap | GameAction::ViewInventory
+        )
+    {
+        return Err("You're Downed. Crawl back to the city to recover.".to_owned());
     }
 
     match action {
@@ -1647,7 +1660,8 @@ fn single_enemy_turn(
                 let player = session.player_mut(uid);
                 player.hp -= actual;
                 if player.hp <= 0 {
-                    player.alive = false;
+                    player.downed = true;
+                    player.hp = 0;
                 }
             }
             // No thorns reflect for AoE
@@ -1689,7 +1703,8 @@ fn single_enemy_turn(
     for uid in all_uids {
         let player = session.player_mut(uid);
         if player.hp <= 0 && player.alive {
-            player.alive = false;
+            player.downed = true;
+            player.hp = 0;
             let defeated_name = player.name.clone();
             logs.push(format!("{} has been defeated...", defeated_name));
         }
@@ -1745,7 +1760,20 @@ fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<Stri
     logs.extend(flee_logs);
 
     if fled {
-        // Session-level cleanup: escape to hallway
+        if !session.enemies.is_empty() {
+            let group = PursuitGroup {
+                source_pos: session.map.position,
+                origin_name: session.room.name.clone(),
+                hops_remaining: PURSUIT_MAX_HOPS,
+                enemies: std::mem::take(&mut session.enemies),
+            };
+            logs.push(format!(
+                "{} enemies break off and follow you from {}.",
+                group.enemies.len(),
+                group.origin_name
+            ));
+            session.pursuers.push(group);
+        }
         let hallway = content::generate_hallway_room(session.room.index);
         session.room = hallway;
         session.enemies.clear();
@@ -2060,6 +2088,65 @@ fn apply_move(
 
 /// Complete arrival at a tile: update position, mark visited, reveal neighbors,
 /// build RoomState, apply hazards, transition phase.
+/// Advance every active pursuer one tile toward the player and return
+/// the first group that catches up. Caught-up groups are removed; the
+/// caller is responsible for transitioning to combat with the returned
+/// enemies. Pursuers whose hops budget hits zero are pruned.
+fn tick_pursuers(session: &mut SessionState, logs: &mut Vec<String>) -> Option<PursuitGroup> {
+    if session.pursuers.is_empty() {
+        return None;
+    }
+
+    let player_pos = session.map.position;
+    let field = pathfinding::pursuit_field(&session.map, player_pos);
+
+    let mut caught: Option<PursuitGroup> = None;
+    let mut keep: Vec<PursuitGroup> = Vec::with_capacity(session.pursuers.len());
+
+    for mut group in std::mem::take(&mut session.pursuers) {
+        if caught.is_some() {
+            keep.push(group);
+            continue;
+        }
+
+        let next_step = field.as_ref().and_then(|f| f.next_step(group.source_pos));
+        match next_step {
+            Some(next) if next == player_pos => {
+                logs.push(format!(
+                    "{} pursuers close in from {}.",
+                    group.enemies.len(),
+                    group.origin_name
+                ));
+                group.source_pos = next;
+                caught = Some(group);
+            }
+            Some(next) => {
+                group.source_pos = next;
+                if group.hops_remaining > 0 {
+                    group.hops_remaining -= 1;
+                }
+                if group.hops_remaining == 0 {
+                    logs.push(format!(
+                        "Pursuers from {} lose your trail.",
+                        group.origin_name
+                    ));
+                } else {
+                    keep.push(group);
+                }
+            }
+            None => {
+                logs.push(format!(
+                    "Pursuers from {} hit a dead end and give up.",
+                    group.origin_name
+                ));
+            }
+        }
+    }
+
+    session.pursuers = keep;
+    caught
+}
+
 fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     let mut logs = Vec::new();
 
@@ -2082,6 +2169,20 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     session.room = content::room_from_tile(tile);
 
     logs.push(format!("You arrive at: {}.", session.room.name));
+
+    if matches!(session.room.room_type, RoomType::UndergroundCity) {
+        for player in session.players.values_mut() {
+            if player.alive && player.downed {
+                player.downed = false;
+                player.hp = player.max_hp;
+                player.effects.clear();
+                logs.push(format!(
+                    "{} stumbles into the city hospital and is patched up. ({} HP)",
+                    player.name, player.hp
+                ));
+            }
+        }
+    }
 
     // Increment lifetime_rooms_cleared for all alive players
     let alive_ids = session.alive_player_ids();
@@ -2139,12 +2240,30 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
     for &uid in &alive_ids {
         let player = session.player_mut(uid);
         if player.hp <= 0 {
-            player.alive = false;
+            player.downed = true;
+            player.hp = 0;
         }
     }
     if session.all_players_dead() {
         session.phase = GamePhase::GameOver(GameOverReason::Defeated);
         logs.push("The hazards proved fatal...".to_owned());
+        return logs;
+    }
+
+    let pursuit_combat = tick_pursuers(session, &mut logs);
+
+    if let Some(group) = pursuit_combat {
+        logs.push(format!(
+            "Pursuers from {} catch up — combat resumes!",
+            group.origin_name
+        ));
+        session.enemies = group.enemies;
+        session.phase = GamePhase::Combat;
+        session.enemies_had_first_strike = false;
+        for player in session.players.values_mut() {
+            player.first_attack_in_combat = true;
+            player.heals_used_this_combat = 0;
+        }
         return logs;
     }
 
@@ -2243,7 +2362,7 @@ fn apply_revive(
         .get(&target_uid)
         .ok_or_else(|| "Player not found in session.".to_owned())?;
 
-    if target_player.alive {
+    if target_player.alive && !target_player.downed {
         return Err("That player is already alive!".to_owned());
     }
 
@@ -2253,6 +2372,7 @@ fn apply_revive(
     session.player_mut(actor).gold -= cost;
     let target = session.player_mut(target_uid);
     target.alive = true;
+    target.downed = false;
     target.hp = revive_hp;
     target.effects.clear();
 
@@ -2665,7 +2785,8 @@ fn apply_trap_choice(
                     let player = session.player_mut(uid);
                     player.hp -= dmg;
                     if player.hp <= 0 {
-                        player.alive = false;
+                        player.downed = true;
+                        player.hp = 0;
                     }
                 }
             }
@@ -2682,7 +2803,8 @@ fn apply_trap_choice(
                 let player = session.player_mut(uid);
                 player.hp -= reduced;
                 if player.hp <= 0 {
-                    player.alive = false;
+                    player.downed = true;
+                    player.hp = 0;
                 }
             }
         }
@@ -2747,7 +2869,8 @@ fn apply_treasure_choice(
                     player.gold += standard_gold;
                     player.lifetime_gold_earned += standard_gold as u32;
                     if player.hp <= 0 {
-                        player.alive = false;
+                        player.downed = true;
+                        player.hp = 0;
                     }
                 }
                 logs.push(format!(
@@ -2984,6 +3107,7 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+            pursuers: Vec::new(),
         }
     }
 
@@ -3004,6 +3128,93 @@ mod tests {
             first_strike: false,
             personality: Personality::Feral,
         }
+    }
+
+    #[test]
+    fn tick_pursuers_noop_when_empty() {
+        let mut session = test_session();
+        let mut logs = Vec::new();
+        let caught = tick_pursuers(&mut session, &mut logs);
+        assert!(caught.is_none());
+        assert!(logs.is_empty());
+    }
+
+    fn linear_test_map(len: i16) -> MapState {
+        let mut tiles = std::collections::HashMap::new();
+        for y in 0..len {
+            let pos = MapPos::new(0, y);
+            let mut exits = Vec::new();
+            if y > 0 {
+                exits.push(Direction::North);
+            }
+            if y < len - 1 {
+                exits.push(Direction::South);
+            }
+            tiles.insert(
+                pos,
+                MapTile {
+                    pos,
+                    room_type: RoomType::Hallway,
+                    name: format!("Hall {y}"),
+                    description: String::new(),
+                    exits,
+                    visited: true,
+                    cleared: true,
+                    landmark_ref: None,
+                },
+            );
+        }
+        MapState {
+            seed: 1,
+            position: MapPos::new(0, 0),
+            tiles,
+            tiles_visited: len as u32,
+            boss_positions: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn tick_pursuers_catches_up_at_adjacent_tile() {
+        let mut session = test_session();
+        session.map = linear_test_map(2);
+        let player_pos = session.map.position;
+        let pursuer_pos = MapPos::new(0, 1);
+        let group = PursuitGroup {
+            source_pos: pursuer_pos,
+            origin_name: "Hall 1".to_owned(),
+            hops_remaining: PURSUIT_MAX_HOPS,
+            enemies: vec![test_enemy()],
+        };
+        session.pursuers.push(group);
+
+        let mut logs = Vec::new();
+        let caught = tick_pursuers(&mut session, &mut logs);
+
+        assert!(caught.is_some());
+        let group = caught.unwrap();
+        assert_eq!(group.enemies.len(), 1);
+        assert_eq!(group.source_pos, player_pos);
+        assert!(session.pursuers.is_empty());
+    }
+
+    #[test]
+    fn tick_pursuers_decrements_when_not_caught_up() {
+        let mut session = test_session();
+        session.map = linear_test_map(5);
+        let group = PursuitGroup {
+            source_pos: MapPos::new(0, 4),
+            origin_name: "Hall 4".to_owned(),
+            hops_remaining: PURSUIT_MAX_HOPS,
+            enemies: vec![test_enemy()],
+        };
+        session.pursuers.push(group);
+
+        let mut logs = Vec::new();
+        let caught = tick_pursuers(&mut session, &mut logs);
+        assert!(caught.is_none());
+        assert_eq!(session.pursuers.len(), 1);
+        assert_eq!(session.pursuers[0].hops_remaining, PURSUIT_MAX_HOPS - 1);
+        assert_eq!(session.pursuers[0].source_pos, MapPos::new(0, 3));
     }
 
     #[test]
@@ -9506,6 +9717,32 @@ mod tests {
         let p2 = serenity::UserId::new(2);
         let result = apply_action(&mut session, GameAction::Revive(p2), OWNER);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn downed_player_blocked_from_combat_actions() {
+        let mut session = test_session();
+        session.phase = GamePhase::Combat;
+        session.enemies.push(test_enemy());
+        session.player_mut(OWNER).downed = true;
+
+        let result = apply_action(&mut session, GameAction::Attack, OWNER);
+        assert!(result.is_err());
+        let msg = result.unwrap_err();
+        assert!(msg.contains("Downed"));
+    }
+
+    #[test]
+    fn arrive_at_city_revives_downed_player() {
+        let mut session = test_session();
+        session.player_mut(OWNER).downed = true;
+        session.player_mut(OWNER).hp = 0;
+        let prior_max = session.player(OWNER).max_hp;
+        let logs = arrive_at_tile(&mut session, MapPos::new(0, 0));
+
+        assert!(!session.player(OWNER).downed);
+        assert_eq!(session.player(OWNER).hp, prior_max);
+        assert!(logs.iter().any(|l| l.contains("city hospital")));
     }
 
     #[test]

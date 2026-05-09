@@ -7,3 +7,9 @@ export {
 	getSharedToken,
 	clearSharedToken,
 } from './cross-domain';
+export {
+	registerSupabaseGateway,
+	getSupabaseGateway,
+	getAccessToken,
+} from './registry';
+export { useSession, type SessionView } from './useSession';

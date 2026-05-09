@@ -1,0 +1,13 @@
+---
+export interface Props {
+	columns?: number;
+}
+
+const { columns = 2 } = Astro.props;
+---
+
+<div
+	class="mb-6 grid gap-[18px] grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] lg:[grid-template-columns:repeat(var(--arcade-grid-cols,2),1fr)]"
+	style={`--arcade-grid-cols: ${columns};`}>
+	<slot />
+</div>

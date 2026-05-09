@@ -221,6 +221,8 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
             }
             if !player.alive {
                 lines.push("**DEFEATED**".to_owned());
+            } else if player.downed {
+                lines.push("**DOWNED** \u{2014} crawl back to the city to recover.".to_owned());
             }
             let member_badge = match &player.member_status {
                 MemberStatusTag::Member { .. } => " [M]",
@@ -256,6 +258,8 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         }
         if !owner.alive {
             player_lines.push("**DEFEATED**".to_owned());
+        } else if owner.downed {
+            player_lines.push("**DOWNED** \u{2014} crawl back to the city to recover.".to_owned());
         }
         embed = embed.field(
             format!("-- {} --", owner.name),
@@ -1117,6 +1121,7 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+            pursuers: Vec::new(),
         }
     }
 

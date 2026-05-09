@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useSession } from '@/components/providers/SupaProvider';
+import { useSession, getAccessToken } from '@kbve/astro';
+import { initSupa } from '@/lib/supa';
 import {
 	getLinkStatus,
 	mojangLookup,
@@ -161,7 +162,7 @@ function statusToPhase(status: LinkStatus | null): Phase {
 }
 
 export function ReactMcAuthLink() {
-	const { session, ready } = useSession();
+	const { ready, authenticated } = useSession();
 	const [phase, setPhase] = useState<Phase>('init');
 	const [error, setError] = useState<string | null>(null);
 	const [profile, setProfile] = useState<MojangProfile | null>(null);
@@ -172,15 +173,21 @@ export function ReactMcAuthLink() {
 	const [usernameInput, setUsernameInput] = useState('');
 	const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-	const accessToken = (session?.access_token as string | undefined) ?? null;
+	useEffect(() => {
+		void initSupa().catch((err) => {
+			console.error('[ReactMcAuthLink] initSupa failed', err);
+			setError(err?.message ?? 'init failed');
+		});
+	}, []);
 
-	const refreshStatus = useCallback(async (token: string) => {
+	const refreshStatus = useCallback(async () => {
+		const token = await getAccessToken();
+		if (!token) return;
 		try {
 			const status = await getLinkStatus(token);
 			setLink(status);
 			const next = statusToPhase(status);
 			setPhase((prev) => {
-				// Don't overwrite an in-flight UI state with the polled one
 				if (
 					prev === 'lookup' ||
 					prev === 'confirm' ||
@@ -195,21 +202,21 @@ export function ReactMcAuthLink() {
 			const message =
 				err instanceof Error ? err.message : 'status failed';
 			setError(message);
+			setPhase((prev) => (prev === 'init' ? 'unlinked' : prev));
 		}
 	}, []);
 
 	useEffect(() => {
 		if (!ready) return;
-		if (!session) {
+		if (!authenticated) {
 			setPhase('anon');
 			return;
 		}
-		if (!accessToken) return;
-		void refreshStatus(accessToken);
-	}, [ready, session, accessToken, refreshStatus]);
+		void refreshStatus();
+	}, [ready, authenticated, refreshStatus]);
 
 	useEffect(() => {
-		if (phase !== 'pending' || !accessToken) {
+		if (phase !== 'pending') {
 			if (pollRef.current) {
 				clearInterval(pollRef.current);
 				pollRef.current = null;
@@ -217,7 +224,7 @@ export function ReactMcAuthLink() {
 			return;
 		}
 		pollRef.current = setInterval(() => {
-			void refreshStatus(accessToken);
+			void refreshStatus();
 		}, POLL_INTERVAL_MS);
 		return () => {
 			if (pollRef.current) {
@@ -225,7 +232,7 @@ export function ReactMcAuthLink() {
 				pollRef.current = null;
 			}
 		};
-	}, [phase, accessToken, refreshStatus]);
+	}, [phase, refreshStatus]);
 
 	useEffect(() => {
 		if (!codeExpiresAt) return;
@@ -234,11 +241,12 @@ export function ReactMcAuthLink() {
 	}, [codeExpiresAt]);
 
 	const onLookup = useCallback(async () => {
-		if (!accessToken) return;
+		const token = await getAccessToken();
+		if (!token) return;
 		setError(null);
 		setPhase('lookup');
 		try {
-			const found = await mojangLookup(usernameInput.trim(), accessToken);
+			const found = await mojangLookup(usernameInput.trim(), token);
 			if (!found) {
 				setError(
 					`No Minecraft account found for "${usernameInput.trim()}". Check spelling.`,
@@ -254,32 +262,35 @@ export function ReactMcAuthLink() {
 			setError(message);
 			setPhase('unlinked');
 		}
-	}, [accessToken, usernameInput]);
+	}, [usernameInput]);
 
 	const onRequestCode = useCallback(async () => {
-		if (!accessToken || !profile) return;
+		if (!profile) return;
+		const token = await getAccessToken();
+		if (!token) return;
 		setError(null);
 		setPhase('requesting');
 		try {
-			const v = await requestLink(profile.mc_uuid, accessToken);
+			const v = await requestLink(profile.mc_uuid, token);
 			setCode(v);
 			setCodeExpiresAt(Date.now() + CODE_TTL_MS);
 			setPhase('pending');
-			void refreshStatus(accessToken);
+			void refreshStatus();
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : 'request failed';
 			setError(message);
 			setPhase('confirm');
 		}
-	}, [accessToken, profile, refreshStatus]);
+	}, [profile, refreshStatus]);
 
 	const onUnlink = useCallback(async () => {
-		if (!accessToken) return;
+		const token = await getAccessToken();
+		if (!token) return;
 		setError(null);
 		setPhase('unlinking');
 		try {
-			await unlink(accessToken);
+			await unlink(token);
 			setProfile(null);
 			setCode(null);
 			setCodeExpiresAt(null);
@@ -292,7 +303,7 @@ export function ReactMcAuthLink() {
 			setError(message);
 			setPhase('verified');
 		}
-	}, [accessToken]);
+	}, []);
 
 	if (phase === 'init') {
 		return (

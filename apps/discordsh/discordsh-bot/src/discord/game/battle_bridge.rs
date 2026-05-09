@@ -431,7 +431,12 @@ impl CombatWorld {
             };
 
             player.hp = hp.current;
-            player.alive = !hp.is_dead();
+            if hp.is_dead() {
+                if !player.downed {
+                    player.downed = true;
+                }
+                player.hp = 0;
+            }
 
             if let Some(stats) = world.get::<CombatStats>(*entity) {
                 player.defending = stats.defending;
@@ -1030,6 +1035,7 @@ mod tests {
                 inventory: GameInventory::new(MAX_INVENTORY_SLOTS),
                 accuracy: 1.0,
                 alive: true,
+                downed: false,
                 member_status: MemberStatusTag::Guest,
                 class: ClassType::Warrior,
                 level: 1,
@@ -1109,6 +1115,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         }
     }
 

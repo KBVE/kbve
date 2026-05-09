@@ -648,10 +648,15 @@ class VMService {
 
 		this.$actionInProgress.set(`${action}:${name}`);
 		try {
+			const body =
+				action === 'stop' || action === 'restart'
+					? { gracePeriod: 30 }
+					: undefined;
 			await apiFetch(
 				token,
 				`/apis/subresources.kubevirt.io/v1/namespaces/${VM_NAMESPACE}/virtualmachines/${name}/${action}`,
 				'PUT',
+				body,
 			);
 			addToast({
 				id: `vm-${action}-${name}-${Date.now()}`,
@@ -751,9 +756,7 @@ class VMService {
 		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}`;
 	}
 
-	public async getVNCSessionInfo(
-		name: string,
-	): Promise<{
+	public async getVNCSessionInfo(name: string): Promise<{
 		vm_key: string;
 		viewers: number;
 		has_primary: boolean;
