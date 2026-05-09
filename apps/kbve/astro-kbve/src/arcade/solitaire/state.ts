@@ -1,15 +1,6 @@
-// ============================================================================
-// Solitaire — game state (byte-packed engine + Balatro-flavored progression)
-// ============================================================================
-//
-// Layered state:
-//   1. Piles (stock / waste / foundations / tableaus) — byte-packed
-//   2. Scoring (score, combo, multiplier) — accumulated per move
-//   3. Run progression (round, blind, cash, jokers owned) — round to round
-//
-// Snapshots cover layers 1+2 so undo rolls back both pile state AND the
-// score effect of the move. Run-progression state is NOT in undo (rounds
-// only advance on round-end, never via undo).
+/** Game state — byte-packed piles + scoring + run progression. Snapshots
+ * cover piles + scoring (undo rolls both back). Round-level state stays
+ * out of undo: rounds only advance on win, never via undo. */
 
 import {
 	BonusType,
@@ -48,7 +39,7 @@ import {
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-// 52 standard + 2 jokers + 5 bonus + 3 monsters = 62 max in play.
+/** 52 standard + 2 jokers + 5 bonus + 3 monsters = 62 max in play. */
 const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 62;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
@@ -125,22 +116,18 @@ export class GameState {
 	foundations: number[][] = [[], [], [], []];
 	tableaus: number[][] = [[], [], [], [], [], [], []];
 
-	// --- Layer 2: scoring --------------------------------------------------
 	score = 0;
 	combo = 0;
 	comboMultiplier = 1;
 	moves = 0;
 	private lastFoundationAt = 0;
-	/** Stock-recycle counter — first pass through deck is free, recycles
-	 * after that cost SCORE.stockRecycle. */
+	/** First pass through the deck is free; recycles past that cost
+	 * `SCORE.stockRecycle` plus `HP.stockRecyclePenalty`. */
 	private stockCycles = 0;
-	/** Card indices that have already been rewarded by foundation placement
-	 * this round. A card removed from foundation + re-placed does not score
-	 * again — prevents the foundation→tableau→foundation reward loop. The
-	 * removal penalty (SCORE.foundationToTableau) still applies. */
+	/** Cards already rewarded for foundation placement this round —
+	 * prevents the foundation → tableau → foundation reward loop. */
 	private scoredCards: Set<number> = new Set();
 
-	// --- Layer 3: run progression ------------------------------------------
 	round = 1;
 	blind = ROUND_BLINDS[0];
 	cash = STARTING_CASH;
@@ -149,33 +136,23 @@ export class GameState {
 	armor: number = STATS.startArmor;
 	attack: number = STATS.startAttack;
 	jokerVariants: Map<number, JokerVariant> = new Map();
-	/** Per-instance monster combat stats keyed by card index. Populated at
-	 * `reset` from `MONSTER_KIND_PRESETS` (or scene-supplied npcdb data via
-	 * `bindMonstersFromNpcs`). HP is per-encounter; `engaged` flips true on
-	 * the first reveal so the engage hit only fires once. */
+	/** Per-instance monster combat stats keyed by card index. `engaged`
+	 * flips true on first reveal so the engage hit only fires once. */
 	monsters: Map<number, MonsterState> = new Map();
-	/** Card indices the player has "peeked" via the Reveal bonus. The card
-	 * stays face-down in its tableau column (so rules + drag stay correct)
-	 * but the scene shows its face on hover. Cleared on each new deal. */
+	/** Indices revealed by the Reveal bonus. Card byte stays face-down so
+	 * rules + drag stay correct; scene flips the face on hover. */
 	peekedCards: Set<number> = new Set();
-	/** Card indices that are currently "frozen" — cannot be moved or sent
-	 * to a foundation until the freeze rotates on the next stock click.
-	 * Always 0 or 1 entries. Monsters are excluded from the freeze pool
-	 * so the player can still engage them. */
+	/** At most one frozen card index. Rotates on each stock click. */
 	frozenCards: Set<number> = new Set();
-	/** Jokers owned via shop, applied to next deal. Each entry is a variant
-	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
+	/** Joker variants the player owns from the shop, applied to the next
+	 * deal in array order. Up to 2 entries (one per dealt joker). */
 	ownedJokerVariants: JokerVariant[] = [];
-	/** True between rounds — between win and next deal. Drives shop UI. */
+	/** True between win and the next deal — drives the shop modal. */
 	betweenRounds = false;
-	/** True when current round failed (foundations not all complete + score
-	 * below blind at end of stock cycles). */
 	gameOver = false;
 
-	// --- Persistence -------------------------------------------------------
 	bestRecord: RunRecord = { ...EMPTY_RUN };
 
-	// --- Undo --------------------------------------------------------------
 	private history: Uint8Array[] = [];
 	private scoreHistory: ScoreSnapshot[] = [];
 	private static readonly MAX_HISTORY = 256;
@@ -197,7 +174,6 @@ export class GameState {
 		this.history = [];
 		this.scoreHistory = [];
 
-		// Layer 2 reset.
 		this.score = 0;
 		this.combo = 0;
 		this.comboMultiplier = 1;
@@ -208,9 +184,6 @@ export class GameState {
 		this.peekedCards.clear();
 		this.frozenCards.clear();
 
-		// Apply owned joker variants (from shop) to the dealt jokers. Variant
-		// stays bound to the card index so the variant persists across moves
-		// within this round.
 		this.jokerVariants.clear();
 		const dealtJokerIndices: number[] = [];
 		for (const col of this.tableaus) {
@@ -226,10 +199,6 @@ export class GameState {
 			this.jokerVariants.set(dealtJokerIndices[i], variant);
 		}
 
-		// Seed monster combat stats from the preset table so a fresh run is
-		// playable even before the scene fetches `/api/npcdb.json`. Once
-		// `bindMonstersFromNpcs` runs the scene replaces matching entries
-		// with real npcdb-driven names + scaled stats.
 		this.monsters.clear();
 		const allCards = [
 			...this.stock,
@@ -341,10 +310,6 @@ export class GameState {
 		saveBestRecord(this.bestRecord);
 	}
 
-	// -------------------------------------------------------------------
-	// Snapshot / undo (covers layers 1 + 2)
-	// -------------------------------------------------------------------
-
 	snapshot(): Uint8Array {
 		const out = new Uint8Array(SNAPSHOT_TOTAL);
 		out[0] = this.stock.length;
@@ -430,7 +395,6 @@ export class GameState {
 		if (!snap || !score) return false;
 		this.restore(snap);
 		this.restoreScore(score);
-		// Charge undo tax after restoring. Score allowed negative.
 		this.score -= SCORE.undoCost;
 		return true;
 	}
@@ -439,14 +403,11 @@ export class GameState {
 		return this.history.length > 0;
 	}
 
-	// -------------------------------------------------------------------
-	// Scoring
-	// -------------------------------------------------------------------
-
 	/** Tally a move. `isFoundation` extends combo + applies joker multiplier
-	 * on positive points. Negative points (e.g. foundation→tableau) reset
+	 * on positive points. Negative points (e.g. foundation → tableau) reset
 	 * combo and skip multipliers. SCORE.movePerAction is subtracted AFTER
-	 * any multipliers so the per-move tax is flat. */
+	 * any multipliers so the per-move tax is flat. Score is allowed to go
+	 * negative — that's the pressure signal. */
 	private applyScore(points: number, isFoundation: boolean) {
 		let delta: number;
 		if (isFoundation && points > 0) {
@@ -462,26 +423,16 @@ export class GameState {
 
 			const jokerCount = this.countJokersInTableau();
 			const jokerMult = 1 + jokerCount * JOKER_MULT_PER_TABLEAU;
-
-			// Joker variant flat bonus: each ScoreBoost joker in tableau adds
-			// +50 flat to this placement's points.
 			const flatBonus = this.tableauScoreBoostBonus();
-
 			const base = points + flatBonus;
-			// Attack stat multiplies the final foundation score on top of
-			// combo + joker mults. Default attack=1 = no-op; bought
-			// upgrades push it past 1.0 in increments of attackStep (0.25).
 			delta = Math.round(
 				base * this.comboMultiplier * jokerMult * this.attack,
 			);
 		} else {
-			// Non-foundation move OR negative-point foundation rollback.
 			this.combo = 0;
 			this.comboMultiplier = 1;
 			delta = points;
 		}
-		// Score allowed to go negative — pressure when burn outpaces
-		// progress. HUD turns red.
 		this.score = this.score + delta - SCORE.movePerAction;
 		this.moves += 1;
 	}
@@ -512,27 +463,22 @@ export class GameState {
 		return bonus;
 	}
 
-	// -------------------------------------------------------------------
-	// Mutators — each pushes history on success so undo is free.
-	// -------------------------------------------------------------------
+	/** Each mutator pushes history on success so undo rolls back the
+	 * full pile + score state. Played-3 draw model: leftover waste cards
+	 * cycle back to the BOTTOM of stock face-down so all 3 visible cards
+	 * stay player-selectable. Monster draws auto-divert into the tableau;
+	 * the freeze rotates per stock click. */
 
 	drawFromStock(): boolean {
 		if (this.stock.length === 0 && this.waste.length === 0) return false;
 		this.pushHistory();
 
-		// Played-3 model: any leftover waste cards (cards the player chose
-		// not to claim from the previous draw) cycle back to the BOTTOM of
-		// the stock face-down. Waste therefore only ever holds the current
-		// draw window of up to STOCK_DRAW_COUNT cards, and ALL of them are
-		// player-selectable.
 		let recyclePoints = 0;
 		let recycleHp = 0;
 		if (this.waste.length > 0) {
 			const wasEmpty = this.stock.length === 0;
 			const returned = this.waste.map((c) => setFaceUp(c, false));
 			this.waste = [];
-			// stock[0] = bottom (pop draws from end). Prepend returned cards
-			// so the freshly-drawn batch comes off fresh stock first.
 			this.stock = [...returned, ...this.stock];
 			if (wasEmpty) {
 				this.stockCycles += 1;
@@ -554,13 +500,7 @@ export class GameState {
 			const c = this.stock.pop()!;
 			this.waste.push(setFaceUp(c, true));
 		}
-		// Monster cards drawn into the waste don't sit in the discard pile —
-		// they immediately march into a tableau column so the player can
-		// fight them. Refill the waste from stock to keep the visible draw
-		// count consistent with `STOCK_DRAW_COUNT`.
 		this.divertMonstersFromWaste();
-		// Freeze rotates each stock click — previous frozen card thaws,
-		// a fresh face-up tableau card gets locked for the next turn.
 		this.rotateFreeze();
 		while (this.waste.length < STOCK_DRAW_COUNT && this.stock.length > 0) {
 			const c = setFaceUp(this.stock.pop()!, true);
@@ -704,8 +644,6 @@ export class GameState {
 		const flipped = this.flipExposedTop(fromCol);
 		const cardIdx = c & 0x3f;
 		const firstTime = !this.scoredCards.has(cardIdx);
-		// Reveal bonus still fires even on re-placement (the flip is real
-		// progress regardless of whether the card already scored before).
 		const points =
 			(firstTime ? SCORE.tableauToFoundation : 0) +
 			(flipped ? SCORE.revealTableau : 0);
@@ -732,9 +670,6 @@ export class GameState {
 		if (top !== undefined && !isFaceUp(top)) {
 			const flipped = setFaceUp(top, true);
 			this.tableaus[col][this.tableaus[col].length - 1] = flipped;
-			// First reveal of a monster: it engages — deals its ATK as a
-			// one-time hit to the player. Subsequent attacks come from the
-			// player clicking the monster (engaged stays true).
 			if (isMonster(flipped)) {
 				const idx = flipped & 0x3f;
 				const mob = this.monsters.get(idx);
@@ -766,14 +701,11 @@ export class GameState {
 		const dmg = Math.max(1, Math.floor(this.attack));
 		mob.hp = Math.max(0, mob.hp - dmg);
 
-		// Reward + tax: per-hit score nudge so combat feels productive even
-		// against tougher mobs; movePerAction is taken inside applyScore.
-		const points = SCORE.wasteToTableau; // reuse small-positive points
+		const points = SCORE.wasteToTableau;
 		if (mob.hp === 0) {
 			pile.pop();
 			this.monsters.delete(idx);
 			this.flipExposedTop(col);
-			// Bigger reward on kill — scaled by maxHp so harder mobs pay more.
 			this.applyScore(points + mob.maxHp * 5, false);
 		} else {
 			this.applyScore(points, false);
@@ -863,15 +795,10 @@ export class GameState {
 		return out;
 	}
 
-	// Exposed for HUD / scene.
 	getRank(c: CardByte): number {
 		return getDisplayRank(c);
 	}
 }
-
-// ============================================================================
-// Helpers
-// ============================================================================
 
 function nowMs(): number {
 	return typeof performance !== 'undefined' && performance.now
@@ -881,7 +808,6 @@ function nowMs(): number {
 
 function blindForRound(round: number): number {
 	if (round - 1 < ROUND_BLINDS.length) return ROUND_BLINDS[round - 1];
-	// Beyond the table: 1.6× per round indefinitely, capped to a sane int.
 	const last = ROUND_BLINDS[ROUND_BLINDS.length - 1];
 	const extra = round - ROUND_BLINDS.length;
 	return Math.round(last * Math.pow(1.6, extra));
@@ -913,6 +839,6 @@ function saveBestRecord(record: RunRecord) {
 	try {
 		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 	} catch {
-		// Quota / privacy mode — silently noop.
+		/* quota / privacy mode — silent */
 	}
 }

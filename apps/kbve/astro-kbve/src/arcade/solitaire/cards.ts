@@ -1,21 +1,11 @@
-// ============================================================================
-// Solitaire — byte-packed deck primitives + dealing
-// ============================================================================
-//
-// One card = one byte. Bit layout (MSB → LSB):
-//   bit 6     face-up flag
-//   bits 4-5  suit (0..3)
-//   bits 0-3  rank index (0..12 → A..K)
-//
-// Why pack? With 52 cards, V8's per-object overhead (hidden class +
-// properties + GC bookkeeping) costs ~50 bytes/card minimum. A packed
-// `Uint8Array` is literally 52 bytes for the entire deck, which makes
-// snapshots (`arr.slice()`), undo stacks, and serialization free.
-//
-// Runtime piles use `number[]` (variable length) for cheap mutation;
-// `Uint8Array` is reserved for frozen snapshots and serialization. The UI
-// boundary (`toCardView`) inflates a byte into a typed display object so
-// the Phaser scene doesn't need to know about bit math.
+/** Byte-packed deck primitives. One card = one byte:
+ *   bit 6     face-up flag
+ *   bits 4-5  suit (0..3)
+ *   bits 0-3  rank index (0..12 → A..K, 13 → joker, 14-15 → bonus/monster)
+ *
+ * Snapshots use `Uint8Array` (52 bytes for the whole deck makes undo + ser
+ * cheap). Live piles use `number[]` for mutation. `toCardView` inflates a
+ * byte to a typed view object once at the UI boundary. */
 
 export const enum SuitByte {
 	Spades = 0,
@@ -75,11 +65,11 @@ export function packCard(
 }
 
 export function getRank(card: CardByte): number {
-	return card & RANK_MASK; // 0..12
+	return card & RANK_MASK;
 }
 
 export function getDisplayRank(card: CardByte): number {
-	return getRank(card) + 1; // 1..13
+	return getRank(card) + 1;
 }
 
 export function getSuit(card: CardByte): SuitByte {
@@ -130,10 +120,9 @@ export const enum BonusType {
 	Reveal = 2,
 }
 
-// Bonus byte slots. (rank, suit) is the addressable id; the player sees
-// the variant via the face-renderer (HP/Cash/Reveal). Two each of HP +
-// Cash, one Reveal — Reveal already cascades + peeks a card, so it stays
-// rare while the support cards (heal, cash) come up more often.
+/** Bonus byte slots. (rank, suit) is the addressable id; the player sees
+ * the variant via the face-renderer. Two of HP/Cash, one Reveal — Reveal
+ * already peeks a card so it stays rare. */
 export const BONUS_HP_BYTE: CardByte = (0 << 4) | BONUS_RANK_A;
 export const BONUS_HP_BYTE_2: CardByte = (3 << 4) | BONUS_RANK_A;
 export const BONUS_CASH_BYTE: CardByte = (1 << 4) | BONUS_RANK_A;
@@ -160,9 +149,9 @@ const BONUS_TYPE_BY_BYTE: Map<CardByte, BonusType> = new Map([
 	[BONUS_REVEAL_BYTE, BonusType.Reveal],
 ]);
 
+/** Map-based — monster cards share rank=15 with `BONUS_CASH_BYTE_2`, so
+ * a rank-only check would misclassify them. */
 export function isBonus(card: CardByte): boolean {
-	// Map-based check (not rank-only) so monster cards — which share rank=15
-	// with one of the bonus variants — are NOT mistaken for bonuses.
 	return BONUS_TYPE_BY_BYTE.has(card & (RANK_MASK | SUIT_MASK));
 }
 
@@ -172,16 +161,10 @@ export function getBonusType(card: CardByte): BonusType {
 	);
 }
 
-// ============================================================================
-// Monster cards — combat encounters mixed into the tableau
-// ============================================================================
-//
-// Monster cards reuse the bonus-rank slot (rank=15) but on suits 1/2/3 (suit 0
-// is taken by BONUS_CASH_BYTE_2). Each byte slot is one monster KIND; the
-// per-instance state (current HP, ATK, name pulled from npcdb) lives in
-// `GameState.monsters` keyed by card index. The rules layer treats these
-// like "blocking" tableau cards — nothing stacks on them, can't be dragged,
-// and must be defeated by clicking to attack.
+/** Monster cards reuse rank=15 on suits 1/2/3 (suit 0 is `BONUS_CASH_BYTE_2`).
+ * Per-instance combat stats live in `GameState.monsters` keyed by card
+ * index. Rules layer treats them as blocking — nothing stacks on them and
+ * they can't be dragged; engage via click to attack. */
 
 export const enum MonsterKind {
 	Goblin = 0,
@@ -272,7 +255,6 @@ const ID_CACHE: string[] = (() => {
 })();
 
 export function getCardId(card: CardByte): string {
-	// Strip face-up bit; only suit+rank identify a card.
 	return ID_CACHE[card & (RANK_MASK | SUIT_MASK)];
 }
 
@@ -377,7 +359,6 @@ export function dealBytes(
 		tableaus[col] = column;
 	}
 
-	// Stock — copy remainder, ensure all face-down.
 	const stock: number[] = new Array(deck.length - cursor);
 	for (let i = 0; i < stock.length; i++) {
 		stock[i] = setFaceUp(deck[cursor + i], false);
@@ -385,10 +366,6 @@ export function dealBytes(
 
 	return { tableaus, stock };
 }
-
-// -------------------------------------------------------------------
-// UI boundary — inflate a byte to a typed view object once per render
-// -------------------------------------------------------------------
 
 export interface CardView {
 	id: string;
