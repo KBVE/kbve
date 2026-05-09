@@ -13,11 +13,13 @@ tags:
 key: firecracker_python_net
 pipeline: docker
 app_name: firecracker-python-net
-version: "0.1.0"
+version: "0.1.1"
 version_toml: packages/docker/firecracker/python/net/version.toml
 source_path: packages/docker/firecracker/python/net
 runner: ubuntu-latest
 image: kbve/firecracker-python-net
+deployment_yamls:
+    - apps/kube/firecracker/manifests/firecracker-net-rootfs-stage.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
@@ -26,7 +28,7 @@ status: active
 
 ## Overview
 
-Network-capable Python rootfs image used by the **staff-side** Firecracker deployment (`firecracker-ctl-net`). Built as a multi-stage Docker image whose final scratch layer carries a single `/rootfs.ext4` artifact.
+Network-capable Python rootfs image used by the **staff-side** Firecracker deployment (`firecracker-ctl-net`). Built as a multi-stage Docker image whose final layer (alpine 3.21 + `/rootfs.ext4`) ships a `cp` entrypoint so the in-cluster stage Job can run the image directly and copy `/rootfs.ext4` onto the firecracker rootfs PVC.
 
 This image is **not** for the public sandbox quick-mode VMs. Those keep the no-network `alpine-python` rootfs from [apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python](apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python) — sandboxing without internet egress is the safety property.
 

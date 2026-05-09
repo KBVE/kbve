@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.136",
+			"version": "1.0.138",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -82,7 +82,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.43",
+			"version": "0.1.44",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -96,7 +96,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.10",
+			"version": "0.1.11",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -110,7 +110,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.29",
+			"version": "0.1.31",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -137,12 +137,15 @@
 		{
 			"key": "firecracker_python_net",
 			"app_name": "firecracker-python-net",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/docker/firecracker/python/net/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx",
 			"source_path": "packages/docker/firecracker/python/net",
 			"runner": "ubuntu-latest",
 			"image": "kbve/firecracker-python-net",
+			"deployment_yamls": [
+				"apps/kube/firecracker/manifests/firecracker-net-rootfs-stage.yaml"
+			],
 			"has_test": false
 		},
 		{
@@ -211,7 +214,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.41",
+			"version": "1.0.43",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -272,7 +275,7 @@
 		{
 			"key": "rareicon",
 			"app_name": "axum-rareicon",
-			"version": "0.1.2",
+			"version": "0.1.3",
 			"version_toml": "apps/rareicon/axum-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx",
 			"version_target": "apps/rareicon/axum-rareicon/Cargo.toml",
@@ -426,7 +429,7 @@
 		{
 			"key": "bevy_pathfinder_crate",
 			"package_name": "bevy_pathfinder",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_pathfinder/version.toml",
 			"version_source": "packages/rust/bevy/bevy_pathfinder/Cargo.toml",
 			"version_target": "packages/rust/bevy/bevy_pathfinder/Cargo.toml"

@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# firecracker-net-rootfs-stage
+#
+# Stages /var/lib/firecracker/rootfs/firecracker-python-net.ext4 onto the
+# shared `firecracker-rootfs` PVC by running the published
+# ghcr.io/kbve/firecracker-python-net image directly. The image's ENTRYPOINT
+# is `cp` and CMD is the args below — copies /rootfs.ext4 from the image's
+# own filesystem to /dest on the PVC.
+#
+# The image: line below is bumped automatically by utils-post-publish.yml
+# whenever a new version of firecracker-python-net is published. The MDX
+# entry at apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-
+# net.mdx wires this manifest into the dispatch manifest via
+# `deployment_yamls`.
+#
+# Sync hook: hook-delete-policy `BeforeHookCreation` removes the previous
+# Job before each ArgoCD sync so a new image tag re-runs cleanly.
+# ---------------------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: firecracker-net-rootfs-stage
+    namespace: firecracker
+    labels:
+        app: firecracker-rootfs-init
+    annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    backoffLimit: 3
+    ttlSecondsAfterFinished: 3600
+    template:
+        metadata:
+            labels:
+                app: firecracker-rootfs-init
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: stage
+                  image: ghcr.io/kbve/firecracker-python-net:0.1.1
+                  imagePullPolicy: IfNotPresent
+                  args:
+                      - /rootfs.ext4
+                      - /dest/firecracker-python-net.ext4
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 128Mi
+                      limits:
+                          cpu: 500m
+                          memory: 512Mi
+                  volumeMounts:
+                      - name: rootfs
+                        mountPath: /dest
+                  securityContext:
+                      runAsUser: 0
+            volumes:
+                - name: rootfs
+                  persistentVolumeClaim:
+                      claimName: firecracker-rootfs
