@@ -173,6 +173,8 @@ spec:
                             secretKeyRef:
                                 name: clickhouse-credentials
                                 key: password
+                      - name: CLICKHOUSE_DATABASE
+                        value: 'observability'
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
