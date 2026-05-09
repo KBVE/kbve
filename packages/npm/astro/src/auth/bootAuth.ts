@@ -5,6 +5,7 @@ import {
 	type SupabaseGateway,
 } from '@kbve/droid';
 import type { AuthBridge } from './AuthBridge';
+import { registerSupabaseGateway } from './registry';
 
 let _booted = false;
 let _healthInterval: ReturnType<typeof setInterval> | null = null;
@@ -66,6 +67,7 @@ export async function bootAuth(
 	gateway: SupabaseGateway,
 	bridge?: AuthBridge,
 ): Promise<void> {
+	registerSupabaseGateway(gateway);
 	if (_booted) return;
 	_booted = true;
 

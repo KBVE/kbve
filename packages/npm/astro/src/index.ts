@@ -26,8 +26,12 @@ export {
 	setSharedToken,
 	getSharedToken,
 	clearSharedToken,
+	registerSupabaseGateway,
+	getSupabaseGateway,
+	getAccessToken,
+	useSession,
 } from './auth';
-export type { OAuthProvider } from './auth';
+export type { OAuthProvider, SessionView } from './auth';
 
 // Icons
 export { DiscordIcon, GitHubIcon, TwitchIcon } from './icons';
