@@ -2,10 +2,19 @@
 // Solitaire — game configuration
 // ============================================================================
 
-/** Logical board dimensions. Matched to the Astro container's 6/5 aspect
- * ratio so Phaser's Scale.FIT renders 1:1 at typical desktop widths. */
-export const BASE_WIDTH = 1080;
+/** Logical canvas + play-area split. Play layout is computed against
+ * `PLAY_WIDTH`; the canvas itself extends past that to host a sidebar
+ * panel on the right (HP / stats / cash). The Astro frame's aspect-ratio
+ * matches `BASE_WIDTH / BASE_HEIGHT`. */
+export const PLAY_WIDTH = 1080;
+export const SIDEBAR_W = 240;
+export const BASE_WIDTH = PLAY_WIDTH + SIDEBAR_W;
 export const BASE_HEIGHT = 900;
+
+/** Sidebar panel geometry. Lives flush against the right of the play area
+ * with a small inset for the gold trim ring. */
+export const SIDEBAR_X = PLAY_WIDTH + 12;
+export const SIDEBAR_PADDING_X = 16;
 
 export const CARD_SIZE = {
 	width: 100,
@@ -19,17 +28,18 @@ export const TABLEAU_FAN_Y = 32;
 /** Vertical offset between stacked face-DOWN cards (tighter than face-up). */
 export const TABLEAU_FAN_Y_DOWN = 18;
 
-/** Top-row layout: foundations on the right, stock + waste on the left. */
+/** Top-row layout: foundations on the right, stock + waste on the left.
+ * Right edge anchored to PLAY_WIDTH (sidebar lives past that). */
 export const TOP_ROW_Y = 96;
 export const STOCK_X = 60;
 export const WASTE_X = STOCK_X + CARD_SIZE.width + 28;
 export const FOUNDATION_X_START =
-	BASE_WIDTH - 60 - CARD_SIZE.width * 4 - 24 * 3;
+	PLAY_WIDTH - 60 - CARD_SIZE.width * 4 - 24 * 3;
 export const FOUNDATION_GAP = CARD_SIZE.width + 24;
 
 /** Tableau (7 columns) — first column at TABLEAU_X_START, gap between. */
 export const TABLEAU_X_START = 60;
-export const TABLEAU_X_GAP = (BASE_WIDTH - 120 - CARD_SIZE.width) / 6;
+export const TABLEAU_X_GAP = (PLAY_WIDTH - 120 - CARD_SIZE.width) / 6;
 export const TABLEAU_Y = TOP_ROW_Y + CARD_SIZE.height + 52;
 
 /** Font stacks. Serif for prestige numbers (score, round, banner) — reads
@@ -183,8 +193,10 @@ export const SHOP_PRICES = {
 export const STOCK_DRAW_COUNT = 3;
 
 /** Horizontal fan offset between visible waste cards. Top of pile is
- * fully visible; cards beneath peek by this amount. */
-export const WASTE_FAN_X = 22;
+ * fully visible; cards beneath peek by this amount. Sized so each peek
+ * strip is a comfortable click target since draw-3 lets the player grab
+ * any of the three. */
+export const WASTE_FAN_X = 42;
 
 /** Shop offering count per round. */
 export const SHOP_OFFERS = 3;

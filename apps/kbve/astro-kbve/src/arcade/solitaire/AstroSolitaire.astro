@@ -2,7 +2,27 @@
 import ReactSolitaireApp from './ReactSolitaireApp';
 ---
 
-<div class="not-content solitaire-stage">
+<div class="not-content solitaire-stage" data-solitaire-stage>
+	<div class="solitaire-toolbar">
+		<button
+			type="button"
+			class="solitaire-btn"
+			data-solitaire-theater
+			aria-pressed="false"
+			title="Theater mode — widen the table">
+			<span class="solitaire-btn-icon" aria-hidden="true">▭</span>
+			<span class="solitaire-btn-label">Theater</span>
+		</button>
+		<button
+			type="button"
+			class="solitaire-btn"
+			data-solitaire-fullscreen
+			aria-pressed="false"
+			title="Toggle fullscreen">
+			<span class="solitaire-btn-icon" aria-hidden="true">⛶</span>
+			<span class="solitaire-btn-label">Fullscreen</span>
+		</button>
+	</div>
 	<div
 		class="solitaire-frame rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0a4d2e]"
 		tabindex="0">
@@ -15,15 +35,116 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 </div>
 
 <style>
-	/* Stage breaks out of Starlight's narrow content column to claim the
-	   full splash content width (capped). The 6/5 frame stays centered. */
 	.solitaire-stage {
 		width: 100%;
-		max-width: 1400px;
 		margin-inline: auto;
 	}
 	.solitaire-frame {
 		width: 100%;
-		aspect-ratio: 6 / 5;
+		/* Matches BASE_WIDTH/BASE_HEIGHT in config.ts (1320×900 with
+		   sidebar). Update both together. */
+		aspect-ratio: 22 / 15;
+	}
+	.solitaire-toolbar {
+		display: flex;
+		gap: 8px;
+		justify-content: flex-end;
+		margin-bottom: 8px;
+	}
+	.solitaire-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 12px;
+		font-size: 12px;
+		font-weight: 500;
+		color: #e5e7eb;
+		background: rgba(15, 23, 42, 0.7);
+		border: 1px solid rgba(179, 139, 62, 0.4);
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			border-color 120ms ease;
+	}
+	.solitaire-btn:hover {
+		background: rgba(15, 23, 42, 0.9);
+		border-color: rgba(179, 139, 62, 0.8);
+	}
+	.solitaire-btn[aria-pressed='true'] {
+		background: rgba(179, 139, 62, 0.25);
+		border-color: rgba(251, 191, 36, 0.8);
+		color: #fde68a;
+	}
+	.solitaire-btn-icon {
+		font-size: 14px;
+		line-height: 1;
+	}
+
+	/* Theater mode: stage breaks out of Starlight's content column.
+	   Uses negative margin against the centered content frame so the
+	   sidebar stays visible but the table claims the rest of the row. */
+	.solitaire-stage.is-theater {
+		max-width: none;
+		width: calc(100vw - var(--sl-sidebar-width, 18rem) - 2rem);
+		margin-left: calc(50% - 50vw + var(--sl-sidebar-width, 18rem) / 2);
+	}
+	@media (max-width: 50rem) {
+		.solitaire-stage.is-theater {
+			width: 100%;
+			margin-left: auto;
+		}
+	}
+
+	/* Fullscreen: native browser fullscreen on the stage element. */
+	.solitaire-stage:fullscreen {
+		width: 100vw;
+		height: 100vh;
+		max-width: none;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: #062a18;
+		padding: 16px;
+	}
+	.solitaire-stage:fullscreen .solitaire-frame {
+		width: min(100%, calc((100vh - 120px) * 22 / 15));
+		max-width: 100%;
+		aspect-ratio: 22 / 15;
 	}
 </style>
+
+<script>
+	const stage = document.querySelector<HTMLElement>('[data-solitaire-stage]');
+	const theaterBtn = document.querySelector<HTMLButtonElement>(
+		'[data-solitaire-theater]',
+	);
+	const fsBtn = document.querySelector<HTMLButtonElement>(
+		'[data-solitaire-fullscreen]',
+	);
+
+	if (stage && theaterBtn) {
+		theaterBtn.addEventListener('click', () => {
+			const next = !stage.classList.contains('is-theater');
+			stage.classList.toggle('is-theater', next);
+			theaterBtn.setAttribute('aria-pressed', String(next));
+			window.dispatchEvent(new Event('resize'));
+		});
+	}
+
+	if (stage && fsBtn) {
+		const updateFsLabel = () => {
+			const active = document.fullscreenElement === stage;
+			fsBtn.setAttribute('aria-pressed', String(active));
+		};
+		fsBtn.addEventListener('click', async () => {
+			if (document.fullscreenElement) {
+				await document.exitFullscreen();
+			} else {
+				await stage.requestFullscreen();
+			}
+		});
+		document.addEventListener('fullscreenchange', updateFsLabel);
+	}
+</script>

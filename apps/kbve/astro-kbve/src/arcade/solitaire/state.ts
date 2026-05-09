@@ -12,10 +12,13 @@
 // only advance on round-end, never via undo).
 
 import {
+	BonusType,
 	dealBytes,
 	FOUNDATION_SUITS,
+	getBonusType,
 	getDisplayRank,
 	getSuit,
+	isBonus,
 	isFaceUp,
 	isJoker,
 	JokerVariant,
@@ -42,7 +45,8 @@ import {
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 54; // 52 standard + up to 2 jokers
+// 52 standard + up to 2 jokers + up to 3 bonus cards = 57 max in play.
+const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 57;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
 interface ScoreSnapshot {
@@ -101,6 +105,10 @@ export class GameState {
 	armor: number = STATS.startArmor;
 	attack: number = STATS.startAttack;
 	jokerVariants: Map<number, JokerVariant> = new Map();
+	/** Card indices the player has "peeked" via the Reveal bonus. The card
+	 * stays face-down in its tableau column (so rules + drag stay correct)
+	 * but the scene shows its face on hover. Cleared on each new deal. */
+	peekedCards: Set<number> = new Set();
 	/** Jokers owned via shop, applied to next deal. Each entry is a variant
 	 * the player paid for. Up to 2 entries (matches the 2 deck jokers). */
 	ownedJokerVariants: JokerVariant[] = [];
@@ -123,7 +131,10 @@ export class GameState {
 	}
 
 	reset(rng?: () => number) {
-		const { tableaus, stock } = dealBytes(rng, { withJokers: true });
+		const { tableaus, stock } = dealBytes(rng, {
+			withJokers: true,
+			withBonuses: true,
+		});
 		this.tableaus = tableaus;
 		this.stock = stock;
 		this.waste = [];
@@ -139,6 +150,7 @@ export class GameState {
 		this.lastFoundationAt = 0;
 		this.stockCycles = 0;
 		this.scoredCards.clear();
+		this.peekedCards.clear();
 
 		// Apply owned joker variants (from shop) to the dealt jokers. Variant
 		// stays bound to the card index so the variant persists across moves
@@ -413,55 +425,66 @@ export class GameState {
 		if (this.stock.length === 0 && this.waste.length === 0) return false;
 		this.pushHistory();
 
-		// Stock empty → recycle waste back face-down.
+		// Played-3 model: any leftover waste cards (cards the player chose
+		// not to claim from the previous draw) cycle back to the BOTTOM of
+		// the stock face-down. Waste therefore only ever holds the current
+		// draw window of up to STOCK_DRAW_COUNT cards, and ALL of them are
+		// player-selectable.
+		let recyclePoints = 0;
+		let recycleHp = 0;
+		if (this.waste.length > 0) {
+			const wasEmpty = this.stock.length === 0;
+			const returned = this.waste.map((c) => setFaceUp(c, false));
+			this.waste = [];
+			// stock[0] = bottom (pop draws from end). Prepend returned cards
+			// so the freshly-drawn batch comes off fresh stock first.
+			this.stock = [...returned, ...this.stock];
+			if (wasEmpty) {
+				this.stockCycles += 1;
+				if (this.stockCycles > 1) {
+					recyclePoints = SCORE.stockRecycle;
+					recycleHp = HP.stockRecyclePenalty;
+				}
+			}
+		}
+
 		if (this.stock.length === 0) {
-			while (this.waste.length > 0) {
-				const c = this.waste.pop()!;
-				this.stock.push(setFaceUp(c, false));
-			}
-			this.stockCycles += 1;
-			const recyclePenalty =
-				this.stockCycles > 1 ? SCORE.stockRecycle : 0;
-			this.applyScore(recyclePenalty, false);
-			// Recycles past the first also cost HP — escalating pressure
-			// when player keeps burning the deck.
-			if (this.stockCycles > 1) {
-				this.damage(HP.stockRecyclePenalty);
-			}
+			this.applyScore(recyclePoints, false);
+			if (recycleHp) this.damage(recycleHp);
 			return true;
 		}
 
-		// Draw STOCK_DRAW_COUNT cards (or whatever stock has left). All
-		// flipped face-up onto waste; only the topmost (last drawn) is
-		// grabbable per Klondike draw-3 rules.
 		const drawCount = Math.min(STOCK_DRAW_COUNT, this.stock.length);
 		for (let i = 0; i < drawCount; i++) {
 			const c = this.stock.pop()!;
 			this.waste.push(setFaceUp(c, true));
 		}
-		this.applyScore(0, false);
+		this.applyScore(recyclePoints, false);
+		if (recycleHp) this.damage(recycleHp);
 		return true;
 	}
 
-	moveWasteToTableau(toCol: number): boolean {
-		const c = this.waste[this.waste.length - 1];
+	moveWasteToTableau(toCol: number, wasteIdx?: number): boolean {
+		const idx = wasteIdx ?? this.waste.length - 1;
+		const c = this.waste[idx];
 		if (c === undefined) return false;
 		if (!canDropOnTableau(c, this.tableaus[toCol])) return false;
 		this.pushHistory();
-		this.waste.pop();
+		this.waste.splice(idx, 1);
 		this.tableaus[toCol].push(c);
 		this.applyScore(SCORE.wasteToTableau, false);
 		return true;
 	}
 
-	moveWasteToFoundation(idx: number): boolean {
-		const c = this.waste[this.waste.length - 1];
+	moveWasteToFoundation(foundIdx: number, wasteIdx?: number): boolean {
+		const idx = wasteIdx ?? this.waste.length - 1;
+		const c = this.waste[idx];
 		if (c === undefined) return false;
-		if (getSuit(c) !== FOUNDATION_SUITS[idx]) return false;
-		if (!canDropOnFoundation(c, this.foundations[idx])) return false;
+		if (getSuit(c) !== FOUNDATION_SUITS[foundIdx]) return false;
+		if (!canDropOnFoundation(c, this.foundations[foundIdx])) return false;
 		this.pushHistory();
-		this.waste.pop();
-		this.foundations[idx].push(c);
+		this.waste.splice(idx, 1);
+		this.foundations[foundIdx].push(c);
 		const cardIdx = c & 0x3f;
 		const firstTime = !this.scoredCards.has(cardIdx);
 		this.applyScore(firstTime ? SCORE.wasteToFoundation : 0, firstTime);
@@ -536,6 +559,67 @@ export class GameState {
 			return true;
 		}
 		return false;
+	}
+
+	/** Player drag-drops a bonus card from the waste onto the activate
+	 * slot. Validates the index is a bonus, applies the effect, splices it
+	 * out, pushes history, and pays the per-action cost. */
+	activateBonusFromWaste(wasteIdx: number): boolean {
+		const c = this.waste[wasteIdx];
+		if (c === undefined || !isBonus(c)) return false;
+		this.pushHistory();
+		this.waste.splice(wasteIdx, 1);
+		this.applyBonusEffect(getBonusType(c));
+		this.applyScore(0, false);
+		return true;
+	}
+
+	/** Player drag-drops a bonus card from the top of a tableau column onto
+	 * the activate slot. Bonus must be the topmost card and face-up. */
+	activateBonusFromTableau(col: number): boolean {
+		const pile = this.tableaus[col];
+		const c = pile[pile.length - 1];
+		if (c === undefined || !isFaceUp(c) || !isBonus(c)) return false;
+		this.pushHistory();
+		pile.pop();
+		this.applyBonusEffect(getBonusType(c));
+		this.flipExposedTop(col);
+		this.applyScore(0, false);
+		return true;
+	}
+
+	private applyBonusEffect(type: BonusType) {
+		switch (type) {
+			case BonusType.HP:
+				this.heal(5);
+				break;
+			case BonusType.Cash:
+				this.cash += 5;
+				break;
+			case BonusType.Reveal:
+				this.revealRandomHiddenCard();
+				break;
+		}
+	}
+
+	/** Mark one random face-down tableau card as "peeked" — the byte stays
+	 * face-down (so rules + drag are unchanged) but the scene reveals its
+	 * face on hover. Skips cards already peeked. No-op when every tableau
+	 * card is face-up or peeked. */
+	private revealRandomHiddenCard() {
+		const candidates: number[] = [];
+		for (let col = 0; col < 7; col++) {
+			for (let i = 0; i < this.tableaus[col].length; i++) {
+				const c = this.tableaus[col][i];
+				const idx = c & 0x3f;
+				if (!isFaceUp(c) && !this.peekedCards.has(idx)) {
+					candidates.push(idx);
+				}
+			}
+		}
+		if (candidates.length === 0) return;
+		const pick = candidates[Math.floor(Math.random() * candidates.length)];
+		this.peekedCards.add(pick);
 	}
 
 	hasWon(): boolean {
