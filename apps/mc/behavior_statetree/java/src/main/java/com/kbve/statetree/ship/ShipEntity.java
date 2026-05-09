@@ -87,6 +87,7 @@ public class ShipEntity extends Entity {
     /** Previous tick's caution bits — used to fire one-shot warning sounds on transition. */
     private byte lastCautionBitsForSound = 0;
     private boolean lastOnGroundForDust = true;
+    private int autoParkHoverTicks = 0;
 
     // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
@@ -827,8 +828,20 @@ public class ShipEntity extends Entity {
             vel = new Vec3d(vel.x, vel.y * stats.verticalDecay(), vel.z);
         }
 
-        // Engine-modulated gravity — full power = hover, off = fall.
-        double gravity = -0.04 * (1.0 - power);
+        double gravity;
+        if (autoParkHoverTicks > 0 && !ridden) {
+            autoParkHoverTicks--;
+            vel = vel.multiply(0.97, 1.0, 0.97);
+            gravity = -0.005;
+            if (this.age % 6 == 0
+                    && this.getEntityWorld() instanceof ServerWorld swPark) {
+                swPark.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
+                        this.getX(), this.getY() - 0.4, this.getZ(),
+                        2, 0.4, 0.05, 0.4, 0.0);
+            }
+        } else {
+            gravity = -0.04 * (1.0 - power);
+        }
         vel = vel.add(0.0, gravity, 0.0);
 
         // Wind perturbation — cosNoise-style ambient drift.
@@ -1150,6 +1163,11 @@ public class ShipEntity extends Entity {
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
         if (this.getEntityWorld().isClient()) return;
+
+        if (this.getPassengerList().isEmpty() && !this.isOnGround()) {
+            autoParkHoverTicks = 200;
+        }
+
         if (!(passenger instanceof net.minecraft.entity.LivingEntity living)) return;
         ServerWorld sw = (ServerWorld) this.getEntityWorld();
         int floorY = sw.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
