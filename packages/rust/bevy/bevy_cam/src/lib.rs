@@ -56,8 +56,6 @@ use bevy::render::render_resource::TextureFormat;
 use bevy::transform::TransformSystems;
 use bevy::window::PrimaryWindow;
 
-// ── Configuration ───────────────────────────────────────────────────────
-
 /// Camera configuration — set once at plugin creation, readable as a `Res`.
 #[derive(Resource, Debug, Clone)]
 pub struct CameraConfig {
@@ -94,8 +92,6 @@ impl Default for CameraConfig {
     }
 }
 
-// ── Components ──────────────────────────────────────────────────────────
-
 /// Marker for the scene camera that renders the 3D world to the low-res texture.
 #[derive(Component)]
 pub struct IsometricCamera;
@@ -113,8 +109,6 @@ pub struct DisplayCamera;
 /// Marker for the display quad.
 #[derive(Component)]
 struct DisplayQuad;
-
-// ── Resources ───────────────────────────────────────────────────────────
 
 /// Runtime zoom state — readable/writable by game code.
 #[derive(Resource)]
@@ -177,13 +171,9 @@ impl StableAxes {
     }
 }
 
-// ── System set ──────────────────────────────────────────────────────────
-
 /// System set for camera systems — use for ordering constraints.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CameraUpdate;
-
-// ── Plugin ──────────────────────────────────────────────────────────────
 
 #[derive(Default)]
 pub struct IsometricCameraPlugin {
@@ -207,15 +197,14 @@ impl Plugin for IsometricCameraPlugin {
         app.insert_resource(axes);
         app.add_systems(Startup, setup_camera);
 
-        // Skip zoom input processing entirely when zoom range is locked.
         if !zoom_locked {
             app.add_systems(Update, handle_zoom_input);
         }
 
-        // CameraUpdate must run BEFORE TransformPropagate so that both the
-        // snapped camera Transform and the sub-pixel quad Transform are
-        // propagated to GlobalTransform in the same frame. Without this,
-        // the renderer sees a 1-frame-old quad offset → visible stutter.
+        // Must run BEFORE TransformPropagate so the snapped camera Transform
+        // and sub-pixel quad Transform reach GlobalTransform in the same
+        // frame, otherwise the renderer sees a 1-frame-old quad offset →
+        // visible stutter.
         app.configure_sets(PostUpdate, CameraUpdate.before(TransformSystems::Propagate));
         app.add_systems(
             PostUpdate,
@@ -229,8 +218,6 @@ impl Plugin for IsometricCameraPlugin {
         );
     }
 }
-
-// ── Systems ─────────────────────────────────────────────────────────────
 
 fn setup_camera(
     mut commands: Commands,
@@ -246,14 +233,11 @@ fn setup_camera(
     let render_h = (config.viewport_height * config.pixel_density as f32) as u32;
     let render_w = (render_h as f32 * aspect) as u32;
 
-    // Low-res render target with nearest-neighbor sampling for crisp pixel art
     let mut render_img =
         Image::new_target_texture(render_w, render_h, TextureFormat::Bgra8UnormSrgb, None);
     render_img.sampler = ImageSampler::nearest();
     let render_handle = images.add(render_img);
 
-    // Stage 1: Scene camera renders 3D world to the low-res texture.
-    // Default RenderLayers (layer 0) — sees all scene entities.
     commands.spawn((
         Camera3d::default(),
         Camera {
@@ -273,9 +257,6 @@ fn setup_camera(
         IsometricCamera,
     ));
 
-    // Stage 2: Display camera — uses a 2D camera + fullscreen quad with
-    // StandardMaterial(unlit) for the upscaled output. The quad sits on a
-    // separate render layer so it doesn't interfere with the 3D scene.
     commands.spawn((
         Camera3d::default(),
         Camera {
@@ -295,8 +276,7 @@ fn setup_camera(
         DisplayCamera,
     ));
 
-    // Fullscreen quad with the render texture (unlit = display pixels as-is).
-    // Slightly oversized (+2 texels) so sub-pixel offset doesn't expose clear color at edges.
+    // Oversized by 2 texels so sub-pixel offset doesn't expose clear color at edges.
     let texel_pad = 2.0 / render_h as f32;
     let quad_w = aspect + texel_pad * aspect;
     let quad_h = 1.0 + texel_pad;
@@ -338,9 +318,8 @@ fn camera_follow_target(
     let desired = target_tf.translation() + config.offset;
     let pixel_step = 1.0 / config.pixel_density as f32;
 
-    // Snap camera to pixel grid on ALL axes using the precomputed stable axes.
-    // Right/Up snapping locks the pixel grid for geometry.
-    // Forward snapping stabilizes the shadow cascade alignment.
+    // Snap on all 3 axes: right/up locks the pixel grid for geometry, forward
+    // stabilises the shadow cascade alignment.
     let right_proj = desired.dot(axes.right);
     let up_proj = desired.dot(axes.up);
     let forward_proj = desired.dot(axes.forward);
@@ -349,10 +328,9 @@ fn camera_follow_target(
     let snapped_up = (up_proj / pixel_step).round() * pixel_step;
     let snapped_forward = (forward_proj / pixel_step).round() * pixel_step;
 
-    // Store the sub-pixel remainder for display quad compensation.
-    // This is what makes scrolling smooth — the scene camera snaps to the grid,
-    // but we shift the display quad by the fractional part so the player perceives
-    // continuous motion instead of 1-pixel jumps.
+    // Sub-pixel remainder is replayed on the display quad in
+    // `apply_subpixel_offset` to keep scrolling smooth despite grid-snapped
+    // scene rendering.
     subpixel.right = right_proj - snapped_right;
     subpixel.up = up_proj - snapped_up;
 
@@ -366,8 +344,6 @@ fn handle_zoom_input(
     config: Res<CameraConfig>,
 ) {
     for ev in scroll_evr.read() {
-        // Multiplicative: each scroll notch scales by a fixed %, feels uniform at all zoom levels.
-        // Scroll up (positive y) = zoom in (smaller ortho scale), scroll down = zoom out.
         if ev.y > 0.0 {
             zoom.target /= config.zoom_factor;
         } else if ev.y < 0.0 {
@@ -383,7 +359,6 @@ fn apply_camera_zoom(
     config: Res<CameraConfig>,
     mut camera_q: Query<&mut Projection, With<IsometricCamera>>,
 ) {
-    // Skip zoom work entirely when zoom is locked or already settled.
     if (config.zoom_max - config.zoom_min).abs() <= f32::EPSILON {
         return;
     }
@@ -392,7 +367,6 @@ fn apply_camera_zoom(
     }
 
     let dt = time.delta_secs();
-    // Smooth interpolation toward target
     zoom.current += (zoom.target - zoom.current) * (config.zoom_smoothing * dt).min(1.0);
 
     let Ok(mut proj) = camera_q.single_mut() else {
@@ -425,7 +399,6 @@ fn apply_subpixel_offset(
         return;
     };
 
-    // Skip quad writes when offset is effectively zero.
     if subpixel.right.abs() < 0.0001 && subpixel.up.abs() < 0.0001 {
         quad_tf.translation.x = 0.0;
         quad_tf.translation.y = 0.0;
@@ -435,14 +408,11 @@ fn apply_subpixel_offset(
     let pd = config.pixel_density as f32;
     let z = zoom.current;
 
-    // Per-axis: world units → render pixels → UV fraction → quad-space offset.
-    // Zoom scales the orthographic projection, so the effective pixel density
-    // in world units is `pixel_density / zoom`.
+    // Effective pixel density in world units is `pixel_density / zoom` because
+    // zoom scales the orthographic projection.
     quad_tf.translation.x = -(subpixel.right * pd / z) / geom.render_w as f32 * geom.quad_w;
     quad_tf.translation.y = -(subpixel.up * pd / z) / geom.render_h as f32 * geom.quad_h;
 }
-
-// ── Tests ───────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -495,7 +465,6 @@ mod tests {
 
     #[test]
     fn axes_from_different_offsets() {
-        // Verify axes are valid for non-default offsets
         let axes = StableAxes::from_offset(Vec3::new(10.0, 30.0, 5.0));
         assert!(axes.right.length() > 0.99);
         assert!(axes.up.length() > 0.99);
@@ -508,7 +477,6 @@ mod tests {
         let axes = StableAxes::from_offset(config.offset);
         let pixel_step = 1.0 / config.pixel_density as f32;
 
-        // For any position, the remainder must be within [-pixel_step/2, pixel_step/2]
         for i in 0..100 {
             let pos = Vec3::new(i as f32 * 0.037, i as f32 * 0.019, i as f32 * 0.053);
             let right_proj = pos.dot(axes.right);
@@ -528,7 +496,6 @@ mod tests {
         let axes = StableAxes::from_offset(config.offset);
         let pixel_step = 1.0 / config.pixel_density as f32;
 
-        // A position that's already on the pixel grid should not move
         let aligned = Vec3::new(1.0, 2.0, 3.0);
         let right_proj = aligned.dot(axes.right);
         let snapped = (right_proj / pixel_step).round() * pixel_step;

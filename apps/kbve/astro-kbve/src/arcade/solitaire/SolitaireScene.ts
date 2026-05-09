@@ -1,14 +1,6 @@
-// ============================================================================
-// Solitaire — Phaser scene (byte-packed engine, view-object rendering)
-// ============================================================================
-//
-// State authority: `GameState` (state.ts), all bytes. The scene inflates a
-// byte to a typed `CardView` once per construction and holds onto the
-// derived strings + colors. Per-frame movement only touches the Phaser
-// container — no allocations, no rule-layer calls.
-//
-// View map keyed by `getCardId(byte)` (suit + rank, ignoring face-up flag)
-// so the scene tracks "the same card" across pile movement and face flips.
+/** Solitaire — Phaser scene. State lives in GameState; this file is render
+ * + input only. Views are keyed by suit+rank so the same card sticks to
+ * the same SceneCardView across pile movement. */
 
 import Phaser from 'phaser';
 import {
@@ -79,37 +71,19 @@ interface SceneCardView {
 	face: Phaser.GameObjects.Container;
 	back: Phaser.GameObjects.Container;
 	shadow: Phaser.GameObjects.Graphics;
-	/** Live "HP/maxHP" label drawn on monster faces. Only set for monster
-	 * cards; updated by `updateMonsterOverlay` after each combat tick. */
 	monsterHpText?: Phaser.GameObjects.Text;
 	monsterAtkText?: Phaser.GameObjects.Text;
 	monsterNameText?: Phaser.GameObjects.Text;
-	/** Red engaged-glow ring drawn on the face of an engaged monster. */
 	monsterEngagedRing?: Phaser.GameObjects.Graphics;
-	/** Light-green ring drawn over the card back when the card is "peeked"
-	 * (revealed by a Reveal bonus) — hints the player can hover to see it. */
 	peekRing: Phaser.GameObjects.Graphics;
-	/** Purple frost ring drawn over a face-up card while it is frozen for
-	 * the current turn — hints the card cannot be moved. */
 	frozenRing: Phaser.GameObjects.Graphics;
-	/** Transparent rectangle child that owns the interactive hit area.
-	 * Phaser's Container hit-testing with a custom centered Rectangle was
-	 * unreliable — only the top-left quadrant registered events. Using a
-	 * real Rectangle child sized to the full card and centered on the
-	 * container origin makes the entire visible card surface clickable. */
+	/** Real Rectangle child as the hit area — Phaser's Container hit-test
+	 * with a custom Rectangle only fired in the top-left quadrant. */
 	hitZone: Phaser.GameObjects.Rectangle;
 	restY: number;
-	/** Resting depth set by `positionCard`. Hover handlers temporarily bump
-	 * the container's depth above siblings (so a hovered waste-fan card
-	 * renders on top of the cards it overlaps), then restore from this. */
 	restDepth: number;
 	hovered: boolean;
-	/** True while this view is showing its face purely because the player
-	 * is hovering a peeked face-down tableau card. Triggers reverse on
-	 * hover-leave to flip back to the card back. */
 	peeking: boolean;
-	/** Stable byte index (suit+rank, 0..63). Lets hover handlers cheaply
-	 * check membership in `state.peekedCards`. */
 	cardIndex: number;
 }
 
@@ -119,17 +93,10 @@ const DRAG_SCALE = 1.08;
 
 export class SolitaireScene extends Phaser.Scene {
 	private state!: GameState;
-	/** Flat-array view lookup keyed by `getCardIndex(byte)` (suit+rank, 0..63
-	 * with 52 populated). Replaces the previous `Map<string, view>` —
-	 * dozens of lookups per move now resolve via a single array dereference
-	 * instead of a string hash. The 64-slot array trades ~12 unused slots
-	 * for branch-free lookup. */
 	private viewByIndex: SceneCardView[] = new Array(64);
 	private dropTargets: DropTarget[] = [];
-	/** Slot rectangles tracked for legal-drop highlighting during a drag. */
 	private foundationSlots: Phaser.GameObjects.Rectangle[] = [];
 	private tableauSlots: Phaser.GameObjects.Rectangle[] = [];
-	/** Activate slot — sidebar bottom drop target for bonus cards. */
 	private activateSlot!: Phaser.GameObjects.Rectangle;
 	private activateSlotGeom: { x: number; y: number; w: number; h: number } = {
 		x: 0,
@@ -140,7 +107,8 @@ export class SolitaireScene extends Phaser.Scene {
 	private dragging: {
 		cards: CardByte[];
 		fromPile: 'waste' | 'tableau';
-		fromCol?: number; // negative = foundation index (encoded -idx-1)
+		/** Negative = foundation index (encoded as `-idx - 1`). */
+		fromCol?: number;
 		fromCardIndex?: number;
 		startX: number;
 		startY: number;
@@ -149,15 +117,10 @@ export class SolitaireScene extends Phaser.Scene {
 	private winShown = false;
 	private winBanner: Phaser.GameObjects.Text | null = null;
 
-	// HUD fields — re-rendered on every state change via `updateHud`.
-	// Top strip: round/blind + score/combo only. Cash, HP, and combat stats
-	// live in the right sidebar so the eye can find run-state at a glance
-	// without it competing with the score for the center-of-screen real estate.
 	private hudScore!: Phaser.GameObjects.Text;
 	private hudCombo!: Phaser.GameObjects.Text;
 	private hudRound!: Phaser.GameObjects.Text;
 	private hudBlind!: Phaser.GameObjects.Text;
-	// Sidebar fields.
 	private hudCash!: Phaser.GameObjects.Text;
 	private hudBest!: Phaser.GameObjects.Text;
 	private hudHpNumber!: Phaser.GameObjects.Text;
@@ -173,15 +136,7 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	preload() {
-		// NPC catalog — Astro renders this endpoint to a static JSON file at
-		// build time, so the fetch is just a static asset read at runtime.
-		// Used to scale monster card stats against the project-wide npcdb so
-		// the game inherits balance changes for free.
 		this.load.json('npcdb', '/api/npcdb.json');
-
-		// Monster placeholder texture — runtime-generated via Graphics +
-		// `generateTexture`. Used as the body of every monster face until a
-		// real PNG ships. Overlays (name, HP, ATK) are drawn separately.
 		this.buildMonsterPlaceholderTexture();
 	}
 
@@ -207,10 +162,9 @@ export class SolitaireScene extends Phaser.Scene {
 		};
 	}
 
-	/** Pull three random enemy NPCs from the cached `npcdb` payload and
-	 * bind them to the three monster card slots. Falls back silently if
-	 * the fetch failed or returned an empty list — the state already has
-	 * `MONSTER_KIND_PRESETS` seeded. */
+	/** Pull three random enemy NPCs from the cached npcdb payload and bind
+	 * them to the monster card slots. Silent no-op when the fetch failed —
+	 * `MONSTER_KIND_PRESETS` keeps the state playable. */
 	private bindNpcDataToMonsters() {
 		const payload = this.cache.json.get('npcdb') as
 			| {
@@ -223,11 +177,8 @@ export class SolitaireScene extends Phaser.Scene {
 			| undefined;
 		const all = payload?.npcs;
 		if (!Array.isArray(all) || all.length === 0) return;
-		// type_flags integer for ENEMY = 1 (matches NpcTypeFlag enum index).
 		const enemies = all.filter((n) => (n.type_flags ?? 0) & 1);
 		const pool = enemies.length > 0 ? enemies : all;
-		// Stable per-run sample without burning a seeded RNG — Math.random
-		// is fine; the deal RNG already controls placement.
 		const pickAt = (i: number) =>
 			pool[
 				(i * 7 + Math.floor(Math.random() * pool.length)) % pool.length
@@ -254,33 +205,24 @@ export class SolitaireScene extends Phaser.Scene {
 		});
 	}
 
-	/** Build the monster placeholder texture (a stylised skull silhouette
-	 * on a crimson card body) once at preload + register it under the key
-	 * `monster-placeholder`. Swap out for a real PNG by overriding the
-	 * texture key in the asset pipeline later. */
+	/** Skull-on-crimson placeholder for the monster portrait, generated
+	 * once at preload. Swap out by overriding the `monster-placeholder`
+	 * texture key once a real PNG ships. */
 	private buildMonsterPlaceholderTexture() {
 		const w = 70;
 		const h = 90;
 		const g = this.make.graphics({ x: 0, y: 0 }, false);
-		// Crimson body w/ rounded corners.
 		g.fillStyle(0x7f1d1d, 1);
 		g.fillRoundedRect(0, 0, w, h, 10);
-		// Inner panel — slightly darker.
 		g.fillStyle(0x4c1010, 1);
 		g.fillRoundedRect(6, 6, w - 12, h - 12, 8);
-		// Skull silhouette — two eye sockets + jaw notch.
 		g.fillStyle(0xfde68a, 1);
-		// Cranium dome
 		g.fillCircle(w / 2, h / 2 - 6, 18);
-		// Jaw rectangle
 		g.fillRect(w / 2 - 12, h / 2 + 6, 24, 12);
-		// Eye sockets
 		g.fillStyle(0x4c1010, 1);
 		g.fillCircle(w / 2 - 7, h / 2 - 8, 4);
 		g.fillCircle(w / 2 + 7, h / 2 - 8, 4);
-		// Tooth gap
 		g.fillRect(w / 2 - 1, h / 2 + 6, 2, 12);
-		// Outer gold border
 		g.lineStyle(2, 0xfbbf24, 1);
 		g.strokeRoundedRect(0, 0, w, h, 10);
 		g.generateTexture('monster-placeholder', w, h);
@@ -289,11 +231,6 @@ export class SolitaireScene extends Phaser.Scene {
 
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
-
-		// Only fire pointer events on the topmost interactive object at the
-		// pointer's position. Card stacks overlap heavily — without this,
-		// hover would also fire on every card under the cursor and we'd
-		// burn CPU running rule checks for cards the user can't see.
 		this.input.setTopOnly(true);
 
 		this.drawTableFelt();
@@ -318,14 +255,9 @@ export class SolitaireScene extends Phaser.Scene {
 		);
 	}
 
-	// -------------------------------------------------------------------
-	// Static visuals
-	// -------------------------------------------------------------------
-
 	private drawSlots() {
 		this.drawBoards();
 
-		// Stock — clickable rectangle slot.
 		const stock = this.add
 			.rectangle(
 				STOCK_X + CARD_SIZE.width / 2,
@@ -348,7 +280,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setOrigin(0.5)
 			.setResolution(2);
 
-		// Waste slot.
 		this.add
 			.rectangle(
 				WASTE_X + CARD_SIZE.width / 2,
@@ -359,8 +290,6 @@ export class SolitaireScene extends Phaser.Scene {
 			)
 			.setStrokeStyle(2, COLORS.slotBorder);
 
-		// Foundations 0..3 — suit-locked. Glyph is now an accurate hint
-		// (state.ts rejects mismatched-suit drops on each slot).
 		this.foundationSlots = [];
 		for (let i = 0; i < 4; i++) {
 			const x = FOUNDATION_X_START + i * FOUNDATION_GAP;
@@ -389,7 +318,6 @@ export class SolitaireScene extends Phaser.Scene {
 				.setResolution(2);
 		}
 
-		// Tableau slot outlines 0..6.
 		this.tableauSlots = [];
 		for (let i = 0; i < 7; i++) {
 			const x = TABLEAU_X_START + i * TABLEAU_X_GAP;
@@ -422,9 +350,9 @@ export class SolitaireScene extends Phaser.Scene {
 				y: TABLEAU_Y,
 			});
 		}
-		// Activate slot is registered here too so findDropTarget can match
-		// drops to it. Geometry is filled in by drawSidebar; we push a
-		// placeholder and patch the coords once the slot is built.
+		/* Activate slot — geometry is filled in by drawSidebar (which runs
+		 * after drawSlots). Push a placeholder so findDropTarget has the
+		 * entry, then patch the coords from drawSidebar. */
 		this.dropTargets.push({
 			pile: 'activate',
 			index: 0,
@@ -443,11 +371,9 @@ export class SolitaireScene extends Phaser.Scene {
 		const g = this.add.graphics();
 		g.setDepth(-200);
 
-		// Outer wood frame.
 		g.fillStyle(COLORS.tableEdge, 1);
 		g.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-		// Gold trim (8px ring).
 		const trim = 8;
 		g.fillStyle(COLORS.tableTrim, 1);
 		g.fillRoundedRect(
@@ -457,7 +383,6 @@ export class SolitaireScene extends Phaser.Scene {
 			BASE_HEIGHT - trim,
 			18,
 		);
-		// Trim shadow for depth — slightly inset, darker tone underneath.
 		g.fillStyle(COLORS.tableTrimDark, 0.45);
 		g.fillRoundedRect(
 			trim / 2 + 2,
@@ -467,7 +392,6 @@ export class SolitaireScene extends Phaser.Scene {
 			16,
 		);
 
-		// Inner felt panel (the green playing surface).
 		const inset = trim + 6;
 		g.fillStyle(COLORS.background, 1);
 		g.fillRoundedRect(
@@ -478,9 +402,8 @@ export class SolitaireScene extends Phaser.Scene {
 			12,
 		);
 
-		// Soft radial vignette — stack 6 concentric, increasingly transparent
-		// rectangles from edge inward to fake an overhead light. Cheap +
-		// works on any GPU without shaders.
+		/* Fake an overhead light by stacking concentric translucent rects
+		 * — cheap radial vignette without shaders. */
 		const cx = BASE_WIDTH / 2;
 		const cy = BASE_HEIGHT / 2;
 		for (let i = 0; i < 6; i++) {
@@ -491,7 +414,6 @@ export class SolitaireScene extends Phaser.Scene {
 			g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 12);
 		}
 
-		// Edge darkening (vignette tail) — outer ring with feltEdge color.
 		g.lineStyle(28, COLORS.feltEdge, 0.35);
 		g.strokeRoundedRect(
 			inset + 14,
@@ -510,21 +432,16 @@ export class SolitaireScene extends Phaser.Scene {
 		g.setDepth(-100);
 
 		const drawPanel = (x: number, y: number, w: number, h: number) => {
-			// Drop shadow.
 			g.fillStyle(0x000000, 0.28);
 			g.fillRoundedRect(x + 2, y + 4, w, h, BOARD_RADIUS);
-			// Panel fill.
 			g.fillStyle(COLORS.boardFill, 1);
 			g.fillRoundedRect(x, y, w, h, BOARD_RADIUS);
-			// Dark inner stroke (1px in) for inset depth.
 			g.lineStyle(2, COLORS.boardInnerStroke, 1);
 			g.strokeRoundedRect(x + 1, y + 1, w - 2, h - 2, BOARD_RADIUS - 1);
-			// Gold trim outline.
 			g.lineStyle(2, COLORS.boardBorder, 1);
 			g.strokeRoundedRect(x, y, w, h, BOARD_RADIUS);
 		};
 
-		// Top-row board: stock + waste + foundations.
 		const topX = STOCK_X - BOARD_PADDING;
 		const topY = TOP_ROW_Y - BOARD_PADDING;
 		const topW =
@@ -536,7 +453,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const topH = CARD_SIZE.height + BOARD_PADDING * 2;
 		drawPanel(topX, topY, topW, topH);
 
-		// Tableau board: 7 columns. Tall enough to hold a full face-up run.
 		const tabX = TABLEAU_X_START - BOARD_PADDING;
 		const tabY = TABLEAU_Y - BOARD_PADDING;
 		const tabW =
@@ -548,10 +464,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const tabH = BASE_HEIGHT - tabY - BOARD_PADDING - 12;
 		drawPanel(tabX, tabY, tabW, tabH);
 	}
-
-	// -------------------------------------------------------------------
-	// Legal-drop highlighting
-	// -------------------------------------------------------------------
 
 	/** Visually mark which foundation + tableau slots accept the bottom of
 	 * the dragged stack. Called on dragstart. Foundations are suit-locked
@@ -610,8 +522,6 @@ export class SolitaireScene extends Phaser.Scene {
 		this.drawTopHud();
 		this.drawSidebar();
 
-		// Bottom-strip help text — centered on the play area, not the full
-		// canvas, so it stays visually anchored to where the action happens.
 		this.add
 			.text(
 				PLAY_WIDTH / 2,
@@ -631,9 +541,6 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private drawTopHud() {
-		// Compact score plate — centered on the play area. Run-state
-		// (round / target / hp / cash) lives in the sidebar so the player's
-		// eye lands on a single hero number here.
 		const plateW = 360;
 		const plateH = 64;
 		const plateX = PLAY_WIDTH / 2 - plateW / 2;
@@ -681,8 +588,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const w = SIDEBAR_W - 24;
 		const h = BASE_HEIGHT - 40;
 
-		// Panel chrome — same gold-trim treatment as the play boards so the
-		// sidebar reads as part of the table, not a tacked-on widget.
 		const panel = this.add.graphics();
 		panel.setDepth(-130);
 		panel.fillStyle(0x000000, 0.28);
@@ -698,7 +603,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const innerW = w - SIDEBAR_PADDING_X * 2;
 		let cursorY = y + 16;
 
-		// Section title.
 		this.add
 			.text(x + w / 2, cursorY, 'STATUS', {
 				fontSize: '14px',
@@ -710,12 +614,9 @@ export class SolitaireScene extends Phaser.Scene {
 			.setResolution(2);
 		cursorY += 24;
 
-		// Divider.
 		this.drawSidebarDivider(innerX, cursorY, innerW);
 		cursorY += 12;
 
-		// Round + target block — top of the sidebar so the player's first
-		// glance answers "what round / what's the goal".
 		this.add
 			.text(innerX, cursorY, 'ROUND', {
 				fontSize: '11px',
@@ -759,7 +660,6 @@ export class SolitaireScene extends Phaser.Scene {
 		this.drawSidebarDivider(innerX, cursorY, innerW);
 		cursorY += 12;
 
-		// HP block — label + big number + wide bar.
 		this.add
 			.text(innerX, cursorY, 'HEALTH', {
 				fontSize: '11px',
@@ -782,11 +682,9 @@ export class SolitaireScene extends Phaser.Scene {
 
 		this.hudHpBar = this.add.graphics();
 		this.hudHpBar.setDepth(-90);
-		// Bar geometry stored on instance for redrawHpBar.
 		this.hpBarGeom = { x: innerX, y: cursorY, w: innerW, h: 14 };
 		cursorY += 14 + 16;
 
-		// Combat stats — Attack and Armor as labeled rows.
 		this.drawSidebarDivider(innerX, cursorY, innerW);
 		cursorY += 12;
 
@@ -828,9 +726,6 @@ export class SolitaireScene extends Phaser.Scene {
 			})
 			.setOrigin(0, 0)
 			.setResolution(2);
-		// Heraldic shield with the armor count inside — gold-trimmed,
-		// right-aligned on the row. Shield body is static; updateHud only
-		// rewrites the number text.
 		const shieldW = 30;
 		const shieldH = 34;
 		const shieldCx = innerX + innerW - shieldW / 2;
@@ -847,7 +742,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setResolution(2);
 		cursorY += shieldH + 8;
 
-		// Cash + Best.
 		this.drawSidebarDivider(innerX, cursorY, innerW);
 		cursorY += 12;
 
@@ -890,9 +784,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setOrigin(1, 0)
 			.setResolution(2);
 
-		// Activate slot — anchored to the BOTTOM of the sidebar so it doesn't
-		// drift if upper sections grow. Card-sized drop target; player drags
-		// HP/Cash/Reveal cards here to apply their effect.
 		const slotW = innerW;
 		const slotH = 96;
 		const slotX = innerX;
@@ -919,8 +810,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setStrokeStyle(2, COLORS.slotBorder);
 		this.activateSlot = slot;
 		this.activateSlotGeom = { x: slotX, y: slotY, w: slotW, h: slotH };
-		// Patch the activate entry in dropTargets with real geometry now
-		// that the sidebar has rendered (drawSlots ran before drawSidebar).
 		const activateTarget = this.dropTargets.find(
 			(t) => t.pile === 'activate',
 		);
@@ -931,7 +820,6 @@ export class SolitaireScene extends Phaser.Scene {
 			activateTarget.h = slotH;
 		}
 
-		// Lightning bolt glyph as a hint of "use / activate".
 		this.add
 			.text(slotX + slotW / 2, slotY + slotH / 2, '⚡', {
 				fontSize: '40px',
@@ -961,7 +849,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const midY = top + h * 0.55;
 		const bottom = cy + h / 2;
 
-		// Body — deep navy.
 		g.fillStyle(0x1e3a8a, 1);
 		g.beginPath();
 		g.moveTo(left, top);
@@ -972,11 +859,9 @@ export class SolitaireScene extends Phaser.Scene {
 		g.closePath();
 		g.fillPath();
 
-		// Outer gold rim.
 		g.lineStyle(2, HUD_COLORS.hudBorder, 1);
 		g.strokePath();
 
-		// Inner highlight rim — light gold, inset.
 		const ix = 3;
 		const iyTop = top + ix;
 		const iyMid = midY - 2;
@@ -1016,7 +901,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const best = this.state.bestRecord.bestScore;
 		this.hudBest.setText(best > 0 ? `${best}` : '—');
 
-		// Score color: green when blind met, red when negative, gold otherwise.
 		const scoreColor =
 			this.state.score < 0
 				? HUD_COLORS.scoreNegative
@@ -1025,57 +909,42 @@ export class SolitaireScene extends Phaser.Scene {
 					: HUD_COLORS.scoreText;
 		this.hudScore.setColor(scoreColor);
 
-		// HP — number + bar in sidebar.
 		this.hudHpNumber.setText(`${this.state.hp} / ${this.state.maxHp}`);
 		this.redrawHpBar();
 
 		this.hudAttack.setText(`×${this.state.attack.toFixed(2)}`);
 		this.hudArmor.setText(`${this.state.armor}`);
 
-		// Monster card overlays piggyback on the same per-move refresh —
-		// piles change → HUD redraws → monster stats redraw.
 		this.updateMonsterOverlays();
 	}
 
-	/** HP bar — clear + redraw on every update. Gold-trimmed: dark backing,
-	 * red fill, thick gold outer border, and a lighter gold inner highlight
-	 * line so the bar reads as a casino-trim element rather than a plain
-	 * progress widget. Cheap; one Graphics object reused per call. */
+	/** Gold-trimmed HP bar (dark backing, red fill, thick gold outer rim,
+	 * lighter inner highlight). Skips the fill draw at 0% to avoid a
+	 * 0-width rounded-rect artifact. */
 	private redrawHpBar() {
 		const { x, y, w, h } = this.hpBarGeom;
 		this.hudHpBar.clear();
 		const pct = this.state.maxHp > 0 ? this.state.hp / this.state.maxHp : 0;
 
-		// Dark backing.
 		this.hudHpBar.fillStyle(HUD_COLORS.hpBg, 1);
 		this.hudHpBar.fillRoundedRect(x, y, w, h, 5);
 
-		// HP fill — only render when there's something to show so we don't
-		// leave a 0px-wide rounded rect artifact at low HP.
 		if (pct > 0) {
 			this.hudHpBar.fillStyle(HUD_COLORS.hpFill, 1);
 			this.hudHpBar.fillRoundedRect(x, y, Math.max(2, w * pct), h, 5);
 		}
 
-		// Outer gold border — thick, prominent.
 		this.hudHpBar.lineStyle(2, HUD_COLORS.hudBorder, 1);
 		this.hudHpBar.strokeRoundedRect(x, y, w, h, 5);
 
-		// Inner gold highlight — softer, sits 1.5px inside the outer rim.
 		this.hudHpBar.lineStyle(1, 0xfde68a, 0.55);
 		this.hudHpBar.strokeRoundedRect(x + 1.5, y + 1.5, w - 3, h - 3, 4);
 	}
 
-	// -------------------------------------------------------------------
-	// Card sprite construction
-	// -------------------------------------------------------------------
-
+	/** Pre-build views for every possible byte slot up front — bonus cards
+	 * can be popped mid-run, so building from the live state would miss a
+	 * view for a card that's not currently dealt. */
 	private buildAllCardViews() {
-		// Build views for every possible byte slot — standard 52 + 2 jokers
-		// + 3 bonus cards. Bonus cards may be consumed mid-run (popped from
-		// piles), so building views from the live state would fail to make
-		// a view for a card that's not currently dealt; enumerating the full
-		// deck up front guarantees `viewFor(byte)` never misses.
 		for (let suit = 0; suit < 4; suit++) {
 			for (let rank = 0; rank < 13; rank++) {
 				const byte = (suit << 4) | rank;
@@ -1102,7 +971,6 @@ export class SolitaireScene extends Phaser.Scene {
 			if (!v) continue;
 			const mob = this.state.monsters.get(v.cardIndex);
 			if (!mob) {
-				// Defeated — view is also hidden by layoutAll's visited check.
 				v.monsterEngagedRing?.setVisible(false);
 				continue;
 			}
@@ -1131,10 +999,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const face = this.makeFace(display);
 		const back = this.makeBack();
 
-		// Peek ring — light-green glow drawn over the back. Hidden by default;
-		// layoutAll toggles visibility for tableau face-down cards whose
-		// index is in `state.peekedCards`. Green so purple stays reserved
-		// for the upcoming curse-card visual treatment.
 		const peekRing = this.add.graphics();
 		peekRing.lineStyle(3, 0x4ade80, 0.95);
 		peekRing.strokeRoundedRect(
@@ -1154,10 +1018,6 @@ export class SolitaireScene extends Phaser.Scene {
 		);
 		peekRing.setVisible(false);
 
-		// Frost / freeze ring — purple double-stroke drawn over the face
-		// while the card is in `state.frozenCards`. Reuses the visual
-		// language we reserved for the (now-distinct) curse status while
-		// the curse mechanic itself remains a future Phase C concern.
 		const frozenRing = this.add.graphics();
 		frozenRing.lineStyle(3, 0xa855f7, 0.95);
 		frozenRing.strokeRoundedRect(
@@ -1177,11 +1037,10 @@ export class SolitaireScene extends Phaser.Scene {
 		);
 		frozenRing.setVisible(false);
 
-		// Transparent full-card hit zone. Lives ABOVE face/back in the child
-		// stack so pointer events always land here regardless of which
-		// graphics children happen to be visible. `alpha: 0.001` instead of
-		// pure 0 because some Phaser builds skip render-list registration
-		// for fully transparent objects, which can also drop event hit testing.
+		/* Hit zone sits ABOVE face/back in the child stack so pointer
+		 * events always land here. `alpha: 0.001` instead of 0 because
+		 * some Phaser builds skip render-list registration for fully
+		 * transparent objects (and drop hit testing along with it). */
 		const hitZone = this.add.rectangle(
 			0,
 			0,
@@ -1217,9 +1076,6 @@ export class SolitaireScene extends Phaser.Scene {
 			cardIndex: getCardIndex(byte),
 		};
 
-		// Harvest monster-face refs (HP text, ATK text, name, engaged ring)
-		// from the role-tagged children so update methods can rewrite them
-		// without re-creating the face.
 		if (display.monster !== undefined) {
 			for (const child of face.list) {
 				const role = (child as Phaser.GameObjects.GameObject).getData(
@@ -1247,14 +1103,20 @@ export class SolitaireScene extends Phaser.Scene {
 			this.onDrag(pointer),
 		);
 		hitZone.on('dragend', () => this.onDragEnd());
+		hitZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+			hitZone.setData('pdownX', pointer.x);
+			hitZone.setData('pdownY', pointer.y);
+		});
 		hitZone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-			if (pointer.event.detail === 2) {
-				this.tryAutoFoundation(view.id);
+			/* Stock click is routed through the top stock-card's hit zone
+			 * because face-down stock cards cover the slot rectangle once
+			 * the deck has cards on it (setTopOnly + higher depth swallow
+			 * the slot's gameobjectdown event). */
+			const stockTop = this.state.stock[this.state.stock.length - 1];
+			if (stockTop !== undefined && getCardId(stockTop) === view.id) {
+				this.handleStockClick();
 				return;
 			}
-			// Single click on a tableau-top monster → attack it. State
-			// validates (face-up + at top of column) so we don't double-spend
-			// movePerAction on a stale view.
 			for (let col = 0; col < 7; col++) {
 				const top =
 					this.state.tableaus[col][
@@ -1272,14 +1134,16 @@ export class SolitaireScene extends Phaser.Scene {
 					return;
 				}
 			}
-			// Single click on the top of stock → draw a card. The face-down
-			// stock cards cover the stock slot rectangle (setTopOnly + higher
-			// depth), so the slot's gameobjectdown listener never fires once
-			// the deck has cards on it. Routing the click through the top
-			// card's hit zone keeps the deck-click behavior.
-			const stockTop = this.state.stock[this.state.stock.length - 1];
-			if (stockTop !== undefined && getCardId(stockTop) === view.id) {
-				this.handleStockClick();
+			/* Touch tap is the mobile equivalent of desktop double-click —
+			 * MouseEvent.detail never reaches 2 on touch input, so we route
+			 * the auto-foundation / activate shortcut through a "no-drag
+			 * tap" check instead. Threshold 8px filters out finger tremor. */
+			const downX = (hitZone.getData('pdownX') as number) ?? pointer.x;
+			const downY = (hitZone.getData('pdownY') as number) ?? pointer.y;
+			const moved = Math.hypot(pointer.x - downX, pointer.y - downY) > 8;
+			const isTouchTap = pointer.wasTouch && !moved;
+			if (pointer.event.detail === 2 || isTouchTap) {
+				this.tryAutoFoundation(view.id);
 			}
 		});
 
@@ -1367,11 +1231,8 @@ export class SolitaireScene extends Phaser.Scene {
 		const h = CARD_SIZE.height;
 
 		const bg = this.add.graphics();
-		// Body
 		bg.fillStyle(COLORS.jokerFace, 1);
 		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
-		// Diagonal stripe (clipped via shape — Phaser graphics don't clip,
-		// so we approximate with a rotated rectangle path).
 		bg.fillStyle(COLORS.jokerStripe, 0.55);
 		bg.beginPath();
 		bg.moveTo(-w / 2, -h / 2 + h * 0.35);
@@ -1380,10 +1241,8 @@ export class SolitaireScene extends Phaser.Scene {
 		bg.lineTo(-w / 2, -h / 2 + h * 0.5);
 		bg.closePath();
 		bg.fillPath();
-		// Gold border
 		bg.lineStyle(2, COLORS.jokerAccent, 1);
 		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
-		// Inner accent border
 		bg.lineStyle(1, COLORS.jokerAccent, 0.5);
 		bg.strokeRoundedRect(
 			-w / 2 + 5,
@@ -1398,7 +1257,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const pipColor =
 			d.color === 'red' ? COLORS.jokerRedTint : COLORS.jokerBlackTint;
 
-		// Top-left: small "JOKER" + colored pip beneath.
 		const labelTL = this.add
 			.text(-w / 2 + 6, -h / 2 + 6, 'JOKER', {
 				fontSize: '11px',
@@ -1412,7 +1270,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.rectangle(-w / 2 + 12, -h / 2 + 26, 8, 8, pipColor)
 			.setOrigin(0.5);
 
-		// Big center star.
 		const star = this.add
 			.text(0, 4, '★', {
 				fontSize: '52px',
@@ -1440,7 +1297,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const bg = this.add.graphics();
 		bg.fillStyle(variant.bodyColor, 1);
 		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
-		// Diagonal sheen — same shape as the joker face for visual kinship.
 		bg.fillStyle(variant.sheenColor, 0.45);
 		bg.beginPath();
 		bg.moveTo(-w / 2, -h / 2 + h * 0.35);
@@ -1449,7 +1305,6 @@ export class SolitaireScene extends Phaser.Scene {
 		bg.lineTo(-w / 2, -h / 2 + h * 0.5);
 		bg.closePath();
 		bg.fillPath();
-		// Gold border + inner accent.
 		bg.lineStyle(2, COLORS.jokerAccent, 1);
 		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
 		bg.lineStyle(1, COLORS.jokerAccent, 0.5);
@@ -1464,7 +1319,6 @@ export class SolitaireScene extends Phaser.Scene {
 
 		const goldStr = `#${COLORS.jokerAccent.toString(16).padStart(6, '0')}`;
 
-		// Top-left tag.
 		const tag = this.add
 			.text(-w / 2 + 6, -h / 2 + 6, variant.tag, {
 				fontSize: '10px',
@@ -1475,7 +1329,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setOrigin(0, 0)
 			.setResolution(2);
 
-		// Big center glyph.
 		const glyph = this.add
 			.text(0, -8, variant.glyph, {
 				fontSize: '54px',
@@ -1486,7 +1339,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setOrigin(0.5)
 			.setResolution(2);
 
-		// Bottom payoff label.
 		const payoff = this.add
 			.text(0, h / 2 - 22, variant.payoff, {
 				fontSize: '13px',
@@ -1510,7 +1362,6 @@ export class SolitaireScene extends Phaser.Scene {
 	} {
 		switch (type) {
 			case BonusType.HP:
-				// Crimson body, white cross — health potion read.
 				return {
 					bodyColor: 0x991b1b,
 					sheenColor: 0xf87171,
@@ -1519,7 +1370,6 @@ export class SolitaireScene extends Phaser.Scene {
 					payoff: '+5 HP',
 				};
 			case BonusType.Cash:
-				// Emerald body, dollar — cash bag read.
 				return {
 					bodyColor: 0x065f46,
 					sheenColor: 0x34d399,
@@ -1529,7 +1379,6 @@ export class SolitaireScene extends Phaser.Scene {
 				};
 			case BonusType.Reveal:
 			default:
-				// Royal purple body, eye — reveal-the-hidden read.
 				return {
 					bodyColor: 0x4c1d95,
 					sheenColor: 0xa78bfa,
@@ -1540,17 +1389,11 @@ export class SolitaireScene extends Phaser.Scene {
 		}
 	}
 
-	/** Monster card face — placeholder skull texture as the body, with the
-	 * NPC name + ATK + HP overlaid. The HP text is stored on the view via
-	 * `attachMonsterTextRefs` so updateMonsterOverlay can rewrite it after
-	 * each combat tick without rebuilding the face. */
 	private makeMonsterFace(d: DisplayView): Phaser.GameObjects.Container {
 		const face = this.add.container(0, 0);
 		const w = CARD_SIZE.width;
 		const h = CARD_SIZE.height;
 
-		// Card surround — slightly darker red than the placeholder body so
-		// the placeholder reads as an inset portrait.
 		const bg = this.add.graphics();
 		bg.fillStyle(0x4c0519, 1);
 		bg.fillRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
@@ -1558,14 +1401,11 @@ export class SolitaireScene extends Phaser.Scene {
 		bg.strokeRoundedRect(-w / 2, -h / 2, w, h, CARD_SIZE.radius);
 		face.add(bg);
 
-		// Placeholder portrait — runtime-generated texture, swap to a real
-		// PNG by overriding the `monster-placeholder` texture key.
 		const portrait = this.add
 			.image(0, -8, 'monster-placeholder')
 			.setOrigin(0.5);
 		face.add(portrait);
 
-		// Top-left ATK pip — sword glyph + number.
 		const atkPip = this.add
 			.text(-w / 2 + 6, -h / 2 + 6, 'ATK —', {
 				fontSize: '11px',
@@ -1578,7 +1418,6 @@ export class SolitaireScene extends Phaser.Scene {
 		face.add(atkPip);
 		atkPip.setData('role', 'monsterAtk');
 
-		// Top-right HP pip — current/max.
 		const hpText = this.add
 			.text(w / 2 - 6, -h / 2 + 6, '—/—', {
 				fontSize: '11px',
@@ -1591,7 +1430,6 @@ export class SolitaireScene extends Phaser.Scene {
 		face.add(hpText);
 		hpText.setData('role', 'monsterHp');
 
-		// Bottom name strip.
 		const name = this.add
 			.text(0, h / 2 - 18, '???', {
 				fontSize: '11px',
@@ -1606,8 +1444,6 @@ export class SolitaireScene extends Phaser.Scene {
 		face.add(name);
 		name.setData('role', 'monsterName');
 
-		// Engaged red ring overlay — rebuilt graphic visible only once the
-		// monster is engaged. Pulses subtly via redraw on update.
 		const ring = this.add.graphics();
 		ring.lineStyle(3, 0xef4444, 1);
 		ring.strokeRoundedRect(
@@ -1682,15 +1518,10 @@ export class SolitaireScene extends Phaser.Scene {
 		return back;
 	}
 
-	// -------------------------------------------------------------------
-	// Layout — called whenever state changes; cheap O(52) repositioning.
-	// -------------------------------------------------------------------
-
 	private layoutAll(animate = false, staggerByCardId?: Map<string, number>) {
 		const stagger = (id: string) => staggerByCardId?.get(id) ?? 0;
-		// Track which card indices are still in some pile this frame. After
-		// the layout pass, any view not in the set gets hidden — that's how
-		// auto-consumed bonus cards disappear from the board.
+		/* Track in-pile card indices this frame; views outside the set get
+		 * hidden after layout (handles auto-consumed cards). */
 		const visited = new Set<number>();
 		const visit = (byte: CardByte) => visited.add(getCardIndex(byte));
 
@@ -1711,14 +1542,10 @@ export class SolitaireScene extends Phaser.Scene {
 			v.frozenRing.setVisible(false);
 		});
 
-		// Waste — fan the last 3 (draw-3 mode). Cards beneath the visible
-		// fan stack at the base position. Only the topmost (last drawn) is
-		// grabbable; onDragStart enforces this.
 		const wasteLen = this.state.waste.length;
 		this.state.waste.forEach((byte, i) => {
 			visit(byte);
 			const v = this.viewFor(byte);
-			// Index from the top: 0 = topmost, 1 = under top, 2 = third, 3+ = stacked beneath
 			const fromTop = wasteLen - 1 - i;
 			const fanOffset =
 				fromTop < STOCK_DRAW_COUNT
@@ -1777,23 +1604,14 @@ export class SolitaireScene extends Phaser.Scene {
 				const up = isFaceUp(byte);
 				v.face.setVisible(up);
 				v.back.setVisible(!up);
-				// Light-green peek-ring on the back of face-down cards the
-				// player has been allowed to peek (Reveal bonus). Hover
-				// handler flips face/back; the ring is the discoverability
-				// hint.
 				v.peekRing.setVisible(
 					!up && this.state.peekedCards.has(v.cardIndex),
 				);
-				// Purple frost-ring on face-up frozen cards. Drag/move
-				// guards in state.ts reject the card while it's lit.
 				v.frozenRing.setVisible(up && this.state.isFrozen(v.cardIndex));
 				y += up ? TABLEAU_FAN_Y : TABLEAU_FAN_Y_DOWN;
 			});
 		});
 
-		// Hide views for cards that no longer live in any pile (auto-consumed
-		// bonus cards). The container stays in the display list so we don't
-		// rebuild it on the next reset, but it's hidden until a new run.
 		for (let i = 0; i < this.viewByIndex.length; i++) {
 			const v = this.viewByIndex[i];
 			if (!v) continue;
@@ -1801,8 +1619,6 @@ export class SolitaireScene extends Phaser.Scene {
 		}
 	}
 
-	/** Resolve the SceneCardView for a given byte. Index = lower 6 bits of
-	 * the byte (suit+rank, ignoring face-up). Constant-time array access. */
 	private viewFor(byte: CardByte): SceneCardView {
 		const v = this.viewByIndex[getCardIndex(byte)];
 		if (!v) throw new Error(`No view for card ${getCardId(byte)}`);
@@ -1830,21 +1646,17 @@ export class SolitaireScene extends Phaser.Scene {
 			return;
 		}
 
-		// Skip the tween allocation if the container is already at the
-		// target with no rotation. layoutAll fires on every state change
-		// and most cards don't actually move per move (39+/52 typical) —
-		// this used to allocate ~40 redundant tween objects per move.
-		// Threshold of 0.5px absorbs sub-pixel rounding from prior tweens.
+		/* Skip the tween if the container is already at the target — most
+		 * cards don't move per move, so this avoids ~40 redundant tween
+		 * allocations per turn. 0.5px threshold absorbs sub-pixel residue. */
 		const c = v.container;
 		const noMove = Math.abs(c.x - x) < 0.5 && Math.abs(c.y - y) < 0.5;
 		const noRotation = Math.abs(c.rotation) < 0.001;
 		if (noMove && noRotation) {
-			c.setPosition(x, y); // snap to exact integer for crisp render
+			c.setPosition(x, y);
 			return;
 		}
 
-		// Reset rotation as part of the tween so cascaded cards (post-win)
-		// rotate back to upright on new game.
 		this.tweens.add({
 			targets: c,
 			x,
@@ -1855,10 +1667,6 @@ export class SolitaireScene extends Phaser.Scene {
 			ease: 'Cubic.Out',
 		});
 	}
-
-	// -------------------------------------------------------------------
-	// Stock / undo
-	// -------------------------------------------------------------------
 
 	private handleStockClick() {
 		this.state.drawFromStock();
@@ -1877,40 +1685,29 @@ export class SolitaireScene extends Phaser.Scene {
 		}
 	}
 
-	// -------------------------------------------------------------------
-	// Hover
-	// -------------------------------------------------------------------
-
 	/** True if this card is currently grab-eligible (face-up + reachable). */
 	private isInteractableTop(id: string): boolean {
-		// Any visible waste card — draw-3 with all selectable.
 		for (const byte of this.state.waste) {
 			if (getCardId(byte) === id) return true;
 		}
-
-		// Foundation tops.
 		for (const pile of this.state.foundations) {
 			const top = pile[pile.length - 1];
 			if (top !== undefined && getCardId(top) === id) return true;
 		}
-
-		// Any face-up tableau card (run can grab from middle).
 		for (const col of this.state.tableaus) {
 			for (const byte of col) {
 				if (isFaceUp(byte) && getCardId(byte) === id) return true;
 			}
 		}
-
 		return false;
 	}
 
 	private onHoverEnter(view: SceneCardView) {
 		if (this.dragging) return;
 
-		// Peek path — face-down peeked tableau card shows its face while
-		// the cursor is over it. Card is NOT interactable (no drag/lift),
-		// just a visual reveal. Checked before `isInteractableTop` so
-		// face-down cards still get the hover.
+		/* Peek path — face-down peeked tableau card flashes its face on
+		 * hover. Checked before isInteractableTop because face-down cards
+		 * don't otherwise count as interactable. */
 		if (view.back.visible && this.state.peekedCards.has(view.cardIndex)) {
 			view.peeking = true;
 			view.hovered = true;
@@ -1922,9 +1719,6 @@ export class SolitaireScene extends Phaser.Scene {
 
 		if (!this.isInteractableTop(view.id)) return;
 		view.hovered = true;
-		// Pop above sibling cards so the hovered card's lift + scale isn't
-		// occluded by adjacent waste-fan cards. Restored on hover-leave from
-		// `restDepth` (set by positionCard on the last layout pass).
 		view.container.setDepth(9000);
 		this.tweens.add({
 			targets: view.container,
@@ -1941,7 +1735,6 @@ export class SolitaireScene extends Phaser.Scene {
 		if (!view.hovered) return;
 		view.hovered = false;
 
-		// Peek leave — flip the card back to its face-down look. No tween.
 		if (view.peeking) {
 			view.peeking = false;
 			view.face.setVisible(false);
@@ -1961,15 +1754,9 @@ export class SolitaireScene extends Phaser.Scene {
 		view.shadow.setVisible(false);
 	}
 
-	// -------------------------------------------------------------------
-	// Drag / drop
-	// -------------------------------------------------------------------
-
 	private onDragStart(_pointer: Phaser.Input.Pointer, head: SceneCardView) {
 		const id = head.id;
 
-		// Any waste card → drag single. fromCardIndex carries the waste-array
-		// index so applyMove can splice the right card out (not always top).
 		const wasteIdx = this.state.waste.findIndex(
 			(byte) => getCardId(byte) === id,
 		);
@@ -1979,7 +1766,6 @@ export class SolitaireScene extends Phaser.Scene {
 			return;
 		}
 
-		// Tableau column → maybe drag a run.
 		for (let col = 0; col < 7; col++) {
 			const idx = this.state.tableaus[col].findIndex(
 				(byte) => getCardId(byte) === id,
@@ -1990,9 +1776,6 @@ export class SolitaireScene extends Phaser.Scene {
 				this.dragging = null;
 				return;
 			}
-			// Frozen guard — any frozen card in the run blocks the drag so
-			// it never visually starts. State methods reject the same way
-			// for safety if a stale view sneaks through.
 			for (const c of run) {
 				if (this.state.isFrozen(c & 0x3f)) {
 					this.dragging = null;
@@ -2003,11 +1786,12 @@ export class SolitaireScene extends Phaser.Scene {
 			return;
 		}
 
-		// Foundation top → drag single back to a tableau.
 		for (let f = 0; f < 4; f++) {
 			const top =
 				this.state.foundations[f][this.state.foundations[f].length - 1];
 			if (top !== undefined && getCardId(top) === id) {
+				/* Foundation source encodes as `-foundationIdx - 1` in
+				 * fromCol so applyMove can recognise it. */
 				this.beginDrag([top], 'tableau', -1 - f, 0, head);
 				return;
 			}
@@ -2033,9 +1817,6 @@ export class SolitaireScene extends Phaser.Scene {
 			offset: { x: 0, y: 0 },
 		};
 
-		// Highlight slots that accept the bottom of the drag stack. Source
-		// foundation (if any) is excluded so the user doesn't see their own
-		// slot glow.
 		const sourceFoundation =
 			fromCol !== undefined && fromCol < 0 ? -fromCol - 1 : -1;
 		this.highlightLegalDrops(cards[0], sourceFoundation);
@@ -2092,10 +1873,8 @@ export class SolitaireScene extends Phaser.Scene {
 		const chosen = this.findDropTarget(cx, cy);
 		const applied = chosen ? this.applyMove(drag, chosen) : false;
 
-		// Multi-card moves stagger their layout tween so the run "flows"
-		// into the destination column instead of all snapping at once.
-		// 30ms between cards → a 5-card run lands over 120ms total of
-		// staggered onset on top of the base move duration.
+		/* Multi-card moves stagger so the run "flows" into the column
+		 * (30ms between cards) instead of all snapping at once. */
 		let staggerMap: Map<string, number> | undefined;
 		if (applied && drag.cards.length > 1) {
 			staggerMap = new Map();
@@ -2115,7 +1894,6 @@ export class SolitaireScene extends Phaser.Scene {
 	private findDropTarget(cx: number, cy: number): DropTarget | null {
 		for (const t of this.dropTargets) {
 			if (t.pile === 'activate') {
-				// Activate slot uses its own geometry (sidebar-bottom rect).
 				const tx = t.x + (t.w ?? 0) / 2;
 				const ty = t.y + (t.h ?? 0) / 2;
 				if (
@@ -2155,8 +1933,6 @@ export class SolitaireScene extends Phaser.Scene {
 		drag: NonNullable<typeof this.dragging>,
 		target: DropTarget,
 	): boolean {
-		// Activate slot — only valid for a single bonus card from waste or
-		// the top of a tableau column. State methods validate "is bonus".
 		if (target.pile === 'activate') {
 			if (drag.cards.length !== 1) return false;
 			if (!isBonus(drag.cards[0])) return false;
@@ -2175,7 +1951,6 @@ export class SolitaireScene extends Phaser.Scene {
 			return false;
 		}
 
-		// Foundation drag (sentinel encoded in fromCol).
 		if (drag.fromCol !== undefined && drag.fromCol < 0) {
 			const fromFoundation = -drag.fromCol - 1;
 			if (target.pile === 'tableau') {
@@ -2218,18 +1993,12 @@ export class SolitaireScene extends Phaser.Scene {
 		return false;
 	}
 
-	// -------------------------------------------------------------------
-	// Helpers
-	// -------------------------------------------------------------------
-
 	private tryAutoFoundation(id: string) {
 		const wasteIdx = this.state.waste.findIndex(
 			(byte) => getCardId(byte) === id,
 		);
 		if (wasteIdx !== -1) {
 			const c = this.state.waste[wasteIdx];
-			// Bonus cards short-circuit to the activate slot — double-click
-			// is the keyboard-free shortcut for "use this card now".
 			if (isBonus(c)) {
 				if (this.state.activateBonusFromWaste(wasteIdx)) {
 					this.layoutAll(true);
@@ -2285,9 +2054,8 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	private showWin() {
-		// Lazily build the banner once + just toggle visibility on subsequent
-		// wins. Avoids leaking a fresh Text object every win after undo /
-		// new-game.
+		/* Build the banner once + toggle visibility on subsequent wins —
+		 * avoids leaking a Text object per win across undo / new-game. */
 		if (!this.winBanner) {
 			this.winBanner = this.add
 				.text(
@@ -2307,10 +2075,6 @@ export class SolitaireScene extends Phaser.Scene {
 			this.winBanner.setVisible(false);
 		}
 
-		// Cascade animation: each foundation card flies off-screen with
-		// a randomized arc + spin. Flat list across all four foundations
-		// so the stagger advances cleanly through the deck. Banner appears
-		// after the cascade settles.
 		const all: CardByte[] = [];
 		for (const f of this.state.foundations) for (const c of f) all.push(c);
 
@@ -2319,14 +2083,12 @@ export class SolitaireScene extends Phaser.Scene {
 			const v = this.viewFor(byte);
 			v.container.setDepth(50000 + i);
 
-			// Random direction, biased downward + outward so cards exit the
-			// bottom of the canvas like the classic Klondike "fountain".
 			const dirX = (Math.random() - 0.5) * 1.6;
 			const dirY = 0.7 + Math.random() * 0.6;
 			const distance = BASE_WIDTH * 0.9;
 			const targetX = v.container.x + dirX * distance;
 			const targetY = v.container.y + dirY * distance + BASE_HEIGHT * 0.4;
-			const spin = (Math.random() - 0.5) * Math.PI * 4; // up to 2 full turns
+			const spin = (Math.random() - 0.5) * Math.PI * 4;
 
 			this.tweens.add({
 				targets: v.container,
@@ -2360,10 +2122,6 @@ export class SolitaireScene extends Phaser.Scene {
 		this.updateHud();
 	}
 
-	// -------------------------------------------------------------------
-	// Modal layer (shop / game-over)
-	// -------------------------------------------------------------------
-
 	private dismissModal() {
 		if (!this.modal) return;
 		this.modal.destroy(true);
@@ -2378,7 +2136,6 @@ export class SolitaireScene extends Phaser.Scene {
 		const c = this.add.container(0, 0);
 		c.setDepth(60000);
 
-		// Backdrop — semi-transparent black over the whole canvas.
 		const backdrop = this.add
 			.rectangle(
 				BASE_WIDTH / 2,
@@ -2388,12 +2145,11 @@ export class SolitaireScene extends Phaser.Scene {
 				0x000000,
 				0.6,
 			)
-			.setInteractive(); // swallow clicks behind the modal
+			.setInteractive();
 		c.add(backdrop);
 
-		// Modal panel — sized to fit a 5-up shop row + summary + button.
-		// Centered on the play area (not the full canvas, so the sidebar
-		// stays visible and the modal sits over the cards).
+		/* Modal centered on the PLAY area (not the full canvas) so the
+		 * sidebar stays visible behind it. */
 		const w = 700;
 		const h = 380;
 		const x = (PLAY_WIDTH - w) / 2;
@@ -2405,7 +2161,6 @@ export class SolitaireScene extends Phaser.Scene {
 		panel.strokeRoundedRect(x, y, w, h, 18);
 		c.add(panel);
 
-		// Title.
 		const titleText = this.add
 			.text(PLAY_WIDTH / 2, y + 20, title, {
 				fontSize: '24px',
@@ -2428,7 +2183,6 @@ export class SolitaireScene extends Phaser.Scene {
 			: `Round ${this.state.round} — short of target`;
 		const { container, contentY } = this.buildModalShell(titleStr);
 
-		// Score / cash summary.
 		const summary = this.add
 			.text(
 				PLAY_WIDTH / 2,
@@ -2444,7 +2198,6 @@ export class SolitaireScene extends Phaser.Scene {
 			.setResolution(2);
 		container.add(summary);
 
-		// Shop offers — 3 cards. Click to buy.
 		const offers: { label: string; cost: number; apply: () => void }[] = [
 			{
 				label: 'Multiplier Joker\n(×1.5 mult)',
@@ -2483,8 +2236,6 @@ export class SolitaireScene extends Phaser.Scene {
 			},
 		];
 
-		// 5-up shop laid out across the panel; cards are smaller than before
-		// to fit. Cost still fits comfortably with the new card height.
 		const cardW = 120;
 		const cardH = 110;
 		const gap = 12;
@@ -2543,14 +2294,12 @@ export class SolitaireScene extends Phaser.Scene {
 				this.state.cash -= offer.cost;
 				offer.apply();
 				this.updateHud();
-				// Visual: dim card to show "purchased".
 				card.setAlpha(0.4);
 				hit.disableInteractive();
 			});
 			container.add(hit);
 		});
 
-		// Continue / End-run button.
 		const btnY = contentY + 36 + cardH + 30;
 		const btnLabel = passed ? `→ Round ${this.state.round + 1}` : 'End Run';
 		const btn = this.add.graphics();

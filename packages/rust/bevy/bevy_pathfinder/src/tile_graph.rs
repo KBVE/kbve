@@ -24,8 +24,6 @@ use std::hash::Hash;
 
 use crate::graph::NavGraph;
 
-// ── TileGraph ───────────────────────────────────────────────────────
-
 /// Generic adjacency-list graph keyed by an arbitrary node type.
 ///
 /// Storage is one `Vec<N>` for the node iteration order plus one
@@ -100,8 +98,6 @@ impl<N: Copy + Eq + Hash> NavGraph for TileGraph<N> {
         self.edges.get(&node).cloned().unwrap_or_default()
     }
 }
-
-// ── PathField ───────────────────────────────────────────────────────
 
 /// Multi-source BFS result over any [`NavGraph`].
 ///
@@ -208,8 +204,6 @@ impl<N: Copy + Eq + Hash> PathField<N> {
     }
 }
 
-// ── Tests ───────────────────────────────────────────────────────────
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,7 +236,6 @@ mod tests {
         assert_eq!(f.distance(1), Some(2));
         assert_eq!(f.distance(2), Some(1));
         assert_eq!(f.distance(3), Some(0));
-        // Walking from 0 should give [0, 1, 2, 3].
         let path = f.path_from(0);
         assert_eq!(path, vec![0, 1, 2, 3]);
     }
@@ -253,7 +246,6 @@ mod tests {
         for i in 0..6 {
             g.add_undirected(i, i + 1, 1.0);
         }
-        // Goals at 0 and 6 — middle node 3 should pick whichever side is closer.
         let f = PathField::compute(&g, &[0, 6]);
         assert_eq!(f.distance(0), Some(0));
         assert_eq!(f.distance(6), Some(0));

@@ -540,32 +540,78 @@ async fn leaderboard(
     Ok(())
 }
 
-/// Shortest revealed-tile route to the nearest tile of the given kind.
+/// Shortest revealed-tile route to a room kind or named landmark.
 #[poise::command(slash_command)]
 async fn route(
     ctx: Context<'_>,
-    #[description = "Where to head: boss / city / merchant / rest / treasure / story"]
-    target: String,
+    #[description = "Room kind: boss / city / merchant / rest / treasure / story"] target: Option<
+        String,
+    >,
+    #[description = "Landmark slug (e.g. shattered-crown, goblin-cave)"] landmark: Option<String>,
 ) -> Result<(), Error> {
     let user = ctx.author().id;
 
-    let goal_room_type = match target.to_lowercase().as_str() {
-        "boss" => RoomType::Boss,
-        "city" | "town" => RoomType::UndergroundCity,
-        "merchant" | "market" | "shop" => RoomType::Merchant,
-        "rest" | "shrine" | "campfire" => RoomType::RestShrine,
-        "treasure" | "loot" => RoomType::Treasure,
-        "story" | "lore" => RoomType::Story,
-        other => {
+    enum ResolvedGoal {
+        Room(RoomType),
+        Landmark(String),
+    }
+
+    let goal = match (target.as_deref(), landmark.as_deref()) {
+        (Some(_), Some(_)) => {
             ctx.send(
                 poise::CreateReply::default()
-                    .content(format!(
-                        "Unknown target `{other}`. Try: boss / city / merchant / rest / treasure / story.",
-                    ))
+                    .content("Pick one of `target` or `landmark`, not both.")
                     .ephemeral(true),
             )
             .await?;
             return Ok(());
+        }
+        (None, None) => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(
+                        "Pass either a `target` (boss / city / merchant / rest / treasure / story) \
+                         or a `landmark` slug.",
+                    )
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+        (Some(t), None) => {
+            let room_type = match t.to_lowercase().as_str() {
+                "boss" => RoomType::Boss,
+                "city" | "town" => RoomType::UndergroundCity,
+                "merchant" | "market" | "shop" => RoomType::Merchant,
+                "rest" | "shrine" | "campfire" => RoomType::RestShrine,
+                "treasure" | "loot" => RoomType::Treasure,
+                "story" | "lore" => RoomType::Story,
+                other => {
+                    ctx.send(
+                        poise::CreateReply::default()
+                            .content(format!(
+                                "Unknown target `{other}`. Try: boss / city / merchant / rest / treasure / story.",
+                            ))
+                            .ephemeral(true),
+                    )
+                    .await?;
+                    return Ok(());
+                }
+            };
+            ResolvedGoal::Room(room_type)
+        }
+        (None, Some(slug)) => {
+            let slug = slug.trim().to_lowercase();
+            if slug.is_empty() {
+                ctx.send(
+                    poise::CreateReply::default()
+                        .content("Landmark slug is empty.")
+                        .ephemeral(true),
+                )
+                .await?;
+                return Ok(());
+            }
+            ResolvedGoal::Landmark(slug)
         }
     };
 
@@ -589,54 +635,97 @@ async fn route(
 
     let session = handle.lock().await;
     let from = session.map.position;
-    let path = pathfinding::path_to_goal(
-        &session.map,
-        from,
-        pathfinding::GoalKind::Room(goal_room_type.clone()),
-    );
+    let goal_kind = match &goal {
+        ResolvedGoal::Room(rt) => pathfinding::GoalKind::Room(rt.clone()),
+        ResolvedGoal::Landmark(slug) => pathfinding::GoalKind::Landmark(slug),
+    };
+    let path = pathfinding::path_to_goal(&session.map, from, goal_kind);
     let goal_tile = path
         .as_ref()
         .and_then(|p| p.last())
         .and_then(|p| session.map.tiles.get(p))
         .cloned();
+    let session_for_render = path
+        .as_ref()
+        .filter(|p| p.len() >= 2)
+        .map(|_| session.clone());
     drop(session);
 
-    let target_label = match goal_room_type {
-        RoomType::Boss => "boss arena",
-        RoomType::UndergroundCity => "underground city",
-        RoomType::Merchant => "merchant",
-        RoomType::RestShrine => "rest shrine",
-        RoomType::Treasure => "treasure room",
-        RoomType::Story => "story room",
-        _ => "tile",
+    let target_label: String = match &goal {
+        ResolvedGoal::Room(rt) => match rt {
+            RoomType::Boss => "boss arena",
+            RoomType::UndergroundCity => "underground city",
+            RoomType::Merchant => "merchant",
+            RoomType::RestShrine => "rest shrine",
+            RoomType::Treasure => "treasure room",
+            RoomType::Story => "story room",
+            _ => "tile",
+        }
+        .to_owned(),
+        ResolvedGoal::Landmark(slug) => crate::discord::game::proto_bridge::landmark_name(slug)
+            .map(|n| format!("landmark `{n}`"))
+            .unwrap_or_else(|| format!("landmark `{slug}`")),
     };
 
-    let body = match (path, goal_tile) {
-        (Some(path), Some(goal_tile)) if path.len() >= 2 => {
-            let dirs = pathfinding::directions_along_path(&path);
+    let (body, render_path) = match (path.as_ref(), goal_tile) {
+        (Some(p), Some(goal_tile)) if p.len() >= 2 => {
+            let dirs = pathfinding::directions_along_path(p);
             let route = dirs
                 .iter()
                 .map(|d| d.label())
                 .collect::<Vec<_>>()
-                .join(" \u{2192} "); // " → "
+                .join(" \u{2192} ");
             let hops = dirs.len();
-            format!(
-                "{} hop(s) to **{}** ({}):\n{}",
-                hops, goal_tile.name, target_label, route
+            (
+                format!(
+                    "{} hop(s) to **{}** ({}):\n{}",
+                    hops, goal_tile.name, target_label, route
+                ),
+                Some(p.clone()),
             )
         }
-        (Some(path), Some(goal_tile)) if path.len() == 1 => format!(
-            "You're already in **{}** ({}).",
-            goal_tile.name, target_label
+        (Some(p), Some(goal_tile)) if p.len() == 1 => (
+            format!(
+                "You're already in **{}** ({}).",
+                goal_tile.name, target_label
+            ),
+            None,
         ),
-        _ => format!(
-            "No revealed path to a {} from your current room. Explore further first.",
-            target_label
+        _ => (
+            match &goal {
+                ResolvedGoal::Landmark(slug) => format!(
+                    "No revealed path to landmark `{slug}` from your current room. \
+                     Either it isn't on the map yet, or you haven't explored \
+                     close enough to reveal a route."
+                ),
+                ResolvedGoal::Room(_) => format!(
+                    "No revealed path to a {} from your current room. Explore further first.",
+                    target_label
+                ),
+            },
+            None,
         ),
     };
 
-    ctx.send(poise::CreateReply::default().content(body).ephemeral(true))
-        .await?;
+    let route_png = match (render_path, session_for_render) {
+        (Some(route_pos), Some(snapshot)) => {
+            let fontdb = ctx.data().app.fontdb.clone();
+            match card::render_map_card_with_route(&snapshot, &route_pos, fontdb).await {
+                Ok(bytes) => Some(bytes),
+                Err(e) => {
+                    tracing::warn!(error = %e, "Failed to render route map for /dungeon route");
+                    None
+                }
+            }
+        }
+        _ => None,
+    };
+
+    let mut reply = poise::CreateReply::default().content(body).ephemeral(true);
+    if let Some(png) = route_png {
+        reply = reply.attachment(serenity::CreateAttachment::bytes(png, "route_map.png"));
+    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

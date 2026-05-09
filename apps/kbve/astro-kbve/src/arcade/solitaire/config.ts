@@ -1,7 +1,3 @@
-// ============================================================================
-// Solitaire — game configuration
-// ============================================================================
-
 /** Logical canvas + play-area split. Play layout is computed against
  * `PLAY_WIDTH`; the canvas itself extends past that to host a sidebar
  * panel on the right (HP / stats / cash). The Astro frame's aspect-ratio
@@ -51,39 +47,31 @@ export const FONT = {
 } as const;
 
 export const COLORS = {
-	// Table layers (bottom → top)
-	tableEdge: 0x081a12, // very dark — outer "wood" frame
-	tableTrim: 0xb38b3e, // muted gold trim between edge and felt
-	tableTrimDark: 0x6e5022, // shadow side of the trim
-	background: 0x0d5a35, // felt green (canvas clear color)
-	feltCenter: 0x0f6b3f, // slightly brighter at center for vignette
-	feltEdge: 0x062a18, // darker at edges to fake a soft vignette
-	boardFill: 0x0a4f2e, // play-zone panel
-	boardBorder: 0xb38b3e, // gold board border (matches trim)
-	boardInnerStroke: 0x0d3b24, // dark inner stroke for inset depth
-	// Cards
+	tableEdge: 0x081a12,
+	tableTrim: 0xb38b3e,
+	tableTrimDark: 0x6e5022,
+	background: 0x0d5a35,
+	feltCenter: 0x0f6b3f,
+	feltEdge: 0x062a18,
+	boardFill: 0x0a4f2e,
+	boardBorder: 0xb38b3e,
+	boardInnerStroke: 0x0d3b24,
 	cardFace: 0xffffff,
 	cardBack: 0x1e3a8a,
 	cardBackPattern: 0x3b82f6,
 	cardBorder: 0x111827,
-	// Slots
 	slot: 0x064529,
 	slotBorder: 0x064e36,
 	slotHighlight: 0x10b981,
 	slotHighlightBorder: 0xfbbf24,
 	highlight: 0xfbbf24,
-	// Suits
 	suitRed: 0xdc2626,
 	suitBlack: 0x111827,
-	// Jokers — wild card visuals. Body uses a deep purple → gold gradient
-	// (not literal — solid fill with gold accents) so jokers read distinct
-	// from the standard 52 even at a glance.
-	jokerFace: 0x312e81, // deep indigo body
-	jokerAccent: 0xfbbf24, // gold trim + glyph for both joker colors
-	jokerStripe: 0x6366f1, // mid-purple for the diagonal stripe
-	jokerRedTint: 0xf87171, // red joker pip
-	jokerBlackTint: 0x1f2937, // black joker pip
-	// HUD
+	jokerFace: 0x312e81,
+	jokerAccent: 0xfbbf24,
+	jokerStripe: 0x6366f1,
+	jokerRedTint: 0xf87171,
+	jokerBlackTint: 0x1f2937,
 	winText: '#fbbf24',
 	hintText: '#d1d5db',
 } as const;
@@ -94,14 +82,10 @@ export const BOARD_PADDING = 18;
 export const BOARD_RADIUS = 14;
 
 export const TIMING = {
-	dealDelay: 30, // ms between cards during initial deal
+	dealDelay: 30,
 	flipMs: 200,
 	moveMs: 180,
 } as const;
-
-// ============================================================================
-// Scoring + run progression (Balatro-flavored Klondike)
-// ============================================================================
 
 /** Score awarded per move type. Mirrors the classic Klondike value table
  * with foundation placements weighted heavier so combo-chasing pays. */
@@ -110,8 +94,8 @@ export const SCORE = {
 	wasteToFoundation: 10,
 	tableauToFoundation: 15,
 	foundationToTableau: -15,
-	revealTableau: 5, // bonus for flipping a face-down card on the move
-	stockRecycle: -100, // first pass is free; subsequent recycles cost
+	revealTableau: 5,
+	stockRecycle: -100,
 
 	/** Flat cost levied on every move (any pile-mutating action — drag drop,
 	 * stock click, double-click auto-foundation). Spaces play out so brute
@@ -183,8 +167,8 @@ export const SHOP_PRICES = {
 	jokerScoreBoost: 8,
 	armorPoint: 6,
 	attackPoint: 10,
-	healSmall: 3, // +5 HP (capped at maxHp)
-	maxHpUp: 12, // +5 maxHp + heal that much
+	healSmall: 3,
+	maxHpUp: 12,
 } as const;
 
 /** Stock draw count. Klondike traditional = 1; we run 3 for richer flow.
@@ -207,7 +191,7 @@ export const STORAGE_KEY = 'kbve.solitaire.v1';
 
 export const HUD_COLORS = {
 	scoreText: '#fde68a',
-	scoreNegative: '#f87171', // red when score below 0
+	scoreNegative: '#f87171',
 	comboText: '#fbbf24',
 	comboPulse: '#f59e0b',
 	roundText: '#e5e7eb',

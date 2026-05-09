@@ -42,7 +42,6 @@ impl LocalRunnable {
     /// Store a runnable and wake the owning thread's promise.
     /// Called from the `async-task` schedule function (potentially cross-thread).
     pub(crate) fn schedule(&self, runnable: Runnable) {
-        // Spin-lock: WAITING → LOCKED
         loop {
             match self.state.swap(LOCKED, Ordering::Relaxed) {
                 WAITING => break,
@@ -57,11 +56,9 @@ impl LocalRunnable {
         debug_assert!(slot.is_none());
         *slot = Some(runnable);
 
-        // Release lock → READY
         let prev = self.state.swap(READY, Ordering::Release);
         debug_assert_eq!(prev, LOCKED);
 
-        // Wake the `waitAsync` promise on the owning thread.
         // SAFETY: `state` is a valid atomic i32.
         unsafe {
             core::arch::wasm32::memory_atomic_notify(self.state.as_ptr(), 1);
@@ -77,7 +74,6 @@ impl LocalRunnable {
             return;
         };
 
-        // Spin-lock: READY → LOCKED
         loop {
             match this.state.swap(LOCKED, Ordering::Acquire) {
                 WAITING => panic!("tried to run a task that wasn't scheduled"),
@@ -91,11 +87,9 @@ impl LocalRunnable {
         let slot = unsafe { &mut *this.runnable.get() };
         let runnable = core::mem::take(slot).unwrap();
 
-        // Release lock → WAITING
         let prev = this.state.swap(WAITING, Ordering::Relaxed);
         debug_assert_eq!(prev, LOCKED);
 
-        // Execute — may re-schedule itself.
         runnable.run();
 
         // If we're the last strong ref, the future was dropped — exit.
@@ -103,7 +97,6 @@ impl LocalRunnable {
             return;
         }
 
-        // Set up continuation: wait for next schedule, then run again.
         if let Some(promise) = this.wait() {
             let weak_clone = this_weak.clone();
             let continuation =

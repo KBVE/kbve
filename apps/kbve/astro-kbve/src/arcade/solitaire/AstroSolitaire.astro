@@ -28,9 +28,20 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 		tabindex="0">
 		<ReactSolitaireApp client:only="react" />
 	</div>
+	<div
+		class="solitaire-rotate-hint rounded-lg border-2 border-gray-700 shadow-xl"
+		aria-hidden="true">
+		<div class="solitaire-rotate-icon" aria-hidden="true">⟳</div>
+		<p class="solitaire-rotate-title">Rotate your phone</p>
+		<p class="solitaire-rotate-body">
+			This card table is laid out for landscape. Turn your device sideways
+			to play.
+		</p>
+	</div>
 	<p class="text-xs text-gray-400 mt-2 text-center">
-		Drag cards to move. Click stock to draw. Double-click a card to send it
-		to a foundation. Press <kbd>N</kbd> for a new game · <kbd>Z</kbd> to undo.
+		Drag cards to move. Tap a card to auto-send it to a foundation
+		(double-click on desktop). Tap stock to draw. Press <kbd>N</kbd> for a new
+		game · <kbd>Z</kbd> to undo.
 	</p>
 </div>
 
@@ -44,6 +55,62 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 		/* Matches BASE_WIDTH/BASE_HEIGHT in config.ts (1320×900 with
 		   sidebar). Update both together. */
 		aspect-ratio: 22 / 15;
+		/* Stop the browser from intercepting drag/scroll/zoom while a
+		   pointer is interacting with the canvas. */
+		touch-action: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.solitaire-rotate-hint {
+		display: none;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		padding: 32px;
+		text-align: center;
+		aspect-ratio: 22 / 15;
+		background: radial-gradient(circle at 50% 40%, #0f6b3f 0%, #062a18 80%);
+		color: #fde68a;
+	}
+	.solitaire-rotate-icon {
+		font-size: 56px;
+		line-height: 1;
+		animation: solitaire-rotate-spin 2.4s ease-in-out infinite;
+	}
+	.solitaire-rotate-title {
+		font-size: 18px;
+		font-weight: 700;
+		margin: 0;
+	}
+	.solitaire-rotate-body {
+		font-size: 13px;
+		color: #d1d5db;
+		max-width: 36ch;
+		margin: 0;
+	}
+	@keyframes solitaire-rotate-spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		50% {
+			transform: rotate(90deg);
+		}
+		100% {
+			transform: rotate(0deg);
+		}
+	}
+	/* Portrait phone: hide the canvas, show the rotate hint. */
+	@media (orientation: portrait) and (max-width: 768px) {
+		.solitaire-frame {
+			display: none;
+		}
+		.solitaire-toolbar {
+			display: none;
+		}
+		.solitaire-rotate-hint {
+			display: flex;
+		}
 	}
 	.solitaire-toolbar {
 		display: flex;
@@ -81,19 +148,45 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 		line-height: 1;
 	}
 
-	/* Theater mode: stage breaks out of Starlight's content column.
-	   Uses negative margin against the centered content frame so the
-	   sidebar stays visible but the table claims the rest of the row. */
+	/* Theater mode pins the stage over the viewport with a dimmed felt
+	   backdrop and scales the frame to fit BOTH dimensions. The top edge
+	   sits below Starlight's sticky nav so the site header remains usable
+	   instead of bleeding through behind the overlay. Esc / button click
+	   exits. */
 	.solitaire-stage.is-theater {
+		position: fixed;
+		top: var(--sl-nav-height, 0px);
+		left: 0;
+		right: 0;
+		bottom: 0;
 		max-width: none;
-		width: calc(100vw - var(--sl-sidebar-width, 18rem) - 2rem);
-		margin-left: calc(50% - 50vw + var(--sl-sidebar-width, 18rem) / 2);
+		width: 100vw;
+		height: calc(100vh - var(--sl-nav-height, 0px));
+		margin: 0;
+		padding: 16px;
+		z-index: 50;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		background: rgba(6, 42, 24, 0.95);
+		box-sizing: border-box;
 	}
-	@media (max-width: 50rem) {
-		.solitaire-stage.is-theater {
-			width: 100%;
-			margin-left: auto;
-		}
+	.solitaire-stage.is-theater .solitaire-toolbar {
+		margin-bottom: 0;
+	}
+	.solitaire-stage.is-theater .solitaire-frame {
+		/* Pick the smaller of viewport width or viewport-height-derived
+		   width (so the 22:15 aspect ratio always fits without scroll).
+		   Height budget = stage height - toolbar (~36) - help (~24) -
+		   padding (~32). */
+		width: min(
+			100%,
+			calc((100vh - var(--sl-nav-height, 0px) - 110px) * 22 / 15)
+		);
+		max-width: 100%;
+		height: auto;
 	}
 
 	/* Fullscreen: native browser fullscreen on the stage element. */
@@ -125,11 +218,18 @@ import ReactSolitaireApp from './ReactSolitaireApp';
 	);
 
 	if (stage && theaterBtn) {
-		theaterBtn.addEventListener('click', () => {
-			const next = !stage.classList.contains('is-theater');
-			stage.classList.toggle('is-theater', next);
-			theaterBtn.setAttribute('aria-pressed', String(next));
+		const setTheater = (on: boolean) => {
+			stage.classList.toggle('is-theater', on);
+			theaterBtn.setAttribute('aria-pressed', String(on));
 			window.dispatchEvent(new Event('resize'));
+		};
+		theaterBtn.addEventListener('click', () => {
+			setTheater(!stage.classList.contains('is-theater'));
+		});
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && stage.classList.contains('is-theater')) {
+				setTheater(false);
+			}
 		});
 	}
 

@@ -25,8 +25,8 @@ pub fn detect_ground(
             if was_airborne {
                 let fall_distance = physics.fall_start_y - transform.translation.y;
                 if physics.velocity_y < 0.0 && fall_distance > config.fall_damage_threshold {
-                    let damage =
-                        (fall_distance - config.fall_damage_threshold) * config.fall_damage_per_unit;
+                    let damage = (fall_distance - config.fall_damage_threshold)
+                        * config.fall_damage_per_unit;
                     commands.trigger(FallDamageEvent {
                         entity,
                         fall_distance,
@@ -36,7 +36,6 @@ pub fn detect_ground(
             }
             physics.velocity_y = 0.0;
         } else if !was_airborne {
-            // Just walked off an edge.
             physics.fall_start_y = transform.translation.y;
         }
     }

@@ -43,22 +43,19 @@ pub fn move_player(
 
         let horizontal = direction * config.speed * time.delta_secs();
 
-        // Jump
         if keyboard.just_pressed(KeyCode::Space) && physics.on_ground {
             physics.velocity_y = config.jump_velocity;
             physics.on_ground = false;
             physics.fall_start_y = transform.translation.y;
         }
 
-        // Gravity
         if !physics.on_ground {
             physics.velocity_y -= config.gravity * time.delta_secs();
         }
 
         let vertical = Vec3::new(0.0, physics.velocity_y * time.delta_secs(), 0.0);
 
-        // Collision-aware movement via shape casting.
-        // Use a slightly shrunk collider for sweeping to avoid edge-catching.
+        // Slightly shrunk sweep collider avoids edge-catching during shape casts.
         let sweep_collider = Collider::cuboid(
             config.half_x * 2.0 * 0.85,
             config.height * 0.9,
@@ -67,11 +64,15 @@ pub fn move_player(
         let filter = SpatialQueryFilter::default().with_excluded_entities([entity]);
         let pos = transform.translation;
 
-        // Sweep horizontal movement (XZ) — slide along walls.
-        let resolved_h =
-            sweep_move(&spatial_query, &sweep_collider, pos, horizontal, &filter, &config);
+        let resolved_h = sweep_move(
+            &spatial_query,
+            &sweep_collider,
+            pos,
+            horizontal,
+            &filter,
+            &config,
+        );
 
-        // Sweep vertical movement from the post-horizontal position.
         let pos_after_h = pos + resolved_h;
         let resolved_v = sweep_move(
             &spatial_query,
@@ -82,7 +83,6 @@ pub fn move_player(
             &config,
         );
 
-        // If vertical movement was blocked while falling, land.
         if physics.velocity_y < 0.0 && resolved_v.y.abs() < vertical.y.abs() * 0.5 {
             physics.velocity_y = 0.0;
         }
@@ -108,20 +108,17 @@ pub fn sweep_move(
         return Vec3::ZERO;
     }
 
-    // Try the full movement first.
     if let Some(safe) = try_cast(spatial_query, collider, origin, delta, dist, filter) {
         if safe >= dist - config.collision_skin {
-            return delta; // No obstruction.
+            return delta;
         }
     } else {
-        return delta; // No hit — clear path.
+        return delta;
     }
 
-    // Blocked: try sliding along each axis independently.
     let mut result = Vec3::ZERO;
     let skin = config.collision_skin;
 
-    // X axis
     let dx = Vec3::new(delta.x, 0.0, 0.0);
     let dx_len = dx.length();
     if dx_len > 1e-6 {
@@ -133,7 +130,6 @@ pub fn sweep_move(
         }
     }
 
-    // Z axis
     let dz = Vec3::new(0.0, 0.0, delta.z);
     let dz_len = dz.length();
     if dz_len > 1e-6 {
@@ -146,7 +142,6 @@ pub fn sweep_move(
         }
     }
 
-    // Y axis
     let dy = Vec3::new(0.0, delta.y, 0.0);
     let dy_len = dy.length();
     if dy_len > 1e-6 {

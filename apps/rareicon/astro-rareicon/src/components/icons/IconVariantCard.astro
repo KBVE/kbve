@@ -66,13 +66,35 @@ const tags = variant.tags ?? [];
 			)
 		}
 
-		<button
-			type="button"
-			class="ri-icon-variant__copy"
-			data-copy-svg={variant.svg_body ?? ''}
-			aria-label={`Copy ${label} SVG`}>
-			Copy SVG
-		</button>
+		<div
+			class="ri-icon-variant__copy-row"
+			role="group"
+			aria-label="Copy formats">
+			<button
+				type="button"
+				class="ri-icon-variant__copy"
+				data-copy-format="svg"
+				data-copy-svg={variant.svg_body ?? ''}
+				aria-label={`Copy ${label} as SVG`}>
+				SVG
+			</button>
+			<button
+				type="button"
+				class="ri-icon-variant__copy"
+				data-copy-format="jsx"
+				data-copy-svg={variant.svg_body ?? ''}
+				aria-label={`Copy ${label} as JSX`}>
+				JSX
+			</button>
+			<button
+				type="button"
+				class="ri-icon-variant__copy"
+				data-copy-format="data-uri"
+				data-copy-svg={variant.svg_body ?? ''}
+				aria-label={`Copy ${label} as data URI`}>
+				URI
+			</button>
+		</div>
 	</figcaption>
 </figure>
 
@@ -179,11 +201,20 @@ const tags = variant.tags ?? [];
 		color: var(--ri-text-disabled);
 	}
 
-	.ri-icon-variant__copy {
+	.ri-icon-variant__copy-row {
 		margin-top: auto;
-		padding: 0.4rem 0.75rem;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.25rem;
+	}
+
+	.ri-icon-variant__copy {
+		padding: 0.4rem 0.5rem;
 		font-family: inherit;
 		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 		border: 1px solid var(--ri-border);
 		border-radius: 6px;
 		background: transparent;
@@ -206,15 +237,55 @@ const tags = variant.tags ?? [];
 </style>
 
 <script>
+	/**
+	 * Translate raw SVG markup to each copy-format variant.
+	 *   - svg: raw markup as emitted in the catalog
+	 *   - jsx: SVG with React-friendly attribute names + camelCase props
+	 *     (className, strokeWidth, etc.) so devs can paste straight into
+	 *     a React component
+	 *   - data-uri: base64-encoded data URL ready for `<img src="...">`
+	 *     or CSS `url(...)`
+	 */
+	function toJSX(svg: string): string {
+		return svg
+			.replace(/\bclass=/g, 'className=')
+			.replace(/\bstroke-width=/g, 'strokeWidth=')
+			.replace(/\bstroke-linecap=/g, 'strokeLinecap=')
+			.replace(/\bstroke-linejoin=/g, 'strokeLinejoin=')
+			.replace(/\bstroke-dasharray=/g, 'strokeDasharray=')
+			.replace(/\bfill-rule=/g, 'fillRule=')
+			.replace(/\bclip-rule=/g, 'clipRule=')
+			.replace(/\bclip-path=/g, 'clipPath=')
+			.replace(/\baria-hidden=/g, 'ariaHidden=')
+			.replace(/\bxmlns:xlink=/g, 'xmlnsXlink=')
+			.replace(/\btext-anchor=/g, 'textAnchor=')
+			.replace(/\bfont-family=/g, 'fontFamily=')
+			.replace(/\bfont-size=/g, 'fontSize=')
+			.replace(/\bfont-weight=/g, 'fontWeight=');
+	}
+
+	function toDataUri(svg: string): string {
+		// Strip leading/trailing whitespace + collapse interior whitespace
+		// for a more compact data URI.
+		const compact = svg.replace(/\s+/g, ' ').trim();
+		const encoded = btoa(unescape(encodeURIComponent(compact)));
+		return `data:image/svg+xml;base64,${encoded}`;
+	}
+
 	document.addEventListener('click', (e) => {
 		const target = e.target as HTMLElement;
 		const btn = target.closest<HTMLButtonElement>('.ri-icon-variant__copy');
 		if (!btn) return;
 		const svg = btn.getAttribute('data-copy-svg') ?? '';
 		if (!svg) return;
+		const format = btn.getAttribute('data-copy-format') ?? 'svg';
 
-		const originalText = btn.textContent ?? 'Copy SVG';
-		navigator.clipboard.writeText(svg).then(
+		let payload = svg;
+		if (format === 'jsx') payload = toJSX(svg);
+		else if (format === 'data-uri') payload = toDataUri(svg);
+
+		const originalText = btn.textContent ?? 'COPY';
+		navigator.clipboard.writeText(payload).then(
 			() => {
 				btn.setAttribute('data-copied', 'true');
 				btn.textContent = 'Copied';
@@ -224,7 +295,7 @@ const tags = variant.tags ?? [];
 				}, 1500);
 			},
 			() => {
-				btn.textContent = 'Copy failed';
+				btn.textContent = 'Failed';
 				setTimeout(() => {
 					btn.textContent = originalText;
 				}, 1500);

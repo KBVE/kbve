@@ -1484,7 +1484,6 @@
 
 				// Load and render accounts
 				loadAccounts() {
-					const accounts = this.getStoredAccounts();
 					this.renderAccounts();
 					this.updateStats();
 				},
@@ -1957,7 +1956,7 @@
 							return;
 						}
 
-						const { data, error } = await window.supabase.auth.signUp({
+						const { error } = await window.supabase.auth.signUp({
 							email: email,
 							password: password,
 							options: {
@@ -1974,7 +1973,7 @@
 							document.getElementById('authForm').reset();
 						}, 2000);
 					} else {
-						const { data, error } = await window.supabase.auth.signInWithPassword({
+						const { error } = await window.supabase.auth.signInWithPassword({
 							email: email,
 							password: password
 						});
@@ -2010,7 +2009,7 @@
 				try {
 					updateAuthStatus('Redirecting to ' + provider + '...', 'info');
 					
-					const { data, error } = await window.supabase.auth.signInWithOAuth({
+					const { error } = await window.supabase.auth.signInWithOAuth({
 						provider: provider,
 						options: {
 							redirectTo: window.location.origin + window.location.pathname
@@ -2206,12 +2205,10 @@
 
 			async function loadUserBalanceProfile(user) {
 				try {
-					// Determine identifier and check if wallet user
-					let identifier = user.email;
+					// Check if wallet user
 					let isWalletUser = false;
-					
+
 					if (user.app_metadata?.provider === 'wallet' || user.wallet_address) {
-						identifier = user.wallet_address || user.id;
 						isWalletUser = true;
 					}
 					

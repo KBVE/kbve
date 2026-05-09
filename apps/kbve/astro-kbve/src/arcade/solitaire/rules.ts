@@ -1,21 +1,6 @@
-// ============================================================================
-// Solitaire — move validation (byte-packed)
-// ============================================================================
-//
-// Pure rule helpers. All inputs are byte primitives — no allocations, no
-// inflation to view objects. The scene calls these millions of times less
-// than the renderer, but keeping the rule layer byte-native means the
-// engine can run headless (replay verification, AI hints, etc) without
-// dragging in any UI shape.
-//
-// Joker rules (tableau wild + foundation reject variant):
-//   - Joker can land on ANY tableau column (empty or not).
-//   - When a joker is the top of a tableau column, ANY card stacks on it.
-//   - Joker is REJECTED from foundations — the win condition (4 piles of
-//     A..K by suit) is preserved cleanly. Jokers are wild for tableau
-//     manipulation only.
-//   - In a multi-card tableau run, joker is wild — adjacent cards' rank
-//     and color constraints are bypassed when one of the two is a joker.
+/** Pure rule helpers — byte primitives in, no allocations. Keeping the
+ * rule layer byte-native lets the engine run headless (replay
+ * verification, AI hints, etc) without dragging UI shape along. */
 
 import {
 	type CardByte,
@@ -33,19 +18,13 @@ import {
  *   - column top is face-up joker (always valid), OR
  *   - column top is face-up AND opposite color AND exactly one rank higher. */
 export function canDropOnTableau(moving: CardByte, column: number[]): boolean {
-	// Monsters can't be moved (they engage in combat instead of stacking).
 	if (isMonster(moving)) return false;
-
 	if (isJoker(moving)) return true;
-
 	if (column.length === 0) return getDisplayRank(moving) === 13;
 
 	const top = column[column.length - 1];
 	if (!isFaceUp(top)) return false;
-
-	// Monster on top blocks the column — combat first, stacking later.
 	if (isMonster(top)) return false;
-
 	if (isJoker(top)) return true;
 
 	const colorOk = getColor(moving) !== getColor(top);
@@ -82,11 +61,9 @@ export function movableRun(
 	for (let i = 0; i < slice.length; i++) {
 		const c = slice[i];
 		if (!isFaceUp(c)) return null;
-		// Monsters refuse to be picked up — engage them with a click instead.
 		if (isMonster(c)) return null;
 		if (i === 0) continue;
 		const prev = slice[i - 1];
-		// Joker is wild — bypasses both color + rank checks for this link.
 		if (isJoker(c) || isJoker(prev)) continue;
 		const colorOk = getColor(c) !== getColor(prev);
 		const rankOk = getDisplayRank(c) === getDisplayRank(prev) - 1;
@@ -106,5 +83,4 @@ export function isWin(foundations: number[][]): boolean {
 	return true;
 }
 
-// Re-export so consumers can import everything joker-related from one place.
 export { isJoker, getSuit };

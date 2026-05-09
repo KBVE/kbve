@@ -40,7 +40,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.138
+                  image: ghcr.io/kbve/kbve:1.0.139
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -173,6 +173,8 @@ spec:
                             secretKeyRef:
                                 name: clickhouse-credentials
                                 key: password
+                      - name: CLICKHOUSE_DATABASE
+                        value: 'observability'
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd

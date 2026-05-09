@@ -1263,6 +1263,68 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
         .unwrap()
 }
 
+fn resolve_static_dir() -> String {
+    std::env::var("STATIC_DIR").unwrap_or_else(|_| {
+        for candidate in ["templates/dist", "../astro/dist", "astro/dist"] {
+            if std::path::Path::new(candidate).exists() {
+                return candidate.to_string();
+            }
+        }
+        "templates/dist".to_string()
+    })
+}
+
+async fn serve_astro_error_page(status: StatusCode) -> Response {
+    let static_dir = resolve_static_dir();
+    let html_path = match status {
+        StatusCode::BAD_GATEWAY => format!("{}/502.html", static_dir),
+        StatusCode::SERVICE_UNAVAILABLE => format!("{}/503.html", static_dir),
+        _ => format!("{}/404.html", static_dir),
+    };
+    let gz_path = format!("{}.gz", html_path);
+
+    if let Ok(content) = tokio::fs::read(&gz_path).await {
+        return Response::builder()
+            .status(status)
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .header(header::CONTENT_ENCODING, "gzip")
+            .body(Body::from(content))
+            .unwrap_or_else(|_| Response::new(Body::empty()));
+    }
+
+    if let Ok(content) = tokio::fs::read(&html_path).await {
+        return Response::builder()
+            .status(status)
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(Body::from(content))
+            .unwrap_or_else(|_| Response::new(Body::empty()));
+    }
+
+    let fallback_404 = format!("{}/404.html", static_dir);
+    let fallback_404_gz = format!("{}.gz", fallback_404);
+    if let Ok(content) = tokio::fs::read(&fallback_404_gz).await {
+        return Response::builder()
+            .status(status)
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .header(header::CONTENT_ENCODING, "gzip")
+            .body(Body::from(content))
+            .unwrap_or_else(|_| Response::new(Body::empty()));
+    }
+    if let Ok(content) = tokio::fs::read(&fallback_404).await {
+        return Response::builder()
+            .status(status)
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(Body::from(content))
+            .unwrap_or_else(|_| Response::new(Body::empty()));
+    }
+
+    Response::builder()
+        .status(status)
+        .header(header::CONTENT_TYPE, "text/plain")
+        .body(Body::from(status.canonical_reason().unwrap_or("Error")))
+        .unwrap_or_else(|_| Response::new(Body::empty()))
+}
+
 /// OSRS API endpoint - returns item price data as JSON.
 /// GET /api/v1/osrs/{item_id}
 ///
@@ -2703,18 +2765,14 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
                     slug_or_id,
                     e
                 );
-                return (StatusCode::BAD_GATEWAY, "forum upstream error").into_response();
+                return serve_astro_error_page(StatusCode::BAD_GATEWAY).await;
             }
         };
 
     let (thread, space) = match pair {
         Some(p) => p,
         None => {
-            return (
-                StatusCode::NOT_FOUND,
-                format!("thread {} not found", slug_or_id),
-            )
-                .into_response();
+            return serve_astro_error_page(StatusCode::NOT_FOUND).await;
         }
     };
 
