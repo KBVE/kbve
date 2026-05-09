@@ -212,7 +212,13 @@ export default defineConfig({
 				{
 					label: 'Gaming',
 					collapsed: true,
-					autogenerate: { directory: 'gaming' },
+					items: [
+						{ autogenerate: { directory: 'gaming' } },
+						{
+							label: 'OSRS',
+							link: '/osrs/',
+						},
+					],
 				},
 				{
 					label: 'Arcade',
