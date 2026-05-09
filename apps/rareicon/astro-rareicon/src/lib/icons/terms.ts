@@ -5,6 +5,34 @@
 import type { CollectionEntry } from 'astro:content';
 import type { Icon } from '@/data/schema';
 
+/**
+ * Tags emitted by the codegen pipeline that identify the upstream
+ * FOSS pack a variant came from. Used to derive `sourcePacks` on
+ * each term for the IconsBrowser source-facet chips.
+ */
+const KNOWN_PACK_TAGS = new Set([
+	'lucide',
+	'simple-icons',
+	'phosphor',
+	'tabler',
+	'game-icons',
+	'gamedev',
+	'heroicons',
+	'octicons',
+	'iconoir',
+	'carbon',
+	'material-symbols',
+	'fluent',
+	'mdi',
+	'akar-icons',
+	'radix-icons',
+	'lucide-lab',
+	'solar',
+	'mingcute',
+	'devicon',
+	'logos',
+]);
+
 export interface TermSummary {
 	ref: string;
 	slug: string;
@@ -25,6 +53,14 @@ export interface TermSummary {
 	previewSvg?: string;
 	featured?: boolean;
 	order?: number;
+	/** Distinct upstream pack identifiers (lucide / phosphor / etc). */
+	sourcePacks: string[];
+	/** True when the merger consolidated 2+ pack variants. */
+	multiSource: boolean;
+	/** True when any variant carries a CC BY-style attribution clause. */
+	attributionRequired: boolean;
+	/** Extra search-only tokens from frontmatter `search.keywords`. */
+	keywords: string[];
 }
 
 /**
@@ -43,17 +79,44 @@ export function toTermSummary(
 		icons?: Icon[];
 		featured?: boolean;
 		order?: number;
+		default_license?: { attribution_required?: boolean } & Record<
+			string,
+			unknown
+		>;
+		search?: { keywords?: string[] } & Record<string, unknown>;
 	};
 
 	if (!data.ref || !data.icons || data.icons.length === 0) return undefined;
 
 	const icons = data.icons;
 	const styles = unique(
-		icons.map((v) => v.style).filter(Boolean) as string[],
+		icons.map((v: Icon) => v.style).filter(Boolean) as string[],
 	);
-	const themes = unique(icons.flatMap((v) => v.themes ?? []));
-	const variantTags = unique(icons.flatMap((v) => v.tags ?? []));
-	const preview = icons.find((v) => !v.drafted && v.svg_body)?.svg_body;
+	const themes = unique(icons.flatMap((v: Icon) => v.themes ?? []));
+	const variantTags = unique(icons.flatMap((v: Icon) => v.tags ?? []));
+	const preview = icons.find((v: Icon) => !v.drafted && v.svg_body)?.svg_body;
+
+	const allTags = [
+		...(data.tags ?? []),
+		...icons.flatMap((v: Icon) => v.tags ?? []),
+	];
+	const sourcePacks = unique(
+		allTags.filter(
+			(t): t is string => typeof t === 'string' && KNOWN_PACK_TAGS.has(t),
+		),
+	);
+
+	const multiSource = (data.tags ?? []).includes('merged-multi-source');
+
+	const attributionRequired = Boolean(
+		data.default_license?.attribution_required,
+	);
+
+	const keywords = Array.isArray(data.search?.keywords)
+		? (data.search?.keywords as string[]).filter(
+				(k) => typeof k === 'string',
+			)
+		: [];
 
 	return {
 		ref: data.ref,
@@ -66,6 +129,10 @@ export function toTermSummary(
 		styles,
 		themes,
 		variantTags,
+		sourcePacks,
+		multiSource,
+		attributionRequired,
+		keywords,
 		variantCount: icons.length,
 		previewSvg: preview,
 		featured: data.featured,

@@ -6,8 +6,34 @@ interface Props {
 	categories: string[];
 	styles: string[];
 	themes: string[];
+	sources: string[];
+	/** Synonym map keyed by base ref → list of search aliases. */
+	synonyms: Record<string, string[]>;
 	/** Base path for term detail links (no trailing slash). */
 	basePath?: string;
+}
+
+/**
+ * Walk the synonym map and return every base ref whose alias list
+ * contains the query. Lets a search for "blade" match the term
+ * `sword` when the ledger carries `{ sword: ["blade", ...] }`.
+ */
+function refsMatchingSynonym(
+	q: string,
+	synonyms: Record<string, string[]>,
+): Set<string> {
+	const out = new Set<string>();
+	if (!q) return out;
+	for (const [baseRef, aliases] of Object.entries(synonyms)) {
+		if (baseRef.toLowerCase().includes(q)) out.add(baseRef);
+		for (const a of aliases) {
+			if (a.toLowerCase().includes(q)) {
+				out.add(baseRef);
+				break;
+			}
+		}
+	}
+	return out;
 }
 
 export default function IconsBrowser({
@@ -15,21 +41,32 @@ export default function IconsBrowser({
 	categories,
 	styles,
 	themes,
+	sources,
+	synonyms,
 	basePath = '/icons',
 }: Props) {
 	const [query, setQuery] = useState('');
 	const [activeCategory, setActiveCategory] = useState<string | null>(null);
 	const [activeStyle, setActiveStyle] = useState<string | null>(null);
 	const [activeTheme, setActiveTheme] = useState<string | null>(null);
+	const [activeSource, setActiveSource] = useState<string | null>(null);
+	const [multiSourceOnly, setMultiSourceOnly] = useState(false);
+	const [attributionOnly, setAttributionOnly] = useState(false);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
+		const synonymHits = refsMatchingSynonym(q, synonyms);
 		return terms.filter((t) => {
 			if (activeCategory && !t.categories.includes(activeCategory))
 				return false;
 			if (activeStyle && !t.styles.includes(activeStyle)) return false;
 			if (activeTheme && !t.themes.includes(activeTheme)) return false;
+			if (activeSource && !t.sourcePacks.includes(activeSource))
+				return false;
+			if (multiSourceOnly && !t.multiSource) return false;
+			if (attributionOnly && !t.attributionRequired) return false;
 			if (!q) return true;
+			if (synonymHits.has(t.ref)) return true;
 			const haystack = [
 				t.ref,
 				t.name,
@@ -38,12 +75,24 @@ export default function IconsBrowser({
 				...t.tags,
 				...t.variantTags,
 				...t.themes,
+				...t.sourcePacks,
+				...t.keywords,
 			]
 				.join(' ')
 				.toLowerCase();
 			return haystack.includes(q);
 		});
-	}, [terms, query, activeCategory, activeStyle, activeTheme]);
+	}, [
+		terms,
+		query,
+		activeCategory,
+		activeStyle,
+		activeTheme,
+		activeSource,
+		multiSourceOnly,
+		attributionOnly,
+		synonyms,
+	]);
 
 	const toggle = <T extends string>(
 		current: T | null,
@@ -89,6 +138,36 @@ export default function IconsBrowser({
 					onToggle={(v) => toggle(activeTheme, v, setActiveTheme)}
 				/>
 			)}
+			{sources.length > 0 && (
+				<ChipRow
+					label="Source"
+					values={sources}
+					active={activeSource}
+					onToggle={(v) => toggle(activeSource, v, setActiveSource)}
+				/>
+			)}
+			<div
+				className="ri-icons-browser__chip-row"
+				role="group"
+				aria-label="Filters">
+				<span className="ri-icons-browser__chip-label">Filters</span>
+				<button
+					type="button"
+					className="ri-icons-browser__chip"
+					data-active={multiSourceOnly ? 'true' : undefined}
+					onClick={() => setMultiSourceOnly((v) => !v)}
+					aria-pressed={multiSourceOnly}>
+					Multi-source only
+				</button>
+				<button
+					type="button"
+					className="ri-icons-browser__chip"
+					data-active={attributionOnly ? 'true' : undefined}
+					onClick={() => setAttributionOnly((v) => !v)}
+					aria-pressed={attributionOnly}>
+					Attribution required (CC BY)
+				</button>
+			</div>
 
 			{filtered.length === 0 ? (
 				<div className="ri-icons-browser__empty">
