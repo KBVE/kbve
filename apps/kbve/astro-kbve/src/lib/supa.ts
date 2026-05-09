@@ -15,8 +15,9 @@ export const SUPABASE_URL = 'https://supabase.kbve.com';
 export const SUPABASE_ANON_KEY =
 	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg';
 
-const INIT_TIMEOUT_MS = 3_000;
-const AUTO_RECOVER_FLAG = 'kbve_supa_auto_recovered';
+const INIT_TIMEOUT_MS = 10_000;
+const AUTO_RECOVER_STAMP = 'kbve_supa_auto_recovered_at';
+const AUTO_RECOVER_COOLDOWN_MS = 60_000;
 
 function ensureClient(): SupabaseGateway {
 	if (typeof window === 'undefined') {
@@ -33,25 +34,27 @@ function ensureClient(): SupabaseGateway {
 	return _gateway;
 }
 
-/**
- * One-shot recovery for the "previous deploy left a stale worker /
- * cached chunk pointing at hashed URLs that no longer exist on the
- * CDN" scenario. We see this most often as a 30s
- * `Worker N request init timed out` from droid's WorkerPool — the
- * page bundle was loaded from cache but its embedded worker URL no
- * longer resolves.
- *
- * Guarded by a sessionStorage flag so a genuinely-broken upstream
- * (Supabase down, network down) can't loop the user.
- */
 async function autoRecoverStaleClient(): Promise<void> {
 	if (typeof window === 'undefined') return;
-	if (sessionStorage.getItem(AUTO_RECOVER_FLAG) === '1') return;
-	sessionStorage.setItem(AUTO_RECOVER_FLAG, '1');
 
-	console.warn(
-		'[Supabase] init timed out — clearing caches + reloading once.',
-	);
+	const now = Date.now();
+	let last = 0;
+	try {
+		const raw = localStorage.getItem(AUTO_RECOVER_STAMP);
+		if (raw) last = Number.parseInt(raw, 10) || 0;
+	} catch {}
+
+	if (now - last < AUTO_RECOVER_COOLDOWN_MS) {
+		console.warn('[Supabase] init timed out, recovery throttled.');
+		return;
+	}
+
+	console.warn('[Supabase] init timed out — clearing caches + reloading.');
+
+	try {
+		localStorage.setItem(AUTO_RECOVER_STAMP, String(now));
+	} catch {}
+
 	try {
 		if ('caches' in window) {
 			const keys = await caches.keys();
@@ -79,7 +82,6 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 		const init = (async () => {
 			await gateway.init(SUPABASE_URL, SUPABASE_ANON_KEY, options);
 			await bootAuth(gateway);
-			await resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
 		})();
 
 		const timeout = new Promise<never>((_, reject) =>
@@ -96,11 +98,7 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 			throw err;
 		}
 
-		if (typeof window !== 'undefined') {
-			try {
-				sessionStorage.removeItem(AUTO_RECOVER_FLAG);
-			} catch {}
-		}
+		void resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
 	})()
 		.then(() => {})
 		.catch((e) => {
