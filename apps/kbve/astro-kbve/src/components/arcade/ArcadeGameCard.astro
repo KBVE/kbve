@@ -24,42 +24,74 @@ const statusLabel: Record<NonNullable<Props['status']>, string> = {
 	beta: 'IN BETA',
 	soon: 'COMING SOON',
 };
-const statusClass = `arcade-card__status arcade-card__status--${status}`;
+const statusClass: Record<NonNullable<Props['status']>, string> = {
+	live: 'border-emerald-500/35 bg-emerald-500/15 text-emerald-300',
+	beta: 'border-amber-400/35 bg-amber-400/15 text-amber-200',
+	soon: 'border-slate-400/35 bg-slate-400/15 text-slate-300',
+};
 const isLink = status !== 'soon';
 const Tag = isLink ? 'a' : 'div';
 ---
 
 <Tag
-	class:list={['arcade-card', `arcade-card--${status}`]}
-	{...isLink ? { href } : {}}>
+	{...isLink ? { href } : {}}
+	class:list={[
+		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-200 ease-[cubic-bezier(0.2,0.7,0.2,1)]',
+		isLink &&
+			'cursor-pointer hover:-translate-y-1 hover:border-pink-500/55 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.55),0_0_0_1px_rgba(236,72,153,0.4)] focus-visible:-translate-y-1 focus-visible:border-pink-500/55',
+		!isLink && 'cursor-default opacity-85',
+	]}>
 	<div
-		class="arcade-card__art"
 		aria-hidden="true"
+		class="relative flex aspect-[16/9] items-center justify-center overflow-hidden after:pointer-events-none after:absolute after:inset-0 after:mix-blend-overlay after:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.18)_0,rgba(0,0,0,0.18)_1px,transparent_1px,transparent_3px)]"
 		style={`background: ${gradient};`}>
-		<div class="arcade-card__art-glyph">{icon}</div>
-		<div class="arcade-card__art-noise"></div>
-	</div>
-	<div class="arcade-card__body">
-		<div class="arcade-card__head">
-			<h3 class="arcade-card__title">{title}</h3>
-			<span class={statusClass}>{statusLabel[status]}</span>
+		<div
+			class="text-[64px] text-white/95 transition-transform duration-200 [text-shadow:0_0_16px_rgba(0,0,0,0.45),0_0_30px_rgba(255,255,255,0.18)] group-hover:scale-110 group-hover:-rotate-2">
+			{icon}
 		</div>
-		<p class="arcade-card__desc">{description}</p>
+		<div
+			class="absolute inset-0 mix-blend-screen bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18)_0%,transparent_50%)]">
+		</div>
+	</div>
+
+	<div class="flex flex-1 flex-col gap-2.5 px-5 pt-4 pb-5">
+		<div class="flex items-center justify-between gap-3">
+			<h3 class="m-0 -tracking-[0.01em] text-xl font-bold text-white">
+				{title}
+			</h3>
+			<span
+				class:list={[
+					'whitespace-nowrap rounded-full border px-2 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em]',
+					statusClass[status],
+				]}>
+				{statusLabel[status]}
+			</span>
+		</div>
+		<p class="m-0 text-[13px] leading-relaxed text-slate-300">
+			{description}
+		</p>
 		{
 			tags.length > 0 && (
-				<ul class="arcade-card__tags">
+				<ul class="m-0 flex list-none flex-wrap gap-1.5 p-0">
 					{tags.map((t) => (
-						<li>{t}</li>
+						<li class="rounded border border-purple-500/25 bg-purple-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-purple-300">
+							{t}
+						</li>
 					))}
 				</ul>
 			)
 		}
-		<div class="arcade-card__cta">
+		<div
+			class="mt-auto flex items-center justify-between pt-1 text-[13px] font-semibold text-fuchsia-300">
 			{
 				isLink ? (
 					<>
 						<span>Play</span>
-						<span aria-hidden="true">→</span>
+						<span
+							aria-hidden="true"
+							class="transition-transform duration-200 group-hover:translate-x-1">
+							→
+						</span>
 					</>
 				) : (
 					<span>On the roadmap</span>
@@ -68,170 +100,3 @@ const Tag = isLink ? 'a' : 'div';
 		</div>
 	</div>
 </Tag>
-
-<style>
-	.arcade-card {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		text-decoration: none;
-		color: inherit;
-		border-radius: 14px;
-		overflow: hidden;
-		background: rgba(15, 23, 42, 0.7);
-		border: 1px solid rgba(168, 85, 247, 0.25);
-		transition:
-			transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1),
-			border-color 220ms ease,
-			box-shadow 220ms ease;
-		isolation: isolate;
-	}
-	.arcade-card:hover,
-	.arcade-card:focus-visible {
-		transform: translateY(-4px);
-		border-color: rgba(236, 72, 153, 0.55);
-		box-shadow:
-			0 18px 36px -16px rgba(0, 0, 0, 0.55),
-			0 0 0 1px rgba(236, 72, 153, 0.4);
-	}
-	.arcade-card--soon {
-		opacity: 0.85;
-		cursor: default;
-	}
-	.arcade-card--soon:hover {
-		transform: none;
-	}
-
-	.arcade-card__art {
-		position: relative;
-		aspect-ratio: 16 / 9;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		overflow: hidden;
-	}
-	.arcade-card__art::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: repeating-linear-gradient(
-			to bottom,
-			rgba(0, 0, 0, 0.18) 0,
-			rgba(0, 0, 0, 0.18) 1px,
-			transparent 1px,
-			transparent 3px
-		);
-		pointer-events: none;
-		mix-blend-mode: overlay;
-	}
-	.arcade-card__art-glyph {
-		font-size: 64px;
-		color: rgba(255, 255, 255, 0.92);
-		text-shadow:
-			0 0 16px rgba(0, 0, 0, 0.45),
-			0 0 30px rgba(255, 255, 255, 0.18);
-		transition: transform 220ms ease;
-	}
-	.arcade-card:hover .arcade-card__art-glyph {
-		transform: scale(1.08) rotate(-2deg);
-	}
-	.arcade-card__art-noise {
-		position: absolute;
-		inset: 0;
-		background-image: radial-gradient(
-			circle at 30% 20%,
-			rgba(255, 255, 255, 0.18) 0%,
-			transparent 50%
-		);
-		mix-blend-mode: screen;
-	}
-
-	.arcade-card__body {
-		padding: 18px 20px 20px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		flex: 1 1 auto;
-	}
-	.arcade-card__head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-	}
-	.arcade-card__title {
-		font-size: 20px;
-		font-weight: 700;
-		margin: 0;
-		color: #fff;
-		letter-spacing: -0.01em;
-	}
-	.arcade-card__status {
-		font-family: 'JetBrains Mono', ui-monospace, monospace;
-		font-size: 9.5px;
-		font-weight: 700;
-		letter-spacing: 0.14em;
-		padding: 4px 8px;
-		border-radius: 999px;
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-	.arcade-card__status--live {
-		background: rgba(34, 197, 94, 0.16);
-		color: #86efac;
-		border: 1px solid rgba(34, 197, 94, 0.35);
-	}
-	.arcade-card__status--beta {
-		background: rgba(251, 191, 36, 0.16);
-		color: #fde68a;
-		border: 1px solid rgba(251, 191, 36, 0.35);
-	}
-	.arcade-card__status--soon {
-		background: rgba(148, 163, 184, 0.18);
-		color: #cbd5e1;
-		border: 1px solid rgba(148, 163, 184, 0.35);
-	}
-
-	.arcade-card__desc {
-		font-size: 13px;
-		line-height: 1.5;
-		color: #cbd5e1;
-		margin: 0;
-	}
-	.arcade-card__tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.arcade-card__tags li {
-		font-family: 'JetBrains Mono', ui-monospace, monospace;
-		font-size: 10px;
-		font-weight: 600;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		padding: 3px 8px;
-		border-radius: 4px;
-		background: rgba(168, 85, 247, 0.15);
-		color: #d8b4fe;
-		border: 1px solid rgba(168, 85, 247, 0.25);
-	}
-	.arcade-card__cta {
-		margin-top: auto;
-		padding-top: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		font-size: 13px;
-		font-weight: 600;
-		color: #f0abfc;
-	}
-	.arcade-card__cta > span:last-child {
-		transition: transform 220ms ease;
-	}
-	.arcade-card:hover .arcade-card__cta > span:last-child {
-		transform: translateX(4px);
-	}
-</style>
