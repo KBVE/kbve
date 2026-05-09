@@ -76,7 +76,6 @@ mod wasm_threads {
         }
         release_lock();
 
-        // Bump the notify counter and wake one waiting worker.
         SHARED.notify.fetch_add(1, Ordering::Release);
         unsafe {
             core::arch::wasm32::memory_atomic_notify(SHARED.notify.as_ptr(), 1);
@@ -98,13 +97,11 @@ mod wasm_threads {
     pub fn worker_entry_point() {
         SHARED.worker_count.fetch_add(1, Ordering::Relaxed);
 
-        // Start the poll loop.
         poll_shared_queue();
     }
 
     /// Poll the shared queue for work items and set up async wait for more.
     fn poll_shared_queue() {
-        // Drain all available work.
         while let Some(runnable) = pop_work() {
             runnable.run();
         }
@@ -118,7 +115,6 @@ mod wasm_threads {
         let result = atomics_wait_async(&array, index, current);
 
         if wait_result_async(&result) {
-            // Not yet notified — set up continuation.
             let continuation = Closure::new(move |_: JsValue| {
                 poll_shared_queue();
             });
@@ -167,7 +163,6 @@ mod wasm_threads {
 #[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
 pub(crate) use wasm_threads::push_work;
 
-// Re-export worker_entry_point so it's accessible from the crate root.
 #[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]
 pub use wasm_threads::worker_count;
 #[cfg(all(target_arch = "wasm32", target_feature = "atomics"))]

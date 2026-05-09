@@ -53,7 +53,6 @@ pub mod plugin;
 pub mod store;
 pub mod take;
 
-// Re-exports — persistent snapshots
 #[cfg(feature = "serde")]
 pub use store::get_snapshot;
 #[cfg(feature = "bincode")]
@@ -62,21 +61,14 @@ pub use store::get_snapshot_binary;
 pub use store::get_snapshot_json;
 pub use store::{clear_snapshot, snapshot_version};
 
-// Re-exports — take-once snapshots
 pub use take::clear_take_snapshot;
 #[cfg(feature = "serde")]
 pub use take::{peek_take_snapshot, take_snapshot, write_take_snapshot};
 
-// Re-exports — plugins and config
 pub use config::{SnapshotConfig, SnapshotSchedule};
 pub use plugin::{StateSnapshotPlugin, TakeSnapshotPlugin};
 
-// Re-exports — FSM bridge
 pub use bridge::{FsmSnapshot, ScopedSnapshotPlugin, StateBridgePlugin, StateTransitionRecord};
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 #[cfg(feature = "serde")]
@@ -84,12 +76,8 @@ mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
 
-    // -----------------------------------------------------------------------
     // Each test uses a unique type to avoid cross-test interference in the
     // global store (tests run in parallel within the same process).
-    // -----------------------------------------------------------------------
-
-    // === Persistent store: basic read/write ================================
 
     #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
     struct TestState {
@@ -126,8 +114,6 @@ mod tests {
         let json_str = get_snapshot_json::<JsonTestState>().unwrap();
         assert!(json_str.contains("99"));
     }
-
-    // === Persistent store: overwrite semantics =============================
 
     #[test]
     fn overwrite_replaces_previous_value() {
@@ -176,8 +162,6 @@ mod tests {
         clear_snapshot::<ReadTwice>();
     }
 
-    // === Persistent store: empty / missing reads ===========================
-
     #[test]
     fn read_unwritten_type_returns_none() {
         #[derive(Serialize, Deserialize)]
@@ -203,9 +187,7 @@ mod tests {
             None,
         );
 
-        // JSON was None, so deserialized read should also be None.
         assert!(get_snapshot::<NoneJsonState>().is_none());
-        // But version still incremented.
         assert!(snapshot_version::<NoneJsonState>() > 0);
 
         clear_snapshot::<NoneJsonState>();
@@ -225,16 +207,12 @@ mod tests {
             None,
         );
 
-        // Deserialization should fail gracefully.
         assert!(get_snapshot::<BadJsonState>().is_none());
-        // Raw JSON string is still accessible.
         let raw = get_snapshot_json::<BadJsonState>().unwrap();
         assert!(raw.contains("not valid json"));
 
         clear_snapshot::<BadJsonState>();
     }
-
-    // === Persistent store: versioning ======================================
 
     #[test]
     fn snapshot_version_increments() {
@@ -286,8 +264,6 @@ mod tests {
         assert_eq!(snapshot_version::<VersionResetState>(), 0);
     }
 
-    // === Persistent store: clear ==========================================
-
     #[test]
     fn clear_snapshot_removes_entry() {
         #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
@@ -314,7 +290,6 @@ mod tests {
             phantom: bool,
         }
 
-        // Should not panic.
         clear_snapshot::<NeverExisted>();
         assert_eq!(snapshot_version::<NeverExisted>(), 0);
     }
@@ -337,8 +312,6 @@ mod tests {
         clear_snapshot::<DoubleClearState>(); // second clear should not panic
         assert_eq!(snapshot_version::<DoubleClearState>(), 0);
     }
-
-    // === Persistent store: type isolation =================================
 
     #[test]
     fn different_types_are_isolated() {
@@ -370,15 +343,12 @@ mod tests {
         assert_eq!(a.a, 10);
         assert_eq!(b.b, "hello");
 
-        // Clearing one does not affect the other.
         clear_snapshot::<TypeA>();
         assert!(get_snapshot::<TypeA>().is_none());
         assert!(get_snapshot::<TypeB>().is_some());
 
         clear_snapshot::<TypeB>();
     }
-
-    // === Persistent store: complex types ==================================
 
     #[test]
     fn nested_struct_roundtrip() {
@@ -464,8 +434,6 @@ mod tests {
         clear_snapshot::<EmptyState>();
     }
 
-    // === Take-once store: basic operations ================================
-
     #[test]
     fn take_snapshot_clears() {
         #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -505,11 +473,8 @@ mod tests {
         let taken: OverwriteEvent = take_snapshot().unwrap();
         assert_eq!(taken.seq, 3);
 
-        // Consumed — gone now.
         assert!(take_snapshot::<OverwriteEvent>().is_none());
     }
-
-    // === Take-once store: peek ===========================================
 
     #[test]
     fn peek_does_not_clear() {
@@ -523,11 +488,9 @@ mod tests {
         let peeked: Option<PeekEvent> = peek_take_snapshot();
         assert_eq!(peeked.unwrap().id, 3);
 
-        // Should still be there after peek.
         let taken: Option<PeekEvent> = take_snapshot();
         assert_eq!(taken.unwrap().id, 3);
 
-        // Now should be gone.
         let gone: Option<PeekEvent> = take_snapshot::<PeekEvent>();
         assert!(gone.is_none());
     }
@@ -558,11 +521,8 @@ mod tests {
             assert_eq!(p.val, "stable");
         }
 
-        // Clean up.
         let _: Option<MultiPeek> = take_snapshot();
     }
-
-    // === Take-once store: clear ==========================================
 
     #[test]
     fn clear_take_snapshot_removes() {
@@ -584,11 +544,8 @@ mod tests {
             q: u8,
         }
 
-        // Should not panic.
         clear_take_snapshot::<NeverWrittenClear>();
     }
-
-    // === Take-once store: type isolation =================================
 
     #[test]
     fn take_types_are_isolated() {
@@ -605,15 +562,12 @@ mod tests {
         write_take_snapshot(&EventA { a: 42 });
         write_take_snapshot(&EventB { b: "hi".into() });
 
-        // Taking one doesn't affect the other.
         let a: EventA = take_snapshot().unwrap();
         assert_eq!(a.a, 42);
 
         let b: EventB = take_snapshot().unwrap();
         assert_eq!(b.b, "hi");
     }
-
-    // === Take-once store: complex types ==================================
 
     #[test]
     fn take_with_vec_roundtrip() {
@@ -638,7 +592,6 @@ mod tests {
             optional: Option<String>,
         }
 
-        // With Some
         write_take_snapshot(&OptionalEvent {
             required: 1,
             optional: Some("present".into()),
@@ -646,7 +599,6 @@ mod tests {
         let t: OptionalEvent = take_snapshot().unwrap();
         assert_eq!(t.optional, Some("present".into()));
 
-        // With None
         write_take_snapshot(&OptionalEvent {
             required: 2,
             optional: None,
@@ -654,8 +606,6 @@ mod tests {
         let t: OptionalEvent = take_snapshot().unwrap();
         assert_eq!(t.optional, None);
     }
-
-    // === Config tests =====================================================
 
     #[test]
     fn config_default_is_post_update() {
@@ -712,8 +662,6 @@ mod tests {
         assert_eq!(cloned.schedule, SnapshotSchedule::Last);
     }
 
-    // === Write-after-clear cycle ==========================================
-
     #[test]
     fn write_after_clear_works() {
         #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
@@ -721,7 +669,6 @@ mod tests {
             round: u32,
         }
 
-        // Write → clear → write → read should return second value.
         store::write_snapshot::<CycleState>(
             #[cfg(feature = "serde")]
             Some(serde_json::to_string(&CycleState { round: 1 }).unwrap()),
@@ -757,8 +704,6 @@ mod tests {
         assert_eq!(t.seq, 2);
     }
 
-    // === Large data ======================================================
-
     #[test]
     fn large_string_roundtrip() {
         #[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
@@ -779,8 +724,6 @@ mod tests {
 
         clear_snapshot::<BigState>();
     }
-
-    // === Many rapid writes ===============================================
 
     #[test]
     fn rapid_writes_always_return_latest() {
@@ -805,8 +748,6 @@ mod tests {
         clear_snapshot::<RapidState>();
     }
 
-    // === JSON string content =============================================
-
     #[test]
     fn json_snapshot_is_valid_json() {
         #[derive(Clone, Default, Serialize, Deserialize)]
@@ -829,17 +770,12 @@ mod tests {
         );
 
         let json = get_snapshot_json::<JsonValidState>().unwrap();
-        // Should parse as valid JSON.
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed["name"], "test");
 
         clear_snapshot::<JsonValidState>();
     }
 }
-
-// ---------------------------------------------------------------------------
-// FSM bridge integration tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 #[cfg(feature = "serde")]
@@ -849,18 +785,12 @@ mod bridge_tests {
     use bevy::state::app::StatesPlugin;
     use serde::{Deserialize, Serialize};
 
-    // Unique state enums per test to avoid global store interference.
-
-    // === Helper: build a minimal Bevy app with state support ===============
-
     fn test_app() -> App {
         let mut app = App::new();
         app.add_plugins(MinimalPlugins);
         app.add_plugins(StatesPlugin);
         app
     }
-
-    // === StateBridgePlugin tests ==========================================
 
     #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
     enum InitState {
@@ -901,7 +831,6 @@ mod bridge_tests {
         let snap: FsmSnapshot<TransState> = get_snapshot().unwrap();
         assert_eq!(snap.current, TransState::Menu);
 
-        // Transition to InGame.
         app.world_mut()
             .resource_mut::<NextState<TransState>>()
             .set(TransState::InGame);
@@ -928,14 +857,12 @@ mod bridge_tests {
 
         app.update();
 
-        // Consume the initial transition record (None -> A).
         let init_record: Option<StateTransitionRecord<RecordState>> = take_snapshot();
         assert!(init_record.is_some());
         let init_record = init_record.unwrap();
         assert_eq!(init_record.exited, None);
         assert_eq!(init_record.entered, Some(RecordState::A));
 
-        // Transition A -> B.
         app.world_mut()
             .resource_mut::<NextState<RecordState>>()
             .set(RecordState::B);
@@ -963,10 +890,8 @@ mod bridge_tests {
 
         app.update();
 
-        // First take consumes the record.
         let _: Option<StateTransitionRecord<TakeOnceState>> = take_snapshot();
 
-        // Second take returns None.
         let second: Option<StateTransitionRecord<TakeOnceState>> = take_snapshot();
         assert!(second.is_none());
 
@@ -1023,8 +948,6 @@ mod bridge_tests {
         clear_snapshot::<FsmSnapshot<JsonState>>();
     }
 
-    // === ScopedSnapshotPlugin tests =======================================
-
     #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
     enum ScopedState {
         #[default]
@@ -1046,18 +969,14 @@ mod bridge_tests {
             ScopedState::Match,
         ));
 
-        // In Lobby — scoped snapshot should NOT be written.
         app.update();
         assert!(get_snapshot::<MatchData>().is_none());
 
-        // Transition to Match.
         app.world_mut()
             .resource_mut::<NextState<ScopedState>>()
             .set(ScopedState::Match);
         app.update();
 
-        // Now in Match — resource changed (first time in state), snapshot should exist.
-        // Force a change detection by mutating the resource.
         app.world_mut().resource_mut::<MatchData>().score = 42;
         app.update();
 
@@ -1088,14 +1007,12 @@ mod bridge_tests {
             ScopedSnapshotPlugin::<ScopedExitState, ScopedResource>::new(ScopedExitState::Active),
         );
 
-        // Start in Active — force resource mutation so snapshot writes.
         app.update();
         app.world_mut().resource_mut::<ScopedResource>().val = 99;
         app.update();
 
         assert!(get_snapshot::<ScopedResource>().is_some());
 
-        // Transition to Inactive — snapshot should be cleared.
         app.world_mut()
             .resource_mut::<NextState<ScopedExitState>>()
             .set(ScopedExitState::Inactive);
@@ -1104,8 +1021,6 @@ mod bridge_tests {
         assert!(get_snapshot::<ScopedResource>().is_none());
         assert_eq!(snapshot_version::<ScopedResource>(), 0);
     }
-
-    // === Batch versions macro =============================================
 
     #[test]
     fn batch_versions_macro_works() {
@@ -1142,8 +1057,6 @@ mod bridge_tests {
         clear_snapshot::<BatchB>();
     }
 
-    // === Multiple FSM bridges =============================================
-
     #[derive(States, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
     enum IsoA {
         #[default]
@@ -1173,7 +1086,6 @@ mod bridge_tests {
         assert_eq!(a.current, IsoA::One);
         assert_eq!(b.current, IsoB::Red);
 
-        // Transition only A.
         app.world_mut()
             .resource_mut::<NextState<IsoA>>()
             .set(IsoA::Two);

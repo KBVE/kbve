@@ -30,10 +30,7 @@
 mod proto;
 mod registry;
 
-// Re-export all proto-generated map types
 pub use proto::map::*;
-
-// Re-export registry types
 pub use registry::{MapDb, ProtoMapId};
 
 use bevy::prelude::*;

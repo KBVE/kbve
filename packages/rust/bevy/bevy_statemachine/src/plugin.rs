@@ -7,10 +7,6 @@ use bevy::prelude::*;
 use crate::config::{SnapshotConfig, SnapshotSchedule};
 use crate::store;
 
-// ---------------------------------------------------------------------------
-// Helper macro: register a system on a configurable schedule
-// ---------------------------------------------------------------------------
-
 macro_rules! add_to_schedule {
     ($app:expr, $schedule:expr, $sys:expr) => {
         match $schedule {
@@ -21,10 +17,6 @@ macro_rules! add_to_schedule {
         }
     };
 }
-
-// ---------------------------------------------------------------------------
-// StateSnapshotPlugin — persistent, read-many snapshots
-// ---------------------------------------------------------------------------
 
 /// Bevy plugin that automatically snapshots a resource `T` whenever it changes.
 ///
@@ -110,10 +102,6 @@ fn snapshot_system<T: Resource + Clone + serde::Serialize + 'static>(resource: R
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// TakeSnapshotPlugin — one-shot, read-and-clear snapshots
-// ---------------------------------------------------------------------------
 
 /// Bevy plugin that writes a resource `T` to the take-once store whenever it changes.
 ///
