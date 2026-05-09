@@ -855,6 +855,18 @@ pub struct SessionState {
     /// Active dialogue conversation (if player is talking to an NPC).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active_dialogue: Option<ActiveDialogue>,
+    /// Enemy groups that survived a fled combat and are tracking the party.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pursuers: Vec<PursuitGroup>,
+}
+
+/// Enemy group pursuing the party after a successful flee.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct PursuitGroup {
+    pub source_pos: MapPos,
+    pub origin_name: String,
+    pub hops_remaining: u8,
+    pub enemies: Vec<EnemyState>,
 }
 
 impl SessionState {
@@ -1073,6 +1085,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         };
         let roster = session.roster();
         assert_eq!(roster.len(), 2);
@@ -1163,6 +1177,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         };
 
         assert!(session.has_enemies());
@@ -1337,6 +1353,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         };
         assert!(!session.show_inventory);
     }
@@ -1401,6 +1419,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         };
 
         let json = serde_json::to_string(&session).unwrap();

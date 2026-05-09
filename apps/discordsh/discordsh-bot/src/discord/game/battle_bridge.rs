@@ -1109,6 +1109,8 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+
+            pursuers: Vec::new(),
         }
     }
 
