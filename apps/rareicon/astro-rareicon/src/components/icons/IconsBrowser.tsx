@@ -137,6 +137,7 @@ export default function IconsBrowser({
 				values={categories}
 				active={activeCategory}
 				onToggle={(v) => toggle(activeCategory, v, setActiveCategory)}
+				linkBase="/icons/category"
 			/>
 			<ChipRow
 				label="Style"
@@ -270,10 +271,25 @@ interface ChipRowProps {
 	values: string[];
 	active: string | null;
 	onToggle: (value: string) => void;
+	linkBase?: string;
 }
 
-function ChipRow({ label, values, active, onToggle }: ChipRowProps) {
+function ChipRow({ label, values, active, onToggle, linkBase }: ChipRowProps) {
 	if (values.length === 0) return null;
+
+	const handleChipClick = (e: React.MouseEvent, value: string) => {
+		if (
+			linkBase &&
+			(e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)
+		) {
+			return;
+		}
+		if (!linkBase) {
+			e.preventDefault();
+			onToggle(value);
+		}
+	};
+
 	return (
 		<div
 			className="ri-icons-browser__chip-row"
@@ -282,6 +298,19 @@ function ChipRow({ label, values, active, onToggle }: ChipRowProps) {
 			<span className="ri-icons-browser__chip-label">{label}</span>
 			{values.map((v) => {
 				const isActive = active === v;
+				if (linkBase) {
+					return (
+						<a
+							key={v}
+							href={`${linkBase}/${v}/`}
+							className="ri-icons-browser__chip"
+							data-active={isActive ? 'true' : undefined}
+							onClick={(e) => handleChipClick(e, v)}
+							onAuxClick={(e) => handleChipClick(e, v)}>
+							{v}
+						</a>
+					);
+				}
 				return (
 					<button
 						key={v}
