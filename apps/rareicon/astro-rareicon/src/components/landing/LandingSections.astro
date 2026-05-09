@@ -1,0 +1,469 @@
+---
+/**
+ * Landing-page content stack rendered below RareHero on /. Sections in
+ * order: Features → Tech Stack (dogfoods catalog glyphs) → Community
+ * Channels → Press CTA → Steam Wishlist embed.
+ *
+ * Self-contained — no per-section component files for now since the
+ * landing is one page and the markup is small. Refactor to per-section
+ * files when the catalog grows beyond ~5 sections.
+ */
+import { getEntry } from 'astro:content';
+
+/**
+ * Pull a catalog term's first variant SVG body for inline rendering.
+ * Used by the Tech Stack section to show real catalog glyphs alongside
+ * the term name + variant count — eats the catalog's own dogfood.
+ */
+async function loadGlyph(ref: string): Promise<string | undefined> {
+	try {
+		const entry = await getEntry('docs', `icons/${ref}`);
+		const data = entry?.data as { icons?: { svg_body?: string }[] };
+		return data?.icons?.find((i) => i.svg_body)?.svg_body;
+	} catch {
+		return undefined;
+	}
+}
+
+const techStack: { ref: string; name: string; role: string; glyph?: string }[] =
+	[
+		{ ref: 'rust', name: 'Rust', role: 'Sim engine + worker threads' },
+		{ ref: 'unity', name: 'Unity', role: 'DOTS / ECS gameplay' },
+		{ ref: 'godot', name: 'Godot', role: 'Tooling + prototypes' },
+		{ ref: 'python', name: 'Python', role: 'Data pipelines + codegen' },
+		{ ref: 'typescript', name: 'TypeScript', role: 'Web + tooling' },
+		{ ref: 'astro', name: 'Astro', role: 'Catalog + landing site' },
+		{ ref: 'docker', name: 'Docker', role: 'Build + deploy' },
+		{ ref: 'kubernetes', name: 'Kubernetes', role: 'Infra + runners' },
+	];
+
+for (const item of techStack) {
+	item.glyph = await loadGlyph(item.ref);
+}
+
+const features = [
+	{
+		title: 'Bullet-hell first',
+		desc: 'Hundreds of enemies, no framerate excuses. Built on Unity DOTS/ECS for stable 60 FPS at high entity counts.',
+		emoji: '🎯',
+	},
+	{
+		title: 'Run + return',
+		desc: "Each sortie funnels resources back into a persistent kingdom. Death isn't a reset — it's a checkpoint.",
+		emoji: '🏰',
+	},
+	{
+		title: 'Multi-role units',
+		desc: 'Every unit can builder / gather / fight / scout. Specialization is a priority weight, not a class lock-in.',
+		emoji: '⚙',
+	},
+	{
+		title: 'Hex-grid world',
+		desc: 'Sheltered livestock, hive bees, pond fish collapse into host-tile counts. World keeps scaling.',
+		emoji: '⬡',
+	},
+	{
+		title: 'Recursive abilities',
+		desc: 'Stolen icons stack. The build that broke the last run might break the next one harder.',
+		emoji: '🌀',
+	},
+	{
+		title: 'Open-source ecosystem',
+		desc: 'Built in the open at github.com/kbve/kbve. Issues / PRs / discussions all public.',
+		emoji: '⌥',
+	},
+];
+---
+
+<section class="ri-landing__features" aria-label="Features">
+	<header class="ri-landing__section-head">
+		<span class="ri-landing__section-eyebrow">What you ship</span>
+		<h2 class="ri-landing__section-title">
+			Six systems that loop into each other
+		</h2>
+		<p class="ri-landing__section-lede">
+			Bullet-hell combat funnels into kingdom-building, kingdom upgrades
+			unlock new run options, runs feed the next sortie's loadout. Every
+			system is a knob other systems can pull on.
+		</p>
+	</header>
+	<ul class="ri-landing__feature-grid">
+		{
+			features.map((f) => (
+				<li class="ri-landing__feature-card">
+					<span class="ri-landing__feature-emoji" aria-hidden="true">
+						{f.emoji}
+					</span>
+					<h3 class="ri-landing__feature-title">{f.title}</h3>
+					<p class="ri-landing__feature-desc">{f.desc}</p>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<section class="ri-landing__stack" aria-label="Built with">
+	<header class="ri-landing__section-head">
+		<span class="ri-landing__section-eyebrow">Built with</span>
+		<h2 class="ri-landing__section-title">
+			Open-source stack, top to bottom
+		</h2>
+		<p class="ri-landing__section-lede">
+			Glyphs below are pulled live from the RareIcon catalog — every brand
+			mark is one merge away from your next React component. Browse the
+			full set at <a href="/icons/">/icons/</a>.
+		</p>
+	</header>
+	<ul class="ri-landing__stack-grid">
+		{
+			techStack.map((t) => (
+				<li class="ri-landing__stack-card">
+					<a
+						href={`/icons/${t.ref}/`}
+						class="ri-landing__stack-link"
+						aria-label={`Open ${t.name} in the catalog`}>
+						<span
+							class="ri-landing__stack-glyph"
+							set:html={t.glyph ?? ''}
+						/>
+						<span class="ri-landing__stack-meta">
+							<span class="ri-landing__stack-name">{t.name}</span>
+							<span class="ri-landing__stack-role">{t.role}</span>
+						</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<section class="ri-landing__community" aria-label="Community channels">
+	<header class="ri-landing__section-head">
+		<span class="ri-landing__section-eyebrow">Pull up</span>
+		<h2 class="ri-landing__section-title">
+			Hang out where the work happens
+		</h2>
+		<p class="ri-landing__section-lede">
+			Live coding Saturdays, devlog drops on YouTube, patch chatter on
+			Discord, source on GitHub.
+		</p>
+	</header>
+	<ul class="ri-landing__community-grid">
+		<li class="ri-landing__community-card" data-platform="discord">
+			<a
+				href="https://kbve.com/discord/?utm_source=rareicon&utm_medium=landing&utm_campaign=community"
+				target="_blank"
+				rel="noopener noreferrer">
+				<strong>Discord</strong>
+				<span>Patch chatter, ally recruitment, dev streams.</span>
+			</a>
+		</li>
+		<li class="ri-landing__community-card" data-platform="github">
+			<a
+				href="https://kbve.com/github/?utm_source=rareicon&utm_medium=landing&utm_campaign=community"
+				target="_blank"
+				rel="noopener noreferrer">
+				<strong>GitHub</strong>
+				<span>Open-source monorepo. PRs welcome, issues triaged.</span>
+			</a>
+		</li>
+		<li class="ri-landing__community-card" data-platform="twitch">
+			<a
+				href="https://kbve.com/twitch/?utm_source=rareicon&utm_medium=landing&utm_campaign=community"
+				target="_blank"
+				rel="noopener noreferrer">
+				<strong>Twitch</strong>
+				<span>Saturday-night dev streams + playtests.</span>
+			</a>
+		</li>
+		<li class="ri-landing__community-card" data-platform="youtube">
+			<a
+				href="https://kbve.com/youtube/?utm_source=rareicon&utm_medium=landing&utm_campaign=community"
+				target="_blank"
+				rel="noopener noreferrer">
+				<strong>YouTube</strong>
+				<span>Devlogs, tutorials, lofi mixes.</span>
+			</a>
+		</li>
+	</ul>
+</section>
+
+<section class="ri-landing__steam" aria-label="Steam wishlist">
+	<header class="ri-landing__section-head">
+		<span class="ri-landing__section-eyebrow">Steam</span>
+		<h2 class="ri-landing__section-title">
+			Wishlist tells Steam the game matters
+		</h2>
+		<p class="ri-landing__section-lede">
+			Click through, hit the button, take thirty seconds. Demo coming
+			soon.
+		</p>
+	</header>
+	<div class="ri-landing__steam-widget">
+		<iframe
+			src="https://store.steampowered.com/widget/2238370/"
+			frameborder="0"
+			width="646"
+			height="190"
+			title="RareIcon on Steam"
+			loading="lazy">
+		</iframe>
+	</div>
+	<a
+		href="https://store.steampowered.com/app/2238370/RareIcon/"
+		class="ri-landing__steam-cta"
+		target="_blank"
+		rel="noopener noreferrer">
+		Wishlist on Steam →
+	</a>
+</section>
+
+<section class="ri-landing__press" aria-label="Press kit">
+	<header class="ri-landing__section-head">
+		<span class="ri-landing__section-eyebrow">Press</span>
+		<h2 class="ri-landing__section-title">Covering RareIcon?</h2>
+		<p class="ri-landing__section-lede">
+			Fact sheet, key art, screenshots, brand assets, and contact channels
+			in one place. <a href="/press/">Open the press kit →</a>
+		</p>
+	</header>
+</section>
+
+<style is:global>
+	.ri-landing__features,
+	.ri-landing__stack,
+	.ri-landing__community,
+	.ri-landing__steam,
+	.ri-landing__press {
+		max-width: 72rem;
+		margin: 4rem auto;
+		padding: 0 1.5rem;
+	}
+
+	.ri-landing__section-head {
+		text-align: center;
+		max-width: 40rem;
+		margin: 0 auto 2rem;
+	}
+
+	.ri-landing__section-eyebrow {
+		display: inline-block;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--ri-accent, #d4a73c);
+		margin-bottom: 0.5rem;
+	}
+
+	.ri-landing__section-title {
+		font-size: clamp(1.5rem, 3vw, 2.25rem);
+		line-height: 1.15;
+		margin: 0;
+		color: var(--ri-text-primary, #e8dcc8);
+	}
+
+	.ri-landing__section-lede {
+		margin: 0.75rem 0 0;
+		color: var(--ri-text-secondary, #9e9480);
+		font-size: 1rem;
+		line-height: 1.55;
+	}
+
+	.ri-landing__section-lede a {
+		color: var(--ri-accent, #d4a73c);
+		text-decoration: none;
+		border-bottom: 1px solid
+			color-mix(in srgb, var(--ri-accent, #d4a73c) 30%, transparent);
+	}
+
+	/* Features */
+	.ri-landing__feature-grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 1rem;
+	}
+
+	.ri-landing__feature-card {
+		padding: 1.5rem;
+		border-radius: 12px;
+		background: var(--ri-bg-panel, #15131c);
+		border: 1px solid var(--ri-border, #2a2a33);
+		transition:
+			border-color 200ms ease,
+			transform 200ms ease;
+	}
+
+	.ri-landing__feature-card:hover {
+		border-color: var(--ri-accent, #d4a73c);
+		transform: translateY(-2px);
+	}
+
+	.ri-landing__feature-emoji {
+		font-size: 1.75rem;
+		display: block;
+		margin-bottom: 0.5rem;
+	}
+
+	.ri-landing__feature-title {
+		font-size: 1rem;
+		font-weight: 700;
+		margin: 0 0 0.4rem;
+		color: var(--ri-text-primary, #e8dcc8);
+	}
+
+	.ri-landing__feature-desc {
+		margin: 0;
+		font-size: 0.875rem;
+		color: var(--ri-text-secondary, #9e9480);
+		line-height: 1.55;
+	}
+
+	/* Stack */
+	.ri-landing__stack-grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.ri-landing__stack-card {
+		margin: 0;
+	}
+
+	.ri-landing__stack-link {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0.85rem 1rem;
+		border-radius: 10px;
+		background: var(--ri-bg-panel, #15131c);
+		border: 1px solid var(--ri-border, #2a2a33);
+		text-decoration: none;
+		color: var(--ri-text-primary, #e8dcc8);
+		transition:
+			border-color 200ms ease,
+			transform 200ms ease;
+	}
+
+	.ri-landing__stack-link:hover {
+		border-color: var(--ri-accent, #d4a73c);
+		transform: translateY(-2px);
+	}
+
+	.ri-landing__stack-glyph svg {
+		width: 28px;
+		height: 28px;
+		display: block;
+	}
+
+	.ri-landing__stack-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	.ri-landing__stack-name {
+		font-weight: 600;
+		font-size: 0.9375rem;
+	}
+
+	.ri-landing__stack-role {
+		font-size: 0.75rem;
+		color: var(--ri-text-secondary, #9e9480);
+	}
+
+	/* Community */
+	.ri-landing__community-grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+	}
+
+	.ri-landing__community-card {
+		margin: 0;
+	}
+
+	.ri-landing__community-card a {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 1.25rem;
+		border-radius: 12px;
+		background: var(--ri-bg-panel, #15131c);
+		border: 1px solid var(--ri-border, #2a2a33);
+		text-decoration: none;
+		color: var(--ri-text-primary, #e8dcc8);
+		transition:
+			border-color 200ms ease,
+			transform 200ms ease;
+	}
+
+	.ri-landing__community-card a:hover {
+		border-color: var(--ri-accent, #d4a73c);
+		transform: translateY(-2px);
+	}
+
+	.ri-landing__community-card strong {
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
+	.ri-landing__community-card span {
+		font-size: 0.8125rem;
+		color: var(--ri-text-secondary, #9e9480);
+		line-height: 1.5;
+	}
+
+	.ri-landing__community-card[data-platform='discord'] a:hover {
+		border-color: #5865f2;
+	}
+	.ri-landing__community-card[data-platform='github'] a:hover {
+		border-color: #6e5494;
+	}
+	.ri-landing__community-card[data-platform='twitch'] a:hover {
+		border-color: #9146ff;
+	}
+	.ri-landing__community-card[data-platform='youtube'] a:hover {
+		border-color: #ff0000;
+	}
+
+	/* Steam */
+	.ri-landing__steam-widget {
+		display: flex;
+		justify-content: center;
+		margin: 1rem 0;
+	}
+
+	.ri-landing__steam-widget iframe {
+		max-width: 100%;
+		border-radius: 8px;
+	}
+
+	.ri-landing__steam-cta {
+		display: block;
+		margin: 1.5rem auto 0;
+		max-width: 24rem;
+		padding: 0.85rem 1.5rem;
+		border-radius: 8px;
+		background: #1b2838;
+		color: #fff;
+		font-weight: 700;
+		text-align: center;
+		text-decoration: none;
+		border: 1px solid #66c0f4;
+		transition: transform 200ms ease;
+	}
+
+	.ri-landing__steam-cta:hover {
+		transform: translateY(-2px);
+	}
+</style>
