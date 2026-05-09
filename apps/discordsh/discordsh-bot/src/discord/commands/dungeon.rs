@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-use std::time::Instant;
-
 use poise::serenity_prelude as serenity;
 
 use kbve::MemberStatus;
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::game::{self, card, content, pathfinding, persistence, render, types::*};
+use crate::discord::components::class_picker;
+use crate::discord::game::{card, content, launch, pathfinding, persistence, render, types::*};
 
 /// Dungeon crawler game — stress-test embeds, buttons, and select menus.
 #[poise::command(
@@ -17,18 +15,15 @@ pub async fn dungeon(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Start a new dungeon session.
+/// Start a Party-mode dungeon session. First-time players pick a class.
 #[poise::command(slash_command)]
-async fn start(
-    ctx: Context<'_>,
-    #[description = "Session mode"] mode: Option<String>,
-    #[description = "Choose your class (warrior/rogue/cleric)"] class: Option<String>,
-) -> Result<(), Error> {
+async fn start(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id;
     let channel = ctx.channel_id();
+    let app = &ctx.data().app;
 
-    // Check for existing session in this channel
-    if let Some(existing) = ctx.data().app.sessions.find_by_channel(channel) {
+    // Bail if a session already exists in this channel.
+    if let Some(existing) = app.sessions.find_by_channel(channel) {
         ctx.send(
             poise::CreateReply::default()
                 .content(format!(
@@ -41,167 +36,74 @@ async fn start(
         return Ok(());
     }
 
-    let session_mode = match mode.as_deref() {
-        Some("party") => SessionMode::Party,
-        _ => SessionMode::Solo,
+    // Resolve the player's class from their saved profile, or send an
+    // ephemeral class picker if they don't have one yet. The picker's
+    // button handler resumes this same launch flow.
+    let saved_profile = app.profiles.load(user.get()).await;
+    let resolved_class = saved_profile
+        .as_ref()
+        .and_then(persistence::class_from_profile);
+    let Some(player_class) = resolved_class else {
+        let embed = class_picker::picker_embed();
+        let components = class_picker::picker_components();
+        ctx.send(
+            poise::CreateReply::default()
+                .content("You don't have a character yet — pick a class to begin.")
+                .embed(embed)
+                .components(components)
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
     };
 
-    let player_class = match class.as_deref() {
-        Some("rogue") => ClassType::Rogue,
-        Some("cleric") => ClassType::Cleric,
-        _ => ClassType::Warrior,
-    };
+    let user_display_name = ctx.author().name.clone();
+    let launched =
+        match launch::prepare_launch(app, user, &user_display_name, channel, player_class).await {
+            Ok(l) => l,
+            Err(reason) => {
+                ctx.send(
+                    poise::CreateReply::default()
+                        .content(format!("Cannot start dungeon: {}", reason))
+                        .ephemeral(true),
+                )
+                .await?;
+                return Ok(());
+            }
+        };
 
-    let (id, short_id) = game::new_short_sid();
-
-    // Claim the play mode lock — prevents the same player from being in
-    // both Discord dungeon AND isometric game at the same time (data race
-    // on profile saves). Returns a RAII guard that releases on drop unless
-    // we explicitly commit() after the session is fully created.
-    // Gracefully degrades to a no-op guard if Supabase is down.
-    let mode_guard = match ctx
-        .data()
-        .app
-        .profiles
-        .claim_mode(user.get(), &short_id, false)
-        .await
-    {
-        Ok(g) => g,
-        Err(reason) => {
-            ctx.send(
-                poise::CreateReply::default()
-                    .content(format!("Cannot start dungeon: {}", reason))
-                    .ephemeral(true),
-            )
-            .await?;
-            return Ok(());
-        }
-    };
-
-    let map = content::generate_initial_map(&id);
-    let room = content::room_from_tile(map.tiles.get(&map.position).unwrap());
-    let phase = GamePhase::City;
-    let enemies = Vec::new();
-
-    // Membership lookup (cached, gracefully degrades to Guest)
-    let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
-    let (player_name, member_tag) = match &member_status_raw {
-        MemberStatus::Member(profile) => (
-            profile
-                .discord_username
-                .clone()
-                .unwrap_or_else(|| ctx.author().name.clone()),
-            MemberStatusTag::Member {
-                username: profile
-                    .discord_username
-                    .clone()
-                    .unwrap_or_else(|| ctx.author().name.clone()),
-            },
-        ),
-        MemberStatus::Guest { .. } => (ctx.author().name.clone(), MemberStatusTag::Guest),
-    };
-
-    let (class_hp, class_armor, class_dmg, class_crit, class_gold) =
-        content::class_starting_stats(&player_class);
-
-    let mut player = PlayerState {
-        name: player_name,
-        inventory: content::starting_inventory(),
-        member_status: member_tag,
-        class: player_class,
-        max_hp: class_hp,
-        hp: class_hp,
-        armor: class_armor,
-        gold: class_gold,
-        base_damage_bonus: class_dmg,
-        crit_chance: class_crit,
-        ..PlayerState::default()
-    };
-
-    // Load persisted profile and apply to player
-    let mut quest_journal = QuestJournal::default();
-    let saved_profile = ctx.data().app.profiles.load(user.get()).await;
-    if let Some(ref profile) = saved_profile {
-        persistence::apply_profile_to_player(profile, &mut player, &mut quest_journal);
-        player.saved_snapshot = Some(profile.clone());
-    }
-
-    // We need to send the message first to get the MessageId
-    let session_state = SessionState {
-        id,
-        short_id: short_id.clone(),
-        owner: user,
-        party: Vec::new(),
-        mode: session_mode.clone(),
-        phase,
-        channel_id: channel,
-        message_id: serenity::MessageId::new(1), // placeholder, updated below
-        created_at: Instant::now(),
-        last_action_at: Instant::now(),
-        turn: 0,
-        players: HashMap::from([(user, player)]),
-        enemies,
-        room,
-        log: vec![
-            "You arrive at the Underground City. Prepare your party before venturing out..."
-                .to_owned(),
-        ],
-        show_items: false,
-        pending_actions: HashMap::new(),
-        map,
-        show_map: true,
-        show_inventory: false,
-        pending_destination: None,
-        enemies_had_first_strike: false,
-        quest_journal,
-        active_dialogue: None,
-    };
-
-    let components = render::render_components(&session_state);
-
-    // Render game card PNG (CPU-bound, runs on blocking thread)
-    let fontdb = ctx.data().app.fontdb.clone();
-    let card_png = card::render_game_card(&session_state, fontdb).await;
-    if let Err(ref e) = card_png {
-        tracing::warn!(error = %e, "Failed to render game card for /dungeon start");
-    }
-    let has_card = card_png.is_ok();
-    let embed = render::render_embed(&session_state, has_card);
-
-    let mode_label = match session_mode {
-        SessionMode::Solo => "Solo",
-        SessionMode::Party => "Party",
-    };
+    let launch::Launched {
+        session_state,
+        mode_guard,
+        embed,
+        components,
+        card_png,
+        member_status,
+        short_id,
+        ..
+    } = launched;
 
     let mut create_reply = poise::CreateReply::default()
         .content(format!(
-            "**Embed Dungeon** started! ({} mode, session `{}`)",
-            mode_label, short_id
+            "**Embed Dungeon** started! (Party mode, session `{}`)",
+            short_id
         ))
         .embed(embed)
         .components(components);
 
-    if let Ok(png) = card_png {
+    if let Some(png) = card_png {
         create_reply =
             create_reply.attachment(serenity::CreateAttachment::bytes(png, "game_card.png"));
     }
 
     let reply = ctx.send(create_reply).await?;
-
-    // Get the message ID from the reply
     let msg = reply.message().await?;
-    let mut final_state = session_state;
-    final_state.message_id = msg.id;
+    let message_id = msg.id;
 
-    ctx.data().app.sessions.create(final_state);
+    let member_status_for_notice = member_status;
+    launch::commit_launch(app, session_state, mode_guard, message_id);
 
-    // Session is fully registered — release the lock from the guard's
-    // ownership. Future release will happen via save_all_players when
-    // the session ends naturally.
-    mode_guard.commit();
-
-    // One-time guest notice
-    if let MemberStatus::Guest { notified } = &member_status_raw
+    if let MemberStatus::Guest { notified } = &member_status_for_notice
         && !notified
     {
         ctx.send(
@@ -213,7 +115,7 @@ async fn start(
                 .ephemeral(true),
         )
         .await?;
-        ctx.data().app.members.mark_notified(user.get());
+        app.members.mark_notified(user.get());
     }
 
     Ok(())

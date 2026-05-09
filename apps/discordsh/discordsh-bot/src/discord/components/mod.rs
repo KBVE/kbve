@@ -1,4 +1,5 @@
 pub mod chart_buttons;
+pub mod class_picker;
 pub mod github_components;
 mod status_buttons;
 

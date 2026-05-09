@@ -130,6 +130,8 @@ async fn event_handler(
                 components::handle_status_component(component, ctx, data)
                     .await
                     .map(|_| ())
+            } else if custom_id.starts_with("dngclass|") {
+                components::class_picker::handle_class_pick(component, ctx, data).await
             } else if custom_id.starts_with("dng|") {
                 super::game::router::handle_game_component(component, ctx, data).await
             } else if custom_id.starts_with("gh|") {
