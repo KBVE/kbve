@@ -1,0 +1,41 @@
+---
+title: The World
+description: RareIcon's setting — collapsed galactic economy, the DaemonCorps megastructure, the data-slums, and the digital wastelands beyond.
+sidebar:
+  label: World
+  order: 3
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+The galactic economy collapsed three generations ago. The infrastructure stayed. DaemonCorps patrols the wreckage, the data-slums grew up between the cracks, and somewhere in the static the old gods are still listening.
+
+## Layered reality
+
+<CardGrid>
+	<Card title="The data-slums" icon="random">
+		Below the bright commerce of the verified network. Where Chip lives. Where debtors hide. Procgen mazes of forgotten infrastructure.
+	</Card>
+	<Card title="DaemonCorps networks" icon="setting">
+		Bright, ordered, lethal. Patrols spawn from substations and walk predictable routes — until you trip a sensor.
+	</Card>
+	<Card title="Corrupted vaults" icon="seti:shell">
+		Reality-bending storage clusters where demon-like anomalies leak through. Highest loot, lowest survival rate.
+	</Card>
+	<Card title="The kingdom" icon="rocket">
+		Your sanctuary. Where successful runs land. Build it up between sorties so the next run launches harder.
+	</Card>
+</CardGrid>
+
+## How the world keeps scaling
+
+RareIcon runs on a hex-grid sim where contained entities collapse into host-tile counts — sheltered livestock, hive bees, and pond fish destroy their entity and increment a counter on the host tile. Saves rendering, collision, AI ticks. Means the kingdom can grow without the simulation choking.
+
+Out-of-chunk regions tick on a coarser timestep. Persistent state survives across runs.
+
+## Where the lore lives
+
+- [Factions & Forces](/game/factions/) — DaemonCorps, rogue AIs, anomalies, the resistance
+- [Combat Loop](/game/combat/) — moment-to-moment bullet-hell mechanics
+- [Run + Return](/game/loop/) — sortie → loot → kingdom upgrade → next sortie
+- [kbve.com/journal](https://kbve.com/journal/) — dev journal with weekly setting drops
