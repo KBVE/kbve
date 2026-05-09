@@ -1,19 +1,3 @@
-/**
- * profile-controller.ts — vanilla TS controller for the profile shell.
- *
- * All HTML states are pre-rendered in AstroProfileShell.astro with `hidden`.
- * This controller swaps visibility via element IDs — O(1) DOM operations,
- * no React rendering for layout-level state changes.
- *
- * States: loading → unauthenticated | username-setup | profile
- *
- * Features:
- * - 8s init timeout prevents infinite loading
- * - Auth change listener handles sign-in/sign-out without page reload
- * - Cache-first profile loading with background refresh
- * - Vanilla username form with real-time validation
- */
-
 import { setAuth, AuthPresets } from '@kbve/droid';
 import { kbveApi } from '@kbve/devops';
 import { initSupa, getSupa } from '@/lib/supa';
@@ -24,7 +8,7 @@ import {
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-const INIT_TIMEOUT_MS = 8_000;
+const INIT_TIMEOUT_MS = 12_000;
 const PROFILE_CACHE_KEY = 'cache:profile:me';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
