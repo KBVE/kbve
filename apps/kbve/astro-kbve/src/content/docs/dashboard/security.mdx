@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-08T08:43:11Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-09T08:42:46Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**37** critical/high severity findings across the monorepo.
+**40** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-05-08T08:43:11Z** — updated daily by `ci-dashboard`.
   <Card title="1 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="36 High" icon="error">
+  <Card title="39 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="57 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-05-08T08:43:11Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **85** advisories
+    **88** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **44** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-05-08T08:43:11Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 1
-    "High" : 36
+    "High" : 39
     "Medium" : 57
     "Low" : 6
 ```
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 85
+    "npm" : 88
     "Cargo" : 44
 ```
 
@@ -82,12 +82,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 36 | 42 | 6 | 85 |
+| **npm** | 1 | 39 | 42 | 6 | 88 |
 | **Cargo** | 0 | 0 | 15 | 0 | 44 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 36 | 57 | 6 | 129 |
+| **Total** | 1 | 39 | 57 | 6 | 132 |
 
   </TabItem>
   <TabItem label="npm">
@@ -120,10 +120,6 @@ pie showData
 | High | `vite` | Vite: `server.fs.deny` bypassed with queries | [Details](https://github.com/advisories/GHSA-v2wj-q39q-566r) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
-| High | `@xmldom/xmldom` | xmldom: Uncontrolled recursion in XML serialization leads... | [Details](https://github.com/advisories/GHSA-2v35-w6hq-6mfw) |
-| High | `@xmldom/xmldom` | xmldom has XML injection through unvalidated DocumentType... | [Details](https://github.com/advisories/GHSA-f6ww-3ggp-fr8h) |
-| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated process... | [Details](https://github.com/advisories/GHSA-x6wf-f3px-wcqx) |
-| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated comment... | [Details](https://github.com/advisories/GHSA-j759-j44w-7fr8) |
 | High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
 | High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
 | High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
@@ -131,6 +127,13 @@ pie showData
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | High | `axios` | Axios: Prototype Pollution Gadgets - Response Tampering, ... | [Details](https://github.com/advisories/GHSA-pf86-5x62-jrwf) |
 | High | `axios` | Axios: Header Injection via Prototype Pollution | [Details](https://github.com/advisories/GHSA-6chq-wfr3-2hj9) |
+| High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
+| High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
+| High | `@xmldom/xmldom` | xmldom: Uncontrolled recursion in XML serialization leads... | [Details](https://github.com/advisories/GHSA-2v35-w6hq-6mfw) |
+| High | `@xmldom/xmldom` | xmldom has XML injection through unvalidated DocumentType... | [Details](https://github.com/advisories/GHSA-f6ww-3ggp-fr8h) |
+| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated process... | [Details](https://github.com/advisories/GHSA-x6wf-f3px-wcqx) |
+| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated comment... | [Details](https://github.com/advisories/GHSA-j759-j44w-7fr8) |
+| High | `@babel/plugin-transform-modules-systemjs` | @babel/plugin-transform-modules-systemjs generates arbitr... | [Details](https://github.com/advisories/GHSA-fv7c-fp4j-7gwp) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |

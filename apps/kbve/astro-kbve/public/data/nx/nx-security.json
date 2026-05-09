@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-05-08T08:43:11Z",
+  "generated_at": "2026-05-09T08:42:46Z",
   "summary": {
     "critical": 1,
-    "high": 36,
+    "high": 39,
     "medium": 57,
     "low": 6,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 85,
+      "total": 88,
       "severities": {
         "critical": 1,
-        "high": 36,
+        "high": 39,
         "medium": 42,
         "low": 6,
         "info": 0
@@ -453,34 +453,6 @@
           "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
         },
         {
-          "id": "1116960",
-          "title": "xmldom: Uncontrolled recursion in XML serialization leads to DoS",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-2v35-w6hq-6mfw"
-        },
-        {
-          "id": "1116963",
-          "title": "xmldom has XML injection through unvalidated DocumentType serialization",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-f6ww-3ggp-fr8h"
-        },
-        {
-          "id": "1116966",
-          "title": "xmldom has XML node injection through unvalidated processing instruction serialization",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-x6wf-f3px-wcqx"
-        },
-        {
-          "id": "1116969",
-          "title": "xmldom has XML node injection through unvalidated comment serialization",
-          "severity": "high",
-          "package": "@xmldom/xmldom",
-          "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8"
-        },
-        {
           "id": "1117015",
           "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
           "severity": "medium",
@@ -612,6 +584,55 @@
           "severity": "medium",
           "package": "uuid",
           "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+        },
+        {
+          "id": "1117870",
+          "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+          "severity": "high",
+          "package": "fast-uri",
+          "url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
+        },
+        {
+          "id": "1117884",
+          "title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+          "severity": "high",
+          "package": "fast-uri",
+          "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+        },
+        {
+          "id": "1117894",
+          "title": "xmldom: Uncontrolled recursion in XML serialization leads to DoS",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-2v35-w6hq-6mfw"
+        },
+        {
+          "id": "1117897",
+          "title": "xmldom has XML injection through unvalidated DocumentType serialization",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-f6ww-3ggp-fr8h"
+        },
+        {
+          "id": "1117900",
+          "title": "xmldom has XML node injection through unvalidated processing instruction serialization",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-x6wf-f3px-wcqx"
+        },
+        {
+          "id": "1117903",
+          "title": "xmldom has XML node injection through unvalidated comment serialization",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8"
+        },
+        {
+          "id": "1117908",
+          "title": "@babel/plugin-transform-modules-systemjs generates arbitrary code when compiling malicious input",
+          "severity": "high",
+          "package": "@babel/plugin-transform-modules-systemjs",
+          "url": "https://github.com/advisories/GHSA-fv7c-fp4j-7gwp"
         }
       ]
     },
