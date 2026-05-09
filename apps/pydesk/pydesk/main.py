@@ -90,7 +90,8 @@ routes.get("/ws/status", RuneLiteClient, "status_runelite")
 
 routes.get("/api/bitcoin-price", CoinDeskClient, "get_current_bitcoin_price")
 routes.get("/api/poem", PoetryDBClient, "get_random_poem")
-routes.get("/api/config-runelite", RuneLiteClient, "start_and_configure_runelite")
+routes.get("/api/config-runelite", RuneLiteClient,
+           "start_and_configure_runelite")
 
 
 @app.get("/api/echo")
@@ -100,12 +101,13 @@ async def echo_main():
         await websocket_client.example()
     finally:
         await websocket_client.close()
-        return {"ws": "true"}
+    return {"ws": "true"}
 
 
 @app.get("/api/news")
 async def google_news():
-    rss_utility = RSSUtility(base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
+    rss_utility = RSSUtility(
+        base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
     try:
         soup = await rss_utility.fetch_and_parse_rss()
         rss_feed_model = await rss_utility.convert_to_model(soup)
@@ -128,7 +130,8 @@ if ChromeClient is not None:
     routes.get("/api/start-chrome", ChromeClient, "start_chrome_async")
     routes.get("/api/stop-chrome", ChromeClient, "stop_chrome_async")
     routes.get("/api/go-to-gitlab", ChromeClient, "go_to_gitlab")
-    routes.get("/api/go-to-greenboard", ChromeClient, "fetch_embedded_job_board")
+    routes.get("/api/go-to-greenboard", ChromeClient,
+               "fetch_embedded_job_board")
 
 if DiscordClient is not None:
     routes.get("/api/discord-login", DiscordClient, "login_with_passkey")
