@@ -768,6 +768,8 @@ pub struct MapTileDisplay {
     /// True for the last tile of a highlighted route — the destination.
     /// Gets a thicker stroke than intermediate route tiles.
     pub is_route_goal: bool,
+    /// Active pursuer group sits on this tile.
+    pub is_pursuer_tile: bool,
 }
 
 /// Askama SVG template for the dungeon map card.
@@ -833,6 +835,8 @@ pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> Ma
 
     let route_set: std::collections::HashSet<MapPos> = route.iter().copied().collect();
     let route_goal: Option<MapPos> = route.last().copied();
+    let pursuer_set: std::collections::HashSet<MapPos> =
+        session.pursuers.iter().map(|g| g.source_pos).collect();
 
     for gy in 0..7i16 {
         for gx in 0..7i16 {
@@ -886,6 +890,7 @@ pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> Ma
 
                 let is_on_route = route_set.contains(&world_pos);
                 let is_route_goal = route_goal == Some(world_pos);
+                let is_pursuer_tile = pursuer_set.contains(&world_pos);
 
                 tiles.push(MapTileDisplay {
                     tx,
@@ -905,6 +910,7 @@ pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> Ma
                     cleared: tile.cleared,
                     is_on_route,
                     is_route_goal,
+                    is_pursuer_tile,
                 });
             }
         }
@@ -1284,6 +1290,7 @@ mod tests {
             enemies_had_first_strike: false,
             quest_journal: QuestJournal::default(),
             active_dialogue: None,
+            pursuers: Vec::new(),
         }
     }
 

@@ -83,6 +83,16 @@ pub fn path_to_goal(map: &MapState, from: MapPos, goal: GoalKind<'_>) -> Option<
     if path.is_empty() { None } else { Some(path) }
 }
 
+/// Build a [`PathField`] keyed on the player tile so pursuers can each
+/// query their own next-hop in one shared BFS.
+pub fn pursuit_field(map: &MapState, player: MapPos) -> Option<PathField<MapPos>> {
+    if !map.tiles.contains_key(&player) {
+        return None;
+    }
+    let graph = build_tile_graph(map);
+    Some(PathField::compute(&graph, &[player]))
+}
+
 /// Convert a tile-coordinate path into a list of cardinal moves the
 /// player must make. Useful for rendering `/path` results as
 /// `North → East → East`. Returns an empty vec when `path` has fewer
