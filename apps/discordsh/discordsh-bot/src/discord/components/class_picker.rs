@@ -13,6 +13,7 @@ use tracing::{error, warn};
 use kbve::MemberStatus;
 
 use crate::discord::bot::{Data, Error};
+use crate::discord::game::content;
 use crate::discord::game::launch;
 use crate::discord::game::types::ClassType;
 
@@ -24,34 +25,59 @@ const ID_CLERIC: &str = "dngclass|cleric";
 
 // ── Picker UI ───────────────────────────────────────────────────────
 
-/// Embed describing each class and its starting kit. Shown in the
-/// ephemeral message that accompanies the picker buttons.
+/// Embed describing each class — stats, signature perk, and the
+/// shared starter kit. Stat numbers come straight from
+/// [`content::class_starting_stats`] so the embed stays in sync with
+/// gameplay tuning.
 pub fn picker_embed() -> serenity::CreateEmbed {
+    let starter_kit = "Potion \u{00D7}2 \u{2022} Bandage \u{00D7}1 \u{2022} Bomb \u{00D7}1";
+
     serenity::CreateEmbed::new()
         .title("Choose your character")
         .description(
             "You only get one. Pick the class you want to play; this \
              choice persists across runs until your character dies.",
         )
+        .field("\u{2694} Warrior", class_field(&ClassType::Warrior), true)
+        .field("\u{1F5E1} Rogue", class_field(&ClassType::Rogue), true)
+        .field("\u{2728} Cleric", class_field(&ClassType::Cleric), true)
         .field(
-            "\u{2694} Warrior",
-            "High HP, heavy armor, reliable damage. Starts with a \
-             worn longsword and battered chainmail.",
-            true,
+            "Starter kit (all classes)",
+            format!("{starter_kit}\nGear is earned in-run."),
+            false,
         )
-        .field(
-            "\u{1F5E1} Rogue",
-            "Low HP, high crit, ambush bonus and flee chance. Starts \
-             with a tarnished dagger and leather scraps.",
-            true,
-        )
-        .field(
-            "\u{2728} Cleric",
-            "Balanced HP, healing access, faction perks. Starts with \
-             a cracked mace and woven robes.",
-            true,
-        )
+        .footer(serenity::CreateEmbedFooter::new(
+            "Stats can grow with level + gear; class is permanent.",
+        ))
         .color(0x5865F2)
+}
+
+/// Format the per-class field body — stats line, signature perk,
+/// flavor blurb. Multi-line so each class section reads as a card.
+fn class_field(class: &ClassType) -> String {
+    let (hp, armor, dmg, crit, gold) = content::class_starting_stats(class);
+    let crit_pct = (crit * 100.0).round() as i32;
+    let stats = format!(
+        "**HP** {hp} \u{2022} **Armor** {armor} \u{2022} **Dmg** +{dmg}\n\
+         **Crit** {crit_pct}% \u{2022} **Gold** {gold}",
+    );
+    let (perk, flavor) = match class {
+        ClassType::Warrior => (
+            "**Charge** \u{2014} 50% chance to strike first each combat.",
+            "Front-line bruiser. Soaks hits, swings hard.",
+        ),
+        ClassType::Rogue => (
+            "**Ambush** \u{2014} 50% chance to deny enemy first strikes.\n\
+             **Slippery** \u{2014} bonus flee chance.",
+            "Hit fast, slip away. Crit-leaning.",
+        ),
+        ClassType::Cleric => (
+            "**Faith** \u{2014} stronger heal output.\n\
+             **Standing** \u{2014} faction reputation perks.",
+            "Sustain caster. Slower kills, longer runs.",
+        ),
+    };
+    format!("{stats}\n\n{perk}\n\n_{flavor}_")
 }
 
 /// Three-button row: Warrior / Rogue / Cleric.
