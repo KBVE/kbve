@@ -11,7 +11,6 @@ from contextlib import asynccontextmanager
 import os
 import logging
 
-# Desktop automation clients (conditional imports)
 try:
     from fudster import ScreenClient, ChromeClient, DiscordClient
 except ImportError:
@@ -39,13 +38,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 routes = Routes(app, templates_dir="templates")
 
-# Mount static files directory for assets
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 CORS(app)
 
 
-# Worker file routes - serve local worker files
 @app.get("/assets/canvas-worker.js")
 async def serve_canvas_worker():
     worker_path = "assets/canvas-worker.js"
@@ -73,8 +70,6 @@ async def serve_ws_worker():
         return Response(content="// Worker file not found", media_type="application/javascript", status_code=404)
 
 
-# --- WebSocket routes (/ws/) ---
-
 @app.websocket("/ws")
 async def websocket_handshake(websocket: WebSocket):
     await ws_handler.handle_websocket(websocket)
@@ -85,8 +80,6 @@ routes.get("/ws/start-runelite", RuneLiteClient, "start_runelite_async")
 routes.get("/ws/stop-runelite", RuneLiteClient, "stop_runelite_async")
 routes.get("/ws/status", RuneLiteClient, "status_runelite")
 
-
-# --- RESTful API routes (/api/) ---
 
 routes.get("/api/bitcoin-price", CoinDeskClient, "get_current_bitcoin_price")
 routes.get("/api/poem", PoetryDBClient, "get_random_poem")
@@ -117,7 +110,6 @@ async def google_news():
         return {"news": "failed"}
 
 
-# Desktop automation endpoints (only available if optional deps are installed)
 if ScreenClient is not None:
     @app.get("/api/click")
     async def click_main():
@@ -136,8 +128,6 @@ if ChromeClient is not None:
 if DiscordClient is not None:
     routes.get("/api/discord-login", DiscordClient, "login_with_passkey")
 
-
-# --- Server entry point using kbve AppServer ---
 
 config = ServerConfig(http_port=8086)
 server = AppServer(config=config, app=app)

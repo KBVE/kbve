@@ -8,17 +8,14 @@ from pydantic import BaseModel, Field
 from .supabase_service import supabase_conn
 from notification_bot.utils.logger import logger
 
-# Import VERSION from constants
 try:
     from .constants import VERSION
 except ImportError:
-    VERSION = "1.4"  # fallback
+    VERSION = "1.4"
 
-# Log the version on module load
 logger.info(f"Tracker module loaded with VERSION: {VERSION}")
 
 
-# Pydantic Models for Tracker Operations
 class ShardAssignment(BaseModel):
     """Model for shard assignment data"""
     id: str
@@ -79,12 +76,10 @@ class TrackerManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            # Always use the upsert function - it handles all cases properly
             logger.info(
                 f"Getting shard assignment for instance {instance_id} in cluster {cluster_name}")
 
             try:
-                # Check for existing assignment first
                 existing_check = (
                     client.schema('tracker')
                     .table('cluster_management')
@@ -95,7 +90,6 @@ class TrackerManager:
                 )
 
                 if existing_check.data:
-                    # Update existing assignment
                     assignment = existing_check.data[0]
                     logger.info(
                         f"Found existing assignment for {instance_id}: shard {assignment['shard_id']}")
@@ -123,10 +117,8 @@ class TrackerManager:
                         'total_shards': total_shards
                     }
                 else:
-                    # No existing assignment - find next available shard
                     logger.info(f"Creating new assignment for {instance_id}")
 
-                    # Get all current active shard assignments for this cluster
                     active_shards_result = (
                         client.schema('tracker')
                         .table('cluster_management')
@@ -136,20 +128,17 @@ class TrackerManager:
                         .execute()
                     )
 
-                    # Determine which shards are already taken
                     taken_shards = set()
                     if active_shards_result.data:
                         taken_shards = {row['shard_id']
                                         for row in active_shards_result.data}
 
-                    # Find the next available shard ID (0 to total_shards-1)
                     assigned_shard_id = None
                     for shard_id in range(total_shards):
                         if shard_id not in taken_shards:
                             assigned_shard_id = shard_id
                             break
 
-                    # If all shards are taken, take over the oldest assignment
                     if assigned_shard_id is None:
                         logger.warning(
                             f"All {total_shards} shards are taken, finding oldest assignment to take over")
@@ -168,7 +157,6 @@ class TrackerManager:
                             logger.info(
                                 f"Taking over oldest assignment: shard {assigned_shard_id}")
                         else:
-                            # Fallback to shard 0 if no existing assignments
                             assigned_shard_id = 0
                             logger.warning(
                                 "No existing assignments found, defaulting to shard 0")
@@ -208,7 +196,6 @@ class TrackerManager:
                         if 'duplicate key value violates unique constraint' in str(insert_error):
                             logger.warning(
                                 f"Shard {assigned_shard_id} already assigned, taking it over")
-                            # Take over the assigned shard
                             takeover_result = (
                                 client.schema('tracker')
                                 .table('cluster_management')
@@ -246,9 +233,7 @@ class TrackerManager:
                     logger.warning(
                         f"Shard conflict detected, attempting to take over existing assignment: {e}")
 
-                    # Try to take over the existing shard assignment
                     try:
-                        # Get the shard ID from the error message
                         import re
                         match = re.search(
                             r'shard_id\)=\([^,]+,\s*(\d+)\)', error_str)
@@ -257,7 +242,6 @@ class TrackerManager:
                             logger.info(
                                 f"Taking over shard {shard_id} from previous assignment")
 
-                            # Update the existing record to this instance
                             takeover_result = (
                                 client.schema('tracker')
                                 .table('cluster_management')
@@ -493,7 +477,6 @@ class TrackerManager:
             bot_version = str(VERSION)
             deployment_version = os.getenv('DEPLOYMENT_VERSION', str(VERSION))
 
-            # Use upsert to handle both insert and update cases
             upsert_data = {
                 'instance_id': instance_id,
                 'cluster_name': cluster_name,
@@ -587,5 +570,4 @@ class TrackerManager:
             return False
 
 
-# Global tracker manager instance
 tracker_manager = TrackerManager()
