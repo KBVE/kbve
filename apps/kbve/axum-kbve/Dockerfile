@@ -200,6 +200,16 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-kbve
 
+# Ship Cargo.toml alongside the binary so `/health` reports the version
+# that was current when *this image* was built. CI's pre-build sync step
+# (utils-publish-docker-image.yml + docker-test-app.yml) writes the
+# release version into apps/kbve/axum-kbve/Cargo.toml from api.mdx before
+# the image build, so the file copied here is always the right version
+# for this binary. Reading the file at runtime instead of using
+# `env!("CARGO_PKG_VERSION")` lets the kube Deployment override it
+# (mount/replace) without rebuilding when needed.
+COPY --chown=10001:10001 apps/kbve/axum-kbve/Cargo.toml /app/Cargo.toml
+
 COPY --from=builder --chown=10001:10001 /app/apps/kbve/axum-kbve/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/kbve/axum-kbve/templates/askama /app/templates/askama
 
