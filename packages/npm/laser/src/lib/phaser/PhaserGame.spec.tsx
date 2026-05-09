@@ -69,9 +69,12 @@ describe('PhaserGame', () => {
 		expect(MockGame).toHaveBeenCalledTimes(1);
 	});
 
-	it('should destroy Phaser.Game on unmount', () => {
+	it('should destroy Phaser.Game on unmount', async () => {
 		const { unmount } = render(<PhaserGame config={minimalConfig} />);
 		unmount();
+		// PhaserGame defers destroy via setTimeout(0) to survive
+		// React StrictMode's mount→cleanup→mount; flush macrotasks.
+		await new Promise((resolve) => setTimeout(resolve, 0));
 		expect(mockDestroy).toHaveBeenCalledWith(true);
 	});
 
@@ -85,12 +88,14 @@ describe('PhaserGame', () => {
 		});
 	});
 
-	it('should call onDestroy on unmount', () => {
+	it('should call onDestroy on unmount', async () => {
 		const onDestroy = vi.fn();
 		const { unmount } = render(
 			<PhaserGame config={minimalConfig} onDestroy={onDestroy} />,
 		);
 		unmount();
+		// Deferred destroy — flush the setTimeout(0) in PhaserGame.
+		await new Promise((resolve) => setTimeout(resolve, 0));
 		expect(onDestroy).toHaveBeenCalledTimes(1);
 	});
 
