@@ -1103,9 +1103,18 @@ export class SolitaireScene extends Phaser.Scene {
 			this.onDrag(pointer),
 		);
 		hitZone.on('dragend', () => this.onDragEnd());
+		hitZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+			hitZone.setData('pdownX', pointer.x);
+			hitZone.setData('pdownY', pointer.y);
+		});
 		hitZone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-			if (pointer.event.detail === 2) {
-				this.tryAutoFoundation(view.id);
+			/* Stock click is routed through the top stock-card's hit zone
+			 * because face-down stock cards cover the slot rectangle once
+			 * the deck has cards on it (setTopOnly + higher depth swallow
+			 * the slot's gameobjectdown event). */
+			const stockTop = this.state.stock[this.state.stock.length - 1];
+			if (stockTop !== undefined && getCardId(stockTop) === view.id) {
+				this.handleStockClick();
 				return;
 			}
 			for (let col = 0; col < 7; col++) {
@@ -1125,13 +1134,16 @@ export class SolitaireScene extends Phaser.Scene {
 					return;
 				}
 			}
-			/* Stock click is routed through the top stock-card's hit zone
-			 * because face-down stock cards cover the slot rectangle once
-			 * the deck has cards on it (setTopOnly + higher depth swallow
-			 * the slot's gameobjectdown event). */
-			const stockTop = this.state.stock[this.state.stock.length - 1];
-			if (stockTop !== undefined && getCardId(stockTop) === view.id) {
-				this.handleStockClick();
+			/* Touch tap is the mobile equivalent of desktop double-click —
+			 * MouseEvent.detail never reaches 2 on touch input, so we route
+			 * the auto-foundation / activate shortcut through a "no-drag
+			 * tap" check instead. Threshold 8px filters out finger tremor. */
+			const downX = (hitZone.getData('pdownX') as number) ?? pointer.x;
+			const downY = (hitZone.getData('pdownY') as number) ?? pointer.y;
+			const moved = Math.hypot(pointer.x - downX, pointer.y - downY) > 8;
+			const isTouchTap = pointer.wasTouch && !moved;
+			if (pointer.event.detail === 2 || isTouchTap) {
+				this.tryAutoFoundation(view.id);
 			}
 		});
 
