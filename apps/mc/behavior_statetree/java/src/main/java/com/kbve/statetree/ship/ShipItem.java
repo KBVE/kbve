@@ -52,9 +52,6 @@ public class ShipItem extends Item {
             entity.setModelName(modelName);
             entity.refreshPositionAndAngles(pos.x, pos.y + 1.0, pos.z, user.getYaw(), 0);
 
-            // Restore packed state from CUSTOM_DATA component if present —
-            // pickup mechanic stores the ship's name/HP/fuel here so a
-            // packed ship redeploys with whatever shape it was packed in.
             float restoredHealth = ShipEntity.MAX_HEALTH;
             float restoredFuel = ShipEntity.MAX_FUEL * 0.5f;
             net.minecraft.component.type.NbtComponent comp =

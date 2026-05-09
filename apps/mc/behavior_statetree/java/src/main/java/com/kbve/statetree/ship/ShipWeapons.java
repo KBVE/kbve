@@ -69,7 +69,6 @@ public final class ShipWeapons {
                                         Entity projectile, Vec3d origin, Vec3d dir,
                                         float speed) {
         projectile.setPosition(origin.x, origin.y, origin.z);
-        // Inherit ship velocity so projectile relative speed matches the cabin.
         Vec3d shipVel = ship.getVelocity();
         projectile.setVelocity(dir.x * speed + shipVel.x,
                 dir.y * speed + shipVel.y,

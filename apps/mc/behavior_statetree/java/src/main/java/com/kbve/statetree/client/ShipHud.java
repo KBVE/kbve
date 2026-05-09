@@ -69,7 +69,6 @@ public class ShipHud implements HudRenderCallback {
     }
 
     public void setClimbRate(float verticalVelocity) {
-        // Convert blocks/tick to blocks/sec for a more familiar readout.
         this.climbRate = verticalVelocity * 20f;
     }
 
@@ -128,8 +127,6 @@ public class ShipHud implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        // STALL vignette — pulsing red border around the screen edges so
-        // the pilot can't miss imminent loss-of-control.
         if ("STALL".equals(flightMode)) {
             int alpha = (int) (((Math.sin(System.currentTimeMillis() / 120.0) + 1) * 0.5) * 80) + 40;
             int color = (alpha << 24) | 0xCC2222;
@@ -195,9 +192,7 @@ public class ShipHud implements HudRenderCallback {
         String climbStr = climbRate >= 0
                 ? String.format("§a▲%.1f", climbRate)
                 : String.format("§c▼%.1f", -climbRate);
-        // Speed color: green cruise → yellow sprint → red boost.
         String spdColor = speed > 1.2f ? "§c" : (speed > 0.7f ? "§e" : "§a");
-        // AGL color — red if low (< 8), yellow if borderline (< 16), white otherwise.
         String aglColor = aglMeters < 8 ? "§c" : (aglMeters < 16 ? "§e" : "§f");
         String telemetry = String.format(
                 "%sSPD %.1f§r  §7ALT§f %d  %sAGL %d§r  §7HDG§f %03d°  %s",
@@ -223,20 +218,17 @@ public class ShipHud implements HudRenderCallback {
         context.drawText(client.textRenderer, Text.of("§f" + hpText),
                 (screenWidth - hpW) / 2, barY - 10, 0xFFFFFFFF, true);
 
-        // Engine power gauge — orange bar above hull.
         int engY = barY - 20;
         int engFillW = (int) (barW * Math.max(0f, Math.min(1f, enginePower)));
         context.fill(barX - 1, engY - 1, barX + barW + 1, engY + barH + 1, 0xFF000000);
         context.fill(barX, engY, barX + barW, engY + barH, 0xFF333333);
         if (engFillW > 0) context.fill(barX, engY, barX + engFillW, engY + barH, 0xFFFF8822);
 
-        // Boost reservoir — narrow strip on top of engine bar (purple).
         int boostFillW = (int) (barW * Math.max(0f, Math.min(1f, boostReserve)));
         int boostColor = boostReserve <= 0.05f ? 0xFFCC2222 : 0xFFAA22DD;
         context.fill(barX, engY - 4, barX + barW, engY - 1, 0xFF111111);
         if (boostFillW > 0) context.fill(barX, engY - 4, barX + boostFillW, engY - 1, boostColor);
 
-        // Fuel gauge — yellow bar above engine. Flashes red when low.
         int fuelY = engY - 14;
         float fuelRatio = maxFuel > 0 ? Math.max(0f, Math.min(1f, fuel / maxFuel)) : 0f;
         int fuelFillW = (int) (barW * fuelRatio);
@@ -256,7 +248,6 @@ public class ShipHud implements HudRenderCallback {
         context.drawText(client.textRenderer, Text.of((fuelLow ? "§c" : "§f") + fuelText),
                 (screenWidth - fuelTextW) / 2, fuelY - 10, 0xFFFFFFFF, true);
 
-        // Low-fuel + empty warnings centered up top.
         if (fuel <= 0f) {
             String warn = "§c§lOUT OF FUEL — REFUEL WITH COAL OR LAVA BUCKET";
             int ww = client.textRenderer.getWidth(warn);
@@ -281,13 +272,10 @@ public class ShipHud implements HudRenderCallback {
         context.drawText(client.textRenderer, Text.of("§7" + controls),
                 screenWidth - controlsWidth - 10, screenHeight - 15, 0x999999, true);
 
-        // Upgrade slots indicator (top-left).
         String upgText = String.format("§bUPGRADES %d/%d", upgradeCount, maxUpgradeSlots);
         context.drawText(client.textRenderer, Text.of(upgText),
                 10, 10, 0xFFFFFFFF, true);
 
-        // Wind indicator (top-left under upgrades). Arrow rotates by
-        // windAngleDeg, color fades from gray (calm) → cyan (gusty).
         if (windStrength > 0.001f) {
             String[] arrows = {"↑", "↗", "→", "↘", "↓", "↙", "←", "↖"};
             int idx = (int) (((windAngleDeg % 360 + 360) % 360) / 45f) % 8;
@@ -298,34 +286,30 @@ public class ShipHud implements HudRenderCallback {
                     10, 22, wColor, true);
         }
 
-        // Cautions stack (just above the controls hint, right side).
-        // Mirrors IA's PULL_UP / VOID / DAMAGED indicators; LOW_FUEL is
-        // already shown via the fuel bar, but it's mirrored here as a
-        // pulsing red word for parity at a glance.
         boolean blink = (System.currentTimeMillis() / 300) % 2 == 0;
         int row = 0;
-        if ((cautionBits & 0x1) != 0) { // PULL_UP
+        if ((cautionBits & 0x1) != 0) {
             String t = "§4§lPULL UP";
             context.drawText(client.textRenderer, Text.of(t),
                     screenWidth - client.textRenderer.getWidth(t) - 10,
                     30 + row * 12, blink ? 0xFFFF3333 : 0xFFAA0000, true);
             row++;
         }
-        if ((cautionBits & 0x2) != 0) { // VOID
+        if ((cautionBits & 0x2) != 0) {
             String t = "§4§lVOID";
             context.drawText(client.textRenderer, Text.of(t),
                     screenWidth - client.textRenderer.getWidth(t) - 10,
                     30 + row * 12, blink ? 0xFFFF3333 : 0xFFAA0000, true);
             row++;
         }
-        if ((cautionBits & 0x4) != 0) { // DAMAGED
+        if ((cautionBits & 0x4) != 0) {
             String t = "§c§lDAMAGED";
             context.drawText(client.textRenderer, Text.of(t),
                     screenWidth - client.textRenderer.getWidth(t) - 10,
                     30 + row * 12, blink ? 0xFFFF6666 : 0xFFCC2222, true);
             row++;
         }
-        if ((cautionBits & 0x8) != 0 && fuel > 0f) { // LOW_FUEL (out-of-fuel handled elsewhere)
+        if ((cautionBits & 0x8) != 0 && fuel > 0f) {
             String t = "§e§lLOW FUEL";
             context.drawText(client.textRenderer, Text.of(t),
                     screenWidth - client.textRenderer.getWidth(t) - 10,

@@ -52,7 +52,6 @@ public final class ShipManager {
         entity.setOwnerName(ownerName);
         entity.setModelName(modelName);
         entity.setShipHealth(ShipEntity.MAX_HEALTH);
-        // Spawn with half-tank — players can refuel via coal / lava bucket interact.
         entity.setFuelLevel(ShipEntity.MAX_FUEL * 0.5f);
         entity.refreshPositionAndAngles(
                 nearPos.getX() + 0.5,
@@ -66,10 +65,6 @@ public final class ShipManager {
         }
 
         activeShips.put(shipId, entity);
-
-        // Vanilla entity tracking handles spawn/despawn sync to clients —
-        // world.spawnEntity() above already sent the spawn packet, and
-        // entity.discard() handles despawn below.
 
         LOGGER.info("[Ship] Spawned '{}' (id={}) at [{}, {}, {}] for owner {}",
                 modelName, shipId,
@@ -142,7 +137,6 @@ public final class ShipManager {
      * Server tick — no-op for entity-based ships (entity.tick() handles movement).
      */
     public void tick(ServerWorld world) {
-        // Evict dead/discarded entities
         activeShips.entrySet().removeIf(e -> !e.getValue().isAlive());
     }
 

@@ -71,8 +71,6 @@ public final class ShipNetworking {
         public Id<? extends CustomPayload> getId() { return ID; }
     }
 
-    // -- Registration -------------------------------------------------------
-
     public static void registerPayloads() {
         PayloadTypeRegistry.playC2S().register(HelmInputPayload.ID, HelmInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(WeaponFirePayload.ID, WeaponFirePayload.CODEC);
@@ -94,10 +92,6 @@ public final class ShipNetworking {
                 ShipEntity ship = manager.getShip(shipId);
                 if (ship == null) return;
 
-                // Throttle is normalized [0..maxThrottle]; physics layer scales by stats.engineSpeed.
-                // Ramp slowed (0.05 / 0.04 -> 0.025 / 0.03) so the W key feels
-                // analog instead of binary; boost ceiling trimmed 1.5 -> 1.3 so
-                // sprinting adds 30 % over cruise instead of doubling speed.
                 float maxThrottle = payload.boost() ? 1.3f : 1.0f;
                 float currentSpeed = ship.getTargetSpeed();
                 if (payload.forward() > 0) {
@@ -110,15 +104,10 @@ public final class ShipNetworking {
                 float diff = ((payload.targetYaw() - current) % 360f + 540f) % 360f - 180f;
                 float deadZoneDeg = 5f;
                 if (Math.abs(diff) < deadZoneDeg) diff = 0f;
-                // Scale yaw rate with the model's yawSpeed stat for consistent feel.
                 float maxDeltaPerTick = ship.getStats().yawSpeed();
                 float step = Math.max(-maxDeltaPerTick, Math.min(maxDeltaPerTick, diff * 0.15f));
                 if (step != 0f) ship.setHeading(current + step);
 
-                // Keyboard Y axis (jump / sneak) wins over camera pitch when
-                // pressed — matches IA's pressingInterpolatedY semantics. Mouse
-                // pitch only contributes if the keyboard is idle, and even
-                // then only past a wide dead-zone so cruise flight feels stable.
                 float verticalIntent;
                 if (Math.abs(payload.keyVertical()) > 0.01f) {
                     verticalIntent = Math.max(-1f, Math.min(1f, payload.keyVertical()));

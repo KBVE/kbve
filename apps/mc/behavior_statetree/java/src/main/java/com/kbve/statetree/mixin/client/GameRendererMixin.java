@@ -35,12 +35,9 @@ public abstract class GameRendererMixin {
         if (client.player == null) return;
         if (!(client.player.getVehicle() instanceof ShipEntity ship)) return;
 
-        // Apply ship's bank roll around forward axis. Halved so the cockpit
-        // tilt feels suggestive rather than disorienting.
         matrices.multiply(new Quaternionf().rotateZ(
                 (float) Math.toRadians(ship.getBankRoll() * 0.5f)));
 
-        // Weapon recoil — quick X-axis kick that decays each frame.
         if (weaponRecoil > 0.01f) {
             matrices.multiply(new Quaternionf().rotateX(
                     (float) Math.toRadians(-weaponRecoil)));
