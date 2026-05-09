@@ -95,12 +95,15 @@ public final class ShipNetworking {
                 if (ship == null) return;
 
                 // Throttle is normalized [0..maxThrottle]; physics layer scales by stats.engineSpeed.
-                float maxThrottle = payload.boost() ? 1.5f : 1.0f;
+                // Ramp slowed (0.05 / 0.04 -> 0.025 / 0.03) so the W key feels
+                // analog instead of binary; boost ceiling trimmed 1.5 -> 1.3 so
+                // sprinting adds 30 % over cruise instead of doubling speed.
+                float maxThrottle = payload.boost() ? 1.3f : 1.0f;
                 float currentSpeed = ship.getTargetSpeed();
                 if (payload.forward() > 0) {
-                    ship.setTargetSpeed(Math.min(currentSpeed + 0.05f, maxThrottle));
+                    ship.setTargetSpeed(Math.min(currentSpeed + 0.025f, maxThrottle));
                 } else {
-                    ship.setTargetSpeed(Math.max(currentSpeed - 0.04f, 0f));
+                    ship.setTargetSpeed(Math.max(currentSpeed - 0.03f, 0f));
                 }
 
                 float current = ship.getHeading();

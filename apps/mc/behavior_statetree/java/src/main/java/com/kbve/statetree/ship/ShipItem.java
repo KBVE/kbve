@@ -49,8 +49,23 @@ public class ShipItem extends Item {
             entity.setShipId(java.util.UUID.randomUUID());
             entity.setOwnerUuid(user.getUuid());
             entity.setModelName(modelName);
-            entity.setShipHealth(ShipEntity.MAX_HEALTH);
             entity.refreshPositionAndAngles(pos.x, pos.y + 1.0, pos.z, user.getYaw(), 0);
+
+            // Restore packed state from CUSTOM_DATA component if present —
+            // pickup mechanic stores the ship's name/HP/fuel here so a
+            // packed ship redeploys with whatever shape it was packed in.
+            float restoredHealth = ShipEntity.MAX_HEALTH;
+            float restoredFuel = ShipEntity.MAX_FUEL * 0.5f;
+            net.minecraft.component.type.NbtComponent comp =
+                    stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+            if (comp != null) {
+                net.minecraft.nbt.NbtCompound nbt = comp.copyNbt();
+                nbt.getString("Name").ifPresent(entity::setShipName);
+                restoredHealth = nbt.getFloat("Health").orElse(ShipEntity.MAX_HEALTH);
+                restoredFuel   = nbt.getFloat("Fuel").orElse(ShipEntity.MAX_FUEL * 0.5f);
+            }
+            entity.setShipHealth(restoredHealth);
+            entity.setFuelLevel(restoredFuel);
 
             if (!serverWorld.spawnEntity(entity)) {
                 return ActionResult.FAIL;
