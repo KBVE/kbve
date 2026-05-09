@@ -1,0 +1,51 @@
+---
+title: Multi-Role Units
+description: How RareIcon's job system works — every unit carries every role; specialization is a priority weight, not a class lock-in.
+sidebar:
+  label: Units
+  order: 6
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Every unit in RareIcon's kingdom carries every job role. **Specialization is a priority weight, not a class lock-in.** A unit you recruit as "the builder" is also a fighter, gatherer, and scout — they just default to building. When the kingdom comes under attack, every villager becomes a soldier.
+
+## The four roles
+
+<CardGrid>
+	<Card title="Builder" icon="setting">
+		Construction + repairs. Same unit handles new structures and patches up battle damage. No "engineer" vs "carpenter" split.
+	</Card>
+	<Card title="Gatherer" icon="approve-check">
+		Wood, stone, food, scrap, electronics. Unit walks priority resource lists derived from kingdom needs.
+	</Card>
+	<Card title="Fighter" icon="warning">
+		Defense + sortie escort. Highest auto-aim, dash on threat detection.
+	</Card>
+	<Card title="Scout" icon="seti:plan">
+		Reveal map, mark loot, flag intrusions. Lowest combat priority, highest movement speed.
+	</Card>
+</CardGrid>
+
+## Why one unit, every role
+
+- **No class lock-in** — recruit anyone, slot into any task
+- **Auto-rebalance** — kingdom shifts priority weight when threats spike (every villager → fighter on alarm)
+- **Mid-run flexibility** — sortie loadout changes don't strand the kingdom in a pinch
+
+## Task-offer dispatcher
+
+Tasks fan out via a dispatcher pattern: each task carries a unified score (distance + role weight + role-pressure bonus + supply hysteresis). Units pull their best-scored offer from a flat list every N ticks. Replaces per-tick role cascade. Scales to thousands of units.
+
+Per project memory: every unit has a `JobPriorities` byte. Builder = construction + repairs (one role, not two).
+
+## Stolen-icon abilities
+
+The same units carry equipment slots Chip uses on sortie. Recruited allies gain ability stacking the same way Chip does — drop a stolen icon onto an ally's slot to copy the effect.
+
+## Where to dig deeper
+
+- [Run + Return Loop](/game/loop/) — how units operate between sorties
+- [Combat](/game/combat/) — how units fight on sortie
+- [Factions](/game/factions/) — who you can recruit
+- [The World](/game/world/) — where the kingdom lives

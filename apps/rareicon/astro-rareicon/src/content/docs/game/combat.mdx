@@ -1,0 +1,45 @@
+---
+title: Combat Loop
+description: Bullet-hell mechanics in RareIcon — twin-stick movement, stolen icons, parallel event pipeline, and the systems that keep 60 FPS at high entity counts.
+sidebar:
+  label: Combat
+  order: 5
+---
+
+Bullet-hell first. Hundreds of enemies, no framerate excuses. Built on Unity DOTS / ECS so the simulation stays at 60 FPS even when the screen is full of projectiles.
+
+## Inputs
+
+- **Move** — WASD
+- **Aim** — mouse cursor
+- **Shoot** — left mouse, held for sustained fire
+- **Cast** — right mouse + 1–4 for ability slot
+- **Dash** — space, short i-frames + cooldown
+- **Auto-aim assist** — toggle in [Controls](/guides/controls/)
+
+## What you can do moment-to-moment
+
+- **Sustained fire** — direct twin-stick aim, falls off at long range
+- **Stolen icons** — pickup-driven abilities recovered from defeated enemies. Slot up to 4 simultaneously. Stack effects.
+- **Spell casts** — primary slotted ability with cooldown, secondary on right-click hold
+- **Cover + line of sight** — most enemies use predictable LOS so you can break sight to reset their shot timers
+
+## The escalation curve
+
+Every shard ramps wave count + projectile density on a sine curve. Quiet seconds feed dense waves. Density resets between rooms so you're never in the trough during a boss.
+
+## Why it stays fast
+
+- **Burst ECS** — IJobEntity producers fan out across worker threads
+- **Parallel event pipeline** — `NativeList.ParallelWriter.AddNoResize` for projectile spawns; capacity sized once per frame so producers never stall the main thread
+- **Component lookup hygiene** — `state.CompleteDependency()` before main-thread reads
+- **Change-gate pattern** — UI subscribers only repaint on Generation increment
+
+If you're a dev: see the [Open-source ecosystem](/game/overview/#open-source-ecosystem) on the overview page.
+
+## Where to dig deeper
+
+- [Run + Return Loop](/game/loop/) — how combat feeds the kingdom
+- [Units](/game/units/) — multi-role job system
+- [Controls](/guides/controls/) — keybindings + assist toggles
+- [The World](/game/world/) — where the combat lives
