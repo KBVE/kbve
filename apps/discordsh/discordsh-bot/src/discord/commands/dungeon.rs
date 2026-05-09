@@ -645,6 +645,10 @@ async fn route(
         .and_then(|p| p.last())
         .and_then(|p| session.map.tiles.get(p))
         .cloned();
+    let session_for_render = path
+        .as_ref()
+        .filter(|p| p.len() >= 2)
+        .map(|_| session.clone());
     drop(session);
 
     let target_label: String = match &goal {
@@ -663,39 +667,65 @@ async fn route(
             .unwrap_or_else(|| format!("landmark `{slug}`")),
     };
 
-    let body = match (path, goal_tile) {
-        (Some(path), Some(goal_tile)) if path.len() >= 2 => {
-            let dirs = pathfinding::directions_along_path(&path);
+    let (body, render_path) = match (path.as_ref(), goal_tile) {
+        (Some(p), Some(goal_tile)) if p.len() >= 2 => {
+            let dirs = pathfinding::directions_along_path(p);
             let route = dirs
                 .iter()
                 .map(|d| d.label())
                 .collect::<Vec<_>>()
-                .join(" \u{2192} "); // " → "
+                .join(" \u{2192} ");
             let hops = dirs.len();
-            format!(
-                "{} hop(s) to **{}** ({}):\n{}",
-                hops, goal_tile.name, target_label, route
+            (
+                format!(
+                    "{} hop(s) to **{}** ({}):\n{}",
+                    hops, goal_tile.name, target_label, route
+                ),
+                Some(p.clone()),
             )
         }
-        (Some(path), Some(goal_tile)) if path.len() == 1 => format!(
-            "You're already in **{}** ({}).",
-            goal_tile.name, target_label
+        (Some(p), Some(goal_tile)) if p.len() == 1 => (
+            format!(
+                "You're already in **{}** ({}).",
+                goal_tile.name, target_label
+            ),
+            None,
         ),
-        _ => match &goal {
-            ResolvedGoal::Landmark(slug) => format!(
-                "No revealed path to landmark `{slug}` from your current room. \
-                 Either it isn't on the map yet, or you haven't explored \
-                 close enough to reveal a route."
-            ),
-            ResolvedGoal::Room(_) => format!(
-                "No revealed path to a {} from your current room. Explore further first.",
-                target_label
-            ),
-        },
+        _ => (
+            match &goal {
+                ResolvedGoal::Landmark(slug) => format!(
+                    "No revealed path to landmark `{slug}` from your current room. \
+                     Either it isn't on the map yet, or you haven't explored \
+                     close enough to reveal a route."
+                ),
+                ResolvedGoal::Room(_) => format!(
+                    "No revealed path to a {} from your current room. Explore further first.",
+                    target_label
+                ),
+            },
+            None,
+        ),
     };
 
-    ctx.send(poise::CreateReply::default().content(body).ephemeral(true))
-        .await?;
+    let route_png = match (render_path, session_for_render) {
+        (Some(route_pos), Some(snapshot)) => {
+            let fontdb = ctx.data().app.fontdb.clone();
+            match card::render_map_card_with_route(&snapshot, &route_pos, fontdb).await {
+                Ok(bytes) => Some(bytes),
+                Err(e) => {
+                    tracing::warn!(error = %e, "Failed to render route map for /dungeon route");
+                    None
+                }
+            }
+        }
+        _ => None,
+    };
+
+    let mut reply = poise::CreateReply::default().content(body).ephemeral(true);
+    if let Some(png) = route_png {
+        reply = reply.attachment(serenity::CreateAttachment::bytes(png, "route_map.png"));
+    }
+    ctx.send(reply).await?;
 
     Ok(())
 }

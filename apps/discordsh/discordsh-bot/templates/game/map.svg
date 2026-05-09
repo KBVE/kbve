@@ -25,8 +25,13 @@
     fill="{{ tile.fill_color }}"
     {% if !tile.is_visited %}opacity="0.35"{% else %}opacity="0.8"{% endif %}/>
 
+  {% if tile.is_on_route %}
+  <rect x="{{ tile.tx - 1 }}" y="{{ tile.ty - 1 }}" width="50" height="50" rx="7"
+    fill="none" stroke="#22d3ee" stroke-width="{% if tile.is_route_goal %}3{% else %}2{% endif %}"
+    stroke-dasharray="{% if tile.is_route_goal %}0{% else %}3,2{% endif %}"/>
+  {% endif %}
+
   {% if tile.is_current %}
-  <!-- Current position highlight -->
   <rect x="{{ tile.tx - 2 }}" y="{{ tile.ty - 2 }}" width="52" height="52" rx="8"
     fill="none" stroke="#ffd700" stroke-width="2.5"/>
   {% endif %}

@@ -762,6 +762,12 @@ pub struct MapTileDisplay {
     pub has_exit_e: bool,
     pub has_exit_w: bool,
     pub cleared: bool,
+    /// True when this tile sits on a `/dungeon route` highlight overlay.
+    /// Drives the cyan ring stroke in the map SVG template.
+    pub is_on_route: bool,
+    /// True for the last tile of a highlighted route — the destination.
+    /// Gets a thicker stroke than intermediate route tiles.
+    pub is_route_goal: bool,
 }
 
 /// Askama SVG template for the dungeon map card.
@@ -805,15 +811,28 @@ fn room_type_icon_id(room_type: &RoomType) -> &'static str {
     }
 }
 
-/// Build a `MapCardTemplate` from the current session state.
-///
-/// Creates a 7x7 grid centred on the player's current position.
-/// Only tiles that are visited or adjacent to a visited tile (discovered)
-/// are included; everything else is left blank (dark background).
+/// Build a `MapCardTemplate` from the current session state — no route
+/// overlay. Thin wrapper over the route-aware builder.
 pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
+    build_map_card_with_route(session, &[])
+}
+
+/// Build a `MapCardTemplate` with an optional `/dungeon route` overlay.
+///
+/// Tiles in `route` are flagged `is_on_route`; the last entry is also
+/// `is_route_goal`. Pass an empty slice to render an unannotated map.
+///
+/// The 7×7 grid is centred on the player's current position. Only
+/// visited or discovered tiles are emitted; everything else is left
+/// blank (dark background). Route tiles outside the visible window
+/// are silently skipped.
+pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> MapCardTemplate {
     let pos = &session.map.position;
     let half = 3i16; // 7x7 grid, center at index 3
     let mut tiles = Vec::new();
+
+    let route_set: std::collections::HashSet<MapPos> = route.iter().copied().collect();
+    let route_goal: Option<MapPos> = route.last().copied();
 
     for gy in 0..7i16 {
         for gx in 0..7i16 {
@@ -865,6 +884,9 @@ pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
                 let tx = 20 + gxi * 52;
                 let ty = 44 + gyi * 52;
 
+                let is_on_route = route_set.contains(&world_pos);
+                let is_route_goal = route_goal == Some(world_pos);
+
                 tiles.push(MapTileDisplay {
                     tx,
                     ty,
@@ -881,6 +903,8 @@ pub fn build_map_card(session: &SessionState) -> MapCardTemplate {
                     has_exit_e: tile.exits.contains(&Direction::East),
                     has_exit_w: tile.exits.contains(&Direction::West),
                     cleared: tile.cleared,
+                    is_on_route,
+                    is_route_goal,
                 });
             }
         }
@@ -916,6 +940,37 @@ pub async fn render_map_card(session: &SessionState, fontdb: FontDb) -> Result<V
     tokio::task::spawn_blocking(move || render_map_card_blocking(&session_clone, &fontdb))
         .await
         .map_err(|e| format!("Map render task panicked: {e}"))?
+}
+
+/// Render the map card with a `/dungeon route` overlay as PNG bytes.
+/// Tiles in `route` get a cyan ring; the last entry gets a thicker
+/// stroke marking it as the goal. CPU-bound.
+pub fn render_map_card_with_route_blocking(
+    session: &SessionState,
+    route: &[MapPos],
+    fontdb: &FontDb,
+) -> Result<Vec<u8>, String> {
+    let template = build_map_card_with_route(session, route);
+    let svg_string = template
+        .render()
+        .map_err(|e| format!("Map SVG template error: {e}"))?;
+
+    render_svg_to_png(&svg_string, fontdb).map_err(|e| format!("Map SVG render error: {e}"))
+}
+
+/// Async wrapper for [`render_map_card_with_route_blocking`].
+pub async fn render_map_card_with_route(
+    session: &SessionState,
+    route: &[MapPos],
+    fontdb: FontDb,
+) -> Result<Vec<u8>, String> {
+    let session_clone = session.clone();
+    let route_clone = route.to_vec();
+    tokio::task::spawn_blocking(move || {
+        render_map_card_with_route_blocking(&session_clone, &route_clone, &fontdb)
+    })
+    .await
+    .map_err(|e| format!("Map render task panicked: {e}"))?
 }
 
 // ── Public render function ──────────────────────────────────────────
