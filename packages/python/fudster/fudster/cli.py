@@ -79,9 +79,9 @@ def main() -> None:
 def version() -> None:
     """Show fudster and kbve versions."""
     import fudster as _fudster
-    import kbve as _kbve
+    from kbve import __version__ as _kbve_version
     click.echo(f"fudster {_fudster.__version__}")
-    click.echo(f"kbve    {_kbve.__version__}")
+    click.echo(f"kbve    {_kbve_version}")
 
 
 # ── info ─────────────────────────────────────────────────────────────
