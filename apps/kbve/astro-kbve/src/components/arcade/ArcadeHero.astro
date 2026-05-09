@@ -1,0 +1,198 @@
+---
+export interface Props {
+	title?: string;
+	tagline?: string;
+	stats?: Array<{ label: string; value: string }>;
+}
+
+const {
+	title = 'KBVE Arcade',
+	tagline = 'Browser games we built ourselves — plus a few classics on the way.',
+	stats = [],
+} = Astro.props;
+---
+
+<section class="arcade-hero" aria-labelledby="arcade-hero-title">
+	<div class="arcade-hero__bg" aria-hidden="true"></div>
+	<div class="arcade-hero__scanlines" aria-hidden="true"></div>
+	<div class="arcade-hero__grid" aria-hidden="true"></div>
+
+	<div class="arcade-hero__content">
+		<p class="arcade-hero__eyebrow">▸ NOW PLAYING</p>
+		<h1 id="arcade-hero-title" class="arcade-hero__title">{title}</h1>
+		<p class="arcade-hero__tagline">{tagline}</p>
+		{
+			stats.length > 0 && (
+				<ul class="arcade-hero__stats">
+					{stats.map((s) => (
+						<li>
+							<span class="arcade-hero__stat-value">
+								{s.value}
+							</span>
+							<span class="arcade-hero__stat-label">
+								{s.label}
+							</span>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</section>
+
+<style>
+	.arcade-hero {
+		position: relative;
+		overflow: hidden;
+		border-radius: 18px;
+		padding: 48px clamp(20px, 5vw, 56px);
+		min-height: 240px;
+		margin: 0 0 2.5rem;
+		isolation: isolate;
+		border: 1px solid rgba(168, 85, 247, 0.35);
+		box-shadow:
+			0 24px 60px -20px rgba(0, 0, 0, 0.55),
+			0 0 0 1px rgba(0, 0, 0, 0.35) inset;
+	}
+	.arcade-hero__bg {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(
+				circle at 12% 10%,
+				rgba(236, 72, 153, 0.55) 0%,
+				transparent 45%
+			),
+			radial-gradient(
+				circle at 88% 80%,
+				rgba(56, 189, 248, 0.45) 0%,
+				transparent 50%
+			),
+			linear-gradient(135deg, #0b0a18 0%, #1c1438 50%, #1f0c2e 100%);
+		z-index: -3;
+		animation: arcade-hero-pulse 14s ease-in-out infinite;
+	}
+	.arcade-hero__scanlines {
+		position: absolute;
+		inset: 0;
+		background: repeating-linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0.16) 0px,
+			rgba(0, 0, 0, 0.16) 1px,
+			transparent 1px,
+			transparent 4px
+		);
+		pointer-events: none;
+		z-index: -1;
+		mix-blend-mode: overlay;
+		opacity: 0.65;
+	}
+	.arcade-hero__grid {
+		position: absolute;
+		inset: 0;
+		background-image:
+			linear-gradient(rgba(168, 85, 247, 0.08) 1px, transparent 1px),
+			linear-gradient(
+				90deg,
+				rgba(168, 85, 247, 0.08) 1px,
+				transparent 1px
+			);
+		background-size: 36px 36px;
+		mask-image: linear-gradient(
+			to bottom,
+			transparent,
+			black 30%,
+			black 70%,
+			transparent
+		);
+		-webkit-mask-image: linear-gradient(
+			to bottom,
+			transparent,
+			black 30%,
+			black 70%,
+			transparent
+		);
+		z-index: -2;
+		pointer-events: none;
+	}
+	.arcade-hero__content {
+		position: relative;
+		z-index: 1;
+		max-width: 56ch;
+	}
+	.arcade-hero__eyebrow {
+		font-family: 'JetBrains Mono', ui-monospace, monospace;
+		font-size: 11px;
+		letter-spacing: 0.18em;
+		color: #f0abfc;
+		text-shadow: 0 0 10px rgba(240, 171, 252, 0.45);
+		margin: 0 0 12px;
+		text-transform: uppercase;
+	}
+	.arcade-hero__title {
+		font-size: clamp(34px, 6vw, 56px);
+		font-weight: 800;
+		line-height: 1.05;
+		margin: 0 0 14px;
+		letter-spacing: -0.01em;
+		color: #fff;
+		text-shadow:
+			0 0 18px rgba(236, 72, 153, 0.55),
+			0 0 38px rgba(56, 189, 248, 0.35);
+	}
+	.arcade-hero__tagline {
+		font-size: clamp(15px, 1.4vw, 17px);
+		color: #e9d5ff;
+		line-height: 1.55;
+		margin: 0 0 20px;
+		max-width: 60ch;
+	}
+	.arcade-hero__stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 24px;
+		margin: 12px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.arcade-hero__stats li {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding-right: 24px;
+		border-right: 1px solid rgba(168, 85, 247, 0.3);
+	}
+	.arcade-hero__stats li:last-child {
+		border-right: none;
+		padding-right: 0;
+	}
+	.arcade-hero__stat-value {
+		font-size: 22px;
+		font-weight: 700;
+		color: #fde68a;
+		font-family: 'Cormorant Garamond', Georgia, serif;
+	}
+	.arcade-hero__stat-label {
+		font-size: 11px;
+		color: #c4b5fd;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		font-family: 'JetBrains Mono', ui-monospace, monospace;
+	}
+
+	@keyframes arcade-hero-pulse {
+		0%,
+		100% {
+			filter: hue-rotate(0deg) brightness(1);
+		}
+		50% {
+			filter: hue-rotate(20deg) brightness(1.08);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.arcade-hero__bg {
+			animation: none;
+		}
+	}
+</style>

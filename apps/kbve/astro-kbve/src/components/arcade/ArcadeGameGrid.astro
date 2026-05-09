@@ -1,0 +1,25 @@
+---
+export interface Props {
+	columns?: number;
+}
+
+const { columns = 2 } = Astro.props;
+---
+
+<div class="arcade-grid" style={`--arcade-grid-cols: ${columns};`}>
+	<slot />
+</div>
+
+<style>
+	.arcade-grid {
+		display: grid;
+		gap: 18px;
+		grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+		margin: 0 0 1.5rem;
+	}
+	@media (min-width: 1080px) {
+		.arcade-grid {
+			grid-template-columns: repeat(var(--arcade-grid-cols, 2), 1fr);
+		}
+	}
+</style>
