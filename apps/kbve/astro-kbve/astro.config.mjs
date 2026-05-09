@@ -213,7 +213,7 @@ export default defineConfig({
 					label: 'Gaming',
 					collapsed: true,
 					items: [
-						{ slug: 'gaming' },
+						{ label: 'Overview', link: '/gaming/' },
 						{ slug: 'gaming/bitcraft' },
 						{ slug: 'gaming/lol' },
 						{ slug: 'gaming/rimworld' },
