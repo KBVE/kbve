@@ -1,7 +1,7 @@
-use crate::error::JediError;
-use crate::proto::jedi::{MessageKind, JediEnvelope, PayloadFormat};
-use crate::entity::pipe::Pipe;
 use crate::entity::envelope::{try_unwrap_payload, wrap_hybrid};
+use crate::entity::pipe::Pipe;
+use crate::error::JediError;
+use crate::proto::jedi::{JediEnvelope, MessageKind, PayloadFormat};
 use crate::state::temple::TempleState;
 
 use super::clickhouse_types::*;
@@ -15,20 +15,27 @@ macro_rules! match_ch_handlers {
         } else if MessageKind::ch_ddl($kind) {
             handle_ch_ddl($env, $ctx, $fmt).await
         } else {
-            Err(JediError::Internal("Unsupported ClickHouse operation".into()))
+            Err(JediError::Internal(
+                "Unsupported ClickHouse operation".into(),
+            ))
         }
     }};
 }
 
-pub async fn pipe_clickhouse(env: JediEnvelope, ctx: &TempleState) -> Result<JediEnvelope, JediError> {
+pub async fn pipe_clickhouse(
+    env: JediEnvelope,
+    ctx: &TempleState,
+) -> Result<JediEnvelope, JediError> {
     env.pipe_async(|e| async move {
-        let format = PayloadFormat::try_from(e.format).map_err(|_|
-            JediError::Internal("Invalid PayloadFormat".into())
-        )?;
+        let format = PayloadFormat::try_from(e.format)
+            .map_err(|_| JediError::Internal("Invalid PayloadFormat".into()))?;
 
         let kind = e.kind;
         if !MessageKind::try_from_valid(kind) {
-            tracing::warn!("Unhandled or invalid MessageKind in ClickHouse handler: {}", kind);
+            tracing::warn!(
+                "Unhandled or invalid MessageKind in ClickHouse handler: {}",
+                kind
+            );
         }
 
         match format {
@@ -37,7 +44,8 @@ pub async fn pipe_clickhouse(env: JediEnvelope, ctx: &TempleState) -> Result<Jed
             }
             _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
         }
-    }).await
+    })
+    .await
 }
 
 async fn handle_ch_select(
@@ -46,7 +54,9 @@ async fn handle_ch_select(
     format: PayloadFormat,
 ) -> Result<JediEnvelope, JediError> {
     let input = try_unwrap_payload::<ClickHouseQueryInput>(env)?;
-    let config = ctx.clickhouse_config.as_ref()
+    let config = ctx
+        .clickhouse_config
+        .as_ref()
         .ok_or_else(|| JediError::Internal("ClickHouse not configured".into()))?;
 
     let rows = config.execute_select(&input.query).await?;
@@ -69,7 +79,9 @@ async fn handle_ch_insert(
     format: PayloadFormat,
 ) -> Result<JediEnvelope, JediError> {
     let input = try_unwrap_payload::<ClickHouseInsertInput>(env)?;
-    let config = ctx.clickhouse_config.as_ref()
+    let config = ctx
+        .clickhouse_config
+        .as_ref()
         .ok_or_else(|| JediError::Internal("ClickHouse not configured".into()))?;
 
     config.execute_insert(&input.table, &input.rows).await?;
@@ -93,13 +105,12 @@ async fn handle_ch_ddl(
     format: PayloadFormat,
 ) -> Result<JediEnvelope, JediError> {
     let input = try_unwrap_payload::<ClickHouseDDLInput>(env)?;
-    let client = ctx.clickhouse_client.as_ref()
+    let client = ctx
+        .clickhouse_client
+        .as_ref()
         .ok_or_else(|| JediError::Internal("ClickHouse client not configured".into()))?;
 
-    client
-        .query(&input.statement)
-        .execute()
-        .await?;
+    client.query(&input.statement).execute().await?;
 
     let result = ClickHouseDDLResult {
         success: true,
