@@ -12,7 +12,9 @@ const { basePath = '/icons' } = Astro.props;
 
 const docs = await getCollection('docs');
 const terms = collectTermSummaries(docs);
-const categories = collectFacet(terms, (t) => t.categories);
+const categories = collectFacet(terms, (t) =>
+	t.primary_category ? [t.primary_category] : [],
+);
 const styles = collectFacet(terms, (t) => t.styles);
 const themes = collectFacet(terms, (t) => t.themes);
 const sources = collectFacet(terms, (t) => t.sourcePacks);
