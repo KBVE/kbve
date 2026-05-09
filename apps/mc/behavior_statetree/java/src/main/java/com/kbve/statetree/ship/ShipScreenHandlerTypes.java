@@ -22,6 +22,5 @@ public final class ShipScreenHandlerTypes {
     private ShipScreenHandlerTypes() {}
 
     public static void register() {
-        // Static init handles registration.
     }
 }

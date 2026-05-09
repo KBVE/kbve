@@ -107,9 +107,6 @@ public final class ShipCommands {
                     return 1;
                 }));
 
-        // /listships — print every active ship's id, model, and distance
-        // from the executing player. Helpful for finding a parked ship
-        // after dismounting and wandering off.
         dispatcher.register(CommandManager.literal("listships")
                 .requires(ServerCommandSource::isExecutedByPlayer)
                 .executes(ctx -> {

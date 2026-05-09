@@ -40,28 +40,20 @@ public final class ShipUpgrades {
     private static final Map<Item, Mod> REGISTRY = new HashMap<>();
 
     static {
-        // Diamond — faster engine.
         REGISTRY.put(Items.DIAMOND, new Mod(
                 1.30f, 1f, 1f, 1f, 1f, 1f, 1f, 0f, 1f, 1f));
-        // Redstone block — stronger vertical thrust.
         REGISTRY.put(Items.REDSTONE_BLOCK, new Mod(
                 1f, 1.50f, 1f, 1f, 1f, 1f, 1f, 0f, 1f, 1f));
-        // Gold block — tighter heading lock.
         REGISTRY.put(Items.GOLD_BLOCK, new Mod(
                 1f, 1f, 1.30f, 1f, 1f, 1f, 1f, 0f, 1f, 1f));
-        // Copper block — better cruise (less drag perpendicular to heading).
         REGISTRY.put(Items.COPPER_BLOCK, new Mod(
                 1f, 1f, 1f, 1.03f, 1.03f, 1f, 1f, 0f, 1f, 1f));
-        // Lantern — less wind sensitivity.
         REGISTRY.put(Items.LANTERN, new Mod(
                 1f, 1f, 1f, 1f, 1f, 0.70f, 1f, 0f, 1f, 1f));
-        // Feather — adds glide (forward thrust on descent).
         REGISTRY.put(Items.FEATHER, new Mod(
                 1f, 1f, 1f, 1f, 1f, 1f, 1f, 0.05f, 1f, 1f));
-        // Packed ice — stronger pitch stabilizer.
         REGISTRY.put(Items.PACKED_ICE, new Mod(
                 1f, 1f, 1f, 1f, 1f, 1f, 1.50f, 0f, 1f, 1f));
-        // Ender pearl — sharper turning + roll.
         REGISTRY.put(Items.ENDER_PEARL, new Mod(
                 1f, 1f, 1f, 1f, 1f, 1f, 1f, 0f, 1.30f, 1.20f));
     }
@@ -108,7 +100,6 @@ public final class ShipUpgrades {
             roll *= m.rollFactorMul();
         }
 
-        // Clamp decay below 1 so velocity always settles.
         hDec = Math.min(0.999f, hDec);
         vDec = Math.min(0.999f, vDec);
         lift = Math.min(0.95f, lift);

@@ -15,14 +15,14 @@ public class ShipInventory extends SimpleInventory {
 
     public static final int UPGRADE_START = 0;
     public static final int UPGRADE_COUNT = ShipUpgrades.MAX_SLOTS;
-    public static final int BANNER_SLOT = UPGRADE_START + UPGRADE_COUNT;        // 4
-    public static final int WEAPON_START = BANNER_SLOT + 1;                     // 5
+    public static final int BANNER_SLOT = UPGRADE_START + UPGRADE_COUNT;
+    public static final int WEAPON_START = BANNER_SLOT + 1;
     public static final int WEAPON_COUNT = 4;
-    public static final int STORAGE_START = WEAPON_START + WEAPON_COUNT;        // 9
+    public static final int STORAGE_START = WEAPON_START + WEAPON_COUNT;
     public static final int STORAGE_COUNT = 16;
     /** Boiler-style fuel feed slot (auto-consumes coal / lava buckets when fuel low). */
-    public static final int FUEL_SLOT = STORAGE_START + STORAGE_COUNT;          // 25
-    public static final int TOTAL_SLOTS = FUEL_SLOT + 1;                        // 26
+    public static final int FUEL_SLOT = STORAGE_START + STORAGE_COUNT;
+    public static final int TOTAL_SLOTS = FUEL_SLOT + 1;
 
     private final ShipEntity ship;
 
@@ -39,9 +39,6 @@ public class ShipInventory extends SimpleInventory {
     @Override
     public void markDirty() {
         super.markDirty();
-        // Ship cached stats depend on upgrade slots; invalidate so getStats()
-        // recomposes on next access. Banner/weapon slots also notify the
-        // entity so rendering and weapon-system caches refresh.
         ship.onInventoryChanged();
     }
 

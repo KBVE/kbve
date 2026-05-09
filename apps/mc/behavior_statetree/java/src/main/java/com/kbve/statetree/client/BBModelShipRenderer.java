@@ -50,8 +50,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
     private static final float MODEL_SCALE = 1.0f;
 
-    // Per-render scratch — engine power gates propeller animation speed.
-    // Stored as a field instead of plumbed through every renderObject call.
     private float currentEnginePower = 0.0f;
     private float currentBankRoll = 0.0f;
     private float currentPitch = 0.0f;
@@ -61,8 +59,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         super(ctx);
         this.shadowRadius = 4.0f;
     }
-
-    // -- State lifecycle ----------------------------------------------------
 
     @Override
     public ShipRenderState createRenderState() {
@@ -76,17 +72,13 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         state.modelName = (name == null || name.isEmpty()) ? DEFAULT_MODEL : name;
         float lerped = entity.getLerpedYaw(tickDelta);
 
-        // Server-side bankRoll already smoothed; clamp + lerp on the client
-        // for a final settle so render stays smooth across tick boundaries.
         state.targetRoll = clamp(entity.getBankRoll(), -35f, 35f);
         state.renderRoll += (state.targetRoll - state.renderRoll) * 0.15f;
         state.heading = lerped;
 
         state.enginePower = entity.getEnginePower();
-        // Propeller spin accumulates each frame at engine-scaled rate.
         state.propellerSpin = (state.propellerSpin + state.enginePower * 30.0f) % 360f;
         state.animationTime = (entity.age + tickDelta) * 0.05f;
-        // Pitch + ground state for control surface deflection / landing gear.
         state.pitchDeg = entity.getPitch();
         state.onGround = entity.isOnGround();
     }
@@ -101,8 +93,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
     private static float clamp(float v, float lo, float hi) {
         return Math.max(lo, Math.min(hi, v));
     }
-
-    // -- Render -------------------------------------------------------------
 
     @Override
     public void render(ShipRenderState state, MatrixStack matrices,
@@ -122,7 +112,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
 
         matrices.push();
 
-        // Scale from Blockbench units to world units
         matrices.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
 
         matrices.multiply(new Quaternionf().rotateY(
@@ -130,18 +119,11 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         matrices.multiply(new Quaternionf().rotateZ(
                 (float) Math.toRadians(state.renderRoll)));
 
-        // Stash engine power for propeller-name-keyed time scaling.
         currentEnginePower = state.enginePower;
         currentBankRoll = state.renderRoll;
         currentPitch = state.pitchDeg;
         currentOnGround = state.onGround;
 
-        // Drive ImmersiveAircraft-style bbmodel keyframe expressions.
-        // The .bbmodel files reference variable.engine_rotation,
-        // variable.pressing_interpolated_x/y/z, etc. Without these set
-        // every frame the propeller, rudder, and elevator animators
-        // evaluate to 0 and stay frozen. Globals are fine because
-        // rendering is single-threaded.
         com.kbve.statetree.bbmodel.BBAnimationVariables.set(
                 "time", state.animationTime);
         com.kbve.statetree.bbmodel.BBAnimationVariables.set(
@@ -162,8 +144,7 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         com.kbve.statetree.bbmodel.BBAnimationVariables.set(
                 "roll", state.renderRoll);
 
-        // Walk the model tree — submit render commands per face
-        int light = 0xF000F0; // full bright (airships fly in sky)
+        int light = 0xF000F0;
         for (BBObject obj : model.root) {
             renderObject(model, obj, matrices, queue, light, state.animationTime);
         }
@@ -171,20 +152,12 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         matrices.pop();
     }
 
-    // -- Tree traversal -----------------------------------------------------
-
     private void renderObject(BBModel model, BBObject object, MatrixStack matrices,
                               OrderedRenderCommandQueue queue, int light, float time) {
         matrices.push();
 
-        // Apply object origin
         matrices.translate(object.origin.x(), object.origin.y(), object.origin.z());
 
-        // Apply keyframe animation. Most IA-style bbmodels reference
-        // BBAnimationVariables (engine_rotation, pressing_interpolated_*)
-        // — those are now set per-frame in render() so propeller spin,
-        // rudder yaw, and elevator pitch all come from the bbmodel's
-        // own animator without extra code.
         boolean hasAnimator = false;
         if (!model.animations.isEmpty()) {
             BBAnimation animation = model.animations.get(0);
@@ -203,13 +176,8 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
             }
         }
 
-        // Apply object rotation
         matrices.multiply(BBModelUtils.fromXYZ(object.rotation));
 
-        // Code-driven control surface fallback — only fires when the
-        // bbmodel doesn't already have an animator for this object.
-        // Lets bbmodels without IA-style variable expressions still get
-        // visible rudder/elevator/gear deflection.
         if (!hasAnimator && object.name != null) {
             String lname = object.name.toLowerCase();
             if (lname.contains("rudder") || lname.contains("aileron")) {
@@ -226,7 +194,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         }
 
         if (object instanceof BBBone bone) {
-            // Bones pivot around their origin — translate back before recursing
             matrices.translate(-object.origin.x(), -object.origin.y(), -object.origin.z());
 
             if (bone.visibility) {
@@ -241,8 +208,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
         matrices.pop();
     }
 
-    // -- Face submission ----------------------------------------------------
-
     private void submitFaces(BBFaceContainer container, MatrixStack matrices,
                              OrderedRenderCommandQueue queue, int light) {
         for (BBFace face : container.getFaces()) {
@@ -250,7 +215,6 @@ public class BBModelShipRenderer extends EntityRenderer<ShipEntity, ShipRenderSt
                     ? RenderLayers.entityCutout(face.texture.location)
                     : RenderLayers.entityCutoutNoCull(face.texture.location);
 
-            // submitCustom captures current matrix state in the entry
             queue.submitCustom(matrices, layer, (entry, vc) -> {
                 for (int i = 0; i < 4; i++) {
                     BBFace.BBVertex v = face.vertices[i];

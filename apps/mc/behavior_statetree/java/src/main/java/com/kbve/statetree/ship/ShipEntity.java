@@ -30,7 +30,6 @@ import java.util.UUID;
  */
 public class ShipEntity extends Entity {
 
-    // Tracked data syncs to clients via vanilla entity tracking.
     private static final TrackedData<String> MODEL_NAME =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final TrackedData<String> SHIP_NAME =
@@ -78,7 +77,6 @@ public class ShipEntity extends Entity {
 
     private String ownerUuidStr = "";
 
-    // Smoothed flight state — runs identically server + client off synced inputs.
     private final InterpolatedFloat enginePower = new InterpolatedFloat(50.0f);
     private final InterpolatedFloat verticalDrive = new InterpolatedFloat(20.0f);
     private float lastHeading = 0.0f;
@@ -91,20 +89,15 @@ public class ShipEntity extends Entity {
     private boolean lastOnGroundForDust = true;
     private int autoParkHoverTicks = 0;
 
-    // Cached stats — refreshed when model changes or upgrades change.
     private FlightStats statsCache = FlightStats.DEFAULT;
     private String statsCacheKey = "";
     private int upgradesHashCache = 0;
 
-    // Backing inventory: 4 upgrade + 1 banner + 4 weapon + 16 storage slots.
     private final ShipInventory inventory = new ShipInventory(this);
-    // Per-weapon-slot cooldown (ticks remaining).
     private final int[] weaponCooldowns = new int[ShipInventory.WEAPON_COUNT];
 
     public ShipEntity(EntityType<?> type, World world) {
         super(type, world);
-        // Engine-modulated gravity is applied manually in tick(); disable
-        // vanilla pull so a hovering airship doesn't sink at idle.
         this.setNoGravity(true);
     }
 
@@ -135,7 +128,6 @@ public class ShipEntity extends Entity {
             return;
         }
 
-        // Drop everything in the inventory (player gathers + re-stuffs after redeploy).
         for (int i = 0; i < inventory.size(); i++) {
             net.minecraft.item.ItemStack s = inventory.getStack(i);
             if (!s.isEmpty()) this.dropStack(world, s);
@@ -169,7 +161,6 @@ public class ShipEntity extends Entity {
         if (this.getEntityWorld().isClient()) return;
         ServerWorld sw = (ServerWorld) this.getEntityWorld();
 
-        // Aim direction from pilot's view (so weapons follow the camera).
         double yawRad = Math.toRadians(aimYaw);
         double pitchRad = Math.toRadians(aimPitch);
         double dx = -Math.sin(yawRad) * Math.cos(pitchRad);
@@ -177,8 +168,6 @@ public class ShipEntity extends Entity {
         double dz = Math.cos(yawRad) * Math.cos(pitchRad);
         Vec3d aim = new Vec3d(dx, dy, dz).normalize();
 
-        // Mount positions from per-aircraft JSON (ship-local). Falls back to a
-        // single hardcoded forward mount if the model has none configured.
         java.util.List<Vec3d> localMounts = FlightStatsRegistry.getMounts(getModelName());
 
         double shipYawRad = Math.toRadians(this.getYaw());
@@ -193,14 +182,12 @@ public class ShipEntity extends Entity {
             ShipWeapons.Weapon weapon = ShipWeapons.weaponFor(stack.getItem());
             if (weapon == null) continue;
 
-            // Resolve mount: pick i-th JSON mount if available, else cycle.
             Vec3d local;
             if (!localMounts.isEmpty()) {
                 local = localMounts.get(i % localMounts.size());
             } else {
                 local = new Vec3d(0.0, 0.6, 1.5);
             }
-            // Rotate ship-local mount around Y by ship yaw.
             double wx = this.getX() + local.x * cosY - local.z * sinY;
             double wy = this.getY() + local.y;
             double wz = this.getZ() + local.x * sinY + local.z * cosY;
@@ -217,8 +204,6 @@ public class ShipEntity extends Entity {
         String n = getShipName();
         return n.isEmpty() ? "Ship" : n;
     }
-
-    // -- Accessors ----------------------------------------------------------
 
     public UUID getShipId() {
         String id = this.dataTracker.get(SHIP_ID);
@@ -327,7 +312,7 @@ public class ShipEntity extends Entity {
 
     /** Called by ShipInventory.markDirty after any slot change. */
     public void onInventoryChanged() {
-        upgradesHashCache = -1; // force getStats() recompute
+        upgradesHashCache = -1;
         if (!this.getEntityWorld().isClient()) {
             syncUpgradesCsv();
             syncBannerId();
@@ -357,8 +342,6 @@ public class ShipEntity extends Entity {
         this.dataTracker.set(UPGRADES_CSV, packed.toString());
     }
 
-    // -- Damage / interact --------------------------------------------------
-
     @Override
     public boolean damage(ServerWorld world,
                           net.minecraft.entity.damage.DamageSource source,
@@ -376,15 +359,12 @@ public class ShipEntity extends Entity {
     }
 
     private void destroyAndExplode(ServerWorld world) {
-        // Tally TNT in cargo before clearing — boosts explosion radius so
-        // hauling TNT around becomes a calculated risk (mirrors IA behaviour).
         int tntCount = 0;
         for (int i = 0; i < inventory.size(); i++) {
             net.minecraft.item.ItemStack s = inventory.getStack(i);
             if (s.isOf(net.minecraft.item.Items.TNT)) tntCount += s.getCount();
         }
 
-        // Drop entire inventory (upgrades + banner + weapons + cargo) for salvage.
         for (int i = 0; i < inventory.size(); i++) {
             net.minecraft.item.ItemStack s = inventory.getStack(i);
             if (!s.isEmpty()) this.dropStack(world, s);
@@ -395,7 +375,6 @@ public class ShipEntity extends Entity {
             world.createExplosion(this, this.getX(), this.getY(), this.getZ(),
                     power, World.ExplosionSourceType.MOB);
         }
-        // Detach any towed mobs so leads survive the ship's destruction.
         for (net.minecraft.entity.mob.MobEntity mob : world
                 .getEntitiesByClass(net.minecraft.entity.mob.MobEntity.class,
                         this.getBoundingBox().expand(20.0),
@@ -433,7 +412,6 @@ public class ShipEntity extends Entity {
         float myMass = getStats().mass();
         float theirMass = peer.getStats().mass();
         float massSum = Math.max(0.5f, myMass + theirMass);
-        // Heavier ship bullies lighter one — push scales inversely with own mass.
         double myShare = theirMass / massSum;
         double theirShare = myMass / massSum;
 
@@ -485,7 +463,6 @@ public class ShipEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
 
-        // Sneak + empty hand → open ship inventory GUI.
         if (player.isSneaking() && stack.isEmpty()) {
             if (player instanceof ServerPlayerEntity sp) {
                 sp.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
@@ -495,7 +472,6 @@ public class ShipEntity extends Entity {
             }
             return ActionResult.SUCCESS;
         }
-        // Sneak + upgrade item → quick-install into first free upgrade slot.
         if (player.isSneaking() && ShipUpgrades.isUpgrade(stack.getItem())) {
             for (int i = 0; i < ShipInventory.UPGRADE_COUNT; i++) {
                 int idx = ShipInventory.UPGRADE_START + i;
@@ -511,7 +487,6 @@ public class ShipEntity extends Entity {
             }
             return ActionResult.PASS;
         }
-        // Sneak + weapon item → quick-install into first free weapon slot.
         if (player.isSneaking() && ShipWeapons.isWeapon(stack.getItem())) {
             for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
                 int idx = ShipInventory.WEAPON_START + i;
@@ -527,11 +502,6 @@ public class ShipEntity extends Entity {
             return ActionResult.PASS;
         }
 
-        // Repair: any iron-tier material works.
-        //   IRON_INGOT      +25 HP
-        //   IRON_BLOCK      +50 HP (denser slab patches more hull)
-        //   COPPER_INGOT    +15 HP (cheaper but weaker)
-        //   NETHERITE_INGOT +60 HP (premium full-stack patch)
         if (getShipHealth() < MAX_HEALTH) {
             float repairAmt = 0f;
             if (stack.isOf(net.minecraft.item.Items.IRON_INGOT))            repairAmt = 25f;
@@ -551,7 +521,6 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Refuel: coal → +200 fuel; lava bucket → +2000 fuel (consumes bucket).
         if (getFuelLevel() < MAX_FUEL) {
             float before = getFuelLevel();
             float added = 0f;
@@ -579,14 +548,6 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Tow rope — right-click ship while holding LEAD transfers any
-        // mob currently leashed to the player onto the ship as the new
-        // leash holder. Vanilla MobEntity tickLeash then keeps the
-        // mob within range as the ship moves.
-        // Pickup — sneak + shears packs the ship back into an item with
-        // its core state preserved (name, HP, fuel). Cargo + weapons +
-        // upgrades drop at the pickup site so the player can re-stuff
-        // when they redeploy. Only owner / op may pack up.
         if (player.isSneaking() && stack.isOf(net.minecraft.item.Items.SHEARS)) {
             if (!ownerOrOpCanModify(player)) {
                 if (!this.getEntityWorld().isClient()) {
@@ -649,13 +610,10 @@ public class ShipEntity extends Entity {
         return this.getPassengerList().size() < seatCapacity() && passenger instanceof PlayerEntity;
     }
 
-    // -- Multi-passenger seating -------------------------------------------
-
     @Override
     protected Vec3d getPassengerAttachmentPos(Entity passenger,
                                               EntityDimensions dimensions,
                                               float scaleFactor) {
-        // Find seat for this passenger from stats.seats[count-1][index].
         List<Entity> riders = this.getPassengerList();
         List<List<Vec3d>> seatRows = FlightStatsRegistry.getSeats(getModelName());
         int count = riders.size();
@@ -670,8 +628,6 @@ public class ShipEntity extends Entity {
         return row.get(idx);
     }
 
-    // -- Tick ---------------------------------------------------------------
-
     @Override
     public void tick() {
         super.tick();
@@ -683,23 +639,13 @@ public class ShipEntity extends Entity {
         boolean ridden = hasPassengers();
         boolean fueled = getFuelLevel() > 0f;
 
-        // Auto-cut throttle when out of fuel OR fully submerged. IA shuts
-        // the engine off the instant the cabin dunks because flooded
-        // intakes can't burn fuel; we mirror that gating here.
         boolean submerged = this.isSubmergedInWater();
         if (!fueled || submerged) ts = 0f;
 
-        // Cargo weight — heavier load throttles down max engine output
-        // and slows the engine ramp. 0.0 = empty cargo, 1.0 = every
-        // storage slot stacked. Caps the penalty at 50 % of max thrust.
         float cargoLoad = computeCargoLoad();
         float loadPenalty = Math.min(0.5f, cargoLoad * 0.5f);
         float effectiveTarget = ts * (1.0f - loadPenalty);
 
-        // Boost reservoir — clamps the requested throttle to 1.0 once the
-        // pilot has burned through their 5-second boost budget. Drains
-        // 1/100 per tick (5s full burn) while ts > 1.0; regens 1/200 per
-        // tick (10s recovery) otherwise. Server-side only.
         if (!this.getEntityWorld().isClient()) {
             float reserve = getBoostReserve();
             if (effectiveTarget > 1.0f) {
@@ -718,12 +664,10 @@ public class ShipEntity extends Entity {
         enginePower.update(ridden && fueled && !submerged ? effectiveTarget : 0.0f);
         verticalDrive.update(ridden ? vi : 0.0f);
 
-        // Bank roll from yaw delta — smoothed, used by renderer + camera.
         float headingDelta = ((heading - lastHeading + 540f) % 360f) - 180f;
         bankRoll = bankRoll * 0.85f + headingDelta * stats.rollFactor() * 0.15f;
         lastHeading = heading;
 
-        // Track whether we're touching water for dampening.
         if (this.isTouchingWater()) {
             inWaterLevel = Math.min(1.0f, inWaterLevel + 0.05f);
         } else {
@@ -732,7 +676,6 @@ public class ShipEntity extends Entity {
 
         if (this.getEntityWorld().isClient()) return;
 
-        // Decrement weapon cooldowns each tick.
         for (int i = 0; i < weaponCooldowns.length; i++) {
             if (weaponCooldowns[i] > 0) weaponCooldowns[i]--;
         }
@@ -740,15 +683,11 @@ public class ShipEntity extends Entity {
         float power = enginePower.getSmooth();
         float vert = verticalDrive.getSmooth();
 
-        // Burn fuel proportional to engine output. Idle = no consumption.
         if (power > 0.01f && fueled) {
             float burn = power * stats.engineSpeed() * 2.0f;
             setFuelLevel(getFuelLevel() - burn);
         }
 
-        // Cargo auto-repair — scan storage slots for iron-tier materials
-        // and consume one item per tick when hull is below max. Lets a
-        // pilot stockpile patch material in cargo and limp home.
         if (getShipHealth() < MAX_HEALTH && this.age % 20 == 0) {
             for (int i = 0; i < ShipInventory.STORAGE_COUNT; i++) {
                 int slot = ShipInventory.STORAGE_START + i;
@@ -768,8 +707,6 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Boiler feed — top off fuel from the dedicated feed slot when low.
-        // Consumes one item per top-off; lava buckets leave an empty bucket.
         if (getFuelLevel() < MAX_FUEL - COAL_FUEL) {
             net.minecraft.item.ItemStack feed = inventory.getStack(ShipInventory.FUEL_SLOT);
             if (!feed.isEmpty()) {
@@ -796,22 +733,16 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Forward direction in horizontal plane (rotorcraft style).
         double rad = Math.toRadians(heading);
         double fx = -Math.sin(rad);
         double fz = Math.cos(rad);
 
         Vec3d vel = this.getVelocity();
 
-        // Forward thrust scaled by engineSpeed. No quintic curve — linear power.
         double thrustScale = power * stats.engineSpeed() * (1.0f - inWaterLevel * 0.5f);
         vel = vel.add(fx * thrustScale, 0.0, fz * thrustScale);
 
-        // Vertical thrust (rotorcraft) — pitchSpeed > 0 means plane (uses pitch instead).
         if (stats.pitchSpeed() <= 0.0f) {
-            // Takeoff assist — bonus climb thrust when within 5 blocks of
-            // the ground while ascending. Helps a stalled / heavy ship
-            // unstick from terrain instead of bouncing helplessly.
             float verticalBonus = 1.0f;
             if (vert > 0.1f && this.getEntityWorld() instanceof ServerWorld swT) {
                 int floorY = swT.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
@@ -823,16 +754,11 @@ public class ShipEntity extends Entity {
             }
             vel = vel.add(0.0, vert * power * stats.verticalSpeed() * verticalBonus, 0.0);
         } else {
-            // Plane — input drives pitch; pitch + forward velocity yields lift.
             float pitch = this.getPitch();
             pitch += stats.pitchSpeed() * vert;
             pitch *= (1.0f - stats.stabilizer());
-            // Clamp at ±75° instead of ±90° so a plane can't quite go
-            // vertical — leaves room for the camera to read direction
-            // and prevents the model from inverting.
             this.setPitch(MathHelper.clamp(pitch, -75.0f, 75.0f));
 
-            // Glide: forward thrust on descent.
             if (stats.glideFactor() > 0.0f) {
                 double dy = lastY - this.getY();
                 if (lastY != 0.0 && dy != 0.0) {
@@ -843,7 +769,6 @@ public class ShipEntity extends Entity {
         }
         lastY = this.getY();
 
-        // Drag/lift — lerp horizontal velocity toward heading.
         Vec3d horiz = new Vec3d(vel.x, 0, vel.z);
         double speed = horiz.length();
         if (speed > 1.0e-4) {
@@ -874,7 +799,6 @@ public class ShipEntity extends Entity {
         }
         vel = vel.add(0.0, gravity, 0.0);
 
-        // Wind perturbation — cosNoise-style ambient drift.
         if (stats.wind() > 0.0f && !this.isOnGround() && inWaterLevel < 0.5f) {
             ServerWorld sw = (ServerWorld) this.getEntityWorld();
             float windStrength = stats.wind()
@@ -885,15 +809,12 @@ public class ShipEntity extends Entity {
             vel = vel.add(nx * 0.005, 0.0, nz * 0.005);
         }
 
-        // Ground-pitch settle (planes only).
         if (this.isOnGround() && stats.pitchSpeed() > 0.0f) {
             float p = this.getPitch();
             this.setPitch((p + stats.groundPitch()) * 0.9f - stats.groundPitch());
-            // Ground friction.
             vel = vel.multiply(stats.groundFriction(), 1.0, stats.groundFriction());
         }
 
-        // Crash explosion — impact when hard-landing with significant downward velocity.
         if (stats.canExplodeOnCrash() && this.isOnGround()) {
             double impact = -vel.y;
             if (impact > 1.5) {
@@ -902,28 +823,20 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Caution flags — refreshed every tick, synced via TrackedData byte.
         int caution = 0;
         ServerWorld sworld = (ServerWorld) this.getEntityWorld();
-        // PULL_UP: descending fast and within 6 blocks of the next solid block below.
         if (vel.y < -0.15) {
             int floorY = sworld.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
                     (int) Math.floor(this.getX()), (int) Math.floor(this.getZ()));
             if (this.getY() - floorY < 6.0) caution |= CAUTION_PULL_UP;
         }
-        // VOID: under the world bottom.
         if (this.getY() < sworld.getBottomY() + 4) caution |= CAUTION_VOID;
-        // DAMAGED: hp below 25%.
         if (getShipHealth() < MAX_HEALTH * 0.25f) caution |= CAUTION_DAMAGED;
-        // LOW_FUEL: fuel below threshold.
         if (isFuelLow()) caution |= CAUTION_LOW_FUEL;
         if (caution != getCautionBits()) {
             this.dataTracker.set(CAUTION_BITS, (byte) caution);
         }
 
-        // Audio warnings — one-shot when a caution flag flips ON. Volume kept
-        // tame so the cockpit isn't a constant siren when the pilot is
-        // already grazing terrain.
         int newCautions = caution & ~lastCautionBitsForSound;
         if ((newCautions & CAUTION_PULL_UP) != 0) {
             sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -940,7 +853,6 @@ public class ShipEntity extends Entity {
                     net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(),
                     net.minecraft.sound.SoundCategory.NEUTRAL, 0.5f, 1.4f);
         }
-        // PULL_UP keeps beeping while held — fire every 8 ticks for urgency.
         if ((caution & CAUTION_PULL_UP) != 0 && this.age % 8 == 0
                 && (newCautions & CAUTION_PULL_UP) == 0) {
             sworld.playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -954,14 +866,10 @@ public class ShipEntity extends Entity {
             this.move(MovementType.SELF, vel);
         }
 
-        // Particle trail — per-aircraft visual style.
         if (power > 0.3f && this.getEntityWorld() instanceof ServerWorld sw) {
             spawnTrailParticles(sw, power);
         }
 
-        // Boost speed-lines — perpendicular cloud streaks while throttle
-        // exceeds normal max (sprint key bumps maxThrottle to 1.5). Mirrors
-        // IA's high-speed visual flourish.
         if (power > 1.0f && this.getEntityWorld() instanceof ServerWorld swBoost
                 && this.age % 2 == 0) {
             double radB = Math.toRadians(this.getYaw());
@@ -977,22 +885,16 @@ public class ShipEntity extends Entity {
             }
         }
 
-        // Banner color plume — independent of throttle so a parked ship
-        // still flies its colors.
         if (this.getEntityWorld() instanceof ServerWorld sw3) {
             spawnBannerParticles(sw3);
         }
 
-        // Takeoff dust — burst of cloud particles on the tick the ship
-        // leaves the ground (or lands), suggesting backwash kicking up
-        // dirt. Mirrors IA's takeoff plume.
         boolean nowOnGround = this.isOnGround();
         if (nowOnGround != lastOnGroundForDust
                 && this.getEntityWorld() instanceof ServerWorld swDust) {
             swDust.spawnParticles(net.minecraft.particle.ParticleTypes.CLOUD,
                     this.getX(), this.getY() + 0.1, this.getZ(),
                     14, 1.2, 0.05, 1.2, 0.05);
-            // Quieter thump for landings, no sound on takeoff (engine sound covers it).
             if (nowOnGround) {
                 swDust.playSound(null, this.getX(), this.getY(), this.getZ(),
                         net.minecraft.sound.SoundEvents.ENTITY_HORSE_LAND,
@@ -1001,8 +903,6 @@ public class ShipEntity extends Entity {
         }
         lastOnGroundForDust = nowOnGround;
 
-        // Damage smoke — leak black smoke when hull is critical so other
-        // pilots can spot a wounded ship at a distance.
         if (getShipHealth() < MAX_HEALTH * 0.25f && this.age % 3 == 0
                 && this.getEntityWorld() instanceof ServerWorld swDmg) {
             swDmg.spawnParticles(net.minecraft.particle.ParticleTypes.LARGE_SMOKE,
@@ -1010,11 +910,8 @@ public class ShipEntity extends Entity {
                     1, 0.2, 0.1, 0.2, 0.02);
         }
 
-        // Engine sound — pitch scales with throttle. Cadence speeds up as
-        // power rises so the audio gets more frantic at full thrust.
         if (this.getEntityWorld() instanceof ServerWorld sw2) {
             net.minecraft.sound.SoundEvent loopSound = resolveEngineSound(stats.engineSound());
-            // Engine spinup — distinct one-shot + visible smoke burst.
             if (lastEnginePowerForSound < 0.05f && power >= 0.05f) {
                 sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
                         net.minecraft.sound.SoundEvents.ITEM_FLINTANDSTEEL_USE,
@@ -1024,16 +921,12 @@ public class ShipEntity extends Entity {
                         this.getX(), this.getY() + 0.6, this.getZ(),
                         12, 0.5, 0.2, 0.5, 0.04);
             }
-            // Engine shutdown — soft puff when throttle drops to zero.
             if (lastEnginePowerForSound >= 0.05f && power < 0.05f) {
                 sw2.playSound(null, this.getX(), this.getY(), this.getZ(),
                         net.minecraft.sound.SoundEvents.BLOCK_FIRE_EXTINGUISH,
                         net.minecraft.sound.SoundCategory.NEUTRAL,
                         0.4f, 1.0f);
             }
-            // Engine loop — periodic rumble while running, sound from stats.
-            // propellerCount > 1 makes a multi-engine plane sound beefier
-            // (faster cadence + slightly louder) without changing the sample.
             if (power > 0.05f && loopSound != null) {
                 int props = Math.max(1, stats.propellerCount());
                 int cadence = Math.max(1, (int) ((12 - 8 * power) / Math.sqrt(props)));
@@ -1079,7 +972,6 @@ public class ShipEntity extends Entity {
         if (color < 0) return;
         net.minecraft.particle.DustParticleEffect dust =
                 new net.minecraft.particle.DustParticleEffect(color, 1.4f);
-        // Two puffs offset along ship roll axis to suggest a flag waving.
         double rad = Math.toRadians(this.getYaw());
         double sx = Math.cos(rad) * 0.4;
         double sz = Math.sin(rad) * 0.4;
@@ -1141,7 +1033,6 @@ public class ShipEntity extends Entity {
             return;
         }
 
-        // Legacy fallback for models with no trailOffsets configured.
         double rad = Math.toRadians(this.getYaw());
         if (model.contains("biplane")) {
             if (this.age % 2 == 0) {
@@ -1210,11 +1101,8 @@ public class ShipEntity extends Entity {
         }
     }
 
-    // -- Dismount safety ---------------------------------------------------
-
     @Override
     public Vec3d updatePassengerForDismount(net.minecraft.entity.LivingEntity passenger) {
-        // Try a few horizontal offsets at ship height; default to ship pos.
         double radius = Math.max(getStats().boundingWidth(), 1.5);
         double yawRad = Math.toRadians(this.getYaw());
         Vec3d[] candidates = new Vec3d[]{
@@ -1235,8 +1123,6 @@ public class ShipEntity extends Entity {
         }
         return super.updatePassengerForDismount(passenger);
     }
-
-    // -- DataTracker / NBT --------------------------------------------------
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
@@ -1267,8 +1153,6 @@ public class ShipEntity extends Entity {
         setShipHealth(view.getFloat("ShipHealth", MAX_HEALTH));
         setFuelLevel(view.getFloat("FuelLevel", MAX_FUEL));
 
-        // Inventory: full ItemStack codec preserves components (enchantments,
-        // banner patterns, custom names, durability) across world reload.
         for (int i = 0; i < inventory.size(); i++) inventory.setStack(i, net.minecraft.item.ItemStack.EMPTY);
         view.read("Inventory",
                 com.mojang.serialization.Codec.list(net.minecraft.item.ItemStack.OPTIONAL_CODEC))

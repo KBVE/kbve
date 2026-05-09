@@ -22,28 +22,24 @@ import net.minecraft.text.Text;
  */
 public class ShipScreen extends HandledScreen<ShipScreenHandler> {
 
-    // Panel chrome.
     private static final int PANEL_FILL    = 0xFF1B2128;
     private static final int PANEL_HILIGHT = 0xFF3A4452;
     private static final int PANEL_SHADOW  = 0xFF0A0E12;
     private static final int PANEL_BORDER  = 0xFF44505E;
 
-    // Accent strip behind a slot section header.
     private static final int ACCENT_FILL   = 0xFF252D38;
 
-    // Slot frame.
     private static final int SLOT_BG       = 0xFF0E1116;
     private static final int SLOT_BORDER   = 0xFF3F4954;
     private static final int SLOT_HILIGHT  = 0x40FFFFFF;
     private static final int SLOT_SHADOW   = 0x60000000;
 
-    // Section accents (subtle inset tint per section).
-    private static final int TINT_UPGRADE  = 0x602A4A88;   // blue
-    private static final int TINT_BANNER   = 0x60883078;   // magenta
-    private static final int TINT_FUEL     = 0x60AA6020;   // orange
-    private static final int TINT_WEAPON   = 0x60882828;   // red
-    private static final int TINT_CARGO    = 0x402F3742;   // neutral
-    private static final int TINT_PLAYER   = 0x301F242C;   // muted
+    private static final int TINT_UPGRADE  = 0x602A4A88;
+    private static final int TINT_BANNER   = 0x60883078;
+    private static final int TINT_FUEL     = 0x60AA6020;
+    private static final int TINT_WEAPON   = 0x60882828;
+    private static final int TINT_CARGO    = 0x402F3742;
+    private static final int TINT_PLAYER   = 0x301F242C;
 
     private static final int LABEL_COLOR   = 0xFFEACE76;
     private static final int LABEL_DIM     = 0xFF8A95A0;
@@ -64,40 +60,30 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
 
         beveledPanel(ctx, x, y, w, h);
 
-        // Top-row accent strip (covers the gear-section).
         ctx.fill(x + 4, y + 14, x + w - 4, y + 38, ACCENT_FILL);
 
-        // Cargo accent strip.
         ctx.fill(x + 58, y + 40, x + 134, y + 116, ACCENT_FILL);
 
-        // Player inventory accent strip.
         ctx.fill(x + 4, y + 122, x + w - 4, y + 200, ACCENT_FILL);
 
-        // Section divider above player inventory.
         ctx.fill(x + 6, y + 119, x + w - 6, y + 121, PANEL_BORDER);
 
         int sy = y + 18;
-        // Upgrades
         for (int i = 0; i < ShipInventory.UPGRADE_COUNT; i++) {
             slotFrame(ctx, x + 8 + i * 18, sy, TINT_UPGRADE);
         }
-        // Banner
         slotFrame(ctx, x + 88, sy, TINT_BANNER);
-        // Fuel
         slotFrame(ctx, x + 108, sy, TINT_FUEL);
-        // Weapons
         for (int i = 0; i < ShipInventory.WEAPON_COUNT; i++) {
             slotFrame(ctx, x + 128 + i * 18, sy, TINT_WEAPON);
         }
 
-        // Storage 4x4
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
                 slotFrame(ctx, x + 62 + col * 18, y + 44 + row * 18, TINT_CARGO);
             }
         }
 
-        // Player inventory 3x9 + hotbar
         int py0 = y + 126;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -132,16 +118,11 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
 
     /** 1-pixel beveled outer panel: highlight top/left, shadow bottom/right. */
     private static void beveledPanel(DrawContext ctx, int x, int y, int w, int h) {
-        // Drop shadow (1px)
         ctx.fill(x + 1, y + 1, x + w + 1, y + h + 1, PANEL_SHADOW);
-        // Outer border
         ctx.fill(x - 1, y - 1, x + w + 1, y + h + 1, PANEL_BORDER);
-        // Body fill
         ctx.fill(x, y, x + w, y + h, PANEL_FILL);
-        // Top + left highlight
         ctx.fill(x, y, x + w, y + 1, PANEL_HILIGHT);
         ctx.fill(x, y, x + 1, y + h, PANEL_HILIGHT);
-        // Bottom + right shadow
         ctx.fill(x, y + h - 1, x + w, y + h, PANEL_SHADOW);
         ctx.fill(x + w - 1, y, x + w, y + h, PANEL_SHADOW);
     }
@@ -152,13 +133,9 @@ public class ShipScreen extends HandledScreen<ShipScreenHandler> {
      * own item rendering lines up.
      */
     private static void slotFrame(DrawContext ctx, int x, int y, int tint) {
-        // Outer 18x18 frame
         ctx.fill(x - 1, y - 1, x + 17, y + 17, SLOT_BORDER);
-        // Inner fill
         ctx.fill(x, y, x + 16, y + 16, SLOT_BG);
-        // Section tint overlay
         ctx.fill(x, y, x + 16, y + 16, tint);
-        // Inset bevel: highlight top/left, shadow bottom/right
         ctx.fill(x - 1, y - 1, x + 17, y, SLOT_HILIGHT);
         ctx.fill(x - 1, y - 1, x, y + 17, SLOT_HILIGHT);
         ctx.fill(x - 1, y + 16, x + 17, y + 17, SLOT_SHADOW);

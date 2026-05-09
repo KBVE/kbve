@@ -71,8 +71,6 @@ public class ShipClientMod implements ClientModInitializer {
             }
             hud.setTelemetry(shipEntity.getTargetSpeed(), shipEntity.getYaw(), (int) Math.floor(shipEntity.getY()));
             hud.setClimbRate((float) shipEntity.getVelocity().y);
-            // Radar altitude — distance above the highest motion-blocking
-            // surface beneath the ship. -1 means 'no terrain below' (void).
             int floorY = shipEntity.getEntityWorld().getTopY(
                     net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
                     (int) Math.floor(shipEntity.getX()),
@@ -80,7 +78,6 @@ public class ShipClientMod implements ClientModInitializer {
             int aglM = Math.max(0, (int) (shipEntity.getY() - floorY));
             hud.setAgl(aglM);
 
-            // Flight mode classification — drives the [MODE] tag next to ship name.
             float vy = (float) shipEntity.getVelocity().y;
             float ep = shipEntity.getEnginePower();
             float ts = shipEntity.getTargetSpeed();
@@ -104,9 +101,6 @@ public class ShipClientMod implements ClientModInitializer {
             hud.setCautions(shipEntity.getCautionBits());
             hud.setBoostReserve(shipEntity.getBoostReserve());
 
-            // Mirror the server-side wind formula in ShipEntity.tick:
-            //   nx = cos(age/20/mass) * stats.wind * weatherMul
-            //   nz = cos(age/21/mass) * stats.wind * weatherMul
             float mass = Math.max(0.5f, shipEntity.getStats().mass());
             float wRaw = shipEntity.getStats().wind();
             net.minecraft.world.World wWorld = shipEntity.getEntityWorld();
@@ -133,8 +127,6 @@ public class ShipClientMod implements ClientModInitializer {
         float forward = n ? 1.0f : (s ? -1.0f : 0f);
         float targetYaw = client.player.getYaw();
         float targetPitch = client.player.getPitch();
-        // Keyboard Y axis: jump = ascend, custom descend key = down.
-        // Sneak intentionally untouched — stays bound to vanilla dismount.
         float keyVertical = jump ? 1.0f : (descend ? -1.0f : 0.0f);
 
         boolean rise = jump || (!descend && targetPitch < -20f);
@@ -144,13 +136,8 @@ public class ShipClientMod implements ClientModInitializer {
         ClientPlayNetworking.send(new HelmInputPayload(
                 activeHelmShipId, forward, boost, targetYaw, targetPitch, keyVertical));
 
-        // Fire weapons on attack key press (mouse left). Server enforces
-        // per-slot cooldown so spamming the key doesn't desync.
         if (client.options.attackKey.isPressed()) {
             ClientPlayNetworking.send(new WeaponFirePayload(activeHelmShipId, targetYaw, targetPitch));
-            // Visual recoil — small upward camera kick read by GameRendererMixin.
-            // Server cooldown prevents abuse; if the shot didn't actually fire
-            // the kick is harmless visual.
             com.kbve.statetree.mixin.client.GameRendererMixin.weaponRecoil = 4.0f;
         }
     }

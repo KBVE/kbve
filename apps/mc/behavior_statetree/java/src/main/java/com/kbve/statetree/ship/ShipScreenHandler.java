@@ -47,7 +47,6 @@ public class ShipScreenHandler extends ScreenHandler {
     }
 
     private void layoutSlots(PlayerInventory playerInv) {
-        // Top row: 4 upgrades, 1 banner, 4 weapons.
         int y0 = 18;
         for (int i = 0; i < ShipInventory.UPGRADE_COUNT; i++) {
             final int idx = ShipInventory.UPGRADE_START + i;
@@ -84,7 +83,6 @@ public class ShipScreenHandler extends ScreenHandler {
             });
         }
 
-        // Storage 4x4 below.
         int sX0 = 62;
         int sY0 = 44;
         for (int row = 0; row < 4; row++) {
@@ -95,7 +93,6 @@ public class ShipScreenHandler extends ScreenHandler {
             }
         }
 
-        // Player inventory 3x9.
         int pY0 = 126;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -103,7 +100,6 @@ public class ShipScreenHandler extends ScreenHandler {
                         8 + col * 18, pY0 + row * 18));
             }
         }
-        // Hotbar.
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInv, col, 8 + col * 18, pY0 + 58));
         }
@@ -118,10 +114,8 @@ public class ShipScreenHandler extends ScreenHandler {
         ItemStack moved = original.copy();
 
         if (slotIndex < INV_SLOTS) {
-            // Ship → player inventory.
             if (!insertItem(original, INV_SLOTS, slots.size(), true)) return ItemStack.EMPTY;
         } else {
-            // Player → ship; route by item type to the right slot range.
             if (ShipUpgrades.isUpgrade(original.getItem())) {
                 if (!insertItem(original,
                         ShipInventory.UPGRADE_START,
