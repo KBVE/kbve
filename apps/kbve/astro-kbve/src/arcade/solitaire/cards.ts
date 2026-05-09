@@ -107,36 +107,67 @@ export function getColor(card: CardByte): ColorByte {
  * for visuals — joker is wild for rule purposes). */
 export const JOKER_RANK = 13;
 
-/** Sentinel rank for "bonus" cards — non-rule cards that auto-consume
- * the moment they flip face-up, applying a side-effect (heal, cash, or
- * reveal-a-hidden). The suit byte slot identifies the bonus subtype so
- * each bonus card has a stable id + view. Rank 14 is outside the 0..12
- * playing-card range and outside the joker rank, so the existing rule
- * helpers (`canDropOnTableau`, `canDropOnFoundation`) reject bonus cards
- * automatically — they can never legally be moved by the player. */
-export const BONUS_RANK = 14;
+/** Sentinel ranks for "bonus" cards — non-rule cards the player drags to
+ * the sidebar's ACTIVATE slot to apply a side-effect (heal, cash, or
+ * reveal-a-hidden). Ranks 14 + 15 are outside the 0..12 playing-card
+ * range and outside the joker rank, so the existing rule helpers
+ * (`canDropOnTableau`, `canDropOnFoundation`) reject bonus cards from
+ * standard piles automatically. Two ranks lets us encode duplicate
+ * variants (e.g. two HP cards) inside the same single-byte schema —
+ * each (rank, suit) pair maps to one bonus subtype via the lookup below. */
+export const BONUS_RANK_A = 14;
+export const BONUS_RANK_B = 15;
+const BONUS_RANK_SET = new Set<number>([BONUS_RANK_A, BONUS_RANK_B]);
+/** Backwards-compat alias — pre-multi-bonus code referenced this name. */
+export const BONUS_RANK = BONUS_RANK_A;
 
 export const enum BonusType {
 	/** +5 HP (capped at maxHp). */
 	HP = 0,
 	/** +$5 cash. */
 	Cash = 1,
-	/** Flip a random face-down tableau card. */
+	/** Mark a random face-down tableau card as peekable on hover. */
 	Reveal = 2,
 }
 
-export const BONUS_HP_BYTE: CardByte = (BonusType.HP << 4) | BONUS_RANK;
-export const BONUS_CASH_BYTE: CardByte = (BonusType.Cash << 4) | BONUS_RANK;
-export const BONUS_REVEAL_BYTE: CardByte = (BonusType.Reveal << 4) | BONUS_RANK;
+// Bonus byte slots. (rank, suit) is the addressable id; the player sees
+// the variant via the face-renderer (HP/Cash/Reveal). Two each of HP +
+// Cash, one Reveal — Reveal already cascades + peeks a card, so it stays
+// rare while the support cards (heal, cash) come up more often.
+export const BONUS_HP_BYTE: CardByte = (0 << 4) | BONUS_RANK_A;
+export const BONUS_HP_BYTE_2: CardByte = (3 << 4) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE: CardByte = (1 << 4) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE_2: CardByte = (0 << 4) | BONUS_RANK_B;
+export const BONUS_REVEAL_BYTE: CardByte = (2 << 4) | BONUS_RANK_A;
+
+/** Every bonus card byte the deal can produce, in stable iteration order.
+ * Used by `dealBytes` to seed the deck and by the scene to pre-build
+ * card views. Adding a new bonus card = add a byte constant + its entry
+ * here + a row in `BONUS_TYPE_BY_BYTE`. */
+export const ALL_BONUS_BYTES: readonly CardByte[] = [
+	BONUS_HP_BYTE,
+	BONUS_HP_BYTE_2,
+	BONUS_CASH_BYTE,
+	BONUS_CASH_BYTE_2,
+	BONUS_REVEAL_BYTE,
+] as const;
+
+const BONUS_TYPE_BY_BYTE: Map<CardByte, BonusType> = new Map([
+	[BONUS_HP_BYTE, BonusType.HP],
+	[BONUS_HP_BYTE_2, BonusType.HP],
+	[BONUS_CASH_BYTE, BonusType.Cash],
+	[BONUS_CASH_BYTE_2, BonusType.Cash],
+	[BONUS_REVEAL_BYTE, BonusType.Reveal],
+]);
 
 export function isBonus(card: CardByte): boolean {
-	return (card & RANK_MASK) === BONUS_RANK;
+	return BONUS_RANK_SET.has(card & RANK_MASK);
 }
 
 export function getBonusType(card: CardByte): BonusType {
-	// Bonus subtype rides on the suit slot — same byte layout as the
-	// joker red/black trick, just repurposed for HP/Cash/Reveal.
-	return ((card & SUIT_MASK) >> 4) as BonusType;
+	return (
+		BONUS_TYPE_BY_BYTE.get(card & (RANK_MASK | SUIT_MASK)) ?? BonusType.HP
+	);
 }
 
 /** Pre-built joker bytes for convenience. Black joker rides on the spades
@@ -183,8 +214,10 @@ const ID_CACHE: string[] = (() => {
 	}
 	out[JOKER_BLACK_BYTE] = 'JOKER-BLACK';
 	out[JOKER_RED_BYTE] = 'JOKER-RED';
-	out[BONUS_HP_BYTE] = 'BONUS-HP';
-	out[BONUS_CASH_BYTE] = 'BONUS-CASH';
+	out[BONUS_HP_BYTE] = 'BONUS-HP-1';
+	out[BONUS_HP_BYTE_2] = 'BONUS-HP-2';
+	out[BONUS_CASH_BYTE] = 'BONUS-CASH-1';
+	out[BONUS_CASH_BYTE_2] = 'BONUS-CASH-2';
 	out[BONUS_REVEAL_BYTE] = 'BONUS-REVEAL';
 	return out;
 })();
@@ -260,7 +293,7 @@ export function dealBytes(
 		extras.push(JOKER_BLACK_BYTE, JOKER_RED_BYTE);
 	}
 	if (options.withBonuses) {
-		extras.push(BONUS_HP_BYTE, BONUS_CASH_BYTE, BONUS_REVEAL_BYTE);
+		for (const b of ALL_BONUS_BYTES) extras.push(b);
 	}
 	const base = buildDeckBytes();
 	let working: Uint8Array;

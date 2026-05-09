@@ -41,9 +41,7 @@ import {
 	WASTE_X,
 } from './config';
 import {
-	BONUS_CASH_BYTE,
-	BONUS_HP_BYTE,
-	BONUS_REVEAL_BYTE,
+	ALL_BONUS_BYTES,
 	BonusType,
 	type CardByte,
 	type CardView as DisplayView,
@@ -955,12 +953,9 @@ export class SolitaireScene extends Phaser.Scene {
 			this.makeCardView(JOKER_BLACK_BYTE);
 		this.viewByIndex[getCardIndex(JOKER_RED_BYTE)] =
 			this.makeCardView(JOKER_RED_BYTE);
-		this.viewByIndex[getCardIndex(BONUS_HP_BYTE)] =
-			this.makeCardView(BONUS_HP_BYTE);
-		this.viewByIndex[getCardIndex(BONUS_CASH_BYTE)] =
-			this.makeCardView(BONUS_CASH_BYTE);
-		this.viewByIndex[getCardIndex(BONUS_REVEAL_BYTE)] =
-			this.makeCardView(BONUS_REVEAL_BYTE);
+		for (const b of ALL_BONUS_BYTES) {
+			this.viewByIndex[getCardIndex(b)] = this.makeCardView(b);
+		}
 	}
 
 	private makeCardView(byte: CardByte): SceneCardView {

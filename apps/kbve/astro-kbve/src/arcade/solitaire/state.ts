@@ -45,8 +45,8 @@ import {
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-// 52 standard + up to 2 jokers + up to 3 bonus cards = 57 max in play.
-const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 57;
+// 52 standard + up to 2 jokers + up to 5 bonus cards = 59 max in play.
+const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 59;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
 interface ScoreSnapshot {
