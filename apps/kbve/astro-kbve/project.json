@@ -176,6 +176,56 @@
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true
+		},
+		"solitaire:snapshot-npcdb": {
+			"dependsOn": ["build"],
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/dist/apps/astro-kbve/api/npcdb.json",
+				"{projectRoot}/scripts/snapshot-solitaire-npcdb.mjs"
+			],
+			"outputs": [
+				"{projectRoot}/standalone/solitaire/npcdb-snapshot.json"
+			],
+			"options": {
+				"command": "node apps/kbve/astro-kbve/scripts/snapshot-solitaire-npcdb.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"solitaire:standalone": {
+			"dependsOn": ["solitaire:snapshot-npcdb"],
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/standalone/solitaire/**/*",
+				"{projectRoot}/src/arcade/solitaire/**/*",
+				"{workspaceRoot}/packages/npm/laser/src/**/*"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone"
+			],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"nx exec -- vite build --config standalone/solitaire/vite.config.ts"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"solitaire:standalone:zip": {
+			"dependsOn": ["solitaire:standalone"],
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone/index.html"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone.zip"
+			],
+			"options": {
+				"command": "cd apps/kbve/astro-kbve/dist/solitaire-standalone && zip -r ../solitaire-standalone.zip ./",
+				"cwd": "{workspaceRoot}"
+			}
 		}
 	}
 }

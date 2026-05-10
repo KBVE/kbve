@@ -151,3 +151,7 @@ vitest.config.*.timestamp*
 *.log
 
 mono_crash.*.json
+
+# Solitaire standalone (single-HTML itch.io build)
+apps/kbve/astro-kbve/dist/solitaire-standalone/
+apps/kbve/astro-kbve/dist/solitaire-standalone.zip
