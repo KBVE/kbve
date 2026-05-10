@@ -442,6 +442,9 @@ export default function ReactCodeIDE() {
 									);
 									if (ex) {
 										ideService.$code.set(ex.code);
+										if (ex.requires_network) {
+											ideService.$useNetwork.set(true);
+										}
 										if (viewRef.current) {
 											viewRef.current.dispatch({
 												changes: {
@@ -469,7 +472,9 @@ export default function ReactCodeIDE() {
 								</option>
 								{langExamples.map((ex) => (
 									<option key={ex.id} value={ex.id}>
-										{ex.label}
+										{ex.requires_network
+											? `🌐 ${ex.label}`
+											: ex.label}
 									</option>
 								))}
 							</select>

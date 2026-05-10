@@ -151,6 +151,20 @@
 				"parallel": false
 			}
 		},
+		"audit:links": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "self"
+				}
+			],
+			"options": {
+				"cwd": "apps/rareicon/icons-codegen",
+				"commands": ["pnpm audit:links"],
+				"parallel": false
+			}
+		},
 		"proto:lint": {
 			"executor": "nx:run-commands",
 			"options": {

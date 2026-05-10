@@ -21,8 +21,11 @@ import {
     ArcadeHero,
     ArcadeGameCard,
     ArcadeGameGrid,
+    ArcadeTooltipController,
 } from '@/components/arcade';
 import { Adsense } from '@/components/astropad';
+
+<ArcadeTooltipController client:only="react" />
 
 <ArcadeHero
     title="KBVE Arcade"

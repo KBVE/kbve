@@ -31,26 +31,44 @@ const statusClass: Record<NonNullable<Props['status']>, string> = {
 };
 const isLink = status !== 'soon';
 const Tag = isLink ? 'a' : 'div';
+
+const slug = title
+	.toLowerCase()
+	.replace(/[^a-z0-9]+/g, '-')
+	.replace(/^-|-$/g, '');
+const cardId = `arcade-card-${slug}`;
+const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 ---
 
 <Tag
+	id={cardId}
+	data-arcade-card
+	data-arcade-tooltip-title={title}
+	data-arcade-tooltip-status={status}
+	data-arcade-tooltip-desc={description}
+	data-arcade-tooltip-tags={tags.join('|')}
+	data-arcade-tooltip-cta={tooltipCta}
 	{...isLink ? { href } : {}}
 	class:list={[
-		'group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-200 ease-[cubic-bezier(0.2,0.7,0.2,1)]',
+		'not-content group relative isolate flex flex-col overflow-hidden rounded-xl border border-purple-500/25 bg-slate-900/70 text-inherit no-underline transition duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
 		isLink &&
 			'cursor-pointer hover:-translate-y-1 hover:border-pink-500/55 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.55),0_0_0_1px_rgba(236,72,153,0.4)] focus-visible:-translate-y-1 focus-visible:border-pink-500/55',
 		!isLink && 'cursor-default opacity-85',
 	]}>
 	<div
 		aria-hidden="true"
-		class="relative flex aspect-[16/9] items-center justify-center overflow-hidden after:pointer-events-none after:absolute after:inset-0 after:mix-blend-overlay after:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.18)_0,rgba(0,0,0,0.18)_1px,transparent_1px,transparent_3px)]"
+		class="arcade-card-art relative flex aspect-[16/9] items-center justify-center overflow-hidden"
 		style={`background: ${gradient};`}>
-		<div
-			class="text-[64px] text-white/95 transition-transform duration-200 [text-shadow:0_0_16px_rgba(0,0,0,0.45),0_0_30px_rgba(255,255,255,0.18)] group-hover:scale-110 group-hover:-rotate-2">
-			{icon}
+		<div class="arcade-card-art__grid pointer-events-none absolute inset-0">
+		</div>
+		<div class="arcade-card-art__scan pointer-events-none absolute inset-0">
 		</div>
 		<div
-			class="absolute inset-0 mix-blend-screen bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18)_0%,transparent_50%)]">
+			class="arcade-card-art__shine pointer-events-none absolute inset-0">
+		</div>
+		<div
+			class="relative text-[64px] text-white/95 transition-transform duration-[520ms] ease-[cubic-bezier(0.16,1,0.3,1)] [text-shadow:0_0_16px_rgba(0,0,0,0.45),0_0_30px_rgba(255,255,255,0.18)] group-hover:scale-110 group-hover:-rotate-2">
+			{icon}
 		</div>
 	</div>
 
@@ -89,7 +107,7 @@ const Tag = isLink ? 'a' : 'div';
 						<span>Play</span>
 						<span
 							aria-hidden="true"
-							class="transition-transform duration-200 group-hover:translate-x-1">
+							class="transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1">
 							→
 						</span>
 					</>
@@ -100,3 +118,47 @@ const Tag = isLink ? 'a' : 'div';
 		</div>
 	</div>
 </Tag>
+
+<style>
+	.arcade-card-art__scan {
+		background: repeating-linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0.32) 0,
+			rgba(0, 0, 0, 0.32) 1px,
+			transparent 1px,
+			transparent 4px
+		);
+		mix-blend-mode: overlay;
+		opacity: 0.85;
+	}
+	.arcade-card-art__grid {
+		background-image:
+			linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+			linear-gradient(
+				90deg,
+				rgba(255, 255, 255, 0.07) 1px,
+				transparent 1px
+			);
+		background-size: 22px 22px;
+		mix-blend-mode: overlay;
+		mask-image: radial-gradient(
+			ellipse at 50% 50%,
+			rgba(0, 0, 0, 0.95) 0%,
+			transparent 75%
+		);
+		-webkit-mask-image: radial-gradient(
+			ellipse at 50% 50%,
+			rgba(0, 0, 0, 0.95) 0%,
+			transparent 75%
+		);
+	}
+	.arcade-card-art__shine {
+		background: radial-gradient(
+			circle at 28% 18%,
+			rgba(255, 255, 255, 0.32) 0%,
+			rgba(255, 255, 255, 0.08) 24%,
+			transparent 55%
+		);
+		mix-blend-mode: screen;
+	}
+</style>

@@ -205,11 +205,6 @@ export default defineConfig({
 					autogenerate: { directory: 'project' },
 				},
 				{
-					label: 'Memes',
-					collapsed: true,
-					autogenerate: { directory: 'memes' },
-				},
-				{
 					label: 'Minecraft',
 					collapsed: true,
 					autogenerate: { directory: 'mc' },
@@ -217,7 +212,15 @@ export default defineConfig({
 				{
 					label: 'Gaming',
 					collapsed: true,
-					autogenerate: { directory: 'gaming' },
+					items: [
+						{ label: 'Overview', link: '/gaming/' },
+						{ label: 'BitCraft', link: '/gaming/bitcraft/' },
+						{ label: 'League of Legends', link: '/gaming/lol/' },
+						{ label: 'RimWorld', link: '/gaming/rimworld/' },
+						{ label: 'Titanfall', link: '/gaming/titanfall/' },
+						{ label: 'World of Warcraft', link: '/gaming/wow/' },
+						{ label: 'OSRS', link: '/osrs/' },
+					],
 				},
 				{
 					label: 'Arcade',
