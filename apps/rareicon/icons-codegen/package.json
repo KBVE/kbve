@@ -15,6 +15,8 @@
 		"gen:categories": "node scripts/gen-category-landings.mjs",
 		"gen:all": "pnpm gen:lucide && pnpm gen:simple && pnpm gen:tabler && pnpm gen:phosphor && pnpm gen:gameicons && pnpm gen:iconify && pnpm gen:merge && pnpm gen:categories",
 		"audit:links": "node scripts/audit-links.mjs",
+		"validate:jsonld": "node scripts/validate-jsonld.mjs",
+		"audit:all": "pnpm audit:links && pnpm validate:jsonld",
 		"clean:deps": "rm -rf node_modules"
 	},
 	"dependencies": {
