@@ -136,11 +136,11 @@
 				"parallel": false
 			}
 		},
-		"smoke:bot": {
+		"smoke:ping": {
 			"executor": "nx:run-commands",
 			"cache": false,
 			"options": {
-				"commands": ["node apps/mc/scripts/bot-smoke.mjs"],
+				"commands": ["bash apps/mc/scripts/server-ping-smoke.sh"],
 				"parallel": false
 			}
 		},

@@ -1,15 +1,22 @@
 name: CI - MC Smoke
 
-# Two-tier MC integration smoke:
-#   1. client-smoke — Loom runClient under xvfb, scans the boot log for
-#      Mixin spec violations / apply failures. Catches the class-load
-#      crash family that compileJava and the docker image builds miss
-#      (e.g. non-private static fields in mixin classes, missing
-#      @At targets, signature drift after a yarn bump).
-#   2. server-bot-smoke — brings up docker-compose.dev.yml (Velocity +
-#      lobby + fabric) and connects an offline mineflayer bot via the
-#      proxy. Validates that all three backends actually start, the
-#      forwarding handshake works, and a vanilla client can spawn.
+# Three-job MC integration smoke:
+#   1. client-smoke      — Loom runClient under xvfb, scans the boot log
+#                          for Mixin spec violations / apply failures.
+#                          Catches the class-load crash family that
+#                          compileJava and docker image builds miss
+#                          (non-private static fields in mixin classes,
+#                          missing @At targets, signature drift after
+#                          a yarn bump).
+#   2. server-ping-smoke — brings up docker-compose.dev.yml (Velocity +
+#                          lobby + fabric) and probes the proxy with
+#                          itzg/mc-monitor (Server List Ping). Pure Go
+#                          binary, no npm tree — chosen over mineflayer
+#                          to avoid the prismarine-* transitive surface.
+#                          A successful SLP through Velocity proves all
+#                          three backends started and forwarding works.
+#   3. dependency-review — gates new PR-introduced dependencies on the
+#                          GH-native advisory DB (high+ blocks merge).
 
 on:
     workflow_dispatch:
@@ -101,12 +108,13 @@ jobs:
                   if-no-files-found: ignore
                   retention-days: 7
 
-    server-bot-smoke:
-        name: Server + Bot Smoke (docker-compose + mineflayer)
+    server-ping-smoke:
+        name: Server Ping Smoke (docker-compose + mc-monitor)
         runs-on: ubuntu-latest
         timeout-minutes: 25
         env:
             NX_NO_CLOUD: true
+            MC_MONITOR_VERSION: '0.16.2'
 
         steps:
             - name: Checkout
@@ -140,6 +148,17 @@ jobs:
               env:
                   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
+            - name: Install mc-monitor (itzg)
+              run: |
+                  set -euo pipefail
+                  ARCH=linux_amd64
+                  V="${MC_MONITOR_VERSION}"
+                  curl -fsSL -o /tmp/mc-monitor.tgz \
+                      "https://github.com/itzg/mc-monitor/releases/download/${V}/mc-monitor_${V}_${ARCH}.tar.gz"
+                  sudo tar -xzf /tmp/mc-monitor.tgz -C /usr/local/bin mc-monitor
+                  sudo chmod +x /usr/local/bin/mc-monitor
+                  mc-monitor --version
+
             - name: Login to GHCR (pull mc images)
               uses: docker/login-action@v4
               with:
@@ -172,7 +191,7 @@ jobs:
                       sleep 2
                   done
 
-            - name: Wait for fabric server ready (rcon health)
+            - name: Wait for fabric server ready
               run: |
                   for i in $(seq 1 90); do
                       if docker logs kbve-mc-dev-fabric 2>&1 | grep -q "Done ("; then
@@ -183,14 +202,13 @@ jobs:
                   done
                   docker logs kbve-mc-dev-fabric --tail 50 || true
 
-            - name: Run mineflayer bot smoke
+            - name: Probe Velocity proxy (mc-monitor SLP)
               env:
                   MC_HOST: 127.0.0.1
                   MC_PORT: '25565'
-                  MC_USER: SmokeBot
-                  MC_VERSION: '1.21.11'
-                  SMOKE_TIMEOUT_MS: '120000'
-              run: node apps/mc/scripts/bot-smoke.mjs
+                  RETRY_INTERVAL: 5s
+                  RETRY_LIMIT: '60'
+              run: bash apps/mc/scripts/server-ping-smoke.sh
 
             - name: Dump compose logs on failure
               if: failure()
@@ -202,10 +220,28 @@ jobs:
               working-directory: apps/mc
               run: docker compose -f docker-compose.dev.yml down --remove-orphans || true
 
+    dependency-review:
+        name: Dependency Review (PR delta)
+        if: ${{ github.event_name == 'pull_request' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Dependency Review
+              uses: actions/dependency-review-action@v4
+              with:
+                  fail-on-severity: high
+                  comment-summary-in-pr: on-failure
+
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' }}
-        needs: [client-smoke, server-bot-smoke]
+        needs: [client-smoke, server-ping-smoke, dependency-review]
         permissions:
             issues: write
             contents: read
@@ -220,7 +256,7 @@ jobs:
     track_success:
         name: Track Success
         if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name != 'pull_request' }}
-        needs: [client-smoke, server-bot-smoke]
+        needs: [client-smoke, server-ping-smoke, dependency-review]
         permissions:
             issues: write
             contents: read
