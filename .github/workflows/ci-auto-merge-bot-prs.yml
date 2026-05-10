@@ -218,7 +218,12 @@ jobs:
                         core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
 
                         const allowedFiles = new Set(
-                          [entry.version_toml, entry.version_target, entry.deployment_yaml]
+                          [
+                            entry.version_toml,
+                            entry.version_target,
+                            entry.deployment_yaml,
+                            '.github/ci-dispatch-manifest.json',
+                          ]
                             .filter(Boolean)
                             .map(sanitize)
                         );
