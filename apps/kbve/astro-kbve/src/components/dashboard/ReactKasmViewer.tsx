@@ -16,6 +16,8 @@ export default function ReactKasmViewer() {
 	const workspaces = useStore(kasmService.$workspaces);
 	const loading = useStore(kasmService.$loading);
 	const [workspaceName] = useState(() => getWorkspaceName());
+	const [launchError, setLaunchError] = useState<string | null>(null);
+	const [launchReady, setLaunchReady] = useState(false);
 
 	// Fetch KASM workspaces on mount
 	useEffect(() => {
@@ -37,6 +39,39 @@ export default function ReactKasmViewer() {
 		if (!workspaceName || !token) return null;
 		return `/dashboard/kasm/launch?access_token=${encodeURIComponent(token)}`;
 	}, [workspaceName, token]);
+
+	// Probe the launch endpoint before mounting the iframe so axum errors
+	// (kasm-vnc-pw missing, K8s API down, JWT expired) surface in the React
+	// UI instead of disappearing inside an iframe that just renders the
+	// raw JSON. opaqueredirect means the 302 fired and Set-Cookie applied;
+	// any readable status is a real error response we can show.
+	useEffect(() => {
+		if (!proxyUrl || !canConnect) return;
+		let cancelled = false;
+		setLaunchError(null);
+		setLaunchReady(false);
+		fetch(proxyUrl, { redirect: 'manual', credentials: 'same-origin' })
+			.then(async (res) => {
+				if (cancelled) return;
+				if (res.type === 'opaqueredirect') {
+					setLaunchReady(true);
+					return;
+				}
+				const body = await res.text().catch(() => '');
+				let detail = body.slice(0, 400);
+				try {
+					const j = JSON.parse(body);
+					detail = j.error ?? detail;
+				} catch {}
+				setLaunchError(`Launch failed (${res.status}): ${detail}`);
+			})
+			.catch((e) => {
+				if (!cancelled) setLaunchError(`Network error: ${e}`);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [proxyUrl, canConnect]);
 
 	// --- No workspace name in URL ---
 	if (!workspaceName) {
@@ -107,6 +142,64 @@ export default function ReactKasmViewer() {
 							.
 						</p>
 					)}
+				</div>
+			</div>
+		);
+	}
+
+	// --- Launch probe failed: surface backend error before mounting iframe ---
+	if (launchError) {
+		return (
+			<div style={containerStyle}>
+				<div style={headerStyle}>
+					<a href="/dashboard/vm/" style={backLinkStyle}>
+						&larr; Back to VM Dashboard
+					</a>
+					<h2 style={titleStyle}>{workspaceName}</h2>
+				</div>
+				<div style={messageStyle}>
+					<p style={{ color: '#ef4444', fontWeight: 600 }}>
+						Workspace failed to launch
+					</p>
+					<pre
+						style={{
+							maxWidth: '40rem',
+							whiteSpace: 'pre-wrap',
+							wordBreak: 'break-word',
+							padding: '0.75rem',
+							background: 'rgba(239, 68, 68, 0.08)',
+							border: '1px solid rgba(239, 68, 68, 0.25)',
+							borderRadius: '6px',
+							color: '#fca5a5',
+							fontSize: '0.8rem',
+							textAlign: 'left',
+						}}>
+						{launchError}
+					</pre>
+					<p style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+						Try restarting the workspace from the{' '}
+						<a href="/dashboard/vm/" style={{ color: '#8b5cf6' }}>
+							VM Dashboard
+						</a>
+						.
+					</p>
+				</div>
+			</div>
+		);
+	}
+
+	// --- Probing launch ---
+	if (!launchReady) {
+		return (
+			<div style={containerStyle}>
+				<div style={headerStyle}>
+					<a href="/dashboard/vm/" style={backLinkStyle}>
+						&larr; Back to VM Dashboard
+					</a>
+					<h2 style={titleStyle}>{workspaceName}</h2>
+				</div>
+				<div style={messageStyle}>
+					<p>Connecting to workspace...</p>
 				</div>
 			</div>
 		);
