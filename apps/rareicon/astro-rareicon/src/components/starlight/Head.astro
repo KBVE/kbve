@@ -90,6 +90,26 @@ function jsonLd(obj: Record<string, unknown>): string {
 
 const structured: string[] = [];
 
+const ORG = {
+	'@type': 'Organization',
+	name: 'KBVE',
+	url: 'https://kbve.com',
+	logo: 'https://kbve.com/assets/images/brand/letter_logo.png',
+};
+
+structured.push(
+	jsonLd({
+		'@type': 'WebSite',
+		name: 'RareIcon',
+		url: SITE,
+		potentialAction: {
+			'@type': 'SearchAction',
+			target: `${SITE}/?q={search_term_string}`,
+			'query-input': 'required name=search_term_string',
+		},
+	}),
+);
+
 if (slug === 'index' || slug === '') {
 	structured.push(
 		jsonLd({
@@ -200,6 +220,56 @@ if (slug.startsWith('icons/category/')) {
 			description: pageDesc ?? 'Open-source icon catalog',
 			url: `${SITE}/icons/`,
 			isPartOf: { '@type': 'WebSite', name: 'RareIcon', url: SITE },
+		}),
+	);
+	structured.push(
+		jsonLd({
+			'@type': 'SoftwareApplication',
+			name: 'RareIcon Icon Library',
+			description:
+				'Open-source icon catalog with 1252+ terms across 19 FOSS icon packs',
+			url: `${SITE}/icons/`,
+			applicationCategory: 'DesignApplication',
+			operatingSystem: 'Web',
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+			publisher: ORG,
+		}),
+	);
+}
+
+if (slug === 'press' || slug === 'press/index') {
+	structured.push(
+		jsonLd({
+			'@type': 'Article',
+			headline: pageTitle,
+			description: pageDesc,
+			url: canonical,
+			image: pageImage,
+			author: ORG,
+			publisher: ORG,
+			datePublished: '2026-05-07',
+			mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+		}),
+	);
+}
+
+if (slug === 'steam' || slug === 'steam/index') {
+	structured.push(
+		jsonLd({
+			'@type': 'Product',
+			name: 'RareIcon',
+			description: pageDesc,
+			url: canonical,
+			image: pageImage,
+			brand: ORG,
+			offers: {
+				'@type': 'Offer',
+				url: 'https://store.steampowered.com/app/2238370/RareIcon/',
+				availability: 'https://schema.org/PreOrder',
+				priceCurrency: 'USD',
+				price: '0',
+			},
+			category: 'VideoGame',
 		}),
 	);
 }
