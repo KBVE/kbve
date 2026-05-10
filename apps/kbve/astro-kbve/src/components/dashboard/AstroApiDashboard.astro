@@ -1,0 +1,35 @@
+---
+const { specUrl = '/api/openapi.json' } = Astro.props;
+---
+
+<div id="scalar-root" data-spec-url={specUrl}></div>
+
+<style is:global>
+	#scalar-root {
+		min-height: calc(100vh - 8rem);
+	}
+	#scalar-root .scalar-app {
+		min-height: inherit;
+	}
+</style>
+
+<script>
+	import { createApiReference } from '@scalar/api-reference';
+	import '@scalar/api-reference/style.css';
+
+	const root = document.getElementById('scalar-root');
+	if (root) {
+		const url = root.dataset.specUrl ?? '/api/openapi.json';
+		createApiReference(root, {
+			url,
+			theme: 'kepler',
+			darkMode: true,
+			hideClientButton: false,
+			defaultHttpClient: {
+				targetKey: 'shell',
+				clientKey: 'curl',
+			},
+			metaData: { title: 'KBVE API Reference' },
+		});
+	}
+</script>
