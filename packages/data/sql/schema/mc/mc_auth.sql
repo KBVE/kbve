@@ -25,8 +25,15 @@
 
 BEGIN;
 
--- pgcrypto for bcrypt hashing of verification codes
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- pgcrypto for bcrypt hashing of verification codes.
+-- Pin to `extensions` schema so SECURITY DEFINER functions with empty
+-- search_path can call extensions.crypt() / extensions.gen_salt() / extensions.gen_random_bytes().
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
+-- service_role owns the SECURITY DEFINER functions below; grant USAGE so it
+-- can resolve `extensions.crypt(...)` / `extensions.gen_salt(...)` /
+-- `extensions.gen_random_bytes(...)`. Idempotent on Supabase prod.
+GRANT USAGE ON SCHEMA extensions TO service_role;
 
 -- ===========================================
 -- SCHEMA
@@ -230,23 +237,39 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_mc_uuid      TEXT;
-    v_code         INTEGER;
+    v_mc_uuid         TEXT;
+    v_code            INTEGER;
     v_existing_status INTEGER;
+    v_now             TIMESTAMPTZ := statement_timestamp();
 BEGIN
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id cannot be null'
+            USING ERRCODE = '22004';
+    END IF;
+
     v_mc_uuid := mc.normalize_mc_uuid(p_mc_uuid);
 
-    -- Serialize on mc_uuid to prevent race conditions
-    PERFORM pg_advisory_xact_lock(hashtext(v_mc_uuid));
+    -- Serialize by both Minecraft UUID and app user.
+    -- Prevents same-user concurrent request races and same-MC-UUID races.
+    PERFORM pg_advisory_xact_lock(hashtextextended(v_mc_uuid, 0));
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::TEXT, 1));
 
     -- Block re-linking if user already has a VERIFIED link
     SELECT status INTO v_existing_status
     FROM mc.auth
-    WHERE user_id = p_user_id;
+    WHERE user_id = p_user_id
+    FOR UPDATE;
 
     IF v_existing_status IS NOT NULL AND (v_existing_status & 1) = 1 THEN
         RAISE EXCEPTION 'Account already has a verified Minecraft link. Unlink first.'
             USING ERRCODE = '23505';
+    END IF;
+
+    -- Refuse link requests from suspended/banned rows.
+    -- Bits 2 and 4 are SUSPENDED/BANNED; matches verify guard: (status & 6) = 0.
+    IF v_existing_status IS NOT NULL AND (v_existing_status & 6) <> 0 THEN
+        RAISE EXCEPTION 'Account is not allowed to request a Minecraft link.'
+            USING ERRCODE = '42501';
     END IF;
 
     -- Block if MC UUID is already linked to a different user
@@ -259,10 +282,22 @@ BEGIN
             USING ERRCODE = '23505';
     END IF;
 
-    -- Generate a random 6-digit code
-    v_code := floor(random() * 900000 + 100000)::INTEGER;
+    -- Cryptographically stronger 6-digit code than random(); generates 100000..999999.
+    v_code := (
+        100000
+        + (
+            (
+                'x' || substr(
+                    encode(extensions.gen_random_bytes(4), 'hex'),
+                    1,
+                    8
+                )
+            )::bit(32)::BIGINT % 900000
+        )
+    )::INTEGER;
 
-    -- Upsert: if user already has an unverified row, reset with new hashed code
+    -- Upsert: if user already has an unverified row, reset with new hashed code.
+    -- pgcrypto lives in `extensions`; explicit qualifier required because search_path = ''.
     INSERT INTO mc.auth (
         user_id, mc_uuid, status,
         verification_code_hash, code_expires_at,
@@ -270,8 +305,8 @@ BEGIN
     )
     VALUES (
         p_user_id, v_mc_uuid, 0,
-        crypt(v_code::TEXT, gen_salt('bf')),
-        NOW() + INTERVAL '10 minutes',
+        extensions.crypt(v_code::TEXT, extensions.gen_salt('bf')),
+        v_now + INTERVAL '10 minutes',
         0, NULL
     )
     ON CONFLICT (user_id) DO UPDATE SET
@@ -291,6 +326,8 @@ REVOKE ALL ON FUNCTION mc.service_request_link(UUID, TEXT)
 GRANT EXECUTE ON FUNCTION mc.service_request_link(UUID, TEXT)
     TO service_role;
 ALTER FUNCTION mc.service_request_link(UUID, TEXT) OWNER TO service_role;
+COMMENT ON FUNCTION mc.service_request_link(UUID, TEXT) IS
+    'Service-only RPC. Creates or refreshes an unverified Minecraft link request and returns a six-digit verification code. Uses schema-qualified pgcrypto calls because search_path is empty.';
 
 -- ===========================================
 -- SERVICE FUNCTION: Verify MC link (called by MC server)
@@ -316,12 +353,28 @@ DECLARE
     v_expires  TIMESTAMPTZ;
     v_attempts INTEGER;
     v_locked   TIMESTAMPTZ;
+    v_now      TIMESTAMPTZ := statement_timestamp();
 BEGIN
+    -- Reject obviously invalid codes before any DB hit.
+    IF p_code IS NULL OR p_code < 100000 OR p_code > 999999 THEN
+        RETURN NULL;
+    END IF;
+
     v_mc_uuid := mc.normalize_mc_uuid(p_mc_uuid);
 
     -- Lock the row for update to prevent concurrent verify races
-    SELECT user_id, verification_code_hash, code_expires_at, verify_attempts, locked_until
-    INTO v_user_id, v_hash, v_expires, v_attempts, v_locked
+    SELECT
+        user_id,
+        verification_code_hash,
+        code_expires_at,
+        COALESCE(verify_attempts, 0),
+        locked_until
+    INTO
+        v_user_id,
+        v_hash,
+        v_expires,
+        v_attempts,
+        v_locked
     FROM mc.auth
     WHERE mc_uuid = v_mc_uuid
       AND verification_code_hash IS NOT NULL
@@ -334,24 +387,25 @@ BEGIN
     END IF;
 
     -- Check lockout
-    IF v_locked IS NOT NULL AND v_locked > NOW() THEN
+    IF v_locked IS NOT NULL AND v_locked > v_now THEN
         RETURN NULL;
     END IF;
 
-    -- Check expiry
-    IF v_expires IS NOT NULL AND v_expires < NOW() THEN
-        -- Expired: clear the hash
+    -- Treat NULL or past expiry as expired; clear pending state and refuse.
+    IF v_expires IS NULL OR v_expires < v_now THEN
         UPDATE mc.auth
         SET verification_code_hash = NULL,
             code_expires_at        = NULL,
             verify_attempts        = 0,
             locked_until           = NULL
-        WHERE user_id = v_user_id;
+        WHERE user_id = v_user_id
+          AND mc_uuid = v_mc_uuid;
         RETURN NULL;
     END IF;
 
-    -- Compare code against stored bcrypt hash
-    IF v_hash = crypt(p_code::TEXT, v_hash) THEN
+    -- Compare code against stored bcrypt hash. pgcrypto must be schema-qualified
+    -- because this function runs with search_path = ''.
+    IF v_hash = extensions.crypt(p_code::TEXT, v_hash) THEN
         -- Correct code: mark as verified, clear hash and attempts
         UPDATE mc.auth
         SET status                 = (status | 1),
@@ -359,22 +413,21 @@ BEGIN
             code_expires_at        = NULL,
             verify_attempts        = 0,
             locked_until           = NULL
-        WHERE user_id = v_user_id;
+        WHERE user_id = v_user_id
+          AND mc_uuid = v_mc_uuid;
 
         RETURN v_user_id;
     END IF;
 
-    -- Wrong code: increment attempts, lock after 5
-    IF v_attempts + 1 >= 5 THEN
-        UPDATE mc.auth
-        SET verify_attempts = verify_attempts + 1,
-            locked_until    = NOW() + INTERVAL '15 minutes'
-        WHERE user_id = v_user_id;
-    ELSE
-        UPDATE mc.auth
-        SET verify_attempts = verify_attempts + 1
-        WHERE user_id = v_user_id;
-    END IF;
+    -- Wrong code: increment attempts, lock after 5 in a single UPDATE.
+    UPDATE mc.auth
+    SET verify_attempts = v_attempts + 1,
+        locked_until    = CASE
+            WHEN v_attempts + 1 >= 5 THEN v_now + INTERVAL '15 minutes'
+            ELSE locked_until
+        END
+    WHERE user_id = v_user_id
+      AND mc_uuid = v_mc_uuid;
 
     RETURN NULL;
 END;
@@ -385,6 +438,8 @@ REVOKE ALL ON FUNCTION mc.service_verify_link(TEXT, INTEGER)
 GRANT EXECUTE ON FUNCTION mc.service_verify_link(TEXT, INTEGER)
     TO service_role;
 ALTER FUNCTION mc.service_verify_link(TEXT, INTEGER) OWNER TO service_role;
+COMMENT ON FUNCTION mc.service_verify_link(TEXT, INTEGER) IS
+    'Service-only RPC. Verifies a Minecraft link code, rate-limits failed attempts, clears expired codes, and marks the link verified on success. Uses schema-qualified pgcrypto calls because search_path is empty.';
 
 -- ===========================================
 -- SERVICE FUNCTION: Unlink MC account
@@ -393,14 +448,37 @@ ALTER FUNCTION mc.service_verify_link(TEXT, INTEGER) OWNER TO service_role;
 CREATE OR REPLACE FUNCTION mc.service_unlink(
     p_user_id UUID
 )
-RETURNS BOOLEAN  -- true if a row was deleted
+RETURNS BOOLEAN  -- true if a link row was unlinked or removed
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+    v_rows INTEGER;
 BEGIN
-    DELETE FROM mc.auth WHERE user_id = p_user_id;
-    RETURN FOUND;
+    -- Preserve suspended/banned rows so moderation flags survive an unlink.
+    -- Strip the VERIFIED bit and clear any pending verification state.
+    UPDATE mc.auth
+    SET status                 = status & ~1,
+        verification_code_hash = NULL,
+        code_expires_at        = NULL,
+        verify_attempts        = 0,
+        locked_until           = NULL
+    WHERE user_id = p_user_id
+      AND (status & 6) <> 0;
+
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    IF v_rows > 0 THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Otherwise the row carries no moderation state; safe to drop entirely.
+    DELETE FROM mc.auth
+    WHERE user_id = p_user_id
+      AND (status & 6) = 0;
+
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    RETURN v_rows > 0;
 END;
 $$;
 
@@ -409,6 +487,8 @@ REVOKE ALL ON FUNCTION mc.service_unlink(UUID)
 GRANT EXECUTE ON FUNCTION mc.service_unlink(UUID)
     TO service_role;
 ALTER FUNCTION mc.service_unlink(UUID) OWNER TO service_role;
+COMMENT ON FUNCTION mc.service_unlink(UUID) IS
+    'Service-only RPC. Removes a Minecraft link. Preserves rows with SUSPENDED/BANNED flags so moderation state survives unlink; cleanly drops un-moderated rows.';
 
 -- ===========================================
 -- SERVICE FUNCTION: Lookup user_id by MC UUID
@@ -489,14 +569,21 @@ ALTER FUNCTION mc.proxy_request_link(TEXT) OWNER TO service_role;
 -- (Never exposes verification_code_hash)
 -- ===========================================
 
-CREATE OR REPLACE FUNCTION mc.proxy_get_link_status()
+-- Note: RETURNS TABLE shape change requires DROP first; CREATE OR REPLACE
+-- cannot alter declared output columns.
+DROP FUNCTION IF EXISTS mc.proxy_get_link_status();
+
+CREATE FUNCTION mc.proxy_get_link_status()
 RETURNS TABLE (
-    mc_uuid      TEXT,
-    status       INTEGER,
-    is_verified  BOOLEAN,
-    is_pending   BOOLEAN,
-    created_at   TIMESTAMPTZ,
-    updated_at   TIMESTAMPTZ
+    mc_uuid          TEXT,
+    status           INTEGER,
+    is_verified      BOOLEAN,
+    is_pending       BOOLEAN,
+    code_expires_at  TIMESTAMPTZ,
+    locked_until     TIMESTAMPTZ,
+    verify_attempts  INTEGER,
+    created_at       TIMESTAMPTZ,
+    updated_at       TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -504,6 +591,7 @@ SET search_path = ''
 AS $$
 DECLARE
     v_user_id UUID;
+    v_now     TIMESTAMPTZ := statement_timestamp();
 BEGIN
     v_user_id := auth.uid();
     IF v_user_id IS NULL THEN
@@ -517,8 +605,11 @@ BEGIN
         a.status,
         (a.status & 1) = 1,
         a.verification_code_hash IS NOT NULL
-            AND a.code_expires_at > NOW()
-            AND (a.locked_until IS NULL OR a.locked_until <= NOW()),
+            AND a.code_expires_at > v_now
+            AND (a.locked_until IS NULL OR a.locked_until <= v_now),
+        a.code_expires_at,
+        a.locked_until,
+        a.verify_attempts,
         a.created_at,
         a.updated_at
     FROM mc.auth AS a
@@ -531,6 +622,8 @@ REVOKE ALL ON FUNCTION mc.proxy_get_link_status()
 GRANT EXECUTE ON FUNCTION mc.proxy_get_link_status()
     TO authenticated, service_role;
 ALTER FUNCTION mc.proxy_get_link_status() OWNER TO service_role;
+COMMENT ON FUNCTION mc.proxy_get_link_status() IS
+    'Authenticated RPC. Returns the caller''s Minecraft link status including lockout/expiry/attempt counters for UI feedback. Never exposes the verification code hash.';
 
 -- ===========================================
 -- PROXY FUNCTION: Authenticated user unlinks MC account

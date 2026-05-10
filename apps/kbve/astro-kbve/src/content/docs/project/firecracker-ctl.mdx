@@ -12,13 +12,15 @@ tags:
 key: firecracker_ctl
 pipeline: docker
 app_name: firecracker-ctl
-version: "0.1.29"
+version: "0.1.30"
 source_path: apps/vm/firecracker-ctl
 version_toml: apps/vm/firecracker-ctl/version.toml
 version_target: apps/vm/firecracker-ctl/Cargo.toml
 runner: arc-runner-set
 image: kbve/firecracker-ctl
 deployment_yaml: apps/kube/firecracker/manifests/firecracker-deployment.yaml
+deployment_yamls:
+    - apps/kube/firecracker/manifests/firecracker-net-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE

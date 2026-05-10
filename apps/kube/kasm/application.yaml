@@ -14,12 +14,20 @@ spec:
         namespace: kasm
     # Allow the dashboard to scale deployments without ArgoCD reverting
     # replicas back to the Git-defined value (0). selfHeal still manages
-    # all other fields — only spec.replicas is ignored.
+    # all other fields — only spec.replicas is ignored. Likewise, the
+    # gen-vnc-pw initContainer rotates `kasm-vnc-pw.data.password` on
+    # every pod start; without this drift exception ArgoCD reverts the
+    # rotation seconds later and the proxy gets the placeholder value.
     ignoreDifferences:
         - group: apps
           kind: Deployment
           jsonPointers:
               - /spec/replicas
+        - group: ''
+          kind: Secret
+          name: kasm-vnc-pw
+          jsonPointers:
+              - /data/password
     syncPolicy:
         automated:
             prune: true
