@@ -45,7 +45,9 @@ async fn handle_irc_client(client: TcpStream, peer: SocketAddr) -> Result<()> {
         Some(t) => t.to_string(),
         None => {
             writer
-                .write_all(b":irc-gateway NOTICE * :Authentication required. Send PASS jwt:<token>\r\n")
+                .write_all(
+                    b":irc-gateway NOTICE * :Authentication required. Send PASS jwt:<token>\r\n",
+                )
                 .await?;
             return Ok(());
         }
@@ -61,13 +63,15 @@ async fn handle_irc_client(client: TcpStream, peer: SocketAddr) -> Result<()> {
         }
     };
 
-    let username = claims.email
-        .as_deref()
-        .unwrap_or(&claims.sub)
-        .chars()
-        .filter(|c| c.is_alphanumeric() || *c == '_')
-        .take(32)
-        .collect::<String>();
+    let username = match claims.irc_nick() {
+        Some(n) => n,
+        None => {
+            writer
+                .write_all(b":irc-gateway NOTICE * :No provider username configured. Set one on your OAuth provider before joining IRC.\r\n")
+                .await?;
+            return Ok(());
+        }
+    };
 
     info!(peer = %peer, user = %username, "IRC client authenticated");
 
