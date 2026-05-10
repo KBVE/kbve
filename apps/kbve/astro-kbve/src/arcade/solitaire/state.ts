@@ -7,9 +7,11 @@ import {
 	dealBytes,
 	FOUNDATION_SUITS,
 	getBonusType,
+	getCardIndex,
 	getDisplayRank,
 	getMonsterKind,
 	getSuit,
+	IDENTITY_MASK,
 	isBonus,
 	isFaceUp,
 	isJoker,
@@ -39,8 +41,6 @@ import {
 } from './config';
 
 const SNAPSHOT_HEADER = 13;
-/** 52 standard + 2 jokers + 5 bonus + 3 monsters = 62 max in play. */
-const SNAPSHOT_TOTAL = SNAPSHOT_HEADER + 62;
 
 /** Per-undo-step score snapshot. Mirrors history[] indices. */
 interface ScoreSnapshot {
@@ -127,6 +127,11 @@ export class GameState {
 	/** Cards already rewarded for foundation placement this round —
 	 * prevents the foundation → tableau → foundation reward loop. */
 	private scoredCards: Set<number> = new Set();
+	/** Live count of jokers currently in any tableau column. Maintained on
+	 * every tableau push/pop so `applyScore` is O(1). */
+	private tableauJokerCount = 0;
+	/** Live sum of flat ScoreBoost bonuses from jokers in tableau columns. */
+	private tableauScoreBoost = 0;
 
 	round = 1;
 	blind = ROUND_BLINDS[0];
@@ -188,11 +193,11 @@ export class GameState {
 		const dealtJokerIndices: number[] = [];
 		for (const col of this.tableaus) {
 			for (const c of col) {
-				if (isJoker(c)) dealtJokerIndices.push(c & 0x3f);
+				if (isJoker(c)) dealtJokerIndices.push(getCardIndex(c));
 			}
 		}
 		for (const c of this.stock) {
-			if (isJoker(c)) dealtJokerIndices.push(c & 0x3f);
+			if (isJoker(c)) dealtJokerIndices.push(getCardIndex(c));
 		}
 		for (let i = 0; i < dealtJokerIndices.length; i++) {
 			const variant = this.ownedJokerVariants[i] ?? JokerVariant.Wild;
@@ -200,19 +205,58 @@ export class GameState {
 		}
 
 		this.monsters.clear();
-		const allCards = [
-			...this.stock,
-			...this.waste,
-			...this.tableaus.flat(),
-		];
-		for (const c of allCards) {
+		this.seedMonstersFromPile(this.stock);
+		this.seedMonstersFromPile(this.waste);
+		for (const col of this.tableaus) this.seedMonstersFromPile(col);
+
+		this.recomputeTableauJokerStats();
+	}
+
+	private seedMonstersFromPile(pile: number[]) {
+		for (const c of pile) {
 			if (!isMonster(c)) continue;
-			const idx = c & 0x3f;
+			const idx = getCardIndex(c);
 			if (this.monsters.has(idx)) continue;
 			const kind = getMonsterKind(c);
 			const preset = MONSTER_KIND_PRESETS[kind];
 			this.monsters.set(idx, { ...preset, engaged: false });
 		}
+	}
+
+	/** Walk the tableau once and rebuild the cached joker count + flat
+	 * score-boost sum. Called from reset/restore — paths that mutate one
+	 * card at a time keep the cache up-to-date inline. */
+	private recomputeTableauJokerStats() {
+		let count = 0;
+		let boost = 0;
+		for (const col of this.tableaus) {
+			for (const c of col) {
+				if (!isJoker(c)) continue;
+				count += 1;
+				const variant =
+					this.jokerVariants.get(getCardIndex(c)) ??
+					JokerVariant.Wild;
+				if (variant === JokerVariant.ScoreBoost) boost += 50;
+			}
+		}
+		this.tableauJokerCount = count;
+		this.tableauScoreBoost = boost;
+	}
+
+	private onTableauJokerAdded(card: CardByte) {
+		if (!isJoker(card)) return;
+		this.tableauJokerCount += 1;
+		const variant =
+			this.jokerVariants.get(getCardIndex(card)) ?? JokerVariant.Wild;
+		if (variant === JokerVariant.ScoreBoost) this.tableauScoreBoost += 50;
+	}
+
+	private onTableauJokerRemoved(card: CardByte) {
+		if (!isJoker(card)) return;
+		this.tableauJokerCount -= 1;
+		const variant =
+			this.jokerVariants.get(getCardIndex(card)) ?? JokerVariant.Wild;
+		if (variant === JokerVariant.ScoreBoost) this.tableauScoreBoost -= 50;
 	}
 
 	/** Replace the preset monster stats with values pulled from the npcdb
@@ -311,7 +355,10 @@ export class GameState {
 	}
 
 	snapshot(): Uint8Array {
-		const out = new Uint8Array(SNAPSHOT_TOTAL);
+		let total = SNAPSHOT_HEADER + this.stock.length + this.waste.length;
+		for (let i = 0; i < 4; i++) total += this.foundations[i].length;
+		for (let i = 0; i < 7; i++) total += this.tableaus[i].length;
+		const out = new Uint8Array(total);
 		out[0] = this.stock.length;
 		out[1] = this.waste.length;
 		for (let i = 0; i < 4; i++) out[2 + i] = this.foundations[i].length;
@@ -332,32 +379,25 @@ export class GameState {
 	restore(snap: Uint8Array) {
 		const stockLen = snap[0];
 		const wasteLen = snap[1];
-		const foundLens = [snap[2], snap[3], snap[4], snap[5]];
-		const tabLens = [
-			snap[6],
-			snap[7],
-			snap[8],
-			snap[9],
-			snap[10],
-			snap[11],
-			snap[12],
-		];
 
 		let cursor = SNAPSHOT_HEADER;
-		this.stock = Array.from(snap.subarray(cursor, cursor + stockLen));
-		cursor += stockLen;
-		this.waste = Array.from(snap.subarray(cursor, cursor + wasteLen));
-		cursor += wasteLen;
-		this.foundations = foundLens.map((len) => {
-			const arr = Array.from(snap.subarray(cursor, cursor + len));
-			cursor += len;
-			return arr;
-		});
-		this.tableaus = tabLens.map((len) => {
-			const arr = Array.from(snap.subarray(cursor, cursor + len));
-			cursor += len;
-			return arr;
-		});
+		this.stock = new Array(stockLen);
+		for (let i = 0; i < stockLen; i++) this.stock[i] = snap[cursor++];
+		this.waste = new Array(wasteLen);
+		for (let i = 0; i < wasteLen; i++) this.waste[i] = snap[cursor++];
+		for (let f = 0; f < 4; f++) {
+			const len = snap[2 + f];
+			const arr = new Array<number>(len);
+			for (let i = 0; i < len; i++) arr[i] = snap[cursor++];
+			this.foundations[f] = arr;
+		}
+		for (let t = 0; t < 7; t++) {
+			const len = snap[6 + t];
+			const arr = new Array<number>(len);
+			for (let i = 0; i < len; i++) arr[i] = snap[cursor++];
+			this.tableaus[t] = arr;
+		}
+		this.recomputeTableauJokerStats();
 	}
 
 	private snapshotScore(): ScoreSnapshot {
@@ -421,10 +461,9 @@ export class GameState {
 			const tierIdx = Math.min(this.combo - 1, COMBO.tiers.length - 1);
 			this.comboMultiplier = COMBO.tiers[tierIdx];
 
-			const jokerCount = this.countJokersInTableau();
-			const jokerMult = 1 + jokerCount * JOKER_MULT_PER_TABLEAU;
-			const flatBonus = this.tableauScoreBoostBonus();
-			const base = points + flatBonus;
+			const jokerMult =
+				1 + this.tableauJokerCount * JOKER_MULT_PER_TABLEAU;
+			const base = points + this.tableauScoreBoost;
 			delta = Math.round(
 				base * this.comboMultiplier * jokerMult * this.attack,
 			);
@@ -435,32 +474,7 @@ export class GameState {
 		}
 		this.score = this.score + delta - SCORE.movePerAction;
 		this.moves += 1;
-	}
-
-	private countJokersInTableau(): number {
-		let n = 0;
-		for (const col of this.tableaus) {
-			for (const c of col) {
-				if (isJoker(c)) n += 1;
-			}
-		}
-		return n;
-	}
-
-	/** Sum of flat bonuses from ScoreBoost jokers currently sitting in
-	 * tableau columns. Multiplier-variant jokers are folded into the
-	 * `JOKER_MULT_PER_TABLEAU` count when their variant is Multiplier. */
-	private tableauScoreBoostBonus(): number {
-		let bonus = 0;
-		for (const col of this.tableaus) {
-			for (const c of col) {
-				if (!isJoker(c)) continue;
-				const variant =
-					this.jokerVariants.get(c & 0x3f) ?? JokerVariant.Wild;
-				if (variant === JokerVariant.ScoreBoost) bonus += 50;
-			}
-		}
-		return bonus;
+		this.maybeClearFreezeAtEndgame();
 	}
 
 	/** Each mutator pushes history on success so undo rolls back the
@@ -470,7 +484,10 @@ export class GameState {
 	 * the freeze rotates per stock click. */
 
 	drawFromStock(): boolean {
-		if (this.stock.length === 0 && this.waste.length === 0) return false;
+		if (this.stock.length === 0 && this.waste.length === 0) {
+			this.maybeClearFreezeAtEndgame();
+			return false;
+		}
 		this.pushHistory();
 
 		let recyclePoints = 0;
@@ -531,12 +548,13 @@ export class GameState {
 	 * player can't see what's frozen). No-op when no candidates exist. */
 	private rotateFreeze() {
 		this.frozenCards.clear();
+		if (this.stock.length === 0 && this.waste.length === 0) return;
 		const candidates: number[] = [];
 		for (const col of this.tableaus) {
 			for (const c of col) {
 				if (!isFaceUp(c)) continue;
 				if (isMonster(c)) continue;
-				candidates.push(c & 0x3f);
+				candidates.push(c & IDENTITY_MASK);
 			}
 		}
 		if (candidates.length === 0) return;
@@ -550,11 +568,22 @@ export class GameState {
 		return this.frozenCards.has(idx);
 	}
 
+	/** Lift any active freeze when stock + waste are both empty — the
+	 * freeze normally rotates on stock click, but at endgame no draw is
+	 * possible so a frozen card would permanently lock foundation moves.
+	 * Returns true if freeze was cleared (caller can refresh visuals). */
+	private maybeClearFreezeAtEndgame(): boolean {
+		if (this.frozenCards.size === 0) return false;
+		if (this.stock.length > 0 || this.waste.length > 0) return false;
+		this.frozenCards.clear();
+		return true;
+	}
+
 	/** Helper used by `moveTableauRun` to reject runs whose first card —
 	 * or any card — is frozen. */
 	private runHasFrozen(run: number[]): boolean {
 		for (const c of run) {
-			if (this.frozenCards.has(c & 0x3f)) return true;
+			if (this.frozenCards.has(c & IDENTITY_MASK)) return true;
 		}
 		return false;
 	}
@@ -572,7 +601,7 @@ export class GameState {
 			}
 		}
 		this.tableaus[target].push(placed);
-		const idx = placed & 0x3f;
+		const idx = placed & IDENTITY_MASK;
 		const mob = this.monsters.get(idx);
 		if (mob && !mob.engaged) {
 			mob.engaged = true;
@@ -588,6 +617,7 @@ export class GameState {
 		this.pushHistory();
 		this.waste.splice(idx, 1);
 		this.tableaus[toCol].push(c);
+		this.onTableauJokerAdded(c);
 		this.applyScore(SCORE.wasteToTableau, false);
 		return true;
 	}
@@ -601,7 +631,7 @@ export class GameState {
 		this.pushHistory();
 		this.waste.splice(idx, 1);
 		this.foundations[foundIdx].push(c);
-		const cardIdx = c & 0x3f;
+		const cardIdx = c & IDENTITY_MASK;
 		const firstTime = !this.scoredCards.has(cardIdx);
 		this.applyScore(firstTime ? SCORE.wasteToFoundation : 0, firstTime);
 		if (firstTime) this.scoredCards.add(cardIdx);
@@ -616,6 +646,7 @@ export class GameState {
 		if (fromCol === toCol) return false;
 		const run = movableRun(this.tableaus[fromCol], fromCardIndex);
 		if (!run) return false;
+		this.maybeClearFreezeAtEndgame();
 		if (this.runHasFrozen(run)) return false;
 		const bottom = run[0];
 		if (!canDropOnTableau(bottom, this.tableaus[toCol])) return false;
@@ -633,7 +664,8 @@ export class GameState {
 		const col = this.tableaus[fromCol];
 		const c = col[col.length - 1];
 		if (c === undefined || !isFaceUp(c)) return false;
-		if (this.frozenCards.has(c & 0x3f)) return false;
+		this.maybeClearFreezeAtEndgame();
+		if (this.frozenCards.has(c & IDENTITY_MASK)) return false;
 		if (getSuit(c) !== FOUNDATION_SUITS[foundationIdx]) return false;
 		if (!canDropOnFoundation(c, this.foundations[foundationIdx]))
 			return false;
@@ -642,7 +674,7 @@ export class GameState {
 		col.pop();
 		this.foundations[foundationIdx].push(c);
 		const flipped = this.flipExposedTop(fromCol);
-		const cardIdx = c & 0x3f;
+		const cardIdx = c & IDENTITY_MASK;
 		const firstTime = !this.scoredCards.has(cardIdx);
 		const points =
 			(firstTime ? SCORE.tableauToFoundation : 0) +
@@ -661,6 +693,7 @@ export class GameState {
 		this.pushHistory();
 		f.pop();
 		this.tableaus[toCol].push(c);
+		this.onTableauJokerAdded(c);
 		this.applyScore(SCORE.foundationToTableau, false);
 		return true;
 	}
@@ -671,7 +704,7 @@ export class GameState {
 			const flipped = setFaceUp(top, true);
 			this.tableaus[col][this.tableaus[col].length - 1] = flipped;
 			if (isMonster(flipped)) {
-				const idx = flipped & 0x3f;
+				const idx = flipped & IDENTITY_MASK;
 				const mob = this.monsters.get(idx);
 				if (mob && !mob.engaged) {
 					mob.engaged = true;
@@ -693,7 +726,7 @@ export class GameState {
 		const top = pile[pile.length - 1];
 		if (top === undefined || !isFaceUp(top) || !isMonster(top))
 			return false;
-		const idx = top & 0x3f;
+		const idx = top & IDENTITY_MASK;
 		const mob = this.monsters.get(idx);
 		if (!mob) return false;
 
@@ -732,7 +765,8 @@ export class GameState {
 		const pile = this.tableaus[col];
 		const c = pile[pile.length - 1];
 		if (c === undefined || !isFaceUp(c) || !isBonus(c)) return false;
-		if (this.frozenCards.has(c & 0x3f)) return false;
+		this.maybeClearFreezeAtEndgame();
+		if (this.frozenCards.has(c & IDENTITY_MASK)) return false;
 		this.pushHistory();
 		pile.pop();
 		this.applyBonusEffect(getBonusType(c));
@@ -764,7 +798,7 @@ export class GameState {
 		for (let col = 0; col < 7; col++) {
 			for (let i = 0; i < this.tableaus[col].length; i++) {
 				const c = this.tableaus[col][i];
-				const idx = c & 0x3f;
+				const idx = c & IDENTITY_MASK;
 				if (!isFaceUp(c) && !this.peekedCards.has(idx)) {
 					candidates.push(idx);
 				}

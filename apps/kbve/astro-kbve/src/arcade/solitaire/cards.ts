@@ -1,11 +1,10 @@
 /** Byte-packed deck primitives. One card = one byte:
- *   bit 6     face-up flag
- *   bits 4-5  suit (0..3)
- *   bits 0-3  rank index (0..12 → A..K, 13 → joker, 14-15 → bonus/monster)
+ *   bit 7     face-up flag
+ *   bits 5-6  suit (0..3)
+ *   bits 0-4  rank index (0..12 → A..K, 13 → joker, 14..30 → bonus/monster slots)
  *
- * Snapshots use `Uint8Array` (52 bytes for the whole deck makes undo + ser
- * cheap). Live piles use `number[]` for mutation. `toCardView` inflates a
- * byte to a typed view object once at the UI boundary. */
+ * Identity mask = 0x7F (128 slots). Live piles use `number[]`; snapshots use
+ * `Uint8Array`. `toCardView` inflates a byte to a typed view at the UI boundary. */
 
 export const enum SuitByte {
 	Spades = 0,
@@ -21,9 +20,11 @@ export const enum ColorByte {
 
 export type CardByte = number;
 
-const RANK_MASK = 0b0000_1111;
-const SUIT_MASK = 0b0011_0000;
-const FACE_UP = 0b0100_0000;
+const RANK_MASK = 0b0001_1111;
+const SUIT_MASK = 0b0110_0000;
+const FACE_UP = 0b1000_0000;
+export const IDENTITY_MASK = RANK_MASK | SUIT_MASK;
+export const IDENTITY_SLOTS = IDENTITY_MASK + 1;
 
 export const SUIT_LABEL = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
 export const SUIT_GLYPH = ['♠', '♥', '♦', '♣'] as const;
@@ -61,7 +62,7 @@ export function packCard(
 	rank: number,
 	faceUp = false,
 ): CardByte {
-	return (rank & RANK_MASK) | ((suit & 0b11) << 4) | (faceUp ? FACE_UP : 0);
+	return (rank & RANK_MASK) | ((suit & 0b11) << 5) | (faceUp ? FACE_UP : 0);
 }
 
 export function getRank(card: CardByte): number {
@@ -73,7 +74,7 @@ export function getDisplayRank(card: CardByte): number {
 }
 
 export function getSuit(card: CardByte): SuitByte {
-	return ((card & SUIT_MASK) >> 4) as SuitByte;
+	return ((card & SUIT_MASK) >> 5) as SuitByte;
 }
 
 export function isFaceUp(card: CardByte): boolean {
@@ -107,7 +108,6 @@ export const JOKER_RANK = 13;
  * each (rank, suit) pair maps to one bonus subtype via the lookup below. */
 export const BONUS_RANK_A = 14;
 export const BONUS_RANK_B = 15;
-const BONUS_RANK_SET = new Set<number>([BONUS_RANK_A, BONUS_RANK_B]);
 /** Backwards-compat alias — pre-multi-bonus code referenced this name. */
 export const BONUS_RANK = BONUS_RANK_A;
 
@@ -123,11 +123,11 @@ export const enum BonusType {
 /** Bonus byte slots. (rank, suit) is the addressable id; the player sees
  * the variant via the face-renderer. Two of HP/Cash, one Reveal — Reveal
  * already peeks a card so it stays rare. */
-export const BONUS_HP_BYTE: CardByte = (0 << 4) | BONUS_RANK_A;
-export const BONUS_HP_BYTE_2: CardByte = (3 << 4) | BONUS_RANK_A;
-export const BONUS_CASH_BYTE: CardByte = (1 << 4) | BONUS_RANK_A;
-export const BONUS_CASH_BYTE_2: CardByte = (0 << 4) | BONUS_RANK_B;
-export const BONUS_REVEAL_BYTE: CardByte = (2 << 4) | BONUS_RANK_A;
+export const BONUS_HP_BYTE: CardByte = (0 << 5) | BONUS_RANK_A;
+export const BONUS_HP_BYTE_2: CardByte = (3 << 5) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE: CardByte = (1 << 5) | BONUS_RANK_A;
+export const BONUS_CASH_BYTE_2: CardByte = (0 << 5) | BONUS_RANK_B;
+export const BONUS_REVEAL_BYTE: CardByte = (2 << 5) | BONUS_RANK_A;
 
 /** Every bonus card byte the deal can produce, in stable iteration order.
  * Used by `dealBytes` to seed the deck and by the scene to pre-build
@@ -141,24 +141,23 @@ export const ALL_BONUS_BYTES: readonly CardByte[] = [
 	BONUS_REVEAL_BYTE,
 ] as const;
 
-const BONUS_TYPE_BY_BYTE: Map<CardByte, BonusType> = new Map([
-	[BONUS_HP_BYTE, BonusType.HP],
-	[BONUS_HP_BYTE_2, BonusType.HP],
-	[BONUS_CASH_BYTE, BonusType.Cash],
-	[BONUS_CASH_BYTE_2, BonusType.Cash],
-	[BONUS_REVEAL_BYTE, BonusType.Reveal],
-]);
+const BONUS_TYPE_TABLE: Int8Array = (() => {
+	const t = new Int8Array(IDENTITY_SLOTS).fill(-1);
+	t[BONUS_HP_BYTE] = BonusType.HP;
+	t[BONUS_HP_BYTE_2] = BonusType.HP;
+	t[BONUS_CASH_BYTE] = BonusType.Cash;
+	t[BONUS_CASH_BYTE_2] = BonusType.Cash;
+	t[BONUS_REVEAL_BYTE] = BonusType.Reveal;
+	return t;
+})();
 
-/** Map-based — monster cards share rank=15 with `BONUS_CASH_BYTE_2`, so
- * a rank-only check would misclassify them. */
 export function isBonus(card: CardByte): boolean {
-	return BONUS_TYPE_BY_BYTE.has(card & (RANK_MASK | SUIT_MASK));
+	return BONUS_TYPE_TABLE[card & IDENTITY_MASK] >= 0;
 }
 
 export function getBonusType(card: CardByte): BonusType {
-	return (
-		BONUS_TYPE_BY_BYTE.get(card & (RANK_MASK | SUIT_MASK)) ?? BonusType.HP
-	);
+	const v = BONUS_TYPE_TABLE[card & IDENTITY_MASK];
+	return v >= 0 ? (v as BonusType) : BonusType.HP;
 }
 
 /** Monster cards reuse rank=15 on suits 1/2/3 (suit 0 is `BONUS_CASH_BYTE_2`).
@@ -172,9 +171,9 @@ export const enum MonsterKind {
 	Ghoul = 2,
 }
 
-export const MONSTER_GOBLIN_BYTE: CardByte = (1 << 4) | BONUS_RANK_B;
-export const MONSTER_SKELETON_BYTE: CardByte = (2 << 4) | BONUS_RANK_B;
-export const MONSTER_GHOUL_BYTE: CardByte = (3 << 4) | BONUS_RANK_B;
+export const MONSTER_GOBLIN_BYTE: CardByte = (1 << 5) | BONUS_RANK_B;
+export const MONSTER_SKELETON_BYTE: CardByte = (2 << 5) | BONUS_RANK_B;
+export const MONSTER_GHOUL_BYTE: CardByte = (3 << 5) | BONUS_RANK_B;
 
 export const ALL_MONSTER_BYTES: readonly CardByte[] = [
 	MONSTER_GOBLIN_BYTE,
@@ -182,28 +181,28 @@ export const ALL_MONSTER_BYTES: readonly CardByte[] = [
 	MONSTER_GHOUL_BYTE,
 ] as const;
 
-const MONSTER_KIND_BY_BYTE: Map<CardByte, MonsterKind> = new Map([
-	[MONSTER_GOBLIN_BYTE, MonsterKind.Goblin],
-	[MONSTER_SKELETON_BYTE, MonsterKind.Skeleton],
-	[MONSTER_GHOUL_BYTE, MonsterKind.Ghoul],
-]);
+const MONSTER_KIND_TABLE: Int8Array = (() => {
+	const t = new Int8Array(IDENTITY_SLOTS).fill(-1);
+	t[MONSTER_GOBLIN_BYTE] = MonsterKind.Goblin;
+	t[MONSTER_SKELETON_BYTE] = MonsterKind.Skeleton;
+	t[MONSTER_GHOUL_BYTE] = MonsterKind.Ghoul;
+	return t;
+})();
 
 export function isMonster(card: CardByte): boolean {
-	return MONSTER_KIND_BY_BYTE.has(card & (RANK_MASK | SUIT_MASK));
+	return MONSTER_KIND_TABLE[card & IDENTITY_MASK] >= 0;
 }
 
 export function getMonsterKind(card: CardByte): MonsterKind {
-	return (
-		MONSTER_KIND_BY_BYTE.get(card & (RANK_MASK | SUIT_MASK)) ??
-		MonsterKind.Goblin
-	);
+	const v = MONSTER_KIND_TABLE[card & IDENTITY_MASK];
+	return v >= 0 ? (v as MonsterKind) : MonsterKind.Goblin;
 }
 
 /** Pre-built joker bytes for convenience. Black joker rides on the spades
  * suit slot, red joker on the hearts slot — those are the two color
  * indices that read correctly through `getColor`. */
-export const JOKER_BLACK_BYTE: CardByte = (SuitByte.Spades << 4) | JOKER_RANK;
-export const JOKER_RED_BYTE: CardByte = (SuitByte.Hearts << 4) | JOKER_RANK;
+export const JOKER_BLACK_BYTE: CardByte = (SuitByte.Spades << 5) | JOKER_RANK;
+export const JOKER_RED_BYTE: CardByte = (SuitByte.Hearts << 5) | JOKER_RANK;
 
 export function isJoker(card: CardByte): boolean {
 	return (card & RANK_MASK) === JOKER_RANK;
@@ -234,10 +233,10 @@ export const JOKER_VARIANT_LABEL: Record<JokerVariant, string> = {
  * (every hover hit-test scans 52 cards). 54 unique outputs total (52 +
  * 2 jokers), so a pre-filled lookup table is the cheapest win possible. */
 const ID_CACHE: string[] = (() => {
-	const out: string[] = new Array(64);
+	const out: string[] = new Array(IDENTITY_SLOTS);
 	for (let suit = 0; suit < 4; suit++) {
 		for (let rank = 0; rank < 13; rank++) {
-			const idx = (suit << 4) | rank;
+			const idx = (suit << 5) | rank;
 			out[idx] = `${SUIT_LABEL[suit][0].toUpperCase()}-${rank + 1}`;
 		}
 	}
@@ -255,15 +254,15 @@ const ID_CACHE: string[] = (() => {
 })();
 
 export function getCardId(card: CardByte): string {
-	return ID_CACHE[card & (RANK_MASK | SUIT_MASK)];
+	return ID_CACHE[card & IDENTITY_MASK];
 }
 
 /** Stable integer index for a card's identity (suit + rank, face-up
- * agnostic). Lower 6 bits of the byte. Used as a flat-array key for
+ * agnostic). Lower 7 bits of the byte. Used as a flat-array key for
  * scene-side view lookup — faster than `Map<string>` because there's no
- * string hashing on every access. Range: 0..63 (only 0..52 populated). */
+ * string hashing on every access. Range: 0..127. */
 export function getCardIndex(card: CardByte): number {
-	return card & (RANK_MASK | SUIT_MASK);
+	return card & IDENTITY_MASK;
 }
 
 export function getCardLabel(card: CardByte): string {
