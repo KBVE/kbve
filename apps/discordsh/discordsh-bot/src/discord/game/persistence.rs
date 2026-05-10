@@ -305,6 +305,51 @@ impl ProfileStore {
         });
     }
 
+    /// Permadeath wipe — delete the profile from Supabase + the redb L2
+    /// cache. Fire-and-forget. The in-mem LRU is evicted by
+    /// [`save_all_players`] via `invalidate` after this returns. After
+    /// this runs, the player's next `/dungeon start` falls into the
+    /// class-picker path.
+    pub fn permadeath_async(&self, discord_id: u64) {
+        if let Some(db) = self.local_db.clone() {
+            let key = discord_id.to_string();
+            tokio::spawn(async move {
+                if let Err(e) = db.delete(REDB_PROFILE_TABLE, &key).await {
+                    warn!(error = %e, discord_id, "L2 redb permadeath wipe failed");
+                }
+            });
+        }
+
+        let Some(client) = self.client.clone() else {
+            return;
+        };
+        tokio::spawn(async move {
+            let params = serde_json::json!({ "p_discord_id": discord_id as i64 });
+            match client
+                .rpc_schema("service_delete_profile", params, SCHEMA)
+                .await
+            {
+                Ok(resp) if resp.status().is_success() => {
+                    debug!(discord_id, "Profile permadeath wiped from Supabase");
+                }
+                Ok(resp) => {
+                    warn!(
+                        status = %resp.status(),
+                        discord_id,
+                        "service_delete_profile returned non-200"
+                    );
+                }
+                Err(e) => {
+                    error!(
+                        error = %e,
+                        discord_id,
+                        "service_delete_profile RPC failed"
+                    );
+                }
+            }
+        });
+    }
+
     /// Try to claim the play mode lock for a player.
     ///
     /// Returns a [`ModeLockGuard`] if the lock was granted, or `Err(message)`
@@ -740,6 +785,11 @@ pub fn save_all_players(
     reason: &GameOverReason,
 ) {
     for (&uid, player) in &session.players {
+        if matches!(reason, GameOverReason::Defeated) && !player.alive {
+            profiles.permadeath_async(uid.get());
+            profiles.release_mode_async(uid.get(), session.short_id.clone());
+            continue;
+        }
         let snapshot = player.saved_snapshot.as_ref();
         let (profile, run) = extract_save_payload(
             uid.get(),
@@ -751,9 +801,6 @@ pub fn save_all_players(
             session,
         );
         profiles.save_async(profile, run);
-        // Release the play mode lock so the player can switch to isometric
-        // (or restart Discord). Each player owns their own lock keyed on
-        // the session's short_id.
         profiles.release_mode_async(uid.get(), session.short_id.clone());
     }
 

@@ -616,7 +616,7 @@ pub fn apply_action(
         "Applying game action"
     );
 
-    let result = match action {
+    let mut result = match action {
         GameAction::Attack => resolve_combat_turn(session, GameAction::Attack, actor),
         GameAction::AttackTarget(idx) => {
             debug!(target_idx = idx, "Attack targeting enemy index");
@@ -769,6 +769,11 @@ pub fn apply_action(
     session.turn += 1;
     session.last_action_at = std::time::Instant::now();
 
+    tick_permadeath_timer(session, &mut result.logs);
+    if session.all_players_dead() && !matches!(session.phase, GamePhase::GameOver(_)) {
+        session.phase = GamePhase::GameOver(GameOverReason::Defeated);
+    }
+
     // Trim log to last 8 entries
     for entry in &result.logs {
         session.log.push(entry.clone());
@@ -779,6 +784,31 @@ pub fn apply_action(
     }
 
     Ok(result)
+}
+
+const PERMADEATH_TURN_BUDGET: u32 = 30;
+
+fn tick_permadeath_timer(session: &mut SessionState, logs: &mut Vec<String>) {
+    let session_turn = session.turn;
+    let mut newly_dead: Vec<String> = Vec::new();
+    for player in session.players.values_mut() {
+        if !player.downed || !player.alive {
+            continue;
+        }
+        let Some(downed_at) = player.downed_at_turn else {
+            continue;
+        };
+        if session_turn.saturating_sub(downed_at) >= PERMADEATH_TURN_BUDGET {
+            player.alive = false;
+            newly_dead.push(player.name.clone());
+        }
+    }
+    for name in newly_dead {
+        logs.push(format!(
+            "{} bleeds out — character lost (permadeath).",
+            name
+        ));
+    }
 }
 
 // ── First-strike initiative ─────────────────────────────────────────
@@ -1657,9 +1687,13 @@ fn single_enemy_turn(
                     actual = actual.max(1);
                 }
 
+                let session_turn = session.turn;
                 let player = session.player_mut(uid);
                 player.hp -= actual;
                 if player.hp <= 0 {
+                    if !player.downed {
+                        player.downed_at_turn = Some(session_turn);
+                    }
                     player.downed = true;
                     player.hp = 0;
                 }
@@ -2238,8 +2272,12 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
 
     // Check if hazards killed any players
     for &uid in &alive_ids {
+        let session_turn = session.turn;
         let player = session.player_mut(uid);
         if player.hp <= 0 {
+            if !player.downed {
+                player.downed_at_turn = Some(session_turn);
+            }
             player.downed = true;
             player.hp = 0;
         }
@@ -2782,9 +2820,13 @@ fn apply_trap_choice(
                 ));
                 let alive_ids = session.alive_player_ids();
                 for &uid in &alive_ids {
+                    let session_turn = session.turn;
                     let player = session.player_mut(uid);
                     player.hp -= dmg;
                     if player.hp <= 0 {
+                        if !player.downed {
+                            player.downed_at_turn = Some(session_turn);
+                        }
                         player.downed = true;
                         player.hp = 0;
                     }
@@ -2800,9 +2842,13 @@ fn apply_trap_choice(
             ));
             let alive_ids = session.alive_player_ids();
             for &uid in &alive_ids {
+                let session_turn = session.turn;
                 let player = session.player_mut(uid);
                 player.hp -= reduced;
                 if player.hp <= 0 {
+                    if !player.downed {
+                        player.downed_at_turn = Some(session_turn);
+                    }
                     player.downed = true;
                     player.hp = 0;
                 }
@@ -2864,11 +2910,15 @@ fn apply_treasure_choice(
                 let trap_dmg = 5 + room_index as i32;
                 let alive_ids = session.alive_player_ids();
                 for &uid in &alive_ids {
+                    let session_turn = session.turn;
                     let player = session.player_mut(uid);
                     player.hp -= trap_dmg;
                     player.gold += standard_gold;
                     player.lifetime_gold_earned += standard_gold as u32;
                     if player.hp <= 0 {
+                        if !player.downed {
+                            player.downed_at_turn = Some(session_turn);
+                        }
                         player.downed = true;
                         player.hp = 0;
                     }
@@ -9717,6 +9767,49 @@ mod tests {
         let p2 = serenity::UserId::new(2);
         let result = apply_action(&mut session, GameAction::Revive(p2), OWNER);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn permadeath_timer_does_not_fire_within_budget() {
+        let mut session = test_session();
+        session.player_mut(OWNER).downed = true;
+        session.player_mut(OWNER).downed_at_turn = Some(0);
+        session.turn = PERMADEATH_TURN_BUDGET - 1;
+
+        let mut logs = Vec::new();
+        tick_permadeath_timer(&mut session, &mut logs);
+
+        assert!(session.player(OWNER).downed);
+        assert!(session.player(OWNER).alive);
+        assert!(logs.is_empty());
+    }
+
+    #[test]
+    fn permadeath_timer_kills_after_budget() {
+        let mut session = test_session();
+        session.player_mut(OWNER).downed = true;
+        session.player_mut(OWNER).downed_at_turn = Some(0);
+        session.turn = PERMADEATH_TURN_BUDGET;
+
+        let mut logs = Vec::new();
+        tick_permadeath_timer(&mut session, &mut logs);
+
+        assert!(!session.player(OWNER).alive);
+        assert!(logs.iter().any(|l| l.contains("permadeath")));
+    }
+
+    #[test]
+    fn permadeath_timer_skips_already_dead_players() {
+        let mut session = test_session();
+        session.player_mut(OWNER).alive = false;
+        session.player_mut(OWNER).downed = true;
+        session.player_mut(OWNER).downed_at_turn = Some(0);
+        session.turn = PERMADEATH_TURN_BUDGET + 5;
+
+        let mut logs = Vec::new();
+        tick_permadeath_timer(&mut session, &mut logs);
+
+        assert!(logs.is_empty());
     }
 
     #[test]
