@@ -222,6 +222,7 @@ jobs:
                             entry.version_toml,
                             entry.version_target,
                             entry.deployment_yaml,
+                            ...(Array.isArray(entry.deployment_yamls) ? entry.deployment_yamls : []),
                             '.github/ci-dispatch-manifest.json',
                           ]
                             .filter(Boolean)
