@@ -29,6 +29,7 @@ export async function signJwt(
 		sub: 'e2e-test-user',
 		email: 'test@example.com',
 		role: 'authenticated',
+		aud: 'authenticated',
 		iat: now,
 		exp: now + 3600,
 		...payload,
