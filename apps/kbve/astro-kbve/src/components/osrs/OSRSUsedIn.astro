@@ -1,0 +1,245 @@
+---
+import type { OSRSUsedIn } from '@/data/schema';
+
+interface Props {
+	usedIn: OSRSUsedIn[];
+}
+
+const { usedIn } = Astro.props;
+
+const SKILL_COLOR: Record<string, string> = {
+	crafting: 'osrs-used__skill--crafting',
+	smithing: 'osrs-used__skill--smithing',
+	cooking: 'osrs-used__skill--cooking',
+	herblore: 'osrs-used__skill--herblore',
+	fletching: 'osrs-used__skill--fletching',
+	construction: 'osrs-used__skill--construction',
+	runecraft: 'osrs-used__skill--runecraft',
+	magic: 'osrs-used__skill--magic',
+	firemaking: 'osrs-used__skill--firemaking',
+};
+
+function fmtSkill(skill: string | undefined): string {
+	if (!skill || skill.toLowerCase() === 'none') return '—';
+	return skill.charAt(0).toUpperCase() + skill.slice(1);
+}
+
+function fmtLevel(level: number | null | undefined): string {
+	if (level === null || level === undefined) return '—';
+	return String(level);
+}
+
+function fmtXp(xp: number | null | undefined): string {
+	if (xp === null || xp === undefined) return '—';
+	return xp.toLocaleString();
+}
+
+function fmtQty(q: number | string | undefined): string {
+	if (q === undefined || q === null) return '1';
+	if (typeof q === 'number') return String(q);
+	return q;
+}
+
+const sorted = [...usedIn].sort((a, b) => {
+	const lvlA = a.level ?? 0;
+	const lvlB = b.level ?? 0;
+	if (lvlA !== lvlB) return lvlA - lvlB;
+	return a.product.localeCompare(b.product);
+});
+---
+
+<div class="osrs-used">
+	<div class="osrs-used__header">
+		<span class="osrs-used__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M19.4 13c.04-.33.06-.66.06-1s-.02-.67-.06-1l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.33-.06.66-.06 1s.02.67.06 1l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.14.25.43.34.69.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.5 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64L19.4 13zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-used__title">
+			Used in production <span class="osrs-used__count">
+				({usedIn.length})
+			</span>
+		</h4>
+	</div>
+	<div class="osrs-used__table-wrap">
+		<table class="osrs-used__table">
+			<thead>
+				<tr>
+					<th>Product</th>
+					<th>Skill</th>
+					<th class="osrs-used__num">Lvl</th>
+					<th class="osrs-used__num">XP</th>
+					<th class="osrs-used__num">Qty</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					sorted.map((u) => {
+						const href = u.slug ? `/osrs/${u.slug}/` : null;
+						const productCell = href ? (
+							<a href={href}>{u.product}</a>
+						) : (
+							<span>{u.product}</span>
+						);
+						const skillKey = (u.skill ?? '').toLowerCase();
+						const skillClass = SKILL_COLOR[skillKey] ?? '';
+						return (
+							<tr>
+								<td class="osrs-used__name">{productCell}</td>
+								<td>
+									<span
+										class={`osrs-used__skill ${skillClass}`}>
+										{fmtSkill(u.skill)}
+									</span>
+								</td>
+								<td class="osrs-used__num">
+									{fmtLevel(u.level)}
+								</td>
+								<td class="osrs-used__num">{fmtXp(u.xp)}</td>
+								<td class="osrs-used__num">
+									{fmtQty(u.quantity)}
+								</td>
+							</tr>
+						);
+					})
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<style>
+	.osrs-used {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-used__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-used__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-used__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-used__count {
+		color: var(--sl-color-gray-3);
+		font-weight: 400;
+		font-size: 0.75rem;
+	}
+
+	.osrs-used__table-wrap {
+		overflow-x: auto;
+		max-height: 28rem;
+		overflow-y: auto;
+	}
+
+	.osrs-used__table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.75rem;
+	}
+
+	.osrs-used__table thead {
+		position: sticky;
+		top: 0;
+		background: var(--sl-color-gray-6);
+		z-index: 1;
+	}
+
+	.osrs-used__table th,
+	.osrs-used__table td {
+		padding: 0.375rem 0.625rem;
+		text-align: left;
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-used__table th {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+		font-weight: 600;
+	}
+
+	.osrs-used__name a {
+		color: var(--sl-color-white);
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.osrs-used__name a:hover {
+		color: var(--sl-color-accent-high);
+		text-decoration: underline;
+	}
+
+	.osrs-used__num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.osrs-used__skill {
+		display: inline-block;
+		padding: 0.0625rem 0.375rem;
+		font-size: 0.625rem;
+		font-weight: 600;
+		border-radius: 0.1875rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-used__skill--crafting {
+		color: #f59e0b;
+		border-color: rgba(245, 158, 11, 0.4);
+	}
+	.osrs-used__skill--smithing {
+		color: #94a3b8;
+		border-color: rgba(148, 163, 184, 0.4);
+	}
+	.osrs-used__skill--cooking {
+		color: #ef4444;
+		border-color: rgba(239, 68, 68, 0.4);
+	}
+	.osrs-used__skill--herblore {
+		color: #10b981;
+		border-color: rgba(16, 185, 129, 0.4);
+	}
+	.osrs-used__skill--fletching {
+		color: #84cc16;
+		border-color: rgba(132, 204, 22, 0.4);
+	}
+	.osrs-used__skill--construction {
+		color: #d97706;
+		border-color: rgba(217, 119, 6, 0.4);
+	}
+	.osrs-used__skill--runecraft {
+		color: #a855f7;
+		border-color: rgba(168, 85, 247, 0.4);
+	}
+	.osrs-used__skill--magic {
+		color: #3b82f6;
+		border-color: rgba(59, 130, 246, 0.4);
+	}
+	.osrs-used__skill--firemaking {
+		color: #f97316;
+		border-color: rgba(249, 115, 22, 0.4);
+	}
+</style>

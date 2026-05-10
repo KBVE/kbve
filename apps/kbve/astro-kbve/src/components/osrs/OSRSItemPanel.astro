@@ -14,6 +14,11 @@ import OSRSPrayerInfo from './OSRSPrayerInfo.astro';
 import OSRSGatheringInfo from './OSRSGatheringInfo.astro';
 import OSRSMarketStrategy from './OSRSMarketStrategy.astro';
 import OSRSTradingTips from './OSRSTradingTips.astro';
+import OSRSItemTrivia from './OSRSItemTrivia.astro';
+import OSRSShops from './OSRSShops.astro';
+import OSRSUsedIn from './OSRSUsedIn.astro';
+import OSRSHistory from './OSRSHistory.astro';
+import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
 import type { OSRSExtended } from '@/data/schema';
 import {
 	hasEquipment,
@@ -30,6 +35,10 @@ import {
 	hasPrayer,
 	hasGathering,
 	getGathering,
+	hasShopSources,
+	hasUsedIn,
+	hasHistory,
+	hasItemTrivia,
 } from '@/data/schema';
 
 type OSRSItemData = OSRSExtended;
@@ -68,7 +77,13 @@ const showGathering = hasGathering(item);
 const gatheringData = showGathering ? getGathering(item) : undefined;
 const showMarketStrategy = hasMarketStrategy(item);
 const showTradingTips = hasTradingTips(item);
+const showShops = hasShopSources(item);
+const showUsedIn = hasUsedIn(item);
+const showHistory = hasHistory(item);
+const showTrivia = hasItemTrivia(item);
 ---
+
+<OSRSItemJsonLd data={item} />
 
 <section class="osrs-panel not-content">
 	<div class="osrs-panel__container">
@@ -215,6 +230,15 @@ const showTradingTips = hasTradingTips(item);
 				/>
 			</div>
 
+			<!-- Item Information / Trivia -->
+			{
+				showTrivia && item.properties && (
+					<div class="osrs-bento__item">
+						<OSRSItemTrivia properties={item.properties} />
+					</div>
+				)
+			}
+
 			<!-- Equipment Stats -->
 			{
 				showEquipment && item.equipment && (
@@ -281,6 +305,33 @@ const showTradingTips = hasTradingTips(item);
 				showDropSources && item.drop_table && (
 					<div class="osrs-bento__item osrs-bento__item--wide">
 						<OSRSDropSources dropTable={item.drop_table} />
+					</div>
+				)
+			}
+
+			<!-- Shops -->
+			{
+				showShops && item.shops && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSShops shops={item.shops} />
+					</div>
+				)
+			}
+
+			<!-- Used in production -->
+			{
+				showUsedIn && item.used_in && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSUsedIn usedIn={item.used_in} />
+					</div>
+				)
+			}
+
+			<!-- History / Changelog -->
+			{
+				showHistory && item.history && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSHistory history={item.history} />
 					</div>
 				)
 			}
