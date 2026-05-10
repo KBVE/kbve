@@ -458,9 +458,9 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION mc.proxy_request_link(TEXT)
-    FROM PUBLIC, anon;
+    FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION mc.proxy_request_link(TEXT)
-    TO authenticated, service_role;
+    TO service_role;
 ALTER FUNCTION mc.proxy_request_link(TEXT) OWNER TO service_role;
 
 -- PROXY: Authenticated user checks own link status.
@@ -511,9 +511,9 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION mc.proxy_get_link_status()
-    FROM PUBLIC, anon;
+    FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION mc.proxy_get_link_status()
-    TO authenticated, service_role;
+    TO service_role;
 ALTER FUNCTION mc.proxy_get_link_status() OWNER TO service_role;
 COMMENT ON FUNCTION mc.proxy_get_link_status() IS
     'Authenticated RPC. Returns the caller''s Minecraft link status including lockout/expiry/attempt counters for UI feedback. Never exposes the verification code hash.';
@@ -538,9 +538,9 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION mc.proxy_unlink()
-    FROM PUBLIC, anon;
+    FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION mc.proxy_unlink()
-    TO authenticated, service_role;
+    TO service_role;
 ALTER FUNCTION mc.proxy_unlink() OWNER TO service_role;
 
 -- PUBLIC WRAPPERS — PostgREST exposes only public/etc.; mc.* is reached via
@@ -698,14 +698,25 @@ BEGIN
         RAISE EXCEPTION 'authenticated must NOT have execute on mc.service_get_user_by_mc_uuid';
     END IF;
 
-    IF NOT has_function_privilege('authenticated', 'mc.proxy_request_link(text)', 'EXECUTE') THEN
-        RAISE EXCEPTION 'authenticated must have execute on mc.proxy_request_link';
+    -- mc.proxy_* are now service_role-only; authenticated callers reach
+    -- the same logic through public.proxy_* SECURITY DEFINER wrappers.
+    IF has_function_privilege('authenticated', 'mc.proxy_request_link(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on mc.proxy_request_link';
     END IF;
-    IF NOT has_function_privilege('authenticated', 'mc.proxy_get_link_status()', 'EXECUTE') THEN
-        RAISE EXCEPTION 'authenticated must have execute on mc.proxy_get_link_status';
+    IF has_function_privilege('authenticated', 'mc.proxy_get_link_status()', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on mc.proxy_get_link_status';
     END IF;
-    IF NOT has_function_privilege('authenticated', 'mc.proxy_unlink()', 'EXECUTE') THEN
-        RAISE EXCEPTION 'authenticated must have execute on mc.proxy_unlink';
+    IF has_function_privilege('authenticated', 'mc.proxy_unlink()', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on mc.proxy_unlink';
+    END IF;
+    IF NOT has_function_privilege('authenticated', 'public.proxy_request_link(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must have execute on public.proxy_request_link';
+    END IF;
+    IF NOT has_function_privilege('authenticated', 'public.proxy_get_link_status()', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must have execute on public.proxy_get_link_status';
+    END IF;
+    IF NOT has_function_privilege('authenticated', 'public.proxy_unlink()', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must have execute on public.proxy_unlink';
     END IF;
 
     IF EXISTS (SELECT 1 FROM pg_proc WHERE oid = 'mc.service_request_link(uuid, text)'::regprocedure AND pg_get_userbyid(proowner) <> 'service_role') THEN
