@@ -1,8 +1,9 @@
+use std::sync::Arc;
 use std::sync::OnceLock;
 
 use axum::{
     body::{Body, Bytes},
-    extract::{Path, Request},
+    extract::{FromRequestParts, Path, Request},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
 };
@@ -55,7 +56,7 @@ impl ServiceProxy {
             return resp;
         }
 
-        self.forward_request(path, req).await
+        self.forward_request(path, req, None).await
     }
 
     /// Forward the request to the upstream service without running the
@@ -66,10 +67,29 @@ impl ServiceProxy {
         path: Option<Path<String>>,
         req: Request<Body>,
     ) -> Response {
-        self.forward_request(path, req).await
+        self.forward_request(path, req, None).await
     }
 
-    async fn forward_request(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
+    /// Like `handle_preauthorized` but injects an upstream `Authorization`
+    /// header value (e.g. `Basic <b64(user:pw)>`) instead of the proxy's
+    /// configured upstream_token. Used for KASM where the upstream password
+    /// rotates per pod start and the JWT-validated launch flow knows the
+    /// freshly fetched value.
+    async fn handle_with_auth(
+        &self,
+        path: Option<Path<String>>,
+        req: Request<Body>,
+        upstream_auth: String,
+    ) -> Response {
+        self.forward_request(path, req, Some(upstream_auth)).await
+    }
+
+    async fn forward_request(
+        &self,
+        path: Option<Path<String>>,
+        req: Request<Body>,
+        upstream_auth_override: Option<String>,
+    ) -> Response {
         let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
         let query = req
@@ -90,13 +110,18 @@ impl ServiceProxy {
         headers.remove(header::AUTHORIZATION);
         headers.remove(header::ACCEPT_ENCODING);
         headers.remove(header::CONNECTION);
+        headers.remove(header::COOKIE);
         headers.remove("te");
         headers.remove("trailers");
         headers.remove("upgrade");
         headers.remove("proxy-connection");
 
-        // Inject upstream auth token if configured
-        if let Some(token) = &self.upstream_token {
+        if let Some(val) = upstream_auth_override
+            .as_deref()
+            .and_then(|s| HeaderValue::from_str(s).ok())
+        {
+            headers.insert(header::AUTHORIZATION, val);
+        } else if let Some(token) = &self.upstream_token {
             if let Ok(val) = HeaderValue::from_str(&format!("Bearer {token}")) {
                 headers.insert(header::AUTHORIZATION, val);
             }
@@ -209,29 +234,10 @@ impl ServiceProxy {
             resp_headers.remove("content-security-policy-report-only");
         }
 
-        // --- Streaming mode ---
-        // Stream the response body through without buffering. Required
-        // for services that send chunked/streaming responses that fail
-        // when fully buffered (e.g. KASM websockify — hyper can't always
-        // decode the full body in one shot, causing "error decoding
-        // response body" when calling `.bytes().await`).
-        if self.streaming {
-            if upstream_status >= 500 {
-                warn!(
-                    %upstream_url, upstream_status,
-                    "{} upstream returned {} (streaming — no body preview)",
-                    self.name, upstream_status
-                );
-                return (
-                    StatusCode::BAD_GATEWAY,
-                    axum::Json(json!({
-                        "error": format!("{} upstream error", self.name),
-                        "reason": format!("upstream returned {upstream_status}"),
-                    })),
-                )
-                    .into_response();
-            }
-
+        // Stream successful responses; buffer error responses so 4xx/5xx
+        // bodies (login pages, JSON errors, redirect targets) propagate
+        // intact even when upstream omits Content-Length / Transfer-Encoding.
+        if self.streaming && upstream_status < 400 {
             let body = Body::from_stream(upstream_resp.bytes_stream());
             let mut response = Response::builder().status(status);
             if let Some(h) = response.headers_mut() {
@@ -304,11 +310,11 @@ impl ServiceProxy {
 // Shared JWT + staff permission gate
 // ---------------------------------------------------------------------------
 
-/// Extract Bearer token from headers or `?access_token=` query param.
-/// WebSocket connections cannot set custom headers, so the frontend passes
-/// the JWT as a query parameter for WS upgrade requests.
+/// Extract Bearer token from Authorization header, `?access_token=` query
+/// param, or a path-scoped session cookie. WebSocket / iframe contexts can't
+/// set custom headers, so the launch flow plants `kasm_session` for follow-up
+/// requests (assets, WS upgrade) without leaking the JWT into the URL.
 fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
-    // 1. Try Authorization header first (standard HTTP path)
     if let Some(h) = headers.get(header::AUTHORIZATION) {
         if let Ok(s) = h.to_str() {
             if let Some(t) = extract_bearer_token(s) {
@@ -316,13 +322,26 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
             }
         }
     }
-    // 2. Fall back to ?access_token= query param (WebSocket path)
-    // JWTs are base64url-encoded so they don't need URL decoding.
     if let Some(qs) = query {
         for pair in qs.split('&') {
             if let Some(val) = pair.strip_prefix("access_token=") {
                 if !val.is_empty() {
                     return Some(val.to_string());
+                }
+            }
+        }
+    }
+    if let Some(c) = headers.get(header::COOKIE) {
+        if let Ok(s) = c.to_str() {
+            for pair in s.split(';') {
+                let pair = pair.trim();
+                if let Some(val) = pair
+                    .strip_prefix("kasm_session=")
+                    .or_else(|| pair.strip_prefix("dashboard_session="))
+                {
+                    if !val.is_empty() {
+                        return Some(val.to_string());
+                    }
                 }
             }
         }
@@ -1038,15 +1057,369 @@ pub fn init_kasm_proxy() -> bool {
     .is_ok()
 }
 
-pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
-    match KASM.get() {
-        Some(proxy) => proxy.handle(path, req).await,
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "KASM proxy not configured"})),
-        )
-            .into_response(),
+/// Cached `kasm-vnc-pw` value. Rotates on KASM pod restart; we refresh
+/// lazily and force-refresh on upstream 401.
+static KASM_VNC_PW_CACHE: OnceLock<tokio::sync::RwLock<Option<String>>> = OnceLock::new();
+
+fn kasm_pw_cache() -> &'static tokio::sync::RwLock<Option<String>> {
+    KASM_VNC_PW_CACHE.get_or_init(|| tokio::sync::RwLock::new(None))
+}
+
+/// Fetch and base64-decode the `kasm-vnc-pw` Secret in the `kasm` namespace.
+async fn fetch_kasm_vnc_password() -> Result<String, String> {
+    use base64::Engine as _;
+    use base64::engine::general_purpose::STANDARD as B64;
+
+    let kubevirt = KUBEVIRT
+        .get()
+        .ok_or_else(|| "K8s API not configured".to_string())?;
+
+    let url = format!(
+        "{}/api/v1/namespaces/{}/secrets/kasm-vnc-pw",
+        kubevirt.upstream, KASM_NAMESPACE
+    );
+
+    let mut req = kubevirt
+        .client
+        .get(&url)
+        .header("Accept", "application/json");
+    if let Some(ref token) = kubevirt.upstream_token {
+        req = req.bearer_auth(token);
     }
+
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| format!("K8s API request failed: {e}"))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("Secret fetch returned {}", resp.status()));
+    }
+
+    let body: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Invalid Secret response: {e}"))?;
+
+    let b64 = body
+        .get("data")
+        .and_then(|d| d.get("password"))
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "kasm-vnc-pw missing `data.password`".to_string())?;
+
+    let bytes = B64
+        .decode(b64.as_bytes())
+        .map_err(|e| format!("Failed to decode password: {e}"))?;
+
+    let pw = String::from_utf8(bytes).map_err(|e| format!("Password not valid utf-8: {e}"))?;
+
+    if pw.len() < 16 || !pw.chars().all(|c| c.is_ascii_alphanumeric()) {
+        return Err("kasm-vnc-pw value outside expected charset".to_string());
+    }
+
+    Ok(pw)
+}
+
+async fn cached_kasm_password(force_refresh: bool) -> Result<String, String> {
+    let cache = kasm_pw_cache();
+    if !force_refresh {
+        if let Some(p) = cache.read().await.clone() {
+            return Ok(p);
+        }
+    }
+    let pw = fetch_kasm_vnc_password().await?;
+    *cache.write().await = Some(pw.clone());
+    Ok(pw)
+}
+
+/// True if the incoming request looks like a WebSocket upgrade — required
+/// headers per RFC 6455. Hyper's `WebSocketUpgrade` extractor needs all of
+/// these; checking up front lets us choose between the HTTP proxy and the
+/// WS bridge without consuming the request body.
+fn is_websocket_upgrade(headers: &HeaderMap) -> bool {
+    fn header_contains(headers: &HeaderMap, name: &str, needle: &str) -> bool {
+        headers
+            .get(name)
+            .and_then(|v| v.to_str().ok())
+            .map(|v| v.split(',').any(|t| t.trim().eq_ignore_ascii_case(needle)))
+            .unwrap_or(false)
+    }
+    header_contains(headers, "connection", "upgrade")
+        && header_contains(headers, "upgrade", "websocket")
+}
+
+fn build_kasm_basic_auth(password: &str) -> String {
+    use base64::Engine as _;
+    use base64::engine::general_purpose::STANDARD as B64;
+    let creds = format!("kasm_user:{password}");
+    format!("Basic {}", B64.encode(creds.as_bytes()))
+}
+
+pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let proxy = match KASM.get() {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "KASM proxy not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let req_headers = req.headers().clone();
+    let raw_query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), proxy.name).await
+    {
+        return resp;
+    }
+
+    // KASM noVNC opens a WebSocket to the same path it served the HTML from.
+    // Detect the Upgrade and hand off to the WS bridge instead of forwarding
+    // through the reqwest-based ServiceProxy (which is HTTP-only).
+    if is_websocket_upgrade(&req_headers) {
+        let suffix = path.as_ref().map(|Path(p)| p.clone()).unwrap_or_default();
+        let query_str = raw_query
+            .as_deref()
+            .map(|q| format!("?{q}"))
+            .unwrap_or_default();
+        let upstream_url = format!("{}/{}{}", proxy.upstream, suffix, query_str);
+
+        let (mut parts, _body) = req.into_parts();
+        match axum::extract::ws::WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
+            Ok(ws) => return kasm_ws_handler(ws, upstream_url).await,
+            Err(rej) => return rej.into_response(),
+        }
+    }
+
+    let password = match cached_kasm_password(false).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM password fetch failed: {e}");
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("KASM password unavailable: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let auth = build_kasm_basic_auth(&password);
+
+    let path_inner: Option<String> = path.map(|Path(p)| p);
+    let (parts, body) = req.into_parts();
+    let body_bytes = match axum::body::to_bytes(body, 10 * 1024 * 1024).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::PAYLOAD_TOO_LARGE,
+                axum::Json(json!({"error": "Request body too large"})),
+            )
+                .into_response();
+        }
+    };
+
+    let req1 = Request::from_parts(parts.clone(), Body::from(body_bytes.clone()));
+    let resp = proxy
+        .handle_with_auth(path_inner.clone().map(Path), req1, auth)
+        .await;
+
+    if resp.status() != StatusCode::UNAUTHORIZED {
+        return resp;
+    }
+
+    // Upstream rejected our cached password — refresh once and retry. Covers
+    // KASM pod restarts that rotated `kasm-vnc-pw` since we last fetched.
+    let fresh = match cached_kasm_password(true).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM password refresh failed after 401: {e}");
+            return resp;
+        }
+    };
+    let auth2 = build_kasm_basic_auth(&fresh);
+    let req2 = Request::from_parts(parts, Body::from(body_bytes));
+    proxy
+        .handle_with_auth(path_inner.map(Path), req2, auth2)
+        .await
+}
+
+/// Bridge a browser WebSocket upgrade to KASM's websockify endpoint. Mirrors
+/// the `guacamole_ws_handler` pattern: tokio-tungstenite for the upstream
+/// because reqwest can't carry the Upgrade. Negotiates the noVNC subprotocol
+/// (`binary` / `base64`) and injects HTTP Basic creds on the upstream
+/// handshake — KASM's websockify gates the upgrade behind the same Basic
+/// realm as the static HTML.
+async fn kasm_ws_handler(
+    ws: axum::extract::ws::WebSocketUpgrade,
+    upstream_url: String,
+) -> Response {
+    let password = match cached_kasm_password(false).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM-WS password fetch failed: {e}");
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("KASM password unavailable: {e}")})),
+            )
+                .into_response();
+        }
+    };
+    let auth = build_kasm_basic_auth(&password);
+
+    ws.protocols(["binary", "base64"])
+        .on_upgrade(move |browser_ws| async move {
+            if let Err(e) = kasm_ws_bridge(browser_ws, &upstream_url, &auth).await {
+                warn!("KASM WS bridge error: {e}");
+            }
+        })
+}
+
+async fn kasm_ws_bridge(
+    browser_ws: axum::extract::ws::WebSocket,
+    upstream_url: &str,
+    auth: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use axum::extract::ws::Message as AxumMsg;
+    use futures_util::{SinkExt, StreamExt};
+    use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
+
+    let ws_url = upstream_url
+        .replace("https://", "wss://")
+        .replace("http://", "ws://");
+    let mut request = ws_url.into_client_request()?;
+    request.headers_mut().insert("Authorization", auth.parse()?);
+
+    let proto = browser_ws
+        .protocol()
+        .and_then(|p| p.to_str().ok())
+        .unwrap_or("binary")
+        .to_string();
+    request
+        .headers_mut()
+        .insert("Sec-WebSocket-Protocol", proto.parse()?);
+
+    let connector = build_kasm_tls_connector()?;
+    let (upstream_ws, _resp) =
+        tokio_tungstenite::connect_async_tls_with_config(request, None, false, Some(connector))
+            .await?;
+
+    let (mut browser_tx, mut browser_rx) = browser_ws.split();
+    let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
+
+    let browser_to_upstream = async {
+        while let Some(msg) = browser_rx.next().await {
+            match msg {
+                Ok(AxumMsg::Text(t)) => {
+                    let s: String = t.to_string();
+                    if upstream_tx.send(TungMsg::Text(s.into())).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(AxumMsg::Binary(d)) => {
+                    if upstream_tx.send(TungMsg::Binary(d)).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(AxumMsg::Close(_)) | Err(_) => break,
+                _ => {}
+            }
+        }
+        let _ = upstream_tx.close().await;
+    };
+
+    let upstream_to_browser = async {
+        while let Some(msg) = upstream_rx.next().await {
+            match msg {
+                Ok(TungMsg::Text(t)) => {
+                    let s: String = t.to_string();
+                    if browser_tx.send(AxumMsg::Text(s.into())).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(TungMsg::Binary(d)) => {
+                    if browser_tx.send(AxumMsg::Binary(d)).await.is_err() {
+                        break;
+                    }
+                }
+                Ok(TungMsg::Close(_)) | Err(_) => break,
+                _ => {}
+            }
+        }
+        let _ = browser_tx.close().await;
+    };
+
+    tokio::select! {
+        _ = browser_to_upstream => {},
+        _ = upstream_to_browser => {},
+    }
+    Ok(())
+}
+
+/// KASM's web server presents a fully self-signed cert (CN=kasm) generated
+/// per pod start, so we cannot validate against the cluster CA the way the
+/// KubeVirt VNC bridge does. Build a Connector that skips verification —
+/// safe because the connection is cluster-internal (kasm-vpn-service) and
+/// the request is already JWT-gated upstream.
+fn build_kasm_tls_connector()
+-> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
+    use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
+    use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+    use rustls::{DigitallySignedStruct, Error as TlsError, SignatureScheme};
+
+    #[derive(Debug)]
+    struct AcceptAnyCert;
+
+    impl ServerCertVerifier for AcceptAnyCert {
+        fn verify_server_cert(
+            &self,
+            _end_entity: &CertificateDer<'_>,
+            _intermediates: &[CertificateDer<'_>],
+            _server_name: &ServerName<'_>,
+            _ocsp: &[u8],
+            _now: UnixTime,
+        ) -> Result<ServerCertVerified, TlsError> {
+            Ok(ServerCertVerified::assertion())
+        }
+        fn verify_tls12_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, TlsError> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+        fn verify_tls13_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, TlsError> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+        fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+            vec![
+                SignatureScheme::RSA_PKCS1_SHA256,
+                SignatureScheme::RSA_PKCS1_SHA384,
+                SignatureScheme::RSA_PKCS1_SHA512,
+                SignatureScheme::ECDSA_NISTP256_SHA256,
+                SignatureScheme::ECDSA_NISTP384_SHA384,
+                SignatureScheme::ECDSA_NISTP521_SHA512,
+                SignatureScheme::RSA_PSS_SHA256,
+                SignatureScheme::RSA_PSS_SHA384,
+                SignatureScheme::RSA_PSS_SHA512,
+                SignatureScheme::ED25519,
+            ]
+        }
+    }
+
+    let config = rustls::ClientConfig::builder()
+        .dangerous()
+        .with_custom_certificate_verifier(Arc::new(AcceptAnyCert))
+        .with_no_client_auth();
+    Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }
 
 /// List KASM workspace deployments via K8s API.
@@ -1211,11 +1584,12 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
     }
 }
 
-/// JWT-gated 302 to the noVNC UI with the rotated kasm-vnc-pw embedded.
+/// JWT-gated 302 to the noVNC UI with the rotated kasm-vnc-pw embedded as
+/// a query param (consumed by noVNC client JS for auto-connect) and a
+/// path-scoped session cookie that subsequent /dashboard/kasm/proxy/*
+/// requests use to pass the dashboard JWT gate without re-injecting it
+/// into every URL.
 pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
-    use base64::Engine as _;
-    use base64::engine::general_purpose::STANDARD as B64;
-
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
 
@@ -1225,118 +1599,31 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         return resp;
     }
 
-    let kubevirt = match KUBEVIRT.get() {
-        Some(k) => k,
-        None => {
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(json!({"error": "K8s API not configured"})),
-            )
-                .into_response();
-        }
-    };
-
-    let url = format!(
-        "{}/api/v1/namespaces/{}/secrets/kasm-vnc-pw",
-        kubevirt.upstream, KASM_NAMESPACE
-    );
-
-    let mut upstream_req = kubevirt
-        .client
-        .get(&url)
-        .header("Accept", "application/json");
-    if let Some(ref token) = kubevirt.upstream_token {
-        upstream_req = upstream_req.bearer_auth(token);
-    }
-
-    let resp = match upstream_req.send().await {
-        Ok(r) if r.status().is_success() => r,
-        Ok(r) => {
-            let status = r.status();
+    let password = match cached_kasm_password(true).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM-Launch password fetch failed: {e}");
             return (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(json!({
-                    "error": format!("Failed to read kasm-vnc-pw Secret: {status}"),
-                })),
-            )
-                .into_response();
-        }
-        Err(e) => {
-            return (
-                StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("K8s API request failed: {e}")})),
+                axum::Json(json!({"error": format!("KASM password unavailable: {e}")})),
             )
                 .into_response();
         }
     };
-
-    let body: serde_json::Value = match resp.json().await {
-        Ok(v) => v,
-        Err(e) => {
-            return (
-                StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("Invalid Secret response: {e}")})),
-            )
-                .into_response();
-        }
-    };
-
-    let b64_password = match body
-        .get("data")
-        .and_then(|d| d.get("password"))
-        .and_then(|v| v.as_str())
-    {
-        Some(s) => s,
-        None => {
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(json!({
-                    "error": "kasm-vnc-pw Secret has no `password` key — pod may not be running yet",
-                })),
-            )
-                .into_response();
-        }
-    };
-
-    let password_bytes = match B64.decode(b64_password.as_bytes()) {
-        Ok(b) => b,
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(json!({"error": format!("Failed to decode password: {e}")})),
-            )
-                .into_response();
-        }
-    };
-
-    let password = match std::str::from_utf8(&password_bytes) {
-        Ok(s) => s,
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(json!({"error": format!("Password not valid utf-8: {e}")})),
-            )
-                .into_response();
-        }
-    };
-
-    if password.len() < 16 || !password.chars().all(|c| c.is_ascii_alphanumeric()) {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            axum::Json(json!({
-                "error": "kasm-vnc-pw value outside expected charset; check the gen-vnc-pw init script",
-            })),
-        )
-            .into_response();
-    }
 
     let location =
         format!("/dashboard/kasm/proxy/?password={password}&autoconnect=1&resize=remote");
+
+    let access_token = extract_auth_token(&headers, query.as_deref()).unwrap_or_default();
+    let cookie = format!(
+        "kasm_session={access_token}; Path=/dashboard/kasm/proxy/; HttpOnly; Secure; SameSite=Strict; Max-Age=900"
+    );
 
     Response::builder()
         .status(StatusCode::FOUND)
         .header(header::LOCATION, location)
         .header(header::CACHE_CONTROL, "no-store")
+        .header(header::SET_COOKIE, cookie)
         .body(Body::empty())
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }

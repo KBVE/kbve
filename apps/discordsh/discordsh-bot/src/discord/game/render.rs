@@ -1080,6 +1080,16 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         rows.push(direction_buttons(session));
     }
 
+    if rows.len() > 5 {
+        tracing::warn!(
+            short_id = %session.short_id,
+            party_size = session.players.len(),
+            row_count = rows.len(),
+            "render_components produced > 5 rows; truncating to Discord limit"
+        );
+        rows.truncate(5);
+    }
+
     rows
 }
 
@@ -1267,6 +1277,54 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::City;
         assert_eq!(phase_color(&session), COLOR_CITY);
+    }
+
+    #[test]
+    fn render_components_never_exceeds_discord_row_limit() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Combat;
+        session.enemies = (0..3)
+            .map(|i| EnemyState {
+                name: format!("Goblin {i}"),
+                level: 1,
+                hp: 10,
+                max_hp: 10,
+                armor: 0,
+                intent: Intent::Attack { dmg: 3 },
+                effects: Vec::new(),
+                charged: false,
+                loot_table_id: "",
+                npc_ref: "",
+                enraged: false,
+                index: i,
+                first_strike: false,
+                personality: Personality::Feral,
+            })
+            .collect();
+        for slot_id in 2u64..=4u64 {
+            let uid = serenity::UserId::new(slot_id);
+            session.party.push(uid);
+            let mut p = PlayerState::default();
+            p.class = if slot_id == 2 {
+                ClassType::Cleric
+            } else {
+                ClassType::Warrior
+            };
+            session.players.insert(uid, p);
+        }
+        session.show_items = true;
+        let owner_player = session.player_mut(OWNER);
+        owner_player.weapon = Some("worn-longsword".to_owned());
+        owner_player.armor_gear = Some("battered-chainmail".to_owned());
+        owner_player.inventory = super::super::content::starting_inventory();
+
+        let components = render_components(&session);
+        assert!(
+            components.len() <= 5,
+            "render produced {} rows; Discord allows max 5",
+            components.len()
+        );
     }
 
     #[test]

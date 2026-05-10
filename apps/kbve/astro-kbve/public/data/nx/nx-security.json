@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-09T08:42:46Z",
+  "generated_at": "2026-05-10T08:47:30Z",
   "summary": {
     "critical": 1,
     "high": 39,
-    "medium": 57,
+    "medium": 65,
     "low": 6,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 88,
+      "total": 96,
       "severities": {
         "critical": 1,
         "high": 39,
-        "medium": 42,
+        "medium": 50,
         "low": 6,
         "info": 0
       },
@@ -355,6 +355,13 @@
           "url": "https://github.com/advisories/GHSA-442j-39wm-28r2"
         },
         {
+          "id": "1115668",
+          "title": "DOMPurify contains a Cross-site Scripting vulnerability",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-v2wj-7wpq-c8vv"
+        },
+        {
           "id": "1115693",
           "title": "Handlebars.js has JavaScript Injection via AST Type Confusion when passing an object as dynamic partial",
           "severity": "high",
@@ -402,6 +409,20 @@
           "severity": "medium",
           "package": "lodash",
           "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "id": "1115921",
+          "title": "DOMPurify ADD_ATTR predicate skips URI validation",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-cjmm-f4jc-qw8r"
+        },
+        {
+          "id": "1115922",
+          "title": "DOMPurify USE_PROFILES prototype pollution allows event handlers",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
         },
         {
           "id": "1116102",
@@ -453,6 +474,13 @@
           "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
         },
         {
+          "id": "1116663",
+          "title": "DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS due to short-circuit evaluation",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-39q2-94rc-95cp"
+        },
+        {
           "id": "1117015",
           "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
           "severity": "medium",
@@ -472,6 +500,27 @@
           "severity": "high",
           "package": "@xmldom/xmldom",
           "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp"
+        },
+        {
+          "id": "1117138",
+          "title": "DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAGS predicate (asymmetry with FORBID_ATTR fix)",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-h7mw-gpvr-xq4m"
+        },
+        {
+          "id": "1117139",
+          "title": "DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-crv5-9vww-q3g8"
+        },
+        {
+          "id": "1117140",
+          "title": "DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_ELEMENT_HANDLING Fallback",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-v9jr-rg53-9pgp"
         },
         {
           "id": "1117141",
@@ -584,6 +633,13 @@
           "severity": "medium",
           "package": "uuid",
           "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+        },
+        {
+          "id": "1117795",
+          "title": "DOMPurify is vulnerable to mutation-XSS via Re-Contextualization ",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-h8r8-wccr-v5f2"
         },
         {
           "id": "1117870",

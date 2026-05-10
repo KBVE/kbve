@@ -437,6 +437,8 @@ pub struct PlayerState {
     pub alive: bool,
     #[serde(default)]
     pub downed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub downed_at_turn: Option<u32>,
     pub member_status: MemberStatusTag,
     pub class: ClassType,
     pub level: u8,
@@ -478,6 +480,7 @@ impl Default for PlayerState {
             accuracy: 1.0,
             alive: true,
             downed: false,
+            downed_at_turn: None,
             member_status: MemberStatusTag::Guest,
             class: ClassType::Warrior,
             level: 1,

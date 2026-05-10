@@ -455,6 +455,10 @@ fn router(state: AppState) -> Router {
             any(super::proxy::kasm_proxy_handler),
         )
         .route(
+            "/dashboard/kasm/proxy/",
+            any(super::proxy::kasm_proxy_handler),
+        )
+        .route(
             "/dashboard/kasm/proxy",
             any(super::proxy::kasm_proxy_handler),
         )

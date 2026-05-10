@@ -444,6 +444,7 @@ class IDEService {
 					entrypoint: preset.entrypoint,
 					env: { CODE: code },
 					boot_args: 'console=ttyS0 reboot=k panic=1 init=/init',
+					network: useNetwork,
 				},
 				useNetwork,
 			);

@@ -25,6 +25,7 @@
 		"@nx/eslint": "22.7.0",
 		"@nx/eslint-plugin": "22.7.0",
 		"@nx/js": "22.7.0",
+		"@scalar/api-reference": "^1.55.3",
 		"@nx/node": "22.7.0",
 		"@nx/playwright": "22.7.0",
 		"@nx/react": "22.7.0",
