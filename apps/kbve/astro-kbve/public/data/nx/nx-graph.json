@@ -82,7 +82,8 @@
                 "local": {},
                 "production": {
                   "commands": [
-                    "npx nx run firecracker-python-net:containerx:production"
+                    "npx nx run firecracker-python-net:containerx:production",
+                    "VERSION=$(sed -n 's/^version: *\"\\([^\"]*\\)\".*/\\1/p' apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx | head -1) && docker tag ghcr.io/kbve/firecracker-python-net:latest ghcr.io/kbve/firecracker-python-net:${VERSION} && docker tag ghcr.io/kbve/firecracker-python-net:latest kbve/firecracker-python-net:${VERSION} && docker tag ghcr.io/kbve/firecracker-python-net:latest kbve/firecracker-python-net:latest && echo \"Daemon tagged :${VERSION} + :latest for both registries\""
                   ]
                 }
               },
@@ -3539,6 +3540,24 @@
               "configurations": {},
               "parallelism": true
             },
+            "audit:links": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "build",
+                  "projects": "self"
+                }
+              ],
+              "options": {
+                "cwd": "apps/rareicon/icons-codegen",
+                "commands": [
+                  "pnpm audit:links"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "proto:lint": {
               "executor": "nx:run-commands",
               "options": {
@@ -5638,7 +5657,7 @@
                   "docker rm -f axum-kbve-e2e 2>/dev/null || true",
                   "docker run -d --name axum-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info -e GAME_WT_DISABLE=1 kbve/kbve:latest",
                   "echo 'Waiting for axum-kbve container to become ready...' && for i in $(seq 1 120); do if docker logs axum-kbve-e2e 2>&1 | grep -q 'HTTP listening'; then echo 'Container ready after '\"$i\"'s'; break; fi; if [ $i -eq 120 ]; then echo 'Container did not become ready in 120s'; docker logs axum-kbve-e2e 2>&1 | tail -30; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
-                  "npx vitest run; EC=$?; echo '--- container logs ---'; docker logs axum-kbve-e2e 2>&1 | tail -50; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
+                  "VERSION=$(grep '^version' ../axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && KBVE_VERSION=$VERSION npx vitest run; EC=$?; echo '--- container logs ---'; docker logs axum-kbve-e2e 2>&1 | tail -50; docker rm -f axum-kbve-e2e 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
                 "cwd": "apps/kbve/axum-kbve-e2e"
@@ -7726,6 +7745,68 @@
               "cache": true,
               "configurations": {},
               "parallelism": true
+            },
+            "solitaire:snapshot-npcdb": {
+              "dependsOn": [
+                "build"
+              ],
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/dist/apps/astro-kbve/api/npcdb.json",
+                "{projectRoot}/scripts/snapshot-solitaire-npcdb.mjs"
+              ],
+              "outputs": [
+                "{projectRoot}/standalone/solitaire/npcdb-snapshot.json"
+              ],
+              "options": {
+                "command": "node apps/kbve/astro-kbve/scripts/snapshot-solitaire-npcdb.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "solitaire:standalone": {
+              "dependsOn": [
+                "solitaire:snapshot-npcdb"
+              ],
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/standalone/solitaire/**/*",
+                "{projectRoot}/src/arcade/solitaire/**/*",
+                "{workspaceRoot}/packages/npm/laser/src/**/*"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone"
+              ],
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "commands": [
+                  "nx exec -- vite build --config standalone/solitaire/vite.config.ts"
+                ],
+                "parallel": false
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "solitaire:standalone:zip": {
+              "dependsOn": [
+                "solitaire:standalone"
+              ],
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone/index.html"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/kbve/astro-kbve/dist/solitaire-standalone.zip"
+              ],
+              "options": {
+                "command": "cd apps/kbve/astro-kbve/dist/solitaire-standalone && zip -r ../solitaire-standalone.zip ./",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "implicitDependencies": []
@@ -8942,7 +9023,7 @@
                 "script": "build:wasm"
               },
               "metadata": {
-                "scriptContent": "cd src-tauri && RUSTUP_TOOLCHAIN=nightly RUSTFLAGS=\"-C target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128 -C llvm-args=--wasm-enable-sjlj -C link-arg=--import-memory -C link-arg=--shared-memory -C link-arg=--max-memory=4294967296 -C link-arg=--export=__wasm_init_tls -C link-arg=--export=__tls_size -C link-arg=--export=__tls_align -C link-arg=--export=__tls_base --remap-path-prefix=$HOME/.cargo/registry/src=cargo --remap-path-prefix=$HOME/.rustup/toolchains=rustup --remap-path-prefix=$HOME=~\" cargo build --lib --target wasm32-unknown-unknown -Z build-std=panic_abort,std --release && command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@0.2.114 --locked && wasm-bindgen ../../../../dist/target/wasm32-unknown-unknown/release/isometric_game.wasm --out-dir ../wasm-pkg --target web --out-name isometric_game",
+                "scriptContent": "cd src-tauri && RUSTUP_TOOLCHAIN=nightly RUSTFLAGS=\"-C target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128 -C llvm-args=--wasm-enable-sjlj -C link-arg=--import-memory -C link-arg=--shared-memory -C link-arg=--max-memory=4294967296 -C link-arg=--export=__heap_base -C link-arg=--export=__wasm_init_tls -C link-arg=--export=__tls_size -C link-arg=--export=__tls_align -C link-arg=--export=__tls_base --remap-path-prefix=$HOME/.cargo/registry/src=cargo --remap-path-prefix=$HOME/.rustup/toolchains=rustup --remap-path-prefix=$HOME=~\" cargo build --lib --target wasm32-unknown-unknown -Z build-std=panic_abort,std --release && command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@0.2.114 --locked && wasm-bindgen ../../../../dist/target/wasm32-unknown-unknown/release/isometric_game.wasm --out-dir ../wasm-pkg --target web --out-name isometric_game",
                 "runCommand": "pnpm run build:wasm"
               },
               "configurations": {},
@@ -13097,17 +13178,17 @@
         },
         {
           "source": "astro-kbve",
+          "target": "astro",
+          "type": "static"
+        },
+        {
+          "source": "astro-kbve",
           "target": "droid",
           "type": "static"
         },
         {
           "source": "astro-kbve",
           "target": "devops",
-          "type": "static"
-        },
-        {
-          "source": "astro-kbve",
-          "target": "astro",
           "type": "static"
         }
       ],
