@@ -655,6 +655,158 @@ GRANT EXECUTE ON FUNCTION mc.proxy_unlink()
 ALTER FUNCTION mc.proxy_unlink() OWNER TO service_role;
 
 -- ===========================================
+-- PUBLIC WRAPPERS
+--
+-- PostgREST exposes only the schemas listed in PGRST_DB_SCHEMAS, and `mc`
+-- is intentionally not exposed. Edge functions reach the mc.* RPCs through
+-- thin SECURITY DEFINER wrappers in `public`. Cheap NULL/empty guards run
+-- before crossing the schema boundary; the underlying mc.* implementations
+-- still validate format/range.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION public.proxy_request_link(
+    p_mc_uuid TEXT
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_mc_uuid IS NULL OR btrim(p_mc_uuid) = '' THEN
+        RAISE EXCEPTION 'mc_uuid cannot be empty'
+            USING ERRCODE = '22004';
+    END IF;
+    RETURN mc.proxy_request_link(p_mc_uuid);
+END;
+$$;
+
+COMMENT ON FUNCTION public.proxy_request_link(TEXT) IS
+    'Public wrapper for mc.proxy_request_link. Authenticated callers only; mc schema is not exposed via PostgREST.';
+
+REVOKE ALL ON FUNCTION public.proxy_request_link(TEXT)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_request_link(TEXT)
+    TO authenticated, service_role;
+ALTER FUNCTION public.proxy_request_link(TEXT) OWNER TO service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_get_link_status()
+RETURNS TABLE (
+    mc_uuid          TEXT,
+    status           INTEGER,
+    is_verified      BOOLEAN,
+    is_pending       BOOLEAN,
+    code_expires_at  TIMESTAMPTZ,
+    locked_until     TIMESTAMPTZ,
+    verify_attempts  INTEGER,
+    created_at       TIMESTAMPTZ,
+    updated_at       TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT *
+      FROM mc.proxy_get_link_status();
+END;
+$$;
+
+COMMENT ON FUNCTION public.proxy_get_link_status() IS
+    'Public wrapper for mc.proxy_get_link_status. Returns the caller''s Minecraft link state including expiry/lockout/attempt counters.';
+
+REVOKE ALL ON FUNCTION public.proxy_get_link_status()
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_get_link_status()
+    TO authenticated, service_role;
+ALTER FUNCTION public.proxy_get_link_status() OWNER TO service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_unlink()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    RETURN mc.proxy_unlink();
+END;
+$$;
+
+COMMENT ON FUNCTION public.proxy_unlink() IS
+    'Public wrapper for mc.proxy_unlink. Authenticated callers only; preserves SUSPENDED/BANNED moderation state.';
+
+REVOKE ALL ON FUNCTION public.proxy_unlink()
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_unlink()
+    TO authenticated, service_role;
+ALTER FUNCTION public.proxy_unlink() OWNER TO service_role;
+
+CREATE OR REPLACE FUNCTION public.service_verify_link(
+    p_mc_uuid TEXT,
+    p_code    INTEGER
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_mc_uuid IS NULL OR btrim(p_mc_uuid) = '' THEN
+        RAISE EXCEPTION 'mc_uuid cannot be empty'
+            USING ERRCODE = '22004';
+    END IF;
+    IF p_code IS NULL OR p_code < 100000 OR p_code > 999999 THEN
+        RETURN NULL;
+    END IF;
+    RETURN mc.service_verify_link(p_mc_uuid, p_code);
+END;
+$$;
+
+COMMENT ON FUNCTION public.service_verify_link(TEXT, INTEGER) IS
+    'Public wrapper for mc.service_verify_link. service_role only; returns user_id on successful code verification, NULL otherwise.';
+
+REVOKE ALL ON FUNCTION public.service_verify_link(TEXT, INTEGER)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.service_verify_link(TEXT, INTEGER)
+    TO service_role;
+ALTER FUNCTION public.service_verify_link(TEXT, INTEGER) OWNER TO service_role;
+
+CREATE OR REPLACE FUNCTION public.service_get_user_by_mc_uuid(
+    p_mc_uuid TEXT
+)
+RETURNS TABLE (
+    user_id     UUID,
+    mc_uuid     TEXT,
+    status      INTEGER,
+    is_verified BOOLEAN,
+    created_at  TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_mc_uuid IS NULL OR btrim(p_mc_uuid) = '' THEN
+        RAISE EXCEPTION 'mc_uuid cannot be empty'
+            USING ERRCODE = '22004';
+    END IF;
+    RETURN QUERY
+    SELECT *
+      FROM mc.service_get_user_by_mc_uuid(p_mc_uuid);
+END;
+$$;
+
+COMMENT ON FUNCTION public.service_get_user_by_mc_uuid(TEXT) IS
+    'Public wrapper for mc.service_get_user_by_mc_uuid. service_role only; returns Supabase user_id linked to the supplied MC UUID.';
+
+REVOKE ALL ON FUNCTION public.service_get_user_by_mc_uuid(TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.service_get_user_by_mc_uuid(TEXT)
+    TO service_role;
+ALTER FUNCTION public.service_get_user_by_mc_uuid(TEXT) OWNER TO service_role;
+
+-- ===========================================
 -- VERIFICATION
 -- ===========================================
 
