@@ -703,6 +703,57 @@ GRANT EXECUTE ON FUNCTION discordsh.service_leaderboard(SMALLINT, INT) TO servic
 ALTER FUNCTION discordsh.service_leaderboard(SMALLINT, INT) OWNER TO service_role;
 
 -- ===========================================
+-- SERVICE FUNCTION: Permadeath profile delete
+--
+-- Wipes a Discord user's dungeon profile when their character dies in
+-- the Downed-state grace window. dungeon_runs rows for this Discord ID
+-- are also removed via the existing ON DELETE CASCADE foreign key on
+-- dungeon_runs.discord_id — full erasure, matching the "1 character per
+-- Discord user, perma-dead = never existed" design contract.
+--
+-- Schema-qualifies pg_catalog.pg_advisory_xact_lock because the function
+-- runs as SECURITY DEFINER with search_path = ''.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_delete_profile(
+    p_discord_id BIGINT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_deleted BIGINT;
+BEGIN
+    IF p_discord_id IS NULL THEN
+        RAISE EXCEPTION 'discord_id cannot be null'
+            USING ERRCODE = '22004';
+    END IF;
+
+    PERFORM pg_catalog.pg_advisory_xact_lock(p_discord_id);
+
+    DELETE FROM discordsh.dungeon_profiles
+    WHERE discord_id = p_discord_id;
+
+    GET DIAGNOSTICS v_deleted = ROW_COUNT;
+
+    RETURN v_deleted;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_delete_profile(BIGINT) IS
+    'Permadeath wipe — deletes one dungeon profile by Discord snowflake. Returns row count: 1 if deleted, 0 if absent. dungeon_runs rows for this Discord ID are also removed via ON DELETE CASCADE (full erasure, by design).';
+
+REVOKE ALL ON FUNCTION discordsh.service_delete_profile(BIGINT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION discordsh.service_delete_profile(BIGINT) FROM anon;
+REVOKE ALL ON FUNCTION discordsh.service_delete_profile(BIGINT) FROM authenticated;
+
+GRANT EXECUTE ON FUNCTION discordsh.service_delete_profile(BIGINT) TO service_role;
+
+ALTER FUNCTION discordsh.service_delete_profile(BIGINT) OWNER TO service_role;
+
+-- ===========================================
 -- SERVICE FUNCTION: Load profile by Supabase auth UUID
 --
 -- Used by the isometric game to load a profile via JWT.
@@ -992,6 +1043,7 @@ BEGIN
     PERFORM 'discordsh.service_load_profile(bigint)'::regprocedure;
     PERFORM 'discordsh.service_upsert_profile(bigint, text, smallint, smallint, int, int, int, int, int, int, int, int, int, int, text, text, jsonb, text[], jsonb, jsonb, smallint, int, int, int, int, int, int, smallint, int)'::regprocedure;
     PERFORM 'discordsh.service_leaderboard(smallint, int)'::regprocedure;
+    PERFORM 'discordsh.service_delete_profile(bigint)'::regprocedure;
     PERFORM 'discordsh.service_load_profile_by_auth(uuid)'::regprocedure;
     PERFORM 'discordsh.service_link_auth(bigint, uuid)'::regprocedure;
     PERFORM 'discordsh.service_claim_mode(bigint, text, text, boolean)'::regprocedure;
@@ -1061,6 +1113,14 @@ BEGIN
 
     IF has_function_privilege('authenticated', 'discordsh.service_leaderboard(smallint, int)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_leaderboard';
+    END IF;
+
+    IF has_function_privilege('anon', 'discordsh.service_delete_profile(bigint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on discordsh.service_delete_profile';
+    END IF;
+
+    IF has_function_privilege('authenticated', 'discordsh.service_delete_profile(bigint)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_delete_profile';
     END IF;
 
     -- Verify ownership of all functions

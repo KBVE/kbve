@@ -434,6 +434,7 @@ impl CombatWorld {
             if hp.is_dead() {
                 if !player.downed {
                     player.downed = true;
+                    player.downed_at_turn = Some(session.turn);
                 }
                 player.hp = 0;
             }
@@ -1036,6 +1037,7 @@ mod tests {
                 accuracy: 1.0,
                 alive: true,
                 downed: false,
+                downed_at_turn: None,
                 member_status: MemberStatusTag::Guest,
                 class: ClassType::Warrior,
                 level: 1,
