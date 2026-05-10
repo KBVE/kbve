@@ -7,6 +7,8 @@ use axum::{
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 
+pub const SUPABASE_AUDIENCE: &str = "authenticated";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
@@ -14,6 +16,8 @@ pub struct Claims {
     pub email: Option<String>,
     #[serde(default)]
     pub role: Option<String>,
+    #[serde(default)]
+    pub aud: Option<String>,
     pub exp: u64,
     pub iat: u64,
 }
@@ -46,7 +50,8 @@ pub fn validate_token(token: &str) -> Result<Claims, StatusCode> {
     let secret = std::env::var("JWT_SECRET").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let mut validation = Validation::new(Algorithm::HS256);
-    validation.set_required_spec_claims(&["sub", "exp", "iat"]);
+    validation.set_required_spec_claims(&["sub", "exp", "iat", "aud"]);
+    validation.set_audience(&[SUPABASE_AUDIENCE]);
 
     decode::<Claims>(
         token,
@@ -88,12 +93,17 @@ mod tests {
     }
 
     fn issue(secret: &str, sub: &str, exp_offset: i64) -> String {
+        issue_with_aud(secret, sub, exp_offset, Some(SUPABASE_AUDIENCE))
+    }
+
+    fn issue_with_aud(secret: &str, sub: &str, exp_offset: i64, aud: Option<&str>) -> String {
         let iat = now_secs();
         let exp = (iat as i64 + exp_offset) as u64;
         let claims = Claims {
             sub: sub.to_string(),
             email: Some(format!("{sub}@example.com")),
             role: Some("authenticated".to_string()),
+            aud: aud.map(String::from),
             exp,
             iat,
         };
@@ -215,6 +225,40 @@ mod tests {
             StatusCode::UNAUTHORIZED,
         );
         assert_eq!(validate_token("").unwrap_err(), StatusCode::UNAUTHORIZED,);
+        std::env::remove_var("JWT_SECRET");
+    }
+
+    #[test]
+    #[serial(jwt_env)]
+    fn validate_token_accepts_supabase_audience() {
+        std::env::set_var("JWT_SECRET", TEST_SECRET);
+        let token = issue_with_aud(TEST_SECRET, "user-aud", 3600, Some(SUPABASE_AUDIENCE));
+        let claims = validate_token(&token).expect("token should validate");
+        assert_eq!(claims.aud.as_deref(), Some(SUPABASE_AUDIENCE));
+        std::env::remove_var("JWT_SECRET");
+    }
+
+    #[test]
+    #[serial(jwt_env)]
+    fn validate_token_rejects_wrong_audience() {
+        std::env::set_var("JWT_SECRET", TEST_SECRET);
+        let token = issue_with_aud(TEST_SECRET, "user-bad-aud", 3600, Some("service_role"));
+        assert_eq!(
+            validate_token(&token).unwrap_err(),
+            StatusCode::UNAUTHORIZED,
+        );
+        std::env::remove_var("JWT_SECRET");
+    }
+
+    #[test]
+    #[serial(jwt_env)]
+    fn validate_token_rejects_missing_audience() {
+        std::env::set_var("JWT_SECRET", TEST_SECRET);
+        let token = issue_with_aud(TEST_SECRET, "user-no-aud", 3600, None);
+        assert_eq!(
+            validate_token(&token).unwrap_err(),
+            StatusCode::UNAUTHORIZED,
+        );
         std::env::remove_var("JWT_SECRET");
     }
 }
