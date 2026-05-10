@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.140",
+			"version": "1.0.141",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -351,7 +351,7 @@
 			"package_name": "bevy_battle",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_battle/version.toml",
-			"version_source": "packages/rust/bevy/bevy_battle/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-battle-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_battle/Cargo.toml"
 		},
 		{
@@ -359,7 +359,7 @@
 			"package_name": "bevy_behavior",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_behavior/version.toml",
-			"version_source": "packages/rust/bevy/bevy_behavior/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-behavior-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_behavior/Cargo.toml"
 		},
 		{
@@ -367,7 +367,7 @@
 			"package_name": "bevy_cam",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_cam/version.toml",
-			"version_source": "packages/rust/bevy/bevy_cam/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-cam-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_cam/Cargo.toml"
 		},
 		{
@@ -375,7 +375,7 @@
 			"package_name": "bevy_chat",
 			"version": "0.0.0",
 			"version_toml": "packages/rust/bevy/bevy_chat/version.toml",
-			"version_source": "packages/rust/bevy/bevy_chat/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-chat-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_chat/Cargo.toml"
 		},
 		{
@@ -383,7 +383,7 @@
 			"package_name": "bevy_db",
 			"version": "0.0.0",
 			"version_toml": "packages/rust/bevy/bevy_db/version.toml",
-			"version_source": "packages/rust/bevy/bevy_db/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-db-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_db/Cargo.toml"
 		},
 		{
@@ -391,7 +391,7 @@
 			"package_name": "bevy_inventory",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
-			"version_source": "packages/rust/bevy/bevy_inventory/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-inventory-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_inventory/Cargo.toml"
 		},
 		{
@@ -399,7 +399,7 @@
 			"package_name": "bevy_items",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
-			"version_source": "packages/rust/bevy/bevy_items/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-items-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_items/Cargo.toml"
 		},
 		{
@@ -407,7 +407,7 @@
 			"package_name": "bevy_kbve_net",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
-			"version_source": "packages/rust/bevy/bevy_kbve_net/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-kbve-net-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
 		},
 		{
@@ -415,7 +415,7 @@
 			"package_name": "bevy_mapdb",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
-			"version_source": "packages/rust/bevy/bevy_mapdb/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-mapdb-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
 		},
 		{
@@ -423,7 +423,7 @@
 			"package_name": "bevy_npc",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_npc/version.toml",
-			"version_source": "packages/rust/bevy/bevy_npc/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-npc-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_npc/Cargo.toml"
 		},
 		{
@@ -431,7 +431,7 @@
 			"package_name": "bevy_pathfinder",
 			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_pathfinder/version.toml",
-			"version_source": "packages/rust/bevy/bevy_pathfinder/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-pathfinder-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_pathfinder/Cargo.toml"
 		},
 		{
@@ -439,7 +439,7 @@
 			"package_name": "bevy_player",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_player/version.toml",
-			"version_source": "packages/rust/bevy/bevy_player/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-player-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_player/Cargo.toml"
 		},
 		{
@@ -447,7 +447,7 @@
 			"package_name": "bevy_quests",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_quests/version.toml",
-			"version_source": "packages/rust/bevy/bevy_quests/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-quests-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_quests/Cargo.toml"
 		},
 		{
@@ -455,7 +455,7 @@
 			"package_name": "bevy_skills",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_skills/version.toml",
-			"version_source": "packages/rust/bevy/bevy_skills/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-skills-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
 		},
 		{
@@ -463,7 +463,7 @@
 			"package_name": "bevy_statemachine",
 			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
-			"version_source": "packages/rust/bevy/bevy_statemachine/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-statemachine-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
 		},
 		{
@@ -471,7 +471,7 @@
 			"package_name": "bevy_supa",
 			"version": "0.0.0",
 			"version_toml": "packages/rust/bevy/bevy_supa/version.toml",
-			"version_source": "packages/rust/bevy/bevy_supa/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-supa-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_supa/Cargo.toml"
 		},
 		{
@@ -479,7 +479,7 @@
 			"package_name": "bevy_tasker",
 			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
-			"version_source": "packages/rust/bevy/bevy_tasker/Cargo.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-tasker-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_tasker/Cargo.toml"
 		},
 		{
