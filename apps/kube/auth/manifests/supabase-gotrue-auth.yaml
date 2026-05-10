@@ -130,6 +130,15 @@ spec:
                       - name: GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI
                         value: 'https://supabase.kbve.com/auth/v1/callback'
 
+                      # Custom Access Token hook (Postgres-backed):
+                      # injects profile.username into the JWT as
+                      # kbve_username. See migration
+                      # 20260510210000_profile_custom_access_token_hook.sql.
+                      - name: GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_URI
+                        value: 'pg-functions://postgres/public/custom_access_token_hook'
+
                       # Secrets from Kubernetes
                       - name: GOTRUE_JWT_EXP
                         valueFrom:

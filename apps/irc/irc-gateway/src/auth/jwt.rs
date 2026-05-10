@@ -32,6 +32,8 @@ pub struct Claims {
     #[serde(default)]
     pub aud: Option<String>,
     #[serde(default)]
+    pub kbve_username: Option<String>,
+    #[serde(default)]
     pub user_metadata: UserMetadata,
     pub exp: u64,
     pub iat: u64,
@@ -40,6 +42,7 @@ pub struct Claims {
 impl Claims {
     pub fn irc_nick(&self) -> Option<String> {
         let candidates = [
+            self.kbve_username.as_deref(),
             self.user_metadata.preferred_username.as_deref(),
             self.user_metadata.user_name.as_deref(),
             self.user_metadata.nickname.as_deref(),
@@ -148,6 +151,7 @@ mod tests {
             email: Some(format!("{sub}@example.com")),
             role: Some("authenticated".to_string()),
             aud: aud.map(String::from),
+            kbve_username: None,
             user_metadata: UserMetadata::default(),
             exp,
             iat,
@@ -313,10 +317,40 @@ mod tests {
             email: email.map(String::from),
             role: Some("authenticated".to_string()),
             aud: Some(SUPABASE_AUDIENCE.to_string()),
+            kbve_username: None,
             user_metadata: meta,
             exp: 0,
             iat: 0,
         }
+    }
+
+    #[test]
+    fn irc_nick_prefers_kbve_username() {
+        let mut c = claims_with_metadata(
+            "uuid-kbve",
+            Some("admin@kbve.com"),
+            UserMetadata {
+                preferred_username: Some("provider_name".to_string()),
+                user_name: Some("provider_alt".to_string()),
+                ..Default::default()
+            },
+        );
+        c.kbve_username = Some("h0lybyte".to_string());
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_skips_empty_kbve_username() {
+        let mut c = claims_with_metadata(
+            "uuid-kbve-empty",
+            None,
+            UserMetadata {
+                preferred_username: Some("h0lybyte".to_string()),
+                ..Default::default()
+            },
+        );
+        c.kbve_username = Some("!!!".to_string());
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
     }
 
     #[test]
