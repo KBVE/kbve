@@ -249,6 +249,7 @@ jobs:
               id: push
               env:
                   GITHUB_TOKEN: ${{ secrets.TRIGGER_PAT }}
+                  DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
               run: |
                   APP="${{ steps.validate.outputs.app }}"
                   VERSION="${{ steps.validate.outputs.version }}"
@@ -257,14 +258,33 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-                  # Stage only the explicitly listed files
+                  # Stage only the explicitly listed files. Mirrors the
+                  # FILES iteration in the "Update kube deployment manifests"
+                  # step above so every file that step sed-bumps also lands
+                  # in the atom PR (previously the singular deployment_yaml
+                  # was added, but the deployment_yamls array was silently
+                  # dropped — only version.toml shipped).
                   git add "${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
                   fi
-                  if [ -n "${{ inputs.deployment_yaml }}" ] && [ -f "${{ inputs.deployment_yaml }}" ]; then
-                    git add "${{ inputs.deployment_yaml }}"
+
+                  DEPLOYMENT_FILES=""
+                  if [ -n "${{ inputs.deployment_yaml }}" ]; then
+                    DEPLOYMENT_FILES="${{ inputs.deployment_yaml }}"
                   fi
+                  if [ -n "$DEPLOYMENT_YAMLS_JSON" ]; then
+                    EXTRA=$(echo "$DEPLOYMENT_YAMLS_JSON" | jq -r '.[]' 2>/dev/null || true)
+                    DEPLOYMENT_FILES="$DEPLOYMENT_FILES $EXTRA"
+                  fi
+                  for f in $DEPLOYMENT_FILES; do
+                    [ -z "$f" ] && continue
+                    if [ -f "$f" ]; then
+                      git add "$f"
+                    else
+                      echo "::warning::deployment manifest '$f' not found at git add — skipping."
+                    fi
+                  done
 
                   if git diff --cached --quiet; then
                     echo "::notice::All files already at v${VERSION} — nothing to commit."
