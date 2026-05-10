@@ -169,6 +169,13 @@ export interface CodeExample {
 	label: string;
 	language: string;
 	code: string;
+	/**
+	 * Hint to the UI that the example expects outbound network. When `true`,
+	 * the rootfs picker auto-swaps to `firecracker-python-net` and the
+	 * Network (VPN) checkbox should be on. Examples without this flag run
+	 * fine in the no-network sandbox.
+	 */
+	requires_network?: boolean;
 }
 
 export const EXAMPLES: CodeExample[] = [
@@ -237,6 +244,80 @@ elapsed = time.time() - start
 print(f"Found {len(primes):,} primes up to 1,000,000")
 print(f"Elapsed: {elapsed:.3f}s")
 print(f"Last 10: {primes[-10:]}")
+`,
+	},
+	{
+		id: 'py-poetry-net',
+		label: 'PoetryDB (Network)',
+		language: 'python',
+		requires_network: true,
+		code: `"""Network smoke test — fetch a random poem from PoetryDB.
+
+Verifies DNS resolution, TLS handshake, the requests library, and JSON
+parsing end-to-end. Requires the Network (VPN) checkbox to be on so the
+VM boots the firecracker-python-net rootfs (DNS configured, requests
+baked in). Without the network, the request fails fast with a clear
+[fail] connection message and a non-zero exit code.
+
+Hardening notes:
+  * HTTPS-only URL constant (no SSRF surface — URL is not user-input).
+  * Explicit timeout (avoids hung sockets).
+  * Narrow except branches (TLS / Timeout / Connection / generic
+    RequestException) — never catches BaseException.
+  * JSON / shape errors handled separately so a malformed payload does
+    not look like a network failure.
+"""
+
+import sys
+
+import requests
+
+URL = "https://poetrydb.org/random/1"
+TIMEOUT_SECONDS = 10
+
+
+def main() -> int:
+    try:
+        response = requests.get(URL, timeout=TIMEOUT_SECONDS)
+        response.raise_for_status()
+    except requests.exceptions.SSLError as exc:
+        print(f"[fail] TLS handshake: {exc}", file=sys.stderr)
+        return 4
+    except requests.exceptions.Timeout:
+        print(f"[fail] timed out after {TIMEOUT_SECONDS}s", file=sys.stderr)
+        return 2
+    except requests.exceptions.ConnectionError as exc:
+        print(f"[fail] connection: {exc}", file=sys.stderr)
+        return 1
+    except requests.exceptions.RequestException as exc:
+        print(f"[fail] request: {type(exc).__name__}", file=sys.stderr)
+        return 3
+
+    try:
+        payload = response.json()
+        poem = payload[0]
+        title = poem["title"]
+        author = poem["author"]
+        lines = poem["lines"]
+        line_count = poem.get("linecount", len(lines))
+    except (ValueError, IndexError, KeyError, TypeError) as exc:
+        print(
+            f"[fail] parse: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
+        return 5
+
+    print("[ok] DNS + TLS + requests + JSON all working\\n")
+    print(f"=== {title} ===")
+    print(f"by {author}\\n")
+    for line in lines:
+        print(line)
+    print(f"\\n[meta] {line_count} lines, fetched from {URL}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 `,
 	},
 	{
