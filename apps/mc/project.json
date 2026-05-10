@@ -128,6 +128,22 @@
 				"cwd": "apps/mc"
 			}
 		},
+		"smoke:client": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["bash apps/mc/scripts/headless-client-smoke.sh"],
+				"parallel": false
+			}
+		},
+		"smoke:bot": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["node apps/mc/scripts/bot-smoke.mjs"],
+				"parallel": false
+			}
+		},
 		"dev:down": {
 			"executor": "nx:run-commands",
 			"cache": false,

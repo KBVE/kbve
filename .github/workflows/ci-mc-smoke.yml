@@ -1,0 +1,233 @@
+name: CI - MC Smoke
+
+# Two-tier MC integration smoke:
+#   1. client-smoke — Loom runClient under xvfb, scans the boot log for
+#      Mixin spec violations / apply failures. Catches the class-load
+#      crash family that compileJava and the docker image builds miss
+#      (e.g. non-private static fields in mixin classes, missing
+#      @At targets, signature drift after a yarn bump).
+#   2. server-bot-smoke — brings up docker-compose.dev.yml (Velocity +
+#      lobby + fabric) and connects an offline mineflayer bot via the
+#      proxy. Validates that all three backends actually start, the
+#      forwarding handshake works, and a vanilla client can spawn.
+
+on:
+    workflow_dispatch:
+    pull_request:
+        branches: [main, dev]
+        paths:
+            - 'apps/mc/**'
+            - '!apps/mc/**/*.md'
+            - '!apps/mc/**/*.mdx'
+            - '.github/workflows/ci-mc-smoke.yml'
+    push:
+        branches: [main, dev]
+        paths:
+            - 'apps/mc/**'
+            - '!apps/mc/**/*.md'
+            - '!apps/mc/**/*.mdx'
+            - '.github/workflows/ci-mc-smoke.yml'
+
+concurrency:
+    group: mc-smoke-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    client-smoke:
+        name: Headless Client Smoke (Loom runClient)
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        env:
+            NX_NO_CLOUD: true
+            GRADLE_OPTS: '-Xmx3g -Dorg.gradle.daemon=false'
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Java 21
+              uses: actions/setup-java@v5
+              with:
+                  distribution: temurin
+                  java-version: '21'
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Cache Gradle (Loom MC + libs)
+              uses: actions/cache@v5
+              with:
+                  path: |
+                      ~/.gradle/caches
+                      ~/.gradle/wrapper
+                      apps/mc/behavior_statetree/java/.gradle
+                  key: ${{ runner.os }}-mc-loom-${{ hashFiles('apps/mc/behavior_statetree/java/build.gradle', 'apps/mc/behavior_statetree/java/settings.gradle', 'apps/mc/behavior_statetree/java/gradle/wrapper/gradle-wrapper.properties') }}
+                  restore-keys: |
+                      ${{ runner.os }}-mc-loom-
+
+            - name: Install xvfb + Mesa software GL
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                      xvfb \
+                      libgl1 \
+                      libglu1-mesa \
+                      libglx-mesa0 \
+                      mesa-utils \
+                      libxext6 libxrandr2 libxcursor1 libxi6 libxxf86vm1 \
+                      libasound2t64 libpulse0
+
+            - name: Run headless client smoke
+              env:
+                  TIMEOUT_SECS: '300'
+              run: bash apps/mc/scripts/headless-client-smoke.sh
+
+            - name: Upload client log on failure
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: client-smoke-log
+                  path: /tmp/mc-headless-client.log
+                  if-no-files-found: ignore
+                  retention-days: 7
+
+    server-bot-smoke:
+        name: Server + Bot Smoke (docker-compose + mineflayer)
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        env:
+            NX_NO_CLOUD: true
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+              env:
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+            - name: Login to GHCR (pull mc images)
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ github.token }}
+
+            - name: Pull MC images (or build locally if missing)
+              working-directory: apps/mc
+              run: |
+                  set -e
+                  docker pull ghcr.io/kbve/mc:latest || \
+                      pnpm nx run mc:container --configuration=local --no-cloud
+                  docker tag $(docker images -q ghcr.io/kbve/mc:latest 2>/dev/null || echo kbve/mc:latest) kbve/mc:latest || true
+                  docker pull ghcr.io/kbve/mc-velocity:latest 2>/dev/null || true
+                  docker pull ghcr.io/kbve/mc-lobby:latest 2>/dev/null || true
+                  docker tag ghcr.io/kbve/mc-velocity:latest kbve/mc-velocity:latest 2>/dev/null || true
+                  docker tag ghcr.io/kbve/mc-lobby:latest kbve/mc-lobby:latest 2>/dev/null || true
+
+            - name: Boot dev compose stack
+              working-directory: apps/mc
+              run: |
+                  echo "" > .env.smoke
+                  docker compose --env-file .env.smoke -f docker-compose.dev.yml up -d
+                  echo "Waiting for velocity proxy + backends..."
+                  for i in $(seq 1 60); do
+                      if docker compose -f docker-compose.dev.yml ps --status running | grep -q kbve-mc-dev-velocity; then
+                          break
+                      fi
+                      sleep 2
+                  done
+
+            - name: Wait for fabric server ready (rcon health)
+              run: |
+                  for i in $(seq 1 90); do
+                      if docker logs kbve-mc-dev-fabric 2>&1 | grep -q "Done ("; then
+                          echo "fabric ready"
+                          break
+                      fi
+                      sleep 5
+                  done
+                  docker logs kbve-mc-dev-fabric --tail 50 || true
+
+            - name: Run mineflayer bot smoke
+              env:
+                  MC_HOST: 127.0.0.1
+                  MC_PORT: '25565'
+                  MC_USER: SmokeBot
+                  MC_VERSION: '1.21.11'
+                  SMOKE_TIMEOUT_MS: '120000'
+              run: node apps/mc/scripts/bot-smoke.mjs
+
+            - name: Dump compose logs on failure
+              if: failure()
+              working-directory: apps/mc
+              run: docker compose -f docker-compose.dev.yml logs --no-color --tail=400 || true
+
+            - name: Tear down compose
+              if: always()
+              working-directory: apps/mc
+              run: docker compose -f docker-compose.dev.yml down --remove-orphans || true
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' }}
+        needs: [client-smoke, server-bot-smoke]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - MC Smoke'
+            job_name: 'mc-smoke'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name != 'pull_request' }}
+        needs: [client-smoke, server-bot-smoke]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - MC Smoke'
+            job_name: 'mc-smoke'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'
