@@ -911,6 +911,40 @@ export const OSRSAmmunitionSchema = z
 export type OSRSAmmunition = z.infer<typeof OSRSAmmunitionSchema>;
 
 // ============================================================================
+// Used-In (reverse recipe) — MDX-only, not in proto
+// ============================================================================
+
+/** A product whose recipe consumes this item. Authored in this item's
+ * frontmatter so the page can show a "Used in" table without a build-time
+ * reverse index. */
+export const OSRSUsedInSchema = z.object({
+	product: z.string(), // Output item name
+	product_id: z.number().optional(),
+	slug: z.string().optional(), // Slug to /osrs/<slug>/
+	skill: z.string().optional(), // OSRSSkill name; "none" for non-skill recipes
+	level: z.number().min(0).max(99).nullable().optional(),
+	xp: z.number().nullable().optional(),
+	quantity: z.union([z.number(), z.string()]).optional(), // Threads consumed (may be fractional)
+	members_only: z.boolean().optional(),
+	notes: z.string().optional(),
+});
+
+export type OSRSUsedIn = z.infer<typeof OSRSUsedInSchema>;
+
+// ============================================================================
+// History (changelog) — MDX-only, not in proto
+// ============================================================================
+
+/** A dated game-update entry that affected this item. */
+export const OSRSItemHistoryEntrySchema = z.object({
+	date: z.string(), // ISO YYYY-MM-DD
+	update: z.string().optional(), // Update name
+	description: z.string(),
+});
+
+export type OSRSItemHistoryEntry = z.infer<typeof OSRSItemHistoryEntrySchema>;
+
+// ============================================================================
 // Complete OSRS Item — proto: OSRSItem
 // ============================================================================
 
@@ -1009,6 +1043,12 @@ export const OSRSExtendedSchema = z.object({
 	// MDX content versioning — proto: mdx_version (40), mdx_updated (41)
 	mdx_version: z.number().optional(), // 1 = original, 2 = data-driven
 	mdx_updated: z.string().optional(), // ISO date YYYY-MM-DD
+
+	// Used-in (reverse recipe lookup) — MDX-only, not in proto
+	used_in: z.array(OSRSUsedInSchema).optional(),
+
+	// Game-update history — MDX-only, not in proto
+	history: z.array(OSRSItemHistoryEntrySchema).optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
@@ -1075,6 +1115,40 @@ export function hasShopSources(item: OSRSExtended): boolean {
 
 export function hasRecipes(item: OSRSExtended): boolean {
 	return (item.recipes?.length ?? 0) > 0;
+}
+
+export function hasUsedIn(
+	item: OSRSExtended,
+): item is OSRSExtended & { used_in: OSRSUsedIn[] } {
+	return (item.used_in?.length ?? 0) > 0;
+}
+
+export function hasHistory(
+	item: OSRSExtended,
+): item is OSRSExtended & { history: OSRSItemHistoryEntry[] } {
+	return (item.history?.length ?? 0) > 0;
+}
+
+export function hasItemTrivia(item: OSRSExtended): boolean {
+	const p = item.properties;
+	if (!p) return false;
+	return (
+		p.release_date !== undefined ||
+		p.update !== undefined ||
+		p.weight !== undefined ||
+		p.tradeable !== undefined ||
+		p.tradeable_ge !== undefined ||
+		p.stackable !== undefined ||
+		p.noteable !== undefined ||
+		p.equipable !== undefined ||
+		p.edible !== undefined ||
+		p.quest_item !== undefined ||
+		p.quest !== undefined ||
+		(p.options?.length ?? 0) > 0 ||
+		p.bankable !== undefined ||
+		p.alchable !== undefined ||
+		p.destroy !== undefined
+	);
 }
 
 export function isTreasureTrailItem(

@@ -1,0 +1,208 @@
+---
+import type { OSRSItemProperties } from '@/data/schema';
+
+interface Props {
+	properties: OSRSItemProperties;
+}
+
+const { properties: p } = Astro.props;
+
+function fmtBool(v: boolean | undefined): string {
+	if (v === undefined) return '—';
+	return v ? 'Yes' : 'No';
+}
+
+function fmtWeight(v: number | undefined): string {
+	if (v === undefined || v === null) return '—';
+	if (v === 0) return '0 kg';
+	return `${v} kg`;
+}
+
+const rows: { label: string; value: string; highlight?: boolean }[] = [];
+if (p.release_date) rows.push({ label: 'Released', value: p.release_date });
+if (p.update) rows.push({ label: 'Update', value: p.update });
+if (p.weight !== undefined)
+	rows.push({ label: 'Weight', value: fmtWeight(p.weight) });
+if (p.tradeable !== undefined)
+	rows.push({
+		label: 'Tradeable',
+		value: fmtBool(p.tradeable),
+		highlight: p.tradeable === true,
+	});
+if (p.tradeable_ge !== undefined)
+	rows.push({
+		label: 'GE Tradeable',
+		value: fmtBool(p.tradeable_ge),
+		highlight: p.tradeable_ge === true,
+	});
+if (p.stackable !== undefined)
+	rows.push({ label: 'Stackable', value: fmtBool(p.stackable) });
+if (p.noteable !== undefined)
+	rows.push({ label: 'Noteable', value: fmtBool(p.noteable) });
+if (p.equipable !== undefined)
+	rows.push({ label: 'Equipable', value: fmtBool(p.equipable) });
+if (p.edible !== undefined)
+	rows.push({ label: 'Edible', value: fmtBool(p.edible) });
+if (p.bankable !== undefined)
+	rows.push({ label: 'Bankable', value: fmtBool(p.bankable) });
+if (p.quest_item !== undefined)
+	rows.push({
+		label: 'Quest item',
+		value: fmtBool(p.quest_item),
+		highlight: p.quest_item === true,
+	});
+if (p.quest) rows.push({ label: 'Quest', value: p.quest });
+if (p.alchable !== undefined)
+	rows.push({ label: 'Alchable', value: fmtBool(p.alchable) });
+if (p.destroy) rows.push({ label: 'Destroy', value: p.destroy });
+---
+
+<div class="osrs-trivia">
+	<div class="osrs-trivia__header">
+		<span class="osrs-trivia__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-trivia__title">Item Information</h4>
+	</div>
+	<div class="osrs-trivia__grid">
+		{
+			rows.map((r) => (
+				<div class="osrs-trivia__row">
+					<span class="osrs-trivia__label">{r.label}</span>
+					<span
+						class={`osrs-trivia__value ${r.highlight ? 'osrs-trivia__value--accent' : ''}`}>
+						{r.value}
+					</span>
+				</div>
+			))
+		}
+	</div>
+	{
+		(p.options?.length ?? 0) > 0 && (
+			<div class="osrs-trivia__chips">
+				<span class="osrs-trivia__chips-label">Options</span>
+				<span class="osrs-trivia__chips-list">
+					{p.options!.map((opt: string) => (
+						<span class="osrs-trivia__chip">{opt}</span>
+					))}
+				</span>
+			</div>
+		)
+	}
+	{
+		(p.worn_options?.length ?? 0) > 0 && (
+			<div class="osrs-trivia__chips">
+				<span class="osrs-trivia__chips-label">Worn options</span>
+				<span class="osrs-trivia__chips-list">
+					{p.worn_options!.map((opt: string) => (
+						<span class="osrs-trivia__chip">{opt}</span>
+					))}
+				</span>
+			</div>
+		)
+	}
+</div>
+
+<style>
+	.osrs-trivia {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-trivia__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-trivia__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-trivia__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-trivia__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1px;
+		background: var(--sl-color-gray-5);
+	}
+
+	@media (min-width: 640px) {
+		.osrs-trivia__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.osrs-trivia__row {
+		background: var(--sl-color-bg-nav);
+		padding: 0.5rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.osrs-trivia__label {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-trivia__value {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-trivia__value--accent {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-trivia__chips {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border-top: 1px solid var(--sl-color-gray-5);
+		flex-wrap: wrap;
+	}
+
+	.osrs-trivia__chips-label {
+		font-size: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-trivia__chips-list {
+		display: flex;
+		gap: 0.25rem;
+		flex-wrap: wrap;
+	}
+
+	.osrs-trivia__chip {
+		padding: 0.125rem 0.375rem;
+		font-size: 0.625rem;
+		font-weight: 500;
+		border-radius: 0.25rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+</style>

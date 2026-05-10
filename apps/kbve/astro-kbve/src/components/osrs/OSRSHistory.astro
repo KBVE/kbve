@@ -1,0 +1,114 @@
+---
+import type { OSRSItemHistoryEntry } from '@/data/schema';
+
+interface Props {
+	history: OSRSItemHistoryEntry[];
+}
+
+const { history } = Astro.props;
+
+const sorted = [...history].sort((a, b) => b.date.localeCompare(a.date));
+---
+
+<div class="osrs-history">
+	<div class="osrs-history__header">
+		<span class="osrs-history__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 7 7v2a9 9 0 1 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-history__title">
+			History <span class="osrs-history__count">({history.length})</span>
+		</h4>
+	</div>
+	<ol class="osrs-history__list">
+		{
+			sorted.map((h) => (
+				<li class="osrs-history__entry">
+					<div class="osrs-history__date">{h.date}</div>
+					{h.update && (
+						<div class="osrs-history__update">{h.update}</div>
+					)}
+					<p class="osrs-history__desc">{h.description}</p>
+				</li>
+			))
+		}
+	</ol>
+</div>
+
+<style>
+	.osrs-history {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-history__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-history__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-history__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-history__count {
+		color: var(--sl-color-gray-3);
+		font-weight: 400;
+		font-size: 0.75rem;
+	}
+
+	.osrs-history__list {
+		list-style: none;
+		margin: 0;
+		padding: 0.5rem 0.75rem;
+		max-height: 18rem;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.osrs-history__entry {
+		padding: 0.5rem 0.625rem;
+		border-radius: 0.375rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-gray-6);
+	}
+
+	.osrs-history__date {
+		font-size: 0.625rem;
+		font-weight: 600;
+		color: var(--sl-color-accent);
+		font-family: monospace;
+	}
+
+	.osrs-history__update {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin-top: 0.125rem;
+	}
+
+	.osrs-history__desc {
+		margin: 0.25rem 0 0;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.4;
+	}
+</style>

@@ -1,0 +1,297 @@
+---
+import type {
+	OSRSExtended,
+	OSRSMaterial,
+	OSRSRecipe,
+	OSRSUsedIn,
+} from '@/data/schema';
+
+interface Props {
+	data: OSRSExtended;
+}
+
+const { data: item } = Astro.props;
+
+const SITE = 'https://kbve.com';
+const ITEM_URL = `${SITE}/osrs/${item.slug}/`;
+const ICON_URL = `https://oldschool.runescape.wiki/images/${item.icon.replace(/ /g, '_')}`;
+const WIKI_URL = `https://oldschool.runescape.wiki/w/${item.name.replace(/ /g, '_')}`;
+const GE_URL = `https://secure.runescape.com/m=itemdb_oldschool/${item.name.replace(/ /g, '_')}/viewitem?obj=${item.id}`;
+
+function descFor(item: OSRSExtended): string {
+	const parts: string[] = [];
+	parts.push(item.examine);
+	if (item.members) parts.push('Members-only item.');
+	else parts.push('Free-to-play item.');
+	if (item.highalch !== null && item.highalch !== undefined) {
+		parts.push(`High alch: ${item.highalch} gp.`);
+	}
+	if (item.limit !== null && item.limit !== undefined) {
+		parts.push(
+			`Grand Exchange limit: ${item.limit.toLocaleString()} per 4 hours.`,
+		);
+	}
+	return parts.join(' ');
+}
+
+function categoryFor(item: OSRSExtended): string {
+	if (item.equipment?.slot) return `Equipment > ${item.equipment.slot}`;
+	if (item.food) return 'Food';
+	if (item.potion) return 'Potion';
+	if (item.ammunition) return 'Ammunition';
+	if (item.farming) return 'Farming';
+	if (item.teleport) return 'Teleport';
+	if (item.material?.type) return `Material > ${item.material.type}`;
+	return 'Item';
+}
+
+const product = {
+	'@context': 'https://schema.org',
+	'@type': 'Product',
+	'@id': `${ITEM_URL}#product`,
+	name: item.name,
+	description: descFor(item),
+	image: ICON_URL,
+	url: ITEM_URL,
+	sku: `osrs-${item.id}`,
+	productID: String(item.id),
+	identifier: String(item.id),
+	category: categoryFor(item),
+	brand: {
+		'@type': 'Brand',
+		name: 'Jagex',
+	},
+	audience: {
+		'@type': 'Audience',
+		audienceType: item.members
+			? 'Old School RuneScape members'
+			: 'Old School RuneScape free-to-play players',
+	},
+	additionalProperty: [
+		{
+			'@type': 'PropertyValue',
+			name: 'Item ID',
+			value: item.id,
+		},
+		...(item.properties?.weight !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Weight',
+						value: item.properties.weight,
+						unitCode: 'KGM',
+					},
+				]
+			: []),
+		...(item.properties?.tradeable !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Tradeable',
+						value: item.properties.tradeable,
+					},
+				]
+			: []),
+		...(item.properties?.stackable !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Stackable',
+						value: item.properties.stackable,
+					},
+				]
+			: []),
+		...(item.properties?.equipable !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Equipable',
+						value: item.properties.equipable,
+					},
+				]
+			: []),
+		...(item.properties?.release_date
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Release date',
+						value: item.properties.release_date,
+					},
+				]
+			: []),
+	],
+	offers: {
+		'@type': 'Offer',
+		url: GE_URL,
+		priceCurrency: 'GP',
+		price: item.value,
+		availability:
+			item.properties?.tradeable_ge === false
+				? 'https://schema.org/InStoreOnly'
+				: 'https://schema.org/InStock',
+		itemCondition: 'https://schema.org/NewCondition',
+		seller: {
+			'@type': 'Organization',
+			name: 'Grand Exchange',
+		},
+	},
+	sameAs: [WIKI_URL, GE_URL],
+};
+
+const breadcrumbs = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	'@id': `${ITEM_URL}#breadcrumb`,
+	itemListElement: [
+		{
+			'@type': 'ListItem',
+			position: 1,
+			name: 'KBVE',
+			item: SITE,
+		},
+		{
+			'@type': 'ListItem',
+			position: 2,
+			name: 'OSRS Item Database',
+			item: `${SITE}/osrs/`,
+		},
+		{
+			'@type': 'ListItem',
+			position: 3,
+			name: item.name,
+			item: ITEM_URL,
+		},
+	],
+};
+
+interface HowToInput {
+	id: string;
+	name: string;
+	description: string;
+	skill?: string;
+	level?: number | null;
+	xp?: number | null;
+	tools?: string[];
+	supplies: { name: string; quantity?: number | string }[];
+	resultName: string;
+	resultUrl?: string;
+}
+
+function recipeToHowTo(r: OSRSRecipe, idx: number): HowToInput | null {
+	const productName = r.product ?? item.name;
+	const skill = r.skill;
+	const level = r.level ?? null;
+	const xp = r.xp ?? null;
+	const supplies =
+		(r.materials ?? []).map((m: OSRSMaterial) => ({
+			name: m.item_name,
+			quantity: m.quantity,
+		})) ?? [];
+	if (supplies.length === 0) return null;
+	const action = skill === 'cooking' ? 'Cook' : 'Craft';
+	const desc = level
+		? `${action} ${productName} at level ${level} ${skill}${xp ? ` for ${xp} XP` : ''}.`
+		: `${action} ${productName} using ${skill}.`;
+	return {
+		id: `${ITEM_URL}#recipe-${idx}`,
+		name: `Make ${productName}`,
+		description: desc,
+		skill,
+		level,
+		xp,
+		tools: r.tools ?? undefined,
+		supplies,
+		resultName: productName,
+	};
+}
+
+function usedInToHowTo(u: OSRSUsedIn, idx: number): HowToInput | null {
+	if (!u.skill || u.skill.toLowerCase() === 'none') return null;
+	const supplies = [
+		{
+			name: item.name,
+			quantity: u.quantity ?? 1,
+		},
+	];
+	const desc = u.level
+		? `Use ${item.name} to make ${u.product} at level ${u.level} ${u.skill}${u.xp ? ` for ${u.xp} XP` : ''}.`
+		: `Use ${item.name} to make ${u.product} using ${u.skill}.`;
+	return {
+		id: `${ITEM_URL}#used-in-${idx}`,
+		name: `Make ${u.product}`,
+		description: desc,
+		skill: u.skill,
+		level: u.level,
+		xp: u.xp,
+		supplies,
+		resultName: u.product,
+		resultUrl: u.slug ? `${SITE}/osrs/${u.slug}/` : undefined,
+	};
+}
+
+const howtos: HowToInput[] = [];
+(item.recipes ?? []).forEach((r: OSRSRecipe, i: number) => {
+	const h = recipeToHowTo(r, i);
+	if (h) howtos.push(h);
+});
+(item.used_in ?? []).forEach((u: OSRSUsedIn, i: number) => {
+	const h = usedInToHowTo(u, i);
+	if (h) howtos.push(h);
+});
+
+function buildHowToLd(h: HowToInput) {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'HowTo',
+		'@id': h.id,
+		name: h.name,
+		description: h.description,
+		supply: h.supplies.map((s) => ({
+			'@type': 'HowToSupply',
+			name: s.name,
+			...(s.quantity !== undefined
+				? { requiredQuantity: String(s.quantity) }
+				: {}),
+		})),
+		...(h.tools && h.tools.length > 0
+			? {
+					tool: h.tools.map((t) => ({
+						'@type': 'HowToTool',
+						name: t,
+					})),
+				}
+			: {}),
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: h.name,
+				text: h.description,
+			},
+		],
+		yield: h.resultName,
+		...(h.resultUrl ? { url: h.resultUrl } : {}),
+	};
+}
+
+const howtoLd = howtos.map(buildHowToLd);
+---
+
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(product)}
+/>
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(breadcrumbs)}
+/>
+{
+	howtoLd.map((ld) => (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(ld)}
+		/>
+	))
+}
