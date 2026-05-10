@@ -8,6 +8,19 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 
 pub const SUPABASE_AUDIENCE: &str = "authenticated";
+pub const MAX_NICK_LEN: usize = 16;
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UserMetadata {
+    #[serde(default)]
+    pub preferred_username: Option<String>,
+    #[serde(default)]
+    pub user_name: Option<String>,
+    #[serde(default)]
+    pub nickname: Option<String>,
+    #[serde(default)]
+    pub name: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
@@ -18,8 +31,42 @@ pub struct Claims {
     pub role: Option<String>,
     #[serde(default)]
     pub aud: Option<String>,
+    #[serde(default)]
+    pub kbve_username: Option<String>,
+    #[serde(default)]
+    pub user_metadata: UserMetadata,
     pub exp: u64,
     pub iat: u64,
+}
+
+impl Claims {
+    pub fn irc_nick(&self) -> Option<String> {
+        let candidates = [
+            self.kbve_username.as_deref(),
+            self.user_metadata.preferred_username.as_deref(),
+            self.user_metadata.user_name.as_deref(),
+            self.user_metadata.nickname.as_deref(),
+        ];
+
+        candidates
+            .into_iter()
+            .flatten()
+            .map(sanitize_nick)
+            .find(|n| !n.is_empty())
+    }
+}
+
+fn sanitize_nick(raw: &str) -> String {
+    let mut nick: String = raw
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-')
+        .take(MAX_NICK_LEN)
+        .collect();
+    if nick.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        nick.insert(0, '_');
+        nick.truncate(MAX_NICK_LEN);
+    }
+    nick
 }
 
 /// Extract JWT from Authorization header or query param
@@ -104,6 +151,8 @@ mod tests {
             email: Some(format!("{sub}@example.com")),
             role: Some("authenticated".to_string()),
             aud: aud.map(String::from),
+            kbve_username: None,
+            user_metadata: UserMetadata::default(),
             exp,
             iat,
         };
@@ -260,5 +309,143 @@ mod tests {
             StatusCode::UNAUTHORIZED,
         );
         std::env::remove_var("JWT_SECRET");
+    }
+
+    fn claims_with_metadata(sub: &str, email: Option<&str>, meta: UserMetadata) -> Claims {
+        Claims {
+            sub: sub.to_string(),
+            email: email.map(String::from),
+            role: Some("authenticated".to_string()),
+            aud: Some(SUPABASE_AUDIENCE.to_string()),
+            kbve_username: None,
+            user_metadata: meta,
+            exp: 0,
+            iat: 0,
+        }
+    }
+
+    #[test]
+    fn irc_nick_prefers_kbve_username() {
+        let mut c = claims_with_metadata(
+            "uuid-kbve",
+            Some("admin@kbve.com"),
+            UserMetadata {
+                preferred_username: Some("provider_name".to_string()),
+                user_name: Some("provider_alt".to_string()),
+                ..Default::default()
+            },
+        );
+        c.kbve_username = Some("h0lybyte".to_string());
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_skips_empty_kbve_username() {
+        let mut c = claims_with_metadata(
+            "uuid-kbve-empty",
+            None,
+            UserMetadata {
+                preferred_username: Some("h0lybyte".to_string()),
+                ..Default::default()
+            },
+        );
+        c.kbve_username = Some("!!!".to_string());
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_prefers_preferred_username() {
+        let meta = UserMetadata {
+            preferred_username: Some("h0lybyte".to_string()),
+            user_name: Some("ignored".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-1", Some("admin@kbve.com"), meta);
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_falls_back_to_user_name() {
+        let meta = UserMetadata {
+            user_name: Some("h0lybyte".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-2", Some("admin@kbve.com"), meta);
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_falls_back_to_nickname() {
+        let meta = UserMetadata {
+            nickname: Some("KBVE".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-3", Some("admin@kbve.com"), meta);
+        assert_eq!(c.irc_nick().as_deref(), Some("KBVE"));
+    }
+
+    #[test]
+    fn irc_nick_returns_none_when_no_provider_username() {
+        let c = claims_with_metadata("uuid-4", Some("admin@kbve.com"), UserMetadata::default());
+        assert_eq!(c.irc_nick(), None);
+    }
+
+    #[test]
+    fn irc_nick_returns_none_when_email_only() {
+        let c = claims_with_metadata("uuid-5", Some("admin@kbve.com"), UserMetadata::default());
+        assert_eq!(c.irc_nick(), None);
+    }
+
+    #[test]
+    fn irc_nick_strips_disallowed_chars() {
+        let meta = UserMetadata {
+            preferred_username: Some("h0ly!byte@123".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-6", None, meta);
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte123"));
+    }
+
+    #[test]
+    fn irc_nick_truncates_to_max_len() {
+        let meta = UserMetadata {
+            preferred_username: Some("a".repeat(64)),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-7", None, meta);
+        assert_eq!(c.irc_nick().unwrap().len(), MAX_NICK_LEN);
+    }
+
+    #[test]
+    fn irc_nick_prefixes_leading_digit() {
+        let meta = UserMetadata {
+            preferred_username: Some("0xCafe".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-8", None, meta);
+        assert!(c.irc_nick().unwrap().starts_with('_'));
+    }
+
+    #[test]
+    fn irc_nick_skips_empty_candidates() {
+        let meta = UserMetadata {
+            preferred_username: Some("!!!".to_string()),
+            user_name: Some("h0lybyte".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-9", None, meta);
+        assert_eq!(c.irc_nick().as_deref(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn irc_nick_returns_none_when_all_candidates_sanitize_empty() {
+        let meta = UserMetadata {
+            preferred_username: Some("!!!".to_string()),
+            user_name: Some("@@@".to_string()),
+            nickname: Some("###".to_string()),
+            ..Default::default()
+        };
+        let c = claims_with_metadata("uuid-10", Some("admin@kbve.com"), meta);
+        assert_eq!(c.irc_nick(), None);
     }
 }

@@ -134,6 +134,8 @@ spec:
                         value: '10001'
                       - name: FC_JAILER_GID
                         value: '10001'
+                      - name: FC_PERSISTENT_ENDPOINTS_ENABLED
+                        value: 'true'
                   securityContext:
                       # jailer pivot_root requires Unconfined seccomp.
                       seccompProfile:

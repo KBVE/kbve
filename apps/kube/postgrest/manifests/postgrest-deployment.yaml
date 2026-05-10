@@ -34,8 +34,15 @@ spec:
                                 key: PGRST_DB_URI
 
                       # PostgREST configuration
+                      # `mc` is exposed so the Minecraft mod can call
+                      # mc.service_* via Content-Profile/Accept-Profile,
+                      # but every mc.* function is locked down at the
+                      # GRANT level (service_role only on mc.service_*,
+                      # service_role only on mc.proxy_* — browsers reach
+                      # mc.proxy_* through public.proxy_* SECURITY DEFINER
+                      # wrappers). See mc_lockdown_proxy_grants migration.
                       - name: PGRST_DB_SCHEMAS
-                        value: 'public,storage,graphql_public,tracker,profile,rentearth,meme,discordsh,forum'
+                        value: 'public,storage,graphql_public,tracker,profile,rentearth,meme,discordsh,forum,mc'
                       - name: PGRST_DB_ANON_ROLE
                         value: 'anon'
                       - name: PGRST_DB_USE_LEGACY_GUCS

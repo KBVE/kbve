@@ -128,6 +128,22 @@
 				"cwd": "apps/mc"
 			}
 		},
+		"smoke:client": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["bash apps/mc/scripts/headless-client-smoke.sh"],
+				"parallel": false
+			}
+		},
+		"smoke:ping": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["bash apps/mc/scripts/server-ping-smoke.sh"],
+				"parallel": false
+			}
+		},
 		"dev:down": {
 			"executor": "nx:run-commands",
 			"cache": false,

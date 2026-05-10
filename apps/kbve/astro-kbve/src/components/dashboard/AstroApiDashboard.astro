@@ -6,10 +6,47 @@ const { specUrl = '/api/openapi.json' } = Astro.props;
 
 <style is:global>
 	#scalar-root {
-		min-height: calc(100vh - 8rem);
+		min-height: calc(100vh - 4rem);
 	}
 	#scalar-root .scalar-app {
 		min-height: inherit;
+		--scalar-font:
+			var(--sl-font, var(--sl-font-system)), var(--sl-font-system);
+		--scalar-font-code:
+			var(--sl-font-mono, var(--sl-font-system-mono)),
+			var(--sl-font-system-mono);
+
+		--scalar-color-1: var(--sl-color-white);
+		--scalar-color-2: var(--sl-color-gray-2);
+		--scalar-color-3: var(--sl-color-gray-3);
+		--scalar-color-accent: var(--sl-color-accent-high);
+
+		--scalar-background-1: var(--sl-color-bg);
+		--scalar-background-2: var(--sl-color-bg-sidebar);
+		--scalar-background-3: var(--sl-color-bg-nav);
+		--scalar-background-accent: var(--sl-color-accent);
+
+		--scalar-border-color: var(--sl-color-gray-5);
+
+		--scalar-sidebar-background-1: var(--sl-color-bg-sidebar);
+		--scalar-sidebar-color-1: var(--sl-color-text);
+		--scalar-sidebar-color-2: var(--sl-color-gray-3);
+		--scalar-sidebar-color-active: var(--sl-color-text-accent);
+		--scalar-sidebar-background-active: var(--sl-color-gray-6);
+		--scalar-sidebar-item-hover-background: var(--sl-color-gray-6);
+		--scalar-sidebar-item-hover-color: var(--sl-color-white);
+		--scalar-sidebar-border-color: var(--sl-color-gray-5);
+
+		--scalar-button-1: var(--sl-color-accent);
+		--scalar-button-1-hover: var(--sl-color-accent-high);
+		--scalar-button-1-color: var(--sl-color-text-invert);
+	}
+
+	#scalar-root .scalar-api-client__container,
+	#scalar-root .scalar-api-references__client,
+	#scalar-root [data-scalar-modal],
+	#scalar-root .scalar-app-layout {
+		z-index: 100;
 	}
 </style>
 
@@ -22,8 +59,7 @@ const { specUrl = '/api/openapi.json' } = Astro.props;
 		const url = root.dataset.specUrl ?? '/api/openapi.json';
 		createApiReference(root, {
 			url,
-			theme: 'kepler',
-			darkMode: true,
+			theme: 'none',
 			hideClientButton: false,
 			defaultHttpClient: {
 				targetKey: 'shell',

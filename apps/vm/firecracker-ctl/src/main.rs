@@ -1121,47 +1121,35 @@ async fn run_vm_lifecycle(
         None => format!("{} fc_entrypoint={}", req.boot_args, req.entrypoint),
     };
 
-    let spawn_result = if let Some(ref jailer_cfg) = jailer {
-        if network_lease.is_some() {
-            if let Some(lease) = network_lease {
-                let _ = lease.persistent.tap_manager.destroy_tap(&lease.tap).await;
-                lease.persistent.pool.release(&lease.allocation);
-            }
-            set_vm_failed(
-                &vms,
+    let spawn_result = match (jailer.as_ref(), network_lease) {
+        (Some(jailer_cfg), None) => {
+            spawn_jailed(
+                jailer_cfg,
                 &vm_id,
-                start,
-                -1,
-                "".into(),
-                "network=true is not supported in jailed mode".into(),
-            );
-            return;
+                &rootfs_path,
+                &rootfs_dir,
+                &code_buf,
+                &boot_args,
+                &req,
+                pkg_buf.as_deref(),
+                pkg_cache_path.as_deref(),
+            )
+            .await
         }
-        spawn_jailed(
-            jailer_cfg,
-            &vm_id,
-            &rootfs_path,
-            &rootfs_dir,
-            &code_buf,
-            &boot_args,
-            &req,
-            pkg_buf.as_deref(),
-            pkg_cache_path.as_deref(),
-        )
-        .await
-    } else {
-        spawn_direct(
-            &vm_id,
-            &rootfs_path,
-            &rootfs_dir,
-            &code_buf,
-            &boot_args,
-            &req,
-            pkg_buf.as_deref(),
-            pkg_cache_path.as_deref(),
-            network_lease,
-        )
-        .await
+        (_, lease) => {
+            spawn_direct(
+                &vm_id,
+                &rootfs_path,
+                &rootfs_dir,
+                &code_buf,
+                &boot_args,
+                &req,
+                pkg_buf.as_deref(),
+                pkg_cache_path.as_deref(),
+                lease,
+            )
+            .await
+        }
     };
 
     let (mut child, cleanup) = match spawn_result {
