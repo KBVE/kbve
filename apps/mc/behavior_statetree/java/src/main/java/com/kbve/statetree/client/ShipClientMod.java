@@ -138,7 +138,7 @@ public class ShipClientMod implements ClientModInitializer {
 
         if (client.options.attackKey.isPressed()) {
             ClientPlayNetworking.send(new WeaponFirePayload(activeHelmShipId, targetYaw, targetPitch));
-            com.kbve.statetree.mixin.client.GameRendererMixin.weaponRecoil = 4.0f;
+            ShipCameraState.weaponRecoil = 4.0f;
         }
     }
 

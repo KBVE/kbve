@@ -1,5 +1,6 @@
 package com.kbve.statetree.mixin.client;
 
+import com.kbve.statetree.client.ShipCameraState;
 import com.kbve.statetree.ship.ShipEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -25,9 +26,6 @@ public abstract class GameRendererMixin {
     @Final
     private MinecraftClient client;
 
-    /** Decays each frame; bumped by ShipClientMod when the pilot fires weapons. */
-    public static float weaponRecoil = 0.0f;
-
     @Inject(method = "tiltViewWhenHurt(Lnet/minecraft/client/util/math/MatrixStack;F)V", at = @At("HEAD"))
     private void kbve$applyShipBankRoll(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
         Camera camera = client.gameRenderer.getCamera();
@@ -38,10 +36,10 @@ public abstract class GameRendererMixin {
         matrices.multiply(new Quaternionf().rotateZ(
                 (float) Math.toRadians(ship.getBankRoll() * 0.5f)));
 
-        if (weaponRecoil > 0.01f) {
+        if (ShipCameraState.weaponRecoil > 0.01f) {
             matrices.multiply(new Quaternionf().rotateX(
-                    (float) Math.toRadians(-weaponRecoil)));
-            weaponRecoil *= 0.85f;
+                    (float) Math.toRadians(-ShipCameraState.weaponRecoil)));
+            ShipCameraState.weaponRecoil *= 0.85f;
         }
     }
 }
