@@ -1835,9 +1835,16 @@ fn apply_item(
     target_idx: Option<u8>,
 ) -> Result<String, String> {
     {
+        let is_owner = session.owner == actor;
         let player = session.player_mut(actor);
         if !inv_contains(&player.inventory, item_id) {
-            return Err("You don't have that item.".to_owned());
+            if is_owner {
+                return Err("You don't have that item.".to_owned());
+            }
+            return Err(
+                "That item belongs to the session owner. Items shown in the shared dropdown are theirs — you can only use items from your own inventory."
+                    .to_owned(),
+            );
         }
         if inv_count(&player.inventory, item_id) == 0 {
             return Err("No more of that item remaining.".to_owned());
