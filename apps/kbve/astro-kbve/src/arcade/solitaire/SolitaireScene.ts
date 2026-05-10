@@ -39,6 +39,8 @@ import {
 	type CardByte,
 	type CardView as DisplayView,
 	FOUNDATION_SUITS,
+	IDENTITY_MASK,
+	IDENTITY_SLOTS,
 	JOKER_BLACK_BYTE,
 	JOKER_RED_BYTE,
 	JokerVariant,
@@ -93,7 +95,7 @@ const DRAG_SCALE = 1.08;
 
 export class SolitaireScene extends Phaser.Scene {
 	private state!: GameState;
-	private viewByIndex: SceneCardView[] = new Array(64);
+	private viewByIndex: SceneCardView[] = new Array(IDENTITY_SLOTS);
 	private dropTargets: DropTarget[] = [];
 	private foundationSlots: Phaser.GameObjects.Rectangle[] = [];
 	private tableauSlots: Phaser.GameObjects.Rectangle[] = [];
@@ -136,7 +138,13 @@ export class SolitaireScene extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.json('npcdb', '/api/npcdb.json');
+		const inline = (globalThis as { __SOLITAIRE_INLINE_NPCDB__?: unknown })
+			.__SOLITAIRE_INLINE_NPCDB__;
+		if (inline !== undefined) {
+			this.cache.json.add('npcdb', inline);
+		} else {
+			this.load.json('npcdb', '/api/npcdb.json');
+		}
 		this.buildMonsterPlaceholderTexture();
 	}
 
@@ -947,7 +955,7 @@ export class SolitaireScene extends Phaser.Scene {
 	private buildAllCardViews() {
 		for (let suit = 0; suit < 4; suit++) {
 			for (let rank = 0; rank < 13; rank++) {
-				const byte = (suit << 4) | rank;
+				const byte = (suit << 5) | rank;
 				this.viewByIndex[byte] = this.makeCardView(byte);
 			}
 		}
@@ -1777,7 +1785,7 @@ export class SolitaireScene extends Phaser.Scene {
 				return;
 			}
 			for (const c of run) {
-				if (this.state.isFrozen(c & 0x3f)) {
+				if (this.state.isFrozen(c & IDENTITY_MASK)) {
 					this.dragging = null;
 					return;
 				}

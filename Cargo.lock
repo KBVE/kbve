@@ -1389,7 +1389,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.140"
+version = "1.0.141"
 dependencies = [
  "anyhow",
  "askama",
@@ -2515,7 +2515,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_pathfinder"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bevy",
  "serde",
@@ -2920,7 +2920,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_tasker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-task",
  "crossbeam-channel",

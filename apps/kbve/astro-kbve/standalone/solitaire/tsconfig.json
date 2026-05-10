@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"resolveJsonModule": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"target": "es2020",
+		"types": ["vite/client"]
+	},
+	"include": ["main.tsx", "vite.config.ts", "*.d.ts"]
+}

@@ -55,21 +55,41 @@ export function movableRun(
 	column: number[],
 	fromIndex: number,
 ): number[] | null {
-	if (fromIndex < 0 || fromIndex >= column.length) return null;
-
-	const slice = column.slice(fromIndex);
-	for (let i = 0; i < slice.length; i++) {
-		const c = slice[i];
+	const len = column.length;
+	if (fromIndex < 0 || fromIndex >= len) return null;
+	for (let i = fromIndex; i < len; i++) {
+		const c = column[i];
 		if (!isFaceUp(c)) return null;
 		if (isMonster(c)) return null;
-		if (i === 0) continue;
-		const prev = slice[i - 1];
+		if (i === fromIndex) continue;
+		const prev = column[i - 1];
 		if (isJoker(c) || isJoker(prev)) continue;
 		const colorOk = getColor(c) !== getColor(prev);
 		const rankOk = getDisplayRank(c) === getDisplayRank(prev) - 1;
 		if (!(colorOk && rankOk)) return null;
 	}
-	return slice;
+	const out: number[] = new Array(len - fromIndex);
+	for (let i = fromIndex; i < len; i++) out[i - fromIndex] = column[i];
+	return out;
+}
+
+/** Zero-alloc predicate variant — true iff `movableRun` would succeed.
+ * Use for hover/hit-test paths that don't need the materialized array. */
+export function isMovableRun(column: number[], fromIndex: number): boolean {
+	const len = column.length;
+	if (fromIndex < 0 || fromIndex >= len) return false;
+	for (let i = fromIndex; i < len; i++) {
+		const c = column[i];
+		if (!isFaceUp(c)) return false;
+		if (isMonster(c)) return false;
+		if (i === fromIndex) continue;
+		const prev = column[i - 1];
+		if (isJoker(c) || isJoker(prev)) continue;
+		const colorOk = getColor(c) !== getColor(prev);
+		const rankOk = getDisplayRank(c) === getDisplayRank(prev) - 1;
+		if (!(colorOk && rankOk)) return false;
+	}
+	return true;
 }
 
 /** All four foundations holding 13 cards = win. With jokers in the mix the
