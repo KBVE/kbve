@@ -44,6 +44,8 @@ pub struct CreateVmRequest {
     /// Packages are installed from a pre-built local cache drive (no network needed).
     #[serde(default)]
     pub packages: Vec<String>,
+    #[serde(default)]
+    pub network: Option<bool>,
 }
 
 fn default_vcpu() -> u8 {
@@ -286,6 +288,16 @@ async fn create_vm(
         );
     }
 
+    if req.network.unwrap_or(false) && state.persistent.is_none() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "network=true requires the networked deployment (firecracker-ctl-net)",
+                "hint": "set FC_PERSISTENT_ENDPOINTS_ENABLED=true and run as firecracker-ctl-net",
+            })),
+        );
+    }
+
     // Enforce max concurrent VMs to prevent resource exhaustion
     let active_count = state
         .vms
@@ -335,8 +347,9 @@ async fn create_vm(
     let vms = state.vms.clone();
     let rootfs_dir = state.rootfs_dir.clone();
     let jailer = state.jailer.clone();
+    let persistent = state.persistent.clone();
     tokio::spawn(async move {
-        run_vm_lifecycle(vms, vm_id, req, rootfs_dir, kill_signal, jailer).await;
+        run_vm_lifecycle(vms, vm_id, req, rootfs_dir, kill_signal, jailer, persistent).await;
     });
 
     (StatusCode::CREATED, Json(serde_json::json!(info)))
@@ -965,17 +978,24 @@ enum VmOutcome {
     Killed,
 }
 
-/// What to clean up after the VM exits.
 enum VmCleanup {
-    /// Direct mode: individual scratch files.
     Direct {
         config_path: String,
         socket_path: String,
         code_path: String,
         pkg_manifest_path: Option<String>,
+        network: Option<NetworkLease>,
     },
-    /// Jailed mode: entire jail directory tree + cgroup.
-    Jailed { jail_dir: String, vm_id: String },
+    Jailed {
+        jail_dir: String,
+        vm_id: String,
+    },
+}
+
+struct NetworkLease {
+    persistent: Arc<PersistentState>,
+    tap: tap::TapDevice,
+    allocation: persistent::IpAllocation,
 }
 
 async fn run_vm_lifecycle(
@@ -985,6 +1005,7 @@ async fn run_vm_lifecycle(
     rootfs_dir: String,
     kill_signal: Arc<Notify>,
     jailer: Option<Arc<JailerConfig>>,
+    persistent: Option<Arc<PersistentState>>,
 ) {
     let start = Instant::now();
 
@@ -1037,10 +1058,85 @@ async fn run_vm_lifecycle(
         None
     };
 
-    let boot_args = format!("{} fc_entrypoint={}", req.boot_args, req.entrypoint);
+    let want_network = req.network.unwrap_or(false);
+    let network_lease = if want_network {
+        match persistent.as_ref() {
+            Some(ps) => match ps.pool.allocate() {
+                Ok(allocation) => match ps.tap_manager.create_tap(&allocation).await {
+                    Ok(tap) => Some(NetworkLease {
+                        persistent: ps.clone(),
+                        tap,
+                        allocation,
+                    }),
+                    Err(e) => {
+                        ps.pool.release(&allocation);
+                        tracing::error!("VM {} TAP creation failed: {e}", vm_id);
+                        set_vm_failed(
+                            &vms,
+                            &vm_id,
+                            start,
+                            -1,
+                            "".into(),
+                            format!("TAP creation failed: {e}"),
+                        );
+                        return;
+                    }
+                },
+                Err(e) => {
+                    tracing::warn!("VM {} pool allocation failed: {e}", vm_id);
+                    set_vm_failed(
+                        &vms,
+                        &vm_id,
+                        start,
+                        -1,
+                        "".into(),
+                        format!("IP pool exhausted: {e}"),
+                    );
+                    return;
+                }
+            },
+            None => {
+                set_vm_failed(
+                    &vms,
+                    &vm_id,
+                    start,
+                    -1,
+                    "".into(),
+                    "network=true requires the networked deployment".into(),
+                );
+                return;
+            }
+        }
+    } else {
+        None
+    };
 
-    // Spawn via jailer or direct depending on configuration.
+    let boot_args = match network_lease.as_ref() {
+        Some(n) => format!(
+            "{} fc_entrypoint={} ip={}",
+            req.boot_args,
+            req.entrypoint,
+            n.allocation.kernel_ip_arg(),
+        ),
+        None => format!("{} fc_entrypoint={}", req.boot_args, req.entrypoint),
+    };
+
     let spawn_result = if let Some(ref jailer_cfg) = jailer {
+        if network_lease.is_some() {
+            if let Some(lease) = network_lease {
+                let _ = lease.persistent.tap_manager.destroy_tap(&lease.tap).await;
+                lease.persistent.pool.release(&lease.allocation);
+            }
+            set_vm_failed(
+                &vms,
+                &vm_id,
+                start,
+                -1,
+                "".into(),
+                "network=true is not supported in jailed mode".into(),
+            );
+            return;
+        }
         spawn_jailed(
             jailer_cfg,
             &vm_id,
@@ -1063,6 +1159,7 @@ async fn run_vm_lifecycle(
             &req,
             pkg_buf.as_deref(),
             pkg_cache_path.as_deref(),
+            network_lease,
         )
         .await
     };
@@ -1167,13 +1264,13 @@ async fn run_vm_lifecycle(
         }
     }
 
-    // Cleanup scratch files or jail directory
     match cleanup {
         VmCleanup::Direct {
             config_path,
             socket_path,
             code_path,
             pkg_manifest_path,
+            network,
         } => {
             let _ = tokio::fs::remove_file(&config_path).await;
             let _ = tokio::fs::remove_file(&socket_path).await;
@@ -1181,10 +1278,19 @@ async fn run_vm_lifecycle(
             if let Some(p) = pkg_manifest_path {
                 let _ = tokio::fs::remove_file(&p).await;
             }
+            if let Some(lease) = network {
+                if let Err(e) = lease.persistent.tap_manager.destroy_tap(&lease.tap).await {
+                    tracing::warn!(
+                        "VM {} TAP teardown failed for {}: {e}",
+                        vm_id,
+                        lease.tap.name
+                    );
+                }
+                lease.persistent.pool.release(&lease.allocation);
+            }
         }
         VmCleanup::Jailed { jail_dir, vm_id } => {
             let _ = tokio::fs::remove_dir_all(&jail_dir).await;
-            // Remove the cgroup directory the jailer created (empty after VM exit)
             let cgroup_path = format!("/sys/fs/cgroup/firecracker/{}", vm_id);
             let _ = tokio::fs::remove_dir(&cgroup_path).await;
         }
@@ -1204,6 +1310,7 @@ async fn spawn_direct(
     req: &CreateVmRequest,
     pkg_buf: Option<&[u8]>,
     pkg_cache_path: Option<&str>,
+    network_lease: Option<NetworkLease>,
 ) -> Result<(tokio::process::Child, VmCleanup), String> {
     let scratch_dir = "/var/lib/firecracker/scratch";
     let code_path = format!("{}/{}.code", scratch_dir, vm_id);
@@ -1260,7 +1367,7 @@ async fn spawn_direct(
         }));
     }
 
-    let config = serde_json::json!({
+    let mut config = serde_json::json!({
         "boot-source": {
             "kernel_image_path": format!("{}/vmlinux", rootfs_dir),
             "boot_args": boot_args,
@@ -1271,6 +1378,13 @@ async fn spawn_direct(
             "mem_size_mib": req.mem_size_mib,
         },
     });
+
+    if let Some(ref lease) = network_lease {
+        config["network-interfaces"] = serde_json::json!([{
+            "iface_id": "eth0",
+            "host_dev_name": lease.tap.name,
+        }]);
+    }
 
     tokio::fs::write(&config_path, config.to_string())
         .await
@@ -1290,6 +1404,7 @@ async fn spawn_direct(
             socket_path,
             code_path,
             pkg_manifest_path,
+            network: network_lease,
         },
     ))
 }
