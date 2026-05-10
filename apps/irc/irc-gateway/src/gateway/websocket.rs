@@ -1,16 +1,17 @@
 use axum::{
-    extract::ws::{Message, WebSocket, WebSocketUpgrade},
     extract::Request,
+    extract::ws::{Message, WebSocket, WebSocketUpgrade},
     http::StatusCode,
     response::IntoResponse,
 };
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
-use tracing::{info, error};
+use tracing::{error, info, warn};
 
 use crate::auth::jwt;
 
-/// Handle WebSocket upgrade — validate JWT first, then proxy to Ergo
+const NO_USERNAME_MSG: &str = "No provider username configured. Set a username on your OAuth provider (Discord/GitHub/Twitch) before joining IRC.";
+
 pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse {
     let token = match jwt::extract_token(&req) {
         Some(t) => t,
@@ -22,13 +23,13 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
         Err(status) => return status.into_response(),
     };
 
-    let username = claims.email
-        .as_deref()
-        .unwrap_or(&claims.sub)
-        .chars()
-        .filter(|c| c.is_alphanumeric() || *c == '_')
-        .take(32)
-        .collect::<String>();
+    let username = match claims.irc_nick() {
+        Some(n) => n,
+        None => {
+            warn!(sub = %claims.sub, "rejecting WS upgrade: no provider username");
+            return (StatusCode::FORBIDDEN, NO_USERNAME_MSG).into_response();
+        }
+    };
 
     info!(user = %username, "WebSocket upgrade accepted");
 
@@ -55,11 +56,21 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     let nick_cmd = format!("NICK {username}\r\n");
     let user_cmd = format!("USER {username} 0 * :{username}\r\n");
 
-    if let Err(e) = ergo_sink.send(tokio_tungstenite::tungstenite::Message::Text(nick_cmd.into())).await {
+    if let Err(e) = ergo_sink
+        .send(tokio_tungstenite::tungstenite::Message::Text(
+            nick_cmd.into(),
+        ))
+        .await
+    {
         error!("Failed to send NICK to Ergo: {e}");
         return;
     }
-    if let Err(e) = ergo_sink.send(tokio_tungstenite::tungstenite::Message::Text(user_cmd.into())).await {
+    if let Err(e) = ergo_sink
+        .send(tokio_tungstenite::tungstenite::Message::Text(
+            user_cmd.into(),
+        ))
+        .await
+    {
         error!("Failed to send USER to Ergo: {e}");
         return;
     }
@@ -70,7 +81,9 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     let client_to_ergo = async {
         while let Some(Ok(msg)) = client_stream.next().await {
             let ergo_msg = match msg {
-                Message::Text(t) => tokio_tungstenite::tungstenite::Message::Text(t.to_string().into()),
+                Message::Text(t) => {
+                    tokio_tungstenite::tungstenite::Message::Text(t.to_string().into())
+                }
                 Message::Binary(b) => tokio_tungstenite::tungstenite::Message::Binary(b.into()),
                 Message::Ping(p) => tokio_tungstenite::tungstenite::Message::Ping(p.into()),
                 Message::Pong(p) => tokio_tungstenite::tungstenite::Message::Pong(p.into()),
@@ -85,7 +98,9 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     let ergo_to_client = async {
         while let Some(Ok(msg)) = ergo_stream.next().await {
             let client_msg = match msg {
-                tokio_tungstenite::tungstenite::Message::Text(t) => Message::Text(t.to_string().into()),
+                tokio_tungstenite::tungstenite::Message::Text(t) => {
+                    Message::Text(t.to_string().into())
+                }
                 tokio_tungstenite::tungstenite::Message::Binary(b) => Message::Binary(b.into()),
                 tokio_tungstenite::tungstenite::Message::Ping(p) => Message::Ping(p.into()),
                 tokio_tungstenite::tungstenite::Message::Pong(p) => Message::Pong(p.into()),
