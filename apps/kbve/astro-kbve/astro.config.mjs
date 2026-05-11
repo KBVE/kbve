@@ -194,22 +194,22 @@ export default defineConfig({
 				{
 					label: 'Guides',
 					collapsed: true,
-					autogenerate: { directory: 'guides' },
+					items: [{ autogenerate: { directory: 'guides' } }],
 				},
 				{
 					label: 'Applications',
 					collapsed: true,
-					autogenerate: { directory: 'application' },
+					items: [{ autogenerate: { directory: 'application' } }],
 				},
 				{
 					label: 'Project',
 					collapsed: true,
-					autogenerate: { directory: 'project' },
+					items: [{ autogenerate: { directory: 'project' } }],
 				},
 				{
 					label: 'Minecraft',
 					collapsed: true,
-					autogenerate: { directory: 'mc' },
+					items: [{ autogenerate: { directory: 'mc' } }],
 				},
 				{
 					label: 'Gaming',
@@ -227,7 +227,7 @@ export default defineConfig({
 				{
 					label: 'Arcade',
 					collapsed: true,
-					autogenerate: { directory: 'arcade' },
+					items: [{ autogenerate: { directory: 'arcade' } }],
 				},
 				{
 					label: 'Assets',
@@ -235,11 +235,11 @@ export default defineConfig({
 					items: [
 						{
 							label: 'Crypto',
-							autogenerate: { directory: 'crypto' },
+							items: [{ autogenerate: { directory: 'crypto' } }],
 						},
 						{
 							label: 'Stocks',
-							autogenerate: { directory: 'stock' },
+							items: [{ autogenerate: { directory: 'stock' } }],
 						},
 					],
 				},
@@ -249,50 +249,50 @@ export default defineConfig({
 					items: [
 						{
 							label: 'GDD',
-							autogenerate: { directory: 'gdd' },
+							items: [{ autogenerate: { directory: 'gdd' } }],
 						},
 						{
 							label: 'ItemDB',
-							autogenerate: { directory: 'itemdb' },
+							items: [{ autogenerate: { directory: 'itemdb' } }],
 						},
 						{
 							label: 'QuestDB',
-							autogenerate: { directory: 'questdb' },
+							items: [{ autogenerate: { directory: 'questdb' } }],
 						},
 						{
 							label: 'MapDB',
-							autogenerate: { directory: 'mapdb' },
+							items: [{ autogenerate: { directory: 'mapdb' } }],
 						},
 						{
 							label: 'NpcDB',
-							autogenerate: { directory: 'npcdb' },
+							items: [{ autogenerate: { directory: 'npcdb' } }],
 						},
 					],
 				},
 				{
 					label: 'Theory',
 					collapsed: true,
-					autogenerate: { directory: 'theory' },
+					items: [{ autogenerate: { directory: 'theory' } }],
 				},
 				{
 					label: 'Blog',
 					collapsed: true,
-					autogenerate: { directory: 'blog' },
+					items: [{ autogenerate: { directory: 'blog' } }],
 				},
 				{
 					label: 'Journal',
 					collapsed: true,
-					autogenerate: { directory: 'journal' },
+					items: [{ autogenerate: { directory: 'journal' } }],
 				},
 				{
 					label: 'Recipe',
 					collapsed: true,
-					autogenerate: { directory: 'recipe' },
+					items: [{ autogenerate: { directory: 'recipe' } }],
 				},
 				{
 					label: 'Legal',
 					collapsed: true,
-					autogenerate: { directory: 'legal' },
+					items: [{ autogenerate: { directory: 'legal' } }],
 				},
 			],
 		}),
