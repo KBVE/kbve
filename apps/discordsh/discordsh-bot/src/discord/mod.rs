@@ -8,4 +8,5 @@ pub mod game;
 pub mod github;
 pub mod github_cache;
 pub mod github_permissions;
+pub mod relay;
 pub mod scheduler;
