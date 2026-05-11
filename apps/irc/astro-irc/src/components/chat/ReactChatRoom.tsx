@@ -458,6 +458,54 @@ const PROVIDERS: { id: OAuthProvider; label: string }[] = [
 	{ id: 'twitch', label: 'Twitch' },
 ];
 
+const USERNAME_SETUP_URL = 'https://kbve.com/askama/profile';
+
+function decodeJwtUsername(token: string): string | null {
+	const parts = token.split('.');
+	if (parts.length < 2) return null;
+	try {
+		const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+		const padLen = padded.length + ((4 - (padded.length % 4)) % 4);
+		const payload = JSON.parse(atob(padded.padEnd(padLen, '=')));
+		const value = payload?.kbve_username;
+		return typeof value === 'string' && value.trim().length > 0
+			? value
+			: null;
+	} catch {
+		return null;
+	}
+}
+
+const NoUsernamePrompt: React.FC = () => (
+	<div className="flex flex-col items-center justify-center gap-6 p-8 text-center h-full">
+		<div>
+			<h2 className="text-xl font-bold text-[var(--sl-color-text)] mb-2">
+				Pick a username first
+			</h2>
+			<p className="text-sm text-[var(--sl-color-gray-3)] max-w-md">
+				IRC needs a canonical username before you can join. Your OAuth
+				display name isn't reused here — set one once on your KBVE
+				profile and you'll keep it across every service.
+			</p>
+		</div>
+		<a
+			href={USERNAME_SETUP_URL}
+			target="_blank"
+			rel="noopener noreferrer"
+			className={cn(
+				'px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+				'bg-[var(--sl-color-accent)] text-white',
+				'hover:opacity-90',
+			)}>
+			Set a username on kbve.com
+		</a>
+		<p className="text-xs text-[var(--sl-color-gray-4)]">
+			After saving, refresh this page or sign back in to pick up the new
+			identity.
+		</p>
+	</div>
+);
+
 const LoginPrompt: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 
@@ -510,9 +558,9 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 }) => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [usersOpen, setUsersOpen] = useState(false);
-	const [authState, setAuthState] = useState<'loading' | 'auth' | 'anon'>(
-		'loading',
-	);
+	const [authState, setAuthState] = useState<
+		'loading' | 'auth' | 'anon' | 'no-username'
+	>('loading');
 	const [token, setToken] = useState('');
 
 	// Boot droid workers (provides window.kbve.ws) + check Supabase session
@@ -524,25 +572,28 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 				await bootChat();
 				if (cancelled) return;
 
-				// 1. Check IDB session (same-origin, from direct OAuth on chat.kbve.com)
+				const applyToken = (next: string) => {
+					if (cancelled) return;
+					setToken(next);
+					setAuthState(
+						decodeJwtUsername(next) ? 'auth' : 'no-username',
+					);
+				};
+
 				const { authBridge } = await import('../../lib/supa');
 				const session = await authBridge.getSession();
 				if (!cancelled && session?.access_token) {
-					setToken(session.access_token);
-					setAuthState('auth');
+					applyToken(session.access_token);
 					return;
 				}
 
-				// 2. Check shared cookie (cross-origin, from OAuth on kbve.com)
 				const { getSharedToken } = await import('@kbve/astro');
 				const sharedToken = getSharedToken();
 				if (!cancelled && sharedToken) {
-					setToken(sharedToken);
-					setAuthState('auth');
+					applyToken(sharedToken);
 					return;
 				}
 
-				// 3. No session anywhere — show login
 				if (!cancelled) setAuthState('anon');
 			} catch (err) {
 				console.error('[chat] Boot failed:', err);
@@ -623,6 +674,23 @@ export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
 					'shadow-lg shadow-black/10',
 				)}>
 				<LoginPrompt />
+			</div>
+		);
+	}
+
+	if (authState === 'no-username') {
+		return (
+			<div
+				className={cn(
+					'flex flex-col',
+					'w-full h-full',
+					'rounded-xl overflow-hidden',
+					'border border-[var(--sl-color-border)]',
+					'border-t-2 border-t-[var(--sl-color-accent)]',
+					'bg-[var(--sl-color-bg)]',
+					'shadow-lg shadow-black/10',
+				)}>
+				<NoUsernamePrompt />
 			</div>
 		);
 	}
