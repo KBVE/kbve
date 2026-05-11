@@ -5,6 +5,7 @@ export * from './lib/types/bento';
 export * from './lib/types/event-types';
 export * from './lib/types/panel-types';
 export * from './lib/types/ui-event-types';
+export * from './lib/sw-recovery';
 export * from './lib/workers/events';
 export * from './lib/mod/mod-urls';
 export * from './lib/gateway';
