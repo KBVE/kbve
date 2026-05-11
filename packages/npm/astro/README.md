@@ -16,14 +16,14 @@ npm install @kbve/astro @kbve/droid
 import { useDroid, useDroidEvents } from '@kbve/astro';
 
 function MyComponent() {
-  const { initialized, hasApi, hasEvents, error } = useDroid();
+	const { initialized, hasApi, hasEvents, error } = useDroid();
 
-  useDroidEvents('droid-ready', (payload) => {
-    console.log('Droid ready at', payload.timestamp);
-  });
+	useDroidEvents('droid-ready', (payload) => {
+		console.log('Droid ready at', payload.timestamp);
+	});
 
-  if (!initialized) return <div>Loading workers...</div>;
-  return <div>Workers ready!</div>;
+	if (!initialized) return <div>Loading workers...</div>;
+	return <div>Workers ready!</div>;
 }
 ```
 
@@ -36,7 +36,25 @@ import DroidStatus from '@kbve/astro/components/DroidStatus.astro';
 ---
 
 <DroidProvider>
-  <DroidStatus />
-  <slot />
+	<DroidStatus />
+	<slot />
 </DroidProvider>
 ```
+
+### Ruffle
+
+```astro
+---
+import AstroRuffle from '@kbve/astro/components/ruffle/AstroRuffle.astro';
+---
+
+<AstroRuffle
+	src="/swf/game.swf"
+	height={540}
+	config={{ autoplay: 'on', splashScreen: false }}
+/>
+```
+
+`AstroRuffle` loads Ruffle from `https://unpkg.com/@ruffle-rs/ruffle` by
+default. Use `cdn="jsdelivr"`, `version="..."`, or `scriptUrl="..."` when a
+page needs a pinned or custom CDN endpoint.

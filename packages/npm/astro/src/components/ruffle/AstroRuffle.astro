@@ -1,0 +1,178 @@
+---
+type RuffleCdn = 'unpkg' | 'jsdelivr';
+type RuffleConfig = Record<string, unknown>;
+type RuffleLoadOptions = { url: string; [key: string]: unknown };
+
+interface Props {
+	src: string;
+	cdn?: RuffleCdn;
+	version?: string;
+	scriptUrl?: string;
+	config?: RuffleConfig;
+	loadOptions?: Omit<RuffleLoadOptions, 'url'>;
+	class?: string;
+	playerClass?: string;
+	width?: number | string;
+	height?: number | string;
+	title?: string;
+	id?: string;
+	allowFullscreen?: boolean;
+}
+
+const {
+	src,
+	cdn,
+	version,
+	scriptUrl,
+	config,
+	loadOptions,
+	class: className,
+	playerClass,
+	width = '100%',
+	height = 480,
+	title,
+	id,
+	allowFullscreen = true,
+} = Astro.props;
+
+const ruffleId = id ?? `kbve-ruffle-${Math.random().toString(36).slice(2, 10)}`;
+const cdnBaseUrl =
+	cdn === 'jsdelivr'
+		? 'https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle'
+		: 'https://unpkg.com/@ruffle-rs/ruffle';
+const resolvedScriptUrl = scriptUrl
+	? scriptUrl
+	: version
+		? `${cdnBaseUrl}@${version}`
+		: cdnBaseUrl;
+const resolvedWidth = typeof width === 'number' ? `${width}px` : width;
+const resolvedHeight = typeof height === 'number' ? `${height}px` : height;
+const options = {
+	src,
+	scriptUrl: resolvedScriptUrl,
+	config,
+	loadOptions,
+	playerClass,
+	title,
+	allowFullscreen,
+};
+---
+
+<div
+	id={ruffleId}
+	class={className}
+	data-kbve-ruffle
+	data-ruffle-status="idle"
+	style={`width: ${resolvedWidth}; height: ${resolvedHeight};`}>
+</div>
+
+<script define:vars={{ ruffleId, options }}>
+	const scriptId = 'kbve-ruffle-player-script';
+	let ruffleScriptPromise = window.__kbveRuffleScriptPromise ?? null;
+
+	function mergeConfig(baseConfig, overrideConfig) {
+		const merged = {
+			...(baseConfig ?? {}),
+			...(overrideConfig ?? {}),
+		};
+
+		return Object.keys(merged).length > 0 ? merged : undefined;
+	}
+
+	function loadRuffleScript() {
+		window.RufflePlayer = window.RufflePlayer ?? {};
+
+		const mergedConfig = mergeConfig(
+			window.RufflePlayer.config,
+			options.config,
+		);
+		if (mergedConfig) {
+			window.RufflePlayer.config = mergedConfig;
+		}
+
+		if (window.RufflePlayer.newest) {
+			return Promise.resolve();
+		}
+
+		if (ruffleScriptPromise) return ruffleScriptPromise;
+
+		ruffleScriptPromise = new Promise((resolve, reject) => {
+			const existingScript = document.querySelector(
+				`script[data-kbve-ruffle="true"], #${scriptId}`,
+			);
+			const script = existingScript ?? document.createElement('script');
+
+			const cleanup = () => {
+				script.removeEventListener('load', handleLoad);
+				script.removeEventListener('error', handleError);
+			};
+
+			const handleLoad = () => {
+				cleanup();
+				resolve();
+			};
+
+			const handleError = () => {
+				cleanup();
+				window.__kbveRuffleScriptPromise = null;
+				ruffleScriptPromise = null;
+				reject(
+					new Error(
+						`Failed to load Ruffle from ${options.scriptUrl}`,
+					),
+				);
+			};
+
+			script.addEventListener('load', handleLoad, { once: true });
+			script.addEventListener('error', handleError, { once: true });
+
+			if (!existingScript) {
+				script.id = scriptId;
+				script.dataset.kbveRuffle = 'true';
+				script.async = true;
+				script.src = options.scriptUrl;
+				document.head.appendChild(script);
+			}
+		});
+
+		window.__kbveRuffleScriptPromise = ruffleScriptPromise;
+		return ruffleScriptPromise;
+	}
+
+	async function mountRuffle() {
+		const container = document.getElementById(ruffleId);
+		if (!container || !options.src) return;
+
+		container.dataset.ruffleStatus = 'loading';
+
+		try {
+			await loadRuffleScript();
+			const ruffle = window.RufflePlayer?.newest?.();
+			if (!ruffle) {
+				throw new Error('Ruffle loaded without exposing newest().');
+			}
+
+			const player = ruffle.createPlayer();
+			player.style.width = '100%';
+			player.style.height = '100%';
+			if (options.playerClass) player.className = options.playerClass;
+			if (options.title) player.title = options.title;
+			if (options.allowFullscreen) {
+				player.setAttribute('allowfullscreen', 'true');
+			}
+
+			container.replaceChildren(player);
+
+			const source = options.loadOptions
+				? { ...options.loadOptions, url: options.src }
+				: options.src;
+			await player.ruffle().load(source);
+			container.dataset.ruffleStatus = 'ready';
+		} catch (error) {
+			container.dataset.ruffleStatus = 'error';
+			console.error(error);
+		}
+	}
+
+	void mountRuffle();
+</script>
