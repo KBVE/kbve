@@ -109,15 +109,17 @@ pub fn validate_token(token: &str) -> Result<Claims, StatusCode> {
     .map_err(|_| StatusCode::UNAUTHORIZED)
 }
 
-/// Axum middleware that requires valid JWT
-pub async fn require_auth(req: Request, next: Next) -> impl IntoResponse {
+pub async fn require_auth(mut req: Request, next: Next) -> impl IntoResponse {
     let token = match extract_token(&req) {
         Some(t) => t,
         None => return StatusCode::UNAUTHORIZED.into_response(),
     };
 
     match validate_token(&token) {
-        Ok(_claims) => next.run(req).await.into_response(),
+        Ok(claims) => {
+            req.extensions_mut().insert(claims);
+            next.run(req).await.into_response()
+        }
         Err(status) => status.into_response(),
     }
 }

@@ -11,7 +11,7 @@ export async function waitForReady(timeoutMs = 30_000): Promise<void> {
 			const res = await fetch(`${BASE_URL}/health`, {
 				signal: AbortSignal.timeout(2_000),
 			});
-			if (res.status > 0) return;
+			if (res.status === 200) return;
 		} catch {
 			// Connection refused or reset — keep trying
 		}

@@ -73,7 +73,8 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: 'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
+						content:
+							'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
 					},
 				},
 				{
@@ -94,21 +95,24 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image:alt',
-						content: 'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
+						content:
+							'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
 					},
 				},
 				{
 					tag: 'meta',
 					attrs: {
 						name: 'twitter:image',
-						content: 'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
+						content:
+							'https://rareicon.com/assets/steam/rareicon_library_header_920_x_430px.png',
 					},
 				},
 				{
 					tag: 'meta',
 					attrs: {
 						name: 'twitter:image:alt',
-						content: 'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
+						content:
+							'RareIcon — 2D sci-fi action-RPG bullet-hell roguelite',
 					},
 				},
 				{
@@ -159,11 +163,11 @@ export default defineConfig({
 				},
 				{
 					label: 'Getting Started',
-					autogenerate: { directory: 'guides' },
+					items: [{ autogenerate: { directory: 'guides' } }],
 				},
 				{
 					label: 'Game',
-					autogenerate: { directory: 'game' },
+					items: [{ autogenerate: { directory: 'game' } }],
 				},
 				{
 					label: 'Icons',
@@ -174,20 +178,59 @@ export default defineConfig({
 							label: 'Categories',
 							collapsed: true,
 							items: [
-								{ label: 'Action', link: '/icons/category/action/' },
-								{ label: 'Commerce', link: '/icons/category/commerce/' },
-								{ label: 'Communication', link: '/icons/category/comms/' },
-								{ label: 'Files', link: '/icons/category/file/' },
-								{ label: 'Gamedev', link: '/icons/category/game/' },
-								{ label: 'Gaming platforms', link: '/icons/category/gaming/' },
-								{ label: 'Media', link: '/icons/category/media/' },
-								{ label: 'Navigation', link: '/icons/category/navigation/' },
-								{ label: 'Sci-fi', link: '/icons/category/sci-fi/' },
-								{ label: 'Social', link: '/icons/category/social/' },
-								{ label: 'Tech', link: '/icons/category/tech/' },
+								{
+									label: 'Action',
+									link: '/icons/category/action/',
+								},
+								{
+									label: 'Commerce',
+									link: '/icons/category/commerce/',
+								},
+								{
+									label: 'Communication',
+									link: '/icons/category/comms/',
+								},
+								{
+									label: 'Files',
+									link: '/icons/category/file/',
+								},
+								{
+									label: 'Gamedev',
+									link: '/icons/category/game/',
+								},
+								{
+									label: 'Gaming platforms',
+									link: '/icons/category/gaming/',
+								},
+								{
+									label: 'Media',
+									link: '/icons/category/media/',
+								},
+								{
+									label: 'Navigation',
+									link: '/icons/category/navigation/',
+								},
+								{
+									label: 'Sci-fi',
+									link: '/icons/category/sci-fi/',
+								},
+								{
+									label: 'Social',
+									link: '/icons/category/social/',
+								},
+								{
+									label: 'Tech',
+									link: '/icons/category/tech/',
+								},
 								{ label: 'UI', link: '/icons/category/ui/' },
-								{ label: 'Weapons', link: '/icons/category/weapon/' },
-								{ label: 'Weather', link: '/icons/category/weather/' },
+								{
+									label: 'Weapons',
+									link: '/icons/category/weapon/',
+								},
+								{
+									label: 'Weather',
+									link: '/icons/category/weather/',
+								},
 							],
 						},
 						{
@@ -212,7 +255,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Account',
-					autogenerate: { directory: 'auth' },
+					items: [{ autogenerate: { directory: 'auth' } }],
 				},
 				{
 					label: 'Journal',

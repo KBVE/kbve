@@ -21,6 +21,7 @@ COPY packages/npm/laser/ packages/npm/laser/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
+COPY apps/rareicon/icons-codegen/ apps/rareicon/icons-codegen/
 COPY apps/rareicon/astro-rareicon/ apps/rareicon/astro-rareicon/
 
 WORKDIR /app/apps/rareicon/astro-rareicon

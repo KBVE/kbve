@@ -1,0 +1,261 @@
+syntax = "proto3";
+
+package wallet;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// KBVE Wallet — multi-currency, multi-owner ledger + coupon protocol
+//
+// Mirrors the `wallet` Postgres schema (packages/data/sql/schema/wallet/). All
+// numeric balances are int64 in their currency's smallest unit:
+//
+//   credits — USD-pegged premium, $1 = 100,000 credits. Smallest unit = 1 credit.
+//   khash   — activity reward, no peg. Smallest unit = 1 khash.
+//
+// Currencies are non-convertible. There is no `convert` RPC by design.
+// =============================================================================
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Currency tracked in the ledger / balance.
+enum CurrencyKind {
+  CURRENCY_KIND_UNSPECIFIED = 0;
+  CURRENCY_KIND_CREDITS     = 1;  // premium, USD-pegged
+  CURRENCY_KIND_KHASH       = 2;  // activity reward, no peg
+}
+
+// Wallet ownership entity kind.
+enum AccountKind {
+  ACCOUNT_KIND_UNSPECIFIED = 0;
+  ACCOUNT_KIND_USER        = 1;  // tied to auth.users(id)
+  ACCOUNT_KIND_GUILD       = 2;  // tied to guild.guild(id) (future)
+  ACCOUNT_KIND_TREASURY    = 3;  // KBVE_TREASURY (fees, house funds)
+  ACCOUNT_KIND_ESCROW      = 4;  // MARKET_ESCROW (items/funds in flight)
+  ACCOUNT_KIND_SYSTEM      = 5;  // catch-all for system bookkeeping
+}
+
+// Logical origin of a ledger entry.
+enum SourceKind {
+  SOURCE_KIND_UNSPECIFIED = 0;
+  SOURCE_KIND_REWARD      = 1;  // daily login, quest completion, achievement
+  SOURCE_KIND_PURCHASE    = 2;  // Stripe / credit purchase
+  SOURCE_KIND_REFUND      = 3;  // reversal of a purchase
+  SOURCE_KIND_ADMIN       = 4;  // staff grant / adjustment
+  SOURCE_KIND_COUPON      = 5;  // coupon redemption
+  SOURCE_KIND_MARKET_BUY  = 6;  // marketplace purchase (buyer debit)
+  SOURCE_KIND_MARKET_SELL = 7;  // marketplace sale (seller credit)
+  SOURCE_KIND_MARKET_FEE  = 8;  // treasury skim on a market trade
+  SOURCE_KIND_TRANSFER    = 9;  // generic peer-to-peer transfer
+}
+
+// Coupon template payout dispatcher.
+enum RewardKind {
+  REWARD_KIND_UNSPECIFIED  = 0;
+  REWARD_KIND_CREDITS      = 1;  // payload.amount → service_credit (credits)
+  REWARD_KIND_KHASH        = 2;  // payload.amount → service_credit (khash)
+  REWARD_KIND_GRANT_ITEMS  = 3;  // payload.items → mc.pending_grant (future)
+  REWARD_KIND_WALLET_PROMO = 4;  // reserved; flag-style rewards
+}
+
+// Lifecycle status of a coupon instance.
+enum CouponStatus {
+  COUPON_STATUS_UNSPECIFIED = 0;
+  COUPON_STATUS_UNREDEEMED  = 1;
+  COUPON_STATUS_REDEEMED    = 2;
+  COUPON_STATUS_EXPIRED     = 3;
+  COUPON_STATUS_REVOKED     = 4;
+}
+
+// =============================================================================
+// Core entities
+// =============================================================================
+
+// Wallet ownership row. Backed by a user, guild, or system entity.
+message Account {
+  string      id           = 1;  // UUID
+  AccountKind kind         = 2;
+  string      user_id      = 3;  // optional; UUID
+  string      guild_id     = 4;  // optional; UUID (FK reserved)
+  string      label        = 5;
+  string      created_at   = 6;  // RFC3339 timestamp
+}
+
+// Materialized current balance.
+message Balance {
+  string id          = 1;  // account_id UUID
+  int64  credits     = 2;
+  int64  khash       = 3;
+  string updated_at  = 4;
+}
+
+// Immutable journal entry.
+message LedgerEntry {
+  int64        id                 = 1;
+  string       account_id         = 2;  // UUID
+  CurrencyKind currency           = 3;
+  int64        delta              = 4;  // signed; + credit, - debit
+  int64        balance_after      = 5;
+  SourceKind   source_kind        = 6;
+  string       reason             = 7;
+  string       ref_type           = 8;  // optional
+  int64        ref_id             = 9;  // optional
+  string       idempotency_key    = 10; // UUID
+  bytes        replay_fingerprint = 11; // sha256 of semantic payload
+  string       created_at         = 12;
+}
+
+// Coupon catalog row. reward_payload semantics depend on reward_kind:
+//   - CREDITS / KHASH       — { "amount": <int64> }
+//   - GRANT_ITEMS           — { "items": [ { "id": <string>, "count": <int> } ] }
+//   - WALLET_PROMO          — flag/parameters TBD
+message CouponTemplate {
+  int64      id                  = 1;
+  string     code                = 2;  // e.g. "WELCOME_KHASH"
+  string     label               = 3;
+  RewardKind reward_kind         = 4;
+  string     reward_payload_json = 5;  // JSON; canonical, parsed by service_redeem_coupon
+  string     default_expires_in  = 6;  // ISO-8601 duration; nullable
+  bool       is_active           = 7;
+  string     created_at          = 8;
+}
+
+// Per-account coupon instance.
+message Coupon {
+  int64        id                     = 1;
+  string       account_id             = 2;  // UUID
+  int64        template_id            = 3;
+  CouponStatus status                 = 4;
+  string       granted_at             = 5;
+  string       expires_at             = 6;  // nullable
+  string       redeemed_at            = 7;  // nullable
+  string       revoked_at             = 8;  // nullable
+  string       redeem_idempotency_key = 9;  // UUID; set after successful redeem
+  int64        redeem_ledger_id       = 10; // set after successful redeem
+  string       metadata_json          = 11; // JSON
+  string       idempotency_key        = 12; // UUID
+}
+
+// Administrative action audit row.
+message AuditLogEntry {
+  int64  id            = 1;
+  string actor_role    = 2;  // JWT role or current_user
+  string actor_user_id = 3;  // optional; UUID
+  string action        = 4;  // e.g. "coupon.revoke"
+  string target_type   = 5;
+  string target_id     = 6;
+  string reason        = 7;
+  string metadata_json = 8;
+  string created_at    = 9;
+}
+
+// =============================================================================
+// Public (authenticated) RPC contracts
+// =============================================================================
+
+// public.proxy_wallet_get_balance()
+message GetBalanceRequest {}
+message GetBalanceResponse {
+  Balance balance = 1;
+}
+
+// public.proxy_wallet_list_coupons()
+message ListCouponsRequest {}
+message ListCouponsItem {
+  int64        coupon_id            = 1;
+  string       template_code        = 2;
+  string       template_label       = 3;
+  RewardKind   reward_kind          = 4;
+  string       reward_payload_json  = 5;
+  CouponStatus status               = 6;
+  string       granted_at           = 7;
+  string       expires_at           = 8;
+  string       redeemed_at          = 9;
+}
+message ListCouponsResponse {
+  repeated ListCouponsItem coupons = 1;
+}
+
+// public.proxy_wallet_redeem_coupon(p_coupon_id, p_idempotency_key)
+message RedeemCouponRequest {
+  int64  coupon_id       = 1;
+  string idempotency_key = 2;  // UUID; caller-supplied
+}
+message RedeemCouponResponse {
+  bool       success             = 1;
+  RewardKind reward_kind         = 2;
+  string     reward_payload_json = 3;
+  int64      ledger_id           = 4;
+}
+
+// =============================================================================
+// Service (service_role only) RPC contracts
+//
+// Mirrors wallet.service_credit / service_debit / service_transfer /
+// service_redeem_coupon / service_revoke_coupon / service_verify_balance.
+// Surfaced here for typed edge-function callers; PostgREST does not expose
+// the wallet schema directly.
+// =============================================================================
+
+message ServiceCreditRequest {
+  string       account_id      = 1;  // UUID
+  CurrencyKind currency        = 2;
+  int64        amount          = 3;  // positive
+  SourceKind   source_kind     = 4;
+  string       reason          = 5;
+  string       ref_type        = 6;
+  int64        ref_id          = 7;
+  string       idempotency_key = 8;  // UUID
+}
+message ServiceCreditResponse {
+  int64 ledger_id = 1;
+}
+
+message ServiceDebitRequest {
+  string       account_id      = 1;
+  CurrencyKind currency        = 2;
+  int64        amount          = 3;  // positive
+  SourceKind   source_kind     = 4;
+  string       reason          = 5;
+  string       ref_type        = 6;
+  int64        ref_id          = 7;
+  string       idempotency_key = 8;
+}
+message ServiceDebitResponse {
+  int64 ledger_id = 1;
+}
+
+message ServiceTransferRequest {
+  string       from_account_id = 1;
+  string       to_account_id   = 2;
+  CurrencyKind currency        = 3;
+  int64        amount          = 4;
+  SourceKind   source_kind     = 5;
+  string       reason          = 6;
+  string       ref_type        = 7;
+  int64        ref_id          = 8;
+  string       idempotency_key = 9;
+}
+message ServiceTransferResponse {}
+
+message ServiceRevokeCouponRequest {
+  int64  coupon_id = 1;
+  string reason    = 2;
+}
+message ServiceRevokeCouponResponse {
+  bool revoked = 1;
+}
+
+message ServiceVerifyBalanceRequest {
+  string account_id = 1;
+}
+message ServiceVerifyBalanceResponse {
+  string account_id     = 1;
+  int64  stored_credits = 2;
+  int64  ledger_credits = 3;
+  int64  stored_khash   = 4;
+  int64  ledger_khash   = 5;
+  bool   ok             = 6;
+}

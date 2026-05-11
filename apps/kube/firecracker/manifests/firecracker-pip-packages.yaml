@@ -34,3 +34,9 @@ data:
         orjson
         tabulate
         jmespath
+        fastapi
+        uvicorn
+        starlette
+        python-multipart
+        email-validator
+        websockets

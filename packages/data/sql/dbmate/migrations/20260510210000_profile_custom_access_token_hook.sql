@@ -1,4 +1,10 @@
--- migrate:up
+-- migrate:up transaction:false
+
+-- transaction:false because this migration manages its own BEGIN/COMMIT
+-- below. Without this directive, dbmate's outer transaction wrapper collides
+-- with the inner COMMIT, leaving the connection idle and surfacing as
+-- "pq: unexpected transaction status idle" on every subsequent migration.
+-- Applied state in prod is unchanged; this is parse-time only.
 
 BEGIN;
 
@@ -114,7 +120,10 @@ $$ LANGUAGE plpgsql;
 
 COMMIT;
 
--- migrate:down
+-- migrate:down transaction:false
+
+-- transaction:false: matches the up section. Down body manages its own
+-- BEGIN/COMMIT explicitly.
 
 BEGIN;
 

@@ -47,12 +47,22 @@ let lastPongTime = 0;
 const HEARTBEAT_INTERVAL_MS = 30000;
 const HEARTBEAT_TIMEOUT_MS = 60000;
 
-// Reconnect
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
 let lastUrl: string | null = null;
 const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_DELAY_MS = 3000;
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30000;
+const RECONNECT_JITTER_MS = 500;
+
+export function reconnectDelayMs(attempt: number): number {
+	const exp = Math.min(
+		RECONNECT_MAX_MS,
+		RECONNECT_BASE_MS * 2 ** Math.max(0, attempt - 1),
+	);
+	const jitter = Math.floor(Math.random() * RECONNECT_JITTER_MS);
+	return exp + jitter;
+}
 
 function startHeartbeat() {
 	stopHeartbeat();
@@ -104,14 +114,15 @@ function attemptReconnect() {
 	}
 
 	reconnectAttempts++;
+	const delay = reconnectDelayMs(reconnectAttempts);
 	console.log(
-		`[WS] Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`,
+		`[WS] Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}) in ${delay}ms...`,
 	);
 	broadcastStatus('reconnecting');
 
 	reconnectTimer = setTimeout(() => {
 		if (lastUrl) wsInstanceAPI.connect(lastUrl);
-	}, RECONNECT_DELAY_MS);
+	}, delay);
 }
 
 // ---------------------------------------------------------------------------

@@ -39,6 +39,15 @@
 		"./components/ToastContainer.astro": "./components/ToastContainer.astro",
 		"./components/CanvasOverlay.astro": "./components/CanvasOverlay.astro",
 		"./components/Redirect.astro": "./components/Redirect.astro",
+		"./components/ruffle/AstroRuffle.astro": "./components/ruffle/AstroRuffle.astro",
+		"./components/ruffle/ReactRuffle": {
+			"import": "./components/ruffle/ReactRuffle.js",
+			"types": "./components/ruffle/ReactRuffle.d.ts"
+		},
+		"./components/ruffle/ruffle": {
+			"import": "./components/ruffle/ruffle.js",
+			"types": "./components/ruffle/ruffle.d.ts"
+		},
 		"./components/tooltip/social/SocialTooltip.astro": "./components/tooltip/social/SocialTooltip.astro",
 		"./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js",
 		"./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",

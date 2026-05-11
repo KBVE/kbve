@@ -18,6 +18,7 @@ Hand-authored reference DDL grouped by Postgres schema. This tree is the **revie
 | [`staff/`](./staff/)         | `staff`         | Bitwise staff permission / access-control tables.                                   |
 | [`tracker/`](./tracker/)     | `tracker`       | Activity / metrics tracking.                                                        |
 | [`vault/`](./vault/)         | `vault`         | Encrypted secret storage helpers.                                                   |
+| [`wallet/`](./wallet/)       | `wallet`        | Multi-currency ledger + coupon system (credits, khash, treasury, escrow).           |
 
 ## File layout convention
 

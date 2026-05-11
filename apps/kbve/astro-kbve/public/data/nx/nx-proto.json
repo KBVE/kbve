@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-10T08:44:12.911Z",
+  "generated_at": "2026-05-11T09:20:06.001Z",
   "summary": {
     "total_protos": 28,
     "registered": 23,
@@ -1186,7 +1186,7 @@
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto"
   ],
-  "checked_at": "2026-05-10T08:44:13Z",
+  "checked_at": "2026-05-11T09:20:06Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",

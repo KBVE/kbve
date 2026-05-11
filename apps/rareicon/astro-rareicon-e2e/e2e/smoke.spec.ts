@@ -101,23 +101,99 @@ test.describe('Icon library', () => {
 		page,
 	}) => {
 		await page.goto('/icons/sword/');
-		const copyBtn = page.locator('.ri-icon-variant__copy').first();
+		const copyBtn = page
+			.locator('.ri-icon-variant__copy[data-copy-format="svg"]')
+			.first();
 		await expect(copyBtn).toBeVisible();
-		await expect(copyBtn).toHaveText(/Copy SVG/);
+		await expect(copyBtn).toHaveText('SVG');
+		await expect(copyBtn).toHaveAttribute('data-copy-svg', /<svg/i);
+	});
+
+	test('copy controls write SVG payloads and surface copied state', async ({
+		page,
+	}) => {
+		await page.addInitScript(() => {
+			Object.defineProperty(navigator, 'clipboard', {
+				value: {
+					writeText: (text: string) => {
+						window.localStorage.setItem('rareicon:last-copy', text);
+						return Promise.resolve();
+					},
+				},
+				configurable: true,
+			});
+		});
+
+		await page.goto('/icons/sword/');
+		const copyBtn = page
+			.locator('.ri-icon-variant__copy[data-copy-format="svg"]')
+			.first();
+		await copyBtn.click();
+
+		await expect(copyBtn).toHaveAttribute('data-copied', 'true');
+		await expect(copyBtn).toHaveText('Copied');
+
+		const copied = await page.evaluate(() =>
+			window.localStorage.getItem('rareicon:last-copy'),
+		);
+		expect(copied).toContain('<svg');
 	});
 });
 
 test.describe('sidebar + search', () => {
 	test('sidebar contains Icons section', async ({ page }) => {
 		await page.goto('/');
-		const sidebar = page.locator('nav[aria-label="Main"]');
-		await expect(sidebar).toBeAttached();
-		await expect(sidebar.locator('a[href="/icons/"]')).toBeAttached();
+		await expect(page.locator('a[href="/icons/"]').first()).toBeVisible();
 	});
 
 	test('Pagefind search trigger present', async ({ page }) => {
 		await page.goto('/');
 		const trigger = page.locator('button[data-open-modal]');
 		await expect(trigger).toBeVisible({ timeout: 10_000 });
+	});
+
+	test('icon browser filters by direct search query', async ({ page }) => {
+		await page.goto('/icons/');
+		const search = page.getByRole('searchbox', { name: 'Search icons' });
+		await expect(search).toBeVisible({ timeout: 10_000 });
+
+		await search.fill('docker');
+
+		const card = page.locator(
+			'.ri-icons-browser__card[href="/icons/docker/"]',
+		);
+		await expect(card).toBeVisible();
+		await expect(page.locator('.ri-icons-browser__empty')).toHaveCount(0);
+	});
+
+	test('icon browser exposes multi-source and attribution filters', async ({
+		page,
+	}) => {
+		await page.goto('/icons/');
+
+		const multiSource = page.getByRole('button', {
+			name: 'Multi-source only',
+		});
+		const attribution = page.getByRole('button', {
+			name: 'Attribution required (CC BY)',
+		});
+
+		await multiSource.click();
+		await expect(multiSource).toHaveAttribute('aria-pressed', 'true');
+		await expect(
+			page.locator('.ri-icons-browser__card[href="/icons/python/"]'),
+		).toBeVisible();
+
+		await multiSource.click();
+		await attribution.click();
+		await expect(multiSource).toHaveAttribute('aria-pressed', 'false');
+		await expect(attribution).toHaveAttribute('aria-pressed', 'true');
+
+		await page
+			.getByRole('searchbox', { name: 'Search icons' })
+			.fill('broadsword');
+		await expect(
+			page.locator('.ri-icons-browser__card[href="/icons/broadsword/"]'),
+		).toBeVisible();
 	});
 });
