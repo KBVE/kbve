@@ -141,7 +141,7 @@ pub fn build_stats_sql(params: &LogsStatsParams) -> String {
 		 WHERE timestamp > now() - INTERVAL {} MINUTE \
 		 GROUP BY pod_namespace, service, level \
 		 ORDER BY cnt DESC \
-		 LIMIT 200",
+		 LIMIT 5000",
         minutes
     )
 }
