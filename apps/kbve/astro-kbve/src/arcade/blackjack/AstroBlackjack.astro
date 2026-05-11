@@ -1,0 +1,173 @@
+---
+import ReactBlackjackApp from './ReactBlackjackApp';
+---
+
+<div class="not-content blackjack-stage" data-blackjack-stage>
+	<div class="blackjack-toolbar">
+		<button
+			type="button"
+			class="blackjack-btn"
+			data-blackjack-theater
+			aria-pressed="false"
+			title="Theater mode">
+			<span class="blackjack-btn-icon" aria-hidden="true">▭</span>
+			<span class="blackjack-btn-label">Theater</span>
+		</button>
+		<button
+			type="button"
+			class="blackjack-btn"
+			data-blackjack-fullscreen
+			aria-pressed="false"
+			title="Toggle fullscreen">
+			<span class="blackjack-btn-icon" aria-hidden="true">⛶</span>
+			<span class="blackjack-btn-label">Fullscreen</span>
+		</button>
+	</div>
+	<div
+		class="blackjack-frame rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#07140f]"
+		tabindex="0">
+		<ReactBlackjackApp client:only="react" />
+	</div>
+	<p class="text-xs text-gray-400 mt-2 text-center">
+		Use buttons or keyboard: <kbd>Enter</kbd> deal / next · <kbd>H</kbd> hit ·
+		<kbd>S</kbd> stand · <kbd>D</kbd> double · <kbd>↑</kbd>/<kbd>↓</kbd> bet ·
+		<kbd>N</kbd> new table.
+	</p>
+</div>
+
+<style>
+	.blackjack-stage {
+		width: 100%;
+		margin-inline: auto;
+	}
+	.blackjack-frame {
+		width: 100%;
+		aspect-ratio: 8 / 5;
+		touch-action: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.blackjack-toolbar {
+		display: flex;
+		gap: 8px;
+		justify-content: flex-end;
+		margin-bottom: 8px;
+	}
+	.blackjack-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 12px;
+		font-size: 12px;
+		font-weight: 500;
+		color: #e5e7eb;
+		background: rgba(15, 23, 42, 0.7);
+		border: 1px solid rgba(196, 147, 63, 0.45);
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			border-color 120ms ease;
+	}
+	.blackjack-btn:hover {
+		background: rgba(15, 23, 42, 0.9);
+		border-color: rgba(253, 230, 138, 0.82);
+	}
+	.blackjack-btn[aria-pressed='true'] {
+		background: rgba(196, 147, 63, 0.24);
+		border-color: rgba(253, 230, 138, 0.86);
+		color: #fde68a;
+	}
+	.blackjack-btn-icon {
+		font-size: 14px;
+		line-height: 1;
+	}
+	.blackjack-stage.is-theater {
+		position: fixed;
+		top: var(--sl-nav-height, 0px);
+		left: 0;
+		right: 0;
+		bottom: 0;
+		max-width: none;
+		width: 100vw;
+		height: calc(100vh - var(--sl-nav-height, 0px));
+		margin: 0;
+		padding: 16px;
+		z-index: 50;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		background: rgba(5, 42, 29, 0.96);
+		box-sizing: border-box;
+	}
+	.blackjack-stage.is-theater .blackjack-toolbar {
+		margin-bottom: 0;
+	}
+	.blackjack-stage.is-theater .blackjack-frame {
+		width: min(
+			100%,
+			calc((100vh - var(--sl-nav-height, 0px) - 110px) * 8 / 5)
+		);
+		max-width: 100%;
+		height: auto;
+	}
+	.blackjack-stage:fullscreen {
+		width: 100vw;
+		height: 100vh;
+		max-width: none;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: #052a1d;
+		padding: 16px;
+	}
+	.blackjack-stage:fullscreen .blackjack-frame {
+		width: min(100%, calc((100vh - 120px) * 8 / 5));
+		max-width: 100%;
+		aspect-ratio: 8 / 5;
+	}
+</style>
+
+<script>
+	const stage = document.querySelector<HTMLElement>('[data-blackjack-stage]');
+	const theaterBtn = document.querySelector<HTMLButtonElement>(
+		'[data-blackjack-theater]',
+	);
+	const fsBtn = document.querySelector<HTMLButtonElement>(
+		'[data-blackjack-fullscreen]',
+	);
+
+	if (stage && theaterBtn) {
+		const setTheater = (on: boolean) => {
+			stage.classList.toggle('is-theater', on);
+			theaterBtn.setAttribute('aria-pressed', String(on));
+			window.dispatchEvent(new Event('resize'));
+		};
+		theaterBtn.addEventListener('click', () => {
+			setTheater(!stage.classList.contains('is-theater'));
+		});
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && stage.classList.contains('is-theater')) {
+				setTheater(false);
+			}
+		});
+	}
+
+	if (stage && fsBtn) {
+		const updateFsLabel = () => {
+			const active = document.fullscreenElement === stage;
+			fsBtn.setAttribute('aria-pressed', String(active));
+		};
+		fsBtn.addEventListener('click', async () => {
+			if (document.fullscreenElement) {
+				await document.exitFullscreen();
+			} else {
+				await stage.requestFullscreen();
+			}
+		});
+		document.addEventListener('fullscreenchange', updateFsLabel);
+	}
+</script>
