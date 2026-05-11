@@ -187,6 +187,7 @@ export default defineConfig({
 						{ label: 'Forgejo', link: '/dashboard/forgejo/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Grafana', link: '/dashboard/grafana/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Virtual Machines', link: '/dashboard/vm/', attrs: { 'data-auth-visibility': 'staff' } },
+						{ label: 'Firecracker API', link: '/dashboard/vm/firecracker/api/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'IDE', link: '/dashboard/ide/', attrs: { 'data-auth-visibility': 'staff' } },
 					],
 				},
