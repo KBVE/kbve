@@ -16,8 +16,10 @@ use std::{
 use tokio::sync::Notify;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
+mod openapi;
 mod persistent;
 mod tap;
 
@@ -25,7 +27,7 @@ mod tap;
 // Types
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CreateVmRequest {
     pub rootfs: String,
     #[serde(default = "default_vcpu")]
@@ -61,7 +63,7 @@ fn default_boot_args() -> String {
     "console=ttyS0 reboot=k panic=1 init=/init".to_string()
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum VmStatus {
     Creating,
@@ -72,7 +74,7 @@ pub enum VmStatus {
     Destroyed,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct VmInfo {
     pub vm_id: String,
     pub status: VmStatus,
@@ -82,7 +84,7 @@ pub struct VmInfo {
     pub created_at: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct VmResult {
     pub vm_id: String,
     pub status: VmStatus,
@@ -153,9 +155,9 @@ struct PersistentState {
 /// consumer-side discriminator update, whereas pre-declaring them lets
 /// callers build state machines against the final shape today.
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "lowercase")]
-enum EndpointStatus {
+pub enum EndpointStatus {
     /// Resources (IP + TAP) allocated; VM process not yet spawned.
     /// Phase 2c terminal state — Phase 2e transitions to Starting.
     Pending,
@@ -191,8 +193,8 @@ struct PersistentEndpoint {
 /// JSON-serialisable view of a PersistentEndpoint. Keeps the owning
 /// struct free of serde plumbing so internal fields can change without
 /// breaking the wire format.
-#[derive(Debug, Clone, Serialize)]
-struct PersistentEndpointInfo {
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct PersistentEndpointInfo {
     name: String,
     rootfs: String,
     entrypoint: String,
@@ -254,6 +256,14 @@ fn validate_entrypoint(ep: &str) -> Result<(), String> {
 // Handlers
 // ---------------------------------------------------------------------------
 
+#[utoipa::path(
+    get,
+    path = "/health",
+    tag = "system",
+    responses(
+        (status = 200, description = "Liveness probe + build identity", body = serde_json::Value)
+    )
+)]
 async fn health(State(state): State<AppState>) -> impl IntoResponse {
     Json(serde_json::json!({
         "status": "ok",
@@ -264,6 +274,17 @@ async fn health(State(state): State<AppState>) -> impl IntoResponse {
     }))
 }
 
+#[utoipa::path(
+    post,
+    path = "/vm/create",
+    tag = "ephemeral",
+    request_body = CreateVmRequest,
+    responses(
+        (status = 201, description = "VM accepted; lifecycle running in background", body = VmInfo),
+        (status = 400, description = "Validation error or rootfs missing"),
+        (status = 429, description = "Concurrent VM cap reached")
+    )
+)]
 async fn create_vm(
     State(state): State<AppState>,
     Json(req): Json<CreateVmRequest>,
@@ -355,6 +376,16 @@ async fn create_vm(
     (StatusCode::CREATED, Json(serde_json::json!(info)))
 }
 
+#[utoipa::path(
+    get,
+    path = "/vm/{vm_id}",
+    tag = "ephemeral",
+    params(("vm_id" = String, Path, description = "Ephemeral VM identifier returned by /vm/create")),
+    responses(
+        (status = 200, description = "Current VM lifecycle state", body = VmInfo),
+        (status = 404, description = "VM not found")
+    )
+)]
 async fn get_vm_status(
     State(state): State<AppState>,
     Path(vm_id): Path<String>,
@@ -368,6 +399,17 @@ async fn get_vm_status(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/vm/{vm_id}/result",
+    tag = "ephemeral",
+    params(("vm_id" = String, Path, description = "Ephemeral VM identifier")),
+    responses(
+        (status = 200, description = "VM finished — final stdout/stderr/exit_code", body = VmResult),
+        (status = 202, description = "VM still running; poll again"),
+        (status = 404, description = "VM not found")
+    )
+)]
 async fn get_vm_result(
     State(state): State<AppState>,
     Path(vm_id): Path<String>,
@@ -391,6 +433,16 @@ async fn get_vm_result(
     }
 }
 
+#[utoipa::path(
+    delete,
+    path = "/vm/{vm_id}",
+    tag = "ephemeral",
+    params(("vm_id" = String, Path, description = "Ephemeral VM identifier")),
+    responses(
+        (status = 200, description = "Destroy signal sent; VM transitions to Destroyed", body = serde_json::Value),
+        (status = 404, description = "VM not found")
+    )
+)]
 async fn destroy_vm(State(state): State<AppState>, Path(vm_id): Path<String>) -> impl IntoResponse {
     match state.vms.get(&vm_id) {
         Some(record) => {
@@ -413,6 +465,14 @@ async fn destroy_vm(State(state): State<AppState>, Path(vm_id): Path<String>) ->
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/vm",
+    tag = "ephemeral",
+    responses(
+        (status = 200, description = "Snapshot of every tracked VM record", body = serde_json::Value)
+    )
+)]
 async fn list_vms(State(state): State<AppState>) -> impl IntoResponse {
     let vms: Vec<VmInfo> = state
         .vms
@@ -433,7 +493,7 @@ async fn list_vms(State(state): State<AppState>) -> impl IntoResponse {
 // lands in Phase 2d. See firecracker-ctl.mdx for the full architecture.
 
 /// Request shape for POST /fc/deploy.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 pub struct DeployFcRequest {
     /// Unique, DNS-safe endpoint name. Used in the public /fc/{name} path.
     pub name: String,
@@ -473,6 +533,18 @@ fn not_enabled() -> (StatusCode, Json<serde_json::Value>) {
     )
 }
 
+#[utoipa::path(
+    post,
+    path = "/fc/deploy",
+    tag = "persistent",
+    request_body = DeployFcRequest,
+    responses(
+        (status = 201, description = "Endpoint registered + network allocated", body = PersistentEndpointInfo),
+        (status = 400, description = "Validation error"),
+        (status = 409, description = "Endpoint name already registered"),
+        (status = 503, description = "Persistent endpoints not enabled in this deployment")
+    )
+)]
 async fn fc_deploy(
     State(state): State<AppState>,
     Json(req): Json<DeployFcRequest>,
@@ -647,6 +719,15 @@ async fn fc_deploy(
     )
 }
 
+#[utoipa::path(
+    get,
+    path = "/fc/list",
+    tag = "persistent",
+    responses(
+        (status = 200, description = "All registered persistent endpoints", body = serde_json::Value),
+        (status = 503, description = "Persistent endpoints not enabled")
+    )
+)]
 async fn fc_list(State(state): State<AppState>) -> (StatusCode, Json<serde_json::Value>) {
     let persistent = match state.persistent.as_ref() {
         Some(p) => p,
@@ -669,6 +750,17 @@ async fn fc_list(State(state): State<AppState>) -> (StatusCode, Json<serde_json:
     )
 }
 
+#[utoipa::path(
+    get,
+    path = "/fc/{name}",
+    tag = "persistent",
+    params(("name" = String, Path, description = "Persistent endpoint name")),
+    responses(
+        (status = 200, description = "Endpoint detail", body = PersistentEndpointInfo),
+        (status = 404, description = "Endpoint not found"),
+        (status = 503, description = "Persistent endpoints not enabled")
+    )
+)]
 async fn fc_get(
     State(state): State<AppState>,
     Path(name): Path<String>,
@@ -691,6 +783,17 @@ async fn fc_get(
     }
 }
 
+#[utoipa::path(
+    delete,
+    path = "/fc/{name}",
+    tag = "persistent",
+    params(("name" = String, Path, description = "Persistent endpoint name")),
+    responses(
+        (status = 200, description = "Endpoint torn down + resources released", body = serde_json::Value),
+        (status = 404, description = "Endpoint not found"),
+        (status = 503, description = "Persistent endpoints not enabled")
+    )
+)]
 async fn fc_destroy(
     State(state): State<AppState>,
     Path(name): Path<String>,
@@ -1859,6 +1962,13 @@ async fn list_rootfs(dir: &str) -> Vec<String> {
 
 #[tokio::main]
 async fn main() {
+    if std::env::args().any(|arg| arg == "--emit-openapi") {
+        use utoipa::OpenApi;
+        let spec = openapi::ApiDoc::openapi();
+        println!("{}", spec.to_pretty_json().expect("serialise OpenAPI"));
+        return;
+    }
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -2008,6 +2118,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
+        .route("/openapi.json", get(openapi::openapi_json))
         .route("/vm/create", post(create_vm))
         .route("/vm", get(list_vms))
         .route("/vm/{vm_id}", get(get_vm_status))

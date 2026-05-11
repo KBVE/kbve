@@ -24,6 +24,7 @@ dashmap = "6"
 reqwest = { version = "0.12", default-features = false, features = ["stream"] }
 # Used by fc_destroy to SIGTERM the VMM process via kill(2).
 libc = "0.2"
+utoipa = { version = "5", features = ["axum_extras"] }
 
 [features]
 default = []
