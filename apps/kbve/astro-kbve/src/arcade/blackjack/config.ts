@@ -15,10 +15,14 @@ export const FONT = {
 
 export const COLORS = {
 	background: 0x06100c,
-	feltCenter: 0x0c7a4d,
-	feltEdge: 0x042619,
+	feltCenter: 0x0d734a,
+	feltEdge: 0x032317,
+	feltPattern: 0x2dd4bf,
+	feltInk: 0xb7f7dd,
 	tableTrim: 0xd0a14a,
 	tableTrimDark: 0x7a5420,
+	rail: 0x2a140a,
+	railLight: 0x7c3f16,
 	panel: 0x0d2118,
 	panelStroke: 0xd6a84b,
 	cardFace: 0xfffbeb,

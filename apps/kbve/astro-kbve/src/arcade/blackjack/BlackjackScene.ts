@@ -10,6 +10,7 @@ import {
 	type BlackjackState,
 } from './state';
 import {
+	cardPoints,
 	type Card,
 	isBlackjack,
 	isRedSuit,
@@ -50,10 +51,12 @@ export class BlackjackScene extends Phaser.Scene {
 	private hudLayer!: Phaser.GameObjects.Container;
 	private buttons: ButtonView[] = [];
 	private statusText!: Phaser.GameObjects.Text;
+	private strategyText!: Phaser.GameObjects.Text;
 	private bankrollText!: Phaser.GameObjects.Text;
 	private dealerValueText!: Phaser.GameObjects.Text;
 	private playerValueText!: Phaser.GameObjects.Text;
 	private shoeText!: Phaser.GameObjects.Text;
+	private statsText!: Phaser.GameObjects.Text;
 	private betChip!: Phaser.GameObjects.Graphics;
 	private betChipText!: Phaser.GameObjects.Text;
 
@@ -77,14 +80,22 @@ export class BlackjackScene extends Phaser.Scene {
 			.setOrigin(0);
 
 		const tableShadow = this.add.graphics();
-		tableShadow.fillStyle(COLORS.tableShadow, 0.48);
+		tableShadow.fillStyle(COLORS.tableShadow, 0.58);
 		tableShadow.fillRoundedRect(
+			46,
 			52,
-			54,
-			BASE_WIDTH - 104,
-			BASE_HEIGHT - 100,
-			34,
+			BASE_WIDTH - 92,
+			BASE_HEIGHT - 96,
+			38,
 		);
+
+		const rail = this.add.graphics();
+		rail.fillStyle(COLORS.rail, 1);
+		rail.fillRoundedRect(30, 28, BASE_WIDTH - 60, BASE_HEIGHT - 56, 34);
+		rail.lineStyle(5, COLORS.railLight, 0.9);
+		rail.strokeRoundedRect(39, 37, BASE_WIDTH - 78, BASE_HEIGHT - 74, 28);
+		rail.lineStyle(3, COLORS.tableTrim, 0.95);
+		rail.strokeRoundedRect(52, 50, BASE_WIDTH - 104, BASE_HEIGHT - 100, 22);
 
 		const felt = this.add.graphics();
 		felt.fillGradientStyle(
@@ -94,27 +105,39 @@ export class BlackjackScene extends Phaser.Scene {
 			COLORS.feltEdge,
 			1,
 		);
-		felt.fillRoundedRect(36, 34, BASE_WIDTH - 72, BASE_HEIGHT - 68, 28);
-		felt.lineStyle(8, COLORS.tableTrimDark, 1);
-		felt.strokeRoundedRect(36, 34, BASE_WIDTH - 72, BASE_HEIGHT - 68, 28);
-		felt.lineStyle(3, COLORS.tableTrim, 0.95);
-		felt.strokeRoundedRect(36, 34, BASE_WIDTH - 72, BASE_HEIGHT - 68, 28);
+		felt.fillRoundedRect(66, 64, BASE_WIDTH - 132, BASE_HEIGHT - 128, 20);
+		felt.lineStyle(2, COLORS.tableTrimDark, 0.9);
+		felt.strokeRoundedRect(66, 64, BASE_WIDTH - 132, BASE_HEIGHT - 128, 20);
+
+		this.drawFeltWeave();
+		this.drawTableMarkings();
+		this.drawDealerArc();
 
 		this.drawHandBand(154, 'DEALER');
 		this.drawHandBand(408, 'PLAYER');
 
 		this.add
-			.text(BASE_WIDTH / 2, 58, 'KBVE BLACKJACK', {
+			.text(BASE_WIDTH / 2, 86, 'KBVE BLACKJACK', {
 				fontFamily: FONT.serif,
 				fontSize: '42px',
 				color: COLORS.gold,
+				stroke: '#020617',
+				strokeThickness: 7,
+				shadow: {
+					offsetX: 0,
+					offsetY: 3,
+					color: '#000000',
+					blur: 4,
+					stroke: true,
+					fill: true,
+				},
 			})
 			.setOrigin(0.5);
 
 		this.add
 			.text(
 				BASE_WIDTH / 2,
-				104,
+				112,
 				'Dealer stands on soft 17 · Blackjack pays 3:2',
 				{
 					fontFamily: FONT.sans,
@@ -125,11 +148,95 @@ export class BlackjackScene extends Phaser.Scene {
 			.setOrigin(0.5);
 	}
 
+	private drawFeltWeave() {
+		const weave = this.add.graphics();
+		weave.lineStyle(1, COLORS.feltPattern, 0.045);
+		for (let x = 92; x <= BASE_WIDTH - 92; x += 18) {
+			weave.lineBetween(x, 82, x - 74, BASE_HEIGHT - 82);
+			weave.lineBetween(x, 82, x + 74, BASE_HEIGHT - 82);
+		}
+		weave.lineStyle(1, 0xffffff, 0.035);
+		for (let y = 94; y <= BASE_HEIGHT - 98; y += 22) {
+			weave.lineBetween(90, y, BASE_WIDTH - 90, y);
+		}
+
+		const vignette = this.add.graphics();
+		vignette.lineStyle(26, 0x02120c, 0.22);
+		vignette.strokeRoundedRect(
+			80,
+			78,
+			BASE_WIDTH - 160,
+			BASE_HEIGHT - 156,
+			24,
+		);
+		vignette.lineStyle(52, 0x020b08, 0.16);
+		vignette.strokeRoundedRect(
+			66,
+			64,
+			BASE_WIDTH - 132,
+			BASE_HEIGHT - 128,
+			20,
+		);
+	}
+
+	private drawDealerArc() {
+		const arc = this.add.graphics();
+		arc.lineStyle(2, COLORS.feltInk, 0.2);
+		arc.beginPath();
+		arc.arc(
+			BASE_WIDTH / 2,
+			640,
+			420,
+			Phaser.Math.DegToRad(205),
+			Phaser.Math.DegToRad(335),
+			false,
+		);
+		arc.strokePath();
+		arc.lineStyle(1, COLORS.tableTrim, 0.2);
+		arc.beginPath();
+		arc.arc(
+			BASE_WIDTH / 2,
+			638,
+			454,
+			Phaser.Math.DegToRad(207),
+			Phaser.Math.DegToRad(333),
+			false,
+		);
+		arc.strokePath();
+	}
+
+	private drawTableMarkings() {
+		this.add
+			.text(BASE_WIDTH / 2, 134, 'BLACKJACK PAYS 3 TO 2', {
+				fontFamily: FONT.mono,
+				fontSize: '14px',
+				color: '#d1fae5',
+			})
+			.setOrigin(0.5)
+			.setAlpha(0.42);
+
+		this.add
+			.text(BASE_WIDTH / 2, 592, 'DEALER STANDS ON SOFT 17', {
+				fontFamily: FONT.mono,
+				fontSize: '13px',
+				color: '#d1fae5',
+			})
+			.setOrigin(0.5)
+			.setAlpha(0.34);
+
+		for (const x of [242, 1038]) {
+			const mark = this.add.graphics();
+			mark.lineStyle(2, COLORS.feltInk, 0.14);
+			mark.strokeCircle(x, 472, 42);
+			mark.strokeCircle(x, 472, 28);
+		}
+	}
+
 	private drawHandBand(y: number, label: string) {
 		const band = this.add.graphics();
-		band.fillStyle(0x031a12, 0.24);
+		band.fillStyle(0x031a12, 0.28);
 		band.fillRoundedRect(120, y, BASE_WIDTH - 240, 176, 20);
-		band.lineStyle(1, COLORS.tableTrim, 0.22);
+		band.lineStyle(1, COLORS.feltInk, 0.15);
 		band.strokeRoundedRect(120, y, BASE_WIDTH - 240, 176, 20);
 
 		this.add
@@ -162,6 +269,14 @@ export class BlackjackScene extends Phaser.Scene {
 			align: 'center',
 		});
 		this.statusText.setOrigin(0.5, 0);
+		this.strategyText = this.add
+			.text(BASE_WIDTH / 2, 669, '', {
+				fontFamily: FONT.mono,
+				fontSize: '16px',
+				color: COLORS.muted,
+				align: 'center',
+			})
+			.setOrigin(0.5, 0);
 		this.betChip = this.add.graphics();
 		this.betChipText = this.add
 			.text(332, 674, '', {
@@ -188,15 +303,24 @@ export class BlackjackScene extends Phaser.Scene {
 			align: 'right',
 		});
 		this.shoeText.setOrigin(1, 0);
+		this.statsText = this.add.text(BASE_WIDTH - 120, 122, '', {
+			fontFamily: FONT.mono,
+			fontSize: '15px',
+			color: COLORS.muted,
+			align: 'right',
+		});
+		this.statsText.setOrigin(1, 0);
 
 		this.hudLayer.add([
 			this.bankrollText,
 			this.statusText,
+			this.strategyText,
 			this.betChip,
 			this.betChipText,
 			this.dealerValueText,
 			this.playerValueText,
 			this.shoeText,
+			this.statsText,
 		]);
 	}
 
@@ -536,11 +660,16 @@ export class BlackjackScene extends Phaser.Scene {
 			`Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
 		);
 		this.statusText.setText(this.state.message);
+		this.statusText.setColor(this.getStatusColor());
+		this.strategyText.setText(this.getStrategyHint());
 		this.betChipText.setText(`$${this.state.bet}`);
 		this.dealerValueText.setText(dealerValue);
 		this.playerValueText.setText(playerValue);
 		this.shoeText.setText(
 			`Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
+		);
+		this.statsText.setText(
+			`Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
 		);
 	}
 
@@ -590,5 +719,78 @@ export class BlackjackScene extends Phaser.Scene {
 		this.betChip.strokeCircle(332, 676, 33);
 		this.betChip.lineStyle(2, COLORS.cardBack, 0.95);
 		this.betChip.strokeCircle(332, 676, 22);
+	}
+
+	private getStatusColor(): string {
+		if (this.state.outcome === 'loss') return COLORS.danger;
+		if (this.state.outcome === 'push') return COLORS.muted;
+		if (
+			this.state.outcome === 'win' ||
+			this.state.outcome === 'blackjack'
+		) {
+			return COLORS.gold;
+		}
+		return '#ffffff';
+	}
+
+	private getStrategyHint(): string {
+		if (
+			this.state.phase !== 'player-turn' ||
+			this.state.dealer.length === 0
+		) {
+			return '';
+		}
+
+		const playerValue = valueHand(this.state.player);
+		const dealerUp = this.dealerUpValue(this.state.dealer[0]);
+		const canDouble =
+			this.state.canDouble && this.state.player.length === 2;
+
+		if (playerValue.soft) {
+			return `Hint: ${this.softStrategy(playerValue.total, dealerUp, canDouble)}`;
+		}
+		return `Hint: ${this.hardStrategy(playerValue.total, dealerUp, canDouble)}`;
+	}
+
+	private hardStrategy(
+		total: number,
+		dealerUp: number,
+		canDouble: boolean,
+	): string {
+		if (canDouble && total === 11) return 'Double';
+		if (canDouble && total === 10 && dealerUp <= 9) return 'Double';
+		if (canDouble && total === 9 && dealerUp >= 3 && dealerUp <= 6) {
+			return 'Double';
+		}
+		if (total >= 17) return 'Stand';
+		if (total >= 13 && dealerUp >= 2 && dealerUp <= 6) return 'Stand';
+		if (total === 12 && dealerUp >= 4 && dealerUp <= 6) return 'Stand';
+		return 'Hit';
+	}
+
+	private softStrategy(
+		total: number,
+		dealerUp: number,
+		canDouble: boolean,
+	): string {
+		if (total >= 19) return 'Stand';
+		if (total === 18) {
+			if (canDouble && dealerUp >= 3 && dealerUp <= 6) return 'Double';
+			if (dealerUp === 2 || dealerUp === 7 || dealerUp === 8)
+				return 'Stand';
+			return 'Hit';
+		}
+		if (canDouble && total >= 15 && dealerUp >= 4 && dealerUp <= 6) {
+			return 'Double';
+		}
+		if (canDouble && total >= 13 && dealerUp >= 5 && dealerUp <= 6) {
+			return 'Double';
+		}
+		return 'Hit';
+	}
+
+	private dealerUpValue(card: Card): number {
+		if (card.rank === 'A') return 11;
+		return Math.min(cardPoints(card), 10);
 	}
 }
