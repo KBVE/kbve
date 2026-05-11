@@ -49,8 +49,9 @@ impl Modify for SecurityAddon {
         license(name = "MIT")
     ),
     servers(
-        (url = "/api/firecracker", description = "Same-origin proxy on kbve.com"),
-        (url = "http://localhost:8080", description = "Local firecracker-ctl")
+        (url = "/dashboard/firecracker/proxy", description = "Same-origin staff proxy (DASHBOARD_VIEW)"),
+        (url = "/dashboard/firecracker-net/proxy", description = "Same-origin staff proxy, network-enabled VMs (DASHBOARD_MANAGE)"),
+        (url = "http://localhost:9001", description = "Local firecracker-ctl")
     ),
     tags(
         (name = "system", description = "Liveness + build identity. Used by uptime probes."),
