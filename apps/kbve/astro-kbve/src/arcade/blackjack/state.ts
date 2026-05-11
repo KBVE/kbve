@@ -14,6 +14,17 @@ export type RoundPhase =
 	| 'round-over'
 	| 'table-closed';
 
+export type RoundOutcome = 'win' | 'loss' | 'push' | 'blackjack' | null;
+
+export interface BlackjackStats {
+	hands: number;
+	wins: number;
+	losses: number;
+	pushes: number;
+	blackjacks: number;
+	bestBankroll: number;
+}
+
 export interface BlackjackState {
 	phase: RoundPhase;
 	shoe: Card[];
@@ -25,6 +36,8 @@ export interface BlackjackState {
 	rounds: number;
 	lastDelta: number;
 	canDouble: boolean;
+	outcome: RoundOutcome;
+	stats: BlackjackStats;
 }
 
 export function createBlackjackState(): BlackjackState {
@@ -39,6 +52,15 @@ export function createBlackjackState(): BlackjackState {
 		rounds: 0,
 		lastDelta: 0,
 		canDouble: false,
+		outcome: null,
+		stats: {
+			hands: 0,
+			wins: 0,
+			losses: 0,
+			pushes: 0,
+			blackjacks: 0,
+			bestBankroll: GAME.startingBankroll,
+		},
 	};
 }
 
@@ -77,6 +99,7 @@ export function startRound(state: BlackjackState): void {
 	state.rounds++;
 	state.lastDelta = -state.bet;
 	state.canDouble = state.bankroll >= state.bet;
+	state.outcome = null;
 
 	const playerNatural = isBlackjack(state.player);
 	const dealerNatural = isBlackjack(state.dealer);
@@ -92,10 +115,12 @@ export function startRound(state: BlackjackState): void {
 			state.lastDelta = win - state.bet;
 			state.message = `Blackjack pays ${GAME.blackjackPayout}:1.`;
 			state.phase = 'round-over';
+			recordOutcome(state, 'blackjack');
 		} else {
 			state.lastDelta = -state.bet;
 			state.message = 'Dealer has blackjack.';
 			state.phase = 'round-over';
+			recordOutcome(state, 'loss');
 		}
 		state.canDouble = false;
 		return;
@@ -115,6 +140,7 @@ export function hit(state: BlackjackState): void {
 		state.phase = 'round-over';
 		state.lastDelta = -state.bet;
 		state.message = 'Bust. Dealer wins.';
+		recordOutcome(state, 'loss');
 	} else if (value === 21) {
 		stand(state);
 	} else {
@@ -140,6 +166,7 @@ export function doubleDown(state: BlackjackState): void {
 		state.phase = 'round-over';
 		state.lastDelta = -state.bet;
 		state.message = 'Double bust. Dealer wins.';
+		recordOutcome(state, 'loss');
 		return;
 	}
 
@@ -170,6 +197,7 @@ export function resetToBetting(state: BlackjackState): void {
 	state.bet = clampBet(state.bet, state.bankroll);
 	state.lastDelta = 0;
 	state.canDouble = false;
+	state.outcome = null;
 	state.message = 'Place your bet.';
 }
 
@@ -182,15 +210,26 @@ function shouldDealerHit(cards: readonly Card[]): boolean {
 function settleRound(state: BlackjackState): void {
 	const playerValue = valueHand(state.player).total;
 	const dealerValue = valueHand(state.dealer).total;
+	const playerMadeTwentyOne =
+		playerValue === 21 && !isBlackjack(state.player);
 
 	if (dealerValue > 21) {
-		settleWin(state, 'Dealer busts.');
+		settleWin(
+			state,
+			playerMadeTwentyOne
+				? 'Twenty-one wins. Dealer busts.'
+				: 'Dealer busts.',
+		);
 	} else if (playerValue > dealerValue) {
-		settleWin(state, 'Player wins.');
+		settleWin(
+			state,
+			playerMadeTwentyOne ? 'Twenty-one wins.' : 'Player wins.',
+		);
 	} else if (playerValue < dealerValue) {
 		state.phase = 'round-over';
 		state.lastDelta = -state.bet;
 		state.message = 'Dealer wins.';
+		recordOutcome(state, 'loss');
 	} else {
 		settlePush(state, 'Push.');
 	}
@@ -202,6 +241,7 @@ function settleWin(state: BlackjackState, message: string): void {
 	state.lastDelta = state.bet;
 	state.phase = 'round-over';
 	state.message = message;
+	recordOutcome(state, 'win');
 }
 
 function settlePush(state: BlackjackState, message: string): void {
@@ -209,4 +249,32 @@ function settlePush(state: BlackjackState, message: string): void {
 	state.lastDelta = 0;
 	state.phase = 'round-over';
 	state.message = message;
+	recordOutcome(state, 'push');
+}
+
+function recordOutcome(
+	state: BlackjackState,
+	outcome: Exclude<RoundOutcome, null>,
+): void {
+	state.outcome = outcome;
+	state.stats.hands++;
+	state.stats.bestBankroll = Math.max(
+		state.stats.bestBankroll,
+		state.bankroll,
+	);
+
+	if (outcome === 'blackjack') {
+		state.stats.blackjacks++;
+		state.stats.wins++;
+		return;
+	}
+	if (outcome === 'win') {
+		state.stats.wins++;
+		return;
+	}
+	if (outcome === 'loss') {
+		state.stats.losses++;
+		return;
+	}
+	state.stats.pushes++;
 }

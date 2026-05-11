@@ -22,6 +22,8 @@ export {
 	resetToBetting,
 	stand,
 	startRound,
+	type BlackjackStats,
 	type BlackjackState,
+	type RoundOutcome,
 	type RoundPhase,
 } from './state';
