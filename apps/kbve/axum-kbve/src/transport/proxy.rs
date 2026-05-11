@@ -1186,10 +1186,13 @@ pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
             .map(|q| format!("?{q}"))
             .unwrap_or_default();
         let upstream_url = format!("{}/{}{}", proxy.upstream, suffix, query_str);
+        let upstream_origin = proxy.upstream.clone();
 
         let (mut parts, _body) = req.into_parts();
         match axum::extract::ws::WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
-            Ok(ws) => return kasm_ws_handler(ws, upstream_url).await,
+            Ok(ws) => {
+                return kasm_ws_handler(ws, upstream_url, upstream_origin).await;
+            }
             Err(rej) => return rej.into_response(),
         }
     }
@@ -1255,6 +1258,7 @@ pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 async fn kasm_ws_handler(
     ws: axum::extract::ws::WebSocketUpgrade,
     upstream_url: String,
+    upstream_origin: String,
 ) -> Response {
     let password = match cached_kasm_password(false).await {
         Ok(p) => p,
@@ -1271,7 +1275,8 @@ async fn kasm_ws_handler(
 
     ws.protocols(["binary", "base64"])
         .on_upgrade(move |browser_ws| async move {
-            if let Err(e) = kasm_ws_bridge(browser_ws, &upstream_url, &auth).await {
+            if let Err(e) = kasm_ws_bridge(browser_ws, &upstream_url, &upstream_origin, &auth).await
+            {
                 warn!(%upstream_url, "KASM WS bridge error: {e}");
             }
         })
@@ -1280,6 +1285,7 @@ async fn kasm_ws_handler(
 async fn kasm_ws_bridge(
     browser_ws: axum::extract::ws::WebSocket,
     upstream_url: &str,
+    upstream_origin: &str,
     auth: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use axum::extract::ws::{CloseFrame, Message as AxumMsg};
@@ -1291,6 +1297,12 @@ async fn kasm_ws_bridge(
         .replace("http://", "ws://");
     let mut request = ws_url.into_client_request()?;
     request.headers_mut().insert("Authorization", auth.parse()?);
+    // KasmVNC rejects WS upgrades without an Origin header (returns 404).
+    // Set it to the upstream itself so the server treats us as a same-origin
+    // client — the dashboard JWT gate is what actually authorises the user.
+    request
+        .headers_mut()
+        .insert("Origin", upstream_origin.parse()?);
 
     let proto = browser_ws
         .protocol()
