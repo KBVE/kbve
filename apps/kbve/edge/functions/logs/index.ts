@@ -117,7 +117,7 @@ async function handleStats(params: { minutes?: number }) {
       WHERE timestamp > now() - INTERVAL {minutes:UInt32} MINUTE
       GROUP BY pod_namespace, service, level
       ORDER BY cnt DESC
-      LIMIT 200
+      LIMIT 5000
     `,
     query_params: { minutes },
     format: "JSONEachRow",
