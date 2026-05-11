@@ -272,6 +272,28 @@ pub fn build_forward_return_check(vm_subnet: &str, tunnel_iface: &str) -> Vec<St
     v
 }
 
+pub fn build_input_accept(vm_subnet: &str) -> Vec<String> {
+    vec![
+        "-I".into(),
+        "INPUT".into(),
+        "-s".into(),
+        vm_subnet.into(),
+        "-j".into(),
+        "ACCEPT".into(),
+    ]
+}
+
+pub fn build_input_accept_check(vm_subnet: &str) -> Vec<String> {
+    vec![
+        "-C".into(),
+        "INPUT".into(),
+        "-s".into(),
+        vm_subnet.into(),
+        "-j".into(),
+        "ACCEPT".into(),
+    ]
+}
+
 // ---------------------------------------------------------------------------
 // Execution wrappers (shell-out via tokio::process::Command)
 // ---------------------------------------------------------------------------
@@ -389,6 +411,10 @@ impl TapManager {
                 &self.config.tunnel_iface,
             ))
             .await?;
+        }
+
+        if !iptables_rule_exists(&build_input_accept_check(&self.config.vm_subnet)).await? {
+            run_iptables(&build_input_accept(&self.config.vm_subnet)).await?;
         }
 
         Ok(())
