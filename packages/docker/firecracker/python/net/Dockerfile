@@ -24,6 +24,8 @@ FROM --platform=linux/amd64 alpine:3.21 AS rootfs-builder
 
 RUN apk add --no-cache e2fsprogs e2fsprogs-extra
 
+COPY init.sh /tmp/init.sh
+
 RUN mkdir -p /rootfs/etc/apk && \
     cp /etc/apk/repositories /rootfs/etc/apk/repositories && \
     cp -a /etc/apk/keys /rootfs/etc/apk/ && \
@@ -40,19 +42,9 @@ RUN mkdir -p /rootfs/etc/apk && \
         py3-httpx \
         py3-urllib3 \
         py3-certifi && \
-    mkdir -p /rootfs/{dev,proc,sys,tmp,run,var/log,etc} && \
+    mkdir -p /rootfs/{dev,proc,sys,tmp,run,var/log,etc,mnt} && \
     printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > /rootfs/etc/resolv.conf && \
-    printf '#!/bin/sh\n\
-mount -t proc proc /proc\n\
-mount -t sysfs sys /sys\n\
-mount -t devtmpfs dev /dev\n\
-ip link set lo up 2>/dev/null\n\
-ip link set eth0 up 2>/dev/null\n\
-if [ -x /entrypoint ]; then\n\
-  exec /entrypoint\n\
-else\n\
-  exec /bin/sh\n\
-fi\n' > /rootfs/init && \
+    cp /tmp/init.sh /rootfs/init && \
     chmod +x /rootfs/init && \
     dd if=/dev/zero of=/rootfs.ext4 bs=1M count=0 seek=192 && \
     mkfs.ext4 -F -d /rootfs /rootfs.ext4 && \
