@@ -78,8 +78,17 @@ const sorted = [...usedIn].sort((a, b) => {
 				{
 					sorted.map((u) => {
 						const href = u.slug ? `/osrs/${u.slug}/` : null;
+						const iconAttr = `${u.product}.png`;
 						const productCell = href ? (
-							<a href={href}>{u.product}</a>
+							<a
+								href={href}
+								data-osrs-tooltip
+								data-osrs-name={u.product}
+								data-osrs-slug={u.slug}
+								data-osrs-icon={iconAttr}
+								data-osrs-relationship="product">
+								{u.product}
+							</a>
 						) : (
 							<span>{u.product}</span>
 						);
