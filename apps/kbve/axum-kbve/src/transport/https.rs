@@ -277,6 +277,10 @@ fn router(state: AppState) -> Router {
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
         .route("/api/openapi.json", get(crate::openapi::openapi_json))
+        .route(
+            "/api/firecracker/openapi.json",
+            get(super::proxy::firecracker_openapi_handler),
+        )
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))

@@ -1716,6 +1716,27 @@ pub async fn firecracker_proxy_handler(path: Option<Path<String>>, req: Request<
     }
 }
 
+/// Public read-only proxy for the firecracker-ctl OpenAPI document.
+///
+/// Mounted at `/api/firecracker/openapi.json` so the Scalar viewer at
+/// `/dashboard/api/` can fetch the spec without an auth bridge. The
+/// document only describes endpoint shapes; the operations themselves
+/// remain staff-gated through [`firecracker_proxy_handler`].
+pub async fn firecracker_openapi_handler(req: Request<Body>) -> Response {
+    match FIRECRACKER.get() {
+        Some(proxy) => {
+            proxy
+                .handle_preauthorized(Some(Path("openapi.json".to_string())), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Firecracker-Net proxy singleton (network-enabled, DASHBOARD_MANAGE gated)
 // ---------------------------------------------------------------------------
