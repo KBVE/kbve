@@ -18,6 +18,7 @@ resources:
     - firecracker-vm-init.yaml
     - firecracker-rootfs-init.yaml
     - firecracker-net-rootfs-stage.yaml
+    - firecracker-web-rootfs-stage.yaml
     - firecracker-pip-cache-cronjob.yaml
     - firecracker-deployment.yaml
     - firecracker-service.yaml
