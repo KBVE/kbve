@@ -16,6 +16,8 @@ metadata:
         app.kubernetes.io/component: vm-runtime-net
 spec:
     replicas: 1
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
             app: firecracker-ctl-net
