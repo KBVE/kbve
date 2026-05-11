@@ -136,6 +136,8 @@ spec:
                         value: '10001'
                       - name: FC_PERSISTENT_ENDPOINTS_ENABLED
                         value: 'true'
+                      - name: FC_TUNNEL_IFACE
+                        value: 'tun0'
                   securityContext:
                       # jailer pivot_root requires Unconfined seccomp.
                       seccompProfile:
