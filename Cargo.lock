@@ -1389,7 +1389,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.144"
+version = "1.0.145"
 dependencies = [
  "anyhow",
  "askama",
@@ -5830,7 +5830,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.30"
+version = "0.1.31"
 dependencies = [
  "axum 0.8.9",
  "dashmap 6.1.0",
