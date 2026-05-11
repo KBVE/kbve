@@ -2,6 +2,7 @@ mod astro;
 mod auth;
 mod db;
 pub mod gameserver;
+mod mcp;
 mod openapi;
 mod proto;
 mod telemetry;

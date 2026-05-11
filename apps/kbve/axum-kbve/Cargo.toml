@@ -40,6 +40,14 @@ chrono = { version = "0.4", features = ["serde"] }
 # renders via Scalar at /dashboard/api and consumes for /llms.txt.
 utoipa = { version = "5", features = ["axum_extras", "chrono"] }
 
+# MCP server. Re-uses the utoipa OpenAPI spec to expose every annotated
+# handler as an MCP tool at /api/mcp. Token passthrough lets clients BYO
+# bearer; the upstream call is dispatched against the local axum listener.
+rmcp = { version = "1.6.0", default-features = false, features = ["server", "transport-streamable-http-server", "tower", "macros"] }
+rmcp-openapi = { version = "0.26.6", features = ["authorization-token-passthrough"] }
+url = "2"
+http = "1"
+
 # DB + Auth (Phase 5)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
