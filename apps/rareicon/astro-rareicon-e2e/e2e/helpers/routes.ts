@@ -14,7 +14,7 @@ export const ICON_ROUTES = [
 	{ path: '/icons/', label: 'Icon library landing' },
 	{ path: '/icons/sword/', label: 'Sword term page' },
 	{ path: '/icons/shield/', label: 'Shield term page' },
-	{ path: '/icons/arrow-right/', label: 'Arrow-right term page' },
+	{ path: '/icons/arrow/', label: 'Arrow term page' },
 	{ path: '/icons/close/', label: 'Close term page' },
 	{ path: '/icons/terminal/', label: 'Terminal term page' },
 ] as const;
@@ -42,8 +42,6 @@ export const MULTI_SOURCE_ICON_ROUTES = [
 	{ path: '/icons/react/', label: 'React multi-source term' },
 	{ path: '/icons/docker/', label: 'Docker multi-source term' },
 	{ path: '/icons/rust/', label: 'Rust multi-source term' },
-	{ path: '/icons/home/', label: 'Home multi-source term' },
-	{ path: '/icons/heart/', label: 'Heart multi-source term' },
 ] as const;
 
 /**
