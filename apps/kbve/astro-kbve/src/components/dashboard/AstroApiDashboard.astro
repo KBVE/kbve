@@ -1,14 +1,48 @@
 ---
-const { specUrl = '/api/openapi.json' } = Astro.props;
+import { getConfiguration } from '@scalar/client-side-rendering';
+
+interface Source {
+	url: string;
+	slug?: string;
+	title: string;
+	default?: boolean;
+}
+
+interface Props {
+	specUrl?: string;
+	sources?: Source[];
+	title?: string;
+}
+
+const SCALAR_CDN = 'https://cdn.jsdelivr.net/npm/@scalar/api-reference';
+
+const {
+	specUrl = '/api/openapi.json',
+	sources,
+	title = 'KBVE API Reference',
+} = Astro.props as Props;
+
+const sourceConfig =
+	sources && sources.length > 0 ? { sources } : { url: specUrl };
+
+const configuration = getConfiguration({
+	...sourceConfig,
+	theme: 'none',
+	hideClientButton: false,
+	defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
+	metaData: { title },
+});
+
+const configJson = JSON.stringify(configuration);
 ---
 
-<div id="scalar-root" data-spec-url={specUrl}></div>
+<div id="scalar-app"></div>
 
 <style is:global>
-	#scalar-root {
+	#scalar-app {
 		min-height: calc(100vh - 4rem);
 	}
-	#scalar-root .scalar-app {
+	#scalar-app .scalar-app {
 		min-height: inherit;
 		--scalar-font:
 			var(--sl-font, var(--sl-font-system)), var(--sl-font-system);
@@ -42,30 +76,26 @@ const { specUrl = '/api/openapi.json' } = Astro.props;
 		--scalar-button-1-color: var(--sl-color-text-invert);
 	}
 
-	#scalar-root .scalar-api-client__container,
-	#scalar-root .scalar-api-references__client,
-	#scalar-root [data-scalar-modal],
-	#scalar-root .scalar-app-layout {
+	#scalar-app .scalar-api-client__container,
+	#scalar-app .scalar-api-references__client,
+	#scalar-app [data-scalar-modal],
+	#scalar-app .scalar-app-layout {
 		z-index: 100;
 	}
 </style>
 
-<script>
-	import { createApiReference } from '@scalar/api-reference';
-	import '@scalar/api-reference/style.css';
+<script is:inline src={SCALAR_CDN}></script>
+<script is:inline define:vars={{ configJson }}>
+	(function () {
+		var cfg = JSON.parse(configJson);
+		window.__scalarBaseConfig = cfg;
+		window.__scalarRef = window.Scalar.createApiReference(
+			'#scalar-app',
+			cfg,
+		);
+	})();
+</script>
 
-	const root = document.getElementById('scalar-root');
-	if (root) {
-		const url = root.dataset.specUrl ?? '/api/openapi.json';
-		createApiReference(root, {
-			url,
-			theme: 'none',
-			hideClientButton: false,
-			defaultHttpClient: {
-				targetKey: 'shell',
-				clientKey: 'curl',
-			},
-			metaData: { title: 'KBVE API Reference' },
-		});
-	}
+<script>
+	import '@/components/api/scalar-auth-bridge';
 </script>

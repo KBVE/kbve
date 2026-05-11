@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Live OpenAPI 3.1 specification for the public HTTP surface served by axum-kbve.
+description: Live OpenAPI 3.1 specifications for the KBVE public API and the staff-only firecracker-ctl service.
 template: splash
 tableOfContents: false
 pagefind: false
@@ -16,4 +16,10 @@ tags:
 
 import AstroApiDashboard from '@/components/dashboard/AstroApiDashboard.astro';
 
-<AstroApiDashboard />
+<AstroApiDashboard
+    title="KBVE Dashboard APIs"
+    sources={[
+        { slug: 'kbve', title: 'KBVE Public API', url: '/api/openapi.json', default: true },
+        { slug: 'firecracker', title: 'Firecracker Control', url: '/dashboard/firecracker/proxy/openapi.json' },
+    ]}
+/>

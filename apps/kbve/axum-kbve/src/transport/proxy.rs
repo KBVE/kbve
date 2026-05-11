@@ -1272,7 +1272,7 @@ async fn kasm_ws_handler(
     ws.protocols(["binary", "base64"])
         .on_upgrade(move |browser_ws| async move {
             if let Err(e) = kasm_ws_bridge(browser_ws, &upstream_url, &auth).await {
-                warn!("KASM WS bridge error: {e}");
+                warn!(%upstream_url, "KASM WS bridge error: {e}");
             }
         })
 }
@@ -1282,7 +1282,7 @@ async fn kasm_ws_bridge(
     upstream_url: &str,
     auth: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    use axum::extract::ws::Message as AxumMsg;
+    use axum::extract::ws::{CloseFrame, Message as AxumMsg};
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
 
@@ -1302,9 +1302,35 @@ async fn kasm_ws_bridge(
         .insert("Sec-WebSocket-Protocol", proto.parse()?);
 
     let connector = build_kasm_tls_connector()?;
-    let (upstream_ws, _resp) =
-        tokio_tungstenite::connect_async_tls_with_config(request, None, false, Some(connector))
-            .await?;
+    let upstream_ws = match tokio_tungstenite::connect_async_tls_with_config(
+        request,
+        None,
+        false,
+        Some(connector),
+    )
+    .await
+    {
+        Ok((ws, resp)) => {
+            debug!(%upstream_url, status = %resp.status(), "KASM WS upstream handshake OK");
+            ws
+        }
+        Err(e) => {
+            // Surface the upstream failure to the browser as a Close frame so
+            // noVNC's status text shows something better than the generic
+            // 1006. Truncate to fit the 123-byte limit on close reasons.
+            let mut reason = format!("kasm upstream: {e}");
+            reason.truncate(120);
+            warn!(%upstream_url, %reason, "KASM WS upstream connect error");
+            let mut tx = browser_ws.split().0;
+            let _ = tx
+                .send(AxumMsg::Close(Some(CloseFrame {
+                    code: 1011,
+                    reason: reason.into(),
+                })))
+                .await;
+            return Err(e.into());
+        }
+    };
 
     let (mut browser_tx, mut browser_rx) = browser_ws.split();
     let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
@@ -1611,8 +1637,13 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         }
     };
 
-    let location =
-        format!("/dashboard/kasm/proxy/?password={password}&autoconnect=1&resize=remote");
+    // noVNC builds the WebSocket URL from `path=` (defaults to `websockify`,
+    // which would open `wss://kbve.com/websockify` — outside our proxy and
+    // 404'd by Astro). Pin it under the proxy prefix so the WS upgrade
+    // re-enters axum and hits the kasm bridge.
+    let location = format!(
+        "/dashboard/kasm/proxy/?password={password}&autoconnect=1&resize=remote&path=dashboard/kasm/proxy/websockify"
+    );
 
     let access_token = extract_auth_token(&headers, query.as_deref()).unwrap_or_default();
     let cookie = format!(

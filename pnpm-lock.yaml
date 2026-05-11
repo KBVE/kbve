@@ -80,6 +80,9 @@ importers:
       '@react-three/flex':
         specifier: ^1.0.1
         version: 1.0.1(@react-three/fiber@9.6.1(@types/react@19.2.9)(expo-asset@12.0.12(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(expo-file-system@19.0.21(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4)))(expo@54.0.9)(react-dom@19.2.4(react@19.2.4))(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)(three@0.184.0))(react@19.2.4)(three@0.184.0)
+      '@scalar/astro':
+        specifier: ^0.2.14
+        version: 0.2.14(astro@6.2.2(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.6.1)(less@4.1.3)(lightningcss@1.30.2)(rollup@4.57.1)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(yaml@2.8.4))
       '@supabase/supabase-js':
         specifier: ^2.95.3
         version: 2.95.3
@@ -5190,6 +5193,16 @@ packages:
 
   '@scalar/api-reference@1.55.3':
     resolution: {integrity: sha512-AtGaW7Hkz48gUTcQC/YtQIzEvCsbOFKay/q7txa9b0S4leWZ82SqEHWHGO+7eNgnz29nRpV6NB9yr4w/wcwuwg==}
+    engines: {node: '>=22'}
+
+  '@scalar/astro@0.2.14':
+    resolution: {integrity: sha512-iS0QqJAbSopIHrXwz8sTHkddlsEJGom/92JS33JsAZooQdnAS4dtVDv3wfpEryoortI2wT6Byss/8WMtvKOPFw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      astro: ^4.0.0 || ^5.0.0
+
+  '@scalar/client-side-rendering@0.1.7':
+    resolution: {integrity: sha512-IDzjKF93jrOljlvKBsLHXT1FPWgz56jFrMPC+iLihREp1qH8wF92mG8Zpakw8cURkEuw5WijRk0xNBP2moGyuw==}
     engines: {node: '>=22'}
 
   '@scalar/code-highlight@0.3.4':
@@ -23465,6 +23478,15 @@ snapshots:
       - tailwindcss
       - typescript
       - universal-cookie
+
+  '@scalar/astro@0.2.14(astro@6.2.2(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.6.1)(less@4.1.3)(lightningcss@1.30.2)(rollup@4.57.1)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(yaml@2.8.4))':
+    dependencies:
+      '@scalar/client-side-rendering': 0.1.7
+      astro: 6.2.2(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.6.1)(less@4.1.3)(lightningcss@1.30.2)(rollup@4.57.1)(sass-embedded@1.85.1)(sass@1.85.1)(stylus@0.64.0)(terser@5.44.1)(yaml@2.8.4)
+
+  '@scalar/client-side-rendering@0.1.7':
+    dependencies:
+      '@scalar/types': 0.9.6
 
   '@scalar/code-highlight@0.3.4':
     dependencies:

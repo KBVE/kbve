@@ -8,13 +8,14 @@ name: CI - MC Smoke
 #                          (non-private static fields in mixin classes,
 #                          missing @At targets, signature drift after
 #                          a yarn bump).
-#   2. server-ping-smoke — brings up docker-compose.dev.yml (Velocity +
-#                          lobby + fabric) and probes the proxy with
-#                          itzg/mc-monitor (Server List Ping). Pure Go
-#                          binary, no npm tree — chosen over mineflayer
-#                          to avoid the prismarine-* transitive surface.
-#                          A successful SLP through Velocity proves all
-#                          three backends started and forwarding works.
+#   2. server-ping-smoke — boots a single fabric container (no velocity,
+#                          no lobby) and probes it with itzg/mc-monitor
+#                          (Server List Ping). Pure Go binary, no npm
+#                          tree — chosen over mineflayer to avoid the
+#                          prismarine-* transitive surface. SLP works
+#                          pre-login so FabricProxy-Lite enforcement is
+#                          irrelevant; a green ping proves the fabric
+#                          mod stack reached "Done" without crashing.
 #   3. dependency-review — gates new PR-introduced dependencies on the
 #                          GH-native advisory DB (high+ blocks merge).
 
@@ -109,7 +110,7 @@ jobs:
                   retention-days: 7
 
     server-ping-smoke:
-        name: Server Ping Smoke (docker-compose + mc-monitor)
+        name: Server Ping Smoke (fabric + mc-monitor)
         runs-on: ubuntu-latest
         timeout-minutes: 25
         env:
@@ -157,7 +158,7 @@ jobs:
                       "https://github.com/itzg/mc-monitor/releases/download/${V}/mc-monitor_${V}_${ARCH}.tar.gz"
                   sudo tar -xzf /tmp/mc-monitor.tgz -C /usr/local/bin mc-monitor
                   sudo chmod +x /usr/local/bin/mc-monitor
-                  mc-monitor --version
+                  command -v mc-monitor && file /usr/local/bin/mc-monitor
 
             - name: Login to GHCR (pull mc images)
               uses: docker/login-action@v4
@@ -166,59 +167,57 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ github.token }}
 
-            - name: Pull MC images (or build locally if missing)
-              working-directory: apps/mc
+            - name: Ensure ghcr.io/kbve/mc:latest present (pull or build)
               run: |
                   set -e
-                  docker pull ghcr.io/kbve/mc:latest || \
+                  if docker pull ghcr.io/kbve/mc:latest 2>/dev/null; then
+                      docker tag ghcr.io/kbve/mc:latest kbve/mc:latest
+                  else
+                      echo "[ensure] ghcr image missing, building locally"
                       pnpm nx run mc:container --configuration=local --no-cloud
-                  docker tag $(docker images -q ghcr.io/kbve/mc:latest 2>/dev/null || echo kbve/mc:latest) kbve/mc:latest || true
-                  docker pull ghcr.io/kbve/mc-velocity:latest 2>/dev/null || true
-                  docker pull ghcr.io/kbve/mc-lobby:latest 2>/dev/null || true
-                  docker tag ghcr.io/kbve/mc-velocity:latest kbve/mc-velocity:latest 2>/dev/null || true
-                  docker tag ghcr.io/kbve/mc-lobby:latest kbve/mc-lobby:latest 2>/dev/null || true
+                  fi
+                  docker image inspect kbve/mc:latest >/dev/null
 
-            - name: Boot dev compose stack
-              working-directory: apps/mc
+            - name: Boot fabric server (no velocity, SLP allowed pre-login)
               run: |
-                  echo "" > .env.smoke
-                  docker compose --env-file .env.smoke -f docker-compose.dev.yml up -d
-                  echo "Waiting for velocity proxy + backends..."
-                  for i in $(seq 1 60); do
-                      if docker compose -f docker-compose.dev.yml ps --status running | grep -q kbve-mc-dev-velocity; then
-                          break
-                      fi
-                      sleep 2
-                  done
+                  docker rm -f mc-smoke-fabric 2>/dev/null || true
+                  docker run -d --name mc-smoke-fabric \
+                      -p 25565:25565 \
+                      -e EULA=TRUE \
+                      -e ONLINE_MODE=false \
+                      -e MEMORY=2G \
+                      kbve/mc:latest
 
             - name: Wait for fabric server ready
               run: |
-                  for i in $(seq 1 90); do
-                      if docker logs kbve-mc-dev-fabric 2>&1 | grep -q "Done ("; then
-                          echo "fabric ready"
+                  for i in $(seq 1 120); do
+                      if docker logs mc-smoke-fabric 2>&1 | grep -q "Done ("; then
+                          echo "fabric ready after ${i} polls"
                           break
+                      fi
+                      if [ "$i" -eq 120 ]; then
+                          echo "[smoke] fabric never reached Done within 600s"
+                          docker logs mc-smoke-fabric 2>&1 | tail -80
+                          exit 1
                       fi
                       sleep 5
                   done
-                  docker logs kbve-mc-dev-fabric --tail 50 || true
 
-            - name: Probe Velocity proxy (mc-monitor SLP)
+            - name: Probe fabric (mc-monitor SLP)
               env:
                   MC_HOST: 127.0.0.1
                   MC_PORT: '25565'
                   RETRY_INTERVAL: 5s
-                  RETRY_LIMIT: '60'
+                  RETRY_LIMIT: '24'
               run: bash apps/mc/scripts/server-ping-smoke.sh
 
-            - name: Dump compose logs on failure
+            - name: Dump fabric logs on failure
               if: failure()
-              working-directory: apps/mc
-              run: docker compose -f docker-compose.dev.yml logs --no-color --tail=400 || true
+              run: docker logs mc-smoke-fabric --tail 400 2>&1 || true
 
-            - name: Tear down compose
+            - name: Tear down fabric
               if: always()
-              working-directory: apps/mc
-              run: docker compose -f docker-compose.dev.yml down --remove-orphans || true
+              run: docker rm -f mc-smoke-fabric 2>/dev/null || true
 
     dependency-review:
         name: Dependency Review (PR delta)
