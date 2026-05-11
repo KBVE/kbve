@@ -163,6 +163,8 @@ spec:
                         mountPath: /var/lib/firecracker/scratch
                       - name: tmp
                         mountPath: /tmp
+                      - name: tun-device
+                        mountPath: /dev/net/tun
                   # No probes — port 9001 is owned by Gluetun (shared netns).
             volumes:
                 - name: rootfs-cache
@@ -174,3 +176,7 @@ spec:
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
+                - name: tun-device
+                  hostPath:
+                      path: /dev/net/tun
+                      type: CharDevice
