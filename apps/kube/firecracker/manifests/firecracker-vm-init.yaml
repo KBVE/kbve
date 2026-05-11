@@ -31,6 +31,13 @@ data:
           if [ -d /mnt/packages/pip ] && command -v pip3 >/dev/null 2>&1; then
             pip3 install --no-index --find-links /mnt/packages/pip \
               $(cat /tmp/packages.txt) 2>/tmp/pkg-install.log || true
+          elif [ -d /mnt/packages/node_modules ] && command -v node >/dev/null 2>&1; then
+            # Node path: copy the prebuilt node_modules tree into the guest's
+            # global module path so `require('fastify')` resolves without a
+            # registry hop. /tmp is tmpfs; /usr/lib persists for the VM lifetime.
+            mkdir -p /usr/lib/node_modules
+            cp -r /mnt/packages/node_modules/. /usr/lib/node_modules/ 2>/tmp/pkg-install.log || true
+            export NODE_PATH=/usr/lib/node_modules
           fi
 
           umount /mnt/packages 2>/dev/null

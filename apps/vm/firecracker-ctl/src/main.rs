@@ -1147,15 +1147,26 @@ async fn run_vm_lifecycle(
         Some(buf)
     };
 
-    // Resolve the pip package cache ext4 image path.
-    // Only python rootfs images get the pip cache attached.
-    let pkg_cache_path = if pkg_buf.is_some() && req.rootfs.contains("python") {
-        let path = format!("{}/pip-cache.ext4", rootfs_dir);
-        if tokio::fs::try_exists(&path).await.unwrap_or(false) {
-            Some(path)
+    // Resolve the package cache ext4 image path based on rootfs flavour.
+    // Python rootfs → pip-cache.ext4; node rootfs → npm-cache.ext4.
+    let pkg_cache_path = if pkg_buf.is_some() {
+        let (label, filename) = if req.rootfs.contains("python") {
+            ("pip", "pip-cache.ext4")
+        } else if req.rootfs.contains("node") {
+            ("npm", "npm-cache.ext4")
         } else {
-            tracing::warn!("pip-cache.ext4 not found, skipping package install");
+            ("", "")
+        };
+        if filename.is_empty() {
             None
+        } else {
+            let path = format!("{}/{}", rootfs_dir, filename);
+            if tokio::fs::try_exists(&path).await.unwrap_or(false) {
+                Some(path)
+            } else {
+                tracing::warn!("{filename} not found, skipping {label} package install");
+                None
+            }
         }
     } else {
         None

@@ -1,0 +1,100 @@
+# CronJob: refreshes the npm package cache (npm-cache.ext4) weekly.
+# Resolves the latest Fastify stack into a pre-built node_modules tree
+# and rebuilds the ext4 image. Mirrors the pip-cache pattern so node
+# VMs install offline at boot via `cp -r /mnt/packages/node_modules`.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: firecracker-npm-cache-refresh
+    namespace: firecracker
+    labels:
+        app: firecracker-npm-cache
+spec:
+    schedule: '15 4 * * 0' # Weekly: Sunday 04:15 UTC (offset 15min from pip refresh)
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 86400
+            template:
+                metadata:
+                    labels:
+                        # Reuse the rootfs-init label for network policy egress
+                        app: firecracker-rootfs-init
+                spec:
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: npm-refresh
+                          image: alpine:3.21
+                          securityContext:
+                              runAsUser: 0
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -eu
+                                  OUTPUT="/rootfs"
+                                  TARGET="${OUTPUT}/npm-cache.ext4"
+
+                                  echo "=== Npm cache refresh ==="
+
+                                  apk add --no-cache nodejs npm e2fsprogs
+
+                                  NPMCACHE=$(mktemp -d)
+                                  cd "${NPMCACHE}"
+
+                                  PACKAGES=$(grep -v '^\s*$' /npm-packages/packages.txt | tr '\n' ' ')
+                                  echo "Resolving: ${PACKAGES}"
+
+                                  # Bootstrap a throwaway project and install everything into it.
+                                  # The resulting node_modules tree is what gets shipped on the
+                                  # ext4 — at runtime the VM cp's it into /usr/lib/node_modules
+                                  # so `require('fastify')` resolves without a registry hop.
+                                  npm init -y > /dev/null
+                                  npm install --no-audit --no-fund --omit=dev --prefer-online ${PACKAGES} 2>&1 || \
+                                  npm install --no-audit --no-fund --omit=dev ${PACKAGES} 2>&1 || true
+
+                                  if [ ! -d "${NPMCACHE}/node_modules" ]; then
+                                      echo "WARNING: node_modules not produced, keeping existing cache"
+                                      rm -rf "${NPMCACHE}"
+                                      exit 0
+                                  fi
+
+                                  PKG_COUNT=$(ls -1 "${NPMCACHE}/node_modules" 2>/dev/null | wc -l)
+                                  echo "Resolved ${PKG_COUNT} top-level package entries"
+
+                                  # Stage just the node_modules dir into a clean parent so the
+                                  # ext4 layout is /node_modules at the root and nothing else.
+                                  STAGE=$(mktemp -d)
+                                  mv "${NPMCACHE}/node_modules" "${STAGE}/node_modules"
+
+                                  # Atomic-swap build: temp file, then mv.
+                                  TMPIMG=$(mktemp -p "${OUTPUT}" npm-cache.XXXXXX)
+                                  dd if=/dev/zero of="${TMPIMG}" bs=1M count=0 seek=384 2>/dev/null
+                                  mkfs.ext4 -F -d "${STAGE}" "${TMPIMG}"
+                                  mv "${TMPIMG}" "${TARGET}"
+
+                                  rm -rf "${NPMCACHE}" "${STAGE}"
+                                  echo "npm-cache.ext4 refreshed: $(du -h ${TARGET} | cut -f1) (${PKG_COUNT} packages)"
+                                  echo "=== Done ==="
+                          resources:
+                              requests:
+                                  cpu: 250m
+                                  memory: 512Mi
+                              limits:
+                                  cpu: 500m
+                                  memory: 1Gi
+                          volumeMounts:
+                              - name: rootfs
+                                mountPath: /rootfs
+                              - name: npm-packages
+                                mountPath: /npm-packages
+                                readOnly: true
+                    volumes:
+                        - name: rootfs
+                          persistentVolumeClaim:
+                              claimName: firecracker-rootfs
+                        - name: npm-packages
+                          configMap:
+                              name: firecracker-npm-packages
