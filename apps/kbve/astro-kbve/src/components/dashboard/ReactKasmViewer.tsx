@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { kasmService, KasmState } from './kasmService';
@@ -18,6 +18,11 @@ export default function ReactKasmViewer() {
 	const [workspaceName] = useState(() => getWorkspaceName());
 	const [launchError, setLaunchError] = useState<string | null>(null);
 	const [launchReady, setLaunchReady] = useState(false);
+	const iframeRef = useRef<HTMLIFrameElement | null>(null);
+	const [vncStatus, setVncStatus] = useState<{
+		text: string;
+		level: 'normal' | 'warn' | 'error';
+	} | null>(null);
 
 	// Fetch KASM workspaces on mount
 	useEffect(() => {
@@ -39,6 +44,93 @@ export default function ReactKasmViewer() {
 		if (!workspaceName || !token) return null;
 		return `/dashboard/kasm/launch?access_token=${encodeURIComponent(token)}`;
 	}, [workspaceName, token]);
+
+	// The iframe is same-origin (allow-same-origin sandbox + /dashboard path),
+	// so we can read noVNC's status DOM directly and mirror it in the outer
+	// React shell. Surfaces "Connecting", "Disconnected: …", and the close
+	// reason text the backend bridge plants on upstream failure — otherwise
+	// those errors are buried in the iframe's overlay where users miss them.
+	useEffect(() => {
+		if (!launchReady) return;
+
+		let observer: MutationObserver | null = null;
+		let pollTimer: ReturnType<typeof setInterval> | null = null;
+		let cancelled = false;
+
+		const STATUS_SELECTORS = [
+			'#noVNC_status',
+			'#noVNC_alert',
+			'.noVNC_status',
+		];
+
+		const readStatus = (root: Document): HTMLElement | null => {
+			for (const sel of STATUS_SELECTORS) {
+				const el = root.querySelector(sel) as HTMLElement | null;
+				if (el) return el;
+			}
+			return null;
+		};
+
+		const classifyLevel = (
+			el: HTMLElement,
+		): 'normal' | 'warn' | 'error' => {
+			const cls = el.className.toLowerCase();
+			if (cls.includes('error')) return 'error';
+			if (cls.includes('warn')) return 'warn';
+			return 'normal';
+		};
+
+		const attach = () => {
+			if (cancelled) return true;
+			const iframe = iframeRef.current;
+			let doc: Document | null = null;
+			try {
+				doc = iframe?.contentDocument ?? null;
+			} catch {
+				doc = null;
+			}
+			if (!doc) return false;
+
+			const node = readStatus(doc);
+			if (!node) return false;
+
+			const update = () => {
+				const text = node.textContent?.trim() ?? '';
+				if (!text) {
+					setVncStatus(null);
+					return;
+				}
+				setVncStatus({ text, level: classifyLevel(node) });
+			};
+
+			update();
+			observer = new MutationObserver(update);
+			observer.observe(node, {
+				childList: true,
+				subtree: true,
+				characterData: true,
+				attributes: true,
+				attributeFilter: ['class'],
+			});
+			return true;
+		};
+
+		if (!attach()) {
+			pollTimer = setInterval(() => {
+				if (attach() && pollTimer) {
+					clearInterval(pollTimer);
+					pollTimer = null;
+				}
+			}, 500);
+		}
+
+		return () => {
+			cancelled = true;
+			observer?.disconnect();
+			if (pollTimer) clearInterval(pollTimer);
+			setVncStatus(null);
+		};
+	}, [launchReady]);
 
 	// Probe the launch endpoint before mounting the iframe so axum errors
 	// (kasm-vnc-pw missing, K8s API down, JWT expired) surface in the React
@@ -206,6 +298,13 @@ export default function ReactKasmViewer() {
 	}
 
 	// --- Connected: show iframe ---
+	const statusColor =
+		vncStatus?.level === 'error'
+			? '#ef4444'
+			: vncStatus?.level === 'warn'
+				? '#f59e0b'
+				: '#22c55e';
+
 	return (
 		<div style={containerStyle}>
 			<div style={headerStyle}>
@@ -217,10 +316,41 @@ export default function ReactKasmViewer() {
 					<span style={statusBadgeStyle}>
 						{workspace.workspace.image}
 					</span>
+					{vncStatus && (
+						<span
+							title={vncStatus.text}
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: '0.35rem',
+								fontSize: '0.75rem',
+								fontWeight: 500,
+								padding: '0.15rem 0.55rem',
+								borderRadius: '999px',
+								background: `${statusColor}22`,
+								border: `1px solid ${statusColor}55`,
+								color: statusColor,
+								maxWidth: '24rem',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
+							}}>
+							<span
+								style={{
+									width: 6,
+									height: 6,
+									borderRadius: '50%',
+									background: statusColor,
+								}}
+							/>
+							{vncStatus.text}
+						</span>
+					)}
 				</h2>
 			</div>
 			<div style={iframeWrapperStyle}>
 				<iframe
+					ref={iframeRef}
 					src={proxyUrl}
 					title={`KASM Workspace: ${workspaceName}`}
 					style={iframeStyle}
