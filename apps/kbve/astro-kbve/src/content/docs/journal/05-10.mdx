@@ -38,6 +38,25 @@ import { Adsense } from '@/components/astropad';
     This has a weird effect on the gameplay loop because then it knocks the server out for new players, who get the update and then their client crashes.
     I will have to take steps to make sure that it does not happen!
 
+### KBVE Forum Flow
+
+```mermaid
+
+flowchart TB
+    CH["ClickHouse<br/>analytics/events<br/>rankings/reports"]
+    PG["Postgres<br/>truth/RLS"]
+    RW["Rust worker<br/>materializer"]
+    AX["Axum<br/>Askama SSR"]
+    VK["Valkey<br/>SSR cache"]
+
+    PG -- jobs --> RW
+    RW -- batched events --> CH
+    RW -- writes hot payloads --> VK
+    AX -- read first --> VK
+    AX -- fallback --> PG
+
+```
+
 
 ## 2025
 

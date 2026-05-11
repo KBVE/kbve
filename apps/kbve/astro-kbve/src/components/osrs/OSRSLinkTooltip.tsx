@@ -4,9 +4,32 @@
  * Attaches to all <a> tags with data-osrs-tooltip attribute inside the
  * OSRS panel. Shows item preview (name, icon, stats) on hover.
  * Uses @kbve/droid global tooltip state for coordination.
+ *
+ * When data-osrs-slug is present, the tooltip lazy-fetches the shared
+ * /api/osrs.json manifest once and enriches the hover card with real
+ * stats (members, value, highalch, slot) keyed by slug.
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { openTooltip, closeTooltip } from '@kbve/droid';
+
+interface ManifestEntry {
+	id: number;
+	name: string;
+	slug: string;
+	icon: string;
+	value: number;
+	highalch: number | null;
+	limit: number | null;
+	members: boolean;
+	slot?: string;
+	weapon?: string;
+	tags: string[];
+}
+
+interface ManifestPayload {
+	count: number;
+	items: ManifestEntry[];
+}
 
 interface TooltipData {
 	name: string;
@@ -15,7 +38,30 @@ interface TooltipData {
 	members?: boolean;
 	highalch?: number | null;
 	value?: number;
+	limit?: number | null;
+	slot?: string;
 	relationship?: string;
+}
+
+let manifestPromise: Promise<Map<string, ManifestEntry>> | null = null;
+
+function loadManifest(): Promise<Map<string, ManifestEntry>> {
+	if (manifestPromise) return manifestPromise;
+	manifestPromise = fetch('/api/osrs.json')
+		.then((r) => {
+			if (!r.ok) throw new Error(`HTTP ${r.status}`);
+			return r.json() as Promise<ManifestPayload>;
+		})
+		.then((payload) => {
+			const map = new Map<string, ManifestEntry>();
+			for (const item of payload.items) map.set(item.slug, item);
+			return map;
+		})
+		.catch((err) => {
+			manifestPromise = null;
+			throw err;
+		});
+	return manifestPromise;
 }
 
 const RELATIONSHIP_LABELS: Record<string, { label: string; color: string }> = {
@@ -43,7 +89,10 @@ export default function OSRSLinkTooltip() {
 		const name = el.dataset.osrsName || el.textContent || '';
 		const icon = el.dataset.osrsIcon || '';
 		const slug = el.dataset.osrsSlug || '';
-		const members = el.dataset.osrsMembers === 'true';
+		const hasMembersAttr = el.dataset.osrsMembers !== undefined;
+		const members = hasMembersAttr
+			? el.dataset.osrsMembers === 'true'
+			: undefined;
 		const highalch = el.dataset.osrsHighalch
 			? parseInt(el.dataset.osrsHighalch, 10)
 			: null;
@@ -52,10 +101,55 @@ export default function OSRSLinkTooltip() {
 			: undefined;
 		const relationship = el.dataset.osrsRelationship || undefined;
 
-		setData({ name, icon, slug, members, highalch, value, relationship });
+		const base: TooltipData = {
+			name,
+			icon,
+			slug,
+			members,
+			highalch,
+			value,
+			relationship,
+		};
+
+		setData(base);
 		setPos({ x: e.clientX, y: e.clientY });
 		setVisible(true);
 		openTooltip(TOOLTIP_ID);
+
+		if (slug) {
+			loadManifest()
+				.then((map) => {
+					const entry = map.get(slug);
+					if (!entry) return;
+					setData((prev) =>
+						prev && prev.slug === slug
+							? {
+									...prev,
+									name: prev.name || entry.name,
+									icon: prev.icon || entry.icon,
+									members:
+										prev.members !== undefined
+											? prev.members
+											: entry.members,
+									highalch:
+										prev.highalch !== null &&
+										prev.highalch !== undefined
+											? prev.highalch
+											: entry.highalch,
+									value:
+										prev.value !== undefined
+											? prev.value
+											: entry.value,
+									limit: entry.limit,
+									slot: entry.slot,
+								}
+							: prev,
+					);
+				})
+				.catch(() => {
+					/* tooltip falls back to attr-only values */
+				});
+		}
 	}, []);
 
 	const hide = useCallback(() => {
@@ -147,7 +241,7 @@ export default function OSRSLinkTooltip() {
 					}}
 				/>
 			)}
-			<div>
+			<div style={{ minWidth: 0 }}>
 				<div
 					style={{
 						fontWeight: 600,
@@ -156,29 +250,76 @@ export default function OSRSLinkTooltip() {
 					}}>
 					{data.name}
 				</div>
-				{relInfo && (
-					<span
-						style={{
-							fontSize: '0.5625rem',
-							fontWeight: 500,
-							padding: '0.0625rem 0.25rem',
-							borderRadius: '0.125rem',
-							background: `${relInfo.color}33`,
-							color: relInfo.color,
-							display: 'inline-block',
-							marginTop: '0.125rem',
-						}}>
-						{relInfo.label}
-					</span>
-				)}
-				{data.highalch != null && (
+				<div
+					style={{
+						display: 'flex',
+						gap: '0.25rem',
+						flexWrap: 'wrap',
+						marginTop: '0.1875rem',
+					}}>
+					{relInfo && (
+						<span
+							style={{
+								fontSize: '0.5625rem',
+								fontWeight: 500,
+								padding: '0.0625rem 0.25rem',
+								borderRadius: '0.125rem',
+								background: `${relInfo.color}33`,
+								color: relInfo.color,
+							}}>
+							{relInfo.label}
+						</span>
+					)}
+					{data.members !== undefined && (
+						<span
+							style={{
+								fontSize: '0.5625rem',
+								fontWeight: 700,
+								padding: '0.0625rem 0.25rem',
+								borderRadius: '0.125rem',
+								background: data.members
+									? 'rgba(245, 158, 11, 0.25)'
+									: 'rgba(148, 163, 184, 0.25)',
+								color: data.members ? '#fbbf24' : '#cbd5e1',
+							}}>
+							{data.members ? 'P2P' : 'F2P'}
+						</span>
+					)}
+					{data.slot && (
+						<span
+							style={{
+								fontSize: '0.5625rem',
+								fontWeight: 600,
+								padding: '0.0625rem 0.25rem',
+								borderRadius: '0.125rem',
+								background: 'rgba(56, 189, 248, 0.2)',
+								color: '#7dd3fc',
+							}}>
+							{data.slot}
+						</span>
+					)}
+				</div>
+				{(data.highalch != null ||
+					data.value !== undefined ||
+					data.limit != null) && (
 					<div
 						style={{
 							fontSize: '0.625rem',
 							color: 'var(--sl-color-gray-3, #999)',
-							marginTop: '0.125rem',
+							marginTop: '0.1875rem',
+							display: 'flex',
+							gap: '0.5rem',
+							flexWrap: 'wrap',
 						}}>
-						HA: {data.highalch.toLocaleString()} gp
+						{data.value !== undefined && data.value > 0 && (
+							<span>Value: {data.value.toLocaleString()} gp</span>
+						)}
+						{data.highalch != null && data.highalch > 0 && (
+							<span>HA: {data.highalch.toLocaleString()} gp</span>
+						)}
+						{data.limit != null && (
+							<span>GE: {data.limit.toLocaleString()}</span>
+						)}
 					</div>
 				)}
 			</div>
