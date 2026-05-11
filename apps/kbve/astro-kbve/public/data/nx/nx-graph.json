@@ -12770,6 +12770,30 @@
               "configurations": {},
               "parallelism": true
             },
+            "smoke:client": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "bash apps/mc/scripts/headless-client-smoke.sh"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke:ping": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "bash apps/mc/scripts/server-ping-smoke.sh"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "dev:down": {
               "executor": "nx:run-commands",
               "cache": false,

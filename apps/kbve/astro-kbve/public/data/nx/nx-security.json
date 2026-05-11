@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-10T08:47:30Z",
+  "generated_at": "2026-05-11T09:23:00Z",
   "summary": {
     "critical": 1,
-    "high": 39,
-    "medium": 65,
+    "high": 37,
+    "medium": 62,
     "low": 6,
     "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 96,
+      "total": 91,
       "severities": {
         "critical": 1,
-        "high": 39,
-        "medium": 50,
+        "high": 37,
+        "medium": 47,
         "low": 6,
         "info": 0
       },
@@ -208,34 +208,6 @@
           "url": "https://github.com/advisories/GHSA-gmq8-994r-jv83"
         },
         {
-          "id": "1114875",
-          "title": "h3 has a Path Traversal via Percent-Encoded Dot Segments in serveStatic Allows Arbitrary File Read",
-          "severity": "medium",
-          "package": "h3",
-          "url": "https://github.com/advisories/GHSA-wr4h-v87w-p3r7"
-        },
-        {
-          "id": "1115114",
-          "title": "h3: SSE Event Injection via Unsanitized Carriage Return (`\\r`) in EventStream Data and Comment Fields (Bypass of CVE Fix)",
-          "severity": "medium",
-          "package": "h3",
-          "url": "https://github.com/advisories/GHSA-4hxc-9384-m385"
-        },
-        {
-          "id": "1115117",
-          "title": "h3: Double Decoding in `serveStatic` Bypasses `resolveDotSegments` Path Traversal Protection via `%252e%252e`",
-          "severity": "medium",
-          "package": "h3",
-          "url": "https://github.com/advisories/GHSA-72gr-qfp7-vwhw"
-        },
-        {
-          "id": "1115161",
-          "title": "h3 has a Server-Sent Events Injection via Unsanitized Newlines in Event Stream Fields",
-          "severity": "high",
-          "package": "h3",
-          "url": "https://github.com/advisories/GHSA-22cc-p3c6-wpvm"
-        },
-        {
           "id": "1115357",
           "title": "Prototype Pollution via parse() in NodeJS flatted",
           "severity": "high",
@@ -423,13 +395,6 @@
           "severity": "medium",
           "package": "dompurify",
           "url": "https://github.com/advisories/GHSA-cj63-jhhr-wcxv"
-        },
-        {
-          "id": "1116102",
-          "title": "defu: Prototype pollution via `__proto__` key in defaults argument",
-          "severity": "high",
-          "package": "defu",
-          "url": "https://github.com/advisories/GHSA-737v-mqg7-c878"
         },
         {
           "id": "1116229",
