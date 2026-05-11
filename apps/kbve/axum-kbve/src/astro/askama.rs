@@ -6,9 +6,25 @@ use axum::{
     response::{Html, IntoResponse, Response},
 };
 
+// TODO: Improve the string allocation around the askama code, there is definitely way too many allocations then what we need.
+/*
+
+1) Literals/Config/requests path fields -> Cow<'a, str> or &'a str.
+2) Shrink tiny derived strings like username_first_char -> String -> (char)
+3) Double check the pre-rendering partial HTML into String for hot lists, could be done better.
+4) DB-Owned fields return as Strings -> investigate the borrow directly from a row/model lifetime.
+4A) -
+    4A1) Postgres Background Worker -> Function -> returns BYTEA
+    4A2) Rust recieves Vec<u8>
+    4A3) Parse borrowed views from Vec<u8> via rkyv / postcord / fb / pB
+    4A4) Askama -> &Vec<u8>
+
+    For this , we will have to make some changes to the kilobase extension to support the flow, ideally allowing a background worker to mainly handle the Vec<u8>.
+
+*/
+
 /// Wrapper for rendering Askama templates as HTML responses
 pub struct TemplateResponse<T: Template>(pub T);
-
 impl<T: Template> IntoResponse for TemplateResponse<T> {
     fn into_response(self) -> Response {
         match self.0.render() {
