@@ -49,7 +49,8 @@
 					"cp packages/npm/astro/package.json dist/packages/npm/astro/package.json",
 					"cp packages/npm/astro/README.md dist/packages/npm/astro/README.md",
 					"mkdir -p dist/packages/npm/astro/components",
-					"cp packages/npm/astro/src/components/*.astro dist/packages/npm/astro/components/",
+					"cp -R packages/npm/astro/src/components/. dist/packages/npm/astro/components/",
+					"cp -R packages/npm/astro/shims/. dist/packages/npm/astro/",
 					"nx nx-release-publish astro"
 				],
 				"parallel": false

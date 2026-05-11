@@ -16,6 +16,28 @@ export type { ModalOverlayProps } from './react/ModalOverlay';
 export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
 
+// Ruffle
+export { ReactRuffle } from './components/ruffle/ReactRuffle';
+export type { ReactRuffleProps } from './components/ruffle/ReactRuffle';
+export {
+	RUFFLE_DEFAULT_CDN,
+	RUFFLE_DEFAULT_SCRIPT_URL,
+	RUFFLE_SCRIPT_ID,
+	getRuffleWindow,
+	mergeRuffleConfig,
+	resolveRuffleScriptUrl,
+} from './components/ruffle/ruffle';
+export type {
+	RuffleApi,
+	RuffleAutoplay,
+	RuffleCdn,
+	RuffleConfig,
+	RuffleLoadOptions,
+	RufflePlayerElement,
+	RufflePlayerWindow,
+	RuffleSourceOptions,
+} from './components/ruffle/ruffle';
+
 // Auth
 export {
 	AuthBridge,
