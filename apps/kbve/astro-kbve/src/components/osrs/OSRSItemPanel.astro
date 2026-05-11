@@ -19,7 +19,11 @@ import OSRSShops from './OSRSShops.astro';
 import OSRSUsedIn from './OSRSUsedIn.astro';
 import OSRSHistory from './OSRSHistory.astro';
 import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
-import type { OSRSExtended } from '@/data/schema';
+import { getUsedInIndex } from '@/data/osrs-used-in-index';
+import type {
+	OSRSExtended,
+	OSRSUsedIn as OSRSUsedInEntry,
+} from '@/data/schema';
 import {
 	hasEquipment,
 	hasSpecialAttack,
@@ -78,9 +82,18 @@ const gatheringData = showGathering ? getGathering(item) : undefined;
 const showMarketStrategy = hasMarketStrategy(item);
 const showTradingTips = hasTradingTips(item);
 const showShops = hasShopSources(item);
-const showUsedIn = hasUsedIn(item);
 const showHistory = hasHistory(item);
 const showTrivia = hasItemTrivia(item);
+
+let usedInEntries: OSRSUsedInEntry[] | undefined;
+if (hasUsedIn(item)) {
+	usedInEntries = item.used_in;
+} else {
+	const index = await getUsedInIndex();
+	const computed = index.get(item.slug);
+	if (computed && computed.length > 0) usedInEntries = computed;
+}
+const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 ---
 
 <OSRSItemJsonLd data={item} />
@@ -320,9 +333,9 @@ const showTrivia = hasItemTrivia(item);
 
 			<!-- Used in production -->
 			{
-				showUsedIn && item.used_in && (
+				showUsedIn && usedInEntries && (
 					<div class="osrs-bento__item osrs-bento__item--wide">
-						<OSRSUsedIn usedIn={item.used_in} />
+						<OSRSUsedIn usedIn={usedInEntries} />
 					</div>
 				)
 			}
