@@ -373,7 +373,13 @@ fn router(state: AppState) -> Router {
     let main_app = static_router.merge(public_router).layer(middleware);
 
     // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit)
-    let bypass_router = Router::new()
+    let mut bypass_router = Router::new();
+    if let Some(mcp_svc) = crate::mcp::build_service() {
+        bypass_router = bypass_router
+            .route_service("/api/mcp", mcp_svc.clone())
+            .route_service("/api/mcp/", mcp_svc);
+    }
+    let bypass_router = bypass_router
         .route(
             "/dashboard/grafana/proxy/{*path}",
             any(super::proxy::grafana_proxy_handler),
