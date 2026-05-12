@@ -69,7 +69,7 @@ export async function swRecovery(
 
 	result.supported = true;
 
-	let registrations: ServiceWorkerRegistration[] = [];
+	let registrations: readonly ServiceWorkerRegistration[] = [];
 	try {
 		registrations = await navigator.serviceWorker.getRegistrations();
 	} catch (err) {
