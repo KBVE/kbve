@@ -21,6 +21,11 @@ import {
 	valueHand,
 } from './cards';
 import { BASE_HEIGHT, BASE_WIDTH, CARD_SIZE, COLORS, FONT } from './config';
+import {
+	DealerAnimation,
+	type CardPlacement,
+	type HandOwner,
+} from './animation/dealerAnimation';
 
 const CARD_TEXTURE_PREFIX = 'blackjack-card';
 const CARD_TEXTURE_MARGIN = {
@@ -71,27 +76,17 @@ interface ButtonView {
 	lastEnabled: boolean | null;
 }
 
-type HandOwner = 'dealer' | 'player';
-
-interface CardPlacement {
-	textureKey: string;
-	x: number;
-	y: number;
-	owner: HandOwner;
-	index: number;
-}
-
 export class BlackjackScene extends Phaser.Scene {
 	private state: BlackjackState = createBlackjackState();
 	private cardLayer!: Phaser.GameObjects.Container;
 	private cardViews: Phaser.GameObjects.Image[] = [];
 	private activeCardViews = 0;
 	private dealLayer!: Phaser.GameObjects.Container;
-	private flyingCardViews: Phaser.GameObjects.Image[] = [];
-	private previousDealerCardCount = 0;
-	private previousPlayerCardCount = 0;
+	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private buttons: ButtonView[] = [];
+	private textCache = new Map<string, string>();
+	private colorCache = new Map<string, string>();
 	private statusText!: Phaser.GameObjects.Text;
 	private strategyText!: Phaser.GameObjects.Text;
 	private bankrollText!: Phaser.GameObjects.Text;
@@ -112,6 +107,12 @@ export class BlackjackScene extends Phaser.Scene {
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
 		this.dealLayer = this.add.container(0, 0).setDepth(15);
+		this.dealerAnimation = new DealerAnimation(this, this.dealLayer, {
+			cardBackTextureKey: this.cardTextureKey('back'),
+			shoePosition: SHOE_POSITION,
+			duration: DEAL_ANIMATION.duration,
+			stagger: DEAL_ANIMATION.stagger,
+		});
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.createHud();
 		this.createButtons();
@@ -528,7 +529,7 @@ export class BlackjackScene extends Phaser.Scene {
 		this.drawHand(dealerCards, BASE_WIDTH / 2, 166);
 		this.drawHand(playerCards, BASE_WIDTH / 2, 420);
 		this.hideUnusedCardViews();
-		this.animateNewCards(dealerCards, playerCards);
+		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
 		this.updateText();
 		this.updateButtons();
 	}
@@ -618,77 +619,6 @@ export class BlackjackScene extends Phaser.Scene {
 			this.cardViews[i].setVisible(false);
 			this.cardViews[i].setActive(false);
 		}
-	}
-
-	private animateNewCards(
-		dealerCards: readonly CardPlacement[],
-		playerCards: readonly CardPlacement[],
-	) {
-		const previousDealerCount = this.previousDealerCardCount;
-		const previousPlayerCount = this.previousPlayerCardCount;
-		this.previousDealerCardCount = dealerCards.length;
-		this.previousPlayerCardCount = playerCards.length;
-
-		const newCards: CardPlacement[] = [];
-		if (dealerCards.length > previousDealerCount) {
-			newCards.push(...dealerCards.slice(previousDealerCount));
-		}
-		if (playerCards.length > previousPlayerCount) {
-			newCards.push(...playerCards.slice(previousPlayerCount));
-		}
-		if (newCards.length === 0) return;
-
-		newCards
-			.sort(
-				(a, b) => a.index - b.index || (a.owner === 'player' ? -1 : 1),
-			)
-			.forEach((placement, index) => {
-				this.animateCardFromShoe(placement, index);
-			});
-	}
-
-	private animateCardFromShoe(placement: CardPlacement, order: number) {
-		const view = this.getFlyingCardView();
-		const startX = SHOE_POSITION.x + 18;
-		const startY = SHOE_POSITION.y + 16;
-		view.setTexture(placement.textureKey)
-			.setPosition(startX, startY)
-			.setScale(0.78)
-			.setAlpha(0.92)
-			.setAngle(-8)
-			.setVisible(true)
-			.setActive(true);
-
-		this.tweens.killTweensOf(view);
-		this.tweens.add({
-			targets: view,
-			x: placement.x,
-			y: placement.y,
-			scale: 1,
-			alpha: 0,
-			angle: 0,
-			duration: DEAL_ANIMATION.duration,
-			delay: order * DEAL_ANIMATION.stagger,
-			ease: 'Sine.easeOut',
-			onComplete: () => {
-				view.setVisible(false);
-				view.setActive(false);
-			},
-		});
-	}
-
-	private getFlyingCardView(): Phaser.GameObjects.Image {
-		const inactiveView = this.flyingCardViews.find((view) => !view.active);
-		if (inactiveView) return inactiveView;
-
-		const view = this.add
-			.image(0, 0, this.cardTextureKey('back'))
-			.setOrigin(0)
-			.setVisible(false)
-			.setActive(false);
-		this.flyingCardViews.push(view);
-		this.dealLayer.add(view);
-		return view;
 	}
 
 	private createCardTextures() {
@@ -1066,21 +996,59 @@ export class BlackjackScene extends Phaser.Scene {
 					? `  (+$${this.state.lastDelta})`
 					: `  (-$${Math.abs(this.state.lastDelta)})`;
 
-		this.bankrollText.setText(
+		this.setTextIfChanged(
+			'bankroll',
+			this.bankrollText,
 			`Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
 		);
-		this.statusText.setText(this.state.message);
-		this.statusText.setColor(this.getStatusColor());
-		this.strategyText.setText(this.getStrategyHint());
-		this.betChipText.setText(`$${this.state.bet}`);
-		this.dealerValueText.setText(dealerValue);
-		this.playerValueText.setText(playerValue);
-		this.shoeText.setText(
+		this.setTextIfChanged('status', this.statusText, this.state.message);
+		this.setColorIfChanged(
+			'statusColor',
+			this.statusText,
+			this.getStatusColor(),
+		);
+		this.setTextIfChanged(
+			'strategy',
+			this.strategyText,
+			this.getStrategyHint(),
+		);
+		this.setTextIfChanged(
+			'betChip',
+			this.betChipText,
+			`$${this.state.bet}`,
+		);
+		this.setTextIfChanged('dealerValue', this.dealerValueText, dealerValue);
+		this.setTextIfChanged('playerValue', this.playerValueText, playerValue);
+		this.setTextIfChanged(
+			'shoe',
+			this.shoeText,
 			`Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
 		);
-		this.statsText.setText(
+		this.setTextIfChanged(
+			'stats',
+			this.statsText,
 			`Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
 		);
+	}
+
+	private setTextIfChanged(
+		key: string,
+		text: Phaser.GameObjects.Text,
+		value: string,
+	) {
+		if (this.textCache.get(key) === value) return;
+		this.textCache.set(key, value);
+		text.setText(value);
+	}
+
+	private setColorIfChanged(
+		key: string,
+		text: Phaser.GameObjects.Text,
+		value: string,
+	) {
+		if (this.colorCache.get(key) === value) return;
+		this.colorCache.set(key, value);
+		text.setColor(value);
 	}
 
 	private formatValue(cards: readonly Card[]): string {
