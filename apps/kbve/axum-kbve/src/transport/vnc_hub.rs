@@ -269,10 +269,6 @@ async fn create_session(
         primary_id: AtomicUsize::new(0),
     });
 
-    // Upstream reader: for every byte from KubeVirt, append to the cache
-    // and broadcast it. Holding the cache lock across the broadcast send
-    // means a concurrent `run_client` setup cannot race into a state where
-    // its snapshot + subscribe straddles a published byte (no gap, no dup).
     {
         let session = session.clone();
         tokio::spawn(async move {
@@ -297,13 +293,15 @@ async fn create_session(
                 if cache.len() + bytes.len() <= MAX_CACHE_BYTES {
                     cache.extend_from_slice(&bytes);
                 }
-                // Send while still holding the lock so client setup either
-                // sees this byte in its snapshot OR in its live stream —
-                // never both, never neither.
                 let _ = session.broadcast.send(bytes);
                 drop(cache);
             }
             debug!("VNC upstream reader closed for {}", session.vm_key);
+
+            sessions().remove_if(&session.vm_key, |_, s| Arc::ptr_eq(s, &session));
+            if let Some(mut sink) = session.upstream_sink.lock().await.take() {
+                let _ = sink.close().await;
+            }
         });
     }
 

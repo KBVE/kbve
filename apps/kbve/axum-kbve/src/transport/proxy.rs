@@ -1493,7 +1493,7 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
 
     let access_token = extract_auth_token(&headers, query.as_deref()).unwrap_or_default();
     let cookie = format!(
-        "kasm_session={access_token}; Path=/dashboard/kasm/proxy/; HttpOnly; Secure; SameSite=Strict; Max-Age=900"
+        "kasm_session={access_token}; Path=/dashboard/kasm/proxy/; HttpOnly; Secure; SameSite=Strict; Max-Age=14400"
     );
 
     Response::builder()
