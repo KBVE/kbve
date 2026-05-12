@@ -38,7 +38,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # OpenAPI spec generation. Emits /api/openapi.json which the astro side
 # renders via Scalar at /dashboard/api and consumes for /llms.txt.
-utoipa = { version = "5", features = ["axum_extras", "chrono"] }
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
 
 # MCP server. Re-uses the utoipa OpenAPI spec to expose every annotated
 # handler as an MCP tool at /api/mcp. Token passthrough lets clients BYO
@@ -86,7 +86,8 @@ webpki-roots = "0.26"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
-kbve = { path = "../../../packages/rust/kbve" }
+kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
+uuid = { version = "1", features = ["v4", "serde"] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }

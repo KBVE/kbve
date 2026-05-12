@@ -68,7 +68,8 @@ impl Modify for SecurityAddon {
         (name = "osrs", description = "Old School RuneScape item lookups."),
         (name = "mc", description = "Minecraft RCON-backed live data: player list, head textures."),
         (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
-        (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW.")
+        (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."),
+        (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows.")
     ),
     paths(
         // system
@@ -99,6 +100,10 @@ impl Modify for SecurityAddon {
         crate::transport::https::api_staff_edit_comment,
         // dashboard
         crate::transport::proxy::clickhouse_logs_proxy_handler,
+        // wallet
+        crate::transport::wallet::me_balance,
+        crate::transport::wallet::me_coupons,
+        crate::transport::wallet::me_redeem_coupon,
     ),
     components(
         schemas(
@@ -124,6 +129,11 @@ impl Modify for SecurityAddon {
             EditCommentBody,
             ClickHouseLogsRequest,
             ClickHouseLogsResponse,
+            // wallet
+            crate::transport::wallet::BalanceDto,
+            crate::transport::wallet::CouponDto,
+            crate::transport::wallet::RedeemCouponBody,
+            crate::transport::wallet::RedeemCouponDto,
         )
     ),
     modifiers(&SecurityAddon)

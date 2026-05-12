@@ -364,6 +364,15 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/me/staff", get(api_me_staff))
         .route("/api/v1/forum/spaces", get(api_list_spaces))
         .route("/api/v1/forum/tags", get(api_list_tags))
+        // Wallet — authenticated user surface. Service routes
+        // (/api/v1/wallet/service/*) are deferred to a follow-up; the
+        // dashboard's Claim 1000 KHash button only needs the user proxy path.
+        .route("/api/v1/wallet/me/balance", get(super::wallet::me_balance))
+        .route("/api/v1/wallet/me/coupons", get(super::wallet::me_coupons))
+        .route(
+            "/api/v1/wallet/me/redeem-coupon",
+            post(super::wallet::me_redeem_coupon),
+        )
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -2893,7 +2902,7 @@ async fn forum_compose_handler(
 
 /// Helper: pull `Authorization: Bearer <token>` and verify via the JWT
 /// cache. Returns Ok(user_id) or an error response.
-async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
+pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())
