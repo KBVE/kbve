@@ -1,6 +1,7 @@
 ---
 import ReactVMAuth from './ReactVMAuth';
 import ReactCodeIDE from './ReactCodeIDE';
+import ReactDeployPanel from './ReactDeployPanel';
 ---
 
 <section
@@ -11,6 +12,7 @@ import ReactCodeIDE from './ReactCodeIDE';
 		<ReactVMAuth client:only="react">
 			<div class="not-content ide-dashboard">
 				<ReactCodeIDE client:only="react" />
+				<ReactDeployPanel client:only="react" />
 			</div>
 		</ReactVMAuth>
 	</div>
