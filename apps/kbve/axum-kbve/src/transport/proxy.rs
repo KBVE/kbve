@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::sync::OnceLock;
 
 use axum::{
@@ -1273,191 +1272,59 @@ async fn kasm_ws_handler(
     };
     let auth = build_kasm_basic_auth(&password);
 
-    ws.protocols(["binary", "base64"])
+    // Route through the shared VNC hub so a single upstream KasmVNC session
+    // fans out to every connected browser. Without this, each viewer opened
+    // their own RFB session and KasmVNC's shared-cursor mode caused the
+    // framebuffers / pointer state to fight whenever more than one user was
+    // watching.
+    let auth_hv = match auth.parse() {
+        Ok(v) => v,
+        Err(e) => {
+            warn!("KASM WS auth header invalid: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "bad upstream auth").into_response();
+        }
+    };
+    let origin_hv = match upstream_origin.parse() {
+        Ok(v) => v,
+        Err(e) => {
+            warn!("KASM WS origin invalid: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "bad upstream origin").into_response();
+        }
+    };
+    let tls = match super::vnc_hub::build_accept_any_tls_connector() {
+        Ok(c) => c,
+        Err(e) => {
+            warn!("KASM TLS connector build failed: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "tls setup failed").into_response();
+        }
+    };
+    let config = super::vnc_hub::UpstreamConfig {
+        auth_header: Some(auth_hv),
+        origin: Some(origin_hv),
+        // Pin upstream to `binary` — every browser gets the same encoding
+        // from `ws.protocols(["binary", ...])` so the hub doesn't have to
+        // re-frame bytes for late joiners.
+        subprotocols: Some("binary".parse().expect("static header value")),
+        tls_connector: tls,
+    };
+    // Single key per workspace so every viewer joins the same upstream.
+    // KasmVNC's upstream URL is workspace-pinned (one Service per Deployment
+    // today), so the URL itself is a stable workspace identifier.
+    let session_key = format!("kasm::{}", upstream_url);
+
+    ws.protocols(["binary"])
         .on_upgrade(move |browser_ws| async move {
-            if let Err(e) = kasm_ws_bridge(browser_ws, &upstream_url, &upstream_origin, &auth).await
+            if let Err(e) = super::vnc_hub::join_session_with_config(
+                session_key,
+                upstream_url.clone(),
+                config,
+                browser_ws,
+            )
+            .await
             {
-                warn!(%upstream_url, "KASM WS bridge error: {e}");
+                warn!(%upstream_url, "KASM WS hub error: {e}");
             }
         })
-}
-
-async fn kasm_ws_bridge(
-    browser_ws: axum::extract::ws::WebSocket,
-    upstream_url: &str,
-    upstream_origin: &str,
-    auth: &str,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    use axum::extract::ws::{CloseFrame, Message as AxumMsg};
-    use futures_util::{SinkExt, StreamExt};
-    use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
-
-    let ws_url = upstream_url
-        .replace("https://", "wss://")
-        .replace("http://", "ws://");
-    let mut request = ws_url.into_client_request()?;
-    request.headers_mut().insert("Authorization", auth.parse()?);
-    // KasmVNC rejects WS upgrades without an Origin header (returns 404).
-    // Set it to the upstream itself so the server treats us as a same-origin
-    // client — the dashboard JWT gate is what actually authorises the user.
-    request
-        .headers_mut()
-        .insert("Origin", upstream_origin.parse()?);
-
-    let proto = browser_ws
-        .protocol()
-        .and_then(|p| p.to_str().ok())
-        .unwrap_or("binary")
-        .to_string();
-    request
-        .headers_mut()
-        .insert("Sec-WebSocket-Protocol", proto.parse()?);
-
-    let connector = build_kasm_tls_connector()?;
-    let upstream_ws = match tokio_tungstenite::connect_async_tls_with_config(
-        request,
-        None,
-        false,
-        Some(connector),
-    )
-    .await
-    {
-        Ok((ws, resp)) => {
-            debug!(%upstream_url, status = %resp.status(), "KASM WS upstream handshake OK");
-            ws
-        }
-        Err(e) => {
-            // Surface the upstream failure to the browser as a Close frame so
-            // noVNC's status text shows something better than the generic
-            // 1006. Truncate to fit the 123-byte limit on close reasons.
-            let mut reason = format!("kasm upstream: {e}");
-            reason.truncate(120);
-            warn!(%upstream_url, %reason, "KASM WS upstream connect error");
-            let mut tx = browser_ws.split().0;
-            let _ = tx
-                .send(AxumMsg::Close(Some(CloseFrame {
-                    code: 1011,
-                    reason: reason.into(),
-                })))
-                .await;
-            return Err(e.into());
-        }
-    };
-
-    let (mut browser_tx, mut browser_rx) = browser_ws.split();
-    let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
-
-    let browser_to_upstream = async {
-        while let Some(msg) = browser_rx.next().await {
-            match msg {
-                Ok(AxumMsg::Text(t)) => {
-                    let s: String = t.to_string();
-                    if upstream_tx.send(TungMsg::Text(s.into())).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(AxumMsg::Binary(d)) => {
-                    if upstream_tx.send(TungMsg::Binary(d)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(AxumMsg::Close(_)) | Err(_) => break,
-                _ => {}
-            }
-        }
-        let _ = upstream_tx.close().await;
-    };
-
-    let upstream_to_browser = async {
-        while let Some(msg) = upstream_rx.next().await {
-            match msg {
-                Ok(TungMsg::Text(t)) => {
-                    let s: String = t.to_string();
-                    if browser_tx.send(AxumMsg::Text(s.into())).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(TungMsg::Binary(d)) => {
-                    if browser_tx.send(AxumMsg::Binary(d)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(TungMsg::Close(_)) | Err(_) => break,
-                _ => {}
-            }
-        }
-        let _ = browser_tx.close().await;
-    };
-
-    tokio::select! {
-        _ = browser_to_upstream => {},
-        _ = upstream_to_browser => {},
-    }
-    Ok(())
-}
-
-/// KASM's web server presents a fully self-signed cert (CN=kasm) generated
-/// per pod start, so we cannot validate against the cluster CA the way the
-/// KubeVirt VNC bridge does. Build a Connector that skips verification —
-/// safe because the connection is cluster-internal (kasm-vpn-service) and
-/// the request is already JWT-gated upstream.
-fn build_kasm_tls_connector()
--> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
-    use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
-    use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-    use rustls::{DigitallySignedStruct, Error as TlsError, SignatureScheme};
-
-    #[derive(Debug)]
-    struct AcceptAnyCert;
-
-    impl ServerCertVerifier for AcceptAnyCert {
-        fn verify_server_cert(
-            &self,
-            _end_entity: &CertificateDer<'_>,
-            _intermediates: &[CertificateDer<'_>],
-            _server_name: &ServerName<'_>,
-            _ocsp: &[u8],
-            _now: UnixTime,
-        ) -> Result<ServerCertVerified, TlsError> {
-            Ok(ServerCertVerified::assertion())
-        }
-        fn verify_tls12_signature(
-            &self,
-            _message: &[u8],
-            _cert: &CertificateDer<'_>,
-            _dss: &DigitallySignedStruct,
-        ) -> Result<HandshakeSignatureValid, TlsError> {
-            Ok(HandshakeSignatureValid::assertion())
-        }
-        fn verify_tls13_signature(
-            &self,
-            _message: &[u8],
-            _cert: &CertificateDer<'_>,
-            _dss: &DigitallySignedStruct,
-        ) -> Result<HandshakeSignatureValid, TlsError> {
-            Ok(HandshakeSignatureValid::assertion())
-        }
-        fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-            vec![
-                SignatureScheme::RSA_PKCS1_SHA256,
-                SignatureScheme::RSA_PKCS1_SHA384,
-                SignatureScheme::RSA_PKCS1_SHA512,
-                SignatureScheme::ECDSA_NISTP256_SHA256,
-                SignatureScheme::ECDSA_NISTP384_SHA384,
-                SignatureScheme::ECDSA_NISTP521_SHA512,
-                SignatureScheme::RSA_PSS_SHA256,
-                SignatureScheme::RSA_PSS_SHA384,
-                SignatureScheme::RSA_PSS_SHA512,
-                SignatureScheme::ED25519,
-            ]
-        }
-    }
-
-    let config = rustls::ClientConfig::builder()
-        .dangerous()
-        .with_custom_certificate_verifier(Arc::new(AcceptAnyCert))
-        .with_no_client_auth();
-    Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }
 
 /// List KASM workspace deployments via K8s API.
