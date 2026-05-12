@@ -26,6 +26,14 @@ inputs:
 runs:
     using: 'composite'
     steps:
+        - name: Repository scope guard
+          shell: bash
+          run: |
+              if [ "$GITHUB_REPOSITORY" != "KBVE/kbve" ]; then
+                  echo "::error::This composite action is scoped to KBVE/kbve only (got: $GITHUB_REPOSITORY)"
+                  exit 1
+              fi
+
         - name: Run kbve.sh with flag
           shell: bash
           env:
