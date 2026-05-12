@@ -122,10 +122,7 @@ pub fn list_sessions() -> Vec<SessionInfo> {
         .collect()
 }
 
-/// Per-upstream connection knobs supplied by the caller. The hub doesn't
-/// know what backend it's bridging (KubeVirt, KASM, …) — they each need
-/// their own auth scheme, Origin policy, subprotocol set, and TLS trust
-/// model, so we plumb those in instead of branching inside the hub.
+/// Per-upstream connection knobs supplied by the caller.
 pub struct UpstreamConfig {
     pub auth_header: Option<HeaderValue>,
     pub origin: Option<HeaderValue>,
@@ -134,8 +131,7 @@ pub struct UpstreamConfig {
 }
 
 impl UpstreamConfig {
-    /// KubeVirt VNC subresource: Bearer service-account token, trust the
-    /// in-cluster CA, no extra headers.
+    /// KubeVirt VNC subresource defaults.
     pub fn kubevirt(
         bearer_token: Option<String>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
@@ -448,10 +444,7 @@ fn build_kubevirt_tls_connector()
     Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }
 
-/// TLS connector that accepts ANY certificate. Used for upstreams whose
-/// per-pod self-signed cert (CN=kasm) the cluster CA never sees. Safe
-/// because the connection is cluster-internal and the request is already
-/// gated by JWT + dashboard permissions before reaching the hub.
+/// TLS connector that accepts any cert. Cluster-internal use only.
 pub fn build_accept_any_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};

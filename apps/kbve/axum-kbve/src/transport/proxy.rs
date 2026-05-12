@@ -309,10 +309,8 @@ impl ServiceProxy {
 // Shared JWT + staff permission gate
 // ---------------------------------------------------------------------------
 
-/// Extract Bearer token from Authorization header, `?access_token=` query
-/// param, or a path-scoped session cookie. WebSocket / iframe contexts can't
-/// set custom headers, so the launch flow plants `kasm_session` for follow-up
-/// requests (assets, WS upgrade) without leaking the JWT into the URL.
+/// Extract Bearer token from Authorization header, `?access_token=` query,
+/// or `kasm_session` / `dashboard_session` cookie.
 fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
     if let Some(h) = headers.get(header::AUTHORIZATION) {
         if let Ok(s) = h.to_str() {
@@ -1056,8 +1054,7 @@ pub fn init_kasm_proxy() -> bool {
     .is_ok()
 }
 
-/// Cached `kasm-vnc-pw` value. Rotates on KASM pod restart; we refresh
-/// lazily and force-refresh on upstream 401.
+/// Cached `kasm-vnc-pw` value.
 static KASM_VNC_PW_CACHE: OnceLock<tokio::sync::RwLock<Option<String>>> = OnceLock::new();
 
 fn kasm_pw_cache() -> &'static tokio::sync::RwLock<Option<String>> {
@@ -1131,10 +1128,7 @@ async fn cached_kasm_password(force_refresh: bool) -> Result<String, String> {
     Ok(pw)
 }
 
-/// True if the incoming request looks like a WebSocket upgrade — required
-/// headers per RFC 6455. Hyper's `WebSocketUpgrade` extractor needs all of
-/// these; checking up front lets us choose between the HTTP proxy and the
-/// WS bridge without consuming the request body.
+/// True if the incoming request is a WebSocket upgrade (RFC 6455).
 fn is_websocket_upgrade(headers: &HeaderMap) -> bool {
     fn header_contains(headers: &HeaderMap, name: &str, needle: &str) -> bool {
         headers
@@ -1175,9 +1169,6 @@ pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
         return resp;
     }
 
-    // KASM noVNC opens a WebSocket to the same path it served the HTML from.
-    // Detect the Upgrade and hand off to the WS bridge instead of forwarding
-    // through the reqwest-based ServiceProxy (which is HTTP-only).
     if is_websocket_upgrade(&req_headers) {
         let suffix = path.as_ref().map(|Path(p)| p.clone()).unwrap_or_default();
         let query_str = raw_query
@@ -1232,8 +1223,6 @@ pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
         return resp;
     }
 
-    // Upstream rejected our cached password — refresh once and retry. Covers
-    // KASM pod restarts that rotated `kasm-vnc-pw` since we last fetched.
     let fresh = match cached_kasm_password(true).await {
         Ok(p) => p,
         Err(e) => {
@@ -1248,12 +1237,8 @@ pub async fn kasm_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
         .await
 }
 
-/// Bridge a browser WebSocket upgrade to KASM's websockify endpoint. Mirrors
-/// the `guacamole_ws_handler` pattern: tokio-tungstenite for the upstream
-/// because reqwest can't carry the Upgrade. Negotiates the noVNC subprotocol
-/// (`binary` / `base64`) and injects HTTP Basic creds on the upstream
-/// handshake — KASM's websockify gates the upgrade behind the same Basic
-/// realm as the static HTML.
+/// Bridge a browser WebSocket upgrade to KasmVNC's websockify via the
+/// shared `vnc_hub`.
 async fn kasm_ws_handler(
     ws: axum::extract::ws::WebSocketUpgrade,
     upstream_url: String,
@@ -1272,11 +1257,6 @@ async fn kasm_ws_handler(
     };
     let auth = build_kasm_basic_auth(&password);
 
-    // Route through the shared VNC hub so a single upstream KasmVNC session
-    // fans out to every connected browser. Without this, each viewer opened
-    // their own RFB session and KasmVNC's shared-cursor mode caused the
-    // framebuffers / pointer state to fight whenever more than one user was
-    // watching.
     let auth_hv = match auth.parse() {
         Ok(v) => v,
         Err(e) => {
@@ -1301,15 +1281,9 @@ async fn kasm_ws_handler(
     let config = super::vnc_hub::UpstreamConfig {
         auth_header: Some(auth_hv),
         origin: Some(origin_hv),
-        // Pin upstream to `binary` — every browser gets the same encoding
-        // from `ws.protocols(["binary", ...])` so the hub doesn't have to
-        // re-frame bytes for late joiners.
         subprotocols: Some("binary".parse().expect("static header value")),
         tls_connector: tls,
     };
-    // Single key per workspace so every viewer joins the same upstream.
-    // KasmVNC's upstream URL is workspace-pinned (one Service per Deployment
-    // today), so the URL itself is a stable workspace identifier.
     let session_key = format!("kasm::{}", upstream_url);
 
     ws.protocols(["binary"])
@@ -1489,11 +1463,8 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
     }
 }
 
-/// JWT-gated 302 to the noVNC UI with the rotated kasm-vnc-pw embedded as
-/// a query param (consumed by noVNC client JS for auto-connect) and a
-/// path-scoped session cookie that subsequent /dashboard/kasm/proxy/*
-/// requests use to pass the dashboard JWT gate without re-injecting it
-/// into every URL.
+/// JWT-gated 302 to the noVNC UI with the rotated `kasm-vnc-pw` and a
+/// path-scoped session cookie.
 pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
@@ -1516,10 +1487,6 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         }
     };
 
-    // noVNC builds the WebSocket URL from `path=` (defaults to `websockify`,
-    // which would open `wss://kbve.com/websockify` — outside our proxy and
-    // 404'd by Astro). Pin it under the proxy prefix so the WS upgrade
-    // re-enters axum and hits the kasm bridge.
     let location = format!(
         "/dashboard/kasm/proxy/?password={password}&autoconnect=1&resize=remote&path=dashboard/kasm/proxy/websockify"
     );
