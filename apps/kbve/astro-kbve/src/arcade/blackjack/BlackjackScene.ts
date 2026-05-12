@@ -13,6 +13,7 @@ import {
 	cardPoints,
 	cardRank,
 	cardSuit,
+	encodeCard,
 	type Card,
 	isBlackjack,
 	isRedSuit,
@@ -20,6 +21,12 @@ import {
 	valueHand,
 } from './cards';
 import { BASE_HEIGHT, BASE_WIDTH, CARD_SIZE, COLORS, FONT } from './config';
+
+const CARD_TEXTURE_PREFIX = 'blackjack-card';
+const CARD_TEXTURE_MARGIN = {
+	x: 6,
+	y: 8,
+} as const;
 
 type ButtonKey =
 	| 'deal'
@@ -67,6 +74,7 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	create() {
+		this.createCardTextures();
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
@@ -502,144 +510,234 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private drawCardSlot(x: number, y: number) {
-		const g = this.add.graphics();
-		g.lineStyle(2, COLORS.tableTrim, 0.38);
-		g.fillStyle(0x000000, 0.12);
-		g.fillRoundedRect(
-			x,
-			y,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
+		this.cardLayer.add(
+			this.add.image(x, y, this.cardTextureKey('slot')).setOrigin(0),
 		);
-		g.strokeRoundedRect(
-			x,
-			y,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
-		);
-		this.cardLayer.add(g);
 	}
 
 	private drawCardBack(x: number, y: number) {
-		const g = this.add.graphics();
-		g.fillStyle(0x000000, 0.24);
-		g.fillRoundedRect(
-			x + 5,
-			y + 7,
+		this.cardLayer.add(
+			this.add.image(x, y, this.cardTextureKey('back')).setOrigin(0),
+		);
+	}
+
+	private drawCardFace(card: Card, x: number, y: number) {
+		this.cardLayer.add(
+			this.add.image(x, y, this.cardTextureKey(card)).setOrigin(0),
+		);
+	}
+
+	private createCardTextures() {
+		if (this.textures.exists(this.cardTextureKey('back'))) return;
+
+		this.createSlotTexture();
+		this.createBackTexture();
+
+		for (const suit of ['spades', 'hearts', 'diamonds', 'clubs'] as const) {
+			for (const rank of [
+				'A',
+				'2',
+				'3',
+				'4',
+				'5',
+				'6',
+				'7',
+				'8',
+				'9',
+				'10',
+				'J',
+				'Q',
+				'K',
+			] as const) {
+				this.createFaceTexture(encodeCard(suit, rank));
+			}
+		}
+	}
+
+	private createSlotTexture() {
+		const { canvas, ctx } = this.createCardCanvas(false);
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+		this.roundRect(
+			ctx,
+			0,
+			0,
 			CARD_SIZE.width,
 			CARD_SIZE.height,
 			CARD_SIZE.radius,
 		);
-		g.fillStyle(COLORS.cardBack, 1);
-		g.fillRoundedRect(
-			x,
-			y,
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrim);
+		ctx.globalAlpha = 0.38;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+		this.textures.addCanvas(this.cardTextureKey('slot'), canvas);
+	}
+
+	private createBackTexture() {
+		const { canvas, ctx } = this.createCardCanvas(true);
+		this.drawCardShadow(ctx);
+
+		ctx.fillStyle = this.hexColor(COLORS.cardBack);
+		this.roundRect(
+			ctx,
+			0,
+			0,
 			CARD_SIZE.width,
 			CARD_SIZE.height,
 			CARD_SIZE.radius,
 		);
-		g.lineStyle(3, COLORS.cardBorder, 1);
-		g.strokeRoundedRect(
-			x,
-			y,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
-		);
-		g.lineStyle(2, COLORS.cardBackAccent, 0.85);
-		g.strokeRoundedRect(
-			x + 10,
-			y + 10,
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.cardBorder);
+		ctx.lineWidth = 3;
+		ctx.stroke();
+
+		ctx.strokeStyle = this.hexColor(COLORS.cardBackAccent);
+		ctx.globalAlpha = 0.85;
+		ctx.lineWidth = 2;
+		this.strokeRoundRect(
+			ctx,
+			10,
+			10,
 			CARD_SIZE.width - 20,
 			CARD_SIZE.height - 20,
 			8,
 		);
-		g.strokeRoundedRect(
-			x + 18,
-			y + 18,
+		this.strokeRoundRect(
+			ctx,
+			18,
+			18,
 			CARD_SIZE.width - 36,
 			CARD_SIZE.height - 36,
 			6,
 		);
-		const mark = this.add
-			.text(x + CARD_SIZE.width / 2, y + CARD_SIZE.height / 2, 'KBVE', {
-				fontFamily: FONT.serif,
-				fontSize: '18px',
-				color: COLORS.gold,
-			})
-			.setOrigin(0.5)
-			.setAlpha(0.88);
-		this.cardLayer.add([g, mark]);
+		ctx.globalAlpha = 1;
+
+		ctx.font = `18px ${FONT.serif}`;
+		ctx.fillStyle = COLORS.gold;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.globalAlpha = 0.88;
+		ctx.fillText('KBVE', CARD_SIZE.width / 2, CARD_SIZE.height / 2);
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(this.cardTextureKey('back'), canvas);
 	}
 
-	private drawCardFace(card: Card, x: number, y: number) {
+	private createFaceTexture(card: Card) {
 		const suitName = cardSuit(card);
 		const rankName = cardRank(card);
 		const suitGlyph = SUIT_GLYPH[suitName];
-		const g = this.add.graphics();
-		g.fillStyle(0x000000, 0.22);
-		g.fillRoundedRect(
-			x + 5,
-			y + 7,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
-		);
-		g.fillStyle(COLORS.cardFace, 1);
-		g.fillRoundedRect(
-			x,
-			y,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
-		);
-		g.lineStyle(2, COLORS.cardBorder, 0.9);
-		g.strokeRoundedRect(
-			x,
-			y,
-			CARD_SIZE.width,
-			CARD_SIZE.height,
-			CARD_SIZE.radius,
-		);
-
 		const color = isRedSuit(suitName) ? COLORS.red : COLORS.black;
-		const rank = this.add.text(x + 12, y + 10, rankName, {
-			fontFamily: FONT.serif,
-			fontSize: '30px',
-			color,
-		});
-		const suit = this.add.text(x + 13, y + 43, suitGlyph, {
-			fontFamily: FONT.serif,
-			fontSize: '27px',
-			color,
-		});
-		const center = this.add
-			.text(
-				x + CARD_SIZE.width / 2,
-				y + CARD_SIZE.height / 2 + 4,
-				suitGlyph,
-				{
-					fontFamily: FONT.serif,
-					fontSize: '58px',
-					color,
-				},
-			)
-			.setOrigin(0.5);
-		const bottom = this.add
-			.text(
-				x + CARD_SIZE.width - 12,
-				y + CARD_SIZE.height - 10,
-				rankName,
-				{
-					fontFamily: FONT.serif,
-					fontSize: '30px',
-					color,
-				},
-			)
-			.setOrigin(1);
-		this.cardLayer.add([g, rank, suit, center, bottom]);
+		const { canvas, ctx } = this.createCardCanvas(true);
+
+		this.drawCardShadow(ctx);
+		ctx.fillStyle = this.hexColor(COLORS.cardFace);
+		this.roundRect(
+			ctx,
+			0,
+			0,
+			CARD_SIZE.width,
+			CARD_SIZE.height,
+			CARD_SIZE.radius,
+		);
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.cardBorder);
+		ctx.globalAlpha = 0.9;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		ctx.fillStyle = color;
+		ctx.textAlign = 'left';
+		ctx.textBaseline = 'top';
+		ctx.font = `30px ${FONT.serif}`;
+		ctx.fillText(rankName, 12, 10);
+
+		ctx.font = `27px ${FONT.serif}`;
+		ctx.fillText(suitGlyph, 13, 43);
+
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.font = `58px ${FONT.serif}`;
+		ctx.fillText(suitGlyph, CARD_SIZE.width / 2, CARD_SIZE.height / 2 + 4);
+
+		ctx.textAlign = 'right';
+		ctx.textBaseline = 'bottom';
+		ctx.font = `30px ${FONT.serif}`;
+		ctx.fillText(rankName, CARD_SIZE.width - 12, CARD_SIZE.height - 10);
+
+		this.textures.addCanvas(this.cardTextureKey(card), canvas);
+	}
+
+	private drawCardShadow(ctx: CanvasRenderingContext2D) {
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+		this.roundRect(
+			ctx,
+			5,
+			7,
+			CARD_SIZE.width,
+			CARD_SIZE.height,
+			CARD_SIZE.radius,
+		);
+		ctx.fill();
+	}
+
+	private createCardCanvas(includeShadow: boolean) {
+		const canvas = document.createElement('canvas');
+		canvas.width =
+			CARD_SIZE.width + (includeShadow ? CARD_TEXTURE_MARGIN.x : 0);
+		canvas.height =
+			CARD_SIZE.height + (includeShadow ? CARD_TEXTURE_MARGIN.y : 0);
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+		return { canvas, ctx };
+	}
+
+	private cardTextureKey(card: Card | 'back' | 'slot'): string {
+		return `${CARD_TEXTURE_PREFIX}-${card}`;
+	}
+
+	private strokeRoundRect(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		radius: number,
+	) {
+		this.roundRect(ctx, x, y, width, height, radius);
+		ctx.stroke();
+	}
+
+	private roundRect(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		radius: number,
+	) {
+		ctx.beginPath();
+		ctx.moveTo(x + radius, y);
+		ctx.lineTo(x + width - radius, y);
+		ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+		ctx.lineTo(x + width, y + height - radius);
+		ctx.quadraticCurveTo(
+			x + width,
+			y + height,
+			x + width - radius,
+			y + height,
+		);
+		ctx.lineTo(x + radius, y + height);
+		ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+		ctx.lineTo(x, y + radius);
+		ctx.quadraticCurveTo(x, y, x + radius, y);
+		ctx.closePath();
+	}
+
+	private hexColor(color: number): string {
+		return `#${color.toString(16).padStart(6, '0')}`;
 	}
 
 	private updateText() {

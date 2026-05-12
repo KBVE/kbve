@@ -35,6 +35,10 @@ export default function ReactBlackjackApp() {
 				antialias: true,
 				pixelArt: false,
 			},
+			fps: {
+				target: 30,
+				min: 15,
+			},
 		}),
 		[],
 	);

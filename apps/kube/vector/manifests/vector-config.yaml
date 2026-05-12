@@ -5,8 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-04-09T04:50:00Z'
-        kbve.sh/config-version: 'v3-fix-vrl-warnings'
+        kbve.sh/last-updated: '2026-05-12T00:00:00Z'
+        kbve.sh/config-version: 'v5-heartbeat-coverage'
 data:
     vector.yml: |
         api:
@@ -20,8 +20,6 @@ data:
             exclude_paths_glob_patterns:
               - "**/vector_*/**"
               - "**/kube-system_*/**"
-              - "**/kube-node-lease_*/**"
-              - "**/kube-public_*/**"
             auto_partial_merge: true
             data_dir: "/vector-data-dir"
 
@@ -61,7 +59,9 @@ data:
                   if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }
                   .metadata = parsed
               }
-          # Drop info/debug from noisy infra namespaces, keep all for app namespaces
+          # Drop info/debug from noisy infra namespaces; keep warn+/error+ from
+          # them and everything from app namespaces. Cost discipline — these
+          # 13 namespaces emit massive low-signal chatter.
           noise_filter:
             type: filter
             inputs:
@@ -80,6 +80,18 @@ data:
                     msg = string(.event_message) ?? ""
                     match(msg, r'(?i)(warn|error|fatal|panic|crit|exception|fail)')
                 }
+          # Heartbeat: emit at most 1 row per namespace per 5min straight from
+          # project_logs (pre-filter), so quiet namespaces with no warn+/error+
+          # in window still show up on the dashboard's namespace count.
+          # ~600 rows/hour cluster-wide. Bypasses the appname router and lands
+          # directly in ch_normalize.
+          namespace_heartbeat:
+            type: throttle
+            inputs:
+              - project_logs
+            threshold: 1
+            window_secs: 300
+            key_field: "{{ pod_namespace }}"
           router:
             type: route
             inputs:
@@ -253,6 +265,7 @@ data:
               - router.functions
               - router.firecracker
               - router._unmatched
+              - namespace_heartbeat
             source: |-
               # Extract level from metadata fields first
               .level = string(.severity) ??
