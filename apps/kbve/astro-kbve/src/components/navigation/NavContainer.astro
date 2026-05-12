@@ -1,8 +1,14 @@
 ---
 import ReactNav from '@/components/navigation/ReactNav.tsx';
+import ReactWalletBadge from '@/components/wallet/ReactWalletBadge.tsx';
 ---
 
 <nav class="flex items-center gap-3">
+	{
+		/* Wallet balance chip. Hidden for anon viewers via the island itself,
+	    so it sits in the static layout without a server-side auth branch. */
+	}
+	<ReactWalletBadge client:only="react" />
 	{
 		/* Static shell - shown until React hydrates. CSS animation stops the
 	    spinner and shows "KBVE Guest" after 10s if JS never takes over. */
