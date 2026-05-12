@@ -7,15 +7,15 @@ ClickHouse DDL for the KBVE observability stack. Two flavors live side by side:
 
 ## Files
 
-| File                     | Purpose                                                                                                                            |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `database.sql`           | Creates the `logflare` database. Run before any `logflare.*` template.                                                             |
-| `logs.sql`               | Logflare OTEL log templates (JSON attribute columns + map-typed variants).                                                         |
-| `metrics.sql`            | Logflare OTEL metric templates.                                                                                                    |
-| `traces.sql`             | Logflare OTEL trace templates.                                                                                                     |
-| `observability.sql`      | `observability.logs_raw` (replicated) + `logs_distributed` — direct Vector → ClickHouse log pipeline. Day-partitioned, 45-day TTL. |
-| `firecracker.sql`        | `firecracker.vm_events` — microVM lifecycle telemetry from `firecracker-ctl`. 90-day TTL for capacity planning.                    |
-| `dev-docker-compose.yml` | Single-node ClickHouse for local DDL validation (no Logflare, no Postgres). Mounted on `tmpfs` for cheap teardown.                 |
+| File                     | Purpose                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `database.sql`           | Creates the `logflare` database. Run before any `logflare.*` template.                                                            |
+| `logs.sql`               | Logflare OTEL log templates (JSON attribute columns + map-typed variants).                                                        |
+| `metrics.sql`            | Logflare OTEL metric templates.                                                                                                   |
+| `traces.sql`             | Logflare OTEL trace templates.                                                                                                    |
+| `observability.sql`      | `observability.logs_raw` (replicated) + `logs_distributed` — direct Vector → ClickHouse log pipeline. Day-partitioned, 8-day TTL. |
+| `firecracker.sql`        | `firecracker.vm_events` — microVM lifecycle telemetry from `firecracker-ctl`. 90-day TTL for capacity planning.                   |
+| `dev-docker-compose.yml` | Single-node ClickHouse for local DDL validation (no Logflare, no Postgres). Mounted on `tmpfs` for cheap teardown.                |
 
 ## Engines and retention
 
@@ -24,7 +24,7 @@ ClickHouse DDL for the KBVE observability stack. Two flavors live side by side:
 | `logflare.otel_logs_template`    | MergeTree (templated) | daily          | 45 days |
 | `logflare.otel_metrics_template` | MergeTree (templated) | daily          | 45 days |
 | `logflare.otel_traces_template`  | MergeTree (templated) | daily          | 45 days |
-| `observability.logs_raw`         | ReplicatedMergeTree   | `toYYYYMMDD`   | 45 days |
+| `observability.logs_raw`         | ReplicatedMergeTree   | `toYYYYMMDD`   | 8 days  |
 | `observability.logs_distributed` | Distributed           | (fan-out only) | n/a     |
 | `firecracker.vm_events`          | MergeTree             | `toYYYYMMDD`   | 90 days |
 

@@ -1,6 +1,6 @@
 -- observability.logs_raw — replicated local table for Vector → ClickHouse direct pipeline
 -- All services (kong, auth, rest, realtime, storage, functions, db, analytics, meta, studio)
--- land in one table, partitioned by day, 45-day TTL.
+-- land in one table, partitioned by day, 8-day TTL.
 --
 -- Cluster topology: 2 shards × 2 replicas.
 -- Vector writes to logs_raw (local); queries go through logs_distributed.
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS observability.logs_raw ON CLUSTER 'cluster'
 ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw', '{replica}')
 ORDER BY (service, timestamp)
 PARTITION BY toYYYYMMDD(timestamp)
-TTL toDateTime(timestamp) + INTERVAL 45 DAY;
+TTL toDateTime(timestamp) + INTERVAL 8 DAY;
 
 -- Distributed table — fans out reads/writes across all shards.
 -- Queries should use this table; Vector writes to logs_raw (local) directly.
