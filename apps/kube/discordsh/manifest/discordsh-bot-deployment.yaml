@@ -92,13 +92,13 @@ spec:
                       - name: IRC_NICK
                         value: 'discordsh-bot'
                       - name: IRC_CHANNELS
-                        value: '#kbve'
+                        value: '#general'
                       - name: RELAY_GUILD_ID
                         value: '342732838598082562'
                       - name: RELAY_CHANNEL_ID
                         value: '935690630657638422'
                       - name: RELAY_IRC_CHANNEL
-                        value: '#kbve'
+                        value: '#general'
                   resources:
                       requests:
                           memory: '256Mi'
