@@ -96,7 +96,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.13",
+			"version": "0.1.14",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -140,7 +140,7 @@
 		{
 			"key": "firecracker_node_web",
 			"app_name": "firecracker-node-web",
-			"version": "0.0.1",
+			"version": "0.1.0",
 			"version_toml": "packages/docker/firecracker/node/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-node-web.mdx",
 			"source_path": "packages/docker/firecracker/node/web",
@@ -168,7 +168,7 @@
 		{
 			"key": "firecracker_python_web",
 			"app_name": "firecracker-python-web",
-			"version": "0.0.1",
+			"version": "0.1.0",
 			"version_toml": "packages/docker/firecracker/python/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-web.mdx",
 			"source_path": "packages/docker/firecracker/python/web",
