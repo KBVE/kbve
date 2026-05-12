@@ -57,6 +57,8 @@ interface ButtonView {
 export class BlackjackScene extends Phaser.Scene {
 	private state: BlackjackState = createBlackjackState();
 	private cardLayer!: Phaser.GameObjects.Container;
+	private cardViews: Phaser.GameObjects.Image[] = [];
+	private activeCardViews = 0;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private buttons: ButtonView[] = [];
 	private statusText!: Phaser.GameObjects.Text;
@@ -465,7 +467,7 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private render() {
-		this.cardLayer.removeAll(true);
+		this.activeCardViews = 0;
 		this.drawHand(
 			this.state.dealer,
 			BASE_WIDTH / 2,
@@ -473,6 +475,7 @@ export class BlackjackScene extends Phaser.Scene {
 			this.hideDealerHole(),
 		);
 		this.drawHand(this.state.player, BASE_WIDTH / 2, 420, false);
+		this.hideUnusedCardViews();
 		this.updateText();
 		this.updateButtons();
 	}
@@ -510,21 +513,44 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private drawCardSlot(x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey('slot')).setOrigin(0),
-		);
+		this.placeCardTexture(this.cardTextureKey('slot'), x, y);
 	}
 
 	private drawCardBack(x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey('back')).setOrigin(0),
-		);
+		this.placeCardTexture(this.cardTextureKey('back'), x, y);
 	}
 
 	private drawCardFace(card: Card, x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey(card)).setOrigin(0),
-		);
+		this.placeCardTexture(this.cardTextureKey(card), x, y);
+	}
+
+	private placeCardTexture(textureKey: string, x: number, y: number) {
+		const view = this.getCardView();
+		view.setTexture(textureKey);
+		view.setPosition(x, y);
+		view.setVisible(true);
+		view.setActive(true);
+	}
+
+	private getCardView(): Phaser.GameObjects.Image {
+		const view =
+			this.cardViews[this.activeCardViews] ??
+			this.add.image(0, 0, this.cardTextureKey('slot')).setOrigin(0);
+
+		if (!this.cardViews[this.activeCardViews]) {
+			this.cardViews.push(view);
+			this.cardLayer.add(view);
+		}
+
+		this.activeCardViews++;
+		return view;
+	}
+
+	private hideUnusedCardViews() {
+		for (let i = this.activeCardViews; i < this.cardViews.length; i++) {
+			this.cardViews[i].setVisible(false);
+			this.cardViews[i].setActive(false);
+		}
 	}
 
 	private createCardTextures() {
