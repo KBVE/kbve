@@ -37,7 +37,7 @@ spec:
             restartPolicy: OnFailure
             containers:
                 - name: stage
-                  image: ghcr.io/kbve/firecracker-python-web:0.0.1
+                  image: ghcr.io/kbve/firecracker-python-web:0.1.0
                   imagePullPolicy: IfNotPresent
                   args:
                       - /rootfs.ext4
