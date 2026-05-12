@@ -164,15 +164,10 @@ spec:
                             secretKeyRef:
                                 name: kasm-vnc-pw
                                 key: password
-                      # kasmweb/discord's custom_startup.sh launches Discord
-                      # as `$START_COMMAND $ARGS ...` with `ARGS=${APP_ARGS:-
-                      # --no-sandbox}`. The default chromium GPU process
-                      # crashes here (no /dev/dri, no DBus) and the splash
-                      # countdown never advances — keep the no-sandbox flag,
-                      # disable GPU + shm so the renderer falls back to
-                      # software and the main window paints.
                       - name: APP_ARGS
-                        value: '--no-sandbox --disable-gpu --disable-dev-shm-usage'
+                        value: >-
+                            --no-sandbox --disable-gpu --disable-dev-shm-usage
+                            --user-agent="Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0"
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
