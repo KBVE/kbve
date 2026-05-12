@@ -96,6 +96,12 @@ async fn main() -> anyhow::Result<()> {
         info!("Forum service not configured - /forum routes will 503");
     }
 
+    if db::init_wallet_client() {
+        info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
+    } else {
+        warn!("Wallet client not configured - /api/v1/wallet routes will 503");
+    }
+
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 
