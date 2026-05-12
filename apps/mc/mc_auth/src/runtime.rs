@@ -19,6 +19,7 @@ use tracing::{debug, warn};
 use crate::agones;
 use crate::supabase::{LookupOutcome, SupabaseClient, VerifyOutcome};
 use crate::types::{AuthJob, AuthResponse, PlayerEvent};
+use crate::wallet::WalletClient;
 
 const REQUEST_CHANNEL_SIZE: usize = 256;
 const EVENT_CHANNEL_SIZE: usize = 256;
@@ -105,6 +106,14 @@ async fn worker_loop(request_rx: Receiver<AuthJob>, event_tx: Sender<PlayerEvent
     if !supabase.is_enabled() {
         warn!("mc_auth worker: supabase client disabled — all lookups will be treated as Unlinked");
     }
+    // Optional — null when AXUM_KBVE_URL / WALLET_SERVICE_JWT are unset.
+    // The mod still functions without it; daily-reward calls are skipped.
+    let wallet = WalletClient::from_env().map(Arc::new);
+    if wallet.is_none() {
+        warn!(
+            "mc_auth worker: wallet client disabled (AXUM_KBVE_URL or WALLET_SERVICE_JWT unset) — daily khash reward will not fire"
+        );
+    }
 
     loop {
         // crossbeam's `recv` is blocking — yield to Tokio via spawn_blocking
@@ -129,14 +138,20 @@ async fn worker_loop(request_rx: Receiver<AuthJob>, event_tx: Sender<PlayerEvent
         // Handle each job in its own spawned task so slow calls don't
         // head-of-line block the worker queue.
         let supabase = Arc::clone(&supabase);
+        let wallet = wallet.clone();
         let tx = event_tx.clone();
         tokio::spawn(async move {
-            handle_job(job, supabase.as_ref(), &tx).await;
+            handle_job(job, supabase.as_ref(), wallet.as_deref(), &tx).await;
         });
     }
 }
 
-async fn handle_job(job: AuthJob, supabase: &SupabaseClient, event_tx: &Sender<PlayerEvent>) {
+async fn handle_job(
+    job: AuthJob,
+    supabase: &SupabaseClient,
+    wallet: Option<&WalletClient>,
+    event_tx: &Sender<PlayerEvent>,
+) {
     let event = match job {
         AuthJob::Authenticate {
             player_uuid,
@@ -195,6 +210,40 @@ async fn handle_job(job: AuthJob, supabase: &SupabaseClient, event_tx: &Sender<P
             }
         }
     };
+
+    // Fire daily-khash credit for any newly-confirmed linked player. The
+    // server's idempotency key (UUIDv5 over user_id + UTC date) dedups
+    // multiple joins on the same day, so we can call this on every link
+    // confirmation without tracking per-player state on the mod side.
+    // Errors are logged and swallowed — they must not block the player.
+    if let Some(client) = wallet {
+        let user_id = match &event {
+            PlayerEvent::AlreadyLinked {
+                supabase_user_id, ..
+            } => Some(supabase_user_id.clone()),
+            PlayerEvent::LinkVerified {
+                supabase_user_id, ..
+            } => Some(supabase_user_id.clone()),
+            _ => None,
+        };
+        if let Some(uid) = user_id {
+            let client = client.clone();
+            tokio::spawn(async move {
+                match client.daily_credit_khash(&uid).await {
+                    Ok(resp) => {
+                        debug!(
+                            user_id = %uid,
+                            ledger_id = resp.ledger_id,
+                            "mc_auth: daily khash credit ok (or replay)"
+                        );
+                    }
+                    Err(e) => {
+                        warn!(user_id = %uid, error = %e, "mc_auth: daily khash credit failed");
+                    }
+                }
+            });
+        }
+    }
 
     if event_tx.try_send(event).is_err() {
         warn!("mc_auth: event channel full dropping primary event");
