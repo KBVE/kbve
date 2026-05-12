@@ -100,10 +100,17 @@ impl Modify for SecurityAddon {
         crate::transport::https::api_staff_edit_comment,
         // dashboard
         crate::transport::proxy::clickhouse_logs_proxy_handler,
-        // wallet
+        // wallet — authenticated user surface
         crate::transport::wallet::me_balance,
         crate::transport::wallet::me_coupons,
         crate::transport::wallet::me_redeem_coupon,
+        // wallet — service surface (service_role JWT)
+        crate::transport::wallet::service_credit,
+        crate::transport::wallet::service_debit,
+        crate::transport::wallet::service_transfer,
+        crate::transport::wallet::service_redeem_coupon,
+        crate::transport::wallet::service_revoke_coupon,
+        crate::transport::wallet::service_verify_balance,
     ),
     components(
         schemas(
@@ -129,11 +136,19 @@ impl Modify for SecurityAddon {
             EditCommentBody,
             ClickHouseLogsRequest,
             ClickHouseLogsResponse,
-            // wallet
+            // wallet — user surface
             crate::transport::wallet::BalanceDto,
             crate::transport::wallet::CouponDto,
             crate::transport::wallet::RedeemCouponBody,
             crate::transport::wallet::RedeemCouponDto,
+            // wallet — service surface
+            crate::transport::wallet::ServiceCreditBody,
+            crate::transport::wallet::ServiceLedgerDto,
+            crate::transport::wallet::ServiceTransferBody,
+            crate::transport::wallet::ServiceRedeemCouponBody,
+            crate::transport::wallet::ServiceRevokeCouponBody,
+            crate::transport::wallet::ServiceRevokeDto,
+            crate::transport::wallet::ServiceVerifyBalanceDto,
         )
     ),
     modifiers(&SecurityAddon)
