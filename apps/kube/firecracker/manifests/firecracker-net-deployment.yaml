@@ -119,7 +119,7 @@ spec:
                           memory: 384Mi
 
                 - name: firecracker-ctl
-                  image: ghcr.io/kbve/firecracker-ctl:0.1.31
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.32
                   resources:
                       requests:
                           cpu: 250m
