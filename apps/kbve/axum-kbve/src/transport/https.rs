@@ -461,6 +461,14 @@ fn router(state: AppState) -> Router {
             "/dashboard/firecracker-net/proxy",
             any(super::proxy::firecracker_net_proxy_handler),
         )
+        // Stable public alias for the persistent endpoint surface.
+        // /api/v1/fc/<deploy|list|{name}|...> -> firecracker-ctl-net /fc/<rest>.
+        // Same staff gate as the firecracker-net proxy above; the underlying
+        // FIRECRACKER_NET singleton handles the upstream forward.
+        .route(
+            "/api/v1/fc/{*rest}",
+            any(super::proxy::firecracker_fc_alias_handler),
+        )
         // Public-facing persistent endpoint path — /fc/{name}/{*path}
         // routes to firecracker-ctl-net's /proxy/{name}/{*path} after a
         // staff-level auth gate. The {name} identifies the persistent VM.
