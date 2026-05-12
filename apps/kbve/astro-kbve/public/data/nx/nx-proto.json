@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-05-11T09:20:06.001Z",
+  "generated_at": "2026-05-12T09:06:37.649Z",
   "summary": {
-    "total_protos": 28,
+    "total_protos": 29,
     "registered": 23,
-    "orphaned": 4,
+    "orphaned": 5,
     "utility_only": 1,
-    "total_messages": 588,
-    "total_enums": 118
+    "total_messages": 611,
+    "total_enums": 123
   },
   "protos": [
     {
@@ -1178,15 +1178,61 @@
         "zod_output": "packages/data/codegen/generated/rows-schema.ts",
         "binpb": "packages/data/codegen/descriptors/rows.binpb"
       }
+    },
+    {
+      "proto": "packages/data/proto/wallet/wallet.proto",
+      "package": "wallet",
+      "messages": [
+        "Account",
+        "Balance",
+        "LedgerEntry",
+        "CouponTemplate",
+        "Coupon",
+        "AuditLogEntry",
+        "GetBalanceRequest",
+        "GetBalanceResponse",
+        "ListCouponsRequest",
+        "ListCouponsItem",
+        "ListCouponsResponse",
+        "RedeemCouponRequest",
+        "RedeemCouponResponse",
+        "ServiceCreditRequest",
+        "ServiceCreditResponse",
+        "ServiceDebitRequest",
+        "ServiceDebitResponse",
+        "ServiceTransferRequest",
+        "ServiceTransferResponse",
+        "ServiceRevokeCouponRequest",
+        "ServiceRevokeCouponResponse",
+        "ServiceVerifyBalanceRequest",
+        "ServiceVerifyBalanceResponse"
+      ],
+      "enums": [
+        "CurrencyKind",
+        "AccountKind",
+        "SourceKind",
+        "RewardKind",
+        "CouponStatus"
+      ],
+      "message_count": 23,
+      "enum_count": 5,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
     }
   ],
   "orphaned_protos": [
     "packages/data/proto/empire/empire.proto",
     "packages/data/proto/kbve/common.proto",
     "packages/data/proto/kbve/kbve.proto",
-    "packages/data/proto/kbve/kbveproto.proto"
+    "packages/data/proto/kbve/kbveproto.proto",
+    "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-11T09:20:06Z",
+  "checked_at": "2026-05-12T09:06:37Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",

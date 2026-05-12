@@ -13,26 +13,26 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-11T09:23:00Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-12T09:09:42Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**38** critical/high severity findings across the monorepo.
+**27** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="1 Critical" icon="warning">
+  <Card title="0 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="37 High" icon="error">
+  <Card title="27 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="62 Medium" icon="information">
+  <Card title="50 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="6 Low" icon="approve-check-circle">
+  <Card title="5 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-05-11T09:23:00Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **91** advisories
+    **67** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **44** advisories
@@ -62,10 +62,9 @@ Last generated: **2026-05-11T09:23:00Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 1
-    "High" : 37
-    "Medium" : 62
-    "Low" : 6
+    "High" : 27
+    "Medium" : 50
+    "Low" : 5
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +72,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 91
+    "npm" : 67
     "Cargo" : 44
 ```
 
@@ -82,19 +81,18 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 37 | 47 | 6 | 91 |
+| **npm** | 0 | 27 | 35 | 5 | 67 |
 | **Cargo** | 0 | 0 | 15 | 0 | 44 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 1 | 37 | 62 | 6 | 135 |
+| **Total** | 0 | 27 | 50 | 5 | 111 |
 
   </TabItem>
   <TabItem label="npm">
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Critical | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-2w6w-674q-4c4q) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
@@ -108,29 +106,19 @@ pie showData
 | High | `undici` | Undici has Unhandled Exception in WebSocket Client Due to... | [Details](https://github.com/advisories/GHSA-v9p9-hfj2-hcw8) |
 | High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
 | High | `path-to-regexp` | path-to-regexp vulnerable to Regular Expression Denial of... | [Details](https://github.com/advisories/GHSA-37ch-88jc-xwx2) |
-| High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-3mfm-83xf-c92r) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
-| High | `handlebars` | Handlebars.js has JavaScript Injection via AST Type Confu... | [Details](https://github.com/advisories/GHSA-xhpv-hc6g-r9c6) |
-| High | `handlebars` | Handlebars.js has Denial of Service via Malformed Decorat... | [Details](https://github.com/advisories/GHSA-9cx6-37pm-9jff) |
-| High | `lodash-es` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `vite` | Vite: `server.fs.deny` bypassed with queries | [Details](https://github.com/advisories/GHSA-v2wj-q39q-566r) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
-| High | `@xmldom/xmldom` | xmldom: XML injection via unsafe CDATA serialization allo... | [Details](https://github.com/advisories/GHSA-wh4c-j3r5-mjhp) |
-| High | `handlebars` | Handlebars.js has JavaScript Injection in CLI Precompiler... | [Details](https://github.com/advisories/GHSA-xjpj-3mr7-gcpf) |
 | High | `axios` | Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Prote... | [Details](https://github.com/advisories/GHSA-pmwg-cvhr-8vh7) |
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | High | `axios` | Axios: Prototype Pollution Gadgets - Response Tampering, ... | [Details](https://github.com/advisories/GHSA-pf86-5x62-jrwf) |
 | High | `axios` | Axios: Header Injection via Prototype Pollution | [Details](https://github.com/advisories/GHSA-6chq-wfr3-2hj9) |
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
-| High | `@xmldom/xmldom` | xmldom: Uncontrolled recursion in XML serialization leads... | [Details](https://github.com/advisories/GHSA-2v35-w6hq-6mfw) |
-| High | `@xmldom/xmldom` | xmldom has XML injection through unvalidated DocumentType... | [Details](https://github.com/advisories/GHSA-f6ww-3ggp-fr8h) |
-| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated process... | [Details](https://github.com/advisories/GHSA-x6wf-f3px-wcqx) |
-| High | `@xmldom/xmldom` | xmldom has XML node injection through unvalidated comment... | [Details](https://github.com/advisories/GHSA-j759-j44w-7fr8) |
 | High | `@babel/plugin-transform-modules-systemjs` | @babel/plugin-transform-modules-systemjs generates arbitr... | [Details](https://github.com/advisories/GHSA-fv7c-fp4j-7gwp) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
@@ -148,26 +136,15 @@ pie showData
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
-| Medium | `handlebars` | Handlebars.js has Prototype Pollution Leading to XSS thro... | [Details](https://github.com/advisories/GHSA-2qvq-rjwj-gvw9) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
-| Medium | `handlebars` | Handlebars.js has a Prototype Method Access Control Gap v... | [Details](https://github.com/advisories/GHSA-7rx3-28cr-v5wh) |
-| Medium | `dompurify` | DOMPurify contains a Cross-site Scripting vulnerability | [Details](https://github.com/advisories/GHSA-v2wj-7wpq-c8vv) |
 | Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
-| Medium | `lodash-es` | lodash vulnerable to Prototype Pollution via array path b... | [Details](https://github.com/advisories/GHSA-f23m-r3pf-42rh) |
 | Medium | `lodash` | lodash vulnerable to Prototype Pollution via array path b... | [Details](https://github.com/advisories/GHSA-f23m-r3pf-42rh) |
-| Medium | `dompurify` | DOMPurify ADD_ATTR predicate skips URI validation | [Details](https://github.com/advisories/GHSA-cjmm-f4jc-qw8r) |
-| Medium | `dompurify` | DOMPurify USE_PROFILES prototype pollution allows event h... | [Details](https://github.com/advisories/GHSA-cj63-jhhr-wcxv) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `vite` | Vite Vulnerable to Path Traversal in Optimized Deps `.map... | [Details](https://github.com/advisories/GHSA-4w7w-66w2-5vf9) |
 | Medium | `follow-redirects` | follow-redirects leaks Custom Authentication Headers to C... | [Details](https://github.com/advisories/GHSA-r4q5-vmmm-2653) |
-| Medium | `dompurify` | DOMPurify's ADD_TAGS function form bypasses FORBID_TAGS d... | [Details](https://github.com/advisories/GHSA-39q2-94rc-95cp) |
-| Medium | `postcss` | PostCSS has XSS via Unescaped &lt;/style&gt; in its CSS Stringi... | [Details](https://github.com/advisories/GHSA-qx2v-qp2m-jg93) |
-| Medium | `dompurify` | DOMPurify: FORBID_TAGS bypassed by function-based ADD_TAG... | [Details](https://github.com/advisories/GHSA-h7mw-gpvr-xq4m) |
-| Medium | `dompurify` | DOMPurify has a SAFE_FOR_TEMPLATES bypass in RETURN_DOM mode | [Details](https://github.com/advisories/GHSA-crv5-9vww-q3g8) |
-| Medium | `dompurify` | DOMPurify: Prototype Pollution to XSS Bypass via CUSTOM_E... | [Details](https://github.com/advisories/GHSA-v9jr-rg53-9pgp) |
 | Medium | `astro` | Astro: XSS in define:vars via incomplete &lt;/script&gt; tag sa... | [Details](https://github.com/advisories/GHSA-j687-52p2-xcff) |
 | Medium | `axios` | Axios: Authentication Bypass via Prototype Pollution Gadg... | [Details](https://github.com/advisories/GHSA-w9j2-pvgh-6h63) |
 | Medium | `axios` | Axios: Invisible JSON Response Tampering via Prototype Po... | [Details](https://github.com/advisories/GHSA-3w6x-2g7m-8v23) |
@@ -178,12 +155,10 @@ pie showData
 | Medium | `axios` | Axios: HTTP adapter streamed responses bypass maxContentL... | [Details](https://github.com/advisories/GHSA-vf2m-468p-8v99) |
 | Medium | `axios` | Axios: XSRF Token Cross-Origin Leakage via Prototype Poll... | [Details](https://github.com/advisories/GHSA-xx6v-rp6x-q39c) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
-| Medium | `dompurify` | DOMPurify is vulnerable to mutation-XSS via Re-Contextual... | [Details](https://github.com/advisories/GHSA-h8r8-wccr-v5f2) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `astro` | Astro: Remote allowlist bypass via unanchored matchPathna... | [Details](https://github.com/advisories/GHSA-g735-7g2w-hh3f) |
-| Low | `handlebars` | Handlebars.js has a Property Access Validation Bypass in ... | [Details](https://github.com/advisories/GHSA-442j-39wm-28r2) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
 
   </TabItem>

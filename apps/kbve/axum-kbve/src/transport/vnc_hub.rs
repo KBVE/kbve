@@ -48,6 +48,7 @@ use serde::Serialize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use tokio::sync::{Mutex, broadcast};
+use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
 use tracing::{debug, info, warn};
 
@@ -121,6 +122,32 @@ pub fn list_sessions() -> Vec<SessionInfo> {
         .collect()
 }
 
+/// Per-upstream connection knobs supplied by the caller.
+pub struct UpstreamConfig {
+    pub auth_header: Option<HeaderValue>,
+    pub origin: Option<HeaderValue>,
+    pub subprotocols: Option<HeaderValue>,
+    pub tls_connector: tokio_tungstenite::Connector,
+}
+
+impl UpstreamConfig {
+    /// KubeVirt VNC subresource defaults.
+    pub fn kubevirt(
+        bearer_token: Option<String>,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let auth_header = match bearer_token {
+            Some(t) => Some(HeaderValue::from_str(&format!("Bearer {t}"))?),
+            None => None,
+        };
+        Ok(Self {
+            auth_header,
+            origin: None,
+            subprotocols: None,
+            tls_connector: build_kubevirt_tls_connector()?,
+        })
+    }
+}
+
 /// Entry point used by the HTTP handler. Finds or creates the session for
 /// this VM key, attaches this browser viewer, and runs the full client
 /// lifecycle until the browser disconnects or the session tears down.
@@ -128,6 +155,16 @@ pub async fn join_session(
     vm_key: String,
     upstream_url: String,
     upstream_token: Option<String>,
+    browser_ws: WebSocket,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let config = UpstreamConfig::kubevirt(upstream_token)?;
+    join_session_with_config(vm_key, upstream_url, config, browser_ws).await
+}
+
+pub async fn join_session_with_config(
+    vm_key: String,
+    upstream_url: String,
+    config: UpstreamConfig,
     browser_ws: WebSocket,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client_id = NEXT_CLIENT_ID.fetch_add(1, Ordering::Relaxed);
@@ -140,7 +177,7 @@ pub async fn join_session(
         if let Some(existing) = registry.get(&vm_key) {
             existing.clone()
         } else {
-            match create_session(vm_key.clone(), upstream_url, upstream_token).await {
+            match create_session(vm_key.clone(), upstream_url, config).await {
                 Ok(s) => {
                     registry.insert(vm_key.clone(), s.clone());
                     s
@@ -190,28 +227,35 @@ pub async fn join_session(
     result
 }
 
-/// Open a fresh upstream WebSocket to KubeVirt's VNC subresource and spawn
+/// Open a fresh upstream WebSocket to the configured backend and spawn
 /// the background reader task that feeds the cache + broadcast channel.
 async fn create_session(
     vm_key: String,
     upstream_url: String,
-    upstream_token: Option<String>,
+    config: UpstreamConfig,
 ) -> Result<Arc<VncSession>, Box<dyn std::error::Error + Send + Sync>> {
     let ws_url = upstream_url
         .replace("https://", "wss://")
         .replace("http://", "ws://");
     let mut request = ws_url.into_client_request()?;
-    if let Some(t) = &upstream_token {
-        request
-            .headers_mut()
-            .insert("Authorization", format!("Bearer {t}").parse()?);
+    let headers = request.headers_mut();
+    if let Some(v) = config.auth_header {
+        headers.insert("Authorization", v);
+    }
+    if let Some(v) = config.origin {
+        headers.insert("Origin", v);
+    }
+    if let Some(v) = config.subprotocols {
+        headers.insert("Sec-WebSocket-Protocol", v);
     }
 
-    let tls_connector = build_tls_connector()?;
-
-    let (upstream_ws, _resp) =
-        tokio_tungstenite::connect_async_tls_with_config(request, None, false, Some(tls_connector))
-            .await?;
+    let (upstream_ws, _resp) = tokio_tungstenite::connect_async_tls_with_config(
+        request,
+        None,
+        false,
+        Some(config.tls_connector),
+    )
+    .await?;
 
     let (upstream_tx, mut upstream_rx) = upstream_ws.split();
     let (broadcast_tx, _) = broadcast::channel::<Bytes>(BROADCAST_CAPACITY);
@@ -225,10 +269,6 @@ async fn create_session(
         primary_id: AtomicUsize::new(0),
     });
 
-    // Upstream reader: for every byte from KubeVirt, append to the cache
-    // and broadcast it. Holding the cache lock across the broadcast send
-    // means a concurrent `run_client` setup cannot race into a state where
-    // its snapshot + subscribe straddles a published byte (no gap, no dup).
     {
         let session = session.clone();
         tokio::spawn(async move {
@@ -253,13 +293,15 @@ async fn create_session(
                 if cache.len() + bytes.len() <= MAX_CACHE_BYTES {
                     cache.extend_from_slice(&bytes);
                 }
-                // Send while still holding the lock so client setup either
-                // sees this byte in its snapshot OR in its live stream —
-                // never both, never neither.
                 let _ = session.broadcast.send(bytes);
                 drop(cache);
             }
             debug!("VNC upstream reader closed for {}", session.vm_key);
+
+            sessions().remove_if(&session.vm_key, |_, s| Arc::ptr_eq(s, &session));
+            if let Some(mut sink) = session.upstream_sink.lock().await.take() {
+                let _ = sink.close().await;
+            }
         });
     }
 
@@ -379,7 +421,7 @@ async fn run_client(
 /// Build a TLS connector that trusts the in-cluster Kubernetes CA so the
 /// apiserver's self-signed cert for the VNC subresource validates.
 /// Mirrors the setup from the old single-viewer `vnc_bridge`.
-fn build_tls_connector()
+fn build_kubevirt_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     let mut root_store = rustls::RootCertStore::empty();
     root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
@@ -396,6 +438,66 @@ fn build_tls_connector()
     }
     let config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
+        .with_no_client_auth();
+    Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
+}
+
+/// TLS connector that accepts any cert. Cluster-internal use only.
+pub fn build_accept_any_tls_connector()
+-> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
+    use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
+    use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+    use rustls::{DigitallySignedStruct, Error as TlsError, SignatureScheme};
+
+    #[derive(Debug)]
+    struct AcceptAnyCert;
+
+    impl ServerCertVerifier for AcceptAnyCert {
+        fn verify_server_cert(
+            &self,
+            _end_entity: &CertificateDer<'_>,
+            _intermediates: &[CertificateDer<'_>],
+            _server_name: &ServerName<'_>,
+            _ocsp: &[u8],
+            _now: UnixTime,
+        ) -> Result<ServerCertVerified, TlsError> {
+            Ok(ServerCertVerified::assertion())
+        }
+        fn verify_tls12_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, TlsError> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+        fn verify_tls13_signature(
+            &self,
+            _message: &[u8],
+            _cert: &CertificateDer<'_>,
+            _dss: &DigitallySignedStruct,
+        ) -> Result<HandshakeSignatureValid, TlsError> {
+            Ok(HandshakeSignatureValid::assertion())
+        }
+        fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+            vec![
+                SignatureScheme::RSA_PKCS1_SHA256,
+                SignatureScheme::RSA_PKCS1_SHA384,
+                SignatureScheme::RSA_PKCS1_SHA512,
+                SignatureScheme::ECDSA_NISTP256_SHA256,
+                SignatureScheme::ECDSA_NISTP384_SHA384,
+                SignatureScheme::ECDSA_NISTP521_SHA512,
+                SignatureScheme::RSA_PSS_SHA256,
+                SignatureScheme::RSA_PSS_SHA384,
+                SignatureScheme::RSA_PSS_SHA512,
+                SignatureScheme::ED25519,
+            ]
+        }
+    }
+
+    let config = rustls::ClientConfig::builder()
+        .dangerous()
+        .with_custom_certificate_verifier(Arc::new(AcceptAnyCert))
         .with_no_client_auth();
     Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }

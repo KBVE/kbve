@@ -364,6 +364,40 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/me/staff", get(api_me_staff))
         .route("/api/v1/forum/spaces", get(api_list_spaces))
         .route("/api/v1/forum/tags", get(api_list_tags))
+        // Wallet — authenticated user surface (Supabase JWT).
+        .route("/api/v1/wallet/me/balance", get(super::wallet::me_balance))
+        .route("/api/v1/wallet/me/coupons", get(super::wallet::me_coupons))
+        .route(
+            "/api/v1/wallet/me/redeem-coupon",
+            post(super::wallet::me_redeem_coupon),
+        )
+        // Wallet — service surface (service_role JWT required). Backend
+        // callers: daily-reward cron, market mutations, MC mod, admin
+        // tooling. Anon / authenticated JWTs are rejected with 403.
+        .route(
+            "/api/v1/wallet/service/credit",
+            post(super::wallet::service_credit),
+        )
+        .route(
+            "/api/v1/wallet/service/debit",
+            post(super::wallet::service_debit),
+        )
+        .route(
+            "/api/v1/wallet/service/transfer",
+            post(super::wallet::service_transfer),
+        )
+        .route(
+            "/api/v1/wallet/service/redeem-coupon",
+            post(super::wallet::service_redeem_coupon),
+        )
+        .route(
+            "/api/v1/wallet/service/revoke-coupon",
+            post(super::wallet::service_revoke_coupon),
+        )
+        .route(
+            "/api/v1/wallet/service/verify-balance/{account_id}",
+            get(super::wallet::service_verify_balance),
+        )
         // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
         // as "category" but the canonical URL is `s/` (space). Crawlers
         // collapse the duplicate into the canonical via the redirect.
@@ -451,6 +485,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/firecracker-net/proxy",
             any(super::proxy::firecracker_net_proxy_handler),
+        )
+        // Stable public alias for the persistent endpoint surface.
+        // /api/v1/fc/<deploy|list|{name}|...> -> firecracker-ctl-net /fc/<rest>.
+        // Same staff gate as the firecracker-net proxy above; the underlying
+        // FIRECRACKER_NET singleton handles the upstream forward.
+        .route(
+            "/api/v1/fc/{*rest}",
+            any(super::proxy::firecracker_fc_alias_handler),
         )
         // Public-facing persistent endpoint path — /fc/{name}/{*path}
         // routes to firecracker-ctl-net's /proxy/{name}/{*path} after a
@@ -2893,7 +2935,7 @@ async fn forum_compose_handler(
 
 /// Helper: pull `Authorization: Bearer <token>` and verify via the JWT
 /// cache. Returns Ok(user_id) or an error response.
-async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
+pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())

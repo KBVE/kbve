@@ -11,6 +11,7 @@ tags:
 
 import { Card, CardGrid, Aside, LinkCard } from '@astrojs/starlight/components';
 import AstroMcAuthLink from '@/components/mc/mc-auth/AstroMcAuthLink.astro';
+import AstroWalletCard from '@/components/wallet/AstroWalletCard.astro';
 
 The KBVE Minecraft server is a public, community-run Fabric 1.21.11 world
 with performance mods, old-combat mechanics, and a custom Rust-powered AI
@@ -24,6 +25,14 @@ Join **mc.kbve.com** with your Minecraft client. If your Supabase account
 isn't linked yet, you'll see a chat prompt in-game — generate a code
 above and run `/link <code>`. The bridge auto-verifies and flips the
 badge to **Linked**.
+
+## Your wallet
+
+<AstroWalletCard />
+
+Credits + KHash for the linked account. Claim any pending coupons — the
+welcome 1,000 KHash drops here on first sign-in. Card hides itself when
+you're signed out.
 
 ## What to expect
 

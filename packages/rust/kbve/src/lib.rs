@@ -24,6 +24,12 @@ pub mod web;
 //  * [MARKDOWN] — safe CommonMark + GFM renderer with ammonia allowlist.
 pub mod markdown;
 
+//  * [WALLET] — feature-gated multi-currency ledger client.
+//    Talks to the `wallet` Postgres schema (see packages/data/sql/schema/wallet/)
+//    via the existing diesel pool. Enable with `--features wallet`.
+#[cfg(feature = "wallet")]
+pub mod wallet;
+
 // Re-export the `holy` proc-macro crate so downstream axum-* services
 // can pull derive(Sanitize) / derive(Getters) etc. through `kbve::holy::*`
 // without taking a second top-level dependency. Single boundary = one

@@ -27,6 +27,22 @@ const CARD_TEXTURE_MARGIN = {
 	x: 6,
 	y: 8,
 } as const;
+const BUTTON_TEXTURE_PREFIX = 'blackjack-button';
+const BUTTON_TEXTURE_SIZE = {
+	width: 104,
+	height: 40,
+	radius: 8,
+} as const;
+const CHIP_TEXTURE_KEY = 'blackjack-chip';
+const SHOE_TEXTURE_KEY = 'blackjack-shoe-stack';
+const SHOE_POSITION = {
+	x: 1030,
+	y: 198,
+} as const;
+const DEAL_ANIMATION = {
+	duration: 220,
+	stagger: 70,
+} as const;
 
 type ButtonKey =
 	| 'deal'
@@ -50,13 +66,30 @@ interface ButtonSpec {
 
 interface ButtonView {
 	spec: ButtonSpec;
-	box: Phaser.GameObjects.Graphics;
+	box: Phaser.GameObjects.Image;
 	text: Phaser.GameObjects.Text;
+	lastEnabled: boolean | null;
+}
+
+type HandOwner = 'dealer' | 'player';
+
+interface CardPlacement {
+	textureKey: string;
+	x: number;
+	y: number;
+	owner: HandOwner;
+	index: number;
 }
 
 export class BlackjackScene extends Phaser.Scene {
 	private state: BlackjackState = createBlackjackState();
 	private cardLayer!: Phaser.GameObjects.Container;
+	private cardViews: Phaser.GameObjects.Image[] = [];
+	private activeCardViews = 0;
+	private dealLayer!: Phaser.GameObjects.Container;
+	private flyingCardViews: Phaser.GameObjects.Image[] = [];
+	private previousDealerCardCount = 0;
+	private previousPlayerCardCount = 0;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private buttons: ButtonView[] = [];
 	private statusText!: Phaser.GameObjects.Text;
@@ -66,7 +99,7 @@ export class BlackjackScene extends Phaser.Scene {
 	private playerValueText!: Phaser.GameObjects.Text;
 	private shoeText!: Phaser.GameObjects.Text;
 	private statsText!: Phaser.GameObjects.Text;
-	private betChip!: Phaser.GameObjects.Graphics;
+	private betChip!: Phaser.GameObjects.Image;
 	private betChipText!: Phaser.GameObjects.Text;
 
 	constructor() {
@@ -75,8 +108,10 @@ export class BlackjackScene extends Phaser.Scene {
 
 	create() {
 		this.createCardTextures();
+		this.createHudTextures();
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
+		this.dealLayer = this.add.container(0, 0).setDepth(15);
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.createHud();
 		this.createButtons();
@@ -125,6 +160,9 @@ export class BlackjackScene extends Phaser.Scene {
 
 		this.drawHandBand(154, 'DEALER');
 		this.drawHandBand(408, 'PLAYER');
+		this.add
+			.image(SHOE_POSITION.x, SHOE_POSITION.y, SHOE_TEXTURE_KEY)
+			.setOrigin(0);
 
 		this.add
 			.text(BASE_WIDTH / 2, 86, 'KBVE BLACKJACK', {
@@ -287,7 +325,9 @@ export class BlackjackScene extends Phaser.Scene {
 				align: 'center',
 			})
 			.setOrigin(0.5, 0);
-		this.betChip = this.add.graphics();
+		this.betChip = this.add
+			.image(332, 676, CHIP_TEXTURE_KEY)
+			.setOrigin(0.5);
 		this.betChipText = this.add
 			.text(332, 674, '', {
 				fontFamily: FONT.mono,
@@ -414,7 +454,10 @@ export class BlackjackScene extends Phaser.Scene {
 		];
 
 		for (const spec of specs) {
-			const box = this.add.graphics();
+			const box = this.add
+				.image(spec.x, spec.y, this.buttonTextureKey(spec.enabled()))
+				.setOrigin(0)
+				.setDisplaySize(spec.w, BUTTON_TEXTURE_SIZE.height);
 			const text = this.add
 				.text(spec.x + spec.w / 2, spec.y + 20, spec.label, {
 					fontFamily: FONT.sans,
@@ -434,7 +477,7 @@ export class BlackjackScene extends Phaser.Scene {
 			});
 
 			this.hudLayer.add([box, text, hitArea]);
-			this.buttons.push({ spec, box, text });
+			this.buttons.push({ spec, box, text, lastEnabled: null });
 		}
 	}
 
@@ -465,14 +508,27 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private render() {
-		this.cardLayer.removeAll(true);
-		this.drawHand(
+		this.activeCardViews = 0;
+		const hideHole = this.hideDealerHole();
+		const dealerCards = this.cardPlacements(
 			this.state.dealer,
 			BASE_WIDTH / 2,
 			166,
-			this.hideDealerHole(),
+			hideHole,
+			'dealer',
 		);
-		this.drawHand(this.state.player, BASE_WIDTH / 2, 420, false);
+		const playerCards = this.cardPlacements(
+			this.state.player,
+			BASE_WIDTH / 2,
+			420,
+			false,
+			'player',
+		);
+
+		this.drawHand(dealerCards, BASE_WIDTH / 2, 166);
+		this.drawHand(playerCards, BASE_WIDTH / 2, 420);
+		this.hideUnusedCardViews();
+		this.animateNewCards(dealerCards, playerCards);
 		this.updateText();
 		this.updateButtons();
 	}
@@ -483,48 +539,156 @@ export class BlackjackScene extends Phaser.Scene {
 		);
 	}
 
-	private drawHand(
+	private cardPlacements(
 		cards: readonly Card[],
 		centerX: number,
 		y: number,
 		hideHole: boolean,
-	) {
+		owner: HandOwner,
+	): CardPlacement[] {
 		const totalWidth =
 			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
 		let x = centerX - totalWidth / 2;
+		const placements: CardPlacement[] = [];
 
-		if (cards.length === 0) {
+		cards.forEach((card, index) => {
+			placements.push({
+				textureKey:
+					hideHole && index === 1
+						? this.cardTextureKey('back')
+						: this.cardTextureKey(card),
+				x,
+				y,
+				owner,
+				index,
+			});
+			x += CARD_SIZE.width + 18;
+		});
+		return placements;
+	}
+
+	private drawHand(
+		placements: readonly CardPlacement[],
+		centerX: number,
+		y: number,
+	) {
+		if (placements.length === 0) {
 			this.drawCardSlot(centerX - CARD_SIZE.width - 10, y);
 			this.drawCardSlot(centerX + 10, y);
 			return;
 		}
 
-		cards.forEach((card, index) => {
-			if (hideHole && index === 1) {
-				this.drawCardBack(x, y);
-			} else {
-				this.drawCardFace(card, x, y);
-			}
-			x += CARD_SIZE.width + 18;
-		});
+		for (const placement of placements) {
+			this.placeCardTexture(
+				placement.textureKey,
+				placement.x,
+				placement.y,
+			);
+		}
 	}
 
 	private drawCardSlot(x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey('slot')).setOrigin(0),
-		);
+		this.placeCardTexture(this.cardTextureKey('slot'), x, y);
 	}
 
-	private drawCardBack(x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey('back')).setOrigin(0),
-		);
+	private placeCardTexture(textureKey: string, x: number, y: number) {
+		const view = this.getCardView();
+		view.setTexture(textureKey);
+		view.setPosition(x, y);
+		view.setVisible(true);
+		view.setActive(true);
 	}
 
-	private drawCardFace(card: Card, x: number, y: number) {
-		this.cardLayer.add(
-			this.add.image(x, y, this.cardTextureKey(card)).setOrigin(0),
-		);
+	private getCardView(): Phaser.GameObjects.Image {
+		const view =
+			this.cardViews[this.activeCardViews] ??
+			this.add.image(0, 0, this.cardTextureKey('slot')).setOrigin(0);
+
+		if (!this.cardViews[this.activeCardViews]) {
+			this.cardViews.push(view);
+			this.cardLayer.add(view);
+		}
+
+		this.activeCardViews++;
+		return view;
+	}
+
+	private hideUnusedCardViews() {
+		for (let i = this.activeCardViews; i < this.cardViews.length; i++) {
+			this.cardViews[i].setVisible(false);
+			this.cardViews[i].setActive(false);
+		}
+	}
+
+	private animateNewCards(
+		dealerCards: readonly CardPlacement[],
+		playerCards: readonly CardPlacement[],
+	) {
+		const previousDealerCount = this.previousDealerCardCount;
+		const previousPlayerCount = this.previousPlayerCardCount;
+		this.previousDealerCardCount = dealerCards.length;
+		this.previousPlayerCardCount = playerCards.length;
+
+		const newCards: CardPlacement[] = [];
+		if (dealerCards.length > previousDealerCount) {
+			newCards.push(...dealerCards.slice(previousDealerCount));
+		}
+		if (playerCards.length > previousPlayerCount) {
+			newCards.push(...playerCards.slice(previousPlayerCount));
+		}
+		if (newCards.length === 0) return;
+
+		newCards
+			.sort(
+				(a, b) => a.index - b.index || (a.owner === 'player' ? -1 : 1),
+			)
+			.forEach((placement, index) => {
+				this.animateCardFromShoe(placement, index);
+			});
+	}
+
+	private animateCardFromShoe(placement: CardPlacement, order: number) {
+		const view = this.getFlyingCardView();
+		const startX = SHOE_POSITION.x + 18;
+		const startY = SHOE_POSITION.y + 16;
+		view.setTexture(placement.textureKey)
+			.setPosition(startX, startY)
+			.setScale(0.78)
+			.setAlpha(0.92)
+			.setAngle(-8)
+			.setVisible(true)
+			.setActive(true);
+
+		this.tweens.killTweensOf(view);
+		this.tweens.add({
+			targets: view,
+			x: placement.x,
+			y: placement.y,
+			scale: 1,
+			alpha: 0,
+			angle: 0,
+			duration: DEAL_ANIMATION.duration,
+			delay: order * DEAL_ANIMATION.stagger,
+			ease: 'Sine.easeOut',
+			onComplete: () => {
+				view.setVisible(false);
+				view.setActive(false);
+			},
+		});
+	}
+
+	private getFlyingCardView(): Phaser.GameObjects.Image {
+		const inactiveView = this.flyingCardViews.find((view) => !view.active);
+		if (inactiveView) return inactiveView;
+
+		const view = this.add
+			.image(0, 0, this.cardTextureKey('back'))
+			.setOrigin(0)
+			.setVisible(false)
+			.setActive(false);
+		this.flyingCardViews.push(view);
+		this.dealLayer.add(view);
+		return view;
 	}
 
 	private createCardTextures() {
@@ -532,6 +696,7 @@ export class BlackjackScene extends Phaser.Scene {
 
 		this.createSlotTexture();
 		this.createBackTexture();
+		this.createShoeTexture();
 
 		for (const suit of ['spades', 'hearts', 'diamonds', 'clubs'] as const) {
 			for (const rank of [
@@ -552,6 +717,136 @@ export class BlackjackScene extends Phaser.Scene {
 				this.createFaceTexture(encodeCard(suit, rank));
 			}
 		}
+	}
+
+	private createHudTextures() {
+		this.createButtonTexture(true);
+		this.createButtonTexture(false);
+		this.createChipTexture();
+	}
+
+	private createButtonTexture(enabled: boolean) {
+		const key = this.buttonTextureKey(enabled);
+		if (this.textures.exists(key)) return;
+
+		const canvas = document.createElement('canvas');
+		canvas.width = BUTTON_TEXTURE_SIZE.width;
+		canvas.height = BUTTON_TEXTURE_SIZE.height;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+
+		ctx.globalAlpha = enabled ? 0.94 : 0.5;
+		ctx.fillStyle = this.hexColor(enabled ? COLORS.action : 0x111827);
+		this.roundRect(
+			ctx,
+			0,
+			0,
+			BUTTON_TEXTURE_SIZE.width,
+			BUTTON_TEXTURE_SIZE.height,
+			BUTTON_TEXTURE_SIZE.radius,
+		);
+		ctx.fill();
+		ctx.globalAlpha = enabled ? 0.9 : 0.42;
+		ctx.strokeStyle = this.hexColor(enabled ? COLORS.tableTrim : 0x475569);
+		ctx.lineWidth = 1;
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(key, canvas);
+	}
+
+	private createChipTexture() {
+		if (this.textures.exists(CHIP_TEXTURE_KEY)) return;
+
+		const size = 70;
+		const center = size / 2;
+		const canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+
+		ctx.fillStyle = '#f8fafc';
+		ctx.beginPath();
+		ctx.arc(center, center, 33, 0, Math.PI * 2);
+		ctx.fill();
+
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrim);
+		ctx.lineWidth = 6;
+		ctx.beginPath();
+		ctx.arc(center, center, 33, 0, Math.PI * 2);
+		ctx.stroke();
+
+		ctx.strokeStyle = this.hexColor(COLORS.cardBack);
+		ctx.globalAlpha = 0.95;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(center, center, 22, 0, Math.PI * 2);
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(CHIP_TEXTURE_KEY, canvas);
+	}
+
+	private createShoeTexture() {
+		if (this.textures.exists(SHOE_TEXTURE_KEY)) return;
+
+		const stackOffset = 9;
+		const canvas = document.createElement('canvas');
+		canvas.width =
+			CARD_SIZE.width + CARD_TEXTURE_MARGIN.x + stackOffset * 3;
+		canvas.height =
+			CARD_SIZE.height + CARD_TEXTURE_MARGIN.y + stackOffset * 3;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+
+		for (let i = 3; i >= 0; i--) {
+			const x = i * stackOffset;
+			const y = i * stackOffset;
+			this.drawCardShadowAt(ctx, x + 5, y + 7);
+			ctx.fillStyle = this.hexColor(COLORS.cardBack);
+			this.roundRect(
+				ctx,
+				x,
+				y,
+				CARD_SIZE.width,
+				CARD_SIZE.height,
+				CARD_SIZE.radius,
+			);
+			ctx.fill();
+			ctx.strokeStyle = this.hexColor(COLORS.cardBorder);
+			ctx.globalAlpha = 0.9;
+			ctx.lineWidth = 2;
+			ctx.stroke();
+			ctx.globalAlpha = 1;
+
+			ctx.strokeStyle = this.hexColor(COLORS.cardBackAccent);
+			ctx.globalAlpha = 0.55;
+			ctx.lineWidth = 2;
+			this.strokeRoundRect(
+				ctx,
+				x + 10,
+				y + 10,
+				CARD_SIZE.width - 20,
+				CARD_SIZE.height - 20,
+				8,
+			);
+			ctx.globalAlpha = 1;
+		}
+
+		ctx.font = `18px ${FONT.serif}`;
+		ctx.fillStyle = COLORS.gold;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.globalAlpha = 0.9;
+		ctx.fillText(
+			'KBVE',
+			(CARD_SIZE.width + stackOffset * 3) / 2,
+			(CARD_SIZE.height + stackOffset * 3) / 2,
+		);
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(SHOE_TEXTURE_KEY, canvas);
 	}
 
 	private createSlotTexture() {
@@ -672,10 +967,18 @@ export class BlackjackScene extends Phaser.Scene {
 
 	private drawCardShadow(ctx: CanvasRenderingContext2D) {
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+		this.drawCardShadowAt(ctx, 5, 7);
+	}
+
+	private drawCardShadowAt(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+	) {
 		this.roundRect(
 			ctx,
-			5,
-			7,
+			x,
+			y,
 			CARD_SIZE.width,
 			CARD_SIZE.height,
 			CARD_SIZE.radius,
@@ -696,6 +999,10 @@ export class BlackjackScene extends Phaser.Scene {
 
 	private cardTextureKey(card: Card | 'back' | 'slot'): string {
 		return `${CARD_TEXTURE_PREFIX}-${card}`;
+	}
+
+	private buttonTextureKey(enabled: boolean): string {
+		return `${BUTTON_TEXTURE_PREFIX}-${enabled ? 'enabled' : 'disabled'}`;
 	}
 
 	private strokeRoundRect(
@@ -783,45 +1090,14 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private updateButtons() {
-		this.drawBetChip();
 		for (const button of this.buttons) {
 			const enabled = button.spec.enabled();
-			button.box.clear();
-			button.box.fillStyle(
-				enabled ? COLORS.action : 0x111827,
-				enabled ? 0.94 : 0.5,
-			);
-			button.box.lineStyle(
-				1,
-				enabled ? COLORS.tableTrim : 0x475569,
-				enabled ? 0.9 : 0.42,
-			);
-			button.box.fillRoundedRect(
-				button.spec.x,
-				button.spec.y,
-				button.spec.w,
-				40,
-				8,
-			);
-			button.box.strokeRoundedRect(
-				button.spec.x,
-				button.spec.y,
-				button.spec.w,
-				40,
-				8,
-			);
+			if (button.lastEnabled !== enabled) {
+				button.box.setTexture(this.buttonTextureKey(enabled));
+				button.lastEnabled = enabled;
+			}
 			button.text.setAlpha(enabled ? 1 : 0.42);
 		}
-	}
-
-	private drawBetChip() {
-		this.betChip.clear();
-		this.betChip.fillStyle(0xf8fafc, 1);
-		this.betChip.fillCircle(332, 676, 33);
-		this.betChip.lineStyle(6, COLORS.tableTrim, 1);
-		this.betChip.strokeCircle(332, 676, 33);
-		this.betChip.lineStyle(2, COLORS.cardBack, 0.95);
-		this.betChip.strokeCircle(332, 676, 22);
 	}
 
 	private getStatusColor(): string {

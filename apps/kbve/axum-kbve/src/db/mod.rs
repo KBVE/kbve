@@ -9,6 +9,7 @@ mod profile;
 mod rentearth;
 mod supabase;
 mod twitch;
+mod wallet;
 
 /// Parse a URL and require an `https` scheme before transmitting sensitive
 /// data. Returns a typed `reqwest::Url` so callers pass it straight to
@@ -39,3 +40,4 @@ pub use profile::{
 };
 pub use rentearth::{RentEarthProfile, get_rentearth_service, init_rentearth_service};
 pub use twitch::{get_twitch_client, init_twitch_client};
+pub use wallet::{get_wallet_client, init_wallet_client};

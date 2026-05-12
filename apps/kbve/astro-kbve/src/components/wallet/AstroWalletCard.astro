@@ -1,0 +1,20 @@
+---
+/**
+ * AstroWalletCard
+ *
+ * Drop-in mount for the always-authed wallet card. Use on pages where any
+ * signed-in viewer should see their wallet (e.g. /mc/, /account/). On
+ * profile pages where the card should only appear on the *own* profile,
+ * use `providers/AskamaProfileProvider.astro` which already mounts the
+ * ownership-gated `ReactProfileWallet`.
+ *
+ * The React island hides itself for anon viewers, so the wrapper can sit
+ * unconditionally in the page template.
+ */
+
+import { ReactWalletCard } from './ReactWalletCard';
+---
+
+<div class="kbve-wallet-card">
+	<ReactWalletCard client:only="react" />
+</div>

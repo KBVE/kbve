@@ -13,8 +13,10 @@
 # web.mdx wires this manifest into the dispatch manifest via
 # `deployment_yamls`.
 #
-# Sync hook: hook-delete-policy `BeforeHookCreation` removes the previous
-# Job before each ArgoCD sync so a new image tag re-runs cleanly.
+# PostSync hook: runs after the Deployment has applied so an absent or
+# failing image does not block the rollout. HookFailed in the delete
+# policy auto-cleans failed Jobs instead of accumulating ImagePullBackOff
+# pods that wedge subsequent reconciles.
 # ---------------------------------------------------------------------------
 apiVersion: batch/v1
 kind: Job
@@ -24,8 +26,8 @@ metadata:
     labels:
         app: firecracker-rootfs-init
     annotations:
-        argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookFailed
 spec:
     backoffLimit: 3
     ttlSecondsAfterFinished: 3600
@@ -37,7 +39,7 @@ spec:
             restartPolicy: OnFailure
             containers:
                 - name: stage
-                  image: ghcr.io/kbve/firecracker-python-web:0.0.1
+                  image: ghcr.io/kbve/firecracker-python-web:0.1.0
                   imagePullPolicy: IfNotPresent
                   args:
                       - /rootfs.ext4

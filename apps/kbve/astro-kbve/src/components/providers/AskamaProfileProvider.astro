@@ -1,5 +1,6 @@
 ---
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import { ReactProfileWallet } from './ReactProfileWallet';
 // AskamaProfileProvider - Mirrors the Askama profile.html template
 // This component renders the user profile page that Axum serves for /@username routes
 // Askama variables: {{ username }}, {{ username_first_char }}, {{ unsplash_banner_id }}, {{ bio }}, {{ status }}, {{ primary_avatar_url }}, {{ discord_username }}, {{ discord_avatar }}, {{ discord_is_guild_member }}, {{ discord_id }}, {{ discord_guild_nickname }}, {{ discord_joined_at }}, {{ discord_is_boosting }}, {{ discord_role_count }}, {{ discord_role_names }}, {{ github_username }}, {{ github_avatar }}, {{ twitch_username }}, {{ twitch_avatar }}, {{ twitch_is_live }}, {{ rentearth_characters }}, {{ rentearth_total_playtime_hours }}, {{ rentearth_last_activity }}
@@ -847,6 +848,15 @@ const forumProfileSection = `{% if forum_present %}
 				</aside>
 			</div>
 		</main>
+
+		<!-- Private wallet card. Askama injects `{{ username }}` into the meta
+		     tag below; the React island reads it on mount, compares against
+		     the caller's own /api/v1/me username, and renders the wallet
+		     UI only on their own profile. Returns null otherwise. -->
+		<meta name="kbve-profile-username" content={`{{ username }}`} />
+		<div class="profile-wallet-container">
+			<ReactProfileWallet client:only="react" />
+		</div>
 
 		<!-- Adsense -->
 		<div class="adsense-container">

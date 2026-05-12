@@ -19,6 +19,7 @@ import OSRSShops from './OSRSShops.astro';
 import OSRSUsedIn from './OSRSUsedIn.astro';
 import OSRSHistory from './OSRSHistory.astro';
 import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
+import OSRSDisclaimer from './OSRSDisclaimer.astro';
 import { getUsedInIndex } from '@/data/osrs-used-in-index';
 import type {
 	OSRSExtended,
@@ -379,6 +380,8 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 
 		<!-- Global tooltip for OSRS item link hovers -->
 		<OSRSLinkTooltip client:idle />
+
+		<OSRSDisclaimer />
 	</div>
 </section>
 
