@@ -1,0 +1,69 @@
+---
+title: Firecracker Node Web
+description: |
+    Fastify-ready Alpine + Node 22 rootfs for long-lived persistent endpoints deployed through the dashboard IDE. Bakes fastify, undici, zod, pino, and the @fastify ecosystem so VMs boot with the server libraries already on disk.
+sidebar:
+    label: FC Node Web
+    order: 57
+tags:
+    - docker
+    - firecracker
+    - node
+    - fastify
+    - base-image
+key: firecracker_node_web
+pipeline: docker
+app_name: firecracker-node-web
+version: "0.0.1"
+version_toml: packages/docker/firecracker/node/web/version.toml
+source_path: packages/docker/firecracker/node/web
+runner: ubuntu-latest
+image: kbve/firecracker-node-web
+deployment_yamls:
+    - apps/kube/firecracker/manifests/firecracker-node-web-rootfs-stage.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Fastify-ready Node rootfs used by the **staff-side** Firecracker deployment (`firecracker-ctl-net`). Built as a multi-stage Docker image whose final layer (alpine 3.21 + `/rootfs.ext4`) ships a `cp` entrypoint so the in-cluster stage Job can run the image directly and copy `/rootfs.ext4` onto the firecracker rootfs PVC.
+
+This is the **long-lived deploy** rootfs for Node endpoints submitted through the dashboard IDE — week-to-month TTL VMs where paying a build-time `npm install` is the right tradeoff for instant boot. Quick one-shot Node VMs keep the smaller `alpine-node` rootfs plus the shared `npm-cache.ext4` drive.
+
+## What's baked in
+
+- Alpine 3.21 + Node.js 22 LTS + npm
+- `fastify`, `@fastify/cors`, `@fastify/helmet`, `@fastify/static`, `undici`, `zod`, `pino`, `pino-pretty`, `dotenv`, `nanoid`, `date-fns`, `commander`, `chalk` resolved into `/usr/lib/node_modules`
+- `ca-certificates-bundle`, `ca-certificates`, `iproute2`
+- `/etc/resolv.conf` with `1.1.1.1` and `8.8.8.8`
+- `/init` mounts `/proc`, `/sys`, `/dev`, brings up `lo` + `eth0`, exports `NODE_PATH=/usr/lib/node_modules`, then `exec /entrypoint`
+
+## Ecosystem
+
+| Image | Runtime | Deployment | Network | Server lib baked |
+|-------|---------|-----------|---------|------------------|
+| `alpine-python` | Python | `firecracker-ctl` (public quick) | none | no |
+| `alpine-node` | Node | `firecracker-ctl` (public quick) | none | no |
+| `firecracker-python-net` | Python | `firecracker-ctl-net` (staff, short-lived) | TAP via Gluetun/WireGuard | requests/httpx |
+| `firecracker-python-web` | Python | `firecracker-ctl-net` (staff, long-lived) | TAP via Gluetun/WireGuard | FastAPI |
+| `firecracker-node-web` (this) | Node | `firecracker-ctl-net` (staff, long-lived) | TAP via Gluetun/WireGuard | Fastify |
+
+## Build
+
+```bash
+npx nx run firecracker-node-web:container
+npx nx run firecracker-node-web:extract
+```
+
+Output: `packages/docker/firecracker/node/web/dist/node-web.ext4`.
+
+## Publish
+
+```bash
+npx nx run firecracker-node-web:container:production
+```
+
+Pushes `ghcr.io/kbve/firecracker-node-web:latest` and `:<version>`.

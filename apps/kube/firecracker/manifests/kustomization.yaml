@@ -20,6 +20,7 @@ resources:
     - firecracker-rootfs-init.yaml
     - firecracker-net-rootfs-stage.yaml
     - firecracker-web-rootfs-stage.yaml
+    - firecracker-node-web-rootfs-stage.yaml
     - firecracker-pip-cache-cronjob.yaml
     - firecracker-npm-cache-cronjob.yaml
     - firecracker-deployment.yaml
