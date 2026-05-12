@@ -108,7 +108,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
 FROM --platform=linux/amd64 ubuntu:24.04 AS libs-stage
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjemalloc-dev libpq5 && \
+    apt-get install -y --no-install-recommends libjemalloc-dev libpq5 libssl3t64 && \
     rm -rf /var/lib/apt/lists/*
 
 # ── Assemble runtime image ──────────────────────────────────────────
@@ -117,6 +117,8 @@ FROM --platform=linux/amd64 scratch AS runtime
 COPY --from=chisel-stage /rootfs /
 COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
+COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libssl.so.3 /usr/lib/x86_64-linux-gnu/libssl.so.3
+COPY --from=libs-stage /usr/lib/x86_64-linux-gnu/libcrypto.so.3 /usr/lib/x86_64-linux-gnu/libcrypto.so.3
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"

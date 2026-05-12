@@ -75,15 +75,15 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Getting Started',
-					autogenerate: { directory: 'guides' },
+					items: [{ autogenerate: { directory: 'guides' } }],
 				},
 				{
 					label: 'Game',
-					autogenerate: { directory: 'game' },
+					items: [{ autogenerate: { directory: 'game' } }],
 				},
 				{
 					label: 'Account',
-					autogenerate: { directory: 'auth' },
+					items: [{ autogenerate: { directory: 'auth' } }],
 				},
 			],
 		}),
