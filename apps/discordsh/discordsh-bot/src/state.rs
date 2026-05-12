@@ -11,6 +11,32 @@ use kbve::{FontDb, MemberCache};
 
 use bevy_chat::ChatClient;
 
+#[derive(Debug, Clone)]
+pub struct RelayConfig {
+    pub guild_id: serenity::GuildId,
+    pub channel_id: serenity::ChannelId,
+    pub irc_channel: String,
+}
+
+impl RelayConfig {
+    pub fn from_env() -> Option<Self> {
+        let guild = std::env::var("RELAY_GUILD_ID").ok()?.parse::<u64>().ok()?;
+        let channel = std::env::var("RELAY_CHANNEL_ID")
+            .ok()?
+            .parse::<u64>()
+            .ok()?;
+        let irc_channel = std::env::var("RELAY_IRC_CHANNEL").ok()?;
+        if guild == 0 || channel == 0 || irc_channel.trim().is_empty() {
+            return None;
+        }
+        Some(Self {
+            guild_id: serenity::GuildId::new(guild),
+            channel_id: serenity::ChannelId::new(channel),
+            irc_channel,
+        })
+    }
+}
+
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
@@ -73,6 +99,8 @@ pub struct AppState {
     /// Optional IRC client for cross-platform chat and world events.
     /// `None` if IRC is unavailable or not configured.
     pub irc: Option<ChatClient>,
+
+    pub relay: Option<RelayConfig>,
 
     /// Optional persistent KV store (redb). Opened from `DB_PATH` env var
     /// at startup. `None` when the variable is unset or the file fails to
@@ -173,6 +201,20 @@ impl AppState {
         let local_db = open_local_db();
         let profiles = Arc::new(ProfileStore::from_env_with_local(local_db.clone()));
 
+        let relay = RelayConfig::from_env();
+        if let Some(ref r) = relay {
+            tracing::info!(
+                guild = %r.guild_id,
+                channel = %r.channel_id,
+                irc_channel = %r.irc_channel,
+                "Discord ↔ IRC relay configured"
+            );
+        } else {
+            tracing::info!(
+                "Relay not configured (set RELAY_GUILD_ID, RELAY_CHANNEL_ID, RELAY_IRC_CHANNEL to enable)"
+            );
+        }
+
         Self {
             health_monitor,
             tracker,
@@ -190,6 +232,7 @@ impl AppState {
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
             irc,
+            relay,
             local_db,
         }
     }

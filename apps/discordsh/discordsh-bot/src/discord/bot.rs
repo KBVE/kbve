@@ -182,6 +182,8 @@ async fn event_handler(
             // Spawn GitHub board scheduler (posts notice/task boards on interval)
             super::scheduler::spawn_github_board_scheduler(data.app.clone());
 
+            super::relay::spawn_irc_forwarder(data.app.clone(), ctx.http.clone());
+
             // Record shard in tracker (best-effort)
             if let Some(ref tracker) = data.app.tracker {
                 let instance_id = std::env::var("HOSTNAME")
@@ -232,6 +234,10 @@ async fn event_handler(
             info!(id = %incomplete.id, "Left guild");
         }
 
+        serenity::FullEvent::Message { new_message } => {
+            super::relay::handle_discord_message(new_message, &data.app).await;
+        }
+
         _ => {}
     }
 
@@ -251,7 +257,8 @@ pub async fn start(app_state: Arc<AppState>) -> Result<()> {
         }
     };
 
-    let intents = serenity::GatewayIntents::non_privileged();
+    let intents =
+        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
     let app_for_setup = Arc::clone(&app_state);
     let framework = poise::Framework::builder()
