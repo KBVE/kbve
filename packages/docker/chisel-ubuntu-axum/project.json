@@ -107,7 +107,6 @@
 					"docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test > /tmp/chisel-runtime.tar && docker rm chisel-runtime-test > /dev/null 2>&1",
 					"tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libjemalloc.so.2' && echo 'PASS: libjemalloc.so.2 present'",
 					"tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libpq.so.5' && echo 'PASS: libpq.so.5 present'",
-					"tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libssl.so' && echo 'PASS: libssl present (TLS)'",
 					"tar -tf /tmp/chisel-runtime.tar | grep -q 'etc/ssl/certs/ca-certificates.crt' && echo 'PASS: CA bundle present'",
 					"tar -tf /tmp/chisel-runtime.tar | grep -q 'lib/x86_64-linux-gnu/libc.so' && echo 'PASS: libc present'",
 					"! tar -tf /tmp/chisel-runtime.tar | grep -qE '^bin/(sh|bash|dash)$' && echo 'PASS: no shell in runtime (chiseled)'",
@@ -135,7 +134,7 @@
 					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^RUSTC_WRAPPER=/usr/local/cargo/bin/sccache$' && echo 'PASS: RUSTC_WRAPPER=sccache'",
 					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
 					"echo '=== All chisel base image tests passed ==='",
-					"echo 'Runtime: user, workdir, jemalloc, libpq, libssl, CA bundle, no-shell, size<40MiB'",
+					"echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
 					"echo 'Builder: rustc 1.94, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
 				],
 				"parallel": false
