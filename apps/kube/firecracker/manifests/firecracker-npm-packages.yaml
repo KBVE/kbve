@@ -1,0 +1,35 @@
+# Package list for the firecracker npm cache.
+# Consumed by both the rootfs init job (first build) and the weekly
+# refresh CronJob. Updating this list + bumping the init job version
+# (v10 → v11) triggers a rebuild on next ArgoCD sync.
+#
+# Selection criteria:
+#   - Useful for a Node code playground (web servers, HTTP clients, CLIs)
+#   - Pure-JS or pre-built native binaries that work on musl/alpine
+#   - Stable, widely-used libraries
+#
+# Skipped (musl native build issues or too heavy):
+#   - sharp, canvas — large native deps, build-from-source on alpine
+#   - puppeteer — pulls Chromium, way too big
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: firecracker-npm-packages
+    namespace: firecracker
+    labels:
+        app: firecracker-ctl
+data:
+    packages.txt: |
+        fastify
+        @fastify/cors
+        @fastify/helmet
+        @fastify/static
+        undici
+        zod
+        pino
+        pino-pretty
+        dotenv
+        nanoid
+        date-fns
+        commander
+        chalk

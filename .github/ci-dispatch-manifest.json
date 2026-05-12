@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.148",
+			"version": "1.0.149",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -138,6 +138,20 @@
 			"has_test": false
 		},
 		{
+			"key": "firecracker_node_web",
+			"app_name": "firecracker-node-web",
+			"version": "0.0.1",
+			"version_toml": "packages/docker/firecracker/node/web/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-node-web.mdx",
+			"source_path": "packages/docker/firecracker/node/web",
+			"runner": "ubuntu-latest",
+			"image": "kbve/firecracker-node-web",
+			"deployment_yamls": [
+				"apps/kube/firecracker/manifests/firecracker-node-web-rootfs-stage.yaml"
+			],
+			"has_test": false
+		},
+		{
 			"key": "firecracker_python_net",
 			"app_name": "firecracker-python-net",
 			"version": "0.1.3",
@@ -148,6 +162,20 @@
 			"image": "kbve/firecracker-python-net",
 			"deployment_yamls": [
 				"apps/kube/firecracker/manifests/firecracker-net-rootfs-stage.yaml"
+			],
+			"has_test": false
+		},
+		{
+			"key": "firecracker_python_web",
+			"app_name": "firecracker-python-web",
+			"version": "0.0.1",
+			"version_toml": "packages/docker/firecracker/python/web/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-web.mdx",
+			"source_path": "packages/docker/firecracker/python/web",
+			"runner": "ubuntu-latest",
+			"image": "kbve/firecracker-python-web",
+			"deployment_yamls": [
+				"apps/kube/firecracker/manifests/firecracker-web-rootfs-stage.yaml"
 			],
 			"has_test": false
 		},
@@ -180,7 +208,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.15",
+			"version": "0.1.16",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -667,7 +695,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 23,
+		"docker": 25,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -677,6 +705,6 @@
 		"godot": 0,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 62
+		"total": 64
 	}
 }

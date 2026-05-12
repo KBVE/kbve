@@ -1,0 +1,80 @@
+{
+	"name": "firecracker-node-web",
+	"$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/firecracker/node/web",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"npx nx run firecracker-node-web:containerx",
+					"VERSION=$(grep -m1 'version' packages/docker/firecracker/node/web/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker tag ghcr.io/kbve/firecracker-node-web:latest ghcr.io/kbve/firecracker-node-web:${VERSION} && echo \"Tagged ghcr.io/kbve/firecracker-node-web:${VERSION}\""
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"local": {},
+				"production": {
+					"commands": [
+						"npx nx run firecracker-node-web:containerx:production",
+						"VERSION=$(sed -n 's/^version: *\"\\([^\"]*\\)\".*/\\1/p' apps/kbve/astro-kbve/src/content/docs/project/firecracker-node-web.mdx | head -1) && docker tag ghcr.io/kbve/firecracker-node-web:latest ghcr.io/kbve/firecracker-node-web:${VERSION} && docker tag ghcr.io/kbve/firecracker-node-web:latest kbve/firecracker-node-web:${VERSION} && docker tag ghcr.io/kbve/firecracker-node-web:latest kbve/firecracker-node-web:latest && echo \"Daemon tagged :${VERSION} + :latest for both registries\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/firecracker/node/web",
+				"file": "packages/docker/firecracker/node/web/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/firecracker-node-web:latest"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/firecracker-node-web:latest"]
+				},
+				"production": {
+					"tags": ["ghcr.io/kbve/firecracker-node-web:latest"],
+					"load": true,
+					"push": false,
+					"provenance": "false",
+					"sbom": false
+				}
+			}
+		},
+		"extract": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"mkdir -p packages/docker/firecracker/node/web/dist",
+					"docker create --name fc-node-web-extract ghcr.io/kbve/firecracker-node-web:latest true > /dev/null 2>&1 || true",
+					"docker cp fc-node-web-extract:/rootfs.ext4 packages/docker/firecracker/node/web/dist/node-web.ext4",
+					"docker rm fc-node-web-extract > /dev/null 2>&1 || true",
+					"echo 'Extracted: packages/docker/firecracker/node/web/dist/node-web.ext4'"
+				],
+				"parallel": false
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"echo '=== firecracker-node-web rootfs tests ==='",
+					"docker create --name fc-node-web-test ghcr.io/kbve/firecracker-node-web:latest true > /dev/null 2>&1",
+					"docker export fc-node-web-test | tar -t | grep -q '^rootfs.ext4$' && echo 'PASS: rootfs.ext4 present'",
+					"docker rm fc-node-web-test > /dev/null 2>&1",
+					"echo '=== All firecracker-node-web tests passed ==='"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["docker", "base-image", "firecracker", "node", "web"]
+}

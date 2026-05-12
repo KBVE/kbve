@@ -3,7 +3,7 @@
 // Call once early (e.g. in a layout or top-level component).
 // After this resolves, window.kbve.ws is available for WebSocket chat.
 
-import { droid } from '@kbve/droid';
+import { droid, swRecovery } from '@kbve/droid';
 import { workerURLs } from './workers';
 import { initSupa } from './supa';
 
@@ -42,7 +42,8 @@ export function bootChat(): Promise<void> {
 	attachDiagnostics();
 
 	_bootPromise = (async () => {
-		// Boot droid (workers) and auth in parallel
+		await swRecovery({ allowedScripts: [], reloadOnCleanup: true });
+
 		const [droidResult] = await Promise.all([
 			droid({ workerURLs, initTimeout: 15_000 }),
 			initSupa(),

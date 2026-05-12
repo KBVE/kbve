@@ -45,12 +45,21 @@ data:
         ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw', '{replica}')
         ORDER BY (service, timestamp)
         PARTITION BY toYYYYMMDD(timestamp)
-        TTL toDateTime(timestamp) + INTERVAL 7 DAY
+        TTL toDateTime(timestamp) + INTERVAL 8 DAY
         " || {
           echo "ERROR: Failed to create logs_raw table"
           exit 1
         }
         echo "Table 'observability.logs_raw' ready."
+
+        echo "Enforcing 8-day TTL on existing logs_raw (no-op on fresh table)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "ALTER TABLE observability.logs_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 8 DAY" || {
+          echo "ERROR: Failed to apply TTL to logs_raw"
+          exit 1
+        }
+        echo "TTL on 'observability.logs_raw' enforced at 8 days."
 
         echo "Creating logs_distributed table (Distributed)..."
         curl -sf --max-time 30 \
@@ -78,7 +87,7 @@ metadata:
         app: observability-ch-setup
         component: vector
     annotations:
-        kbve.sh/last-updated: '2026-04-05'
+        kbve.sh/last-updated: '2026-05-11'
         argocd.argoproj.io/hook: PostSync
 spec:
     ttlSecondsAfterFinished: 86400
