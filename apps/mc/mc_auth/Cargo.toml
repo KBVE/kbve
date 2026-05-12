@@ -28,6 +28,14 @@ serde_json = "1"
 # Logging
 tracing = "0.1"
 
+# Wallet integration — deterministic daily-credit idempotency keys are
+# UUIDv5(namespace, user_id || UTC date), so we need a UTC clock + a
+# UUID crate that can compute v5. thiserror is the error type for the
+# wallet HTTP shim.
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+uuid = { version = "1", features = ["v5"] }
+thiserror = "2"
+
 # Shared Supabase (PostgREST) client — lives in bevy_supa so future Bevy
 # games (isometric, etc.) can import the same plugin + SupaClient shape
 # without re-rolling the reqwest wrapper. mc_auth is JNI, not Bevy, so we

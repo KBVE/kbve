@@ -22,6 +22,7 @@ pub mod chat_jwt;
 pub mod runtime;
 pub mod supabase;
 pub mod types;
+pub mod wallet;
 
 use std::sync::OnceLock;
 

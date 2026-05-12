@@ -95,6 +95,29 @@ pub(crate) struct ServiceLedgerDto {
     pub ledger_id: i64,
 }
 
+/// Variant of [`ServiceCreditBody`] keyed on Supabase `user_id` instead of
+/// the wallet `account_id`. Used by service callers (MC mod daily reward,
+/// edge functions) that know the user but not their wallet account UUID.
+/// The handler resolves the account on first call (creating it + welcome
+/// coupon if missing) before delegating to the regular credit path.
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct ServiceCreditUserBody {
+    pub user_id: Uuid,
+    pub currency: String,
+    pub amount: i64,
+    pub source_kind: String,
+    pub reason: Option<String>,
+    pub ref_type: Option<String>,
+    pub ref_id: Option<i64>,
+    pub idempotency_key: Uuid,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct ServiceCreditUserDto {
+    pub account_id: Uuid,
+    pub ledger_id: i64,
+}
+
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct ServiceTransferBody {
     pub from_account: Uuid,
@@ -674,6 +697,74 @@ pub(crate) async fn service_verify_balance(
             stored_khash: v.stored_khash,
             ledger_khash: v.ledger_khash,
             ok: v.ok,
+        })
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `POST /api/v1/wallet/service/credit-user` — credit keyed on Supabase
+/// user_id rather than wallet account_id. Resolves (or creates) the
+/// account first via `wallet.proxy_ensure_user_account`, then runs the
+/// regular service_credit path. Idempotent with the same key.
+///
+/// Designed for the MC mod daily-login flow + edge-function callers that
+/// only know a user_id.
+#[utoipa::path(
+    post,
+    path = "/api/v1/wallet/service/credit-user",
+    tag = "wallet",
+    request_body = ServiceCreditUserBody,
+    responses(
+        (status = 200, description = "Account resolved + ledger row created", body = ServiceCreditUserDto),
+        (status = 400, description = "Invalid currency / source_kind / payload"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "service_role required"),
+        (status = 409, description = "Idempotency replay mismatch"),
+        (status = 422, description = "Overflow / null argument"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_credit_user(
+    headers: HeaderMap,
+    Json(body): Json<ServiceCreditUserBody>,
+) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let currency = match parse_currency(&body.currency) {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+    let source_kind = match parse_source_kind(&body.source_kind) {
+        Ok(s) => s,
+        Err(r) => return r,
+    };
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    let account_id = match client.service_account_for_user(body.user_id).await {
+        Ok(id) => id,
+        Err(e) => return wallet_error_response(e),
+    };
+
+    let req = CreditRequest {
+        account_id,
+        currency,
+        amount: body.amount,
+        source_kind,
+        reason: body.reason,
+        ref_type: body.ref_type,
+        ref_id: body.ref_id,
+        idempotency_key: body.idempotency_key,
+    };
+    match client.credit(req).await {
+        Ok(ledger_id) => Json(ServiceCreditUserDto {
+            account_id,
+            ledger_id,
         })
         .into_response(),
         Err(e) => wallet_error_response(e),

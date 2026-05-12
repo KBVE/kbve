@@ -86,11 +86,16 @@ spec:
                         value: '9001,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
-                      # DoT off — port 853 blocked through tunnel.
+                      # DoT on — Gluetun's local forwarder queries Cloudflare
+                      # over DNS-over-TLS (port 853) through the VPN tunnel.
+                      # DNS_ADDRESS=127.0.0.1 keeps the forwarder enabled so
+                      # both pod and VM DNS queries route via the tunnel
+                      # instead of leaking out eth0 (cluster CNI). VM traffic
+                      # is DNATed to 127.0.0.1:53 by tap.rs init.
                       - name: DOT
-                        value: 'off'
+                        value: 'on'
                       - name: DNS_ADDRESS
-                        value: '1.1.1.1'
+                        value: '127.0.0.1'
                       - name: HEALTH_VPN_DURATION_INITIAL
                         value: '30s'
                       - name: HEALTH_SERVER_ADDRESS

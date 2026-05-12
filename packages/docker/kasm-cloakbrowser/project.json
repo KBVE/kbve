@@ -1,0 +1,67 @@
+{
+	"name": "kasm-cloakbrowser",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/kasm-cloakbrowser",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npx nx run kasm-cloakbrowser:containerx"],
+				"parallel": false
+			},
+			"configurations": {
+				"local": {},
+				"production": {
+					"commands": [
+						"npx nx run kasm-cloakbrowser:containerx:production"
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/kasm-cloakbrowser",
+				"file": "packages/docker/kasm-cloakbrowser/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/kasm-cloakbrowser:dev"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/kasm-cloakbrowser:dev"]
+				},
+				"production": {
+					"tags": ["ghcr.io/kbve/kasm-cloakbrowser:latest"],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/kasm-cloakbrowser"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
+					"docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
+					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'",
+					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["docker", "kasm", "workspace"]
+}

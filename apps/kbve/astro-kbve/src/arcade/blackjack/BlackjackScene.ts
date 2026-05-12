@@ -21,6 +21,11 @@ import {
 	valueHand,
 } from './cards';
 import { BASE_HEIGHT, BASE_WIDTH, CARD_SIZE, COLORS, FONT } from './config';
+import {
+	DealerAnimation,
+	type CardPlacement,
+	type HandOwner,
+} from './animation/dealerAnimation';
 
 const CARD_TEXTURE_PREFIX = 'blackjack-card';
 const CARD_TEXTURE_MARGIN = {
@@ -33,8 +38,8 @@ const BUTTON_TEXTURE_SIZE = {
 	height: 40,
 	radius: 8,
 } as const;
+const TABLE_TEXTURE_KEY = 'blackjack-table-static';
 const CHIP_TEXTURE_KEY = 'blackjack-chip';
-const SHOE_TEXTURE_KEY = 'blackjack-shoe-stack';
 const SHOE_POSITION = {
 	x: 1030,
 	y: 198,
@@ -71,14 +76,9 @@ interface ButtonView {
 	lastEnabled: boolean | null;
 }
 
-type HandOwner = 'dealer' | 'player';
-
-interface CardPlacement {
-	textureKey: string;
-	x: number;
-	y: number;
-	owner: HandOwner;
-	index: number;
+interface PlacementCacheEntry {
+	signature: string;
+	placements: CardPlacement[];
 }
 
 export class BlackjackScene extends Phaser.Scene {
@@ -87,11 +87,12 @@ export class BlackjackScene extends Phaser.Scene {
 	private cardViews: Phaser.GameObjects.Image[] = [];
 	private activeCardViews = 0;
 	private dealLayer!: Phaser.GameObjects.Container;
-	private flyingCardViews: Phaser.GameObjects.Image[] = [];
-	private previousDealerCardCount = 0;
-	private previousPlayerCardCount = 0;
+	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private buttons: ButtonView[] = [];
+	private textCache = new Map<string, string>();
+	private colorCache = new Map<string, string>();
+	private placementCache = new Map<HandOwner, PlacementCacheEntry>();
 	private statusText!: Phaser.GameObjects.Text;
 	private strategyText!: Phaser.GameObjects.Text;
 	private bankrollText!: Phaser.GameObjects.Text;
@@ -109,9 +110,16 @@ export class BlackjackScene extends Phaser.Scene {
 	create() {
 		this.createCardTextures();
 		this.createHudTextures();
+		this.createTableTexture();
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
 		this.dealLayer = this.add.container(0, 0).setDepth(15);
+		this.dealerAnimation = new DealerAnimation(this, this.dealLayer, {
+			cardBackTextureKey: this.cardTextureKey('back'),
+			shoePosition: SHOE_POSITION,
+			duration: DEAL_ANIMATION.duration,
+			stagger: DEAL_ANIMATION.stagger,
+		});
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.createHud();
 		this.createButtons();
@@ -120,181 +128,7 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private drawTable() {
-		this.add
-			.rectangle(0, 0, BASE_WIDTH, BASE_HEIGHT, COLORS.background)
-			.setOrigin(0);
-
-		const tableShadow = this.add.graphics();
-		tableShadow.fillStyle(COLORS.tableShadow, 0.58);
-		tableShadow.fillRoundedRect(
-			46,
-			52,
-			BASE_WIDTH - 92,
-			BASE_HEIGHT - 96,
-			38,
-		);
-
-		const rail = this.add.graphics();
-		rail.fillStyle(COLORS.rail, 1);
-		rail.fillRoundedRect(30, 28, BASE_WIDTH - 60, BASE_HEIGHT - 56, 34);
-		rail.lineStyle(5, COLORS.railLight, 0.9);
-		rail.strokeRoundedRect(39, 37, BASE_WIDTH - 78, BASE_HEIGHT - 74, 28);
-		rail.lineStyle(3, COLORS.tableTrim, 0.95);
-		rail.strokeRoundedRect(52, 50, BASE_WIDTH - 104, BASE_HEIGHT - 100, 22);
-
-		const felt = this.add.graphics();
-		felt.fillGradientStyle(
-			COLORS.feltCenter,
-			COLORS.feltCenter,
-			COLORS.feltEdge,
-			COLORS.feltEdge,
-			1,
-		);
-		felt.fillRoundedRect(66, 64, BASE_WIDTH - 132, BASE_HEIGHT - 128, 20);
-		felt.lineStyle(2, COLORS.tableTrimDark, 0.9);
-		felt.strokeRoundedRect(66, 64, BASE_WIDTH - 132, BASE_HEIGHT - 128, 20);
-
-		this.drawFeltWeave();
-		this.drawTableMarkings();
-		this.drawDealerArc();
-
-		this.drawHandBand(154, 'DEALER');
-		this.drawHandBand(408, 'PLAYER');
-		this.add
-			.image(SHOE_POSITION.x, SHOE_POSITION.y, SHOE_TEXTURE_KEY)
-			.setOrigin(0);
-
-		this.add
-			.text(BASE_WIDTH / 2, 86, 'KBVE BLACKJACK', {
-				fontFamily: FONT.serif,
-				fontSize: '42px',
-				color: COLORS.gold,
-				stroke: '#020617',
-				strokeThickness: 7,
-				shadow: {
-					offsetX: 0,
-					offsetY: 3,
-					color: '#000000',
-					blur: 4,
-					stroke: true,
-					fill: true,
-				},
-			})
-			.setOrigin(0.5);
-
-		this.add
-			.text(
-				BASE_WIDTH / 2,
-				112,
-				'Dealer stands on soft 17 · Blackjack pays 3:2',
-				{
-					fontFamily: FONT.sans,
-					fontSize: '16px',
-					color: COLORS.muted,
-				},
-			)
-			.setOrigin(0.5);
-	}
-
-	private drawFeltWeave() {
-		const weave = this.add.graphics();
-		weave.lineStyle(1, COLORS.feltPattern, 0.045);
-		for (let x = 92; x <= BASE_WIDTH - 92; x += 18) {
-			weave.lineBetween(x, 82, x - 74, BASE_HEIGHT - 82);
-			weave.lineBetween(x, 82, x + 74, BASE_HEIGHT - 82);
-		}
-		weave.lineStyle(1, 0xffffff, 0.035);
-		for (let y = 94; y <= BASE_HEIGHT - 98; y += 22) {
-			weave.lineBetween(90, y, BASE_WIDTH - 90, y);
-		}
-
-		const vignette = this.add.graphics();
-		vignette.lineStyle(26, 0x02120c, 0.22);
-		vignette.strokeRoundedRect(
-			80,
-			78,
-			BASE_WIDTH - 160,
-			BASE_HEIGHT - 156,
-			24,
-		);
-		vignette.lineStyle(52, 0x020b08, 0.16);
-		vignette.strokeRoundedRect(
-			66,
-			64,
-			BASE_WIDTH - 132,
-			BASE_HEIGHT - 128,
-			20,
-		);
-	}
-
-	private drawDealerArc() {
-		const arc = this.add.graphics();
-		arc.lineStyle(2, COLORS.feltInk, 0.2);
-		arc.beginPath();
-		arc.arc(
-			BASE_WIDTH / 2,
-			640,
-			420,
-			Phaser.Math.DegToRad(205),
-			Phaser.Math.DegToRad(335),
-			false,
-		);
-		arc.strokePath();
-		arc.lineStyle(1, COLORS.tableTrim, 0.2);
-		arc.beginPath();
-		arc.arc(
-			BASE_WIDTH / 2,
-			638,
-			454,
-			Phaser.Math.DegToRad(207),
-			Phaser.Math.DegToRad(333),
-			false,
-		);
-		arc.strokePath();
-	}
-
-	private drawTableMarkings() {
-		this.add
-			.text(BASE_WIDTH / 2, 134, 'BLACKJACK PAYS 3 TO 2', {
-				fontFamily: FONT.mono,
-				fontSize: '14px',
-				color: '#d1fae5',
-			})
-			.setOrigin(0.5)
-			.setAlpha(0.42);
-
-		this.add
-			.text(BASE_WIDTH / 2, 592, 'DEALER STANDS ON SOFT 17', {
-				fontFamily: FONT.mono,
-				fontSize: '13px',
-				color: '#d1fae5',
-			})
-			.setOrigin(0.5)
-			.setAlpha(0.34);
-
-		for (const x of [242, 1038]) {
-			const mark = this.add.graphics();
-			mark.lineStyle(2, COLORS.feltInk, 0.14);
-			mark.strokeCircle(x, 472, 42);
-			mark.strokeCircle(x, 472, 28);
-		}
-	}
-
-	private drawHandBand(y: number, label: string) {
-		const band = this.add.graphics();
-		band.fillStyle(0x031a12, 0.28);
-		band.fillRoundedRect(120, y, BASE_WIDTH - 240, 176, 20);
-		band.lineStyle(1, COLORS.feltInk, 0.15);
-		band.strokeRoundedRect(120, y, BASE_WIDTH - 240, 176, 20);
-
-		this.add
-			.text(BASE_WIDTH / 2, y + 88, label, {
-				fontFamily: FONT.mono,
-				fontSize: '30px',
-				color: '#ffffff',
-			})
-			.setOrigin(0.5)
-			.setAlpha(0.08);
+		this.add.image(0, 0, TABLE_TEXTURE_KEY).setOrigin(0);
 	}
 
 	private createHud() {
@@ -528,7 +362,7 @@ export class BlackjackScene extends Phaser.Scene {
 		this.drawHand(dealerCards, BASE_WIDTH / 2, 166);
 		this.drawHand(playerCards, BASE_WIDTH / 2, 420);
 		this.hideUnusedCardViews();
-		this.animateNewCards(dealerCards, playerCards);
+		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
 		this.updateText();
 		this.updateButtons();
 	}
@@ -546,6 +380,10 @@ export class BlackjackScene extends Phaser.Scene {
 		hideHole: boolean,
 		owner: HandOwner,
 	): CardPlacement[] {
+		const signature = `${centerX}:${y}:${hideHole}:${cards.join(',')}`;
+		const cached = this.placementCache.get(owner);
+		if (cached?.signature === signature) return cached.placements;
+
 		const totalWidth =
 			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
 		let x = centerX - totalWidth / 2;
@@ -564,6 +402,7 @@ export class BlackjackScene extends Phaser.Scene {
 			});
 			x += CARD_SIZE.width + 18;
 		});
+		this.placementCache.set(owner, { signature, placements });
 		return placements;
 	}
 
@@ -620,83 +459,11 @@ export class BlackjackScene extends Phaser.Scene {
 		}
 	}
 
-	private animateNewCards(
-		dealerCards: readonly CardPlacement[],
-		playerCards: readonly CardPlacement[],
-	) {
-		const previousDealerCount = this.previousDealerCardCount;
-		const previousPlayerCount = this.previousPlayerCardCount;
-		this.previousDealerCardCount = dealerCards.length;
-		this.previousPlayerCardCount = playerCards.length;
-
-		const newCards: CardPlacement[] = [];
-		if (dealerCards.length > previousDealerCount) {
-			newCards.push(...dealerCards.slice(previousDealerCount));
-		}
-		if (playerCards.length > previousPlayerCount) {
-			newCards.push(...playerCards.slice(previousPlayerCount));
-		}
-		if (newCards.length === 0) return;
-
-		newCards
-			.sort(
-				(a, b) => a.index - b.index || (a.owner === 'player' ? -1 : 1),
-			)
-			.forEach((placement, index) => {
-				this.animateCardFromShoe(placement, index);
-			});
-	}
-
-	private animateCardFromShoe(placement: CardPlacement, order: number) {
-		const view = this.getFlyingCardView();
-		const startX = SHOE_POSITION.x + 18;
-		const startY = SHOE_POSITION.y + 16;
-		view.setTexture(placement.textureKey)
-			.setPosition(startX, startY)
-			.setScale(0.78)
-			.setAlpha(0.92)
-			.setAngle(-8)
-			.setVisible(true)
-			.setActive(true);
-
-		this.tweens.killTweensOf(view);
-		this.tweens.add({
-			targets: view,
-			x: placement.x,
-			y: placement.y,
-			scale: 1,
-			alpha: 0,
-			angle: 0,
-			duration: DEAL_ANIMATION.duration,
-			delay: order * DEAL_ANIMATION.stagger,
-			ease: 'Sine.easeOut',
-			onComplete: () => {
-				view.setVisible(false);
-				view.setActive(false);
-			},
-		});
-	}
-
-	private getFlyingCardView(): Phaser.GameObjects.Image {
-		const inactiveView = this.flyingCardViews.find((view) => !view.active);
-		if (inactiveView) return inactiveView;
-
-		const view = this.add
-			.image(0, 0, this.cardTextureKey('back'))
-			.setOrigin(0)
-			.setVisible(false)
-			.setActive(false);
-		this.flyingCardViews.push(view);
-		this.dealLayer.add(view);
-		return view;
-	}
-
 	private createCardTextures() {
 		if (this.textures.exists(this.cardTextureKey('back'))) return;
 
 		this.createSlotTexture();
 		this.createBackTexture();
-		this.createShoeTexture();
 
 		for (const suit of ['spades', 'hearts', 'diamonds', 'clubs'] as const) {
 			for (const rank of [
@@ -788,21 +555,221 @@ export class BlackjackScene extends Phaser.Scene {
 		this.textures.addCanvas(CHIP_TEXTURE_KEY, canvas);
 	}
 
-	private createShoeTexture() {
-		if (this.textures.exists(SHOE_TEXTURE_KEY)) return;
+	private createTableTexture() {
+		if (this.textures.exists(TABLE_TEXTURE_KEY)) return;
 
-		const stackOffset = 9;
 		const canvas = document.createElement('canvas');
-		canvas.width =
-			CARD_SIZE.width + CARD_TEXTURE_MARGIN.x + stackOffset * 3;
-		canvas.height =
-			CARD_SIZE.height + CARD_TEXTURE_MARGIN.y + stackOffset * 3;
+		canvas.width = BASE_WIDTH;
+		canvas.height = BASE_HEIGHT;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
 
+		ctx.fillStyle = this.hexColor(COLORS.background);
+		ctx.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+		ctx.globalAlpha = 0.58;
+		ctx.fillStyle = this.hexColor(COLORS.tableShadow);
+		this.roundRect(ctx, 46, 52, BASE_WIDTH - 92, BASE_HEIGHT - 96, 38);
+		ctx.fill();
+		ctx.globalAlpha = 1;
+
+		ctx.fillStyle = this.hexColor(COLORS.rail);
+		this.roundRect(ctx, 30, 28, BASE_WIDTH - 60, BASE_HEIGHT - 56, 34);
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.railLight);
+		ctx.globalAlpha = 0.9;
+		ctx.lineWidth = 5;
+		this.strokeRoundRect(
+			ctx,
+			39,
+			37,
+			BASE_WIDTH - 78,
+			BASE_HEIGHT - 74,
+			28,
+		);
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrim);
+		ctx.globalAlpha = 0.95;
+		ctx.lineWidth = 3;
+		this.strokeRoundRect(
+			ctx,
+			52,
+			50,
+			BASE_WIDTH - 104,
+			BASE_HEIGHT - 100,
+			22,
+		);
+		ctx.globalAlpha = 1;
+
+		const feltGradient = ctx.createLinearGradient(
+			0,
+			64,
+			0,
+			BASE_HEIGHT - 64,
+		);
+		feltGradient.addColorStop(0, this.hexColor(COLORS.feltCenter));
+		feltGradient.addColorStop(1, this.hexColor(COLORS.feltEdge));
+		ctx.fillStyle = feltGradient;
+		this.roundRect(ctx, 66, 64, BASE_WIDTH - 132, BASE_HEIGHT - 128, 20);
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrimDark);
+		ctx.globalAlpha = 0.9;
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		this.drawFeltWeave(ctx);
+		this.drawTableMarkings(ctx);
+		this.drawDealerArc(ctx);
+		this.drawHandBand(ctx, 154, 'DEALER');
+		this.drawHandBand(ctx, 408, 'PLAYER');
+		this.drawShoeStack(ctx);
+		this.drawTableTitle(ctx);
+
+		this.textures.addCanvas(TABLE_TEXTURE_KEY, canvas);
+	}
+
+	private drawFeltWeave(ctx: CanvasRenderingContext2D) {
+		ctx.strokeStyle = this.hexColor(COLORS.feltPattern);
+		ctx.globalAlpha = 0.045;
+		ctx.lineWidth = 1;
+		for (let x = 92; x <= BASE_WIDTH - 92; x += 18) {
+			this.line(ctx, x, 82, x - 74, BASE_HEIGHT - 82);
+			this.line(ctx, x, 82, x + 74, BASE_HEIGHT - 82);
+		}
+
+		ctx.strokeStyle = '#ffffff';
+		ctx.globalAlpha = 0.035;
+		for (let y = 94; y <= BASE_HEIGHT - 98; y += 22) {
+			this.line(ctx, 90, y, BASE_WIDTH - 90, y);
+		}
+
+		ctx.strokeStyle = '#02120c';
+		ctx.globalAlpha = 0.22;
+		ctx.lineWidth = 26;
+		this.strokeRoundRect(
+			ctx,
+			80,
+			78,
+			BASE_WIDTH - 160,
+			BASE_HEIGHT - 156,
+			24,
+		);
+		ctx.strokeStyle = '#020b08';
+		ctx.globalAlpha = 0.16;
+		ctx.lineWidth = 52;
+		this.strokeRoundRect(
+			ctx,
+			66,
+			64,
+			BASE_WIDTH - 132,
+			BASE_HEIGHT - 128,
+			20,
+		);
+		ctx.globalAlpha = 1;
+	}
+
+	private drawDealerArc(ctx: CanvasRenderingContext2D) {
+		ctx.strokeStyle = this.hexColor(COLORS.feltInk);
+		ctx.globalAlpha = 0.2;
+		ctx.lineWidth = 2;
+		this.arc(
+			ctx,
+			BASE_WIDTH / 2,
+			640,
+			420,
+			Phaser.Math.DegToRad(205),
+			Phaser.Math.DegToRad(335),
+		);
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrim);
+		ctx.lineWidth = 1;
+		this.arc(
+			ctx,
+			BASE_WIDTH / 2,
+			638,
+			454,
+			Phaser.Math.DegToRad(207),
+			Phaser.Math.DegToRad(333),
+		);
+		ctx.globalAlpha = 1;
+	}
+
+	private drawTableMarkings(ctx: CanvasRenderingContext2D) {
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillStyle = '#d1fae5';
+
+		ctx.globalAlpha = 0.42;
+		ctx.font = `14px ${FONT.mono}`;
+		ctx.fillText('BLACKJACK PAYS 3 TO 2', BASE_WIDTH / 2, 134);
+
+		ctx.globalAlpha = 0.34;
+		ctx.font = `13px ${FONT.mono}`;
+		ctx.fillText('DEALER STANDS ON SOFT 17', BASE_WIDTH / 2, 592);
+
+		ctx.strokeStyle = this.hexColor(COLORS.feltInk);
+		ctx.globalAlpha = 0.14;
+		ctx.lineWidth = 2;
+		for (const x of [242, 1038]) {
+			this.circle(ctx, x, 472, 42);
+			this.circle(ctx, x, 472, 28);
+		}
+		ctx.globalAlpha = 1;
+	}
+
+	private drawHandBand(
+		ctx: CanvasRenderingContext2D,
+		y: number,
+		label: string,
+	) {
+		ctx.fillStyle = '#031a12';
+		ctx.globalAlpha = 0.28;
+		this.roundRect(ctx, 120, y, BASE_WIDTH - 240, 176, 20);
+		ctx.fill();
+		ctx.strokeStyle = this.hexColor(COLORS.feltInk);
+		ctx.globalAlpha = 0.15;
+		ctx.lineWidth = 1;
+		ctx.stroke();
+
+		ctx.globalAlpha = 0.08;
+		ctx.fillStyle = '#ffffff';
+		ctx.font = `30px ${FONT.mono}`;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(label, BASE_WIDTH / 2, y + 88);
+		ctx.globalAlpha = 1;
+	}
+
+	private drawTableTitle(ctx: CanvasRenderingContext2D) {
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.font = `42px ${FONT.serif}`;
+		ctx.lineWidth = 7;
+		ctx.strokeStyle = '#020617';
+		ctx.shadowColor = '#000000';
+		ctx.shadowBlur = 4;
+		ctx.shadowOffsetY = 3;
+		ctx.strokeText('KBVE BLACKJACK', BASE_WIDTH / 2, 86);
+		ctx.fillStyle = COLORS.gold;
+		ctx.fillText('KBVE BLACKJACK', BASE_WIDTH / 2, 86);
+		ctx.shadowColor = 'transparent';
+		ctx.shadowBlur = 0;
+		ctx.shadowOffsetY = 0;
+
+		ctx.font = `16px ${FONT.sans}`;
+		ctx.fillStyle = COLORS.muted;
+		ctx.fillText(
+			'Dealer stands on soft 17 · Blackjack pays 3:2',
+			BASE_WIDTH / 2,
+			112,
+		);
+	}
+
+	private drawShoeStack(ctx: CanvasRenderingContext2D) {
+		const stackOffset = 9;
+
 		for (let i = 3; i >= 0; i--) {
-			const x = i * stackOffset;
-			const y = i * stackOffset;
+			const x = SHOE_POSITION.x + i * stackOffset;
+			const y = SHOE_POSITION.y + i * stackOffset;
 			this.drawCardShadowAt(ctx, x + 5, y + 7);
 			ctx.fillStyle = this.hexColor(COLORS.cardBack);
 			this.roundRect(
@@ -841,12 +808,10 @@ export class BlackjackScene extends Phaser.Scene {
 		ctx.globalAlpha = 0.9;
 		ctx.fillText(
 			'KBVE',
-			(CARD_SIZE.width + stackOffset * 3) / 2,
-			(CARD_SIZE.height + stackOffset * 3) / 2,
+			SHOE_POSITION.x + (CARD_SIZE.width + stackOffset * 3) / 2,
+			SHOE_POSITION.y + (CARD_SIZE.height + stackOffset * 3) / 2,
 		);
 		ctx.globalAlpha = 1;
-
-		this.textures.addCanvas(SHOE_TEXTURE_KEY, canvas);
 	}
 
 	private createSlotTexture() {
@@ -1017,6 +982,43 @@ export class BlackjackScene extends Phaser.Scene {
 		ctx.stroke();
 	}
 
+	private line(
+		ctx: CanvasRenderingContext2D,
+		fromX: number,
+		fromY: number,
+		toX: number,
+		toY: number,
+	) {
+		ctx.beginPath();
+		ctx.moveTo(fromX, fromY);
+		ctx.lineTo(toX, toY);
+		ctx.stroke();
+	}
+
+	private arc(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		radius: number,
+		startAngle: number,
+		endAngle: number,
+	) {
+		ctx.beginPath();
+		ctx.arc(x, y, radius, startAngle, endAngle);
+		ctx.stroke();
+	}
+
+	private circle(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		radius: number,
+	) {
+		ctx.beginPath();
+		ctx.arc(x, y, radius, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
 	private roundRect(
 		ctx: CanvasRenderingContext2D,
 		x: number,
@@ -1066,21 +1068,59 @@ export class BlackjackScene extends Phaser.Scene {
 					? `  (+$${this.state.lastDelta})`
 					: `  (-$${Math.abs(this.state.lastDelta)})`;
 
-		this.bankrollText.setText(
+		this.setTextIfChanged(
+			'bankroll',
+			this.bankrollText,
 			`Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
 		);
-		this.statusText.setText(this.state.message);
-		this.statusText.setColor(this.getStatusColor());
-		this.strategyText.setText(this.getStrategyHint());
-		this.betChipText.setText(`$${this.state.bet}`);
-		this.dealerValueText.setText(dealerValue);
-		this.playerValueText.setText(playerValue);
-		this.shoeText.setText(
+		this.setTextIfChanged('status', this.statusText, this.state.message);
+		this.setColorIfChanged(
+			'statusColor',
+			this.statusText,
+			this.getStatusColor(),
+		);
+		this.setTextIfChanged(
+			'strategy',
+			this.strategyText,
+			this.getStrategyHint(),
+		);
+		this.setTextIfChanged(
+			'betChip',
+			this.betChipText,
+			`$${this.state.bet}`,
+		);
+		this.setTextIfChanged('dealerValue', this.dealerValueText, dealerValue);
+		this.setTextIfChanged('playerValue', this.playerValueText, playerValue);
+		this.setTextIfChanged(
+			'shoe',
+			this.shoeText,
 			`Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
 		);
-		this.statsText.setText(
+		this.setTextIfChanged(
+			'stats',
+			this.statsText,
 			`Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
 		);
+	}
+
+	private setTextIfChanged(
+		key: string,
+		text: Phaser.GameObjects.Text,
+		value: string,
+	) {
+		if (this.textCache.get(key) === value) return;
+		this.textCache.set(key, value);
+		text.setText(value);
+	}
+
+	private setColorIfChanged(
+		key: string,
+		text: Phaser.GameObjects.Text,
+		value: string,
+	) {
+		if (this.colorCache.get(key) === value) return;
+		this.colorCache.set(key, value);
+		text.setColor(value);
 	}
 
 	private formatValue(cards: readonly Card[]): string {
