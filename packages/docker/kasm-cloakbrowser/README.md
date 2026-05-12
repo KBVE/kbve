@@ -27,11 +27,32 @@ docker build \
 
 ## Runtime env
 
-| Variable    | Default                   | Notes                                           |
-| ----------- | ------------------------- | ----------------------------------------------- |
-| `START_URL` | `https://discord.com/app` | Launch URL when `KASM_URL` / `LAUNCH_URL` unset |
-| `APP_ARGS`  | (chromium defaults)       | Override the full chromium arg list             |
-| `KASM_URL`  | unset                     | Per-session URL injected by KASM Workspaces     |
+| Variable                 | Default                   | Notes                                            |
+| ------------------------ | ------------------------- | ------------------------------------------------ |
+| `START_URL`              | `https://discord.com/app` | Launch URL when `KASM_URL` / `LAUNCH_URL` unset  |
+| `APP_ARGS`               | (chromium defaults)       | Override the full chromium arg list              |
+| `KASM_URL`               | unset                     | Per-session URL injected by KASM Workspaces      |
+| `CLOAKBROWSER_CACHE_DIR` | `/opt/cloakbrowser-cache` | Where the pip pkg caches its own chromium binary |
+
+## Python SDK
+
+The image bakes `pip install cloakbrowser` and pre-warms the binary cache, so
+the snippet from the upstream README works out of the box:
+
+```python
+from cloakbrowser import launch
+
+browser = launch()
+page = browser.new_page()
+page.goto("https://protected-site.com")
+browser.close()
+```
+
+The pip package and the GUI workspace keep separate chromium copies — the
+GUI launches `/opt/cloakbrowser/cloakbrowser` (from the release tarball)
+while `launch()` resolves `$CLOAKBROWSER_CACHE_DIR/<version>/chrome` (the
+pip pkg's own download). Pin both by passing `CLOAK_VERSION` +
+`CLOAKBROWSER_PIP_VERSION` build args.
 
 ## Deployment
 

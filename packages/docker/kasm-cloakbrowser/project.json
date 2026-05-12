@@ -56,7 +56,8 @@
 				"commands": [
 					"docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
 					"docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
-					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'"
+					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'",
+					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'"
 				],
 				"parallel": false
 			}
