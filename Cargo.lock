@@ -1590,7 +1590,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.148"
+version = "1.0.149"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -5149,6 +5149,7 @@ dependencies = [
  "pq-sys",
  "r2d2",
  "serde_json",
+ "uuid",
 ]
 
 [[package]]
@@ -5220,7 +5221,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
@@ -6095,7 +6096,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "axum 0.8.9",
  "dashmap 6.1.0",
@@ -8300,7 +8301,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -8816,6 +8817,7 @@ dependencies = [
  "tracing-subscriber",
  "ulid",
  "url",
+ "uuid",
 ]
 
 [[package]]
