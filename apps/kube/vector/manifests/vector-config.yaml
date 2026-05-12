@@ -5,8 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-05-11T00:00:00Z'
-        kbve.sh/config-version: 'v4-track-all-namespaces'
+        kbve.sh/last-updated: '2026-05-12T00:00:00Z'
+        kbve.sh/config-version: 'v5-heartbeat-coverage'
 data:
     vector.yml: |
         api:
@@ -59,13 +59,43 @@ data:
                   if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }
                   .metadata = parsed
               }
-          # Firehose: every namespace except vector (self-loop) and kube-system
-          # (security; apiserver/kubelet/etcd may carry tokens/secret refs) flows
-          # to ClickHouse unfiltered. 8-day TTL on logs_raw caps disk.
+          # Drop info/debug from noisy infra namespaces; keep warn+/error+ from
+          # them and everything from app namespaces. Cost discipline — these
+          # 13 namespaces emit massive low-signal chatter.
+          noise_filter:
+            type: filter
+            inputs:
+              - project_logs
+            condition:
+              type: vrl
+              source: |-
+                noisy = ["argocd", "clickhouse", "arc-systems", "arc-runners", "monitoring",
+                         "kube-system", "kube-node-lease", "kube-public",
+                         "longhorn-system", "metallb-system", "cnpg-system",
+                         "cert-manager", "external-secrets-system"]
+                ns = string(.pod_namespace) ?? ""
+                if !includes(noisy, ns) {
+                    true
+                } else {
+                    msg = string(.event_message) ?? ""
+                    match(msg, r'(?i)(warn|error|fatal|panic|crit|exception|fail)')
+                }
+          # Heartbeat: emit at most 1 row per namespace per 5min straight from
+          # project_logs (pre-filter), so quiet namespaces with no warn+/error+
+          # in window still show up on the dashboard's namespace count.
+          # ~600 rows/hour cluster-wide. Bypasses the appname router and lands
+          # directly in ch_normalize.
+          namespace_heartbeat:
+            type: throttle
+            inputs:
+              - project_logs
+            threshold: 1
+            window_secs: 300
+            key_field: "{{ pod_namespace }}"
           router:
             type: route
             inputs:
-              - project_logs
+              - noise_filter
             route:
               kong: '.appname == "supabase-kong" || .appname == "kong-kong" || .appname == "proxy"'
               auth: '.appname == "supabase-auth" || .appname == "gotrue"'
@@ -235,6 +265,7 @@ data:
               - router.functions
               - router.firecracker
               - router._unmatched
+              - namespace_heartbeat
             source: |-
               # Extract level from metadata fields first
               .level = string(.severity) ??
