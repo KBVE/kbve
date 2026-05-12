@@ -1,0 +1,95 @@
+# MC Map Rotation — one-shot Job (manual ops, NOT ArgoCD-managed).
+#
+# Lives outside `manifests/` on purpose. ArgoCD's `agones-mc` application
+# tracks `path: apps/kube/agones/mc/manifests` only, so this file is
+# invisible to it and never auto-applied or auto-pruned. Apply this Job
+# by hand when (and only when) you actually want to rotate the world.
+#
+# Why it's not managed:
+#   - The Job is destructive (deletes region files outside the protected
+#     radius, optionally wipes nether/end/playerdata).
+#   - Earlier this Job lived under `manifests/` with
+#     `ttlSecondsAfterFinished: 86400`. Every 24h k8s GC'd the completed
+#     Job, ArgoCD saw it missing → auto-synced → fired the PreSync
+#     `mc-graceful-restart` hook → kicked every player with "Server is
+#     restarting for an update" even though nothing was actually being
+#     updated. Worse, ArgoCD then recreated the Job, which ran against
+#     the live PVC. See https://github.com/KBVE/kbve/issues/<...> for
+#     the post-mortem.
+#
+# Prereqs (both ConfigMaps below are ArgoCD-managed and always present):
+#   - mc-map-rotation-config   (tunables: CENTER_X, PROTECT_RADIUS, etc.)
+#   - mc-map-rotation-script   (the rotation bash script)
+#
+# Run procedure:
+#   1. Scale the fleet to 0 so no server is using the PVC:
+#        kubectl -n arc-runners scale fleet mc-fabric --replicas=0
+#   2. Wait for every GameServer pod to terminate:
+#        kubectl -n arc-runners get pods -l agones.dev/fleet=mc-fabric -w
+#   3. (Optional) Dry-run first to preview deletions:
+#        kubectl -n arc-runners create job mc-map-rotation-dry \
+#          --from=job/mc-map-rotation -- \
+#          /bin/bash -c "DRY_RUN=true /scripts/map-rotation.sh"
+#   4. Apply this manifest:
+#        kubectl apply -f apps/kube/agones/mc/jobs/map-rotation-job.yaml
+#   5. Watch logs:
+#        kubectl -n arc-runners logs -f job/mc-map-rotation
+#   6. After the Job reports "Map rotation complete":
+#        kubectl -n arc-runners delete job mc-map-rotation
+#   7. Scale fleet back up (or let FleetAutoscaler handle it):
+#        kubectl -n arc-runners scale fleet mc-fabric --replicas=1
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: mc-map-rotation
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: mc
+        app.kubernetes.io/component: map-rotation
+spec:
+    backoffLimit: 0
+    template:
+        metadata:
+            labels:
+                app: mc-map-rotation
+                app.kubernetes.io/part-of: mc
+        spec:
+            restartPolicy: Never
+            nodeSelector:
+                node.kbve.com/type: dedicated-server
+            containers:
+                - name: map-rotation
+                  image: ghcr.io/kbve/mc:1.0.13
+                  command:
+                      - /bin/bash
+                      - /scripts/map-rotation.sh
+                  envFrom:
+                      - configMapRef:
+                            name: mc-map-rotation-config
+                  env:
+                      - name: WORLD_DIR
+                        value: /data/world
+                      - name: BACKUP_DIR
+                        value: /data/backups
+                      - name: DRY_RUN
+                        value: 'false'
+                  volumeMounts:
+                      - name: mc-data
+                        mountPath: /data
+                      - name: rotation-script
+                        mountPath: /scripts
+                  resources:
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                      limits:
+                          cpu: 500m
+                          memory: 512Mi
+            volumes:
+                - name: mc-data
+                  persistentVolumeClaim:
+                      claimName: mc-world-data
+                - name: rotation-script
+                  configMap:
+                      name: mc-map-rotation-script
+                      defaultMode: 0755
