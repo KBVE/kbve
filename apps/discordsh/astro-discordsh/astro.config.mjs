@@ -34,11 +34,11 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Servers',
-          autogenerate: { directory: 'servers' },
+          items: [{ autogenerate: { directory: 'servers' } }],
         },
         {
           label: 'Guides',
-          autogenerate: { directory: 'guides' },
+          items: [{ autogenerate: { directory: 'guides' } }],
         },
       ],
     }),
