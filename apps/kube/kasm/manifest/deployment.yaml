@@ -26,6 +26,17 @@ spec:
         spec:
             serviceAccountName: kasm-init-sa
             terminationGracePeriodSeconds: 30
+            dnsPolicy: None
+            dnsConfig:
+                nameservers:
+                    - 1.1.1.1
+                    - 1.0.0.1
+            hostAliases:
+                - ip: 10.96.0.1
+                  hostnames:
+                      - kubernetes.default.svc
+                      - kubernetes.default
+                      - kubernetes
             securityContext:
                 fsGroup: 1000
                 seccompProfile:
