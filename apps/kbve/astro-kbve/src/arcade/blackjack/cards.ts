@@ -14,19 +14,16 @@ export type Rank =
 	| 'Q'
 	| 'K';
 
-export interface Card {
-	id: string;
-	suit: Suit;
-	rank: Rank;
-}
+export type CardByte = number;
+export type Card = CardByte;
 
 export interface HandValue {
 	total: number;
 	soft: boolean;
 }
 
-const SUITS: readonly Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
-const RANKS: readonly Rank[] = [
+const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+const RANKS = [
 	'A',
 	'2',
 	'3',
@@ -40,7 +37,12 @@ const RANKS: readonly Rank[] = [
 	'J',
 	'Q',
 	'K',
-];
+] as const;
+
+const RANK_MASK = 0b1111;
+const SUIT_MASK = 0b11;
+const SUIT_SHIFT = 4;
+const RANK_POINTS = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10] as const;
 
 export const SUIT_GLYPH: Record<Suit, string> = {
 	spades: '♠',
@@ -53,16 +55,31 @@ export function isRedSuit(suit: Suit): boolean {
 	return suit === 'hearts' || suit === 'diamonds';
 }
 
+export function encodeCard(suit: Suit, rank: Rank): Card {
+	const suitIndex = SUITS.indexOf(suit);
+	const rankIndex = RANKS.indexOf(rank);
+
+	return (suitIndex << SUIT_SHIFT) | rankIndex;
+}
+
+export function cardSuit(card: Card): Suit {
+	return SUITS[(card >> SUIT_SHIFT) & SUIT_MASK];
+}
+
+export function cardRank(card: Card): Rank {
+	return RANKS[card & RANK_MASK];
+}
+
+export function cardId(card: Card): string {
+	return `${cardSuit(card)}-${cardRank(card)}`;
+}
+
 export function buildShoe(decks: number): Card[] {
 	const shoe: Card[] = [];
 	for (let deck = 0; deck < decks; deck++) {
 		for (const suit of SUITS) {
 			for (const rank of RANKS) {
-				shoe.push({
-					id: `${deck}-${suit}-${rank}`,
-					suit,
-					rank,
-				});
+				shoe.push(encodeCard(suit, rank));
 			}
 		}
 	}
@@ -79,9 +96,7 @@ export function shuffleCards(cards: readonly Card[]): Card[] {
 }
 
 export function cardPoints(card: Card): number {
-	if (card.rank === 'A') return 11;
-	if (card.rank === 'K' || card.rank === 'Q' || card.rank === 'J') return 10;
-	return Number(card.rank);
+	return RANK_POINTS[card & RANK_MASK];
 }
 
 export function valueHand(cards: readonly Card[]): HandValue {
@@ -90,7 +105,7 @@ export function valueHand(cards: readonly Card[]): HandValue {
 
 	for (const card of cards) {
 		total += cardPoints(card);
-		if (card.rank === 'A') aces++;
+		if ((card & RANK_MASK) === 0) aces++;
 	}
 
 	while (total > 21 && aces > 0) {

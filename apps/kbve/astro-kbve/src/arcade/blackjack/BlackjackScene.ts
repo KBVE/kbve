@@ -11,6 +11,8 @@ import {
 } from './state';
 import {
 	cardPoints,
+	cardRank,
+	cardSuit,
 	type Card,
 	isBlackjack,
 	isRedSuit,
@@ -573,6 +575,9 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private drawCardFace(card: Card, x: number, y: number) {
+		const suitName = cardSuit(card);
+		const rankName = cardRank(card);
+		const suitGlyph = SUIT_GLYPH[suitName];
 		const g = this.add.graphics();
 		g.fillStyle(0x000000, 0.22);
 		g.fillRoundedRect(
@@ -599,13 +604,13 @@ export class BlackjackScene extends Phaser.Scene {
 			CARD_SIZE.radius,
 		);
 
-		const color = isRedSuit(card.suit) ? COLORS.red : COLORS.black;
-		const rank = this.add.text(x + 12, y + 10, card.rank, {
+		const color = isRedSuit(suitName) ? COLORS.red : COLORS.black;
+		const rank = this.add.text(x + 12, y + 10, rankName, {
 			fontFamily: FONT.serif,
 			fontSize: '30px',
 			color,
 		});
-		const suit = this.add.text(x + 13, y + 43, SUIT_GLYPH[card.suit], {
+		const suit = this.add.text(x + 13, y + 43, suitGlyph, {
 			fontFamily: FONT.serif,
 			fontSize: '27px',
 			color,
@@ -614,7 +619,7 @@ export class BlackjackScene extends Phaser.Scene {
 			.text(
 				x + CARD_SIZE.width / 2,
 				y + CARD_SIZE.height / 2 + 4,
-				SUIT_GLYPH[card.suit],
+				suitGlyph,
 				{
 					fontFamily: FONT.serif,
 					fontSize: '58px',
@@ -626,7 +631,7 @@ export class BlackjackScene extends Phaser.Scene {
 			.text(
 				x + CARD_SIZE.width - 12,
 				y + CARD_SIZE.height - 10,
-				card.rank,
+				rankName,
 				{
 					fontFamily: FONT.serif,
 					fontSize: '30px',
@@ -790,7 +795,7 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private dealerUpValue(card: Card): number {
-		if (card.rank === 'A') return 11;
+		if (cardRank(card) === 'A') return 11;
 		return Math.min(cardPoints(card), 10);
 	}
 }
