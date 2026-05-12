@@ -1,79 +1,10 @@
-# One-shot Job for MC map rotation.
-#
-# PREREQUISITES — run these BEFORE creating the Job:
-#   1. Scale the fleet to 0 so no server is using the PVC:
-#        kubectl -n arc-runners scale fleet mc-fabric --replicas=0
-#   2. Wait for all GameServer pods to terminate:
-#        kubectl -n arc-runners get pods -l agones.dev/fleet=mc-fabric -w
-#
-# AFTER the Job completes:
-#   3. Scale the fleet back (or let the FleetAutoscaler handle it):
-#        kubectl -n arc-runners scale fleet mc-fabric --replicas=1
-#   4. Clean up the completed Job:
-#        kubectl -n arc-runners delete job mc-map-rotation
-#
-# DRY RUN — to preview what would be deleted without touching files:
-#   Add an env override: DRY_RUN=true
-#   kubectl -n arc-runners create job mc-map-rotation-dry \
-#     --from=job/mc-map-rotation -- /bin/bash -c "DRY_RUN=true /scripts/map-rotation.sh"
-apiVersion: batch/v1
-kind: Job
-metadata:
-    name: mc-map-rotation
-    namespace: arc-runners
-    labels:
-        app.kubernetes.io/part-of: mc
-spec:
-    backoffLimit: 0
-    ttlSecondsAfterFinished: 86400
-    template:
-        metadata:
-            labels:
-                app: mc-map-rotation
-                app.kubernetes.io/part-of: mc
-        spec:
-            restartPolicy: Never
-            nodeSelector:
-                node.kbve.com/type: dedicated-server
-            containers:
-                - name: map-rotation
-                  image: ghcr.io/kbve/mc:1.0.13
-                  command:
-                      - /bin/bash
-                      - /scripts/map-rotation.sh
-                  envFrom:
-                      - configMapRef:
-                            name: mc-map-rotation-config
-                  env:
-                      - name: WORLD_DIR
-                        value: /data/world
-                      - name: BACKUP_DIR
-                        value: /data/backups
-                      - name: DRY_RUN
-                        value: 'false'
-                  volumeMounts:
-                      - name: mc-data
-                        mountPath: /data
-                      - name: rotation-script
-                        mountPath: /scripts
-                  resources:
-                      requests:
-                          cpu: 100m
-                          memory: 256Mi
-                      limits:
-                          cpu: 500m
-                          memory: 512Mi
-            volumes:
-                - name: mc-data
-                  persistentVolumeClaim:
-                      claimName: mc-world-data
-                - name: rotation-script
-                  configMap:
-                      name: mc-map-rotation-script
-                      defaultMode: 0755
----
 # The rotation script packaged as a ConfigMap so the Job can mount it.
 # This avoids rebuilding the Docker image just to update rotation logic.
+#
+# The Job that consumes this ConfigMap lives at
+# `apps/kube/agones/mc/jobs/map-rotation-job.yaml` and is intentionally
+# NOT under this `manifests/` path — see that file for the run procedure
+# and the rationale for keeping it outside ArgoCD's auto-sync loop.
 apiVersion: v1
 kind: ConfigMap
 metadata:
