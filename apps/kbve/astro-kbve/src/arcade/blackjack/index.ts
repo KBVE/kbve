@@ -1,13 +1,18 @@
 export { BlackjackScene } from './BlackjackScene';
 export {
 	buildShoe,
+	cardId,
 	cardPoints,
+	cardRank,
+	cardSuit,
+	encodeCard,
 	isBlackjack,
 	isRedSuit,
 	shuffleCards,
 	valueHand,
 	SUIT_GLYPH,
 	type Card,
+	type CardByte,
 	type HandValue,
 	type Rank,
 	type Suit,
