@@ -222,7 +222,7 @@
 		"includedScripts": []
 	},
 	"scripts": {
-		"postinstall": "pnpm exec playwright install",
+		"postinstall": "pnpm exec playwright install chromium",
 		"prepare": "husky"
 	},
 	"pnpm": {
