@@ -83,6 +83,31 @@ impl WalletClient {
             .await
     }
 
+    /// Resolve a Supabase user_id to its `wallet.account.id`.
+    ///
+    /// Calls `wallet.proxy_ensure_user_account()` via `run_as_user`, which
+    /// sets `request.jwt.claims.sub` for the SECURITY DEFINER function to
+    /// see the right `auth.uid()`. Creates the account + welcome coupon on
+    /// first call. Idempotent across repeated calls.
+    ///
+    /// Intended for service callers (MC mod daily reward, edge functions)
+    /// that know a user_id but not an account_id.
+    pub async fn service_account_for_user(&self, user_id: Uuid) -> Result<Uuid> {
+        self.run_as_user(user_id, |conn| {
+            #[derive(QueryableByName)]
+            struct AccountRow {
+                #[diesel(sql_type = diesel::sql_types::Uuid)]
+                account_id: Uuid,
+            }
+            let r: AccountRow =
+                sql_query("SELECT wallet.proxy_ensure_user_account() AS account_id")
+                    .get_result(conn)
+                    .map_err(WalletError::from_diesel)?;
+            Ok(r.account_id)
+        })
+        .await
+    }
+
     /// `wallet.service_redeem_coupon(coupon_id, idempotency_key)`.
     /// Idempotent at the coupon layer: same key replays return the original
     /// ledger id instead of raising.

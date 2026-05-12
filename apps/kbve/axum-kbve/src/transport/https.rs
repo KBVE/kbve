@@ -379,6 +379,10 @@ fn router(state: AppState) -> Router {
             post(super::wallet::service_credit),
         )
         .route(
+            "/api/v1/wallet/service/credit-user",
+            post(super::wallet::service_credit_user),
+        )
+        .route(
             "/api/v1/wallet/service/debit",
             post(super::wallet::service_debit),
         )
