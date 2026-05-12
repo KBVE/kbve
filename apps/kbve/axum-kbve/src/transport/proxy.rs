@@ -1788,6 +1788,38 @@ pub async fn firecracker_net_proxy_handler(
     }
 }
 
+/// Public-shaped alias for the persistent endpoint surface of
+/// firecracker-ctl-net. Forwards `/api/v1/fc/<rest>` to
+/// `firecracker-ctl-net/fc/<rest>` after the same staff gate as
+/// [`firecracker_net_proxy_handler`].
+///
+/// Lets IDE clients, scripts, and the dashboard hit a stable
+/// `/api/v1/fc/deploy` (etc.) without leaking the internal
+/// `/dashboard/firecracker-net/proxy/...` path layout.
+pub async fn firecracker_fc_alias_handler(
+    Path(rest): Path<String>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-FC").await {
+        return resp;
+    }
+
+    match FIRECRACKER_NET.get() {
+        Some(proxy) => {
+            let upstream_path = format!("fc/{rest}");
+            proxy
+                .handle_preauthorized(Some(Path(upstream_path)), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker-Net proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // /fc/{name}/{*path} — public path prefix for persistent Firecracker endpoints
 // ---------------------------------------------------------------------------
