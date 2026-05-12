@@ -44,18 +44,20 @@ RUN set -eux; \
 
 RUN set -eux; \
     pip_spec="cloakbrowser${CLOAKBROWSER_PIP_VERSION:+==${CLOAKBROWSER_PIP_VERSION}}"; \
-    pip3 install --no-cache-dir "$pip_spec"; \
+    pip3 install --no-cache-dir --break-system-packages "$pip_spec"; \
     mkdir -p "$CLOAKBROWSER_CACHE_DIR"; \
     chown 1000:1000 "$CLOAKBROWSER_CACHE_DIR"; \
     CLOAKBROWSER_CACHE_DIR="$CLOAKBROWSER_CACHE_DIR" \
-      python3 -m cloakbrowser ensure-binary || \
-      echo "ensure-binary failed at build (will retry on first launch)"
+      python3 -c "from cloakbrowser import ensure_binary; print(ensure_binary())" || \
+      echo "ensure_binary failed at build (will retry on first launch)"
+
+RUN mkdir -p /home/kasm-user/Desktop /dockerstartup
 
 COPY custom_startup.sh /dockerstartup/custom_startup.sh
 COPY cloakbrowser.desktop /home/kasm-user/Desktop/cloakbrowser.desktop
 
 RUN chmod +x /dockerstartup/custom_startup.sh \
- && chown 1000:1000 /dockerstartup/custom_startup.sh /home/kasm-user/Desktop/cloakbrowser.desktop
+ && chown -R 1000:1000 /home/kasm-user /dockerstartup/custom_startup.sh
 
 USER 1000
 ENV HOME=/home/kasm-user \
