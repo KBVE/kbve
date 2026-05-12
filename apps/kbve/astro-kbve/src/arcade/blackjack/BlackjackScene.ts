@@ -27,6 +27,13 @@ const CARD_TEXTURE_MARGIN = {
 	x: 6,
 	y: 8,
 } as const;
+const BUTTON_TEXTURE_PREFIX = 'blackjack-button';
+const BUTTON_TEXTURE_SIZE = {
+	width: 104,
+	height: 40,
+	radius: 8,
+} as const;
+const CHIP_TEXTURE_KEY = 'blackjack-chip';
 
 type ButtonKey =
 	| 'deal'
@@ -50,8 +57,9 @@ interface ButtonSpec {
 
 interface ButtonView {
 	spec: ButtonSpec;
-	box: Phaser.GameObjects.Graphics;
+	box: Phaser.GameObjects.Image;
 	text: Phaser.GameObjects.Text;
+	lastEnabled: boolean | null;
 }
 
 export class BlackjackScene extends Phaser.Scene {
@@ -68,7 +76,7 @@ export class BlackjackScene extends Phaser.Scene {
 	private playerValueText!: Phaser.GameObjects.Text;
 	private shoeText!: Phaser.GameObjects.Text;
 	private statsText!: Phaser.GameObjects.Text;
-	private betChip!: Phaser.GameObjects.Graphics;
+	private betChip!: Phaser.GameObjects.Image;
 	private betChipText!: Phaser.GameObjects.Text;
 
 	constructor() {
@@ -77,6 +85,7 @@ export class BlackjackScene extends Phaser.Scene {
 
 	create() {
 		this.createCardTextures();
+		this.createHudTextures();
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
@@ -289,7 +298,9 @@ export class BlackjackScene extends Phaser.Scene {
 				align: 'center',
 			})
 			.setOrigin(0.5, 0);
-		this.betChip = this.add.graphics();
+		this.betChip = this.add
+			.image(332, 676, CHIP_TEXTURE_KEY)
+			.setOrigin(0.5);
 		this.betChipText = this.add
 			.text(332, 674, '', {
 				fontFamily: FONT.mono,
@@ -416,7 +427,10 @@ export class BlackjackScene extends Phaser.Scene {
 		];
 
 		for (const spec of specs) {
-			const box = this.add.graphics();
+			const box = this.add
+				.image(spec.x, spec.y, this.buttonTextureKey(spec.enabled()))
+				.setOrigin(0)
+				.setDisplaySize(spec.w, BUTTON_TEXTURE_SIZE.height);
 			const text = this.add
 				.text(spec.x + spec.w / 2, spec.y + 20, spec.label, {
 					fontFamily: FONT.sans,
@@ -436,7 +450,7 @@ export class BlackjackScene extends Phaser.Scene {
 			});
 
 			this.hudLayer.add([box, text, hitArea]);
-			this.buttons.push({ spec, box, text });
+			this.buttons.push({ spec, box, text, lastEnabled: null });
 		}
 	}
 
@@ -578,6 +592,75 @@ export class BlackjackScene extends Phaser.Scene {
 				this.createFaceTexture(encodeCard(suit, rank));
 			}
 		}
+	}
+
+	private createHudTextures() {
+		this.createButtonTexture(true);
+		this.createButtonTexture(false);
+		this.createChipTexture();
+	}
+
+	private createButtonTexture(enabled: boolean) {
+		const key = this.buttonTextureKey(enabled);
+		if (this.textures.exists(key)) return;
+
+		const canvas = document.createElement('canvas');
+		canvas.width = BUTTON_TEXTURE_SIZE.width;
+		canvas.height = BUTTON_TEXTURE_SIZE.height;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+
+		ctx.globalAlpha = enabled ? 0.94 : 0.5;
+		ctx.fillStyle = this.hexColor(enabled ? COLORS.action : 0x111827);
+		this.roundRect(
+			ctx,
+			0,
+			0,
+			BUTTON_TEXTURE_SIZE.width,
+			BUTTON_TEXTURE_SIZE.height,
+			BUTTON_TEXTURE_SIZE.radius,
+		);
+		ctx.fill();
+		ctx.globalAlpha = enabled ? 0.9 : 0.42;
+		ctx.strokeStyle = this.hexColor(enabled ? COLORS.tableTrim : 0x475569);
+		ctx.lineWidth = 1;
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(key, canvas);
+	}
+
+	private createChipTexture() {
+		if (this.textures.exists(CHIP_TEXTURE_KEY)) return;
+
+		const size = 70;
+		const center = size / 2;
+		const canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('Canvas 2D context is unavailable.');
+
+		ctx.fillStyle = '#f8fafc';
+		ctx.beginPath();
+		ctx.arc(center, center, 33, 0, Math.PI * 2);
+		ctx.fill();
+
+		ctx.strokeStyle = this.hexColor(COLORS.tableTrim);
+		ctx.lineWidth = 6;
+		ctx.beginPath();
+		ctx.arc(center, center, 33, 0, Math.PI * 2);
+		ctx.stroke();
+
+		ctx.strokeStyle = this.hexColor(COLORS.cardBack);
+		ctx.globalAlpha = 0.95;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(center, center, 22, 0, Math.PI * 2);
+		ctx.stroke();
+		ctx.globalAlpha = 1;
+
+		this.textures.addCanvas(CHIP_TEXTURE_KEY, canvas);
 	}
 
 	private createSlotTexture() {
@@ -724,6 +807,10 @@ export class BlackjackScene extends Phaser.Scene {
 		return `${CARD_TEXTURE_PREFIX}-${card}`;
 	}
 
+	private buttonTextureKey(enabled: boolean): string {
+		return `${BUTTON_TEXTURE_PREFIX}-${enabled ? 'enabled' : 'disabled'}`;
+	}
+
 	private strokeRoundRect(
 		ctx: CanvasRenderingContext2D,
 		x: number,
@@ -809,45 +896,14 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private updateButtons() {
-		this.drawBetChip();
 		for (const button of this.buttons) {
 			const enabled = button.spec.enabled();
-			button.box.clear();
-			button.box.fillStyle(
-				enabled ? COLORS.action : 0x111827,
-				enabled ? 0.94 : 0.5,
-			);
-			button.box.lineStyle(
-				1,
-				enabled ? COLORS.tableTrim : 0x475569,
-				enabled ? 0.9 : 0.42,
-			);
-			button.box.fillRoundedRect(
-				button.spec.x,
-				button.spec.y,
-				button.spec.w,
-				40,
-				8,
-			);
-			button.box.strokeRoundedRect(
-				button.spec.x,
-				button.spec.y,
-				button.spec.w,
-				40,
-				8,
-			);
+			if (button.lastEnabled !== enabled) {
+				button.box.setTexture(this.buttonTextureKey(enabled));
+				button.lastEnabled = enabled;
+			}
 			button.text.setAlpha(enabled ? 1 : 0.42);
 		}
-	}
-
-	private drawBetChip() {
-		this.betChip.clear();
-		this.betChip.fillStyle(0xf8fafc, 1);
-		this.betChip.fillCircle(332, 676, 33);
-		this.betChip.lineStyle(6, COLORS.tableTrim, 1);
-		this.betChip.strokeCircle(332, 676, 33);
-		this.betChip.lineStyle(2, COLORS.cardBack, 0.95);
-		this.betChip.strokeCircle(332, 676, 22);
 	}
 
 	private getStatusColor(): string {
