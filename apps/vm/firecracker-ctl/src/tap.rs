@@ -294,6 +294,33 @@ pub fn build_input_accept_check(vm_subnet: &str) -> Vec<String> {
     ]
 }
 
+pub fn build_dns_dnat(proto: &str) -> Vec<String> {
+    vec![
+        "-t".into(),
+        "nat".into(),
+        "-I".into(),
+        "PREROUTING".into(),
+        "-i".into(),
+        "fctap+".into(),
+        "-p".into(),
+        proto.into(),
+        "--dport".into(),
+        "53".into(),
+        "-j".into(),
+        "DNAT".into(),
+        "--to-destination".into(),
+        "127.0.0.1:53".into(),
+    ]
+}
+
+pub fn build_dns_dnat_check(proto: &str) -> Vec<String> {
+    let mut v = build_dns_dnat(proto);
+    if let Some(a) = v.iter_mut().find(|s| s.as_str() == "-I") {
+        *a = "-C".into();
+    }
+    v
+}
+
 // ---------------------------------------------------------------------------
 // Execution wrappers (shell-out via tokio::process::Command)
 // ---------------------------------------------------------------------------
@@ -371,6 +398,14 @@ impl TapManager {
         // 1. IP forwarding
         run("sysctl", &["-w".into(), "net.ipv4.ip_forward=1".into()]).await?;
 
+        // route_localnet=1 allows DNAT to 127.0.0.1 for forwarded packets
+        // arriving on TAP interfaces. Required for the DNS redirect below.
+        run(
+            "sysctl",
+            &["-w".into(), "net.ipv4.conf.all.route_localnet=1".into()],
+        )
+        .await?;
+
         // 2. NAT MASQUERADE (add only if not already present)
         if !iptables_rule_exists(&build_nat_masquerade_check(
             &self.config.vm_subnet,
@@ -415,6 +450,12 @@ impl TapManager {
 
         if !iptables_rule_exists(&build_input_accept_check(&self.config.vm_subnet)).await? {
             run_iptables(&build_input_accept(&self.config.vm_subnet)).await?;
+        }
+
+        for proto in ["udp", "tcp"] {
+            if !iptables_rule_exists(&build_dns_dnat_check(proto)).await? {
+                run_iptables(&build_dns_dnat(proto)).await?;
+            }
         }
 
         Ok(())
