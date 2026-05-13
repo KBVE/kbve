@@ -20,18 +20,27 @@ auth:
 
 dataStorage:
     enabled: true
-    requestedSize: 8Gi
+    # Sized for sccache Rust object cache (Bevy + axum-kbve workspace).
+    # Cold-build populates ~2-5GB of cache entries; 32Gi leaves headroom
+    # for additional projects + LRU churn.
+    requestedSize: 32Gi
     className: longhorn
     accessModes:
         - ReadWriteOnce
 
 resources:
     requests:
-        memory: '256Mi'
-        cpu: '100m'
+        memory: '1Gi'
+        cpu: '200m'
     limits:
-        memory: '512Mi'
-        cpu: '500m'
+        memory: '4Gi'
+        cpu: '1000m'
+
+# maxmemory caps in-memory working set under the pod limit so OOMKiller
+# doesn't fire; allkeys-lru evicts oldest sccache entries first.
+valkeyConfig: |-
+    maxmemory 3gb
+    maxmemory-policy allkeys-lru
 
 metrics:
     enabled: true

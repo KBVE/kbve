@@ -1,7 +1,7 @@
 # Egress restriction for self-hosted GitHub Actions runners
-# Allows only the ports needed for CI/CD (DNS, HTTPS, HTTP, SSH)
+# Allows only the ports needed for CI/CD (DNS, HTTPS, HTTP, SSH, sccache).
 # Blocks direct access to internal cluster services on non-standard ports
-# (e.g., PostgreSQL 5432, Redis 6379, RCON 25575)
+# (e.g., PostgreSQL 5432, Redis on non-sccache services, RCON 25575).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -29,4 +29,13 @@ spec:
         # SSH (git clone via SSH)
         - ports:
               - port: 22
+                protocol: TCP
+        # sccache → Valkey (port 6379, scoped to valkey ns only).
+        # Pairs with valkey-allow-arc-runners ingress policy in valkey ns.
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: valkey
+          ports:
+              - port: 6379
                 protocol: TCP
