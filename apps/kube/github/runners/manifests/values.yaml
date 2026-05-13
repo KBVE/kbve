@@ -63,6 +63,17 @@ template:
                     value: tcp://localhost:2376
                   - name: RUNNER_ALLOW_RUNASROOT
                     value: '1'
+                  # Surfaced for sccache → Valkey wiring in axum-kbve
+                  # Dockerfile (passed to docker buildx as a build secret,
+                  # never written into image layers or registry cache).
+                  # ExternalSecret valkey-sccache-credentials syncs the
+                  # password from valkey-auth in the valkey namespace.
+                  - name: VALKEY_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: valkey-sccache-credentials
+                            key: VALKEY_PASSWORD
+                            optional: true
               resources:
                   limits:
                       cpu: '12'

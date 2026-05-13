@@ -130,7 +130,17 @@ COPY --from=planner /app/packages packages
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo chef cook --release --recipe-path recipe.json -p axum-kbve
+    --mount=type=secret,id=valkey_password,env=SCCACHE_REDIS_PASSWORD,required=false \
+    if [ -n "${SCCACHE_REDIS_PASSWORD:-}" ]; then \
+        export SCCACHE_REDIS_ENDPOINT=tcp://valkey.valkey.svc.cluster.local:6379 \
+            SCCACHE_REDIS_USERNAME=default \
+            SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
+        echo "sccache: Redis backend enabled"; \
+    else \
+        echo "sccache: Redis password not provided, falling back to local disk cache"; \
+    fi && \
+    cargo chef cook --release --recipe-path recipe.json -p axum-kbve && \
+    (sccache --show-stats || true)
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
@@ -159,7 +169,14 @@ COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker
+    --mount=type=secret,id=valkey_password,env=SCCACHE_REDIS_PASSWORD,required=false \
+    if [ -n "${SCCACHE_REDIS_PASSWORD:-}" ]; then \
+        export SCCACHE_REDIS_ENDPOINT=tcp://valkey.valkey.svc.cluster.local:6379 \
+            SCCACHE_REDIS_USERNAME=default \
+            SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
+    fi && \
+    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker && \
+    (sccache --show-stats || true)
 
 # ============================================================================
 # [STAGE F] - Build Application
@@ -192,7 +209,14 @@ RUN cp -a /app/apps/kbve/axum-kbve/templates/dist/askama/. /app/apps/kbve/axum-k
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    --mount=type=secret,id=valkey_password,env=SCCACHE_REDIS_PASSWORD,required=false \
+    if [ -n "${SCCACHE_REDIS_PASSWORD:-}" ]; then \
+        export SCCACHE_REDIS_ENDPOINT=tcp://valkey.valkey.svc.cluster.local:6379 \
+            SCCACHE_REDIS_USERNAME=default \
+            SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
+    fi && \
     cargo build --release -p axum-kbve --features jemalloc && \
+    (sccache --show-stats || true) && \
     strip target/release/axum-kbve
 
 # ============================================================================

@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: valkey-auth-reader
+    namespace: valkey
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['valkey-auth']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arc-runners-read-valkey-auth
+    namespace: valkey
+subjects:
+    - kind: ServiceAccount
+      name: valkey-sccache-external-secrets
+      namespace: arc-runners
+roleRef:
+    kind: Role
+    name: valkey-auth-reader
+    apiGroup: rbac.authorization.k8s.io
