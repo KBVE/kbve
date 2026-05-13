@@ -24,9 +24,15 @@ import { BASE_HEIGHT, BASE_WIDTH, CARD_SIZE, COLORS, FONT } from './config';
 import {
 	DealerAnimation,
 	type CardPlacement,
-	type HandOwner,
 } from './animation/dealerAnimation';
+import {
+	ButtonBar,
+	BUTTON_TEXTURE_SIZE,
+	type ButtonKey,
+	type ButtonSpec,
+} from './objects/buttonBar';
 import { CardPool } from './objects/cardPool';
+import { HandLayout } from './objects/handLayout';
 
 const CARD_TEXTURE_PREFIX = 'blackjack-card';
 const CARD_TEXTURE_MARGIN = {
@@ -34,11 +40,6 @@ const CARD_TEXTURE_MARGIN = {
 	y: 8,
 } as const;
 const BUTTON_TEXTURE_PREFIX = 'blackjack-button';
-const BUTTON_TEXTURE_SIZE = {
-	width: 104,
-	height: 40,
-	radius: 8,
-} as const;
 const TABLE_TEXTURE_KEY = 'blackjack-table-static';
 const CHIP_TEXTURE_KEY = 'blackjack-chip';
 const SHOE_POSITION = {
@@ -50,52 +51,17 @@ const DEAL_ANIMATION = {
 	stagger: 70,
 } as const;
 
-type ButtonKey =
-	| 'deal'
-	| 'hit'
-	| 'stand'
-	| 'double'
-	| 'betDown'
-	| 'betUp'
-	| 'next'
-	| 'new';
-
-interface ButtonSpec {
-	key: ButtonKey;
-	label: string;
-	x: number;
-	y: number;
-	w: number;
-	enabled: () => boolean;
-	action: () => void;
-}
-
-interface ButtonView {
-	spec: ButtonSpec;
-	box: Phaser.GameObjects.Image;
-	text: Phaser.GameObjects.Text;
-	lastEnabled: boolean | null;
-}
-
-interface PlacementCacheEntry {
-	cards: Card[];
-	centerX: number;
-	y: number;
-	hideHole: boolean;
-	placements: CardPlacement[];
-}
-
 export class BlackjackScene extends Phaser.Scene {
 	private state: BlackjackState = createBlackjackState();
 	private cardLayer!: Phaser.GameObjects.Container;
 	private cardPool!: CardPool;
+	private handLayout!: HandLayout;
 	private dealLayer!: Phaser.GameObjects.Container;
 	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
-	private buttons: ButtonView[] = [];
+	private buttonBar!: ButtonBar;
 	private textCache = new Map<string, string>();
 	private colorCache = new Map<string, string>();
-	private placementCache = new Map<HandOwner, PlacementCacheEntry>();
 	private statusText!: Phaser.GameObjects.Text;
 	private strategyText!: Phaser.GameObjects.Text;
 	private bankrollText!: Phaser.GameObjects.Text;
@@ -121,6 +87,7 @@ export class BlackjackScene extends Phaser.Scene {
 			this.cardLayer,
 			this.cardTextureKey('slot'),
 		);
+		this.handLayout = new HandLayout((card) => this.cardTextureKey(card));
 		this.dealLayer = this.add.container(0, 0).setDepth(15);
 		this.dealerAnimation = new DealerAnimation(this, this.dealLayer, {
 			cardBackTextureKey: this.cardTextureKey('back'),
@@ -296,32 +263,13 @@ export class BlackjackScene extends Phaser.Scene {
 			},
 		];
 
-		for (const spec of specs) {
-			const box = this.add
-				.image(spec.x, spec.y, this.buttonTextureKey(spec.enabled()))
-				.setOrigin(0)
-				.setDisplaySize(spec.w, BUTTON_TEXTURE_SIZE.height);
-			const text = this.add
-				.text(spec.x + spec.w / 2, spec.y + 20, spec.label, {
-					fontFamily: FONT.sans,
-					fontSize: '16px',
-					color: '#ffffff',
-				})
-				.setOrigin(0.5);
-
-			const hitArea = this.add
-				.zone(spec.x, spec.y, spec.w, 40)
-				.setOrigin(0)
-				.setInteractive({ useHandCursor: true });
-			hitArea.on('pointerup', () => {
-				if (!spec.enabled()) return;
-				spec.action();
-				this.render();
-			});
-
-			this.hudLayer.add([box, text, hitArea]);
-			this.buttons.push({ spec, box, text, lastEnabled: null });
-		}
+		this.buttonBar = new ButtonBar(
+			this,
+			this.hudLayer,
+			(enabled) => this.buttonTextureKey(enabled),
+			() => this.render(),
+		);
+		this.buttonBar.create(specs);
 	}
 
 	private bindKeyboard() {
@@ -339,10 +287,7 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private runAction(key: ButtonKey) {
-		const button = this.buttons.find((b) => b.spec.key === key);
-		if (!button || !button.spec.enabled()) return;
-		button.spec.action();
-		this.render();
+		if (this.buttonBar.run(key)) this.render();
 	}
 
 	private changeBet(delta: number) {
@@ -360,14 +305,14 @@ export class BlackjackScene extends Phaser.Scene {
 	private render() {
 		this.cardPool.begin();
 		const hideHole = this.hideDealerHole();
-		const dealerCards = this.cardPlacements(
+		const dealerCards = this.handLayout.cardPlacements(
 			this.state.dealer,
 			BASE_WIDTH / 2,
 			166,
 			hideHole,
 			'dealer',
 		);
-		const playerCards = this.cardPlacements(
+		const playerCards = this.handLayout.cardPlacements(
 			this.state.player,
 			BASE_WIDTH / 2,
 			420,
@@ -380,76 +325,13 @@ export class BlackjackScene extends Phaser.Scene {
 		this.cardPool.hideUnused();
 		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
 		this.updateText();
-		this.updateButtons();
+		this.buttonBar.update();
 	}
 
 	private hideDealerHole(): boolean {
 		return (
 			this.state.phase === 'player-turn' && this.state.dealer.length > 1
 		);
-	}
-
-	private cardPlacements(
-		cards: readonly Card[],
-		centerX: number,
-		y: number,
-		hideHole: boolean,
-		owner: HandOwner,
-	): CardPlacement[] {
-		const cached = this.placementCache.get(owner);
-		if (this.matchesPlacementCache(cached, cards, centerX, y, hideHole)) {
-			return cached.placements;
-		}
-
-		const totalWidth =
-			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
-		let x = centerX - totalWidth / 2;
-		const placements: CardPlacement[] = [];
-
-		cards.forEach((card, index) => {
-			placements.push({
-				textureKey:
-					hideHole && index === 1
-						? this.cardTextureKey('back')
-						: this.cardTextureKey(card),
-				x,
-				y,
-				owner,
-				index,
-			});
-			x += CARD_SIZE.width + 18;
-		});
-		this.placementCache.set(owner, {
-			cards: cards.slice(),
-			centerX,
-			y,
-			hideHole,
-			placements,
-		});
-		return placements;
-	}
-
-	private matchesPlacementCache(
-		cached: PlacementCacheEntry | undefined,
-		cards: readonly Card[],
-		centerX: number,
-		y: number,
-		hideHole: boolean,
-	): cached is PlacementCacheEntry {
-		if (
-			!cached ||
-			cached.centerX !== centerX ||
-			cached.y !== y ||
-			cached.hideHole !== hideHole ||
-			cached.cards.length !== cards.length
-		) {
-			return false;
-		}
-
-		for (let i = 0; i < cards.length; i++) {
-			if (cached.cards[i] !== cards[i]) return false;
-		}
-		return true;
 	}
 
 	private drawHand(
@@ -1140,17 +1022,6 @@ export class BlackjackScene extends Phaser.Scene {
 		const value = valueHand(cards);
 		const natural = isBlackjack(cards) ? ' blackjack' : '';
 		return `${value.total}${value.soft ? ' soft' : ''}${natural}`;
-	}
-
-	private updateButtons() {
-		for (const button of this.buttons) {
-			const enabled = button.spec.enabled();
-			if (button.lastEnabled !== enabled) {
-				button.box.setTexture(this.buttonTextureKey(enabled));
-				button.lastEnabled = enabled;
-			}
-			button.text.setAlpha(enabled ? 1 : 0.42);
-		}
 	}
 
 	private getStatusColor(): string {
