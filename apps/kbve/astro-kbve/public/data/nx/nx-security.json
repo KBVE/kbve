@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-05-12T09:09:42Z",
+  "generated_at": "2026-05-13T09:13:47Z",
   "summary": {
     "critical": 0,
     "high": 27,
     "medium": 50,
-    "low": 5,
-    "info": 29
+    "low": 6,
+    "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 67,
+      "total": 68,
       "severities": {
         "critical": 0,
         "high": 27,
         "medium": 35,
-        "low": 5,
+        "low": 6,
         "info": 0
       },
       "advisories": [
@@ -390,13 +390,6 @@
           "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
         },
         {
-          "id": "1117578",
-          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
-        },
-        {
           "id": "1117580",
           "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
           "severity": "low",
@@ -486,17 +479,31 @@
           "severity": "high",
           "package": "@babel/plugin-transform-modules-systemjs",
           "url": "https://github.com/advisories/GHSA-fv7c-fp4j-7gwp"
+        },
+        {
+          "id": "1118607",
+          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
+        },
+        {
+          "id": "1118669",
+          "title": "Astro: Server island encrypted parameters vulnerable to cross-component replay",
+          "severity": "low",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-xr5h-phrj-8vxv"
         }
       ]
     },
     "cargo": {
-      "total": 44,
+      "total": 43,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 15,
         "low": 0,
-        "info": 29
+        "info": 28
       },
       "advisories": [
         {
@@ -764,13 +771,6 @@
           "severity": "info",
           "package": "unic-ucd-version",
           "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2026-0111",
-          "title": "Possible UTF-8 corruption in Diesels SQLite backend",
-          "severity": "info",
-          "package": "diesel",
-          "url": "https://github.com/diesel-rs/diesel/pull/5042"
         },
         {
           "id": "RUSTSEC-2024-0429",
