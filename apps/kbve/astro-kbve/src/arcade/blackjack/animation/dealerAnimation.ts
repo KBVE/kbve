@@ -18,6 +18,7 @@ interface DealerAnimationOptions {
 	};
 	duration: number;
 	stagger: number;
+	enabled: boolean;
 }
 
 export class DealerAnimation {
@@ -39,6 +40,8 @@ export class DealerAnimation {
 		const previousPlayerCount = this.previousPlayerCardCount;
 		this.previousDealerCardCount = dealerCards.length;
 		this.previousPlayerCardCount = playerCards.length;
+
+		if (!this.options.enabled) return;
 
 		const newCards: CardPlacement[] = [];
 		if (dealerCards.length > previousDealerCount) {

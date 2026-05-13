@@ -16,3 +16,4 @@ resources:
     - ows-server-build-pvc.yaml
     - cache-cleanup-cronjob.yaml
     - registry-mirror.yaml
+    - valkey-sccache-externalsecret.yaml

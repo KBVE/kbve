@@ -81,7 +81,10 @@ jobs:
             - name: Setup Docker Buildx
               uses: docker/setup-buildx-action@v4
               with:
-                  driver: docker
+                  driver: docker-container
+                  driver-opts: |
+                      image=moby/buildkit:v0.24.0
+                      network=host
 
             - name: Login to GHCR
               uses: docker/login-action@v4
@@ -125,6 +128,13 @@ jobs:
               if: ${{ inputs.install_playwright }}
               run: pnpm exec playwright install --with-deps chromium
 
+            # VALKEY_PASSWORD is injected into the runner container's
+            # process env by the actions-runner-controller values.yaml
+            # (sourced from the valkey-sccache-credentials Secret synced
+            # by ExternalSecret). It auto-inherits into `run:` steps,
+            # so no explicit env entry needed — axum-kbve's container:ci
+            # command picks it up via `${VALKEY_PASSWORD:+--secret ...}`
+            # and only attaches the build secret when present.
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain

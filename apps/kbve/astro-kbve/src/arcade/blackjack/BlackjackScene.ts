@@ -26,6 +26,7 @@ import {
 	type CardPlacement,
 	type HandOwner,
 } from './animation/dealerAnimation';
+import { CardPool } from './objects/cardPool';
 
 const CARD_TEXTURE_PREFIX = 'blackjack-card';
 const CARD_TEXTURE_MARGIN = {
@@ -77,15 +78,17 @@ interface ButtonView {
 }
 
 interface PlacementCacheEntry {
-	signature: string;
+	cards: Card[];
+	centerX: number;
+	y: number;
+	hideHole: boolean;
 	placements: CardPlacement[];
 }
 
 export class BlackjackScene extends Phaser.Scene {
 	private state: BlackjackState = createBlackjackState();
 	private cardLayer!: Phaser.GameObjects.Container;
-	private cardViews: Phaser.GameObjects.Image[] = [];
-	private activeCardViews = 0;
+	private cardPool!: CardPool;
 	private dealLayer!: Phaser.GameObjects.Container;
 	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
@@ -113,12 +116,18 @@ export class BlackjackScene extends Phaser.Scene {
 		this.createTableTexture();
 		this.drawTable();
 		this.cardLayer = this.add.container(0, 0).setDepth(10);
+		this.cardPool = new CardPool(
+			this,
+			this.cardLayer,
+			this.cardTextureKey('slot'),
+		);
 		this.dealLayer = this.add.container(0, 0).setDepth(15);
 		this.dealerAnimation = new DealerAnimation(this, this.dealLayer, {
 			cardBackTextureKey: this.cardTextureKey('back'),
 			shoePosition: SHOE_POSITION,
 			duration: DEAL_ANIMATION.duration,
 			stagger: DEAL_ANIMATION.stagger,
+			enabled: !this.prefersReducedMotion(),
 		});
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.createHud();
@@ -341,8 +350,15 @@ export class BlackjackScene extends Phaser.Scene {
 		this.state.message = `Bet set to $${this.state.bet}.`;
 	}
 
+	private prefersReducedMotion(): boolean {
+		return (
+			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ??
+			false
+		);
+	}
+
 	private render() {
-		this.activeCardViews = 0;
+		this.cardPool.begin();
 		const hideHole = this.hideDealerHole();
 		const dealerCards = this.cardPlacements(
 			this.state.dealer,
@@ -361,7 +377,7 @@ export class BlackjackScene extends Phaser.Scene {
 
 		this.drawHand(dealerCards, BASE_WIDTH / 2, 166);
 		this.drawHand(playerCards, BASE_WIDTH / 2, 420);
-		this.hideUnusedCardViews();
+		this.cardPool.hideUnused();
 		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
 		this.updateText();
 		this.updateButtons();
@@ -380,9 +396,10 @@ export class BlackjackScene extends Phaser.Scene {
 		hideHole: boolean,
 		owner: HandOwner,
 	): CardPlacement[] {
-		const signature = `${centerX}:${y}:${hideHole}:${cards.join(',')}`;
 		const cached = this.placementCache.get(owner);
-		if (cached?.signature === signature) return cached.placements;
+		if (this.matchesPlacementCache(cached, cards, centerX, y, hideHole)) {
+			return cached.placements;
+		}
 
 		const totalWidth =
 			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
@@ -402,8 +419,37 @@ export class BlackjackScene extends Phaser.Scene {
 			});
 			x += CARD_SIZE.width + 18;
 		});
-		this.placementCache.set(owner, { signature, placements });
+		this.placementCache.set(owner, {
+			cards: cards.slice(),
+			centerX,
+			y,
+			hideHole,
+			placements,
+		});
 		return placements;
+	}
+
+	private matchesPlacementCache(
+		cached: PlacementCacheEntry | undefined,
+		cards: readonly Card[],
+		centerX: number,
+		y: number,
+		hideHole: boolean,
+	): cached is PlacementCacheEntry {
+		if (
+			!cached ||
+			cached.centerX !== centerX ||
+			cached.y !== y ||
+			cached.hideHole !== hideHole ||
+			cached.cards.length !== cards.length
+		) {
+			return false;
+		}
+
+		for (let i = 0; i < cards.length; i++) {
+			if (cached.cards[i] !== cards[i]) return false;
+		}
+		return true;
 	}
 
 	private drawHand(
@@ -418,45 +464,12 @@ export class BlackjackScene extends Phaser.Scene {
 		}
 
 		for (const placement of placements) {
-			this.placeCardTexture(
-				placement.textureKey,
-				placement.x,
-				placement.y,
-			);
+			this.cardPool.place(placement.textureKey, placement.x, placement.y);
 		}
 	}
 
 	private drawCardSlot(x: number, y: number) {
-		this.placeCardTexture(this.cardTextureKey('slot'), x, y);
-	}
-
-	private placeCardTexture(textureKey: string, x: number, y: number) {
-		const view = this.getCardView();
-		view.setTexture(textureKey);
-		view.setPosition(x, y);
-		view.setVisible(true);
-		view.setActive(true);
-	}
-
-	private getCardView(): Phaser.GameObjects.Image {
-		const view =
-			this.cardViews[this.activeCardViews] ??
-			this.add.image(0, 0, this.cardTextureKey('slot')).setOrigin(0);
-
-		if (!this.cardViews[this.activeCardViews]) {
-			this.cardViews.push(view);
-			this.cardLayer.add(view);
-		}
-
-		this.activeCardViews++;
-		return view;
-	}
-
-	private hideUnusedCardViews() {
-		for (let i = this.activeCardViews; i < this.cardViews.length; i++) {
-			this.cardViews[i].setVisible(false);
-			this.cardViews[i].setActive(false);
-		}
+		this.cardPool.place(this.cardTextureKey('slot'), x, y);
 	}
 
 	private createCardTextures() {

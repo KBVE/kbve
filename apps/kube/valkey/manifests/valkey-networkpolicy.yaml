@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: valkey-allow-arc-runners
+    namespace: valkey
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: valkey
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: 6379
+                protocol: TCP

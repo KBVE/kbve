@@ -59,6 +59,15 @@ template:
                     value: tcp://localhost:2376
                   - name: RUNNER_ALLOW_RUNASROOT
                     value: '1'
+                  # See values.yaml for rationale; mirrored so the kbve
+                  # canary scale-set picks up the same sccache plumbing
+                  # once workflows migrate to runs-on: arc-runner-set-kbve.
+                  - name: VALKEY_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: valkey-sccache-credentials
+                            key: VALKEY_PASSWORD
+                            optional: true
               resources:
                   limits:
                       cpu: '12'

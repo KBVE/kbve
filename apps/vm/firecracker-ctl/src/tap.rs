@@ -307,9 +307,9 @@ pub fn build_dns_dnat(proto: &str) -> Vec<String> {
         "--dport".into(),
         "53".into(),
         "-j".into(),
-        "DNAT".into(),
-        "--to-destination".into(),
-        "127.0.0.1:53".into(),
+        "REDIRECT".into(),
+        "--to-ports".into(),
+        "53".into(),
     ]
 }
 
@@ -397,14 +397,6 @@ impl TapManager {
     pub async fn init(&self) -> Result<(), TapError> {
         // 1. IP forwarding
         run("sysctl", &["-w".into(), "net.ipv4.ip_forward=1".into()]).await?;
-
-        // route_localnet=1 allows DNAT to 127.0.0.1 for forwarded packets
-        // arriving on TAP interfaces. Required for the DNS redirect below.
-        run(
-            "sysctl",
-            &["-w".into(), "net.ipv4.conf.all.route_localnet=1".into()],
-        )
-        .await?;
 
         // 2. NAT MASQUERADE (add only if not already present)
         if !iptables_rule_exists(&build_nat_masquerade_check(
