@@ -124,9 +124,15 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 FROM foundation AS builder
 
-# Ensure make is available for tikv-jemalloc-sys compilation (build from source)
-RUN dpkg -s make >/dev/null 2>&1 || \
-    (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
+# Ensure make is available for tikv-jemalloc-sys compilation (build from source).
+# Drop nodesource sources + force IPv4 so the fallback survives transient
+# nodesource.com IPv6 outages — make only needs debian main.
+RUN dpkg -s make >/dev/null 2>&1 || ( \
+        rm -f /etc/apt/sources.list.d/nodesource.list && \
+        apt-get update -o Acquire::ForceIPv4=true && \
+        apt-get install -y --no-install-recommends make && \
+        rm -rf /var/lib/apt/lists/* \
+    )
 
 COPY --from=astro-precompressor /static /app/apps/cryptothrone/axum-cryptothrone/templates/dist
 
