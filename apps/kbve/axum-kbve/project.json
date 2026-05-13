@@ -68,21 +68,8 @@
 				"parallel": false
 			}
 		},
-		"container-prep": {
-			"executor": "nx:run-commands",
-			"options": {
-				"commands": [
-					"./kbve.sh -nx astro-kbve:build",
-					"rm -rf ./apps/kbve/axum-kbve/dist/",
-					"mkdir -p ./apps/kbve/axum-kbve/dist/",
-					"cp -a ./dist/apps/astro-kbve/. ./apps/kbve/axum-kbve/dist/"
-				],
-				"parallel": false
-			}
-		},
 		"container": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["container-prep"],
 			"defaultConfiguration": "local",
 			"options": {
 				"parallel": false
