@@ -40,6 +40,17 @@ on:
                 description: 'PAT for pushing atom branches'
                 required: true
 
+# Serialize post-publish runs. Multiple crate releases firing in
+# parallel would each rebase Cargo.lock from the same pre-publish dev
+# HEAD, and even though each touches a different `[[package]]` block
+# the 3-way merge can fail when transitive deps shift adjacent lines.
+# Queuing keeps each atom branch based on dev that already contains
+# the prior post-publish, eliminating the race for Cargo.lock and
+# version.toml history.
+concurrency:
+    group: post-publish
+    cancel-in-progress: false
+
 jobs:
     update:
         name: Post-publish v${{ inputs.version }}
@@ -172,6 +183,44 @@ jobs:
                   esac
                   echo "Synced $TARGET to $VERSION"
 
+            # Bump the matching [[package]] block in the workspace
+            # Cargo.lock so the lockfile no longer drifts when CI bumps a
+            # Cargo.toml. Without this step, every fresh checkout regenerates
+            # Cargo.lock as soon as `cargo` runs, leaving the working tree
+            # dirty (e.g., axum-kbve 1.0.151 in lock vs 1.0.152 in Cargo.toml
+            # after a post-publish).
+            - name: Sync Cargo.lock
+              if: inputs.version_target_path != '' && endsWith(inputs.version_target_path, 'Cargo.toml')
+              run: |
+                  TARGET="${{ inputs.version_target_path }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
+
+                  if [ ! -f Cargo.lock ]; then
+                    echo "::notice::Cargo.lock not present at workspace root — skipping."
+                    exit 0
+                  fi
+
+                  PKG_NAME=$(grep -m 1 '^name = "' "$TARGET" | sed 's/name = "\(.*\)"/\1/')
+                  if [ -z "$PKG_NAME" ]; then
+                    echo "::warning::Could not parse package name from '$TARGET' — skipping Cargo.lock sync."
+                    exit 0
+                  fi
+
+                  awk -v pkg="$PKG_NAME" -v new="$VERSION" '
+                    /^\[\[package\]\]$/ { in_pkg=1; matched=0 }
+                    in_pkg && /^name = "/ {
+                      n=$0; sub(/^name = "/, "", n); sub(/"$/, "", n);
+                      if (n == pkg) matched=1
+                    }
+                    in_pkg && matched && /^version = "/ {
+                      sub(/version = "[^"]+"/, "version = \"" new "\"")
+                      matched=0
+                    }
+                    /^$/ { in_pkg=0; matched=0 }
+                    { print }
+                  ' Cargo.lock > Cargo.lock.tmp && mv Cargo.lock.tmp Cargo.lock
+                  echo "Synced Cargo.lock entry for $PKG_NAME to $VERSION"
+
             - name: Update kube deployment manifests
               if: (inputs.deployment_yaml != '' || inputs.deployment_yamls != '') && inputs.image_name != ''
               env:
@@ -218,6 +267,11 @@ jobs:
                   EXPECTED_FILES="${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ]; then
                     EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.version_target_path }}"
+                    case "${{ inputs.version_target_path }}" in
+                      *Cargo.toml)
+                        [ -f Cargo.lock ] && EXPECTED_FILES="$EXPECTED_FILES Cargo.lock"
+                        ;;
+                    esac
                   fi
                   if [ -n "${{ inputs.deployment_yaml }}" ]; then
                     EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.deployment_yaml }}"
@@ -267,6 +321,11 @@ jobs:
                   git add "${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
+                    case "${{ inputs.version_target_path }}" in
+                      *Cargo.toml)
+                        [ -f Cargo.lock ] && git add Cargo.lock
+                        ;;
+                    esac
                   fi
 
                   DEPLOYMENT_FILES=""
