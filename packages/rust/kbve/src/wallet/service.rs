@@ -1,22 +1,12 @@
-//! Service-side wallet operations.
-//!
-//! Each fn calls the matching `wallet.service_*` SECURITY DEFINER function
-//! via `diesel::sql_query`. Bind params are passed as TEXT for enums (cast
-//! server-side) and explicit diesel types for everything else. Errors are
-//! normalized through [`WalletError::from_diesel`].
-
-use diesel::prelude::*;
+use diesel::QueryableByName;
 use diesel::sql_query;
 use diesel::sql_types::{BigInt, Bool, Jsonb, Nullable, Text};
+use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use super::client::{WalletClient, WalletConn};
+use super::client::{WalletClient, set_user_claims};
 use super::error::{Result, WalletError};
 use super::types::*;
-
-// ---------------------------------------------------------------------------
-// QueryableByName rows
-// ---------------------------------------------------------------------------
 
 #[derive(QueryableByName)]
 struct LedgerIdRow {
@@ -58,88 +48,64 @@ struct RevokedRow {
     revoked: bool,
 }
 
-// ---------------------------------------------------------------------------
-// Service operations
-// ---------------------------------------------------------------------------
-
 impl WalletClient {
-    /// `wallet.service_credit(...)` — positive delta. Returns ledger id.
     pub async fn credit(&self, req: CreditRequest) -> Result<i64> {
-        self.run_service(move |conn| credit_blocking(conn, req))
-            .await
+        let mut conn = self.conn().await?;
+        credit_async(&mut conn, req).await
     }
 
-    /// `wallet.service_debit(...)` — positive p_amount, becomes negative delta.
-    /// Raises [`WalletError::InsufficientFunds`] when balance would go negative.
     pub async fn debit(&self, req: DebitRequest) -> Result<i64> {
-        self.run_service(move |conn| debit_blocking(conn, req))
-            .await
+        let mut conn = self.conn().await?;
+        debit_async(&mut conn, req).await
     }
 
-    /// `wallet.service_transfer(...)` — atomic debit + credit with
-    /// canonical-order advisory locking.
     pub async fn transfer(&self, req: TransferRequest) -> Result<()> {
-        self.run_service(move |conn| transfer_blocking(conn, req))
+        let mut conn = self.conn().await?;
+        transfer_async(&mut conn, req).await
+    }
+
+    pub async fn service_account_for_user(&self, user_id: Uuid) -> Result<Uuid> {
+        let mut conn = self.conn().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<Uuid, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                #[derive(QueryableByName)]
+                struct AccountRow {
+                    #[diesel(sql_type = diesel::sql_types::Uuid)]
+                    account_id: Uuid,
+                }
+                let r: AccountRow =
+                    sql_query("SELECT wallet.proxy_ensure_user_account() AS account_id")
+                        .get_result(conn)
+                        .await
+                        .map_err(WalletError::from_diesel)?;
+                Ok(r.account_id)
+            })
             .await
     }
 
-    /// Resolve a Supabase user_id to its `wallet.account.id`.
-    ///
-    /// Calls `wallet.proxy_ensure_user_account()` via `run_as_user`, which
-    /// sets `request.jwt.claims.sub` for the SECURITY DEFINER function to
-    /// see the right `auth.uid()`. Creates the account + welcome coupon on
-    /// first call. Idempotent across repeated calls.
-    ///
-    /// Intended for service callers (MC mod daily reward, edge functions)
-    /// that know a user_id but not an account_id.
-    pub async fn service_account_for_user(&self, user_id: Uuid) -> Result<Uuid> {
-        self.run_as_user(user_id, |conn| {
-            #[derive(QueryableByName)]
-            struct AccountRow {
-                #[diesel(sql_type = diesel::sql_types::Uuid)]
-                account_id: Uuid,
-            }
-            let r: AccountRow =
-                sql_query("SELECT wallet.proxy_ensure_user_account() AS account_id")
-                    .get_result(conn)
-                    .map_err(WalletError::from_diesel)?;
-            Ok(r.account_id)
-        })
-        .await
-    }
-
-    /// `wallet.service_redeem_coupon(coupon_id, idempotency_key)`.
-    /// Idempotent at the coupon layer: same key replays return the original
-    /// ledger id instead of raising.
     pub async fn redeem_coupon(
         &self,
         coupon_id: i64,
         idempotency_key: Uuid,
     ) -> Result<RedeemResult> {
-        self.run_service(move |conn| redeem_blocking(conn, coupon_id, idempotency_key))
-            .await
+        let mut conn = self.conn().await?;
+        redeem_async(&mut conn, coupon_id, idempotency_key).await
     }
 
-    /// `wallet.service_revoke_coupon(coupon_id, reason)`. Returns false on
-    /// already-revoked, raises on redeemed.
     pub async fn revoke_coupon(&self, coupon_id: i64, reason: Option<String>) -> Result<bool> {
-        self.run_service(move |conn| revoke_blocking(conn, coupon_id, reason))
-            .await
+        let mut conn = self.conn().await?;
+        revoke_async(&mut conn, coupon_id, reason).await
     }
 
-    /// `wallet.service_verify_balance(account_id)` — compares stored balance
-    /// against ledger sum per currency. `ok=true` means consistent.
     pub async fn verify_balance(&self, account_id: Uuid) -> Result<VerifyBalanceRow> {
-        self.run_service(move |conn| verify_blocking(conn, account_id))
-            .await
+        let mut conn = self.conn().await?;
+        verify_async(&mut conn, account_id).await
     }
 }
 
-// ---------------------------------------------------------------------------
-// Blocking implementations
-// ---------------------------------------------------------------------------
-
-fn credit_blocking(conn: &mut WalletConn, req: CreditRequest) -> Result<i64> {
+async fn credit_async(conn: &mut AsyncPgConnection, req: CreditRequest) -> Result<i64> {
     let row: LedgerIdRow = sql_query(
         "SELECT wallet.service_credit($1, $2::wallet.currency_kind, $3, \
          $4::wallet.source_kind, $5, $6, $7, $8) AS id",
@@ -153,11 +119,12 @@ fn credit_blocking(conn: &mut WalletConn, req: CreditRequest) -> Result<i64> {
     .bind::<Nullable<BigInt>, _>(req.ref_id)
     .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
     Ok(row.id)
 }
 
-fn debit_blocking(conn: &mut WalletConn, req: DebitRequest) -> Result<i64> {
+async fn debit_async(conn: &mut AsyncPgConnection, req: DebitRequest) -> Result<i64> {
     let row: LedgerIdRow = sql_query(
         "SELECT wallet.service_debit($1, $2::wallet.currency_kind, $3, \
          $4::wallet.source_kind, $5, $6, $7, $8) AS id",
@@ -171,11 +138,12 @@ fn debit_blocking(conn: &mut WalletConn, req: DebitRequest) -> Result<i64> {
     .bind::<Nullable<BigInt>, _>(req.ref_id)
     .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
     Ok(row.id)
 }
 
-fn transfer_blocking(conn: &mut WalletConn, req: TransferRequest) -> Result<()> {
+async fn transfer_async(conn: &mut AsyncPgConnection, req: TransferRequest) -> Result<()> {
     sql_query(
         "SELECT wallet.service_transfer($1, $2, $3::wallet.currency_kind, $4, \
          $5::wallet.source_kind, $6, $7, $8, $9)",
@@ -190,12 +158,13 @@ fn transfer_blocking(conn: &mut WalletConn, req: TransferRequest) -> Result<()> 
     .bind::<Nullable<BigInt>, _>(req.ref_id)
     .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
     .execute(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
     Ok(())
 }
 
-fn redeem_blocking(
-    conn: &mut WalletConn,
+async fn redeem_async(
+    conn: &mut AsyncPgConnection,
     coupon_id: i64,
     idempotency_key: Uuid,
 ) -> Result<RedeemResult> {
@@ -206,6 +175,7 @@ fn redeem_blocking(
     .bind::<BigInt, _>(coupon_id)
     .bind::<diesel::sql_types::Uuid, _>(idempotency_key)
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
 
     let reward_kind = RewardKind::from_pg(&row.reward_kind).ok_or_else(|| {
@@ -219,16 +189,21 @@ fn redeem_blocking(
     })
 }
 
-fn revoke_blocking(conn: &mut WalletConn, coupon_id: i64, reason: Option<String>) -> Result<bool> {
+async fn revoke_async(
+    conn: &mut AsyncPgConnection,
+    coupon_id: i64,
+    reason: Option<String>,
+) -> Result<bool> {
     let row: RevokedRow = sql_query("SELECT wallet.service_revoke_coupon($1, $2) AS revoked")
         .bind::<BigInt, _>(coupon_id)
         .bind::<Nullable<Text>, _>(reason)
         .get_result(conn)
+        .await
         .map_err(WalletError::from_diesel)?;
     Ok(row.revoked)
 }
 
-fn verify_blocking(conn: &mut WalletConn, account_id: Uuid) -> Result<VerifyBalanceRow> {
+async fn verify_async(conn: &mut AsyncPgConnection, account_id: Uuid) -> Result<VerifyBalanceRow> {
     let row: VerifyBalanceRowDb = sql_query(
         "SELECT account_id, stored_credits, ledger_credits, \
                 stored_khash, ledger_khash, ok \
@@ -236,6 +211,7 @@ fn verify_blocking(conn: &mut WalletConn, account_id: Uuid) -> Result<VerifyBala
     )
     .bind::<diesel::sql_types::Uuid, _>(account_id)
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
     Ok(VerifyBalanceRow {
         account_id: row.account_id,

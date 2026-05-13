@@ -96,7 +96,7 @@ async fn main() -> anyhow::Result<()> {
         info!("Forum service not configured - /forum routes will 503");
     }
 
-    if db::init_wallet_client() {
+    if db::init_wallet_client().await {
         info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
     } else {
         warn!("Wallet client not configured - /api/v1/wallet routes will 503");
