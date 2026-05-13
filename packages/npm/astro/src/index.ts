@@ -141,7 +141,5 @@ export {
 	getSiteGraphWorkerPort,
 	fetchViaWorker,
 	SITE_GRAPH_WORKER_SOURCE,
-	SiteGraph,
-	Backlinks,
 	SiteGraphLoader,
 } from './sitegraph';
