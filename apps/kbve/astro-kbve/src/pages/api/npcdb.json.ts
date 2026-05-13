@@ -83,7 +83,10 @@ export const GET = async () => {
 		const { id, ref, name } = entry.data;
 		if (!id || !ref || !name) continue;
 
-		const npc = { ...NPC_DEFAULTS, ...convertEnums(entry.data) } as INpc;
+		const npc = {
+			...NPC_DEFAULTS,
+			...(convertEnums(entry.data) as Record<string, unknown>),
+		} as INpc;
 
 		const idx = npcs.length;
 		npcs.push(npc);

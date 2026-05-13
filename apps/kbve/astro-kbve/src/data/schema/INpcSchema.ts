@@ -4,7 +4,7 @@
  * Game-logic fields come from the proto-generated NpcSchema
  * (packages/data/codegen/generated/npcdb-schema.ts).
  */
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import {
 	NpcSchema,
 	NpcTypeFlagSchema,

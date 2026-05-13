@@ -115,7 +115,7 @@ async function build(): Promise<UsedInIndex> {
 					product: product.name,
 					product_id: product.id,
 					slug: product.slug,
-					skill: recipe.skill,
+					skill: recipe.skill ?? undefined,
 					level: recipe.level ?? null,
 					xp: recipe.xp ?? null,
 					quantity: mat.quantity ?? 1,

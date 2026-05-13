@@ -67,7 +67,7 @@
  *   this file can be fully generated with a thin refinement layer.
  */
 
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 
 // ============================================================================
 // Shared — proto: OSRSSkill enum
@@ -1253,7 +1253,7 @@ export function getGathering(
 	item: OSRSExtended,
 ): (OSRSGathering & { skill: string }) | undefined {
 	if (item.gathering)
-		return { skill: item.gathering.skill ?? 'unknown', ...item.gathering };
+		return { ...item.gathering, skill: item.gathering.skill ?? 'unknown' };
 	if (item.woodcutting) return { ...item.woodcutting, skill: 'woodcutting' };
 	if (item.mining) return { ...item.mining, skill: 'mining' };
 	if (item.fishing) return { ...item.fishing, skill: 'fishing' };

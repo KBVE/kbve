@@ -4,7 +4,7 @@
  * Game-logic fields come from the proto-generated QuestSchema
  * (packages/data/codegen/generated/questdb-schema.ts).
  */
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import {
 	QuestSchema,
 	QuestCategorySchema,

@@ -96,24 +96,17 @@ export function useGS() {
 				});
 
 				// Listen for WebSocket messages
-				const unsubMessage = supa.onWebSocketMessage(
-					(message: WSMessage) => {
-						if (!mounted) return;
+				const unsubMessage = supa.onWebSocketMessage((raw: unknown) => {
+					const message = raw as WSMessage;
+					if (!mounted) return;
 
-						// Don't log heartbeat messages (too noisy)
-						if (
-							message.type === 'ping' ||
-							message.type === 'pong'
-						) {
-							return;
-						}
+					// Don't log heartbeat messages (too noisy)
+					if (message.type === 'ping' || message.type === 'pong') {
+						return;
+					}
 
-						addLog(
-							`� Received: ${JSON.stringify(message)}`,
-							'success',
-						);
-					},
-				);
+					addLog(`� Received: ${JSON.stringify(message)}`, 'success');
+				});
 
 				unsubscribeRefs.current = [unsubStatus, unsubMessage];
 

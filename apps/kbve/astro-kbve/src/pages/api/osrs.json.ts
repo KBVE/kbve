@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { OSRSExtended } from '@/data/schema';
+import { hasDropSources } from '@/data/schema/osrs/generated';
 
 interface OSRSIndexEntry {
 	id: number;
@@ -32,7 +33,7 @@ function buildTags(o: OSRSExtended): string[] {
 	if (o.potion) tags.push(TAG_POTION);
 	if (o.equipment) tags.push(TAG_EQUIPMENT);
 	if (o.quest_data) tags.push(TAG_QUEST);
-	if (o.drop_table?.sources?.length) tags.push(TAG_DROP);
+	if (hasDropSources(o)) tags.push(TAG_DROP);
 	if (o.farming) tags.push(TAG_FARM);
 	if (o.gathering || o.woodcutting || o.mining || o.fishing)
 		tags.push(TAG_GATHER);
@@ -60,8 +61,8 @@ export const GET = async () => {
 			highalch: o.highalch ?? null,
 			limit: o.limit ?? null,
 			members: !!o.members,
-			slot: o.equipment?.slot,
-			weapon: o.equipment?.weapon_type,
+			slot: o.equipment?.slot ?? undefined,
+			weapon: o.equipment?.weapon_type ?? undefined,
 			tags: buildTags(o),
 		});
 	}

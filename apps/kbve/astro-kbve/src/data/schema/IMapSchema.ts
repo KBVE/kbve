@@ -5,7 +5,7 @@
  * (packages/data/codegen/generated/mapdb-schema.ts).
  * Astro-specific rendering fields are layered on top.
  */
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import {
 	WorldObjectDefSchema,
 	WorldObjectTypeSchema,

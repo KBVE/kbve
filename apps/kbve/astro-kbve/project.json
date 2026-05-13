@@ -66,6 +66,7 @@
 			}
 		},
 		"check": {
+			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
