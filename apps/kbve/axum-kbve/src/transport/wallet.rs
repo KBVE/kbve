@@ -1,14 +1,9 @@
-//! Wallet HTTP surface — user-facing `/api/v1/wallet/me/*` routes.
+//! Wallet HTTP surface.
 //!
-//! Service routes (`/api/v1/wallet/service/*`) are deferred to a follow-up;
-//! the dashboard's Claim 1000 KHash button only needs the user proxy path.
-//!
-//! Each handler:
-//!   1. Extracts the Supabase user_id via the shared `auth_user_id` helper.
-//!   2. Looks up the global `WalletClient` (skip with 503 if disabled).
-//!   3. Calls the matching `WalletClient::user_*` op (sets request.jwt.claims
-//!      inside the txn so `auth.uid()` resolves correctly).
-//!   4. Maps `WalletError` to HTTP status + JSON error body.
+//! User routes (`/api/v1/wallet/me/*`) resolve the caller via `auth_user_id`;
+//! service routes require a `service_role` JWT. Each handler delegates to
+//! `WalletClient`, which sets `request.jwt.claims` inside the txn so
+//! `auth.uid()` resolves on the SQL side.
 
 use axum::{
     Json,
@@ -27,10 +22,6 @@ use uuid::Uuid;
 use super::https::auth_user_id;
 use crate::auth::{extract_bearer_token, get_jwt_cache};
 use crate::db::get_wallet_client;
-
-// ---------------------------------------------------------------------------
-// DTOs
-// ---------------------------------------------------------------------------
 
 #[derive(Serialize, ToSchema)]
 pub(crate) struct BalanceDto {
@@ -68,10 +59,6 @@ pub(crate) struct RedeemCouponDto {
     pub reward_payload: serde_json::Value,
     pub ledger_id: i64,
 }
-
-// ---------------------------------------------------------------------------
-// Service-layer DTOs
-// ---------------------------------------------------------------------------
 
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct ServiceCreditBody {
@@ -157,10 +144,6 @@ pub(crate) struct ServiceVerifyBalanceDto {
     pub ledger_khash: i64,
     pub ok: bool,
 }
-
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
 
 /// `GET /api/v1/wallet/me/balance` — returns the caller's wallet balance.
 /// Lazily provisions the wallet account + welcome coupon on first call.
@@ -291,10 +274,6 @@ pub(crate) async fn me_redeem_coupon(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 async fn resolve_user(headers: &HeaderMap) -> Result<Uuid, Response> {
     let s = auth_user_id(headers).await?;
     Uuid::parse_str(&s).map_err(|_| {
@@ -398,7 +377,6 @@ fn wallet_error_response(err: WalletError) -> Response {
         WalletError::CouponExpired => (StatusCode::FORBIDDEN, "coupon_expired"),
         WalletError::Unimplemented(_) => (StatusCode::NOT_IMPLEMENTED, "unimplemented"),
         WalletError::Pool(_) | WalletError::Db(_) => {
-            // Log the raw error server-side, send a generic message to the client.
             tracing::error!(error = %err, "wallet upstream failure");
             (StatusCode::INTERNAL_SERVER_ERROR, "internal")
         }
@@ -413,10 +391,6 @@ fn wallet_error_response(err: WalletError) -> Response {
     )
         .into_response()
 }
-
-// ---------------------------------------------------------------------------
-// Service handlers (service_role JWT required)
-// ---------------------------------------------------------------------------
 
 /// `POST /api/v1/wallet/service/credit` — credit a positive delta to any
 /// account. Returns the resulting ledger id. Idempotent: replays with the

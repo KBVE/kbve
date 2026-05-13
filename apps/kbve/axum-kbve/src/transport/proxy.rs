@@ -13,10 +13,6 @@ use tracing::{debug, warn};
 
 use crate::auth::{extract_bearer_token, get_jwt_cache, jwt_cache::staff_perm};
 
-// ---------------------------------------------------------------------------
-// ServiceProxy — generic reverse proxy with optional upstream auth
-// ---------------------------------------------------------------------------
-
 struct ServiceProxy {
     name: &'static str,
     client: Client,
@@ -39,16 +35,11 @@ impl ServiceProxy {
     /// Authenticate the incoming request (JWT + DASHBOARD_VIEW) then forward
     /// to the upstream service.
     async fn handle(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
-        // Extract headers before the async auth gate — `&Request<Body>` is not
-        // `Send` (Body is !Sync), so we must not hold a reference to `req`
-        // across an .await boundary.
+        // `&Request<Body>` is not `Send` (Body is !Sync) — clone headers/query
+        // before crossing the .await boundary.
         let req_headers = req.headers().clone();
-        // Capture the query string up front so the auth gate can fall back to
-        // an `access_token=` param when no Authorization header is present
-        // (e.g. iframe loads where headers cannot be set client-side).
         let raw_query = req.uri().query().map(|q| q.to_string());
 
-        // --- JWT + staff gate ---
         if let Err(resp) =
             require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
         {
@@ -58,9 +49,8 @@ impl ServiceProxy {
         self.forward_request(path, req, None).await
     }
 
-    /// Forward the request to the upstream service without running the
-    /// DASHBOARD_VIEW gate. Callers must have already authenticated the
-    /// request (e.g. with a higher-privilege permission check).
+    /// Forward the request without running the DASHBOARD_VIEW gate. Callers
+    /// must have already authenticated.
     async fn handle_preauthorized(
         &self,
         path: Option<Path<String>>,
@@ -70,10 +60,8 @@ impl ServiceProxy {
     }
 
     /// Like `handle_preauthorized` but injects an upstream `Authorization`
-    /// header value (e.g. `Basic <b64(user:pw)>`) instead of the proxy's
-    /// configured upstream_token. Used for KASM where the upstream password
-    /// rotates per pod start and the JWT-validated launch flow knows the
-    /// freshly fetched value.
+    /// header value instead of the configured upstream_token. Used for KASM
+    /// where the upstream password rotates per pod start.
     async fn handle_with_auth(
         &self,
         path: Option<Path<String>>,
@@ -101,10 +89,9 @@ impl ServiceProxy {
         let method = req.method().clone();
         let mut headers = req_headers;
 
-        // Strip hop-by-hop and content-negotiation headers before forwarding
-        // upstream. These must not cross proxy boundaries per RFC 7230 §6.1.
-        // accept-encoding is removed so upstream never compresses — we buffer
-        // the full body and re-serve it, so we need the raw bytes.
+        // RFC 7230 §6.1: hop-by-hop headers must not cross proxy boundaries.
+        // accept-encoding is also removed so upstream never compresses — we
+        // buffer the body and re-serve raw bytes.
         headers.remove(header::HOST);
         headers.remove(header::AUTHORIZATION);
         headers.remove(header::ACCEPT_ENCODING);
@@ -189,8 +176,7 @@ impl ServiceProxy {
         let status =
             StatusCode::from_u16(upstream_status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
-        // Collect headers before consuming the body.
-        // Use `append` to preserve multi-value headers (e.g. Set-Cookie, Vary).
+        // `append` preserves multi-value headers (Set-Cookie, Vary).
         let mut resp_headers = HeaderMap::new();
         for (k, v) in upstream_resp.headers() {
             if let Ok(name) = axum::http::HeaderName::from_bytes(k.as_str().as_bytes()) {
@@ -200,15 +186,12 @@ impl ServiceProxy {
             }
         }
 
-        // Strip hop-by-hop headers from the upstream response — they must not
-        // be forwarded to the downstream client (RFC 7230 §6.1). In particular:
-        //   transfer-encoding — body is already fully buffered; axum sets the
-        //                        correct content-length automatically.
-        //   connection        — forwarding "close" would make hyper close the
-        //                        nginx keep-alive connection prematurely, which
-        //                        nginx logs as "upstream prematurely closed".
-        //   content-encoding  — reqwest may have decoded the body; forwarding
-        //                        the original encoding header would mismatch.
+        // RFC 7230 §6.1: strip hop-by-hop headers from the upstream response.
+        // transfer-encoding — body is buffered; axum will set content-length.
+        // connection — forwarding "close" makes hyper close the nginx
+        //              keep-alive prematurely ("upstream prematurely closed").
+        // content-encoding — reqwest may have decoded the body, so the
+        //                    original encoding header would mismatch.
         const HOP_BY_HOP: &[&str] = &[
             "transfer-encoding",
             "connection",
@@ -223,19 +206,17 @@ impl ServiceProxy {
             resp_headers.remove(*h);
         }
 
-        // For services rendered in an iframe (e.g. KASM workspace viewer),
-        // strip framing-restriction headers so the upstream UI can embed.
-        // We're already gating access via JWT + DASHBOARD_VIEW so the
-        // clickjacking protection these headers provide is redundant here.
+        // JWT + DASHBOARD_VIEW already gates access, so clickjacking
+        // protection is redundant here — strip framing headers so the
+        // upstream UI can embed in an iframe.
         if self.iframe_safe {
             resp_headers.remove("x-frame-options");
             resp_headers.remove("content-security-policy");
             resp_headers.remove("content-security-policy-report-only");
         }
 
-        // Stream successful responses; buffer error responses so 4xx/5xx
-        // bodies (login pages, JSON errors, redirect targets) propagate
-        // intact even when upstream omits Content-Length / Transfer-Encoding.
+        // Buffer error responses so 4xx/5xx bodies propagate intact even
+        // when upstream omits Content-Length / Transfer-Encoding.
         if self.streaming && upstream_status < 400 {
             let body = Body::from_stream(upstream_resp.bytes_stream());
             let mut response = Response::builder().status(status);
@@ -253,7 +234,6 @@ impl ServiceProxy {
                 .into_response();
         }
 
-        // --- Buffered mode (default) ---
         let resp_body = match upstream_resp.bytes().await {
             Ok(b) => b,
             Err(e) => {
@@ -266,9 +246,8 @@ impl ServiceProxy {
             }
         };
 
-        // When upstream returns a server error (5xx), wrap in our standard
-        // format so the frontend always gets a parseable {"reason", "detail"}
-        // response instead of raw upstream HTML/text.
+        // Wrap 5xx upstream responses so the frontend always gets a parseable
+        // {"reason", "detail"} JSON instead of raw upstream HTML/text.
         if upstream_status >= 500 {
             let body_preview =
                 String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
@@ -304,10 +283,6 @@ impl ServiceProxy {
             .into_response()
     }
 }
-
-// ---------------------------------------------------------------------------
-// Shared JWT + staff permission gate
-// ---------------------------------------------------------------------------
 
 /// Extract Bearer token from Authorization header, `?access_token=` query,
 /// or `kasm_session` / `dashboard_session` cookie.
@@ -477,10 +452,6 @@ async fn require_dashboard_view_with_query(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Grafana proxy singleton
-// ---------------------------------------------------------------------------
-
 static GRAFANA: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_grafana_proxy() -> bool {
@@ -518,10 +489,6 @@ pub async fn grafana_proxy_handler(path: Option<Path<String>>, req: Request<Body
             .into_response(),
     }
 }
-
-// ---------------------------------------------------------------------------
-// ArgoCD proxy singleton
-// ---------------------------------------------------------------------------
 
 static ARGO: OnceLock<ServiceProxy> = OnceLock::new();
 
@@ -585,24 +552,6 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
             .into_response(),
     }
 }
-
-// ---------------------------------------------------------------------------
-// ClickHouse logs proxy singleton
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// ClickHouse Logs — direct path
-//
-// Replaces the previous /functions/v1/logs supabase edge function fronting.
-// axum-kbve now talks straight to the ClickHouse cluster via jedi's
-// ClickHouseConfig, so a CDN outage on esm.sh (which 500'd the edge fn boot
-// graph and produced the "0 / 0 / 0 logs" outage on 2026-05-08) cannot kill
-// the dashboard logs view again.
-//
-// Auth: same DASHBOARD_VIEW gate every other dashboard proxy uses. Query
-// surface is locked down inside jedi (clamped minutes/limit/search, escaped
-// label values).
-// ---------------------------------------------------------------------------
 
 use jedi::entity::pipe_clickhouse::logs as ch_logs;
 use jedi::state::sidecar::ClickHouseConfig;
@@ -769,10 +718,6 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
     }
 }
 
-// ---------------------------------------------------------------------------
-// Forgejo proxy singleton
-// ---------------------------------------------------------------------------
-
 static FORGEJO: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_forgejo_proxy() -> bool {
@@ -816,10 +761,6 @@ pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body
     }
 }
 
-// ---------------------------------------------------------------------------
-// KubeVirt proxy singleton (Kubernetes API for VM control)
-// ---------------------------------------------------------------------------
-
 static KUBEVIRT: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_kubevirt_proxy() -> bool {
@@ -831,7 +772,6 @@ pub fn init_kubevirt_proxy() -> bool {
     let auth_token = match std::env::var("KUBEVIRT_TOKEN") {
         Ok(t) => t,
         Err(_) => {
-            // Fall back to in-cluster service account token
             match std::fs::read_to_string("/var/run/secrets/kubernetes.io/serviceaccount/token") {
                 Ok(t) => t.trim().to_string(),
                 Err(_) => return false,
@@ -844,7 +784,6 @@ pub fn init_kubevirt_proxy() -> bool {
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(30));
 
-    // Load CA cert for K8s API TLS verification
     if let Ok(ca_path) = std::env::var("KUBEVIRT_CA_CERT_PATH") {
         match std::fs::read(&ca_path) {
             Ok(pem) => match reqwest::Certificate::from_pem(&pem) {
@@ -863,7 +802,6 @@ pub fn init_kubevirt_proxy() -> bool {
             }
         }
     } else {
-        // Fall back to in-cluster CA
         let ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
         if let Ok(pem) = std::fs::read(ca_path) {
             if let Ok(cert) = reqwest::Certificate::from_pem(&pem) {
@@ -900,13 +838,8 @@ pub async fn kubevirt_proxy_handler(path: Option<Path<String>>, req: Request<Bod
     }
 }
 
-// ---------------------------------------------------------------------------
-// KubeVirt VNC WebSocket bridge
-// ---------------------------------------------------------------------------
-// Upgrades the browser connection to WebSocket and opens an upstream WebSocket
-// to the KubeVirt VNC subresource, then relays frames bidirectionally.
-// This enables interactive noVNC sessions from the dashboard.
-
+/// Bridges a browser WebSocket to the KubeVirt VNC subresource so the
+/// dashboard can run interactive noVNC sessions.
 pub async fn kubevirt_vnc_handler(
     Path(vm_name): Path<String>,
     ws: axum::extract::ws::WebSocketUpgrade,
@@ -915,8 +848,8 @@ pub async fn kubevirt_vnc_handler(
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
 
-    // Auth gate — accepts Bearer header or ?access_token= query param
-    // (browser WebSocket API cannot set custom headers)
+    // Browser WebSocket API cannot set custom headers, so the auth gate
+    // also accepts ?access_token= as a fallback.
     if let Err(resp) =
         require_dashboard_view_with_query(&headers, query.as_deref(), "KubeVirt-VNC").await
     {
@@ -934,7 +867,6 @@ pub async fn kubevirt_vnc_handler(
         }
     };
 
-    // Sanitize VM name — alphanumeric + hyphens only
     if !vm_name
         .chars()
         .all(|c| c.is_ascii_alphanumeric() || c == '-')
@@ -951,12 +883,11 @@ pub async fn kubevirt_vnc_handler(
         kubevirt.upstream, VM_NAMESPACE, vm_name
     );
     let upstream_token = kubevirt.upstream_token.clone();
-    // Session key: namespace + name. KASM/other VM namespaces will want
-    // this parameterised later, but for now we only serve angelscript.
+    // VM_NAMESPACE is hardcoded to angelscript; parameterise once another
+    // VM namespace lands.
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
 
-    // Accept the WebSocket upgrade and hand the browser connection off to
-    // the VNC hub, which shares a single upstream across every viewer.
+    // vnc_hub shares a single upstream connection across every viewer.
     ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
         .on_upgrade(move |browser_ws| async move {
             if let Err(e) =
@@ -969,10 +900,6 @@ pub async fn kubevirt_vnc_handler(
 
 const VM_NAMESPACE: &str = "angelscript";
 const KASM_NAMESPACE: &str = "kasm";
-
-// ---------------------------------------------------------------------------
-// VNC session info endpoints — viewer count + primary status
-// ---------------------------------------------------------------------------
 
 /// GET /dashboard/vm/vnc-info/{name} — returns viewer count for a specific VM
 pub async fn kubevirt_vnc_info_handler(
@@ -1011,10 +938,6 @@ pub async fn kubevirt_vnc_sessions_handler(req: Request<Body>) -> Response {
     axum::Json(json!({"sessions": sessions})).into_response()
 }
 
-// ---------------------------------------------------------------------------
-// KASM workspace proxy singleton (reverse proxy to KASM web UI)
-// ---------------------------------------------------------------------------
-
 static KASM: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_kasm_proxy() -> bool {
@@ -1025,13 +948,12 @@ pub fn init_kasm_proxy() -> bool {
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(10))
         // No overall timeout — KASM streams VNC data that can last hours.
-        // The Cilium gateway already caps the outer request at 3600s.
-        .danger_accept_invalid_certs(true) // KASM uses self-signed certs internally
-        // Force HTTP/1.1 — websockify (KASM's built-in server) doesn't
-        // support h2 and ALPN negotiation can cause spurious resets.
+        // The Cilium gateway caps the outer request at 3600s.
+        .danger_accept_invalid_certs(true)
+        // websockify (KASM's built-in server) doesn't support h2; ALPN
+        // negotiation can also cause spurious resets.
         .http1_only();
 
-    // Load in-cluster CA if available
     let ca_path = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
     if let Ok(pem) = std::fs::read(ca_path) {
         if let Ok(cert) = reqwest::Certificate::from_pem(&pem) {
@@ -1047,10 +969,10 @@ pub fn init_kasm_proxy() -> bool {
         name: "KASM",
         client,
         upstream: upstream.trim_end_matches('/').to_string(),
-        upstream_token: None, // KASM uses its own VNC_PW auth
-        iframe_safe: true,    // strip X-Frame-Options for iframe embedding
-        streaming: true,      // stream response body — websockify sends
-                              // chunked responses that fail when buffered
+        upstream_token: None,
+        iframe_safe: true,
+        // websockify chunked responses fail when buffered.
+        streaming: true,
     })
     .is_ok()
 }
@@ -1321,7 +1243,6 @@ pub async fn kasm_workspaces_handler(req: Request<Body>) -> Response {
         }
     };
 
-    // Query K8s API for deployments in the kasm namespace
     let url = format!(
         "{}/apis/apps/v1/namespaces/{}/deployments",
         kubevirt.upstream, KASM_NAMESPACE
@@ -1372,7 +1293,6 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
         return resp;
     }
 
-    // Validate name
     if !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         return (
             StatusCode::BAD_REQUEST,
@@ -1392,7 +1312,6 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
         }
     };
 
-    // Parse desired replicas from request body
     let body_bytes = match axum::body::to_bytes(req.into_body(), 1024).await {
         Ok(b) => b,
         Err(_) => {
@@ -1506,10 +1425,6 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
 
-// ---------------------------------------------------------------------------
-// Firecracker proxy singleton (reverse proxy to firecracker-ctl REST API)
-// ---------------------------------------------------------------------------
-
 static FIRECRACKER: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_firecracker_proxy() -> bool {
@@ -1572,10 +1487,6 @@ pub async fn firecracker_openapi_handler(req: Request<Body>) -> Response {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Firecracker-Net proxy singleton (network-enabled, DASHBOARD_MANAGE gated)
-// ---------------------------------------------------------------------------
-
 static FIRECRACKER_NET: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_firecracker_net_proxy() -> bool {
@@ -1614,8 +1525,8 @@ pub async fn firecracker_net_proxy_handler(
     }
 
     match FIRECRACKER_NET.get() {
-        // Already authenticated with DASHBOARD_MANAGE — skip the inner
-        // DASHBOARD_VIEW check to avoid double auth fetch.
+        // DASHBOARD_MANAGE already authenticated above — skip the inner
+        // DASHBOARD_VIEW check to avoid a double JWT fetch.
         Some(proxy) => proxy.handle_preauthorized(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
@@ -1660,13 +1571,9 @@ pub async fn firecracker_fc_alias_handler(
     }
 }
 
-// ---------------------------------------------------------------------------
-// /fc/{name}/{*path} — public path prefix for persistent Firecracker endpoints
-// ---------------------------------------------------------------------------
-// Rewrites /fc/{name}/{*path} → firecracker-ctl-net /proxy/{name}/{*path}.
-// Staff-gated (same level as /dashboard/firecracker-net/*) because the
-// networked ecosystem has outbound internet via the VPN tunnel.
-
+/// Rewrites `/fc/{name}/{*path}` → firecracker-ctl-net `/proxy/{name}/{*path}`.
+/// Staff-gated (same level as `/dashboard/firecracker-net/*`) because the
+/// networked ecosystem has outbound internet via the VPN tunnel.
 pub async fn firecracker_fc_handler(
     axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
     req: Request<Body>,
@@ -1679,8 +1586,6 @@ pub async fn firecracker_fc_handler(
         return resp;
     }
 
-    // Params come in as [("name", ...), ("path", ...)] for /fc/{name}/{*path}
-    // or just [("name", ...)] for the /fc/{name} bare-name route.
     let name = params
         .iter()
         .find(|(k, _)| k == "name")
@@ -1720,17 +1625,10 @@ pub async fn firecracker_fc_handler(
     }
 }
 
-// ---------------------------------------------------------------------------
-// /fc/public/{name}/{*path} — anonymous public endpoints
-// ---------------------------------------------------------------------------
-// Rewrites /fc/public/{name}/{*path} → firecracker-ctl-net /proxy/public/{name}/{*path}.
-// No JWT gate at this layer — ctl-net enforces that the endpoint was deployed
-// with `visibility: "public"`, returning 403 otherwise.
-//
-// Same name validation as the staff route. Future hardening (rate limit,
-// IP allowlist, request-size cap, header injection) can layer in here without
-// touching the staff path.
-
+/// Rewrites `/fc/public/{name}/{*path}` → firecracker-ctl-net
+/// `/proxy/public/{name}/{*path}`. No JWT gate here — ctl-net enforces
+/// that the endpoint was deployed with `visibility: "public"`, returning
+/// 403 otherwise.
 pub async fn firecracker_fc_public_handler(
     axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
     req: Request<Body>,
@@ -1774,14 +1672,6 @@ pub async fn firecracker_fc_public_handler(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Guacamole proxy singleton (reverse proxy to Apache Guacamole web app)
-// ---------------------------------------------------------------------------
-// guacamole-common-js connects via HTTP tunnel or WebSocket to:
-//   {base}/guacamole/tunnel (HTTP polling)
-//   {base}/guacamole/websocket-tunnel (WebSocket)
-// We proxy /dashboard/guac/proxy/* → guacamole.angelscript.svc.cluster.local:8080
-
 static GUACAMOLE: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_guacamole_proxy() -> bool {
@@ -1800,7 +1690,7 @@ pub fn init_guacamole_proxy() -> bool {
             name: "Guacamole",
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
-            upstream_token: None, // Guacamole uses its own session auth
+            upstream_token: None,
             iframe_safe: false,
             streaming: false,
         })
@@ -1818,15 +1708,10 @@ pub async fn guacamole_proxy_handler(path: Option<Path<String>>, req: Request<Bo
     }
 }
 
-// ---------------------------------------------------------------------------
-// Guacamole WebSocket tunnel bridge
-// ---------------------------------------------------------------------------
-// guacamole-common-js opens a WebSocket to /guacamole/websocket-tunnel.
-// The generic ServiceProxy cannot handle WebSocket upgrades (reqwest is
-// HTTP-only and the Upgrade header is stripped). This handler upgrades the
-// browser connection, opens an upstream WebSocket to the Guacamole servlet,
-// and relays frames bidirectionally — same pattern as `kubevirt_vnc_handler`.
-
+/// Bridges the browser WebSocket to `/guacamole/websocket-tunnel`. The
+/// generic ServiceProxy can't do this — reqwest is HTTP-only and strips
+/// the Upgrade header — so we relay frames directly here (same pattern as
+/// `kubevirt_vnc_handler`).
 pub async fn guacamole_ws_handler(
     ws: axum::extract::ws::WebSocketUpgrade,
     req: Request<Body>,
@@ -1834,7 +1719,6 @@ pub async fn guacamole_ws_handler(
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
 
-    // Auth gate — accepts Bearer header or ?access_token= query param
     if let Err(resp) =
         require_dashboard_view_with_query(&headers, query.as_deref(), "Guacamole-WS").await
     {
@@ -1852,7 +1736,7 @@ pub async fn guacamole_ws_handler(
         }
     };
 
-    // Preserve the query string (token, GUAC_WIDTH, GUAC_HEIGHT, GUAC_DPI, etc.)
+    // Guacamole needs the query string forwarded — token, GUAC_WIDTH, etc.
     let query = req
         .uri()
         .query()
@@ -1877,7 +1761,6 @@ async fn guacamole_ws_bridge(
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
 
-    // Build upstream WebSocket URL
     let ws_url = upstream_url
         .replace("https://", "wss://")
         .replace("http://", "ws://");
@@ -1890,7 +1773,6 @@ async fn guacamole_ws_bridge(
     let (mut browser_tx, mut browser_rx) = browser_ws.split();
     let (mut upstream_tx, mut upstream_rx) = upstream_ws.split();
 
-    // Browser → Guacamole
     let browser_to_upstream = async {
         while let Some(msg) = browser_rx.next().await {
             match msg {
@@ -1912,7 +1794,6 @@ async fn guacamole_ws_bridge(
         let _ = upstream_tx.close().await;
     };
 
-    // Guacamole → Browser
     let upstream_to_browser = async {
         while let Some(msg) = upstream_rx.next().await {
             match msg {
@@ -1942,10 +1823,6 @@ async fn guacamole_ws_bridge(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Edge Functions proxy singleton (Supabase → internal Kong)
-// ---------------------------------------------------------------------------
-
 static EDGE: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_edge_proxy() -> bool {
@@ -1953,7 +1830,6 @@ pub fn init_edge_proxy() -> bool {
         Ok(u) => u.trim_end_matches('/').to_string(),
         Err(_) => return false,
     };
-    // Proxy to the Supabase functions base — callers append /health, /meme, etc.
     let upstream = format!("{supabase_url}/functions/v1");
 
     let service_role_key = match std::env::var("SUPABASE_SERVICE_ROLE_KEY") {
@@ -1989,10 +1865,6 @@ pub async fn edge_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
             .into_response(),
     }
 }
-
-// ---------------------------------------------------------------------------
-// ChuckRPG (ROWS Swagger) proxy singleton
-// ---------------------------------------------------------------------------
 
 static CHUCKRPG: OnceLock<ServiceProxy> = OnceLock::new();
 
@@ -2032,16 +1904,12 @@ pub async fn chuckrpg_proxy_handler(path: Option<Path<String>>, req: Request<Bod
     }
 }
 
-// ---------------------------------------------------------------------------
-// Convert axum HeaderMap to reqwest HeaderMap
-// ---------------------------------------------------------------------------
-
 fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
     let mut out = reqwest::header::HeaderMap::new();
     for (k, v) in headers {
         if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_str().as_bytes()) {
             if let Ok(val) = reqwest::header::HeaderValue::from_bytes(v.as_bytes()) {
-                // Use append to preserve multi-value headers (Accept, Cookie, etc.)
+                // `append` preserves multi-value headers (Accept, Cookie, ...).
                 out.append(name, val);
             }
         }

@@ -59,24 +59,16 @@ type UpstreamWs =
     tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
 type UpstreamSink = futures_util::stream::SplitSink<UpstreamWs, TungMsg>;
 
-/// Per-VM shared VNC session. Lives for as long as at least one viewer is
-/// connected; torn down when the last viewer leaves.
+/// Per-VM shared VNC session. Torn down when the last viewer leaves.
 pub struct VncSession {
     vm_key: String,
-    /// All upstream-side bytes received since session start, bounded by
-    /// `MAX_CACHE_BYTES`. Replayed verbatim to each new viewer before they
-    /// subscribe to the live broadcast.
+    /// Replay buffer bounded by `MAX_CACHE_BYTES`; new viewers replay this
+    /// before subscribing to the live broadcast.
     cache: Mutex<Vec<u8>>,
-    /// Live upstream bytes broadcast to every connected viewer.
     broadcast: broadcast::Sender<Bytes>,
-    /// Write side of the upstream WebSocket. Wrapped so client tasks can
-    /// forward input under a mutex. Set to `None` once the upstream closes.
     upstream_sink: Mutex<Option<UpstreamSink>>,
-    /// Number of connected viewers. When it drops to zero, the session is
-    /// removed from `SESSIONS` and the upstream is torn down.
     clients: AtomicUsize,
-    /// Client id of the current input holder (primary). `0` = no primary;
-    /// the next client to send input CASes itself in.
+    /// `0` = no primary; the next client to send input CASes itself in.
     primary_id: AtomicUsize,
 }
 
@@ -170,9 +162,6 @@ pub async fn join_session_with_config(
     let client_id = NEXT_CLIENT_ID.fetch_add(1, Ordering::Relaxed);
     let registry = sessions();
 
-    // Either grab the existing session for this VM or create a new one.
-    // We hold a short-lived `entry` borrow to avoid two simultaneous
-    // first-client requests both opening an upstream.
     let session = {
         if let Some(existing) = registry.get(&vm_key) {
             existing.clone()
@@ -191,8 +180,6 @@ pub async fn join_session_with_config(
     };
 
     let prior = session.clients.fetch_add(1, Ordering::Relaxed);
-    // First-ever viewer becomes the primary. Subsequent joiners start as
-    // observers; they can be promoted later if the primary drops.
     if prior == 0 {
         session.primary_id.store(client_id, Ordering::Relaxed);
         info!(
@@ -210,8 +197,6 @@ pub async fn join_session_with_config(
 
     let result = run_client(session.clone(), client_id, browser_ws).await;
 
-    // Cleanup. If we were the primary, clear the primary_id so the next
-    // input from an observer can opportunistically take over.
     if session.primary_id.load(Ordering::Relaxed) == client_id {
         session.primary_id.store(0, Ordering::Relaxed);
     }
@@ -327,10 +312,8 @@ async fn run_client(
     };
 
     if !cache_snapshot.is_empty() {
-        // K8s VNC uses the `binary.k8s.io` subprotocol, so bytes flow as
-        // WebSocket Binary frames. Sending the whole cache in one frame is
-        // fine — noVNC buffers until it has enough for the next RFB
-        // message.
+        // K8s VNC uses the binary.k8s.io subprotocol; one Binary frame is
+        // fine because noVNC re-frames internally on RFB boundaries.
         if browser_tx
             .send(AxumMsg::Binary(Bytes::from(cache_snapshot)))
             .await
@@ -340,7 +323,6 @@ async fn run_client(
         }
     }
 
-    // browser → upstream (primary only; observers are dropped on the floor)
     let session_input = session.clone();
     let input_task = tokio::spawn(async move {
         while let Some(msg) = browser_rx.next().await {
@@ -351,8 +333,7 @@ async fn run_client(
                 _ => continue,
             };
 
-            // Opportunistic primary promotion: if there is no current
-            // primary, take the slot. Otherwise only the primary may send.
+            // Opportunistic primary CAS — observers fall through to drop.
             let primary = session_input.primary_id.load(Ordering::Relaxed);
             let may_write = if primary == client_id {
                 true
@@ -381,7 +362,6 @@ async fn run_client(
         }
     });
 
-    // upstream → browser (live byte broadcast)
     let output_task = tokio::spawn(async move {
         loop {
             match live_rx.recv().await {
@@ -390,9 +370,8 @@ async fn run_client(
                         break;
                     }
                 }
-                // Lagged: the broadcast queue filled up. Keep going — we
-                // can't recover the lost bytes, but continuing is better
-                // than killing this viewer.
+                // Continuing on lag beats killing the viewer; lost bytes
+                // are unrecoverable but the next full refresh resyncs.
                 Err(broadcast::error::RecvError::Lagged(skipped)) => {
                     warn!(
                         "VNC hub: client {} lagged, skipped {} frames",
