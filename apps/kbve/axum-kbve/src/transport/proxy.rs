@@ -353,11 +353,12 @@ async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Resu
 /// Gate for sensitive proxy routes that need a higher privilege level than
 /// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
 /// same JWT checks plus DASHBOARD_MANAGE permission.
-async fn require_dashboard_manage(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
-    // Reuse the DASHBOARD_VIEW gate for JWT validation, then check the
-    // higher permission on top. Duplicating the JWT fetch avoids mutating
-    // the existing helper and keeps the error paths identical.
-    let auth_token = match extract_auth_token(headers, None) {
+async fn require_dashboard_manage_with_query(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    service_name: &str,
+) -> Result<(), Response> {
+    let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
             return Err((
@@ -1605,8 +1606,10 @@ pub async fn firecracker_net_proxy_handler(
     req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
-    // Higher privilege gate — network-enabled VMs are staff-only.
-    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-Net").await {
+    let query = req.uri().query().map(str::to_owned);
+    if let Err(resp) =
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-Net").await
+    {
         return resp;
     }
 
@@ -1635,7 +1638,10 @@ pub async fn firecracker_fc_alias_handler(
     req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
-    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-FC").await {
+    let query = req.uri().query().map(str::to_owned);
+    if let Err(resp) =
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC").await
+    {
         return resp;
     }
 
@@ -1666,7 +1672,10 @@ pub async fn firecracker_fc_handler(
     req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
-    if let Err(resp) = require_dashboard_manage(&headers, "Firecracker-FC").await {
+    let query = req.uri().query().map(str::to_owned);
+    if let Err(resp) =
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC").await
+    {
         return resp;
     }
 
@@ -1699,6 +1708,60 @@ pub async fn firecracker_fc_handler(
         format!("proxy/{name}")
     } else {
         format!("proxy/{name}/{tail}")
+    };
+
+    match FIRECRACKER_NET.get() {
+        Some(proxy) => proxy.handle_preauthorized(Some(Path(rewritten)), req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Firecracker-Net proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// /fc/public/{name}/{*path} — anonymous public endpoints
+// ---------------------------------------------------------------------------
+// Rewrites /fc/public/{name}/{*path} → firecracker-ctl-net /proxy/public/{name}/{*path}.
+// No JWT gate at this layer — ctl-net enforces that the endpoint was deployed
+// with `visibility: "public"`, returning 403 otherwise.
+//
+// Same name validation as the staff route. Future hardening (rate limit,
+// IP allowlist, request-size cap, header injection) can layer in here without
+// touching the staff path.
+
+pub async fn firecracker_fc_public_handler(
+    axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
+    req: Request<Body>,
+) -> Response {
+    let name = params
+        .iter()
+        .find(|(k, _)| k == "name")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
+    let tail = params
+        .iter()
+        .find(|(k, _)| k == "path")
+        .map(|(_, v)| v.clone())
+        .unwrap_or_default();
+
+    if name.is_empty()
+        || !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "Invalid endpoint name"})),
+        )
+            .into_response();
+    }
+
+    let rewritten = if tail.is_empty() {
+        format!("proxy/public/{name}")
+    } else {
+        format!("proxy/public/{name}/{tail}")
     };
 
     match FIRECRACKER_NET.get() {
