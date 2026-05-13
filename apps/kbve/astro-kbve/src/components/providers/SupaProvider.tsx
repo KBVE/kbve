@@ -45,8 +45,10 @@ export function SupaProvider({ children }: { children: ReactNode }) {
 			}
 
 			// live updates broadcast from the worker
-			off = supa.on('auth', async (msg) => {
-				const newSession = msg.session ?? null;
+			off = supa.on('auth', async (msg: unknown) => {
+				const newSession =
+					(msg as { session?: Session | null } | null)?.session ??
+					null;
 				setSession(newSession);
 
 				// Connect WebSocket when user authenticates

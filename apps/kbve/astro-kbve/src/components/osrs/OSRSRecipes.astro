@@ -75,7 +75,7 @@ function getSkillColor(skill: string | null | undefined): string {
 							<span class="osrs-recipe__label">Creates:</span>
 							<span class="osrs-recipe__product-item">
 								{recipe.product_quantity &&
-									recipe.product_quantity > 1 && (
+									Number(recipe.product_quantity) > 1 && (
 										<span class="osrs-recipe__qty">
 											{recipe.product_quantity}x
 										</span>
@@ -103,7 +103,7 @@ function getSkillColor(skill: string | null | undefined): string {
 							<div class="osrs-recipe__items">
 								{recipe.materials.map((mat, i) => (
 									<span class="osrs-recipe__item">
-										{mat.quantity > 1 && (
+										{Number(mat.quantity) > 1 && (
 											<span class="osrs-recipe__qty">
 												{mat.quantity}x
 											</span>

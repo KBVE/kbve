@@ -28,6 +28,7 @@
 			}
 		},
 		"build": {
+			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
 			"outputs": ["{workspaceRoot}/dist/apps/astro-rareicon"],
 			"options": {
@@ -56,6 +57,7 @@
 			}
 		},
 		"check": {
+			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rareicon/astro-rareicon",

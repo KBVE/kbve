@@ -5,7 +5,7 @@
  * (packages/data/codegen/generated/itemdb-schema.ts).
  * Astro-specific fields are layered on top.
  */
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import {
 	ItemSchema,
 	ItemBonusesSchema,

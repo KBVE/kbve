@@ -171,9 +171,18 @@ pub enum EndpointStatus {
     Stopping,
 }
 
+/// Whether an endpoint is reachable from the public `/fc/public/{name}/*`
+/// path (no JWT) or only via the staff-gated `/fc/{name}/*` path.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum EndpointVisibility {
+    #[default]
+    Staff,
+    Public,
+}
+
 /// Registered persistent endpoint. Owned by `PersistentState::endpoints`.
 struct PersistentEndpoint {
-    /// Public name — keys the DashMap and appears in /fc/{name} paths.
     name: String,
     rootfs: String,
     entrypoint: String,
@@ -181,13 +190,12 @@ struct PersistentEndpoint {
     health_path: String,
     vcpu_count: u8,
     mem_size_mib: u16,
-    /// Resources carried for lifetime of the endpoint; released on DELETE.
     allocation: persistent::IpAllocation,
     tap: tap::TapDevice,
-    /// Firecracker VMM pid once Phase 2e wires the launcher. None in 2c.
     pid: Option<u32>,
     status: EndpointStatus,
     created: Instant,
+    visibility: EndpointVisibility,
 }
 
 /// JSON-serialisable view of a PersistentEndpoint. Keeps the owning
@@ -208,6 +216,7 @@ pub struct PersistentEndpointInfo {
     pid: Option<u32>,
     status: EndpointStatus,
     uptime_secs: u64,
+    visibility: EndpointVisibility,
 }
 
 impl PersistentEndpointInfo {
@@ -226,6 +235,7 @@ impl PersistentEndpointInfo {
             pid: ep.pid,
             status: ep.status,
             uptime_secs: ep.created.elapsed().as_secs(),
+            visibility: ep.visibility,
         }
     }
 }
@@ -514,6 +524,12 @@ pub struct DeployFcRequest {
     pub env: serde_json::Map<String, serde_json::Value>,
     #[serde(default)]
     pub code: Option<String>,
+    /// Endpoint visibility. `staff` (default) requires a dashboard JWT with
+    /// `DASHBOARD_MANAGE`; `public` is reachable from `/fc/public/{name}/*`
+    /// with no auth. Hard-coded at deploy time — flipping visibility
+    /// requires redeploy.
+    #[serde(default)]
+    pub visibility: EndpointVisibility,
 }
 
 fn default_health_path() -> String {
@@ -549,7 +565,6 @@ async fn fc_deploy(
     State(state): State<AppState>,
     Json(req): Json<DeployFcRequest>,
 ) -> (StatusCode, Json<serde_json::Value>) {
-    // --- Validate request shape ---
     if req.name.is_empty()
         || !req
             .name
@@ -559,6 +574,16 @@ async fn fc_deploy(
         return (
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({"error": "invalid endpoint name"})),
+        );
+    }
+    if req.name == "public" {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "reserved endpoint name",
+                "name": req.name,
+                "hint": "the name 'public' collides with the /fc/public/* tier",
+            })),
         );
     }
     if req.rootfs.is_empty() || req.entrypoint.is_empty() {
@@ -700,6 +725,7 @@ async fn fc_deploy(
         pid,
         status: EndpointStatus::Starting,
         created: Instant::now(),
+        visibility: req.visibility,
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
@@ -885,6 +911,27 @@ async fn fc_proxy(
     Path(params): Path<Vec<(String, String)>>,
     req: Request<Body>,
 ) -> Response {
+    fc_proxy_inner(state, params, req, false).await
+}
+
+/// Public-tier sibling of [`fc_proxy`]. Forwards `/proxy/public/{name}/{*path}`
+/// into the guest VM only when the endpoint was registered with
+/// `visibility: "public"`. No auth required at this layer — the gate is the
+/// endpoint's visibility flag, which is fixed at deploy time.
+async fn fc_proxy_public(
+    State(state): State<AppState>,
+    Path(params): Path<Vec<(String, String)>>,
+    req: Request<Body>,
+) -> Response {
+    fc_proxy_inner(state, params, req, true).await
+}
+
+async fn fc_proxy_inner(
+    state: AppState,
+    params: Vec<(String, String)>,
+    req: Request<Body>,
+    require_public: bool,
+) -> Response {
     let persistent = match state.persistent.as_ref() {
         Some(p) => p,
         None => {
@@ -904,10 +951,19 @@ async fn fc_proxy(
         .map(|(_, v)| v.clone())
         .unwrap_or_default();
 
-    // --- Registry lookup ---
     let (guest_ip, http_port) = match persistent.endpoints.get(&name) {
         Some(entry) => {
             let ep = entry.value();
+            if require_public && ep.visibility != EndpointVisibility::Public {
+                return (
+                    StatusCode::FORBIDDEN,
+                    Json(serde_json::json!({
+                        "error": "endpoint not public",
+                        "name": name,
+                    })),
+                )
+                    .into_response();
+            }
             (ep.allocation.guest_ip, ep.http_port)
         }
         None => {
@@ -2142,6 +2198,11 @@ async fn main() {
         .route("/fc/{name}", delete(fc_destroy))
         .route("/proxy/{name}", axum::routing::any(fc_proxy))
         .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
+        .route("/proxy/public/{name}", axum::routing::any(fc_proxy_public))
+        .route(
+            "/proxy/public/{name}/{*path}",
+            axum::routing::any(fc_proxy_public),
+        )
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

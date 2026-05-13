@@ -506,6 +506,17 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_fc_handler),
         )
         .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
+        // Anonymous public tier — no JWT gate at this layer; firecracker-ctl-net
+        // rejects with 403 when the endpoint was not deployed with
+        // `visibility: "public"`.
+        .route(
+            "/fc/public/{name}/{*path}",
+            any(super::proxy::firecracker_fc_public_handler),
+        )
+        .route(
+            "/fc/public/{name}",
+            any(super::proxy::firecracker_fc_public_handler),
+        )
         .route(
             "/dashboard/kasm/proxy/{*path}",
             any(super::proxy::kasm_proxy_handler),

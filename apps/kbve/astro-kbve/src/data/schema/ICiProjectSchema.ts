@@ -5,7 +5,7 @@
  * (packages/data/codegen/generated/ci_registry-schema.ts).
  * Astro/Starlight-specific fields are layered on top.
  */
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import {
 	CiProjectSchema,
 	DispatchPipelineSchema,

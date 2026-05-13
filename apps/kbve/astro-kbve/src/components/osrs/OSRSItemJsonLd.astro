@@ -179,7 +179,7 @@ interface HowToInput {
 
 function recipeToHowTo(r: OSRSRecipe, idx: number): HowToInput | null {
 	const productName = r.product ?? item.name;
-	const skill = r.skill;
+	const skill = r.skill ?? undefined;
 	const level = r.level ?? null;
 	const xp = r.xp ?? null;
 	const supplies =

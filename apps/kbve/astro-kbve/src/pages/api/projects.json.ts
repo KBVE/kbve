@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 
 export const GET = async () => {
 	const projectEntries = (await getCollection('project')).filter(
-		(entry: { id: string; data: { title: string } }) =>
+		(entry: { id: string; data: { title?: string } }) =>
 			!entry.id.endsWith('index.mdx') && entry.data.title !== '',
 	);
 
