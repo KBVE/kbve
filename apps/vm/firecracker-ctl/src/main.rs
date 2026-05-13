@@ -181,6 +181,31 @@ pub enum EndpointVisibility {
     Public,
 }
 
+/// CORS + request-header policy attached to a persistent endpoint. Only the
+/// public tier evaluates the CORS fields; `inject_request_headers` is applied
+/// on both tiers. Hard caps live in [`validate_http_config`].
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct EndpointHttpConfig {
+    /// Origins allowed for cross-origin requests on `/fc/public/{name}/*`.
+    /// Use `["*"]` to allow any origin. Empty disables CORS handling.
+    #[serde(default)]
+    pub cors_allow_origins: Vec<String>,
+    #[serde(default)]
+    pub cors_allow_methods: Vec<String>,
+    #[serde(default)]
+    pub cors_allow_headers: Vec<String>,
+    #[serde(default)]
+    pub cors_max_age_secs: u32,
+    #[serde(default)]
+    pub cors_allow_credentials: bool,
+    /// Header name -> value pairs injected into every upstream request
+    /// before forwarding to the guest. Intended for endpoint-scoped
+    /// identity headers (e.g. `X-Endpoint-Name`, `X-Tenant-Id`). Reserved
+    /// hop-by-hop / framing headers are rejected at deploy time.
+    #[serde(default)]
+    pub inject_request_headers: std::collections::BTreeMap<String, String>,
+}
+
 /// Registered persistent endpoint. Owned by `PersistentState::endpoints`.
 struct PersistentEndpoint {
     name: String,
@@ -196,6 +221,7 @@ struct PersistentEndpoint {
     status: EndpointStatus,
     created: Instant,
     visibility: EndpointVisibility,
+    http_config: EndpointHttpConfig,
 }
 
 /// JSON-serialisable view of a PersistentEndpoint. Keeps the owning
@@ -217,6 +243,7 @@ pub struct PersistentEndpointInfo {
     status: EndpointStatus,
     uptime_secs: u64,
     visibility: EndpointVisibility,
+    http_config: EndpointHttpConfig,
 }
 
 impl PersistentEndpointInfo {
@@ -236,6 +263,7 @@ impl PersistentEndpointInfo {
             status: ep.status,
             uptime_secs: ep.created.elapsed().as_secs(),
             visibility: ep.visibility,
+            http_config: ep.http_config.clone(),
         }
     }
 }
@@ -258,6 +286,121 @@ fn validate_entrypoint(ep: &str) -> Result<(), String> {
             "entrypoint must be a single binary path without arguments or special characters"
                 .into(),
         );
+    }
+    Ok(())
+}
+
+const MAX_CORS_ORIGINS: usize = 16;
+const MAX_INJECT_HEADERS: usize = 16;
+const MAX_HEADER_NAME_LEN: usize = 64;
+const MAX_HEADER_VALUE_LEN: usize = 256;
+const MAX_CORS_MAX_AGE_SECS: u32 = 86_400;
+
+/// Header names that callers must never override on the upstream request.
+/// Hop-by-hop framing, plus Host/Authorization which we set ourselves.
+const RESERVED_INJECT_HEADER_NAMES: &[&str] = &[
+    "host",
+    "content-length",
+    "transfer-encoding",
+    "connection",
+    "upgrade",
+    "te",
+    "trailers",
+    "proxy-connection",
+    "authorization",
+    "accept-encoding",
+];
+
+/// Per-RFC 7230 §3.2.6, header field-names are tokens — visible ASCII minus
+/// separators. Reject anything else so we never construct an invalid request.
+fn is_valid_header_name(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .bytes()
+            .all(|b| matches!(b, b'!' | b'#'..=b'\'' | b'*' | b'+' | b'-' | b'.' | b'0'..=b'9' | b'A'..=b'Z' | b'^'..=b'z' | b'|' | b'~'))
+}
+
+/// Header values may contain visible ASCII + SP/HTAB. CR/LF are forbidden to
+/// shut the door on response-splitting attacks.
+fn is_valid_header_value(v: &str) -> bool {
+    v.bytes()
+        .all(|b| b == b' ' || b == b'\t' || (b'!'..=b'~').contains(&b))
+}
+
+/// Origin must be `*`, or a scheme://host[:port] without path/query/fragment.
+fn is_valid_cors_origin(o: &str) -> bool {
+    if o == "*" {
+        return true;
+    }
+    let rest = match o
+        .strip_prefix("https://")
+        .or_else(|| o.strip_prefix("http://"))
+    {
+        Some(r) => r,
+        None => return false,
+    };
+    !rest.is_empty()
+        && !rest.contains(|c: char| {
+            c == '/' || c == '?' || c == '#' || c == ' ' || c == '\t' || c.is_control()
+        })
+}
+
+fn validate_http_config(cfg: &EndpointHttpConfig) -> Result<(), String> {
+    if cfg.cors_allow_origins.len() > MAX_CORS_ORIGINS {
+        return Err(format!(
+            "cors_allow_origins exceeds limit of {MAX_CORS_ORIGINS}"
+        ));
+    }
+    for o in &cfg.cors_allow_origins {
+        if !is_valid_cors_origin(o) {
+            return Err(format!("invalid CORS origin: {o:?}"));
+        }
+    }
+    if cfg.cors_allow_credentials && cfg.cors_allow_origins.iter().any(|o| o == "*") {
+        return Err("cors_allow_credentials=true forbids wildcard origin (RFC 6265)".into());
+    }
+    if cfg.cors_max_age_secs > MAX_CORS_MAX_AGE_SECS {
+        return Err(format!(
+            "cors_max_age_secs {} exceeds cap of {MAX_CORS_MAX_AGE_SECS}",
+            cfg.cors_max_age_secs
+        ));
+    }
+    for m in &cfg.cors_allow_methods {
+        if !is_valid_header_value(m) || m.is_empty() {
+            return Err(format!("invalid CORS method: {m:?}"));
+        }
+    }
+    for h in &cfg.cors_allow_headers {
+        if !is_valid_header_name(h) {
+            return Err(format!("invalid CORS allowed header name: {h:?}"));
+        }
+    }
+    if cfg.inject_request_headers.len() > MAX_INJECT_HEADERS {
+        return Err(format!(
+            "inject_request_headers exceeds limit of {MAX_INJECT_HEADERS}"
+        ));
+    }
+    for (k, v) in &cfg.inject_request_headers {
+        if k.len() > MAX_HEADER_NAME_LEN {
+            return Err(format!(
+                "inject header name {k:?} exceeds {MAX_HEADER_NAME_LEN} chars"
+            ));
+        }
+        if v.len() > MAX_HEADER_VALUE_LEN {
+            return Err(format!(
+                "inject header {k:?} value exceeds {MAX_HEADER_VALUE_LEN} chars"
+            ));
+        }
+        if !is_valid_header_name(k) {
+            return Err(format!("invalid inject header name: {k:?}"));
+        }
+        if !is_valid_header_value(v) {
+            return Err(format!("invalid inject header value for {k:?}"));
+        }
+        let lower = k.to_ascii_lowercase();
+        if RESERVED_INJECT_HEADER_NAMES.contains(&lower.as_str()) {
+            return Err(format!("reserved inject header name: {k:?}"));
+        }
     }
     Ok(())
 }
@@ -530,6 +673,11 @@ pub struct DeployFcRequest {
     /// requires redeploy.
     #[serde(default)]
     pub visibility: EndpointVisibility,
+    /// CORS + header-injection policy. CORS fields apply only to the public
+    /// tier; `inject_request_headers` applies on every forward. Defaults
+    /// disable both, preserving Phase 2c behavior.
+    #[serde(default)]
+    pub http_config: EndpointHttpConfig,
 }
 
 fn default_health_path() -> String {
@@ -596,6 +744,12 @@ async fn fc_deploy(
         return (
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({"error": "http_port must be > 0"})),
+        );
+    }
+    if let Err(msg) = validate_http_config(&req.http_config) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": msg})),
         );
     }
 
@@ -726,6 +880,7 @@ async fn fc_deploy(
         status: EndpointStatus::Starting,
         created: Instant::now(),
         visibility: req.visibility,
+        http_config: req.http_config.clone(),
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
@@ -951,7 +1106,7 @@ async fn fc_proxy_inner(
         .map(|(_, v)| v.clone())
         .unwrap_or_default();
 
-    let (guest_ip, http_port) = match persistent.endpoints.get(&name) {
+    let (guest_ip, http_port, http_config) = match persistent.endpoints.get(&name) {
         Some(entry) => {
             let ep = entry.value();
             if require_public && ep.visibility != EndpointVisibility::Public {
@@ -964,7 +1119,7 @@ async fn fc_proxy_inner(
                 )
                     .into_response();
             }
-            (ep.allocation.guest_ip, ep.http_port)
+            (ep.allocation.guest_ip, ep.http_port, ep.http_config.clone())
         }
         None => {
             return (
@@ -974,6 +1129,14 @@ async fn fc_proxy_inner(
                 .into_response();
         }
     };
+
+    // --- CORS preflight short-circuit (public tier only) ---
+    if require_public
+        && req.method() == axum::http::Method::OPTIONS
+        && !http_config.cors_allow_origins.is_empty()
+    {
+        return build_cors_preflight_response(req.headers(), &http_config);
+    }
 
     // --- Build upstream URL ---
     let query = req
@@ -990,6 +1153,12 @@ async fn fc_proxy_inner(
     // --- Split the request ---
     let method = req.method().clone();
     let mut client_headers = req.headers().clone();
+    // Snapshot before mutation — the response builder uses Origin to decide
+    // whether to attach CORS headers.
+    let request_origin = client_headers
+        .get(header::ORIGIN)
+        .and_then(|v| v.to_str().ok())
+        .map(str::to_owned);
 
     // Strip hop-by-hop + the Host header (reqwest sets its own based on
     // upstream URL) + accept-encoding (we relay raw bytes, so we don't
@@ -999,6 +1168,18 @@ async fn fc_proxy_inner(
     }
     client_headers.remove(header::HOST);
     client_headers.remove(header::ACCEPT_ENCODING);
+
+    // Inject configured request headers. Validated at deploy time, so each
+    // (name, value) is RFC-7230 safe and never targets a reserved framing
+    // header. `insert` replaces any client-supplied value with the same name.
+    for (k, v) in &http_config.inject_request_headers {
+        if let (Ok(name), Ok(value)) = (
+            axum::http::HeaderName::from_bytes(k.as_bytes()),
+            HeaderValue::from_str(v),
+        ) {
+            client_headers.insert(name, value);
+        }
+    }
 
     // --- Buffer the request body ---
     // 16 MiB cap matches typical ingress limits. Persistent endpoints are
@@ -1068,6 +1249,10 @@ async fn fc_proxy_inner(
     // bytes without a misleading encoding claim.
     resp_headers.remove(header::CONTENT_ENCODING);
 
+    if require_public {
+        attach_cors_response_headers(&mut resp_headers, request_origin.as_deref(), &http_config);
+    }
+
     let body_stream = upstream_resp.bytes_stream();
     let body = Body::from_stream(body_stream);
 
@@ -1081,6 +1266,107 @@ async fn fc_proxy_inner(
             .body(Body::empty())
             .unwrap()
     })
+}
+
+/// Resolve the value to send back in `Access-Control-Allow-Origin` given the
+/// configured allowlist and the request's `Origin` header. Returns `None`
+/// when the request origin is not allowed — caller must not emit any CORS
+/// headers in that case.
+fn resolve_cors_origin<'a>(
+    request_origin: Option<&'a str>,
+    cfg: &'a EndpointHttpConfig,
+) -> Option<&'a str> {
+    if cfg.cors_allow_origins.is_empty() {
+        return None;
+    }
+    // Wildcard: echo `*` when credentials are not requested. RFC 6265 forbids
+    // `*` together with `Access-Control-Allow-Credentials: true`, but we
+    // already reject that combination at deploy time.
+    if cfg.cors_allow_origins.iter().any(|o| o == "*") {
+        return Some("*");
+    }
+    let origin = request_origin?;
+    cfg.cors_allow_origins
+        .iter()
+        .find(|allowed| allowed.as_str() == origin)
+        .map(|s| s.as_str())
+}
+
+/// Build the 204 response returned for a CORS preflight (`OPTIONS` request
+/// with the matching `Origin` header). When the origin is not allowed we
+/// still 204 but emit no CORS headers — browsers then surface the failure
+/// as a CORS error rather than as a misleading 403.
+fn build_cors_preflight_response(req_headers: &HeaderMap, cfg: &EndpointHttpConfig) -> Response {
+    let origin = req_headers
+        .get(header::ORIGIN)
+        .and_then(|v| v.to_str().ok());
+    let mut resp = Response::builder().status(StatusCode::NO_CONTENT);
+    if let Some(headers) = resp.headers_mut() {
+        if let Some(allow_origin) = resolve_cors_origin(origin, cfg) {
+            insert_header(headers, "access-control-allow-origin", allow_origin);
+            if allow_origin != "*" {
+                insert_header(headers, "vary", "Origin");
+            }
+            if !cfg.cors_allow_methods.is_empty() {
+                insert_header(
+                    headers,
+                    "access-control-allow-methods",
+                    &cfg.cors_allow_methods.join(", "),
+                );
+            }
+            if !cfg.cors_allow_headers.is_empty() {
+                insert_header(
+                    headers,
+                    "access-control-allow-headers",
+                    &cfg.cors_allow_headers.join(", "),
+                );
+            }
+            if cfg.cors_max_age_secs > 0 {
+                insert_header(
+                    headers,
+                    "access-control-max-age",
+                    &cfg.cors_max_age_secs.to_string(),
+                );
+            }
+            if cfg.cors_allow_credentials {
+                insert_header(headers, "access-control-allow-credentials", "true");
+            }
+        }
+    }
+    resp.body(Body::empty()).unwrap_or_else(|_| {
+        Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::empty())
+            .unwrap()
+    })
+}
+
+/// Attach CORS response headers to a non-preflight response when the origin
+/// is allowed by the endpoint's policy. No-op otherwise.
+fn attach_cors_response_headers(
+    resp_headers: &mut HeaderMap,
+    request_origin: Option<&str>,
+    cfg: &EndpointHttpConfig,
+) {
+    let Some(allow_origin) = resolve_cors_origin(request_origin, cfg) else {
+        return;
+    };
+    insert_header(resp_headers, "access-control-allow-origin", allow_origin);
+    if allow_origin != "*" {
+        resp_headers.append(header::VARY, HeaderValue::from_static("Origin"));
+    }
+    if cfg.cors_allow_credentials {
+        insert_header(resp_headers, "access-control-allow-credentials", "true");
+    }
+}
+
+fn insert_header(headers: &mut HeaderMap, name: &'static str, value: &str) {
+    if let (Ok(n), Ok(v)) = (
+        axum::http::HeaderName::from_bytes(name.as_bytes()),
+        HeaderValue::from_str(value),
+    ) {
+        headers.insert(n, v);
+    }
 }
 
 /// Copy an `axum::http::HeaderMap` into a `reqwest::header::HeaderMap`.
