@@ -1,9 +1,10 @@
 import { CARD_SIZE } from '../config';
-import type { Card } from '../cards';
+import { handFingerprint, type Card } from '../cards';
 import type { CardPlacement, HandOwner } from '../animation/dealerAnimation';
 
 interface PlacementCacheEntry {
-	cards: Card[];
+	cards: Uint8Array;
+	fingerprint: number;
 	centerX: number;
 	y: number;
 	hideHole: boolean;
@@ -23,7 +24,17 @@ export class HandLayout {
 		owner: HandOwner,
 	): CardPlacement[] {
 		const cached = this.placementCache.get(owner);
-		if (this.matchesPlacementCache(cached, cards, centerX, y, hideHole)) {
+		const fingerprint = handFingerprint(cards);
+		if (
+			this.matchesPlacementCache(
+				cached,
+				cards,
+				fingerprint,
+				centerX,
+				y,
+				hideHole,
+			)
+		) {
 			return cached.placements;
 		}
 
@@ -46,7 +57,8 @@ export class HandLayout {
 			x += CARD_SIZE.width + 18;
 		});
 		this.placementCache.set(owner, {
-			cards: cards.slice(),
+			cards: Uint8Array.from(cards),
+			fingerprint,
 			centerX,
 			y,
 			hideHole,
@@ -58,6 +70,7 @@ export class HandLayout {
 	private matchesPlacementCache(
 		cached: PlacementCacheEntry | undefined,
 		cards: readonly Card[],
+		fingerprint: number,
 		centerX: number,
 		y: number,
 		hideHole: boolean,
@@ -67,6 +80,7 @@ export class HandLayout {
 			cached.centerX !== centerX ||
 			cached.y !== y ||
 			cached.hideHole !== hideHole ||
+			cached.fingerprint !== fingerprint ||
 			cached.cards.length !== cards.length
 		) {
 			return false;

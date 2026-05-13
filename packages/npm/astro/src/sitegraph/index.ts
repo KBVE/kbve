@@ -31,9 +31,7 @@ export {
 	fetchViaWorker,
 } from './react/worker-client';
 export { SITE_GRAPH_WORKER_SOURCE } from './react/worker-source';
-export { SiteGraph } from './react/SiteGraph';
 export type { SiteGraphProps } from './react/SiteGraph';
-export { Backlinks } from './react/Backlinks';
 export type { BacklinksProps } from './react/Backlinks';
 export { SiteGraphLoader } from './react/SiteGraphLoader';
 export type { SiteGraphLoaderProps } from './react/SiteGraphLoader';

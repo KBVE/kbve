@@ -7,6 +7,7 @@ import {
 	cardRank,
 	cardSuit,
 	encodeCard,
+	handFingerprint,
 	isBlackjack,
 	valueHand,
 } from './cards';
@@ -41,5 +42,25 @@ describe('blackjack card encoding', () => {
 			total: 20,
 			soft: false,
 		});
+	});
+
+	it('builds stable bit-packed hand fingerprints', () => {
+		const hand = [
+			encodeCard('spades', 'A'),
+			encodeCard('hearts', '9'),
+			encodeCard('clubs', 'J'),
+		];
+		const reordered = [hand[1], hand[0], hand[2]];
+		const longHand = [
+			...hand,
+			encodeCard('diamonds', '2'),
+			encodeCard('spades', '3'),
+			encodeCard('hearts', '4'),
+		];
+
+		expect(handFingerprint(hand)).toBe(handFingerprint([...hand]));
+		expect(handFingerprint(hand)).not.toBe(handFingerprint(reordered));
+		expect(handFingerprint(longHand)).toBe(handFingerprint([...longHand]));
+		expect(handFingerprint(longHand)).not.toBe(handFingerprint(hand));
 	});
 });
