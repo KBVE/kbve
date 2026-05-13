@@ -1,20 +1,150 @@
 ---
-/**
- * AstroWalletCard
- *
- * Drop-in mount for the always-authed wallet card. Use on pages where any
- * signed-in viewer should see their wallet (e.g. /mc/, /account/). On
- * profile pages where the card should only appear on the *own* profile,
- * use `providers/AskamaProfileProvider.astro` which already mounts the
- * ownership-gated `ReactProfileWallet`.
- *
- * The React island hides itself for anon viewers, so the wrapper can sit
- * unconditionally in the page template.
- */
-
 import { ReactWalletCard } from './ReactWalletCard';
 ---
 
-<div class="kbve-wallet-card not-content">
+<section
+	class="kbve-wallet-card not-content"
+	data-kbve-wallet-shell
+	aria-label="Your wallet"
+	hidden>
+	<header class="kbve-wallet-card__header">
+		<span class="kbve-wallet-card__title">Wallet</span>
+		<span
+			class="kbve-wallet-card__updated"
+			data-kbve-wallet-updated
+			aria-live="polite">
+			…
+		</span>
+	</header>
+
+	<div class="kbve-wallet-card__balances">
+		<div class="kbve-wallet-card__balance">
+			<div class="kbve-wallet-card__balance-label">Credits</div>
+			<div
+				class="kbve-wallet-card__balance-value"
+				data-kbve-wallet-credits>
+				—
+			</div>
+		</div>
+		<div class="kbve-wallet-card__balance">
+			<div class="kbve-wallet-card__balance-label">KHash</div>
+			<div class="kbve-wallet-card__balance-value" data-kbve-wallet-khash>
+				—
+			</div>
+		</div>
+	</div>
+
 	<ReactWalletCard client:only="react" />
-</div>
+</section>
+
+<style>
+	.kbve-wallet-card {
+		margin-top: 1rem;
+		padding: 1.25rem;
+		border-radius: 16px;
+		background: linear-gradient(
+			145deg,
+			rgba(30, 41, 59, 0.9) 0%,
+			rgba(15, 23, 42, 0.95) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.9);
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+	}
+
+	.kbve-wallet-card[hidden] {
+		display: none;
+	}
+
+	.kbve-wallet-card__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.85rem;
+	}
+
+	.kbve-wallet-card__title {
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+	}
+
+	.kbve-wallet-card__updated {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.kbve-wallet-card__balances {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.kbve-wallet-card__balance {
+		padding: 0.85rem 1rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	.kbve-wallet-card__balance-label {
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.55);
+	}
+
+	.kbve-wallet-card__balance-value {
+		margin-top: 0.25rem;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		font-size: 1.5rem;
+		font-weight: 700;
+	}
+
+	:global(.kbve-wallet-card__coupons) {
+		margin-top: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	:global(.kbve-wallet-card__coupon) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.6rem 0.85rem;
+		border-radius: 10px;
+		background: rgba(16, 185, 129, 0.08);
+		border: 1px solid rgba(16, 185, 129, 0.25);
+	}
+
+	:global(.kbve-wallet-card__coupon-label) {
+		font-size: 0.9rem;
+		font-weight: 600;
+	}
+
+	:global(.kbve-wallet-card__claim-btn) {
+		padding: 0.4rem 0.9rem;
+		border-radius: 8px;
+		border: 1px solid rgba(16, 185, 129, 0.5);
+		background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+		color: white;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	:global(.kbve-wallet-card__claim-btn:disabled) {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	:global(.kbve-wallet-card__error) {
+		margin-top: 0.5rem;
+		font-size: 0.8rem;
+		color: rgb(248, 113, 113);
+	}
+</style>
