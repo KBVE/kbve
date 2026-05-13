@@ -10,7 +10,6 @@ import {
 	type BlackjackState,
 } from './state';
 import {
-	cardPoints,
 	cardRank,
 	cardSuit,
 	encodeCard,
@@ -33,6 +32,8 @@ import {
 } from './objects/buttonBar';
 import { CardPool } from './objects/cardPool';
 import { HandLayout } from './objects/handLayout';
+import { BlackjackHud } from './objects/blackjackHud';
+import { StrategyAdvisor } from './objects/strategyAdvisor';
 
 const CARD_TEXTURE_PREFIX = 'blackjack-card';
 const CARD_TEXTURE_MARGIN = {
@@ -56,21 +57,12 @@ export class BlackjackScene extends Phaser.Scene {
 	private cardLayer!: Phaser.GameObjects.Container;
 	private cardPool!: CardPool;
 	private handLayout!: HandLayout;
+	private strategyAdvisor = new StrategyAdvisor();
 	private dealLayer!: Phaser.GameObjects.Container;
 	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
+	private hud!: BlackjackHud;
 	private buttonBar!: ButtonBar;
-	private textCache = new Map<string, string>();
-	private colorCache = new Map<string, string>();
-	private statusText!: Phaser.GameObjects.Text;
-	private strategyText!: Phaser.GameObjects.Text;
-	private bankrollText!: Phaser.GameObjects.Text;
-	private dealerValueText!: Phaser.GameObjects.Text;
-	private playerValueText!: Phaser.GameObjects.Text;
-	private shoeText!: Phaser.GameObjects.Text;
-	private statsText!: Phaser.GameObjects.Text;
-	private betChip!: Phaser.GameObjects.Image;
-	private betChipText!: Phaser.GameObjects.Text;
 
 	constructor() {
 		super('blackjack');
@@ -97,7 +89,8 @@ export class BlackjackScene extends Phaser.Scene {
 			enabled: !this.prefersReducedMotion(),
 		});
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
-		this.createHud();
+		this.hud = new BlackjackHud(this, this.hudLayer, CHIP_TEXTURE_KEY);
+		this.hud.create();
 		this.createButtons();
 		this.bindKeyboard();
 		this.render();
@@ -105,83 +98,6 @@ export class BlackjackScene extends Phaser.Scene {
 
 	private drawTable() {
 		this.add.image(0, 0, TABLE_TEXTURE_KEY).setOrigin(0);
-	}
-
-	private createHud() {
-		const panel = this.add.graphics();
-		panel.fillStyle(COLORS.panel, 0.88);
-		panel.fillRoundedRect(72, 618, BASE_WIDTH - 144, 116, 18);
-		panel.lineStyle(2, COLORS.panelStroke, 0.7);
-		panel.strokeRoundedRect(72, 618, BASE_WIDTH - 144, 116, 18);
-		this.hudLayer.add(panel);
-
-		this.bankrollText = this.add.text(104, 642, '', {
-			fontFamily: FONT.mono,
-			fontSize: '18px',
-			color: COLORS.gold,
-		});
-		this.statusText = this.add.text(BASE_WIDTH / 2, 639, '', {
-			fontFamily: FONT.sans,
-			fontSize: '24px',
-			color: '#ffffff',
-			align: 'center',
-		});
-		this.statusText.setOrigin(0.5, 0);
-		this.strategyText = this.add
-			.text(BASE_WIDTH / 2, 669, '', {
-				fontFamily: FONT.mono,
-				fontSize: '16px',
-				color: COLORS.muted,
-				align: 'center',
-			})
-			.setOrigin(0.5, 0);
-		this.betChip = this.add
-			.image(332, 676, CHIP_TEXTURE_KEY)
-			.setOrigin(0.5);
-		this.betChipText = this.add
-			.text(332, 674, '', {
-				fontFamily: FONT.mono,
-				fontSize: '18px',
-				color: '#111827',
-				align: 'center',
-			})
-			.setOrigin(0.5);
-		this.dealerValueText = this.add.text(142, 178, '', {
-			fontFamily: FONT.mono,
-			fontSize: '18px',
-			color: COLORS.soft,
-		});
-		this.playerValueText = this.add.text(142, 432, '', {
-			fontFamily: FONT.mono,
-			fontSize: '18px',
-			color: COLORS.soft,
-		});
-		this.shoeText = this.add.text(BASE_WIDTH - 104, 642, '', {
-			fontFamily: FONT.mono,
-			fontSize: '16px',
-			color: COLORS.muted,
-			align: 'right',
-		});
-		this.shoeText.setOrigin(1, 0);
-		this.statsText = this.add.text(BASE_WIDTH - 120, 122, '', {
-			fontFamily: FONT.mono,
-			fontSize: '15px',
-			color: COLORS.muted,
-			align: 'right',
-		});
-		this.statsText.setOrigin(1, 0);
-
-		this.hudLayer.add([
-			this.bankrollText,
-			this.statusText,
-			this.strategyText,
-			this.betChip,
-			this.betChipText,
-			this.dealerValueText,
-			this.playerValueText,
-			this.shoeText,
-			this.statsText,
-		]);
 	}
 
 	private createButtons() {
@@ -324,7 +240,7 @@ export class BlackjackScene extends Phaser.Scene {
 		this.drawHand(playerCards, BASE_WIDTH / 2, 420);
 		this.cardPool.hideUnused();
 		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
-		this.updateText();
+		this.updateHud();
 		this.buttonBar.update();
 	}
 
@@ -944,7 +860,7 @@ export class BlackjackScene extends Phaser.Scene {
 		return `#${color.toString(16).padStart(6, '0')}`;
 	}
 
-	private updateText() {
+	private updateHud() {
 		const dealerVisible = this.hideDealerHole()
 			? [this.state.dealer[0]].filter(Boolean)
 			: this.state.dealer;
@@ -963,59 +879,17 @@ export class BlackjackScene extends Phaser.Scene {
 					? `  (+$${this.state.lastDelta})`
 					: `  (-$${Math.abs(this.state.lastDelta)})`;
 
-		this.setTextIfChanged(
-			'bankroll',
-			this.bankrollText,
-			`Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
-		);
-		this.setTextIfChanged('status', this.statusText, this.state.message);
-		this.setColorIfChanged(
-			'statusColor',
-			this.statusText,
-			this.getStatusColor(),
-		);
-		this.setTextIfChanged(
-			'strategy',
-			this.strategyText,
-			this.getStrategyHint(),
-		);
-		this.setTextIfChanged(
-			'betChip',
-			this.betChipText,
-			`$${this.state.bet}`,
-		);
-		this.setTextIfChanged('dealerValue', this.dealerValueText, dealerValue);
-		this.setTextIfChanged('playerValue', this.playerValueText, playerValue);
-		this.setTextIfChanged(
-			'shoe',
-			this.shoeText,
-			`Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
-		);
-		this.setTextIfChanged(
-			'stats',
-			this.statsText,
-			`Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
-		);
-	}
-
-	private setTextIfChanged(
-		key: string,
-		text: Phaser.GameObjects.Text,
-		value: string,
-	) {
-		if (this.textCache.get(key) === value) return;
-		this.textCache.set(key, value);
-		text.setText(value);
-	}
-
-	private setColorIfChanged(
-		key: string,
-		text: Phaser.GameObjects.Text,
-		value: string,
-	) {
-		if (this.colorCache.get(key) === value) return;
-		this.colorCache.set(key, value);
-		text.setColor(value);
+		this.hud.update({
+			bankroll: `Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
+			status: this.state.message,
+			statusColor: this.getStatusColor(),
+			strategy: this.strategyAdvisor.getHint(this.state),
+			betChip: `$${this.state.bet}`,
+			dealerValue,
+			playerValue,
+			shoe: `Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
+			stats: `Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
+		});
 	}
 
 	private formatValue(cards: readonly Card[]): string {
@@ -1034,66 +908,5 @@ export class BlackjackScene extends Phaser.Scene {
 			return COLORS.gold;
 		}
 		return '#ffffff';
-	}
-
-	private getStrategyHint(): string {
-		if (
-			this.state.phase !== 'player-turn' ||
-			this.state.dealer.length === 0
-		) {
-			return '';
-		}
-
-		const playerValue = valueHand(this.state.player);
-		const dealerUp = this.dealerUpValue(this.state.dealer[0]);
-		const canDouble =
-			this.state.canDouble && this.state.player.length === 2;
-
-		if (playerValue.soft) {
-			return `Hint: ${this.softStrategy(playerValue.total, dealerUp, canDouble)}`;
-		}
-		return `Hint: ${this.hardStrategy(playerValue.total, dealerUp, canDouble)}`;
-	}
-
-	private hardStrategy(
-		total: number,
-		dealerUp: number,
-		canDouble: boolean,
-	): string {
-		if (canDouble && total === 11) return 'Double';
-		if (canDouble && total === 10 && dealerUp <= 9) return 'Double';
-		if (canDouble && total === 9 && dealerUp >= 3 && dealerUp <= 6) {
-			return 'Double';
-		}
-		if (total >= 17) return 'Stand';
-		if (total >= 13 && dealerUp >= 2 && dealerUp <= 6) return 'Stand';
-		if (total === 12 && dealerUp >= 4 && dealerUp <= 6) return 'Stand';
-		return 'Hit';
-	}
-
-	private softStrategy(
-		total: number,
-		dealerUp: number,
-		canDouble: boolean,
-	): string {
-		if (total >= 19) return 'Stand';
-		if (total === 18) {
-			if (canDouble && dealerUp >= 3 && dealerUp <= 6) return 'Double';
-			if (dealerUp === 2 || dealerUp === 7 || dealerUp === 8)
-				return 'Stand';
-			return 'Hit';
-		}
-		if (canDouble && total >= 15 && dealerUp >= 4 && dealerUp <= 6) {
-			return 'Double';
-		}
-		if (canDouble && total >= 13 && dealerUp >= 5 && dealerUp <= 6) {
-			return 'Double';
-		}
-		return 'Hit';
-	}
-
-	private dealerUpValue(card: Card): number {
-		if (cardRank(card) === 'A') return 11;
-		return Math.min(cardPoints(card), 10);
 	}
 }
