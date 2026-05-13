@@ -1063,7 +1063,6 @@
                   "docker create --name chisel-runtime-test ghcr.io/kbve/chisel-ubuntu-axum:24.04 true > /dev/null 2>&1 && docker export chisel-runtime-test > /tmp/chisel-runtime.tar && docker rm chisel-runtime-test > /dev/null 2>&1",
                   "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libjemalloc.so.2' && echo 'PASS: libjemalloc.so.2 present'",
                   "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libpq.so.5' && echo 'PASS: libpq.so.5 present'",
-                  "tar -tf /tmp/chisel-runtime.tar | grep -q 'usr/lib/x86_64-linux-gnu/libssl.so' && echo 'PASS: libssl present (TLS)'",
                   "tar -tf /tmp/chisel-runtime.tar | grep -q 'etc/ssl/certs/ca-certificates.crt' && echo 'PASS: CA bundle present'",
                   "tar -tf /tmp/chisel-runtime.tar | grep -q 'lib/x86_64-linux-gnu/libc.so' && echo 'PASS: libc present'",
                   "! tar -tf /tmp/chisel-runtime.tar | grep -qE '^bin/(sh|bash|dash)$' && echo 'PASS: no shell in runtime (chiseled)'",
@@ -1091,7 +1090,7 @@
                   "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^RUSTC_WRAPPER=/usr/local/cargo/bin/sccache$' && echo 'PASS: RUSTC_WRAPPER=sccache'",
                   "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
                   "echo '=== All chisel base image tests passed ==='",
-                  "echo 'Runtime: user, workdir, jemalloc, libpq, libssl, CA bundle, no-shell, size<40MiB'",
+                  "echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
                   "echo 'Builder: rustc 1.94, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
                 ],
                 "parallel": false
@@ -1222,6 +1221,106 @@
               },
               "configurations": {},
               "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "kasm-cloakbrowser": {
+        "name": "kasm-cloakbrowser",
+        "type": "lib",
+        "data": {
+          "root": "packages/docker/kasm-cloakbrowser",
+          "name": "kasm-cloakbrowser",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/docker/kasm-cloakbrowser",
+          "tags": [
+            "docker",
+            "kasm",
+            "workspace"
+          ],
+          "targets": {
+            "container": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "npx nx run kasm-cloakbrowser:containerx"
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "local": {},
+                "production": {
+                  "commands": [
+                    "npx nx run kasm-cloakbrowser:containerx:production"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "options": {
+                "engine": "docker",
+                "context": "packages/docker/kasm-cloakbrowser",
+                "file": "packages/docker/kasm-cloakbrowser/Dockerfile",
+                "platforms": [
+                  "linux/amd64"
+                ],
+                "load": true,
+                "push": false,
+                "tags": [
+                  "ghcr.io/kbve/kasm-cloakbrowser:dev"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "tags": [
+                    "ghcr.io/kbve/kasm-cloakbrowser:dev"
+                  ]
+                },
+                "production": {
+                  "tags": [
+                    "ghcr.io/kbve/kasm-cloakbrowser:latest"
+                  ],
+                  "push": true,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/kasm-cloakbrowser"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "container"
+              ],
+              "options": {
+                "commands": [
+                  "docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
+                  "docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
+                  "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'",
+                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
             }
           },
           "implicitDependencies": []
@@ -13183,6 +13282,7 @@
       "bevy_pathfinder": [],
       "chisel-ubuntu-axum": [],
       "bevy_inventory": [],
+      "kasm-cloakbrowser": [],
       "astro-rareicon-e2e": [
         {
           "source": "astro-rareicon-e2e",

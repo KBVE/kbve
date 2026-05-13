@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-12T09:09:42Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-13T09:13:47Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -32,7 +32,7 @@ Last generated: **2026-05-12T09:09:42Z** — updated daily by `ci-dashboard`.
   <Card title="50 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="5 Low" icon="approve-check-circle">
+  <Card title="6 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,10 +41,10 @@ Last generated: **2026-05-12T09:09:42Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **67** advisories
+    **68** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **44** advisories
+    **43** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "High" : 27
     "Medium" : 50
-    "Low" : 5
+    "Low" : 6
 ```
 
 ### Findings by Ecosystem
@@ -72,8 +72,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 67
-    "Cargo" : 44
+    "npm" : 68
+    "Cargo" : 43
 ```
 
 <Tabs>
@@ -81,12 +81,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 0 | 27 | 35 | 5 | 67 |
-| **Cargo** | 0 | 0 | 15 | 0 | 44 |
+| **npm** | 0 | 27 | 35 | 6 | 68 |
+| **Cargo** | 0 | 0 | 15 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 0 | 27 | 50 | 5 | 111 |
+| **Total** | 0 | 27 | 50 | 6 | 111 |
 
   </TabItem>
   <TabItem label="npm">
@@ -114,12 +114,12 @@ pie showData
 | High | `vite` | Vite Vulnerable to Arbitrary File Read via Vite Dev Serve... | [Details](https://github.com/advisories/GHSA-p9ff-h696-f583) |
 | High | `immutable` | Immutable is vulnerable to Prototype Pollution | [Details](https://github.com/advisories/GHSA-wf6x-7x77-mvgw) |
 | High | `axios` | Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Prote... | [Details](https://github.com/advisories/GHSA-pmwg-cvhr-8vh7) |
-| High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | High | `axios` | Axios: Prototype Pollution Gadgets - Response Tampering, ... | [Details](https://github.com/advisories/GHSA-pf86-5x62-jrwf) |
 | High | `axios` | Axios: Header Injection via Prototype Pollution | [Details](https://github.com/advisories/GHSA-6chq-wfr3-2hj9) |
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `@babel/plugin-transform-modules-systemjs` | @babel/plugin-transform-modules-systemjs generates arbitr... | [Details](https://github.com/advisories/GHSA-fv7c-fp4j-7gwp) |
+| High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -160,6 +160,7 @@ pie showData
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `astro` | Astro: Remote allowlist bypass via unanchored matchPathna... | [Details](https://github.com/advisories/GHSA-g735-7g2w-hh3f) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
+| Low | `astro` | Astro: Server island encrypted parameters vulnerable to c... | [Details](https://github.com/advisories/GHSA-xr5h-phrj-8vxv) |
 
   </TabItem>
   <TabItem label="Cargo">
@@ -204,7 +205,6 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
-| Info | `diesel` | Possible UTF-8 corruption in Diesels SQLite backend | [Details](https://github.com/diesel-rs/diesel/pull/5042) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
