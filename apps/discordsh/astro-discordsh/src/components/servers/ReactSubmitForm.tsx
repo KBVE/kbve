@@ -13,11 +13,7 @@ const FormSchema = SubmitServerRequestSchema.omit({
 	tags: true,
 	member_count: true,
 }).extend({
-	tags_input: z
-		.string()
-		.max(500, 'Tags input too long')
-		.optional()
-		.default(''),
+	tags_input: z.string().max(500, 'Tags input too long').optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;

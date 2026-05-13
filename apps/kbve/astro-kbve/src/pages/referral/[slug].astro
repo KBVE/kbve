@@ -70,6 +70,7 @@ const safeTarget = target;
 			</p>
 		</main>
 		<script
+			is:inline
 			type="text/javascript"
 			set:html={`window.location.replace(${JSON.stringify(safeTarget)});`}
 		/>
