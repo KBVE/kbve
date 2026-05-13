@@ -48,14 +48,9 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/argo/", "/application/kubernetes/#argo"),
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
-    // /health is the canonical (no trailing slash) — match how the
-    // ingress + uptime probes hit it.
     ("/health/", "/health"),
-    // GET API endpoints under /api/v1/* are canonical without a
-    // trailing slash. axum doesn't normalize trailing slashes by
-    // default and our route table only registers the no-slash
-    // form. Mirror them here so curl + bookmarks + the astro-kbve
-    // build-time fetch still resolve.
+    // axum doesn't normalize trailing slashes; route table only
+    // registers the no-slash form for /api/v1/* GET endpoints.
     ("/api/v1/forum/tags/", "/api/v1/forum/tags"),
     ("/api/v1/forum/spaces/", "/api/v1/forum/spaces"),
     ("/api/v1/me/", "/api/v1/me"),
@@ -72,18 +67,13 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
         "/osrs/bracelet-of-ethereum/",
         "/osrs/bracelet-of-ethereum-uncharged/",
     ),
-    // Tag listing — short alias for users.
     ("/tags", "/forum/tags"),
     ("/tags/", "/forum/tags"),
     ("/t", "/forum/tags"),
     ("/t/", "/forum/tags"),
-    // Askama SSG source pages — every .mdx under
-    // src/content/docs/askama/* still ships an HTML file in dist/
-    // because Starlight builds the whole content collection. None of
-    // them are meant to resolve as public URLs; the live versions
-    // are handled by axum routes that interpolate the askama
-    // placeholders. Funnel each to its canonical target so search
-    // engines + bookmarks land on the dynamic version.
+    // Askama SSG source pages ship HTML in dist/ but are not public
+    // URLs — live versions are served by axum routes that interpolate
+    // placeholders. Funnel to canonical so crawlers don't index them.
     ("/askama/forum/feed", "/forum/"),
     ("/askama/forum/feed/", "/forum/"),
     ("/askama/forum/thread", "/forum/"),
@@ -183,7 +173,6 @@ pub async fn serve(state: AppState) -> Result<()> {
     let key_path = std::env::var("HTTP_KEY").ok();
 
     if let (Some(cert), Some(key)) = (cert_path, key_path) {
-        // TLS mode — mkcert or production certs
         let tls_config = axum_server::tls_rustls::RustlsConfig::from_pem_file(&cert, &key)
             .await
             .map_err(|e| anyhow::anyhow!("failed to load TLS certs ({cert}, {key}): {e}"))?;
@@ -194,7 +183,6 @@ pub async fn serve(state: AppState) -> Result<()> {
             .serve(app.into_make_service())
             .await?;
     } else {
-        // Plain HTTP (production behind reverse proxy, or legacy dev)
         let listener = tuned_listener(addr)?;
         info!("HTTP listening on http://{addr}");
 
@@ -218,7 +206,6 @@ fn router(state: AppState) -> Router {
             ),
         )
         .layer(tower_http::cors::CorsLayer::permissive())
-        // Security headers
         .layer(SetResponseHeaderLayer::overriding(
             header::X_CONTENT_TYPE_OPTIONS,
             HeaderValue::from_static("nosniff"),
@@ -298,9 +285,6 @@ fn router(state: AppState) -> Router {
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
-        // Bare /forum (no trailing slash) → /forum/. Crawlers + typed
-        // URLs land on the canonical with a permanent redirect. Same
-        // for shorthand aliases /community + /c.
         .route("/forum", get(|| async { Redirect::permanent("/forum/") }))
         .route(
             "/community",
@@ -349,9 +333,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/forum/t/{slug_or_id}/comments",
             post(api_create_comment),
         )
-        // PATCH = author edit-own. DELETE = staff remove. The mod-edit
-        // path lives at a sibling /moderate route to keep the verb/url
-        // matrix readable.
         .route(
             "/api/v1/forum/c/{comment_id}",
             axum::routing::patch(api_edit_comment).delete(api_remove_comment),
@@ -364,16 +345,13 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/me/staff", get(api_me_staff))
         .route("/api/v1/forum/spaces", get(api_list_spaces))
         .route("/api/v1/forum/tags", get(api_list_tags))
-        // Wallet — authenticated user surface (Supabase JWT).
         .route("/api/v1/wallet/me/balance", get(super::wallet::me_balance))
         .route("/api/v1/wallet/me/coupons", get(super::wallet::me_coupons))
         .route(
             "/api/v1/wallet/me/redeem-coupon",
             post(super::wallet::me_redeem_coupon),
         )
-        // Wallet — service surface (service_role JWT required). Backend
-        // callers: daily-reward cron, market mutations, MC mod, admin
-        // tooling. Anon / authenticated JWTs are rejected with 403.
+        // service_role JWT required; anon / authenticated JWTs are rejected with 403.
         .route(
             "/api/v1/wallet/service/credit",
             post(super::wallet::service_credit),
@@ -402,9 +380,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/service/verify-balance/{account_id}",
             get(super::wallet::service_verify_balance),
         )
-        // SEO-friendly 301: /forum/c/{slug} → /forum/s/{slug}. `c/` reads
-        // as "category" but the canonical URL is `s/` (space). Crawlers
-        // collapse the duplicate into the canonical via the redirect.
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));
@@ -414,7 +389,7 @@ fn router(state: AppState) -> Router {
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
-    // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit)
+    // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit).
     let mut bypass_router = Router::new();
     if let Some(mcp_svc) = crate::mcp::build_service() {
         bypass_router = bypass_router
@@ -490,25 +465,17 @@ fn router(state: AppState) -> Router {
             "/dashboard/firecracker-net/proxy",
             any(super::proxy::firecracker_net_proxy_handler),
         )
-        // Stable public alias for the persistent endpoint surface.
-        // /api/v1/fc/<deploy|list|{name}|...> -> firecracker-ctl-net /fc/<rest>.
-        // Same staff gate as the firecracker-net proxy above; the underlying
-        // FIRECRACKER_NET singleton handles the upstream forward.
         .route(
             "/api/v1/fc/{*rest}",
             any(super::proxy::firecracker_fc_alias_handler),
         )
-        // Public-facing persistent endpoint path — /fc/{name}/{*path}
-        // routes to firecracker-ctl-net's /proxy/{name}/{*path} after a
-        // staff-level auth gate. The {name} identifies the persistent VM.
         .route(
             "/fc/{name}/{*path}",
             any(super::proxy::firecracker_fc_handler),
         )
         .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
-        // Anonymous public tier — no JWT gate at this layer; firecracker-ctl-net
-        // rejects with 403 when the endpoint was not deployed with
-        // `visibility: "public"`.
+        // No JWT gate here; firecracker-ctl-net rejects with 403 when
+        // the endpoint was not deployed with `visibility: "public"`.
         .route(
             "/fc/public/{name}/{*path}",
             any(super::proxy::firecracker_fc_public_handler),
@@ -570,15 +537,8 @@ fn router(state: AppState) -> Router {
             any(super::proxy::chuckrpg_proxy_handler),
         );
 
-    // Game server WebSocket is now handled by lightyear on a separate port
-    // (GAME_WS_ADDR, default :5000). No Axum route needed.
-
     bypass_router.merge(main_app)
 }
-
-// ---------------------------------------------------------------------------
-// Health / status handlers (monorepo versions)
-// ---------------------------------------------------------------------------
 
 #[utoipa::path(
     get,
@@ -621,14 +581,8 @@ pub(crate) async fn api_status(State(state): State<AppState>) -> impl IntoRespon
     })
 }
 
-// ---------------------------------------------------------------------------
-// Profile page handler
-// ---------------------------------------------------------------------------
-
-/// Profile page handler - displays user profile by username.
-/// Uses cache-first strategy with Discord enrichment.
+/// Profile page handler — cache-first with Discord enrichment.
 async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
-    // Step 1: Validate username format (prevents unnecessary DB/cache calls)
     let validated_username = match validate_username(&username) {
         Ok(u) => u,
         Err(e) => {
@@ -643,7 +597,7 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
     };
 
-    // Step 2: Try cache first; concurrent misses collapse to one enrichment.
+    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
@@ -655,15 +609,13 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         fetch_profile_from_db(&validated_username).await
     };
 
-    // Step 3: Render response with appropriate cache headers
     match profile {
         Some(profile) => {
-            // Forum block is fetched fresh (not cached with the rest of the
-            // profile) so post counts and recent activity stay current.
+            // Forum block bypasses the profile cache so post counts and
+            // recent activity stay current.
             let forum_block = fetch_forum_profile_block(&profile.user_id).await;
             let response =
                 render_profile_template(&validated_username, &profile, forum_block.as_ref());
-            // Cache for 5 minutes, allow stale content while revalidating
             (
                 [
                     (
@@ -678,7 +630,6 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
         None => {
             tracing::info!("Profile not found for username: {}", validated_username);
-            // Don't cache 404s as long - user might register soon
             (
                 StatusCode::NOT_FOUND,
                 [(header::CACHE_CONTROL, "public, max-age=60")],
@@ -690,10 +641,6 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Profile enrichment pipeline
-// ---------------------------------------------------------------------------
 
 /// Fetch profile from database and run the enrichment pipeline.
 /// Caching is the caller's responsibility (typically via `ProfileCache::get_or_load`).
@@ -723,7 +670,6 @@ async fn fetch_profile_from_db(username: &str) -> Option<UserProfile> {
 
 /// Enrich profile with Discord API data (guild member info)
 async fn enrich_with_discord(mut profile: UserProfile) -> UserProfile {
-    // Only enrich if we have Discord info and a Discord client
     let discord_id = match &profile.discord {
         Some(d) => d.id.clone(),
         None => return profile,
@@ -734,23 +680,16 @@ async fn enrich_with_discord(mut profile: UserProfile) -> UserProfile {
         None => return profile,
     };
 
-    // Fetch guild member data
     match client.get_guild_member(&discord_id).await {
         Ok(Some(member)) => {
-            // Update Discord info with guild-specific data
             if let Some(ref mut discord) = profile.discord {
-                // Mark as guild member
                 discord.is_guild_member = Some(true);
-
-                // Store guild nickname
                 discord.guild_nickname = member.nick.clone();
 
-                // Use guild nickname for display if available
                 if member.nick.is_some() {
                     discord.username = member.nick.clone();
                 }
 
-                // Use guild avatar if available, otherwise use user avatar
                 if let Some(avatar_hash) = member.avatar {
                     discord.avatar_url = Some(DiscordClient::guild_avatar_url(
                         client.guild_id(),
@@ -763,28 +702,21 @@ async fn enrich_with_discord(mut profile: UserProfile) -> UserProfile {
                     }
                 }
 
-                // Use global_name if we still don't have a username
                 if discord.username.is_none() {
                     if let Some(ref user) = member.user {
                         discord.username = user.global_name.clone().or(Some(user.username.clone()));
                     }
                 }
 
-                // Store join date
                 discord.joined_at = member.joined_at.clone();
-
-                // Store role IDs and resolve role names from cached guild roles
                 discord.role_ids = member.roles.clone();
                 discord.role_names = get_role_names(&member.roles);
-
-                // Check if user is boosting
                 discord.is_boosting = Some(member.premium_since.is_some());
             }
 
             tracing::debug!("Enriched Discord profile for user {}", discord_id);
         }
         Ok(None) => {
-            // User is NOT in the KBVE Discord guild
             if let Some(ref mut discord) = profile.discord {
                 discord.is_guild_member = Some(false);
             }
@@ -800,7 +732,6 @@ async fn enrich_with_discord(mut profile: UserProfile) -> UserProfile {
 
 /// Enrich profile with Twitch API data (live status, updated avatar)
 async fn enrich_with_twitch(mut profile: UserProfile) -> UserProfile {
-    // Only enrich if we have Twitch info and a Twitch client
     let twitch_username = match &profile.twitch {
         Some(t) => match &t.username {
             Some(u) => u.clone(),
@@ -814,7 +745,6 @@ async fn enrich_with_twitch(mut profile: UserProfile) -> UserProfile {
         None => return profile,
     };
 
-    // Check if user is currently live
     match client.is_user_live(&twitch_username).await {
         Ok(is_live) => {
             if let Some(ref mut twitch) = profile.twitch {
@@ -833,11 +763,9 @@ async fn enrich_with_twitch(mut profile: UserProfile) -> UserProfile {
         }
     }
 
-    // Optionally fetch fresh user data for updated avatar
     match client.get_user_by_login(&twitch_username).await {
         Ok(Some(user)) => {
             if let Some(ref mut twitch) = profile.twitch {
-                // Update avatar URL from Twitch API (more reliable/up-to-date)
                 twitch.avatar_url = Some(user.profile_image_url);
             }
             tracing::debug!("Enriched Twitch profile for user {}", twitch_username);
@@ -855,13 +783,11 @@ async fn enrich_with_twitch(mut profile: UserProfile) -> UserProfile {
 
 /// Enrich profile with RentEarth character data
 async fn enrich_with_rentearth(mut profile: UserProfile) -> UserProfile {
-    // Only enrich if we have a RentEarth service
     let service = match get_rentearth_service() {
         Some(s) => s,
         None => return profile,
     };
 
-    // Fetch RentEarth profile for this user
     match service
         .get_profile(&profile.user_id, &profile.username)
         .await
@@ -890,13 +816,8 @@ async fn enrich_with_rentearth(mut profile: UserProfile) -> UserProfile {
     profile
 }
 
-// ---------------------------------------------------------------------------
-// Profile template rendering
-// ---------------------------------------------------------------------------
-
 /// Convert archetype flags to human-readable class name
 fn archetype_flags_to_name(flags: i64) -> String {
-    // Primary archetypes based on flag values from the schema
     match flags {
         1 => "Warrior".to_string(),
         2 => "Mage".to_string(),
@@ -923,7 +844,6 @@ fn render_profile_template(
     profile: &UserProfile,
     forum: Option<&ForumProfileBlock>,
 ) -> TemplateResponse<ProfileTemplate> {
-    // Extract Discord info
     let (
         discord_username,
         discord_avatar,
@@ -952,21 +872,18 @@ fn render_profile_template(
         })
         .unwrap_or((None, None, None, None, None, None, None, 0, Vec::new()));
 
-    // Extract GitHub info
     let (github_username, github_avatar) = profile
         .github
         .as_ref()
         .map(|g| (g.username.clone(), g.avatar_url.clone()))
         .unwrap_or((None, None));
 
-    // Extract Twitch info
     let (twitch_username, twitch_avatar, twitch_is_live) = profile
         .twitch
         .as_ref()
         .map(|t| (t.username.clone(), t.avatar_url.clone(), t.is_live))
         .unwrap_or((None, None, None));
 
-    // Extract RentEarth info
     let (rentearth_characters, rentearth_total_playtime_hours, rentearth_last_activity) = profile
         .rentearth
         .as_ref()
@@ -975,11 +892,8 @@ fn render_profile_template(
                 .characters
                 .iter()
                 .map(|c| {
-                    // Convert archetype_flags to human-readable name
                     let archetype_name = archetype_flags_to_name(c.archetype_flags);
-                    // Convert playtime seconds to hours
                     let total_playtime_hours = c.total_playtime_seconds.unwrap_or(0) / 3600;
-                    // Compute health percentage (0-100), avoiding division by zero
                     let health_percent = if c.health_max > 0 {
                         ((c.health_current as i64 * 100) / c.health_max as i64).clamp(0, 100) as i32
                     } else {
@@ -1011,14 +925,12 @@ fn render_profile_template(
         })
         .unwrap_or((Vec::new(), None, None));
 
-    // Get first character of username for avatar placeholder
     let username_first_char = username
         .chars()
         .next()
         .map(|c| c.to_uppercase().to_string())
         .unwrap_or_else(|| "?".to_string());
 
-    // Pre-compute profile description for SEO (avoids template conditionals)
     let profile_description = match (&discord_username, &github_username, &twitch_username) {
         (Some(_), Some(_), _) => {
             format!(
@@ -1038,7 +950,6 @@ fn render_profile_template(
         _ => format!("{}'s member profile on KBVE", username),
     };
 
-    // Debug log all template values to diagnose visibility issues
     tracing::info!(
         "Profile {} - discord_username: {:?}, discord_is_guild_member: {:?}, twitch_username: {:?}, twitch_is_live: {:?}, github_username: {:?}",
         username,
@@ -1049,7 +960,6 @@ fn render_profile_template(
         github_username
     );
 
-    // Determine primary avatar URL (prefer Discord > GitHub > Twitch)
     let primary_avatar_url = discord_avatar
         .clone()
         .or_else(|| github_avatar.clone())
@@ -1059,12 +969,10 @@ fn render_profile_template(
         username: username.to_string(),
         username_first_char,
         profile_description,
-        // Banner/Hero fields (static placeholders for now)
         unsplash_banner_id: "1594671581654-cc7ed83167bb".to_string(),
         bio: None,
         status: None,
         primary_avatar_url,
-        // Discord fields
         discord_username,
         discord_avatar,
         discord_is_guild_member,
@@ -1074,20 +982,16 @@ fn render_profile_template(
         discord_is_boosting,
         discord_role_count,
         discord_role_names,
-        // GitHub fields
         github_username,
         github_avatar,
-        // Twitch fields
         twitch_username,
         twitch_avatar,
         twitch_is_live,
-        // RentEarth fields
         rentearth_characters,
         rentearth_total_playtime_hours,
         rentearth_last_activity,
-        // Forum block — empty defaults when forum lookup found no row
-        // (user has never posted) so the template can still render and
-        // hide the section via `forum_present == false`.
+        // Empty defaults when forum lookup found no row (user has never
+        // posted) so the template hides the section via forum_present.
         forum_present: forum.is_some(),
         forum_karma: forum.map(|f| f.karma).unwrap_or(0),
         forum_post_count: forum.map(|f| f.post_count).unwrap_or(0),
@@ -1113,7 +1017,6 @@ fn build_profile_json(profile: &UserProfile) -> serde_json::Value {
         "user_id": profile.user_id,
     });
 
-    // Add Discord data if present
     if let Some(ref discord) = profile.discord {
         response["discord"] = json!({
             "id": discord.id,
@@ -1128,7 +1031,6 @@ fn build_profile_json(profile: &UserProfile) -> serde_json::Value {
         });
     }
 
-    // Add GitHub data if present
     if let Some(ref github) = profile.github {
         response["github"] = json!({
             "id": github.id,
@@ -1137,7 +1039,6 @@ fn build_profile_json(profile: &UserProfile) -> serde_json::Value {
         });
     }
 
-    // Add Twitch data if present
     if let Some(ref twitch) = profile.twitch {
         response["twitch"] = json!({
             "id": twitch.id,
@@ -1147,12 +1048,10 @@ fn build_profile_json(profile: &UserProfile) -> serde_json::Value {
         });
     }
 
-    // Add RentEarth data if present
     if let Some(ref rentearth) = profile.rentearth {
         response["rentearth"] = json!(rentearth);
     }
 
-    // Add connected providers list
     let mut connected_providers = Vec::new();
     if profile.discord.is_some() {
         connected_providers.push("discord");
@@ -1168,15 +1067,10 @@ fn build_profile_json(profile: &UserProfile) -> serde_json::Value {
     }
     response["connected_providers"] = json!(connected_providers);
 
-    // Add provider count
     response["provider_count"] = json!(connected_providers.len());
 
     response
 }
-
-// ---------------------------------------------------------------------------
-// OSRS handlers
-// ---------------------------------------------------------------------------
 
 /// Convert item name or query to URL slug format.
 /// "Dragon hunter crossbow" -> "dragon-hunter-crossbow"
@@ -1192,13 +1086,12 @@ fn item_to_slug(name: &str) -> String {
         .join("-")
 }
 
-/// OSRS item page handler - redirects to static Astro pages.
-/// Supports both item names (Dragon_hunter_crossbow) and numeric IDs (21012).
+/// OSRS item page handler — redirects to static Astro pages.
+/// Supports both item names and numeric IDs.
 async fn osrs_item_handler(Path(item): Path<String>) -> impl IntoResponse {
     let cache = match get_osrs_cache() {
         Some(c) => c,
         None => {
-            // Fallback: redirect to the item slug directly, let Astro handle 404
             let slug = item_to_slug(&item);
             return (
                 StatusCode::TEMPORARY_REDIRECT,
@@ -1208,7 +1101,6 @@ async fn osrs_item_handler(Path(item): Path<String>) -> impl IntoResponse {
         }
     };
 
-    // Try to parse as numeric ID first, otherwise treat as item name
     let result = if let Ok(id) = item.parse::<u32>() {
         cache.get_by_id(id).await
     } else {
@@ -1217,10 +1109,7 @@ async fn osrs_item_handler(Path(item): Path<String>) -> impl IntoResponse {
 
     match result {
         Some(item_with_price) => {
-            // Convert item name to Astro slug format (lowercase, hyphens)
             let slug = item_to_slug(&item_with_price.item.name);
-
-            // 301 redirect to Astro static page
             (
                 StatusCode::MOVED_PERMANENTLY,
                 [(header::LOCATION, format!("/osrs/{}/", slug))],
@@ -1228,7 +1117,6 @@ async fn osrs_item_handler(Path(item): Path<String>) -> impl IntoResponse {
                 .into_response()
         }
         None => {
-            // Item not found in cache - redirect to slug anyway, let Astro handle 404
             let slug = item_to_slug(&item);
             (
                 StatusCode::TEMPORARY_REDIRECT,
@@ -1239,10 +1127,9 @@ async fn osrs_item_handler(Path(item): Path<String>) -> impl IntoResponse {
     }
 }
 
-/// OSRS item handler for trailing slash URLs (e.g., /osrs/willow-Logs/, /osrs/385/).
+/// OSRS item handler for trailing slash URLs.
 /// Supports both item names and numeric IDs, normalizes to canonical lowercase slug.
 async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> {
-    // Check if this is a numeric ID - if so, look it up and redirect to the canonical slug
     if let Ok(id) = item.parse::<u32>() {
         if let Some(cache) = get_osrs_cache() {
             if let Some(item_with_price) = cache.get_by_id(id).await {
@@ -1254,14 +1141,11 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
                     .unwrap();
             }
         }
-        // Numeric ID not found - fall through to 404
     }
 
     let slug = item_to_slug(&item);
 
-    // Only redirect if the URL needs normalization (case differs)
     if slug != item {
-        // Redirect to canonical lowercase slug
         return Response::builder()
             .status(StatusCode::MOVED_PERMANENTLY)
             .header(header::LOCATION, format!("/osrs/{}/", slug))
@@ -1269,10 +1153,7 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
             .unwrap();
     }
 
-    // Already canonical - serve the static file
-    // We need to read and serve the file ourselves since we matched the route
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| {
-        // Try to find the dist directory
         for candidate in ["templates/dist", "../astro/dist", "astro/dist"] {
             let path = std::path::Path::new(candidate);
             if path.exists() {
@@ -1285,7 +1166,6 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
     let file_path = format!("{}/osrs/{}/index.html", static_dir, slug);
     let gz_path = format!("{}.gz", file_path);
 
-    // Try gzipped version first
     if let Ok(content) = tokio::fs::read(&gz_path).await {
         return Response::builder()
             .status(StatusCode::OK)
@@ -1296,7 +1176,6 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
             .unwrap();
     }
 
-    // Try uncompressed version
     if let Ok(content) = tokio::fs::read(&file_path).await {
         return Response::builder()
             .status(StatusCode::OK)
@@ -1306,7 +1185,6 @@ async fn osrs_item_handler_trailing(Path(item): Path<String>) -> Response<Body> 
             .unwrap();
     }
 
-    // File not found - serve 404
     let not_found_path = format!("{}/404.html", static_dir);
     let not_found_gz = format!("{}.gz", not_found_path);
 
@@ -1396,11 +1274,8 @@ async fn serve_astro_error_page(status: StatusCode) -> Response {
         .unwrap_or_else(|_| Response::new(Body::empty()))
 }
 
-/// OSRS API endpoint - returns item price data as JSON.
-/// GET /api/v1/osrs/{item_id}
-///
-/// Supports both numeric IDs (21012) and item names (dragon_hunter_crossbow).
-/// Returns current GE prices from the cache (refreshed every 60s).
+/// OSRS API endpoint — returns item price data as JSON.
+/// Supports both numeric IDs and item names. Cache refreshes every 60s.
 #[utoipa::path(
     get,
     path = "/api/v1/osrs/{item_id}",
@@ -1428,7 +1303,6 @@ pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoRe
         }
     };
 
-    // Try to parse as numeric ID first, otherwise treat as item name
     let result = if let Ok(id) = item_id.parse::<u32>() {
         cache.get_by_id(id).await
     } else {
@@ -1440,7 +1314,6 @@ pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoRe
             let item = &item_with_price.item;
             let price = &item_with_price.price;
 
-            // Calculate average price
             let avg = match (price.high, price.low) {
                 (Some(h), Some(l)) => Some((h + l) / 2),
                 (Some(h), None) => Some(h),
@@ -1477,17 +1350,7 @@ pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoRe
     }
 }
 
-// ---------------------------------------------------------------------------
-// Profile API handlers
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// MC API handlers
-// ---------------------------------------------------------------------------
-
-/// MC players API endpoint - returns online player list with UUIDs and skin URLs.
-/// GET /api/v1/mc/players
-///
+/// MC players API endpoint — returns online player list with UUIDs and skin URLs.
 /// Data is cached and refreshed every 15s via RCON background task.
 #[utoipa::path(
     get,
@@ -1525,9 +1388,7 @@ pub(crate) async fn mc_players_handler() -> impl IntoResponse {
         .into_response()
 }
 
-/// MC texture proxy - fetches skin PNGs from textures.minecraft.net.
-/// GET /api/v1/mc/textures/{hash}
-///
+/// MC texture proxy — fetches skin PNGs from textures.minecraft.net.
 /// Hash must be 60-64 hex characters. Responses are immutably cached (24h).
 #[utoipa::path(
     get,
@@ -1544,7 +1405,6 @@ pub(crate) async fn mc_players_handler() -> impl IntoResponse {
     ),
 )]
 pub(crate) async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoResponse {
-    // Validate hash: 60-64 hex chars only
     if hash.len() < 60 || hash.len() > 64 || !hash.chars().all(|c| c.is_ascii_hexdigit()) {
         return StatusCode::BAD_REQUEST.into_response();
     }
@@ -1568,15 +1428,8 @@ pub(crate) async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoRes
     }
 }
 
-// ---------------------------------------------------------------------------
-// Profile API handlers
-// ---------------------------------------------------------------------------
-
-/// Profile API endpoint - returns user profile data as JSON.
-/// GET /api/v1/profile/{username}
-///
-/// Returns the user's profile data including connected accounts (Discord, GitHub, Twitch)
-/// and enriched data from external APIs when available.
+/// Profile API endpoint — returns user profile data as JSON, enriched
+/// from Discord / GitHub / Twitch / RentEarth when available.
 #[utoipa::path(
     get,
     path = "/api/v1/profile/{username}",
@@ -1591,7 +1444,6 @@ pub(crate) async fn mc_texture_handler(Path(hash): Path<String>) -> impl IntoRes
     ),
 )]
 pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl IntoResponse {
-    // Validate username format
     let validated_username = match validate_username(&username) {
         Ok(u) => u,
         Err(e) => {
@@ -1607,7 +1459,7 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
         }
     };
 
-    // Try cache first; concurrent misses collapse to one enrichment.
+    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
@@ -1621,7 +1473,6 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
 
     match profile {
         Some(profile) => {
-            // Build JSON response with all profile data
             let response = build_profile_json(&profile);
 
             (
@@ -1652,9 +1503,7 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
     }
 }
 
-/// Authenticated profile endpoint - returns the current user's profile.
-/// GET /api/v1/profile/me
-///
+/// Authenticated profile endpoint — returns the caller's profile.
 /// Requires Bearer token in Authorization header.
 #[utoipa::path(
     get,
@@ -1668,7 +1517,6 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
     security(("bearerAuth" = [])),
 )]
 pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse {
-    // Extract Authorization header
     let auth_header = match headers.get(header::AUTHORIZATION) {
         Some(h) => match h.to_str() {
             Ok(s) => s,
@@ -1694,7 +1542,6 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Extract bearer token
     let token = match extract_bearer_token(auth_header) {
         Some(t) => t,
         None => {
@@ -1709,7 +1556,6 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Get JWT cache
     let jwt_cache = match get_jwt_cache() {
         Some(cache) => cache,
         None => {
@@ -1724,7 +1570,6 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Verify token with Supabase (cached)
     let token_info = match jwt_cache.verify_and_cache(token).await {
         Ok(info) => info,
         Err(e) => {
@@ -1753,7 +1598,6 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Now fetch the user's profile by their user_id
     let profile_service = match get_profile_service() {
         Some(s) => s,
         None => {
@@ -1767,14 +1611,12 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Get profile by user_id
     let profile = match profile_service
         .get_profile_by_user_id(&token_info.user_id)
         .await
     {
         Ok(Some(p)) => p,
         Ok(None) => {
-            // User authenticated but no profile yet - return basic info
             return (
                 StatusCode::OK,
                 Json(json!({
@@ -1799,7 +1641,6 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         }
     };
 
-    // Build and return profile JSON
     let mut response = build_profile_json(&profile);
     response["email"] = json!(token_info.email);
     response["role"] = json!(token_info.role);
@@ -1816,16 +1657,8 @@ pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse 
         .into_response()
 }
 
-/// Set username endpoint - creates username for authenticated user.
-/// POST /api/v1/profile/username
-///
-/// Requires Bearer token in Authorization header.
-/// Body: { "username": "desired_username" }
-///
-/// Validates username at multiple levels:
-/// 1. Client-side validation (Handy app)
-/// 2. Axum-level validation (this endpoint)
-/// 3. Database-level validation (proxy_add_username RPC)
+/// Set username endpoint — creates username for authenticated user.
+/// Validates at axum level, then defers to the proxy_add_username RPC.
 #[utoipa::path(
     post,
     path = "/api/v1/profile/username",
@@ -1844,7 +1677,6 @@ pub(crate) async fn set_username_handler(
     headers: HeaderMap,
     Json(body): Json<SetUsernameRequest>,
 ) -> impl IntoResponse {
-    // Step 1: Extract and verify bearer token
     let auth_header = match headers.get(header::AUTHORIZATION) {
         Some(h) => match h.to_str() {
             Ok(s) => s,
@@ -1884,7 +1716,6 @@ pub(crate) async fn set_username_handler(
         }
     };
 
-    // Step 2: Verify JWT with Supabase
     let jwt_cache = match get_jwt_cache() {
         Some(cache) => cache,
         None => {
@@ -1927,7 +1758,6 @@ pub(crate) async fn set_username_handler(
         }
     };
 
-    // Step 3: Validate username format at Axum level
     let validated_username = match validate_username(&body.username) {
         Ok(u) => u,
         Err(e) => {
@@ -1948,7 +1778,6 @@ pub(crate) async fn set_username_handler(
         }
     };
 
-    // Step 4: Get profile service and set username
     let profile_service = match get_profile_service() {
         Some(s) => s,
         None => {
@@ -1962,7 +1791,6 @@ pub(crate) async fn set_username_handler(
         }
     };
 
-    // Call the set_username method with verified user_id
     match profile_service
         .set_username(&token_info.user_id, &validated_username)
         .await
@@ -1991,7 +1819,6 @@ pub(crate) async fn set_username_handler(
                 "Failed to set username"
             );
 
-            // Determine appropriate status code based on error
             let status = if e.contains("already taken") || e.contains("already have") {
                 StatusCode::CONFLICT
             } else if e.contains("Invalid") {
@@ -2011,10 +1838,6 @@ pub(crate) async fn set_username_handler(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Utility helpers
-// ---------------------------------------------------------------------------
-
 #[allow(dead_code)]
 fn format_duration(d: Duration) -> String {
     let secs = d.as_secs();
@@ -2031,23 +1854,17 @@ fn format_duration(d: Duration) -> String {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Middleware
-// ---------------------------------------------------------------------------
-
 /// Set Cache-Control based on request path.
 async fn cache_headers(request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
     let mut response = next.run(request).await;
 
     let cache_value = if path.starts_with("/_astro/") {
-        // Content-hashed Vite bundles — cache forever
+        // Content-hashed Vite bundles — cache forever.
         "public, max-age=31536000, immutable"
     } else if path.starts_with("/pagefind/") || path.starts_with("/images/") {
-        // Build-time generated, static until next deploy
         "public, max-age=86400"
     } else if path.ends_with(".html") || path == "/" || !path.contains('.') {
-        // Static HTML pages — immutable until next container deploy
         "public, max-age=86400"
     } else {
         "public, max-age=86400"
@@ -2107,10 +1924,6 @@ async fn shutdown_signal() {
     let _ = tokio::signal::ctrl_c().await;
 }
 
-// ---------------------------------------------------------------------------
-// Forum profile block (renders the "Forum activity" section on /@username)
-// ---------------------------------------------------------------------------
-
 /// Subset of forum data shown on the profile page. Built by
 /// `fetch_forum_profile_block`; consumed by `render_profile_template`.
 struct ForumProfileBlock {
@@ -2143,7 +1956,6 @@ async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
         }
     };
 
-    // Fetch recent threads + spaces map for slug resolution.
     let threads = svc
         .list_threads_by_author(user_id, FORUM_PROFILE_RECENT_LIMIT)
         .await
@@ -2184,9 +1996,8 @@ async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
     let mut recent_comments_html = String::with_capacity(comments.len() * 256);
     let ctx = forum_render_ctx();
     for c in &comments {
-        // Render comment markdown then strip to plain text excerpt for
-        // the profile preview row. Avoid leaking nested HTML into the
-        // anchor that wraps the row.
+        // Strip rendered markdown to plain text — the anchor wrapping
+        // the row would otherwise nest HTML.
         let rendered = kbve::markdown::render(&c.body, &ctx);
         let excerpt = plain_excerpt(&rendered.html, FORUM_PROFILE_COMMENT_EXCERPT);
         let partial = ProfileForumCommentRowPartial {
@@ -2213,12 +2024,8 @@ async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
     })
 }
 
-// ---------------------------------------------------------------------------
-// Forum SSR handlers
-// ---------------------------------------------------------------------------
-
 /// Image-host allowlist for thread + comment markdown rendering. Empty
-/// by default; populate once we wire avatars / Supabase storage.
+/// by default; populate once avatars / Supabase storage are wired.
 const FORUM_IMG_HOSTS: &[&str] = &[];
 
 const FEED_BODY_EXCERPT_CHARS: usize = 280;
@@ -2232,12 +2039,10 @@ fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
     }
 }
 
-/// Percent-encode a string for safe inclusion as an `application/x-www-form-urlencoded`
-/// query-component value. RFC 3986 unreserved chars pass through; everything
-/// else (including `+`, `|`, `:`, space, etc.) gets `%HH` encoded. We need
-/// this for cursor pagination because the feed cursor format
-/// `<timestamp+offset>|<id>` carries `+` and `|`, both of which the browser
-/// + axum::extract::Query mangle if dumped raw into an `<a href>`.
+/// Percent-encode for `application/x-www-form-urlencoded` query-component
+/// values (RFC 3986). Needed for cursor pagination: the cursor format
+/// `<timestamp+offset>|<id>` carries `+` and `|` which the browser +
+/// axum::extract::Query mangle if dumped raw into an `<a href>`.
 fn url_encode_component(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for byte in s.bytes() {
@@ -2254,9 +2059,9 @@ fn url_encode_component(s: &str) -> String {
     out
 }
 
-/// Crude HTML-escape for plain text strings going into pre-rendered HTML
-/// fragments. Askama templates use the default `e` filter for direct
-/// interpolation; this helper is for the few spots we hand-roll HTML.
+/// HTML-escape for plain text going into hand-rolled HTML fragments.
+/// Askama templates auto-escape via the `e` filter; this helper covers
+/// the few spots we build HTML strings directly.
 fn html_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for ch in s.chars() {
@@ -2283,9 +2088,8 @@ fn resolve_username(map: &std::collections::HashMap<String, String>, uuid: &str)
         .unwrap_or_else(|| FORUM_DELETED_USER.to_string())
 }
 
-/// Truncate the rendered markdown to a feed excerpt. Naive char-count
-/// truncation is fine here because ammonia already balanced the tags.
-/// We append an ellipsis if the body was cut.
+/// Truncate rendered markdown to a feed excerpt. Char-count truncation
+/// is safe here because ammonia already balanced the tags.
 fn excerpt_html(rendered: &str, limit: usize) -> String {
     if rendered.chars().count() <= limit {
         return rendered.to_string();
@@ -2333,8 +2137,6 @@ fn render_partial<T: Template>(tpl: &T, name: &str) -> String {
 }
 
 fn humanize_ts(ts: &str) -> String {
-    // Trim to date+time prefix (YYYY-MM-DDTHH:MM:SS). Good enough until a
-    // real relative-time formatter lands.
     ts.split('.')
         .next()
         .unwrap_or(ts)
@@ -2425,11 +2227,8 @@ fn build_pagination_html(rows: &[FeedRow], sort: &str, space_path: &str) -> Stri
         _ => return String::new(), // hot cursor needs hot_rank — skip
     };
     let cursor = format!("{}|{}", key, last.id);
-    // `+`, `|`, `:` in the cursor must be percent-encoded — otherwise
-    // the browser reads them as form-urlencoded and `+` becomes a space,
-    // which axum::extract::Query then deserializes as a malformed
-    // timestamp. html_escape only handles `&<>"'`, so we run the cursor
-    // (and the space_path / sort, defensively) through url_encode_component.
+    // `+`, `|`, `:` must be percent-encoded — html_escape only covers
+    // `&<>"'`, and unescaped `+` is decoded as space by axum::extract::Query.
     format!(
         r#"<a class="forum-pagination__next" href="{base}?sort={sort}&amp;cursor={cursor}">Older →</a>"#,
         base = html_escape(space_path),
@@ -2520,7 +2319,6 @@ async fn forum_tag_handler(
     render_feed_page(None, Some(slug), &q).await
 }
 
-/// GET /forum/tags — popularity-sorted tag listing.
 /// GET /api/v1/forum/tags — JSON list of popularity-sorted tags.
 /// Drives the astro-kbve build-time top-tags fetch.
 #[utoipa::path(
@@ -2725,9 +2523,6 @@ async fn render_feed_page(
         }
     };
 
-    // Build (space_id → SpaceRow). When filtered to a single space we
-    // already have the row; otherwise batch-fetch every space referenced
-    // by the feed rows so the chip renders the slug instead of a UUID.
     let mut spaces_by_id = std::collections::HashMap::new();
     if let Some(s) = space.as_ref() {
         spaces_by_id.insert(s.id.clone(), s.clone());
@@ -2739,9 +2534,6 @@ async fn render_feed_page(
         });
     }
 
-    // Batch-resolve every author UUID to a username. One round-trip via
-    // PostgREST `?user_id=in.(…)`. Missing rows fall back to a sentinel
-    // through resolve_username().
     let usernames_by_id = match get_profile_service() {
         Some(profile_svc) => {
             let ids: Vec<String> = rows.iter().map(|r| r.author_id.clone()).collect();
@@ -2925,10 +2717,6 @@ fn build_tag_chips_html(rows: &[crate::db::TagRow]) -> String {
     out
 }
 
-// ---------------------------------------------------------------------------
-// Forum compose page + write APIs
-// ---------------------------------------------------------------------------
-
 #[derive(serde::Deserialize, Default)]
 struct ComposeQuery {
     space: Option<String>,
@@ -2996,12 +2784,11 @@ pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response
 pub(crate) struct CreateThreadBody {
     #[holy(sanitize = "trim, lowercase, slug, truncate(50)")]
     pub space_slug: String,
-    // No `escape_html` here — askama auto-escapes on render. Storing
-    // pre-escaped HTML would double-escape `&amp;` etc.
+    // No escape_html — askama auto-escapes on render; pre-escaping would
+    // double-encode &amp; etc.
     #[holy(sanitize = "trim, control_strip, truncate(180)")]
     pub title: String,
-    // body is markdown; only nul_strip + length cap. control_strip
-    // would eat \n / \t.
+    // body is markdown — control_strip would eat \n / \t.
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
     #[serde(default = "default_thread_type")]
@@ -3104,8 +2891,8 @@ pub(crate) async fn api_create_thread(
         }
         Err(e) => {
             tracing::warn!("forum.service_create_thread error: {}", e);
-            // Surface RPC error message so the client can show "username
-            // required" / "thread title length" / etc directly.
+            // Surface RPC message so the client can render "username
+            // required" / "title length" / etc directly.
             (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
         }
     }
@@ -3115,8 +2902,7 @@ pub(crate) async fn api_create_thread(
 pub(crate) struct CreateCommentBody {
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
-    // parent_comment_id is a UUID — RPC will reject malformed values,
-    // no sanitize needed.
+    // UUID — RPC rejects malformed values, no sanitize needed.
     #[serde(default)]
     pub parent_comment_id: Option<String>,
 }
@@ -3305,7 +3091,7 @@ pub(crate) async fn api_remove_comment(
         }
     };
 
-    // First belt: deny non-staff at the axum layer.
+    // Belt-and-suspenders: deny non-staff at the axum layer; SQL re-checks.
     match svc.is_staff(&user_id).await {
         Ok(true) => {}
         Ok(false) => {
@@ -3508,8 +3294,8 @@ mod tests {
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
-    /// Build a minimal router with just the health endpoint + middleware
-    /// (no static file serving, which requires a real directory).
+    /// Minimal router with health endpoint + middleware (no static file
+    /// serving, which requires a real directory).
     fn test_router() -> Router {
         let middleware = tower::ServiceBuilder::new()
             .layer(SetResponseHeaderLayer::overriding(
@@ -3682,9 +3468,6 @@ mod tests {
             .await
             .unwrap();
 
-        // Profile handler now returns 404 for not-found (with cache), or BAD_REQUEST for invalid.
-        // Without DB/cache services initialized, fetch_profile_from_db returns None,
-        // so we get NOT_FOUND with the ProfileNotFoundTemplate.
         let status = response.status();
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let html = String::from_utf8(body.to_vec()).unwrap();
@@ -3704,7 +3487,6 @@ mod tests {
             .route("/script.js", get(|| async { "code" }))
             .layer(axum::middleware::from_fn(fix_ts_mime));
 
-        // .ts file should get JS content-type
         let response = app
             .clone()
             .oneshot(
@@ -3720,7 +3502,6 @@ mod tests {
             "application/javascript; charset=utf-8"
         );
 
-        // .js file should NOT be rewritten
         let response = app
             .oneshot(
                 Request::builder()
