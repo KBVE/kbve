@@ -1,25 +1,11 @@
 import Phaser from 'phaser';
-import {
-	clampBet,
-	createBlackjackState,
-	doubleDown,
-	hit,
-	resetToBetting,
-	stand,
-	startRound,
-	type BlackjackState,
-} from './state';
+import { createBlackjackState, type BlackjackState } from './state';
 import { type Card, isBlackjack, valueHand } from './cards';
 import { BASE_WIDTH, CARD_SIZE, COLORS } from './config';
 import {
 	DealerAnimation,
 	type CardPlacement,
 } from './animation/dealerAnimation';
-import {
-	ButtonBar,
-	type ButtonKey,
-	type ButtonSpec,
-} from './objects/buttonBar';
 import { CardPool } from './objects/cardPool';
 import { HandLayout } from './objects/handLayout';
 import { BlackjackHud } from './objects/blackjackHud';
@@ -30,6 +16,7 @@ import {
 	SHOE_POSITION,
 	TABLE_TEXTURE_KEY,
 } from './objects/blackjackTextures';
+import { BlackjackControls } from './objects/blackjackControls';
 
 const DEAL_ANIMATION = {
 	duration: 220,
@@ -47,7 +34,7 @@ export class BlackjackScene extends Phaser.Scene {
 	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private hud!: BlackjackHud;
-	private buttonBar!: ButtonBar;
+	private controls!: BlackjackControls;
 
 	constructor() {
 		super('blackjack');
@@ -79,124 +66,23 @@ export class BlackjackScene extends Phaser.Scene {
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.hud = new BlackjackHud(this, this.hudLayer, CHIP_TEXTURE_KEY);
 		this.hud.create();
-		this.createButtons();
-		this.bindKeyboard();
+		this.controls = new BlackjackControls({
+			scene: this,
+			layer: this.hudLayer,
+			textureKey: (enabled) =>
+				this.blackjackTextures.buttonTextureKey(enabled),
+			getState: () => this.state,
+			setState: (state) => {
+				this.state = state;
+			},
+			onAction: () => this.render(),
+		});
+		this.controls.create();
 		this.render();
 	}
 
 	private drawTable() {
 		this.add.image(0, 0, TABLE_TEXTURE_KEY).setOrigin(0);
-	}
-
-	private createButtons() {
-		const specs: ButtonSpec[] = [
-			{
-				key: 'betDown',
-				label: '-',
-				x: 432,
-				y: 691,
-				w: 50,
-				enabled: () => this.state.phase === 'betting',
-				action: () => this.changeBet(-25),
-			},
-			{
-				key: 'betUp',
-				label: '+',
-				x: 492,
-				y: 691,
-				w: 50,
-				enabled: () => this.state.phase === 'betting',
-				action: () => this.changeBet(25),
-			},
-			{
-				key: 'deal',
-				label: 'Deal',
-				x: 562,
-				y: 691,
-				w: 92,
-				enabled: () => this.state.phase === 'betting',
-				action: () => startRound(this.state),
-			},
-			{
-				key: 'hit',
-				label: 'Hit',
-				x: 674,
-				y: 691,
-				w: 82,
-				enabled: () => this.state.phase === 'player-turn',
-				action: () => hit(this.state),
-			},
-			{
-				key: 'stand',
-				label: 'Stand',
-				x: 766,
-				y: 691,
-				w: 92,
-				enabled: () => this.state.phase === 'player-turn',
-				action: () => stand(this.state),
-			},
-			{
-				key: 'double',
-				label: 'Double',
-				x: 868,
-				y: 691,
-				w: 104,
-				enabled: () =>
-					this.state.phase === 'player-turn' && this.state.canDouble,
-				action: () => doubleDown(this.state),
-			},
-			{
-				key: 'next',
-				label: 'Next',
-				x: 982,
-				y: 691,
-				w: 90,
-				enabled: () => this.state.phase === 'round-over',
-				action: () => resetToBetting(this.state),
-			},
-			{
-				key: 'new',
-				label: 'New',
-				x: 1082,
-				y: 691,
-				w: 84,
-				enabled: () => true,
-				action: () => {
-					this.state = createBlackjackState();
-				},
-			},
-		];
-
-		this.buttonBar = new ButtonBar(
-			this,
-			this.hudLayer,
-			(enabled) => this.blackjackTextures.buttonTextureKey(enabled),
-			() => this.render(),
-		);
-		this.buttonBar.create(specs);
-	}
-
-	private bindKeyboard() {
-		this.input.keyboard?.on('keydown-H', () => this.runAction('hit'));
-		this.input.keyboard?.on('keydown-S', () => this.runAction('stand'));
-		this.input.keyboard?.on('keydown-D', () => this.runAction('double'));
-		this.input.keyboard?.on('keydown-ENTER', () => {
-			this.runAction(this.state.phase === 'round-over' ? 'next' : 'deal');
-		});
-		this.input.keyboard?.on('keydown-N', () => this.runAction('new'));
-		this.input.keyboard?.on('keydown-UP', () => this.runAction('betUp'));
-		this.input.keyboard?.on('keydown-DOWN', () =>
-			this.runAction('betDown'),
-		);
-	}
-
-	private runAction(key: ButtonKey) {
-		if (this.buttonBar.run(key)) this.render();
-	}
-
-	private changeBet(delta: number) {
-		this.state.bet = clampBet(this.state.bet + delta, this.state.bankroll);
-		this.state.message = `Bet set to $${this.state.bet}.`;
 	}
 
 	private prefersReducedMotion(): boolean {
@@ -229,7 +115,7 @@ export class BlackjackScene extends Phaser.Scene {
 		this.cardPool.hideUnused();
 		this.dealerAnimation.animateNewCards(dealerCards, playerCards);
 		this.updateHud();
-		this.buttonBar.update();
+		this.controls.update();
 	}
 
 	private hideDealerHole(): boolean {
