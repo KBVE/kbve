@@ -77,7 +77,10 @@ interface ButtonView {
 }
 
 interface PlacementCacheEntry {
-	signature: string;
+	cards: Card[];
+	centerX: number;
+	y: number;
+	hideHole: boolean;
 	placements: CardPlacement[];
 }
 
@@ -388,9 +391,10 @@ export class BlackjackScene extends Phaser.Scene {
 		hideHole: boolean,
 		owner: HandOwner,
 	): CardPlacement[] {
-		const signature = `${centerX}:${y}:${hideHole}:${cards.join(',')}`;
 		const cached = this.placementCache.get(owner);
-		if (cached?.signature === signature) return cached.placements;
+		if (this.matchesPlacementCache(cached, cards, centerX, y, hideHole)) {
+			return cached.placements;
+		}
 
 		const totalWidth =
 			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
@@ -410,8 +414,37 @@ export class BlackjackScene extends Phaser.Scene {
 			});
 			x += CARD_SIZE.width + 18;
 		});
-		this.placementCache.set(owner, { signature, placements });
+		this.placementCache.set(owner, {
+			cards: cards.slice(),
+			centerX,
+			y,
+			hideHole,
+			placements,
+		});
 		return placements;
+	}
+
+	private matchesPlacementCache(
+		cached: PlacementCacheEntry | undefined,
+		cards: readonly Card[],
+		centerX: number,
+		y: number,
+		hideHole: boolean,
+	): cached is PlacementCacheEntry {
+		if (
+			!cached ||
+			cached.centerX !== centerX ||
+			cached.y !== y ||
+			cached.hideHole !== hideHole ||
+			cached.cards.length !== cards.length
+		) {
+			return false;
+		}
+
+		for (let i = 0; i < cards.length; i++) {
+			if (cached.cards[i] !== cards[i]) return false;
+		}
+		return true;
 	}
 
 	private drawHand(
