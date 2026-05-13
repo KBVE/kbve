@@ -110,9 +110,7 @@ const PROXY_BASE = '/dashboard/chuckrpg/proxy';
 async function getAuthHeaders(): Promise<Record<string, string>> {
 	const supa = getSupa() ?? initSupa();
 	if (!supa) return {};
-	const {
-		data: { session },
-	} = await supa.auth.getSession();
+	const { session } = await supa.getSession();
 	if (!session?.access_token) return {};
 	return {
 		Authorization: `Bearer ${session.access_token}`,

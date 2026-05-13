@@ -162,7 +162,7 @@ function formatAction(action: string): string {
 										{npc.stats.speed}
 									</span>
 								</div>
-								{npc.stats.armor !== undefined &&
+								{npc.stats.armor != null &&
 									npc.stats.armor > 0 && (
 										<div class="flex justify-between px-3 py-1.5 rounded-lg bg-white/5">
 											<span class="text-zinc-400">
@@ -218,14 +218,14 @@ function formatAction(action: string): string {
 								{npc.flavor_text.map(
 									(ft: {
 										action: string;
-										messages: string[];
+										messages?: string[];
 									}) => (
 										<div>
 											<span class="text-xs font-medium uppercase text-purple-400">
 												{formatAction(ft.action)}
 											</span>
 											<ul class="mt-1 space-y-1 ml-3">
-												{ft.messages.map(
+												{(ft.messages ?? []).map(
 													(msg: string) => (
 														<li class="text-zinc-400 text-xs italic">
 															"{msg}"

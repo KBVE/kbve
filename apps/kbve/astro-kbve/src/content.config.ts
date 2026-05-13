@@ -1,4 +1,5 @@
-import { z, defineCollection } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { docsLoader } from '@astrojs/starlight/loaders';
 // TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
@@ -16,9 +17,7 @@ import {
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
 
-export function validateItemUniqueness(
-	items: (typeof IObjectSchema)['_type'][],
-) {
+export function validateItemUniqueness(items: z.infer<typeof IObjectSchema>[]) {
 	const seenIds = new Set<string>();
 	const seenKeys = new Set<number>();
 	const seenRefs = new Set<string>();
@@ -54,6 +53,15 @@ const gdd = defineCollection({
 });
 
 const ProjectSchemaWithEngine = ICiProjectSchema.extend({
+	title: z.string().optional(),
+	sidebar: z
+		.object({
+			label: z.string().optional(),
+			order: z.number().optional(),
+			hidden: z.boolean().optional(),
+			badge: z.unknown().optional(),
+		})
+		.optional(),
 	engine: z
 		.object({
 			version: z.string().min(1).max(64),

@@ -36,6 +36,7 @@ export interface ForgejoRepo {
 	language: string;
 	languages_url: string;
 	owner: {
+		id: number;
 		login: string;
 		avatar_url: string;
 	};
