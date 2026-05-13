@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 
+import { collectNewDealPlacements } from './dealQueue';
+
 export type HandOwner = 'dealer' | 'player';
 
 export interface CardPlacement {
@@ -23,6 +25,8 @@ interface DealerAnimationOptions {
 
 export class DealerAnimation {
 	private readonly flyingCardViews: Phaser.GameObjects.Image[] = [];
+	private readonly dealQueue: CardPlacement[] = [];
+	private nextFlyingCardIndex = 0;
 	private previousDealerCardCount = 0;
 	private previousPlayerCardCount = 0;
 
@@ -43,22 +47,18 @@ export class DealerAnimation {
 
 		if (!this.options.enabled) return;
 
-		const newCards: CardPlacement[] = [];
-		if (dealerCards.length > previousDealerCount) {
-			newCards.push(...dealerCards.slice(previousDealerCount));
-		}
-		if (playerCards.length > previousPlayerCount) {
-			newCards.push(...playerCards.slice(previousPlayerCount));
-		}
-		if (newCards.length === 0) return;
+		const dealCount = collectNewDealPlacements(
+			this.dealQueue,
+			dealerCards,
+			playerCards,
+			previousDealerCount,
+			previousPlayerCount,
+		);
+		if (dealCount === 0) return;
 
-		newCards
-			.sort(
-				(a, b) => a.index - b.index || (a.owner === 'player' ? -1 : 1),
-			)
-			.forEach((placement, index) => {
-				this.animateCardFromShoe(placement, index);
-			});
+		for (let index = 0; index < dealCount; index++) {
+			this.animateCardFromShoe(this.dealQueue[index], index);
+		}
 	}
 
 	private animateCardFromShoe(placement: CardPlacement, order: number) {
@@ -93,8 +93,15 @@ export class DealerAnimation {
 	}
 
 	private getFlyingCardView(): Phaser.GameObjects.Image {
-		const inactiveView = this.flyingCardViews.find((view) => !view.active);
-		if (inactiveView) return inactiveView;
+		const viewCount = this.flyingCardViews.length;
+		for (let offset = 0; offset < viewCount; offset++) {
+			const index = (this.nextFlyingCardIndex + offset) % viewCount;
+			const view = this.flyingCardViews[index];
+			if (!view.active) {
+				this.nextFlyingCardIndex = (index + 1) % viewCount;
+				return view;
+			}
+		}
 
 		const view = this.scene.add
 			.image(0, 0, this.options.cardBackTextureKey)
@@ -102,6 +109,7 @@ export class DealerAnimation {
 			.setVisible(false)
 			.setActive(false);
 		this.flyingCardViews.push(view);
+		this.nextFlyingCardIndex = 0;
 		this.layer.add(view);
 		return view;
 	}
