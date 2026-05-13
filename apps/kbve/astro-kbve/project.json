@@ -74,6 +74,13 @@
 				"parallel": false
 			}
 		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "vitest run --config vitest.config.ts"
+			}
+		},
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {
