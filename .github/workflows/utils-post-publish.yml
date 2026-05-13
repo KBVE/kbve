@@ -40,6 +40,17 @@ on:
                 description: 'PAT for pushing atom branches'
                 required: true
 
+# Serialize post-publish runs. Multiple crate releases firing in
+# parallel would each rebase Cargo.lock from the same pre-publish dev
+# HEAD, and even though each touches a different `[[package]]` block
+# the 3-way merge can fail when transitive deps shift adjacent lines.
+# Queuing keeps each atom branch based on dev that already contains
+# the prior post-publish, eliminating the race for Cargo.lock and
+# version.toml history.
+concurrency:
+    group: post-publish
+    cancel-in-progress: false
+
 jobs:
     update:
         name: Post-publish v${{ inputs.version }}
