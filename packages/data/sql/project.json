@@ -1,0 +1,51 @@
+{
+	"name": "data-sql",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/data/sql",
+	"tags": ["scope:data", "type:sql"],
+	"targets": {
+		"dev-up": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f dev-docker-compose.yml up -d postgres",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"dev-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f dev-docker-compose.yml down",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"dev-reset": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f dev-docker-compose.yml down -v && docker compose -f dev-docker-compose.yml up -d postgres",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"migrate-up": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "dbmate --no-dump-schema --migrations-dir migrations up",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"migrate-status": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "dbmate --no-dump-schema --migrations-dir migrations status",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"test-migration": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./test-migration.sh",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		}
+	}
+}
