@@ -10,6 +10,11 @@ metadata:
         # picks up the new kube-apiserver cert. Without this, a rotation
         # silently 502s the /dashboard/vm/* paths until manual restart.
         configmap.reloader.stakater.com/reload: 'kube-root-ca.crt'
+        # Restart on supabase-shared rotation so the wallet diesel pool
+        # picks up the new Postgres password. Without this the pool holds
+        # stale creds and `/api/v1/wallet/*` starts 5xx-ing until manual
+        # restart on every CNPG password rotation.
+        secret.reloader.stakater.com/reload: 'supabase-shared'
 spec:
     replicas: 1
     strategy:
@@ -23,7 +28,7 @@ spec:
     template:
         metadata:
             annotations:
-                rollout-restart: '2026-01-31T17:38:01Z'
+                rollout-restart: '2026-05-13T12:00:00Z'
             labels:
                 app: kbve
                 version: '1.0.22'
@@ -175,6 +180,19 @@ spec:
                                 key: password
                       - name: CLICKHOUSE_DATABASE
                         value: 'observability'
+                      # Wallet diesel pool — points at the Supabase Postgres
+                      # primary as the `postgres` superuser so SECURITY
+                      # DEFINER chains in the `wallet` schema resolve
+                      # cleanly. Required for /api/v1/wallet/* routes; if
+                      # unset, init_wallet_client warn-logs and the routes
+                      # return 503. db-url comes from the existing
+                      # supabase-shared ExternalSecret (see
+                      # kbve-externalsecret.yaml).
+                      - name: WALLET_DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
