@@ -102,7 +102,7 @@
 				},
 				"ci": {
 					"commands": [
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile .",
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max,image-manifest=true,oci-mediatypes=true .",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
 				}
