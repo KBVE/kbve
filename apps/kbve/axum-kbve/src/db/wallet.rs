@@ -1,32 +1,27 @@
-//! WalletClient registry — boots once at startup, returned to handlers via
-//! a `OnceLock`-backed getter (same pattern as the forum / mc / profile
-//! services in this crate). Heavy state stays out of `AppState`.
-
-use std::sync::OnceLock;
+use tokio::sync::OnceCell;
 
 use kbve::wallet::WalletClient;
 
-static WALLET_CLIENT: OnceLock<Option<WalletClient>> = OnceLock::new();
+static WALLET_CLIENT: OnceCell<Option<WalletClient>> = OnceCell::const_new();
 
-/// Build the wallet client from env (`WALLET_DATABASE_URL` with
-/// `DATABASE_URL_PROD` fallback). Returns `true` if the client is live.
-///
-/// Idempotent — subsequent calls return the cached result.
-pub fn init_wallet_client() -> bool {
+pub async fn init_wallet_client() -> bool {
     WALLET_CLIENT
-        .get_or_init(|| match WalletClient::from_env() {
-            Ok(client) => {
-                tracing::info!("WalletClient initialized");
-                Some(client)
-            }
-            Err(e) => {
-                tracing::warn!(
-                    error = %e,
-                    "WalletClient disabled: failed to build pool"
-                );
-                None
+        .get_or_init(|| async {
+            match WalletClient::from_env().await {
+                Ok(client) => {
+                    tracing::info!("WalletClient initialized");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "WalletClient disabled: failed to build pool"
+                    );
+                    None
+                }
             }
         })
+        .await
         .is_some()
 }
 

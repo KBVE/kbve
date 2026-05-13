@@ -1,27 +1,13 @@
-//! Authenticated-user wallet operations.
-//!
-//! Mirrors the `public.proxy_wallet_*` functions. Each call sets
-//! `request.jwt.claims` for the session so `auth.uid()` resolves to the
-//! caller's user id; this lets the SECURITY DEFINER proxy land in the right
-//! account.
-//!
-//! Note: the connection role still authenticates as `service_role` (or
-//! superuser) — we are not switching roles, just shimming the JWT claim
-//! that the proxy functions read with `auth.uid()`.
-
 use chrono::{DateTime, Utc};
-use diesel::prelude::*;
+use diesel::QueryableByName;
 use diesel::sql_query;
 use diesel::sql_types::{BigInt, Bool, Jsonb, Nullable, Text, Timestamptz};
+use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use super::client::{WalletClient, WalletConn};
+use super::client::{WalletClient, set_user_claims};
 use super::error::{Result, WalletError};
 use super::types::*;
-
-// ---------------------------------------------------------------------------
-// QueryableByName rows
-// ---------------------------------------------------------------------------
 
 #[derive(QueryableByName)]
 struct BalanceRowDb {
@@ -69,49 +55,53 @@ struct RedeemRowDb {
     ledger_id: i64,
 }
 
-// ---------------------------------------------------------------------------
-// User-facing proxy operations
-// ---------------------------------------------------------------------------
-
 impl WalletClient {
-    /// `public.proxy_wallet_get_balance()` — returns the caller's balance.
-    /// Lazily provisions the account + welcome coupon on first call.
     pub async fn user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
-        self.run_as_user(user_id, |conn| balance_blocking(conn))
+        let mut conn = self.conn().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<BalanceRow, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                balance_async(conn).await
+            })
             .await
     }
 
-    /// `public.proxy_wallet_list_coupons()` — returns the caller's coupons.
     pub async fn user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
-        self.run_as_user(user_id, |conn| coupons_blocking(conn))
+        let mut conn = self.conn().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<Vec<CouponSummary>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                coupons_async(conn).await
+            })
             .await
     }
 
-    /// `public.proxy_wallet_redeem_coupon(coupon_id, idempotency_key)` —
-    /// auth-checked ownership + idempotent at the coupon layer.
     pub async fn user_redeem_coupon(
         &self,
         user_id: Uuid,
         coupon_id: i64,
         idempotency_key: Uuid,
     ) -> Result<RedeemResult> {
-        self.run_as_user(user_id, move |conn| {
-            redeem_blocking(conn, coupon_id, idempotency_key)
-        })
-        .await
+        let mut conn = self.conn().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<RedeemResult, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                redeem_async(conn, coupon_id, idempotency_key).await
+            })
+            .await
     }
 }
 
-// ---------------------------------------------------------------------------
-// Blocking implementations
-// ---------------------------------------------------------------------------
-
-fn balance_blocking(conn: &mut WalletConn) -> Result<BalanceRow> {
+async fn balance_async(conn: &mut AsyncPgConnection) -> Result<BalanceRow> {
     let row: BalanceRowDb = sql_query(
         "SELECT account_id, credits, khash, updated_at \
          FROM public.proxy_wallet_get_balance()",
     )
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
 
     Ok(BalanceRow {
@@ -122,7 +112,7 @@ fn balance_blocking(conn: &mut WalletConn) -> Result<BalanceRow> {
     })
 }
 
-fn coupons_blocking(conn: &mut WalletConn) -> Result<Vec<CouponSummary>> {
+async fn coupons_async(conn: &mut AsyncPgConnection) -> Result<Vec<CouponSummary>> {
     let rows: Vec<CouponSummaryDb> = sql_query(
         "SELECT coupon_id, template_code, template_label, \
                 reward_kind::text AS reward_kind, reward_payload, \
@@ -130,6 +120,7 @@ fn coupons_blocking(conn: &mut WalletConn) -> Result<Vec<CouponSummary>> {
          FROM public.proxy_wallet_list_coupons()",
     )
     .get_results(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
 
     rows.into_iter()
@@ -155,8 +146,8 @@ fn coupons_blocking(conn: &mut WalletConn) -> Result<Vec<CouponSummary>> {
         .collect()
 }
 
-fn redeem_blocking(
-    conn: &mut WalletConn,
+async fn redeem_async(
+    conn: &mut AsyncPgConnection,
     coupon_id: i64,
     idempotency_key: Uuid,
 ) -> Result<RedeemResult> {
@@ -167,6 +158,7 @@ fn redeem_blocking(
     .bind::<BigInt, _>(coupon_id)
     .bind::<diesel::sql_types::Uuid, _>(idempotency_key)
     .get_result(conn)
+    .await
     .map_err(WalletError::from_diesel)?;
 
     let reward_kind = RewardKind::from_pg(&row.reward_kind).ok_or_else(|| {
