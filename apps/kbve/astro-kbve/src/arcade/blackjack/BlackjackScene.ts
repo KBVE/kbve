@@ -119,6 +119,7 @@ export class BlackjackScene extends Phaser.Scene {
 			shoePosition: SHOE_POSITION,
 			duration: DEAL_ANIMATION.duration,
 			stagger: DEAL_ANIMATION.stagger,
+			enabled: !this.prefersReducedMotion(),
 		});
 		this.hudLayer = this.add.container(0, 0).setDepth(20);
 		this.createHud();
@@ -339,6 +340,13 @@ export class BlackjackScene extends Phaser.Scene {
 	private changeBet(delta: number) {
 		this.state.bet = clampBet(this.state.bet + delta, this.state.bankroll);
 		this.state.message = `Bet set to $${this.state.bet}.`;
+	}
+
+	private prefersReducedMotion(): boolean {
+		return (
+			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ??
+			false
+		);
 	}
 
 	private render() {
