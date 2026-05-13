@@ -139,7 +139,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     else \
         echo "sccache: Redis password not provided, falling back to local disk cache"; \
     fi && \
-    cargo chef cook --release --recipe-path recipe.json -p axum-kbve && \
+    cargo chef cook --profile release-ci --recipe-path recipe.json -p axum-kbve && \
     (sccache --show-stats || true)
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
@@ -175,7 +175,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker && \
+    cargo build --profile release-ci -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker && \
     (sccache --show-stats || true)
 
 # ============================================================================
@@ -215,16 +215,16 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p axum-kbve --features jemalloc && \
+    cargo build --profile release-ci -p axum-kbve --features jemalloc && \
     (sccache --show-stats || true) && \
-    strip target/release/axum-kbve
+    strip target/release-ci/axum-kbve
 
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-kbve
+COPY --from=builder --chown=10001:10001 /app/target/release-ci/axum-kbve /app/axum-kbve
 
 # Ship Cargo.toml alongside the binary so `/health` reports the version
 # that was current when *this image* was built. CI's pre-build sync step
