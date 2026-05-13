@@ -1,24 +1,11 @@
-//! Integration tests against a real Postgres with the wallet schema applied.
-//!
-//! Set `WALLET_TEST_DATABASE_URL` to a connection string pointing at a DB
-//! with all migrations through `20260511104220_wallet_schema_init` applied.
-//! Tests are skipped when the env var is unset so CI can opt in.
-//!
-//! Run:
-//!
-//! ```bash
-//! WALLET_TEST_DATABASE_URL="postgres://postgres:postgres@localhost:54322/postgres" \
-//!   cargo test -p kbve --features wallet -- --include-ignored
-//! ```
-
 #![cfg(test)]
 
 use std::env;
 
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
+use diesel::QueryableByName;
 use diesel::sql_query;
 use diesel::sql_types::Text;
+use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use serial_test::serial;
 use uuid::Uuid;
 
@@ -29,43 +16,40 @@ use super::{
 
 const TEST_URL_ENV: &str = "WALLET_TEST_DATABASE_URL";
 
-fn client() -> Option<WalletClient> {
+async fn client() -> Option<WalletClient> {
     let url = env::var(TEST_URL_ENV).ok()?;
     env::set_var("WALLET_DATABASE_URL", &url);
-    Some(WalletClient::from_env().expect("client from_env"))
+    Some(WalletClient::from_env().await.expect("client from_env"))
 }
 
-/// Direct (non-pool) admin connection for seeding fixtures.
-fn admin_conn() -> Option<PgConnection> {
+async fn admin_conn() -> Option<AsyncPgConnection> {
     let url = env::var(TEST_URL_ENV).ok()?;
-    PgConnection::establish(&url).ok()
+    AsyncPgConnection::establish(&url).await.ok()
 }
 
-/// Create a fresh `auth.users` row + wallet account, return both UUIDs.
-/// Bypasses the proxy provisioning path so individual ops are testable
-/// in isolation.
-fn fixture_account() -> Option<(Uuid, Uuid)> {
-    let mut conn = admin_conn()?;
+async fn fixture_account() -> Option<(Uuid, Uuid)> {
+    let mut conn = admin_conn().await?;
     let user_id = Uuid::new_v4();
     sql_query("INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind::<diesel::sql_types::Uuid, _>(user_id)
         .execute(&mut conn)
+        .await
         .expect("insert auth.users");
-    let row: diesel::sql_types::Uuid;
     #[derive(QueryableByName)]
     struct R {
         #[diesel(sql_type = diesel::sql_types::Uuid)]
         id: Uuid,
     }
-    let _ = row;
     let r: R =
         sql_query("INSERT INTO wallet.account (kind, user_id) VALUES ('user', $1) RETURNING id")
             .bind::<diesel::sql_types::Uuid, _>(user_id)
             .get_result(&mut conn)
+            .await
             .expect("insert wallet.account");
     sql_query("INSERT INTO wallet.balance (account_id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind::<diesel::sql_types::Uuid, _>(r.id)
         .execute(&mut conn)
+        .await
         .expect("insert wallet.balance");
     Some((user_id, r.id))
 }
@@ -86,11 +70,11 @@ fn req_credit(account: Uuid, amount: i64, key: Uuid) -> CreditRequest {
 #[tokio::test]
 #[serial]
 async fn credit_then_replay_returns_same_ledger_id() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         eprintln!("SKIP: WALLET_TEST_DATABASE_URL unset");
         return;
     };
-    let (_user, account) = fixture_account().expect("fixture");
+    let (_user, account) = fixture_account().await.expect("fixture");
     let key = Uuid::new_v4();
 
     let id1 = client.credit(req_credit(account, 100, key)).await.unwrap();
@@ -101,10 +85,10 @@ async fn credit_then_replay_returns_same_ledger_id() {
 #[tokio::test]
 #[serial]
 async fn credit_replay_with_different_payload_raises_replay_mismatch() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let (_user, account) = fixture_account().expect("fixture");
+    let (_user, account) = fixture_account().await.expect("fixture");
     let key = Uuid::new_v4();
 
     client.credit(req_credit(account, 100, key)).await.unwrap();
@@ -118,10 +102,10 @@ async fn credit_replay_with_different_payload_raises_replay_mismatch() {
 #[tokio::test]
 #[serial]
 async fn debit_beyond_balance_raises_insufficient_funds() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let (_user, account) = fixture_account().expect("fixture");
+    let (_user, account) = fixture_account().await.expect("fixture");
 
     client
         .credit(req_credit(account, 50, Uuid::new_v4()))
@@ -148,11 +132,11 @@ async fn debit_beyond_balance_raises_insufficient_funds() {
 #[tokio::test]
 #[serial]
 async fn transfer_moves_funds_atomically() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let (_user_a, account_a) = fixture_account().expect("fixture a");
-    let (_user_b, account_b) = fixture_account().expect("fixture b");
+    let (_user_a, account_a) = fixture_account().await.expect("fixture a");
+    let (_user_b, account_b) = fixture_account().await.expect("fixture b");
 
     client
         .credit(req_credit(account_a, 500, Uuid::new_v4()))
@@ -186,16 +170,16 @@ async fn transfer_moves_funds_atomically() {
 #[tokio::test]
 #[serial]
 async fn welcome_redeem_flow_via_user_proxy() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let mut conn = admin_conn().unwrap();
+    let mut conn = admin_conn().await.unwrap();
 
-    // Fresh user; let proxy provision the account + welcome coupon.
     let user_id = Uuid::new_v4();
     sql_query("INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind::<diesel::sql_types::Uuid, _>(user_id)
         .execute(&mut conn)
+        .await
         .unwrap();
 
     let bal = client.user_balance(user_id).await.unwrap();
@@ -216,7 +200,6 @@ async fn welcome_redeem_flow_via_user_proxy() {
         .unwrap();
     assert!(r1.success);
 
-    // Replay returns the same ledger id.
     let r2 = client
         .user_redeem_coupon(user_id, welcome.coupon_id, key)
         .await
@@ -230,13 +213,12 @@ async fn welcome_redeem_flow_via_user_proxy() {
 #[tokio::test]
 #[serial]
 async fn revoke_unredeemed_coupon_succeeds() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let (_user, account) = fixture_account().expect("fixture");
-    let mut conn = admin_conn().unwrap();
+    let (_user, account) = fixture_account().await.expect("fixture");
+    let mut conn = admin_conn().await.unwrap();
 
-    // Seed a one-off template + instance so we don't touch WELCOME_KHASH.
     let template_code = format!("TEST_REVOKE_{}", Uuid::new_v4().simple());
     sql_query(
         "INSERT INTO wallet.coupon_template (code, label, reward_kind, reward_payload) \
@@ -244,6 +226,7 @@ async fn revoke_unredeemed_coupon_succeeds() {
     )
     .bind::<Text, _>(&template_code)
     .execute(&mut conn)
+    .await
     .unwrap();
 
     #[derive(QueryableByName)]
@@ -258,6 +241,7 @@ async fn revoke_unredeemed_coupon_succeeds() {
     .bind::<diesel::sql_types::Uuid, _>(account)
     .bind::<Text, _>(&template_code)
     .get_result(&mut conn)
+    .await
     .unwrap();
 
     let revoked = client
@@ -266,7 +250,6 @@ async fn revoke_unredeemed_coupon_succeeds() {
         .unwrap();
     assert!(revoked);
 
-    // Second call: already revoked → false, no raise.
     let again = client.revoke_coupon(r.id, None).await.unwrap();
     assert!(!again);
 }
@@ -274,17 +257,14 @@ async fn revoke_unredeemed_coupon_succeeds() {
 #[tokio::test]
 #[serial]
 async fn null_currency_raises_null_argument() {
-    let Some(client) = client() else {
+    let Some(client) = client().await else {
         return;
     };
-    let (_user, account) = fixture_account().expect("fixture");
+    let (_user, account) = fixture_account().await.expect("fixture");
 
-    // We can't pass NULL through our typed CreditRequest, so smoke-test the
-    // SQL-level guard by calling debit with a fresh account that has no
-    // balance row — service_debit raises insufficient_funds (53100).
     let err = client
         .debit(DebitRequest {
-            account_id: Uuid::new_v4(), // non-existent
+            account_id: Uuid::new_v4(),
             currency: CurrencyKind::Credits,
             amount: 1,
             source_kind: SourceKind::Admin,

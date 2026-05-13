@@ -1,11 +1,13 @@
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use diesel::r2d2::{self, ConnectionManager};
 use std::env;
 use std::fs;
 use std::result::Result;
 
-pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+use diesel_async::AsyncPgConnection;
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::pooled_connection::bb8::{Pool as Bb8Pool, PooledConnection as Bb8Conn};
+
+pub type Pool = Bb8Pool<AsyncPgConnection>;
+pub type PooledConn<'a> = Bb8Conn<'a, AsyncPgConnection>;
 
 fn get_env_var(name: &str) -> Result<String, String> {
     match env::var(name) {
@@ -21,26 +23,27 @@ fn get_env_var(name: &str) -> Result<String, String> {
     }
 }
 
-pub fn establish_connection_dev() -> Result<PgConnection, String> {
-    establish_connection_generic("DATABASE_URL_DEV")
-}
-pub fn establish_connection_prod() -> Result<PgConnection, String> {
-    establish_connection_generic("DATABASE_URL_PROD")
+pub async fn establish_connection_dev() -> Result<AsyncPgConnection, String> {
+    establish_connection_generic("DATABASE_URL_DEV").await
 }
 
-fn establish_connection_generic(env_var: &str) -> Result<PgConnection, String> {
+pub async fn establish_connection_prod() -> Result<AsyncPgConnection, String> {
+    establish_connection_generic("DATABASE_URL_PROD").await
+}
+
+async fn establish_connection_generic(env_var: &str) -> Result<AsyncPgConnection, String> {
+    use diesel_async::AsyncConnection;
     let database_url = get_env_var(env_var)?;
-    PgConnection::establish(&database_url)
+    AsyncPgConnection::establish(&database_url)
+        .await
         .map_err(|err| format!("Error connecting to {}: {}", database_url, err))
 }
 
-pub fn establish_connection_pool() -> Pool {
-    let database_url =
-        get_env_var("DATABASE_URL_PROD").expect("DATABASE_URL_PROD must be set for production");
-
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-
-    r2d2::Pool::builder()
+pub async fn establish_connection_pool() -> Result<Pool, String> {
+    let database_url = get_env_var("DATABASE_URL_PROD")?;
+    let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
+    Bb8Pool::builder()
         .build(manager)
-        .expect("Failed to create the database connection pool")
+        .await
+        .map_err(|e| format!("Failed to create the database connection pool: {e}"))
 }

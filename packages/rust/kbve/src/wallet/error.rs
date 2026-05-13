@@ -46,9 +46,6 @@ pub enum WalletError {
     #[error("pool error: {0}")]
     Pool(String),
 
-    #[error("blocking task join error: {0}")]
-    Join(String),
-
     #[error(transparent)]
     Db(#[from] DieselError),
 }
@@ -134,15 +131,15 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     None
 }
 
-impl From<r2d2::Error> for WalletError {
-    fn from(e: r2d2::Error) -> Self {
+impl From<bb8::RunError<diesel_async::pooled_connection::PoolError>> for WalletError {
+    fn from(e: bb8::RunError<diesel_async::pooled_connection::PoolError>) -> Self {
         WalletError::Pool(e.to_string())
     }
 }
 
-impl From<tokio::task::JoinError> for WalletError {
-    fn from(e: tokio::task::JoinError) -> Self {
-        WalletError::Join(e.to_string())
+impl From<diesel_async::pooled_connection::PoolError> for WalletError {
+    fn from(e: diesel_async::pooled_connection::PoolError) -> Self {
+        WalletError::Pool(e.to_string())
     }
 }
 

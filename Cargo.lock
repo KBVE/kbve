@@ -5137,9 +5137,9 @@ dependencies = [
 
 [[package]]
 name = "diesel"
-version = "2.3.7"
+version = "2.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4ae09a41a4b89f94ec1e053623da8340d996bc32c6517d325a9daad9b239358"
+checksum = "9940fb8467a0a06312218ed384185cb8536aa10d8ec017d0ce7fad2c1bd882d5"
 dependencies = [
  "bitflags 2.11.0",
  "byteorder",
@@ -5151,6 +5151,21 @@ dependencies = [
  "r2d2",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "diesel-async"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c20ddcc6737cecdaef3dfecb2796bdfe3002456521189d30be8e4c5a1bc821d"
+dependencies = [
+ "bb8",
+ "diesel",
+ "futures-core",
+ "futures-util",
+ "pin-project-lite",
+ "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]
@@ -6097,7 +6112,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "firecracker-ctl"
-version = "0.1.32"
+version = "0.1.33"
 dependencies = [
  "axum 0.8.9",
  "dashmap 6.1.0",
@@ -8775,10 +8790,13 @@ dependencies = [
  "async-trait",
  "axum 0.8.9",
  "axum-extra",
+ "bb8",
  "chrono",
  "dashmap 6.1.0",
  "diesel",
+ "diesel-async",
  "dotenvy",
+ "futures-util",
  "holy",
  "jedi",
  "jsonwebtoken 10.3.0",

@@ -397,7 +397,7 @@ fn wallet_error_response(err: WalletError) -> Response {
         WalletError::CouponNotRedeemable(_) => (StatusCode::FORBIDDEN, "coupon_not_redeemable"),
         WalletError::CouponExpired => (StatusCode::FORBIDDEN, "coupon_expired"),
         WalletError::Unimplemented(_) => (StatusCode::NOT_IMPLEMENTED, "unimplemented"),
-        WalletError::Pool(_) | WalletError::Join(_) | WalletError::Db(_) => {
+        WalletError::Pool(_) | WalletError::Db(_) => {
             // Log the raw error server-side, send a generic message to the client.
             tracing::error!(error = %err, "wallet upstream failure");
             (StatusCode::INTERNAL_SERVER_ERROR, "internal")
