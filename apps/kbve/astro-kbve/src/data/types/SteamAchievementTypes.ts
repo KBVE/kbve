@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 
 export const AchievementSetByValues = ['Client', 'GS', 'OfficialGS'] as const;
 export type AchievementSetBy = (typeof AchievementSetByValues)[number];
