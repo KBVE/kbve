@@ -42,6 +42,8 @@ const RANKS = [
 const RANK_MASK = 0b1111;
 const SUIT_MASK = 0b11;
 const SUIT_SHIFT = 4;
+const CARD_BYTE_MASK = 0b111111;
+const CARDS_PER_DECK = SUITS.length * RANKS.length;
 const RANK_POINTS = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10] as const;
 
 export const SUIT_GLYPH: Record<Suit, string> = {
@@ -75,11 +77,13 @@ export function cardId(card: Card): string {
 }
 
 export function buildShoe(decks: number): Card[] {
-	const shoe: Card[] = [];
+	const shoe = new Array<Card>(decks * CARDS_PER_DECK);
+	let index = 0;
 	for (let deck = 0; deck < decks; deck++) {
-		for (const suit of SUITS) {
-			for (const rank of RANKS) {
-				shoe.push(encodeCard(suit, rank));
+		for (let suitIndex = 0; suitIndex < SUITS.length; suitIndex++) {
+			for (let rankIndex = 0; rankIndex < RANKS.length; rankIndex++) {
+				shoe[index] = (suitIndex << SUIT_SHIFT) | rankIndex;
+				index++;
 			}
 		}
 	}
@@ -103,7 +107,8 @@ export function valueHand(cards: readonly Card[]): HandValue {
 	let total = 0;
 	let aces = 0;
 
-	for (const card of cards) {
+	for (let i = 0; i < cards.length; i++) {
+		const card = cards[i];
 		total += cardPoints(card);
 		if ((card & RANK_MASK) === 0) aces++;
 	}
@@ -121,4 +126,22 @@ export function valueHand(cards: readonly Card[]): HandValue {
 
 export function isBlackjack(cards: readonly Card[]): boolean {
 	return cards.length === 2 && valueHand(cards).total === 21;
+}
+
+export function handFingerprint(cards: readonly Card[]): number {
+	let fingerprint = cards.length & 0xff;
+	const packedCards = Math.min(cards.length, 4);
+
+	for (let i = 0; i < packedCards; i++) {
+		fingerprint |= (cards[i] & CARD_BYTE_MASK) << (8 + i * 6);
+	}
+
+	for (let i = packedCards; i < cards.length; i++) {
+		fingerprint = Math.imul(
+			fingerprint ^ (cards[i] & CARD_BYTE_MASK),
+			16777619,
+		);
+	}
+
+	return fingerprint >>> 0;
 }
