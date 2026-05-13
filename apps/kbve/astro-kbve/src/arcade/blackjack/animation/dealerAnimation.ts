@@ -41,6 +41,8 @@ export class DealerAnimation {
 		this.previousDealerCardCount = dealerCards.length;
 		this.previousPlayerCardCount = playerCards.length;
 
+		if (!this.options.enabled) return;
+
 		const newCards: CardPlacement[] = [];
 		if (dealerCards.length > previousDealerCount) {
 			newCards.push(...dealerCards.slice(previousDealerCount));
@@ -48,7 +50,7 @@ export class DealerAnimation {
 		if (playerCards.length > previousPlayerCount) {
 			newCards.push(...playerCards.slice(previousPlayerCount));
 		}
-		if (!this.options.enabled || newCards.length === 0) return;
+		if (newCards.length === 0) return;
 
 		newCards
 			.sort(
