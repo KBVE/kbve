@@ -522,38 +522,45 @@ ALTER FUNCTION wallet.service_verify_balance(UUID) OWNER TO service_role;
 -- AUTHENTICATED USER PROXIES (public.*)
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION wallet.proxy_ensure_user_account()
+-- JWT-free worker — takes user_id explicitly so it can be called from
+-- triggers and admin repair scripts as well as from the JWT-aware proxy.
+-- Idempotent. Provisions account + balance row + welcome coupon.
+CREATE OR REPLACE FUNCTION wallet.ensure_user_account(p_user_id UUID)
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_user_id      UUID := auth.uid();
     v_account_id   UUID;
     v_template_id  BIGINT;
     v_default_exp  INTERVAL;
     v_now          TIMESTAMPTZ := statement_timestamp();
 BEGIN
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '28000';
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'p_user_id required' USING ERRCODE = '22023';
     END IF;
 
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('wallet.proxy_ensure_user_account:' || v_user_id::TEXT, 0)
+        hashtextextended('wallet.ensure_user_account:' || p_user_id::TEXT, 0)
     );
 
     SELECT id INTO v_account_id
-    FROM wallet.account WHERE kind = 'user' AND user_id = v_user_id;
+    FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
     IF v_account_id IS NOT NULL THEN
         RETURN v_account_id;
     END IF;
 
     INSERT INTO wallet.account (kind, user_id, label, created_at)
-    VALUES ('user', v_user_id, NULL, v_now)
+    VALUES ('user', p_user_id, NULL, v_now)
     ON CONFLICT (user_id) WHERE kind = 'user' DO NOTHING
     RETURNING id INTO v_account_id;
 
     IF v_account_id IS NULL THEN
         SELECT id INTO v_account_id
-        FROM wallet.account WHERE kind = 'user' AND user_id = v_user_id;
+        FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
+    END IF;
+
+    IF v_account_id IS NULL THEN
+        RAISE EXCEPTION 'failed to provision wallet account for user %', p_user_id
+            USING ERRCODE = '23514';
     END IF;
 
     INSERT INTO wallet.balance (account_id) VALUES (v_account_id)
@@ -574,9 +581,57 @@ BEGIN
     RETURN v_account_id;
 END;
 $$;
+REVOKE ALL ON FUNCTION wallet.ensure_user_account(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wallet.ensure_user_account(UUID) TO service_role;
+ALTER FUNCTION wallet.ensure_user_account(UUID) OWNER TO service_role;
+
+COMMENT ON FUNCTION wallet.ensure_user_account(UUID) IS
+    'Idempotently provisions a wallet account, balance row, and optional welcome coupon for a given auth user. Intended for service_role, triggers, and admin repair jobs.';
+
+-- Thin auth.uid() wrapper around the worker. Existing RPC contract for
+-- the /me/* PostgREST surface is preserved.
+CREATE OR REPLACE FUNCTION wallet.proxy_ensure_user_account()
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_user_id UUID := auth.uid();
+BEGIN
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '28000';
+    END IF;
+    RETURN wallet.ensure_user_account(v_user_id);
+END;
+$$;
 REVOKE ALL ON FUNCTION wallet.proxy_ensure_user_account() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION wallet.proxy_ensure_user_account() TO authenticated, service_role;
 ALTER FUNCTION wallet.proxy_ensure_user_account() OWNER TO service_role;
+
+COMMENT ON FUNCTION wallet.proxy_ensure_user_account() IS
+    'Authenticated RPC wrapper around wallet.ensure_user_account(auth.uid()).';
+
+-- Trigger function: fires after each auth.users INSERT and provisions
+-- the wallet account + welcome coupon. Wrapped in EXCEPTION so wallet
+-- failure never blocks signup; the JWT-aware proxy remains as a fallback
+-- in /me/* paths to repair any user whose trigger run was lost.
+CREATE OR REPLACE FUNCTION wallet.handle_auth_user_created()
+RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    BEGIN
+        PERFORM wallet.ensure_user_account(NEW.id);
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING 'wallet.handle_auth_user_created failed for user %: %', NEW.id, SQLERRM;
+    END;
+    RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION wallet.handle_auth_user_created() FROM PUBLIC, anon, authenticated;
+ALTER FUNCTION wallet.handle_auth_user_created() OWNER TO service_role;
+
+DROP TRIGGER IF EXISTS wallet_on_auth_user_created ON auth.users;
+CREATE TRIGGER wallet_on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION wallet.handle_auth_user_created();
 
 CREATE OR REPLACE FUNCTION public.proxy_wallet_get_balance()
 RETURNS TABLE (
@@ -668,6 +723,129 @@ $$;
 REVOKE ALL ON FUNCTION public.proxy_wallet_redeem_coupon(BIGINT, UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_wallet_redeem_coupon(BIGINT, UUID) TO authenticated, service_role;
 ALTER FUNCTION public.proxy_wallet_redeem_coupon(BIGINT, UUID) OWNER TO service_role;
+
+-- ============================================================================
+-- READ-ONLY PROXIES (public.*_readonly)
+-- ============================================================================
+-- Replica-safe variants for the CNPG supabase-cluster-pooler-ro endpoint.
+-- Do NOT call wallet.proxy_ensure_user_account; the Rust WalletClient
+-- falls back to the rw write-path proxy on SQLSTATE WLT01.
+--
+-- Error contract:
+--   WLT01 'wallet_account_missing'   — caller has no wallet account row
+--   WLT01 'wallet_balance_missing'   — account exists, balance row missing
+--   WLT02 'wallet_account_duplicate' — broken wallet_account_user_uq invariant
+--
+-- WLT01 triggers RW fallback; WLT02 surfaces as 500 (data corruption).
+-- SECURITY DEFINER intentionally scopes access by auth.uid(); RLS is not
+-- the authorization boundary for these proxy functions.
+
+CREATE OR REPLACE FUNCTION public.proxy_wallet_get_balance_readonly()
+RETURNS TABLE (
+    account_id  UUID,
+    credits     BIGINT,
+    khash       BIGINT,
+    updated_at  TIMESTAMPTZ
+)
+LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
+DECLARE
+    v_user_id    UUID := auth.uid();
+    v_account_id UUID;
+BEGIN
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '28000';
+    END IF;
+
+    BEGIN
+        SELECT a.id INTO STRICT v_account_id
+          FROM wallet.account a
+         WHERE a.kind = 'user' AND a.user_id = v_user_id;
+    EXCEPTION
+        WHEN no_data_found THEN
+            RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+        WHEN too_many_rows THEN
+            RAISE EXCEPTION 'wallet_account_duplicate' USING ERRCODE = 'WLT02';
+    END;
+
+    RETURN QUERY
+    SELECT b.account_id, b.credits, b.khash, b.updated_at
+      FROM wallet.balance b
+     WHERE b.account_id = v_account_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'wallet_balance_missing' USING ERRCODE = 'WLT01';
+    END IF;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.proxy_wallet_get_balance_readonly() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_wallet_get_balance_readonly() TO authenticated, service_role;
+ALTER FUNCTION public.proxy_wallet_get_balance_readonly() OWNER TO service_role;
+
+COMMENT ON FUNCTION public.proxy_wallet_get_balance_readonly() IS
+    'Read-only balance fetch. Raises SQLSTATE WLT01 (wallet_account_missing or wallet_balance_missing) when repair is needed; WLT02 (wallet_account_duplicate) on a broken uniqueness invariant.';
+
+-- Paged coupon list. Keyset cursor on (granted_at DESC, id DESC) matches
+-- wallet_coupon_account_granted_idx. All args have defaults so no-arg
+-- callers (current Rust client) work unchanged.
+CREATE OR REPLACE FUNCTION public.proxy_wallet_list_coupons_readonly(
+    p_limit             INTEGER DEFAULT 50,
+    p_before_granted_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_id         BIGINT DEFAULT NULL
+)
+RETURNS TABLE (
+    coupon_id      BIGINT,
+    template_code  TEXT,
+    template_label TEXT,
+    reward_kind    wallet.reward_kind,
+    reward_payload JSONB,
+    status         wallet.coupon_status,
+    granted_at     TIMESTAMPTZ,
+    expires_at     TIMESTAMPTZ,
+    redeemed_at    TIMESTAMPTZ
+)
+LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
+DECLARE
+    v_user_id    UUID := auth.uid();
+    v_account_id UUID;
+    v_limit      INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+BEGIN
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '28000';
+    END IF;
+
+    BEGIN
+        SELECT a.id INTO STRICT v_account_id
+          FROM wallet.account a
+         WHERE a.kind = 'user' AND a.user_id = v_user_id;
+    EXCEPTION
+        WHEN no_data_found THEN
+            RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+        WHEN too_many_rows THEN
+            RAISE EXCEPTION 'wallet_account_duplicate' USING ERRCODE = 'WLT02';
+    END;
+
+    RETURN QUERY
+    SELECT
+        c.id, t.code, t.label, t.reward_kind, t.reward_payload,
+        c.status, c.granted_at, c.expires_at, c.redeemed_at
+      FROM wallet.coupon c
+      JOIN wallet.coupon_template t ON t.id = c.template_id
+     WHERE c.account_id = v_account_id
+       AND (
+           p_before_granted_at IS NULL
+           OR c.granted_at < p_before_granted_at
+           OR (c.granted_at = p_before_granted_at AND c.id < p_before_id)
+       )
+     ORDER BY c.granted_at DESC, c.id DESC
+     LIMIT v_limit;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+ALTER FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+
+COMMENT ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'Read-only paged coupon list. Keyset pagination on (granted_at DESC, id DESC). Limit clamped to [1, 100], default 50. Raises SQLSTATE WLT01 (wallet_account_missing) when the caller has no wallet account; the client falls back to the rw pool.';
 
 -- PostgREST schema cache refresh after the public.* surface lands.
 NOTIFY pgrst, 'reload schema';
