@@ -1,0 +1,69 @@
+{
+	"include": [
+		"kbve.vm.VmSpec",
+		"kbve.vm.VmInfo",
+		"kbve.vm.VmResult",
+		"kbve.vm.VmUsageEvent",
+		"kbve.vm.VmRateCard",
+		"kbve.vm.VmCharge",
+		"kbve.vm.VmCostQuote"
+	],
+
+	"preamble": ["export const UUIDSchema = z.string().min(1).max(64);"],
+
+	"enums": {
+		"kbve.vm.VmStatus": {
+			"mode": "const_array",
+			"stripPrefix": "VM_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.vm.VmExitReason": {
+			"mode": "const_array",
+			"stripPrefix": "VM_EXIT_REASON_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.vm.ChargeOutcome": {
+			"mode": "const_array",
+			"stripPrefix": "CHARGE_OUTCOME_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "VmStatuses",
+			"sourceEnum": "kbve.vm.VmStatus",
+			"typeName": "VmStatusValue",
+			"zodSchemaName": "VmStatusSchema"
+		},
+		{
+			"name": "VmExitReasons",
+			"sourceEnum": "kbve.vm.VmExitReason",
+			"typeName": "VmExitReasonValue",
+			"zodSchemaName": "VmExitReasonSchema"
+		},
+		{
+			"name": "ChargeOutcomes",
+			"sourceEnum": "kbve.vm.ChargeOutcome",
+			"typeName": "ChargeOutcomeValue",
+			"zodSchemaName": "ChargeOutcomeSchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.vm.VmSpec.rootfs": ".min(1).max(64).regex(/^[a-z][a-z0-9-]*$/, 'rootfs must be lowercase kebab')",
+		"kbve.vm.VmSpec.entrypoint": ".min(1).max(256)",
+		"kbve.vm.VmSpec.vcpu_count": ".min(1).max(8)",
+		"kbve.vm.VmSpec.mem_size_mib": ".min(64).max(8192)",
+		"kbve.vm.VmSpec.timeout_ms": ".min(1000).max(600000)",
+		"kbve.vm.VmRateCard.sku": ".min(1).max(64)"
+	},
+
+	"fieldOverrides": {
+		"kbve.vm.VmSpec.boot_args": "z.string().max(512).optional()",
+		"kbve.vm.VmSpec.packages": "z.array(z.string().min(1).max(64)).max(50).optional()",
+		"kbve.vm.VmSpec.env": "z.record(z.string().max(64), z.string().max(65536)).optional()",
+		"kbve.vm.VmResult.stdout": "z.string().max(1048576).optional()",
+		"kbve.vm.VmResult.stderr": "z.string().max(1048576).optional()"
+	}
+}

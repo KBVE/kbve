@@ -61,6 +61,15 @@ CREATE TRIGGER trg_wallet_coupon_template_reward_immutable
     BEFORE UPDATE ON wallet.coupon_template
     FOR EACH ROW EXECUTE FUNCTION wallet.trg_coupon_template_reward_immutable();
 
+-- One ACTIVE template per code. The unconditional UNIQUE on code prevents
+-- two active rows from sharing a code; this partial unique additionally
+-- prevents a second active row from being inserted when an inactive row
+-- exists with the same code. Required so wallet.ensure_user_account's
+-- WELCOME_KHASH lookup is unambiguous.
+CREATE UNIQUE INDEX coupon_template_one_active_code_idx
+    ON wallet.coupon_template (code)
+    WHERE is_active = TRUE;
+
 -- ============================================================================
 -- TABLE: wallet.coupon — per-account instance
 -- ============================================================================
@@ -108,6 +117,10 @@ CREATE INDEX wallet_coupon_account_status_idx
     ON wallet.coupon(account_id, status);
 CREATE INDEX wallet_coupon_template_idx
     ON wallet.coupon(template_id);
+-- Composite (account_id, granted_at DESC, id DESC) matches the
+-- proxy_wallet_list_coupons_readonly filter + keyset cursor shape.
+CREATE INDEX wallet_coupon_account_granted_idx
+    ON wallet.coupon(account_id, granted_at DESC, id DESC);
 
 COMMENT ON TABLE wallet.coupon IS
     'Per-account coupon instance. redeem_idempotency_key + redeem_ledger_id support idempotent retries.';

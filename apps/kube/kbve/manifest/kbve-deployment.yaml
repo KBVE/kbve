@@ -28,7 +28,7 @@ spec:
     template:
         metadata:
             annotations:
-                rollout-restart: '2026-05-13T12:00:00Z'
+                rollout-restart: '2026-05-13T23:30:00Z'
             labels:
                 app: kbve
                 version: '1.0.22'
@@ -45,7 +45,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.152
+                  image: ghcr.io/kbve/kbve:1.0.153
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -193,6 +193,17 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url
+                      # Optional RO pool — routes pure-read wallet handlers
+                      # (e.g. service/verify-balance) through the CNPG ro
+                      # pooler in session mode. Same `postgres` creds; only
+                      # the host differs. If unset, WalletClient falls back
+                      # to using the rw pool for reads, so deploys without
+                      # this key still work.
+                      - name: WALLET_DATABASE_URL_RO
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd

@@ -1,0 +1,88 @@
+{
+	"include": [
+		"kbve.firecracker.CreateVmRequest",
+		"kbve.firecracker.CreateVmResponse",
+		"kbve.firecracker.DestroyVmRequest",
+		"kbve.firecracker.DestroyVmResponse",
+		"kbve.firecracker.GetVmRequest",
+		"kbve.firecracker.GetVmResponse",
+		"kbve.firecracker.ListVmsRequest",
+		"kbve.firecracker.ListVmsResponse",
+		"kbve.firecracker.PersistentEndpoint",
+		"kbve.firecracker.DeployEndpointRequest",
+		"kbve.firecracker.DeployEndpointResponse",
+		"kbve.firecracker.DeleteEndpointRequest",
+		"kbve.firecracker.DeleteEndpointResponse",
+		"kbve.firecracker.ListEndpointsResponse",
+		"kbve.firecracker.WorkflowStep",
+		"kbve.firecracker.AgentWorkflowDefinition",
+		"kbve.firecracker.WorkflowRun",
+		"kbve.firecracker.FleetStatus",
+		"kbve.firecracker.SchedulerHint",
+		"kbve.firecracker.Quota",
+		"kbve.firecracker.QuoteCostRequest",
+		"kbve.firecracker.QuoteCostResponse",
+		"kbve.firecracker.RateCardUpdate"
+	],
+
+	"preamble": [
+		"import {\n\tUUIDSchema,\n\tVmSpecSchema,\n\tVmInfoSchema,\n\tVmResultSchema,\n\tVmRateCardSchema,\n\tVmCostQuoteSchema,\n\tVmStatusSchema,\n} from './vm-schema.js';"
+	],
+
+	"enums": {
+		"kbve.firecracker.DeploymentTier": {
+			"mode": "const_array",
+			"stripPrefix": "DEPLOYMENT_TIER_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.firecracker.EndpointStatus": {
+			"mode": "const_array",
+			"stripPrefix": "ENDPOINT_STATUS_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.firecracker.WorkflowStatus": {
+			"mode": "const_array",
+			"stripPrefix": "WORKFLOW_STATUS_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "DeploymentTiers",
+			"sourceEnum": "kbve.firecracker.DeploymentTier",
+			"typeName": "DeploymentTierValue",
+			"zodSchemaName": "DeploymentTierSchema"
+		},
+		{
+			"name": "EndpointStatuses",
+			"sourceEnum": "kbve.firecracker.EndpointStatus",
+			"typeName": "EndpointStatusValue",
+			"zodSchemaName": "EndpointStatusSchema"
+		},
+		{
+			"name": "WorkflowStatuses",
+			"sourceEnum": "kbve.firecracker.WorkflowStatus",
+			"typeName": "WorkflowStatusValue",
+			"zodSchemaName": "WorkflowStatusSchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.firecracker.PersistentEndpoint.name": ".min(1).max(64).regex(/^[a-z][a-z0-9-]*$/, 'endpoint name must be lowercase kebab')",
+		"kbve.firecracker.PersistentEndpoint.http_port": ".min(1).max(65535)",
+		"kbve.firecracker.DeployEndpointRequest.name": ".min(1).max(64).regex(/^[a-z][a-z0-9-]*$/)",
+		"kbve.firecracker.DeployEndpointRequest.http_port": ".min(1).max(65535)",
+		"kbve.firecracker.DeleteEndpointRequest.name": ".min(1).max(64)",
+		"kbve.firecracker.AgentWorkflowDefinition.name": ".min(1).max(64)",
+		"kbve.firecracker.WorkflowStep.id": ".min(1).max(64).regex(/^[a-z][a-z0-9_-]*$/)"
+	},
+
+	"fieldOverrides": {
+		"kbve.firecracker.CreateVmResponse.status": "VmStatusSchema",
+		"kbve.firecracker.ListVmsRequest.limit": "z.number().int().min(1).max(200).optional()",
+		"kbve.firecracker.DeployEndpointRequest.health_path": "z.string().max(256).optional()",
+		"kbve.firecracker.WorkflowStep.depends_on": "z.array(z.string().min(1).max(64)).max(50).optional()",
+		"kbve.firecracker.WorkflowStep.input_blob_ref": "z.string().max(256).optional()"
+	}
+}

@@ -1,0 +1,204 @@
+---
+import { getCollection } from 'astro:content';
+
+const allDocs = await getCollection('docs');
+
+const games = allDocs
+	.filter(
+		(entry) =>
+			entry.id.startsWith('gaming/') && entry.id !== 'gaming/index',
+	)
+	.sort((a, b) => {
+		const ao = a.data.sidebar?.order ?? 9999;
+		const bo = b.data.sidebar?.order ?? 9999;
+		if (ao !== bo) return ao - bo;
+		return (a.data.title ?? '').localeCompare(b.data.title ?? '');
+	})
+	.map((entry) => {
+		const slug = entry.id.replace(/^gaming\//, '');
+		const rawDesc = entry.data.description ?? '';
+		const desc =
+			typeof rawDesc === 'string'
+				? rawDesc.replace(/\s+/g, ' ').trim()
+				: '';
+		const tags = (entry.data.tags ?? []).filter(
+			(t: string) => t.toLowerCase() !== 'gaming',
+		);
+		return {
+			slug,
+			href: `/gaming/${slug}/`,
+			title: entry.data.sidebar?.label ?? entry.data.title ?? slug,
+			description: desc,
+			tags,
+		};
+	});
+
+const total = games.length;
+const allTags = Array.from(
+	new Set(games.flatMap((g) => g.tags.map((t: string) => t.toLowerCase()))),
+).sort();
+---
+
+<section class="gaming-hub" aria-label="Game guides">
+	<header class="gaming-hub__header">
+		<div class="gaming-hub__meta">
+			<span class="gaming-hub__count">
+				{total} guide{total === 1 ? '' : 's'}
+			</span>
+			{
+				allTags.length > 0 && (
+					<span class="gaming-hub__sep" aria-hidden="true">
+						·
+					</span>
+				)
+			}
+			{allTags.map((tag) => <span class="gaming-hub__tag">{tag}</span>)}
+		</div>
+	</header>
+
+	<div class="gaming-hub__grid">
+		{
+			games.map((game) => (
+				<a class="gaming-card" href={game.href}>
+					<div class="gaming-card__head">
+						<h3 class="gaming-card__title">{game.title}</h3>
+						<span class="gaming-card__arrow" aria-hidden="true">
+							→
+						</span>
+					</div>
+					{game.description && (
+						<p class="gaming-card__copy">{game.description}</p>
+					)}
+					{game.tags.length > 0 && (
+						<div class="gaming-card__tags">
+							{game.tags.map((tag: string) => (
+								<span class="gaming-card__tag">{tag}</span>
+							))}
+						</div>
+					)}
+				</a>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.gaming-hub {
+		--gh-accent: var(--sl-color-accent, #a78bfa);
+		--gh-accent-soft: color-mix(in srgb, var(--gh-accent) 18%, transparent);
+		--gh-border: var(--sl-color-gray-5, #2a2a33);
+		--gh-bg-card: var(--sl-color-black, #0c0c10);
+		--gh-text: var(--sl-color-text, #e6edf3);
+		--gh-muted: var(--sl-color-gray-2, #a1a1aa);
+		--gh-radius: 14px;
+		--gh-radius-sm: 8px;
+		display: grid;
+		gap: 1rem;
+	}
+
+	.gaming-hub__header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.gaming-hub__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		color: var(--gh-muted);
+	}
+	.gaming-hub__count {
+		font-weight: 600;
+		color: var(--gh-text);
+	}
+	.gaming-hub__sep {
+		opacity: 0.5;
+	}
+	.gaming-hub__tag {
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		background: var(--gh-accent-soft);
+		border: 1px solid color-mix(in srgb, var(--gh-accent) 30%, transparent);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		color: var(--gh-text);
+	}
+
+	.gaming-hub__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 1rem;
+	}
+
+	.gaming-card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 1.1rem 1.25rem;
+		background: var(--gh-bg-card);
+		border: 1px solid var(--gh-border);
+		border-radius: var(--gh-radius);
+		text-decoration: none;
+		color: var(--gh-text);
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.gaming-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--gh-accent);
+		box-shadow: 0 10px 28px
+			color-mix(in srgb, var(--gh-accent) 20%, transparent);
+	}
+	.gaming-card__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.gaming-card__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.gaming-card__arrow {
+		font-size: 1.1rem;
+		color: var(--gh-accent);
+		transition: transform 0.15s ease;
+	}
+	.gaming-card:hover .gaming-card__arrow {
+		transform: translateX(3px);
+	}
+	.gaming-card__copy {
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--gh-muted);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.gaming-card__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-top: 0.25rem;
+	}
+	.gaming-card__tag {
+		font-size: 0.6875rem;
+		font-weight: 500;
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--gh-text) 5%, transparent);
+		border: 1px solid var(--gh-border);
+		color: var(--gh-muted);
+		letter-spacing: 0.02em;
+	}
+</style>

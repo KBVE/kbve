@@ -1,10 +1,11 @@
 ---
 title: Gaming
 description: |
-  Explore the exhilarating world of gaming with our all-inclusive guide, packed with the latest trends, expert tips, and in-depth insights.
-  From casual players to hardcore gamers, there's something for everyone.
-  Discover detailed game reviews, winning strategies, and stay updated with the hottest industry news.
-  Join us on this exciting journey and elevate your gaming experience to the next level.
+  KBVE's gaming hub — guides, macros, builds, and strategy notes across the games we actually play.
+  Auto-listed below; new entries show up the moment they're committed.
+ogTitle: "KBVE Gaming — Guides, Macros & Strategy"
+ogDescription: "Curated game guides from the KBVE crew. MOBAs, MMOs, colony sims, shooters — anything we sink hours into."
+template: splash
 sidebar:
   label: Gaming
   order: 5
@@ -12,20 +13,330 @@ unsplash: 1581276879432-15e50529f34b
 img: https://images.unsplash.com/photo-1581276879432-15e50529f34b?fit=crop&w=1400&h=700&q=75
 tags:
   - gaming
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-  LinkCard,
-  Tabs,
-  TabItem,
-} from '@astrojs/starlight/components';
+import GamingHub from '@/components/gaming/GamingHub.astro';
+import { Adsense } from '@/components/astropad';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<div class="gaming-page">
+	<section class="gaming-hero" aria-label="KBVE Gaming">
+		<div class="gaming-hero__bg" aria-hidden="true"></div>
+		<div class="gaming-hero__inner">
+			<div class="gaming-hero__badge">
+				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<path
+						d="M7 6h10a5 5 0 0 1 5 5v2a5 5 0 0 1-9.16 2.79L12 14H8.16A5 5 0 0 1 2 13v-2a5 5 0 0 1 5-5zm-1 4v2H4v1h2v2h1v-2h2v-1H7v-2H6zm10 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-3 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"
+					/>
+				</svg>
+				<span>KBVE Gaming</span>
+			</div>
+			<h1 class="gaming-hero__title">
+				Guides for the games
+				<span class="gaming-hero__title-accent">we actually play</span>
+			</h1>
+			<p class="gaming-hero__lede">
+				Macros, builds, mod stacks, and notes — pulled from real hours
+				on the clock. The list below auto-populates from the gaming
+				collection, so new guides surface the moment a contributor
+				ships an MDX file.
+			</p>
 
-## Gaming
+			<div class="gaming-hero__cta">
+				<a class="gaming-hero__btn gaming-hero__btn--primary" href="#guides">
+					Browse guides
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" />
+					</svg>
+				</a>
+				<a class="gaming-hero__btn gaming-hero__btn--ghost" href="/arcade/">
+					KBVE Arcade
+				</a>
+				<a
+					class="gaming-hero__btn gaming-hero__btn--ghost"
+					href="https://github.com/kbve/kbve/tree/dev/apps/kbve/astro-kbve/src/content/docs/gaming"
+					target="_blank"
+					rel="noopener noreferrer">
+					Add a guide →
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<nav class="gaming-jump" aria-label="On this page">
+		<a href="#guides">Guides</a>
+		<a href="#contribute">Contribute</a>
+		<a href="/arcade/">Arcade</a>
+	</nav>
+
+	<section id="guides" class="gaming-section">
+		<header class="gaming-section__header">
+			<h2>Guides</h2>
+			<p>Sorted by sidebar order. Click any card to dive in.</p>
+		</header>
+		<GamingHub />
+	</section>
+
+	<section id="contribute" class="gaming-section">
+		<header class="gaming-section__header">
+			<h2>Add your own</h2>
+			<p>
+				Got a guide worth shipping? Drop an MDX file in <code>gaming/</code>
+				and open a PR. No registration needed — the hub picks it up
+				automatically.
+			</p>
+		</header>
+		<ol class="gaming-steps">
+			<li>
+				Create <code>apps/kbve/astro-kbve/src/content/docs/gaming/&lt;your-game&gt;.mdx</code>
+				with frontmatter (<code>title</code>, <code>description</code>,
+				<code>sidebar.label</code>, <code>sidebar.order</code>, <code>tags</code>).
+			</li>
+			<li>
+				Write the guide body. Use Starlight components
+				(<code>Aside</code>, <code>Steps</code>, <code>CardGrid</code>,
+				etc.) for structure.
+			</li>
+			<li>
+				Open a PR against <code>dev</code>. CI builds and previews the
+				site. Once merged, the card appears on this page automatically.
+			</li>
+		</ol>
+	</section>
+
+	<Adsense />
+</div>
+
+<style is:global>{`
+	.gaming-page {
+		--gp-accent: var(--sl-color-accent, #a78bfa);
+		--gp-violet: #a78bfa;
+		--gp-violet-soft: color-mix(in srgb, #a78bfa 18%, transparent);
+		--gp-bg: var(--sl-color-bg, #0d1117);
+		--gp-bg-soft: var(--sl-color-bg-nav, #131318);
+		--gp-bg-card: var(--sl-color-black, #0c0c10);
+		--gp-border: var(--sl-color-gray-5, #2a2a33);
+		--gp-text: var(--sl-color-text, #e6edf3);
+		--gp-muted: var(--sl-color-gray-2, #a1a1aa);
+		--gp-radius: 16px;
+		--gp-radius-sm: 10px;
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--gp-text);
+	}
+
+	.gaming-page .gaming-hero {
+		position: relative;
+		padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem);
+		border-radius: var(--gp-radius);
+		background:
+			radial-gradient(
+				circle at 0% 0%,
+				color-mix(in srgb, var(--gp-violet) 24%, transparent),
+				transparent 55%
+			),
+			radial-gradient(
+				circle at 100% 100%,
+				color-mix(in srgb, var(--gp-accent) 14%, transparent),
+				transparent 60%
+			),
+			var(--gp-bg-card);
+		border: 1px solid var(--gp-border);
+		overflow: hidden;
+	}
+	.gaming-page .gaming-hero__bg {
+		position: absolute;
+		inset: -40% -10%;
+		background: radial-gradient(circle, var(--gp-violet-soft) 0%, transparent 60%);
+		filter: blur(80px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.gaming-page .gaming-hero__inner {
+		position: relative;
+		display: grid;
+		gap: 1.25rem;
+		max-width: 720px;
+	}
+	.gaming-page .gaming-hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.4rem 0.85rem;
+		background: var(--gp-violet-soft);
+		border: 1px solid color-mix(in srgb, var(--gp-violet) 35%, transparent);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--gp-text);
+		width: fit-content;
+	}
+	.gaming-page .gaming-hero__badge svg {
+		width: 16px;
+		height: 16px;
+		color: var(--gp-violet);
+	}
+	.gaming-page .gaming-hero__title {
+		font-size: clamp(2rem, 5vw, 3.25rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+	.gaming-page .gaming-hero__title-accent {
+		display: inline-block;
+		background: linear-gradient(135deg, var(--gp-violet), #38bdf8);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.gaming-page .gaming-hero__lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--gp-muted);
+		margin: 0;
+		max-width: 56ch;
+	}
+	.gaming-page .gaming-hero__cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.4rem;
+	}
+	.gaming-page .gaming-hero__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--gp-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.gaming-page .gaming-hero__btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.gaming-page .gaming-hero__btn--primary {
+		background: var(--gp-violet);
+		color: #14091f;
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--gp-violet) 35%, transparent);
+	}
+	.gaming-page .gaming-hero__btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--gp-violet) 45%, transparent);
+	}
+	.gaming-page .gaming-hero__btn--ghost {
+		color: var(--gp-text);
+		background: transparent;
+		border: 1px solid var(--gp-border);
+	}
+	.gaming-page .gaming-hero__btn--ghost:hover {
+		border-color: var(--gp-violet);
+		background: var(--gp-violet-soft);
+	}
+
+	.gaming-page .gaming-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 2rem 0 1rem;
+		padding: 0.4rem;
+		background: var(--gp-bg-soft);
+		border: 1px solid var(--gp-border);
+		border-radius: var(--gp-radius);
+		position: sticky;
+		top: 1rem;
+		z-index: 10;
+		backdrop-filter: blur(8px);
+	}
+	.gaming-page .gaming-jump a {
+		padding: 0.45rem 0.95rem;
+		border-radius: var(--gp-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--gp-muted);
+		text-decoration: none;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.gaming-page .gaming-jump a:hover {
+		color: var(--gp-text);
+		background: color-mix(in srgb, var(--gp-text) 6%, transparent);
+	}
+
+	.gaming-page .gaming-section {
+		margin: 2rem 0;
+		scroll-margin-top: 5rem;
+	}
+	.gaming-page .gaming-section__header {
+		display: grid;
+		gap: 0.4rem;
+		margin-bottom: 1.25rem;
+		text-align: center;
+	}
+	.gaming-page .gaming-section__header h2 {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.gaming-page .gaming-section__header p {
+		font-size: 1rem;
+		color: var(--gp-muted);
+		margin: 0;
+		max-width: 60ch;
+		margin-inline: auto;
+	}
+
+	.gaming-page .gaming-steps {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1.25rem 1.25rem 1.25rem 2.5rem;
+		margin: 0;
+		background: var(--gp-bg-card);
+		border: 1px solid var(--gp-border);
+		border-radius: var(--gp-radius);
+		color: var(--gp-muted);
+		font-size: 0.9375rem;
+		line-height: 1.55;
+	}
+	.gaming-page .gaming-steps li {
+		padding-left: 0.5rem;
+	}
+	.gaming-page .gaming-steps li::marker {
+		color: var(--gp-violet);
+		font-weight: 700;
+	}
+	.gaming-page .gaming-steps code {
+		font-size: 0.85em;
+		padding: 0.1rem 0.35rem;
+		background: color-mix(in srgb, var(--gp-text) 5%, transparent);
+		border: 1px solid var(--gp-border);
+		border-radius: 4px;
+		color: var(--gp-text);
+	}
+
+	@media (max-width: 720px) {
+		.gaming-page .gaming-hero__cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.gaming-page .gaming-hero__btn {
+			justify-content: center;
+		}
+	}
+`}</style>

@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 
 export class CardPool {
 	private readonly views: Phaser.GameObjects.Image[] = [];
+	private readonly textureKeys: string[] = [];
+	private readonly xPositions: number[] = [];
+	private readonly yPositions: number[] = [];
 	private activeViews = 0;
 
 	constructor(
@@ -15,11 +18,20 @@ export class CardPool {
 	}
 
 	place(textureKey: string, x: number, y: number) {
-		const view = this.getView();
-		view.setTexture(textureKey);
-		view.setPosition(x, y);
-		view.setVisible(true);
-		view.setActive(true);
+		const index = this.activeViews;
+		const view = this.getView(index);
+		if (this.textureKeys[index] !== textureKey) {
+			view.setTexture(textureKey);
+			this.textureKeys[index] = textureKey;
+		}
+		if (this.xPositions[index] !== x || this.yPositions[index] !== y) {
+			view.setPosition(x, y);
+			this.xPositions[index] = x;
+			this.yPositions[index] = y;
+		}
+		if (!view.visible) view.setVisible(true);
+		if (!view.active) view.setActive(true);
+		this.activeViews++;
 	}
 
 	hideUnused() {
@@ -29,17 +41,16 @@ export class CardPool {
 		}
 	}
 
-	private getView(): Phaser.GameObjects.Image {
+	private getView(index: number): Phaser.GameObjects.Image {
 		const view =
-			this.views[this.activeViews] ??
+			this.views[index] ??
 			this.scene.add.image(0, 0, this.fallbackTextureKey).setOrigin(0);
 
-		if (!this.views[this.activeViews]) {
+		if (!this.views[index]) {
 			this.views.push(view);
 			this.layer.add(view);
 		}
 
-		this.activeViews++;
 		return view;
 	}
 }

@@ -18,6 +18,10 @@ export default defineConfig({
 		domains: ['images.unsplash.com'],
 	},
 	prefetch: true,
+	redirects: {
+		'/account': '/profile/account/',
+		'/account/': '/profile/account/',
+	},
 	markdown: {
 		rehypePlugins: [rehypeLinkAttrs],
 	},

@@ -25,6 +25,14 @@ on:
                 type: string
                 default: ''
 
+# Shared with utils-post-publish.yml. Both workflows commit to
+# version.toml / Cargo.toml / Cargo.lock from per-release atom branches
+# based on the same dev HEAD; without this group two crate releases
+# firing in parallel race on Cargo.lock when their atom PRs auto-merge.
+concurrency:
+    group: version-sync
+    cancel-in-progress: false
+
 jobs:
     update:
         name: PR version.toml → ${{ inputs.version }}
@@ -82,6 +90,41 @@ jobs:
                   echo "Synced $TARGET to $VERSION:"
                   grep -m1 'version' "$TARGET"
 
+            # Mirror utils-post-publish.yml: keep Cargo.lock in sync with
+            # the matching Cargo.toml bump so fresh checkouts don't
+            # regenerate the lock on the first `cargo` invocation.
+            - name: Sync Cargo.lock
+              if: inputs.version_target_path != '' && endsWith(inputs.version_target_path, 'Cargo.toml')
+              run: |
+                  TARGET="${{ inputs.version_target_path }}"
+                  VERSION="${{ inputs.version }}"
+
+                  if [ ! -f Cargo.lock ]; then
+                    echo "::notice::Cargo.lock not present at workspace root — skipping."
+                    exit 0
+                  fi
+
+                  PKG_NAME=$(grep -m 1 '^name = "' "$TARGET" | sed 's/name = "\(.*\)"/\1/')
+                  if [ -z "$PKG_NAME" ]; then
+                    echo "::warning::Could not parse package name from '$TARGET' — skipping Cargo.lock sync."
+                    exit 0
+                  fi
+
+                  awk -v pkg="$PKG_NAME" -v new="$VERSION" '
+                    /^\[\[package\]\]$/ { in_pkg=1; matched=0 }
+                    in_pkg && /^name = "/ {
+                      n=$0; sub(/^name = "/, "", n); sub(/"$/, "", n);
+                      if (n == pkg) matched=1
+                    }
+                    in_pkg && matched && /^version = "/ {
+                      sub(/version = "[^"]+"/, "version = \"" new "\"")
+                      matched=0
+                    }
+                    /^$/ { in_pkg=0; matched=0 }
+                    { print }
+                  ' Cargo.lock > Cargo.lock.tmp && mv Cargo.lock.tmp Cargo.lock
+                  echo "Synced Cargo.lock entry for $PKG_NAME to $VERSION"
+
             - uses: actions/setup-node@v6
               with:
                   node-version: 24
@@ -123,6 +166,11 @@ jobs:
                   git add "${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
+                    case "${{ inputs.version_target_path }}" in
+                      *Cargo.toml)
+                        [ -f Cargo.lock ] && git add Cargo.lock
+                        ;;
+                    esac
                   fi
                   git add .github/ci-dispatch-manifest.json
                   if git diff --cached --quiet; then

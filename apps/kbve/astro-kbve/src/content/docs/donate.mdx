@@ -1,0 +1,571 @@
+---
+title: Donate
+description: Support KBVE — help keep our open-source tools, dev streams, game dev, and community servers running.
+ogTitle: "Donate to KBVE — Fund Open Source, Game Dev, and Community"
+ogDescription: "Sponsor on GitHub, back us on Patreon, or grab something from the shop. Every bit keeps the lights on."
+template: splash
+sidebar:
+    label: Donate
+    order: 11
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+<div class="donate-page">
+	<section class="donate-hero" aria-label="Support KBVE">
+		<div class="donate-hero__bg" aria-hidden="true"></div>
+		<div class="donate-hero__inner">
+			<div class="donate-hero__badge">
+				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<path
+						d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+					/>
+				</svg>
+				<span>Support KBVE</span>
+			</div>
+			<h1 class="donate-hero__title">
+				Help keep KBVE
+				<span class="donate-hero__title-accent">building in the open</span>
+			</h1>
+			<p class="donate-hero__lede">
+				Every project on this site — the monorepo, the game work, the
+				docs, the Discord, the dev streams — is funded by people who
+				show up. If KBVE has shipped something useful for you, throw a
+				few bucks in the jar.
+			</p>
+
+			<div class="donate-hero__cta">
+				<a
+					class="donate-hero__btn donate-hero__btn--primary"
+					href="https://github.com/sponsors/kbve"
+					target="_blank"
+					rel="noopener noreferrer">
+					Sponsor on GitHub
+					<svg
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 12h14M13 6l6 6-6 6"
+						/>
+					</svg>
+				</a>
+				<a
+					class="donate-hero__btn donate-hero__btn--patreon"
+					href="https://www.patreon.com/KBVE"
+					target="_blank"
+					rel="noopener noreferrer">
+					Back on Patreon
+				</a>
+				<a class="donate-hero__btn donate-hero__btn--ghost" href="#ways">
+					Other ways to help
+				</a>
+			</div>
+
+			<dl class="donate-hero__stats">
+				<div class="donate-hero__stat">
+					<dt>Open source</dt>
+					<dd>Since 2017</dd>
+				</div>
+				<div class="donate-hero__stat">
+					<dt>Repos</dt>
+					<dd>One monorepo</dd>
+				</div>
+				<div class="donate-hero__stat">
+					<dt>License</dt>
+					<dd>MIT / Unlicense</dd>
+				</div>
+				<div class="donate-hero__stat">
+					<dt>Run by</dt>
+					<dd>The community</dd>
+				</div>
+			</dl>
+		</div>
+	</section>
+
+	<nav class="donate-jump" aria-label="On this page">
+		<a href="#ways">Ways to give</a>
+		<a href="#where">Where it goes</a>
+		<a href="#free">Free ways to help</a>
+	</nav>
+
+	<section id="ways" class="donate-section">
+		<header class="donate-section__header">
+			<h2>Ways to give</h2>
+			<p>
+				Pick whichever feels right. Recurring sponsorships are the most
+				helpful for planning, but one-off support lands just as well.
+			</p>
+		</header>
+		<div class="donate-grid">
+			<a
+				class="donate-card"
+				href="https://github.com/sponsors/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="donate-card__icon" aria-hidden="true">★</span>
+				<span class="donate-card__title">GitHub Sponsors</span>
+				<span class="donate-card__copy">
+					Monthly or one-time. Funds flow straight into open-source
+					work in the monorepo.
+				</span>
+				<span class="donate-card__cta">Sponsor on GitHub →</span>
+			</a>
+			<a
+				class="donate-card"
+				href="https://www.patreon.com/KBVE"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="donate-card__icon" aria-hidden="true">♥</span>
+				<span class="donate-card__title">Patreon</span>
+				<span class="donate-card__copy">
+					Recurring support with tiered perks — early builds,
+					behind-the-scenes, and roadmap access.
+				</span>
+				<span class="donate-card__cta">Back on Patreon →</span>
+			</a>
+			<a
+				class="donate-card"
+				href="https://kbve.itch.io/"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="donate-card__icon" aria-hidden="true">▲</span>
+				<span class="donate-card__title">itch.io</span>
+				<span class="donate-card__copy">
+					Buy or "name your price" on our games. Direct support for
+					the studio side of KBVE.
+				</span>
+				<span class="donate-card__cta">Visit our itch page →</span>
+			</a>
+			<a
+				class="donate-card"
+				href="https://kbve.com/discord/">
+				<span class="donate-card__icon" aria-hidden="true">◈</span>
+				<span class="donate-card__title">Boost the Discord</span>
+				<span class="donate-card__copy">
+					Have spare Nitro boosts? Boosting the server unlocks perks
+					for everyone in the community.
+				</span>
+				<span class="donate-card__cta">Open the server →</span>
+			</a>
+		</div>
+	</section>
+
+	<section id="where" class="donate-section">
+		<header class="donate-section__header">
+			<h2>Where the money goes</h2>
+			<p>
+				No middlemen, no overhead theater. Funds are spent in the open.
+			</p>
+		</header>
+		<ul class="donate-list">
+			<li>
+				<strong>Infrastructure.</strong> Kubernetes nodes, storage, CDN,
+				CI runners, and the build farm behind every PR.
+			</li>
+			<li>
+				<strong>Open-source bounties.</strong> Paying contributors who
+				ship features and fixes into the monorepo.
+			</li>
+			<li>
+				<strong>Game dev.</strong> Art, audio, tooling, and licenses for
+				the projects shipping out of KBVE.
+			</li>
+			<li>
+				<strong>Streams &amp; community.</strong> Hosting Saturday
+				streams, events, and keeping Discord moderation healthy.
+			</li>
+		</ul>
+	</section>
+
+	<section id="free" class="donate-section">
+		<header class="donate-section__header">
+			<h2>Free ways to help</h2>
+			<p>
+				Money is great, but it's not the only currency. These all move
+				the needle.
+			</p>
+		</header>
+		<div class="donate-grid">
+			<a
+				class="donate-card donate-card--ghost"
+				href="https://github.com/kbve/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="donate-card__icon" aria-hidden="true">⚙</span>
+				<span class="donate-card__title">Star the repo</span>
+				<span class="donate-card__copy">
+					Stars surface KBVE to other devs. Costs you nothing, helps a
+					lot.
+				</span>
+			</a>
+			<a
+				class="donate-card donate-card--ghost"
+				href="https://kbve.com/forum/">
+				<span class="donate-card__icon" aria-hidden="true">💬</span>
+				<span class="donate-card__title">Post in the forum</span>
+				<span class="donate-card__copy">
+					Feedback, ideas, bug reports. Active threads keep the
+					project sharp.
+				</span>
+			</a>
+			<a
+				class="donate-card donate-card--ghost"
+				href="https://kbve.com/discord/">
+				<span class="donate-card__icon" aria-hidden="true">◇</span>
+				<span class="donate-card__title">Invite a friend</span>
+				<span class="donate-card__copy">
+					Share the Discord with a dev or gamer who'd vibe with the
+					crew.
+				</span>
+			</a>
+			<a
+				class="donate-card donate-card--ghost"
+				href="https://twitch.tv/kbvepoint"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="donate-card__icon" aria-hidden="true">▶</span>
+				<span class="donate-card__title">Catch a stream</span>
+				<span class="donate-card__copy">
+					Saturday dev streams. Show up, lurk, ask questions — it all
+					counts.
+				</span>
+			</a>
+		</div>
+	</section>
+
+	<Adsense />
+</div>
+
+<style is:global>{`
+	.donate-page {
+		--do-accent: var(--sl-color-accent, #f472b6);
+		--do-pink: #f472b6;
+		--do-pink-soft: color-mix(in srgb, #f472b6 18%, transparent);
+		--do-bg: var(--sl-color-bg, #0d1117);
+		--do-bg-soft: var(--sl-color-bg-nav, #131318);
+		--do-bg-card: var(--sl-color-black, #0c0c10);
+		--do-border: var(--sl-color-gray-5, #2a2a33);
+		--do-text: var(--sl-color-text, #e6edf3);
+		--do-muted: var(--sl-color-gray-2, #a1a1aa);
+		--do-radius: 16px;
+		--do-radius-sm: 10px;
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--do-text);
+	}
+
+	.donate-page .donate-hero {
+		position: relative;
+		padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem);
+		border-radius: var(--do-radius);
+		background:
+			radial-gradient(
+				circle at 0% 0%,
+				color-mix(in srgb, var(--do-pink) 24%, transparent),
+				transparent 55%
+			),
+			radial-gradient(
+				circle at 100% 100%,
+				color-mix(in srgb, var(--do-accent) 14%, transparent),
+				transparent 60%
+			),
+			var(--do-bg-card);
+		border: 1px solid var(--do-border);
+		overflow: hidden;
+	}
+	.donate-page .donate-hero__bg {
+		position: absolute;
+		inset: -40% -10%;
+		background:
+			radial-gradient(
+				circle,
+				var(--do-pink-soft) 0%,
+				transparent 60%
+			);
+		filter: blur(80px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.donate-page .donate-hero__inner {
+		position: relative;
+		display: grid;
+		gap: 1.25rem;
+		max-width: 720px;
+	}
+	.donate-page .donate-hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.4rem 0.85rem;
+		background: var(--do-pink-soft);
+		border: 1px solid color-mix(in srgb, var(--do-pink) 35%, transparent);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--do-text);
+		width: fit-content;
+	}
+	.donate-page .donate-hero__badge svg {
+		width: 16px;
+		height: 16px;
+		color: var(--do-pink);
+	}
+	.donate-page .donate-hero__title {
+		font-size: clamp(2rem, 5vw, 3.25rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+	.donate-page .donate-hero__title-accent {
+		display: inline-block;
+		background: linear-gradient(135deg, var(--do-pink), #fbbf24);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.donate-page .donate-hero__lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--do-muted);
+		margin: 0;
+		max-width: 56ch;
+	}
+	.donate-page .donate-hero__cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.4rem;
+	}
+	.donate-page .donate-hero__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--do-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.donate-page .donate-hero__btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.donate-page .donate-hero__btn--primary {
+		background: var(--do-pink);
+		color: #1a0a14;
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--do-pink) 35%, transparent);
+	}
+	.donate-page .donate-hero__btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-pink) 45%, transparent);
+	}
+	.donate-page .donate-hero__btn--patreon {
+		background: #f96854;
+		color: white;
+		box-shadow: 0 6px 20px color-mix(in srgb, #f96854 35%, transparent);
+	}
+	.donate-page .donate-hero__btn--patreon:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, #f96854 45%, transparent);
+	}
+	.donate-page .donate-hero__btn--ghost {
+		color: var(--do-text);
+		background: transparent;
+		border: 1px solid var(--do-border);
+	}
+	.donate-page .donate-hero__btn--ghost:hover {
+		border-color: var(--do-pink);
+		background: var(--do-pink-soft);
+	}
+	.donate-page .donate-hero__stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.75rem;
+		margin: 1.5rem 0 0;
+		padding: 1rem;
+		background: color-mix(in srgb, var(--do-bg) 60%, transparent);
+		border: 1px solid var(--do-border);
+		border-radius: var(--do-radius-sm);
+	}
+	.donate-page .donate-hero__stat {
+		display: grid;
+		gap: 0.15rem;
+		margin: 0;
+	}
+	.donate-page .donate-hero__stat dt {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--do-muted);
+		margin: 0;
+	}
+	.donate-page .donate-hero__stat dd {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--do-text);
+		margin: 0;
+	}
+
+	.donate-page .donate-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 2rem 0 1rem;
+		padding: 0.4rem;
+		background: var(--do-bg-soft);
+		border: 1px solid var(--do-border);
+		border-radius: var(--do-radius);
+		position: sticky;
+		top: 1rem;
+		z-index: 10;
+		backdrop-filter: blur(8px);
+	}
+	.donate-page .donate-jump a {
+		padding: 0.45rem 0.95rem;
+		border-radius: var(--do-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--do-muted);
+		text-decoration: none;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.donate-page .donate-jump a:hover {
+		color: var(--do-text);
+		background: color-mix(in srgb, var(--do-text) 6%, transparent);
+	}
+
+	.donate-page .donate-section {
+		margin: 2rem 0;
+		scroll-margin-top: 5rem;
+	}
+	.donate-page .donate-section__header {
+		display: grid;
+		gap: 0.4rem;
+		margin-bottom: 1.25rem;
+		text-align: center;
+	}
+	.donate-page .donate-section__header h2 {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.donate-page .donate-section__header p {
+		font-size: 1rem;
+		color: var(--do-muted);
+		margin: 0;
+		max-width: 60ch;
+		margin-inline: auto;
+	}
+
+	.donate-page .donate-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 1rem;
+	}
+	.donate-page .donate-card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 1.25rem;
+		background: var(--do-bg-card);
+		border: 1px solid var(--do-border);
+		border-radius: var(--do-radius);
+		text-decoration: none;
+		color: var(--do-text);
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.donate-page .donate-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--do-pink);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-pink) 18%, transparent);
+	}
+	.donate-page .donate-card--ghost:hover {
+		box-shadow: none;
+	}
+	.donate-page .donate-card__icon {
+		font-size: 1.5rem;
+		line-height: 1;
+		color: var(--do-pink);
+	}
+	.donate-page .donate-card__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+	}
+	.donate-page .donate-card__copy {
+		font-size: 0.875rem;
+		color: var(--do-muted);
+		line-height: 1.5;
+	}
+	.donate-page .donate-card__cta {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--do-pink);
+		margin-top: 0.25rem;
+	}
+
+	.donate-page .donate-list {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1.25rem;
+		margin: 0;
+		list-style: none;
+		background: var(--do-bg-card);
+		border: 1px solid var(--do-border);
+		border-radius: var(--do-radius);
+	}
+	.donate-page .donate-list li {
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--do-muted);
+		padding-left: 1.25rem;
+		position: relative;
+	}
+	.donate-page .donate-list li::before {
+		content: "◆";
+		position: absolute;
+		left: 0;
+		top: 0;
+		color: var(--do-pink);
+		font-size: 0.75rem;
+		line-height: 1.6;
+	}
+	.donate-page .donate-list strong {
+		color: var(--do-text);
+		font-weight: 600;
+	}
+
+	@media (max-width: 720px) {
+		.donate-page .donate-hero__cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.donate-page .donate-hero__btn {
+			justify-content: center;
+		}
+	}
+`}</style>

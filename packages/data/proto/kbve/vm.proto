@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package kbve.vm;
+
+option csharp_namespace = "KBVE.Proto.Vm";
+
+import "kbve/common.proto";
+import "google/protobuf/timestamp.proto";
+
+// =============================================================================
+// VM — Runtime entity shapes shared by every orchestrator (firecracker today,
+// cloud-hypervisor / Kata / etc. tomorrow). Pure data — no transport.
+// =============================================================================
+
+enum VmStatus {
+  VM_STATUS_UNSPECIFIED = 0;
+  VM_STATUS_CREATING = 1;
+  VM_STATUS_RUNNING = 2;
+  VM_STATUS_COMPLETED = 3;
+  VM_STATUS_FAILED = 4;
+  VM_STATUS_TIMEOUT = 5;
+  VM_STATUS_DESTROYED = 6;
+}
+
+enum VmExitReason {
+  VM_EXIT_REASON_UNSPECIFIED = 0;
+  VM_EXIT_REASON_COMPLETED = 1;
+  VM_EXIT_REASON_FAILED = 2;
+  VM_EXIT_REASON_TIMEOUT = 3;
+  VM_EXIT_REASON_KILLED = 4;
+}
+
+enum ChargeOutcome {
+  CHARGE_OUTCOME_UNSPECIFIED = 0;
+  CHARGE_OUTCOME_BILLED = 1;
+  CHARGE_OUTCOME_FREE_TIER = 2;
+  CHARGE_OUTCOME_INSUFFICIENT_FUNDS = 3;
+  CHARGE_OUTCOME_WAIVED = 4;
+}
+
+message VmSpec {
+  string rootfs = 1;
+  uint32 vcpu_count = 2;
+  uint32 mem_size_mib = 3;
+  uint64 timeout_ms = 4;
+  string entrypoint = 5;
+  map<string, string> env = 6;
+  string boot_args = 7;
+  repeated string packages = 8;
+  bool network = 9;
+}
+
+message VmInfo {
+  string vm_id = 1;
+  VmStatus status = 2;
+  VmSpec spec = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message VmResult {
+  string vm_id = 1;
+  VmStatus status = 2;
+  int32 exit_code = 3;
+  string stdout = 4;
+  string stderr = 5;
+  uint64 duration_ms = 6;
+}
+
+// Emitted once per VM run when the lifecycle ends. Source of truth for billing.
+message VmUsageEvent {
+  string vm_id = 1;
+  kbve.common.UUID user_id = 2;
+  kbve.common.UUID account_id = 3;
+  VmSpec spec = 4;
+  uint64 duration_ms = 5;
+  uint64 net_tx_bytes = 6;
+  uint64 net_rx_bytes = 7;
+  int32 exit_code = 8;
+  VmExitReason exit_reason = 9;
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp ended_at = 11;
+  kbve.common.UUID idempotency_key = 12;
+}
+
+// SKU-keyed pricing. One row per rootfs (or rootfs class). Lets rates flex
+// without code changes.
+message VmRateCard {
+  string sku = 1;
+  uint64 startup_credits = 2;
+  uint64 credits_per_vcpu_second = 3;
+  uint64 credits_per_mib_second = 4;
+  uint64 credits_per_egress_byte = 5;
+  uint64 khash_reward_per_second = 6;
+  bool network_allowed = 7;
+}
+
+// Derived from VmUsageEvent × VmRateCard. Stays linked to ledger via ledger_id.
+message VmCharge {
+  kbve.common.UUID idempotency_key = 1;
+  kbve.common.UUID account_id = 2;
+  string sku = 3;
+  uint64 credits_debited = 4;
+  uint64 khash_credited = 5;
+  int64 ledger_id = 6;
+  ChargeOutcome outcome = 7;
+}
+
+// Pre-flight quote — "what would this cost". Caller can reject before commit.
+message VmCostQuote {
+  VmSpec spec = 1;
+  uint64 max_credits = 2;
+  uint64 account_balance_credits = 3;
+  bool affordable = 4;
+}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAccessToken, useSession } from '@kbve/astro';
+import { formatCompact } from './format';
 
 type Balance = {
 	account_id: string;
@@ -90,9 +91,9 @@ export function ReactWalletCard() {
 			setShellText(
 				shell,
 				SLOT_CREDITS,
-				b ? b.credits.toLocaleString() : '—',
+				b ? formatCompact(b.credits) : '—',
 			);
-			setShellText(shell, SLOT_KHASH, b ? b.khash.toLocaleString() : '—');
+			setShellText(shell, SLOT_KHASH, b ? formatCompact(b.khash) : '—');
 			setShellText(
 				shell,
 				SLOT_UPDATED,
