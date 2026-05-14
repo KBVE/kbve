@@ -10,7 +10,10 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::{
     net::SocketAddr,
-    sync::Arc,
+    sync::{
+        Arc, OnceLock,
+        atomic::{AtomicI64, Ordering},
+    },
     time::{Duration, Instant},
 };
 use tokio::sync::Notify;
@@ -204,6 +207,20 @@ pub struct EndpointHttpConfig {
     /// hop-by-hop / framing headers are rejected at deploy time.
     #[serde(default)]
     pub inject_request_headers: std::collections::BTreeMap<String, String>,
+    /// Per-endpoint global token bucket. Applies only to the public tier.
+    /// `requests_per_sec = 0` (default) disables rate limiting.
+    #[serde(default)]
+    pub rate_limit: RateLimitConfig,
+}
+
+/// Per-endpoint global token bucket. Burst defaults to one second of capacity
+/// when omitted. Validated by [`validate_http_config`].
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct RateLimitConfig {
+    #[serde(default)]
+    pub requests_per_sec: u32,
+    #[serde(default)]
+    pub burst: u32,
 }
 
 /// Registered persistent endpoint. Owned by `PersistentState::endpoints`.
@@ -222,7 +239,77 @@ struct PersistentEndpoint {
     created: Instant,
     visibility: EndpointVisibility,
     http_config: EndpointHttpConfig,
+    rate_limiter: TokenBucket,
 }
+
+/// Lock-free token bucket. Stores milli-tokens so sub-1 RPS rates round
+/// cleanly.
+struct TokenBucket {
+    tokens_x1000: AtomicI64,
+    last_refill_micros: AtomicI64,
+    capacity_x1000: i64,
+    refill_per_sec_x1000: i64,
+}
+
+impl TokenBucket {
+    fn disabled() -> Self {
+        Self {
+            tokens_x1000: AtomicI64::new(0),
+            last_refill_micros: AtomicI64::new(0),
+            capacity_x1000: 0,
+            refill_per_sec_x1000: 0,
+        }
+    }
+
+    fn from_config(cfg: RateLimitConfig) -> Self {
+        if cfg.requests_per_sec == 0 {
+            return Self::disabled();
+        }
+        let capacity = cfg.burst.max(cfg.requests_per_sec).max(1) as i64 * 1000;
+        Self {
+            tokens_x1000: AtomicI64::new(capacity),
+            last_refill_micros: AtomicI64::new(now_micros()),
+            capacity_x1000: capacity,
+            refill_per_sec_x1000: cfg.requests_per_sec as i64 * 1000,
+        }
+    }
+
+    fn try_acquire(&self) -> bool {
+        if self.capacity_x1000 == 0 {
+            return true;
+        }
+        let now = now_micros();
+        let last = self.last_refill_micros.swap(now, Ordering::Relaxed);
+        let elapsed_us = (now - last).max(0);
+        let added = (elapsed_us * self.refill_per_sec_x1000) / 1_000_000;
+        let mut current = self.tokens_x1000.load(Ordering::Relaxed);
+        loop {
+            let refilled = (current + added).min(self.capacity_x1000);
+            if refilled < 1000 {
+                self.tokens_x1000.store(refilled, Ordering::Relaxed);
+                return false;
+            }
+            match self.tokens_x1000.compare_exchange_weak(
+                current,
+                refilled - 1000,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => return true,
+                Err(observed) => current = observed,
+            }
+        }
+    }
+}
+
+fn now_micros() -> i64 {
+    START_INSTANT
+        .get_or_init(Instant::now)
+        .elapsed()
+        .as_micros() as i64
+}
+
+static START_INSTANT: OnceLock<Instant> = OnceLock::new();
 
 /// JSON-serialisable view of a PersistentEndpoint. Keeps the owning
 /// struct free of serde plumbing so internal fields can change without
@@ -295,6 +382,8 @@ const MAX_INJECT_HEADERS: usize = 16;
 const MAX_HEADER_NAME_LEN: usize = 64;
 const MAX_HEADER_VALUE_LEN: usize = 256;
 const MAX_CORS_MAX_AGE_SECS: u32 = 86_400;
+const MAX_RATE_REQUESTS_PER_SEC: u32 = 10_000;
+const MAX_RATE_BURST: u32 = 100_000;
 
 /// Header names that callers must never override on the upstream request.
 /// Hop-by-hop framing, plus Host/Authorization which we set ourselves.
@@ -401,6 +490,18 @@ fn validate_http_config(cfg: &EndpointHttpConfig) -> Result<(), String> {
         if RESERVED_INJECT_HEADER_NAMES.contains(&lower.as_str()) {
             return Err(format!("reserved inject header name: {k:?}"));
         }
+    }
+    if cfg.rate_limit.requests_per_sec > MAX_RATE_REQUESTS_PER_SEC {
+        return Err(format!(
+            "rate_limit.requests_per_sec {} exceeds cap of {MAX_RATE_REQUESTS_PER_SEC}",
+            cfg.rate_limit.requests_per_sec
+        ));
+    }
+    if cfg.rate_limit.burst > MAX_RATE_BURST {
+        return Err(format!(
+            "rate_limit.burst {} exceeds cap of {MAX_RATE_BURST}",
+            cfg.rate_limit.burst
+        ));
     }
     Ok(())
 }
@@ -880,6 +981,7 @@ async fn fc_deploy(
         status: EndpointStatus::Starting,
         created: Instant::now(),
         visibility: req.visibility,
+        rate_limiter: TokenBucket::from_config(req.http_config.rate_limit),
         http_config: req.http_config.clone(),
     };
     let info = PersistentEndpointInfo::from(&endpoint);
@@ -1106,6 +1208,8 @@ async fn fc_proxy_inner(
         .map(|(_, v)| v.clone())
         .unwrap_or_default();
 
+    let is_preflight = require_public && req.method() == axum::http::Method::OPTIONS;
+
     let (guest_ip, http_port, http_config) = match persistent.endpoints.get(&name) {
         Some(entry) => {
             let ep = entry.value();
@@ -1114,6 +1218,18 @@ async fn fc_proxy_inner(
                     StatusCode::FORBIDDEN,
                     Json(serde_json::json!({
                         "error": "endpoint not public",
+                        "name": name,
+                    })),
+                )
+                    .into_response();
+            }
+            // Preflights bypass the bucket so a flood of CORS probes cannot
+            // starve real traffic; budget is for the actual workload.
+            if require_public && !is_preflight && !ep.rate_limiter.try_acquire() {
+                return (
+                    StatusCode::TOO_MANY_REQUESTS,
+                    Json(serde_json::json!({
+                        "error": "rate limit exceeded",
                         "name": name,
                     })),
                 )
@@ -1130,11 +1246,7 @@ async fn fc_proxy_inner(
         }
     };
 
-    // --- CORS preflight short-circuit (public tier only) ---
-    if require_public
-        && req.method() == axum::http::Method::OPTIONS
-        && !http_config.cors_allow_origins.is_empty()
-    {
+    if is_preflight && !http_config.cors_allow_origins.is_empty() {
         return build_cors_preflight_response(req.headers(), &http_config);
     }
 
