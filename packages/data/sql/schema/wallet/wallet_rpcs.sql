@@ -531,7 +531,7 @@ CREATE OR REPLACE FUNCTION wallet.sweep_expired_coupons()
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_now     TIMESTAMPTZ := statement_timestamp();
+    v_now     TIMESTAMPTZ := transaction_timestamp();
     v_count   BIGINT;
     v_min_id  BIGINT;
     v_max_id  BIGINT;
@@ -568,15 +568,19 @@ BEGIN
     RETURN v_count;
 END;
 $$;
+ALTER FUNCTION wallet.sweep_expired_coupons() OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.sweep_expired_coupons() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO service_role;
-ALTER FUNCTION wallet.sweep_expired_coupons() OWNER TO service_role;
+-- pg_cron runs the scheduled job as the role that called cron.schedule
+-- (postgres via dbmate). Explicit grant documents that contract.
+GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO postgres;
 
 COMMENT ON FUNCTION wallet.sweep_expired_coupons() IS
     'Flips unredeemed coupons with expires_at <= now() to status=expired. Returns affected row count. Writes one summary audit_log row per non-empty sweep. Idempotent; safe to call from a cron loop.';
 
 -- Schedule via pg_cron when present. Lives next to the function so the
--- schedule is reviewed alongside the SQL it calls.
+-- schedule is reviewed alongside the SQL it calls. Job runs as the role
+-- that scheduled it (postgres).
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN

@@ -27,7 +27,10 @@ CREATE OR REPLACE FUNCTION wallet.sweep_expired_coupons()
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_now     TIMESTAMPTZ := statement_timestamp();
+    -- Use transaction_timestamp() so cutoff_expires_at in the audit row
+    -- matches the transaction's consistent time, not a later
+    -- clock-drifted point inside the statement.
+    v_now     TIMESTAMPTZ := transaction_timestamp();
     v_count   BIGINT;
     v_min_id  BIGINT;
     v_max_id  BIGINT;
@@ -65,9 +68,16 @@ BEGIN
 END;
 $$;
 
+-- Ownership comes first so the SECURITY DEFINER contract is finalized
+-- before privileges are stated.
+ALTER FUNCTION wallet.sweep_expired_coupons() OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.sweep_expired_coupons() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO service_role;
-ALTER FUNCTION wallet.sweep_expired_coupons() OWNER TO service_role;
+-- pg_cron runs the scheduled job AS THE ROLE THAT CALLED cron.schedule().
+-- Dbmate connects as `postgres` (superuser), so the job runs as
+-- postgres. Postgres is a superuser and has implicit access, but make
+-- the EXECUTE grant explicit to document the cron-exec contract.
+GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO postgres;
 
 COMMENT ON FUNCTION wallet.sweep_expired_coupons() IS
     'Flips unredeemed coupons with expires_at <= now() to status=expired. Returns affected row count. Writes one summary audit_log row per non-empty sweep. Idempotent; safe to call from a cron loop.';
@@ -82,6 +92,11 @@ CREATE INDEX IF NOT EXISTS wallet_coupon_unredeemed_expires_idx
 -- preloaded on the supabase-cluster via shared_preload_libraries). The
 -- IF-guard keeps the migration portable to local dev containers that
 -- don't ship pg_cron — local test runs will simply skip scheduling.
+--
+-- NOTE: pg_cron runs the job AS THE ROLE THAT CALLED cron.schedule().
+-- Dbmate connects as postgres, so the job will run as postgres. The
+-- explicit GRANT EXECUTE TO postgres above documents that contract;
+-- swap-in another scheduling role would also need an EXECUTE grant.
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
