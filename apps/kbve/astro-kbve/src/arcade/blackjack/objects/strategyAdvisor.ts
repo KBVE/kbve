@@ -1,20 +1,53 @@
-import { cardPoints, cardRank, valueHand, type Card } from '../cards';
+import {
+	cardPoints,
+	cardRank,
+	handFingerprint,
+	valueHand,
+	type Card,
+} from '../cards';
 import type { BlackjackState } from '../state';
 
+interface StrategyHintCache {
+	playerFingerprint: number;
+	dealerUp: Card;
+	canDouble: boolean;
+	hint: string;
+}
+
 export class StrategyAdvisor {
+	private lastHint: StrategyHintCache | null = null;
+
 	getHint(state: BlackjackState): string {
 		if (state.phase !== 'player-turn' || state.dealer.length === 0) {
+			this.lastHint = null;
 			return '';
 		}
 
-		const playerValue = valueHand(state.player);
-		const dealerUp = this.dealerUpValue(state.dealer[0]);
+		const playerFingerprint = handFingerprint(state.player);
+		const dealerUpCard = state.dealer[0];
 		const canDouble = state.canDouble && state.player.length === 2;
-
-		if (playerValue.soft) {
-			return `Hint: ${this.softStrategy(playerValue.total, dealerUp, canDouble)}`;
+		if (
+			this.lastHint &&
+			this.lastHint.playerFingerprint === playerFingerprint &&
+			this.lastHint.dealerUp === dealerUpCard &&
+			this.lastHint.canDouble === canDouble
+		) {
+			return this.lastHint.hint;
 		}
-		return `Hint: ${this.hardStrategy(playerValue.total, dealerUp, canDouble)}`;
+
+		const playerValue = valueHand(state.player);
+		const dealerUp = this.dealerUpValue(dealerUpCard);
+
+		const hint = playerValue.soft
+			? `Hint: ${this.softStrategy(playerValue.total, dealerUp, canDouble)}`
+			: `Hint: ${this.hardStrategy(playerValue.total, dealerUp, canDouble)}`;
+		this.lastHint = {
+			playerFingerprint,
+			dealerUp: dealerUpCard,
+			canDouble,
+			hint,
+		};
+		return hint;
 	}
 
 	private hardStrategy(
