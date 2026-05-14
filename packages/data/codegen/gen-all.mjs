@@ -24,6 +24,11 @@ const generatedDir = resolve(__dirname, 'generated');
 // Optional `outputPath` overrides the default `generated/<name>-schema.ts`.
 const protos = [
 	{
+		name: 'common',
+		protoFile: 'kbve/common.proto',
+		package: 'kbve.common',
+	},
+	{
 		name: 'npcdb',
 		protoFile: 'npc/npcdb.proto',
 		package: 'npc',

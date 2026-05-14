@@ -3,13 +3,14 @@
  *
  * Source: ../descriptors/firecracker.binpb
  * Config: ../firecracker-zod-config.json
- * Generated: 2026-05-14T02:27:18.561Z
+ * Generated: 2026-05-14T09:46:31.008Z
  */
 
 import { z } from 'zod';
 
+import { UUIDSchema } from './common-schema.js';
+
 import {
-	UUIDSchema,
 	VmSpecSchema,
 	VmInfoSchema,
 	VmResultSchema,
