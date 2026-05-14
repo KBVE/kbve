@@ -64,12 +64,19 @@ impl WalletError {
     ///   3. Fall back to the raw `DieselError` in the `Db` variant.
     pub fn from_diesel(e: DieselError) -> Self {
         if let DieselError::DatabaseError(_, ref info) = e {
-            // SQLSTATE WLT01 surfaces as the message 'wallet_account_missing'
-            // raised by public.proxy_wallet_*_readonly. diesel's
+            // SQLSTATE WLT01 surfaces as one of these messages raised by
+            // public.proxy_wallet_*_readonly. diesel's
             // DatabaseErrorInformation doesn't expose the SQLSTATE on this
             // diesel version, so we match on the message string instead.
-            if info.message() == "wallet_account_missing" {
-                return WalletError::AccountMissing;
+            // wallet_account_duplicate (WLT02) is intentionally not mapped
+            // here: it indicates a broken wallet_account_user_uq invariant
+            // that needs human intervention, so it falls through to the
+            // generic Db variant and surfaces as a 500.
+            match info.message() {
+                "wallet_account_missing" | "wallet_balance_missing" => {
+                    return WalletError::AccountMissing;
+                }
+                _ => {}
             }
         }
         if let DieselError::DatabaseError(kind, ref info) = e {
@@ -113,7 +120,7 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     if m.contains("overflow") || m.contains("would overflow") {
         return Some(WalletError::Overflow);
     }
-    if m.contains("not authenticated") {
+    if m.contains("not authenticated") || m.contains("not_authenticated") {
         return Some(WalletError::NotAuthenticated);
     }
     if m.contains("service_role required") {

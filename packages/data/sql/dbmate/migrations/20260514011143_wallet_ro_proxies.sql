@@ -5,27 +5,30 @@
 -- wallet.proxy_ensure_user_account, so they can be executed on the
 -- supabase-cluster-pooler-ro replica without write conflicts.
 --
--- Contract on missing account / missing balance: raise SQLSTATE 'WLT01'
--- (custom). The Rust WalletClient catches that one sqlstate and falls
--- back to the rw pool's provisioning proxy, then retries the read.
--- Account provisioning still runs through wallet.proxy_ensure_user_account
--- as a repair lane.
+-- Error contract (Rust WalletClient maps these):
+--   WLT01 'wallet_account_missing'   — caller has no wallet account row
+--   WLT01 'wallet_balance_missing'   — account exists, balance row missing
+--   WLT02 'wallet_account_duplicate' — invariant violation: more than one
+--                                      user-wallet account; data corruption,
+--                                      not a normal repair condition
 --
--- Why a custom sqlstate (not P0002 / NO_DATA_FOUND): P0002 is raised by
--- plpgsql for a number of generic "no row" scenarios, so matching on it
--- would be fragile. WLT01 is reserved for this wallet RO contract.
+-- WLT01 (both messages) triggers fallback to the rw pool's provisioning
+-- proxy; WLT02 surfaces as a 500 because it indicates a broken
+-- wallet_account_user_uq invariant that needs manual intervention.
 --
--- Schema invariants relied on:
---   wallet_account_user_uq (partial unique on user_id WHERE kind='user')
---     guarantees at most one user-wallet per auth user, so SELECT INTO
---     cannot pick an arbitrary row.
---   wallet.balance.account_id is PRIMARY KEY of wallet.balance, so one
---     balance row per account_id is structural. The defensive IF NOT
---     FOUND below covers older rows that were inserted before the
---     trigger/backfill provisioned the balance row.
+-- Why custom sqlstates (not P0002 / NO_DATA_FOUND): P0002 is raised by
+-- plpgsql for many generic "no row" scenarios, so matching on it would
+-- be fragile.
+--
+-- SECURITY DEFINER intentionally scopes access by auth.uid(); table RLS
+-- is not the authorization boundary for these proxy functions. The
+-- function owner (service_role) holds the SELECT privileges; the JWT
+-- claim is the only thing distinguishing one authenticated caller from
+-- another.
 
 -- Composite index matching the list_coupons_readonly query: filter on
--- account_id, order by granted_at DESC + id DESC for stable pagination.
+-- account_id, order by granted_at DESC + id DESC. Supports the keyset
+-- pagination shape (cursor on (granted_at, id)).
 CREATE INDEX IF NOT EXISTS wallet_coupon_account_granted_idx
     ON wallet.coupon (account_id, granted_at DESC, id DESC);
 
@@ -42,16 +45,19 @@ DECLARE
     v_account_id UUID;
 BEGIN
     IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '28000';
+        RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '28000';
     END IF;
 
-    SELECT a.id INTO v_account_id
-      FROM wallet.account a
-     WHERE a.kind = 'user' AND a.user_id = v_user_id;
-
-    IF v_account_id IS NULL THEN
-        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
-    END IF;
+    BEGIN
+        SELECT a.id INTO STRICT v_account_id
+          FROM wallet.account a
+         WHERE a.kind = 'user' AND a.user_id = v_user_id;
+    EXCEPTION
+        WHEN no_data_found THEN
+            RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+        WHEN too_many_rows THEN
+            RAISE EXCEPTION 'wallet_account_duplicate' USING ERRCODE = 'WLT02';
+    END;
 
     RETURN QUERY
     SELECT b.account_id, b.credits, b.khash, b.updated_at
@@ -59,7 +65,7 @@ BEGIN
      WHERE b.account_id = v_account_id;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+        RAISE EXCEPTION 'wallet_balance_missing' USING ERRCODE = 'WLT01';
     END IF;
 END;
 $$;
@@ -69,9 +75,26 @@ GRANT EXECUTE ON FUNCTION public.proxy_wallet_get_balance_readonly() TO authenti
 ALTER FUNCTION public.proxy_wallet_get_balance_readonly() OWNER TO service_role;
 
 COMMENT ON FUNCTION public.proxy_wallet_get_balance_readonly() IS
-    'Read-only balance fetch. Raises SQLSTATE WLT01 when the caller has no wallet account or balance row; the client falls back to the rw pool to provision and retry.';
+    'Read-only balance fetch. Raises SQLSTATE WLT01 (wallet_account_missing or wallet_balance_missing) when repair is needed; WLT02 (wallet_account_duplicate) on a broken uniqueness invariant.';
 
-CREATE OR REPLACE FUNCTION public.proxy_wallet_list_coupons_readonly()
+-- Defensive: an earlier draft of this migration shipped without keyset
+-- pagination args. Drop the no-arg signature first so the new 3-arg
+-- function below doesn't collide on environments that already saw the
+-- earlier version. No-op on fresh DBs.
+DROP FUNCTION IF EXISTS public.proxy_wallet_list_coupons_readonly();
+
+-- list_coupons_readonly takes optional keyset cursor arguments so the
+-- coupon history can be paged without grabbing the whole list. All
+-- arguments have defaults so existing no-arg callers keep working.
+--
+-- p_limit            page size, clamped to [1, 100], default 50
+-- p_before_granted_at cursor anchor — return rows strictly before this
+-- p_before_id        tiebreaker for rows with equal granted_at
+CREATE OR REPLACE FUNCTION public.proxy_wallet_list_coupons_readonly(
+    p_limit             INTEGER DEFAULT 50,
+    p_before_granted_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_id         BIGINT DEFAULT NULL
+)
 RETURNS TABLE (
     coupon_id      BIGINT,
     template_code  TEXT,
@@ -87,18 +110,22 @@ LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
 DECLARE
     v_user_id    UUID := auth.uid();
     v_account_id UUID;
+    v_limit      INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
     IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'Not authenticated' USING ERRCODE = '28000';
+        RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '28000';
     END IF;
 
-    SELECT a.id INTO v_account_id
-      FROM wallet.account a
-     WHERE a.kind = 'user' AND a.user_id = v_user_id;
-
-    IF v_account_id IS NULL THEN
-        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
-    END IF;
+    BEGIN
+        SELECT a.id INTO STRICT v_account_id
+          FROM wallet.account a
+         WHERE a.kind = 'user' AND a.user_id = v_user_id;
+    EXCEPTION
+        WHEN no_data_found THEN
+            RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+        WHEN too_many_rows THEN
+            RAISE EXCEPTION 'wallet_account_duplicate' USING ERRCODE = 'WLT02';
+    END;
 
     RETURN QUERY
     SELECT
@@ -107,19 +134,28 @@ BEGIN
       FROM wallet.coupon c
       JOIN wallet.coupon_template t ON t.id = c.template_id
      WHERE c.account_id = v_account_id
-     ORDER BY c.granted_at DESC, c.id DESC;
+       AND (
+           p_before_granted_at IS NULL
+           OR c.granted_at < p_before_granted_at
+           OR (c.granted_at = p_before_granted_at AND c.id < p_before_id)
+       )
+     ORDER BY c.granted_at DESC, c.id DESC
+     LIMIT v_limit;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.proxy_wallet_list_coupons_readonly() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.proxy_wallet_list_coupons_readonly() TO authenticated, service_role;
-ALTER FUNCTION public.proxy_wallet_list_coupons_readonly() OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+ALTER FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
 
-COMMENT ON FUNCTION public.proxy_wallet_list_coupons_readonly() IS
-    'Read-only coupon list. Raises SQLSTATE WLT01 when the caller has no wallet account; the client falls back to the rw pool to provision and retry.';
+COMMENT ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'Read-only paged coupon list. Keyset pagination on (granted_at DESC, id DESC). Limit clamped to [1, 100], default 50. Raises SQLSTATE WLT01 (wallet_account_missing) when the caller has no wallet account; the client falls back to the rw pool.';
 
 -- migrate:down
 
 DROP FUNCTION IF EXISTS public.proxy_wallet_get_balance_readonly();
+DROP FUNCTION IF EXISTS public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
+-- Belt-and-suspenders: drop any older signature too (no-arg version
+-- shipped briefly in an earlier draft).
 DROP FUNCTION IF EXISTS public.proxy_wallet_list_coupons_readonly();
 DROP INDEX IF EXISTS wallet.wallet_coupon_account_granted_idx;
