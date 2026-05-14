@@ -64,6 +64,16 @@ const protos = [
 		package: 'kbve.ci',
 	},
 	{
+		name: 'vm',
+		protoFile: 'kbve/vm.proto',
+		package: 'kbve.vm',
+	},
+	{
+		name: 'firecracker',
+		protoFile: 'kbve/firecracker.proto',
+		package: 'kbve.firecracker',
+	},
+	{
 		name: 'ows',
 		protoFile: 'ows/ows.proto',
 		package: 'ows',
