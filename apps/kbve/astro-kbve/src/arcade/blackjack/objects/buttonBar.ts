@@ -32,10 +32,12 @@ interface ButtonView {
 	box: Phaser.GameObjects.Image;
 	text: Phaser.GameObjects.Text;
 	lastEnabled: boolean | null;
+	lastTextAlpha: number | null;
 }
 
 export class ButtonBar {
 	private readonly views: ButtonView[] = [];
+	private readonly viewsByKey = new Map<ButtonKey, ButtonView>();
 
 	constructor(
 		private readonly scene: Phaser.Scene,
@@ -69,12 +71,20 @@ export class ButtonBar {
 			});
 
 			this.layer.add([box, text, hitArea]);
-			this.views.push({ spec, box, text, lastEnabled: null });
+			const view = {
+				spec,
+				box,
+				text,
+				lastEnabled: null,
+				lastTextAlpha: null,
+			};
+			this.views.push(view);
+			this.viewsByKey.set(spec.key, view);
 		}
 	}
 
 	run(key: ButtonKey): boolean {
-		const button = this.views.find((view) => view.spec.key === key);
+		const button = this.viewsByKey.get(key);
 		if (!button || !button.spec.enabled()) return false;
 		button.spec.action();
 		return true;
@@ -87,7 +97,11 @@ export class ButtonBar {
 				view.box.setTexture(this.textureKey(enabled));
 				view.lastEnabled = enabled;
 			}
-			view.text.setAlpha(enabled ? 1 : 0.42);
+			const textAlpha = enabled ? 1 : 0.42;
+			if (view.lastTextAlpha !== textAlpha) {
+				view.text.setAlpha(textAlpha);
+				view.lastTextAlpha = textAlpha;
+			}
 		}
 	}
 }
