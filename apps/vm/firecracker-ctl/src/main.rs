@@ -12,7 +12,7 @@ use std::{
     net::SocketAddr,
     sync::{
         Arc, OnceLock,
-        atomic::{AtomicI64, Ordering},
+        atomic::{AtomicI64, AtomicU64, Ordering},
     },
     time::{Duration, Instant},
 };
@@ -240,6 +240,32 @@ struct PersistentEndpoint {
     visibility: EndpointVisibility,
     http_config: EndpointHttpConfig,
     rate_limiter: TokenBucket,
+    metrics: Arc<EndpointMetrics>,
+    /// Idle TTL in seconds. 0 disables auto-teardown.
+    idle_ttl_secs: u32,
+}
+
+#[derive(Default)]
+struct EndpointMetrics {
+    requests_total: AtomicU64,
+    requests_throttled: AtomicU64,
+    requests_forbidden: AtomicU64,
+    upstream_errors: AtomicU64,
+    bytes_in: AtomicU64,
+    bytes_out: AtomicU64,
+    /// 0 = never seen traffic. Otherwise micros since start.
+    last_request_micros: AtomicI64,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, ToSchema)]
+pub struct EndpointMetricsSnapshot {
+    pub requests_total: u64,
+    pub requests_throttled: u64,
+    pub requests_forbidden: u64,
+    pub upstream_errors: u64,
+    pub bytes_in: u64,
+    pub bytes_out: u64,
+    pub last_request_age_secs: Option<u64>,
 }
 
 /// Lock-free token bucket. Stores milli-tokens so sub-1 RPS rates round
@@ -331,6 +357,8 @@ pub struct PersistentEndpointInfo {
     uptime_secs: u64,
     visibility: EndpointVisibility,
     http_config: EndpointHttpConfig,
+    idle_ttl_secs: u32,
+    metrics: EndpointMetricsSnapshot,
 }
 
 impl PersistentEndpointInfo {
@@ -351,6 +379,28 @@ impl PersistentEndpointInfo {
             uptime_secs: ep.created.elapsed().as_secs(),
             visibility: ep.visibility,
             http_config: ep.http_config.clone(),
+            idle_ttl_secs: ep.idle_ttl_secs,
+            metrics: ep.metrics.snapshot(),
+        }
+    }
+}
+
+impl EndpointMetrics {
+    fn snapshot(&self) -> EndpointMetricsSnapshot {
+        let last = self.last_request_micros.load(Ordering::Relaxed);
+        let last_request_age_secs = if last == 0 {
+            None
+        } else {
+            Some(((now_micros() - last).max(0) / 1_000_000) as u64)
+        };
+        EndpointMetricsSnapshot {
+            requests_total: self.requests_total.load(Ordering::Relaxed),
+            requests_throttled: self.requests_throttled.load(Ordering::Relaxed),
+            requests_forbidden: self.requests_forbidden.load(Ordering::Relaxed),
+            upstream_errors: self.upstream_errors.load(Ordering::Relaxed),
+            bytes_in: self.bytes_in.load(Ordering::Relaxed),
+            bytes_out: self.bytes_out.load(Ordering::Relaxed),
+            last_request_age_secs,
         }
     }
 }
@@ -384,6 +434,7 @@ const MAX_HEADER_VALUE_LEN: usize = 256;
 const MAX_CORS_MAX_AGE_SECS: u32 = 86_400;
 const MAX_RATE_REQUESTS_PER_SEC: u32 = 10_000;
 const MAX_RATE_BURST: u32 = 100_000;
+const MAX_IDLE_TTL_SECS: u32 = 30 * 24 * 60 * 60;
 
 /// Header names that callers must never override on the upstream request.
 /// Hop-by-hop framing, plus Host/Authorization which we set ourselves.
@@ -774,6 +825,11 @@ pub struct DeployFcRequest {
     /// requires redeploy.
     #[serde(default)]
     pub visibility: EndpointVisibility,
+    /// Idle teardown TTL in seconds. After this many seconds with zero
+    /// traffic, the background sweeper releases the TAP + IP and drops
+    /// the registry entry. `0` (default) disables auto-teardown.
+    #[serde(default)]
+    pub idle_ttl_secs: u32,
     /// CORS + header-injection policy. CORS fields apply only to the public
     /// tier; `inject_request_headers` applies on every forward. Defaults
     /// disable both, preserving Phase 2c behavior.
@@ -851,6 +907,17 @@ async fn fc_deploy(
         return (
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({"error": msg})),
+        );
+    }
+    if req.idle_ttl_secs > MAX_IDLE_TTL_SECS {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": format!(
+                    "idle_ttl_secs {} exceeds cap of {MAX_IDLE_TTL_SECS}",
+                    req.idle_ttl_secs
+                ),
+            })),
         );
     }
 
@@ -983,6 +1050,8 @@ async fn fc_deploy(
         visibility: req.visibility,
         rate_limiter: TokenBucket::from_config(req.http_config.rate_limit),
         http_config: req.http_config.clone(),
+        metrics: Arc::new(EndpointMetrics::default()),
+        idle_ttl_secs: req.idle_ttl_secs,
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
@@ -1127,6 +1196,56 @@ async fn fc_destroy(
     (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
+/// Scan the registry every `interval`, remove endpoints whose
+/// `idle_ttl_secs` expired (no traffic seen in that window). Endpoints
+/// with `idle_ttl_secs == 0` are skipped. Endpoints that have never been
+/// hit are measured from `created`, not `last_request_micros`.
+async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration) {
+    let mut ticker = tokio::time::interval(interval);
+    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    loop {
+        ticker.tick().await;
+        let now = now_micros();
+        let mut to_kill: Vec<String> = Vec::new();
+        for entry in persistent.endpoints.iter() {
+            let ep = entry.value();
+            if ep.idle_ttl_secs == 0 {
+                continue;
+            }
+            let ttl_us = (ep.idle_ttl_secs as i64) * 1_000_000;
+            let last = ep.metrics.last_request_micros.load(Ordering::Relaxed);
+            let reference = if last == 0 {
+                ep.created.elapsed().as_micros() as i64
+            } else {
+                now - last
+            };
+            if reference > ttl_us {
+                to_kill.push(ep.name.clone());
+            }
+        }
+        for name in to_kill {
+            let Some((_, endpoint)) = persistent.endpoints.remove(&name) else {
+                continue;
+            };
+            if let Some(pid) = endpoint.pid {
+                unsafe { libc::kill(pid as i32, libc::SIGTERM) };
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+            if let Err(e) = persistent.tap_manager.destroy_tap(&endpoint.tap).await {
+                tracing::warn!(
+                    "idle_sweeper: TAP teardown failed for {name} ({}): {e}",
+                    endpoint.tap.name
+                );
+            }
+            persistent.pool.release(&endpoint.allocation);
+            tracing::info!(
+                "idle_sweeper: tore down idle endpoint {name} (ttl={}s)",
+                endpoint.idle_ttl_secs
+            );
+        }
+    }
+}
+
 /// Hop-by-hop headers that must not cross proxy boundaries per RFC 7230 §6.1.
 /// `accept-encoding` is stripped on the request side so upstream never
 /// compresses — reqwest would transparently decode and the content-length
@@ -1210,10 +1329,13 @@ async fn fc_proxy_inner(
 
     let is_preflight = require_public && req.method() == axum::http::Method::OPTIONS;
 
-    let (guest_ip, http_port, http_config) = match persistent.endpoints.get(&name) {
+    let (guest_ip, http_port, http_config, metrics) = match persistent.endpoints.get(&name) {
         Some(entry) => {
             let ep = entry.value();
             if require_public && ep.visibility != EndpointVisibility::Public {
+                ep.metrics
+                    .requests_forbidden
+                    .fetch_add(1, Ordering::Relaxed);
                 return (
                     StatusCode::FORBIDDEN,
                     Json(serde_json::json!({
@@ -1226,6 +1348,9 @@ async fn fc_proxy_inner(
             // Preflights bypass the bucket so a flood of CORS probes cannot
             // starve real traffic; budget is for the actual workload.
             if require_public && !is_preflight && !ep.rate_limiter.try_acquire() {
+                ep.metrics
+                    .requests_throttled
+                    .fetch_add(1, Ordering::Relaxed);
                 return (
                     StatusCode::TOO_MANY_REQUESTS,
                     Json(serde_json::json!({
@@ -1235,7 +1360,16 @@ async fn fc_proxy_inner(
                 )
                     .into_response();
             }
-            (ep.allocation.guest_ip, ep.http_port, ep.http_config.clone())
+            ep.metrics.requests_total.fetch_add(1, Ordering::Relaxed);
+            ep.metrics
+                .last_request_micros
+                .store(now_micros(), Ordering::Relaxed);
+            (
+                ep.allocation.guest_ip,
+                ep.http_port,
+                ep.http_config.clone(),
+                ep.metrics.clone(),
+            )
         }
         None => {
             return (
@@ -1308,6 +1442,9 @@ async fn fc_proxy_inner(
                 .into_response();
         }
     };
+    metrics
+        .bytes_in
+        .fetch_add(body_bytes.len() as u64, Ordering::Relaxed);
 
     // --- Issue the upstream request ---
     let reqwest_method = match reqwest::Method::from_bytes(method.as_str().as_bytes()) {
@@ -1333,6 +1470,7 @@ async fn fc_proxy_inner(
     {
         Ok(r) => r,
         Err(e) => {
+            metrics.upstream_errors.fetch_add(1, Ordering::Relaxed);
             let (status, reason) = classify_reqwest_error(&e);
             tracing::warn!("fc_proxy: upstream error for {name} ({upstream_url}): {e}");
             return (
@@ -1365,7 +1503,15 @@ async fn fc_proxy_inner(
         attach_cors_response_headers(&mut resp_headers, request_origin.as_deref(), &http_config);
     }
 
-    let body_stream = upstream_resp.bytes_stream();
+    let metrics_for_stream = metrics.clone();
+    let body_stream = tokio_stream::StreamExt::map(upstream_resp.bytes_stream(), move |r| {
+        if let Ok(ref b) = r {
+            metrics_for_stream
+                .bytes_out
+                .fetch_add(b.len() as u64, Ordering::Relaxed);
+        }
+        r
+    });
     let body = Body::from_stream(body_stream);
 
     let mut response = Response::builder().status(upstream_status);
@@ -2572,8 +2718,12 @@ async fn main() {
         rootfs_dir,
         max_concurrent_vms,
         jailer,
-        persistent,
+        persistent: persistent.clone(),
     };
+
+    if let Some(p) = persistent.clone() {
+        tokio::spawn(idle_sweeper_task(p, Duration::from_secs(60)));
+    }
 
     tracing::info!(
         "FC_MAX_CONCURRENT_VMS={}, FC_VM_TTL_SECS={}",
