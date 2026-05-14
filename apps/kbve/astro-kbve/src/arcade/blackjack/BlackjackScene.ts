@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createBlackjackState, type BlackjackState } from './state';
-import { BASE_WIDTH, CARD_SIZE, COLORS } from './config';
+import { BASE_WIDTH, CARD_SIZE } from './config';
 import {
 	DealerAnimation,
 	type CardPlacement,
@@ -8,8 +8,7 @@ import {
 import { CardPool } from './objects/cardPool';
 import { HandLayout } from './objects/handLayout';
 import { BlackjackHud } from './objects/blackjackHud';
-import { StrategyAdvisor } from './objects/strategyAdvisor';
-import { HandValueFormatter } from './objects/handValueFormatter';
+import { BlackjackHudPresenter } from './objects/blackjackHudPresenter';
 import {
 	BlackjackTextures,
 	CHIP_TEXTURE_KEY,
@@ -29,13 +28,12 @@ export class BlackjackScene extends Phaser.Scene {
 	private cardLayer!: Phaser.GameObjects.Container;
 	private cardPool!: CardPool;
 	private handLayout!: HandLayout;
-	private strategyAdvisor = new StrategyAdvisor();
 	private dealLayer!: Phaser.GameObjects.Container;
 	private dealerAnimation!: DealerAnimation;
 	private hudLayer!: Phaser.GameObjects.Container;
 	private hud!: BlackjackHud;
 	private controls!: BlackjackControls;
-	private readonly handValueFormatter = new HandValueFormatter();
+	private readonly hudPresenter = new BlackjackHudPresenter();
 
 	constructor() {
 		super('blackjack');
@@ -150,47 +148,8 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private updateHud() {
-		const hideHole = this.hideDealerHole();
-		const dealerValue = this.handValueFormatter.label(
-			'dealer',
-			'Dealer',
-			this.state.dealer,
-			hideHole ? 1 : this.state.dealer.length,
+		this.hud.update(
+			this.hudPresenter.values(this.state, this.hideDealerHole()),
 		);
-		const playerValue = this.handValueFormatter.label(
-			'player',
-			'Player',
-			this.state.player,
-		);
-		const delta =
-			this.state.lastDelta === 0
-				? ''
-				: this.state.lastDelta > 0
-					? `  (+$${this.state.lastDelta})`
-					: `  (-$${Math.abs(this.state.lastDelta)})`;
-
-		this.hud.update({
-			bankroll: `Bankroll $${this.state.bankroll}\nBet $${this.state.bet}${delta}`,
-			status: this.state.message,
-			statusColor: this.getStatusColor(),
-			strategy: this.strategyAdvisor.getHint(this.state),
-			betChip: `$${this.state.bet}`,
-			dealerValue,
-			playerValue,
-			shoe: `Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
-			stats: `Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
-		});
-	}
-
-	private getStatusColor(): string {
-		if (this.state.outcome === 'loss') return COLORS.danger;
-		if (this.state.outcome === 'push') return COLORS.muted;
-		if (
-			this.state.outcome === 'win' ||
-			this.state.outcome === 'blackjack'
-		) {
-			return COLORS.gold;
-		}
-		return '#ffffff';
 	}
 }
