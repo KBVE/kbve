@@ -8,6 +8,7 @@
 export * from './ci_registry-schema.js';
 export * from './clickhouse-schema.js';
 export * from './discordsh-schema.js';
+export * from './firecracker-schema.js';
 export * from './forum-schema.js';
 export * from './github-schema.js';
 export * from './groq-schema.js';
@@ -29,3 +30,4 @@ export * from './schema-schema.js';
 export * from './snapshot-schema.js';
 export * from './staff-schema.js';
 export * from './twitch-schema.js';
+export * from './vm-schema.js';
