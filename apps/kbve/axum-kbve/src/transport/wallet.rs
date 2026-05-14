@@ -370,6 +370,7 @@ fn wallet_error_response(err: WalletError) -> Response {
         WalletError::Overflow => (StatusCode::UNPROCESSABLE_ENTITY, "overflow"),
         WalletError::NotAuthorized => (StatusCode::FORBIDDEN, "not_authorized"),
         WalletError::NotAuthenticated => (StatusCode::UNAUTHORIZED, "not_authenticated"),
+        WalletError::AccountMissing => (StatusCode::NOT_FOUND, "account_missing"),
         WalletError::NullArgument(_) => (StatusCode::UNPROCESSABLE_ENTITY, "null_argument"),
         WalletError::InvalidArgument(_) => (StatusCode::BAD_REQUEST, "invalid_argument"),
         WalletError::NotFound(_) => (StatusCode::NOT_FOUND, "not_found"),

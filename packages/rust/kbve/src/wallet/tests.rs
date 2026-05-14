@@ -40,12 +40,11 @@ async fn fixture_account() -> Option<(Uuid, Uuid)> {
         #[diesel(sql_type = diesel::sql_types::Uuid)]
         id: Uuid,
     }
-    let r: R =
-        sql_query("INSERT INTO wallet.account (kind, user_id) VALUES ('user', $1) RETURNING id")
-            .bind::<diesel::sql_types::Uuid, _>(user_id)
-            .get_result(&mut conn)
-            .await
-            .expect("insert wallet.account");
+    let r: R = sql_query("SELECT id FROM wallet.account WHERE kind = 'user' AND user_id = $1")
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .get_result(&mut conn)
+        .await
+        .expect("trigger-provisioned wallet.account lookup");
     sql_query("INSERT INTO wallet.balance (account_id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind::<diesel::sql_types::Uuid, _>(r.id)
         .execute(&mut conn)
@@ -208,6 +207,54 @@ async fn welcome_redeem_flow_via_user_proxy() {
 
     let bal = client.user_balance(user_id).await.unwrap();
     assert_eq!(bal.khash, 1000);
+}
+
+#[tokio::test]
+#[serial]
+async fn user_balance_ro_fallback_reprovisions_missing_account() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let mut conn = admin_conn().await.unwrap();
+
+    let user_id = Uuid::new_v4();
+    sql_query("INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT DO NOTHING")
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .execute(&mut conn)
+        .await
+        .unwrap();
+
+    sql_query(
+        "DELETE FROM wallet.coupon WHERE account_id IN \
+            (SELECT id FROM wallet.account WHERE user_id = $1)",
+    )
+    .bind::<diesel::sql_types::Uuid, _>(user_id)
+    .execute(&mut conn)
+    .await
+    .unwrap();
+    sql_query(
+        "DELETE FROM wallet.balance WHERE account_id IN \
+            (SELECT id FROM wallet.account WHERE user_id = $1)",
+    )
+    .bind::<diesel::sql_types::Uuid, _>(user_id)
+    .execute(&mut conn)
+    .await
+    .unwrap();
+    sql_query("DELETE FROM wallet.account WHERE user_id = $1")
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .execute(&mut conn)
+        .await
+        .unwrap();
+
+    let bal = client
+        .user_balance(user_id)
+        .await
+        .expect("user_balance falls back to rw and provisions");
+    assert_eq!(bal.credits, 0);
+    assert_eq!(bal.khash, 0);
+
+    let bal2 = client.user_balance(user_id).await.unwrap();
+    assert_eq!(bal.account_id, bal2.account_id);
 }
 
 #[tokio::test]

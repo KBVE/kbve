@@ -56,7 +56,32 @@ struct RedeemRowDb {
 }
 
 impl WalletClient {
+    /// Reads the caller's balance from the read-only pool. On
+    /// `AccountMissing` (SQLSTATE WLT01), falls back to the rw pool's
+    /// provisioning proxy, which is the historic write-path lazy
+    /// provisioning. Both reads + writes are observable in the diesel
+    /// pool metrics, so the rate of fallback indicates how often a user
+    /// signup escaped the auth.users trigger or hit replica lag.
     pub async fn user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
+        match self.read_user_balance(user_id).await {
+            Ok(row) => Ok(row),
+            Err(WalletError::AccountMissing) => self.write_user_balance(user_id).await,
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn read_user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
+        let mut conn = self.read().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<BalanceRow, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                balance_async_readonly(conn).await
+            })
+            .await
+    }
+
+    async fn write_user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
         let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
@@ -68,6 +93,25 @@ impl WalletClient {
     }
 
     pub async fn user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
+        match self.read_user_coupons(user_id).await {
+            Ok(rows) => Ok(rows),
+            Err(WalletError::AccountMissing) => self.write_user_coupons(user_id).await,
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn read_user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
+        let mut conn = self.read().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+        inner
+            .transaction::<Vec<CouponSummary>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                coupons_async_readonly(conn).await
+            })
+            .await
+    }
+
+    async fn write_user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
         let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
@@ -112,16 +156,45 @@ async fn balance_async(conn: &mut AsyncPgConnection) -> Result<BalanceRow> {
     })
 }
 
+async fn balance_async_readonly(conn: &mut AsyncPgConnection) -> Result<BalanceRow> {
+    let row: BalanceRowDb = sql_query(
+        "SELECT account_id, credits, khash, updated_at \
+         FROM public.proxy_wallet_get_balance_readonly()",
+    )
+    .get_result(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+
+    Ok(BalanceRow {
+        account_id: row.account_id,
+        credits: row.credits,
+        khash: row.khash,
+        updated_at: row.updated_at,
+    })
+}
+
 async fn coupons_async(conn: &mut AsyncPgConnection) -> Result<Vec<CouponSummary>> {
-    let rows: Vec<CouponSummaryDb> = sql_query(
+    coupons_async_inner(conn, "public.proxy_wallet_list_coupons()").await
+}
+
+async fn coupons_async_readonly(conn: &mut AsyncPgConnection) -> Result<Vec<CouponSummary>> {
+    coupons_async_inner(conn, "public.proxy_wallet_list_coupons_readonly()").await
+}
+
+async fn coupons_async_inner(
+    conn: &mut AsyncPgConnection,
+    fn_call: &str,
+) -> Result<Vec<CouponSummary>> {
+    let query = format!(
         "SELECT coupon_id, template_code, template_label, \
                 reward_kind::text AS reward_kind, reward_payload, \
                 status::text AS status, granted_at, expires_at, redeemed_at \
-         FROM public.proxy_wallet_list_coupons()",
-    )
-    .get_results(conn)
-    .await
-    .map_err(WalletError::from_diesel)?;
+         FROM {fn_call}"
+    );
+    let rows: Vec<CouponSummaryDb> = sql_query(query)
+        .get_results(conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
 
     rows.into_iter()
         .map(|r| {
