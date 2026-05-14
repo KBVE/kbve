@@ -4,6 +4,23 @@ import { atom } from 'nanostores';
 // Types — mirror firecracker-ctl's DeployFcRequest + PersistentEndpointInfo
 // ---------------------------------------------------------------------------
 
+export type EndpointVisibility = 'staff' | 'public';
+
+export interface RateLimitConfig {
+	requests_per_sec?: number;
+	burst?: number;
+}
+
+export interface EndpointHttpConfig {
+	cors_allow_origins?: string[];
+	cors_allow_methods?: string[];
+	cors_allow_headers?: string[];
+	cors_max_age_secs?: number;
+	cors_allow_credentials?: boolean;
+	inject_request_headers?: Record<string, string>;
+	rate_limit?: RateLimitConfig;
+}
+
 export interface DeployRequest {
 	name: string;
 	rootfs: string;
@@ -14,6 +31,9 @@ export interface DeployRequest {
 	health_path?: string;
 	env?: Record<string, unknown>;
 	code?: string;
+	visibility?: EndpointVisibility;
+	idle_ttl_secs?: number;
+	http_config?: EndpointHttpConfig;
 }
 
 export interface DeployedEndpoint {
@@ -25,6 +45,9 @@ export interface DeployedEndpoint {
 	entrypoint: string;
 	status?: string;
 	created_at?: string;
+	visibility?: EndpointVisibility;
+	idle_ttl_secs?: number;
+	http_config?: EndpointHttpConfig;
 }
 
 export interface DeployTemplate {
@@ -179,6 +202,12 @@ class DeployService {
 	public readonly $port = atom<number>(TEMPLATES[0].http_port);
 	public readonly $endpoints = atom<DeployedEndpoint[]>([]);
 	public readonly $lastDeployedName = atom<string | null>(null);
+	public readonly $visibility = atom<EndpointVisibility>('staff');
+	public readonly $corsOriginsRaw = atom<string>('');
+	public readonly $rateRps = atom<number>(0);
+	public readonly $rateBurst = atom<number>(0);
+	public readonly $idleTtlSecs = atom<number>(0);
+	public readonly $injectHeadersRaw = atom<string>('');
 
 	public selectTemplate(id: string): void {
 		const tpl = TEMPLATES.find((t) => t.id === id);
@@ -196,6 +225,69 @@ class DeployService {
 
 	public urlFor(name: string): string {
 		return endpointUrl(name);
+	}
+
+	public publicUrlFor(name: string): string {
+		return `/fc/public/${name}/`;
+	}
+
+	private parseInjectHeaders(
+		raw: string,
+	): Record<string, string> | undefined {
+		const out: Record<string, string> = {};
+		let count = 0;
+		for (const line of raw.split('\n')) {
+			const trimmed = line.trim();
+			if (!trimmed) continue;
+			const idx = trimmed.indexOf(':');
+			if (idx <= 0) {
+				throw new Error(
+					`Invalid header line (expected "Name: value"): ${trimmed}`,
+				);
+			}
+			const key = trimmed.slice(0, idx).trim();
+			const value = trimmed.slice(idx + 1).trim();
+			if (!key || !value) {
+				throw new Error(`Invalid header line: ${trimmed}`);
+			}
+			out[key] = value;
+			count += 1;
+			if (count > 16) {
+				throw new Error('Inject headers limit (16) exceeded.');
+			}
+		}
+		return Object.keys(out).length > 0 ? out : undefined;
+	}
+
+	private buildHttpConfig(): EndpointHttpConfig | undefined {
+		const originsRaw = this.$corsOriginsRaw.get().trim();
+		const corsOrigins = originsRaw
+			? originsRaw
+					.split(/[\s,]+/)
+					.map((s) => s.trim())
+					.filter(Boolean)
+			: [];
+		const injectHeaders = this.parseInjectHeaders(
+			this.$injectHeadersRaw.get(),
+		);
+		const rps = Math.max(0, Math.floor(this.$rateRps.get() ?? 0));
+		const burst = Math.max(0, Math.floor(this.$rateBurst.get() ?? 0));
+
+		const cfg: EndpointHttpConfig = {};
+		let any = false;
+		if (corsOrigins.length > 0) {
+			cfg.cors_allow_origins = corsOrigins;
+			any = true;
+		}
+		if (injectHeaders) {
+			cfg.inject_request_headers = injectHeaders;
+			any = true;
+		}
+		if (rps > 0 || burst > 0) {
+			cfg.rate_limit = { requests_per_sec: rps, burst };
+			any = true;
+		}
+		return any ? cfg : undefined;
 	}
 
 	public async deploy(token: string): Promise<void> {
@@ -222,6 +314,18 @@ class DeployService {
 		this.$phase.set('submitting');
 		this.$error.set(null);
 
+		let httpConfig: EndpointHttpConfig | undefined;
+		try {
+			httpConfig = this.buildHttpConfig();
+		} catch (e) {
+			this.$phase.set('idle');
+			this.$error.set(e instanceof Error ? e.message : String(e));
+			return;
+		}
+
+		const visibility = this.$visibility.get();
+		const idleTtl = Math.max(0, Math.floor(this.$idleTtlSecs.get() ?? 0));
+
 		const req: DeployRequest = {
 			name,
 			rootfs: tpl.rootfs,
@@ -231,7 +335,11 @@ class DeployService {
 			mem_size_mib: tpl.mem_size_mib,
 			code,
 			env: {},
+			visibility,
 		};
+		if (idleTtl > 0) req.idle_ttl_secs = idleTtl;
+		if (httpConfig) req.http_config = httpConfig;
+
 		const packages = TEMPLATE_PACKAGES[tpl.id];
 		if (packages && packages.length > 0) {
 			(req as unknown as Record<string, unknown>).packages = packages;
