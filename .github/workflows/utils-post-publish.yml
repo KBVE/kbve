@@ -40,15 +40,13 @@ on:
                 description: 'PAT for pushing atom branches'
                 required: true
 
-# Serialize post-publish runs. Multiple crate releases firing in
-# parallel would each rebase Cargo.lock from the same pre-publish dev
-# HEAD, and even though each touches a different `[[package]]` block
-# the 3-way merge can fail when transitive deps shift adjacent lines.
-# Queuing keeps each atom branch based on dev that already contains
-# the prior post-publish, eliminating the race for Cargo.lock and
-# version.toml history.
+# Shared with utils-update-version-toml.yml. Both workflows commit to
+# version.toml / Cargo.toml / Cargo.lock from per-release atom branches
+# based on the same dev HEAD; without one shared group two crate
+# releases firing across both workflows can race on Cargo.lock when
+# their atom PRs auto-merge.
 concurrency:
-    group: post-publish
+    group: version-sync
     cancel-in-progress: false
 
 jobs:
