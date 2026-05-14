@@ -11,6 +11,8 @@ interface PlacementCacheEntry {
 	placements: CardPlacement[];
 }
 
+const CARD_GAP = 18;
+
 export class HandLayout {
 	private readonly placementCache = new Map<HandOwner, PlacementCacheEntry>();
 
@@ -39,12 +41,14 @@ export class HandLayout {
 		}
 
 		const totalWidth =
-			cards.length * CARD_SIZE.width + Math.max(0, cards.length - 1) * 18;
+			cards.length * CARD_SIZE.width +
+			Math.max(0, cards.length - 1) * CARD_GAP;
 		let x = centerX - totalWidth / 2;
-		const placements: CardPlacement[] = [];
+		const placements = new Array<CardPlacement>(cards.length);
 
-		cards.forEach((card, index) => {
-			placements.push({
+		for (let index = 0; index < cards.length; index++) {
+			const card = cards[index];
+			placements[index] = {
 				textureKey:
 					hideHole && index === 1
 						? this.textureKey('back')
@@ -53,11 +57,11 @@ export class HandLayout {
 				y,
 				owner,
 				index,
-			});
-			x += CARD_SIZE.width + 18;
-		});
+			};
+			x += CARD_SIZE.width + CARD_GAP;
+		}
 		this.placementCache.set(owner, {
-			cards: Uint8Array.from(cards),
+			cards: this.snapshot(cards),
 			fingerprint,
 			centerX,
 			y,
@@ -90,5 +94,13 @@ export class HandLayout {
 			if (cached.cards[i] !== cards[i]) return false;
 		}
 		return true;
+	}
+
+	private snapshot(cards: readonly Card[]): Uint8Array {
+		const snapshot = new Uint8Array(cards.length);
+		for (let i = 0; i < cards.length; i++) {
+			snapshot[i] = cards[i];
+		}
+		return snapshot;
 	}
 }
