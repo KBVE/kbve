@@ -1,0 +1,31 @@
+import {
+	VmSpecSchema,
+	VmStatuses,
+	UUIDSchema,
+	VmRateCardSchema,
+	CreateVmRequestSchema,
+	CreateVmResponseSchema,
+	PersistentEndpointSchema,
+	DeploymentTiers,
+	EndpointStatuses,
+	WorkflowStatuses,
+	QuoteCostRequestSchema,
+	RateCardUpdateSchema,
+	CiProjectSchema,
+} from './generated/index.js';
+
+export const _smoke = {
+	VmSpecSchema,
+	VmStatuses,
+	UUIDSchema,
+	VmRateCardSchema,
+	CreateVmRequestSchema,
+	CreateVmResponseSchema,
+	PersistentEndpointSchema,
+	DeploymentTiers,
+	EndpointStatuses,
+	WorkflowStatuses,
+	QuoteCostRequestSchema,
+	RateCardUpdateSchema,
+	CiProjectSchema,
+};
