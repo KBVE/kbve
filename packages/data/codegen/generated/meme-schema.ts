@@ -3,10 +3,12 @@
  *
  * Source: ../descriptors/meme.binpb
  * Config: ../meme-zod-config.json
- * Generated: 2026-05-04T21:04:26.544Z
+ * Generated: 2026-05-14T09:46:33.389Z
  */
 
 import { z } from 'zod';
+
+import { ResultSchema } from './common-schema.js';
 
 export const MemeFormats = ['image', 'gif', 'video', 'webp_anim'] as const;
 

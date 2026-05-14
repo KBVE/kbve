@@ -9,7 +9,7 @@
 		"kbve.vm.VmCostQuote"
 	],
 
-	"preamble": ["export const UUIDSchema = z.string().min(1).max(64);"],
+	"preamble": ["import { UUIDSchema } from './common-schema.js';"],
 
 	"enums": {
 		"kbve.vm.VmStatus": {

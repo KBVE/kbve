@@ -1,4 +1,6 @@
 {
+	"preamble": ["import { ResultSchema } from './common-schema.js';"],
+
 	"enums": {
 		"meme.MemeFormat": {
 			"mode": "const_array",

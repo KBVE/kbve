@@ -3,12 +3,12 @@
  *
  * Source: ../descriptors/vm.binpb
  * Config: ../vm-zod-config.json
- * Generated: 2026-05-14T02:27:16.741Z
+ * Generated: 2026-05-14T09:46:28.583Z
  */
 
 import { z } from 'zod';
 
-export const UUIDSchema = z.string().min(1).max(64);
+import { UUIDSchema } from './common-schema.js';
 
 export const VmStatuses = [
 	'creating',
