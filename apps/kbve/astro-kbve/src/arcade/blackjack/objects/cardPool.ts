@@ -6,6 +6,7 @@ export class CardPool {
 	private readonly xPositions: number[] = [];
 	private readonly yPositions: number[] = [];
 	private activeViews = 0;
+	private visibleViews = 0;
 
 	constructor(
 		private readonly scene: Phaser.Scene,
@@ -35,10 +36,11 @@ export class CardPool {
 	}
 
 	hideUnused() {
-		for (let i = this.activeViews; i < this.views.length; i++) {
+		for (let i = this.activeViews; i < this.visibleViews; i++) {
 			this.views[i].setVisible(false);
 			this.views[i].setActive(false);
 		}
+		this.visibleViews = this.activeViews;
 	}
 
 	private getView(index: number): Phaser.GameObjects.Image {
