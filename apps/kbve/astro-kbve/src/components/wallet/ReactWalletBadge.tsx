@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAccessToken, useSession } from '@kbve/astro';
+import { formatCompact } from './format';
 
 /**
  * Compact wallet badge for the site navigation.
@@ -98,12 +99,12 @@ export function ReactWalletBadge() {
 			aria-label={`Wallet: ${balance.khash} KHash, ${balance.credits} Credits`}
 			title="Open wallet">
 			<span style={styles.chunk}>
-				<span>{balance.khash.toLocaleString()}</span>
+				<span>{formatCompact(balance.khash)}</span>
 				<span style={styles.label}>KH</span>
 			</span>
 			<span style={{ opacity: 0.35 }}>·</span>
 			<span style={styles.chunk}>
-				<span>{balance.credits.toLocaleString()}</span>
+				<span>{formatCompact(balance.credits)}</span>
 				<span style={styles.label}>C</span>
 			</span>
 		</a>

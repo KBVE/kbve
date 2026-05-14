@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAccessToken, useSession } from '@kbve/astro';
+import { formatCompact } from '../wallet/format';
 
 /**
  * Profile wallet island.
@@ -167,12 +168,6 @@ async function authedFetch(path: string, init: RequestInit = {}) {
 	return res.json();
 }
 
-function formatCredits(n: number) {
-	// 1 credit = $0.00001 (1 USD = 100,000 credits). For display use the
-	// thousands-separated integer; conversion to USD is a future affordance.
-	return n.toLocaleString();
-}
-
 export function ReactProfileWallet() {
 	const { ready, authenticated } = useSession();
 	const [profileUsername, setProfileUsername] = useState<string | null>(null);
@@ -277,14 +272,24 @@ export function ReactProfileWallet() {
 			<div style={styles.balances}>
 				<div style={styles.balanceCard}>
 					<div style={styles.balanceLabel}>Credits</div>
-					<div style={styles.balanceValue}>
-						{balance ? formatCredits(balance.credits) : '—'}
+					<div
+						style={styles.balanceValue}
+						title={
+							balance
+								? balance.credits.toLocaleString()
+								: undefined
+						}>
+						{balance ? formatCompact(balance.credits) : '—'}
 					</div>
 				</div>
 				<div style={styles.balanceCard}>
 					<div style={styles.balanceLabel}>KHash</div>
-					<div style={styles.balanceValue}>
-						{balance ? balance.khash.toLocaleString() : '—'}
+					<div
+						style={styles.balanceValue}
+						title={
+							balance ? balance.khash.toLocaleString() : undefined
+						}>
+						{balance ? formatCompact(balance.khash) : '—'}
 					</div>
 				</div>
 			</div>
