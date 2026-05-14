@@ -519,6 +519,84 @@ GRANT EXECUTE ON FUNCTION wallet.service_verify_balance(UUID)
 ALTER FUNCTION wallet.service_verify_balance(UUID) OWNER TO service_role;
 
 -- ============================================================================
+-- MAINTENANCE: scheduled coupon expiry sweep
+--
+-- Flips unredeemed coupons whose expires_at deadline has passed to
+-- 'expired'. Idempotent + concurrent-safe under READ COMMITTED.
+-- Writes one summary audit_log row per non-empty sweep. Scheduled via
+-- pg_cron at the bottom of this file.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.sweep_expired_coupons()
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_now     TIMESTAMPTZ := transaction_timestamp();
+    v_count   BIGINT;
+    v_min_id  BIGINT;
+    v_max_id  BIGINT;
+BEGIN
+    WITH expired AS (
+        UPDATE wallet.coupon
+           SET status = 'expired'
+         WHERE status = 'unredeemed'
+           AND expires_at IS NOT NULL
+           AND expires_at <= v_now
+        RETURNING id
+    )
+    SELECT COUNT(*), MIN(id), MAX(id)
+      INTO v_count, v_min_id, v_max_id
+      FROM expired;
+
+    IF v_count > 0 THEN
+        INSERT INTO wallet.audit_log (
+            action, target_type, target_id, metadata
+        ) VALUES (
+            'coupon.sweep_expired',
+            'coupon',
+            'batch',
+            jsonb_build_object(
+                'count',             v_count,
+                'min_id',            v_min_id,
+                'max_id',            v_max_id,
+                'cutoff_expires_at', v_now,
+                'swept_at',          v_now
+            )
+        );
+    END IF;
+
+    RETURN v_count;
+END;
+$$;
+ALTER FUNCTION wallet.sweep_expired_coupons() OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.sweep_expired_coupons() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO service_role;
+-- pg_cron runs the scheduled job as the role that called cron.schedule
+-- (postgres via dbmate). Explicit grant documents that contract.
+GRANT EXECUTE ON FUNCTION wallet.sweep_expired_coupons() TO postgres;
+
+COMMENT ON FUNCTION wallet.sweep_expired_coupons() IS
+    'Flips unredeemed coupons with expires_at <= now() to status=expired. Returns affected row count. Writes one summary audit_log row per non-empty sweep. Idempotent; safe to call from a cron loop.';
+
+-- Schedule via pg_cron when present. Lives next to the function so the
+-- schedule is reviewed alongside the SQL it calls. Job runs as the role
+-- that scheduled it (postgres).
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        PERFORM cron.unschedule(jobid)
+          FROM cron.job
+         WHERE jobname = 'wallet-sweep-expired-coupons';
+        PERFORM cron.schedule(
+            'wallet-sweep-expired-coupons',
+            '0 * * * *',
+            $cron$SELECT wallet.sweep_expired_coupons();$cron$
+        );
+    END IF;
+END;
+$$;
+
+-- ============================================================================
 -- AUTHENTICATED USER PROXIES (public.*)
 -- ============================================================================
 

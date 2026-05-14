@@ -121,6 +121,11 @@ CREATE INDEX wallet_coupon_template_idx
 -- proxy_wallet_list_coupons_readonly filter + keyset cursor shape.
 CREATE INDEX wallet_coupon_account_granted_idx
     ON wallet.coupon(account_id, granted_at DESC, id DESC);
+-- Partial index for the wallet.sweep_expired_coupons hot path. Keeps
+-- the working set small as redeemed/expired/revoked rows accumulate.
+CREATE INDEX wallet_coupon_unredeemed_expires_idx
+    ON wallet.coupon(expires_at)
+    WHERE status = 'unredeemed' AND expires_at IS NOT NULL;
 
 COMMENT ON TABLE wallet.coupon IS
     'Per-account coupon instance. redeem_idempotency_key + redeem_ledger_id support idempotent retries.';
