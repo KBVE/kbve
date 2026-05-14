@@ -25,6 +25,9 @@ pub enum WalletError {
     #[error("not authenticated")]
     NotAuthenticated,
 
+    #[error("wallet account missing for caller")]
+    AccountMissing,
+
     #[error("null argument: {0}")]
     NullArgument(String),
 
@@ -60,6 +63,15 @@ impl WalletError {
     ///      functions raise (e.g. "insufficient funds").
     ///   3. Fall back to the raw `DieselError` in the `Db` variant.
     pub fn from_diesel(e: DieselError) -> Self {
+        if let DieselError::DatabaseError(_, ref info) = e {
+            // SQLSTATE WLT01 surfaces as the message 'wallet_account_missing'
+            // raised by public.proxy_wallet_*_readonly. diesel's
+            // DatabaseErrorInformation doesn't expose the SQLSTATE on this
+            // diesel version, so we match on the message string instead.
+            if info.message() == "wallet_account_missing" {
+                return WalletError::AccountMissing;
+            }
+        }
         if let DieselError::DatabaseError(kind, ref info) = e {
             // First pass: structural kinds that map cleanly.
             match kind {
