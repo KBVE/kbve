@@ -50,22 +50,22 @@ struct RevokedRow {
 
 impl WalletClient {
     pub async fn credit(&self, req: CreditRequest) -> Result<i64> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         credit_async(&mut conn, req).await
     }
 
     pub async fn debit(&self, req: DebitRequest) -> Result<i64> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         debit_async(&mut conn, req).await
     }
 
     pub async fn transfer(&self, req: TransferRequest) -> Result<()> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         transfer_async(&mut conn, req).await
     }
 
     pub async fn service_account_for_user(&self, user_id: Uuid) -> Result<Uuid> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
             .transaction::<Uuid, WalletError, _>(async |conn| {
@@ -90,17 +90,17 @@ impl WalletClient {
         coupon_id: i64,
         idempotency_key: Uuid,
     ) -> Result<RedeemResult> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         redeem_async(&mut conn, coupon_id, idempotency_key).await
     }
 
     pub async fn revoke_coupon(&self, coupon_id: i64, reason: Option<String>) -> Result<bool> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         revoke_async(&mut conn, coupon_id, reason).await
     }
 
     pub async fn verify_balance(&self, account_id: Uuid) -> Result<VerifyBalanceRow> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.read().await?;
         verify_async(&mut conn, account_id).await
     }
 }

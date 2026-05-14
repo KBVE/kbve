@@ -14,17 +14,29 @@ use super::error::{Result, WalletError};
 pub type WalletPool = Pool<AsyncPgConnection>;
 pub type WalletConn<'a> = PooledConnection<'a, AsyncPgConnection>;
 
-pub async fn establish_wallet_pool() -> Result<WalletPool> {
-    let url = read_env("WALLET_DATABASE_URL")
-        .or_else(|_| read_env("DATABASE_URL_PROD"))
-        .map_err(|e| WalletError::Pool(format!("missing wallet DATABASE URL: {e}")))?;
-
+async fn build_pool(url: String) -> Result<WalletPool> {
     let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(url);
     Pool::builder()
         .max_size(8)
         .build(manager)
         .await
         .map_err(|e| WalletError::Pool(e.to_string()))
+}
+
+pub async fn establish_wallet_pool() -> Result<WalletPool> {
+    let url = read_env("WALLET_DATABASE_URL")
+        .or_else(|_| read_env("DATABASE_URL_PROD"))
+        .map_err(|e| WalletError::Pool(format!("missing wallet DATABASE URL: {e}")))?;
+    build_pool(url).await
+}
+
+async fn establish_readonly_pool() -> Result<Option<WalletPool>> {
+    let url = match read_env("WALLET_DATABASE_URL_RO").or_else(|_| read_env("DATABASE_URL_PROD_RO"))
+    {
+        Ok(u) => u,
+        Err(_) => return Ok(None),
+    };
+    build_pool(url).await.map(Some)
 }
 
 fn read_env(name: &str) -> std::result::Result<String, String> {
@@ -52,23 +64,39 @@ pub async fn set_user_claims(conn: &mut AsyncPgConnection, user_id: Uuid) -> Res
 
 #[derive(Clone)]
 pub struct WalletClient {
-    pool: WalletPool,
+    rw: WalletPool,
+    ro: WalletPool,
 }
 
 impl WalletClient {
-    pub fn new(pool: WalletPool) -> Self {
-        Self { pool }
+    pub fn new(rw: WalletPool, ro: Option<WalletPool>) -> Self {
+        let ro = ro.unwrap_or_else(|| rw.clone());
+        Self { rw, ro }
     }
 
     pub async fn from_env() -> Result<Self> {
-        Ok(Self::new(establish_wallet_pool().await?))
+        let rw = establish_wallet_pool().await?;
+        let ro = establish_readonly_pool().await?;
+        Ok(Self::new(rw, ro))
     }
 
-    pub fn pool(&self) -> &WalletPool {
-        &self.pool
+    pub fn rw_pool(&self) -> &WalletPool {
+        &self.rw
+    }
+
+    pub fn ro_pool(&self) -> &WalletPool {
+        &self.ro
+    }
+
+    pub async fn write(&self) -> Result<WalletConn<'_>> {
+        self.rw.get().await.map_err(WalletError::from)
+    }
+
+    pub async fn read(&self) -> Result<WalletConn<'_>> {
+        self.ro.get().await.map_err(WalletError::from)
     }
 
     pub async fn conn(&self) -> Result<WalletConn<'_>> {
-        self.pool.get().await.map_err(WalletError::from)
+        self.write().await
     }
 }
