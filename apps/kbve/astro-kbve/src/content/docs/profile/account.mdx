@@ -14,43 +14,6 @@ tags:
     - wallet
 ---
 
-import AstroWalletCard from '@/components/wallet/AstroWalletCard.astro';
-import AccountSignInFallback from '@/components/wallet/AccountSignInFallback.astro';
+import AccountPage from '@/components/wallet/AccountPage.astro';
 
-<div class="not-content account-page">
-	<header class="account-page__header">
-		<h1>Account</h1>
-		<p>
-			Your wallet balance, credits, and KHash. Claim coupons here when
-			they land.
-		</p>
-	</header>
-
-	<AstroWalletCard />
-	<AccountSignInFallback />
-</div>
-
-<style>
-	.account-page {
-		max-width: 760px;
-		margin: 1.5rem auto 4rem;
-		padding: 0 1rem;
-	}
-	.account-page__header {
-		display: grid;
-		gap: 0.35rem;
-		margin-bottom: 1.25rem;
-	}
-	.account-page__header h1 {
-		font-size: clamp(1.75rem, 3.5vw, 2.25rem);
-		font-weight: 800;
-		letter-spacing: -0.01em;
-		margin: 0;
-	}
-	.account-page__header p {
-		margin: 0;
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 0.95rem;
-		line-height: 1.5;
-	}
-</style>
+<AccountPage />
