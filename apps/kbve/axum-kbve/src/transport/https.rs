@@ -476,12 +476,11 @@ fn router(state: AppState) -> Router {
         .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
         // No JWT gate here; firecracker-ctl-net rejects with 403 when
         // the endpoint was not deployed with `visibility: "public"`.
+        // Single catch-all (vs. {name} + {name}/{*path}) so the trailing-
+        // slash form `/fc/public/my-api/` still matches and does not fall
+        // through to the staff-gated `/fc/{name}/{*path}` route.
         .route(
-            "/fc/public/{name}/{*path}",
-            any(super::proxy::firecracker_fc_public_handler),
-        )
-        .route(
-            "/fc/public/{name}",
+            "/fc/public/{*rest}",
             any(super::proxy::firecracker_fc_public_handler),
         )
         .route(
