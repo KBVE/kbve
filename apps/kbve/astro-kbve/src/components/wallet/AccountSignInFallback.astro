@@ -1,0 +1,67 @@
+---
+
+---
+
+<aside class="account-signin" data-account-signin>
+	<h2>Sign in to view your wallet</h2>
+	<p>You need a KBVE account to see balances or claim coupons.</p>
+	<a class="account-signin__btn" href="/login/">Sign in</a>
+</aside>
+
+<script>
+	const fallback = document.querySelector('[data-account-signin]');
+	const wallet = document.querySelector('[data-kbve-wallet-shell]');
+	if (fallback && wallet) {
+		const sync = () => {
+			if (!wallet.hasAttribute('hidden')) {
+				fallback.setAttribute('hidden', '');
+			}
+		};
+		sync();
+		new MutationObserver(sync).observe(wallet, {
+			attributes: true,
+			attributeFilter: ['hidden'],
+		});
+	}
+</script>
+
+<style>
+	.account-signin {
+		margin-top: 1.25rem;
+		padding: 1.25rem;
+		border-radius: 16px;
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.85);
+		text-align: center;
+	}
+	.account-signin[hidden] {
+		display: none;
+	}
+	.account-signin h2 {
+		margin: 0 0 0.4rem;
+		font-size: 1.1rem;
+		font-weight: 700;
+	}
+	.account-signin p {
+		margin: 0 0 1rem;
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.6);
+	}
+	.account-signin__btn {
+		display: inline-block;
+		padding: 0.55rem 1.1rem;
+		border-radius: 10px;
+		background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+		color: white;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.account-signin__btn:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 24px rgba(99, 102, 241, 0.4);
+	}
+</style>
