@@ -57,7 +57,7 @@ struct RedeemRowDb {
 
 impl WalletClient {
     pub async fn user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
             .transaction::<BalanceRow, WalletError, _>(async |conn| {
@@ -68,7 +68,7 @@ impl WalletClient {
     }
 
     pub async fn user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
             .transaction::<Vec<CouponSummary>, WalletError, _>(async |conn| {
@@ -84,7 +84,7 @@ impl WalletClient {
         coupon_id: i64,
         idempotency_key: Uuid,
     ) -> Result<RedeemResult> {
-        let mut conn = self.conn().await?;
+        let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
         inner
             .transaction::<RedeemResult, WalletError, _>(async |conn| {
