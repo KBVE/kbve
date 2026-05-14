@@ -217,6 +217,17 @@ jobs:
                         }
                         core.info(`Found '${appName}' in manifest (pipeline: ${entry.pipeline})`);
 
+                        // utils-post-publish.yml + utils-update-version-toml.yml
+                        // both bump Cargo.lock alongside Cargo.toml for crate
+                        // releases so fresh checkouts don't regenerate the
+                        // lock on the first `cargo` run. Allow it here when
+                        // the app's version_target is a Cargo.toml — without
+                        // this gate, post-publish atom PRs for any axum/bevy
+                        // crate fail validation on the lockfile.
+                        const versionTargetIsCargo =
+                          typeof entry.version_target === 'string' &&
+                          entry.version_target.endsWith('Cargo.toml');
+
                         const allowedFiles = new Set(
                           [
                             entry.version_toml,
@@ -224,6 +235,7 @@ jobs:
                             entry.deployment_yaml,
                             ...(Array.isArray(entry.deployment_yamls) ? entry.deployment_yamls : []),
                             '.github/ci-dispatch-manifest.json',
+                            ...(versionTargetIsCargo ? ['Cargo.lock'] : []),
                           ]
                             .filter(Boolean)
                             .map(sanitize)
