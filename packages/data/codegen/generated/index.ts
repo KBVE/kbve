@@ -7,6 +7,7 @@
 
 export * from './ci_registry-schema.js';
 export * from './clickhouse-schema.js';
+export * from './common-schema.js';
 export * from './discordsh-schema.js';
 export * from './firecracker-schema.js';
 export * from './forum-schema.js';

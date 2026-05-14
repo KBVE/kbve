@@ -1,0 +1,39 @@
+{
+	"include": [
+		"kbve.common.ULID",
+		"kbve.common.GUID",
+		"kbve.common.UUID",
+		"kbve.common.Vec2i",
+		"kbve.common.Vec2f",
+		"kbve.common.Vec3",
+		"kbve.common.Quat",
+		"kbve.common.Transform",
+		"kbve.common.Timestamp",
+		"kbve.common.Result",
+		"kbve.common.KeyValue"
+	],
+
+	"schemaNames": {
+		"kbve.common.ULID": "ULIDValueSchema",
+		"kbve.common.GUID": "GUIDValueSchema",
+		"kbve.common.UUID": "UUIDValueSchema"
+	},
+
+	"typeNames": {
+		"kbve.common.ULID": "ULIDValue",
+		"kbve.common.GUID": "GUIDValue",
+		"kbve.common.UUID": "UUIDValue"
+	},
+
+	"refinements": {
+		"kbve.common.ULID.value": ".regex(/^[0-9A-HJKMNP-TV-Z]{26}$/, 'must be 26-char Crockford base32 ULID')",
+		"kbve.common.GUID.value": ".regex(/^[a-f0-9]{32}$/, 'must be 32-char lowercase hex GUID')",
+		"kbve.common.UUID.value": ".uuid()"
+	},
+
+	"preamble": [
+		"export const UUIDSchema = z.string().uuid();",
+		"export const ULIDSchema = z.string().regex(/^[0-9A-HJKMNP-TV-Z]{26}$/, 'must be 26-char Crockford base32 ULID');",
+		"export const GUIDSchema = z.string().regex(/^[a-f0-9]{32}$/, 'must be 32-char lowercase hex GUID');"
+	]
+}

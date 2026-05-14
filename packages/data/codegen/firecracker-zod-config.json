@@ -26,7 +26,8 @@
 	],
 
 	"preamble": [
-		"import {\n\tUUIDSchema,\n\tVmSpecSchema,\n\tVmInfoSchema,\n\tVmResultSchema,\n\tVmRateCardSchema,\n\tVmCostQuoteSchema,\n\tVmStatusSchema,\n} from './vm-schema.js';"
+		"import { UUIDSchema } from './common-schema.js';",
+		"import {\n\tVmSpecSchema,\n\tVmInfoSchema,\n\tVmResultSchema,\n\tVmRateCardSchema,\n\tVmCostQuoteSchema,\n\tVmStatusSchema,\n} from './vm-schema.js';"
 	],
 
 	"enums": {
