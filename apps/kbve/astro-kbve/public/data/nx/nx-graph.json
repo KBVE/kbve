@@ -3683,6 +3683,9 @@
               "parallelism": true
             },
             "build": {
+              "dependsOn": [
+                "proto"
+              ],
               "executor": "nx:run-commands",
               "outputs": [
                 "{workspaceRoot}/dist/apps/astro-rareicon"
@@ -3699,9 +3702,6 @@
               "cache": true,
               "configurations": {},
               "parallelism": true,
-              "dependsOn": [
-                "^build"
-              ],
               "inputs": [
                 "production",
                 "^production"
@@ -3726,6 +3726,9 @@
               "parallelism": true
             },
             "check": {
+              "dependsOn": [
+                "proto"
+              ],
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rareicon/astro-rareicon",
@@ -7084,6 +7087,9 @@
               "parallelism": true
             },
             "check": {
+              "dependsOn": [
+                "proto"
+              ],
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/memes/astro-memes",
@@ -7850,12 +7856,76 @@
         "type": "app",
         "data": {
           "root": "apps/kbve/astro-kbve",
-          "name": "astro-kbve",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/kbve/astro-kbve/src",
-          "tags": [],
+          "metadata": {},
           "targets": {
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "vitest run --config vitest.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects astro-kbve --includeDependentProjects -- pnpm exec nx build-deps astro-kbve"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "proto": {
               "executor": "nx:run-commands",
               "inputs": [
@@ -7942,6 +8012,9 @@
               "parallelism": true
             },
             "check": {
+              "dependsOn": [
+                "proto"
+              ],
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
@@ -8138,6 +8211,11 @@
               "parallelism": true
             }
           },
+          "projectType": "application",
+          "name": "astro-kbve",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/kbve/astro-kbve/src",
+          "tags": [],
           "implicitDependencies": []
         }
       },
@@ -8721,25 +8799,8 @@
               "configurations": {},
               "parallelism": true
             },
-            "container-prep": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "./kbve.sh -nx astro-kbve:build",
-                  "rm -rf ./apps/kbve/axum-kbve/dist/",
-                  "mkdir -p ./apps/kbve/axum-kbve/dist/",
-                  "cp -a ./dist/apps/astro-kbve/. ./apps/kbve/axum-kbve/dist/"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "container": {
               "executor": "nx:run-commands",
-              "dependsOn": [
-                "container-prep"
-              ],
               "defaultConfiguration": "local",
               "options": {
                 "parallel": false
@@ -8759,7 +8820,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile .",
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
                     "VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
                   ]
                 }
@@ -11501,6 +11562,78 @@
           "implicitDependencies": []
         }
       },
+      "data-sql": {
+        "name": "data-sql",
+        "type": "lib",
+        "data": {
+          "root": "packages/data/sql",
+          "name": "data-sql",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/data/sql",
+          "tags": [
+            "scope:data",
+            "type:sql"
+          ],
+          "targets": {
+            "dev-up": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f dev-docker-compose.yml up -d postgres",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev-down": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f dev-docker-compose.yml down",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev-reset": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f dev-docker-compose.yml down -v && docker compose -f dev-docker-compose.yml up -d postgres",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migrate-up": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "dbmate --no-dump-schema --migrations-dir migrations up",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migrate-status": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "dbmate --no-dump-schema --migrations-dir migrations status",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test-migration": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./test-migration.sh",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "rows-e2e": {
         "name": "rows-e2e",
         "type": "e2e",
@@ -13628,6 +13761,7 @@
       "kilobase": [],
       "laser": [],
       "cryptothrone": [],
+      "data-sql": [],
       "rows-e2e": [
         {
           "source": "rows-e2e",

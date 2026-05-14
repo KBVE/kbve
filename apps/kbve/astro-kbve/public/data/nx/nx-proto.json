@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-05-13T09:10:40.154Z",
+  "generated_at": "2026-05-14T09:05:18.942Z",
   "summary": {
-    "total_protos": 29,
-    "registered": 23,
+    "total_protos": 31,
+    "registered": 25,
     "orphaned": 5,
     "utility_only": 1,
-    "total_messages": 611,
-    "total_enums": 123
+    "total_messages": 641,
+    "total_enums": 129
   },
   "protos": [
     {
@@ -425,6 +425,49 @@
       }
     },
     {
+      "proto": "packages/data/proto/kbve/firecracker.proto",
+      "package": "kbve.firecracker",
+      "messages": [
+        "CreateVmRequest",
+        "CreateVmResponse",
+        "DestroyVmRequest",
+        "DestroyVmResponse",
+        "GetVmRequest",
+        "GetVmResponse",
+        "ListVmsRequest",
+        "ListVmsResponse",
+        "PersistentEndpoint",
+        "DeployEndpointRequest",
+        "DeployEndpointResponse",
+        "DeleteEndpointRequest",
+        "DeleteEndpointResponse",
+        "ListEndpointsResponse",
+        "WorkflowStep",
+        "AgentWorkflowDefinition",
+        "WorkflowRun",
+        "FleetStatus",
+        "SchedulerHint",
+        "Quota",
+        "QuoteCostRequest",
+        "QuoteCostResponse",
+        "RateCardUpdate"
+      ],
+      "enums": [
+        "DeploymentTier",
+        "EndpointStatus",
+        "WorkflowStatus"
+      ],
+      "message_count": 23,
+      "enum_count": 3,
+      "codegen": {
+        "registered": true,
+        "name": "firecracker",
+        "zod_config": "packages/data/codegen/firecracker-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/firecracker-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/firecracker.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/kbve/forum.proto",
       "package": "kbve.forum",
       "messages": [
@@ -749,6 +792,33 @@
         "zod_config": "packages/data/codegen/staff-zod-config.json",
         "zod_output": "packages/data/codegen/generated/staff-schema.ts",
         "binpb": "packages/data/codegen/descriptors/staff.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/vm.proto",
+      "package": "kbve.vm",
+      "messages": [
+        "VmSpec",
+        "VmInfo",
+        "VmResult",
+        "VmUsageEvent",
+        "VmRateCard",
+        "VmCharge",
+        "VmCostQuote"
+      ],
+      "enums": [
+        "VmStatus",
+        "VmExitReason",
+        "ChargeOutcome"
+      ],
+      "message_count": 7,
+      "enum_count": 3,
+      "codegen": {
+        "registered": true,
+        "name": "vm",
+        "zod_config": "packages/data/codegen/vm-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/vm-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/vm.binpb"
       }
     },
     {
@@ -1232,12 +1302,13 @@
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-13T09:10:40Z",
+  "checked_at": "2026-05-14T09:05:19Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",
     "packages/data/codegen/generated/clickhouse-schema.ts",
     "packages/data/codegen/generated/discordsh-schema.ts",
+    "packages/data/codegen/generated/firecracker-schema.ts",
     "packages/data/codegen/generated/forum-schema.ts",
     "packages/data/codegen/generated/github-schema.ts",
     "packages/data/codegen/generated/groq-schema.ts",
@@ -1258,6 +1329,7 @@
     "packages/data/codegen/generated/schema-schema.ts",
     "packages/data/codegen/generated/snapshot-schema.ts",
     "packages/data/codegen/generated/staff-schema.ts",
-    "packages/data/codegen/generated/twitch-schema.ts"
+    "packages/data/codegen/generated/twitch-schema.ts",
+    "packages/data/codegen/generated/vm-schema.ts"
   ]
 }
