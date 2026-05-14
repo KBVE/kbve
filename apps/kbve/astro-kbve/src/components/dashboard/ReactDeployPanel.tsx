@@ -117,6 +117,13 @@ export default function ReactDeployPanel() {
 	const port = useStore(deployService.$port);
 	const endpoints = useStore(deployService.$endpoints);
 	const lastDeployed = useStore(deployService.$lastDeployedName);
+	const visibility = useStore(deployService.$visibility);
+	const corsOrigins = useStore(deployService.$corsOriginsRaw);
+	const rateRps = useStore(deployService.$rateRps);
+	const rateBurst = useStore(deployService.$rateBurst);
+	const idleTtl = useStore(deployService.$idleTtlSecs);
+	const injectHeaders = useStore(deployService.$injectHeadersRaw);
+	const [showAdvanced, setShowAdvanced] = useState(false);
 	const token = useStore(vmService.$accessToken);
 
 	const editorRef = useRef<HTMLDivElement | null>(null);
@@ -272,7 +279,111 @@ export default function ReactDeployPanel() {
 					<span>Rootfs</span>
 					<code>{template.rootfs}</code>
 				</label>
+
+				<label className="deploy-field">
+					<span>Visibility</span>
+					<select
+						value={visibility}
+						onChange={(e) =>
+							deployService.$visibility.set(
+								e.target.value === 'public'
+									? 'public'
+									: 'staff',
+							)
+						}>
+						<option value="staff">staff (JWT required)</option>
+						<option value="public">
+							public (anonymous /fc/public/*)
+						</option>
+					</select>
+				</label>
 			</div>
+
+			<details
+				className="deploy-advanced"
+				open={showAdvanced}
+				onToggle={(e) =>
+					setShowAdvanced((e.target as HTMLDetailsElement).open)
+				}>
+				<summary>Advanced HTTP config</summary>
+				<div className="deploy-form">
+					<label className="deploy-field deploy-field--wide">
+						<span>
+							CORS allowed origins
+							<small>(comma or newline; `*` for any)</small>
+						</span>
+						<textarea
+							rows={2}
+							value={corsOrigins}
+							placeholder="https://kbve.com, https://*.kbve.com"
+							onChange={(e) =>
+								deployService.$corsOriginsRaw.set(
+									e.target.value,
+								)
+							}
+						/>
+					</label>
+					<label className="deploy-field deploy-field--wide">
+						<span>
+							Inject request headers
+							<small>(one per line: `Name: value`)</small>
+						</span>
+						<textarea
+							rows={3}
+							value={injectHeaders}
+							placeholder={
+								'X-Endpoint-Name: my-api\nX-Tenant-Id: alpha'
+							}
+							onChange={(e) =>
+								deployService.$injectHeadersRaw.set(
+									e.target.value,
+								)
+							}
+						/>
+					</label>
+					<label className="deploy-field">
+						<span>Rate limit RPS</span>
+						<input
+							type="number"
+							min={0}
+							max={10000}
+							value={rateRps}
+							onChange={(e) =>
+								deployService.$rateRps.set(
+									Number(e.target.value) || 0,
+								)
+							}
+						/>
+					</label>
+					<label className="deploy-field">
+						<span>Rate burst</span>
+						<input
+							type="number"
+							min={0}
+							max={100000}
+							value={rateBurst}
+							onChange={(e) =>
+								deployService.$rateBurst.set(
+									Number(e.target.value) || 0,
+								)
+							}
+						/>
+					</label>
+					<label className="deploy-field">
+						<span>Idle TTL secs (0 = off)</span>
+						<input
+							type="number"
+							min={0}
+							value={idleTtl}
+							onChange={(e) =>
+								deployService.$idleTtlSecs.set(
+									Number(e.target.value) || 0,
+								)
+							}
+						/>
+					</label>
+				</div>
+			</details>
 
 			<div ref={editorRef} className="deploy-editor" />
 
@@ -305,6 +416,17 @@ export default function ReactDeployPanel() {
 						rel="noopener noreferrer">
 						{deployService.urlFor(lastDeployed)}
 					</a>
+					{visibility === 'public' && (
+						<>
+							{' · public: '}
+							<a
+								href={deployService.publicUrlFor(lastDeployed)}
+								target="_blank"
+								rel="noopener noreferrer">
+								{deployService.publicUrlFor(lastDeployed)}
+							</a>
+						</>
+					)}
 				</div>
 			)}
 
@@ -345,7 +467,12 @@ export default function ReactDeployPanel() {
 				.deploy-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 				.deploy-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; }
 				.deploy-field span { opacity: 0.7; }
-				.deploy-field input, .deploy-field select { padding: 0.4rem 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.25rem; color: inherit; font: inherit; }
+				.deploy-field input, .deploy-field select, .deploy-field textarea { padding: 0.4rem 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.25rem; color: inherit; font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+					.deploy-field--wide { grid-column: 1 / -1; }
+					.deploy-field small { opacity: 0.55; margin-left: 0.4rem; font-size: 0.7rem; }
+					.deploy-advanced { border: 1px solid rgba(255,255,255,0.08); border-radius: 0.25rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.015); }
+					.deploy-advanced summary { cursor: pointer; font-size: 0.85rem; opacity: 0.85; padding: 0.15rem 0; }
+					.deploy-advanced[open] summary { margin-bottom: 0.6rem; }
 				.deploy-field--meta code { padding: 0.4rem 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 0.25rem; font-size: 0.78rem; }
 				.deploy-editor { border: 1px solid rgba(255,255,255,0.08); border-radius: 0.25rem; overflow: hidden; }
 				.deploy-actions { display: flex; gap: 0.5rem; align-items: center; }
