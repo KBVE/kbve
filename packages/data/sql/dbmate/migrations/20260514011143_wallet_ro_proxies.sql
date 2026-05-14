@@ -5,14 +5,29 @@
 -- wallet.proxy_ensure_user_account, so they can be executed on the
 -- supabase-cluster-pooler-ro replica without write conflicts.
 --
--- Contract on missing account: raise SQLSTATE 'WLT01' (custom). The Rust
--- WalletClient catches that one sqlstate and falls back to the rw pool's
--- provisioning proxy, then retries the read. Account provisioning still
--- runs through wallet.proxy_ensure_user_account, just as a repair lane.
+-- Contract on missing account / missing balance: raise SQLSTATE 'WLT01'
+-- (custom). The Rust WalletClient catches that one sqlstate and falls
+-- back to the rw pool's provisioning proxy, then retries the read.
+-- Account provisioning still runs through wallet.proxy_ensure_user_account
+-- as a repair lane.
 --
 -- Why a custom sqlstate (not P0002 / NO_DATA_FOUND): P0002 is raised by
 -- plpgsql for a number of generic "no row" scenarios, so matching on it
 -- would be fragile. WLT01 is reserved for this wallet RO contract.
+--
+-- Schema invariants relied on:
+--   wallet_account_user_uq (partial unique on user_id WHERE kind='user')
+--     guarantees at most one user-wallet per auth user, so SELECT INTO
+--     cannot pick an arbitrary row.
+--   wallet.balance.account_id is PRIMARY KEY of wallet.balance, so one
+--     balance row per account_id is structural. The defensive IF NOT
+--     FOUND below covers older rows that were inserted before the
+--     trigger/backfill provisioned the balance row.
+
+-- Composite index matching the list_coupons_readonly query: filter on
+-- account_id, order by granted_at DESC + id DESC for stable pagination.
+CREATE INDEX IF NOT EXISTS wallet_coupon_account_granted_idx
+    ON wallet.coupon (account_id, granted_at DESC, id DESC);
 
 CREATE OR REPLACE FUNCTION public.proxy_wallet_get_balance_readonly()
 RETURNS TABLE (
@@ -42,6 +57,10 @@ BEGIN
     SELECT b.account_id, b.credits, b.khash, b.updated_at
       FROM wallet.balance b
      WHERE b.account_id = v_account_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+    END IF;
 END;
 $$;
 
@@ -50,7 +69,7 @@ GRANT EXECUTE ON FUNCTION public.proxy_wallet_get_balance_readonly() TO authenti
 ALTER FUNCTION public.proxy_wallet_get_balance_readonly() OWNER TO service_role;
 
 COMMENT ON FUNCTION public.proxy_wallet_get_balance_readonly() IS
-    'Read-only balance fetch. Raises SQLSTATE WLT01 when the caller has no wallet account; the client falls back to the rw pool to provision and retry.';
+    'Read-only balance fetch. Raises SQLSTATE WLT01 when the caller has no wallet account or balance row; the client falls back to the rw pool to provision and retry.';
 
 CREATE OR REPLACE FUNCTION public.proxy_wallet_list_coupons_readonly()
 RETURNS TABLE (
@@ -88,7 +107,7 @@ BEGIN
       FROM wallet.coupon c
       JOIN wallet.coupon_template t ON t.id = c.template_id
      WHERE c.account_id = v_account_id
-     ORDER BY c.granted_at DESC;
+     ORDER BY c.granted_at DESC, c.id DESC;
 END;
 $$;
 
@@ -103,3 +122,4 @@ COMMENT ON FUNCTION public.proxy_wallet_list_coupons_readonly() IS
 
 DROP FUNCTION IF EXISTS public.proxy_wallet_get_balance_readonly();
 DROP FUNCTION IF EXISTS public.proxy_wallet_list_coupons_readonly();
+DROP INDEX IF EXISTS wallet.wallet_coupon_account_granted_idx;

@@ -116,6 +116,19 @@ END;
 $$;
 COMMIT;
 
+-- 4b. Composite index on wallet.coupon present.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+         WHERE schemaname = 'wallet'
+           AND indexname = 'wallet_coupon_account_granted_idx'
+    ) THEN
+        RAISE EXCEPTION 'fail: wallet_coupon_account_granted_idx missing';
+    END IF;
+END;
+$$;
+
 -- 5. Write-path provisions user B, then 6. readonly returns a row for them.
 BEGIN;
 SET LOCAL request.jwt.claims = '{"role":"authenticated","sub":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"}';
@@ -168,6 +181,15 @@ BEGIN
            AND p.proname = 'proxy_wallet_get_balance'
     ) THEN
         RAISE EXCEPTION 'fail: write-path proxy_wallet_get_balance lost during rollback';
+    END IF;
+
+    -- 3. Composite coupon index removed by down.
+    IF EXISTS (
+        SELECT 1 FROM pg_indexes
+         WHERE schemaname = 'wallet'
+           AND indexname = 'wallet_coupon_account_granted_idx'
+    ) THEN
+        RAISE EXCEPTION 'fail: wallet_coupon_account_granted_idx still present after rollback';
     END IF;
 END;
 $$;
