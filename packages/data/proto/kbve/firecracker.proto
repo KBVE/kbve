@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package kbve.firecracker;
+
+option csharp_namespace = "KBVE.Proto.Firecracker";
+
+import "kbve/common.proto";
+import "kbve/vm.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// =============================================================================
+// Firecracker — Control plane verbs around kbve.vm shapes. RPC-friendly.
+// =============================================================================
+
+enum DeploymentTier {
+  DEPLOYMENT_TIER_UNSPECIFIED = 0;
+  DEPLOYMENT_TIER_SANDBOX = 1;
+  DEPLOYMENT_TIER_NET = 2;
+}
+
+enum EndpointStatus {
+  ENDPOINT_STATUS_UNSPECIFIED = 0;
+  ENDPOINT_STATUS_PENDING = 1;
+  ENDPOINT_STATUS_HEALTHY = 2;
+  ENDPOINT_STATUS_DEGRADED = 3;
+  ENDPOINT_STATUS_STOPPED = 4;
+}
+
+enum WorkflowStatus {
+  WORKFLOW_STATUS_UNSPECIFIED = 0;
+  WORKFLOW_STATUS_QUEUED = 1;
+  WORKFLOW_STATUS_RUNNING = 2;
+  WORKFLOW_STATUS_SUCCEEDED = 3;
+  WORKFLOW_STATUS_FAILED = 4;
+  WORKFLOW_STATUS_CANCELLED = 5;
+}
+
+// ---------- Quick mode (/vm/create) ----------
+
+message CreateVmRequest {
+  kbve.vm.VmSpec spec = 1;
+  kbve.common.UUID idempotency_key = 2;
+}
+
+message CreateVmResponse {
+  string vm_id = 1;
+  kbve.vm.VmStatus status = 2;
+}
+
+message DestroyVmRequest {
+  string vm_id = 1;
+}
+
+message DestroyVmResponse {
+  bool destroyed = 1;
+}
+
+message GetVmRequest {
+  string vm_id = 1;
+}
+
+message GetVmResponse {
+  kbve.vm.VmInfo info = 1;
+  kbve.vm.VmResult result = 2;
+}
+
+message ListVmsRequest {
+  uint32 limit = 1;
+  string page_token = 2;
+}
+
+message ListVmsResponse {
+  repeated kbve.vm.VmInfo items = 1;
+  string next_page_token = 2;
+}
+
+// ---------- Persistent endpoints (/fc/deploy) ----------
+
+message PersistentEndpoint {
+  string name = 1;
+  kbve.vm.VmSpec spec = 2;
+  uint32 http_port = 3;
+  string tap_ip = 4;
+  string vm_id = 5;
+  EndpointStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  string health_path = 8;
+}
+
+message DeployEndpointRequest {
+  string name = 1;
+  kbve.vm.VmSpec spec = 2;
+  uint32 http_port = 3;
+  string health_path = 4;
+}
+
+message DeployEndpointResponse {
+  PersistentEndpoint endpoint = 1;
+}
+
+message DeleteEndpointRequest {
+  string name = 1;
+}
+
+message DeleteEndpointResponse {
+  bool deleted = 1;
+}
+
+message ListEndpointsResponse {
+  repeated PersistentEndpoint items = 1;
+}
+
+// ---------- Agent workflows (future) ----------
+
+message WorkflowStep {
+  string id = 1;
+  kbve.vm.VmSpec spec = 2;
+  repeated string depends_on = 3;
+  string input_blob_ref = 4;
+}
+
+message AgentWorkflowDefinition {
+  string name = 1;
+  repeated WorkflowStep steps = 2;
+  google.protobuf.Duration max_duration = 3;
+}
+
+message WorkflowRun {
+  kbve.common.UUID id = 1;
+  string definition_name = 2;
+  WorkflowStatus status = 3;
+  map<string, kbve.vm.VmResult> step_results = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp ended_at = 6;
+}
+
+// ---------- Fleet / scheduler ----------
+
+message FleetStatus {
+  DeploymentTier tier = 1;
+  uint32 active_vms = 2;
+  uint32 max_concurrent_vms = 3;
+  uint32 ip_pool_used = 4;
+  uint32 ip_pool_capacity = 5;
+  uint32 endpoints_count = 6;
+}
+
+message SchedulerHint {
+  DeploymentTier tier = 1;
+  repeated string preferred_nodes = 2;
+}
+
+// ---------- Quota / billing surface ----------
+
+message Quota {
+  kbve.common.UUID account_id = 1;
+  uint32 max_concurrent_vms = 2;
+  uint64 daily_credits_budget = 3;
+  uint64 daily_credits_spent = 4;
+  uint32 daily_runs_limit = 5;
+  uint32 daily_runs_count = 6;
+  google.protobuf.Timestamp resets_at = 7;
+}
+
+message QuoteCostRequest {
+  kbve.vm.VmSpec spec = 1;
+  kbve.common.UUID account_id = 2;
+}
+
+message QuoteCostResponse {
+  kbve.vm.VmCostQuote quote = 1;
+}
+
+message RateCardUpdate {
+  kbve.vm.VmRateCard card = 1;
+  kbve.common.UUID actor_user_id = 2;
+  string reason = 3;
+}
