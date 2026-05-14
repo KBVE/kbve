@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { createBlackjackState, type BlackjackState } from './state';
-import { type Card, isBlackjack, valueHand } from './cards';
 import { BASE_WIDTH, CARD_SIZE, COLORS } from './config';
 import {
 	DealerAnimation,
@@ -10,6 +9,7 @@ import { CardPool } from './objects/cardPool';
 import { HandLayout } from './objects/handLayout';
 import { BlackjackHud } from './objects/blackjackHud';
 import { StrategyAdvisor } from './objects/strategyAdvisor';
+import { HandValueFormatter } from './objects/handValueFormatter';
 import {
 	BlackjackTextures,
 	CHIP_TEXTURE_KEY,
@@ -35,6 +35,7 @@ export class BlackjackScene extends Phaser.Scene {
 	private hudLayer!: Phaser.GameObjects.Container;
 	private hud!: BlackjackHud;
 	private controls!: BlackjackControls;
+	private readonly handValueFormatter = new HandValueFormatter();
 
 	constructor() {
 		super('blackjack');
@@ -149,17 +150,18 @@ export class BlackjackScene extends Phaser.Scene {
 	}
 
 	private updateHud() {
-		const dealerVisible = this.hideDealerHole()
-			? [this.state.dealer[0]].filter(Boolean)
-			: this.state.dealer;
-		const dealerValue =
-			dealerVisible.length > 0
-				? `Dealer  ${this.formatValue(dealerVisible)}`
-				: 'Dealer: -';
-		const playerValue =
-			this.state.player.length > 0
-				? `Player  ${this.formatValue(this.state.player)}`
-				: 'Player: -';
+		const hideHole = this.hideDealerHole();
+		const dealerValue = this.handValueFormatter.label(
+			'dealer',
+			'Dealer',
+			this.state.dealer,
+			hideHole ? 1 : this.state.dealer.length,
+		);
+		const playerValue = this.handValueFormatter.label(
+			'player',
+			'Player',
+			this.state.player,
+		);
 		const delta =
 			this.state.lastDelta === 0
 				? ''
@@ -178,12 +180,6 @@ export class BlackjackScene extends Phaser.Scene {
 			shoe: `Shoe ${this.state.shoe.length} cards\nRound ${this.state.rounds}`,
 			stats: `Session  W ${this.state.stats.wins}  L ${this.state.stats.losses}  P ${this.state.stats.pushes}\nBJ ${this.state.stats.blackjacks}  Best $${this.state.stats.bestBankroll}`,
 		});
-	}
-
-	private formatValue(cards: readonly Card[]): string {
-		const value = valueHand(cards);
-		const natural = isBlackjack(cards) ? ' blackjack' : '';
-		return `${value.total}${value.soft ? ' soft' : ''}${natural}`;
 	}
 
 	private getStatusColor(): string {
