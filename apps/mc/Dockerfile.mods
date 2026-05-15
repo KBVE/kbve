@@ -82,7 +82,12 @@ declare -A MODS=(
   # "warning-only" rollout mode we want. Tune the generated
   # /data/plugins/Grim/punishments.yml in-place on the PVC once we
   # collect real violation data.
-  ["grimac-fabric-2.3.73.jar"]="7a6fcb37c8a2845268f8072166b929d4b963863a https://cdn.modrinth.com/data/LJNGWSvH/versions/SNnHVoFr/grimac-fabric-2.3.73.jar"
+  # Pinned to a 2.3.74 nightly that bumps bundled PacketEvents to upstream
+  # 2.12.2 (obfuscation-safe nbt scan + relocateHandlers respect compress).
+  # The older 2.3.73 build NPE'd in StateTypes.getMappedById on modded BYG
+  # block states and choked on the BWG borealis_glint particle codec, which
+  # stalled chunk delivery to clients.
+  ["grimac-fabric-2.3.74-c156c00.jar"]="8670b781f2c4507bea81aa1b51ce68f3b5cb4d21 https://cdn.modrinth.com/data/LJNGWSvH/versions/oYJUicTF/grimac-fabric-2.3.74-c156c00.jar"
   # WorldEdit 7.4.2 — in-game world editor. Fabric build supports 1.21.11.
   # Permissions are gated through LuckPerms (worldedit.* nodes).
   ["worldedit-mod-7.4.2.jar"]="2f5c35ab2d0dffa1be99ed6016132596949e59b3 https://cdn.modrinth.com/data/1u6JkXh5/versions/oY3E2pzA/worldedit-mod-7.4.2.jar"
@@ -99,6 +104,12 @@ declare -A MODS=(
   # biomes, structures, and terrain using vanilla blocks. Server-side
   # only — no client mod required.
   ["Incendium_26.1_v5.4.12.jar"]="74f78445b6da346eb08a9f730e86dc77925eed46 https://cdn.modrinth.com/data/ZVzW5oNS/versions/dmD183NM/Incendium_26.1_v5.4.12.jar"
+  # Biolith 3.5.1 — standalone override for the older Biolith embedded
+  # in Incendium. The bundled copy leaves terrablender:deferred_placeholder
+  # in chunk packets (MixinMultiNoiseBiomeSource runs without TerraBlender's
+  # resolve step), which breaks NBT codecs for connected clients. Root
+  # cause: Glitchfiend/TerraBlender#140 (resolved in newer Biolith).
+  ["biolith-fabric-3.5.1.jar"]="9f02644875d58b429b6681c500e1aa6712418b3d https://cdn.modrinth.com/data/iGEl6Crx/versions/lIftsPaH/biolith-fabric-3.5.1.jar"
   # ── Oh The Biomes We've Gone (BYG) + dependencies ──────────────────
   # BYG replaces vanilla biome distribution with 80+ custom biomes,
   # new trees, blocks, and terrain features. Unlike Tectonic/Incendium,
