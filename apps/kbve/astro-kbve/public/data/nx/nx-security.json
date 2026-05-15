@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-05-14T09:08:16Z",
+  "generated_at": "2026-05-15T09:16:19Z",
   "summary": {
     "critical": 0,
-    "high": 27,
+    "high": 28,
     "medium": 50,
     "low": 6,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 68,
+      "total": 69,
       "severities": {
         "critical": 0,
-        "high": 27,
+        "high": 28,
         "medium": 35,
         "low": 6,
         "info": 0
@@ -488,11 +488,18 @@
           "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
         },
         {
-          "id": "1118669",
+          "id": "1118920",
           "title": "Astro: Server island encrypted parameters vulnerable to cross-component replay",
           "severity": "low",
           "package": "astro",
           "url": "https://github.com/advisories/GHSA-xr5h-phrj-8vxv"
+        },
+        {
+          "id": "1119005",
+          "title": "Svelte devalue: DoS via sparse array deserialization",
+          "severity": "high",
+          "package": "devalue",
+          "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
         }
       ]
     },

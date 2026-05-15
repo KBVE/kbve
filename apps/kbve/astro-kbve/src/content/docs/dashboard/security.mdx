@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-14T09:08:16Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-15T09:16:19Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**27** critical/high severity findings across the monorepo.
+**28** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-05-14T09:08:16Z** — updated daily by `ci-dashboard`.
   <Card title="0 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="27 High" icon="error">
+  <Card title="28 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="50 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-05-14T09:08:16Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **68** advisories
+    **69** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -62,7 +62,7 @@ Last generated: **2026-05-14T09:08:16Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "High" : 27
+    "High" : 28
     "Medium" : 50
     "Low" : 6
 ```
@@ -72,7 +72,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 68
+    "npm" : 69
     "Cargo" : 43
 ```
 
@@ -81,12 +81,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 0 | 27 | 35 | 6 | 68 |
+| **npm** | 0 | 28 | 35 | 6 | 69 |
 | **Cargo** | 0 | 0 | 15 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 0 | 27 | 50 | 6 | 111 |
+| **Total** | 0 | 28 | 50 | 6 | 112 |
 
   </TabItem>
   <TabItem label="npm">
@@ -120,6 +120,7 @@ pie showData
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `@babel/plugin-transform-modules-systemjs` | @babel/plugin-transform-modules-systemjs generates arbitr... | [Details](https://github.com/advisories/GHSA-fv7c-fp4j-7gwp) |
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
+| High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
