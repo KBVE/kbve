@@ -83,17 +83,14 @@ spec:
                       - name: TZ
                         value: 'UTC'
                       - name: FIREWALL_INPUT_PORTS
-                        value: '9001,9999,53'
+                        value: '9001,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
                       # DoH over 443 — Proton blocks 53 and 853 over tunnel.
                       - name: DOT
                         value: 'off'
-                      # Bind DNS forwarder to all interfaces — iptables REDIRECT
-                      # rewrites VM DNS dest to the fctap-N host IP (172.18.0.x),
-                      # not 127.0.0.1, so a loopback-only bind drops the packet.
                       - name: DNS_ADDRESS
-                        value: '0.0.0.0'
+                        value: '127.0.0.1'
                       - name: DNS_UPSTREAM_RESOLVER_TYPE
                         value: 'DoH'
                       - name: DNS_UPSTREAM_RESOLVERS
