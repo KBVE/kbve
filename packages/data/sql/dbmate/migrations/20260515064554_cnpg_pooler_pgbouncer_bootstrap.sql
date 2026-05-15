@@ -20,18 +20,38 @@
 -- failure as `server_login_retry`, and every client through the pooler
 -- starts timing out at the edge (CF 408).
 --
--- This migration creates both pieces idempotently. Re-running is a no-op.
--- The function mirrors CNPG's stock implementation (SECURITY DEFINER,
--- search_path locked, read-only against pg_shadow).
+-- This migration creates the role, grants CONNECT on the application
+-- database, and (re)defines public.user_search owned by `postgres` so
+-- the SECURITY DEFINER body retains access to pg_shadow regardless of
+-- which role runs dbmate. Re-running is a no-op.
+--
+-- Reference: CloudNativePG "Connection Pooling" docs, "Connecting to
+-- the PgBouncer pooler" section — the same role/function/grant trio is
+-- what the operator creates on greenfield installs.
 
 DO $do$
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM pg_catalog.pg_roles
-        WHERE rolname = 'cnpg_pooler_pgbouncer'
+        SELECT 1
+          FROM pg_catalog.pg_roles
+         WHERE rolname = 'cnpg_pooler_pgbouncer'
     ) THEN
         CREATE ROLE cnpg_pooler_pgbouncer WITH LOGIN;
     END IF;
+END
+$do$;
+
+-- PgBouncer connects to the application database to run auth_query, so
+-- the auth role must have CONNECT on it. Use current_database() via
+-- dynamic SQL instead of hardcoding the name, so the migration runs
+-- cleanly against prod (`supabase`), the local dev compose (`postgres`),
+-- and any future namespaced DB. Re-running GRANT is idempotent.
+DO $do$
+BEGIN
+    EXECUTE format(
+        'GRANT CONNECT ON DATABASE %I TO cnpg_pooler_pgbouncer',
+        current_database()
+    );
 END
 $do$;
 
@@ -42,10 +62,19 @@ CREATE OR REPLACE FUNCTION public.user_search(uname TEXT)
     SECURITY DEFINER
     SET search_path = pg_catalog
     AS $fn$
-        SELECT usename, passwd FROM pg_shadow WHERE usename = $1;
+        SELECT usename, passwd
+          FROM pg_catalog.pg_shadow
+         WHERE usename = $1;
     $fn$;
 
-REVOKE EXECUTE ON FUNCTION public.user_search(text) FROM PUBLIC;
+-- Pin ownership to `postgres` so SECURITY DEFINER runs as a superuser
+-- and the body can read pg_shadow regardless of which role applied
+-- the migration. Without this, a dbmate run as a restricted role would
+-- compile the function but it would fail at runtime with `permission
+-- denied for view pg_shadow`.
+ALTER FUNCTION public.user_search(text) OWNER TO postgres;
+
+REVOKE ALL ON FUNCTION public.user_search(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.user_search(text) TO cnpg_pooler_pgbouncer;
 
 COMMENT ON FUNCTION public.user_search(text) IS
@@ -60,6 +89,10 @@ COMMENT ON ROLE cnpg_pooler_pgbouncer IS
 
 -- migrate:down
 
-REVOKE EXECUTE ON FUNCTION public.user_search(text) FROM cnpg_pooler_pgbouncer;
-DROP FUNCTION IF EXISTS public.user_search(text);
-DROP ROLE IF EXISTS cnpg_pooler_pgbouncer;
+-- Intentionally a no-op. Dropping public.user_search or the
+-- cnpg_pooler_pgbouncer role at this point would instantly break every
+-- pooled client (wallet, MC, anything routing through pooler-ro /
+-- pooler-rw). The only safe time to run a cleanup is when both
+-- Pooler CRs have been deleted first; do that out-of-band, not via
+-- dbmate down.
+SELECT 1;
