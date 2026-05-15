@@ -294,33 +294,6 @@ pub fn build_input_accept_check(vm_subnet: &str) -> Vec<String> {
     ]
 }
 
-pub fn build_dns_dnat(proto: &str) -> Vec<String> {
-    vec![
-        "-t".into(),
-        "nat".into(),
-        "-I".into(),
-        "PREROUTING".into(),
-        "-i".into(),
-        "fctap+".into(),
-        "-p".into(),
-        proto.into(),
-        "--dport".into(),
-        "53".into(),
-        "-j".into(),
-        "REDIRECT".into(),
-        "--to-ports".into(),
-        "53".into(),
-    ]
-}
-
-pub fn build_dns_dnat_check(proto: &str) -> Vec<String> {
-    let mut v = build_dns_dnat(proto);
-    if let Some(a) = v.iter_mut().find(|s| s.as_str() == "-I") {
-        *a = "-C".into();
-    }
-    v
-}
-
 // ---------------------------------------------------------------------------
 // Execution wrappers (shell-out via tokio::process::Command)
 // ---------------------------------------------------------------------------
@@ -442,12 +415,6 @@ impl TapManager {
 
         if !iptables_rule_exists(&build_input_accept_check(&self.config.vm_subnet)).await? {
             run_iptables(&build_input_accept(&self.config.vm_subnet)).await?;
-        }
-
-        for proto in ["udp", "tcp"] {
-            if !iptables_rule_exists(&build_dns_dnat_check(proto)).await? {
-                run_iptables(&build_dns_dnat(proto)).await?;
-            }
         }
 
         Ok(())
