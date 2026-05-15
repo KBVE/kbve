@@ -41,3 +41,25 @@ export function dockerExecSafe(
 		};
 	}
 }
+
+/**
+ * Run a multi-line bash script inside the container. Avoids host-shell
+ * quoting: the script is base64-encoded, piped via stdin, and decoded +
+ * executed inside `bash -c` in the container. Set `errexit` so any
+ * intermediate failure surfaces as a non-zero exit instead of silent
+ * fall-through.
+ */
+export function dockerExecScript(
+	script: string,
+	container = RUNNER_CONTAINER,
+	timeoutMs = 60_000,
+): string {
+	const encoded = Buffer.from(
+		`set -euo pipefail\n${script}`,
+		'utf-8',
+	).toString('base64');
+	return execSync(
+		`docker exec -i ${container} bash -c "echo ${encoded} | base64 -d | bash"`,
+		{ encoding: 'utf-8', timeout: timeoutMs },
+	).trim();
+}
