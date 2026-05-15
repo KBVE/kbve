@@ -133,7 +133,7 @@ spec:
                       - name: GAME_WT_SELFSIGNED_KEY
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
                       - name: CHUCKRPG_UPSTREAM_URL
-                        value: 'http://rows.ows.svc.cluster.local:4322'
+                        value: 'http://rows.rows.svc.cluster.local:4322'
                       # MC RCON (multi-server) — drives /api/v1/mc/players.
                       # axum-kbve polls both backends in parallel, tags each
                       # player with the server they're on, and writes
