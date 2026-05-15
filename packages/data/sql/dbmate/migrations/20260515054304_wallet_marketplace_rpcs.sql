@@ -37,9 +37,12 @@
 --     mark listing 'sold', buyer_account = winning_bid.bidder_account
 --
 --   expire_listings():  -- pg_cron @ */15 * * * *
---     for each active listing with expires_at <= now():
+--     for each active KHASH listing with expires_at <= now():
 --       if current_bid_id IS NOT NULL: settle_listing
 --       else:                          mark 'expired'
+--     non-khash legacy/dirty active rows are skipped by the cursor;
+--     they stay 'active' until a cross-currency migration ships, at
+--     which point a backfill can pick them up.
 --
 -- Fee = floor(amount / 100) = 1%. Rounding favours the seller; for
 -- small amounts the fee is 0 (acceptable).
@@ -188,7 +191,7 @@ $$;
 -- misuse in a financial helper.
 CREATE OR REPLACE FUNCTION wallet.marketplace_fee(p_amount BIGINT)
 RETURNS BIGINT
-LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE AS $$
+LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN
     IF p_amount IS NULL OR p_amount < 0 THEN
         RAISE EXCEPTION 'marketplace_fee requires non-negative amount, got %', p_amount
@@ -471,12 +474,18 @@ $$;
 ALTER FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) TO service_role;
--- Note: PG does NOT grant function EXECUTE implicitly to the owner;
--- explicit service_role grant is required so the top-level RPCs
--- (which run as service_role via SECURITY DEFINER) can chain in.
--- Narrowing further (e.g., a dedicated wallet_internal role) is
--- tracked as a follow-up — the current posture is service_role-only
--- + self-locking helpers + audit trail.
+-- Note: REVOKE EXECUTE FROM owner_role DOES strip owner's execute
+-- privilege in PostgreSQL — verified empirically. The conventional
+-- "owners have implicit privileges" rule applies to GRANT OPTION
+-- (an owner can always re-grant), not to bypassing an explicit
+-- REVOKE against themselves. Therefore the top-level RPCs (which
+-- run AS service_role via SECURITY DEFINER) need an explicit
+-- GRANT EXECUTE TO service_role on the helper to chain in.
+--
+-- Narrowing further would require a dedicated wallet_internal role
+-- owning the helpers + a service_role-callable top-level wrapper.
+-- That's a Phase 1 schema change tracked as a follow-up; current
+-- posture is service_role-only + self-locking helpers + audit trail.
 COMMENT ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) IS
     'INTERNAL marketplace helper. service_role-callable; self-locks the listing. Do not wrap from public proxies.';
 
