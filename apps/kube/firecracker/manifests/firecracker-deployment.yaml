@@ -54,7 +54,7 @@ spec:
                           memory: 32Mi
             containers:
                 - name: firecracker-ctl
-                  image: ghcr.io/kbve/firecracker-ctl:0.1.34
+                  image: ghcr.io/kbve/firecracker-ctl:0.1.35
                   ports:
                       - containerPort: 9001
                         name: api
