@@ -475,12 +475,20 @@ ALTER FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) OWNER T
 REVOKE ALL ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) TO service_role;
 -- Note: REVOKE EXECUTE FROM owner_role DOES strip owner's execute
--- privilege in PostgreSQL — verified empirically. The conventional
--- "owners have implicit privileges" rule applies to GRANT OPTION
--- (an owner can always re-grant), not to bypassing an explicit
--- REVOKE against themselves. Therefore the top-level RPCs (which
--- run AS service_role via SECURITY DEFINER) need an explicit
--- GRANT EXECUTE TO service_role on the helper to chain in.
+-- privilege in PostgreSQL 17 — verified empirically with:
+--
+--   CREATE FUNCTION helper SECURITY DEFINER OWNER service_role;
+--   REVOKE EXECUTE ON helper FROM service_role;
+--   CREATE FUNCTION caller SECURITY DEFINER OWNER service_role
+--     -> calls helper;
+--   SET ROLE service_role; SELECT caller();
+--   -- ERROR: permission denied for function helper
+--
+-- The conventional "owners have implicit privileges" rule applies
+-- to GRANT OPTION (an owner can always re-grant), not to bypassing
+-- an explicit REVOKE against themselves. Therefore the top-level
+-- RPCs (which run AS service_role via SECURITY DEFINER) need an
+-- explicit GRANT EXECUTE TO service_role on the helper to chain in.
 --
 -- Narrowing further would require a dedicated wallet_internal role
 -- owning the helpers + a service_role-callable top-level wrapper.
@@ -496,14 +504,17 @@ COMMENT ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) IS
 -- Caller must already hold the FOR UPDATE lock on the listing.
 -- ============================================================================
 
--- Defensive: earlier draft returned only (fee, net). Drop so CREATE OR
--- REPLACE doesn't error on changed RETURNS TABLE shape.
+-- Defensive: earlier drafts shipped a 3-arg signature and a different
+-- RETURNS TABLE shape. Drop both old and new so CREATE OR REPLACE
+-- doesn't error on changed argument list / return-type.
 DROP FUNCTION IF EXISTS wallet.distribute_settlement(BIGINT, UUID, BIGINT);
+DROP FUNCTION IF EXISTS wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT);
 
 CREATE OR REPLACE FUNCTION wallet.distribute_settlement(
-    p_listing_id BIGINT,
-    p_seller     UUID,
-    p_amount     BIGINT
+    p_listing_id     BIGINT,
+    p_seller         UUID,
+    p_amount         BIGINT,
+    p_winning_bid_id BIGINT
 )
 RETURNS TABLE (
     fee              BIGINT,
@@ -518,24 +529,57 @@ DECLARE
     v_treasury         UUID;
     v_seller_ledger_id BIGINT;
     v_fee_ledger_id    BIGINT := NULL;
+    v_listing_row      wallet.listing%ROWTYPE;
 BEGIN
-    -- Defensive: callers already guard this, but distribute_settlement is
-    -- service_role-callable directly. Block bad inputs at the boundary.
+    -- Defensive: callers already guard this, but distribute_settlement
+    -- is service_role-callable directly. Block bad inputs at the
+    -- boundary AND re-verify the listing/bid state inside.
     IF p_amount IS NULL OR p_amount <= 0 THEN
         RAISE EXCEPTION 'settlement amount must be positive' USING ERRCODE = '22023';
     END IF;
-    IF p_seller IS NULL THEN
-        RAISE EXCEPTION 'p_seller is required' USING ERRCODE = '22004';
+    IF p_seller IS NULL OR p_winning_bid_id IS NULL THEN
+        RAISE EXCEPTION 'p_seller and p_winning_bid_id are required' USING ERRCODE = '22004';
     END IF;
     PERFORM wallet.assert_user_account(p_seller);
+
+    -- Lock the listing and verify it's still settle-able. A direct
+    -- caller cannot mint settlement credits for a cancelled, sold,
+    -- expired, or wrong-seller listing.
+    SELECT * INTO v_listing_row
+      FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
+    IF v_listing_row.id IS NULL THEN
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
+    END IF;
+    IF v_listing_row.status <> 'active' THEN
+        RAISE EXCEPTION 'listing % not active (status=%); cannot distribute',
+            p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
+    END IF;
+    IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
+        RAISE EXCEPTION 'listing % currency % is not khash',
+            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+    END IF;
+    IF v_listing_row.seller_account <> p_seller THEN
+        RAISE EXCEPTION 'seller mismatch for listing %: expected %, got %',
+            p_listing_id, v_listing_row.seller_account, p_seller USING ERRCODE = 'P1008';
+    END IF;
+    IF v_listing_row.current_bid_id IS DISTINCT FROM p_winning_bid_id THEN
+        RAISE EXCEPTION 'winning bid % is not current bid % for listing %',
+            p_winning_bid_id, v_listing_row.current_bid_id, p_listing_id
+            USING ERRCODE = 'P1008';
+    END IF;
+    IF v_listing_row.current_bid IS DISTINCT FROM p_amount THEN
+        RAISE EXCEPTION 'amount % disagrees with listing.current_bid % for listing %',
+            p_amount, v_listing_row.current_bid, p_listing_id USING ERRCODE = 'P1008';
+    END IF;
 
     v_fee := wallet.marketplace_fee(p_amount);
     v_net := p_amount - v_fee;
     v_treasury := wallet.treasury_account_id();
 
     -- Deterministic ledger idempotency keys for internal writes —
-    -- listing+bid+action identifies the operation uniquely. Replay/debug
-    -- correlation is easier than gen_random_uuid().
+    -- listing+bid+action identifies the operation uniquely so replay
+    -- correlation lines up with the winning bid even if the listing
+    -- id is reused in some future schema migration.
     v_seller_ledger_id := wallet.service_credit(
         p_seller,
         'khash'::wallet.currency_kind,
@@ -546,7 +590,8 @@ BEGIN
         p_listing_id,
         extensions.uuid_generate_v5(
             extensions.uuid_ns_url(),
-            'marketplace.settlement.seller:' || p_listing_id::TEXT
+            'marketplace.settlement.seller:' ||
+            p_listing_id::TEXT || ':' || p_winning_bid_id::TEXT
         )
     );
 
@@ -561,7 +606,8 @@ BEGIN
             p_listing_id,
             extensions.uuid_generate_v5(
                 extensions.uuid_ns_url(),
-                'marketplace.settlement.fee:' || p_listing_id::TEXT
+                'marketplace.settlement.fee:' ||
+                p_listing_id::TEXT || ':' || p_winning_bid_id::TEXT
             )
         );
     END IF;
@@ -573,10 +619,10 @@ BEGIN
     RETURN NEXT;
 END;
 $$;
-ALTER FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) TO service_role;
-COMMENT ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) IS
+ALTER FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) TO service_role;
+COMMENT ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) IS
     'INTERNAL marketplace helper. service_role-callable. Splits a settled amount into (net, fee) via two service_credit calls. Reached via service_settle_listing owner-chain. Narrower role posture (wallet_internal-only) tracked as a follow-up.';
 
 -- ============================================================================
@@ -686,7 +732,7 @@ BEGIN
 
     SELECT d.fee, d.net, d.seller_ledger_id, d.fee_ledger_id
       INTO v_fee, v_net, v_seller_ledger_id, v_fee_ledger_id
-      FROM wallet.distribute_settlement(p_listing_id, v_seller, v_amount) d;
+      FROM wallet.distribute_settlement(p_listing_id, v_seller, v_amount, v_bid_id) d;
 
     UPDATE wallet.listing
        SET status = 'sold',
@@ -1075,14 +1121,23 @@ COMMENT ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) IS
 -- ============================================================================
 -- service_expire_listings — pg_cron-driven sweep
 --
--- Walks active listings whose deadline has passed and either settles
--- the winning bid (if any) or marks the listing 'expired' (no bids).
--- One summary audit row per non-empty sweep. Returns the number of
--- listings touched.
+-- Walks active KHASH listings whose deadline has passed and either
+-- settles the winning bid (if any) or marks the listing 'expired'
+-- (no bids). Non-khash legacy active rows are filtered out of the
+-- cursor; a separate audit row records the skipped count so a future
+-- cross-currency migration can backfill them.
 --
--- Uses FOR UPDATE SKIP LOCKED so multiple cron runs can share work
--- safely. Bounded to 100 listings per call to keep the transaction
--- small; the cron schedule runs every 15min so backlog clears quickly.
+-- Concurrency:
+--   pg_try_advisory_xact_lock SERIALIZES sweep workers — the loser
+--   immediately returns (0, 0, 0). FOR UPDATE SKIP LOCKED in the
+--   cursor still protects against row contention from any non-cron
+--   caller of service_settle_listing that holds a listing lock.
+--
+-- Bounded to p_limit listings per call (default 100, clamped to
+-- [1, 1000]) so the transaction stays small. lock_timeout=2s +
+-- statement_timeout=30s are set transaction-locally so a pathological
+-- lock can't stall the sweep. One summary audit row per non-empty
+-- sweep; a separate audit row whenever non-khash actives are skipped.
 -- ============================================================================
 
 -- Defensive: earlier drafts shipped without p_limit and with
@@ -1154,6 +1209,31 @@ BEGIN
         v_total := v_total + 1;
     END LOOP;
 
+    -- Observability for non-khash legacy active rows that the cursor
+    -- filtered out. Non-zero count means a future cross-currency
+    -- backfill has work to do.
+    DECLARE
+        v_skipped_non_khash BIGINT;
+    BEGIN
+        SELECT COUNT(*) INTO v_skipped_non_khash
+          FROM wallet.listing
+         WHERE status = 'active'
+           AND currency <> 'khash'::wallet.currency_kind
+           AND expires_at <= v_now;
+
+        IF v_skipped_non_khash > 0 THEN
+            INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
+            VALUES (
+                'marketplace.expire_sweep_unsupported_currency',
+                'listing', 'batch',
+                jsonb_build_object(
+                    'skipped_non_khash', v_skipped_non_khash,
+                    'cutoff_at', v_now
+                )
+            );
+        END IF;
+    END;
+
     IF v_total > 0 THEN
         INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
         VALUES (
@@ -1182,7 +1262,7 @@ GRANT EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO service_rol
 GRANT EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO postgres;
 
 COMMENT ON FUNCTION wallet.service_expire_listings(INTEGER) IS
-    'SERVICE marketplace RPC. Sweeps active listings whose expires_at has passed. Settles winning bid if any (settlement_reason=expired_with_bid), otherwise marks expired. Bounded to p_limit rows (default 100, clamped [1, 1000]). Returns (total, settled, expired) row. Writes one summary audit row per non-empty sweep. pg_try_advisory_xact_lock makes overlapping cron runs no-op for the loser. lock_timeout=2s + statement_timeout=30s applied transaction-locally.';
+    'SERVICE marketplace RPC. Sweeps active KHASH listings whose expires_at has passed. Settles winning bid if any (settlement_reason=expired_with_bid), otherwise marks expired. Non-khash legacy actives are filtered out of the cursor; a separate marketplace.expire_sweep_unsupported_currency audit row records the skipped count. Bounded to p_limit rows (default 100, clamped [1, 1000]). Returns (total, settled, expired) row. pg_try_advisory_xact_lock SERIALIZES sweep workers; SKIP LOCKED protects against non-cron contention. lock_timeout=2s + statement_timeout=30s applied transaction-locally.';
 
 -- pg_cron schedule — guarded by extension presence so local dev passes.
 DO $$
@@ -1217,7 +1297,7 @@ DROP FUNCTION IF EXISTS wallet.service_cancel_listing(BIGINT, UUID, TEXT);
 DROP FUNCTION IF EXISTS wallet.service_buy_now(BIGINT, UUID, UUID);
 DROP FUNCTION IF EXISTS wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID);
 DROP FUNCTION IF EXISTS wallet.service_settle_listing(BIGINT, BIGINT, TEXT);
-DROP FUNCTION IF EXISTS wallet.distribute_settlement(BIGINT, UUID, BIGINT);
+DROP FUNCTION IF EXISTS wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT);
 DROP FUNCTION IF EXISTS wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT);
 DROP FUNCTION IF EXISTS wallet.service_create_listing(UUID, JSONB, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID);
 DROP FUNCTION IF EXISTS wallet.assert_user_account(UUID);
