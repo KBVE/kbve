@@ -1065,10 +1065,75 @@ async fn fc_deploy(
         info.pid,
     );
 
+    tokio::spawn(health_prober_task(persistent.clone(), req.name.clone()));
+
     (
         StatusCode::CREATED,
         Json(serde_json::json!({ "endpoint": info })),
     )
+}
+
+/// Polls the guest's health endpoint until it answers with 2xx, then flips
+/// status `Starting` → `Healthy`. After that, keeps probing on the same
+/// cadence and flips back to `Degraded` on consecutive failures; recovers
+/// to `Healthy` on a successful probe. Exits when the registry entry is
+/// removed or its status reaches `Stopping`.
+async fn health_prober_task(persistent: Arc<PersistentState>, name: String) {
+    const PROBE_INTERVAL: Duration = Duration::from_secs(2);
+    const DEGRADE_AFTER_FAILS: u32 = 3;
+
+    let (guest_ip, http_port, health_path) = match persistent.endpoints.get(&name) {
+        Some(e) => (e.allocation.guest_ip, e.http_port, e.health_path.clone()),
+        None => return,
+    };
+    let url = format!("http://{guest_ip}:{http_port}{health_path}");
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(2))
+        .timeout(Duration::from_secs(3))
+        .build()
+        .unwrap_or_else(|_| persistent.proxy_client.clone());
+
+    let mut consecutive_fails = 0u32;
+    loop {
+        let Some(entry) = persistent.endpoints.get(&name) else {
+            return;
+        };
+        if entry.status == EndpointStatus::Stopping {
+            return;
+        }
+        drop(entry);
+
+        let healthy = matches!(client.get(&url).send().await, Ok(r) if r.status().is_success());
+        if let Some(mut entry) = persistent.endpoints.get_mut(&name) {
+            if entry.status == EndpointStatus::Stopping {
+                return;
+            }
+            if healthy {
+                consecutive_fails = 0;
+                if entry.status != EndpointStatus::Healthy {
+                    tracing::info!(
+                        "fc: endpoint {name} flipped to Healthy (from {:?})",
+                        entry.status
+                    );
+                    entry.status = EndpointStatus::Healthy;
+                }
+            } else {
+                consecutive_fails += 1;
+                if consecutive_fails >= DEGRADE_AFTER_FAILS
+                    && entry.status == EndpointStatus::Healthy
+                {
+                    tracing::warn!(
+                        "fc: endpoint {name} flipped to Degraded after {consecutive_fails} failed probes"
+                    );
+                    entry.status = EndpointStatus::Degraded;
+                }
+            }
+        } else {
+            return;
+        }
+
+        tokio::time::sleep(PROBE_INTERVAL).await;
+    }
 }
 
 #[utoipa::path(
@@ -1344,6 +1409,50 @@ async fn fc_proxy_inner(
                     })),
                 )
                     .into_response();
+            }
+            // Skip the readiness gate for preflights — they answer inline
+            // without touching the guest, so they're safe before boot.
+            if !is_preflight {
+                match ep.status {
+                    EndpointStatus::Starting => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            [(header::RETRY_AFTER, "2")],
+                            Json(serde_json::json!({
+                                "error": "endpoint starting",
+                                "name": name,
+                                "status": "starting",
+                                "hint": "VM is booting; retry shortly",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Degraded => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            [(header::RETRY_AFTER, "5")],
+                            Json(serde_json::json!({
+                                "error": "endpoint degraded",
+                                "name": name,
+                                "status": "degraded",
+                                "hint": "guest health probe failing; check container logs",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Stopping => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            Json(serde_json::json!({
+                                "error": "endpoint stopping",
+                                "name": name,
+                                "status": "stopping",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Pending | EndpointStatus::Healthy => {}
+                }
             }
             // Preflights bypass the bucket so a flood of CORS probes cannot
             // starve real traffic; budget is for the actual workload.
