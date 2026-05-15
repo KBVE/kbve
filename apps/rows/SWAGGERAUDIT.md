@@ -1,8 +1,8 @@
 # ROWS vs OWS Swagger Audit
 
 Audit date: 2026-03-24
-Source: `apps/ows/rows-e2e/json/*.json` (4 OWS swagger files)
-Target: `apps/ows/rows/src/rest.rs` (ROWS route definitions)
+Source: `apps/rows-e2e/json/*.json` (4 OWS swagger files)
+Target: `apps/rows/src/rest.rs` (ROWS route definitions)
 
 ## Summary
 

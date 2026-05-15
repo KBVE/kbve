@@ -1,8 +1,8 @@
 {
 	"name": "rows",
-	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/ows/rows/src",
+	"sourceRoot": "apps/rows/src",
 	"targets": {
 		"build": {
 			"executor": "@monodon/rust:build",
@@ -58,13 +58,13 @@
 				"local": {
 					"commands": [
 						"./kbve.sh -nx rows:containerx",
-						"VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
+						"VERSION=$(grep '^version' apps/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
 					]
 				},
 				"production": {
 					"commands": [
 						"./kbve.sh -nx rows:containerx --configuration=production",
-						"VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
+						"VERSION=$(grep '^version' apps/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
 					]
 				}
 			}
@@ -75,7 +75,7 @@
 			"options": {
 				"engine": "docker",
 				"context": ".",
-				"file": "apps/ows/rows/Dockerfile",
+				"file": "apps/rows/Dockerfile",
 				"load": true
 			},
 			"configurations": {

@@ -939,7 +939,7 @@ case "$1" in
         shift
         PROJECT="${1:-chuck}"
         shift 2>/dev/null || true
-        bash "$(git rev-parse --show-toplevel)/apps/ows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
+        bash "$(git rev-parse --show-toplevel)/apps/rows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
         ;;
     -worktree)
         shift
