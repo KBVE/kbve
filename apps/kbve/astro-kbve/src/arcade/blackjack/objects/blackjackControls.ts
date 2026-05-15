@@ -22,6 +22,7 @@ interface BlackjackControlsOptions {
 
 export class BlackjackControls {
 	private readonly buttonBar: ButtonBar;
+	private lastButtonStateKey = '';
 
 	constructor(private readonly options: BlackjackControlsOptions) {
 		this.buttonBar = new ButtonBar(
@@ -38,7 +39,15 @@ export class BlackjackControls {
 	}
 
 	update() {
+		const buttonStateKey = this.buttonStateKey();
+		if (this.lastButtonStateKey === buttonStateKey) return;
+		this.lastButtonStateKey = buttonStateKey;
 		this.buttonBar.update();
+	}
+
+	private buttonStateKey(): string {
+		const { phase, canDouble } = this.state;
+		return `${phase}:${canDouble ? 1 : 0}`;
 	}
 
 	private createButtonSpecs(): ButtonSpec[] {
