@@ -191,6 +191,12 @@ declare -A MODS=(
   # Macaw's Paintings 1.1.0 — adds 40+ new painting variants in
   # multiple sizes. Client + server.
   ["mcw-paintings-1.1.0-mc1.21.11fabric.jar"]="580ba60f2811796b7906ebc7edea053849a0d1fd https://cdn.modrinth.com/data/okE6QVAY/versions/VPvufXfe/mcw-paintings-1.1.0-mc1.21.11fabric.jar"
+  # ── Land claims + parties ──────────────────────────────────────────
+  # Open Parties and Claims 0.26.2 — chunk-based claim system with
+  # built-in party (guild) support and an admin claim type used to
+  # lock the spawn city. Configured in-game via /opac admin-mode +
+  # /opac claim on first deploy.
+  ["open-parties-and-claims-fabric-1.21.11-0.26.2.jar"]="af76f66591622b945ef37fbf20bee7ae36d82329 https://cdn.modrinth.com/data/gF3BGWvG/versions/JkiXvTq4/open-parties-and-claims-fabric-1.21.11-0.26.2.jar"
 )
 
 for name in "${!MODS[@]}"; do
