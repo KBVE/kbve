@@ -60,12 +60,66 @@
 -- This migration depends on the schema shipped in PR #10976. Specifically:
 --   wallet_listing_seller_idempotency_uq          (seller_account, idempotency_key)
 --   wallet_listing_active_item_instance_uq        partial: instance_id WHERE active
---   wallet_bid_bidder_idempotency_uq              (bidder_account, idempotency_key)
+--   wallet_bid_bidder_idempotency_uq              REPLACED below with
+--                                                 (bidder_account, idempotency_key, listing_id)
 --   wallet_bid_listing_active_uq                  partial: listing_id WHERE active
 --   wallet_account_treasury_label_uq              partial: label WHERE kind='treasury'
 --   listing_current_bid_state_chk + listing_current_bid_id_fk → wallet.bid(id)
 --   listing_active_bid_fields_chk                  non-active rows clear current_bid*
 -- ============================================================================
+
+-- ============================================================================
+-- Enum preflight
+--
+-- The marketplace RPCs hardcode several enum labels (bid_status,
+-- listing_status, source_kind, currency_kind). Fail the migration
+-- early if any label is missing rather than discovering it at runtime.
+-- ============================================================================
+DO $$
+DECLARE
+    v_missing TEXT;
+BEGIN
+    FOR v_missing IN
+        SELECT label FROM (VALUES
+            ('wallet.bid_status:active'),
+            ('wallet.bid_status:outbid'),
+            ('wallet.bid_status:won'),
+            ('wallet.bid_status:refunded'),
+            ('wallet.listing_status:active'),
+            ('wallet.listing_status:sold'),
+            ('wallet.listing_status:cancelled'),
+            ('wallet.listing_status:expired'),
+            ('wallet.currency_kind:khash'),
+            ('wallet.source_kind:market_buy'),
+            ('wallet.source_kind:market_sell'),
+            ('wallet.source_kind:market_fee')
+        ) AS req(label)
+         WHERE NOT EXISTS (
+             SELECT 1 FROM pg_type t
+               JOIN pg_namespace n ON n.oid = t.typnamespace
+               JOIN pg_enum e ON e.enumtypid = t.oid
+              WHERE n.nspname = split_part(split_part(req.label, ':', 1), '.', 1)
+                AND t.typname = split_part(split_part(req.label, ':', 1), '.', 2)
+                AND e.enumlabel = split_part(req.label, ':', 2)
+         )
+    LOOP
+        RAISE EXCEPTION 'enum preflight: missing required label %', v_missing;
+    END LOOP;
+END;
+$$;
+
+-- ============================================================================
+-- Widen the bid idempotency unique to include listing_id.
+--
+-- Phase 1 shipped (bidder_account, idempotency_key) globally unique. That
+-- conflicts with the Phase 2 service_place_bid / service_buy_now replay
+-- semantics, which look up by (bidder, key, listing_id) and want clients
+-- to be able to reuse a key across different listings safely. Replace
+-- the Phase 1 partial unique with the wider shape.
+-- ============================================================================
+DROP INDEX IF EXISTS wallet.wallet_bid_bidder_idempotency_uq;
+CREATE UNIQUE INDEX IF NOT EXISTS wallet_bid_bidder_listing_idempotency_uq
+    ON wallet.bid (bidder_account, listing_id, idempotency_key);
 
 -- ============================================================================
 -- Marketplace domain errors (custom SQLSTATEs)
@@ -86,11 +140,19 @@
 -- ============================================================================
 
 -- Fee rate is 1% on the gross amount. Kept as a single helper so the
--- rate can move without hunting for magic /100 expressions.
+-- rate can move without hunting for magic /100 expressions. PL/pgSQL
+-- so we can RAISE on negative inputs — clamp-to-zero would hide
+-- misuse in a financial helper.
 CREATE OR REPLACE FUNCTION wallet.marketplace_fee(p_amount BIGINT)
 RETURNS BIGINT
-LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$
-    SELECT GREATEST(0, p_amount) / 100;
+LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE AS $$
+BEGIN
+    IF p_amount IS NULL OR p_amount < 0 THEN
+        RAISE EXCEPTION 'marketplace_fee requires non-negative amount, got %', p_amount
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN p_amount / 100;
+END;
 $$;
 REVOKE ALL ON FUNCTION wallet.marketplace_fee(BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.marketplace_fee(BIGINT) TO service_role;
@@ -282,10 +344,21 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    -- Source-of-truth join: only refund the bid the listing actually
-    -- points at. Asserts the denormalized listing pointers
-    -- (current_bid, current_bid_account, current_bid_id) agree with the
-    -- referenced bid row before we touch money.
+    -- If the listing has no current bid pointer, there's nothing to
+    -- refund. Otherwise the join must agree on all three denormalized
+    -- fields; drift means data corruption — surface P1008, don't no-op.
+    DECLARE
+        v_listing_has_pointer BOOLEAN;
+    BEGIN
+        SELECT current_bid_id IS NOT NULL
+          INTO v_listing_has_pointer
+          FROM wallet.listing WHERE id = p_listing_id;
+
+        IF NOT COALESCE(v_listing_has_pointer, FALSE) THEN
+            RETURN NULL;
+        END IF;
+    END;
+
     SELECT b.id, b.bidder_account, b.amount
       INTO v_bid_id, v_bidder, v_amount
       FROM wallet.listing l
@@ -297,7 +370,8 @@ BEGIN
      FOR UPDATE OF b;
 
     IF v_bid_id IS NULL THEN
-        RETURN NULL;
+        RAISE EXCEPTION 'listing % current_bid pointer disagrees with active bid; settlement drift',
+            p_listing_id USING ERRCODE = 'P1008';
     END IF;
 
     v_refund_ledger_id := wallet.service_credit(
@@ -520,17 +594,23 @@ BEGIN
     END IF;
 
     -- Conditional update: status must still be 'active' to flip. If
-    -- a concurrent path already won the bid, we want the conflict to
-    -- surface, not silently overwrite.
-    UPDATE wallet.bid
-       SET status = 'won',
-           settled_at = v_now
-     WHERE id = v_bid_id AND status = 'active'
-     RETURNING id INTO v_bid_id;
-    IF v_bid_id IS NULL THEN
-        RAISE EXCEPTION 'bid % no longer active; concurrent settle suspected', v_bid_id
-            USING ERRCODE = 'P1002';
-    END IF;
+    -- a concurrent path already won the bid, surface the conflict
+    -- instead of silently overwriting. Use a separate variable so a
+    -- NULL RETURNING doesn't wipe the original bid id from the error
+    -- message.
+    DECLARE
+        v_updated_bid_id BIGINT;
+    BEGIN
+        UPDATE wallet.bid
+           SET status = 'won',
+               settled_at = v_now
+         WHERE id = v_bid_id AND status = 'active'
+         RETURNING id INTO v_updated_bid_id;
+        IF v_updated_bid_id IS NULL THEN
+            RAISE EXCEPTION 'bid % no longer active; concurrent settle suspected', v_bid_id
+                USING ERRCODE = 'P1002';
+        END IF;
+    END;
 
     SELECT d.fee, d.net, d.seller_ledger_id, d.fee_ledger_id
       INTO v_fee, v_net, v_seller_ledger_id, v_fee_ledger_id
@@ -618,6 +698,10 @@ BEGIN
     IF v_listing_row.id IS NULL THEN
         RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
+    IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
+        RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
+            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+    END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',
             p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
@@ -660,7 +744,13 @@ BEGIN
         'marketplace bid escrow',
         'listing',
         p_listing_id,
-        extensions.uuid_generate_v5(p_idempotency_key, 'marketplace.bid.escrow')
+        extensions.uuid_generate_v5(
+            extensions.uuid_ns_url(),
+            'marketplace.bid.escrow:' ||
+            p_listing_id::TEXT || ':' ||
+            p_bidder_account::TEXT || ':' ||
+            p_idempotency_key::TEXT
+        )
     );
 
     -- Refund the prior active bid (if any).
@@ -749,6 +839,10 @@ BEGIN
     IF v_listing_row.id IS NULL THEN
         RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
+    IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
+        RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
+            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+    END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',
             p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
@@ -775,7 +869,13 @@ BEGIN
         'marketplace buy-now',
         'listing',
         p_listing_id,
-        extensions.uuid_generate_v5(p_idempotency_key, 'marketplace.buy_now.escrow')
+        extensions.uuid_generate_v5(
+            extensions.uuid_ns_url(),
+            'marketplace.buy_now.escrow:' ||
+            p_listing_id::TEXT || ':' ||
+            p_buyer_account::TEXT || ':' ||
+            p_idempotency_key::TEXT
+        )
     );
 
     PERFORM wallet.refund_active_bid(p_listing_id, 'outbid', 'outbid by buy-now');
@@ -890,7 +990,7 @@ BEGIN
             'seller_account', p_seller_account,
             'refunded_bid_id', v_refund_id
         ),
-        p_reason
+        COALESCE(p_reason, 'seller cancelled listing')
     );
 END;
 $$;
@@ -938,10 +1038,12 @@ BEGIN
     PERFORM set_config('lock_timeout', '2s', true);
     PERFORM set_config('statement_timeout', '30s', true);
 
-    -- Transaction-scoped advisory lock. Overlapping cron runs become a
-    -- no-op for the loser instead of racing on row locks + emitting
-    -- a redundant audit row. SKIP LOCKED below would also be safe, but
-    -- the advisory lock keeps audit traffic clean.
+    -- Transaction-scoped advisory lock SERIALIZES sweep workers — the
+    -- loser returns a (0, 0, 0) row immediately. SKIP LOCKED below is
+    -- therefore redundant against parallel cron runs (the advisory
+    -- lock has already excluded them) but it still protects against
+    -- contention from any non-cron caller of service_settle_listing
+    -- holding a listing lock.
     IF NOT pg_try_advisory_xact_lock(
         hashtextextended('wallet.service_expire_listings', 0)
     ) THEN
@@ -1017,7 +1119,7 @@ BEGIN
         PERFORM cron.schedule(
             'marketplace-expire-listings',
             '*/15 * * * *',
-            $cron$SELECT wallet.service_expire_listings();$cron$
+            $cron$SELECT * FROM wallet.service_expire_listings(100);$cron$
         );
     ELSE
         RAISE NOTICE 'pg_cron not installed; skipping marketplace-expire-listings schedule registration';
@@ -1047,3 +1149,11 @@ DROP FUNCTION IF EXISTS wallet.service_create_listing(UUID, JSONB, wallet.curren
 DROP FUNCTION IF EXISTS wallet.assert_user_account(UUID);
 DROP FUNCTION IF EXISTS wallet.treasury_account_id();
 DROP FUNCTION IF EXISTS wallet.marketplace_fee(BIGINT);
+
+-- Restore the Phase 1 shape of the bid idempotency unique. Rollback
+-- intentionally narrows; pre-existing rows may violate the narrower
+-- unique, in which case rollback fails — that's the right signal that
+-- the DB is past the point of free reversal.
+DROP INDEX IF EXISTS wallet.wallet_bid_bidder_listing_idempotency_uq;
+CREATE UNIQUE INDEX IF NOT EXISTS wallet_bid_bidder_idempotency_uq
+    ON wallet.bid (bidder_account, idempotency_key);
