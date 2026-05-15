@@ -116,8 +116,8 @@ describe('Persistent endpoints — /fc/* + /fc/public/*', () => {
 		expect(res.status).toBe(400);
 	});
 
-	it('/proxy/public/{name} returns 503 when persistent endpoints disabled', async () => {
-		const res = await fetch(`${BASE_URL}/proxy/public/anything-here`);
+	it('/public-proxy/{name} returns 503 when persistent endpoints disabled', async () => {
+		const res = await fetch(`${BASE_URL}/public-proxy/anything-here`);
 		expect(res.status).toBe(503);
 	});
 });
