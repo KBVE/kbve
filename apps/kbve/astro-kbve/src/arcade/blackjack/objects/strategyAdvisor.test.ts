@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
-import { encodeCard } from '../cards';
-import { createBlackjackState } from '../state';
+import { encodeCard, type Card } from '../cards';
+import { createBlackjackState, type BlackjackState } from '../state';
 import { StrategyAdvisor } from './strategyAdvisor';
+
+function playerTurnState(
+	player: readonly Card[],
+	dealerUp: Card,
+	canDouble: boolean,
+): BlackjackState {
+	const state = createBlackjackState();
+	state.phase = 'player-turn';
+	state.canDouble = canDouble;
+	state.player = [...player];
+	state.dealer = [dealerUp];
+	return state;
+}
 
 describe('blackjack strategy advisor', () => {
 	it('returns no hint outside the player turn', () => {
@@ -63,5 +76,101 @@ describe('blackjack strategy advisor', () => {
 		state.canDouble = false;
 
 		expect(advisor.getHint(state)).toBe('Hint: Hit');
+	});
+
+	it('covers hard total stand and hit boundaries', () => {
+		const advisor = new StrategyAdvisor();
+
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', '10'), encodeCard('clubs', '7')],
+					encodeCard('hearts', 'A'),
+					false,
+				),
+			),
+		).toBe('Hint: Stand');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', '7'), encodeCard('clubs', '5')],
+					encodeCard('hearts', '4'),
+					false,
+				),
+			),
+		).toBe('Hint: Stand');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', '7'), encodeCard('clubs', '5')],
+					encodeCard('hearts', '3'),
+					false,
+				),
+			),
+		).toBe('Hint: Hit');
+	});
+
+	it('covers hard double down boundaries', () => {
+		const advisor = new StrategyAdvisor();
+
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', '5'), encodeCard('clubs', '4')],
+					encodeCard('hearts', '3'),
+					true,
+				),
+			),
+		).toBe('Hint: Double');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', '5'), encodeCard('clubs', '4')],
+					encodeCard('hearts', '2'),
+					true,
+				),
+			),
+		).toBe('Hint: Hit');
+	});
+
+	it('covers soft total stand, hit, and double boundaries', () => {
+		const advisor = new StrategyAdvisor();
+
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', 'A'), encodeCard('clubs', '8')],
+					encodeCard('hearts', '10'),
+					false,
+				),
+			),
+		).toBe('Hint: Stand');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', 'A'), encodeCard('clubs', '7')],
+					encodeCard('hearts', '7'),
+					false,
+				),
+			),
+		).toBe('Hint: Stand');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', 'A'), encodeCard('clubs', '4')],
+					encodeCard('hearts', '4'),
+					true,
+				),
+			),
+		).toBe('Hint: Double');
+		expect(
+			advisor.getHint(
+				playerTurnState(
+					[encodeCard('spades', 'A'), encodeCard('clubs', '2')],
+					encodeCard('hearts', '5'),
+					true,
+				),
+			),
+		).toBe('Hint: Double');
 	});
 });
