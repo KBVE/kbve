@@ -92,9 +92,16 @@ export function buildShoe(decks: number): Card[] {
 
 export function shuffleCards(cards: readonly Card[]): Card[] {
 	const out = cards.slice();
+	return shuffleCardsInPlace(out);
+}
+
+export function shuffleCardsInPlace(cards: Card[]): Card[] {
+	const out = cards;
 	for (let i = out.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
-		[out[i], out[j]] = [out[j], out[i]];
+		const card = out[i];
+		out[i] = out[j];
+		out[j] = card;
 	}
 	return out;
 }
@@ -125,7 +132,9 @@ export function valueHand(cards: readonly Card[]): HandValue {
 }
 
 export function isBlackjack(cards: readonly Card[]): boolean {
-	return cards.length === 2 && valueHand(cards).total === 21;
+	return (
+		cards.length === 2 && cardPoints(cards[0]) + cardPoints(cards[1]) === 21
+	);
 }
 
 export function handFingerprint(cards: readonly Card[]): number {

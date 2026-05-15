@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
 	buildShoe,
@@ -9,10 +9,16 @@ import {
 	encodeCard,
 	handFingerprint,
 	isBlackjack,
+	shuffleCards,
+	shuffleCardsInPlace,
 	valueHand,
 } from './cards';
 
 describe('blackjack card encoding', () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
 	it('packs and decodes suit and rank into a card byte', () => {
 		const card = encodeCard('diamonds', '9');
 
@@ -35,13 +41,42 @@ describe('blackjack card encoding', () => {
 	it('keeps blackjack hand valuation semantics', () => {
 		const ace = encodeCard('spades', 'A');
 		const king = encodeCard('hearts', 'K');
+		const queen = encodeCard('diamonds', 'Q');
 		const nine = encodeCard('clubs', '9');
 
 		expect(isBlackjack([ace, king])).toBe(true);
+		expect(isBlackjack([queen, king])).toBe(false);
+		expect(isBlackjack([ace, nine, king])).toBe(false);
 		expect(valueHand([ace, nine, king])).toEqual({
 			total: 20,
 			soft: false,
 		});
+	});
+
+	it('supports immutable and in-place card shuffles', () => {
+		vi.spyOn(Math, 'random').mockReturnValue(0);
+		const cards = [
+			encodeCard('spades', 'A'),
+			encodeCard('hearts', 'K'),
+			encodeCard('clubs', '9'),
+		];
+
+		const shuffled = shuffleCards(cards);
+		const mutable = [...cards];
+		const inPlace = shuffleCardsInPlace(mutable);
+
+		expect(shuffled).toEqual([
+			encodeCard('hearts', 'K'),
+			encodeCard('clubs', '9'),
+			encodeCard('spades', 'A'),
+		]);
+		expect(cards).toEqual([
+			encodeCard('spades', 'A'),
+			encodeCard('hearts', 'K'),
+			encodeCard('clubs', '9'),
+		]);
+		expect(inPlace).toBe(mutable);
+		expect(mutable).toEqual(shuffled);
 	});
 
 	it('builds stable bit-packed hand fingerprints', () => {
