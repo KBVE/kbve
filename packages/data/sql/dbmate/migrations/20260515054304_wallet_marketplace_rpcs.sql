@@ -21,11 +21,10 @@
 --       service_settle_listing(listing, the new bid) — short-circuit win
 --
 --   buy_now(listing, buyer):
---     refund the current active bid (if any) just like place_bid
---     service_debit(buyer, khash, buy_now_price, 'market_buy')
---     settle:
---       service_credit(seller, khash, price - fee, 'market_sell')
---       service_credit(treasury, khash, fee, 'market_fee')
+--     service_debit(buyer, khash, buy_now_price, 'market_buy')   -- buyer pays first
+--     refund the current active bid (if any) — service_credit('market_buy')
+--     insert winning bid + flip listing pointers
+--     service_settle_listing(...) — credits seller (price - fee) + treasury (fee)
 --
 --   cancel_listing(listing, seller):
 --     refund the current active bid (if any) — service_credit('market_buy')
@@ -46,13 +45,20 @@
 -- small amounts the fee is 0 (acceptable).
 --
 -- Idempotency:
---   Each top-level RPC accepts a client-supplied idempotency_key. We
---   look up the existing row by (actor_account, idempotency_key) and
---   return its id if found. Intermediate ledger writes use freshly-
---   generated keys because they live inside the outer transaction:
---   if the outer call is a replay we never reach them; if not, the
---   wallet_bid_listing_active_uq / wallet_listing_seller_idempotency_uq
---   indexes still protect against double-spending.
+--   listing — (seller_account, idempotency_key) unique, looked up
+--             on replay; same key from same seller → same listing_id.
+--   bid     — (bidder_account, listing_id, idempotency_key) unique,
+--             looked up scoped by listing so the same key reused on
+--             a different listing creates a new bid.
+--   ledger writes inside an RPC use deterministic uuid_v5 keys
+--             derived from (uuid_ns_url(), descriptive name) so
+--             retries collide cleanly at the wallet.ledger unique.
+--
+-- Deployment note:
+--   This migration widens wallet.bid's bidder idempotency unique. Once
+--   any client reuses a key across different listings, the migration
+--   down-path (which would narrow it back) WILL fail. Treat as
+--   forward-only after the first production run.
 
 -- ============================================================================
 -- Required Phase 1 invariants
@@ -113,13 +119,50 @@ $$;
 --
 -- Phase 1 shipped (bidder_account, idempotency_key) globally unique. That
 -- conflicts with the Phase 2 service_place_bid / service_buy_now replay
--- semantics, which look up by (bidder, key, listing_id) and want clients
--- to be able to reuse a key across different listings safely. Replace
--- the Phase 1 partial unique with the wider shape.
+-- semantics, which look up by (bidder, listing, key) and want clients
+-- to be able to reuse a key across different listings safely.
+--
+-- Preflight: refuse to widen if existing rows would violate the new
+-- shape. The old narrower constraint should already prevent this, but
+-- a dirty INSERT bypassing the index (none should exist) would surface
+-- here rather than at index creation time.
 -- ============================================================================
+
+DO $$
+DECLARE
+    v_dupes BIGINT;
+BEGIN
+    SELECT COUNT(*) INTO v_dupes FROM (
+        SELECT 1 FROM wallet.bid
+         GROUP BY bidder_account, listing_id, idempotency_key
+        HAVING COUNT(*) > 1
+    ) d;
+    IF v_dupes > 0 THEN
+        RAISE EXCEPTION 'widen bid idempotency: % duplicate (bidder, listing, key) groups exist; resolve before applying',
+            v_dupes USING ERRCODE = '23505';
+    END IF;
+END;
+$$;
+
+-- Defensive double-drop: drop in wallet schema first (where the index
+-- should live since the table is wallet.bid; PG creates indexes in the
+-- table's schema), then try unqualified as a belt-and-suspenders against
+-- any migration runner that placed it elsewhere.
 DROP INDEX IF EXISTS wallet.wallet_bid_bidder_idempotency_uq;
+DROP INDEX IF EXISTS wallet_bid_bidder_idempotency_uq;
+
+-- New index is created in wallet schema because the target table is
+-- wallet.bid (PG indexes inherit their schema from the table).
 CREATE UNIQUE INDEX IF NOT EXISTS wallet_bid_bidder_listing_idempotency_uq
     ON wallet.bid (bidder_account, listing_id, idempotency_key);
+
+DO $$
+BEGIN
+    IF to_regclass('wallet.wallet_bid_bidder_listing_idempotency_uq') IS NULL THEN
+        RAISE EXCEPTION 'expected wallet.wallet_bid_bidder_listing_idempotency_uq but it is missing from wallet schema';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- Marketplace domain errors (custom SQLSTATEs)
@@ -332,32 +375,30 @@ CREATE OR REPLACE FUNCTION wallet.refund_active_bid(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_bid_id           BIGINT;
-    v_bidder           UUID;
-    v_amount           BIGINT;
-    v_refund_ledger_id BIGINT;
-    v_audit_action     TEXT;
-    v_now              TIMESTAMPTZ := transaction_timestamp();
+    v_bid_id              BIGINT;
+    v_bidder              UUID;
+    v_amount              BIGINT;
+    v_refund_ledger_id    BIGINT;
+    v_audit_action        TEXT;
+    v_listing_has_pointer BOOLEAN;
+    v_now                 TIMESTAMPTZ := transaction_timestamp();
 BEGIN
     IF p_next_status NOT IN ('outbid', 'refunded') THEN
         RAISE EXCEPTION 'refund_active_bid requires outbid or refunded'
             USING ERRCODE = '22023';
     END IF;
 
-    -- If the listing has no current bid pointer, there's nothing to
-    -- refund. Otherwise the join must agree on all three denormalized
-    -- fields; drift means data corruption — surface P1008, don't no-op.
-    DECLARE
-        v_listing_has_pointer BOOLEAN;
-    BEGIN
-        SELECT current_bid_id IS NOT NULL
-          INTO v_listing_has_pointer
-          FROM wallet.listing WHERE id = p_listing_id;
+    -- Self-lock the listing row so direct service_role callers get the
+    -- same isolation that the top-level RPCs already have. Re-locking
+    -- inside an enclosing transaction is a no-op.
+    SELECT current_bid_id IS NOT NULL
+      INTO v_listing_has_pointer
+      FROM wallet.listing WHERE id = p_listing_id
+     FOR UPDATE;
 
-        IF NOT COALESCE(v_listing_has_pointer, FALSE) THEN
-            RETURN NULL;
-        END IF;
-    END;
+    IF NOT COALESCE(v_listing_has_pointer, FALSE) THEN
+        RETURN NULL;
+    END IF;
 
     SELECT b.id, b.bidder_account, b.amount
       INTO v_bid_id, v_bidder, v_amount
@@ -555,6 +596,10 @@ BEGIN
       FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
     IF v_listing_row.id IS NULL THEN
         RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
+    END IF;
+    IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
+        RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
+            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%); cannot settle',
@@ -1055,7 +1100,9 @@ BEGIN
     FOR v_listing_id, v_current_bid_id IN
         SELECT id, current_bid_id
           FROM wallet.listing
-         WHERE status = 'active' AND expires_at <= v_now
+         WHERE status = 'active'
+           AND currency = 'khash'::wallet.currency_kind  -- v1: skip foreign currency
+           AND expires_at <= v_now
          ORDER BY expires_at, id
          LIMIT v_limit
          FOR UPDATE SKIP LOCKED
