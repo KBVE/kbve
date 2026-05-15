@@ -60,7 +60,7 @@ BEGIN
 
     v_id1 := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'netherite_sword', 'instance_id', 'rpcs-test-1-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'netherite_sword', 'instance_id', 'rpcs-test-1-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500,
         100,
@@ -74,7 +74,7 @@ BEGIN
     -- Replay returns the same id.
     v_id2 := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'different', 'instance_id', 'rpcs-test-replay-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'different', 'instance_id', 'rpcs-test-replay-' || v_seller::text),
         'khash'::wallet.currency_kind,
         999, 999,
         statement_timestamp() + interval '5 hours',
@@ -107,7 +107,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'axe', 'instance_id', 'rpcs-test-bid-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'axe', 'instance_id', 'rpcs-test-bid-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -165,33 +165,33 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'shield', 'instance_id', 'rpcs-test-reject-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'shield', 'instance_id', 'rpcs-test-reject-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
         gen_random_uuid()
     );
 
-    -- Self-bid blocked.
+    -- Self-bid blocked (MK005 own_listing_forbidden).
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_seller, 200, gen_random_uuid());
         RAISE EXCEPTION 'fail: seller self-bid should have raised';
-    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    EXCEPTION WHEN sqlstate 'MK005' THEN NULL;
     END;
 
-    -- Below min_bid blocked.
+    -- Below min_bid blocked (MK004 bid_too_low).
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 50, gen_random_uuid());
         RAISE EXCEPTION 'fail: bid below min_bid should have raised';
-    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    EXCEPTION WHEN sqlstate 'MK004' THEN NULL;
     END;
 
-    -- Place a real bid then attempt a non-monotonic bid.
+    -- Place a real bid then attempt a non-monotonic bid (MK004).
     PERFORM wallet.service_place_bid(v_listing, v_bidderA, 150, gen_random_uuid());
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 140, gen_random_uuid());
         RAISE EXCEPTION 'fail: non-monotonic bid should have raised';
-    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    EXCEPTION WHEN sqlstate 'MK004' THEN NULL;
     END;
 END;
 $$;
@@ -216,7 +216,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'crown', 'instance_id', 'rpcs-test-shortcircuit-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'crown', 'instance_id', 'rpcs-test-shortcircuit-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -266,7 +266,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'lance', 'instance_id', 'rpcs-test-overpay-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'lance', 'instance_id', 'rpcs-test-overpay-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -275,7 +275,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 501, gen_random_uuid());
         RAISE EXCEPTION 'fail: bid above buy_now_price should have raised';
-    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    EXCEPTION WHEN sqlstate 'MK006' THEN NULL;
     END;
 END;
 $$;
@@ -289,7 +289,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_create_listing(
             v_seller,
-            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-currency-' || v_seller::text),
+            jsonb_build_object('kind', 'mc_item', 'id', 'x', 'instance_id', 'rpcs-test-currency-' || v_seller::text),
             'credits'::wallet.currency_kind, 100, NULL,
             statement_timestamp() + interval '2 hours',
             gen_random_uuid()
@@ -310,7 +310,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_create_listing(
             v_seller,
-            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-past-' || v_seller::text),
+            jsonb_build_object('kind', 'mc_item', 'id', 'x', 'instance_id', 'rpcs-test-past-' || v_seller::text),
             'khash'::wallet.currency_kind, 100, NULL,
             statement_timestamp() - interval '1 hour',
             gen_random_uuid()
@@ -321,7 +321,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_create_listing(
             v_seller,
-            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-noprice-' || v_seller::text),
+            jsonb_build_object('kind', 'mc_item', 'id', 'x', 'instance_id', 'rpcs-test-noprice-' || v_seller::text),
             'khash'::wallet.currency_kind, NULL, NULL,
             statement_timestamp() + interval '2 hours',
             gen_random_uuid()
@@ -356,7 +356,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'gem', 'instance_id', 'rpcs-test-buynow-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'gem', 'instance_id', 'rpcs-test-buynow-' || v_seller::text),
         'khash'::wallet.currency_kind,
         400, 100,
         statement_timestamp() + interval '2 hours',
@@ -417,7 +417,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'helm', 'instance_id', 'rpcs-test-cancel-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'helm', 'instance_id', 'rpcs-test-cancel-' || v_seller::text),
         'khash'::wallet.currency_kind,
         NULL, 50,  -- auction only
         statement_timestamp() + interval '2 hours',
@@ -429,12 +429,12 @@ BEGIN
 
     -- Non-seller cancel rejected.
     BEGIN
-        PERFORM wallet.service_cancel_listing(v_listing, v_buyer, 'malicious', gen_random_uuid());
+        PERFORM wallet.service_cancel_listing(v_listing, v_buyer, 'malicious');
         RAISE EXCEPTION 'fail: non-seller cancel should have raised';
     EXCEPTION WHEN insufficient_privilege THEN NULL;
     END;
 
-    PERFORM wallet.service_cancel_listing(v_listing, v_seller, 'changed mind', gen_random_uuid());
+    PERFORM wallet.service_cancel_listing(v_listing, v_seller, 'changed mind');
 
     SELECT * INTO v_lst_row FROM wallet.listing WHERE id = v_listing;
     IF v_lst_row.status <> 'cancelled' OR v_lst_row.current_bid_id IS NOT NULL THEN
@@ -447,7 +447,7 @@ BEGIN
     END IF;
 
     -- Idempotent: re-cancel returns without error.
-    PERFORM wallet.service_cancel_listing(v_listing, v_seller, 'replay', gen_random_uuid());
+    PERFORM wallet.service_cancel_listing(v_listing, v_seller, 'replay');
 END;
 $$;
 
@@ -480,7 +480,7 @@ BEGIN
         created_at, expires_at, idempotency_key
     ) VALUES (
         v_seller,
-        jsonb_build_object('item_id', 'flute', 'instance_id', 'rpcs-test-expire-no-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'flute', 'instance_id', 'rpcs-test-expire-no-' || v_seller::text),
         'khash'::wallet.currency_kind, 50,
         v_origin, v_past, gen_random_uuid()
     ) RETURNING id INTO v_listing_no;
@@ -490,7 +490,7 @@ BEGIN
     -- fresh listing window then backdate AFTER the bid lands.
     v_listing_yes := wallet.service_create_listing(
         v_seller,
-        jsonb_build_object('item_id', 'horn', 'instance_id', 'rpcs-test-expire-yes-' || v_seller::text),
+        jsonb_build_object('kind', 'mc_item', 'id', 'horn', 'instance_id', 'rpcs-test-expire-yes-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -562,7 +562,9 @@ BEGIN
         'service_expire_listings',
         'refund_active_bid',
         'distribute_settlement',
-        'treasury_account_id'
+        'treasury_account_id',
+        'assert_user_account',
+        'marketplace_fee'
     )) THEN
         RAISE EXCEPTION 'fail: marketplace RPC still present after rollback';
     END IF;
