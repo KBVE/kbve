@@ -42,11 +42,18 @@ END
 $do$;
 
 -- PgBouncer connects to the application database to run auth_query, so
--- the auth role must have CONNECT on it. The kbve cluster routes all
--- pooled traffic through the `supabase` database (per the supabase
--- image's default DB name; verified via SELECT current_database() in
--- the live cluster). Re-running GRANT is idempotent.
-GRANT CONNECT ON DATABASE supabase TO cnpg_pooler_pgbouncer;
+-- the auth role must have CONNECT on it. Use current_database() via
+-- dynamic SQL instead of hardcoding the name, so the migration runs
+-- cleanly against prod (`supabase`), the local dev compose (`postgres`),
+-- and any future namespaced DB. Re-running GRANT is idempotent.
+DO $do$
+BEGIN
+    EXECUTE format(
+        'GRANT CONNECT ON DATABASE %I TO cnpg_pooler_pgbouncer',
+        current_database()
+    );
+END
+$do$;
 
 CREATE OR REPLACE FUNCTION public.user_search(uname TEXT)
     RETURNS TABLE (usename name, passwd text)
