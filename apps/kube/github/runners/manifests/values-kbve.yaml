@@ -36,7 +36,7 @@ template:
     spec:
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/kbve/arc-runner:0.1.1
+              image: ghcr.io/kbve/arc-runner:0.1.3
               command:
                   [
                       'cp',
@@ -50,7 +50,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/kbve/arc-runner:0.1.1
+              image: ghcr.io/kbve/arc-runner:0.1.3
               # No `command:` override — the image bakes in the
               # sudoers entry, so the upstream entrypoint
               # (/home/runner/run.sh) Just Works.
