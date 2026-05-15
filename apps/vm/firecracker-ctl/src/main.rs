@@ -1290,7 +1290,7 @@ async fn fc_proxy(
     fc_proxy_inner(state, params, req, false).await
 }
 
-/// Public-tier sibling of [`fc_proxy`]. Forwards `/proxy/public/{name}/{*path}`
+/// Public-tier sibling of [`fc_proxy`]. Forwards `/public-proxy/{name}/{*path}`
 /// into the guest VM only when the endpoint was registered with
 /// `visibility: "public"`. No auth required at this layer — the gate is the
 /// endpoint's visibility flag, which is fixed at deploy time.
@@ -2746,9 +2746,13 @@ async fn main() {
         .route("/fc/{name}", delete(fc_destroy))
         .route("/proxy/{name}", axum::routing::any(fc_proxy))
         .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
-        .route("/proxy/public/{name}", axum::routing::any(fc_proxy_public))
+        // Sibling prefix (not nested under /proxy/) so matchit can't pick
+        // the staff `/proxy/{name}/{*path}` over the public route. Earlier
+        // shape `/proxy/public/{name}` overlapped at depth 2 and the
+        // catch-all swallowed requests as name="public".
+        .route("/public-proxy/{name}", axum::routing::any(fc_proxy_public))
         .route(
-            "/proxy/public/{name}/{*path}",
+            "/public-proxy/{name}/{*path}",
             axum::routing::any(fc_proxy_public),
         )
         .layer(TraceLayer::new_for_http())
