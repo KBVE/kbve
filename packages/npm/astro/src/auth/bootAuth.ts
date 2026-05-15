@@ -72,46 +72,49 @@ export async function bootAuth(
 	_booted = true;
 
 	try {
-		const strategy = gateway.getStrategyType();
+		// Race the bridge IDB read against the worker-backed gateway. The
+		// bridge resolves in ~ms once IndexedDB opens; the SharedWorker can
+		// take several seconds to spin up its WebSocket + DB pool. Painting
+		// the UI from the first valid fast-path lets the nav flip to
+		// "signed in" immediately, then the slow path confirms (or
+		// corrects, if the gateway sees a sign-out from another tab).
+		// Direct strategy never spins up a worker, so the two paths converge.
+		const bridgeFastPath: Promise<any> = bridge
+			? bridge
+					.getSession()
+					.catch(() => null)
+					.then((s: any) =>
+						s?.user && !isSessionExpired(s) ? s : null,
+					)
+			: Promise.resolve(null);
 
-		// For direct strategy (no worker), the bridge IS the primary client.
-		// Check bridge first since there's no worker to propagate to.
-		if (strategy === 'direct' && bridge) {
-			try {
-				const bridgeSession = await bridge.getSession();
-				if (bridgeSession?.user && !isSessionExpired(bridgeSession)) {
-					pushSession(bridgeSession);
+		const gatewaySlowPath: Promise<any> = gateway
+			.getSession()
+			.catch(() => null)
+			.then(async (s: any) => {
+				if (s?.session && isSessionExpired(s.session)) {
+					console.log('[bootAuth] Session expired, forcing refresh');
+					const retry = await gateway.getSession().catch(() => null);
+					return retry?.session ?? null;
 				}
-			} catch {
-				// Bridge has no session — fall through to gateway
-			}
+				return s?.session ?? null;
+			});
+
+		const fastSession = await bridgeFastPath;
+		if (fastSession) {
+			pushSession(fastSession);
 		}
 
-		// Gateway session check (worker-backed for shared/web strategies)
-		if ($auth.get().tone !== 'auth') {
-			let s = await gateway.getSession().catch(() => null);
-
-			// Belt: if the session is expired, force a refresh before trusting it.
-			// Supabase's autoRefreshToken handles background refresh, but if the
-			// tab was dormant the token may be stale by the time bootAuth runs.
-			if (s?.session && isSessionExpired(s.session)) {
-				console.log('[bootAuth] Session expired, forcing refresh');
-				s = await gateway.getSession().catch(() => null);
-			}
-
-			pushSession(s?.session ?? null);
-		}
-
-		// For worker strategies, check bridge as fallback (OAuth sessions land there).
-		if ($auth.get().tone !== 'auth' && bridge && strategy !== 'direct') {
-			try {
-				const bridgeSession = await bridge.getSession();
-				if (bridgeSession?.user && !isSessionExpired(bridgeSession)) {
-					pushSession(bridgeSession);
-				}
-			} catch {
-				// Bridge has no session either — stay anonymous
-			}
+		const slowSession = await gatewaySlowPath;
+		if (slowSession) {
+			// Gateway is authoritative; if it agrees with fast paint
+			// pushSession is a no-op, if it disagrees this corrects.
+			pushSession(slowSession);
+		} else if (!fastSession) {
+			// Neither path found a session — only push anon if nobody
+			// already painted auth. Avoids flickering a signed-in user
+			// back to anon when the gateway is slow to hydrate.
+			pushSession(null);
 		}
 
 		// Suspenders: reactive listener also validates expiry before pushing
