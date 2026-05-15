@@ -1,0 +1,313 @@
+---
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import ReactNxReport from '@/components/dashboard/ReactNxReport';
+import {
+	parseLocStats,
+	parsePlugins,
+	parseCacheUsage,
+	parseCoverage,
+	parseTestCount,
+	coverageColor,
+	coverageAverage,
+	type CoverageEntry,
+	type LocEntry,
+	type NxReportData,
+	type PluginEntry,
+} from '@/components/dashboard/nxReportParse';
+
+let data: NxReportData | null = null;
+let parseError: string | null = null;
+const reportPath = fileURLToPath(
+	new URL('../../../public/data/nx/nx-report.json', import.meta.url),
+);
+try {
+	data = JSON.parse(readFileSync(reportPath, 'utf8')) as NxReportData;
+} catch (e) {
+	parseError = e instanceof Error ? e.message : String(e);
+}
+
+const loc: LocEntry[] = data ? parseLocStats(data.loc_stats ?? '') : [];
+const plugins = data
+	? parsePlugins(data.nx_report ?? '')
+	: { builtin: [] as PluginEntry[], community: [] as PluginEntry[] };
+const cache = data ? parseCacheUsage(data.nx_report ?? '') : null;
+const coverage: CoverageEntry[] = data
+	? parseCoverage(data.coverage ?? '')
+	: [];
+const tests = data
+	? parseTestCount(data.coverage ?? '')
+	: { passed: 0, files: 0 };
+
+const totalCode = loc.reduce((s, e) => s + e.code, 0);
+const totalFiles = loc.reduce((s, e) => s + e.files, 0);
+---
+
+{
+	parseError ? (
+		<div class="anr-error">Failed to load report: {parseError}</div>
+	) : (
+		<div class="anr-root">
+			<div class="anr-tiles">
+				<div class="anr-tile">
+					<div class="anr-tile-label">Lines of code</div>
+					<div class="anr-tile-value">
+						{totalCode.toLocaleString()}
+					</div>
+					<div class="anr-tile-sub">{loc.length} languages</div>
+				</div>
+				<div class="anr-tile">
+					<div class="anr-tile-label">Source files</div>
+					<div class="anr-tile-value">
+						{totalFiles.toLocaleString()}
+					</div>
+				</div>
+				<div class="anr-tile">
+					<div class="anr-tile-label">Tests passing</div>
+					<div class="anr-tile-value">
+						{tests.passed.toLocaleString()}
+					</div>
+					<div class="anr-tile-sub">{tests.files} files</div>
+				</div>
+				{cache && (
+					<div class="anr-tile">
+						<div class="anr-tile-label">Nx cache</div>
+						<div class="anr-tile-value">{cache.used}</div>
+						<div class="anr-tile-sub">of {cache.total}</div>
+					</div>
+				)}
+			</div>
+
+			<section class="anr-section">
+				<h3 class="anr-h3">Top 15 languages by code volume</h3>
+				{loc.length > 0 ? (
+					<ReactNxReport entries={loc} client:visible />
+				) : (
+					<div class="anr-empty">No LOC data available.</div>
+				)}
+			</section>
+
+			{coverage.length > 0 && (
+				<section class="anr-section">
+					<h3 class="anr-h3">Coverage by package</h3>
+					<div class="anr-coverage-grid">
+						{coverage.map((c) => {
+							const avg = coverageAverage(c);
+							const rows = [
+								['Statements', c.statements],
+								['Branches', c.branches],
+								['Functions', c.functions],
+								['Lines', c.lines],
+							] as const;
+							return (
+								<div class="anr-card">
+									<div class="anr-card-head">
+										<span class="anr-card-title">
+											{c.project}
+										</span>
+										<span
+											class="anr-card-avg"
+											style={`color:${coverageColor(avg)}`}>
+											{avg.toFixed(1)}%
+										</span>
+									</div>
+									{rows.map(([label, value]) => (
+										<div class="anr-metric">
+											<div class="anr-metric-row">
+												<span>{label}</span>
+												<span>{value.toFixed(1)}%</span>
+											</div>
+											<div class="anr-pill">
+												<div
+													class="anr-pill-fill"
+													style={`width:${Math.min(100, value)}%;background:${coverageColor(value)}`}
+												/>
+											</div>
+										</div>
+									))}
+								</div>
+							);
+						})}
+					</div>
+				</section>
+			)}
+
+			<section class="anr-section">
+				<h3 class="anr-h3">Nx plugins</h3>
+				{plugins.builtin.length > 0 && (
+					<div class="anr-plugins">
+						<div class="anr-plugins-label">
+							Built-in ({plugins.builtin.length})
+						</div>
+						<div class="anr-pills">
+							{plugins.builtin.map((p) => (
+								<span class="anr-plugin">
+									<span class="anr-plugin-name">
+										{p.name}
+									</span>
+									<span class="anr-plugin-version">
+										{p.version}
+									</span>
+								</span>
+							))}
+						</div>
+					</div>
+				)}
+				{plugins.community.length > 0 && (
+					<div class="anr-plugins">
+						<div class="anr-plugins-label">
+							Community ({plugins.community.length})
+						</div>
+						<div class="anr-pills">
+							{plugins.community.map((p) => (
+								<span class="anr-plugin">
+									<span class="anr-plugin-name">
+										{p.name}
+									</span>
+									<span class="anr-plugin-version">
+										{p.version}
+									</span>
+								</span>
+							))}
+						</div>
+					</div>
+				)}
+			</section>
+		</div>
+	)
+}
+
+<style>
+	.anr-root {
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+	}
+	.anr-error {
+		padding: 16px;
+		color: #ef4444;
+		font-size: 13px;
+	}
+	.anr-empty {
+		padding: 16px;
+		color: #94a3b8;
+		font-size: 13px;
+		text-align: center;
+	}
+	.anr-tiles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+	.anr-tile {
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		border-radius: 10px;
+		padding: 14px 16px;
+		min-width: 140px;
+	}
+	.anr-tile-label {
+		font-size: 11px;
+		color: #94a3b8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.anr-tile-value {
+		font-size: 22px;
+		font-weight: 600;
+		color: #e2e8f0;
+		margin-top: 4px;
+	}
+	.anr-tile-sub {
+		font-size: 11px;
+		color: #64748b;
+		margin-top: 2px;
+	}
+	.anr-section {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	.anr-h3 {
+		margin: 0;
+		color: #e2e8f0;
+	}
+	.anr-coverage-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 12px;
+	}
+	.anr-card {
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		border-radius: 10px;
+		padding: 14px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.anr-card-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+	}
+	.anr-card-title {
+		font-weight: 600;
+		color: #e2e8f0;
+	}
+	.anr-card-avg {
+		font-weight: 600;
+	}
+	.anr-metric {
+		display: grid;
+		gap: 4px;
+	}
+	.anr-metric-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 12px;
+		color: #94a3b8;
+	}
+	.anr-pill {
+		background: #1e293b;
+		border-radius: 6px;
+		height: 8px;
+		position: relative;
+		overflow: hidden;
+	}
+	.anr-pill-fill {
+		height: 100%;
+		transition: width 200ms ease;
+	}
+	.anr-plugins {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.anr-plugins-label {
+		font-size: 12px;
+		color: #94a3b8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.anr-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.anr-plugin {
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		border-radius: 6px;
+		padding: 4px 10px;
+		font-size: 12px;
+		font-family: monospace;
+	}
+	.anr-plugin-name {
+		color: #cbd5e1;
+	}
+	.anr-plugin-version {
+		color: #64748b;
+		margin-left: 6px;
+	}
+</style>
