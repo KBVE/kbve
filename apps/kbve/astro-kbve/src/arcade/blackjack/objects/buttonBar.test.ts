@@ -129,4 +129,25 @@ describe('blackjack button bar', () => {
 		expect(bar.run('deal')).toBe(false);
 		expect(action).toHaveBeenCalledTimes(1);
 	});
+
+	it('runs enabled pointer actions and ignores disabled pointer actions', () => {
+		let enabled = true;
+		const action = vi.fn();
+		const spec: ButtonSpec = {
+			key: 'deal',
+			label: 'Deal',
+			x: 0,
+			y: 0,
+			w: 92,
+			enabled: () => enabled,
+			action,
+		};
+		const { zone } = createHarness(spec);
+
+		zone.click();
+		enabled = false;
+		zone.click();
+
+		expect(action).toHaveBeenCalledTimes(1);
+	});
 });
