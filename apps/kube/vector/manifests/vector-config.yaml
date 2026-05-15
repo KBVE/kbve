@@ -5,8 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-05-12T00:00:00Z'
-        kbve.sh/config-version: 'v5-heartbeat-coverage'
+        kbve.sh/last-updated: '2026-05-15T00:00:00Z'
+        kbve.sh/config-version: 'v6-mc-multiline'
 data:
     vector.yml: |
         api:
@@ -24,10 +24,41 @@ data:
             data_dir: "/vector-data-dir"
 
         transforms:
+          # mc-fabric multiline aggregation. Java stack traces emit one line
+          # per frame; the default per-line ingest makes exception search
+          # useless. Route mc-fabric pods through a `reduce` that joins
+          # continuation lines onto the preceding `[HH:MM:SS]` header.
+          # Non-mc pods bypass the reduce via `pod_route._unmatched`.
+          pod_route:
+            type: route
+            inputs:
+              - kubernetes_logs
+            route:
+              mc_fabric: 'string!(.kubernetes.pod_namespace) == "arc-runners" && starts_with(string!(.kubernetes.pod_name), "mc-fabric")'
+
+          mc_fabric_multiline:
+            type: reduce
+            inputs:
+              - pod_route.mc_fabric
+            group_by:
+              - kubernetes.pod_name
+              - kubernetes.container_name
+            merge_strategies:
+              message: concat_newline
+            starts_when:
+              type: vrl
+              source: |-
+                msg = string(.message) ?? ""
+                match(msg, r'^\[\d{2}:\d{2}:\d{2}\]') ||
+                match(msg, r'^\d{4}-\d{2}-\d{2}T')
+            expire_after_ms: 2000
+            flush_period_ms: 500
+
           project_logs:
             type: remap
             inputs:
-              - kubernetes_logs
+              - mc_fabric_multiline
+              - pod_route._unmatched
             source: |-
               .event_message = del(.message)
               .appname = del(.kubernetes.container_name)
