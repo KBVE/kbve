@@ -8,6 +8,8 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.VehicleEntity;
+import net.minecraft.item.Item;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
@@ -24,11 +26,16 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Entity-based ship (airship / biplane / gyrodyne) rendered via BBModel.
+ * Vehicle-based ship (airship / biplane / gyrodyne) rendered via BBModel.
  * Flight tuning is per-model via {@link FlightStatsRegistry}; physics
  * pipeline mirrors ImmersiveAircraft's AircraftEntity / Rotorcraft.
+ *
+ * <p>Extends {@link VehicleEntity} so movement anticheats (GrimAC etc.)
+ * recognise the ship as a vehicle and apply vehicle-style passenger
+ * tolerances instead of player-movement checks against the pilot's
+ * position deltas.
  */
-public class ShipEntity extends Entity {
+public class ShipEntity extends VehicleEntity {
 
     private static final TrackedData<String> MODEL_NAME =
             DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
@@ -350,6 +357,10 @@ public class ShipEntity extends Entity {
         if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FIRE)) return false;
         if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FALL)) return false;
 
+        this.setDamageWobbleSide(-this.getDamageWobbleSide());
+        this.setDamageWobbleTicks(10);
+        this.setDamageWobbleStrength(this.getDamageWobbleStrength() + amount * 10.0f);
+
         float newHp = getShipHealth() - amount;
         setShipHealth(newHp);
         if (newHp <= 0f) {
@@ -387,6 +398,20 @@ public class ShipEntity extends Entity {
 
     @Override
     public boolean isCollidable(Entity other) { return true; }
+
+    /**
+     * Item form this ship would drop on death — required by VehicleEntity.
+     * Our {@link #destroyAndExplode} path overrides {@link #damage} so the
+     * parent's default kill-and-drop never fires, but the abstract still
+     * needs a concrete return. Lookup the matching ShipItem from the
+     * tracked model name (airship / biplane / gyrodyne); fall back to the
+     * AIRSHIP item if the registry hasn't been seeded yet.
+     */
+    @Override
+    protected Item asItem() {
+        Item fromModel = ShipItems.forModel(getModelName());
+        return fromModel != null ? fromModel : ShipItems.AIRSHIP;
+    }
 
     /**
      * Ship-vs-ship collision exchanges velocity instead of vanilla's
@@ -631,6 +656,16 @@ public class ShipEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+
+        // VehicleEntity provides wobble tracked data but never ticks it down;
+        // vanilla boats/minecarts decrement in their own tick. Mirror that
+        // so a hit airship visibly shakes for ~10 ticks then settles.
+        if (getDamageWobbleTicks() > 0) {
+            setDamageWobbleTicks(getDamageWobbleTicks() - 1);
+        }
+        if (getDamageWobbleStrength() > 0.0f) {
+            setDamageWobbleStrength(getDamageWobbleStrength() - 1.0f);
+        }
 
         FlightStats stats = getStats();
         float heading = this.getYaw();
@@ -1126,6 +1161,7 @@ public class ShipEntity extends Entity {
 
     @Override
     protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
+        super.initDataTracker(builder);
         builder.add(MODEL_NAME, "immersive_aircraft/airship");
         builder.add(SHIP_NAME, "");
         builder.add(SHIP_ID, "");
