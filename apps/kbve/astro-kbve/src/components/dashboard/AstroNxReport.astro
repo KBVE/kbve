@@ -81,7 +81,7 @@ const totalFiles = loc.reduce((s, e) => s + e.files, 0);
 			<section class="anr-section">
 				<h3 class="anr-h3">Top 15 languages by code volume</h3>
 				{loc.length > 0 ? (
-					<ReactNxReport entries={loc} client:visible />
+					<ReactNxReport entries={loc} client:only="react" />
 				) : (
 					<div class="anr-empty">No LOC data available.</div>
 				)}
