@@ -56,6 +56,8 @@ RUN set -eux; \
         rsync \
         build-essential \
         pkg-config \
+        protobuf-compiler \
+        libprotobuf-dev \
         gettext-base \
         postgresql-client; \
     install -m 0755 -d /etc/apt/keyrings; \
@@ -86,6 +88,7 @@ RUN set -eux; \
     kubectl version --client=true >/dev/null; \
     dbmate --version >/dev/null; \
     psql --version >/dev/null; \
-    envsubst --version >/dev/null
+    envsubst --version >/dev/null; \
+    protoc --version >/dev/null
 
 USER runner
