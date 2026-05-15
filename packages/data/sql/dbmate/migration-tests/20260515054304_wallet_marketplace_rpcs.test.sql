@@ -60,7 +60,7 @@ BEGIN
 
     v_id1 := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"netherite_sword","instance_id":"rpcs-test-1"}'::jsonb,
+        jsonb_build_object('item_id', 'netherite_sword', 'instance_id', 'rpcs-test-1-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500,
         100,
@@ -74,7 +74,7 @@ BEGIN
     -- Replay returns the same id.
     v_id2 := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"different","instance_id":"rpcs-test-replay"}'::jsonb,
+        jsonb_build_object('item_id', 'different', 'instance_id', 'rpcs-test-replay-' || v_seller::text),
         'khash'::wallet.currency_kind,
         999, 999,
         statement_timestamp() + interval '5 hours',
@@ -107,7 +107,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"axe","instance_id":"rpcs-test-bid"}'::jsonb,
+        jsonb_build_object('item_id', 'axe', 'instance_id', 'rpcs-test-bid-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -165,7 +165,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"shield","instance_id":"rpcs-test-reject"}'::jsonb,
+        jsonb_build_object('item_id', 'shield', 'instance_id', 'rpcs-test-reject-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -216,7 +216,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"crown","instance_id":"rpcs-test-shortcircuit"}'::jsonb,
+        jsonb_build_object('item_id', 'crown', 'instance_id', 'rpcs-test-shortcircuit-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
@@ -226,8 +226,9 @@ BEGIN
     SELECT khash INTO v_treasury_bal0 FROM wallet.balance WHERE account_id = v_treasury;
     SELECT khash INTO v_seller_bal0   FROM wallet.balance WHERE account_id = v_seller;
 
-    -- 600 >= buy_now 500 → short-circuit.
-    v_bid_id := wallet.service_place_bid(v_listing, v_bidderA, 600, gen_random_uuid());
+    -- 500 == buy_now 500 → short-circuit. Bids strictly above
+    -- buy_now_price are rejected (use buy_now instead).
+    v_bid_id := wallet.service_place_bid(v_listing, v_bidderA, 500, gen_random_uuid());
 
     SELECT * INTO v_lst_row FROM wallet.listing WHERE id = v_listing;
     IF v_lst_row.status <> 'sold' OR v_lst_row.buyer_account IS DISTINCT FROM v_bidderA THEN
@@ -243,13 +244,91 @@ BEGIN
 
     SELECT khash INTO v_treasury_bal1 FROM wallet.balance WHERE account_id = v_treasury;
     SELECT khash INTO v_seller_bal1   FROM wallet.balance WHERE account_id = v_seller;
-    -- fee = 600/100 = 6, seller gets 594.
-    IF v_treasury_bal1 - v_treasury_bal0 <> 6 THEN
-        RAISE EXCEPTION 'fail: treasury fee wrong: % expected 6', v_treasury_bal1 - v_treasury_bal0;
+    -- fee = 500/100 = 5, seller gets 495.
+    IF v_treasury_bal1 - v_treasury_bal0 <> 5 THEN
+        RAISE EXCEPTION 'fail: treasury fee wrong: % expected 5', v_treasury_bal1 - v_treasury_bal0;
     END IF;
-    IF v_seller_bal1 - v_seller_bal0 <> 594 THEN
-        RAISE EXCEPTION 'fail: seller net wrong: % expected 594', v_seller_bal1 - v_seller_bal0;
+    IF v_seller_bal1 - v_seller_bal0 <> 495 THEN
+        RAISE EXCEPTION 'fail: seller net wrong: % expected 495', v_seller_bal1 - v_seller_bal0;
     END IF;
+END;
+$$;
+
+-- 4b. Bid strictly above buy_now_price is rejected.
+DO $$
+DECLARE
+    v_seller   UUID;
+    v_bidderA  UUID;
+    v_listing  BIGINT;
+BEGIN
+    SELECT id INTO v_seller  FROM wallet.account a JOIN public.__marketplace_rpcs_fixture f ON f.user_id = a.user_id WHERE f.role = 'seller';
+    SELECT id INTO v_bidderA FROM wallet.account a JOIN public.__marketplace_rpcs_fixture f ON f.user_id = a.user_id WHERE f.role = 'bidderA';
+
+    v_listing := wallet.service_create_listing(
+        v_seller,
+        jsonb_build_object('item_id', 'lance', 'instance_id', 'rpcs-test-overpay-' || v_seller::text),
+        'khash'::wallet.currency_kind,
+        500, 100,
+        statement_timestamp() + interval '2 hours',
+        gen_random_uuid()
+    );
+    BEGIN
+        PERFORM wallet.service_place_bid(v_listing, v_bidderA, 501, gen_random_uuid());
+        RAISE EXCEPTION 'fail: bid above buy_now_price should have raised';
+    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
+END;
+$$;
+
+-- 4c. service_create_listing rejects invalid inputs.
+DO $$
+DECLARE
+    v_seller UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account a JOIN public.__marketplace_rpcs_fixture f ON f.user_id = a.user_id WHERE f.role = 'seller';
+    BEGIN
+        PERFORM wallet.service_create_listing(
+            v_seller,
+            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-currency-' || v_seller::text),
+            'credits'::wallet.currency_kind, 100, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: credits currency should have raised';
+    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
+    BEGIN
+        PERFORM wallet.service_create_listing(
+            v_seller, '{}'::jsonb,
+            'khash'::wallet.currency_kind, 100, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: empty item_ref should have raised';
+    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
+    BEGIN
+        PERFORM wallet.service_create_listing(
+            v_seller,
+            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-past-' || v_seller::text),
+            'khash'::wallet.currency_kind, 100, NULL,
+            statement_timestamp() - interval '1 hour',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: past expires_at should have raised';
+    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
+    BEGIN
+        PERFORM wallet.service_create_listing(
+            v_seller,
+            jsonb_build_object('item_id', 'x', 'instance_id', 'rpcs-test-noprice-' || v_seller::text),
+            'khash'::wallet.currency_kind, NULL, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: no price should have raised';
+    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
 END;
 $$;
 
@@ -277,7 +356,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"gem","instance_id":"rpcs-test-buynow"}'::jsonb,
+        jsonb_build_object('item_id', 'gem', 'instance_id', 'rpcs-test-buynow-' || v_seller::text),
         'khash'::wallet.currency_kind,
         400, 100,
         statement_timestamp() + interval '2 hours',
@@ -338,7 +417,7 @@ BEGIN
 
     v_listing := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"helm","instance_id":"rpcs-test-cancel"}'::jsonb,
+        jsonb_build_object('item_id', 'helm', 'instance_id', 'rpcs-test-cancel-' || v_seller::text),
         'khash'::wallet.currency_kind,
         NULL, 50,  -- auction only
         statement_timestamp() + interval '2 hours',
@@ -401,7 +480,7 @@ BEGIN
         created_at, expires_at, idempotency_key
     ) VALUES (
         v_seller,
-        '{"item_id":"flute","instance_id":"rpcs-test-expire-no"}'::jsonb,
+        jsonb_build_object('item_id', 'flute', 'instance_id', 'rpcs-test-expire-no-' || v_seller::text),
         'khash'::wallet.currency_kind, 50,
         v_origin, v_past, gen_random_uuid()
     ) RETURNING id INTO v_listing_no;
@@ -411,7 +490,7 @@ BEGIN
     -- fresh listing window then backdate AFTER the bid lands.
     v_listing_yes := wallet.service_create_listing(
         v_seller,
-        '{"item_id":"horn","instance_id":"rpcs-test-expire-yes"}'::jsonb,
+        jsonb_build_object('item_id', 'horn', 'instance_id', 'rpcs-test-expire-yes-' || v_seller::text),
         'khash'::wallet.currency_kind,
         500, 100,
         statement_timestamp() + interval '2 hours',
