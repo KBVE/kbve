@@ -59,9 +59,14 @@ CREATE TABLE wallet.listing (
     min_bid             BIGINT,
     current_bid         BIGINT,
     current_bid_account UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
+    -- buyer_account is set on settlement (sold). Decoupled from
+    -- current_bid_account so buy-now purchasers can be recorded
+    -- without faking a bid row.
+    buyer_account       UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
     status              wallet.listing_status NOT NULL DEFAULT 'active',
     expires_at          TIMESTAMPTZ NOT NULL,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT statement_timestamp(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT statement_timestamp(),
     settled_at          TIMESTAMPTZ,
     idempotency_key     UUID NOT NULL DEFAULT extensions.gen_random_uuid(),
 
@@ -106,6 +111,20 @@ CREATE TABLE wallet.listing (
      OR (status <> 'active' AND settled_at IS NOT NULL)
     ),
 
+    -- Seller never bids on or buys their own listing.
+    CONSTRAINT listing_current_bid_not_seller_chk CHECK (
+        current_bid_account IS NULL OR current_bid_account <> seller_account
+    ),
+    CONSTRAINT listing_buyer_not_seller_chk CHECK (
+        buyer_account IS NULL OR buyer_account <> seller_account
+    ),
+
+    -- buyer_account set iff sold.
+    CONSTRAINT listing_buyer_state_chk CHECK (
+        (status =  'sold' AND buyer_account IS NOT NULL)
+     OR (status <> 'sold' AND buyer_account IS NULL)
+    ),
+
     -- Duration window. expires_at is caller-supplied; we enforce
     -- 1h <= duration <= 30d at insert time.
     CONSTRAINT listing_min_duration_chk CHECK (
@@ -119,8 +138,16 @@ CREATE TABLE wallet.listing (
 COMMENT ON TABLE wallet.listing IS
     'Marketplace listing. Combines fixed-price (buy_now_price) and auction (min_bid) in one row; either or both can be set. Settlement is materialized in wallet.ledger via Phase 2 RPCs.';
 
+CREATE UNIQUE INDEX wallet_listing_idempotency_uq
+    ON wallet.listing (idempotency_key);
+
 CREATE INDEX wallet_listing_active_expires_idx
     ON wallet.listing (expires_at)
+    WHERE status = 'active';
+
+-- Browse index: active listings sorted newest-first for /mc/market home.
+CREATE INDEX wallet_listing_active_created_idx
+    ON wallet.listing (created_at DESC, id DESC)
     WHERE status = 'active';
 
 CREATE INDEX wallet_listing_seller_created_idx
@@ -182,11 +209,14 @@ CREATE INDEX wallet_bid_listing_placed_idx
 CREATE INDEX wallet_bid_bidder_placed_idx
     ON wallet.bid (bidder_account, placed_at DESC, id DESC);
 
--- One ACTIVE bid per (listing, bidder). Bidders increase their bid by
--- placing a new bid; the prior bid for that bidder transitions to
--- 'outbid' as part of the same RPC.
-CREATE UNIQUE INDEX wallet_bid_listing_bidder_active_uq
-    ON wallet.bid (listing_id, bidder_account)
+-- Exactly one ACTIVE bid per listing. Listing.current_bid_account is
+-- single-valued, so the bid table mirrors that invariant: any new bid
+-- demotes the prior 'active' row to 'outbid' (with refund_ledger_id)
+-- in the same RPC transaction. Combined with the lifecycle CHECK on
+-- wallet.bid, this prevents two active high bids from existing for a
+-- single listing even under concurrent place_bid calls.
+CREATE UNIQUE INDEX wallet_bid_listing_active_uq
+    ON wallet.bid (listing_id)
     WHERE status = 'active';
 
 -- ============================================================================
@@ -218,17 +248,22 @@ GRANT USAGE ON SEQUENCE wallet.bid_id_seq TO service_role;
 -- Seed a known treasury account so Phase 2's settle_listing RPC can
 -- transfer the 1% marketplace fee deterministically. Lookup is by
 -- label='kbve_treasury' so we don't have to encode a UUID constant.
--- Idempotent: ON CONFLICT on the partial uniqueness shape.
+--
+-- Concurrency: a partial unique index on (label) WHERE kind='treasury'
+-- backs an ON CONFLICT DO NOTHING insert so the seed is safe under
+-- concurrent migration retries and against future "create treasury for
+-- X" callers that might race on the same label.
 -- ============================================================================
 
-INSERT INTO wallet.account (kind, user_id, guild_id, label, created_at)
-SELECT 'treasury', NULL, NULL, 'kbve_treasury', statement_timestamp()
-WHERE NOT EXISTS (
-    SELECT 1 FROM wallet.account
-     WHERE kind = 'treasury' AND label = 'kbve_treasury'
-);
+CREATE UNIQUE INDEX IF NOT EXISTS wallet_account_treasury_label_uq
+    ON wallet.account (label)
+    WHERE kind = 'treasury';
 
--- Make sure the treasury balance row exists.
+INSERT INTO wallet.account (kind, user_id, guild_id, label, created_at)
+VALUES ('treasury', NULL, NULL, 'kbve_treasury', statement_timestamp())
+ON CONFLICT (label) WHERE kind = 'treasury' DO NOTHING;
+
+-- Treasury balance row.
 INSERT INTO wallet.balance (account_id)
 SELECT id FROM wallet.account
  WHERE kind = 'treasury' AND label = 'kbve_treasury'
@@ -240,7 +275,8 @@ DROP TABLE IF EXISTS wallet.bid;
 DROP TABLE IF EXISTS wallet.listing;
 DROP TYPE  IF EXISTS wallet.bid_status;
 DROP TYPE  IF EXISTS wallet.listing_status;
+DROP INDEX IF EXISTS wallet.wallet_account_treasury_label_uq;
 
 -- Intentionally does NOT delete the seeded kbve_treasury wallet.account
--- row, since rolling back this migration must not erase funds. Phase 2
--- migrations will create real balance rows under that account.
+-- or its balance row, since rolling back this migration must not erase
+-- funds. Phase 2 migrations will rely on those rows already existing.

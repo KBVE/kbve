@@ -2,31 +2,22 @@
 -- Run via: ./test-migration.sh 20260514113538_wallet_marketplace_schema
 
 -- SEED
--- Idempotent cleanup of prior-run rows. We use a single seller + bidder
--- pair to exercise the constraints. Treasury row is seeded by the
--- migration itself and is intentionally NOT cleaned up here.
-WITH test_users (id) AS (
-    VALUES
-        ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid),
-        ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid)
-),
-test_accounts AS (
-    SELECT a.id FROM wallet.account a JOIN test_users u ON a.user_id = u.id
-),
-del_balance AS (
-    DELETE FROM wallet.balance WHERE account_id IN (SELECT id FROM test_accounts)
-),
-del_coupon AS (
-    DELETE FROM wallet.coupon WHERE account_id IN (SELECT id FROM test_accounts)
-),
-del_account AS (
-    DELETE FROM wallet.account WHERE id IN (SELECT id FROM test_accounts)
-)
-DELETE FROM auth.users WHERE id IN (SELECT id FROM test_users);
+-- wallet.ledger and wallet.audit_log are append-only (triggers block DELETE),
+-- so cleanup-via-DELETE is not viable. Instead each test run generates
+-- fresh UUIDs and stashes them in a fixture table so the ASSERT_AFTER_UP
+-- and ASSERT_AFTER_DOWN sections (separate psql sessions) can look them up.
+DROP TABLE IF EXISTS public.__marketplace_test_fixture;
+CREATE TABLE public.__marketplace_test_fixture (
+    role    TEXT PRIMARY KEY,
+    user_id UUID NOT NULL
+);
 
-INSERT INTO auth.users (id) VALUES
-    ('dddddddd-dddd-dddd-dddd-dddddddddddd'),
-    ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee');
+INSERT INTO public.__marketplace_test_fixture (role, user_id) VALUES
+    ('seller', gen_random_uuid()),
+    ('bidder', gen_random_uuid());
+
+INSERT INTO auth.users (id)
+SELECT user_id FROM public.__marketplace_test_fixture;
 
 -- ASSERT_AFTER_UP
 
@@ -77,14 +68,23 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_active_expires_idx') THEN
         RAISE EXCEPTION 'fail: wallet_listing_active_expires_idx missing';
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_active_created_idx') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_active_created_idx missing';
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_seller_created_idx') THEN
         RAISE EXCEPTION 'fail: wallet_listing_seller_created_idx missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_idempotency_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_idempotency_uq missing';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_listing_placed_idx') THEN
         RAISE EXCEPTION 'fail: wallet_bid_listing_placed_idx missing';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_listing_bidder_active_uq') THEN
-        RAISE EXCEPTION 'fail: wallet_bid_listing_bidder_active_uq missing';
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_listing_active_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_bid_listing_active_uq missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_account_treasury_label_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_account_treasury_label_uq missing';
     END IF;
 END;
 $$;
@@ -95,7 +95,7 @@ DECLARE
     v_seller UUID;
     v_listing_id BIGINT;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     INSERT INTO wallet.listing (
         seller_account, item_ref, buy_now_price, expires_at
     ) VALUES (
@@ -115,7 +115,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     INSERT INTO wallet.listing (
         seller_account, item_ref, min_bid, expires_at
     ) VALUES (
@@ -132,7 +132,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (seller_account, item_ref, expires_at)
         VALUES (v_seller, '{"item_id": "stick"}'::jsonb, statement_timestamp() + interval '2 hours');
@@ -147,7 +147,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (
             seller_account, item_ref, buy_now_price, min_bid, expires_at
@@ -166,7 +166,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (
             seller_account, item_ref, buy_now_price, expires_at
@@ -185,7 +185,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (
             seller_account, item_ref, buy_now_price, expires_at
@@ -204,7 +204,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (
             seller_account, item_ref, currency, buy_now_price, expires_at
@@ -223,7 +223,7 @@ DO $$
 DECLARE
     v_seller UUID;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
     BEGIN
         INSERT INTO wallet.listing (
             seller_account, item_ref, buy_now_price, expires_at
@@ -247,8 +247,8 @@ DECLARE
     v_listing_id   BIGINT;
     v_ledger_id    BIGINT;
 BEGIN
-    SELECT id INTO v_seller FROM wallet.account WHERE user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
 
     -- Fund the bidder so the escrow ledger ref is real.
     SELECT wallet.service_credit(
@@ -276,7 +276,7 @@ DECLARE
     v_listing_id BIGINT;
     v_ledger_id BIGINT;
 BEGIN
-    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
     SELECT id INTO v_listing_id FROM wallet.listing ORDER BY id DESC LIMIT 1;
     SELECT id INTO v_ledger_id FROM wallet.ledger WHERE account_id = v_bidder ORDER BY id DESC LIMIT 1;
 
@@ -292,6 +292,108 @@ BEGIN
 END;
 $$;
 
+-- 13b. Listing reject: seller is current_bid_account (self-bid).
+DO $$
+DECLARE
+    v_seller UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, min_bid,
+            current_bid, current_bid_account, expires_at
+        ) VALUES (
+            v_seller, '{"item_id":"shield"}'::jsonb, 100, 50, 60, v_seller,
+            statement_timestamp() + interval '2 hours'
+        );
+        RAISE EXCEPTION 'fail: seller==current_bid_account should have failed listing_current_bid_not_seller_chk';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 13c. Listing reject: status=sold with NULL buyer_account.
+DO $$
+DECLARE
+    v_seller UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at,
+            status, settled_at
+        ) VALUES (
+            v_seller, '{"item_id":"shield"}'::jsonb, 100,
+            statement_timestamp() + interval '2 hours',
+            'sold', statement_timestamp()
+        );
+        RAISE EXCEPTION 'fail: sold without buyer_account should have failed listing_buyer_state_chk';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 13d. Listing reject: status=active but buyer_account set.
+DO $$
+DECLARE
+    v_seller UUID;
+    v_bidder UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at,
+            status, buyer_account
+        ) VALUES (
+            v_seller, '{"item_id":"shield"}'::jsonb, 100,
+            statement_timestamp() + interval '2 hours',
+            'active', v_bidder
+        );
+        RAISE EXCEPTION 'fail: active+buyer_account should have failed listing_buyer_state_chk';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 13e. Listing duplicate idempotency_key blocked.
+DO $$
+DECLARE
+    v_seller UUID;
+    v_key    UUID := gen_random_uuid();
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    INSERT INTO wallet.listing (
+        seller_account, item_ref, buy_now_price, expires_at, idempotency_key
+    ) VALUES (
+        v_seller, '{"item_id":"compass"}'::jsonb, 25,
+        statement_timestamp() + interval '2 hours', v_key
+    );
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at, idempotency_key
+        ) VALUES (
+            v_seller, '{"item_id":"clock"}'::jsonb, 30,
+            statement_timestamp() + interval '2 hours', v_key
+        );
+        RAISE EXCEPTION 'fail: duplicate idempotency_key should have failed wallet_listing_idempotency_uq';
+    EXCEPTION WHEN unique_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 13f. Treasury label is unique under kind='treasury' (concurrency-safe).
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO wallet.account (kind, user_id, guild_id, label)
+        VALUES ('treasury', NULL, NULL, 'kbve_treasury');
+        RAISE EXCEPTION 'fail: duplicate treasury label should have failed wallet_account_treasury_label_uq';
+    EXCEPTION WHEN unique_violation THEN NULL;
+    END;
+END;
+$$;
+
 -- 14. Bid lifecycle: cannot have status='active' with refund_ledger_id set.
 DO $$
 DECLARE
@@ -299,7 +401,7 @@ DECLARE
     v_listing_id BIGINT;
     v_ledger_id BIGINT;
 BEGIN
-    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
     SELECT id INTO v_listing_id FROM wallet.listing ORDER BY id DESC LIMIT 1;
     SELECT id INTO v_ledger_id FROM wallet.ledger WHERE account_id = v_bidder ORDER BY id DESC LIMIT 1;
 
@@ -311,6 +413,35 @@ BEGIN
         );
         RAISE EXCEPTION 'fail: active+refund_ledger_id should have failed bid_lifecycle_chk';
     EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 15. Two active bids on the same listing rejected (one-active-per-listing).
+DO $$
+DECLARE
+    v_seller     UUID;
+    v_bidder     UUID;
+    v_listing_id BIGINT;
+    v_ledger_id  BIGINT;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
+    SELECT id INTO v_listing_id
+      FROM wallet.listing
+     WHERE seller_account = v_seller AND item_ref->>'item_id' = 'netherite_pickaxe'
+     ORDER BY id DESC LIMIT 1;
+    SELECT id INTO v_ledger_id
+      FROM wallet.ledger WHERE account_id = v_bidder ORDER BY id DESC LIMIT 1;
+
+    BEGIN
+        INSERT INTO wallet.bid (
+            listing_id, bidder_account, amount, escrow_ledger_id
+        ) VALUES (
+            v_listing_id, v_bidder, 75, v_ledger_id
+        );
+        RAISE EXCEPTION 'fail: two active bids on same listing should have failed wallet_bid_listing_active_uq';
+    EXCEPTION WHEN unique_violation THEN NULL;
     END;
 END;
 $$;

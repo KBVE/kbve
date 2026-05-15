@@ -46,9 +46,11 @@ CREATE TABLE wallet.listing (
     min_bid             BIGINT,
     current_bid         BIGINT,
     current_bid_account UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
+    buyer_account       UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
     status              wallet.listing_status NOT NULL DEFAULT 'active',
     expires_at          TIMESTAMPTZ NOT NULL,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT statement_timestamp(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT statement_timestamp(),
     settled_at          TIMESTAMPTZ,
     idempotency_key     UUID NOT NULL DEFAULT extensions.gen_random_uuid(),
 
@@ -82,6 +84,16 @@ CREATE TABLE wallet.listing (
         (status =  'active' AND settled_at IS NULL)
      OR (status <> 'active' AND settled_at IS NOT NULL)
     ),
+    CONSTRAINT listing_current_bid_not_seller_chk CHECK (
+        current_bid_account IS NULL OR current_bid_account <> seller_account
+    ),
+    CONSTRAINT listing_buyer_not_seller_chk CHECK (
+        buyer_account IS NULL OR buyer_account <> seller_account
+    ),
+    CONSTRAINT listing_buyer_state_chk CHECK (
+        (status =  'sold' AND buyer_account IS NOT NULL)
+     OR (status <> 'sold' AND buyer_account IS NULL)
+    ),
     CONSTRAINT listing_min_duration_chk CHECK (
         expires_at >= created_at + interval '1 hour'
     ),
@@ -93,8 +105,13 @@ CREATE TABLE wallet.listing (
 COMMENT ON TABLE wallet.listing IS
     'Marketplace listing. Combines fixed-price (buy_now_price) and auction (min_bid) in one row; either or both can be set. Settlement is materialized in wallet.ledger via Phase 2 RPCs.';
 
+CREATE UNIQUE INDEX wallet_listing_idempotency_uq
+    ON wallet.listing (idempotency_key);
 CREATE INDEX wallet_listing_active_expires_idx
     ON wallet.listing (expires_at)
+    WHERE status = 'active';
+CREATE INDEX wallet_listing_active_created_idx
+    ON wallet.listing (created_at DESC, id DESC)
     WHERE status = 'active';
 CREATE INDEX wallet_listing_seller_created_idx
     ON wallet.listing (seller_account, created_at DESC, id DESC);
@@ -142,8 +159,9 @@ CREATE INDEX wallet_bid_listing_placed_idx
     ON wallet.bid (listing_id, placed_at DESC, id DESC);
 CREATE INDEX wallet_bid_bidder_placed_idx
     ON wallet.bid (bidder_account, placed_at DESC, id DESC);
-CREATE UNIQUE INDEX wallet_bid_listing_bidder_active_uq
-    ON wallet.bid (listing_id, bidder_account)
+-- Exactly one active high bid per listing.
+CREATE UNIQUE INDEX wallet_bid_listing_active_uq
+    ON wallet.bid (listing_id)
     WHERE status = 'active';
 
 -- ============================================================================
@@ -167,15 +185,16 @@ GRANT SELECT, INSERT, UPDATE ON wallet.bid TO service_role;
 GRANT USAGE ON SEQUENCE wallet.bid_id_seq TO service_role;
 
 -- ============================================================================
--- KBVE Treasury seed (idempotent)
+-- KBVE Treasury seed (idempotent + concurrency-safe)
 -- ============================================================================
 
+CREATE UNIQUE INDEX IF NOT EXISTS wallet_account_treasury_label_uq
+    ON wallet.account (label)
+    WHERE kind = 'treasury';
+
 INSERT INTO wallet.account (kind, user_id, guild_id, label, created_at)
-SELECT 'treasury', NULL, NULL, 'kbve_treasury', statement_timestamp()
-WHERE NOT EXISTS (
-    SELECT 1 FROM wallet.account
-     WHERE kind = 'treasury' AND label = 'kbve_treasury'
-);
+VALUES ('treasury', NULL, NULL, 'kbve_treasury', statement_timestamp())
+ON CONFLICT (label) WHERE kind = 'treasury' DO NOTHING;
 
 INSERT INTO wallet.balance (account_id)
 SELECT id FROM wallet.account
