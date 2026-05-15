@@ -1065,10 +1065,75 @@ async fn fc_deploy(
         info.pid,
     );
 
+    tokio::spawn(health_prober_task(persistent.clone(), req.name.clone()));
+
     (
         StatusCode::CREATED,
         Json(serde_json::json!({ "endpoint": info })),
     )
+}
+
+/// Polls the guest's health endpoint until it answers with 2xx, then flips
+/// status `Starting` → `Healthy`. After that, keeps probing on the same
+/// cadence and flips back to `Degraded` on consecutive failures; recovers
+/// to `Healthy` on a successful probe. Exits when the registry entry is
+/// removed or its status reaches `Stopping`.
+async fn health_prober_task(persistent: Arc<PersistentState>, name: String) {
+    const PROBE_INTERVAL: Duration = Duration::from_secs(2);
+    const DEGRADE_AFTER_FAILS: u32 = 3;
+
+    let (guest_ip, http_port, health_path) = match persistent.endpoints.get(&name) {
+        Some(e) => (e.allocation.guest_ip, e.http_port, e.health_path.clone()),
+        None => return,
+    };
+    let url = format!("http://{guest_ip}:{http_port}{health_path}");
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(2))
+        .timeout(Duration::from_secs(3))
+        .build()
+        .unwrap_or_else(|_| persistent.proxy_client.clone());
+
+    let mut consecutive_fails = 0u32;
+    loop {
+        let Some(entry) = persistent.endpoints.get(&name) else {
+            return;
+        };
+        if entry.status == EndpointStatus::Stopping {
+            return;
+        }
+        drop(entry);
+
+        let healthy = matches!(client.get(&url).send().await, Ok(r) if r.status().is_success());
+        if let Some(mut entry) = persistent.endpoints.get_mut(&name) {
+            if entry.status == EndpointStatus::Stopping {
+                return;
+            }
+            if healthy {
+                consecutive_fails = 0;
+                if entry.status != EndpointStatus::Healthy {
+                    tracing::info!(
+                        "fc: endpoint {name} flipped to Healthy (from {:?})",
+                        entry.status
+                    );
+                    entry.status = EndpointStatus::Healthy;
+                }
+            } else {
+                consecutive_fails += 1;
+                if consecutive_fails >= DEGRADE_AFTER_FAILS
+                    && entry.status == EndpointStatus::Healthy
+                {
+                    tracing::warn!(
+                        "fc: endpoint {name} flipped to Degraded after {consecutive_fails} failed probes"
+                    );
+                    entry.status = EndpointStatus::Degraded;
+                }
+            }
+        } else {
+            return;
+        }
+
+        tokio::time::sleep(PROBE_INTERVAL).await;
+    }
 }
 
 #[utoipa::path(
@@ -1344,6 +1409,50 @@ async fn fc_proxy_inner(
                     })),
                 )
                     .into_response();
+            }
+            // Skip the readiness gate for preflights — they answer inline
+            // without touching the guest, so they're safe before boot.
+            if !is_preflight {
+                match ep.status {
+                    EndpointStatus::Starting => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            [(header::RETRY_AFTER, "2")],
+                            Json(serde_json::json!({
+                                "error": "endpoint starting",
+                                "name": name,
+                                "status": "starting",
+                                "hint": "VM is booting; retry shortly",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Degraded => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            [(header::RETRY_AFTER, "5")],
+                            Json(serde_json::json!({
+                                "error": "endpoint degraded",
+                                "name": name,
+                                "status": "degraded",
+                                "hint": "guest health probe failing; check container logs",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Stopping => {
+                        return (
+                            StatusCode::SERVICE_UNAVAILABLE,
+                            Json(serde_json::json!({
+                                "error": "endpoint stopping",
+                                "name": name,
+                                "status": "stopping",
+                            })),
+                        )
+                            .into_response();
+                    }
+                    EndpointStatus::Pending | EndpointStatus::Healthy => {}
+                }
             }
             // Preflights bypass the bucket so a flood of CORS probes cannot
             // starve real traffic; budget is for the actual workload.
@@ -3755,5 +3864,701 @@ mod tests {
     async fn list_rootfs_missing_dir_returns_empty() {
         let v = list_rootfs("/nonexistent/path/should/be/empty").await;
         assert!(v.is_empty());
+    }
+
+    // -- read_child_pipe / read_child_stderr -------------------------------
+
+    #[tokio::test]
+    async fn read_child_pipe_none_returns_empty_string() {
+        assert_eq!(read_child_pipe(None).await, "");
+    }
+
+    #[tokio::test]
+    async fn read_child_stderr_none_returns_empty_string() {
+        assert_eq!(read_child_stderr(None).await, "");
+    }
+
+    #[tokio::test]
+    async fn read_child_pipe_reads_from_real_child() {
+        let mut child = tokio::process::Command::new("/bin/sh")
+            .arg("-c")
+            .arg("printf hello-stdout")
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .unwrap();
+        let stdout = child.stdout.take();
+        let _ = child.wait().await;
+        assert_eq!(read_child_pipe(stdout).await, "hello-stdout");
+    }
+
+    #[tokio::test]
+    async fn read_child_stderr_reads_from_real_child() {
+        let mut child = tokio::process::Command::new("/bin/sh")
+            .arg("-c")
+            .arg("printf err-bytes 1>&2")
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .unwrap();
+        let stderr = child.stderr.take();
+        let _ = child.wait().await;
+        assert_eq!(read_child_stderr(stderr).await, "err-bytes");
+    }
+
+    // -- classify_reqwest_error --------------------------------------------
+
+    #[tokio::test]
+    async fn classify_reqwest_error_maps_timeout_to_504() {
+        // Spin up a sleepy upstream and request it with a 50ms timeout.
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = axum::Router::new().route(
+            "/",
+            axum::routing::get(|| async {
+                tokio::time::sleep(Duration::from_secs(2)).await;
+                "late"
+            }),
+        );
+        tokio::spawn(async move { axum::serve(listener, server).await.unwrap() });
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_millis(50))
+            .build()
+            .unwrap();
+        let err = client
+            .get(format!("http://{addr}/"))
+            .send()
+            .await
+            .err()
+            .expect("must time out");
+        let (status, reason) = classify_reqwest_error(&err);
+        assert_eq!(status, StatusCode::GATEWAY_TIMEOUT);
+        assert_eq!(reason, "upstream timed out");
+    }
+
+    #[tokio::test]
+    async fn classify_reqwest_error_maps_connect_refused_to_502() {
+        // Bind then drop so the port is guaranteed-free briefly. To avoid race,
+        // use an obviously-dead address.
+        let client = reqwest::Client::builder()
+            .connect_timeout(Duration::from_millis(500))
+            .build()
+            .unwrap();
+        let err = client
+            .get("http://127.0.0.1:1/")
+            .send()
+            .await
+            .err()
+            .expect("must fail to connect");
+        let (status, reason) = classify_reqwest_error(&err);
+        assert_eq!(status, StatusCode::BAD_GATEWAY);
+        assert!(
+            reason == "upstream unreachable" || reason == "upstream timed out",
+            "got reason={reason:?}"
+        );
+    }
+
+    // -- fc_proxy_inner integration ----------------------------------------
+
+    /// Spin up a localhost upstream that exposes a few deterministic routes.
+    /// Returns the bound port — caller embeds it as the endpoint's http_port.
+    async fn spawn_upstream() -> u16 {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let app = axum::Router::new()
+            .route("/", axum::routing::get(|| async { "root-ok" }))
+            .route(
+                "/echo",
+                axum::routing::any(
+                    |headers: axum::http::HeaderMap, body: axum::body::Bytes| async move {
+                        let xt = headers
+                            .get("x-trace")
+                            .and_then(|v| v.to_str().ok())
+                            .unwrap_or("")
+                            .to_string();
+                        let mut out = format!("xt={xt};body=");
+                        out.push_str(&String::from_utf8_lossy(&body));
+                        out
+                    },
+                ),
+            )
+            .route(
+                "/boom",
+                axum::routing::get(|| async { (StatusCode::INTERNAL_SERVER_ERROR, "kaboom") }),
+            );
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        // Yield once so the listener begins accepting before tests dial it.
+        tokio::task::yield_now().await;
+        port
+    }
+
+    fn make_endpoint(
+        name: &str,
+        port: u16,
+        visibility: EndpointVisibility,
+        http_config: EndpointHttpConfig,
+    ) -> PersistentEndpoint {
+        let pool = persistent::Ipv4Pool::from_cidr("172.18.0.0/16").unwrap();
+        let mut allocation = pool.allocate().unwrap();
+        allocation.guest_ip = "127.0.0.1".parse().unwrap();
+        PersistentEndpoint {
+            name: name.into(),
+            rootfs: "alpine".into(),
+            entrypoint: "/init".into(),
+            http_port: port,
+            health_path: "/health".into(),
+            vcpu_count: 1,
+            mem_size_mib: 128,
+            allocation,
+            tap: tap::TapDevice {
+                name: "fctap-0".into(),
+                host_ip: "172.18.0.1".parse().unwrap(),
+                guest_ip: "127.0.0.1".parse().unwrap(),
+                prefix_len: 30,
+            },
+            pid: None,
+            status: EndpointStatus::Healthy,
+            created: Instant::now(),
+            visibility,
+            rate_limiter: TokenBucket::from_config(http_config.rate_limit),
+            http_config: http_config.clone(),
+            metrics: Arc::new(EndpointMetrics::default()),
+            idle_ttl_secs: 0,
+        }
+    }
+
+    fn make_persistent_state(endpoint: PersistentEndpoint) -> Arc<PersistentState> {
+        Arc::new(PersistentState {
+            pool: persistent::Ipv4Pool::from_cidr("172.18.0.0/16").unwrap(),
+            tap_manager: tap::TapManager::new(tap::TapConfig {
+                jailer_uid: 0,
+                tunnel_iface: "lo".into(),
+                vm_subnet: "172.18.0.0/16".into(),
+            }),
+            endpoints: {
+                let m = DashMap::new();
+                m.insert(endpoint.name.clone(), endpoint);
+                m
+            },
+            proxy_client: reqwest::Client::builder()
+                .connect_timeout(Duration::from_secs(2))
+                .build()
+                .unwrap(),
+        })
+    }
+
+    fn test_app_with_persistent(persistent: Arc<PersistentState>) -> Router {
+        let state = AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            max_concurrent_vms: 4,
+            jailer: None,
+            persistent: Some(persistent),
+        };
+        Router::new()
+            .route("/fc/list", get(fc_list))
+            .route("/fc/{name}", get(fc_get))
+            .route("/fc/{name}", delete(fc_destroy))
+            .route("/proxy/{name}", axum::routing::any(fc_proxy))
+            .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
+            .route("/public-proxy/{name}", axum::routing::any(fc_proxy_public))
+            .route(
+                "/public-proxy/{name}/{*path}",
+                axum::routing::any(fc_proxy_public),
+            )
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn proxy_staff_forwards_to_upstream_root() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let ps = make_persistent_state(ep);
+        let app = test_app_with_persistent(ps.clone());
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(&bytes[..], b"root-ok");
+        let snapshot = ps.endpoints.get("demo").unwrap().metrics.snapshot();
+        assert_eq!(snapshot.requests_total, 1);
+    }
+
+    #[tokio::test]
+    async fn proxy_staff_forwards_to_tail_path_with_query() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo/echo?id=42")
+                    .header("x-trace", "abc")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = String::from_utf8(
+            to_bytes(resp.into_body(), usize::MAX)
+                .await
+                .unwrap()
+                .to_vec(),
+        )
+        .unwrap();
+        assert!(body.contains("xt=abc"), "got body={body}");
+    }
+
+    #[tokio::test]
+    async fn proxy_staff_unknown_endpoint_is_404() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("real", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/missing")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn proxy_public_rejects_staff_endpoint_with_403() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let ps = make_persistent_state(ep);
+        let app = test_app_with_persistent(ps.clone());
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/public-proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+        let snap = ps.endpoints.get("demo").unwrap().metrics.snapshot();
+        assert_eq!(snap.requests_forbidden, 1);
+        assert_eq!(snap.requests_total, 0);
+    }
+
+    #[tokio::test]
+    async fn proxy_public_allows_public_endpoint() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Public, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/public-proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn proxy_public_options_returns_cors_preflight() {
+        let port = spawn_upstream().await;
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://app.example".into()];
+        cfg.cors_allow_methods = vec!["GET".into()];
+        let ep = make_endpoint("demo", port, EndpointVisibility::Public, cfg);
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::OPTIONS)
+                    .uri("/public-proxy/demo")
+                    .header(header::ORIGIN, "https://app.example")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NO_CONTENT);
+        assert_eq!(
+            resp.headers()
+                .get("access-control-allow-origin")
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            "https://app.example"
+        );
+    }
+
+    #[tokio::test]
+    async fn proxy_public_rate_limit_returns_429() {
+        let port = spawn_upstream().await;
+        let mut cfg = http_cfg();
+        cfg.rate_limit = RateLimitConfig {
+            requests_per_sec: 1,
+            burst: 1,
+        };
+        let ep = make_endpoint("demo", port, EndpointVisibility::Public, cfg);
+        let ps = make_persistent_state(ep);
+        let app = test_app_with_persistent(ps.clone());
+
+        // First request: consumes the single token. Second: throttled.
+        let resp1 = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/public-proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp1.status(), StatusCode::OK);
+        let resp2 = app
+            .oneshot(
+                Request::builder()
+                    .uri("/public-proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp2.status(), StatusCode::TOO_MANY_REQUESTS);
+        let snap = ps.endpoints.get("demo").unwrap().metrics.snapshot();
+        assert_eq!(snap.requests_total, 1);
+        assert_eq!(snap.requests_throttled, 1);
+    }
+
+    #[tokio::test]
+    async fn proxy_relays_5xx_from_upstream() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo/boom")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[tokio::test]
+    async fn proxy_upstream_unreachable_returns_502() {
+        // Endpoint points at a port nothing listens on.
+        let ep = make_endpoint("demo", 1, EndpointVisibility::Staff, http_cfg());
+        let ps = make_persistent_state(ep);
+        let app = test_app_with_persistent(ps.clone());
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+        let snap = ps.endpoints.get("demo").unwrap().metrics.snapshot();
+        assert_eq!(snap.upstream_errors, 1);
+    }
+
+    #[tokio::test]
+    async fn proxy_injects_configured_request_headers() {
+        let port = spawn_upstream().await;
+        let mut cfg = http_cfg();
+        cfg.inject_request_headers
+            .insert("x-trace".into(), "injected".into());
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, cfg);
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        // Client tries to override with "bad" but inject overrides.
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo/echo")
+                    .header("x-trace", "from-client")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = String::from_utf8(
+            to_bytes(resp.into_body(), usize::MAX)
+                .await
+                .unwrap()
+                .to_vec(),
+        )
+        .unwrap();
+        assert!(body.contains("xt=injected"), "got body={body}");
+    }
+
+    // -- fc_get / fc_destroy with persistent state -------------------------
+
+    #[tokio::test]
+    async fn fc_get_returns_endpoint_info() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Public, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["endpoint"]["name"], "demo");
+        assert_eq!(v["endpoint"]["http_port"], port);
+        assert_eq!(v["endpoint"]["visibility"], "public");
+    }
+
+    #[tokio::test]
+    async fn fc_get_unknown_endpoint_is_404() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("real", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/ghost")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn fc_destroy_unknown_endpoint_is_404() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("real", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/fc/ghost")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn fc_destroy_removes_endpoint_and_releases_resources() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let ps = make_persistent_state(ep);
+        let app = test_app_with_persistent(ps.clone());
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/fc/demo")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["removed"], "demo");
+        assert!(ps.endpoints.get("demo").is_none());
+    }
+
+    #[tokio::test]
+    async fn create_vm_over_limit_returns_429() {
+        let tmp = tempfile::tempdir().unwrap();
+        std::fs::write(tmp.path().join("alpine.ext4"), b"").unwrap();
+
+        // Build state with max=1 and seed one running VM so the next create
+        // hits the cap before it spawns any real lifecycle.
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        vms.insert("fc-busy".into(), make_record(VmStatus::Running));
+        let state = AppState {
+            vms,
+            rootfs_dir: tmp.path().to_string_lossy().into_owned(),
+            max_concurrent_vms: 1,
+            jailer: None,
+            persistent: None,
+        };
+        let app = Router::new()
+            .route("/vm/create", post(create_vm))
+            .with_state(state);
+
+        let req_body = serde_json::json!({
+            "rootfs": "alpine",
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/vm/create")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::TOO_MANY_REQUESTS);
+        let v = body_json(resp).await;
+        assert_eq!(v["active"], 1);
+        assert_eq!(v["limit"], 1);
+    }
+
+    #[tokio::test]
+    async fn get_vm_status_and_result_return_records() {
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        let mut record = make_record(VmStatus::Completed);
+        record.result = Some(VmResult {
+            vm_id: "fc-test".into(),
+            status: VmStatus::Completed,
+            exit_code: 0,
+            stdout: "ok".into(),
+            stderr: "".into(),
+            duration_ms: 100,
+        });
+        vms.insert("fc-test".into(), record);
+
+        let state = AppState {
+            vms,
+            rootfs_dir: "/tmp".into(),
+            max_concurrent_vms: 4,
+            jailer: None,
+            persistent: None,
+        };
+        let app = Router::new()
+            .route("/vm/{vm_id}", get(get_vm_status))
+            .route("/vm/{vm_id}/result", get(get_vm_result))
+            .with_state(state);
+
+        let status_resp = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/vm/fc-test")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(status_resp.status(), StatusCode::OK);
+        let v = body_json(status_resp).await;
+        assert_eq!(v["vm_id"], "fc-test");
+        assert_eq!(v["status"], "completed");
+
+        let result_resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/vm/fc-test/result")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(result_resp.status(), StatusCode::OK);
+        let v = body_json(result_resp).await;
+        assert_eq!(v["vm_id"], "fc-test");
+        assert_eq!(v["exit_code"], 0);
+        assert_eq!(v["stdout"], "ok");
+    }
+
+    #[tokio::test]
+    async fn destroy_vm_signals_kill_and_marks_destroyed() {
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        let record = make_record(VmStatus::Running);
+        let notify = record.kill_signal.clone();
+        vms.insert("fc-live".into(), record);
+        let state = AppState {
+            vms: vms.clone(),
+            rootfs_dir: "/tmp".into(),
+            max_concurrent_vms: 4,
+            jailer: None,
+            persistent: None,
+        };
+        let app = Router::new()
+            .route("/vm/{vm_id}", delete(destroy_vm))
+            .with_state(state);
+
+        // Spawn a waiter so we can assert the kill_signal was triggered.
+        let waiter = tokio::spawn(async move {
+            tokio::time::timeout(Duration::from_secs(2), notify.notified())
+                .await
+                .is_ok()
+        });
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/vm/fc-live")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert!(waiter.await.unwrap(), "kill signal must fire");
+    }
+
+    // -- iso8601_now: spot-check a known second --------------------------
+    // We can't override SystemTime::now(), but we can re-implement the
+    // Hinnant algorithm here against a known second and verify the
+    // production helper's output matches the same shape for "now". The
+    // monotonicity test above already covers progression.
+
+    #[test]
+    fn iso8601_now_yields_4_digit_year_and_utc_z() {
+        let s = iso8601_now();
+        // Year is 4 digits + numeric.
+        let year_str = &s[..4];
+        assert!(
+            year_str.chars().all(|c| c.is_ascii_digit()),
+            "year: {year_str}"
+        );
+        let year: i32 = year_str.parse().unwrap();
+        assert!(year >= 2024 && year < 3000, "unreasonable year: {year}");
+        assert!(s.ends_with('Z'));
+    }
+
+    #[tokio::test]
+    async fn fc_list_returns_registered_endpoints() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/list")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["count"], 1);
+        assert_eq!(v["endpoints"][0]["name"], "demo");
     }
 }

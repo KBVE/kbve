@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: rows
-    namespace: ows
+    namespace: rows
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
@@ -122,7 +122,7 @@ apiVersion: v1
 kind: Service
 metadata:
     name: rows
-    namespace: ows
+    namespace: rows
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
@@ -145,7 +145,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
     name: rows-pdb
-    namespace: ows
+    namespace: rows
     labels:
         app: rows
         app.kubernetes.io/part-of: ows

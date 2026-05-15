@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-    name: ows
+    name: rows
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
     source:
         repoURL: https://github.com/KBVE/kbve
         targetRevision: main
-        path: apps/kube/ows/manifest
+        path: apps/kube/rows/manifest
     destination:
         server: https://kubernetes.default.svc
-        namespace: ows
+        namespace: rows
     syncPolicy:
         automated:
             prune: true

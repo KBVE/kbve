@@ -5,7 +5,7 @@ apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
     name: ows-rabbitmq-auth
-    namespace: ows
+    namespace: rows
 spec:
     secretTargetRef:
         - parameter: host

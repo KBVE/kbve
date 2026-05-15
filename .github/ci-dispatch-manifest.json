@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.156",
+			"version": "1.0.157",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -124,7 +124,7 @@
 		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
-			"version": "0.1.35",
+			"version": "0.1.36",
 			"version_toml": "apps/vm/firecracker-ctl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
 			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
@@ -326,7 +326,7 @@
 			"source_path": "apps/rows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
-			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
+			"deployment_yaml": "apps/kube/rows/manifest/rows-deployment.yaml",
 			"has_test": false
 		},
 		{

@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-    name: agones-ows
+    name: agones-rows
     namespace: argocd
     labels:
-        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/part-of: rows
 spec:
     project: default
     source:
         repoURL: https://github.com/kbve/kbve
         targetRevision: main
-        path: apps/kube/agones/ows/manifests
+        path: apps/kube/agones/rows/manifests
     destination:
         server: https://kubernetes.default.svc
         namespace: arc-runners

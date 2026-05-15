@@ -91,13 +91,13 @@ spec:
                               # ROWS — single binary replaces all C# OWS microservices
                               # All API paths point to the same ROWS service
                               - name: OWS_API_PATH
-                                value: http://rows.ows.svc.cluster.local:4322/
+                                value: http://rows.rows.svc.cluster.local:4322/
                               - name: OWS_INSTANCE_MANAGEMENT_PATH
-                                value: http://rows.ows.svc.cluster.local:4322/
+                                value: http://rows.rows.svc.cluster.local:4322/
                               - name: OWS_CHARACTER_PERSISTENCE_PATH
-                                value: http://rows.ows.svc.cluster.local:4322/
+                                value: http://rows.rows.svc.cluster.local:4322/
                               - name: OWS_GLOBAL_DATA_PATH
-                                value: http://rows.ows.svc.cluster.local:4322/
+                                value: http://rows.rows.svc.cluster.local:4322/
                               # Secrets — synced from ows namespace via ExternalSecret
                               - name: OWS_API_CUSTOMER_KEY
                                 valueFrom:
