@@ -10,7 +10,7 @@ spec:
     source:
         repoURL: https://github.com/KBVE/kbve
         targetRevision: main
-        path: apps/kube/ows/manifest
+        path: apps/kube/rows/manifest
     destination:
         server: https://kubernetes.default.svc
         namespace: ows

@@ -326,7 +326,7 @@
 			"source_path": "apps/rows",
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
-			"deployment_yaml": "apps/kube/ows/manifest/rows-deployment.yaml",
+			"deployment_yaml": "apps/kube/rows/manifest/rows-deployment.yaml",
 			"has_test": false
 		},
 		{
