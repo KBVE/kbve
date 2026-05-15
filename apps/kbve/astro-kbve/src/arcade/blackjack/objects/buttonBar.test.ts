@@ -68,8 +68,8 @@ describe('blackjack button bar', () => {
 		bar.update();
 		bar.update();
 
-		expect(image.setTexture).toHaveBeenCalledTimes(1);
-		expect(text.setAlpha).toHaveBeenCalledTimes(1);
+		expect(image.setTexture).not.toHaveBeenCalled();
+		expect(text.setAlpha).not.toHaveBeenCalled();
 	});
 
 	it('updates alpha and texture when enabled state changes', () => {
@@ -89,8 +89,27 @@ describe('blackjack button bar', () => {
 		enabled = false;
 		bar.update();
 
-		expect(image.setTexture).toHaveBeenCalledTimes(2);
-		expect(text.setAlpha).toHaveBeenCalledTimes(2);
+		expect(image.setTexture).toHaveBeenCalledTimes(1);
+		expect(text.setAlpha).toHaveBeenCalledTimes(1);
+	});
+
+	it('seeds disabled alpha during creation', () => {
+		const spec: ButtonSpec = {
+			key: 'hit',
+			label: 'Hit',
+			x: 0,
+			y: 0,
+			w: 82,
+			enabled: () => false,
+			action: vi.fn(),
+		};
+		const { bar, image, text } = createHarness(spec);
+
+		bar.update();
+
+		expect(image.setTexture).not.toHaveBeenCalled();
+		expect(text.setAlpha).toHaveBeenCalledTimes(1);
+		expect(text.setAlpha).toHaveBeenCalledWith(0.42);
 	});
 
 	it('runs actions through the keyed view cache', () => {

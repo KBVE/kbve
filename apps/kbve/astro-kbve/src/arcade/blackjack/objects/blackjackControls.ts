@@ -8,8 +8,17 @@ import {
 	stand,
 	startRound,
 	type BlackjackState,
+	type RoundPhase,
 } from '../state';
 import { ButtonBar, type ButtonKey, type ButtonSpec } from './buttonBar';
+
+const PHASE_STATE_BITS: Record<RoundPhase, number> = {
+	betting: 0,
+	'player-turn': 1,
+	'dealer-turn': 2,
+	'round-over': 3,
+	'table-closed': 4,
+} as const;
 
 interface BlackjackControlsOptions {
 	scene: Phaser.Scene;
@@ -22,7 +31,7 @@ interface BlackjackControlsOptions {
 
 export class BlackjackControls {
 	private readonly buttonBar: ButtonBar;
-	private lastButtonStateKey = '';
+	private lastButtonStateKey = -1;
 
 	constructor(private readonly options: BlackjackControlsOptions) {
 		this.buttonBar = new ButtonBar(
@@ -35,6 +44,7 @@ export class BlackjackControls {
 
 	create() {
 		this.buttonBar.create(this.createButtonSpecs());
+		this.lastButtonStateKey = this.buttonStateKey();
 		this.bindKeyboard();
 	}
 
@@ -45,9 +55,9 @@ export class BlackjackControls {
 		this.buttonBar.update();
 	}
 
-	private buttonStateKey(): string {
+	private buttonStateKey(): number {
 		const { phase, canDouble } = this.state;
-		return `${phase}:${canDouble ? 1 : 0}`;
+		return (PHASE_STATE_BITS[phase] << 1) | (canDouble ? 1 : 0);
 	}
 
 	private createButtonSpecs(): ButtonSpec[] {
