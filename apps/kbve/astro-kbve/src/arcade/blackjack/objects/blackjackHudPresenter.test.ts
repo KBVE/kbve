@@ -33,6 +33,7 @@ describe('blackjack HUD presenter', () => {
 		const first = presenter.values(state, false);
 		const second = presenter.values(state, false);
 
+		expect(second).toBe(first);
 		expect(second.bankroll).toBe(first.bankroll);
 		expect(second.shoe).toBe(first.shoe);
 		expect(second.stats).toBe(first.stats);
@@ -43,6 +44,18 @@ describe('blackjack HUD presenter', () => {
 		expect(third.bankroll).not.toBe(first.bankroll);
 		expect(third.shoe).toBe(first.shoe);
 		expect(third.stats).toBe(first.stats);
+	});
+
+	it('refreshes cached HUD values when visible hand state changes', () => {
+		const presenter = new BlackjackHudPresenter();
+		const state = createBlackjackState();
+
+		const first = presenter.values(state, false);
+		state.player = [encodeCard('spades', 'A'), encodeCard('clubs', 'K')];
+		const second = presenter.values(state, false);
+
+		expect(second).not.toBe(first);
+		expect(second.playerValue).toBe('Player  21 soft blackjack');
 	});
 
 	it('formats hand labels and status colors for visible state', () => {
