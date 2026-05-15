@@ -396,6 +396,42 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       ],
       "fileSize": 611547,
       "env": { "client": "required", "server": "unsupported" }
+    },
+    {
+      "path": "mods/open-parties-and-claims-fabric-1.21.11-0.26.2.jar",
+      "hashes": {
+        "sha1": "af76f66591622b945ef37fbf20bee7ae36d82329",
+        "sha512": "56552c8d772ff5a01baeb897b646bd3c3ec715e46d16457aed8d1208e5662abe831eeae1b45fa0837f93a9775b28c3af14fad9d5acf3da474a1e9bd975bde1a2"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/gF3BGWvG/versions/JkiXvTq4/open-parties-and-claims-fabric-1.21.11-0.26.2.jar"
+      ],
+      "fileSize": 1649817,
+      "env": { "client": "required", "server": "required" }
+    },
+    {
+      "path": "mods/xaeroworldmap-fabric-1.21.11-1.40.16.jar",
+      "hashes": {
+        "sha1": "7e8f4cf756a5ea8d9ab0583aa7ea69723ace8ab6",
+        "sha512": "70bb88a05f8b36dfa39ef971d3e757beeb6845e674d2cfa337fa0a48f003bdc7fe4f6af1f0fa0dfd0ab17593df4f4348528d7952781abeb6a46cff00d693520b"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/NcUtCpym/versions/vOQ76ooY/xaeroworldmap-fabric-1.21.11-1.40.16.jar"
+      ],
+      "fileSize": 1435689,
+      "env": { "client": "required", "server": "unsupported" }
+    },
+    {
+      "path": "mods/xaerominimap-fabric-1.21.11-25.3.12.jar",
+      "hashes": {
+        "sha1": "c17e50a44669f04e5e051ed87db4c05f0eb5923f",
+        "sha512": "5072fe7d02471956d227b834ee1fa5b1a752f7546cf880c99e32790f09b3b13143c5c16c99b3ba39e0de8a8e6d46f37f1bb3a88ff0fa41207ccce5deae45681b"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/1bokaNcj/versions/q5DQinHS/xaerominimap-fabric-1.21.11-25.3.12.jar"
+      ],
+      "fileSize": 2152212,
+      "env": { "client": "required", "server": "unsupported" }
     }
   ]
 }
