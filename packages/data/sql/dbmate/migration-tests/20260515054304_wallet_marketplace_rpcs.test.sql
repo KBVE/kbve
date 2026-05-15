@@ -176,14 +176,14 @@ BEGIN
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_seller, 200, gen_random_uuid());
         RAISE EXCEPTION 'fail: seller self-bid should have raised';
-    EXCEPTION WHEN sqlstate 'MK005' THEN NULL;
+    EXCEPTION WHEN sqlstate 'P1005' THEN NULL;
     END;
 
     -- Below min_bid blocked (MK004 bid_too_low).
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 50, gen_random_uuid());
         RAISE EXCEPTION 'fail: bid below min_bid should have raised';
-    EXCEPTION WHEN sqlstate 'MK004' THEN NULL;
+    EXCEPTION WHEN sqlstate 'P1004' THEN NULL;
     END;
 
     -- Place a real bid then attempt a non-monotonic bid (MK004).
@@ -191,7 +191,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 140, gen_random_uuid());
         RAISE EXCEPTION 'fail: non-monotonic bid should have raised';
-    EXCEPTION WHEN sqlstate 'MK004' THEN NULL;
+    EXCEPTION WHEN sqlstate 'P1004' THEN NULL;
     END;
 END;
 $$;
@@ -275,7 +275,7 @@ BEGIN
     BEGIN
         PERFORM wallet.service_place_bid(v_listing, v_bidderA, 501, gen_random_uuid());
         RAISE EXCEPTION 'fail: bid above buy_now_price should have raised';
-    EXCEPTION WHEN sqlstate 'MK006' THEN NULL;
+    EXCEPTION WHEN sqlstate 'P1006' THEN NULL;
     END;
 END;
 $$;
@@ -504,9 +504,9 @@ BEGIN
 
     SELECT khash INTO v_treasury_bal0 FROM wallet.balance WHERE account_id = v_treasury;
 
-    v_swept := wallet.service_expire_listings();
+    SELECT total INTO v_swept FROM wallet.service_expire_listings();
     IF v_swept < 2 THEN
-        RAISE EXCEPTION 'fail: expire sweep returned % (expected >= 2)', v_swept;
+        RAISE EXCEPTION 'fail: expire sweep returned total=% (expected >= 2)', v_swept;
     END IF;
 
     SELECT * INTO v_lst_no  FROM wallet.listing WHERE id = v_listing_no;

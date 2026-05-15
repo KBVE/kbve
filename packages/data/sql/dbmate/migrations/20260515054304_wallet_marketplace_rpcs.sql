@@ -55,20 +55,34 @@
 --   indexes still protect against double-spending.
 
 -- ============================================================================
+-- Required Phase 1 invariants
+--
+-- This migration depends on the schema shipped in PR #10976. Specifically:
+--   wallet_listing_seller_idempotency_uq          (seller_account, idempotency_key)
+--   wallet_listing_active_item_instance_uq        partial: instance_id WHERE active
+--   wallet_bid_bidder_idempotency_uq              (bidder_account, idempotency_key)
+--   wallet_bid_listing_active_uq                  partial: listing_id WHERE active
+--   wallet_account_treasury_label_uq              partial: label WHERE kind='treasury'
+--   listing_current_bid_state_chk + listing_current_bid_id_fk → wallet.bid(id)
+--   listing_active_bid_fields_chk                  non-active rows clear current_bid*
+-- ============================================================================
+
+-- ============================================================================
 -- Marketplace domain errors (custom SQLSTATEs)
 --
 -- Phase 3+ clients can map these to typed errors without parsing
--- message strings.
+-- message strings. We use class P1xxx — P-class is PostgreSQL's
+-- user-defined SQLSTATE namespace, kept distinct from built-in classes.
 --
---   MK001 — listing_not_found
---   MK002 — listing_not_active
---   MK003 — listing_expired
---   MK004 — bid_too_low
---   MK005 — own_listing_forbidden
---   MK006 — buy_now_required (bid amount above buy_now_price)
---   MK007 — auction_only / buy_now_only mismatch
---   MK008 — settlement_drift (winning_bid_id != listing.current_bid_id)
---   MK009 — account_not_user (actor account is not kind='user')
+--   P1001 — listing_not_found
+--   P1002 — listing_not_active
+--   P1003 — listing_expired
+--   P1004 — bid_too_low
+--   P1005 — own_listing_forbidden
+--   P1006 — bid_exceeds_buy_now_price (use service_buy_now instead)
+--   P1007 — auction_only / buy_now_only mismatch
+--   P1008 — settlement_drift (winning_bid_id != listing.current_bid_id)
+--   P1009 — account_not_user (actor is not kind='user')
 -- ============================================================================
 
 -- Fee rate is 1% on the gross amount. Kept as a single helper so the
@@ -127,7 +141,7 @@ BEGIN
          WHERE id = p_account AND kind = 'user'
     ) THEN
         RAISE EXCEPTION 'account % is not a user account', p_account
-            USING ERRCODE = 'MK009';
+            USING ERRCODE = 'P1009';
     END IF;
 END;
 $$;
@@ -135,7 +149,7 @@ REVOKE ALL ON FUNCTION wallet.assert_user_account(UUID) FROM PUBLIC, anon, authe
 GRANT EXECUTE ON FUNCTION wallet.assert_user_account(UUID) TO service_role;
 ALTER FUNCTION wallet.assert_user_account(UUID) OWNER TO service_role;
 COMMENT ON FUNCTION wallet.assert_user_account(UUID) IS
-    'INTERNAL marketplace helper. Raises MK009 if the supplied account is not kind=user.';
+    'INTERNAL marketplace helper. Raises P1009 if the supplied account is not kind=user.';
 
 -- ============================================================================
 -- service_create_listing
@@ -237,7 +251,7 @@ ALTER FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_kind, 
 REVOKE ALL ON FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO service_role;
 COMMENT ON FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
-    'PUBLIC marketplace RPC. Creates a listing for kind=user seller. Idempotent on (seller_account, idempotency_key). Validates currency=khash, item_ref shape, price invariants, future expires_at.';
+    'SERVICE marketplace RPC. Creates a listing for kind=user seller. Idempotent on (seller_account, idempotency_key). Validates currency=khash, item_ref shape, price invariants, future expires_at.';
 
 -- ============================================================================
 -- INTERNAL HELPER: refund the current active bid (if any)
@@ -269,13 +283,17 @@ BEGIN
     END IF;
 
     -- Source-of-truth join: only refund the bid the listing actually
-    -- points at. Catches drift between listing.current_bid_id and the
-    -- active bid row.
+    -- points at. Asserts the denormalized listing pointers
+    -- (current_bid, current_bid_account, current_bid_id) agree with the
+    -- referenced bid row before we touch money.
     SELECT b.id, b.bidder_account, b.amount
       INTO v_bid_id, v_bidder, v_amount
       FROM wallet.listing l
       JOIN wallet.bid b ON b.id = l.current_bid_id
-     WHERE l.id = p_listing_id AND b.status = 'active'
+     WHERE l.id = p_listing_id
+       AND b.status = 'active'
+       AND b.amount = l.current_bid
+       AND b.bidder_account = l.current_bid_account
      FOR UPDATE OF b;
 
     IF v_bid_id IS NULL THEN
@@ -290,7 +308,10 @@ BEGIN
         p_reason,
         'bid',
         v_bid_id,
-        extensions.gen_random_uuid()
+        extensions.uuid_generate_v5(
+            extensions.uuid_ns_url(),
+            'marketplace.bid.refund:' || v_bid_id::TEXT
+        )
     );
 
     UPDATE wallet.bid
@@ -350,12 +371,29 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_fee              BIGINT := wallet.marketplace_fee(p_amount);
-    v_net              BIGINT := p_amount - wallet.marketplace_fee(p_amount);
-    v_treasury         UUID   := wallet.treasury_account_id();
+    v_fee              BIGINT;
+    v_net              BIGINT;
+    v_treasury         UUID;
     v_seller_ledger_id BIGINT;
     v_fee_ledger_id    BIGINT := NULL;
 BEGIN
+    -- Defensive: callers already guard this, but distribute_settlement is
+    -- service_role-callable directly. Block bad inputs at the boundary.
+    IF p_amount IS NULL OR p_amount <= 0 THEN
+        RAISE EXCEPTION 'settlement amount must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_seller IS NULL THEN
+        RAISE EXCEPTION 'p_seller is required' USING ERRCODE = '22004';
+    END IF;
+    PERFORM wallet.assert_user_account(p_seller);
+
+    v_fee := wallet.marketplace_fee(p_amount);
+    v_net := p_amount - v_fee;
+    v_treasury := wallet.treasury_account_id();
+
+    -- Deterministic ledger idempotency keys for internal writes —
+    -- listing+bid+action identifies the operation uniquely. Replay/debug
+    -- correlation is easier than gen_random_uuid().
     v_seller_ledger_id := wallet.service_credit(
         p_seller,
         'khash'::wallet.currency_kind,
@@ -364,7 +402,10 @@ BEGIN
         'marketplace settlement (seller)',
         'listing',
         p_listing_id,
-        extensions.gen_random_uuid()
+        extensions.uuid_generate_v5(
+            extensions.uuid_ns_url(),
+            'marketplace.settlement.seller:' || p_listing_id::TEXT
+        )
     );
 
     IF v_fee > 0 THEN
@@ -376,7 +417,10 @@ BEGIN
             'marketplace fee (1%)',
             'listing',
             p_listing_id,
-            extensions.gen_random_uuid()
+            extensions.uuid_generate_v5(
+                extensions.uuid_ns_url(),
+                'marketplace.settlement.fee:' || p_listing_id::TEXT
+            )
         );
     END IF;
 
@@ -436,18 +480,18 @@ BEGIN
     SELECT * INTO v_listing_row
       FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
     IF v_listing_row.id IS NULL THEN
-        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'MK001';
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%); cannot settle',
-            p_listing_id, v_listing_row.status USING ERRCODE = 'MK002';
+            p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
     END IF;
     IF EXISTS (
         SELECT 1 FROM wallet.bid
          WHERE listing_id = p_listing_id AND status = 'won'
     ) THEN
         RAISE EXCEPTION 'listing % already has a winning bid', p_listing_id
-            USING ERRCODE = 'MK002';
+            USING ERRCODE = 'P1002';
     END IF;
     v_seller := v_listing_row.seller_account;
 
@@ -459,7 +503,7 @@ BEGIN
        AND p_winning_bid_id <> v_listing_row.current_bid_id THEN
         RAISE EXCEPTION 'winning bid % is not current bid % for listing %',
             p_winning_bid_id, v_listing_row.current_bid_id, p_listing_id
-            USING ERRCODE = 'MK008';
+            USING ERRCODE = 'P1008';
     END IF;
 
     SELECT id, bidder_account, amount
@@ -475,10 +519,18 @@ BEGIN
             USING ERRCODE = '23503';
     END IF;
 
+    -- Conditional update: status must still be 'active' to flip. If
+    -- a concurrent path already won the bid, we want the conflict to
+    -- surface, not silently overwrite.
     UPDATE wallet.bid
        SET status = 'won',
            settled_at = v_now
-     WHERE id = v_bid_id;
+     WHERE id = v_bid_id AND status = 'active'
+     RETURNING id INTO v_bid_id;
+    IF v_bid_id IS NULL THEN
+        RAISE EXCEPTION 'bid % no longer active; concurrent settle suspected', v_bid_id
+            USING ERRCODE = 'P1002';
+    END IF;
 
     SELECT d.fee, d.net, d.seller_ledger_id, d.fee_ledger_id
       INTO v_fee, v_net, v_seller_ledger_id, v_fee_ledger_id
@@ -564,28 +616,28 @@ BEGIN
       FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
 
     IF v_listing_row.id IS NULL THEN
-        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'MK001';
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',
-            p_listing_id, v_listing_row.status USING ERRCODE = 'MK002';
+            p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
     END IF;
     IF v_listing_row.expires_at <= v_now THEN
-        RAISE EXCEPTION 'listing % has expired', p_listing_id USING ERRCODE = 'MK003';
+        RAISE EXCEPTION 'listing % has expired', p_listing_id USING ERRCODE = 'P1003';
     END IF;
     IF v_listing_row.seller_account = p_bidder_account THEN
-        RAISE EXCEPTION 'seller cannot bid on own listing' USING ERRCODE = 'MK005';
+        RAISE EXCEPTION 'seller cannot bid on own listing' USING ERRCODE = 'P1005';
     END IF;
     IF v_listing_row.min_bid IS NULL THEN
-        RAISE EXCEPTION 'listing % is buy-now only', p_listing_id USING ERRCODE = 'MK007';
+        RAISE EXCEPTION 'listing % is buy-now only', p_listing_id USING ERRCODE = 'P1007';
     END IF;
     IF p_amount < v_listing_row.min_bid THEN
         RAISE EXCEPTION 'amount % below min_bid %', p_amount, v_listing_row.min_bid
-            USING ERRCODE = 'MK004';
+            USING ERRCODE = 'P1004';
     END IF;
     IF v_listing_row.current_bid IS NOT NULL AND p_amount <= v_listing_row.current_bid THEN
         RAISE EXCEPTION 'amount % must exceed current_bid %',
-            p_amount, v_listing_row.current_bid USING ERRCODE = 'MK004';
+            p_amount, v_listing_row.current_bid USING ERRCODE = 'P1004';
     END IF;
     -- Reject bids above buy_now_price; the buyer should use buy_now
     -- instead so they don't overpay. Equality is allowed so this RPC
@@ -593,10 +645,13 @@ BEGIN
     IF v_listing_row.buy_now_price IS NOT NULL
        AND p_amount > v_listing_row.buy_now_price THEN
         RAISE EXCEPTION 'amount % exceeds buy_now_price %; use buy_now instead',
-            p_amount, v_listing_row.buy_now_price USING ERRCODE = 'MK006';
+            p_amount, v_listing_row.buy_now_price USING ERRCODE = 'P1006';
     END IF;
 
-    -- Escrow the bidder's funds.
+    -- Escrow the bidder's funds. Deterministic key derived from the
+    -- caller-supplied idempotency_key so a retry of the outer RPC
+    -- without first reaching the bid-row replay shortcut still
+    -- collides cleanly at the ledger layer.
     v_escrow_ledger_id := wallet.service_debit(
         p_bidder_account,
         'khash'::wallet.currency_kind,
@@ -605,7 +660,7 @@ BEGIN
         'marketplace bid escrow',
         'listing',
         p_listing_id,
-        extensions.gen_random_uuid()
+        extensions.uuid_generate_v5(p_idempotency_key, 'marketplace.bid.escrow')
     );
 
     -- Refund the prior active bid (if any).
@@ -651,7 +706,7 @@ ALTER FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) OWNER TO ser
 REVOKE ALL ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) TO service_role;
 COMMENT ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) IS
-    'PUBLIC marketplace RPC. Places a bid on behalf of kind=user bidder. Idempotent on (bidder_account, idempotency_key, listing_id). Escrows bidder funds, refunds prior active bid, short-circuits to settle when amount = buy_now_price.';
+    'SERVICE marketplace RPC. Places a bid on behalf of kind=user bidder. Idempotent on (bidder_account, idempotency_key, listing_id). Escrows bidder funds, refunds prior active bid, short-circuits to settle when amount = buy_now_price.';
 
 -- ============================================================================
 -- service_buy_now
@@ -692,20 +747,20 @@ BEGIN
       FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
 
     IF v_listing_row.id IS NULL THEN
-        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'MK001';
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',
-            p_listing_id, v_listing_row.status USING ERRCODE = 'MK002';
+            p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
     END IF;
     IF v_listing_row.expires_at <= v_now THEN
-        RAISE EXCEPTION 'listing % has expired', p_listing_id USING ERRCODE = 'MK003';
+        RAISE EXCEPTION 'listing % has expired', p_listing_id USING ERRCODE = 'P1003';
     END IF;
     IF v_listing_row.seller_account = p_buyer_account THEN
-        RAISE EXCEPTION 'seller cannot buy own listing' USING ERRCODE = 'MK005';
+        RAISE EXCEPTION 'seller cannot buy own listing' USING ERRCODE = 'P1005';
     END IF;
     IF v_listing_row.buy_now_price IS NULL THEN
-        RAISE EXCEPTION 'listing % is auction-only', p_listing_id USING ERRCODE = 'MK007';
+        RAISE EXCEPTION 'listing % is auction-only', p_listing_id USING ERRCODE = 'P1007';
     END IF;
 
     -- Debit buyer FIRST, then refund the prior active bid. Reordering
@@ -720,7 +775,7 @@ BEGIN
         'marketplace buy-now',
         'listing',
         p_listing_id,
-        extensions.gen_random_uuid()
+        extensions.uuid_generate_v5(p_idempotency_key, 'marketplace.buy_now.escrow')
     );
 
     PERFORM wallet.refund_active_bid(p_listing_id, 'outbid', 'outbid by buy-now');
@@ -760,7 +815,7 @@ ALTER FUNCTION wallet.service_buy_now(BIGINT, UUID, UUID) OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.service_buy_now(BIGINT, UUID, UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_buy_now(BIGINT, UUID, UUID) TO service_role;
 COMMENT ON FUNCTION wallet.service_buy_now(BIGINT, UUID, UUID) IS
-    'PUBLIC marketplace RPC. Buy-now purchase for kind=user buyer. Idempotent on (buyer_account, idempotency_key, listing_id). Debits buyer first, then refunds the prior active bid, then settles. Settlement reason = "buy_now".';
+    'SERVICE marketplace RPC. Buy-now purchase for kind=user buyer. Idempotent on (buyer_account, idempotency_key, listing_id). Debits buyer first, then refunds the prior active bid, then settles. Settlement reason = "buy_now".';
 
 -- ============================================================================
 -- service_cancel_listing
@@ -797,7 +852,7 @@ BEGIN
       FROM wallet.listing WHERE id = p_listing_id FOR UPDATE;
 
     IF v_listing_row.id IS NULL THEN
-        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'MK001';
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
     IF v_listing_row.seller_account <> p_seller_account THEN
         RAISE EXCEPTION 'seller_account does not own listing %', p_listing_id
@@ -809,11 +864,11 @@ BEGIN
             RETURN;
         END IF;
         RAISE EXCEPTION 'listing % not active (status=%)',
-            p_listing_id, v_listing_row.status USING ERRCODE = 'MK002';
+            p_listing_id, v_listing_row.status USING ERRCODE = 'P1002';
     END IF;
     IF v_listing_row.expires_at <= v_now THEN
         RAISE EXCEPTION 'listing % has expired and cannot be cancelled', p_listing_id
-            USING ERRCODE = 'MK003';
+            USING ERRCODE = 'P1003';
     END IF;
 
     v_refund_id := wallet.refund_active_bid(
@@ -843,7 +898,7 @@ ALTER FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) OWNER TO servic
 REVOKE ALL ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) IS
-    'PUBLIC marketplace RPC. Seller-driven cancel for an active listing. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled. Rejects after expires_at to prevent racing the expire-sweep.';
+    'SERVICE marketplace RPC. Seller-driven cancel for an active listing. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled. Rejects after expires_at to prevent racing the expire-sweep.';
 
 -- ============================================================================
 -- service_expire_listings — pg_cron-driven sweep
@@ -858,15 +913,16 @@ COMMENT ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) IS
 -- small; the cron schedule runs every 15min so backlog clears quickly.
 -- ============================================================================
 
--- Defensive: earlier drafts shipped without p_limit. Drop the no-arg
--- signature first so re-runs of this migration don't end up with two
--- overload variants.
+-- Defensive: earlier drafts shipped without p_limit and with
+-- RETURNS BIGINT. Drop both so the new RETURNS TABLE shape can land
+-- cleanly on a dirty DB.
 DROP FUNCTION IF EXISTS wallet.service_expire_listings();
+DROP FUNCTION IF EXISTS wallet.service_expire_listings(INTEGER);
 
 CREATE OR REPLACE FUNCTION wallet.service_expire_listings(
     p_limit INTEGER DEFAULT 100
 )
-RETURNS BIGINT
+RETURNS TABLE (total BIGINT, settled BIGINT, expired BIGINT)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_now             TIMESTAMPTZ := transaction_timestamp();
@@ -877,6 +933,11 @@ DECLARE
     v_expired         BIGINT := 0;
     v_limit           INTEGER := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 1000);
 BEGIN
+    -- Cron-job hygiene: time out fast instead of stalling under a
+    -- pathological lock. Both settings are transaction-local.
+    PERFORM set_config('lock_timeout', '2s', true);
+    PERFORM set_config('statement_timeout', '30s', true);
+
     -- Transaction-scoped advisory lock. Overlapping cron runs become a
     -- no-op for the loser instead of racing on row locks + emitting
     -- a redundant audit row. SKIP LOCKED below would also be safe, but
@@ -884,7 +945,9 @@ BEGIN
     IF NOT pg_try_advisory_xact_lock(
         hashtextextended('wallet.service_expire_listings', 0)
     ) THEN
-        RETURN 0;
+        total := 0; settled := 0; expired := 0;
+        RETURN NEXT;
+        RETURN;
     END IF;
 
     FOR v_listing_id, v_current_bid_id IN
@@ -929,7 +992,10 @@ BEGIN
         );
     END IF;
 
-    RETURN v_total;
+    total := v_total;
+    settled := v_settled;
+    expired := v_expired;
+    RETURN NEXT;
 END;
 $$;
 ALTER FUNCTION wallet.service_expire_listings(INTEGER) OWNER TO service_role;
@@ -940,7 +1006,7 @@ GRANT EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO service_rol
 GRANT EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO postgres;
 
 COMMENT ON FUNCTION wallet.service_expire_listings(INTEGER) IS
-    'PUBLIC marketplace RPC. Sweeps active listings whose expires_at has passed. Settles winning bid if any (settlement_reason=expired_with_bid), otherwise marks expired. Bounded to p_limit rows (default 100, clamped [1, 1000]). Writes one summary audit row per non-empty sweep. Wraps in pg_try_advisory_xact_lock so overlapping cron runs no-op for the loser.';
+    'SERVICE marketplace RPC. Sweeps active listings whose expires_at has passed. Settles winning bid if any (settlement_reason=expired_with_bid), otherwise marks expired. Bounded to p_limit rows (default 100, clamped [1, 1000]). Returns (total, settled, expired) row. Writes one summary audit row per non-empty sweep. pg_try_advisory_xact_lock makes overlapping cron runs no-op for the loser. lock_timeout=2s + statement_timeout=30s applied transaction-locally.';
 
 -- pg_cron schedule — guarded by extension presence so local dev passes.
 DO $$
