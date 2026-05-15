@@ -9,6 +9,7 @@ editUrl: false
 ---
 
 import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 
 ## NX Workspace Report
 
@@ -32,6 +33,10 @@ Last generated: **2026-05-15T09:16:03Z** — updated daily by `ci-dashboard`.
     linux-x64
   </Card>
 </CardGrid>
+
+<AstroNxReport />
+
+### Raw output
 
 <Tabs>
   <TabItem label="NX Report">
