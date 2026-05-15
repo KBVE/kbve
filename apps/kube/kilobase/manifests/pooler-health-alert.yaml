@@ -1,0 +1,116 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: supabase-pooler-health
+    namespace: kilobase
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: supabase-pooler.deployment
+          rules:
+              - alert: SupabasePoolerDeploymentDegraded
+                annotations:
+                    summary: 'Supabase pooler {{ $labels.deployment }} has fewer ready replicas than desired'
+                    description: |
+                        Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }}
+                        has {{ $value }} ready replicas but the spec asks for more. PgBouncer
+                        availability degraded for read/write traffic.
+                expr: |
+                    (
+                      kube_deployment_status_replicas_available{namespace="kilobase",deployment=~"supabase-cluster-pooler.*"}
+                      <
+                      kube_deployment_spec_replicas{namespace="kilobase",deployment=~"supabase-cluster-pooler.*"}
+                    )
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: SupabasePoolerDeploymentDown
+                annotations:
+                    summary: 'Supabase pooler {{ $labels.deployment }} has zero ready replicas'
+                    description: |
+                        Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }}
+                        has zero ready replicas. All traffic through this pooler is failing.
+                expr: |
+                    kube_deployment_status_replicas_available{namespace="kilobase",deployment=~"supabase-cluster-pooler.*"} == 0
+                for: 2m
+                labels:
+                    severity: critical
+
+              - alert: SupabasePoolerPodCrashLooping
+                annotations:
+                    summary: 'Supabase pooler pod {{ $labels.pod }} restart rate elevated'
+                    description: |
+                        Pod {{ $labels.pod }} in {{ $labels.namespace }} has restarted
+                        {{ $value | printf "%.0f" }} times in the last 15 minutes — likely
+                        a crash loop (config error, OOM, or upstream auth failure).
+                expr: |
+                    increase(kube_pod_container_status_restarts_total{namespace="kilobase",pod=~"supabase-cluster-pooler.*"}[15m]) > 2
+                for: 5m
+                labels:
+                    severity: warning
+
+        - name: supabase-pooler.pgbouncer
+          rules:
+              - alert: SupabasePoolerClientsBacklogged
+                annotations:
+                    summary: 'Supabase pooler {{ $labels.pod }} has waiting clients'
+                    description: |
+                        PgBouncer pool on pod {{ $labels.pod }} has {{ $value }} clients in
+                        the waiting state. Indicates the pooler cannot acquire server
+                        connections — usually a sign of upstream auth/TLS failure or
+                        exhausted server pool.
+                expr: |
+                    sum by (namespace, pod) (
+                      cnpg_pgbouncer_pools_cl_waiting{namespace="kilobase"}
+                    ) > 5
+                for: 2m
+                labels:
+                    severity: warning
+
+              - alert: SupabasePoolerNoServerConnections
+                annotations:
+                    summary: 'Supabase pooler {{ $labels.pod }} has no active server connections'
+                    description: |
+                        PgBouncer on {{ $labels.pod }} reports 0 active or idle server
+                        connections to the upstream Postgres while clients are connected.
+                        Almost always means upstream auth/TLS handshake is failing
+                        (cnpg cert rotation cascade). Rollout-restart the pooler.
+                expr: |
+                    (sum by (namespace, pod) (cnpg_pgbouncer_pools_sv_active{namespace="kilobase"})
+                      + sum by (namespace, pod) (cnpg_pgbouncer_pools_sv_idle{namespace="kilobase"})) == 0
+                    and
+                    sum by (namespace, pod) (cnpg_pgbouncer_pools_cl_active{namespace="kilobase"}) > 0
+                for: 3m
+                labels:
+                    severity: critical
+
+              - alert: SupabasePoolerNoTransactions
+                annotations:
+                    summary: 'Supabase pooler {{ $labels.pod }} processed no transactions in 5m'
+                    description: |
+                        PgBouncer on {{ $labels.pod }} reports zero transaction count growth
+                        for 5 minutes while clients are connected. Either the pooler is
+                        wedged or the upstream is unresponsive.
+                expr: |
+                    rate(cnpg_pgbouncer_stats_total_xact_count{namespace="kilobase"}[5m]) == 0
+                    and
+                    sum by (namespace, pod) (cnpg_pgbouncer_pools_cl_active{namespace="kilobase"}) > 0
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: SupabasePoolerMetricsAbsent
+                annotations:
+                    summary: 'Supabase pooler metrics not being scraped'
+                    description: |
+                        No cnpg_pgbouncer_* metrics observed for 10 minutes. Either the
+                        PodMonitor is misconfigured or every pooler pod is unreachable
+                        on the metrics port.
+                expr: |
+                    absent(cnpg_pgbouncer_pools_cl_active{namespace="kilobase"})
+                for: 10m
+                labels:
+                    severity: warning
