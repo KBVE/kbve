@@ -183,6 +183,7 @@ $$;
 --   P1007 — auction_only / buy_now_only mismatch
 --   P1008 — settlement_drift (winning_bid_id != listing.current_bid_id)
 --   P1009 — account_not_user (actor is not kind='user')
+--   P1010 — unsupported_currency (listing currency is not 'khash' in v1)
 -- ============================================================================
 
 -- Fee rate is 1% on the gross amount. Kept as a single helper so the
@@ -261,6 +262,29 @@ COMMENT ON FUNCTION wallet.assert_user_account(UUID) IS
 
 -- ============================================================================
 -- service_create_listing
+--
+-- Item ownership / escrow:
+--   This RPC validates only the wallet-side invariants — currency,
+--   price, duration, item_ref shape, seller-is-user, and the
+--   wallet_listing_active_item_instance_uq partial unique (one active
+--   listing per instance_id). It does NOT prove the seller owns the
+--   underlying item or lock the item in the mc service while the
+--   listing is active.
+--
+--   Item custody is the responsibility of the mc service + the
+--   Phase 3 proxy_market_create_listing wrapper:
+--     1. Phase 3 proxy resolves auth.uid() → seller wallet account.
+--     2. Phase 3 proxy calls mc-side "reserve item for listing"
+--        (returns instance_id + signed claim).
+--     3. Phase 3 proxy invokes wallet.service_create_listing with
+--        item_ref populated from the reservation.
+--     4. mc holds the item locked until the wallet emits a
+--        marketplace.listing_settle / listing_cancel / expire_sweep
+--        audit row, which mc consumes to release/transfer.
+--   Until the Phase 3 proxy + mc reservation flow lands, the wallet
+--   layer trusts the caller and does NOT prevent double-listing
+--   beyond the active-instance_id unique. Do not expose v1 listings
+--   to real users until that loop is closed.
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION wallet.service_create_listing(
@@ -291,7 +315,7 @@ BEGIN
     -- raising at the RPC layer surfaces clean domain errors before the
     -- INSERT roundtrip.
     IF v_currency <> 'khash'::wallet.currency_kind THEN
-        RAISE EXCEPTION 'marketplace v1 only supports khash' USING ERRCODE = '22023';
+        RAISE EXCEPTION 'marketplace v1 only supports khash' USING ERRCODE = 'P1010';
     END IF;
     IF jsonb_typeof(p_item_ref) <> 'object' OR p_item_ref = '{}'::jsonb THEN
         RAISE EXCEPTION 'item_ref must be a non-empty JSON object' USING ERRCODE = '22023';
@@ -575,7 +599,7 @@ BEGIN
     END IF;
     IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
         RAISE EXCEPTION 'listing % currency % is not khash',
-            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+            p_listing_id, v_listing_row.currency USING ERRCODE = 'P1010';
     END IF;
     IF v_listing_row.seller_account <> p_seller THEN
         RAISE EXCEPTION 'seller mismatch for listing %: expected %, got %',
@@ -710,7 +734,7 @@ BEGIN
     END IF;
     IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
         RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
-            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+            p_listing_id, v_listing_row.currency USING ERRCODE = 'P1010';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%); cannot settle',
@@ -803,7 +827,7 @@ ALTER FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) OWNER TO serv
 REVOKE ALL ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) IS
-    'INTERNAL marketplace helper. service_role-callable. Invoked by place_bid (buy-now short-circuit), buy_now, and expire_listings via SECURITY DEFINER owner chain. Self-locks the listing row. Validates: listing status=active, currency=khash, no existing won bid, p_winning_bid_id matches listing.current_bid_id, winning bid status=active. Settlement reason recorded in audit metadata. Narrower role posture tracked as a follow-up.';
+    'INTERNAL marketplace helper. service_role-callable. Invoked by place_bid (buy-now short-circuit), buy_now, and expire_listings. Self-locks the listing row. Validates listing status=active+currency=khash+no existing won bid+p_winning_bid_id matches listing.current_bid_id, then flips the winning bid active→won, then calls distribute_settlement (which re-verifies the bid is now status=won before crediting seller/treasury). Settlement reason recorded in audit metadata.';
 
 -- ============================================================================
 -- service_place_bid
@@ -856,7 +880,7 @@ BEGIN
     END IF;
     IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
         RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
-            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+            p_listing_id, v_listing_row.currency USING ERRCODE = 'P1010';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',
@@ -997,7 +1021,7 @@ BEGIN
     END IF;
     IF v_listing_row.currency <> 'khash'::wallet.currency_kind THEN
         RAISE EXCEPTION 'listing % currency % is not khash; v1 unsupported',
-            p_listing_id, v_listing_row.currency USING ERRCODE = '22023';
+            p_listing_id, v_listing_row.currency USING ERRCODE = 'P1010';
     END IF;
     IF v_listing_row.status <> 'active' THEN
         RAISE EXCEPTION 'listing % not active (status=%)',

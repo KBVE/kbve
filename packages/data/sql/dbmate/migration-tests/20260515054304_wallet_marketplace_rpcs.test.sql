@@ -295,7 +295,7 @@ BEGIN
             gen_random_uuid()
         );
         RAISE EXCEPTION 'fail: credits currency should have raised';
-    EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    EXCEPTION WHEN sqlstate 'P1010' THEN NULL;
     END;
     BEGIN
         PERFORM wallet.service_create_listing(
