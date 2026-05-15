@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: supabase-cluster-pooler
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: supabase-cluster-pooler
+        app.kubernetes.io/component: connection-pooler
+spec:
+    namespaceSelector:
+        matchNames:
+            - kilobase
+    podMetricsEndpoints:
+        - port: metrics
+          interval: 30s
+          scrapeTimeout: 10s
+    selector:
+        matchExpressions:
+            - key: cnpg.io/poolerName
+              operator: Exists
