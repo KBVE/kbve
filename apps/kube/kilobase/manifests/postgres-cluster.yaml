@@ -36,15 +36,23 @@ spec:
         size: 40Gi
         storageClass: longhorn
 
-    # TLS certificates issued by cert-manager via Crossplane provider-kubernetes
-    # cert-manager handles renewal (30 days before expiry); CNPG treats these as
-    # externally-managed and will use them without auto-generating its own certs.
+    # TLS certificates: server side uses cert-manager-issued cert via Crossplane
+    # provider-kubernetes (cert-manager handles renewal 30 days before expiry).
+    # Client side stays on CNPG's auto-managed default CA because the
+    # internal-ca-key-pair secret in this namespace is intentionally
+    # public-material-only (no ca.key) — Crossplane is configured to NOT
+    # copy the CA private key out of cert-manager. Without ca.key, CNPG
+    # cannot sign new client/replication certs against internal-ca, so it
+    # silently falls back to its default cluster CA. Pointing clientCASecret
+    # at internal-ca-key-pair then causes a CA mismatch: postgres pods would
+    # verify client mTLS against internal-ca while CNPG-issued client certs
+    # (pooler, replication user) were signed by the default cluster CA →
+    # "tlsv1 alert unknown ca" and pooler login retries cache forever.
     # Rollback: remove this certificates block to revert to CNPG auto-managed TLS.
     certificates:
         serverTLSSecret: supabase-server-tls
         serverCASecret: internal-ca-key-pair
         replicationTLSSecret: supabase-replication-tls
-        clientCASecret: internal-ca-key-pair
 
     monitoring:
         enablePodMonitor: true
