@@ -252,6 +252,44 @@ impl CooldownState for GlobalCallCooldown {
 }
 
 // ---------------------------------------------------------------------------
+// World spawn protection — server-defined cuboid (block coords) inside which
+// no AI hostile entity should be spawned or allowed to persist. Pets are
+// exempt because they follow their owner anywhere, including the hub.
+// ---------------------------------------------------------------------------
+
+#[derive(Resource, Debug, Clone)]
+pub struct WorldSpawnProtection {
+    pub min: [i32; 3],
+    pub max: [i32; 3],
+}
+
+impl WorldSpawnProtection {
+    /// Cheap inside-cube test against a floating-point world position. Mirrors
+    /// the Java safety net so both sides agree on the same boundary.
+    #[inline]
+    pub fn contains_pos(&self, pos: [f64; 3]) -> bool {
+        let x = pos[0].floor() as i32;
+        let y = pos[1].floor() as i32;
+        let z = pos[2].floor() as i32;
+        x >= self.min[0]
+            && x <= self.max[0]
+            && y >= self.min[1]
+            && y <= self.max[1]
+            && z >= self.min[2]
+            && z <= self.max[2]
+    }
+}
+
+impl Default for WorldSpawnProtection {
+    fn default() -> Self {
+        Self {
+            min: [-200, -200, -200],
+            max: [200, 200, 200],
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Skeleton population config — single source of truth for the spawn/despawn
 // policy. Lives in Rust so Java has zero say in "how many skeletons exist".
 // ---------------------------------------------------------------------------

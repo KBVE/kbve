@@ -2,7 +2,7 @@ import {
 	buildShoe,
 	type Card,
 	isBlackjack,
-	shuffleCards,
+	shuffleCardsInPlace,
 	valueHand,
 } from './cards';
 import { GAME } from './config';
@@ -65,7 +65,7 @@ export function createBlackjackState(): BlackjackState {
 }
 
 export function freshShoe(): Card[] {
-	return shuffleCards(buildShoe(GAME.decks));
+	return shuffleCardsInPlace(buildShoe(GAME.decks));
 }
 
 export function clampBet(value: number, bankroll: number): number {
@@ -78,7 +78,7 @@ export function draw(state: BlackjackState): Card {
 		state.shoe = freshShoe();
 	}
 	const card = state.shoe.pop();
-	if (!card) {
+	if (card === undefined) {
 		state.shoe = freshShoe();
 		return state.shoe.pop() as Card;
 	}

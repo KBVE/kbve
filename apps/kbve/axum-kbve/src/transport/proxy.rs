@@ -1625,7 +1625,7 @@ pub async fn firecracker_fc_handler(
     }
 }
 
-/// Rewrites `/fc/public/<rest>` → firecracker-ctl-net `/proxy/public/<rest>`.
+/// Rewrites `/fc/public/<rest>` → firecracker-ctl-net `/public-proxy/<rest>`.
 /// No JWT gate here — ctl-net enforces that the endpoint was deployed with
 /// `visibility: "public"`, returning 403 otherwise.
 ///
@@ -1634,6 +1634,10 @@ pub async fn firecracker_fc_handler(
 /// `{name}` + `{name}/{*path}` routes left `/fc/public/my-api/` (trailing
 /// slash, empty path) unmatched and falling through to the staff
 /// `/fc/{name}/{*path}` — visible as a spurious 401.
+///
+/// Upstream prefix is `/public-proxy/`, not `/proxy/public/`, because the
+/// nested form overlapped with the staff `/proxy/{name}/{*path}` route on
+/// ctl-net (matchit picked the catch-all → name="public" → 404).
 pub async fn firecracker_fc_public_handler(
     rest: Option<Path<String>>,
     req: Request<Body>,
@@ -1658,9 +1662,9 @@ pub async fn firecracker_fc_public_handler(
     }
 
     let rewritten = if tail.is_empty() {
-        format!("proxy/public/{name}")
+        format!("public-proxy/{name}")
     } else {
-        format!("proxy/public/{name}/{tail}")
+        format!("public-proxy/{name}/{tail}")
     };
 
     match FIRECRACKER_NET.get() {

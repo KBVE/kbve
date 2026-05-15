@@ -48,8 +48,10 @@ export class ButtonBar {
 
 	create(specs: readonly ButtonSpec[]) {
 		for (const spec of specs) {
+			const enabled = spec.enabled();
+			const textAlpha = enabled ? 1 : 0.42;
 			const box = this.scene.add
-				.image(spec.x, spec.y, this.textureKey(spec.enabled()))
+				.image(spec.x, spec.y, this.textureKey(enabled))
 				.setOrigin(0)
 				.setDisplaySize(spec.w, BUTTON_TEXTURE_SIZE.height);
 			const text = this.scene.add
@@ -59,6 +61,7 @@ export class ButtonBar {
 					color: '#ffffff',
 				})
 				.setOrigin(0.5);
+			if (textAlpha !== 1) text.setAlpha(textAlpha);
 
 			const hitArea = this.scene.add
 				.zone(spec.x, spec.y, spec.w, BUTTON_TEXTURE_SIZE.height)
@@ -75,8 +78,8 @@ export class ButtonBar {
 				spec,
 				box,
 				text,
-				lastEnabled: null,
-				lastTextAlpha: null,
+				lastEnabled: enabled,
+				lastTextAlpha: textAlpha,
 			};
 			this.views.push(view);
 			this.viewsByKey.set(spec.key, view);

@@ -36,16 +36,18 @@ declare -A MODS=(
   # ViaFabric — Fabric loader shim for ViaVersion + ViaBackwards. The
   # actual protocol translators don't ship as Fabric mods themselves;
   # ViaFabric is what registers them with the Fabric loader.
-  ["ViaFabric-0.4.21+156-1.14-1.21.jar"]="e8f54ee523ea0c6b8eab84c4d047f958908f1e95 https://cdn.modrinth.com/data/YlKdE5VK/versions/fX5DMuoH/ViaFabric-0.4.21%2B156-1.14-1.21.jar"
+  ["ViaFabric-0.4.21+163-1.14-1.21.jar"]="777d162812d31948105544db38124d735114fcdd https://cdn.modrinth.com/data/YlKdE5VK/versions/gukVDlIF/ViaFabric-0.4.21%2B163-1.14-1.21.jar"
   # ViaVersion — core protocol translator. Newer-than-the-server clients
-  # connect through this. Pinned to 5.8.1 stable so it stays in sync
-  # with the standalone ViaBackwards 5.8.1 below (same release line =
-  # same internal API; SNAPSHOT builds drift apart).
-  ["ViaVersion-5.8.1.jar"]="8203fe1e2995c3d019caafeb54466a31e81e3b46 https://cdn.modrinth.com/data/P1OZGk5p/versions/Sh5z5ETl/ViaVersion-5.8.1.jar"
+  # connect through this. Pinned to 5.9.1 stable so it stays in sync
+  # with the standalone ViaBackwards 5.9.1 below (same release line =
+  # same internal API; SNAPSHOT builds drift apart). 5.9.x is required
+  # by GrimAC 2.3.74+ which calls the new Protocol1_15To1_14_4
+  # .replaceClientbound signature missing on 5.8.x.
+  ["ViaVersion-5.9.1.jar"]="a736ac3ba340cde150cc1b774c93a94e68d54480 https://cdn.modrinth.com/data/P1OZGk5p/versions/OGj9YIQN/ViaVersion-5.9.1.jar"
   # ViaBackwards — companion addon supplying newer-server → older-client
   # packet rewrites. Skipping ViaRewind (1.8/1.12 support) because Old
   # Combat Mod already provides 1.8-style PvP for modern clients.
-  ["ViaBackwards-5.8.1.jar"]="30ca8d606d0d834c4ee75ef1359aaf954fc91bf4 https://cdn.modrinth.com/data/NpvuJQoq/versions/6GSQXY2l/ViaBackwards-5.8.1.jar"
+  ["ViaBackwards-5.9.1.jar"]="2cd2a94fe923e5de408cc46829e38352518431b2 https://cdn.modrinth.com/data/NpvuJQoq/versions/W890fNPl/ViaBackwards-5.9.1.jar"
   # C2ME 0.3.7+alpha.0.9 — concurrent chunk management. Requires Java 22+
   # which is why the runtime base image was bumped to itzg/minecraft-server:java25.
   # Recommended companions are Lithium + ScalableLux (both bundled below).
@@ -191,6 +193,12 @@ declare -A MODS=(
   # Macaw's Paintings 1.1.0 — adds 40+ new painting variants in
   # multiple sizes. Client + server.
   ["mcw-paintings-1.1.0-mc1.21.11fabric.jar"]="580ba60f2811796b7906ebc7edea053849a0d1fd https://cdn.modrinth.com/data/okE6QVAY/versions/VPvufXfe/mcw-paintings-1.1.0-mc1.21.11fabric.jar"
+  # ── Land claims + parties ──────────────────────────────────────────
+  # Open Parties and Claims 0.26.2 — chunk-based claim system with
+  # built-in party (guild) support and an admin claim type used to
+  # lock the spawn city. Configured in-game via /opac admin-mode +
+  # /opac claim on first deploy.
+  ["open-parties-and-claims-fabric-1.21.11-0.26.2.jar"]="af76f66591622b945ef37fbf20bee7ae36d82329 https://cdn.modrinth.com/data/gF3BGWvG/versions/JkiXvTq4/open-parties-and-claims-fabric-1.21.11-0.26.2.jar"
 )
 
 for name in "${!MODS[@]}"; do

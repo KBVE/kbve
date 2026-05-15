@@ -55,6 +55,19 @@ public class AiCreatureManager {
      */
     private static final String AI_MARKER_TAG = "kbve_ai_creature";
 
+    /**
+     * Spawn protection cuboid. Hostile mobs (owner == null) refuse to spawn
+     * if the picked surface lands inside this box. Pets are allowed because
+     * they follow their owner anywhere, including the hub. Must stay in
+     * lockstep with {@code WorldSpawnProtection} on the Rust side.
+     */
+    private static final int SPAWN_PROTECT_MIN_X = -200;
+    private static final int SPAWN_PROTECT_MIN_Y = -200;
+    private static final int SPAWN_PROTECT_MIN_Z = -200;
+    private static final int SPAWN_PROTECT_MAX_X = 200;
+    private static final int SPAWN_PROTECT_MAX_Y = 200;
+    private static final int SPAWN_PROTECT_MAX_Z = 200;
+
     /** Tracked creatures keyed by Minecraft entity ID. */
     private final ConcurrentHashMap<Integer, CreatureSlot> creatures = new ConcurrentHashMap<>();
 
@@ -300,6 +313,12 @@ public class AiCreatureManager {
                 BlockPos.ofFloored(x, 0, z)
         );
 
+        // Reject hostile spawns inside the protected spawn cube. Pet spawns
+        // (owner != null) pass through because they follow the player.
+        if (owner == null && isInsideSpawnProtection(surface)) {
+            return false;
+        }
+
         // Reject underwater spawn positions — skeletons should not appear
         // in rivers, oceans, or any waterlogged surface.
         BlockState surfaceState = world.getBlockState(surface);
@@ -331,6 +350,18 @@ public class AiCreatureManager {
                 mob.getId(),
                 ownerEntityId != 0 ? " owner=" + ownerEntityId : "");
         return true;
+    }
+
+    private static boolean isInsideSpawnProtection(BlockPos pos) {
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
+        return x >= SPAWN_PROTECT_MIN_X
+                && x <= SPAWN_PROTECT_MAX_X
+                && y >= SPAWN_PROTECT_MIN_Y
+                && y <= SPAWN_PROTECT_MAX_Y
+                && z >= SPAWN_PROTECT_MIN_Z
+                && z <= SPAWN_PROTECT_MAX_Z;
     }
 
     private boolean hasCreatureOwnedBy(CreatureKind kind, int ownerEntityId) {

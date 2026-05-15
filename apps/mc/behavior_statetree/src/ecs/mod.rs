@@ -17,7 +17,7 @@ use components::{
     CurrentBlockGrid, DetectedFlowGates, FleeFlowField, FlowFieldRebuildInterval,
     FlowFieldRebuildTick, GlobalCallCooldown, LastPetDogManagedTick, LastPetParrotManagedTick,
     LastPopulationManagedTick, PetDogPopulationConfig, PetParrotPopulationConfig, PlayerFlowFields,
-    ServerTick, SkeletonPopulationConfig,
+    ServerTick, SkeletonPopulationConfig, WorldSpawnProtection,
 };
 use events::{
     IntentBuffer, MapDataBuffer, ObservationBuffer, PlayerObservationBuffer, WorldIntentBuffer,
@@ -47,6 +47,7 @@ impl Plugin for AiBehaviorPlugin {
             .init_resource::<DetectedFlowGates>()
             .init_resource::<FlowFieldRebuildTick>()
             .init_resource::<FlowFieldRebuildInterval>()
+            .init_resource::<WorldSpawnProtection>()
             .init_resource::<SkeletonPopulationConfig>()
             .init_resource::<LastPopulationManagedTick>()
             .init_resource::<PetDogPopulationConfig>()
