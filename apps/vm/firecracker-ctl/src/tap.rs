@@ -33,6 +33,10 @@ use std::net::Ipv4Addr;
 /// the pool caps at 16384 = 5 digits so we're well under).
 pub const TAP_PREFIX: &str = "fctap-";
 
+/// Routing-rule priority for the VM-subnet → main-table override. Must
+/// be < Gluetun's own pref 99 (which routes 172.16.0.0/12 via eth0).
+pub const VM_RETURN_RULE_PREF: u32 = 50;
+
 /// Errors surfacing from TAP / iptables plumbing.
 #[derive(Debug)]
 pub enum TapError {
@@ -294,6 +298,36 @@ pub fn build_input_accept_check(vm_subnet: &str) -> Vec<String> {
     ]
 }
 
+// Gluetun installs `from all to 172.16.0.0/12 lookup 199` at pref 99 and
+// table 199 routes 172.16.0.0/12 via eth0. That swallows VM-bound return
+// traffic (the VM subnet is inside 172.16/12), so DNS replies from
+// upstream egress the pod through cluster CNI instead of reaching
+// fctap-N. Inserting a higher-priority rule that sends VM-subnet
+// destinations to the main table lets the per-/30 fctap routes win.
+pub fn build_return_rule_add(vm_subnet: &str, pref: u32) -> Vec<String> {
+    vec![
+        "rule".into(),
+        "add".into(),
+        "to".into(),
+        vm_subnet.into(),
+        "lookup".into(),
+        "main".into(),
+        "pref".into(),
+        pref.to_string(),
+    ]
+}
+
+pub fn build_return_rule_show(vm_subnet: &str, pref: u32) -> Vec<String> {
+    vec![
+        "rule".into(),
+        "show".into(),
+        "to".into(),
+        vm_subnet.into(),
+        "pref".into(),
+        pref.to_string(),
+    ]
+}
+
 // ---------------------------------------------------------------------------
 // Execution wrappers (shell-out via tokio::process::Command)
 // ---------------------------------------------------------------------------
@@ -415,6 +449,23 @@ impl TapManager {
 
         if !iptables_rule_exists(&build_input_accept_check(&self.config.vm_subnet)).await? {
             run_iptables(&build_input_accept(&self.config.vm_subnet)).await?;
+        }
+
+        // ip rule that beats Gluetun's `from all to 172.16/12 lookup 199`
+        // (pref 99) so reply traffic to the VM subnet ends up in the main
+        // table where the per-/30 fctap routes live.
+        let show = run_ip(&build_return_rule_show(
+            &self.config.vm_subnet,
+            VM_RETURN_RULE_PREF,
+        ))
+        .await
+        .unwrap_or_default();
+        if show.trim().is_empty() {
+            run_ip(&build_return_rule_add(
+                &self.config.vm_subnet,
+                VM_RETURN_RULE_PREF,
+            ))
+            .await?;
         }
 
         Ok(())
@@ -610,5 +661,33 @@ mod tests {
         let b = pool.allocate().unwrap();
         assert_eq!(tap_name(a.slot_index()).unwrap(), "fctap-0");
         assert_eq!(tap_name(b.slot_index()).unwrap(), "fctap-1");
+    }
+
+    #[test]
+    fn return_rule_add_targets_main_with_higher_priority_than_gluetun() {
+        let args = build_return_rule_add("172.18.0.0/16", VM_RETURN_RULE_PREF);
+        assert_eq!(
+            args,
+            vec![
+                "rule",
+                "add",
+                "to",
+                "172.18.0.0/16",
+                "lookup",
+                "main",
+                "pref",
+                "50"
+            ]
+        );
+        assert!(VM_RETURN_RULE_PREF < 99, "must beat Gluetun's pref 99");
+    }
+
+    #[test]
+    fn return_rule_show_uses_same_selector() {
+        let args = build_return_rule_show("172.18.0.0/16", VM_RETURN_RULE_PREF);
+        assert_eq!(
+            args,
+            vec!["rule", "show", "to", "172.18.0.0/16", "pref", "50"]
+        );
     }
 }
