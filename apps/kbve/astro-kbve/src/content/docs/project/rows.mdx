@@ -18,7 +18,7 @@ version_toml: apps/rows/version.toml
 version_target: apps/rows/Cargo.toml
 runner: ubuntu-latest
 image: kbve/rows
-deployment_yaml: apps/kube/ows/manifest/rows-deployment.yaml
+deployment_yaml: apps/kube/rows/manifest/rows-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
@@ -59,7 +59,7 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
 
 ### Deployment
 
-ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kubernetes namespace. ArgoCD syncs the manifest from `apps/kube/ows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
+ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `ows` Kubernetes namespace. ArgoCD syncs the manifest from `apps/kube/rows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
 
 The container exposes:
 - **Port 4322** — REST + gRPC multiplexed (Axum + Tonic on a single port)
