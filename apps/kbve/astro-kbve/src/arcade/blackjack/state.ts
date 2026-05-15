@@ -78,7 +78,7 @@ export function draw(state: BlackjackState): Card {
 		state.shoe = freshShoe();
 	}
 	const card = state.shoe.pop();
-	if (!card) {
+	if (card === undefined) {
 		state.shoe = freshShoe();
 		return state.shoe.pop() as Card;
 	}
