@@ -47,7 +47,8 @@
 -- Idempotency:
 --   listing — (seller_account, idempotency_key) unique, looked up
 --             on replay; same key from same seller → same listing_id.
---   bid     — (bidder_account, listing_id, idempotency_key) unique,
+--   bid     — (bidder_account, listing_id, idempotency_key) unique
+--             (this order matches the actual index column order),
 --             looked up scoped by listing so the same key reused on
 --             a different listing creates a new bid.
 --   ledger writes inside an RPC use deterministic uuid_v5 keys
@@ -67,7 +68,7 @@
 --   wallet_listing_seller_idempotency_uq          (seller_account, idempotency_key)
 --   wallet_listing_active_item_instance_uq        partial: instance_id WHERE active
 --   wallet_bid_bidder_idempotency_uq              REPLACED below with
---                                                 (bidder_account, idempotency_key, listing_id)
+--                                                 (bidder_account, listing_id, idempotency_key)
 --   wallet_bid_listing_active_uq                  partial: listing_id WHERE active
 --   wallet_account_treasury_label_uq              partial: label WHERE kind='treasury'
 --   listing_current_bid_state_chk + listing_current_bid_id_fk → wallet.bid(id)
@@ -144,12 +145,11 @@ BEGIN
 END;
 $$;
 
--- Defensive double-drop: drop in wallet schema first (where the index
--- should live since the table is wallet.bid; PG creates indexes in the
--- table's schema), then try unqualified as a belt-and-suspenders against
--- any migration runner that placed it elsewhere.
+-- The old index lives in wallet schema (PG places indexes in the same
+-- schema as their table). Schema-qualified DROP is unambiguous; we
+-- intentionally do not run an unqualified fallback because that would
+-- depend on search_path and could surprise callers.
 DROP INDEX IF EXISTS wallet.wallet_bid_bidder_idempotency_uq;
-DROP INDEX IF EXISTS wallet_bid_bidder_idempotency_uq;
 
 -- New index is created in wallet schema because the target table is
 -- wallet.bid (PG indexes inherit their schema from the table).
@@ -361,10 +361,19 @@ COMMENT ON FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_k
 -- ============================================================================
 -- INTERNAL HELPER: refund the current active bid (if any)
 --
--- Locks the listing row and the active bid row, credits the prior bidder
--- their bid amount, marks the bid 'outbid' (status arg) or 'refunded'
--- (when called from cancel/expire). Returns the prior bid id (NULL if
--- there was none). Caller must already hold a lock on the listing.
+-- Self-locks the listing row via SELECT ... FOR UPDATE so direct
+-- service_role callers get the same isolation as the top-level RPCs.
+-- Inner callers that already hold the listing lock pay zero extra cost
+-- (re-locking inside the same transaction is a no-op).
+--
+-- Credits the prior bidder their bid amount via service_credit,
+-- transitions the bid to 'outbid' (place_bid path) or 'refunded'
+-- (cancel/expire path), and writes a marketplace audit row.
+--
+-- Returns the prior bid id, or NULL if the listing had no active bid.
+-- Raises P1001 if the listing itself doesn't exist; raises P1008 if
+-- the listing's current_bid pointer disagrees with the active bid row
+-- (drift).
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION wallet.refund_active_bid(
@@ -396,7 +405,10 @@ BEGIN
       FROM wallet.listing WHERE id = p_listing_id
      FOR UPDATE;
 
-    IF NOT COALESCE(v_listing_has_pointer, FALSE) THEN
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
+    END IF;
+    IF NOT v_listing_has_pointer THEN
         RETURN NULL;
     END IF;
 
@@ -459,8 +471,14 @@ $$;
 ALTER FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) TO service_role;
+-- Note: PG does NOT grant function EXECUTE implicitly to the owner;
+-- explicit service_role grant is required so the top-level RPCs
+-- (which run as service_role via SECURITY DEFINER) can chain in.
+-- Narrowing further (e.g., a dedicated wallet_internal role) is
+-- tracked as a follow-up — the current posture is service_role-only
+-- + self-locking helpers + audit trail.
 COMMENT ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) IS
-    'INTERNAL marketplace helper. Caller must already hold FOR UPDATE on the listing row. Do not wrap from public proxies.';
+    'INTERNAL marketplace helper. service_role-callable; self-locks the listing. Do not wrap from public proxies.';
 
 -- ============================================================================
 -- INTERNAL HELPER: distribute funds on settlement
@@ -550,7 +568,7 @@ ALTER FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) OWNER TO servi
 REVOKE ALL ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) TO service_role;
 COMMENT ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT) IS
-    'INTERNAL marketplace helper. Splits a settled amount into (net, fee) via two service_credit calls. Do not wrap from public proxies.';
+    'INTERNAL marketplace helper. service_role-callable. Splits a settled amount into (net, fee) via two service_credit calls. Reached via service_settle_listing owner-chain. Narrower role posture (wallet_internal-only) tracked as a follow-up.';
 
 -- ============================================================================
 -- service_settle_listing
@@ -692,7 +710,7 @@ ALTER FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) OWNER TO serv
 REVOKE ALL ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) IS
-    'INTERNAL marketplace helper invoked by place_bid (buy-now short-circuit), buy_now, and expire_listings. Self-locks the listing row. Validates: listing status=active, no existing won bid, p_winning_bid_id matches listing.current_bid_id, winning bid status=active. Settlement reason recorded in audit metadata.';
+    'INTERNAL marketplace helper. service_role-callable. Invoked by place_bid (buy-now short-circuit), buy_now, and expire_listings via SECURITY DEFINER owner chain. Self-locks the listing row. Validates: listing status=active, currency=khash, no existing won bid, p_winning_bid_id matches listing.current_bid_id, winning bid status=active. Settlement reason recorded in audit metadata. Narrower role posture tracked as a follow-up.';
 
 -- ============================================================================
 -- service_place_bid
@@ -841,7 +859,7 @@ ALTER FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) OWNER TO ser
 REVOKE ALL ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) TO service_role;
 COMMENT ON FUNCTION wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID) IS
-    'SERVICE marketplace RPC. Places a bid on behalf of kind=user bidder. Idempotent on (bidder_account, idempotency_key, listing_id). Escrows bidder funds, refunds prior active bid, short-circuits to settle when amount = buy_now_price.';
+    'SERVICE marketplace RPC. Places a bid on behalf of kind=user bidder. Idempotent on (bidder_account, listing_id, idempotency_key). Escrows bidder funds, refunds prior active bid, short-circuits to settle when amount = buy_now_price.';
 
 -- ============================================================================
 -- service_buy_now
@@ -1204,3 +1222,11 @@ DROP FUNCTION IF EXISTS wallet.marketplace_fee(BIGINT);
 DROP INDEX IF EXISTS wallet.wallet_bid_bidder_listing_idempotency_uq;
 CREATE UNIQUE INDEX IF NOT EXISTS wallet_bid_bidder_idempotency_uq
     ON wallet.bid (bidder_account, idempotency_key);
+
+DO $$
+BEGIN
+    IF to_regclass('wallet.wallet_bid_bidder_idempotency_uq') IS NULL THEN
+        RAISE EXCEPTION 'rollback expected wallet.wallet_bid_bidder_idempotency_uq but it is missing from wallet schema';
+    END IF;
+END;
+$$;
