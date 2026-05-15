@@ -426,6 +426,7 @@ jobs:
                     printf '%s\n' '---'
                     printf '\n'
                     printf '%s\n' "import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';"
+                    printf '%s\n' "import ReactNxReport from '@/components/dashboard/ReactNxReport';"
                     printf '\n'
                     printf '%s\n' "## NX Workspace Report"
                     printf '\n'
@@ -449,6 +450,10 @@ jobs:
                     printf '%s\n' "    ${OS_INFO}"
                     printf '%s\n' "  </Card>"
                     printf '%s\n' "</CardGrid>"
+                    printf '\n'
+                    printf '%s\n' "<ReactNxReport client:only=\"react\" />"
+                    printf '\n'
+                    printf '%s\n' "### Raw output"
                     printf '\n'
                     printf '%s\n' "<Tabs>"
                     printf '%s\n' '  <TabItem label="NX Report">'
