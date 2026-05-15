@@ -16,6 +16,7 @@ export interface BlackjackHudValues {
 export class BlackjackHud {
 	private readonly textCache = new Map<keyof BlackjackHudValues, string>();
 	private readonly colorCache = new Map<string, string>();
+	private lastValues: BlackjackHudValues | null = null;
 	private statusText!: Phaser.GameObjects.Text;
 	private strategyText!: Phaser.GameObjects.Text;
 	private bankrollText!: Phaser.GameObjects.Text;
@@ -110,6 +111,9 @@ export class BlackjackHud {
 	}
 
 	update(values: BlackjackHudValues) {
+		if (this.lastValues === values) return;
+		this.lastValues = values;
+
 		this.setTextIfChanged('bankroll', this.bankrollText, values.bankroll);
 		this.setTextIfChanged('status', this.statusText, values.status);
 		this.setColorIfChanged(
