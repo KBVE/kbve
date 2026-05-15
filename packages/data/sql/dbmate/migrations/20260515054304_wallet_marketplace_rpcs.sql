@@ -362,6 +362,34 @@ COMMENT ON FUNCTION wallet.service_create_listing(UUID, JSONB, wallet.currency_k
     'SERVICE marketplace RPC. Creates a listing for kind=user seller. Idempotent on (seller_account, idempotency_key). Validates currency=khash, item_ref shape, price invariants, future expires_at.';
 
 -- ============================================================================
+-- Helper privilege posture (applies to all wallet.* helpers below)
+--
+-- Every helper is OWNER service_role, REVOKE FROM PUBLIC/anon/
+-- authenticated, GRANT EXECUTE TO service_role. The explicit grant is
+-- required because REVOKE EXECUTE FROM owner_role DOES strip owner's
+-- execute privilege in PostgreSQL 17 — verified empirically with:
+--
+--   CREATE FUNCTION helper SECURITY DEFINER OWNER service_role;
+--   REVOKE EXECUTE ON helper FROM service_role;
+--   CREATE FUNCTION caller SECURITY DEFINER OWNER service_role
+--     -> calls helper;
+--   SET ROLE service_role; SELECT caller();
+--   -- ERROR: permission denied for function helper
+--
+-- The "owners have implicit privileges" rule applies to GRANT OPTION
+-- (an owner can always re-grant), not to bypassing an explicit REVOKE
+-- against themselves. Therefore the top-level RPCs (which run AS
+-- service_role via SECURITY DEFINER) need an explicit GRANT EXECUTE
+-- TO service_role on each helper to chain in.
+--
+-- Tighter posture (a dedicated wallet_internal role owning helpers
+-- + top-level wrappers granted to service_role) is tracked as a
+-- Phase 1 schema-refactor follow-up. Current posture is:
+-- service_role-only + self-locking helpers + per-helper invariant
+-- checks (e.g. distribute_settlement verifies listing+bid state).
+-- ============================================================================
+
+-- ============================================================================
 -- INTERNAL HELPER: refund the current active bid (if any)
 --
 -- Self-locks the listing row via SELECT ... FOR UPDATE so direct
@@ -474,34 +502,25 @@ $$;
 ALTER FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) TO service_role;
--- Note: REVOKE EXECUTE FROM owner_role DOES strip owner's execute
--- privilege in PostgreSQL 17 — verified empirically with:
---
---   CREATE FUNCTION helper SECURITY DEFINER OWNER service_role;
---   REVOKE EXECUTE ON helper FROM service_role;
---   CREATE FUNCTION caller SECURITY DEFINER OWNER service_role
---     -> calls helper;
---   SET ROLE service_role; SELECT caller();
---   -- ERROR: permission denied for function helper
---
--- The conventional "owners have implicit privileges" rule applies
--- to GRANT OPTION (an owner can always re-grant), not to bypassing
--- an explicit REVOKE against themselves. Therefore the top-level
--- RPCs (which run AS service_role via SECURITY DEFINER) need an
--- explicit GRANT EXECUTE TO service_role on the helper to chain in.
---
--- Narrowing further would require a dedicated wallet_internal role
--- owning the helpers + a service_role-callable top-level wrapper.
--- That's a Phase 1 schema change tracked as a follow-up; current
--- posture is service_role-only + self-locking helpers + audit trail.
+-- (Privilege posture explained in the "Helper privilege posture"
+-- comment block above.)
 COMMENT ON FUNCTION wallet.refund_active_bid(BIGINT, wallet.bid_status, TEXT) IS
     'INTERNAL marketplace helper. service_role-callable; self-locks the listing. Do not wrap from public proxies.';
 
 -- ============================================================================
 -- INTERNAL HELPER: distribute funds on settlement
 --
--- Credits seller (price - fee) and treasury (fee). Returns (fee, net).
--- Caller must already hold the FOR UPDATE lock on the listing.
+-- Credits seller (amount - fee) and treasury (fee). Returns
+-- (fee, net, seller_ledger_id, fee_ledger_id) so the caller can
+-- include both ledger ids in audit metadata.
+--
+-- Self-locks the listing row + the winning bid row. Direct
+-- service_role callers cannot mint settlement credits unless the
+-- listing is active+khash, the bid id matches listing.current_bid_id,
+-- the amount agrees, the seller matches, and the bid has already
+-- been flipped to status='won' by the caller. The 'won' precondition
+-- means this helper assumes service_settle_listing has already
+-- recorded the bid transition; it is not a standalone settler.
 -- ============================================================================
 
 -- Defensive: earlier drafts shipped a 3-arg signature and a different
@@ -572,6 +591,23 @@ BEGIN
             p_amount, v_listing_row.current_bid, p_listing_id USING ERRCODE = 'P1008';
     END IF;
 
+    -- Lock + verify the winning bid row directly. service_settle_listing
+    -- has already flipped the bid to status='won' before calling us, so
+    -- the precondition is 'won', not 'active'. Direct callers that
+    -- skip the won-transition cannot reach this code path.
+    IF NOT EXISTS (
+        SELECT 1 FROM wallet.bid b
+         WHERE b.id = p_winning_bid_id
+           AND b.listing_id = p_listing_id
+           AND b.bidder_account = v_listing_row.current_bid_account
+           AND b.amount = p_amount
+           AND b.status = 'won'
+         FOR UPDATE
+    ) THEN
+        RAISE EXCEPTION 'winning bid % for listing % not in expected won/matching state',
+            p_winning_bid_id, p_listing_id USING ERRCODE = 'P1008';
+    END IF;
+
     v_fee := wallet.marketplace_fee(p_amount);
     v_net := p_amount - v_fee;
     v_treasury := wallet.treasury_account_id();
@@ -623,15 +659,17 @@ ALTER FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) OWNER 
 REVOKE ALL ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) TO service_role;
 COMMENT ON FUNCTION wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT) IS
-    'INTERNAL marketplace helper. service_role-callable. Splits a settled amount into (net, fee) via two service_credit calls. Reached via service_settle_listing owner-chain. Narrower role posture (wallet_internal-only) tracked as a follow-up.';
+    'INTERNAL marketplace helper. service_role-callable. Self-locks listing + winning bid; requires listing active+khash, bid status=won + matching id/amount/seller. Splits a settled amount into (net, fee) via two service_credit calls. Reached via service_settle_listing. Narrower role posture (wallet_internal-only) tracked as a follow-up.';
 
 -- ============================================================================
 -- service_settle_listing
 --
 -- Marks the winning bid 'won', distributes funds, marks listing 'sold'
--- with buyer_account = winning_bid.bidder. Caller MUST hold FOR UPDATE
--- on the listing row already. p_winning_bid_id allows the caller to
--- assert the expected bid; pass NULL to look up the active bid.
+-- with buyer_account = winning_bid.bidder. Self-locks the listing row
+-- (inner callers that already hold the lock pay zero cost; re-locking
+-- inside one transaction is a no-op). p_winning_bid_id allows the
+-- caller to assert the expected bid; pass NULL to resolve via
+-- listing.current_bid_id.
 -- ============================================================================
 
 -- Defensive: earlier draft shipped as 2-arg (no reason).
