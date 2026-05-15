@@ -246,3 +246,69 @@ INSERT INTO wallet.balance (account_id)
 SELECT id FROM wallet.account
  WHERE kind = 'treasury' AND label = 'kbve_treasury'
 ON CONFLICT (account_id) DO NOTHING;
+
+-- ============================================================================
+-- MARKETPLACE RPCs (Phase 2)
+--
+-- Service-layer mutators for the create / bid / buy-now / cancel /
+-- settle / expire lifecycle. All SECURITY DEFINER, service_role only,
+-- owned by service_role. Phase 3 public proxies wrap these after
+-- applying auth.uid() ownership checks.
+--
+-- Money flow (khash-only in v1):
+--   place_bid:  service_debit(bidder, amount) → escrow; on outbid the
+--               prior bidder is refunded via service_credit.
+--   buy_now:    same debit, then immediate service_settle_listing.
+--   cancel:     refund active bid (status='refunded'), mark listing
+--               'cancelled'.
+--   settle:     mark winning bid 'won' (no refund); service_credit
+--               seller with (amount - fee) and treasury with fee.
+--   expire:     pg_cron-driven sweep. For each active listing with
+--               expires_at <= now(): settle if a current_bid exists,
+--               otherwise mark 'expired'.
+-- Fee = floor(amount / 100) = 1%.
+--
+-- Idempotency is enforced via the per-actor (seller/bidder) unique
+-- index on idempotency_key. Replays return the existing row id.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.treasury_account_id()
+RETURNS UUID
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_id UUID;
+BEGIN
+    SELECT id INTO v_id
+      FROM wallet.account
+     WHERE kind = 'treasury' AND label = 'kbve_treasury';
+    IF v_id IS NULL THEN
+        RAISE EXCEPTION 'kbve_treasury account missing' USING ERRCODE = '23503';
+    END IF;
+    RETURN v_id;
+END;
+$$;
+ALTER FUNCTION wallet.treasury_account_id() OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.treasury_account_id() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wallet.treasury_account_id() TO service_role;
+
+-- The full bodies of service_create_listing / service_place_bid /
+-- service_buy_now / service_cancel_listing / service_settle_listing /
+-- service_expire_listings / refund_active_bid / distribute_settlement
+-- live in the dbmate migration 20260515054304_wallet_marketplace_rpcs.
+-- This mirror documents only signatures + grants for review surface.
+
+-- Signatures (see migration for bodies):
+--   wallet.service_create_listing(UUID, JSONB, currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID)
+--                                                            → BIGINT (listing.id)
+--   wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID)      → BIGINT (bid.id)
+--   wallet.service_buy_now(BIGINT, UUID, UUID)                → BIGINT (bid.id)
+--   wallet.service_cancel_listing(BIGINT, UUID, TEXT, UUID)   → VOID
+--   wallet.service_settle_listing(BIGINT, BIGINT)             → VOID
+--   wallet.service_expire_listings()                          → BIGINT (rows touched)
+--   wallet.refund_active_bid(BIGINT, bid_status, TEXT)        → BIGINT (refunded bid id or NULL)
+--   wallet.distribute_settlement(BIGINT, UUID, BIGINT)        → (BIGINT fee, BIGINT net)
+
+-- pg_cron schedule (registered when extension is present):
+--   jobname:  marketplace-expire-listings
+--   schedule: '*/15 * * * *'
+--   command:  SELECT wallet.service_expire_listings();
