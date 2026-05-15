@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-14T09:05:18.942Z",
+  "generated_at": "2026-05-15T09:13:26.378Z",
   "summary": {
     "total_protos": 31,
-    "registered": 25,
-    "orphaned": 5,
+    "registered": 26,
+    "orphaned": 4,
     "utility_only": 1,
     "total_messages": 641,
     "total_enums": 129
@@ -345,11 +345,11 @@
       "message_count": 11,
       "enum_count": 0,
       "codegen": {
-        "registered": false,
-        "name": null,
-        "zod_config": null,
-        "zod_output": null,
-        "binpb": null
+        "registered": true,
+        "name": "common",
+        "zod_config": "packages/data/codegen/common-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/common-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/common.binpb"
       }
     },
     {
@@ -1297,16 +1297,16 @@
   ],
   "orphaned_protos": [
     "packages/data/proto/empire/empire.proto",
-    "packages/data/proto/kbve/common.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-14T09:05:19Z",
+  "checked_at": "2026-05-15T09:13:26Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",
     "packages/data/codegen/generated/clickhouse-schema.ts",
+    "packages/data/codegen/generated/common-schema.ts",
     "packages/data/codegen/generated/discordsh-schema.ts",
     "packages/data/codegen/generated/firecracker-schema.ts",
     "packages/data/codegen/generated/forum-schema.ts",

@@ -3,7 +3,7 @@
 #
 # Two-stage prod deploy. ARC runner orchestrates; the actual dbmate
 # binary runs INSIDE the kilobase namespace as a Kubernetes Job
-# (apps/kube/kilobase/manifests/dbmate-runner-job.yaml). The Job
+# (apps/kube/kilobase/templates/dbmate-runner-job.yaml). The Job
 # uses Postgres advisory locking so concurrent runs queue rather
 # than collide, and the schema_migrations UNIQUE on version means
 # re-applying an already-applied migration is a no-op.
@@ -88,7 +88,7 @@ jobs:
               env:
                   DBMATE_VERSION_TAG: status-${{ needs.guard.outputs.sha }}-${{ github.run_id }}
               run: |
-                  envsubst < apps/kube/kilobase/manifests/dbmate-runner-job.yaml \
+                  envsubst < apps/kube/kilobase/templates/dbmate-runner-job.yaml \
                     | sed 's/dbmate up/dbmate status/' \
                     | sed 's/dbmate-up-/dbmate-status-/' \
                     | kubectl apply -f -
@@ -126,7 +126,7 @@ jobs:
               env:
                   DBMATE_VERSION_TAG: ${{ needs.guard.outputs.sha }}-${{ github.run_id }}
               run: |
-                  envsubst < apps/kube/kilobase/manifests/dbmate-runner-job.yaml \
+                  envsubst < apps/kube/kilobase/templates/dbmate-runner-job.yaml \
                     | kubectl apply -f -
 
             - name: Wait for completion + tail logs
