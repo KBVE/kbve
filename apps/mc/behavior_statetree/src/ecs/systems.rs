@@ -289,6 +289,7 @@ pub fn manage_skeleton_population(
     skeletons: Query<(&McEntityId, &McPosition), With<AiSkeleton>>,
     players: Query<(&OnlinePlayer, &McPosition)>,
     config: Res<SkeletonPopulationConfig>,
+    protection: Res<WorldSpawnProtection>,
     server_tick: Res<ServerTick>,
     mut last_managed: ResMut<LastPopulationManagedTick>,
     mut world_intents: ResMut<WorldIntentBuffer>,
@@ -304,24 +305,25 @@ pub fn manage_skeleton_population(
         .map(|(p, pos)| (p.entity_id, [pos.x, pos.y, pos.z]))
         .collect();
 
-    // ---- Despawn pass ------------------------------------------------------
-    // For each skeleton, find the closest player. If beyond despawn range
-    // (or no players online), emit a Despawn intent.
     let despawn_sq = config.despawn_range * config.despawn_range;
     let mut despawn_count: usize = 0;
     let mut total_skeletons: usize = 0;
     for (mc_id, sk_pos) in &skeletons {
         total_skeletons += 1;
+        let sk_xyz = [sk_pos.x, sk_pos.y, sk_pos.z];
         let too_far = if player_positions.is_empty() {
             true
         } else {
             player_positions
                 .iter()
-                .map(|(_, p)| dist_sq([sk_pos.x, sk_pos.y, sk_pos.z], *p))
+                .map(|(_, p)| dist_sq(sk_xyz, *p))
                 .fold(f64::INFINITY, f64::min)
                 > despawn_sq
         };
-        if too_far {
+        // Skeletons that wander into the protected hub also despawn so the
+        // spawn city stays clean even if pathing carries them past the edge.
+        let inside_spawn = protection.contains_pos(sk_xyz);
+        if too_far || inside_spawn {
             world_intents.ready.push(IntentReady {
                 entity_id: 0,
                 epoch: 0,
@@ -333,13 +335,8 @@ pub fn manage_skeleton_population(
         }
     }
 
-    // Effective alive count (subtract any we just queued for despawn so we
-    // don't over-spawn while the despawns are still in flight).
     let alive = total_skeletons.saturating_sub(despawn_count);
 
-    // ---- Spawn pass --------------------------------------------------------
-    // Spawn a mix of archetypes: cycle through melee, mage, archer.
-    // This gives each spawn wave a balanced composition.
     if alive >= config.max_skeletons || player_positions.is_empty() {
         return;
     }
@@ -350,11 +347,19 @@ pub fn manage_skeleton_population(
         SkeletonArchetype::Melee,
         SkeletonArchetype::Mage,
     ];
-    for (i, (player_id, _)) in player_positions.iter().enumerate() {
-        if i >= needed {
+    // Skip players standing inside the spawn protection cube so the city
+    // never becomes a spawn anchor for hostile reinforcements. Java has a
+    // belt-and-suspenders surface check too, but filtering here saves a
+    // JNI hop on every doomed attempt.
+    let mut anchor_idx: usize = 0;
+    for (player_id, player_pos) in player_positions.iter() {
+        if anchor_idx >= needed {
             break;
         }
-        let archetype = archetype_cycle[i % archetype_cycle.len()];
+        if protection.contains_pos(*player_pos) {
+            continue;
+        }
+        let archetype = archetype_cycle[anchor_idx % archetype_cycle.len()];
         let cmd = match archetype {
             SkeletonArchetype::Melee => NpcCommand::SpawnSkeletonMelee {
                 near_player: *player_id,
@@ -374,6 +379,7 @@ pub fn manage_skeleton_population(
             epoch: 0,
             commands: vec![cmd],
         });
+        anchor_idx += 1;
     }
 }
 
