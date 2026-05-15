@@ -96,7 +96,8 @@
 			"exclude": [
 				"apps/kbve/isometric/**",
 				"apps/kbve/desktop-kbve/**",
-				"apps/ows/**"
+				"apps/rows/**",
+				"apps/rows-e2e/**"
 			],
 			"options": {
 				"buildTargetName": "build",
@@ -110,7 +111,8 @@
 			"exclude": [
 				"apps/kbve/isometric/**",
 				"apps/kbve/desktop-kbve/**",
-				"apps/ows/**"
+				"apps/rows/**",
+				"apps/rows-e2e/**"
 			],
 			"options": {
 				"testTargetName": "test"

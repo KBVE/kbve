@@ -2764,3 +2764,996 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::to_bytes;
+    use axum::http::{Method, Request};
+    use std::collections::BTreeMap;
+    use std::sync::atomic::Ordering;
+    use tower::ServiceExt;
+
+    // -- defaults ------------------------------------------------------------
+
+    #[test]
+    fn defaults_match_documented_constants() {
+        assert_eq!(default_vcpu(), 1);
+        assert_eq!(default_mem(), 128);
+        assert_eq!(default_timeout(), 30_000);
+        assert_eq!(
+            default_boot_args(),
+            "console=ttyS0 reboot=k panic=1 init=/init"
+        );
+        assert_eq!(default_health_path(), "/health");
+    }
+
+    // -- validate_entrypoint -------------------------------------------------
+
+    #[test]
+    fn validate_entrypoint_accepts_absolute_simple_path() {
+        assert!(validate_entrypoint("/bin/sh").is_ok());
+        assert!(validate_entrypoint("/usr/local/bin/python3").is_ok());
+        assert!(validate_entrypoint("/init").is_ok());
+    }
+
+    #[test]
+    fn validate_entrypoint_rejects_empty() {
+        assert!(validate_entrypoint("").is_err());
+    }
+
+    #[test]
+    fn validate_entrypoint_rejects_relative() {
+        assert!(validate_entrypoint("sh").is_err());
+        assert!(validate_entrypoint("bin/sh").is_err());
+        assert!(validate_entrypoint("./init").is_err());
+    }
+
+    #[test]
+    fn validate_entrypoint_rejects_shell_metacharacters() {
+        for bad in &[
+            "/bin/sh; ls",
+            "/bin/sh && id",
+            "/bin/sh | cat",
+            "/bin/sh `id`",
+            "/bin/sh $HOME",
+            "/bin/sh (x)",
+            "/bin/sh {x}",
+            "/bin/sh [x]",
+            "/bin/sh <in",
+            "/bin/sh >out",
+            "/bin/sh \"x\"",
+            "/bin/sh 'x'",
+            "/bin/sh \\x",
+            "/bin/sh #c",
+            "/bin/sh !x",
+            "/bin/sh ~user",
+            "/bin/sh arg",
+        ] {
+            assert!(validate_entrypoint(bad).is_err(), "should reject: {bad:?}");
+        }
+    }
+
+    #[test]
+    fn validate_entrypoint_rejects_whitespace_variants() {
+        assert!(validate_entrypoint("/bin/sh\targ").is_err());
+        assert!(validate_entrypoint("/bin/sh\narg").is_err());
+        assert!(validate_entrypoint("/bin/sh ").is_err());
+    }
+
+    // -- is_valid_header_name -----------------------------------------------
+
+    #[test]
+    fn header_name_accepts_rfc7230_tokens() {
+        for ok in &[
+            "x-trace-id",
+            "X-Trace-Id",
+            "Content-Type",
+            "X_Foo",
+            "X.Foo",
+            "X+Y",
+            "X*Y",
+            "X~Y",
+            "0abc",
+        ] {
+            assert!(is_valid_header_name(ok), "should accept: {ok:?}");
+        }
+    }
+
+    #[test]
+    fn header_name_rejects_invalid_chars_and_empty() {
+        assert!(!is_valid_header_name(""));
+        for bad in &[
+            "x trace", "x:trace", "x@trace", "x(trace)", "x,trace", "x;trace", "x\ttrace",
+            "x\ntrace",
+        ] {
+            assert!(!is_valid_header_name(bad), "should reject: {bad:?}");
+        }
+    }
+
+    // -- is_valid_header_value ----------------------------------------------
+
+    #[test]
+    fn header_value_accepts_visible_ascii_plus_sp_htab() {
+        assert!(is_valid_header_value(""));
+        assert!(is_valid_header_value("simple"));
+        assert!(is_valid_header_value("with space"));
+        assert!(is_valid_header_value("with\ttab"));
+        assert!(is_valid_header_value("with=symbols/and_punct!"));
+    }
+
+    #[test]
+    fn header_value_rejects_cr_lf_and_control() {
+        assert!(!is_valid_header_value("hi\r\nInjected: foo"));
+        assert!(!is_valid_header_value("hi\nbad"));
+        assert!(!is_valid_header_value("hi\rbad"));
+        assert!(!is_valid_header_value("hi\x00null"));
+        assert!(!is_valid_header_value("hi\x7fdel"));
+    }
+
+    // -- is_valid_cors_origin -----------------------------------------------
+
+    #[test]
+    fn cors_origin_accepts_wildcard_and_scheme_host() {
+        assert!(is_valid_cors_origin("*"));
+        assert!(is_valid_cors_origin("https://example.com"));
+        assert!(is_valid_cors_origin("http://localhost:3000"));
+        assert!(is_valid_cors_origin("https://sub.example.com:8443"));
+    }
+
+    #[test]
+    fn cors_origin_rejects_path_query_fragment_or_garbage() {
+        for bad in &[
+            "",
+            "ftp://example.com",
+            "https://",
+            "https://example.com/",
+            "https://example.com/path",
+            "https://example.com?q=1",
+            "https://example.com#frag",
+            "https://example.com with space",
+            "https://example.com\tx",
+        ] {
+            assert!(!is_valid_cors_origin(bad), "should reject: {bad:?}");
+        }
+    }
+
+    // -- validate_http_config -----------------------------------------------
+
+    fn http_cfg() -> EndpointHttpConfig {
+        EndpointHttpConfig::default()
+    }
+
+    #[test]
+    fn http_config_accepts_default() {
+        assert!(validate_http_config(&http_cfg()).is_ok());
+    }
+
+    #[test]
+    fn http_config_caps_cors_origins() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = (0..(MAX_CORS_ORIGINS + 1))
+            .map(|i| format!("https://o{i}.example.com"))
+            .collect();
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_invalid_cors_origin() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["not-a-url".into()];
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_credentials_with_wildcard() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["*".into()];
+        cfg.cors_allow_credentials = true;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_caps_cors_max_age() {
+        let mut cfg = http_cfg();
+        cfg.cors_max_age_secs = MAX_CORS_MAX_AGE_SECS + 1;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_invalid_cors_method() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_methods = vec!["GET\r\nX: y".into()];
+        assert!(validate_http_config(&cfg).is_err());
+        cfg.cors_allow_methods = vec!["".into()];
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_invalid_cors_allowed_header() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_headers = vec!["x bad".into()];
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_caps_inject_header_count() {
+        let mut cfg = http_cfg();
+        let mut m = BTreeMap::new();
+        for i in 0..=MAX_INJECT_HEADERS {
+            m.insert(format!("x-h-{i}"), "v".into());
+        }
+        cfg.inject_request_headers = m;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_caps_inject_header_name_length() {
+        let mut cfg = http_cfg();
+        let mut m = BTreeMap::new();
+        m.insert("a".repeat(MAX_HEADER_NAME_LEN + 1), "v".into());
+        cfg.inject_request_headers = m;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_caps_inject_header_value_length() {
+        let mut cfg = http_cfg();
+        let mut m = BTreeMap::new();
+        m.insert("x-large".into(), "v".repeat(MAX_HEADER_VALUE_LEN + 1));
+        cfg.inject_request_headers = m;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_invalid_inject_name_or_value() {
+        let mut cfg = http_cfg();
+        let mut m = BTreeMap::new();
+        m.insert("bad name".into(), "v".into());
+        cfg.inject_request_headers = m;
+        assert!(validate_http_config(&cfg).is_err());
+
+        let mut cfg = http_cfg();
+        let mut m = BTreeMap::new();
+        m.insert("x-ok".into(), "bad\r\n".into());
+        cfg.inject_request_headers = m;
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    #[test]
+    fn http_config_rejects_reserved_inject_names_case_insensitive() {
+        for reserved in &["Host", "Content-Length", "AUTHORIZATION", "te", "Upgrade"] {
+            let mut cfg = http_cfg();
+            let mut m = BTreeMap::new();
+            m.insert((*reserved).into(), "v".into());
+            cfg.inject_request_headers = m;
+            assert!(
+                validate_http_config(&cfg).is_err(),
+                "must reject reserved: {reserved}"
+            );
+        }
+    }
+
+    #[test]
+    fn http_config_caps_rate_limit() {
+        let mut cfg = http_cfg();
+        cfg.rate_limit = RateLimitConfig {
+            requests_per_sec: MAX_RATE_REQUESTS_PER_SEC + 1,
+            burst: 0,
+        };
+        assert!(validate_http_config(&cfg).is_err());
+
+        let mut cfg = http_cfg();
+        cfg.rate_limit = RateLimitConfig {
+            requests_per_sec: 1,
+            burst: MAX_RATE_BURST + 1,
+        };
+        assert!(validate_http_config(&cfg).is_err());
+    }
+
+    // -- resolve_cors_origin ------------------------------------------------
+
+    #[test]
+    fn cors_resolve_returns_none_when_allowlist_empty() {
+        let cfg = http_cfg();
+        assert_eq!(resolve_cors_origin(Some("https://x"), &cfg), None);
+        assert_eq!(resolve_cors_origin(None, &cfg), None);
+    }
+
+    #[test]
+    fn cors_resolve_wildcard_ignores_request_origin() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["*".into()];
+        assert_eq!(resolve_cors_origin(Some("https://x"), &cfg), Some("*"));
+        assert_eq!(resolve_cors_origin(None, &cfg), Some("*"));
+    }
+
+    #[test]
+    fn cors_resolve_exact_match_only() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://a.example".into(), "https://b.example".into()];
+        assert_eq!(
+            resolve_cors_origin(Some("https://a.example"), &cfg),
+            Some("https://a.example")
+        );
+        assert_eq!(resolve_cors_origin(Some("https://c.example"), &cfg), None);
+        assert_eq!(resolve_cors_origin(None, &cfg), None);
+    }
+
+    // -- preflight + attach headers -----------------------------------------
+
+    #[test]
+    fn preflight_emits_no_cors_when_origin_denied() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://a.example".into()];
+        let mut req_headers = HeaderMap::new();
+        req_headers.insert(header::ORIGIN, "https://evil.example".parse().unwrap());
+        let resp = build_cors_preflight_response(&req_headers, &cfg);
+        assert_eq!(resp.status(), StatusCode::NO_CONTENT);
+        assert!(resp.headers().get("access-control-allow-origin").is_none());
+    }
+
+    #[test]
+    fn preflight_echoes_exact_origin_and_adds_vary() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://a.example".into()];
+        cfg.cors_allow_methods = vec!["GET".into(), "POST".into()];
+        cfg.cors_allow_headers = vec!["x-trace".into()];
+        cfg.cors_max_age_secs = 600;
+        cfg.cors_allow_credentials = true;
+        let mut req_headers = HeaderMap::new();
+        req_headers.insert(header::ORIGIN, "https://a.example".parse().unwrap());
+        let resp = build_cors_preflight_response(&req_headers, &cfg);
+        let h = resp.headers();
+        assert_eq!(
+            h.get("access-control-allow-origin").unwrap(),
+            "https://a.example"
+        );
+        assert_eq!(h.get("vary").unwrap(), "Origin");
+        assert_eq!(h.get("access-control-allow-methods").unwrap(), "GET, POST");
+        assert_eq!(h.get("access-control-allow-headers").unwrap(), "x-trace");
+        assert_eq!(h.get("access-control-max-age").unwrap(), "600");
+        assert_eq!(h.get("access-control-allow-credentials").unwrap(), "true");
+    }
+
+    #[test]
+    fn preflight_wildcard_skips_vary() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["*".into()];
+        let req_headers = HeaderMap::new();
+        let resp = build_cors_preflight_response(&req_headers, &cfg);
+        assert_eq!(
+            resp.headers().get("access-control-allow-origin").unwrap(),
+            "*"
+        );
+        assert!(resp.headers().get("vary").is_none());
+    }
+
+    #[test]
+    fn attach_cors_noop_when_denied() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://a.example".into()];
+        let mut h = HeaderMap::new();
+        attach_cors_response_headers(&mut h, Some("https://evil.example"), &cfg);
+        assert!(h.is_empty());
+    }
+
+    #[test]
+    fn attach_cors_sets_origin_and_credentials_when_allowed() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://a.example".into()];
+        cfg.cors_allow_credentials = true;
+        let mut h = HeaderMap::new();
+        attach_cors_response_headers(&mut h, Some("https://a.example"), &cfg);
+        assert_eq!(
+            h.get("access-control-allow-origin").unwrap(),
+            "https://a.example"
+        );
+        assert_eq!(h.get("access-control-allow-credentials").unwrap(), "true");
+        assert!(h.get_all(header::VARY).iter().any(|v| v == "Origin"));
+    }
+
+    // -- insert_header / header roundtrip ----------------------------------
+
+    #[test]
+    fn insert_header_silently_skips_invalid() {
+        let mut h = HeaderMap::new();
+        insert_header(&mut h, "x-ok", "v");
+        assert_eq!(h.get("x-ok").unwrap(), "v");
+        insert_header(&mut h, "x-bad", "bad\r\nv");
+        assert!(h.get("x-bad").is_none());
+    }
+
+    #[test]
+    fn header_roundtrip_axum_reqwest() {
+        let mut axum_h = HeaderMap::new();
+        axum_h.append("x-trace", "abc".parse().unwrap());
+        axum_h.append("x-trace", "def".parse().unwrap());
+        axum_h.append("content-type", "text/plain".parse().unwrap());
+        let req = axum_to_reqwest_headers(&axum_h);
+        let back = reqwest_to_axum_headers(&req);
+        let trace: Vec<_> = back
+            .get_all("x-trace")
+            .iter()
+            .map(|v| v.to_str().unwrap().to_string())
+            .collect();
+        assert_eq!(trace, vec!["abc", "def"]);
+        assert_eq!(back.get("content-type").unwrap(), "text/plain");
+    }
+
+    // -- pad_to_sector ------------------------------------------------------
+
+    #[test]
+    fn pad_to_sector_pads_to_512_multiple() {
+        assert_eq!(pad_to_sector(&[]).len(), 0);
+        assert_eq!(pad_to_sector(&[1u8; 1]).len(), 512);
+        assert_eq!(pad_to_sector(&[1u8; 511]).len(), 512);
+        assert_eq!(pad_to_sector(&[1u8; 512]).len(), 512);
+        assert_eq!(pad_to_sector(&[1u8; 513]).len(), 1024);
+        assert_eq!(pad_to_sector(&[1u8; 1024]).len(), 1024);
+    }
+
+    #[test]
+    fn pad_to_sector_preserves_original_bytes() {
+        let data = b"hello world";
+        let padded = pad_to_sector(data);
+        assert_eq!(&padded[..data.len()], data);
+        assert!(padded[data.len()..].iter().all(|&b| b == 0));
+    }
+
+    // -- now_micros + iso8601 ----------------------------------------------
+
+    #[test]
+    fn now_micros_is_monotonic() {
+        let a = now_micros();
+        std::thread::sleep(std::time::Duration::from_millis(1));
+        let b = now_micros();
+        assert!(b > a, "now_micros must advance: {a} → {b}");
+    }
+
+    #[test]
+    fn iso8601_now_matches_expected_shape() {
+        let s = iso8601_now();
+        assert_eq!(s.len(), 20);
+        assert!(s.ends_with('Z'));
+        let bytes = s.as_bytes();
+        assert_eq!(bytes[4], b'-');
+        assert_eq!(bytes[7], b'-');
+        assert_eq!(bytes[10], b'T');
+        assert_eq!(bytes[13], b':');
+        assert_eq!(bytes[16], b':');
+    }
+
+    // -- TokenBucket -------------------------------------------------------
+
+    #[test]
+    fn token_bucket_disabled_always_acquires() {
+        let b = TokenBucket::disabled();
+        for _ in 0..100 {
+            assert!(b.try_acquire());
+        }
+    }
+
+    #[test]
+    fn token_bucket_from_zero_rps_is_disabled() {
+        let b = TokenBucket::from_config(RateLimitConfig {
+            requests_per_sec: 0,
+            burst: 100,
+        });
+        assert_eq!(b.capacity_x1000, 0);
+        for _ in 0..10 {
+            assert!(b.try_acquire());
+        }
+    }
+
+    #[test]
+    fn token_bucket_burst_exhausts_then_refills() {
+        let b = TokenBucket::from_config(RateLimitConfig {
+            requests_per_sec: 1_000,
+            burst: 3,
+        });
+        // burst defaults to max(burst, rps) so capacity is 1_000_000 milli-tokens.
+        assert_eq!(b.capacity_x1000, 1000 * 1000);
+        // Drain the bucket.
+        let mut acquired = 0;
+        for _ in 0..10_000 {
+            if b.try_acquire() {
+                acquired += 1;
+            } else {
+                break;
+            }
+        }
+        assert!(acquired > 0);
+    }
+
+    // -- EndpointMetrics ----------------------------------------------------
+
+    #[test]
+    fn endpoint_metrics_snapshot_initially_zero() {
+        let m = EndpointMetrics::default();
+        let s = m.snapshot();
+        assert_eq!(s.requests_total, 0);
+        assert_eq!(s.requests_throttled, 0);
+        assert_eq!(s.requests_forbidden, 0);
+        assert_eq!(s.upstream_errors, 0);
+        assert_eq!(s.bytes_in, 0);
+        assert_eq!(s.bytes_out, 0);
+        assert_eq!(s.last_request_age_secs, None);
+    }
+
+    #[test]
+    fn endpoint_metrics_snapshot_reports_counts_and_age() {
+        let m = EndpointMetrics::default();
+        m.requests_total.store(7, Ordering::Relaxed);
+        m.requests_throttled.store(2, Ordering::Relaxed);
+        m.bytes_in.store(1024, Ordering::Relaxed);
+        // Force OnceLock init + advance the clock so now_micros() > 0.
+        now_micros();
+        std::thread::sleep(std::time::Duration::from_millis(2));
+        m.last_request_micros.store(now_micros(), Ordering::Relaxed);
+        let s = m.snapshot();
+        assert_eq!(s.requests_total, 7);
+        assert_eq!(s.requests_throttled, 2);
+        assert_eq!(s.bytes_in, 1024);
+        assert!(s.last_request_age_secs.is_some());
+        assert!(s.last_request_age_secs.unwrap() < 5);
+    }
+
+    // -- set_vm_failed + reaper predicate ----------------------------------
+
+    fn make_record(status: VmStatus) -> VmRecord {
+        VmRecord {
+            info: VmInfo {
+                vm_id: "fc-test".into(),
+                status,
+                rootfs: "alpine".into(),
+                vcpu_count: 1,
+                mem_size_mib: 128,
+                created_at: iso8601_now(),
+            },
+            result: None,
+            created: Instant::now(),
+            kill_signal: Arc::new(Notify::new()),
+        }
+    }
+
+    #[test]
+    fn set_vm_failed_marks_record_and_writes_result() {
+        let vms: DashMap<String, VmRecord> = DashMap::new();
+        vms.insert("fc-test".into(), make_record(VmStatus::Running));
+        let start = Instant::now();
+        set_vm_failed(&vms, "fc-test", start, 42, "out".into(), "err".into());
+        let rec = vms.get("fc-test").unwrap();
+        assert_eq!(rec.info.status, VmStatus::Failed);
+        let result = rec.result.as_ref().unwrap();
+        assert_eq!(result.exit_code, 42);
+        assert_eq!(result.status, VmStatus::Failed);
+        assert_eq!(result.stdout, "out");
+        assert_eq!(result.stderr, "err");
+    }
+
+    #[test]
+    fn set_vm_failed_noop_for_unknown_vm() {
+        let vms: DashMap<String, VmRecord> = DashMap::new();
+        set_vm_failed(&vms, "missing", Instant::now(), 0, "".into(), "".into());
+        assert!(vms.is_empty());
+    }
+
+    // -- not_enabled --------------------------------------------------------
+
+    #[test]
+    fn not_enabled_returns_503_with_hint() {
+        let (code, body) = not_enabled();
+        assert_eq!(code, StatusCode::SERVICE_UNAVAILABLE);
+        let v: serde_json::Value =
+            serde_json::from_str(&serde_json::to_string(&body.0).unwrap()).unwrap();
+        assert!(v["error"].as_str().unwrap().contains("not enabled"));
+        assert!(
+            v["hint"]
+                .as_str()
+                .unwrap()
+                .contains("FC_PERSISTENT_ENDPOINTS_ENABLED")
+        );
+    }
+
+    // -- Handler integration tests -----------------------------------------
+
+    fn test_app(rootfs_dir: String, persistent: Option<Arc<PersistentState>>) -> Router {
+        let state = AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir,
+            max_concurrent_vms: 4,
+            jailer: None,
+            persistent,
+        };
+        Router::new()
+            .route("/health", get(health))
+            .route("/vm/create", post(create_vm))
+            .route("/vm", get(list_vms))
+            .route("/vm/{vm_id}", get(get_vm_status))
+            .route("/vm/{vm_id}/result", get(get_vm_result))
+            .route("/vm/{vm_id}", delete(destroy_vm))
+            .route("/fc/deploy", post(fc_deploy))
+            .route("/fc/list", get(fc_list))
+            .route("/fc/{name}", get(fc_get))
+            .route("/fc/{name}", delete(fc_destroy))
+            .with_state(state)
+    }
+
+    async fn body_json(resp: Response) -> serde_json::Value {
+        let bytes = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        serde_json::from_slice(&bytes).unwrap_or(serde_json::Value::Null)
+    }
+
+    #[tokio::test]
+    async fn health_returns_ok_payload() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["status"], "ok");
+        assert_eq!(v["service"], "firecracker-ctl");
+        assert_eq!(v["jailer"], false);
+        assert!(v["version"].is_string());
+        assert!(v["timestamp"].is_string());
+    }
+
+    #[tokio::test]
+    async fn list_vms_empty_returns_zero() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(Request::builder().uri("/vm").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["count"], 0);
+        assert!(v["vms"].as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_vm_status_unknown_is_404() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/vm/fc-missing")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn get_vm_result_unknown_is_404() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/vm/fc-missing/result")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn destroy_vm_unknown_is_404() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/vm/fc-missing")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn create_vm_rejects_invalid_entrypoint() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "rootfs": "alpine",
+            "entrypoint": "sh; ls",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/vm/create")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn create_vm_rejects_network_without_persistent() {
+        let tmp = tempfile::tempdir().unwrap();
+        // Create a fake rootfs so the network check is the failing path.
+        let rootfs_path = tmp.path().join("alpine.ext4");
+        std::fs::write(&rootfs_path, [0u8; 16]).unwrap();
+        let app = test_app(tmp.path().to_string_lossy().into_owned(), None);
+        let req_body = serde_json::json!({
+            "rootfs": "alpine",
+            "entrypoint": "/bin/sh",
+            "network": true,
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/vm/create")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        let v = body_json(resp).await;
+        assert!(v["error"].as_str().unwrap().contains("firecracker-ctl-net"));
+    }
+
+    #[tokio::test]
+    async fn create_vm_missing_rootfs_returns_400_with_available_list() {
+        let tmp = tempfile::tempdir().unwrap();
+        std::fs::write(tmp.path().join("alpine.ext4"), [0u8; 16]).unwrap();
+        let app = test_app(tmp.path().to_string_lossy().into_owned(), None);
+        let req_body = serde_json::json!({
+            "rootfs": "nonexistent",
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/vm/create")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        let v = body_json(resp).await;
+        let available: Vec<String> = v["available"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.as_str().unwrap().to_string())
+            .collect();
+        assert!(available.contains(&"alpine".to_string()));
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_returns_503_when_disabled() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "demo",
+            "rootfs": "alpine",
+            "http_port": 8080,
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_validates_name_before_503() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "bad name!",
+            "rootfs": "alpine",
+            "http_port": 8080,
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_rejects_reserved_name_public() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "public",
+            "rootfs": "alpine",
+            "http_port": 8080,
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_rejects_zero_port() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "demo",
+            "rootfs": "alpine",
+            "http_port": 0,
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_rejects_empty_rootfs_or_entrypoint() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "demo",
+            "rootfs": "",
+            "http_port": 8080,
+            "entrypoint": "/bin/sh",
+        });
+        let resp = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn fc_deploy_caps_idle_ttl() {
+        let app = test_app("/tmp".into(), None);
+        let req_body = serde_json::json!({
+            "name": "demo",
+            "rootfs": "alpine",
+            "http_port": 8080,
+            "entrypoint": "/bin/sh",
+            "idle_ttl_secs": MAX_IDLE_TTL_SECS + 1,
+        });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/fc/deploy")
+                    .header("content-type", "application/json")
+                    .body(Body::from(req_body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn fc_list_returns_empty_when_disabled() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/list")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let v = body_json(resp).await;
+        assert_eq!(v["count"], 0);
+        assert!(v["endpoints"].as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn fc_get_returns_503_when_disabled() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/anything")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn fc_destroy_returns_503_when_disabled() {
+        let app = test_app("/tmp".into(), None);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::DELETE)
+                    .uri("/fc/anything")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    // -- list_rootfs --------------------------------------------------------
+
+    #[tokio::test]
+    async fn list_rootfs_filters_to_ext4_basenames() {
+        let tmp = tempfile::tempdir().unwrap();
+        std::fs::write(tmp.path().join("alpine.ext4"), b"").unwrap();
+        std::fs::write(tmp.path().join("ubuntu.ext4"), b"").unwrap();
+        std::fs::write(tmp.path().join("README.md"), b"").unwrap();
+        let mut got = list_rootfs(tmp.path().to_str().unwrap()).await;
+        got.sort();
+        assert_eq!(got, vec!["alpine".to_string(), "ubuntu".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn list_rootfs_missing_dir_returns_empty() {
+        let v = list_rootfs("/nonexistent/path/should/be/empty").await;
+        assert!(v.is_empty());
+    }
+}

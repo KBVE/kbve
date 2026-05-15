@@ -69,8 +69,8 @@ tokio-stream = "0.1"
 rustls = { version = "0.23", features = ["ring"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
-kbve = { path = "../../../packages/rust/kbve" }
+jedi = { path = "../../packages/rust/jedi" }
+kbve = { path = "../../packages/rust/kbve" }
 
 [build-dependencies]
 tonic-prost-build = "0.14.5"

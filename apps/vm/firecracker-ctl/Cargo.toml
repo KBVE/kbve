@@ -1,7 +1,7 @@
 [package]
 name = "firecracker-ctl"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.34"
+version = "0.1.35"
 edition = "2021"
 publish = false
 description = "REST API service for managing Firecracker microVMs"
@@ -25,6 +25,10 @@ reqwest = { version = "0.12", default-features = false, features = ["stream"] }
 # Used by fc_destroy to SIGTERM the VMM process via kill(2).
 libc = "0.2"
 utoipa = { version = "5", features = ["axum_extras"] }
+
+[dev-dependencies]
+tempfile = "3"
+http-body-util = "0.1"
 
 [features]
 default = []
