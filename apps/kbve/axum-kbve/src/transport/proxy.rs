@@ -1625,24 +1625,25 @@ pub async fn firecracker_fc_handler(
     }
 }
 
-/// Rewrites `/fc/public/{name}/{*path}` → firecracker-ctl-net
-/// `/proxy/public/{name}/{*path}`. No JWT gate here — ctl-net enforces
-/// that the endpoint was deployed with `visibility: "public"`, returning
-/// 403 otherwise.
+/// Rewrites `/fc/public/<rest>` → firecracker-ctl-net `/proxy/public/<rest>`.
+/// No JWT gate here — ctl-net enforces that the endpoint was deployed with
+/// `visibility: "public"`, returning 403 otherwise.
+///
+/// One catch-all so `/fc/public/my-api`, `/fc/public/my-api/`, and
+/// `/fc/public/my-api/sub/path` all match. Splitting into separate
+/// `{name}` + `{name}/{*path}` routes left `/fc/public/my-api/` (trailing
+/// slash, empty path) unmatched and falling through to the staff
+/// `/fc/{name}/{*path}` — visible as a spurious 401.
 pub async fn firecracker_fc_public_handler(
-    axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
+    rest: Option<Path<String>>,
     req: Request<Body>,
 ) -> Response {
-    let name = params
-        .iter()
-        .find(|(k, _)| k == "name")
-        .map(|(_, v)| v.clone())
-        .unwrap_or_default();
-    let tail = params
-        .iter()
-        .find(|(k, _)| k == "path")
-        .map(|(_, v)| v.clone())
-        .unwrap_or_default();
+    let rest_str = rest.map(|Path(p)| p).unwrap_or_default();
+    let trimmed = rest_str.trim_start_matches('/');
+    let (name, tail) = match trimmed.split_once('/') {
+        Some((n, t)) => (n, t),
+        None => (trimmed, ""),
+    };
 
     if name.is_empty()
         || !name

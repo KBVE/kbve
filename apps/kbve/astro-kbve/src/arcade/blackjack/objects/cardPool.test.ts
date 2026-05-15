@@ -78,4 +78,43 @@ describe('blackjack card pool', () => {
 		expect(image.setTexture).toHaveBeenCalledTimes(2);
 		expect(image.setPosition).toHaveBeenCalledTimes(2);
 	});
+
+	it('only hides views when the active card count shrinks', () => {
+		const images: MockImage[] = [];
+		const scene = {
+			add: {
+				image: () => {
+					const image = new MockImage();
+					images.push(image);
+					return image;
+				},
+			},
+		};
+		const pool = new CardPool(
+			scene as never,
+			{ add: vi.fn() } as never,
+			'slot',
+		);
+
+		pool.begin();
+		pool.place('spades-A', 320, 420);
+		pool.place('hearts-K', 440, 420);
+		pool.hideUnused();
+
+		pool.begin();
+		pool.place('spades-A', 320, 420);
+		pool.place('hearts-K', 440, 420);
+		pool.hideUnused();
+
+		expect(images[0].setVisible).toHaveBeenCalledTimes(1);
+		expect(images[1].setVisible).toHaveBeenCalledTimes(1);
+
+		pool.begin();
+		pool.place('spades-A', 320, 420);
+		pool.hideUnused();
+
+		expect(images[0].setVisible).toHaveBeenCalledTimes(1);
+		expect(images[1].setVisible).toHaveBeenCalledTimes(2);
+		expect(images[1].visible).toBe(false);
+	});
 });
