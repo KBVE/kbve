@@ -1,5 +1,6 @@
 import { COLORS } from '../config';
 import type { BlackjackState, RoundOutcome } from '../state';
+import { handFingerprint } from '../cards';
 import type { BlackjackHudValues } from './blackjackHud';
 import { HandValueFormatter } from './handValueFormatter';
 import { StrategyAdvisor } from './strategyAdvisor';
@@ -31,6 +32,27 @@ interface StatusColorCache {
 	color: string;
 }
 
+interface HudValuesCache {
+	bankroll: number;
+	bet: number;
+	lastDelta: number;
+	message: string;
+	outcome: RoundOutcome;
+	phase: string;
+	canDouble: boolean;
+	hideDealerHole: boolean;
+	playerFingerprint: number;
+	dealerFingerprint: number;
+	shoeCards: number;
+	rounds: number;
+	wins: number;
+	losses: number;
+	pushes: number;
+	blackjacks: number;
+	bestBankroll: number;
+	values: BlackjackHudValues;
+}
+
 export class BlackjackHudPresenter {
 	private readonly handValueFormatter = new HandValueFormatter();
 	private readonly strategyAdvisor = new StrategyAdvisor();
@@ -38,9 +60,38 @@ export class BlackjackHudPresenter {
 	private shoeLabelCache: ShoeLabelCache | null = null;
 	private statsLabelCache: StatsLabelCache | null = null;
 	private statusColorCache: StatusColorCache | null = null;
+	private valuesCache: HudValuesCache | null = null;
 
 	values(state: BlackjackState, hideDealerHole: boolean): BlackjackHudValues {
-		return {
+		const playerFingerprint = handFingerprint(state.player);
+		const dealerFingerprint = handFingerprint(state.dealer);
+		const cached = this.valuesCache;
+		const { wins, losses, pushes, blackjacks, bestBankroll } = state.stats;
+
+		if (
+			cached &&
+			cached.bankroll === state.bankroll &&
+			cached.bet === state.bet &&
+			cached.lastDelta === state.lastDelta &&
+			cached.message === state.message &&
+			cached.outcome === state.outcome &&
+			cached.phase === state.phase &&
+			cached.canDouble === state.canDouble &&
+			cached.hideDealerHole === hideDealerHole &&
+			cached.playerFingerprint === playerFingerprint &&
+			cached.dealerFingerprint === dealerFingerprint &&
+			cached.shoeCards === state.shoe.length &&
+			cached.rounds === state.rounds &&
+			cached.wins === wins &&
+			cached.losses === losses &&
+			cached.pushes === pushes &&
+			cached.blackjacks === blackjacks &&
+			cached.bestBankroll === bestBankroll
+		) {
+			return cached.values;
+		}
+
+		const values = {
 			bankroll: this.bankrollLabel(state),
 			status: state.message,
 			statusColor: this.statusColor(state.outcome),
@@ -60,6 +111,27 @@ export class BlackjackHudPresenter {
 			shoe: this.shoeLabel(state),
 			stats: this.statsLabel(state),
 		};
+		this.valuesCache = {
+			bankroll: state.bankroll,
+			bet: state.bet,
+			lastDelta: state.lastDelta,
+			message: state.message,
+			outcome: state.outcome,
+			phase: state.phase,
+			canDouble: state.canDouble,
+			hideDealerHole,
+			playerFingerprint,
+			dealerFingerprint,
+			shoeCards: state.shoe.length,
+			rounds: state.rounds,
+			wins,
+			losses,
+			pushes,
+			blackjacks,
+			bestBankroll,
+			values,
+		};
+		return values;
 	}
 
 	private bankrollLabel(state: BlackjackState): string {
