@@ -38,7 +38,7 @@
 		"@playwright/test": "^1.59.1",
 		"@scalar/api-reference": "^1.55.3",
 		"@swc-node/register": "1.11.1",
-		"@swc/cli": "0.7.10",
+		"@swc/cli": "0.8.1",
 		"@swc/core": "1.15.21",
 		"@swc/plugin-styled-components": "^1.5.122",
 		"@tailwindcss/forms": "^0.5.9",
