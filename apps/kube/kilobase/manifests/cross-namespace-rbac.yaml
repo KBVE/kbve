@@ -62,7 +62,7 @@ subjects:
       namespace: n8n
     - kind: ServiceAccount
       name: ows-external-secrets
-      namespace: ows
+      namespace: rows
     - kind: ServiceAccount
       name: cryptothrone-external-secrets
       namespace: cryptothrone

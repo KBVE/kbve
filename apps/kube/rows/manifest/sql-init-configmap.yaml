@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
     name: ows-sql-init
-    namespace: ows
+    namespace: rows
 data:
     init-hubworldmmo.sql: |
         -- HubWorldMMO database initialization for OWS
