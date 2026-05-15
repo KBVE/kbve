@@ -12,16 +12,16 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS pla
 ENV CARGO_INCREMENTAL=0
 
 # Create workspace
-RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
 
 # Copy all manifests + source for recipe generation
-COPY apps/ows/rows/Cargo.toml apps/ows/rows/Cargo.toml
+COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
-COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
-COPY apps/ows/rows/src/ apps/ows/rows/src/
+COPY apps/rows/build.rs apps/rows/build.rs
+COPY apps/rows/src/ apps/rows/src/
 COPY packages/rust/jedi/src/ packages/rust/jedi/src/
 COPY packages/rust/holy/src/ packages/rust/holy/src/
 COPY packages/rust/kbve/src/ packages/rust/kbve/src/
@@ -33,15 +33,15 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS coo
 ENV CARGO_INCREMENTAL=0
 
 # Create workspace
-RUN printf '[workspace]\nmembers = ["apps/ows/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
 
 # Copy manifests + build.rs (needed for proc macros / build scripts)
-COPY apps/ows/rows/Cargo.toml apps/ows/rows/Cargo.toml
+COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
-COPY apps/ows/rows/build.rs apps/ows/rows/build.rs
+COPY apps/rows/build.rs apps/rows/build.rs
 
 # Cook deps from recipe — this layer is cached until Cargo.toml/Cargo.lock change
 COPY --from=planner /src/recipe.json recipe.json
@@ -59,10 +59,10 @@ RUN dpkg -s make >/dev/null 2>&1 || \
 COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/holy/ packages/rust/holy/
 COPY packages/rust/kbve/ packages/rust/kbve/
-COPY apps/ows/rows/src/ apps/ows/rows/src/
+COPY apps/rows/src/ apps/rows/src/
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    touch apps/ows/rows/src/main.rs && \
+    touch apps/rows/src/main.rs && \
     cargo build --release -p rows --features jemalloc && \
     strip target/release/rows
 

@@ -1,6 +1,6 @@
 {
 	"name": "rows-e2e",
-	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"implicitDependencies": ["rows"],
 	"targets": {
@@ -25,7 +25,7 @@
 					"npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
 				],
 				"parallel": false,
-				"cwd": "apps/ows/rows-e2e"
+				"cwd": "apps/rows-e2e"
 			},
 			"configurations": {
 				"ci": {}
