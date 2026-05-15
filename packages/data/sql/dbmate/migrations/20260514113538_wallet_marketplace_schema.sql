@@ -54,11 +54,20 @@ CREATE TABLE wallet.listing (
     id                  BIGSERIAL PRIMARY KEY,
     seller_account      UUID NOT NULL REFERENCES wallet.account(id) ON DELETE NO ACTION,
     item_ref            JSONB NOT NULL,
+    -- Stable per-item instance id extracted from item_ref. NULL if the
+    -- mc service omits it (e.g. legacy listings); the partial unique
+    -- index below skips those rows. Prevents the same physical item
+    -- from appearing in two active listings.
+    item_instance_id    TEXT GENERATED ALWAYS AS (item_ref->>'instance_id') STORED,
     currency            wallet.currency_kind NOT NULL DEFAULT 'khash',
     buy_now_price       BIGINT,
     min_bid             BIGINT,
     current_bid         BIGINT,
     current_bid_account UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
+    -- current_bid_id ties the denormalized current_bid + current_bid_account
+    -- to the real wallet.bid row. Phase 2 place_bid keeps the three in
+    -- lockstep; the CHECK below enforces all-or-none.
+    current_bid_id      BIGINT,
     -- buyer_account is set on settlement (sold). Decoupled from
     -- current_bid_account so buy-now purchasers can be recorded
     -- without faking a bid row.
@@ -93,10 +102,19 @@ CREATE TABLE wallet.listing (
         buy_now_price IS NULL OR min_bid IS NULL OR buy_now_price >= min_bid
     ),
 
-    -- current_bid + current_bid_account move together.
+    -- current_bid + current_bid_account + current_bid_id move together.
     CONSTRAINT listing_current_bid_state_chk CHECK (
-        (current_bid IS NULL     AND current_bid_account IS NULL)
-     OR (current_bid IS NOT NULL AND current_bid_account IS NOT NULL)
+        (current_bid IS NULL     AND current_bid_account IS NULL     AND current_bid_id IS NULL)
+     OR (current_bid IS NOT NULL AND current_bid_account IS NOT NULL AND current_bid_id IS NOT NULL)
+    ),
+
+    -- Non-active listings must not retain live-bid pointers. wallet.bid
+    -- is the historical source of truth. Final states (sold/cancelled/
+    -- expired) keep buyer_account but clear current_bid* so state is
+    -- unambiguous.
+    CONSTRAINT listing_active_bid_fields_chk CHECK (
+        status =  'active'
+     OR (current_bid IS NULL AND current_bid_account IS NULL AND current_bid_id IS NULL)
     ),
     CONSTRAINT listing_current_bid_pos_chk CHECK (
         current_bid IS NULL OR current_bid > 0
@@ -138,8 +156,11 @@ CREATE TABLE wallet.listing (
 COMMENT ON TABLE wallet.listing IS
     'Marketplace listing. Combines fixed-price (buy_now_price) and auction (min_bid) in one row; either or both can be set. Settlement is materialized in wallet.ledger via Phase 2 RPCs.';
 
-CREATE UNIQUE INDEX wallet_listing_idempotency_uq
-    ON wallet.listing (idempotency_key);
+-- Idempotency is scoped per actor so a key reused across users does
+-- not cause spurious 409s. Server-generated UUIDs would not need this,
+-- but client-provided keys (likely in Phase 4) get safer semantics.
+CREATE UNIQUE INDEX wallet_listing_seller_idempotency_uq
+    ON wallet.listing (seller_account, idempotency_key);
 
 CREATE INDEX wallet_listing_active_expires_idx
     ON wallet.listing (expires_at)
@@ -153,6 +174,15 @@ CREATE INDEX wallet_listing_active_created_idx
 CREATE INDEX wallet_listing_seller_created_idx
     ON wallet.listing (seller_account, created_at DESC, id DESC);
 
+-- Seller dashboards filtered by status.
+CREATE INDEX wallet_listing_seller_status_created_idx
+    ON wallet.listing (seller_account, status, created_at DESC, id DESC);
+
+-- Buyer dashboards / "my purchases".
+CREATE INDEX wallet_listing_buyer_created_idx
+    ON wallet.listing (buyer_account, created_at DESC, id DESC)
+    WHERE buyer_account IS NOT NULL;
+
 CREATE INDEX wallet_listing_current_bidder_idx
     ON wallet.listing (current_bid_account, status)
     WHERE current_bid_account IS NOT NULL;
@@ -160,8 +190,24 @@ CREATE INDEX wallet_listing_current_bidder_idx
 CREATE INDEX wallet_listing_status_created_idx
     ON wallet.listing (status, created_at DESC, id DESC);
 
+-- Prevents the same physical item from being in two active listings.
+-- Skips rows where the mc service omits instance_id.
+CREATE UNIQUE INDEX wallet_listing_active_item_instance_uq
+    ON wallet.listing (item_instance_id)
+    WHERE status = 'active' AND item_instance_id IS NOT NULL;
+
 -- ============================================================================
 -- TABLE: wallet.bid — per-listing bid history
+--
+-- Phase 2 contract for place_bid:
+--   - SELECT ... FOR UPDATE on the listing row first
+--   - Reject if bidder_account = listing.seller_account (no self-bid;
+--     CHECK can't reference another table)
+--   - Reject if listing status != 'active' or expires_at has passed
+--   - Reject if amount < min_bid or amount <= current_bid
+--   - Demote any prior active bid to 'outbid' (refund_ledger_id set)
+--   - Insert the new bid in 'active'; set listing.current_bid*
+--   - If amount >= buy_now_price, short-circuit to settle (status='sold')
 -- ============================================================================
 
 CREATE TABLE wallet.bid (
@@ -201,7 +247,9 @@ CREATE TABLE wallet.bid (
 COMMENT ON TABLE wallet.bid IS
     'Per-listing bid history. escrow_ledger_id is mandatory: every bid must reference the debit that escrowed the funds. refund_ledger_id is set on outbid/refunded/cancelled transitions.';
 
-CREATE UNIQUE INDEX wallet_bid_idempotency_uq ON wallet.bid(idempotency_key);
+-- Actor-scoped idempotency (same rationale as the listing variant).
+CREATE UNIQUE INDEX wallet_bid_bidder_idempotency_uq
+    ON wallet.bid (bidder_account, idempotency_key);
 
 CREATE INDEX wallet_bid_listing_placed_idx
     ON wallet.bid (listing_id, placed_at DESC, id DESC);
@@ -220,7 +268,45 @@ CREATE UNIQUE INDEX wallet_bid_listing_active_uq
     WHERE status = 'active';
 
 -- ============================================================================
+-- FK back-link: listing.current_bid_id → wallet.bid(id)
+--
+-- Added after both tables exist (wallet.bid references wallet.listing,
+-- so the FK on listing.current_bid_id must be declared post-create).
+-- ON DELETE NO ACTION mirrors the rest of the wallet schema; bid rows
+-- are never deleted, only state-transitioned.
+-- ============================================================================
+
+ALTER TABLE wallet.listing
+    ADD CONSTRAINT listing_current_bid_id_fk
+    FOREIGN KEY (current_bid_id) REFERENCES wallet.bid(id) ON DELETE NO ACTION;
+
+-- ============================================================================
+-- TRIGGER: updated_at touch
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.trg_listing_touch_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    NEW.updated_at := statement_timestamp();
+    RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION wallet.trg_listing_touch_updated_at() FROM PUBLIC, anon, authenticated;
+ALTER FUNCTION wallet.trg_listing_touch_updated_at() OWNER TO service_role;
+
+CREATE TRIGGER trg_wallet_listing_touch_updated_at
+    BEFORE UPDATE ON wallet.listing
+    FOR EACH ROW EXECUTE FUNCTION wallet.trg_listing_touch_updated_at();
+
+-- ============================================================================
 -- RLS
+--
+-- FORCE ROW LEVEL SECURITY means every caller (including table owner)
+-- must pass a policy. The market RPCs in Phase 2 are SECURITY DEFINER
+-- and MUST be owned by service_role so they inherit the
+-- service_role_full_access policy below. A function owned by anyone
+-- else (or by a role without an explicit policy / BYPASSRLS) will
+-- silently get zero rows back from these tables.
 -- ============================================================================
 
 ALTER TABLE wallet.listing ENABLE ROW LEVEL SECURITY;
@@ -236,6 +322,11 @@ CREATE POLICY "service_role_full_access" ON wallet.bid
 
 -- No direct authenticated access. All reads/writes flow through the
 -- public.proxy_market_* SECURITY DEFINER functions added in Phase 3.
+
+REVOKE ALL ON TABLE wallet.listing FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE wallet.bid     FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE wallet.listing_id_seq FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE wallet.bid_id_seq     FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT, INSERT, UPDATE ON wallet.listing TO service_role;
 GRANT USAGE ON SEQUENCE wallet.listing_id_seq TO service_role;
@@ -271,6 +362,13 @@ ON CONFLICT (account_id) DO NOTHING;
 
 -- migrate:down
 
+-- Drop the cross-table FK first so DROP TABLE on wallet.bid succeeds
+-- (wallet.listing.current_bid_id references wallet.bid(id)).
+ALTER TABLE IF EXISTS wallet.listing
+    DROP CONSTRAINT IF EXISTS listing_current_bid_id_fk;
+
+DROP TRIGGER IF EXISTS trg_wallet_listing_touch_updated_at ON wallet.listing;
+DROP FUNCTION IF EXISTS wallet.trg_listing_touch_updated_at();
 DROP TABLE IF EXISTS wallet.bid;
 DROP TABLE IF EXISTS wallet.listing;
 DROP TYPE  IF EXISTS wallet.bid_status;

@@ -74,14 +74,26 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_seller_created_idx') THEN
         RAISE EXCEPTION 'fail: wallet_listing_seller_created_idx missing';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_idempotency_uq') THEN
-        RAISE EXCEPTION 'fail: wallet_listing_idempotency_uq missing';
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_seller_idempotency_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_seller_idempotency_uq missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_seller_status_created_idx') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_seller_status_created_idx missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_buyer_created_idx') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_buyer_created_idx missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_listing_active_item_instance_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_listing_active_item_instance_uq missing';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_listing_placed_idx') THEN
         RAISE EXCEPTION 'fail: wallet_bid_listing_placed_idx missing';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_listing_active_uq') THEN
         RAISE EXCEPTION 'fail: wallet_bid_listing_active_uq missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_bid_bidder_idempotency_uq') THEN
+        RAISE EXCEPTION 'fail: wallet_bid_bidder_idempotency_uq missing';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='wallet' AND indexname='wallet_account_treasury_label_uq') THEN
         RAISE EXCEPTION 'fail: wallet_account_treasury_label_uq missing';
@@ -414,6 +426,99 @@ BEGIN
         RAISE EXCEPTION 'fail: active+refund_ledger_id should have failed bid_lifecycle_chk';
     EXCEPTION WHEN check_violation THEN NULL;
     END;
+END;
+$$;
+
+-- 14a. listing_active_bid_fields_chk: non-active row may not carry
+--      live-bid pointers.
+DO $$
+DECLARE
+    v_seller UUID;
+    v_bidder UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at,
+            status, settled_at, current_bid, current_bid_account, buyer_account
+        ) VALUES (
+            v_seller, '{"item_id":"flint"}'::jsonb, 100,
+            statement_timestamp() + interval '2 hours',
+            'sold', statement_timestamp(), 60, v_bidder, v_bidder
+        );
+        RAISE EXCEPTION 'fail: sold+current_bid should have failed listing_active_bid_fields_chk';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 14b. listing_current_bid_state_chk: current_bid_id must move with
+--      current_bid + current_bid_account.
+DO $$
+DECLARE
+    v_seller UUID;
+    v_bidder UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    SELECT id INTO v_bidder FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='bidder');
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at,
+            current_bid, current_bid_account
+        ) VALUES (
+            v_seller, '{"item_id":"feather"}'::jsonb, 100,
+            statement_timestamp() + interval '2 hours',
+            60, v_bidder
+        );
+        RAISE EXCEPTION 'fail: current_bid_id NULL with other fields set should have failed listing_current_bid_state_chk';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 14c. Same physical item cannot be listed twice while active
+--      (item_instance_id partial unique).
+DO $$
+DECLARE
+    v_seller UUID;
+BEGIN
+    SELECT id INTO v_seller FROM wallet.account WHERE user_id = (SELECT user_id FROM public.__marketplace_test_fixture WHERE role='seller');
+    INSERT INTO wallet.listing (
+        seller_account, item_ref, buy_now_price, expires_at
+    ) VALUES (
+        v_seller,
+        '{"item_id": "elytra", "qty": 1, "instance_id": "abc-123"}'::jsonb,
+        500,
+        statement_timestamp() + interval '2 hours'
+    );
+    BEGIN
+        INSERT INTO wallet.listing (
+            seller_account, item_ref, buy_now_price, expires_at
+        ) VALUES (
+            v_seller,
+            '{"item_id": "elytra", "qty": 1, "instance_id": "abc-123"}'::jsonb,
+            600,
+            statement_timestamp() + interval '2 hours'
+        );
+        RAISE EXCEPTION 'fail: duplicate active item_instance_id should have failed wallet_listing_active_item_instance_uq';
+    EXCEPTION WHEN unique_violation THEN NULL;
+    END;
+END;
+$$;
+
+-- 14d. updated_at trigger exists on wallet.listing. We don't assert
+--      a timestamp bump because everything in a DO block shares one
+--      statement_timestamp(); the trigger is verified structurally.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_trigger
+         WHERE tgname = 'trg_wallet_listing_touch_updated_at'
+           AND NOT tgisinternal
+    ) THEN
+        RAISE EXCEPTION 'fail: trg_wallet_listing_touch_updated_at missing';
+    END IF;
 END;
 $$;
 

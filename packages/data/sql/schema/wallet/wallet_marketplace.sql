@@ -41,11 +41,13 @@ CREATE TABLE wallet.listing (
     id                  BIGSERIAL PRIMARY KEY,
     seller_account      UUID NOT NULL REFERENCES wallet.account(id) ON DELETE NO ACTION,
     item_ref            JSONB NOT NULL,
+    item_instance_id    TEXT GENERATED ALWAYS AS (item_ref->>'instance_id') STORED,
     currency            wallet.currency_kind NOT NULL DEFAULT 'khash',
     buy_now_price       BIGINT,
     min_bid             BIGINT,
     current_bid         BIGINT,
     current_bid_account UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
+    current_bid_id      BIGINT,
     buyer_account       UUID REFERENCES wallet.account(id) ON DELETE NO ACTION,
     status              wallet.listing_status NOT NULL DEFAULT 'active',
     expires_at          TIMESTAMPTZ NOT NULL,
@@ -71,8 +73,12 @@ CREATE TABLE wallet.listing (
         buy_now_price IS NULL OR min_bid IS NULL OR buy_now_price >= min_bid
     ),
     CONSTRAINT listing_current_bid_state_chk CHECK (
-        (current_bid IS NULL     AND current_bid_account IS NULL)
-     OR (current_bid IS NOT NULL AND current_bid_account IS NOT NULL)
+        (current_bid IS NULL     AND current_bid_account IS NULL     AND current_bid_id IS NULL)
+     OR (current_bid IS NOT NULL AND current_bid_account IS NOT NULL AND current_bid_id IS NOT NULL)
+    ),
+    CONSTRAINT listing_active_bid_fields_chk CHECK (
+        status =  'active'
+     OR (current_bid IS NULL AND current_bid_account IS NULL AND current_bid_id IS NULL)
     ),
     CONSTRAINT listing_current_bid_pos_chk CHECK (
         current_bid IS NULL OR current_bid > 0
@@ -105,8 +111,8 @@ CREATE TABLE wallet.listing (
 COMMENT ON TABLE wallet.listing IS
     'Marketplace listing. Combines fixed-price (buy_now_price) and auction (min_bid) in one row; either or both can be set. Settlement is materialized in wallet.ledger via Phase 2 RPCs.';
 
-CREATE UNIQUE INDEX wallet_listing_idempotency_uq
-    ON wallet.listing (idempotency_key);
+CREATE UNIQUE INDEX wallet_listing_seller_idempotency_uq
+    ON wallet.listing (seller_account, idempotency_key);
 CREATE INDEX wallet_listing_active_expires_idx
     ON wallet.listing (expires_at)
     WHERE status = 'active';
@@ -115,11 +121,19 @@ CREATE INDEX wallet_listing_active_created_idx
     WHERE status = 'active';
 CREATE INDEX wallet_listing_seller_created_idx
     ON wallet.listing (seller_account, created_at DESC, id DESC);
+CREATE INDEX wallet_listing_seller_status_created_idx
+    ON wallet.listing (seller_account, status, created_at DESC, id DESC);
+CREATE INDEX wallet_listing_buyer_created_idx
+    ON wallet.listing (buyer_account, created_at DESC, id DESC)
+    WHERE buyer_account IS NOT NULL;
 CREATE INDEX wallet_listing_current_bidder_idx
     ON wallet.listing (current_bid_account, status)
     WHERE current_bid_account IS NOT NULL;
 CREATE INDEX wallet_listing_status_created_idx
     ON wallet.listing (status, created_at DESC, id DESC);
+CREATE UNIQUE INDEX wallet_listing_active_item_instance_uq
+    ON wallet.listing (item_instance_id)
+    WHERE status = 'active' AND item_instance_id IS NOT NULL;
 
 -- ============================================================================
 -- TABLE: wallet.bid
@@ -154,7 +168,8 @@ CREATE TABLE wallet.bid (
 COMMENT ON TABLE wallet.bid IS
     'Per-listing bid history. escrow_ledger_id is mandatory: every bid must reference the debit that escrowed the funds. refund_ledger_id is set on outbid/refunded/cancelled transitions.';
 
-CREATE UNIQUE INDEX wallet_bid_idempotency_uq ON wallet.bid(idempotency_key);
+CREATE UNIQUE INDEX wallet_bid_bidder_idempotency_uq
+    ON wallet.bid (bidder_account, idempotency_key);
 CREATE INDEX wallet_bid_listing_placed_idx
     ON wallet.bid (listing_id, placed_at DESC, id DESC);
 CREATE INDEX wallet_bid_bidder_placed_idx
@@ -163,6 +178,32 @@ CREATE INDEX wallet_bid_bidder_placed_idx
 CREATE UNIQUE INDEX wallet_bid_listing_active_uq
     ON wallet.bid (listing_id)
     WHERE status = 'active';
+
+-- ============================================================================
+-- Cross-table FK: listing.current_bid_id → wallet.bid(id)
+-- ============================================================================
+
+ALTER TABLE wallet.listing
+    ADD CONSTRAINT listing_current_bid_id_fk
+    FOREIGN KEY (current_bid_id) REFERENCES wallet.bid(id) ON DELETE NO ACTION;
+
+-- ============================================================================
+-- updated_at trigger
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.trg_listing_touch_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    NEW.updated_at := statement_timestamp();
+    RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION wallet.trg_listing_touch_updated_at() FROM PUBLIC, anon, authenticated;
+ALTER FUNCTION wallet.trg_listing_touch_updated_at() OWNER TO service_role;
+
+CREATE TRIGGER trg_wallet_listing_touch_updated_at
+    BEFORE UPDATE ON wallet.listing
+    FOR EACH ROW EXECUTE FUNCTION wallet.trg_listing_touch_updated_at();
 
 -- ============================================================================
 -- RLS
@@ -178,6 +219,11 @@ CREATE POLICY "service_role_full_access" ON wallet.listing
 
 CREATE POLICY "service_role_full_access" ON wallet.bid
     FOR ALL TO service_role USING (TRUE) WITH CHECK (TRUE);
+
+REVOKE ALL ON TABLE wallet.listing FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE wallet.bid     FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE wallet.listing_id_seq FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE wallet.bid_id_seq     FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT, INSERT, UPDATE ON wallet.listing TO service_role;
 GRANT USAGE ON SEQUENCE wallet.listing_id_seq TO service_role;
