@@ -321,6 +321,195 @@ if __name__ == "__main__":
 `,
 	},
 	{
+		id: 'py-egress-ip',
+		label: 'VPN Egress IP (Network)',
+		language: 'python',
+		requires_network: true,
+		code: `"""Confirm outbound traffic exits via the Proton WireGuard tunnel.
+
+Hits two public "what is my IP" services. If the firecracker-python-net
+rootfs is wired correctly, both responses report the Proton VPN egress
+IP — NOT the cluster's public IP. Useful smoke test after any change to
+fc-ctl-net networking (iptables, ip rules, MASQUERADE).
+"""
+
+import sys
+
+import requests
+
+ENDPOINTS = (
+    "https://api.ipify.org?format=json",
+    "https://ifconfig.co/json",
+)
+TIMEOUT_SECONDS = 8
+
+
+def main() -> int:
+    seen = set()
+    for url in ENDPOINTS:
+        try:
+            r = requests.get(url, timeout=TIMEOUT_SECONDS)
+            r.raise_for_status()
+            data = r.json()
+        except requests.exceptions.RequestException as exc:
+            print(f"[fail] {url}: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        ip = data.get("ip") or data.get("query")
+        country = data.get("country") or data.get("country_iso") or "?"
+        asn = data.get("asn") or data.get("asn_org") or "?"
+        print(f"[{url}]")
+        print(f"  ip      = {ip}")
+        print(f"  country = {country}")
+        print(f"  asn     = {asn}")
+        seen.add(ip)
+
+    if len(seen) == 1:
+        print(f"\\n[ok] both endpoints agree on egress IP: {next(iter(seen))}")
+        return 0
+    print(f"\\n[warn] endpoints disagree: {seen}", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+`,
+	},
+	{
+		id: 'py-github-user',
+		label: 'GitHub User (Network)',
+		language: 'python',
+		requires_network: true,
+		code: `"""Fetch a public GitHub user profile via the v3 REST API.
+
+Demonstrates a real-world JSON API call with a User-Agent header (GitHub
+rejects requests that don't send one). Edit USER to point at any public
+account.
+"""
+
+import sys
+
+import requests
+
+USER = "h0lybyte"
+URL = f"https://api.github.com/users/{USER}"
+TIMEOUT_SECONDS = 10
+HEADERS = {
+    "User-Agent": "kbve-firecracker-demo",
+    "Accept": "application/vnd.github+json",
+}
+
+
+def main() -> int:
+    try:
+        r = requests.get(URL, headers=HEADERS, timeout=TIMEOUT_SECONDS)
+        r.raise_for_status()
+        u = r.json()
+    except requests.exceptions.RequestException as exc:
+        print(f"[fail] {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"login        : {u.get('login')}")
+    print(f"name         : {u.get('name')}")
+    print(f"company      : {u.get('company')}")
+    print(f"location     : {u.get('location')}")
+    print(f"bio          : {u.get('bio')}")
+    print(f"public repos : {u.get('public_repos')}")
+    print(f"followers    : {u.get('followers')}")
+    print(f"created at   : {u.get('created_at')}")
+    print(f"html url     : {u.get('html_url')}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+`,
+	},
+	{
+		id: 'py-crypto-prices',
+		label: 'Crypto Prices (Network)',
+		language: 'python',
+		requires_network: true,
+		code: `"""Pull live BTC / ETH / SOL spot prices from the CoinGecko public API.
+
+No API key required. Demonstrates a small JSON shape transform and a
+formatted table.
+"""
+
+import sys
+
+import requests
+
+URL = (
+    "https://api.coingecko.com/api/v3/simple/price"
+    "?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true"
+)
+TIMEOUT_SECONDS = 10
+
+
+def main() -> int:
+    try:
+        r = requests.get(URL, timeout=TIMEOUT_SECONDS)
+        r.raise_for_status()
+        data = r.json()
+    except requests.exceptions.RequestException as exc:
+        print(f"[fail] {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"{'asset':<10} {'usd':>12} {'24h %':>8}")
+    print("-" * 32)
+    for coin in ("bitcoin", "ethereum", "solana"):
+        row = data.get(coin, {})
+        price = row.get("usd")
+        change = row.get("usd_24h_change")
+        if price is None or change is None:
+            print(f"{coin:<10} {'?':>12} {'?':>8}")
+            continue
+        print(f"{coin:<10} {price:>12,.2f} {change:>+7.2f}%")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+`,
+	},
+	{
+		id: 'py-weather',
+		label: 'Weather (Network)',
+		language: 'python',
+		requires_network: true,
+		code: `"""Plain-text weather report from wttr.in.
+
+wttr.in serves a curl-style ASCII weather report with no API key. Edit
+LOCATION to any city or airport code. The "?format=3" suffix returns a
+one-line summary; drop the suffix to get the full coloured report.
+"""
+
+import sys
+
+import requests
+
+LOCATION = "New York"
+ONE_LINER = True
+TIMEOUT_SECONDS = 10
+URL = f"https://wttr.in/{LOCATION}" + ("?format=3" if ONE_LINER else "?T")
+
+
+def main() -> int:
+    try:
+        r = requests.get(URL, timeout=TIMEOUT_SECONDS, headers={"User-Agent": "curl/8"})
+        r.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        print(f"[fail] {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    print(r.text.rstrip())
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+`,
+	},
+	{
 		id: 'js-fetch-sim',
 		label: 'JSON Parser',
 		language: 'javascript',
