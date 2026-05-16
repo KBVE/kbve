@@ -153,11 +153,11 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
-ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) COST 100 ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO anon, authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
-    'PUBLIC marketplace proxy. Paged active-listing browse, anon-callable. Keyset cursor on (created_at DESC, id DESC), limit clamped [1, 100], default 50.';
+    'PUBLIC marketplace proxy. Paged active-listing browse, anon-callable. Keyset cursor on (created_at DESC, id DESC), limit clamped [1, 100], default 50. WARNING: returns wallet.account UUIDs (seller_account, current_bid_account); replace with profile handles once profile schema is wired up. Hides deadline-passed-but-not-yet-swept rows via expires_at > now().';
 
 -- ============================================================================
 -- public.proxy_market_listing_detail_readonly
@@ -237,10 +237,11 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) COST 100 ROWS 1;
 REVOKE ALL ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) TO anon, authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) IS
-    'PUBLIC marketplace proxy. Single listing + 50 most recent bids. Anon-callable. Raises P1001 on missing listing.';
+    'PUBLIC marketplace proxy. Anon-callable single-listing read + 50 most recent bids. WARNING: returns stable wallet.account UUIDs (seller_account, current_bid_account, buyer_account, bidder_account inside the bids array) — replace with profile handles + narrow bid history once the profile schema is wired up. Raises P1001 on missing listing, 22004 on null id.';
 
 -- ============================================================================
 -- public.proxy_market_my_listings_readonly
@@ -294,7 +295,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
-ALTER FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+ALTER FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) COST 100 ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
@@ -344,7 +345,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
-ALTER FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+ALTER FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) COST 100 ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
@@ -375,6 +376,18 @@ BEGIN
     IF p_item_ref IS NULL OR jsonb_typeof(p_item_ref) <> 'object' THEN
         RAISE EXCEPTION 'item_ref must be a JSON object' USING ERRCODE = '22023';
     END IF;
+    IF p_buy_now_price IS NULL AND p_min_bid IS NULL THEN
+        RAISE EXCEPTION 'listing requires buy_now_price or min_bid' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NOT NULL AND p_buy_now_price <= 0 THEN
+        RAISE EXCEPTION 'buy_now_price must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_min_bid IS NOT NULL AND p_min_bid <= 0 THEN
+        RAISE EXCEPTION 'min_bid must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
+        RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
+    END IF;
     RETURN wallet.service_create_listing(
         v_seller, p_item_ref, 'khash'::wallet.currency_kind,
         p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
@@ -403,6 +416,9 @@ DECLARE
 BEGIN
     IF p_listing_id IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'listing_id and idempotency_key are required' USING ERRCODE = '22004';
+    END IF;
+    IF p_amount IS NULL OR p_amount <= 0 THEN
+        RAISE EXCEPTION 'amount must be positive' USING ERRCODE = '22023';
     END IF;
     RETURN wallet.service_place_bid(p_listing_id, v_bidder, p_amount, p_idempotency_key);
 END;
