@@ -16,15 +16,75 @@
 --   referral.service_set_default_target(user_id, target_slug)
 --   referral.service_get_user_stats(user_id)
 --
--- Custom SQLSTATEs (extends the Phase 1 set):
---   RFP01  reward_policy missing
+-- Custom SQLSTATEs raised by Phase 3a (Phase 1 set inherited; RFP01 +
+-- RFWA1 are reachable from record_click only and don't fire from
+-- these mgmt RPCs, but they stay in the central reference):
 --   RFT01  target not found / inactive
 --   RFU01  user_target not enabled
---   RFWA1  wallet account provisioning failed
---   RFM01  attempted to disable / unset the last default while no
---          other active target exists to inherit it (forces caller to
---          set a new default first instead of dropping into a state
+--   RFM01  attempted to disable / unset the last active default while
+--          no other active target exists to inherit it (forces caller
+--          to set a new default first instead of dropping into a state
 --          where /referral/@user/ would 404)
+
+-- ---------------------------------------------------------------------------
+-- Phase 3a schema hardening on referral.user_target
+-- ---------------------------------------------------------------------------
+
+-- updated_at column + auto-bump trigger for admin + cache-invalidation
+-- visibility. Backfill existing rows from enabled_at so the column is
+-- never NULL.
+ALTER TABLE referral.user_target
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+
+UPDATE referral.user_target
+   SET updated_at = COALESCE(updated_at, disabled_at, enabled_at, now())
+ WHERE updated_at IS NULL;
+
+ALTER TABLE referral.user_target
+    ALTER COLUMN updated_at SET DEFAULT now(),
+    ALTER COLUMN updated_at SET NOT NULL;
+
+CREATE OR REPLACE FUNCTION referral.user_target_touch()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $fn$
+BEGIN
+    NEW.updated_at := statement_timestamp();
+    RETURN NEW;
+END;
+$fn$;
+
+DROP TRIGGER IF EXISTS user_target_set_updated_at ON referral.user_target;
+CREATE TRIGGER user_target_set_updated_at
+    BEFORE UPDATE ON referral.user_target
+    FOR EACH ROW EXECUTE FUNCTION referral.user_target_touch();
+
+-- Belt-and-suspenders invariant: a row cannot be is_default AND inactive
+-- at the same time. The partial unique index on (user_id) WHERE
+-- is_default AND active already prevents two defaults; this CHECK
+-- closes the loophole where an out-of-band UPDATE leaves a disabled
+-- row marked is_default = TRUE.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+          FROM pg_constraint
+         WHERE conrelid = 'referral.user_target'::regclass
+           AND conname = 'user_target_default_requires_active'
+    ) THEN
+        ALTER TABLE referral.user_target
+            ADD CONSTRAINT user_target_default_requires_active
+            CHECK (active OR NOT is_default);
+    END IF;
+END $$;
+
+-- Hot-path indexes for the stats lateral aggregates in
+-- service_list_user_targets / service_get_user_stats.
+CREATE INDEX IF NOT EXISTS click_referrer_target_idx
+    ON referral.click (referrer_id, target_slug, created_at DESC);
+CREATE INDEX IF NOT EXISTS click_referrer_credited_ledger_idx
+    ON referral.click (referrer_id)
+    WHERE credited AND ledger_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- service_list_user_targets — returns every (slug, title, url, active,
@@ -48,27 +108,23 @@ RETURNS TABLE (
     credits_total  BIGINT,
     last_click_at  TIMESTAMPTZ
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
-    SELECT
-        ut.target_slug,
-        t.title,
-        t.url,
-        ut.is_default,
-        ut.active,
-        ut.enabled_at,
-        ut.disabled_at,
-        COALESCE(stats.clicks_total, 0)    AS clicks_total,
-        COALESCE(stats.clicks_credited, 0) AS clicks_credited,
-        COALESCE(stats.credits_total, 0)   AS credits_total,
-        stats.last_click_at
-    FROM referral.user_target ut
-    JOIN referral.target t ON t.slug = ut.target_slug
-    LEFT JOIN LATERAL (
+BEGIN
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
+    END IF;
+
+    -- Aggregate click stats once over the user's click rows and join
+    -- onto user_target. Avoids the per-target lateral aggregate that
+    -- scaled with target count.
+    RETURN QUERY
+    WITH stats AS (
         SELECT
+            c.target_slug AS target_slug,
             count(*)::BIGINT                                  AS clicks_total,
             count(*) FILTER (WHERE c.credited)::BIGINT        AS clicks_credited,
             COALESCE(SUM(l.delta) FILTER (
@@ -78,10 +134,27 @@ AS $fn$
         FROM referral.click c
         LEFT JOIN wallet.ledger l ON l.id = c.ledger_id
         WHERE c.referrer_id = p_user_id
-          AND c.target_slug = ut.target_slug
-    ) stats ON TRUE
+        GROUP BY c.target_slug
+    )
+    SELECT
+        ut.target_slug,
+        t.title,
+        t.url,
+        ut.is_default,
+        ut.active,
+        ut.enabled_at,
+        ut.disabled_at,
+        COALESCE(s.clicks_total, 0)    AS clicks_total,
+        COALESCE(s.clicks_credited, 0) AS clicks_credited,
+        COALESCE(s.credits_total, 0)   AS credits_total,
+        s.last_click_at
+    FROM referral.user_target ut
+    JOIN referral.target t ON t.slug = ut.target_slug
+    LEFT JOIN stats s ON s.target_slug = ut.target_slug
     WHERE ut.user_id = p_user_id
-    ORDER BY ut.is_default DESC, ut.active DESC, ut.enabled_at DESC;
+    ORDER BY ut.is_default DESC, ut.active DESC, ut.enabled_at DESC,
+             ut.target_slug;
+END;
 $fn$;
 
 ALTER FUNCTION referral.service_list_user_targets(UUID) OWNER TO postgres;
@@ -217,6 +290,9 @@ BEGIN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
     p_target_slug := lower(btrim(p_target_slug));
+    IF p_target_slug = '' THEN
+        RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
+    END IF;
 
     PERFORM pg_advisory_xact_lock(
         hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
@@ -232,13 +308,15 @@ BEGIN
     END IF;
 
     -- If this row is the default, find another active row to promote.
+    -- Stable tiebreaker (target_slug ASC) so two rows with the same
+    -- enabled_at don't pick nondeterministically.
     IF v_existing.is_default THEN
         SELECT ut.target_slug INTO v_other_slug
           FROM referral.user_target ut
          WHERE ut.user_id    = p_user_id
            AND ut.active
            AND ut.target_slug IS DISTINCT FROM p_target_slug
-         ORDER BY ut.enabled_at DESC
+         ORDER BY ut.enabled_at DESC, ut.target_slug ASC
          LIMIT 1;
 
         IF v_other_slug IS NULL THEN
@@ -292,6 +370,9 @@ BEGIN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
     p_target_slug := lower(btrim(p_target_slug));
+    IF p_target_slug = '' THEN
+        RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
+    END IF;
 
     PERFORM pg_advisory_xact_lock(
         hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
@@ -318,16 +399,15 @@ BEGIN
        AND is_default
        AND target_slug IS DISTINCT FROM p_target_slug;
 
+    -- Final UPDATE without the "AND NOT is_default" filter so RETURNING
+    -- still emits the row when the requested slug was already the
+    -- default (idempotent re-promote).
     UPDATE referral.user_target
        SET is_default = TRUE
      WHERE user_id = p_user_id
        AND target_slug = p_target_slug
        AND active
-       AND NOT is_default;
-
-    SELECT * INTO v_row
-      FROM referral.user_target
-     WHERE user_id = p_user_id AND target_slug = p_target_slug;
+     RETURNING * INTO v_row;
 
     RETURN v_row;
 END;
@@ -351,11 +431,17 @@ RETURNS TABLE (
     credits_total   BIGINT,
     last_click_at   TIMESTAMPTZ
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
+BEGIN
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
+    END IF;
+
+    RETURN QUERY
     SELECT
         count(*)::BIGINT                                  AS clicks_total,
         count(*) FILTER (WHERE c.credited)::BIGINT        AS clicks_credited,
@@ -366,6 +452,7 @@ AS $fn$
     FROM referral.click c
     LEFT JOIN wallet.ledger l ON l.id = c.ledger_id
     WHERE c.referrer_id = p_user_id;
+END;
 $fn$;
 
 ALTER FUNCTION referral.service_get_user_stats(UUID) OWNER TO postgres;

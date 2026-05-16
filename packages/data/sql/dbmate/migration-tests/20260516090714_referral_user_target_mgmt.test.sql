@@ -2,35 +2,22 @@
 -- Run via: ./test-migration.sh 20260516090714_referral_user_target_mgmt
 
 -- SEED
+-- wallet.ledger is append-only (trg_ledger_immutable blocks DELETE),
+-- so we can't purge prior ledger rows or the account they reference.
+-- Only purge what *this* phase owns — the referral tables — and reuse
+-- the auth.users row from prior runs via ON CONFLICT.
 WITH test_users (id) AS (
     VALUES ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid)
-),
-test_accounts AS (
-    SELECT a.id FROM wallet.account a JOIN test_users u ON a.user_id = u.id
-),
-del_user_target AS (
-    DELETE FROM referral.user_target
-     WHERE user_id IN (SELECT id FROM test_users)
 ),
 del_click AS (
     DELETE FROM referral.click
      WHERE referrer_id IN (SELECT id FROM test_users)
-),
-del_balance AS (
-    DELETE FROM wallet.balance
-     WHERE account_id IN (SELECT id FROM test_accounts)
-),
-del_coupon AS (
-    DELETE FROM wallet.coupon
-     WHERE account_id IN (SELECT id FROM test_accounts)
-),
-del_account AS (
-    DELETE FROM wallet.account
-     WHERE id IN (SELECT id FROM test_accounts)
 )
-DELETE FROM auth.users WHERE id IN (SELECT id FROM test_users);
+DELETE FROM referral.user_target
+ WHERE user_id IN (SELECT id FROM test_users);
 
-INSERT INTO auth.users (id) VALUES ('dddddddd-dddd-dddd-dddd-dddddddddddd');
+INSERT INTO auth.users (id) VALUES ('dddddddd-dddd-dddd-dddd-dddddddddddd')
+ON CONFLICT (id) DO NOTHING;
 
 -- ASSERT_AFTER_UP
 
@@ -201,6 +188,7 @@ END $$;
 
 -- Input guards.
 DO $$
+DECLARE u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 BEGIN
     BEGIN
         PERFORM * FROM referral.service_enable_target(NULL, 'rareicon');
@@ -210,12 +198,80 @@ BEGIN
     END;
 
     BEGIN
-        PERFORM * FROM referral.service_enable_target(
-            'dddddddd-dddd-dddd-dddd-dddddddddddd'::UUID, 'NOT_A_TARGET'
-        );
+        PERFORM * FROM referral.service_enable_target(u, 'NOT_A_TARGET');
         RAISE EXCEPTION 'fail: unknown target should have raised RFT01';
     EXCEPTION WHEN SQLSTATE 'RFT01' THEN
         -- expected
+    END;
+
+    -- Empty-string-after-trim guards on disable + set_default + enable.
+    BEGIN
+        PERFORM * FROM referral.service_disable_target(u, '   ');
+        RAISE EXCEPTION 'fail: whitespace-only slug should have raised 22023';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+    BEGIN
+        PERFORM * FROM referral.service_set_default_target(u, '   ');
+        RAISE EXCEPTION 'fail: whitespace-only slug should have raised 22023';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+
+    -- NULL user_id raises on list + stats too (PL/pgSQL conversion).
+    BEGIN
+        PERFORM * FROM referral.service_list_user_targets(NULL);
+        RAISE EXCEPTION 'fail: NULL user_id should have raised in list';
+    EXCEPTION WHEN SQLSTATE '22004' THEN
+        -- expected
+    END;
+    BEGIN
+        PERFORM * FROM referral.service_get_user_stats(NULL);
+        RAISE EXCEPTION 'fail: NULL user_id should have raised in stats';
+    EXCEPTION WHEN SQLSTATE '22004' THEN
+        -- expected
+    END;
+END $$;
+
+-- Schema invariants added in Phase 3a.
+DO $$
+DECLARE u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+BEGIN
+    -- user_target_default_requires_active CHECK rejects
+    -- is_default = TRUE on an inactive row.
+    BEGIN
+        INSERT INTO referral.user_target (
+            user_id, target_slug, is_default, active,
+            enabled_at, disabled_at
+        ) VALUES (u, 'mc', TRUE, FALSE, now(), now());
+        RAISE EXCEPTION 'fail: is_default+inactive should have raised check_violation';
+    EXCEPTION WHEN check_violation THEN
+        -- expected
+    END;
+
+    -- updated_at trigger bumps the column on any UPDATE.
+    DECLARE
+        ts_before TIMESTAMPTZ;
+        ts_after  TIMESTAMPTZ;
+    BEGIN
+        SELECT updated_at INTO ts_before
+          FROM referral.user_target
+         WHERE user_id = u AND target_slug = 'rareicon';
+        IF ts_before IS NULL THEN
+            RAISE EXCEPTION 'fail: updated_at backfill should never be NULL';
+        END IF;
+
+        PERFORM pg_sleep(0.05);
+        UPDATE referral.user_target
+           SET disabled_at = NULL  -- harmless touch
+         WHERE user_id = u AND target_slug = 'rareicon';
+
+        SELECT updated_at INTO ts_after
+          FROM referral.user_target
+         WHERE user_id = u AND target_slug = 'rareicon';
+        IF ts_after <= ts_before THEN
+            RAISE EXCEPTION 'fail: updated_at trigger did not bump';
+        END IF;
     END;
 END $$;
 
