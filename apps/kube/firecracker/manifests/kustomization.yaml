@@ -28,4 +28,7 @@ resources:
     - firecracker-keda.yaml
     - firecracker-net-deployment.yaml
     - firecracker-net-service.yaml
+    - firecracker-servicemonitor.yaml
+    - firecracker-net-servicemonitor.yaml
+    - firecracker-alerts.yaml
     - sealed-vpn-wireguard.yaml

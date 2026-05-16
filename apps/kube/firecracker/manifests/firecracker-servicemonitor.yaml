@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: firecracker-ctl
+    namespace: firecracker
+    labels:
+        app: firecracker-ctl
+        release: prometheus
+spec:
+    selector:
+        matchLabels:
+            app: firecracker-ctl
+    endpoints:
+        - port: api
+          interval: 30s
+          path: /metrics
+          scrapeTimeout: 10s

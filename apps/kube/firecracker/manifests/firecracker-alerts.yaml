@@ -1,0 +1,134 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: firecracker-ctl
+    namespace: firecracker
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: firecracker-ctl.endpoint
+          rules:
+              - alert: FirecrackerEndpointStuckStarting
+                annotations:
+                    summary: 'Firecracker endpoint {{ $labels.name }} stuck in Starting for >5m'
+                    description: |
+                        Endpoint {{ $labels.name }} ({{ $labels.visibility }}) has been in
+                        `starting` for over 5 minutes. Health prober never observed a 2xx
+                        from the guest — usually means the app inside the VM never bound
+                        its port, the rootfs is missing dependencies, or fctap egress is
+                        blocked. Check `kubectl logs firecracker-ctl-net` and the dashboard
+                        Logs modal for `/fc/{{ $labels.name }}/logs`.
+                expr: |
+                    fc_endpoint_status{status="starting"} == 1
+                    and on (name) (time() - fc_endpoint_uptime_seconds) > 300 == bool 1
+                for: 1m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerEndpointDegraded
+                annotations:
+                    summary: 'Firecracker endpoint {{ $labels.name }} is Degraded'
+                    description: |
+                        Endpoint {{ $labels.name }} ({{ $labels.visibility }}) has been
+                        `degraded` for >2 minutes. The health prober logged 3 consecutive
+                        non-2xx responses; the guest is likely crashed or unresponsive.
+                expr: |
+                    fc_endpoint_status{status="degraded"} == 1
+                for: 2m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerEndpointUpstreamErrorRate
+                annotations:
+                    summary: 'Firecracker endpoint {{ $labels.name }} upstream error rate elevated'
+                    description: |
+                        Endpoint {{ $labels.name }} is returning upstream errors at
+                        {{ $value | printf "%.2f" }}/s. The guest may be flapping or
+                        overloaded.
+                expr: |
+                    rate(fc_endpoint_requests_total{outcome="upstream_error"}[5m]) > 0.5
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerEndpointThrottleStorm
+                annotations:
+                    summary: 'Firecracker endpoint {{ $labels.name }} sustained rate-limit throttling'
+                    description: |
+                        Endpoint {{ $labels.name }} is throttling {{ $value | printf "%.2f" }}
+                        requests/s for >5 minutes. Either traffic legitimately exceeds the
+                        configured rate_limit (consider bumping the cap), or there's anon
+                        abuse on the public tier worth investigating.
+                expr: |
+                    rate(fc_endpoint_requests_total{outcome="throttled"}[5m]) > 1
+                for: 5m
+                labels:
+                    severity: info
+
+        - name: firecracker-ctl.pool
+          rules:
+              - alert: FirecrackerIpPoolNearExhaustion
+                annotations:
+                    summary: 'Firecracker IP pool >85% used'
+                    description: |
+                        {{ $value | printf "%.0f" }}% of /30 slots in the persistent IP
+                        pool are in use. Once exhausted, new deploys will 507 (insufficient
+                        storage). Expand `FC_PERSISTENT_SUBNET` or sweep idle endpoints.
+                expr: |
+                    100 * (fc_ip_pool_used / fc_ip_pool_capacity) > 85
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerIpPoolExhausted
+                annotations:
+                    summary: 'Firecracker IP pool 100% used — new deploys will fail'
+                    description: |
+                        All /30 slots are allocated. New `/fc/deploy` calls return 507 until
+                        an endpoint is destroyed or the idle sweeper reclaims one.
+                expr: |
+                    fc_ip_pool_used >= fc_ip_pool_capacity
+                for: 1m
+                labels:
+                    severity: critical
+
+        - name: firecracker-ctl.platform
+          rules:
+              - alert: FirecrackerCtlMetricsAbsent
+                annotations:
+                    summary: 'Firecracker-ctl metrics not being scraped'
+                    description: |
+                        No `fc_build_info` series observed for 10 minutes. Either the
+                        ServiceMonitor is misconfigured, the pod is unreachable on port
+                        9001, or the binary is crash-looping before the listener starts.
+                expr: |
+                    absent(fc_build_info{namespace="firecracker"})
+                for: 10m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerCtlPodCrashLooping
+                annotations:
+                    summary: 'Firecracker-ctl pod {{ $labels.pod }} restart rate elevated'
+                    description: |
+                        Pod {{ $labels.pod }} restarted {{ $value | printf "%.0f" }} times
+                        in 15 minutes. Likely panic, OOM, or jailer permission failure.
+                expr: |
+                    increase(kube_pod_container_status_restarts_total{namespace="firecracker",pod=~"firecracker-ctl.*"}[15m]) > 2
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: FirecrackerCtlDeploymentDown
+                annotations:
+                    summary: 'Firecracker-ctl deployment {{ $labels.deployment }} has zero ready replicas'
+                    description: |
+                        Deployment {{ $labels.deployment }} has zero ready replicas. All
+                        `/fc/*` and `/proxy/*` traffic is failing.
+                expr: |
+                    kube_deployment_status_replicas_available{namespace="firecracker",deployment=~"firecracker-ctl.*"} == 0
+                for: 2m
+                labels:
+                    severity: critical

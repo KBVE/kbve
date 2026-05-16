@@ -1,0 +1,3 @@
+# Embed bundle is built per deploy (Dockerfile + nx build-embed).
+# Never commit the artifact — keeps source-of-truth in src/embed/.
+public/embed/chat.js

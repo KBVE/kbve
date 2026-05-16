@@ -421,3 +421,195 @@ describe('arc-runner image — clock sanity', () => {
 		expect(driftMs).toBeLessThan(60_000);
 	});
 });
+
+describe('arc-runner image — CLI subcommand surfaces', () => {
+	it('gh CLI exposes the api / auth / pr / run subcommands', () => {
+		const out = dockerExec("bash -lc 'gh --help'");
+		for (const sub of ['api', 'auth', 'pr', 'run', 'release']) {
+			expect(out).toMatch(new RegExp(`^\\s+${sub}\\b`, 'm'));
+		}
+	});
+
+	it('dbmate exposes the migration lifecycle subcommands', () => {
+		const out = dockerExec("bash -lc 'dbmate --help'");
+		for (const sub of ['up', 'down', 'new', 'rollback', 'status']) {
+			expect(out).toMatch(new RegExp(`^\\s+${sub}\\b`, 'm'));
+		}
+	});
+
+	it('kubectl plugin list runs without erroring on the empty case', () => {
+		// `kubectl plugin list` may exit non-zero when no plugins exist;
+		// the wrapper here normalises to 0 + checks stdout content.
+		const res = dockerExecSafe(
+			"bash -lc 'kubectl plugin list 2>&1 || true'",
+		);
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toMatch(/(no plugins|unable to find)/i);
+	});
+});
+
+describe('arc-runner image — base image identity', () => {
+	it('/etc/os-release identifies the image as Ubuntu', () => {
+		const out = dockerExec("bash -lc 'grep ^ID= /etc/os-release'");
+		expect(out).toBe('ID=ubuntu');
+	});
+
+	it('Ubuntu version is at least 22.04 LTS', () => {
+		const raw = dockerExec(
+			"bash -lc 'grep ^VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d \\\"'",
+		);
+		const [major] = raw.split('.').map((n) => Number.parseInt(n, 10));
+		expect(major).toBeGreaterThanOrEqual(22);
+	});
+
+	it('CA bundle has at least 100 certificates installed', () => {
+		const out = dockerExec(
+			'bash -lc \'ls /etc/ssl/certs | grep -c ".pem\\|.crt"\'',
+		);
+		expect(Number.parseInt(out, 10)).toBeGreaterThanOrEqual(100);
+	});
+
+	it('runs in the UTC timezone', () => {
+		// Container date is already covered by the clock-sanity block.
+		// This locks the TZ identifier itself so logs + timestamps
+		// from inside the runner stay consistent with everything else
+		// in the cluster (all KBVE workloads use UTC).
+		const out = dockerExec("bash -lc 'date +%Z'");
+		expect(out).toBe('UTC');
+	});
+});
+
+describe('arc-runner image — workflow shell glue', () => {
+	it('common coreutils + shell tools are on PATH', () => {
+		// Any one missing breaks a wide swath of `run:` shell steps.
+		const out = dockerExecScript(`
+			for bin in bash sed awk grep find xargs sha256sum base64 printf cut tr head tail wc sort uniq; do
+				command -v "$bin" >/dev/null || { echo "MISSING:$bin"; exit 1; }
+			done
+			echo ok
+		`);
+		expect(out).toBe('ok');
+	});
+
+	it('runner pod has no docker CLI bound directly (DOCKER_HOST goes to DinD)', () => {
+		// Architectural assertion: the pod talks to dockerd in the DinD
+		// sidecar via tcp://localhost:2376, not via a local docker
+		// binary + unix socket. A future bake that installs the docker
+		// CLI in this image would hide that contract and let workflows
+		// silently fall through to a non-existent local daemon.
+		const res = dockerExecSafe("bash -lc 'command -v docker || true'");
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toBe('');
+	});
+
+	it('runner user can create /home/runner/_work (where jobs check out repos)', () => {
+		const out = dockerExecScript(`
+			su -s /bin/bash runner -c 'mkdir -p /home/runner/_work/probe && echo ok > /home/runner/_work/probe/p && cat /home/runner/_work/probe/p && rm -rf /home/runner/_work/probe'
+		`);
+		expect(out).toBe('ok');
+	});
+});
+
+describe('arc-runner image — OCI metadata', () => {
+	it('preserves the OCI labels set in the Dockerfile', () => {
+		const raw = execSync(
+			`docker image inspect ${IMAGE_NAME} --format '{{json .Config.Labels}}'`,
+			{ encoding: 'utf-8' },
+		).trim();
+		const labels = JSON.parse(raw) as Record<string, string>;
+		expect(labels['org.opencontainers.image.source']).toBe(
+			'https://github.com/kbve/kbve',
+		);
+		expect(labels['org.opencontainers.image.licenses']).toBe('MIT');
+		expect(labels['org.opencontainers.image.description']).toMatch(
+			/arc-runner-set/,
+		);
+	});
+
+	it('reports linux/amd64 (single-arch guard)', () => {
+		const raw = execSync(
+			`docker image inspect ${IMAGE_NAME} --format '{{.Os}}/{{.Architecture}}'`,
+			{ encoding: 'utf-8' },
+		).trim();
+		expect(raw).toBe('linux/amd64');
+	});
+});
+
+describe('arc-runner image — security surface', () => {
+	it('SUID binary set is bounded and contains only expected entries', () => {
+		// A new SUID binary appearing after a Dockerfile edit is almost
+		// always a packaging mistake. Allow-list the upstream Ubuntu
+		// defaults (sudo, mount, su, etc); fail on anything else.
+		const raw = dockerExecScript(`
+			find / -xdev -perm -4000 -type f 2>/dev/null | sort
+		`);
+		const found = raw.split('\n').filter(Boolean);
+		const allowed = new Set([
+			'/usr/bin/chfn',
+			'/usr/bin/chsh',
+			'/usr/bin/gpasswd',
+			'/usr/bin/mount',
+			'/usr/bin/newgrp',
+			'/usr/bin/passwd',
+			'/usr/bin/su',
+			'/usr/bin/sudo',
+			'/usr/bin/umount',
+			'/usr/libexec/openssh/ssh-keysign',
+		]);
+		const unexpected = found.filter((p) => !allowed.has(p));
+		expect(unexpected).toEqual([]);
+	});
+});
+
+describe('arc-runner image — actions-runner agent structure', () => {
+	it('Runner.Listener binary survives the layered build', () => {
+		// /home/runner/run.sh execs bin/Runner.Listener; without it the
+		// pod registers but cannot pick up jobs. A future apt clean-up
+		// or COPY that strips the bin/ tree surfaces here.
+		const out = dockerExec(
+			"bash -lc 'test -f /home/runner/bin/Runner.Listener && echo present'",
+		);
+		expect(out).toBe('present');
+	});
+
+	it('Runner.Worker binary survives the layered build', () => {
+		const out = dockerExec(
+			"bash -lc 'test -f /home/runner/bin/Runner.Worker && echo present'",
+		);
+		expect(out).toBe('present');
+	});
+});
+
+describe('arc-runner image — archive + runtime ergonomics', () => {
+	it('tar + gzip round-trip a directory through .tar.gz', () => {
+		// Parallel to the existing xz round-trip — gzip is the most
+		// common archive format inside CI shell glue (cache save, SDK
+		// distribution). Catches a regression that strips gzip from
+		// the apt-install list.
+		const out = dockerExecScript(`
+			D=$(mktemp -d)
+			mkdir -p "$D/src"
+			echo payload > "$D/src/file.txt"
+			tar -C "$D" -czf "$D/out.tar.gz" src
+			mkdir "$D/dst"
+			tar -C "$D/dst" -xzf "$D/out.tar.gz"
+			cat "$D/dst/src/file.txt"
+			rm -rf "$D"
+		`);
+		expect(out).toBe('payload');
+	});
+
+	it('default umask is 0022 (group + world readable, not writable)', () => {
+		const out = dockerExec("bash -lc 'umask'");
+		expect(out).toBe('0022');
+	});
+
+	it('ulimit -n is at least 65536 for parallel HTTP + file workloads', () => {
+		// game-ci, vitest, and the Bevy build all open many fds at once.
+		// The DinD sidecar sets nofile to 1048576; the runner container
+		// inherits the same daemon limit.
+		const out = dockerExec("bash -lc 'ulimit -n'");
+		const n = Number.parseInt(out, 10);
+		expect(n).toBeGreaterThanOrEqual(65536);
+	});
+});

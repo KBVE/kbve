@@ -6139,6 +6139,7 @@ dependencies = [
  "axum 0.8.9",
  "dashmap 6.1.0",
  "http-body-util",
+ "kbve",
  "libc",
  "reqwest 0.12.28",
  "serde",

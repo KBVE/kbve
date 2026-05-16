@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>KbveChat embed — example</title>
+		<style>
+			body {
+				font-family:
+					-apple-system, system-ui, sans-serif;
+				margin: 0;
+				padding: 24px;
+				background: #f4f5f7;
+				color: #1a1f2c;
+			}
+			h1 {
+				font-size: 18px;
+				margin: 0 0 16px;
+			}
+			.row {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 24px;
+				margin-top: 16px;
+			}
+			.card {
+				background: white;
+				border: 1px solid #d8dde5;
+				border-radius: 12px;
+				padding: 16px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+			}
+			.label {
+				font-size: 12px;
+				color: #5b6373;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				margin: 0 0 12px;
+			}
+			.host {
+				width: 100%;
+				height: 480px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>KbveChat embed bundle — smoke test</h1>
+		<div class="row">
+			<div class="card">
+				<p class="label">Auto-discover (#kbve-chat)</p>
+				<div
+					id="kbve-chat"
+					class="host"
+					data-channel="#general"
+					data-ws="wss://chat.kbve.com/ws"
+					data-theme="dark"></div>
+			</div>
+			<div class="card">
+				<p class="label">Programmatic mount (light theme)</p>
+				<div id="kbve-chat-2" class="host"></div>
+			</div>
+		</div>
+
+		<script src="/embed/chat.js" defer></script>
+		<script>
+			window.addEventListener('load', () => {
+				if (window.KbveChat) {
+					window.KbveChat.mount({
+						el: '#kbve-chat-2',
+						channel: '#general',
+						ws: 'wss://chat.kbve.com/ws',
+						theme: 'light',
+						height: '480px',
+					});
+				}
+			});
+		</script>
+	</body>
+</html>

@@ -55,18 +55,13 @@ public class AiCreatureManager {
      */
     private static final String AI_MARKER_TAG = "kbve_ai_creature";
 
-    /**
-     * Spawn protection cuboid. Hostile mobs (owner == null) refuse to spawn
-     * if the picked surface lands inside this box. Pets are allowed because
-     * they follow their owner anywhere, including the hub. Must stay in
-     * lockstep with {@code WorldSpawnProtection} on the Rust side.
-     */
-    private static final int SPAWN_PROTECT_MIN_X = -200;
-    private static final int SPAWN_PROTECT_MIN_Y = -200;
-    private static final int SPAWN_PROTECT_MIN_Z = -200;
-    private static final int SPAWN_PROTECT_MAX_X = 200;
-    private static final int SPAWN_PROTECT_MAX_Y = 200;
-    private static final int SPAWN_PROTECT_MAX_Z = 200;
+    private static final int SPAWN_PROTECT_BUFFER = 64;
+    private static final int SPAWN_PROTECT_MIN_X = -200 - SPAWN_PROTECT_BUFFER;
+    private static final int SPAWN_PROTECT_MIN_Y = -200 - SPAWN_PROTECT_BUFFER;
+    private static final int SPAWN_PROTECT_MIN_Z = -200 - SPAWN_PROTECT_BUFFER;
+    private static final int SPAWN_PROTECT_MAX_X = 200 + SPAWN_PROTECT_BUFFER;
+    private static final int SPAWN_PROTECT_MAX_Y = 200 + SPAWN_PROTECT_BUFFER;
+    private static final int SPAWN_PROTECT_MAX_Z = 200 + SPAWN_PROTECT_BUFFER;
 
     /** Tracked creatures keyed by Minecraft entity ID. */
     private final ConcurrentHashMap<Integer, CreatureSlot> creatures = new ConcurrentHashMap<>();

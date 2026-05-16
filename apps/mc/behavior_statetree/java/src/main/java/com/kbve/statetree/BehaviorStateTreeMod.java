@@ -64,6 +64,11 @@ public class BehaviorStateTreeMod implements ModInitializer {
         McChatEvents.register();
         LOGGER.info("[{}] Chat bridge wired (env-gated)", MOD_ID);
 
+        // Seed the spawn-cube admin claim through OPAC on every server
+        // start. Idempotent: already-server-claimed chunks are skipped.
+        // No-op when OPAC isn't loaded.
+        SpawnAutoClaim.register();
+
         if (!NativeRuntime.isLoaded()) {
             LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
             return;

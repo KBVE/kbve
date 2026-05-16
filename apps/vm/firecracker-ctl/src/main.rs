@@ -23,6 +23,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 mod billing;
+mod billing_wallet;
 mod openapi;
 mod persistent;
 mod tap;
@@ -104,6 +105,9 @@ struct VmRecord {
     result: Option<VmResult>,
     created: Instant,
     kill_signal: Arc<Notify>,
+    billing_account_id: Option<Uuid>,
+    vcpu_count: u8,
+    mem_size_mib: u16,
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +141,9 @@ struct AppState {
     /// Populated only when the binary runs as the networked deployment
     /// (firecracker-ctl-net). When `None`, all /fc/* handlers return 503.
     persistent: Option<Arc<PersistentState>>,
+    /// Wallet wiring for credit holds / settles. None = wallet not configured;
+    /// Some(ctx) where ctx.enabled controls whether holds + settles actually fire.
+    billing: Option<Arc<billing_wallet::BillingContext>>,
 }
 
 /// State block for persistent endpoints. Only constructed when the
@@ -237,6 +244,9 @@ struct PersistentEndpoint {
     idle_ttl_secs: u32,
     /// Per-endpoint VM stdout/stderr ring buffer. Capped at 256 KiB.
     logs: Arc<LogRing>,
+    /// Wallet account_id this endpoint bills against. Captured at deploy
+    /// from the upstream proxy's x-kbve-account-id header.
+    billing_account_id: Option<Uuid>,
 }
 
 /// Bounded byte ring backing `GET /fc/{name}/logs`. Drops oldest bytes
@@ -638,6 +648,7 @@ async fn health(State(state): State<AppState>) -> impl IntoResponse {
 )]
 async fn create_vm(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<CreateVmRequest>,
 ) -> impl IntoResponse {
     // Validate entrypoint (prevents boot_args injection)
@@ -696,6 +707,53 @@ async fn create_vm(
     let now = iso8601_now();
     let kill_signal = Arc::new(Notify::new());
 
+    let want_network = req.network.unwrap_or(false);
+    let account_id = billing_wallet::extract_account_id(&headers);
+    let billing_account_id = if want_network { account_id } else { None };
+
+    if want_network {
+        let ttl_secs = (req.timeout_ms / 1000) as u32;
+        match billing_wallet::place_hold(
+            state.billing.as_deref(),
+            billing_account_id,
+            &vm_id,
+            req.vcpu_count,
+            req.mem_size_mib,
+            ttl_secs,
+            0,
+        )
+        .await
+        {
+            Ok(_) => {}
+            Err(billing_wallet::HoldError::MissingAccount) => {
+                return (
+                    StatusCode::UNAUTHORIZED,
+                    Json(serde_json::json!({
+                        "error": "billing requires x-kbve-account-id header for network=true VMs",
+                    })),
+                );
+            }
+            Err(billing_wallet::HoldError::Insufficient { balance_short_of }) => {
+                return (
+                    StatusCode::PAYMENT_REQUIRED,
+                    Json(serde_json::json!({
+                        "error": "insufficient credits to reserve session",
+                        "needed": balance_short_of,
+                    })),
+                );
+            }
+            Err(billing_wallet::HoldError::Other(detail)) => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": "billing hold failed",
+                        "detail": detail,
+                    })),
+                );
+            }
+        }
+    }
+
     let info = VmInfo {
         vm_id: vm_id.clone(),
         status: VmStatus::Creating,
@@ -712,16 +770,30 @@ async fn create_vm(
             result: None,
             created: Instant::now(),
             kill_signal: kill_signal.clone(),
+            billing_account_id,
+            vcpu_count: req.vcpu_count,
+            mem_size_mib: req.mem_size_mib,
         },
     );
 
-    // Spawn VM lifecycle in background
     let vms = state.vms.clone();
     let rootfs_dir = state.rootfs_dir.clone();
     let jailer = state.jailer.clone();
     let persistent = state.persistent.clone();
+    let billing = state.billing.clone();
     tokio::spawn(async move {
-        run_vm_lifecycle(vms, vm_id, req, rootfs_dir, kill_signal, jailer, persistent).await;
+        run_vm_lifecycle(
+            vms,
+            vm_id,
+            req,
+            rootfs_dir,
+            kill_signal,
+            jailer,
+            persistent,
+            billing,
+            billing_account_id,
+        )
+        .await;
     });
 
     (StatusCode::CREATED, Json(serde_json::json!(info)))
@@ -914,6 +986,7 @@ fn not_enabled() -> (StatusCode, Json<serde_json::Value>) {
 )]
 async fn fc_deploy(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<DeployFcRequest>,
 ) -> (StatusCode, Json<serde_json::Value>) {
     if req.name.is_empty()
@@ -983,7 +1056,47 @@ async fn fc_deploy(
         );
     }
 
-    // --- Allocate IP ---
+    let billing_account_id = billing_wallet::extract_account_id(&headers);
+    match billing_wallet::place_hold(
+        state.billing.as_deref(),
+        billing_account_id,
+        &req.name,
+        req.vcpu_count,
+        req.mem_size_mib,
+        req.idle_ttl_secs,
+        0,
+    )
+    .await
+    {
+        Ok(_) => {}
+        Err(billing_wallet::HoldError::MissingAccount) => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({
+                    "error": "billing requires x-kbve-account-id header",
+                })),
+            );
+        }
+        Err(billing_wallet::HoldError::Insufficient { balance_short_of }) => {
+            return (
+                StatusCode::PAYMENT_REQUIRED,
+                Json(serde_json::json!({
+                    "error": "insufficient credits to reserve endpoint",
+                    "needed": balance_short_of,
+                })),
+            );
+        }
+        Err(billing_wallet::HoldError::Other(detail)) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "error": "billing hold failed",
+                    "detail": detail,
+                })),
+            );
+        }
+    }
+
     let allocation = match persistent.pool.allocate() {
         Ok(a) => a,
         Err(e) => {
@@ -1109,6 +1222,7 @@ async fn fc_deploy(
         metrics: Arc::new(EndpointMetrics::default()),
         idle_ttl_secs: req.idle_ttl_secs,
         logs,
+        billing_account_id,
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
@@ -1216,6 +1330,159 @@ async fn health_prober_task(persistent: Arc<PersistentState>, name: String) {
 
         tokio::time::sleep(PROBE_INTERVAL).await;
     }
+}
+
+/// Prometheus text-format exposition. Emits per-endpoint counters
+/// (requests, errors, throttled, forbidden, bytes, status) plus pool +
+/// process gauges. Hand-rolled to avoid a crate dependency for ~80 lines
+/// of output. Scraped by the ServiceMonitor in
+/// `apps/kube/firecracker/manifests/firecracker-net-servicemonitor.yaml`.
+async fn metrics_handler(State(state): State<AppState>) -> Response {
+    let mut out = String::with_capacity(2048);
+
+    out.push_str("# HELP fc_build_info Build identity (always 1).\n");
+    out.push_str("# TYPE fc_build_info gauge\n");
+    out.push_str(&format!(
+        "fc_build_info{{version=\"{}\"}} 1\n",
+        env!("CARGO_PKG_VERSION")
+    ));
+
+    out.push_str("# HELP fc_jailer_enabled 1 if jailer is configured.\n");
+    out.push_str("# TYPE fc_jailer_enabled gauge\n");
+    out.push_str(&format!(
+        "fc_jailer_enabled {}\n",
+        i32::from(state.jailer.is_some())
+    ));
+
+    let Some(persistent) = state.persistent.as_ref() else {
+        out.push_str("# HELP fc_persistent_enabled 1 if /fc/* endpoints are wired.\n");
+        out.push_str("# TYPE fc_persistent_enabled gauge\n");
+        out.push_str("fc_persistent_enabled 0\n");
+        return (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+            out,
+        )
+            .into_response();
+    };
+
+    out.push_str("# HELP fc_persistent_enabled 1 if /fc/* endpoints are wired.\n");
+    out.push_str("# TYPE fc_persistent_enabled gauge\n");
+    out.push_str("fc_persistent_enabled 1\n");
+
+    let pool_used = persistent.pool.in_use();
+    let pool_capacity = persistent.pool.capacity();
+    out.push_str("# HELP fc_ip_pool_used Currently-allocated /30 slots.\n");
+    out.push_str("# TYPE fc_ip_pool_used gauge\n");
+    out.push_str(&format!("fc_ip_pool_used {pool_used}\n"));
+    out.push_str("# HELP fc_ip_pool_capacity Maximum /30 slots available.\n");
+    out.push_str("# TYPE fc_ip_pool_capacity gauge\n");
+    out.push_str(&format!("fc_ip_pool_capacity {pool_capacity}\n"));
+
+    out.push_str("# HELP fc_endpoint_status Status of each persistent endpoint (1 = current).\n");
+    out.push_str("# TYPE fc_endpoint_status gauge\n");
+    out.push_str("# HELP fc_endpoint_requests_total Total proxied requests by outcome.\n");
+    out.push_str("# TYPE fc_endpoint_requests_total counter\n");
+    out.push_str("# HELP fc_endpoint_bytes_total Bytes proxied by direction.\n");
+    out.push_str("# TYPE fc_endpoint_bytes_total counter\n");
+    out.push_str(
+        "# HELP fc_endpoint_last_request_age_seconds Seconds since last forwarded request (NaN if never).\n",
+    );
+    out.push_str("# TYPE fc_endpoint_last_request_age_seconds gauge\n");
+    out.push_str("# HELP fc_endpoint_uptime_seconds Seconds since endpoint registered.\n");
+    out.push_str("# TYPE fc_endpoint_uptime_seconds gauge\n");
+
+    let mut status_counts: [u64; 5] = [0; 5];
+
+    for entry in persistent.endpoints.iter() {
+        let ep = entry.value();
+        let name = &ep.name;
+        let visibility = match ep.visibility {
+            EndpointVisibility::Staff => "staff",
+            EndpointVisibility::Public => "public",
+        };
+        let common = format!("name=\"{name}\",visibility=\"{visibility}\"");
+
+        let status_idx = match ep.status {
+            EndpointStatus::Pending => 0,
+            EndpointStatus::Starting => 1,
+            EndpointStatus::Healthy => 2,
+            EndpointStatus::Degraded => 3,
+            EndpointStatus::Stopping => 4,
+        };
+        status_counts[status_idx] += 1;
+        for (idx, label) in ["pending", "starting", "healthy", "degraded", "stopping"]
+            .iter()
+            .enumerate()
+        {
+            out.push_str(&format!(
+                "fc_endpoint_status{{{common},status=\"{label}\"}} {}\n",
+                i32::from(idx == status_idx)
+            ));
+        }
+
+        let m = &ep.metrics;
+        let total = m.requests_total.load(Ordering::Relaxed);
+        let throttled = m.requests_throttled.load(Ordering::Relaxed);
+        let forbidden = m.requests_forbidden.load(Ordering::Relaxed);
+        let upstream_errors = m.upstream_errors.load(Ordering::Relaxed);
+        let ok = total.saturating_sub(upstream_errors);
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"ok\"}} {ok}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"throttled\"}} {throttled}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"forbidden\"}} {forbidden}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"upstream_error\"}} {upstream_errors}\n"
+        ));
+
+        out.push_str(&format!(
+            "fc_endpoint_bytes_total{{{common},direction=\"in\"}} {}\n",
+            m.bytes_in.load(Ordering::Relaxed)
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_bytes_total{{{common},direction=\"out\"}} {}\n",
+            m.bytes_out.load(Ordering::Relaxed)
+        ));
+
+        let last = m.last_request_micros.load(Ordering::Relaxed);
+        let age = if last == 0 {
+            "NaN".to_string()
+        } else {
+            format!("{:.0}", ((now_micros() - last).max(0) as f64) / 1_000_000.0)
+        };
+        out.push_str(&format!(
+            "fc_endpoint_last_request_age_seconds{{{common}}} {age}\n"
+        ));
+
+        out.push_str(&format!(
+            "fc_endpoint_uptime_seconds{{{common}}} {}\n",
+            ep.created.elapsed().as_secs()
+        ));
+    }
+
+    out.push_str("# HELP fc_endpoints_total Endpoints in registry by status.\n");
+    out.push_str("# TYPE fc_endpoints_total gauge\n");
+    for (idx, label) in ["pending", "starting", "healthy", "degraded", "stopping"]
+        .iter()
+        .enumerate()
+    {
+        out.push_str(&format!(
+            "fc_endpoints_total{{status=\"{label}\"}} {}\n",
+            status_counts[idx]
+        ));
+    }
+
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+        out,
+    )
+        .into_response()
 }
 
 #[utoipa::path(
@@ -1375,6 +1642,11 @@ async fn fc_destroy(
     }
     persistent.pool.release(&endpoint.allocation);
 
+    if endpoint.billing_account_id.is_some() {
+        let accumulated = endpoint.metrics.accumulated_credits.load(Ordering::Relaxed);
+        billing_wallet::settle(state.billing.as_deref(), &endpoint.name, accumulated).await;
+    }
+
     tracing::info!(
         "fc_destroy: removed endpoint {name} (pid={:?})",
         endpoint.pid
@@ -1406,7 +1678,11 @@ fn accumulate_meter(ep: &PersistentEndpoint, now: i64) {
     }
 }
 
-async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration) {
+async fn idle_sweeper_task(
+    persistent: Arc<PersistentState>,
+    interval: Duration,
+    billing: Option<Arc<billing_wallet::BillingContext>>,
+) {
     let mut ticker = tokio::time::interval(interval);
     ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
@@ -1445,6 +1721,10 @@ async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration)
                 );
             }
             persistent.pool.release(&endpoint.allocation);
+            if endpoint.billing_account_id.is_some() {
+                let accumulated = endpoint.metrics.accumulated_credits.load(Ordering::Relaxed);
+                billing_wallet::settle(billing.as_deref(), &endpoint.name, accumulated).await;
+            }
             tracing::info!(
                 "idle_sweeper: tore down idle endpoint {name} (ttl={}s)",
                 endpoint.idle_ttl_secs
@@ -1939,6 +2219,8 @@ async fn run_vm_lifecycle(
     kill_signal: Arc<Notify>,
     jailer: Option<Arc<JailerConfig>>,
     persistent: Option<Arc<PersistentState>>,
+    billing: Option<Arc<billing_wallet::BillingContext>>,
+    billing_account_id: Option<Uuid>,
 ) {
     let start = Instant::now();
 
@@ -2226,6 +2508,12 @@ async fn run_vm_lifecycle(
             let cgroup_path = format!("/sys/fs/cgroup/firecracker/{}", vm_id);
             let _ = tokio::fs::remove_dir(&cgroup_path).await;
         }
+    }
+
+    if billing_account_id.is_some() {
+        let duration_secs = start.elapsed().as_secs();
+        let accumulated = billing::meter_tick(req.vcpu_count, req.mem_size_mib, duration_secs, 0);
+        billing_wallet::settle(billing.as_deref(), &vm_id, accumulated).await;
     }
 }
 
@@ -2947,16 +3235,47 @@ async fn main() {
         None
     };
 
+    let billing_enabled = std::env::var("FC_BILLING_ENABLED")
+        .map(|v| v == "true" || v == "1")
+        .unwrap_or(false);
+    let billing = match kbve::wallet::WalletClient::from_env().await {
+        Ok(client) => {
+            tracing::info!(
+                "fc-billing: wallet client ready, billing_enabled={}",
+                billing_enabled
+            );
+            Some(Arc::new(billing_wallet::BillingContext::new(
+                Arc::new(client),
+                billing_enabled,
+            )))
+        }
+        Err(e) => {
+            if billing_enabled {
+                tracing::error!(
+                    "fc-billing: FC_BILLING_ENABLED=true but wallet init failed: {e}. Billing OFF."
+                );
+            } else {
+                tracing::info!("fc-billing: wallet not configured ({e}); billing OFF");
+            }
+            None
+        }
+    };
+
     let state = AppState {
         vms,
         rootfs_dir,
         max_concurrent_vms,
         jailer,
         persistent: persistent.clone(),
+        billing,
     };
 
     if let Some(p) = persistent.clone() {
-        tokio::spawn(idle_sweeper_task(p, Duration::from_secs(60)));
+        tokio::spawn(idle_sweeper_task(
+            p,
+            Duration::from_secs(60),
+            state.billing.clone(),
+        ));
     }
 
     tracing::info!(
@@ -2967,6 +3286,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
+        .route("/metrics", get(metrics_handler))
         .route("/openapi.json", get(openapi::openapi_json))
         .route("/vm/create", post(create_vm))
         .route("/vm", get(list_vms))
@@ -3552,6 +3872,9 @@ mod tests {
             result: None,
             created: Instant::now(),
             kill_signal: Arc::new(Notify::new()),
+            billing_account_id: None,
+            vcpu_count: 1,
+            mem_size_mib: 128,
         }
     }
 
@@ -3603,6 +3926,7 @@ mod tests {
             max_concurrent_vms: 4,
             jailer: None,
             persistent,
+            billing: None,
         };
         Router::new()
             .route("/health", get(health))
@@ -4148,6 +4472,7 @@ mod tests {
             metrics: Arc::new(EndpointMetrics::default()),
             idle_ttl_secs: 0,
             logs: Arc::new(LogRing::new()),
+            billing_account_id: None,
         }
     }
 
@@ -4178,6 +4503,7 @@ mod tests {
             max_concurrent_vms: 4,
             jailer: None,
             persistent: Some(persistent),
+            billing: None,
         };
         Router::new()
             .route("/fc/list", get(fc_list))
@@ -4568,6 +4894,7 @@ mod tests {
             max_concurrent_vms: 1,
             jailer: None,
             persistent: None,
+            billing: None,
         };
         let app = Router::new()
             .route("/vm/create", post(create_vm))
@@ -4614,6 +4941,7 @@ mod tests {
             max_concurrent_vms: 4,
             jailer: None,
             persistent: None,
+            billing: None,
         };
         let app = Router::new()
             .route("/vm/{vm_id}", get(get_vm_status))
@@ -4663,6 +4991,7 @@ mod tests {
             max_concurrent_vms: 4,
             jailer: None,
             persistent: None,
+            billing: None,
         };
         let app = Router::new()
             .route("/vm/{vm_id}", delete(destroy_vm))

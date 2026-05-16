@@ -33,6 +33,14 @@ spec:
           ports:
               - protocol: TCP
                 port: 9001
+        # Prometheus scrape (monitoring/prometheus) → /metrics
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: monitoring
+          ports:
+              - protocol: TCP
+                port: 9001
     egress:
         # DNS resolution (required for any service discovery)
         - to:
@@ -115,6 +123,14 @@ spec:
                 podSelector:
                     matchLabels:
                         app: kbve
+          ports:
+              - protocol: TCP
+                port: 9001
+        # Prometheus scrape (monitoring/prometheus) → /metrics
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: monitoring
           ports:
               - protocol: TCP
                 port: 9001

@@ -8,12 +8,18 @@ import {
 	type MarketListingDetail as MarketListingDetailRow,
 	MarketApiError,
 } from './api';
-import {
-	formatExpiry,
-	formatKhash,
-	formatRelative,
-	itemRefLabel,
-} from './format';
+import { formatKhash, formatRelative, itemRefLabel } from './format';
+import { useCountdown, formatCountdown } from './countdown';
+import { ItemIcon } from './ItemIcon';
+import { EnchantList } from './EnchantList';
+
+function readListingId(): number | null {
+	if (typeof window === 'undefined') return null;
+	const raw = new URLSearchParams(window.location.search).get('id');
+	if (!raw) return null;
+	const n = Number(raw);
+	return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 async function fetchMyAccountId(): Promise<string | null> {
 	const token = await getAccessToken();
@@ -26,12 +32,8 @@ async function fetchMyAccountId(): Promise<string | null> {
 	return b.account_id ?? null;
 }
 
-function readListingId(): number | null {
-	if (typeof window === 'undefined') return null;
-	const raw = new URLSearchParams(window.location.search).get('id');
-	if (!raw) return null;
-	const n = Number(raw);
-	return Number.isFinite(n) && n > 0 ? n : null;
+function shortId(uuid: string): string {
+	return `${uuid.slice(0, 6)}…${uuid.slice(-4)}`;
 }
 
 export function MarketListingDetail() {
@@ -44,6 +46,7 @@ export function MarketListingDetail() {
 	const [actionError, setActionError] = useState<string | null>(null);
 	const [actionBusy, setActionBusy] = useState<string | null>(null);
 	const [bidInput, setBidInput] = useState('');
+	const [copied, setCopied] = useState(false);
 
 	useEffect(() => {
 		setListingId(readListingId());
@@ -78,6 +81,8 @@ export function MarketListingDetail() {
 	useEffect(() => {
 		void refresh();
 	}, [refresh]);
+
+	const countdown = useCountdown(row?.expires_at);
 
 	const isSeller = useMemo(() => {
 		if (!row || !myAccount) return false;
@@ -143,6 +148,14 @@ export function MarketListingDetail() {
 		}
 	};
 
+	const onCopy = async () => {
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			setCopied(true);
+			window.setTimeout(() => setCopied(false), 1500);
+		} catch {}
+	};
+
 	if (listingId == null) {
 		return (
 			<div className="kbve-market__status">
@@ -163,121 +176,172 @@ export function MarketListingDetail() {
 	const active = row.listing_status === 'active';
 	const minNextBid =
 		(row.current_bid ?? (row.min_bid !== null ? row.min_bid - 1 : 0)) + 1;
+	const kind = String(
+		((row.item_ref ?? {}) as { kind?: unknown }).kind ?? 'generic',
+	);
 
 	return (
-		<div className="kbve-market__detail">
-			<header className="kbve-market__detail-head">
-				<div>
-					<div className="kbve-market__detail-item">
-						{itemRefLabel(row.item_ref)}
-					</div>
-					<div className="kbve-market__detail-status">
+		<div className="kbve-market__detail-v2">
+			<nav className="kbve-market__breadcrumb">
+				<a href="/market/">← Browse</a>
+				<button
+					type="button"
+					className="kbve-market__copy"
+					onClick={() => void onCopy()}>
+					{copied ? '✓ Copied' : 'Share'}
+				</button>
+			</nav>
+
+			<div className="kbve-market__hero">
+				<aside className="kbve-market__hero-visual">
+					<ItemIcon itemRef={row.item_ref} size={224} />
+					<div className="kbve-market__hero-meta">
+						<span className="kbve-market__kind-pill">{kind}</span>
 						<span
 							className={`kbve-market__badge kbve-market__badge--${row.listing_status}`}>
 							{row.listing_status}
 						</span>
-						<span>
-							{active
-								? formatExpiry(row.expires_at)
-								: `closed ${row.settled_at ? formatRelative(row.settled_at) : ''}`}
-						</span>
 					</div>
-				</div>
-				<a href="/market/" className="kbve-market__back">
-					← Browse
-				</a>
-			</header>
-
-			<dl className="kbve-market__detail-prices">
-				<div>
-					<dt>Buy Now</dt>
-					<dd>
-						{row.buy_now_price !== null
-							? formatKhash(row.buy_now_price)
-							: '—'}
-					</dd>
-				</div>
-				<div>
-					<dt>Current Bid</dt>
-					<dd>
-						{row.current_bid !== null
-							? formatKhash(row.current_bid)
-							: '—'}
-					</dd>
-				</div>
-				<div>
-					<dt>Min Bid</dt>
-					<dd>
-						{row.min_bid !== null ? formatKhash(row.min_bid) : '—'}
-					</dd>
-				</div>
-			</dl>
-
-			{ready && authenticated && active && !isSeller && (
-				<div className="kbve-market__actions">
-					<div className="kbve-market__bid-row">
-						<input
-							type="number"
-							min={minNextBid}
-							step={1}
-							placeholder={`min ${minNextBid}`}
-							value={bidInput}
-							onChange={(e) => setBidInput(e.target.value)}
-							className="kbve-market__input"
-						/>
-						<button
-							type="button"
-							className="kbve-market__btn"
-							onClick={() => void onBid()}
-							disabled={actionBusy !== null}>
-							{actionBusy === 'bid' ? 'Bidding…' : 'Place Bid'}
-						</button>
-					</div>
-					{row.buy_now_price !== null && (
-						<button
-							type="button"
-							className="kbve-market__btn kbve-market__btn--primary"
-							onClick={() => void onBuyNow()}
-							disabled={actionBusy !== null}>
-							{actionBusy === 'buy'
-								? 'Buying…'
-								: `Buy Now ${formatKhash(row.buy_now_price)}`}
-						</button>
-					)}
-				</div>
-			)}
-
-			{ready && authenticated && active && isSeller && (
-				<div className="kbve-market__actions">
-					<button
-						type="button"
-						className="kbve-market__btn kbve-market__btn--danger"
-						onClick={() => void onCancel()}
-						disabled={actionBusy !== null}>
-						{actionBusy === 'cancel'
-							? 'Cancelling…'
-							: 'Cancel Listing'}
-					</button>
-					<p className="kbve-market__hint">
-						Cancelling refunds the active high bidder's escrow.
+					<h1 className="kbve-market__item-title">
+						{itemRefLabel(row.item_ref)}
+					</h1>
+					<EnchantList itemRef={row.item_ref} />
+					<p className="kbve-market__hero-seller">
+						Seller{' '}
+						<code title={row.seller_account}>
+							{shortId(row.seller_account)}
+						</code>
 					</p>
-				</div>
-			)}
+					<p className="kbve-market__hero-created">
+						Listed {formatRelative(row.created_at)}
+					</p>
+				</aside>
 
-			{ready && !authenticated && active && (
-				<div className="kbve-market__status">
-					Sign in to bid or buy.
-				</div>
-			)}
+				<section className="kbve-market__panel">
+					<div className="kbve-market__panel-head">
+						<div className="kbve-market__panel-countdown">
+							<span className="kbve-market__panel-label">
+								{active ? 'Ends in' : 'Closed'}
+							</span>
+							<span
+								className={`kbve-market__panel-clock${countdown.totalMs < 60_000 && active ? ' kbve-market__panel-clock--urgent' : ''}`}>
+								{active
+									? formatCountdown(countdown)
+									: row.settled_at
+										? formatRelative(row.settled_at)
+										: '—'}
+							</span>
+						</div>
+					</div>
 
-			{actionError && (
-				<div className="kbve-market__status kbve-market__status--error">
-					{actionError}
-				</div>
-			)}
+					<div className="kbve-market__panel-prices">
+						{row.buy_now_price !== null && (
+							<div className="kbve-market__panel-price kbve-market__panel-price--primary">
+								<span className="kbve-market__panel-label">
+									Buy Now
+								</span>
+								<span className="kbve-market__panel-value">
+									{formatKhash(row.buy_now_price)}
+								</span>
+							</div>
+						)}
+						<div className="kbve-market__panel-price">
+							<span className="kbve-market__panel-label">
+								{row.current_bid !== null
+									? 'Current Bid'
+									: 'Min Bid'}
+							</span>
+							<span className="kbve-market__panel-value">
+								{formatKhash(row.current_bid ?? row.min_bid)}
+							</span>
+						</div>
+					</div>
+
+					{ready && authenticated && active && !isSeller && (
+						<div className="kbve-market__panel-actions">
+							{row.buy_now_price !== null && (
+								<button
+									type="button"
+									className="kbve-market__btn kbve-market__btn--primary kbve-market__btn--block"
+									onClick={() => void onBuyNow()}
+									disabled={actionBusy !== null}>
+									{actionBusy === 'buy'
+										? 'Buying…'
+										: `Buy Now · ${formatKhash(row.buy_now_price)}`}
+								</button>
+							)}
+							{row.min_bid !== null && (
+								<div className="kbve-market__panel-bid">
+									<input
+										type="number"
+										min={minNextBid}
+										step={1}
+										placeholder={`min ${minNextBid}`}
+										value={bidInput}
+										onChange={(e) =>
+											setBidInput(e.target.value)
+										}
+										className="kbve-market__input"
+									/>
+									<button
+										type="button"
+										className="kbve-market__btn"
+										onClick={() => void onBid()}
+										disabled={actionBusy !== null}>
+										{actionBusy === 'bid'
+											? 'Bidding…'
+											: 'Bid'}
+									</button>
+								</div>
+							)}
+							<p className="kbve-market__hint">
+								Bids hold your KHash in escrow until you're
+								outbid.
+							</p>
+						</div>
+					)}
+
+					{ready && authenticated && active && isSeller && (
+						<div className="kbve-market__panel-actions">
+							<button
+								type="button"
+								className="kbve-market__btn kbve-market__btn--danger kbve-market__btn--block"
+								onClick={() => void onCancel()}
+								disabled={actionBusy !== null}>
+								{actionBusy === 'cancel'
+									? 'Cancelling…'
+									: 'Cancel Listing'}
+							</button>
+							<p className="kbve-market__hint">
+								You're the seller. Cancelling refunds the active
+								high bidder.
+							</p>
+						</div>
+					)}
+
+					{ready && !authenticated && active && (
+						<a
+							className="kbve-market__btn kbve-market__btn--primary kbve-market__btn--block"
+							href="/login/">
+							Sign in to bid or buy
+						</a>
+					)}
+
+					{actionError && (
+						<div className="kbve-market__status kbve-market__status--error">
+							{actionError}
+						</div>
+					)}
+				</section>
+			</div>
 
 			<section className="kbve-market__bids">
-				<h3>Recent Bids</h3>
+				<header className="kbve-market__bids-head">
+					<h3>Bid History</h3>
+					<span className="kbve-market__bids-count">
+						{Array.isArray(row.bids) ? row.bids.length : 0}
+					</span>
+				</header>
 				{Array.isArray(row.bids) && row.bids.length > 0 ? (
 					<ol className="kbve-market__bid-list">
 						{row.bids.slice(0, 25).map((b, i) => {
@@ -292,23 +356,37 @@ export function MarketListingDetail() {
 								.bid_status;
 							return (
 								<li key={i}>
-									<span>
+									<span className="kbve-market__bid-amount">
 										{amount !== null
 											? formatKhash(amount)
 											: '—'}
 									</span>
 									<span className="kbve-market__bid-meta">
-										{status ?? 'unknown'} ·{' '}
-										{placedAt
-											? formatRelative(placedAt)
-											: '—'}
+										<span
+											className={`kbve-market__badge kbve-market__badge--${status ?? 'unknown'}`}>
+											{status ?? 'unknown'}
+										</span>
+										<span>
+											{placedAt
+												? formatRelative(placedAt)
+												: '—'}
+										</span>
 									</span>
 								</li>
 							);
 						})}
 					</ol>
 				) : (
-					<p className="kbve-market__hint">No bids yet.</p>
+					<div className="kbve-market__bids-empty">
+						<p className="kbve-market__bids-empty-title">
+							No bids yet
+						</p>
+						<p className="kbve-market__bids-empty-sub">
+							{active && row.min_bid !== null
+								? `Open at ${formatKhash(row.min_bid)} — be the first.`
+								: 'Bidding closed.'}
+						</p>
+					</div>
 				)}
 			</section>
 		</div>

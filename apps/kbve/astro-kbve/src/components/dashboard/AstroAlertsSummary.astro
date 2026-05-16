@@ -1,0 +1,35 @@
+---
+import ReactHomeAuth from './ReactHomeAuth';
+import ReactAlerts from './ReactAlerts';
+---
+
+<section
+	class="alerts-summary-wrapper kbve-dashboard-page"
+	aria-label="Alerts summary — firing count by severity">
+	<div class="alerts-summary-content">
+		<ReactHomeAuth client:only="react">
+			<div class="not-content">
+				<ReactAlerts client:only="react" variant="compact" />
+			</div>
+		</ReactHomeAuth>
+	</div>
+</section>
+
+<style>
+	.alerts-summary-wrapper {
+		background: transparent;
+		width: 100%;
+	}
+
+	.alerts-summary-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.alerts-summary-content {
+			padding: 0 1.5rem 1rem;
+		}
+	}
+</style>
