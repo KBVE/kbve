@@ -55,3 +55,26 @@ export {
 	type ProfileCacheEnvelope,
 	type ProfileFastPaintResult,
 } from './profile';
+
+export {
+	$staffPermissions,
+	applyStaffFlagFromCache,
+	bootStaffPermissions,
+	clearStaffPermsCache,
+	fetchAndCacheStaffPermissions,
+	fetchStaffPermissionsFromApi,
+	getStaffPermsFromCache,
+	setStaffPermsCache,
+	STAFF_CACHE_TTL_MS,
+	type FetchStaffPermsOptions,
+	type StaffPermsEnvelope,
+} from './staff';
+
+export {
+	broadcastProfileClear,
+	broadcastProfileRefresh,
+	broadcastStaffClear,
+	broadcastStaffRefresh,
+	installSyncBusListener,
+	type SyncBusMessage,
+} from './sync-bus';
