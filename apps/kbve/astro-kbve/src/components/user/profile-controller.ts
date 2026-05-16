@@ -7,6 +7,7 @@ import {
 	clearStaffPermsCache,
 	fetchAndCacheProfile,
 	getProfileFromCache,
+	installProfileSync,
 	installSyncBusListener,
 	readProfileForFastPaint,
 	setProfileCache as setDroidProfileCache,
@@ -430,6 +431,18 @@ export async function bootProfile() {
 	}
 
 	const supa = getSupa();
+
+	// Background sync: refresh profile + staff caches on auth events,
+	// tab focus / visibility, and a 15-min fallback timer. Updates the
+	// persistent atoms plus the BroadcastChannel bus so other tabs and
+	// surfaces stay in sync without ever blocking the UI.
+	installProfileSync({
+		apiBase: window.location.origin,
+		supabaseUrl: SUPABASE_URL,
+		supabaseAnonKey: SUPABASE_ANON_KEY,
+		subscribeAuth: (handler) =>
+			supa.on('auth', (msg: unknown) => handler(msg as never)),
+	});
 
 	// Get current session
 	const s = await supa.getSession().catch(() => null);
