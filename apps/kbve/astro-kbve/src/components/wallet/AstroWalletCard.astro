@@ -1,12 +1,24 @@
 ---
 import { ReactWalletCard } from './ReactWalletCard';
+
+interface Props {
+	/** "full" (default) — 1,234 / 1,234,567 thousands-separated integer.
+	 *  "compact"        — 1.2K / 1.2M short form.
+	 *  Wallet *cards* (this component) get the full balance everywhere
+	 *  they mount (/profile/account/, /profile/<user>/, mc dashboard) so
+	 *  users always see the exact number. Only the cramped nav pill
+	 *  (ReactWalletBadge, a separate component) stays compact. */
+	format?: 'compact' | 'full';
+}
+const { format = 'full' } = Astro.props;
 ---
 
 <section
 	class="kbve-wallet-card not-content"
 	data-kbve-wallet-shell
-	aria-label="Your wallet"
-	hidden>
+	data-kbve-wallet-state="loading"
+	data-kbve-wallet-format={format}
+	aria-label="Your wallet">
 	<header class="kbve-wallet-card__header">
 		<span class="kbve-wallet-card__title">Wallet</span>
 		<span
@@ -34,6 +46,10 @@ import { ReactWalletCard } from './ReactWalletCard';
 		</div>
 	</div>
 
+	<div class="kbve-wallet-card__signed-out" data-kbve-wallet-signed-out>
+		Sign in to view your credits, KHash, and pending coupons.
+	</div>
+
 	<ReactWalletCard client:only="react" />
 </section>
 
@@ -50,10 +66,27 @@ import { ReactWalletCard } from './ReactWalletCard';
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		color: rgba(255, 255, 255, 0.9);
 		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		min-height: 168px;
 	}
 
-	.kbve-wallet-card[hidden] {
+	.kbve-wallet-card[data-kbve-wallet-state='signed-out']
+		.kbve-wallet-card__balances {
+		opacity: 0.35;
+		pointer-events: none;
+	}
+	.kbve-wallet-card[data-kbve-wallet-state='signed-out']
+		.kbve-wallet-card__updated {
+		visibility: hidden;
+	}
+	.kbve-wallet-card__signed-out {
+		margin-top: 0.85rem;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.6);
 		display: none;
+	}
+	.kbve-wallet-card[data-kbve-wallet-state='signed-out']
+		.kbve-wallet-card__signed-out {
+		display: block;
 	}
 
 	.kbve-wallet-card__header {

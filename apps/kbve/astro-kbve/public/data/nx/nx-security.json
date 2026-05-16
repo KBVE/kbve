@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-15T09:16:19Z",
+  "generated_at": "2026-05-16T08:44:50Z",
   "summary": {
     "critical": 0,
-    "high": 28,
-    "medium": 50,
+    "high": 27,
+    "medium": 49,
     "low": 6,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 69,
+      "total": 67,
       "severities": {
         "critical": 0,
-        "high": 28,
-        "medium": 35,
+        "high": 27,
+        "medium": 34,
         "low": 6,
         "info": 0
       },
@@ -348,13 +348,6 @@
           "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
         },
         {
-          "id": "1116560",
-          "title": "follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets",
-          "severity": "medium",
-          "package": "follow-redirects",
-          "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
-        },
-        {
           "id": "1117068",
           "title": "Immutable is vulnerable to Prototype Pollution",
           "severity": "high",
@@ -472,13 +465,6 @@
           "severity": "high",
           "package": "fast-uri",
           "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
-        },
-        {
-          "id": "1117908",
-          "title": "@babel/plugin-transform-modules-systemjs generates arbitrary code when compiling malicious input",
-          "severity": "high",
-          "package": "@babel/plugin-transform-modules-systemjs",
-          "url": "https://github.com/advisories/GHSA-fv7c-fp4j-7gwp"
         },
         {
           "id": "1118607",

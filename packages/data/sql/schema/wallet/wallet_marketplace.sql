@@ -312,3 +312,40 @@ GRANT EXECUTE ON FUNCTION wallet.treasury_account_id() TO service_role;
 --   jobname:  marketplace-expire-listings
 --   schedule: '*/15 * * * *'
 --   command:  SELECT wallet.service_expire_listings();
+
+-- ============================================================================
+-- MARKETPLACE PUBLIC PROXIES (Phase 3)
+--
+-- PostgREST-exposed wrappers that apply auth.uid()-based ownership
+-- checks before delegating to the Phase 2 SECURITY DEFINER service
+-- RPCs. These are the only marketplace functions callable by
+-- `authenticated` JWTs. Read-side proxies + browse are anon-callable.
+--
+-- All bodies live in migration 20260516015242_wallet_marketplace_proxies.
+-- This mirror documents signatures + grants for the review surface.
+--
+-- Signatures:
+--   public.proxy_market_caller_account()
+--       → UUID (INTERNAL helper, service_role only)
+--
+--   public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT)
+--       → TABLE(...)  anon + authenticated + service_role
+--   public.proxy_market_listing_detail_readonly(BIGINT)
+--       → TABLE(...)  anon + authenticated + service_role
+--   public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT)
+--       → TABLE(...)  authenticated + service_role
+--   public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT)
+--       → TABLE(...)  authenticated + service_role
+--
+--   public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID)
+--       → BIGINT     authenticated + service_role
+--   public.proxy_market_place_bid(BIGINT, BIGINT, UUID)
+--       → BIGINT     authenticated + service_role
+--   public.proxy_market_buy_now(BIGINT, UUID)
+--       → BIGINT     authenticated + service_role
+--   public.proxy_market_cancel_listing(BIGINT, TEXT)
+--       → VOID       authenticated + service_role
+--
+-- All proxies are SECURITY DEFINER, OWNER service_role, search_path
+-- '. Reads STABLE. The migration ends with NOTIFY pgrst, 'reload
+-- schema' so PostgREST picks the new functions up immediately.

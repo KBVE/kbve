@@ -321,3 +321,103 @@ describe('arc-runner image — locale + unicode', () => {
 		expect(out.trim()).toBe('4');
 	});
 });
+
+describe('arc-runner image — PATH + binary modes + sudoers', () => {
+	it('/usr/local/bin is on PATH', () => {
+		const out = dockerExec("bash -lc 'echo $PATH'");
+		expect(out.split(':')).toContain('/usr/local/bin');
+	});
+
+	it('which kubectl resolves to /usr/local/bin', () => {
+		const out = dockerExec("bash -lc 'command -v kubectl'");
+		expect(out).toBe('/usr/local/bin/kubectl');
+	});
+
+	it('which dbmate resolves to /usr/local/bin', () => {
+		const out = dockerExec("bash -lc 'command -v dbmate'");
+		expect(out).toBe('/usr/local/bin/dbmate');
+	});
+
+	it('kubectl + dbmate are mode 0755 owned by root:root', () => {
+		const out = dockerExecScript(`
+			stat -c '%n %a %U:%G' /usr/local/bin/kubectl /usr/local/bin/dbmate
+		`);
+		expect(out).toContain('/usr/local/bin/kubectl 755 root:root');
+		expect(out).toContain('/usr/local/bin/dbmate 755 root:root');
+	});
+
+	it('/etc/sudoers is mode 0440 owned by root:root', () => {
+		const out = dockerExecScript(`
+			stat -c '%a %U:%G' /etc/sudoers
+		`);
+		expect(out).toBe('440 root:root');
+	});
+});
+
+describe('arc-runner image — filesystem writes', () => {
+	it('/tmp is mode 1777 (world-writable sticky)', () => {
+		const out = dockerExec('bash -lc "stat -c \'%a\' /tmp"');
+		expect(out).toBe('1777');
+	});
+
+	it('runner user can write to /tmp', () => {
+		const out = dockerExecScript(`
+			su -s /bin/bash runner -c 'F=$(mktemp); echo hi > "$F"; cat "$F"; rm "$F"'
+		`);
+		expect(out).toBe('hi');
+	});
+
+	it('runner user can write to its home directory', () => {
+		const out = dockerExecScript(`
+			su -s /bin/bash runner -c 'F=/home/runner/.probe-$$; echo ok > "$F"; cat "$F"; rm "$F"'
+		`);
+		expect(out).toBe('ok');
+	});
+
+	it('/home/runner is owned by the runner user', () => {
+		const out = dockerExec('bash -lc "stat -c \'%U\' /home/runner"');
+		expect(out).toBe('runner');
+	});
+});
+
+describe('arc-runner image — tool version floors', () => {
+	it('git is at least 2.40 (LFS smudge needs recent git)', () => {
+		const raw = dockerExec("bash -lc 'git --version'");
+		const match = raw.match(/git version (\d+)\.(\d+)/);
+		expect(match).not.toBeNull();
+		const major = Number.parseInt(match![1], 10);
+		const minor = Number.parseInt(match![2], 10);
+		expect(major).toBeGreaterThanOrEqual(2);
+		if (major === 2) {
+			expect(minor).toBeGreaterThanOrEqual(40);
+		}
+	});
+
+	it('upstream actions-runner ships Node >= 20 under externals/', () => {
+		// Actions runtime executes JS actions via the bundled node under
+		// /home/runner/externals/node20/. Falling below 20 would break
+		// every JS-based GitHub Action that targets the runtime.
+		const raw = dockerExecScript(`
+			NODE=$(ls -d /home/runner/externals/node* 2>/dev/null | sort -V | tail -1)
+			test -n "$NODE"
+			"$NODE/bin/node" --version
+		`);
+		const match = raw.match(/^v(\d+)\./);
+		expect(match).not.toBeNull();
+		expect(Number.parseInt(match![1], 10)).toBeGreaterThanOrEqual(20);
+	});
+});
+
+describe('arc-runner image — clock sanity', () => {
+	it('date returns an ISO-8601 UTC timestamp within 60s of the host', () => {
+		const containerIso = dockerExec(
+			"bash -lc 'date -u +%Y-%m-%dT%H:%M:%SZ'",
+		);
+		expect(containerIso).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+		const containerEpoch = Date.parse(containerIso);
+		const driftMs = Math.abs(containerEpoch - Date.now());
+		// 60s drift catches a broken timesync or wrong-TZ bind without
+		// flaking on normal NTP jitter.
+		expect(driftMs).toBeLessThan(60_000);
+	});
+});

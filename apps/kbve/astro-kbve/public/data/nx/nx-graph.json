@@ -309,6 +309,9 @@
             },
             "build": {
               "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-cryptothrone"
+              ],
               "options": {
                 "cwd": "apps/cryptothrone/astro-cryptothrone",
                 "commands": [
@@ -316,6 +319,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "dependsOn": [
@@ -324,8 +328,7 @@
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "preview": {
               "dependsOn": [
@@ -354,6 +357,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -2388,12 +2392,16 @@
             },
             "build": {
               "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-discordsh"
+              ],
               "options": {
                 "commands": [
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build --root apps/discordsh/astro-discordsh"
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "dependsOn": [
@@ -2402,8 +2410,7 @@
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "preview": {
               "dependsOn": [
@@ -2432,6 +2439,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -3577,6 +3585,9 @@
             },
             "build": {
               "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-herbmail"
+              ],
               "options": {
                 "cwd": "apps/herbmail/astro-herbmail",
                 "commands": [
@@ -3584,6 +3595,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "dependsOn": [
@@ -3592,8 +3604,7 @@
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "preview": {
               "dependsOn": [
@@ -3622,6 +3633,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -3737,6 +3749,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -6955,13 +6968,13 @@
                 "cwd": "apps/memes/astro-memes",
                 "command": "vitest run --config vitest.config.ts"
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "inputs": [
                 "default",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "typecheck": {
               "cache": true,
@@ -7053,6 +7066,9 @@
                 "proto"
               ],
               "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-memes"
+              ],
               "options": {
                 "cwd": "apps/memes/astro-memes",
                 "commands": [
@@ -7060,13 +7076,13 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "preview": {
               "dependsOn": [
@@ -7098,6 +7114,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -7864,13 +7881,13 @@
                 "cwd": "apps/kbve/astro-kbve",
                 "command": "vitest run --config vitest.config.ts"
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "inputs": [
                 "default",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "typecheck": {
               "cache": true,
@@ -7961,6 +7978,9 @@
                 "proto"
               ],
               "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/apps/astro-kbve"
+              ],
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
                 "commands": [
@@ -7968,13 +7988,13 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "build:osrs": {
               "dependsOn": [
@@ -8023,6 +8043,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -10047,6 +10068,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true,
               "dependsOn": [
@@ -10055,8 +10077,7 @@
               "inputs": [
                 "production",
                 "^production"
-              ],
-              "cache": true
+              ]
             },
             "preview": {
               "dependsOn": [
@@ -10085,6 +10106,7 @@
                 ],
                 "parallel": false
               },
+              "cache": true,
               "configurations": {},
               "parallelism": true
             },
@@ -11634,63 +11656,6 @@
           "implicitDependencies": []
         }
       },
-      "rows-e2e": {
-        "name": "rows-e2e",
-        "type": "e2e",
-        "data": {
-          "root": "apps/ows/rows-e2e",
-          "name": "rows-e2e",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "implicitDependencies": [
-            "rows"
-          ],
-          "targets": {
-            "test": {
-              "executor": "nx:noop",
-              "cache": false,
-              "configurations": {},
-              "options": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            },
-            "e2e": {
-              "executor": "nx:run-commands",
-              "dependsOn": [
-                {
-                  "target": "container",
-                  "projects": [
-                    "rows"
-                  ],
-                  "params": "forward"
-                }
-              ],
-              "cache": false,
-              "options": {
-                "commands": [
-                  "docker rm -f rows-e2e 2>/dev/null || true",
-                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
-                  "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
-                ],
-                "parallel": false,
-                "cwd": "apps/ows/rows-e2e"
-              },
-              "configurations": {
-                "ci": {}
-              },
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            }
-          },
-          "tags": []
-        }
-      },
       "angelscript": {
         "name": "angelscript",
         "type": "app",
@@ -12640,161 +12605,61 @@
           "implicitDependencies": []
         }
       },
-      "rows": {
-        "name": "rows",
-        "type": "app",
+      "rows-e2e": {
+        "name": "rows-e2e",
+        "type": "e2e",
         "data": {
-          "root": "apps/ows/rows",
-          "name": "rows",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "root": "apps/rows-e2e",
+          "name": "rows-e2e",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
-          "sourceRoot": "apps/ows/rows/src",
-          "tags": [
-            "docker",
-            "rust",
-            "ows"
+          "implicitDependencies": [
+            "rows"
           ],
           "targets": {
-            "build": {
-              "executor": "@monodon/rust:build",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/rows"
-              },
-              "configurations": {
-                "production": {
-                  "release": true
-                }
-              },
-              "parallelism": true,
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "cache": true
-            },
             "test": {
-              "executor": "@monodon/rust:test",
-              "outputs": [
-                "{options.target-dir}"
+              "executor": "nx:noop",
+              "cache": false,
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "rows"
+                  ],
+                  "params": "forward"
+                }
               ],
+              "cache": false,
               "options": {
-                "target-dir": "dist/target/rows"
+                "commands": [
+                  "docker rm -f rows-e2e 2>/dev/null || true",
+                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
+                  "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/rows-e2e"
               },
               "configurations": {
-                "production": {
-                  "release": true
-                }
+                "ci": {}
               },
               "parallelism": true,
               "inputs": [
                 "default",
                 "^production"
-              ],
-              "cache": true
-            },
-            "lint": {
-              "executor": "@monodon/rust:lint",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/rows"
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js"
-              ],
-              "cache": true
-            },
-            "run": {
-              "executor": "@monodon/rust:run",
-              "outputs": [
-                "{options.target-dir}"
-              ],
-              "options": {
-                "target-dir": "dist/target/rows"
-              },
-              "configurations": {
-                "production": {
-                  "release": true
-                }
-              },
-              "parallelism": true
-            },
-            "container": {
-              "executor": "nx:run-commands",
-              "dependsOn": [],
-              "defaultConfiguration": "local",
-              "options": {
-                "parallel": false
-              },
-              "configurations": {
-                "local": {
-                  "commands": [
-                    "./kbve.sh -nx rows:containerx",
-                    "VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
-                  ]
-                },
-                "production": {
-                  "commands": [
-                    "./kbve.sh -nx rows:containerx --configuration=production",
-                    "VERSION=$(grep '^version' apps/ows/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
-                  ]
-                }
-              },
-              "parallelism": true
-            },
-            "containerx": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": ".",
-                "file": "apps/ows/rows/Dockerfile",
-                "load": true
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/rows:latest"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/rows",
-                      "kbve/rows"
-                    ],
-                    "tags": [
-                      "latest"
-                    ]
-                  },
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/rows:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/rows:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
+              ]
             }
           },
-          "implicitDependencies": []
+          "tags": []
         }
       },
       "pydesk": {
@@ -12961,6 +12826,163 @@
           "implicitDependencies": []
         }
       },
+      "rows": {
+        "name": "rows",
+        "type": "app",
+        "data": {
+          "root": "apps/rows",
+          "name": "rows",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/rows/src",
+          "tags": [
+            "docker",
+            "rust",
+            "ows"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "run": {
+              "executor": "@monodon/rust:run",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/rows"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "dependsOn": [],
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx rows:containerx",
+                    "VERSION=$(grep '^version' apps/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx rows:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/rows/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/rows:latest kbve/rows:$VERSION && docker tag kbve/rows:latest ghcr.io/kbve/rows:latest && docker tag kbve/rows:latest ghcr.io/kbve/rows:$VERSION && echo \"Tagged kbve/rows:$VERSION and ghcr.io/kbve/rows:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/rows/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/rows:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/rows",
+                      "kbve/rows"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/rows:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/rows:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "irc": {
         "name": "irc",
         "type": "app",
@@ -13005,24 +13027,6 @@
             }
           },
           "implicitDependencies": []
-        }
-      },
-      "ows": {
-        "name": "ows",
-        "type": "app",
-        "data": {
-          "root": "apps/ows",
-          "name": "ows",
-          "$schema": "../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/ows",
-          "tags": [
-            "scope:ows"
-          ],
-          "implicitDependencies": [
-            "rows"
-          ],
-          "targets": {}
         }
       },
       "mc": {
@@ -13734,12 +13738,12 @@
         {
           "source": "astro-irc",
           "target": "astro",
-          "type": "static"
+          "type": "dynamic"
         },
         {
           "source": "astro-irc",
           "target": "astro",
-          "type": "dynamic"
+          "type": "static"
         },
         {
           "source": "astro-irc",
@@ -13762,13 +13766,6 @@
       "laser": [],
       "cryptothrone": [],
       "data-sql": [],
-      "rows-e2e": [
-        {
-          "source": "rows-e2e",
-          "target": "rows",
-          "type": "implicit"
-        }
-      ],
       "angelscript": [],
       "irc-e2e": [
         {
@@ -13789,17 +13786,17 @@
       "edge": [],
       "herbmail": [],
       "mc-lobby": [],
-      "rows": [],
-      "pydesk": [],
-      "memes": [],
-      "irc": [],
-      "ows": [
+      "rows-e2e": [
         {
-          "source": "ows",
+          "source": "rows-e2e",
           "target": "rows",
           "type": "implicit"
         }
       ],
+      "pydesk": [],
+      "memes": [],
+      "rows": [],
+      "irc": [],
       "mc": [],
       "@kbve/source": [
         {
