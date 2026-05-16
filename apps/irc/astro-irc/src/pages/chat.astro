@@ -1,22 +1,107 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import ChatRoom from '../components/chat/ChatRoom.astro';
+import '../styles/global.css';
+import AstroChatRoom from '../components/chat/AstroChatRoom.astro';
+import NavBar from '../components/navigation/NavBar.astro';
 ---
 
-<StarlightPage
-	frontmatter={{ title: 'Chat', template: 'splash', pagefind: false }}
-	hasSidebar={false}>
-	<div class="chat-page-wrapper">
-		<ChatRoom wsUrl="wss://chat.kbve.com/ws" />
-	</div>
-</StarlightPage>
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="dark light" />
+		<meta name="robots" content="noindex" />
+		<title>KBVE Chat</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	</head>
+	<body class="kbve-chat-page">
+		<header class="kbve-chat-page__nav">
+			<a href="/" class="kbve-chat-page__brand">
+				<span class="kbve-chat-page__brand-dot">K</span>
+				<span>KBVE Chat</span>
+			</a>
+			<NavBar />
+		</header>
+		<main class="kbve-chat-page__main">
+			<AstroChatRoom wsUrl="wss://chat.kbve.com/ws" />
+		</main>
+	</body>
+</html>
 
 <style is:global>
-	.content-panel:has(.chat-page-wrapper) {
-		max-width: 100%;
-		padding-inline: 0.5rem;
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		background: var(--sl-color-bg);
+		font-family:
+			'Inter',
+			-apple-system,
+			BlinkMacSystemFont,
+			system-ui,
+			sans-serif;
 	}
-	.sl-container:has(.chat-page-wrapper) {
-		max-width: 100%;
+
+	body.kbve-chat-page {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+		overflow: hidden;
+	}
+
+	.kbve-chat-page__nav {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		height: 52px;
+		padding: 0 16px;
+		border-bottom: 1px solid var(--sl-color-border);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg-accent) 12%,
+			var(--sl-color-bg)
+		);
+		backdrop-filter: blur(8px);
+		z-index: 10;
+	}
+
+	.kbve-chat-page__brand {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-weight: 700;
+		font-size: 15px;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-text);
+		text-decoration: none;
+		flex-shrink: 0;
+	}
+
+	.kbve-chat-page__brand-dot {
+		width: 28px;
+		height: 28px;
+		border-radius: 8px;
+		background: linear-gradient(
+			135deg,
+			var(--sl-color-accent) 0%,
+			var(--sl-color-text-accent) 100%
+		);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 13px;
+		font-weight: 800;
+		color: var(--sl-color-white);
+		box-shadow: 0 4px 12px
+			color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+	}
+
+	.kbve-chat-page__main {
+		flex: 1 1 auto;
+		min-height: 0;
+		position: relative;
+		display: flex;
 	}
 </style>
