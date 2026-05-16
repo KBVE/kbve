@@ -106,6 +106,7 @@ impl Modify for SecurityAddon {
         crate::transport::wallet::me_coupons,
         crate::transport::wallet::me_redeem_coupon,
         // wallet — service surface (service_role JWT)
+        crate::transport::wallet::service_balance,
         crate::transport::wallet::service_credit,
         crate::transport::wallet::service_credit_user,
         crate::transport::wallet::service_debit,

@@ -393,6 +393,45 @@ pub(crate) fn wallet_error_response(err: WalletError) -> Response {
         .into_response()
 }
 
+/// `GET /api/v1/wallet/service/balance/{user_id}` — read another user's
+/// wallet balance from a trusted backend (mc server). Same response shape
+/// as `/api/v1/wallet/me/balance`, but identity comes from the path
+/// instead of the bearer's `sub`. Service-role only.
+#[utoipa::path(
+    get,
+    path = "/api/v1/wallet/service/balance/{user_id}",
+    tag = "wallet",
+    params(
+        ("user_id" = String, Path, description = "Supabase user UUID")
+    ),
+    responses(
+        (status = 200, description = "User's balance", body = BalanceDto),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "service_role required"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_balance(headers: HeaderMap, Path(user_id): Path<Uuid>) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client.user_balance(user_id).await {
+        Ok(b) => Json(BalanceDto {
+            account_id: b.account_id,
+            credits: b.credits,
+            khash: b.khash,
+            updated_at: b.updated_at.to_rfc3339(),
+        })
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
 /// `POST /api/v1/wallet/service/credit` — credit a positive delta to any
 /// account. Returns the resulting ledger id. Idempotent: replays with the
 /// same `idempotency_key` return the original id; mismatched payloads on

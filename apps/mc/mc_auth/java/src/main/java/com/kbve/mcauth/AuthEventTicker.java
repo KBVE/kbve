@@ -168,6 +168,22 @@ public final class AuthEventTicker {
                 LOGGER.warn("[{}] AuthFailure uuid={} reason={}", McAuthMod.MOD_ID, uuid, reason);
                 break;
             }
+            case "WalletBalance": {
+                String uuid = payload.get("player_uuid").getAsString();
+                long credits = payload.get("credits").getAsLong();
+                long khash = payload.get("khash").getAsLong();
+                ServerPlayerEntity player = findPlayer(server, uuid);
+                if (player != null) {
+                    sendBalanceMessage(player, credits, khash);
+                }
+                LOGGER.debug(
+                        "[{}] WalletBalance uuid={} credits={} khash={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        credits,
+                        khash);
+                break;
+            }
             default:
                 LOGGER.debug("[{}] unknown PlayerEvent variant: {}", McAuthMod.MOD_ID, variant);
         }
@@ -189,6 +205,20 @@ public final class AuthEventTicker {
     }
 
     private static final String LINK_URL = "https://kbve.com/mc";
+
+    private static String formatThousands(long value) {
+        return java.text.NumberFormat.getInstance(java.util.Locale.US).format(value);
+    }
+
+    private static void sendBalanceMessage(ServerPlayerEntity player, long credits, long khash) {
+        MutableText line = Text.literal("[KBVE] ").formatted(Formatting.GRAY)
+                .append(Text.literal("Credits: ").formatted(Formatting.YELLOW))
+                .append(Text.literal(formatThousands(credits)).formatted(Formatting.WHITE))
+                .append(Text.literal("  ·  ").formatted(Formatting.DARK_GRAY))
+                .append(Text.literal("KHash: ").formatted(Formatting.AQUA))
+                .append(Text.literal(formatThousands(khash)).formatted(Formatting.WHITE));
+        player.sendMessage(line, false);
+    }
 
     private static void sendLinkPrompt(ServerPlayerEntity player, String username) {
         MutableText url = Text.literal(LINK_URL)
