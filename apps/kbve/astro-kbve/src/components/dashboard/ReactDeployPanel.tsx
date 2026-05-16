@@ -66,14 +66,32 @@ interface EndpointRowProps {
 
 function EndpointRow({ endpoint, onStop, stopping }: EndpointRowProps) {
 	const url = deployService.urlFor(endpoint.name);
+	const publicUrl =
+		endpoint.visibility === 'public'
+			? deployService.publicUrlFor(endpoint.name)
+			: null;
 	const absolute =
 		typeof window !== 'undefined'
 			? new URL(url, window.location.origin).toString()
 			: url;
+	const publicAbsolute =
+		publicUrl && typeof window !== 'undefined'
+			? new URL(publicUrl, window.location.origin).toString()
+			: (publicUrl ?? '');
+	const visibilityLabel = endpoint.visibility ?? 'staff';
 	return (
 		<tr>
 			<td>
-				<code>{endpoint.name}</code>
+				<code>{endpoint.name}</code>{' '}
+				<span
+					className={`deploy-tier deploy-tier--${visibilityLabel}`}
+					title={
+						visibilityLabel === 'public'
+							? 'Reachable via /fc/public/* without auth'
+							: 'Staff JWT required'
+					}>
+					{visibilityLabel}
+				</span>
 			</td>
 			<td>
 				<code>{endpoint.rootfs}</code>
@@ -84,14 +102,34 @@ function EndpointRow({ endpoint, onStop, stopping }: EndpointRowProps) {
 				</code>
 			</td>
 			<td>
-				<a
-					href={url}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="deploy-link">
-					{url} <ExternalLink size={12} />
-				</a>{' '}
-				<CopyButton value={absolute} />
+				<div className="deploy-urls">
+					<div className="deploy-url-row">
+						<span className="deploy-url-tag">staff</span>
+						<a
+							href={url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="deploy-link">
+							{url} <ExternalLink size={12} />
+						</a>
+						<CopyButton value={absolute} />
+					</div>
+					{publicUrl && (
+						<div className="deploy-url-row">
+							<span className="deploy-url-tag deploy-url-tag--public">
+								public
+							</span>
+							<a
+								href={publicUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="deploy-link">
+								{publicUrl} <ExternalLink size={12} />
+							</a>
+							<CopyButton value={publicAbsolute} />
+						</div>
+					)}
+				</div>
 			</td>
 			<td>
 				<button
@@ -489,6 +527,12 @@ export default function ReactDeployPanel() {
 				.deploy-table th, .deploy-table td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
 				.deploy-table th { font-weight: 500; opacity: 0.7; }
 				.deploy-link { display: inline-flex; align-items: center; gap: 0.25rem; }
+				.deploy-urls { display: flex; flex-direction: column; gap: 0.3rem; }
+				.deploy-url-row { display: inline-flex; align-items: center; gap: 0.4rem; }
+				.deploy-url-tag { font-size: 0.65rem; padding: 0.05rem 0.35rem; border-radius: 0.2rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); opacity: 0.75; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+				.deploy-url-tag--public { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.35); color: rgba(134,239,172,0.95); opacity: 1; }
+				.deploy-tier { font-size: 0.65rem; padding: 0.05rem 0.35rem; border-radius: 0.2rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); opacity: 0.75; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+				.deploy-tier--public { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.35); color: rgba(134,239,172,0.95); opacity: 1; }
 			`}</style>
 		</section>
 	);
