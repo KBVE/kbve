@@ -562,6 +562,7 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
     }
 }
 
+use jedi::entity::pipe_clickhouse::alerts as ch_alerts;
 use jedi::entity::pipe_clickhouse::logs as ch_logs;
 use jedi::state::sidecar::ClickHouseConfig;
 
@@ -730,6 +731,32 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
             };
             ch_logs::run_rows_errors(config, &params).await
         }
+        "alerts_recent" => {
+            let params = ch_alerts::AlertsRecentParams {
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_alerts::run_alerts_recent(config, &params).await
+        }
+        "alerts_firing" => {
+            let params = ch_alerts::AlertsFiringParams {
+                minutes: req.minutes,
+            };
+            ch_alerts::run_alerts_firing(config, &params).await
+        }
+        "alerts_by_severity" => {
+            let params = ch_alerts::AlertsBySeverityParams {
+                minutes: req.minutes,
+            };
+            ch_alerts::run_alerts_by_severity(config, &params).await
+        }
+        "alerts_top" => {
+            let params = ch_alerts::AlertsTopParams {
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_alerts::run_alerts_top(config, &params).await
+        }
         other => {
             return (
                 StatusCode::BAD_REQUEST,
@@ -737,7 +764,8 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
                     "error": format!(
                         "unknown command '{other}', expected one of: \
                          query, stats, rows_request_rate, rows_status_histogram, \
-                         rows_top_endpoints, rows_errors"
+                         rows_top_endpoints, rows_errors, \
+                         alerts_recent, alerts_firing, alerts_by_severity, alerts_top"
                     )
                 })),
             )

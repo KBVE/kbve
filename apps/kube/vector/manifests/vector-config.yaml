@@ -22,6 +22,13 @@ data:
               - "**/kube-system_*/**"
             auto_partial_merge: true
             data_dir: "/vector-data-dir"
+          alertmanager_webhook:
+            type: http_server
+            address: 0.0.0.0:9002
+            path: /alertmanager
+            method: POST
+            decoding:
+              codec: json
 
         transforms:
           # mc-fabric multiline aggregation. Java stack traces emit one line
@@ -353,6 +360,97 @@ data:
               del(.severity)
               del(.project)
 
+          alertmanager_unnest:
+            type: remap
+            inputs:
+              - alertmanager_webhook
+            source: |-
+              # Alertmanager v4 payload: { alerts: [...], commonLabels, status, ... }
+              # Drop the wrapper batch; emit only the array. The next transform
+              # fans it out via Vector's unnest semantics.
+              alerts = array(.alerts) ?? []
+              if length(alerts) == 0 { abort }
+              . = { "alerts": alerts }
+
+          alertmanager_fanout:
+            type: remap
+            inputs:
+              - alertmanager_unnest
+            drop_on_error: true
+            source: |-
+              # Vector remap doesn't natively explode arrays — we keep one
+              # event per webhook here and let the downstream `unnest`
+              # transform spread it. Identity passthrough.
+              .
+
+          alertmanager_explode:
+            type: lua
+            version: "2"
+            inputs:
+              - alertmanager_fanout
+            source: |-
+              function process(event, emit)
+                local alerts = event.log.alerts
+                if not alerts then return end
+                for _, a in ipairs(alerts) do
+                  local out = {}
+                  out.alert = a
+                  emit({ log = out })
+                end
+              end
+              hooks = { process = process }
+
+          alertmanager_flatten:
+            type: remap
+            inputs:
+              - alertmanager_explode
+            drop_on_error: true
+            source: |-
+              a = object(.alert) ?? {}
+              labels = object(a.labels) ?? {}
+              annotations = object(a.annotations) ?? {}
+
+              fingerprint = string(a.fingerprint) ?? ""
+              if fingerprint == "" { abort }
+
+              status_in = downcase(string(a.status) ?? "firing")
+              if status_in != "firing" && status_in != "resolved" {
+                  status_in = "firing"
+              }
+
+              starts_at_raw = string(a.startsAt) ?? ""
+              starts_at = if starts_at_raw == "" {
+                  now()
+              } else {
+                  parse_timestamp(starts_at_raw, "%+") ?? now()
+              }
+
+              ends_at_raw = string(a.endsAt) ?? ""
+              ends_at = if ends_at_raw == "" || starts_with(ends_at_raw, "0001-01-01") {
+                  null
+              } else {
+                  parse_timestamp(ends_at_raw, "%+") ?? null
+              }
+
+              .timestamp = now()
+              .status = status_in
+              .alertname = string(labels.alertname) ?? "unknown"
+              .severity = string(labels.severity) ?? ""
+              .namespace = string(labels.namespace) ?? ""
+              .pod = string(labels.pod) ?? ""
+              .service = string(labels.service) ?? ""
+              .summary = string(annotations.summary) ?? ""
+              .description = string(annotations.description) ?? ""
+              .labels = encode_json(labels)
+              .annotations = encode_json(annotations)
+              .fingerprint = fingerprint
+              .starts_at = starts_at
+              .ends_at = ends_at
+              .generator_url = string(a.generatorURL) ?? ""
+              .source = "webhook"
+
+              del(.alert)
+
         sinks:
           clickhouse:
             type: clickhouse
@@ -373,5 +471,26 @@ data:
             buffer:
               type: memory
               max_events: 10000
+            encoding:
+              timestamp_format: rfc3339
+          clickhouse_alerts:
+            type: clickhouse
+            inputs:
+              - alertmanager_flatten
+            endpoint: "${CLICKHOUSE_ENDPOINT}"
+            database: observability
+            table: alerts_distributed
+            auth:
+              strategy: basic
+              user: "${CLICKHOUSE_USER}"
+              password: "${CLICKHOUSE_PASSWORD}"
+            skip_unknown_fields: true
+            date_time_best_effort: true
+            batch:
+              max_bytes: 1048576
+              timeout_secs: 2
+            buffer:
+              type: memory
+              max_events: 2000
             encoding:
               timestamp_format: rfc3339

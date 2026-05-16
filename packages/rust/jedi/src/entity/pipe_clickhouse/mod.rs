@@ -1,3 +1,4 @@
+pub mod alerts;
 pub mod clickhouse_types;
 pub mod core;
 pub mod logs;

@@ -1,0 +1,142 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: alerts-poll-script
+    namespace: vector
+data:
+    poll.sh: |
+        #!/bin/sh
+        set -eu
+
+        PROM_URL="${PROM_URL:-http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090}"
+        SOURCE_LABEL="${SOURCE_LABEL:-poll}"
+
+        echo "Polling Prometheus alerts at ${PROM_URL}/api/v1/alerts ..."
+        PAYLOAD=$(curl -sf --max-time 15 "${PROM_URL}/api/v1/alerts") || {
+            echo "ERROR: Prometheus /api/v1/alerts unreachable"
+            exit 1
+        }
+
+        # Extract array length without jq (busybox shell + python).
+        COUNT=$(echo "$PAYLOAD" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("data",{}).get("alerts",[])))')
+        echo "Prometheus reports ${COUNT} active alert(s)."
+        if [ "$COUNT" -eq 0 ]; then
+            echo "Nothing to insert."
+            exit 0
+        fi
+
+        # Build a JSONEachRow blob: one row per active alert. Use python for
+        # safe field extraction; never trust upstream label/annotation strings.
+        ROWS=$(echo "$PAYLOAD" | python3 - <<PY
+        import json, sys, hashlib, datetime
+        d = json.load(sys.stdin)
+        for a in d.get("data", {}).get("alerts", []):
+            labels = a.get("labels", {}) or {}
+            anno = a.get("annotations", {}) or {}
+            fp = hashlib.sha256(
+                ("|".join(f"{k}={v}" for k, v in sorted(labels.items()))).encode()
+            ).hexdigest()
+            starts = a.get("activeAt") or datetime.datetime.utcnow().isoformat() + "Z"
+            row = {
+                "timestamp": datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+                "status": a.get("state", "firing"),
+                "alertname": labels.get("alertname", "unknown"),
+                "severity": labels.get("severity", ""),
+                "namespace": labels.get("namespace", ""),
+                "pod": labels.get("pod", ""),
+                "service": labels.get("service", ""),
+                "summary": anno.get("summary", ""),
+                "description": anno.get("description", ""),
+                "labels": json.dumps(labels, sort_keys=True),
+                "annotations": json.dumps(anno, sort_keys=True),
+                "fingerprint": fp,
+                "starts_at": starts,
+                "ends_at": None,
+                "generator_url": a.get("annotations", {}).get("runbook_url", ""),
+                "source": "${SOURCE_LABEL}",
+            }
+            print(json.dumps(row))
+        PY
+        )
+
+        echo "Inserting ${COUNT} rows into observability.alerts_distributed ..."
+        echo "$ROWS" | curl -sf --max-time 30 --data-binary @- \
+            "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}&query=INSERT%20INTO%20observability.alerts_distributed%20FORMAT%20JSONEachRow" || {
+            echo "ERROR: ClickHouse insert failed"
+            exit 1
+        }
+        echo "Insert OK."
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: alerts-poll
+    namespace: vector
+    labels:
+        app: alerts-poll
+        component: vector
+spec:
+    schedule: '*/5 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 3600
+            template:
+                metadata:
+                    labels:
+                        app: alerts-poll
+                spec:
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: poll
+                          image: python:3.12-alpine
+                          command: ['/bin/sh', '/scripts/poll.sh']
+                          env:
+                              - name: PROM_URL
+                                value: 'http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090'
+                              - name: SOURCE_LABEL
+                                value: 'poll'
+                              - name: CLICKHOUSE_ENDPOINT
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: clickhouse-vector-credentials
+                                        key: endpoint
+                              - name: CLICKHOUSE_USER
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: clickhouse-vector-credentials
+                                        key: username
+                              - name: CLICKHOUSE_PASSWORD
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: clickhouse-vector-credentials
+                                        key: password
+                          volumeMounts:
+                              - name: poll-script
+                                mountPath: /scripts
+                                readOnly: true
+                          resources:
+                              requests:
+                                  memory: '64Mi'
+                                  cpu: '50m'
+                              limits:
+                                  memory: '128Mi'
+                                  cpu: '200m'
+                          securityContext:
+                              runAsNonRoot: true
+                              runAsUser: 1000
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                    volumes:
+                        - name: poll-script
+                          configMap:
+                              name: alerts-poll-script
+                              defaultMode: 0555

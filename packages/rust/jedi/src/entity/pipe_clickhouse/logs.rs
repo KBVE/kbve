@@ -71,7 +71,7 @@ fn escape_clickhouse_string(input: &str) -> String {
     out
 }
 
-fn clamped_minutes(raw: Option<u32>) -> u32 {
+pub(crate) fn clamped_minutes(raw: Option<u32>) -> u32 {
     raw.unwrap_or(DEFAULT_MINUTES).clamp(1, MAX_MINUTES)
 }
 
