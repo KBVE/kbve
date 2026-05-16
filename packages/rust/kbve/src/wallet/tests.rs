@@ -10,7 +10,8 @@ use serial_test::serial;
 use uuid::Uuid;
 
 use super::{
-    BidStatus, CouponStatus, CreditRequest, CurrencyKind, DebitRequest, ListingStatus,
+    BidStatus, CouponStatus, CreditRequest, CurrencyKind, DebitRequest,
+    FirecrackerPlaceHoldRequest, FirecrackerSettleRequest, FirecrackerSettleStatus, ListingStatus,
     MarketBuyNowRequest, MarketCancelListingRequest, MarketCreateListingRequest,
     MarketPlaceBidRequest, RewardKind, SourceKind, TransferRequest, WalletClient, WalletError,
 };
@@ -599,4 +600,318 @@ async fn market_cancel_listing_refunds_active_bidder() {
 
     let detail = client.market_listing_detail(listing_id).await.unwrap();
     assert!(matches!(detail.listing_status, ListingStatus::Cancelled));
+}
+
+fn req_credit_credits(account: Uuid, amount: i64, key: Uuid) -> CreditRequest {
+    CreditRequest {
+        account_id: account,
+        currency: CurrencyKind::Credits,
+        amount,
+        source_kind: SourceKind::Admin,
+        reason: Some("fc-test credits seed".into()),
+        ref_type: None,
+        ref_id: None,
+        idempotency_key: key,
+    }
+}
+
+async fn seed_credits(client: &WalletClient, account: Uuid, amount: i64) {
+    client
+        .credit(req_credit_credits(account, amount, Uuid::new_v4()))
+        .await
+        .expect("seed credits");
+}
+
+fn fresh_vm_id() -> String {
+    format!("fc-{}", Uuid::new_v4().as_simple())
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_place_hold_happy_path_and_idempotent_replay() {
+    let Some(client) = client().await else {
+        eprintln!("SKIP: WALLET_TEST_DATABASE_URL unset");
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    let req = FirecrackerPlaceHoldRequest {
+        account_id: account,
+        vm_id: vm_id.clone(),
+        amount: 300,
+    };
+    let r1 = client.firecracker_place_hold(req.clone()).await.unwrap();
+    assert_eq!(r1.amount, 300);
+    assert_eq!(r1.watermark, 0);
+    assert_eq!(r1.account_id, account);
+
+    let r2 = client.firecracker_place_hold(req).await.unwrap();
+    assert_eq!(r2.vm_id, r1.vm_id);
+    assert_eq!(
+        r2.created_at, r1.created_at,
+        "idempotent replay returns same row"
+    );
+
+    let total = client.firecracker_active_hold_total(account).await.unwrap();
+    assert_eq!(total, 300);
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_place_hold_payload_mismatch_raises_replay_mismatch() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: vm_id.clone(),
+            amount: 300,
+        })
+        .await
+        .unwrap();
+    let err = client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id,
+            amount: 999,
+        })
+        .await
+        .expect_err("must raise");
+    assert!(matches!(err, WalletError::ReplayMismatch), "got: {err:?}");
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_place_hold_shortfall_raises_insufficient_funds() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 25).await;
+
+    let err = client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: fresh_vm_id(),
+            amount: 100,
+        })
+        .await
+        .expect_err("must raise");
+    assert!(
+        matches!(err, WalletError::InsufficientFunds),
+        "got: {err:?}"
+    );
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_place_hold_short_vm_id_raises_invalid_argument() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+
+    let err = client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: "short".into(),
+            amount: 100,
+        })
+        .await
+        .expect_err("must raise");
+    assert!(
+        matches!(err, WalletError::InvalidArgument(_)),
+        "got: {err:?}"
+    );
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_settle_debits_below_hold() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: vm_id.clone(),
+            amount: 300,
+        })
+        .await
+        .unwrap();
+
+    let r = client
+        .firecracker_settle(FirecrackerSettleRequest {
+            vm_id: vm_id.clone(),
+            final_amount: 120,
+            idempotency_key: Uuid::new_v4(),
+            reason: Some("test".into()),
+        })
+        .await
+        .unwrap();
+    assert!(matches!(r.status, FirecrackerSettleStatus::Settled));
+    assert_eq!(r.debited_amount, 120);
+    assert_eq!(r.reserved_amount, 300);
+    assert_eq!(r.released_amount, 180);
+    assert!(r.ledger_id.is_some());
+
+    let total = client.firecracker_active_hold_total(account).await.unwrap();
+    assert_eq!(total, 0, "hold released after settle");
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_settle_caps_when_final_exceeds_hold() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: vm_id.clone(),
+            amount: 200,
+        })
+        .await
+        .unwrap();
+
+    let r = client
+        .firecracker_settle(FirecrackerSettleRequest {
+            vm_id,
+            final_amount: 999_999,
+            idempotency_key: Uuid::new_v4(),
+            reason: None,
+        })
+        .await
+        .unwrap();
+    assert!(matches!(r.status, FirecrackerSettleStatus::SettledCapped));
+    assert_eq!(r.debited_amount, 200);
+    assert_eq!(r.released_amount, 0);
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_settle_zero_amount_releases_without_charge() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: vm_id.clone(),
+            amount: 200,
+        })
+        .await
+        .unwrap();
+
+    let r = client
+        .firecracker_settle(FirecrackerSettleRequest {
+            vm_id,
+            final_amount: 0,
+            idempotency_key: Uuid::new_v4(),
+            reason: None,
+        })
+        .await
+        .unwrap();
+    assert!(matches!(
+        r.status,
+        FirecrackerSettleStatus::ReleasedZeroCharge
+    ));
+    assert!(r.ledger_id.is_none());
+    assert_eq!(r.debited_amount, 0);
+    assert_eq!(r.released_amount, 200);
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_settle_missing_vm_is_already_missing() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let _ = fixture_account().await.expect("fixture");
+
+    let r = client
+        .firecracker_settle(FirecrackerSettleRequest {
+            vm_id: fresh_vm_id(),
+            final_amount: 100,
+            idempotency_key: Uuid::new_v4(),
+            reason: None,
+        })
+        .await
+        .unwrap();
+    assert!(matches!(r.status, FirecrackerSettleStatus::AlreadyMissing));
+    assert!(r.ledger_id.is_none());
+    assert_eq!(r.debited_amount, 0);
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_update_watermark_clamps_and_is_monotonic() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (_user, account) = fixture_account().await.expect("fixture");
+    seed_credits(&client, account, 1_000).await;
+    let vm_id = fresh_vm_id();
+
+    client
+        .firecracker_place_hold(FirecrackerPlaceHoldRequest {
+            account_id: account,
+            vm_id: vm_id.clone(),
+            amount: 200,
+        })
+        .await
+        .unwrap();
+
+    let r1 = client
+        .firecracker_update_watermark(&vm_id, 50)
+        .await
+        .unwrap();
+    assert_eq!(r1.watermark, 50);
+
+    let r2 = client
+        .firecracker_update_watermark(&vm_id, 9_999)
+        .await
+        .unwrap();
+    assert_eq!(r2.watermark, 200, "clamped to amount");
+
+    let r3 = client
+        .firecracker_update_watermark(&vm_id, 10)
+        .await
+        .unwrap();
+    assert_eq!(r3.watermark, 200, "monotonic — no regress");
+}
+
+#[tokio::test]
+#[serial]
+async fn firecracker_update_watermark_missing_vm_raises_not_found() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let _ = fixture_account().await.expect("fixture");
+
+    let err = client
+        .firecracker_update_watermark(&fresh_vm_id(), 10)
+        .await
+        .expect_err("must raise");
+    assert!(matches!(err, WalletError::NotFound(_)), "got: {err:?}");
 }

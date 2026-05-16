@@ -1,6 +1,7 @@
+use chrono::{DateTime, Utc};
 use diesel::QueryableByName;
 use diesel::sql_query;
-use diesel::sql_types::{BigInt, Bool, Jsonb, Nullable, Text};
+use diesel::sql_types::{BigInt, Bool, Jsonb, Nullable, Text, Timestamptz};
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -102,6 +103,36 @@ impl WalletClient {
     pub async fn verify_balance(&self, account_id: Uuid) -> Result<VerifyBalanceRow> {
         let mut conn = self.read().await?;
         verify_async(&mut conn, account_id).await
+    }
+
+    pub async fn firecracker_active_hold_total(&self, account_id: Uuid) -> Result<i64> {
+        let mut conn = self.read().await?;
+        firecracker_active_hold_total_async(&mut conn, account_id).await
+    }
+
+    pub async fn firecracker_place_hold(
+        &self,
+        req: FirecrackerPlaceHoldRequest,
+    ) -> Result<FirecrackerHoldRow> {
+        let mut conn = self.write().await?;
+        firecracker_place_hold_async(&mut conn, req).await
+    }
+
+    pub async fn firecracker_settle(
+        &self,
+        req: FirecrackerSettleRequest,
+    ) -> Result<FirecrackerSettleResult> {
+        let mut conn = self.write().await?;
+        firecracker_settle_async(&mut conn, req).await
+    }
+
+    pub async fn firecracker_update_watermark(
+        &self,
+        vm_id: &str,
+        watermark: i64,
+    ) -> Result<FirecrackerHoldRow> {
+        let mut conn = self.write().await?;
+        firecracker_update_watermark_async(&mut conn, vm_id, watermark).await
     }
 }
 
@@ -221,4 +252,132 @@ async fn verify_async(conn: &mut AsyncPgConnection, account_id: Uuid) -> Result<
         ledger_khash: row.ledger_khash,
         ok: row.ok,
     })
+}
+
+#[derive(QueryableByName)]
+struct FirecrackerActiveHoldRow {
+    #[diesel(sql_type = BigInt)]
+    total: i64,
+}
+
+#[derive(QueryableByName)]
+struct FirecrackerHoldRowDb {
+    #[diesel(sql_type = Text)]
+    vm_id: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    account_id: Uuid,
+    #[diesel(sql_type = BigInt)]
+    amount: i64,
+    #[diesel(sql_type = BigInt)]
+    watermark: i64,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+    #[diesel(sql_type = Timestamptz)]
+    updated_at: DateTime<Utc>,
+}
+
+impl From<FirecrackerHoldRowDb> for FirecrackerHoldRow {
+    fn from(r: FirecrackerHoldRowDb) -> Self {
+        Self {
+            vm_id: r.vm_id,
+            account_id: r.account_id,
+            amount: r.amount,
+            watermark: r.watermark,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+        }
+    }
+}
+
+#[derive(QueryableByName)]
+struct FirecrackerSettleResultDb {
+    #[diesel(sql_type = Text)]
+    status: String,
+    #[diesel(sql_type = Nullable<BigInt>)]
+    ledger_id: Option<i64>,
+    #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]
+    account_id: Option<Uuid>,
+    #[diesel(sql_type = BigInt)]
+    reserved_amount: i64,
+    #[diesel(sql_type = BigInt)]
+    debited_amount: i64,
+    #[diesel(sql_type = BigInt)]
+    released_amount: i64,
+}
+
+async fn firecracker_active_hold_total_async(
+    conn: &mut AsyncPgConnection,
+    account_id: Uuid,
+) -> Result<i64> {
+    let row: FirecrackerActiveHoldRow =
+        sql_query("SELECT wallet.firecracker_active_hold_total($1) AS total")
+            .bind::<diesel::sql_types::Uuid, _>(account_id)
+            .get_result(conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+    Ok(row.total)
+}
+
+async fn firecracker_place_hold_async(
+    conn: &mut AsyncPgConnection,
+    req: FirecrackerPlaceHoldRequest,
+) -> Result<FirecrackerHoldRow> {
+    let row: FirecrackerHoldRowDb = sql_query(
+        "SELECT vm_id, account_id, amount, watermark, created_at, updated_at \
+         FROM (SELECT wallet.firecracker_place_hold($1, $2, $3) AS h) s, \
+              LATERAL (SELECT (s.h).*) t",
+    )
+    .bind::<diesel::sql_types::Uuid, _>(req.account_id)
+    .bind::<Text, _>(req.vm_id)
+    .bind::<BigInt, _>(req.amount)
+    .get_result(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    Ok(row.into())
+}
+
+async fn firecracker_settle_async(
+    conn: &mut AsyncPgConnection,
+    req: FirecrackerSettleRequest,
+) -> Result<FirecrackerSettleResult> {
+    let row: FirecrackerSettleResultDb = sql_query(
+        "SELECT status, ledger_id, account_id, reserved_amount, debited_amount, released_amount \
+         FROM wallet.firecracker_settle($1, $2, $3, $4)",
+    )
+    .bind::<Text, _>(req.vm_id)
+    .bind::<BigInt, _>(req.final_amount)
+    .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
+    .bind::<Nullable<Text>, _>(req.reason)
+    .get_result(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    let status = FirecrackerSettleStatus::from_pg(&row.status).ok_or_else(|| {
+        WalletError::InvalidArgument(format!("unknown settle status: {}", row.status))
+    })?;
+    Ok(FirecrackerSettleResult {
+        status,
+        ledger_id: row.ledger_id,
+        account_id: row.account_id,
+        reserved_amount: row.reserved_amount,
+        debited_amount: row.debited_amount,
+        released_amount: row.released_amount,
+    })
+}
+
+async fn firecracker_update_watermark_async(
+    conn: &mut AsyncPgConnection,
+    vm_id: &str,
+    watermark: i64,
+) -> Result<FirecrackerHoldRow> {
+    let row: FirecrackerHoldRowDb = sql_query(
+        "SELECT vm_id, account_id, amount, watermark, created_at, updated_at \
+         FROM (SELECT wallet.firecracker_update_watermark($1, $2) AS h) s, \
+              LATERAL (SELECT (s.h).*) t",
+    )
+    .bind::<Text, _>(vm_id)
+    .bind::<BigInt, _>(watermark)
+    .get_result(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    Ok(row.into())
 }
