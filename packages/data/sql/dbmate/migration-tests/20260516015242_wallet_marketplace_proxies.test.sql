@@ -689,6 +689,158 @@ END;
 $$;
 COMMIT;
 
+-- 18. Proxy-level write validation rejects invalid inputs cleanly
+--     (before the service layer sees them).
+BEGIN;
+DO $$
+DECLARE
+    v_seller_uid UUID;
+BEGIN
+    SELECT user_id INTO v_seller_uid FROM public.__market_proxies_fixture WHERE role = 'seller';
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_seller_uid::text)::text,
+        true
+    );
+
+    -- create_listing: null item_ref
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            NULL, 100, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: null item_ref should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- create_listing: empty pricing
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            jsonb_build_object('kind','mc_item','id','x','instance_id','val-' || v_seller_uid::text),
+            NULL, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: missing price should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- create_listing: negative buy_now_price
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            jsonb_build_object('kind','mc_item','id','x','instance_id','val2-' || v_seller_uid::text),
+            -1, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: negative buy_now_price should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- create_listing: past expires_at
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            jsonb_build_object('kind','mc_item','id','x','instance_id','val3-' || v_seller_uid::text),
+            100, NULL,
+            statement_timestamp() - interval '1 hour',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: past expires_at should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- create_listing: null idempotency_key
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            jsonb_build_object('kind','mc_item','id','x','instance_id','val4-' || v_seller_uid::text),
+            100, NULL,
+            statement_timestamp() + interval '2 hours',
+            NULL
+        );
+        RAISE EXCEPTION 'fail: null idempotency_key should have raised';
+    EXCEPTION WHEN sqlstate '22004' THEN NULL;
+    END;
+
+    -- place_bid: amount <= 0
+    BEGIN
+        PERFORM public.proxy_market_place_bid(1::BIGINT, 0::BIGINT, gen_random_uuid());
+        RAISE EXCEPTION 'fail: amount=0 should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- buy_now: null listing_id
+    BEGIN
+        PERFORM public.proxy_market_buy_now(NULL, gen_random_uuid());
+        RAISE EXCEPTION 'fail: null listing_id should have raised';
+    EXCEPTION WHEN sqlstate '22004' THEN NULL;
+    END;
+
+    -- cancel_listing: null listing_id
+    BEGIN
+        PERFORM public.proxy_market_cancel_listing(NULL, 'oops');
+        RAISE EXCEPTION 'fail: null listing_id should have raised';
+    EXCEPTION WHEN sqlstate '22004' THEN NULL;
+    END;
+
+    -- cancel_listing: reason > 500 chars
+    BEGIN
+        PERFORM public.proxy_market_cancel_listing(1::BIGINT, repeat('x', 501));
+        RAISE EXCEPTION 'fail: overlong reason should have raised';
+    EXCEPTION WHEN sqlstate '22001' THEN NULL;
+    END;
+END;
+$$;
+COMMIT;
+
+-- 19. Expired-but-not-yet-swept active listings are hidden from public
+--     browse. Backdate created_at + expires_at so the duration CHECK
+--     still passes while the deadline is already in the past.
+BEGIN;
+DO $$
+DECLARE
+    v_seller_acc UUID;
+    v_listing_id BIGINT;
+    v_origin     TIMESTAMPTZ := statement_timestamp() - interval '3 hours';
+    v_past       TIMESTAMPTZ := statement_timestamp() - interval '1 minute';
+BEGIN
+    SELECT id INTO v_seller_acc
+      FROM wallet.account a
+      JOIN public.__market_proxies_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'seller';
+
+    INSERT INTO wallet.listing (
+        seller_account, item_ref, currency, buy_now_price,
+        created_at, expires_at, idempotency_key
+    ) VALUES (
+        v_seller_acc,
+        jsonb_build_object(
+            'kind','mc_item','id','expired',
+            'instance_id','proxies-test-expired-' || v_seller_acc::text
+        ),
+        'khash'::wallet.currency_kind, 100,
+        v_origin, v_past, gen_random_uuid()
+    ) RETURNING id INTO v_listing_id;
+
+    -- Direct row check confirms it landed as 'active'.
+    IF NOT EXISTS (
+        SELECT 1 FROM wallet.listing
+         WHERE id = v_listing_id AND status = 'active'
+    ) THEN
+        RAISE EXCEPTION 'fail: backdated listing did not land active';
+    END IF;
+
+    -- Browse proxy must hide it because expires_at <= now().
+    IF EXISTS (
+        SELECT 1 FROM public.proxy_market_list_active_readonly(100)
+         WHERE listing_id = v_listing_id
+    ) THEN
+        RAISE EXCEPTION 'fail: expired-but-active listing leaked into public browse';
+    END IF;
+END;
+$$;
+COMMIT;
+
 -- ASSERT_AFTER_DOWN
 
 DO $$

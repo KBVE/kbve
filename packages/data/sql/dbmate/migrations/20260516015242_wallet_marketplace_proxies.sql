@@ -50,19 +50,31 @@ BEGIN
             RAISE EXCEPTION 'dependency missing: % — apply Phase 2 first', v_proc;
         END IF;
     END LOOP;
+    IF to_regclass('wallet.account') IS NULL THEN
+        RAISE EXCEPTION 'dependency missing: wallet.account';
+    END IF;
+    -- proxy_market_caller_account relies on this partial unique to
+    -- safely SELECT INTO without STRICT.
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+         WHERE schemaname = 'wallet'
+           AND tablename = 'account'
+           AND indexname = 'wallet_account_user_uq'
+    ) THEN
+        RAISE EXCEPTION 'dependency missing: wallet_account_user_uq partial unique index';
+    END IF;
 END;
 $$;
 
 -- Public-exposure note:
 -- proxy_market_list_active_readonly + proxy_market_listing_detail_readonly
--- are anon-callable. Both return wallet.account UUIDs (seller_account,
--- current_bid_account, buyer_account, bidder_account inside the bids
--- array). These UUIDs are random and not directly PII, but they are
--- stable per-user identifiers that can be cross-referenced across
--- listings. A future profile-join refactor should replace them with
--- profile.username + profile.id when the profile schema is wired up;
--- bid-history visibility for anon callers can also be revisited then
--- (e.g. show only current high bid).
+-- are anon-callable. Both expose seller_account as a stable wallet
+-- UUID — acceptable since the seller is the public storefront, and
+-- a future profile-join will replace it with a public handle. All
+-- other wallet account UUIDs (current_bid_account, buyer_account,
+-- bidder_account inside bids) are redacted from the anon surface.
+-- Authenticated my_listings + my_bids proxies return the caller's
+-- own context only, so no extra exposure there.
 
 -- ============================================================================
 -- INTERNAL HELPER: resolve auth.uid() → wallet.account.id
@@ -117,7 +129,6 @@ RETURNS TABLE (
     buy_now_price       BIGINT,
     min_bid             BIGINT,
     current_bid         BIGINT,
-    current_bid_account UUID,
     expires_at          TIMESTAMPTZ,
     created_at          TIMESTAMPTZ
 )
@@ -132,10 +143,13 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
+    -- current_bid_account redacted from anon output; bidder identity
+    -- is exposed only via authenticated my_bids_readonly. seller_account
+    -- stays since a marketplace listing's seller is the storefront.
     RETURN QUERY
     SELECT
         l.id, l.seller_account, l.item_ref, l.currency,
-        l.buy_now_price, l.min_bid, l.current_bid, l.current_bid_account,
+        l.buy_now_price, l.min_bid, l.current_bid,
         l.expires_at, l.created_at
       FROM wallet.listing l
      WHERE l.status = 'active'
@@ -157,7 +171,7 @@ ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BI
 REVOKE ALL ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO anon, authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
-    'PUBLIC marketplace proxy. Paged active-listing browse, anon-callable. Keyset cursor on (created_at DESC, id DESC), limit clamped [1, 100], default 50. WARNING: returns wallet.account UUIDs (seller_account, current_bid_account); replace with profile handles once profile schema is wired up. Hides deadline-passed-but-not-yet-swept rows via expires_at > now().';
+    'PUBLIC marketplace proxy. Paged active-listing browse, anon-callable. Keyset cursor on (created_at DESC, id DESC), limit clamped [1, 100], default 50. seller_account stays exposed (storefront identity); current_bid_account redacted. Hides deadline-passed-but-not-yet-swept rows via expires_at > now().';
 
 -- ============================================================================
 -- public.proxy_market_listing_detail_readonly
@@ -177,9 +191,7 @@ RETURNS TABLE (
     buy_now_price       BIGINT,
     min_bid             BIGINT,
     current_bid         BIGINT,
-    current_bid_account UUID,
     current_bid_id      BIGINT,
-    buyer_account       UUID,
     listing_status      wallet.listing_status,
     expires_at          TIMESTAMPTZ,
     created_at          TIMESTAMPTZ,
@@ -200,12 +212,15 @@ BEGIN
         RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
     END IF;
 
+    -- Anon-visible bid history: bidder_account intentionally redacted.
+    -- A future profile-join refactor will expose a stable public
+    -- handle here; for now the bid amount + timing + status is enough
+    -- for browse UX without leaking the wallet account graph.
     SELECT COALESCE(jsonb_agg(sub.row ORDER BY sub.placed_at DESC, sub.id DESC), '[]'::jsonb)
       INTO v_bids
       FROM (
           SELECT jsonb_build_object(
               'bid_id', b.id,
-              'bidder_account', b.bidder_account,
               'amount', b.amount,
               'status', b.status,
               'placed_at', b.placed_at,
@@ -224,9 +239,7 @@ BEGIN
     buy_now_price       := v_listing.buy_now_price;
     min_bid             := v_listing.min_bid;
     current_bid         := v_listing.current_bid;
-    current_bid_account := v_listing.current_bid_account;
     current_bid_id      := v_listing.current_bid_id;
-    buyer_account       := v_listing.buyer_account;
     listing_status      := v_listing.status;
     expires_at          := v_listing.expires_at;
     created_at          := v_listing.created_at;
@@ -241,7 +254,7 @@ ALTER FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) COST 100 ROWS
 REVOKE ALL ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) TO anon, authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_listing_detail_readonly(BIGINT) IS
-    'PUBLIC marketplace proxy. Anon-callable single-listing read + 50 most recent bids. WARNING: returns stable wallet.account UUIDs (seller_account, current_bid_account, buyer_account, bidder_account inside the bids array) — replace with profile handles + narrow bid history once the profile schema is wired up. Raises P1001 on missing listing, 22004 on null id.';
+    'PUBLIC marketplace proxy. Anon-callable single-listing read + 50 most recent bids. seller_account stays exposed (the listing storefront); current_bid_account, buyer_account, and bidder_account inside bids are redacted to avoid leaking the wallet-account graph. Once a profile schema lands, replace seller_account with a profile handle too. Raises P1001 on missing listing, 22004 on null id.';
 
 -- ============================================================================
 -- public.proxy_market_my_listings_readonly
