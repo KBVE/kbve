@@ -916,7 +916,9 @@ $$;
 COMMIT;
 
 -- 21. private.proxy_market_caller_account is not reachable through
---     PostgREST: anon + authenticated have no USAGE on schema private.
+--     PostgREST: anon + authenticated have no USAGE on schema private,
+--     and the helper itself rejects EXECUTE from both roles even if
+--     the schema USAGE were ever granted accidentally.
 DO $$
 BEGIN
     IF has_schema_privilege('anon', 'private', 'USAGE') THEN
@@ -927,6 +929,27 @@ BEGIN
     END IF;
     IF NOT has_schema_privilege('service_role', 'private', 'USAGE') THEN
         RAISE EXCEPTION 'fail: service_role missing USAGE on schema private';
+    END IF;
+    IF has_function_privilege(
+        'anon',
+        'private.proxy_market_caller_account()',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: anon has EXECUTE on private.proxy_market_caller_account';
+    END IF;
+    IF has_function_privilege(
+        'authenticated',
+        'private.proxy_market_caller_account()',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: authenticated has EXECUTE on private.proxy_market_caller_account';
+    END IF;
+    IF NOT has_function_privilege(
+        'service_role',
+        'private.proxy_market_caller_account()',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: service_role missing EXECUTE on private.proxy_market_caller_account';
     END IF;
 END;
 $$;

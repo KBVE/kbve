@@ -55,7 +55,9 @@ BEGIN
     END IF;
     -- proxy_market_caller_account relies on a partial-unique invariant
     -- (one user-wallet per auth.uid) so SELECT INTO is safe without
-    -- STRICT. Verify the actual shape, not just an index by name.
+    -- STRICT. Verify the actual shape AND the predicate restricts to
+    -- kind='user' (the column is the wallet.account_kind enum so the
+    -- rendered predicate may show as `(kind = 'user'::...)`).
     IF NOT EXISTS (
         SELECT 1
           FROM pg_index i
@@ -70,6 +72,8 @@ BEGIN
            AND array_length(i.indkey, 1) = 1
            AND a.attname = 'user_id'
            AND i.indpred IS NOT NULL
+           AND pg_get_expr(i.indpred, i.indrelid) LIKE '%kind%'
+           AND pg_get_expr(i.indpred, i.indrelid) LIKE '%user%'
     ) THEN
         RAISE EXCEPTION 'dependency missing: wallet.account partial unique on (user_id) WHERE kind=user';
     END IF;
@@ -104,6 +108,13 @@ $$;
 CREATE SCHEMA IF NOT EXISTS private;
 REVOKE ALL ON SCHEMA private FROM PUBLIC;
 GRANT USAGE ON SCHEMA private TO service_role;
+
+-- Defaults for future objects: any function created in `private` by
+-- service_role automatically has EXECUTE revoked from PUBLIC, so a
+-- future helper can't accidentally inherit anon/authenticated reach
+-- if a future maintainer forgets the explicit REVOKE.
+ALTER DEFAULT PRIVILEGES IN SCHEMA private
+    REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION private.proxy_market_caller_account()
 RETURNS UUID
@@ -418,6 +429,11 @@ BEGIN
     IF p_min_bid IS NOT NULL AND p_min_bid <= 0 THEN
         RAISE EXCEPTION 'min_bid must be positive' USING ERRCODE = '22023';
     END IF;
+    -- v1 intentionally requires an expiry deadline on every listing.
+    -- Non-expiring buy-now listings ARE NOT supported: the
+    -- proxy_market_list_active_readonly browse explicitly filters
+    -- `expires_at > now()`, so a NULL or past expires_at would result
+    -- in a listing that never appears in browse.
     IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
         RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
     END IF;
