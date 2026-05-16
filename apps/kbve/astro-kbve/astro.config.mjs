@@ -216,6 +216,11 @@ export default defineConfig({
 					items: [{ autogenerate: { directory: 'mc' } }],
 				},
 				{
+					label: 'Marketplace',
+					collapsed: true,
+					items: [{ autogenerate: { directory: 'market' } }],
+				},
+				{
 					label: 'Gaming',
 					collapsed: true,
 					items: [
