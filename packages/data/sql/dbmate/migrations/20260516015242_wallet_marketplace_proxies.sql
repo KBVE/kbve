@@ -101,6 +101,14 @@ $$;
 -- bidder_account inside bids) are redacted from the anon surface.
 -- Authenticated my_listings + my_bids proxies return the caller's
 -- own context only, so no extra exposure there.
+--
+-- SQLSTATE namespace (follow-up):
+-- Marketplace domain errors use P1001-P1010 (set in Phase 2). The
+-- P-class is generic; a dedicated MKTxx rename is tracked as a
+-- Phase 2.5 unified-rename migration so the wire contract changes
+-- in one shot across Phase 2 + Phase 3 instead of fragmenting per
+-- migration. Until then, this proxy raises the same P1xxx codes
+-- the service RPCs emit so client error-matching stays single-keyed.
 
 -- ============================================================================
 -- INTERNAL HELPER: resolve auth.uid() → wallet.account.id
