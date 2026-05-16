@@ -360,45 +360,21 @@ data:
               del(.severity)
               del(.project)
 
-          alertmanager_unnest:
-            type: remap
-            inputs:
-              - alertmanager_webhook
-            source: |-
-              # Alertmanager v4 payload: { alerts: [...], commonLabels, status, ... }
-              # Drop the wrapper batch; emit only the array. The next transform
-              # fans it out via Vector's unnest semantics.
-              alerts = array(.alerts) ?? []
-              if length(alerts) == 0 { abort }
-              . = { "alerts": alerts }
-
-          alertmanager_fanout:
-            type: remap
-            inputs:
-              - alertmanager_unnest
-            drop_on_error: true
-            source: |-
-              # Vector remap doesn't natively explode arrays — we keep one
-              # event per webhook here and let the downstream `unnest`
-              # transform spread it. Identity passthrough.
-              .
-
           alertmanager_explode:
             type: lua
             version: "2"
             inputs:
-              - alertmanager_fanout
+              - alertmanager_webhook
+            hooks:
+              process: process_alert_batch
             source: |-
-              function process(event, emit)
+              function process_alert_batch(event, emit)
                 local alerts = event.log.alerts
-                if not alerts then return end
+                if type(alerts) ~= "table" then return end
                 for _, a in ipairs(alerts) do
-                  local out = {}
-                  out.alert = a
-                  emit({ log = out })
+                  emit({ log = { alert = a } })
                 end
               end
-              hooks = { process = process }
 
           alertmanager_flatten:
             type: remap
