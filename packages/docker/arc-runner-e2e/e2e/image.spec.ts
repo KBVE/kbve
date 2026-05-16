@@ -421,3 +421,91 @@ describe('arc-runner image — clock sanity', () => {
 		expect(driftMs).toBeLessThan(60_000);
 	});
 });
+
+describe('arc-runner image — CLI subcommand surfaces', () => {
+	it('gh CLI exposes the api / auth / pr / run subcommands', () => {
+		const out = dockerExec("bash -lc 'gh --help'");
+		for (const sub of ['api', 'auth', 'pr', 'run', 'release']) {
+			expect(out).toMatch(new RegExp(`^\\s+${sub}\\b`, 'm'));
+		}
+	});
+
+	it('dbmate exposes the migration lifecycle subcommands', () => {
+		const out = dockerExec("bash -lc 'dbmate --help'");
+		for (const sub of ['up', 'down', 'new', 'rollback', 'status']) {
+			expect(out).toMatch(new RegExp(`^\\s+${sub}\\b`, 'm'));
+		}
+	});
+
+	it('kubectl plugin list runs without erroring on the empty case', () => {
+		// `kubectl plugin list` may exit non-zero when no plugins exist;
+		// the wrapper here normalises to 0 + checks stdout content.
+		const res = dockerExecSafe(
+			"bash -lc 'kubectl plugin list 2>&1 || true'",
+		);
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toMatch(/(no plugins|unable to find)/i);
+	});
+});
+
+describe('arc-runner image — base image identity', () => {
+	it('/etc/os-release identifies the image as Ubuntu', () => {
+		const out = dockerExec("bash -lc 'grep ^ID= /etc/os-release'");
+		expect(out).toBe('ID=ubuntu');
+	});
+
+	it('Ubuntu version is at least 22.04 LTS', () => {
+		const raw = dockerExec(
+			"bash -lc 'grep ^VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d \\\"'",
+		);
+		const [major] = raw.split('.').map((n) => Number.parseInt(n, 10));
+		expect(major).toBeGreaterThanOrEqual(22);
+	});
+
+	it('CA bundle has at least 100 certificates installed', () => {
+		const out = dockerExec(
+			'bash -lc \'ls /etc/ssl/certs | grep -c ".pem\\|.crt"\'',
+		);
+		expect(Number.parseInt(out, 10)).toBeGreaterThanOrEqual(100);
+	});
+
+	it('runs in the UTC timezone', () => {
+		// Container date is already covered by the clock-sanity block.
+		// This locks the TZ identifier itself so logs + timestamps
+		// from inside the runner stay consistent with everything else
+		// in the cluster (all KBVE workloads use UTC).
+		const out = dockerExec("bash -lc 'date +%Z'");
+		expect(out).toBe('UTC');
+	});
+});
+
+describe('arc-runner image — workflow shell glue', () => {
+	it('common coreutils + shell tools are on PATH', () => {
+		// Any one missing breaks a wide swath of `run:` shell steps.
+		const out = dockerExecScript(`
+			for bin in bash sed awk grep find xargs sha256sum base64 printf cut tr head tail wc sort uniq; do
+				command -v "$bin" >/dev/null || { echo "MISSING:$bin"; exit 1; }
+			done
+			echo ok
+		`);
+		expect(out).toBe('ok');
+	});
+
+	it('runner pod has no docker CLI bound directly (DOCKER_HOST goes to DinD)', () => {
+		// Architectural assertion: the pod talks to dockerd in the DinD
+		// sidecar via tcp://localhost:2376, not via a local docker
+		// binary + unix socket. A future bake that installs the docker
+		// CLI in this image would hide that contract and let workflows
+		// silently fall through to a non-existent local daemon.
+		const res = dockerExecSafe("bash -lc 'command -v docker || true'");
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toBe('');
+	});
+
+	it('runner user can create /home/runner/_work (where jobs check out repos)', () => {
+		const out = dockerExecScript(`
+			su -s /bin/bash runner -c 'mkdir -p /home/runner/_work/probe && echo ok > /home/runner/_work/probe/p && cat /home/runner/_work/probe/p && rm -rf /home/runner/_work/probe'
+		`);
+		expect(out).toBe('ok');
+	});
+});
