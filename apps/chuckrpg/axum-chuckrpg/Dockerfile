@@ -50,11 +50,12 @@ RUN find . -type f \( \
         -name "*.xml" -o \
         -name "*.txt" -o \
         -name "*.html" \
-    \) -exec sh -c ' \
+    \) -print0 | \
+    xargs -0 -P "$(nproc)" -n 1 sh -c ' \
         gzip -9 -k "$1" && \
-        brotli --best --keep "$1" \
-    ' _ {} \; && \
-    echo "Precompression complete (brotli-11 + gzip-9)"
+        brotli -q 9 --keep "$1" \
+    ' _ && \
+    echo "Precompression complete (brotli-9 + gzip-9, parallel x $(nproc))"
 
 # ============================================================================
 # [STAGE C] - Cargo Chef Planner
