@@ -172,6 +172,7 @@ public final class AuthEventTicker {
                 String uuid = payload.get("player_uuid").getAsString();
                 long credits = payload.get("credits").getAsLong();
                 long khash = payload.get("khash").getAsLong();
+                WalletBalanceCache.put(uuid, credits, khash);
                 ServerPlayerEntity player = findPlayer(server, uuid);
                 if (player != null) {
                     sendBalanceMessage(player, credits, khash);

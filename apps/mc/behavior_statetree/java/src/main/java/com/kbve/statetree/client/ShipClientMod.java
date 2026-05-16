@@ -44,6 +44,19 @@ public class ShipClientMod implements ClientModInitializer {
                 .registerReloadListener(new BBModelLoader());
 
         HandledScreens.register(ShipScreenHandlerTypes.SHIP, ShipScreen::new);
+        HandledScreens.register(
+                com.kbve.statetree.wallet.WalletScreens.HANDLER_TYPE,
+                com.kbve.statetree.wallet.WalletScreen::new);
+
+        com.kbve.statetree.wallet.WalletCapabilityPayload.registerClientCodec();
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN
+                .register((handler, sender, client) -> {
+                    if (ClientPlayNetworking.canSend(
+                            com.kbve.statetree.wallet.WalletCapabilityPayload.ID)) {
+                        ClientPlayNetworking.send(
+                                new com.kbve.statetree.wallet.WalletCapabilityPayload((byte) 1));
+                    }
+                });
 
         descendKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.behavior_statetree.descend",
