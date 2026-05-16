@@ -31,6 +31,9 @@ const styles = {
 		background: 'var(--sl-color-bg-nav)',
 		padding: '1rem 1.25rem',
 		marginBottom: '1.5rem',
+		minHeight: '152px',
+		display: 'flex',
+		flexDirection: 'column',
 	} as React.CSSProperties,
 	header: {
 		display: 'flex',
