@@ -78,3 +78,11 @@ export {
 	installSyncBusListener,
 	type SyncBusMessage,
 } from './sync-bus';
+
+export {
+	disposeProfileSync,
+	installProfileSync,
+	refreshProfileSyncNow,
+	type AuthEventLike,
+	type ProfileSyncOptions,
+} from './profile-sync';
