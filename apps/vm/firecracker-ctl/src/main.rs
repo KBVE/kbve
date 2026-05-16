@@ -22,6 +22,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+mod billing;
 mod openapi;
 mod persistent;
 mod tap;
