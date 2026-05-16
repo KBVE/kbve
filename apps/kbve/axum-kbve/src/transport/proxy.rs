@@ -622,6 +622,10 @@ pub struct ClickHouseLogsRequest {
     /// always return up to 200 rows regardless of this value.
     #[serde(default)]
     pub limit: Option<u32>,
+    /// Time-bucket width in seconds for `rows_request_rate`. Defaults to 30,
+    /// clamped 5..=3600. Ignored by other commands.
+    #[serde(default)]
+    pub bucket_seconds: Option<u32>,
 }
 
 /// Response shape for the ClickHouse logs route. `rows` is the raw
@@ -699,12 +703,43 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
             };
             ch_logs::run_stats(config, &params).await
         }
+        "rows_request_rate" => {
+            let params = ch_logs::RowsRequestRateParams {
+                minutes: req.minutes,
+                bucket_seconds: req.bucket_seconds,
+            };
+            ch_logs::run_rows_request_rate(config, &params).await
+        }
+        "rows_status_histogram" => {
+            let params = ch_logs::RowsStatusHistogramParams {
+                minutes: req.minutes,
+            };
+            ch_logs::run_rows_status_histogram(config, &params).await
+        }
+        "rows_top_endpoints" => {
+            let params = ch_logs::RowsTopEndpointsParams {
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_logs::run_rows_top_endpoints(config, &params).await
+        }
+        "rows_errors" => {
+            let params = ch_logs::RowsErrorsParams {
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_logs::run_rows_errors(config, &params).await
+        }
         other => {
             return (
                 StatusCode::BAD_REQUEST,
-                axum::Json(
-                    json!({"error": format!("unknown command '{other}', expected 'query' or 'stats'")}),
-                ),
+                axum::Json(json!({
+                    "error": format!(
+                        "unknown command '{other}', expected one of: \
+                         query, stats, rows_request_rate, rows_status_histogram, \
+                         rows_top_endpoints, rows_errors"
+                    )
+                })),
             )
                 .into_response();
         }
