@@ -245,8 +245,10 @@ struct EndpointMetrics {
     upstream_errors: AtomicU64,
     bytes_in: AtomicU64,
     bytes_out: AtomicU64,
-    /// 0 = never seen traffic. Otherwise micros since start.
     last_request_micros: AtomicI64,
+    accumulated_credits: AtomicU64,
+    last_meter_micros: AtomicI64,
+    last_meter_requests_total: AtomicU64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, ToSchema)]
@@ -258,6 +260,7 @@ pub struct EndpointMetricsSnapshot {
     pub bytes_in: u64,
     pub bytes_out: u64,
     pub last_request_age_secs: Option<u64>,
+    pub accumulated_credits: u64,
 }
 
 /// Lock-free token bucket. Stores milli-tokens so sub-1 RPS rates round
@@ -351,10 +354,15 @@ pub struct PersistentEndpointInfo {
     http_config: EndpointHttpConfig,
     idle_ttl_secs: u32,
     metrics: EndpointMetricsSnapshot,
+    sku: billing::Sku,
+    credits_per_sec: u64,
+    credits_per_1k_requests: u64,
 }
 
 impl PersistentEndpointInfo {
     fn from(ep: &PersistentEndpoint) -> Self {
+        let sku = billing::sku_for(ep.vcpu_count, ep.mem_size_mib);
+        let r = billing::rate(sku);
         Self {
             name: ep.name.clone(),
             rootfs: ep.rootfs.clone(),
@@ -373,6 +381,9 @@ impl PersistentEndpointInfo {
             http_config: ep.http_config.clone(),
             idle_ttl_secs: ep.idle_ttl_secs,
             metrics: ep.metrics.snapshot(),
+            sku,
+            credits_per_sec: r.credits_per_sec,
+            credits_per_1k_requests: r.credits_per_1k_requests,
         }
     }
 }
@@ -393,6 +404,7 @@ impl EndpointMetrics {
             bytes_in: self.bytes_in.load(Ordering::Relaxed),
             bytes_out: self.bytes_out.load(Ordering::Relaxed),
             last_request_age_secs,
+            accumulated_credits: self.accumulated_credits.load(Ordering::Relaxed),
         }
     }
 }
@@ -1225,6 +1237,8 @@ async fn fc_destroy(
         );
     };
 
+    accumulate_meter(&endpoint, now_micros());
+
     // SIGTERM the VMM process so the guest can shut down. We use `kill(2)`
     // via libc since we handed the Child off to the background watcher —
     // only the PID is left.
@@ -1251,9 +1265,30 @@ async fn fc_destroy(
     (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
-/// Tear down endpoints whose `idle_ttl_secs` expired (no traffic in that
-/// window). Endpoints that never saw traffic measure from `created`. TTL=0
-/// disables the sweep for that endpoint.
+fn accumulate_meter(ep: &PersistentEndpoint, now: i64) {
+    let last = ep.metrics.last_meter_micros.swap(now, Ordering::Relaxed);
+    if last == 0 {
+        ep.metrics.last_meter_requests_total.store(
+            ep.metrics.requests_total.load(Ordering::Relaxed),
+            Ordering::Relaxed,
+        );
+        return;
+    }
+    let elapsed_secs = ((now - last).max(0) / 1_000_000) as u64;
+    let cur_reqs = ep.metrics.requests_total.load(Ordering::Relaxed);
+    let last_reqs = ep
+        .metrics
+        .last_meter_requests_total
+        .swap(cur_reqs, Ordering::Relaxed);
+    let req_delta = cur_reqs.saturating_sub(last_reqs);
+    let cost = billing::meter_tick(ep.vcpu_count, ep.mem_size_mib, elapsed_secs, req_delta);
+    if cost > 0 {
+        ep.metrics
+            .accumulated_credits
+            .fetch_add(cost, Ordering::Relaxed);
+    }
+}
+
 async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration) {
     let mut ticker = tokio::time::interval(interval);
     ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
@@ -1263,6 +1298,7 @@ async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration)
         let mut to_kill: Vec<String> = Vec::new();
         for entry in persistent.endpoints.iter() {
             let ep = entry.value();
+            accumulate_meter(ep, now);
             if ep.idle_ttl_secs == 0 {
                 continue;
             }
@@ -3360,6 +3396,7 @@ mod tests {
         assert_eq!(s.bytes_in, 0);
         assert_eq!(s.bytes_out, 0);
         assert_eq!(s.last_request_age_secs, None);
+        assert_eq!(s.accumulated_credits, 0);
     }
 
     #[test]
@@ -4295,6 +4332,47 @@ mod tests {
         assert_eq!(v["endpoint"]["name"], "demo");
         assert_eq!(v["endpoint"]["http_port"], port);
         assert_eq!(v["endpoint"]["visibility"], "public");
+        assert!(v["endpoint"]["sku"].is_string());
+        assert!(v["endpoint"]["credits_per_sec"].as_u64().unwrap() > 0);
+        assert_eq!(v["endpoint"]["metrics"]["accumulated_credits"], 0);
+    }
+
+    #[test]
+    fn accumulate_meter_first_call_seeds_without_charging() {
+        let ep = make_endpoint("demo", 9999, EndpointVisibility::Staff, http_cfg());
+        ep.metrics.requests_total.store(42, Ordering::Relaxed);
+        let t = 1_000_000_000_i64;
+        accumulate_meter(&ep, t);
+        assert_eq!(ep.metrics.accumulated_credits.load(Ordering::Relaxed), 0);
+        assert_eq!(
+            ep.metrics.last_meter_requests_total.load(Ordering::Relaxed),
+            42
+        );
+        assert_eq!(ep.metrics.last_meter_micros.load(Ordering::Relaxed), t);
+    }
+
+    #[test]
+    fn accumulate_meter_second_call_charges_for_elapsed_and_requests() {
+        let ep = make_endpoint("demo", 9999, EndpointVisibility::Staff, http_cfg());
+        let t0 = 1_000_000_000_i64;
+        accumulate_meter(&ep, t0);
+        let t1 = t0 + 5_000_000;
+        ep.metrics.requests_total.store(2_000, Ordering::Relaxed);
+        accumulate_meter(&ep, t1);
+        let expected = billing::meter_tick(ep.vcpu_count, ep.mem_size_mib, 5, 2_000);
+        assert_eq!(
+            ep.metrics.accumulated_credits.load(Ordering::Relaxed),
+            expected
+        );
+    }
+
+    #[test]
+    fn accumulate_meter_zero_elapsed_zero_delta_is_noop_after_seed() {
+        let ep = make_endpoint("demo", 9999, EndpointVisibility::Staff, http_cfg());
+        let t = 1_000_000_000_i64;
+        accumulate_meter(&ep, t);
+        accumulate_meter(&ep, t);
+        assert_eq!(ep.metrics.accumulated_credits.load(Ordering::Relaxed), 0);
     }
 
     #[tokio::test]
