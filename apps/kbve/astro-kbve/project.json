@@ -30,13 +30,15 @@
 		"build": {
 			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-kbve"],
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": [
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
 				],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"build:osrs": {
 			"dependsOn": ["proto"],
@@ -72,14 +74,16 @@
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"command": "vitest run --config vitest.config.ts"
-			}
+			},
+			"cache": true
 		},
 		"sync": {
 			"executor": "nx:run-commands",

@@ -33,13 +33,15 @@
 		"build": {
 			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-memes"],
 			"options": {
 				"cwd": "apps/memes/astro-memes",
 				"commands": [
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 				],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"preview": {
 			"dependsOn": [
@@ -62,7 +64,8 @@
 				"cwd": "apps/memes/astro-memes",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"sync": {
 			"executor": "nx:run-commands",
@@ -77,7 +80,8 @@
 			"options": {
 				"cwd": "apps/memes/astro-memes",
 				"command": "vitest run --config vitest.config.ts"
-			}
+			},
+			"cache": true
 		}
 	}
 }

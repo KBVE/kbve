@@ -19,12 +19,14 @@
 		},
 		"build": {
 			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-discordsh"],
 			"options": {
 				"commands": [
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build --root apps/discordsh/astro-discordsh"
 				],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"preview": {
 			"dependsOn": [
@@ -46,7 +48,8 @@
 				"cwd": "apps/discordsh/astro-discordsh",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"sync": {
 			"executor": "nx:run-commands",
