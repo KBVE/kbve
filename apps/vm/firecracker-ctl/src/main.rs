@@ -174,8 +174,7 @@ pub enum EndpointStatus {
     Stopping,
 }
 
-/// Whether an endpoint is reachable from the public `/fc/public/{name}/*`
-/// path (no JWT) or only via the staff-gated `/fc/{name}/*` path.
+/// `staff` (default, JWT-gated) or `public` (anonymous via `/fc/public/`).
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum EndpointVisibility {
@@ -184,13 +183,10 @@ pub enum EndpointVisibility {
     Public,
 }
 
-/// CORS + request-header policy attached to a persistent endpoint. Only the
-/// public tier evaluates the CORS fields; `inject_request_headers` is applied
-/// on both tiers. Hard caps live in [`validate_http_config`].
+/// CORS + header injection + rate limit. CORS fields apply to the public
+/// tier only. Caps enforced by [`validate_http_config`].
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct EndpointHttpConfig {
-    /// Origins allowed for cross-origin requests on `/fc/public/{name}/*`.
-    /// Use `["*"]` to allow any origin. Empty disables CORS handling.
     #[serde(default)]
     pub cors_allow_origins: Vec<String>,
     #[serde(default)]
@@ -201,20 +197,15 @@ pub struct EndpointHttpConfig {
     pub cors_max_age_secs: u32,
     #[serde(default)]
     pub cors_allow_credentials: bool,
-    /// Header name -> value pairs injected into every upstream request
-    /// before forwarding to the guest. Intended for endpoint-scoped
-    /// identity headers (e.g. `X-Endpoint-Name`, `X-Tenant-Id`). Reserved
-    /// hop-by-hop / framing headers are rejected at deploy time.
+    /// Headers added to every upstream request before forwarding to the
+    /// guest. Reserved framing / auth names rejected at deploy time.
     #[serde(default)]
     pub inject_request_headers: std::collections::BTreeMap<String, String>,
-    /// Per-endpoint global token bucket. Applies only to the public tier.
-    /// `requests_per_sec = 0` (default) disables rate limiting.
+    /// `requests_per_sec = 0` disables rate limiting.
     #[serde(default)]
     pub rate_limit: RateLimitConfig,
 }
 
-/// Per-endpoint global token bucket. Burst defaults to one second of capacity
-/// when omitted. Validated by [`validate_http_config`].
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct RateLimitConfig {
     #[serde(default)]
@@ -1073,11 +1064,9 @@ async fn fc_deploy(
     )
 }
 
-/// Polls the guest's health endpoint until it answers with 2xx, then flips
-/// status `Starting` → `Healthy`. After that, keeps probing on the same
-/// cadence and flips back to `Degraded` on consecutive failures; recovers
-/// to `Healthy` on a successful probe. Exits when the registry entry is
-/// removed or its status reaches `Stopping`.
+/// Polls the guest health path on 2s cadence. First 2xx flips
+/// `Starting` → `Healthy`; 3 consecutive failures from `Healthy` flip to
+/// `Degraded`; next 2xx recovers. Exits on registry removal or `Stopping`.
 async fn health_prober_task(persistent: Arc<PersistentState>, name: String) {
     const PROBE_INTERVAL: Duration = Duration::from_secs(2);
     const DEGRADE_AFTER_FAILS: u32 = 3;
@@ -1261,10 +1250,9 @@ async fn fc_destroy(
     (StatusCode::OK, Json(serde_json::json!({"removed": name})))
 }
 
-/// Scan the registry every `interval`, remove endpoints whose
-/// `idle_ttl_secs` expired (no traffic seen in that window). Endpoints
-/// with `idle_ttl_secs == 0` are skipped. Endpoints that have never been
-/// hit are measured from `created`, not `last_request_micros`.
+/// Tear down endpoints whose `idle_ttl_secs` expired (no traffic in that
+/// window). Endpoints that never saw traffic measure from `created`. TTL=0
+/// disables the sweep for that endpoint.
 async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration) {
     let mut ticker = tokio::time::interval(interval);
     ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
@@ -1311,12 +1299,9 @@ async fn idle_sweeper_task(persistent: Arc<PersistentState>, interval: Duration)
     }
 }
 
-/// Hop-by-hop headers that must not cross proxy boundaries per RFC 7230 §6.1.
-/// `accept-encoding` is stripped on the request side so upstream never
-/// compresses — reqwest would transparently decode and the content-length
-/// wouldn't match what we forward. On the response side we also drop
-/// `content-encoding` since reqwest's own Content-Encoding decoding
-/// (when enabled) would otherwise mismatch the bytes we relay.
+/// RFC 7230 §6.1 hop-by-hop headers — never cross proxy boundaries. We also
+/// strip accept-encoding (request) + content-encoding (response) because
+/// reqwest's transparent decoding would mismatch the bytes we relay.
 const HOP_BY_HOP: &[&str] = &[
     "connection",
     "keep-alive",
@@ -1329,24 +1314,10 @@ const HOP_BY_HOP: &[&str] = &[
     "proxy-connection",
 ];
 
-/// Reverse-proxy an HTTP request into the persistent VM identified by `name`.
-///
-/// Flow:
-///   1. Look up the endpoint in the registry (404 if missing).
-///   2. Build `http://{guest_ip}:{http_port}/{tail}?{query}`.
-///   3. Strip hop-by-hop headers from the client request.
-///   4. Issue the upstream request, streaming the request body.
-///   5. Stream the response back, stripping hop-by-hop on the way out.
-///
-/// Error mapping:
-///   - endpoint unknown → 404
-///   - upstream connect failed → 502 (usually: VM not spawned yet, Phase 2e)
-///   - upstream read timed out → 504
-///   - any other reqwest error → 502
-///
-/// WebSocket upgrades are intentionally NOT handled here. Phase 2d covers
-/// regular HTTP + long-poll/SSE; WS upgrade would need a separate handler
-/// that takes `WebSocketUpgrade` and opens a raw TCP stream to the guest.
+/// Reverse-proxy into the persistent VM identified by `name`. Streams
+/// request/response bodies; strips hop-by-hop both ways. WS upgrades are
+/// not handled here — they need a `WebSocketUpgrade` handler that opens a
+/// raw TCP stream to the guest.
 async fn fc_proxy(
     State(state): State<AppState>,
     Path(params): Path<Vec<(String, String)>>,
@@ -1355,10 +1326,8 @@ async fn fc_proxy(
     fc_proxy_inner(state, params, req, false).await
 }
 
-/// Public-tier sibling of [`fc_proxy`]. Forwards `/public-proxy/{name}/{*path}`
-/// into the guest VM only when the endpoint was registered with
-/// `visibility: "public"`. No auth required at this layer — the gate is the
-/// endpoint's visibility flag, which is fixed at deploy time.
+/// Public-tier sibling. Forwards `/public-proxy/{name}/[*path]` only when
+/// the endpoint was deployed `visibility: "public"`; 403 otherwise.
 async fn fc_proxy_public(
     State(state): State<AppState>,
     Path(params): Path<Vec<(String, String)>>,
@@ -1410,8 +1379,7 @@ async fn fc_proxy_inner(
                 )
                     .into_response();
             }
-            // Skip the readiness gate for preflights — they answer inline
-            // without touching the guest, so they're safe before boot.
+            // Preflights skip readiness — they answer inline pre-boot.
             if !is_preflight {
                 match ep.status {
                     EndpointStatus::Starting => {
@@ -1454,8 +1422,7 @@ async fn fc_proxy_inner(
                     EndpointStatus::Pending | EndpointStatus::Healthy => {}
                 }
             }
-            // Preflights bypass the bucket so a flood of CORS probes cannot
-            // starve real traffic; budget is for the actual workload.
+            // Preflights bypass the bucket; budget is for actual workload.
             if require_public && !is_preflight && !ep.rate_limiter.try_acquire() {
                 ep.metrics
                     .requests_throttled
@@ -2463,11 +2430,8 @@ async fn spawn_persistent(
         .await
         .map_err(|e| format!("config write failed: {e}"))?;
 
-    // Inherit stdio. Earlier `piped()` setup was never drained, so the
-    // kernel serial console filled the 64 KiB pipe buffer mid-boot and
-    // the guest hung on the next write — health prober then never saw a
-    // 2xx. With `inherit()` the VM's stdout/stderr flow to
-    // firecracker-ctl's own stdout, which k8s drains via the pod log.
+    // Inherit stdio. `piped()` without a reader fills the 64 KiB pipe
+    // mid-boot and stalls the guest on the next serial write.
     let child = tokio::process::Command::new("firecracker")
         .args(["--api-sock", &socket_path, "--config-file", &config_path])
         .stdout(std::process::Stdio::inherit())
@@ -2860,10 +2824,8 @@ async fn main() {
         .route("/fc/{name}", delete(fc_destroy))
         .route("/proxy/{name}", axum::routing::any(fc_proxy))
         .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
-        // Sibling prefix (not nested under /proxy/) so matchit can't pick
-        // the staff `/proxy/{name}/{*path}` over the public route. Earlier
-        // shape `/proxy/public/{name}` overlapped at depth 2 and the
-        // catch-all swallowed requests as name="public".
+        // Sibling prefix, not nested. `/proxy/public/{name}` overlapped
+        // `/proxy/{name}/{*path}` and matchit kept routing to fc_proxy.
         .route("/public-proxy/{name}", axum::routing::any(fc_proxy_public))
         .route(
             "/public-proxy/{name}/{*path}",
