@@ -7,10 +7,12 @@
 --   wallet.source_kind = 'referral' (20260515220000_wallet_source_kind_referral)
 --   pgcrypto for gen_random_uuid()
 --
--- Custom SQLSTATEs raised by record_click for the Phase 2 axum handler:
---   RFP01 = referral.reward_policy row missing
---   RFT01 = referral target not found / inactive
---   RFU01 = referrer does not have target enabled in user_target
+-- Custom SQLSTATEs raised by this migration's functions for the Phase 2
+-- axum handler:
+--   RFP01  = referral.reward_policy row missing
+--   RFT01  = referral target not found / inactive
+--   RFU01  = referrer does not have target enabled in user_target
+--   RFWA1  = ensure_referrer_account failed to provision a wallet account
 --
 -- Surface (consumed in Phase 2 by axum-kbve):
 --   /referral/@<handle>/             → user's default target
@@ -117,13 +119,25 @@ CREATE TABLE IF NOT EXISTS referral.click (
     -- invariant. wallet.ledger is append-only in practice, so RESTRICT
     -- is the safe default.
     ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Hard invariant: credited iff ledger_id is set. record_click writes
+    -- both together; this CHECK keeps any future writer honest.
+    CONSTRAINT click_credit_ledger_chk
+        CHECK (
+            (credited AND ledger_id IS NOT NULL)
+         OR (NOT credited AND ledger_id IS NULL)
+        )
 );
 CREATE INDEX IF NOT EXISTS click_created_at ON referral.click (created_at);
 -- Hot lookup path for the dedup check inside record_click().
 CREATE INDEX IF NOT EXISTS click_dedup_idx
     ON referral.click (referrer_id, target_slug, ip_hash, created_at DESC)
     WHERE qualified;
+-- One click maps to at most one ledger row. Enforces the
+-- "ledger_id is the wallet credit for THIS click" invariant.
+CREATE UNIQUE INDEX IF NOT EXISTS click_ledger_id_uq
+    ON referral.click (ledger_id)
+    WHERE ledger_id IS NOT NULL;
 COMMENT ON COLUMN referral.click.ip_hash IS
     'HMAC-SHA256(server_secret, ip) — never store raw IP.';
 COMMENT ON COLUMN referral.click.subnet_hash IS
@@ -160,7 +174,9 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $fn$
 BEGIN
-    NEW.updated_at := now();
+    -- statement_timestamp() matches the RPC-side audit semantics
+    -- (record_click also captures statement_timestamp into v_now).
+    NEW.updated_at := statement_timestamp();
     RETURN NEW;
 END;
 $fn$;
@@ -184,8 +200,12 @@ ALTER TABLE referral.user_target     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral.click           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral.reward_policy   ENABLE ROW LEVEL SECURITY;
 
-REVOKE ALL ON ALL TABLES    IN SCHEMA referral FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA referral FROM PUBLIC, anon, authenticated;
+-- Revoke from every role we know about, including service_role. Direct
+-- table SELECT/INSERT/etc must NOT be possible — the only callable surface
+-- is the SECURITY DEFINER functions (which are owned by postgres, not
+-- service_role, so REVOKE here does not affect them).
+REVOKE ALL ON ALL TABLES    IN SCHEMA referral FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA referral FROM PUBLIC, anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
 -- ensure_referrer_account — lazy wallet account provisioning for a brand
@@ -218,6 +238,8 @@ BEGIN
         RETURN v_account_id;
     END IF;
 
+    -- The ON CONFLICT target depends on the partial unique index on
+    -- wallet.account (user_id) WHERE kind = 'user' — a wallet invariant.
     INSERT INTO wallet.account (kind, user_id, created_at)
     VALUES ('user', p_user_id, now())
     ON CONFLICT (user_id) WHERE kind = 'user' DO NOTHING
@@ -227,6 +249,17 @@ BEGIN
         SELECT id INTO v_account_id
           FROM wallet.account
          WHERE kind = 'user' AND user_id = p_user_id;
+    END IF;
+
+    -- Hard safety net: if both insert paths failed (advisory lock + ON
+    -- CONFLICT + fallback SELECT) and we still have no account, refuse
+    -- to insert a balance row keyed on NULL. Custom SQLSTATE so the
+    -- handler can distinguish provisioning failures from generic data
+    -- errors.
+    IF v_account_id IS NULL THEN
+        RAISE EXCEPTION 'failed to provision wallet account for user %',
+                        p_user_id
+            USING ERRCODE = 'RFWA1';
     END IF;
 
     INSERT INTO wallet.balance (account_id)
@@ -289,6 +322,7 @@ SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
+    v_now          TIMESTAMPTZ := statement_timestamp();
     v_policy       referral.reward_policy%ROWTYPE;
     v_target       referral.target%ROWTYPE;
     v_existing_id  BIGINT;
@@ -305,11 +339,23 @@ BEGIN
     IF p_target_slug IS NULL THEN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
-    IF p_ip_hash IS NULL OR octet_length(p_ip_hash) = 0 THEN
-        RAISE EXCEPTION 'ip_hash is required' USING ERRCODE = '22023';
+    -- Normalize slug before it influences the advisory lock key or the
+    -- catalog lookup. Slug-shape constraint on referral.target accepts
+    -- only lowercase + dashes; reject obviously bad input here too.
+    p_target_slug := lower(btrim(p_target_slug));
+    IF p_target_slug = '' THEN
+        RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
-    IF p_subnet_hash IS NULL OR octet_length(p_subnet_hash) = 0 THEN
-        RAISE EXCEPTION 'subnet_hash is required' USING ERRCODE = '22023';
+
+    -- HMAC-SHA256 digests are exactly 32 bytes. Reject anything else so
+    -- malformed (or empty) hashes cannot poison the dedup table.
+    IF p_ip_hash IS NULL OR octet_length(p_ip_hash) <> 32 THEN
+        RAISE EXCEPTION 'ip_hash must be a 32-byte HMAC-SHA256 digest'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_subnet_hash IS NULL OR octet_length(p_subnet_hash) <> 32 THEN
+        RAISE EXCEPTION 'subnet_hash must be a 32-byte HMAC-SHA256 digest'
+            USING ERRCODE = '22023';
     END IF;
 
     -- Serialize concurrent clicks for the same dedup tuple so the
@@ -359,7 +405,7 @@ BEGIN
        AND c.target_slug = p_target_slug
        AND c.ip_hash     = p_ip_hash
        AND c.qualified
-       AND c.created_at  >= now() - make_interval(days => v_policy.dedup_window_days)
+       AND c.created_at  >= v_now - make_interval(days => v_policy.dedup_window_days)
      ORDER BY c.created_at DESC
      LIMIT 1;
 
@@ -395,6 +441,9 @@ BEGIN
         -- idempotency keys as replays and returns the prior ledger_id.
         v_idem_key := (md5('referral.click:' || v_click_id::TEXT))::UUID;
 
+        -- wallet.service_credit invariant assumed: idempotent on
+        -- p_idempotency_key — re-calling with the same UUID returns
+        -- the prior ledger_id instead of inserting a second row.
         v_ledger_id := wallet.service_credit(
             v_account_id,
             'credits'::wallet.currency_kind,
@@ -467,6 +516,11 @@ AS $fn$
            (p_target_slug IS NOT NULL AND ut.target_slug = p_target_slug)
         OR (p_target_slug IS NULL AND ut.is_default)
        )
+     -- Deterministic tiebreak: prefer the default row, then the most
+     -- recently enabled. The (user_id, is_default WHERE active) partial
+     -- unique index already prevents duplicates; this ORDER BY just
+     -- pins behavior in case the query is reused with a relaxed filter.
+     ORDER BY ut.is_default DESC, ut.enabled_at DESC, ut.target_slug
      LIMIT 1;
 $fn$;
 

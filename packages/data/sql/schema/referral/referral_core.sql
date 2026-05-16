@@ -108,13 +108,22 @@ CREATE TABLE IF NOT EXISTS referral.click (
     -- row; SET NULL would let a stray ledger DELETE silently drift the
     -- invariant. wallet.ledger is append-only in practice.
     ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT click_credit_ledger_chk
+        CHECK (
+            (credited AND ledger_id IS NOT NULL)
+         OR (NOT credited AND ledger_id IS NULL)
+        )
 );
 CREATE INDEX IF NOT EXISTS click_created_at ON referral.click (created_at);
 -- Hot lookup path for the dedup check inside record_click().
 CREATE INDEX IF NOT EXISTS click_dedup_idx
     ON referral.click (referrer_id, target_slug, ip_hash, created_at DESC)
     WHERE qualified;
+-- One click maps to at most one ledger row.
+CREATE UNIQUE INDEX IF NOT EXISTS click_ledger_id_uq
+    ON referral.click (ledger_id)
+    WHERE ledger_id IS NOT NULL;
 
 COMMENT ON COLUMN referral.click.ip_hash IS
     'HMAC-SHA256(server_secret, ip) — never store raw IP.';
@@ -149,7 +158,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $fn$
 BEGIN
-    NEW.updated_at := now();
+    NEW.updated_at := statement_timestamp();
     RETURN NEW;
 END;
 $fn$;
@@ -180,5 +189,8 @@ ALTER TABLE referral.user_target     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral.click           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral.reward_policy   ENABLE ROW LEVEL SECURITY;
 
-REVOKE ALL ON ALL TABLES    IN SCHEMA referral FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA referral FROM PUBLIC, anon, authenticated;
+-- Revoke from service_role too so direct PostgREST table access stays
+-- closed. SECURITY DEFINER functions are owned by postgres and ignore
+-- service_role's table grants entirely.
+REVOKE ALL ON ALL TABLES    IN SCHEMA referral FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA referral FROM PUBLIC, anon, authenticated, service_role;

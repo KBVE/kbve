@@ -163,8 +163,9 @@ END $$;
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
-    ip BYTEA := decode('aabbccddeeff00112233445566778899', 'hex');
-    sn BYTEA := decode('1122334455667788', 'hex');
+    -- 32-byte HMAC-SHA256-shaped fixtures (record_click rejects other sizes).
+    ip BYTEA := decode('aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899', 'hex');
+    sn BYTEA := decode('1122334455667788112233445566778811223344556677881122334455667788', 'hex');
 BEGIN
     BEGIN
         PERFORM * FROM referral.record_click(u, 'rareicon', ip, sn);
@@ -181,8 +182,9 @@ END $$;
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
-    ip BYTEA := decode('aabbccddeeff00112233445566778899', 'hex');
-    sn BYTEA := decode('1122334455667788', 'hex');
+    -- 32-byte HMAC-SHA256-shaped fixtures (record_click rejects other sizes).
+    ip BYTEA := decode('aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899', 'hex');
+    sn BYTEA := decode('1122334455667788112233445566778811223344556677881122334455667788', 'hex');
     r1 RECORD;
     r2 RECORD;
     bal BIGINT;
@@ -255,8 +257,8 @@ END $$;
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
-    ip BYTEA := decode('00112233445566778899aabbccddeeff', 'hex');
-    sn BYTEA := decode('aabbccdd00112233', 'hex');
+    ip BYTEA := decode('00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff', 'hex');
+    sn BYTEA := decode('aabbccdd00112233aabbccdd00112233aabbccdd00112233aabbccdd00112233', 'hex');
     r RECORD;
     bal_before BIGINT;
     bal_after  BIGINT;
@@ -295,26 +297,118 @@ END $$;
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+    ip BYTEA := decode(repeat('cc', 32), 'hex');
+    sn BYTEA := decode(repeat('dd', 32), 'hex');
 BEGIN
     BEGIN
-        PERFORM * FROM referral.record_click(
-            u, 'nope-not-a-target', '\x01'::bytea, '\x01'::bytea
-        );
+        PERFORM * FROM referral.record_click(u, 'nope-not-a-target', ip, sn);
         RAISE EXCEPTION 'fail: unknown target should have raised';
     EXCEPTION WHEN SQLSTATE 'RFT01' THEN
         -- expected
     END;
 END $$;
 
--- Missing required args raise.
+-- NULL referrer raises 22023.
 DO $$
+DECLARE
+    ip BYTEA := decode(repeat('cc', 32), 'hex');
+    sn BYTEA := decode(repeat('dd', 32), 'hex');
 BEGIN
     BEGIN
-        PERFORM * FROM referral.record_click(NULL, 'rareicon', '\x01'::bytea, '\x01'::bytea);
+        PERFORM * FROM referral.record_click(NULL, 'rareicon', ip, sn);
         RAISE EXCEPTION 'fail: NULL referrer should have raised';
     EXCEPTION WHEN SQLSTATE '22023' THEN
         -- expected
     END;
+END $$;
+
+-- Hash-length validation: anything other than 32 bytes raises 22023.
+DO $$
+DECLARE
+    u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+    ip32 BYTEA := decode(repeat('ee', 32), 'hex');
+BEGIN
+    BEGIN
+        PERFORM * FROM referral.record_click(
+            u, 'rareicon', '\x01020304'::bytea, ip32
+        );
+        RAISE EXCEPTION 'fail: 4-byte ip_hash should have raised';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+
+    BEGIN
+        PERFORM * FROM referral.record_click(
+            u, 'rareicon', ip32, '\x0102'::bytea
+        );
+        RAISE EXCEPTION 'fail: 2-byte subnet_hash should have raised';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+END $$;
+
+-- Slug normalization: whitespace + uppercase resolved before lookup.
+DO $$
+DECLARE
+    u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+    ip BYTEA := decode(repeat('ff', 32), 'hex');
+    sn BYTEA := decode(repeat('11', 32), 'hex');
+    r RECORD;
+BEGIN
+    SELECT * INTO r
+      FROM referral.record_click(u, '  RAREICON  ', ip, sn, NULL, NULL, NULL);
+    IF r.target_slug IS DISTINCT FROM 'rareicon' THEN
+        RAISE EXCEPTION 'fail: slug normalization missed: %', r.target_slug;
+    END IF;
+END $$;
+
+-- active/disabled_at invariant: cannot insert active=FALSE without
+-- a disabled_at timestamp.
+DO $$
+DECLARE u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+BEGIN
+    BEGIN
+        INSERT INTO referral.user_target (user_id, target_slug, is_default, active)
+        VALUES (u, 'rareicon', FALSE, FALSE);
+        RAISE EXCEPTION 'fail: active=FALSE without disabled_at should have raised';
+    EXCEPTION WHEN check_violation THEN
+        -- expected
+    END;
+END $$;
+
+-- credited/ledger_id invariant: cannot manually insert a click row
+-- where credited and ledger_id disagree.
+DO $$
+DECLARE
+    u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+    ip BYTEA := decode(repeat('22', 32), 'hex');
+    sn BYTEA := decode(repeat('33', 32), 'hex');
+BEGIN
+    BEGIN
+        INSERT INTO referral.click (
+            referrer_id, target_slug, ip_hash, subnet_hash,
+            qualified, credited, ledger_id
+        ) VALUES (u, 'rareicon', ip, sn, TRUE, TRUE, NULL);
+        RAISE EXCEPTION 'fail: credited=TRUE + ledger_id=NULL should have raised';
+    EXCEPTION WHEN check_violation THEN
+        -- expected
+    END;
+END $$;
+
+-- reward_policy.updated_at auto-bumps on UPDATE via trigger.
+DO $$
+DECLARE
+    ts_before TIMESTAMPTZ;
+    ts_after  TIMESTAMPTZ;
+BEGIN
+    SELECT updated_at INTO ts_before FROM referral.reward_policy WHERE id = 1;
+    PERFORM pg_sleep(0.05);
+    UPDATE referral.reward_policy SET credits_per_click = 11 WHERE id = 1;
+    SELECT updated_at INTO ts_after  FROM referral.reward_policy WHERE id = 1;
+    IF ts_after <= ts_before THEN
+        RAISE EXCEPTION 'fail: reward_policy trigger did not bump updated_at';
+    END IF;
+    UPDATE referral.reward_policy SET credits_per_click = 10 WHERE id = 1;
 END $$;
 
 -- ASSERT_AFTER_DOWN

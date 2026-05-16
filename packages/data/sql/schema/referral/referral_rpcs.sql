@@ -9,11 +9,12 @@
 -- handler holds a service_role JWT and is the only consumer for
 -- Phase 1.
 --
--- Custom SQLSTATEs raised by record_click. Keep this list in sync with
--- the Phase 2 axum error mapper so users see the right 4xx code:
---   RFP01 = referral.reward_policy row missing
---   RFT01 = referral target not found / inactive
---   RFU01 = referrer does not have target enabled in user_target
+-- Custom SQLSTATEs. Keep this list in sync with the Phase 2 axum error
+-- mapper so users see the right 4xx code:
+--   RFP01  = referral.reward_policy row missing
+--   RFT01  = referral target not found / inactive
+--   RFU01  = referrer does not have target enabled in user_target
+--   RFWA1  = ensure_referrer_account failed to provision a wallet account
 --
 -- service_role intentionally holds USAGE on the schema + EXECUTE on
 -- these functions only. It does NOT have direct table privileges; the
@@ -54,6 +55,8 @@ BEGIN
         RETURN v_account_id;
     END IF;
 
+    -- ON CONFLICT target relies on the wallet partial unique index on
+    -- wallet.account (user_id) WHERE kind = 'user'.
     INSERT INTO wallet.account (kind, user_id, created_at)
     VALUES ('user', p_user_id, now())
     ON CONFLICT (user_id) WHERE kind = 'user' DO NOTHING
@@ -63,6 +66,12 @@ BEGIN
         SELECT id INTO v_account_id
           FROM wallet.account
          WHERE kind = 'user' AND user_id = p_user_id;
+    END IF;
+
+    IF v_account_id IS NULL THEN
+        RAISE EXCEPTION 'failed to provision wallet account for user %',
+                        p_user_id
+            USING ERRCODE = 'RFWA1';
     END IF;
 
     INSERT INTO wallet.balance (account_id)
@@ -117,6 +126,7 @@ SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
+    v_now          TIMESTAMPTZ := statement_timestamp();
     v_policy       referral.reward_policy%ROWTYPE;
     v_target       referral.target%ROWTYPE;
     v_existing_id  BIGINT;
@@ -133,11 +143,17 @@ BEGIN
     IF p_target_slug IS NULL THEN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
-    IF p_ip_hash IS NULL OR octet_length(p_ip_hash) = 0 THEN
-        RAISE EXCEPTION 'ip_hash is required' USING ERRCODE = '22023';
+    p_target_slug := lower(btrim(p_target_slug));
+    IF p_target_slug = '' THEN
+        RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
-    IF p_subnet_hash IS NULL OR octet_length(p_subnet_hash) = 0 THEN
-        RAISE EXCEPTION 'subnet_hash is required' USING ERRCODE = '22023';
+    IF p_ip_hash IS NULL OR octet_length(p_ip_hash) <> 32 THEN
+        RAISE EXCEPTION 'ip_hash must be a 32-byte HMAC-SHA256 digest'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_subnet_hash IS NULL OR octet_length(p_subnet_hash) <> 32 THEN
+        RAISE EXCEPTION 'subnet_hash must be a 32-byte HMAC-SHA256 digest'
+            USING ERRCODE = '22023';
     END IF;
 
     PERFORM pg_advisory_xact_lock(
@@ -181,7 +197,7 @@ BEGIN
        AND c.target_slug = p_target_slug
        AND c.ip_hash     = p_ip_hash
        AND c.qualified
-       AND c.created_at  >= now() - make_interval(days => v_policy.dedup_window_days)
+       AND c.created_at  >= v_now - make_interval(days => v_policy.dedup_window_days)
      ORDER BY c.created_at DESC
      LIMIT 1;
 
@@ -210,6 +226,9 @@ BEGIN
 
         v_idem_key := (md5('referral.click:' || v_click_id::TEXT))::UUID;
 
+        -- wallet.service_credit invariant assumed: idempotent on
+        -- p_idempotency_key — re-calling with the same UUID returns the
+        -- prior ledger_id instead of inserting a second row.
         v_ledger_id := wallet.service_credit(
             v_account_id,
             'credits'::wallet.currency_kind,
@@ -276,6 +295,7 @@ AS $fn$
            (p_target_slug IS NOT NULL AND ut.target_slug = p_target_slug)
         OR (p_target_slug IS NULL AND ut.is_default)
        )
+     ORDER BY ut.is_default DESC, ut.enabled_at DESC, ut.target_slug
      LIMIT 1;
 $fn$;
 
