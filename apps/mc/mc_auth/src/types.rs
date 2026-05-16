@@ -22,6 +22,14 @@ pub enum AuthJob {
         player_uuid: String,
         code: i32,
     },
+    LoadPlayerSnapshot {
+        player_uuid: String,
+        server_id: String,
+    },
+    SavePlayerSnapshot {
+        player_uuid: String,
+        snapshot_json: String,
+    },
 }
 
 /// Immediate response returned synchronously from JNI entry points.
@@ -104,5 +112,14 @@ pub enum PlayerEvent {
         player_uuid: String,
         credits: i64,
         khash: i64,
+    },
+    PlayerSnapshotLoaded {
+        player_uuid: String,
+        snapshot_json: Option<String>,
+    },
+    PlayerSnapshotSaved {
+        player_uuid: String,
+        success: bool,
+        error: Option<String>,
     },
 }

@@ -204,6 +204,52 @@ impl SupabaseClient {
             },
         }
     }
+
+    pub async fn save_player_snapshot(&self, snapshot_json: &str) -> Result<(), String> {
+        let client = self
+            .inner
+            .as_ref()
+            .ok_or_else(|| "auth disabled (no supabase env)".to_string())?;
+        let snapshot: serde_json::Value =
+            serde_json::from_str(snapshot_json).map_err(|e| format!("bad snapshot json: {e}"))?;
+        let params = json!({ "p_snapshot": snapshot });
+        let resp = client
+            .rpc_schema("service_save_player", params, "mc")
+            .await
+            .map_err(|e| format!("supa: {e}"))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("http {}: {}", status, truncate(&body, 200)));
+        }
+        Ok(())
+    }
+
+    pub async fn load_player_snapshot(
+        &self,
+        player_uuid: &str,
+        server_id: &str,
+    ) -> Result<Option<String>, String> {
+        let client = self
+            .inner
+            .as_ref()
+            .ok_or_else(|| "auth disabled (no supabase env)".to_string())?;
+        let params = json!({ "p_player_uuid": player_uuid, "p_server_id": server_id });
+        let resp = client
+            .rpc_schema("service_load_player", params, "mc")
+            .await
+            .map_err(|e| format!("supa: {e}"))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("http {}: {}", status, truncate(&body, 200)));
+        }
+        let rows: Vec<serde_json::Value> = resp.json().await.map_err(|e| format!("decode: {e}"))?;
+        match rows.into_iter().next() {
+            Some(row) => Ok(Some(row.to_string())),
+            None => Ok(None),
+        }
+    }
 }
 
 fn truncate(s: &str, n: usize) -> &str {
