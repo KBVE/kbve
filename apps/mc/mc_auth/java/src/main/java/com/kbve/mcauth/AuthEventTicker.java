@@ -6,6 +6,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
@@ -164,6 +168,22 @@ public final class AuthEventTicker {
                 LOGGER.warn("[{}] AuthFailure uuid={} reason={}", McAuthMod.MOD_ID, uuid, reason);
                 break;
             }
+            case "WalletBalance": {
+                String uuid = payload.get("player_uuid").getAsString();
+                long credits = payload.get("credits").getAsLong();
+                long khash = payload.get("khash").getAsLong();
+                ServerPlayerEntity player = findPlayer(server, uuid);
+                if (player != null) {
+                    sendBalanceMessage(player, credits, khash);
+                }
+                LOGGER.debug(
+                        "[{}] WalletBalance uuid={} credits={} khash={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        credits,
+                        khash);
+                break;
+            }
             default:
                 LOGGER.debug("[{}] unknown PlayerEvent variant: {}", McAuthMod.MOD_ID, variant);
         }
@@ -184,13 +204,44 @@ public final class AuthEventTicker {
         }
     }
 
+    private static final String LINK_URL = "https://kbve.com/mc";
+
+    private static String formatThousands(long value) {
+        return java.text.NumberFormat.getInstance(java.util.Locale.US).format(value);
+    }
+
+    private static void sendBalanceMessage(ServerPlayerEntity player, long credits, long khash) {
+        MutableText line = Text.literal("[KBVE] ").formatted(Formatting.GRAY)
+                .append(Text.literal("Credits: ").formatted(Formatting.YELLOW))
+                .append(Text.literal(formatThousands(credits)).formatted(Formatting.WHITE))
+                .append(Text.literal("  ·  ").formatted(Formatting.DARK_GRAY))
+                .append(Text.literal("KHash: ").formatted(Formatting.AQUA))
+                .append(Text.literal(formatThousands(khash)).formatted(Formatting.WHITE));
+        player.sendMessage(line, false);
+    }
+
     private static void sendLinkPrompt(ServerPlayerEntity player, String username) {
+        MutableText url = Text.literal(LINK_URL)
+                .setStyle(Style.EMPTY
+                        .withFormatting(Formatting.AQUA, Formatting.UNDERLINE)
+                        .withClickEvent(new ClickEvent.OpenUrl(java.net.URI.create(LINK_URL)))
+                        .withHoverEvent(new HoverEvent.ShowText(
+                                Text.literal("Open " + LINK_URL))));
+
+        MutableText command = Text.literal("/link <code>")
+                .setStyle(Style.EMPTY
+                        .withFormatting(Formatting.GOLD, Formatting.UNDERLINE)
+                        .withClickEvent(new ClickEvent.SuggestCommand("/link "))
+                        .withHoverEvent(new HoverEvent.ShowText(
+                                Text.literal("Click to pre-fill /link "))));
+
         player.sendMessage(
                 Text.literal("[KBVE] Your account isn't linked yet. Visit ")
                         .formatted(Formatting.YELLOW)
-                        .append(Text.literal("https://kbve.com/mc").formatted(Formatting.AQUA))
-                        .append(Text.literal(" to get a code, then run ").formatted(Formatting.YELLOW))
-                        .append(Text.literal("/link <code>").formatted(Formatting.GOLD))
+                        .append(url)
+                        .append(Text.literal(" to get a code, then run ")
+                                .formatted(Formatting.YELLOW))
+                        .append(command)
                         .append(Text.literal(".").formatted(Formatting.YELLOW)),
                 false);
     }

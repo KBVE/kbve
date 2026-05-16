@@ -49,6 +49,7 @@ enum SourceKind {
   SOURCE_KIND_MARKET_SELL = 7;  // marketplace sale (seller credit)
   SOURCE_KIND_MARKET_FEE  = 8;  // treasury skim on a market trade
   SOURCE_KIND_TRANSFER    = 9;  // generic peer-to-peer transfer
+  SOURCE_KIND_REFERRAL    = 10; // referral.record_click reward (qualified click)
 }
 
 // Coupon template payout dispatcher.

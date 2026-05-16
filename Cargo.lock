@@ -1605,6 +1605,7 @@ dependencies = [
  "dashmap 6.1.0",
  "dotenvy",
  "futures-util",
+ "hmac 0.12.1",
  "http 1.4.0",
  "http-body-util",
  "jedi",
@@ -1627,6 +1628,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
+ "sha2 0.10.9",
  "socket2 0.6.3",
  "thiserror 2.0.18",
  "tikv-jemallocator",
@@ -1680,6 +1682,26 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "axum-prometheus"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd44522c72edf6a45dfdd73ea201937bdaa8610cdf473151f694900837ab3879"
+dependencies = [
+ "axum 0.8.9",
+ "bytes",
+ "futures-core",
+ "http 1.4.0",
+ "http-body 1.0.1",
+ "matchit 0.8.4",
+ "metrics",
+ "metrics-exporter-prometheus",
+ "pin-project-lite",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
 ]
 
 [[package]]
@@ -8489,6 +8511,7 @@ dependencies = [
  "async-trait",
  "axum 0.8.9",
  "axum-extra",
+ "axum-prometheus",
  "bb8",
  "bb8-postgres",
  "bitflags 2.11.0",
@@ -10136,6 +10159,20 @@ checksum = "5d5312e9ba3771cfa961b585728215e3d972c950a3eed9252aa093d6301277e8"
 dependencies = [
  "ahash",
  "portable-atomic",
+]
+
+[[package]]
+name = "metrics-exporter-prometheus"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3589659543c04c7dc5526ec858591015b87cd8746583b51b48ef4353f99dbcda"
+dependencies = [
+ "base64 0.22.1",
+ "indexmap 2.13.1",
+ "metrics",
+ "metrics-util",
+ "quanta",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

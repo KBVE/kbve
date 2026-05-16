@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package referral;
+
+// =============================================================================
+// KBVE Referral — per-user referral links + click log + reward credit
+//
+// Mirrors the `referral` Postgres schema
+// (packages/data/sql/schema/referral/). Phase 1 ships the DB rails only;
+// Phase 2 wires this proto into the axum-kbve handler that hashes the
+// visitor IP and calls referral.record_click().
+//
+// URL surface
+//   /referral/@<handle>/             → user's default target
+//   /referral/@<handle>/<target>/    → specific target from the catalog
+//
+// Privacy note: this proto carries hashed IP material only (raw IPs are
+// never crossed over a wire or written to disk). The handler hashes
+// before constructing the request.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Core entities
+// ---------------------------------------------------------------------------
+
+// Admin-curated redirect destination.
+message Target {
+  string slug         = 1;  // [a-z0-9-]{1,63}
+  string title        = 2;
+  string url          = 3;
+  string description  = 4;
+  bool   active       = 5;
+  string created_at   = 6;  // RFC3339 timestamp
+}
+
+// User opt-in row + default-target slot.
+message UserTarget {
+  string user_id      = 1;  // UUID
+  string target_slug  = 2;
+  bool   is_default   = 3;
+  bool   active       = 4;  // flipping to false disables without losing history
+  string enabled_at   = 5;  // RFC3339 timestamp
+  string disabled_at  = 6;  // RFC3339 timestamp; empty when active = true
+}
+
+// Single-row reward economics.
+message RewardPolicy {
+  int64  credits_per_click  = 1;
+  int32  dedup_window_days  = 2;
+  string updated_at         = 3;  // RFC3339 timestamp
+}
+
+// One row in referral.click. Stored after every HTTP hit.
+message Click {
+  int64  id            = 1;
+  string referrer_id   = 2;  // UUID
+  string target_slug   = 3;
+  bytes  ip_hash       = 4;  // HMAC-SHA256(server_secret, ip)
+  bytes  subnet_hash   = 5;  // HMAC-SHA256(server_secret, /24 or /48 prefix)
+  string user_agent    = 6;  // truncated to 256 chars
+  string referer       = 7;  // truncated to 512 chars
+  string accept_lang   = 8;  // truncated to 64 chars
+  bool   qualified     = 9;  // triggered a credit
+  bool   credited      = 10;
+  int64  ledger_id     = 11; // wallet.ledger.id when credited, else 0
+  string created_at    = 12; // RFC3339 timestamp
+}
+
+// ---------------------------------------------------------------------------
+// RPC envelopes
+// ---------------------------------------------------------------------------
+
+// record_click input. axum-kbve handler builds this, calls the SECURITY
+// DEFINER referral.record_click(...) function in Postgres, and forwards
+// the visitor with a 302 to the returned target_url.
+message RecordClickRequest {
+  string referrer_id   = 1;  // UUID — resolved from @handle by the handler
+  string target_slug   = 2;  // from URL or user default
+  bytes  ip_hash       = 3;
+  bytes  subnet_hash   = 4;
+  string user_agent    = 5;
+  string referer       = 6;
+  string accept_lang   = 7;
+}
+
+message RecordClickResponse {
+  int64  click_id     = 1;
+  string target_slug  = 2;  // resolved slug for log correlation
+  string target_url   = 3;  // 302 destination
+  bool   qualified    = 4;  // first inside dedup window for this tuple
+  bool   credited     = 5;  // wallet.service_credit ran
+  int64  ledger_id    = 6;  // 0 when credited = false
+}
+
+// resolve_user_target input.
+message ResolveUserTargetRequest {
+  string user_id      = 1;  // UUID
+  string target_slug  = 2;  // empty → return user's default
+}
+
+message ResolveUserTargetResponse {
+  string slug    = 1;
+  string title   = 2;
+  string url     = 3;
+  bool   found   = 4;
+}

@@ -102,6 +102,14 @@ async fn main() -> anyhow::Result<()> {
         warn!("Wallet client not configured - /api/v1/wallet routes will 503");
     }
 
+    // Referral client borrows the wallet pool, so this must run after
+    // init_wallet_client.
+    if db::init_referral_client().await {
+        info!("Referral client initialized - /api/v1/referral/* routes enabled");
+    } else {
+        warn!("Referral client not configured - /api/v1/referral/* routes will 503");
+    }
+
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 

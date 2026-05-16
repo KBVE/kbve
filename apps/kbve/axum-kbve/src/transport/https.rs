@@ -351,7 +351,33 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/me/redeem-coupon",
             post(super::wallet::me_redeem_coupon),
         )
+        // Anonymous referral redirect surface. Client IP arrives via the
+        // ingress's X-Forwarded-For / CF-Connecting-IP headers; the
+        // handler hashes them with REFERRAL_HASH_SECRET before any DB
+        // write. Phase 2 backend for /referral/@<handle>/[<slug>]/ on
+        // the astro side.
+        .route(
+            "/api/v1/referral/{handle}",
+            get(super::referral::redirect_default),
+        )
+        .route(
+            "/api/v1/referral/{handle}/{slug}",
+            get(super::referral::redirect_slug),
+        )
+        // Pretty public URL. Same handlers as the API route. Axum matches
+        // routes before falling through to the static resolver, so these
+        // win over any /referral/<...>/index.html that may still ship in
+        // the astro dist.
+        .route("/referral/{handle}", get(super::referral::redirect_default))
+        .route(
+            "/referral/{handle}/{slug}",
+            get(super::referral::redirect_slug),
+        )
         // service_role JWT required; anon / authenticated JWTs are rejected with 403.
+        .route(
+            "/api/v1/wallet/service/balance/{user_id}",
+            get(super::wallet::service_balance),
+        )
         .route(
             "/api/v1/wallet/service/credit",
             post(super::wallet::service_credit),
@@ -380,6 +406,32 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/service/verify-balance/{account_id}",
             get(super::wallet::service_verify_balance),
         )
+        // marketplace — anon browse + authenticated trade/management.
+        .route(
+            "/api/v1/market/listings",
+            get(super::market::list_active).post(super::market::create_listing),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}",
+            get(super::market::listing_detail),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/bid",
+            post(super::market::place_bid),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/buy-now",
+            post(super::market::buy_now),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/cancel",
+            post(super::market::cancel_listing),
+        )
+        .route(
+            "/api/v1/market/me/listings",
+            get(super::market::me_listings),
+        )
+        .route("/api/v1/market/me/bids", get(super::market::me_bids))
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));

@@ -74,6 +74,62 @@ data:
         }
         echo "Table 'observability.logs_distributed' ready."
 
+        echo "Creating alerts_raw table (ReplicatedMergeTree, 30d TTL)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS observability.alerts_raw ON CLUSTER 'cluster'
+        (
+            timestamp       DateTime64(3, 'UTC'),
+            status          LowCardinality(String),
+            alertname       LowCardinality(String),
+            severity        LowCardinality(String) DEFAULT '',
+            namespace       LowCardinality(String) DEFAULT '',
+            pod             String DEFAULT '',
+            service         LowCardinality(String) DEFAULT '',
+            summary         String DEFAULT '',
+            description     String DEFAULT '',
+            labels          String DEFAULT '{}',
+            annotations     String DEFAULT '{}',
+            fingerprint     String,
+            starts_at       DateTime64(3, 'UTC'),
+            ends_at         Nullable(DateTime64(3, 'UTC')),
+            generator_url   String DEFAULT '',
+            source          LowCardinality(String) DEFAULT 'webhook',
+            ingested_at     DateTime64(3, 'UTC') DEFAULT now64(3)
+        )
+        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/alerts_raw', '{replica}')
+        ORDER BY (timestamp, alertname, fingerprint)
+        PARTITION BY toYYYYMMDD(timestamp)
+        TTL toDateTime(timestamp) + INTERVAL 30 DAY
+        " || {
+          echo "ERROR: Failed to create alerts_raw table"
+          exit 1
+        }
+        echo "Table 'observability.alerts_raw' ready."
+
+        echo "Enforcing 30-day TTL on alerts_raw..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "ALTER TABLE observability.alerts_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
+          echo "ERROR: Failed to apply TTL to alerts_raw"
+          exit 1
+        }
+        echo "TTL on 'observability.alerts_raw' enforced at 30 days."
+
+        echo "Creating alerts_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS observability.alerts_distributed ON CLUSTER 'cluster'
+        AS observability.alerts_raw
+        ENGINE = Distributed('cluster', 'observability', 'alerts_raw', cityHash64(fingerprint))
+        " || {
+          echo "ERROR: Failed to create alerts_distributed table"
+          exit 1
+        }
+        echo "Table 'observability.alerts_distributed' ready."
+
         echo ""
         echo "Observability schema setup complete."
 

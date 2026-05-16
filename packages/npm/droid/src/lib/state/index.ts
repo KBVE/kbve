@@ -37,3 +37,44 @@ export {
 
 export { OverlayManager } from './overlay-manager';
 export type { RenderPath } from './overlay-manager';
+
+export {
+	$profileCache,
+	clearProfileCache,
+	fetchAndCacheProfile,
+	fetchProfileFromApi,
+	getProfileFromCache,
+	PROFILE_CACHE_TTL_MS,
+	PROFILE_DEFAULT_API_BASE,
+	readProfileForFastPaint,
+	readSupabaseSessionFromStorage,
+	setProfileCache,
+	type CachedSupabaseSession,
+	type DroidProfile,
+	type FetchProfileOptions,
+	type ProfileCacheEnvelope,
+	type ProfileFastPaintResult,
+} from './profile';
+
+export {
+	$staffPermissions,
+	applyStaffFlagFromCache,
+	bootStaffPermissions,
+	clearStaffPermsCache,
+	fetchAndCacheStaffPermissions,
+	fetchStaffPermissionsFromApi,
+	getStaffPermsFromCache,
+	setStaffPermsCache,
+	STAFF_CACHE_TTL_MS,
+	type FetchStaffPermsOptions,
+	type StaffPermsEnvelope,
+} from './staff';
+
+export {
+	broadcastProfileClear,
+	broadcastProfileRefresh,
+	broadcastStaffClear,
+	broadcastStaffRefresh,
+	installSyncBusListener,
+	type SyncBusMessage,
+} from './sync-bus';

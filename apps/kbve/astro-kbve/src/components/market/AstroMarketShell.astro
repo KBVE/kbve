@@ -1,0 +1,415 @@
+---
+import MarketBrowse from './MarketBrowse';
+import MarketCreateForm from './MarketCreateForm';
+---
+
+<section class="kbve-market not-content">
+	<header class="kbve-market__header">
+		<div>
+			<h1>Marketplace</h1>
+			<p>
+				Player-driven listings settled in KHash. A 1% KBVE Treasury fee
+				applies on every sale. Auction bids hold your KHash in escrow
+				until you're outbid or the listing settles.
+			</p>
+		</div>
+	</header>
+
+	<details class="kbve-market__create">
+		<summary>Create a listing</summary>
+		<MarketCreateForm client:only="react" />
+	</details>
+
+	<h2 class="kbve-market__section">Active Listings</h2>
+	<MarketBrowse client:only="react" />
+</section>
+
+<style is:global>
+	.kbve-market {
+		max-width: 960px;
+		margin: 1.25rem auto 4rem;
+		padding: 0 1rem;
+		color: rgba(255, 255, 255, 0.9);
+	}
+	.kbve-market__header {
+		display: grid;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+	}
+	.kbve-market__header h1 {
+		font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+	.kbve-market__header p {
+		margin: 0;
+		color: rgba(255, 255, 255, 0.65);
+		font-size: 0.95rem;
+		line-height: 1.5;
+	}
+	.kbve-market__section {
+		font-size: 1.25rem;
+		font-weight: 700;
+		margin: 2rem 0 0.75rem;
+	}
+	.kbve-market__create {
+		margin: 1rem 0 1.5rem;
+		padding: 1rem 1.25rem;
+		border-radius: 14px;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	.kbve-market__create summary {
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 1rem;
+	}
+	.kbve-market__list {
+		display: grid;
+		gap: 0.75rem;
+	}
+	.kbve-market__card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 1rem 1.25rem;
+		border-radius: 14px;
+		background: rgba(30, 41, 59, 0.55);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: inherit;
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease;
+	}
+	.kbve-market__card:hover {
+		transform: translateY(-1px);
+		border-color: rgba(96, 165, 250, 0.5);
+	}
+	.kbve-market__card-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.75rem;
+	}
+	.kbve-market__card-item {
+		font-weight: 700;
+	}
+	.kbve-market__card-expiry {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.55);
+	}
+	.kbve-market__card-prices {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.25rem;
+		font-size: 0.9rem;
+	}
+	.kbve-market__price {
+		display: grid;
+		gap: 0.1rem;
+	}
+	.kbve-market__price-label {
+		color: rgba(255, 255, 255, 0.5);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.kbve-market__price-value {
+		font-weight: 600;
+	}
+	.kbve-market__load-more,
+	.kbve-market__btn,
+	.kbve-market__refresh {
+		padding: 0.55rem 1rem;
+		border-radius: 10px;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		background: rgba(255, 255, 255, 0.04);
+		color: inherit;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.15s ease;
+	}
+	.kbve-market__btn:hover,
+	.kbve-market__load-more:hover,
+	.kbve-market__refresh:hover {
+		background: rgba(255, 255, 255, 0.08);
+	}
+	.kbve-market__btn:disabled,
+	.kbve-market__load-more:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.kbve-market__btn--primary {
+		background: rgba(59, 130, 246, 0.2);
+		border-color: rgba(59, 130, 246, 0.6);
+	}
+	.kbve-market__btn--primary:hover {
+		background: rgba(59, 130, 246, 0.35);
+	}
+	.kbve-market__btn--danger {
+		background: rgba(239, 68, 68, 0.15);
+		border-color: rgba(239, 68, 68, 0.55);
+	}
+	.kbve-market__btn--danger:hover {
+		background: rgba(239, 68, 68, 0.3);
+	}
+	.kbve-market__input {
+		padding: 0.5rem 0.75rem;
+		border-radius: 8px;
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		color: inherit;
+		font: inherit;
+	}
+	.kbve-market__status {
+		padding: 0.75rem 1rem;
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.7);
+	}
+	.kbve-market__status--error {
+		background: rgba(239, 68, 68, 0.12);
+		border-color: rgba(239, 68, 68, 0.45);
+		color: rgba(254, 202, 202, 0.95);
+	}
+	.kbve-market__status--ok {
+		background: rgba(34, 197, 94, 0.12);
+		border-color: rgba(34, 197, 94, 0.45);
+		color: rgba(187, 247, 208, 0.95);
+	}
+	.kbve-market__hint {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.55);
+		margin: 0.25rem 0 0;
+	}
+	.kbve-market__detail {
+		display: grid;
+		gap: 1.25rem;
+	}
+	.kbve-market__detail-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+	.kbve-market__detail-item {
+		font-size: 1.4rem;
+		font-weight: 800;
+	}
+	.kbve-market__detail-status {
+		margin-top: 0.35rem;
+		display: flex;
+		gap: 0.6rem;
+		align-items: center;
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.9rem;
+	}
+	.kbve-market__back {
+		color: rgba(255, 255, 255, 0.65);
+		text-decoration: none;
+		font-weight: 600;
+	}
+	.kbve-market__back:hover {
+		color: white;
+	}
+	.kbve-market__badge {
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		background: rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+	}
+	.kbve-market__badge--active {
+		background: rgba(34, 197, 94, 0.18);
+		border-color: rgba(34, 197, 94, 0.5);
+		color: rgb(187, 247, 208);
+	}
+	.kbve-market__badge--sold,
+	.kbve-market__badge--won {
+		background: rgba(59, 130, 246, 0.18);
+		border-color: rgba(59, 130, 246, 0.5);
+		color: rgb(191, 219, 254);
+	}
+	.kbve-market__badge--cancelled,
+	.kbve-market__badge--expired,
+	.kbve-market__badge--refunded,
+	.kbve-market__badge--outbid {
+		background: rgba(148, 163, 184, 0.12);
+		border-color: rgba(148, 163, 184, 0.3);
+		color: rgba(226, 232, 240, 0.85);
+	}
+	.kbve-market__detail-prices {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1rem;
+		margin: 0;
+	}
+	.kbve-market__detail-prices > div {
+		padding: 0.85rem 1rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	.kbve-market__detail-prices dt {
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.55);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.kbve-market__detail-prices dd {
+		margin: 0.25rem 0 0;
+		font-weight: 700;
+	}
+	.kbve-market__actions {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+	.kbve-market__bid-row {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.kbve-market__bid-row .kbve-market__input {
+		flex: 1;
+	}
+	.kbve-market__bids ol {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+	.kbve-market__bids li {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		font-size: 0.9rem;
+	}
+	.kbve-market__bid-meta {
+		color: rgba(255, 255, 255, 0.55);
+		font-size: 0.8rem;
+	}
+	.kbve-market__form {
+		display: grid;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+	.kbve-market__form-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.75rem;
+	}
+	.kbve-market__form label {
+		display: grid;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.7);
+	}
+	.kbve-market__form-actions {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.kbve-market__tabs {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		align-items: center;
+	}
+	.kbve-market__tab {
+		padding: 0.45rem 0.95rem;
+		border-radius: 8px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: transparent;
+		color: rgba(255, 255, 255, 0.65);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.kbve-market__tab--active {
+		background: rgba(59, 130, 246, 0.18);
+		border-color: rgba(59, 130, 246, 0.5);
+		color: white;
+	}
+	.kbve-market__refresh {
+		margin-left: auto;
+		padding: 0.4rem 0.7rem;
+	}
+	.kbve-market-summary {
+		margin-top: 1rem;
+		padding: 1.25rem;
+		border-radius: 16px;
+		background: linear-gradient(
+			145deg,
+			rgba(30, 41, 59, 0.9) 0%,
+			rgba(15, 23, 42, 0.95) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.9);
+	}
+	.kbve-market-summary__head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.85rem;
+	}
+	.kbve-market-summary__head h2 {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 800;
+		letter-spacing: -0.005em;
+	}
+	.kbve-market-summary__link {
+		color: rgba(96, 165, 250, 0.9);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.kbve-market-summary__link:hover {
+		color: white;
+	}
+	.kbve-market-summary__grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.75rem;
+		margin: 0;
+	}
+	.kbve-market-summary__grid > div {
+		padding: 0.6rem 0.75rem;
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.04);
+	}
+	.kbve-market-summary__grid dt {
+		font-size: 0.7rem;
+		color: rgba(255, 255, 255, 0.55);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.kbve-market-summary__grid dd {
+		margin: 0.25rem 0 0;
+		font-weight: 700;
+		font-size: 1.1rem;
+	}
+	.kbve-market-summary__error {
+		margin-top: 0.75rem;
+		font-size: 0.85rem;
+		color: rgba(254, 202, 202, 0.95);
+	}
+	@media (max-width: 540px) {
+		.kbve-market-summary__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+</style>

@@ -79,6 +79,15 @@ pub struct CreditUserResp {
     pub ledger_id: i64,
 }
 
+/// Decodes the `BalanceDto` shape served by `/api/v1/wallet/service/balance/{user_id}`.
+#[derive(Deserialize, Debug, Clone)]
+pub struct BalanceSnapshot {
+    pub account_id: String,
+    pub credits: i64,
+    pub khash: i64,
+    pub updated_at: String,
+}
+
 impl WalletClient {
     /// Read env and build a client. Returns `None` if the integration is
     /// disabled (missing URL or JWT) — caller should log and skip wallet
@@ -177,6 +186,40 @@ impl WalletClient {
 
     pub fn daily_amount(&self) -> i64 {
         self.daily_amount
+    }
+
+    /// Read a linked user's wallet balance via the service-role endpoint.
+    /// Used on player join to surface credits + khash in chat.
+    pub async fn balance_for_user(
+        &self,
+        user_id: &str,
+    ) -> Result<BalanceSnapshot, WalletCallError> {
+        let user_uuid = uuid::Uuid::parse_str(user_id)
+            .map_err(|e| WalletCallError::InvalidUserId(format!("{user_id}: {e}")))?;
+
+        let resp = self
+            .http
+            .get(format!(
+                "{}/api/v1/wallet/service/balance/{}",
+                self.base_url, user_uuid
+            ))
+            .bearer_auth(&self.service_jwt)
+            .send()
+            .await
+            .map_err(|e| WalletCallError::Http(e.to_string()))?;
+
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await.unwrap_or_default();
+            return Err(WalletCallError::Upstream {
+                status: status.as_u16(),
+                body,
+            });
+        }
+
+        resp.json::<BalanceSnapshot>()
+            .await
+            .map_err(|e| WalletCallError::Http(e.to_string()))
     }
 }
 

@@ -8,6 +8,8 @@ pub mod hash;
 pub mod pipe;
 #[cfg(feature = "clickhouse")]
 pub mod pipe_clickhouse;
+#[cfg(feature = "prometheus")]
+pub mod pipe_prometheus;
 pub mod pipe_redis;
 pub mod regex;
 pub mod serde_arc_str;

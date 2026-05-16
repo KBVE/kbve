@@ -148,17 +148,31 @@ async fn main() -> anyhow::Result<()> {
     // WebSocket routes
     let ws_router = ws::router(svc);
 
-    // Multiplex: gRPC + REST + WebSocket on single port (public)
+    let (prom_layer, prom_handle) = jedi::entity::pipe_prometheus::build_metrics_layer("rows");
+
     let app = rest_router
         .merge(ws_router)
         .merge(grpc_router.into_axum_router())
+        .layer(prom_layer)
         .layer(axum::middleware::from_fn(trace::request_trace))
         .layer(TimeoutLayer::with_status_code(
             http::StatusCode::GATEWAY_TIMEOUT,
             std::time::Duration::from_secs(90),
-        )) // 90s global request timeout → 504
-        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB max body
+        ))
+        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024))
         .layer(CorsLayer::permissive());
+
+    let metrics_port: u16 = std::env::var("METRICS_PORT")
+        .unwrap_or_else(|_| "4324".into())
+        .parse()
+        .unwrap_or(4324);
+    tokio::spawn(jedi::entity::pipe_prometheus::serve_metrics(
+        jedi::entity::pipe_prometheus::MetricsConfig {
+            service_name: "rows",
+            port: metrics_port,
+        },
+        prom_handle,
+    ));
 
     // Swagger UI on internal-only port (not exposed via HTTPRoute/gateway)
     let docs_port: u16 = std::env::var("DOCS_PORT")

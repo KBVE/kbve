@@ -1,6 +1,18 @@
-import { setAuth, AuthPresets } from '@kbve/droid';
-import { kbveApi } from '@kbve/devops';
-import { initSupa, getSupa } from '@/lib/supa';
+import {
+	setAuth,
+	AuthPresets,
+	applyStaffFlagFromCache,
+	bootStaffPermissions,
+	clearProfileCache as clearDroidProfileCache,
+	clearStaffPermsCache,
+	fetchAndCacheProfile,
+	getProfileFromCache,
+	installSyncBusListener,
+	readProfileForFastPaint,
+	setProfileCache as setDroidProfileCache,
+	type DroidProfile,
+} from '@kbve/droid';
+import { initSupa, getSupa, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supa';
 import {
 	bootMinecraftCard,
 	clearMinecraftCardCache,
@@ -9,8 +21,6 @@ import {
 // ── Constants ───────────────────────────────────────────────────────────────
 
 const INIT_TIMEOUT_MS = 12_000;
-const PROFILE_CACHE_KEY = 'cache:profile:me';
-const CACHE_TTL_MS = 5 * 60 * 1000;
 const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
 
 // ── Element IDs (must match AstroProfileShell.astro) ────────────────────────
@@ -36,20 +46,7 @@ const IDs = {
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-interface ApiProfile {
-	username: string;
-	user_id: string;
-	email?: string;
-	profile_exists: boolean;
-	discord?: {
-		username?: string;
-		avatar_url?: string;
-		is_guild_member?: boolean;
-	};
-	github?: { username?: string; avatar_url?: string };
-	twitch?: { username?: string; avatar_url?: string; is_live?: boolean };
-	connected_providers?: string[];
-}
+type ApiProfile = DroidProfile;
 
 // ── DOM helpers ─────────────────────────────────────────────────────────────
 
@@ -83,81 +80,37 @@ function switchState(
 	}
 }
 
-// ── Cache ───────────────────────────────────────────────────────────────────
-
-function getCachedProfile(userId: string): ApiProfile | null {
-	try {
-		const raw = localStorage.getItem(PROFILE_CACHE_KEY);
-		if (!raw) return null;
-		const cached = JSON.parse(raw);
-		if (cached.user_id !== userId) return null;
-		if (Date.now() - cached.cached_at > CACHE_TTL_MS) return null;
-		return cached.profile;
-	} catch {
-		return null;
-	}
-}
-
-function setCachedProfile(profile: ApiProfile) {
-	try {
-		localStorage.setItem(
-			PROFILE_CACHE_KEY,
-			JSON.stringify({
-				profile,
-				cached_at: Date.now(),
-				user_id: profile.user_id,
-			}),
-		);
-	} catch {
-		/* best effort */
-	}
-}
+// ── Cache (delegates to @kbve/droid) ────────────────────────────────────────
 
 function clearProfileCache() {
+	clearDroidProfileCache();
+	clearStaffPermsCache();
 	try {
-		localStorage.removeItem(PROFILE_CACHE_KEY);
 		clearMinecraftCardCache();
 	} catch {
 		/* best effort */
 	}
 }
 
-// ── Profile API ─────────────────────────────────────────────────────────────
-
 async function fetchProfile(token: string): Promise<ApiProfile | null> {
-	try {
-		const { data, error, response } = await kbveApi.GET(
-			'/api/v1/profile/me',
-			{ headers: { Authorization: `Bearer ${token}` } },
-		);
-		if (error !== undefined || !response.ok || !data) return null;
-		const profile = data as unknown as ApiProfile;
-		setCachedProfile(profile);
-		return profile;
-	} catch {
-		return null;
-	}
+	return fetchAndCacheProfile({ token, apiBase: window.location.origin });
 }
 
 // ── Staff permissions check ─────────────────────────────────────────────────
 
 /**
- * Call the Supabase staff_permissions RPC to check if the user has
- * dashboard access. Updates the global $auth flags so dashboard panels
- * (Grafana, ArgoCD, ClickHouse, etc.) become visible.
+ * Boot staff permissions via the droid cache: synchronously apply the
+ * cached bitmask to `$auth` (paints staff-only panels instantly on a
+ * warm cache) and kick off a background refresh that updates the
+ * persistent atom for the next paint.
  */
-async function fetchStaffFlags(_token: string): Promise<void> {
-	try {
-		const supa = getSupa();
-		const data = await supa.rpc('staff_permissions');
-		// data is the integer bitmask from the RPC
-		const perms = typeof data === 'number' ? data : 0;
-		if (perms > 0) {
-			setAuth({ flags: AuthPresets.STAFF });
-		}
-	} catch {
-		// Non-critical — staff panels just won't show
-	}
+function bootStaff(userId: string, token: string): void {
+	bootStaffPermissions({
+		userId,
+		token,
+		apikey: SUPABASE_ANON_KEY,
+		supabaseUrl: SUPABASE_URL,
+	});
 }
 
 // ── Populate profile card slots ─────────────────────────────────────────────
@@ -366,11 +319,11 @@ async function handleSession(session: any) {
 		avatar: session.user.user_metadata?.avatar_url,
 	});
 
-	// Check staff permissions via Supabase RPC (non-blocking for UI)
-	fetchStaffFlags(token).catch(() => {});
+	// Apply cached staff flag synchronously, refresh in background.
+	bootStaff(userId, token);
 
 	// Cache-first for instant display
-	const cached = getCachedProfile(userId);
+	const cached = getProfileFromCache(userId);
 	if (cached?.username) {
 		populateProfile(cached, session);
 		switchState('profile');
@@ -393,7 +346,7 @@ async function handleSession(session: any) {
 					username: newUsername,
 					profile_exists: true,
 				};
-				setCachedProfile(updated);
+				setDroidProfileCache(updated);
 				populateProfile(updated, session);
 				setAuth({ username: newUsername });
 				switchState('profile');
@@ -417,6 +370,49 @@ export async function bootProfile() {
 	switchState('loading');
 	wireLogout();
 
+	// Subscribe to the cross-context cache bus so a service worker /
+	// shared worker can push a profile or staff refresh into the
+	// persistent stores. Idempotent — safe to call repeatedly.
+	installSyncBusListener();
+
+	// Fast paint: read session + cached profile straight from localStorage
+	// before awaiting the Supabase SharedWorker init. With a warm cache the
+	// profile card paints in tens of ms instead of the multi-second
+	// initSupa round-trip (#11075).
+	const fastPaint = readProfileForFastPaint();
+	let painted = false;
+	if (fastPaint && fastPaint.profile.username) {
+		const fpUserId = fastPaint.session.user?.id;
+		populateProfile(fastPaint.profile, fastPaint.session);
+		switchState('profile');
+		painted = true;
+		if (fpUserId) {
+			// Paint USER flags immediately so the staff cache can lift them
+			// to STAFF without flicker, then paint cached staff state.
+			setAuth({
+				tone: 'auth',
+				flags: AuthPresets.USER,
+				id: fpUserId,
+				name:
+					((
+						fastPaint.session.user?.user_metadata as
+							| Record<string, unknown>
+							| undefined
+					)?.full_name as string | undefined) ?? '',
+				avatar: (
+					fastPaint.session.user?.user_metadata as
+						| Record<string, unknown>
+						| undefined
+				)?.avatar_url as string | undefined,
+			});
+			applyStaffFlagFromCache(fpUserId);
+		}
+		const fpToken = fastPaint.session.access_token;
+		if (fpUserId && fpToken) {
+			bootMinecraftCard(fpUserId, fpToken).catch(() => {});
+		}
+	}
+
 	// Init with timeout — never hang forever
 	try {
 		await Promise.race([
@@ -429,7 +425,7 @@ export async function bootProfile() {
 			),
 		]);
 	} catch {
-		switchState('unauth');
+		if (!painted) switchState('unauth');
 		return;
 	}
 
@@ -439,7 +435,7 @@ export async function bootProfile() {
 	const s = await supa.getSession().catch(() => null);
 	const session = s?.session ?? null;
 
-	// Handle current state
+	// Handle current state — refresh whatever the fast paint already showed.
 	await handleSession(session);
 
 	// Listen for auth changes (sign-in / sign-out from other tabs or navbar)
