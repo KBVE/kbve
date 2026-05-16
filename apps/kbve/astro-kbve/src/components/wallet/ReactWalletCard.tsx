@@ -118,12 +118,15 @@ export function ReactWalletCard() {
 	const applyBalance = useCallback(
 		(b: Balance | null) => {
 			if (!shell) return;
-			setShellText(
-				shell,
-				SLOT_CREDITS,
-				b ? formatCompact(b.credits) : '—',
-			);
-			setShellText(shell, SLOT_KHASH, b ? formatCompact(b.khash) : '—');
+			// Default is "full" (thousands-separated integer) because the
+			// wallet *card* always wants the exact balance. Only opt-in
+			// "compact" mounts (none today; reserved for any future
+			// tight-space surface) render the short form.
+			const mode = shell.getAttribute('data-kbve-wallet-format');
+			const fmt = (n: number) =>
+				mode === 'compact' ? formatCompact(n) : n.toLocaleString();
+			setShellText(shell, SLOT_CREDITS, b ? fmt(b.credits) : '—');
+			setShellText(shell, SLOT_KHASH, b ? fmt(b.khash) : '—');
 			setShellText(
 				shell,
 				SLOT_UPDATED,
