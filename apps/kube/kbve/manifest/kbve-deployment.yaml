@@ -204,6 +204,19 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url-ro
+                      # HMAC-SHA256 key for the referral handler's IP +
+                      # subnet hashing. Sourced from referral-config in
+                      # this namespace (built by kbve-externalsecret.yaml
+                      # from the kilobase `referral-hash` remote). When
+                      # unset, /api/v1/referral/* and /referral/*
+                      # routes 503 with a warn-log instead of fabricating
+                      # a predictable key.
+                      - name: REFERRAL_HASH_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: referral-config
+                                key: hash-secret
+                                optional: true
                   volumeMounts:
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
