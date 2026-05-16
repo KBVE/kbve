@@ -141,18 +141,36 @@ import MarketCreateForm from './MarketCreateForm';
 		cursor: not-allowed;
 	}
 	.kbve-market__btn--primary {
-		background: rgba(59, 130, 246, 0.2);
-		border-color: rgba(59, 130, 246, 0.6);
+		background: color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 65%,
+			transparent
+		);
+		color: var(--sl-color-white, var(--sl-color-text));
 	}
 	.kbve-market__btn--primary:hover {
-		background: rgba(59, 130, 246, 0.35);
+		background: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
 	}
 	.kbve-market__btn--danger {
-		background: rgba(239, 68, 68, 0.15);
-		border-color: rgba(239, 68, 68, 0.55);
+		background: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 18%,
+			transparent
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 55%,
+			transparent
+		);
+		color: var(--sl-color-white, var(--sl-color-text));
 	}
 	.kbve-market__btn--danger:hover {
-		background: rgba(239, 68, 68, 0.3);
+		background: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 35%,
+			transparent
+		);
 	}
 	.kbve-market__input {
 		padding: 0.5rem 0.75rem;
@@ -226,15 +244,27 @@ import MarketCreateForm from './MarketCreateForm';
 		border: 1px solid rgba(255, 255, 255, 0.15);
 	}
 	.kbve-market__badge--active {
-		background: rgba(34, 197, 94, 0.18);
-		border-color: rgba(34, 197, 94, 0.5);
-		color: rgb(187, 247, 208);
+		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 55%,
+			transparent
+		);
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
 	}
 	.kbve-market__badge--sold,
 	.kbve-market__badge--won {
-		background: rgba(59, 130, 246, 0.18);
-		border-color: rgba(59, 130, 246, 0.5);
-		color: rgb(191, 219, 254);
+		background: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 18%,
+			transparent
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 50%,
+			transparent
+		);
+		color: var(--color-gold-light, var(--sl-color-accent));
 	}
 	.kbve-market__badge--cancelled,
 	.kbve-market__badge--expired,
@@ -410,6 +440,395 @@ import MarketCreateForm from './MarketCreateForm';
 	@media (max-width: 540px) {
 		.kbve-market-summary__grid {
 			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	/* ---- Polish v2: shared icon (themed against Starlight + KBVE brand) ---- */
+	.kbve-item-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 14px;
+		overflow: hidden;
+		flex-shrink: 0;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.kbve-item-icon--mc {
+		background:
+			repeating-linear-gradient(
+				45deg,
+				color-mix(in srgb, var(--sl-color-black) 18%, transparent) 0 6px,
+				transparent 6px 12px
+			),
+			linear-gradient(
+				135deg,
+				var(--sl-color-bg-nav) 0%,
+				var(--sl-color-bg-sidebar) 100%
+			);
+		padding: 8%;
+	}
+	.kbve-item-icon--mc img {
+		display: block;
+		object-fit: contain;
+	}
+	.kbve-item-icon--placeholder {
+		color: var(--sl-color-white, #fff);
+		font-weight: 800;
+		letter-spacing: -0.02em;
+	}
+
+	/* ---- Polish v2: browse grid + filters ---- */
+	.kbve-market__filters {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+		padding: 0.75rem 1rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		flex-wrap: wrap;
+	}
+	.kbve-market__filter {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__filter .kbve-market__input {
+		padding: 0.4rem 0.65rem;
+	}
+	.kbve-market__filter-count {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__filters .kbve-market__refresh {
+		margin-left: auto;
+	}
+	.kbve-market__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 0.9rem;
+	}
+	.kbve-market__grid-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		padding: 1rem;
+		border-radius: 16px;
+		background: linear-gradient(
+			165deg,
+			var(--sl-color-bg-nav) 0%,
+			var(--sl-color-bg) 100%
+		);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: inherit;
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.kbve-market__grid-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 18px 30px -20px
+			color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+	}
+	.kbve-market__grid-icon {
+		display: flex;
+		justify-content: center;
+		padding: 0.6rem 0;
+	}
+	.kbve-market__grid-body {
+		display: grid;
+		gap: 0.4rem;
+	}
+	.kbve-market__grid-title {
+		font-weight: 700;
+		font-size: 0.95rem;
+		word-break: break-word;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.kbve-market__grid-prices {
+		display: flex;
+		gap: 0.85rem;
+		flex-wrap: wrap;
+		font-size: 0.85rem;
+	}
+	.kbve-market__grid-price {
+		display: grid;
+		gap: 0.1rem;
+	}
+	.kbve-market__grid-price-label {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__grid-price-value {
+		font-weight: 700;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__grid-price--primary .kbve-market__grid-price-value {
+		color: var(--sl-color-text-accent);
+	}
+	.kbve-market__grid-expiry {
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.kbve-market__grid-expiry--urgent {
+		color: var(--color-red, var(--sl-color-text-accent));
+		font-weight: 700;
+	}
+	.kbve-market__pagination {
+		margin-top: 1.25rem;
+		display: flex;
+		justify-content: center;
+	}
+
+	/* ---- Polish v2: detail hero + panel ---- */
+	.kbve-market__detail-v2 {
+		display: grid;
+		gap: 1.5rem;
+	}
+	.kbve-market__breadcrumb {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.kbve-market__breadcrumb a {
+		color: var(--sl-color-text);
+		text-decoration: none;
+		font-weight: 600;
+	}
+	.kbve-market__breadcrumb a:hover {
+		color: var(--sl-color-text-accent);
+	}
+	.kbve-market__copy {
+		padding: 0.4rem 0.85rem;
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-text);
+		font-size: 0.85rem;
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.kbve-market__copy:hover {
+		background: var(--sl-color-bg-sidebar);
+		border-color: var(--sl-color-accent);
+	}
+	.kbve-market__hero {
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+		gap: 1.5rem;
+		align-items: start;
+	}
+	.kbve-market__hero-visual {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1.5rem;
+		border-radius: 18px;
+		background:
+			radial-gradient(
+				circle at 20% 0%,
+				color-mix(in srgb, var(--sl-color-accent) 22%, transparent) 0%,
+				transparent 60%
+			),
+			linear-gradient(
+				165deg,
+				var(--sl-color-bg-nav) 0%,
+				var(--sl-color-bg) 100%
+			);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.kbve-market__hero-visual .kbve-item-icon {
+		margin: 0 auto;
+		border-radius: 22px;
+	}
+	.kbve-market__hero-meta {
+		display: flex;
+		gap: 0.45rem;
+		flex-wrap: wrap;
+	}
+	.kbve-market__kind-pill {
+		padding: 0.2rem 0.65rem;
+		border-radius: 999px;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent) 55%, transparent);
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.kbve-market__item-title {
+		margin: 0.25rem 0 0;
+		font-size: clamp(1.4rem, 3vw, 1.85rem);
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.kbve-market__hero-seller,
+	.kbve-market__hero-created {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__hero-seller code {
+		font-size: 0.8rem;
+		padding: 0.05rem 0.4rem;
+		border-radius: 6px;
+		background: var(--sl-color-bg-inline-code);
+		color: var(--sl-color-text);
+	}
+	.kbve-market__panel {
+		display: grid;
+		gap: 1rem;
+		padding: 1.5rem;
+		border-radius: 18px;
+		background: linear-gradient(
+			165deg,
+			var(--sl-color-bg-sidebar) 0%,
+			var(--sl-color-bg) 100%
+		);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		box-shadow: 0 30px 50px -30px
+			color-mix(in srgb, var(--sl-color-black) 60%, transparent);
+		position: sticky;
+		top: 1rem;
+	}
+	.kbve-market__panel-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.kbve-market__panel-countdown {
+		display: grid;
+		gap: 0.15rem;
+	}
+	.kbve-market__panel-label {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__panel-clock {
+		font-size: 1.4rem;
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.kbve-market__panel-clock--urgent {
+		color: var(--color-red, var(--sl-color-text-accent));
+	}
+	.kbve-market__panel-prices {
+		display: grid;
+		gap: 0.6rem;
+	}
+	.kbve-market__panel-price {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		padding: 0.85rem 1rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.kbve-market__panel-price--primary {
+		background: color-mix(
+			in srgb,
+			var(--sl-color-accent) 12%,
+			var(--sl-color-bg-nav)
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 45%,
+			transparent
+		);
+	}
+	.kbve-market__panel-value {
+		font-weight: 800;
+		font-size: 1.15rem;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__panel-price--primary .kbve-market__panel-value {
+		color: var(--sl-color-text-accent);
+	}
+	.kbve-market__panel-actions {
+		display: grid;
+		gap: 0.6rem;
+	}
+	.kbve-market__btn--block {
+		width: 100%;
+		display: block;
+		text-align: center;
+		text-decoration: none;
+		padding: 0.75rem 1rem;
+		font-size: 1rem;
+	}
+	.kbve-market__panel-bid {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.kbve-market__panel-bid .kbve-market__input {
+		flex: 1;
+	}
+	.kbve-market__bids-head {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		margin-bottom: 0.85rem;
+	}
+	.kbve-market__bids-head h3 {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 800;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.kbve-market__bids-count {
+		padding: 0.1rem 0.55rem;
+		border-radius: 999px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.kbve-market__bid-amount {
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__bids-empty {
+		padding: 1.5rem;
+		border-radius: 14px;
+		background: var(--sl-color-bg-nav);
+		border: 1px dashed var(--sl-color-hairline, var(--sl-color-gray-5));
+		text-align: center;
+	}
+	.kbve-market__bids-empty-title {
+		margin: 0;
+		font-weight: 700;
+		font-size: 0.95rem;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__bids-empty-sub {
+		margin: 0.25rem 0 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85rem;
+	}
+	@media (max-width: 720px) {
+		.kbve-market__hero {
+			grid-template-columns: 1fr;
+		}
+		.kbve-market__panel {
+			position: static;
 		}
 	}
 </style>
