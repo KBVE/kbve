@@ -29,6 +29,42 @@
 --   (anon allowed for the public browse pair).
 
 -- ============================================================================
+-- Dependency preflight
+--
+-- Phase 3 proxies require the Phase 2 service RPCs to exist. Fail the
+-- migration with a clear message if a prior phase is missing rather
+-- than letting CREATE FUNCTION compile against a phantom signature.
+-- ============================================================================
+DO $$
+DECLARE
+    v_required TEXT[] := ARRAY[
+        'wallet.service_create_listing(uuid,jsonb,wallet.currency_kind,bigint,bigint,timestamptz,uuid)',
+        'wallet.service_place_bid(bigint,uuid,bigint,uuid)',
+        'wallet.service_buy_now(bigint,uuid,uuid)',
+        'wallet.service_cancel_listing(bigint,uuid,text)'
+    ];
+    v_proc TEXT;
+BEGIN
+    FOREACH v_proc IN ARRAY v_required LOOP
+        IF to_regprocedure(v_proc) IS NULL THEN
+            RAISE EXCEPTION 'dependency missing: % — apply Phase 2 first', v_proc;
+        END IF;
+    END LOOP;
+END;
+$$;
+
+-- Public-exposure note:
+-- proxy_market_list_active_readonly + proxy_market_listing_detail_readonly
+-- are anon-callable. Both return wallet.account UUIDs (seller_account,
+-- current_bid_account, buyer_account, bidder_account inside the bids
+-- array). These UUIDs are random and not directly PII, but they are
+-- stable per-user identifiers that can be cross-referenced across
+-- listings. A future profile-join refactor should replace them with
+-- profile.username + profile.id when the profile schema is wired up;
+-- bid-history visibility for anon callers can also be revisited then
+-- (e.g. show only current high bid).
+
+-- ============================================================================
 -- INTERNAL HELPER: resolve auth.uid() → wallet.account.id
 --
 -- Raises 28000 if unauthenticated, WLT01 if the caller has no wallet
@@ -89,6 +125,13 @@ LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
 DECLARE
     v_limit INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
+    -- Cursor pair must be all-or-nothing; otherwise the keyset
+    -- tie-breaker `id < NULL` silently turns the cursor into a no-op.
+    IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
+
     RETURN QUERY
     SELECT
         l.id, l.seller_account, l.item_ref, l.currency,
@@ -96,6 +139,10 @@ BEGIN
         l.expires_at, l.created_at
       FROM wallet.listing l
      WHERE l.status = 'active'
+       -- Hide listings whose deadline has passed but the cron sweep
+       -- has not yet flipped status. Keeps browse output consistent
+       -- with what users can actually act on.
+       AND l.expires_at > statement_timestamp()
        AND (
            p_before_created_at IS NULL
            OR l.created_at < p_before_created_at
@@ -106,6 +153,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO anon, authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
@@ -144,6 +192,9 @@ DECLARE
     v_listing wallet.listing%ROWTYPE;
     v_bids    JSONB;
 BEGIN
+    IF p_listing_id IS NULL THEN
+        RAISE EXCEPTION 'listing_id is required' USING ERRCODE = '22004';
+    END IF;
     SELECT * INTO v_listing FROM wallet.listing WHERE id = p_listing_id;
     IF v_listing.id IS NULL THEN
         RAISE EXCEPTION 'listing % not found', p_listing_id USING ERRCODE = 'P1001';
@@ -222,6 +273,10 @@ DECLARE
     v_seller UUID := public.proxy_market_caller_account();
     v_limit  INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
+    IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
     RETURN QUERY
     SELECT
         l.id, l.item_ref, l.currency,
@@ -239,6 +294,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
@@ -268,6 +324,10 @@ DECLARE
     v_bidder UUID := public.proxy_market_caller_account();
     v_limit  INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
+    IF (p_before_placed_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_placed_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
     RETURN QUERY
     SELECT
         b.id, b.listing_id, b.amount, b.status AS bid_status, b.placed_at,
@@ -284,6 +344,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
@@ -305,6 +366,15 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_seller UUID := public.proxy_market_caller_account();
 BEGIN
+    -- Reject obviously bad inputs early; Phase 2 service does deeper
+    -- validation but a clean proxy boundary avoids surfacing the
+    -- service-layer NULL errors via the HTTP path.
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key is required' USING ERRCODE = '22004';
+    END IF;
+    IF p_item_ref IS NULL OR jsonb_typeof(p_item_ref) <> 'object' THEN
+        RAISE EXCEPTION 'item_ref must be a JSON object' USING ERRCODE = '22023';
+    END IF;
     RETURN wallet.service_create_listing(
         v_seller, p_item_ref, 'khash'::wallet.currency_kind,
         p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
@@ -331,6 +401,9 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_bidder UUID := public.proxy_market_caller_account();
 BEGIN
+    IF p_listing_id IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'listing_id and idempotency_key are required' USING ERRCODE = '22004';
+    END IF;
     RETURN wallet.service_place_bid(p_listing_id, v_bidder, p_amount, p_idempotency_key);
 END;
 $$;
@@ -353,6 +426,9 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_buyer UUID := public.proxy_market_caller_account();
 BEGIN
+    IF p_listing_id IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'listing_id and idempotency_key are required' USING ERRCODE = '22004';
+    END IF;
     RETURN wallet.service_buy_now(p_listing_id, v_buyer, p_idempotency_key);
 END;
 $$;
@@ -374,8 +450,16 @@ RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_seller UUID := public.proxy_market_caller_account();
+    v_reason TEXT;
 BEGIN
-    PERFORM wallet.service_cancel_listing(p_listing_id, v_seller, p_reason);
+    IF p_listing_id IS NULL THEN
+        RAISE EXCEPTION 'listing_id is required' USING ERRCODE = '22004';
+    END IF;
+    v_reason := NULLIF(btrim(p_reason), '');
+    IF v_reason IS NOT NULL AND length(v_reason) > 500 THEN
+        RAISE EXCEPTION 'reason exceeds 500 chars' USING ERRCODE = '22001';
+    END IF;
+    PERFORM wallet.service_cancel_listing(p_listing_id, v_seller, v_reason);
 END;
 $$;
 ALTER FUNCTION public.proxy_market_cancel_listing(BIGINT, TEXT) OWNER TO service_role;
@@ -398,3 +482,5 @@ DROP FUNCTION IF EXISTS public.proxy_market_my_listings_readonly(INTEGER, TIMEST
 DROP FUNCTION IF EXISTS public.proxy_market_listing_detail_readonly(BIGINT);
 DROP FUNCTION IF EXISTS public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
 DROP FUNCTION IF EXISTS public.proxy_market_caller_account();
+
+NOTIFY pgrst, 'reload schema';
