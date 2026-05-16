@@ -35,7 +35,8 @@ INSERT INTO auth.users (id) VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1');
 
 -- ASSERT_AFTER_UP
 
--- Catalog seed exists with both shipped targets.
+-- Catalog seed exists with both shipped targets, AND the seed is
+-- DO UPDATE so a re-run reflects URL/title edits (not just DO NOTHING).
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM referral.target WHERE slug = 'rareicon' AND active) THEN
@@ -62,7 +63,7 @@ BEGIN
     END IF;
 END $$;
 
--- target slug check rejects bad values.
+-- target CHECKs reject malformed values.
 DO $$
 BEGIN
     BEGIN
@@ -80,9 +81,19 @@ BEGIN
     EXCEPTION WHEN check_violation THEN
         -- expected
     END;
+
+    -- New: whitespace + control chars now rejected by the tighter url regex.
+    BEGIN
+        INSERT INTO referral.target (slug, title, url)
+        VALUES ('bad-space', 'x', 'https://example.com/has space');
+        RAISE EXCEPTION 'fail: target.url check should have rejected whitespace';
+    EXCEPTION WHEN check_violation THEN
+        -- expected
+    END;
 END $$;
 
--- partial unique index allows multiple non-default rows, blocks two defaults.
+-- Partial unique index allows multiple non-default rows, blocks two
+-- defaults among ACTIVE rows.
 DO $$
 DECLARE u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
 BEGIN
@@ -94,17 +105,17 @@ BEGIN
 
     BEGIN
         INSERT INTO referral.user_target (user_id, target_slug, is_default)
-        VALUES (u, 'mc', TRUE);  -- conflict with the partial unique
+        VALUES (u, 'mc', TRUE);
         RAISE EXCEPTION 'fail: partial unique index should have blocked second default';
     EXCEPTION WHEN unique_violation THEN
         -- expected
     END;
 
-    -- clean up so the rest of the assertions start fresh on user_target
     DELETE FROM referral.user_target WHERE user_id = u;
 END $$;
 
--- resolve_user_target returns the configured default when slug is NULL.
+-- resolve_user_target returns the configured default when slug is NULL,
+-- AND skips inactive user_target rows.
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
@@ -120,13 +131,26 @@ BEGIN
         RAISE EXCEPTION 'fail: default resolution expected rareicon, got %', r.slug;
     END IF;
 
-    -- Explicit slug overrides default.
     SELECT * INTO r FROM referral.resolve_user_target(u, 'mc');
     IF r.slug IS DISTINCT FROM 'mc' THEN
         RAISE EXCEPTION 'fail: explicit slug should have returned mc, got %', r.slug;
     END IF;
 
-    -- Slug user does not have enabled returns no row.
+    -- Disable the rareicon row → resolve_user_target(NULL) returns nothing.
+    UPDATE referral.user_target
+       SET active = FALSE, disabled_at = now()
+     WHERE user_id = u AND target_slug = 'rareicon';
+
+    PERFORM 1 FROM referral.resolve_user_target(u, NULL);
+    IF FOUND THEN
+        RAISE EXCEPTION 'fail: disabled default should not resolve';
+    END IF;
+
+    -- Re-enable and clean up.
+    UPDATE referral.user_target
+       SET active = TRUE, disabled_at = NULL
+     WHERE user_id = u AND target_slug = 'rareicon';
+
     PERFORM 1 FROM referral.resolve_user_target(u, 'nonexistent');
     IF FOUND THEN
         RAISE EXCEPTION 'fail: unknown slug should not resolve';
@@ -135,8 +159,25 @@ BEGIN
     DELETE FROM referral.user_target WHERE user_id = u;
 END $$;
 
--- record_click: first call credits 10, returns qualified=true; second call
--- with same (referrer, target, ip_hash) inside the dedup window does not.
+-- record_click: enforces user_target enablement.
+DO $$
+DECLARE
+    u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+    ip BYTEA := decode('aabbccddeeff00112233445566778899', 'hex');
+    sn BYTEA := decode('1122334455667788', 'hex');
+BEGIN
+    BEGIN
+        PERFORM * FROM referral.record_click(u, 'rareicon', ip, sn);
+        RAISE EXCEPTION 'fail: record_click should reject targets the user has not enabled';
+    EXCEPTION WHEN SQLSTATE 'RFU01' THEN
+        -- expected: custom SQLSTATE for "user has target unset/disabled"
+    END;
+END $$;
+
+-- record_click: first call credits 10, returns qualified=true, credited=true,
+-- target_slug + target_url populated, ledger_id non-null. Second call with
+-- same (referrer, target, ip_hash) inside the dedup window logs without
+-- crediting.
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
@@ -146,6 +187,12 @@ DECLARE
     r2 RECORD;
     bal BIGINT;
 BEGIN
+    -- Enable the targets for this user.
+    INSERT INTO referral.user_target (user_id, target_slug, is_default)
+    VALUES (u, 'rareicon', TRUE);
+    INSERT INTO referral.user_target (user_id, target_slug, is_default)
+    VALUES (u, 'mc', FALSE);
+
     SELECT * INTO r1
       FROM referral.record_click(u, 'rareicon', ip, sn, 'UA/1.0', 'https://t.co/x', 'en');
     IF NOT r1.qualified THEN
@@ -157,6 +204,9 @@ BEGIN
     IF r1.ledger_id IS NULL THEN
         RAISE EXCEPTION 'fail: first click ledger_id should be set';
     END IF;
+    IF r1.target_slug IS DISTINCT FROM 'rareicon' THEN
+        RAISE EXCEPTION 'fail: target_slug mismatch: %', r1.target_slug;
+    END IF;
     IF r1.target_url IS DISTINCT FROM 'https://store.steampowered.com/app/2238370/RareIcon/' THEN
         RAISE EXCEPTION 'fail: target_url mismatch: %', r1.target_url;
     END IF;
@@ -167,6 +217,14 @@ BEGIN
      WHERE a.user_id = u AND a.kind = 'user';
     IF bal <> 10 THEN
         RAISE EXCEPTION 'fail: expected 10 credits after first click, got %', bal;
+    END IF;
+
+    -- Click row should have credited + ledger_id populated.
+    PERFORM 1
+       FROM referral.click
+      WHERE id = r1.click_id AND credited AND ledger_id IS NOT NULL;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'fail: click row should be credited with ledger_id';
     END IF;
 
     SELECT * INTO r2
@@ -193,75 +251,68 @@ BEGIN
     END IF;
 END $$;
 
--- A different ip_hash on the same target credits independently.
+-- credits_per_click = 0 path: click qualifies but does NOT credit.
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
-    ip BYTEA := decode('cafebabedeadbeef00112233445566ff', 'hex');
-    sn BYTEA := decode('aaaaaaaaaaaaaaaa', 'hex');
+    ip BYTEA := decode('00112233445566778899aabbccddeeff', 'hex');
+    sn BYTEA := decode('aabbccdd00112233', 'hex');
     r RECORD;
-    bal BIGINT;
+    bal_before BIGINT;
+    bal_after  BIGINT;
 BEGIN
-    SELECT * INTO r
-      FROM referral.record_click(u, 'rareicon', ip, sn, 'UA/2.0', NULL, NULL);
-    IF NOT r.qualified THEN
-        RAISE EXCEPTION 'fail: new IP should qualify';
-    END IF;
-
-    SELECT b.credits INTO bal
+    SELECT b.credits INTO bal_before
       FROM wallet.balance b
       JOIN wallet.account a ON a.id = b.account_id
-     WHERE a.user_id = u;
-    IF bal <> 20 THEN
-        RAISE EXCEPTION 'fail: expected 20 credits after two distinct IPs, got %', bal;
-    END IF;
+     WHERE a.user_id = u AND a.kind = 'user';
+
+    UPDATE referral.reward_policy SET credits_per_click = 0 WHERE id = 1;
+    BEGIN
+        SELECT * INTO r
+          FROM referral.record_click(u, 'mc', ip, sn, NULL, NULL, NULL);
+        IF NOT r.qualified THEN
+            RAISE EXCEPTION 'fail: zero-credit click should still qualify';
+        END IF;
+        IF r.credited THEN
+            RAISE EXCEPTION 'fail: zero-credit click should NOT credit';
+        END IF;
+        IF r.ledger_id IS NOT NULL THEN
+            RAISE EXCEPTION 'fail: zero-credit click ledger_id should be NULL';
+        END IF;
+
+        SELECT b.credits INTO bal_after
+          FROM wallet.balance b
+          JOIN wallet.account a ON a.id = b.account_id
+         WHERE a.user_id = u AND a.kind = 'user';
+        IF bal_after IS DISTINCT FROM bal_before THEN
+            RAISE EXCEPTION 'fail: balance moved with credits_per_click=0';
+        END IF;
+    END;
+    UPDATE referral.reward_policy SET credits_per_click = 10 WHERE id = 1;
 END $$;
 
--- A different target on the same IP credits independently.
+-- Custom SQLSTATEs surface on unknown target.
 DO $$
 DECLARE
     u UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
-    ip BYTEA := decode('aabbccddeeff00112233445566778899', 'hex');
-    sn BYTEA := decode('1122334455667788', 'hex');
-    r RECORD;
-    bal BIGINT;
 BEGIN
-    SELECT * INTO r
-      FROM referral.record_click(u, 'mc', ip, sn, NULL, NULL, NULL);
-    IF NOT r.qualified THEN
-        RAISE EXCEPTION 'fail: different target should qualify for same IP';
-    END IF;
-    IF r.target_url IS DISTINCT FROM 'https://kbve.com/mc/' THEN
-        RAISE EXCEPTION 'fail: mc target_url mismatch: %', r.target_url;
-    END IF;
-
-    SELECT b.credits INTO bal
-      FROM wallet.balance b
-      JOIN wallet.account a ON a.id = b.account_id
-     WHERE a.user_id = u;
-    IF bal <> 30 THEN
-        RAISE EXCEPTION 'fail: expected 30 credits after mc click, got %', bal;
-    END IF;
+    BEGIN
+        PERFORM * FROM referral.record_click(
+            u, 'nope-not-a-target', '\x01'::bytea, '\x01'::bytea
+        );
+        RAISE EXCEPTION 'fail: unknown target should have raised';
+    EXCEPTION WHEN SQLSTATE 'RFT01' THEN
+        -- expected
+    END;
 END $$;
 
 -- Missing required args raise.
 DO $$
 BEGIN
     BEGIN
-        PERFORM * FROM referral.record_click(NULL, 'rareicon', '\x01', '\x01');
+        PERFORM * FROM referral.record_click(NULL, 'rareicon', '\x01'::bytea, '\x01'::bytea);
         RAISE EXCEPTION 'fail: NULL referrer should have raised';
-    EXCEPTION WHEN OTHERS THEN
-        -- expected
-    END;
-
-    BEGIN
-        PERFORM * FROM referral.record_click(
-            'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'::UUID,
-            'nope-not-a-target',
-            '\x01', '\x01'
-        );
-        RAISE EXCEPTION 'fail: unknown target should have raised';
-    EXCEPTION WHEN OTHERS THEN
+    EXCEPTION WHEN SQLSTATE '22023' THEN
         -- expected
     END;
 END $$;
@@ -269,8 +320,7 @@ END $$;
 -- ASSERT_AFTER_DOWN
 
 -- migrate:down is intentionally a no-op so production cannot accidentally
--- truncate referral data. Verify the schema is still present after a
--- rollback and the seeded targets persist.
+-- truncate referral data. Schema + seeds survive a rollback.
 DO $$
 BEGIN
     IF NOT EXISTS (

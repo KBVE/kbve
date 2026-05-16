@@ -38,7 +38,9 @@ message UserTarget {
   string user_id      = 1;  // UUID
   string target_slug  = 2;
   bool   is_default   = 3;
-  string enabled_at   = 4;  // RFC3339 timestamp
+  bool   active       = 4;  // flipping to false disables without losing history
+  string enabled_at   = 5;  // RFC3339 timestamp
+  string disabled_at  = 6;  // RFC3339 timestamp; empty when active = true
 }
 
 // Single-row reward economics.
@@ -82,11 +84,12 @@ message RecordClickRequest {
 }
 
 message RecordClickResponse {
-  int64  click_id    = 1;
-  bool   qualified   = 2;
-  bool   credited    = 3;
-  int64  ledger_id   = 4;  // 0 when not credited
-  string target_url  = 5;  // 302 destination
+  int64  click_id     = 1;
+  string target_slug  = 2;  // resolved slug for log correlation
+  string target_url   = 3;  // 302 destination
+  bool   qualified    = 4;  // first inside dedup window for this tuple
+  bool   credited     = 5;  // wallet.service_credit ran
+  int64  ledger_id    = 6;  // 0 when credited = false
 }
 
 // resolve_user_target input.

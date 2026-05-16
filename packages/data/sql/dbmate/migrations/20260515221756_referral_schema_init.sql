@@ -2,41 +2,32 @@
 
 -- Referral system Phase 1 — schema + click-recording RPC.
 --
--- Surface
+-- Depends on:
+--   wallet schema + wallet.service_credit (20260511104220_wallet_schema_init)
+--   wallet.source_kind = 'referral' (20260515220000_wallet_source_kind_referral)
+--   pgcrypto for gen_random_uuid()
+--
+-- Surface (consumed in Phase 2 by axum-kbve):
 --   /referral/@<handle>/             → user's default target
 --   /referral/@<handle>/<target>/    → specific target from the catalog
 --
--- Phase 1 (this migration) lays the rails:
---   - referral.target          — admin-curated catalog of redirect destinations
---   - referral.user_target     — which targets each user can refer to + their
---                                primary (one row per user marked is_default)
---   - referral.click           — append-only click log; one row per HTTP hit
---   - referral.reward_policy   — single-row config (credits per click + dedup
---                                window). Bumping the row is the only way to
---                                change reward economics without a redeploy.
---   - referral.record_click(...) — SECURITY DEFINER RPC the axum handler calls
---                                  to log a click and, when qualified under
---                                  the policy's dedup window, credit the
---                                  referrer's wallet.
---   - referral.resolve_user_target(...) — pick the (slug, url) for a click.
---
--- Phase 2 will add the axum-kbve route + astro page rewrite. Phase 2 only
--- consumes the surface defined here.
---
--- Privacy: raw IPs are NEVER stored. The axum handler hashes the visitor IP
--- via HMAC-SHA256(REFERRAL_HASH_SECRET, ip) and the /24 IPv4 (or /48 IPv6)
--- subnet prefix, then passes both digests. We only see opaque bytea.
+-- Privacy: raw IPs are NEVER stored. The Phase 2 axum handler hashes the
+-- visitor IP with HMAC-SHA256(REFERRAL_HASH_SECRET, ip) and the /24 IPv4
+-- (or /48 IPv6) subnet prefix, then passes both digests. We only see
+-- opaque bytea.
 
--- Extend the wallet source_kind enum with the 'referral' tag. service_credit
--- requires the value to exist before any referral row inserts a ledger entry.
--- ALTER TYPE ... ADD VALUE cannot run inside a transaction block, so this
--- statement must execute before the rest of the file is in a txn (dbmate
--- runs each .sql top-to-bottom under one tx by default; pgcrypto pattern is
--- to use the IF NOT EXISTS clause to make the ADD idempotent + tx-safe).
-ALTER TYPE wallet.source_kind ADD VALUE IF NOT EXISTS 'referral';
+-- Belt-and-suspenders: gen_random_uuid lives in pgcrypto on older
+-- Postgres, and is in core from 13+. Either way, this is a no-op on
+-- modern clusters.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE SCHEMA IF NOT EXISTS referral;
-GRANT USAGE ON SCHEMA referral TO authenticated, service_role;
+
+-- Schema usage is service-only for Phase 1. authenticated users go
+-- through the axum handler (service_role) -- they never touch this
+-- schema directly. Grant authenticated later when a client-side RPC
+-- needs it.
+GRANT USAGE ON SCHEMA referral TO service_role;
 
 -- ---------------------------------------------------------------------------
 -- target catalog
@@ -45,7 +36,11 @@ CREATE TABLE IF NOT EXISTS referral.target (
     slug         TEXT PRIMARY KEY
                    CHECK (slug ~ '^[a-z0-9][a-z0-9-]{0,62}$'),
     title        TEXT NOT NULL CHECK (length(title) BETWEEN 1 AND 120),
-    url          TEXT NOT NULL CHECK (url ~ '^https?://'),
+    -- Tight URL check: require http(s)://, forbid whitespace and control
+    -- chars. Application code does proper URL validation; this is just a
+    -- coarse safety net at the DB.
+    url          TEXT NOT NULL
+                   CHECK (url ~ '^https?://[^[:space:][:cntrl:]]+$'),
     description  TEXT,
     active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -53,6 +48,8 @@ CREATE TABLE IF NOT EXISTS referral.target (
 COMMENT ON TABLE referral.target IS
     'Curated redirect destinations. Admin-only writes (no RLS policy grants).';
 
+-- Catalog rows ARE re-applied on re-run so URL fixes / title bumps land
+-- without manual SQL. Slug stays the primary key so links never break.
 INSERT INTO referral.target (slug, title, url, description) VALUES
     ('rareicon',
      'RareIcon on Steam',
@@ -62,7 +59,10 @@ INSERT INTO referral.target (slug, title, url, description) VALUES
      'KBVE Minecraft',
      'https://kbve.com/mc/',
      'KBVE Minecraft server hub.')
-ON CONFLICT (slug) DO NOTHING;
+ON CONFLICT (slug) DO UPDATE
+    SET title       = EXCLUDED.title,
+        url         = EXCLUDED.url,
+        description = EXCLUDED.description;
 
 -- ---------------------------------------------------------------------------
 -- per-user target opt-in + default
@@ -71,14 +71,18 @@ CREATE TABLE IF NOT EXISTS referral.user_target (
     user_id      UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     target_slug  TEXT NOT NULL REFERENCES referral.target(slug) ON DELETE CASCADE,
     is_default   BOOLEAN NOT NULL DEFAULT FALSE,
+    -- active = TRUE is the live state; flipping to FALSE keeps history
+    -- without losing the (user_id, target_slug) row. record_click +
+    -- resolve_user_target both honor this.
+    active       BOOLEAN NOT NULL DEFAULT TRUE,
     enabled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    disabled_at  TIMESTAMPTZ,
     PRIMARY KEY (user_id, target_slug)
 );
--- A user has at most one default target. Partial unique index, not a
--- table-level constraint, so non-default rows don't fight for the slot.
+-- One default target per user, only counted among active rows.
 CREATE UNIQUE INDEX IF NOT EXISTS user_target_one_default
     ON referral.user_target (user_id)
-    WHERE is_default;
+    WHERE is_default AND active;
 
 -- ---------------------------------------------------------------------------
 -- click log
@@ -94,7 +98,10 @@ CREATE TABLE IF NOT EXISTS referral.click (
     accept_lang   TEXT,
     qualified     BOOLEAN NOT NULL DEFAULT FALSE,
     credited      BOOLEAN NOT NULL DEFAULT FALSE,
-    ledger_id     BIGINT,
+    -- FK so the ledger row a credit click points at must really exist.
+    -- ON DELETE SET NULL keeps the click history visible even if a ledger
+    -- entry is ever rolled back out-of-band.
+    ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE SET NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS click_created_at ON referral.click (created_at);
@@ -107,10 +114,14 @@ COMMENT ON COLUMN referral.click.ip_hash IS
 COMMENT ON COLUMN referral.click.subnet_hash IS
     'HMAC-SHA256(server_secret, /24 IPv4 or /48 IPv6 prefix).';
 COMMENT ON COLUMN referral.click.qualified IS
-    'TRUE iff this click triggered a reward credit (no earlier qualified row
-     within the policy dedup window for the same referrer+target+ip_hash).';
+    'TRUE iff this click was the first inside the policy dedup window for
+     the (referrer, target, ip_hash) tuple. credited may still be FALSE
+     when credits_per_click = 0.';
+COMMENT ON COLUMN referral.click.credited IS
+    'TRUE iff wallet.service_credit actually ran for this click (qualified
+     AND credits_per_click > 0). ledger_id is populated iff credited.';
 COMMENT ON COLUMN referral.click.ledger_id IS
-    'wallet.ledger.id of the credit, when credited=true. NULL otherwise.';
+    'wallet.ledger.id of the credit. NULL when credited = FALSE.';
 
 -- ---------------------------------------------------------------------------
 -- reward policy — single row, easy to bump without a redeploy
@@ -128,10 +139,22 @@ VALUES (1, 10, 30)
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
--- internal helper: resolve the wallet.account.id for a referrer's user_id.
--- Lazy-provisions the account + balance if the user has never been seen by
--- the wallet before. Mirrors the pattern in wallet.proxy_ensure_user_account
--- but is callable from the service path (no auth.uid()).
+-- Lock down direct table access. Only the SECURITY DEFINER functions
+-- below should read or write these tables. PostgREST never sees rows
+-- because RLS is on and no policy grants are issued.
+-- ---------------------------------------------------------------------------
+ALTER TABLE referral.target          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referral.user_target     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referral.click           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referral.reward_policy   ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON ALL TABLES    IN SCHEMA referral FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA referral FROM PUBLIC, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- ensure_referrer_account — lazy wallet account provisioning for a brand
+-- new user's first referral credit. Mirrors wallet.proxy_ensure_user_account
+-- but is callable from the service path (no auth.uid() dependency).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.ensure_referrer_account(
     p_user_id UUID
@@ -184,15 +207,29 @@ GRANT EXECUTE ON FUNCTION referral.ensure_referrer_account(UUID)
     TO service_role;
 
 -- ---------------------------------------------------------------------------
--- record_click — the entry point for the axum-kbve referral handler.
+-- record_click — entry point for the axum-kbve referral handler.
 --
--- Resolves the target, checks the dedup window, optionally credits the
--- referrer's wallet, and writes one row to referral.click. Returns enough
--- for the handler to log + redirect.
+-- Order of operations is deliberate:
+--   1. Validate inputs.
+--   2. Take a transaction-scoped advisory lock on
+--      (referrer_id, target_slug, ip_hash) so two concurrent clicks for
+--      the same tuple cannot both pass the dedup check and both credit.
+--   3. Verify referrer has the target enabled (defense in depth — the
+--      handler is supposed to call resolve_user_target first, but if a
+--      future caller forgets we still cannot credit a target the user
+--      has not opted into).
+--   4. Run the dedup-window check.
+--   5. Insert the click row uncredited.
+--   6. If qualified AND credits_per_click > 0:
+--        - call wallet.service_credit with a deterministic idempotency
+--          key derived from the freshly-inserted click_id;
+--        - UPDATE the click row with credited = TRUE + ledger_id.
+--      Deterministic idem key makes wallet-level retries idempotent and
+--      keeps the ledger row pointed at a real referral.click.id via
+--      ref_id.
 --
--- Atomicity: the wallet credit + the click insert run in the same
--- transaction. If wallet.service_credit raises, the click row is rolled
--- back with it — credited / ledger_id never lie.
+-- Custom SQLSTATEs (RF...) let the axum handler distinguish referral
+-- errors from generic PL/pgSQL data-not-found paths.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.record_click(
     p_referrer_id  UUID,
@@ -204,24 +241,27 @@ CREATE OR REPLACE FUNCTION referral.record_click(
     p_accept_lang  TEXT DEFAULT NULL
 )
 RETURNS TABLE (
-    click_id    BIGINT,
-    qualified   BOOLEAN,
-    credited    BOOLEAN,
-    ledger_id   BIGINT,
-    target_url  TEXT
+    click_id     BIGINT,
+    target_slug  TEXT,
+    target_url   TEXT,
+    qualified    BOOLEAN,
+    credited     BOOLEAN,
+    ledger_id    BIGINT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_policy        referral.reward_policy%ROWTYPE;
-    v_target        referral.target%ROWTYPE;
-    v_existing_id   BIGINT;
-    v_qualifies     BOOLEAN := FALSE;
-    v_account_id    UUID;
-    v_ledger_id     BIGINT;
-    v_click_id      BIGINT;
+    v_policy       referral.reward_policy%ROWTYPE;
+    v_target       referral.target%ROWTYPE;
+    v_existing_id  BIGINT;
+    v_qualifies    BOOLEAN := FALSE;
+    v_account_id   UUID;
+    v_ledger_id    BIGINT;
+    v_click_id     BIGINT;
+    v_idem_key     UUID;
+    v_credited     BOOLEAN := FALSE;
 BEGIN
     IF p_referrer_id IS NULL THEN
         RAISE EXCEPTION 'referrer_id is required' USING ERRCODE = '22023';
@@ -236,9 +276,21 @@ BEGIN
         RAISE EXCEPTION 'subnet_hash is required' USING ERRCODE = '22023';
     END IF;
 
+    -- Serialize concurrent clicks for the same dedup tuple so the
+    -- read-before-write dedup check is race-free.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended(
+            'referral.click:'
+            || p_referrer_id::TEXT
+            || ':' || p_target_slug
+            || ':' || encode(p_ip_hash, 'hex'),
+            0
+        )
+    );
+
     SELECT * INTO v_policy FROM referral.reward_policy WHERE id = 1;
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'reward policy missing' USING ERRCODE = 'P0002';
+        RAISE EXCEPTION 'reward policy missing' USING ERRCODE = 'RFP01';
     END IF;
 
     SELECT * INTO v_target
@@ -246,13 +298,25 @@ BEGIN
      WHERE slug = p_target_slug AND active;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'target % not found or inactive', p_target_slug
-            USING ERRCODE = 'P0002';
+            USING ERRCODE = 'RFT01';
+    END IF;
+
+    -- Referrer must have this target enabled. The handler already
+    -- resolves via resolve_user_target, but defense in depth.
+    IF NOT EXISTS (
+        SELECT 1
+          FROM referral.user_target ut
+         WHERE ut.user_id      = p_referrer_id
+           AND ut.target_slug  = p_target_slug
+           AND ut.active
+    ) THEN
+        RAISE EXCEPTION 'referrer % has target % disabled or unset',
+                        p_referrer_id, p_target_slug
+            USING ERRCODE = 'RFU01';
     END IF;
 
     -- Has a qualified click for this (referrer, target, IP) landed inside
     -- the dedup window? If yes, this click logs but does not credit.
-    -- Table alias keeps PL/pgSQL OUT params (qualified, credited) from
-    -- shadowing the column name.
     SELECT c.id INTO v_existing_id
       FROM referral.click c
      WHERE c.referrer_id = p_referrer_id
@@ -265,21 +329,9 @@ BEGIN
 
     v_qualifies := v_existing_id IS NULL;
 
-    IF v_qualifies THEN
-        v_account_id := referral.ensure_referrer_account(p_referrer_id);
-
-        v_ledger_id := wallet.service_credit(
-            v_account_id,
-            'credits'::wallet.currency_kind,
-            v_policy.credits_per_click,
-            'referral'::wallet.source_kind,
-            'referral_click',
-            'referral_click',
-            NULL::BIGINT,
-            gen_random_uuid()
-        );
-    END IF;
-
+    -- Insert the click row first so the wallet credit can reference its
+    -- id via ref_id, and so the idempotency key is deterministic on the
+    -- fresh click_id (retries will not double-credit).
     INSERT INTO referral.click (
         referrer_id, target_slug, ip_hash, subnet_hash,
         user_agent, referer, accept_lang,
@@ -289,16 +341,44 @@ BEGIN
         NULLIF(left(p_user_agent, 256), ''),
         NULLIF(left(p_referer, 512), ''),
         NULLIF(left(p_accept_lang, 64), ''),
-        v_qualifies, v_qualifies, v_ledger_id
+        v_qualifies, FALSE, NULL
     )
     RETURNING id INTO v_click_id;
 
+    IF v_qualifies AND v_policy.credits_per_click > 0 THEN
+        v_account_id := referral.ensure_referrer_account(p_referrer_id);
+
+        -- md5 of click_id yields a stable 16-byte digest the UUID type
+        -- accepts unmodified. Wallet.service_credit treats matching
+        -- idempotency keys as replays and returns the prior ledger_id.
+        v_idem_key := (md5('referral.click:' || v_click_id::TEXT))::UUID;
+
+        v_ledger_id := wallet.service_credit(
+            v_account_id,
+            'credits'::wallet.currency_kind,
+            v_policy.credits_per_click,
+            'referral'::wallet.source_kind,
+            'referral_click',
+            'referral_click',
+            v_click_id,
+            v_idem_key
+        );
+
+        UPDATE referral.click
+           SET credited  = TRUE,
+               ledger_id = v_ledger_id
+         WHERE id = v_click_id;
+
+        v_credited := TRUE;
+    END IF;
+
     RETURN QUERY
     SELECT v_click_id,
+           v_target.slug,
+           v_target.url,
            v_qualifies,
-           v_qualifies,
-           v_ledger_id,
-           v_target.url;
+           v_credited,
+           v_ledger_id;
 END;
 $fn$;
 
@@ -316,16 +396,14 @@ GRANT EXECUTE ON FUNCTION referral.record_click(
 COMMENT ON FUNCTION referral.record_click(
     UUID, TEXT, BYTEA, BYTEA, TEXT, TEXT, TEXT
 ) IS
-    'Phase 1 referral entrypoint. axum-kbve handler calls this with a hashed
-     IP + subnet and request metadata. Returns the resolved target URL plus
-     whether the click qualified for a reward credit. Credit + log row are
-     transactional.';
+    'Phase 1 referral entrypoint. axum-kbve handler calls this with a
+     hashed IP + subnet and request metadata. Returns the resolved target
+     URL + slug plus whether the click qualified for a reward credit.
+     Click insert + wallet credit run inside the same transaction.';
 
 -- ---------------------------------------------------------------------------
--- resolve_user_target — picks (slug, title, url) for a click. Used by the
--- axum handler when the URL omits an explicit target (defaults to the row
--- marked is_default for the user) or to verify the user actually has that
--- target enabled when one is supplied.
+-- resolve_user_target — pick (slug, title, url) for a click. Used by the
+-- axum handler when the URL omits an explicit target.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.resolve_user_target(
     p_user_id      UUID,
@@ -341,6 +419,7 @@ AS $fn$
       FROM referral.user_target ut
       JOIN referral.target t ON t.slug = ut.target_slug
      WHERE ut.user_id = p_user_id
+       AND ut.active
        AND t.active
        AND (
            (p_target_slug IS NOT NULL AND ut.target_slug = p_target_slug)
@@ -356,8 +435,13 @@ GRANT EXECUTE ON FUNCTION referral.resolve_user_target(UUID, TEXT)
 
 -- migrate:down
 
--- Intentionally a no-op. Dropping referral.click loses click history and
--- referral.target drops the catalog out from under live links. Take the
--- cleanup path out of dbmate — write a dedicated script if we ever truly
--- need to tear this down.
+-- Intentionally a no-op. Tear-down order if ever needed (do it
+-- out-of-band):
+--   1. REVOKE EXECUTE ON FUNCTION referral.* FROM service_role;
+--   2. DROP FUNCTION referral.record_click(...), .resolve_user_target(...),
+--      .ensure_referrer_account(...);
+--   3. DROP TABLE referral.click, .user_target, .reward_policy, .target;
+--   4. DROP SCHEMA referral;
+--   5. Leave wallet.source_kind = 'referral' in place — Postgres has no
+--      DROP VALUE and removing it would orphan existing ledger rows.
 SELECT 1;

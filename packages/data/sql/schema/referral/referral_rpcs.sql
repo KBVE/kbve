@@ -1,12 +1,19 @@
 -- ============================================================
 -- REFERRAL RPCs
 --
--- All functions are SECURITY DEFINER with search_path locked, owned by
--- postgres (so they retain access to wallet.* + auth.* regardless of the
--- caller's role), and granted EXECUTE only to service_role.
+-- All functions are SECURITY DEFINER with search_path = '', owned by
+-- postgres (so they retain access to wallet.* + auth.* regardless of
+-- the caller's role), and granted EXECUTE only to service_role.
 --
 -- Public callers never touch these directly. The axum-kbve referral
--- handler holds a service_role JWT and is the only consumer.
+-- handler holds a service_role JWT and is the only consumer for
+-- Phase 1.
+--
+-- Custom SQLSTATEs (RF...) let the handler distinguish referral errors
+-- from generic PL/pgSQL data-not-found paths:
+--   RFP01 = reward_policy row missing
+--   RFT01 = target not found / inactive
+--   RFU01 = referrer does not have target enabled
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -15,8 +22,7 @@
 -- Lazy wallet account provisioning so a brand-new user's first referral
 -- click can still be credited. Mirrors wallet.proxy_ensure_user_account
 -- but is callable from the service path (no auth.uid() dependency) and
--- skips the welcome-coupon issuance — referral credits don't need to
--- bootstrap onboarding flow.
+-- skips welcome-coupon issuance.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.ensure_referrer_account(
     p_user_id UUID
@@ -69,17 +75,21 @@ GRANT EXECUTE ON FUNCTION referral.ensure_referrer_account(UUID)
     TO service_role;
 
 -- ------------------------------------------------------------
--- record_click(referrer_id, target_slug, ip_hash, subnet_hash,
---              ua, referer, accept_lang)
+-- record_click — entry point for the Phase 2 axum-kbve handler.
 --
--- Entry point for the axum-kbve referral handler. Resolves the target,
--- checks the dedup window, optionally credits the referrer's wallet,
--- and writes one row to referral.click. Returns enough for the handler
--- to log + redirect.
---
--- Atomicity: the wallet credit and click insert run inside the same
--- transaction. If wallet.service_credit raises, the click row rolls
--- back with it — credited / ledger_id never lie about wallet state.
+-- Order of operations:
+--   1. Validate inputs.
+--   2. Take xact-scoped advisory lock on (referrer, target, ip_hash) so
+--      two concurrent calls cannot both pass the dedup check and both
+--      credit.
+--   3. Verify referrer has the target enabled (defense in depth).
+--   4. Run dedup-window check.
+--   5. INSERT the click uncredited.
+--   6. If qualified AND credits_per_click > 0:
+--        - call wallet.service_credit with a deterministic idempotency
+--          key derived from the freshly-inserted click_id (retries are
+--          idempotent at the wallet level too);
+--        - UPDATE the click row with credited=true + ledger_id.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.record_click(
     p_referrer_id  UUID,
@@ -91,24 +101,27 @@ CREATE OR REPLACE FUNCTION referral.record_click(
     p_accept_lang  TEXT DEFAULT NULL
 )
 RETURNS TABLE (
-    click_id    BIGINT,
-    qualified   BOOLEAN,
-    credited    BOOLEAN,
-    ledger_id   BIGINT,
-    target_url  TEXT
+    click_id     BIGINT,
+    target_slug  TEXT,
+    target_url   TEXT,
+    qualified    BOOLEAN,
+    credited     BOOLEAN,
+    ledger_id    BIGINT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_policy        referral.reward_policy%ROWTYPE;
-    v_target        referral.target%ROWTYPE;
-    v_existing_id   BIGINT;
-    v_qualifies     BOOLEAN := FALSE;
-    v_account_id    UUID;
-    v_ledger_id     BIGINT;
-    v_click_id      BIGINT;
+    v_policy       referral.reward_policy%ROWTYPE;
+    v_target       referral.target%ROWTYPE;
+    v_existing_id  BIGINT;
+    v_qualifies    BOOLEAN := FALSE;
+    v_account_id   UUID;
+    v_ledger_id    BIGINT;
+    v_click_id     BIGINT;
+    v_idem_key     UUID;
+    v_credited     BOOLEAN := FALSE;
 BEGIN
     IF p_referrer_id IS NULL THEN
         RAISE EXCEPTION 'referrer_id is required' USING ERRCODE = '22023';
@@ -123,9 +136,19 @@ BEGIN
         RAISE EXCEPTION 'subnet_hash is required' USING ERRCODE = '22023';
     END IF;
 
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended(
+            'referral.click:'
+            || p_referrer_id::TEXT
+            || ':' || p_target_slug
+            || ':' || encode(p_ip_hash, 'hex'),
+            0
+        )
+    );
+
     SELECT * INTO v_policy FROM referral.reward_policy WHERE id = 1;
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'reward policy missing' USING ERRCODE = 'P0002';
+        RAISE EXCEPTION 'reward policy missing' USING ERRCODE = 'RFP01';
     END IF;
 
     SELECT * INTO v_target
@@ -133,12 +156,21 @@ BEGIN
      WHERE slug = p_target_slug AND active;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'target % not found or inactive', p_target_slug
-            USING ERRCODE = 'P0002';
+            USING ERRCODE = 'RFT01';
     END IF;
 
-    -- Any qualified click for this (referrer, target, IP) inside the
-    -- dedup window? Aliased to keep PL/pgSQL OUT params from shadowing
-    -- the column name.
+    IF NOT EXISTS (
+        SELECT 1
+          FROM referral.user_target ut
+         WHERE ut.user_id      = p_referrer_id
+           AND ut.target_slug  = p_target_slug
+           AND ut.active
+    ) THEN
+        RAISE EXCEPTION 'referrer % has target % disabled or unset',
+                        p_referrer_id, p_target_slug
+            USING ERRCODE = 'RFU01';
+    END IF;
+
     SELECT c.id INTO v_existing_id
       FROM referral.click c
      WHERE c.referrer_id = p_referrer_id
@@ -151,21 +183,6 @@ BEGIN
 
     v_qualifies := v_existing_id IS NULL;
 
-    IF v_qualifies THEN
-        v_account_id := referral.ensure_referrer_account(p_referrer_id);
-
-        v_ledger_id := wallet.service_credit(
-            v_account_id,
-            'credits'::wallet.currency_kind,
-            v_policy.credits_per_click,
-            'referral'::wallet.source_kind,
-            'referral_click',
-            'referral_click',
-            NULL::BIGINT,
-            gen_random_uuid()
-        );
-    END IF;
-
     INSERT INTO referral.click (
         referrer_id, target_slug, ip_hash, subnet_hash,
         user_agent, referer, accept_lang,
@@ -175,16 +192,41 @@ BEGIN
         NULLIF(left(p_user_agent, 256), ''),
         NULLIF(left(p_referer, 512), ''),
         NULLIF(left(p_accept_lang, 64), ''),
-        v_qualifies, v_qualifies, v_ledger_id
+        v_qualifies, FALSE, NULL
     )
     RETURNING id INTO v_click_id;
 
+    IF v_qualifies AND v_policy.credits_per_click > 0 THEN
+        v_account_id := referral.ensure_referrer_account(p_referrer_id);
+
+        v_idem_key := (md5('referral.click:' || v_click_id::TEXT))::UUID;
+
+        v_ledger_id := wallet.service_credit(
+            v_account_id,
+            'credits'::wallet.currency_kind,
+            v_policy.credits_per_click,
+            'referral'::wallet.source_kind,
+            'referral_click',
+            'referral_click',
+            v_click_id,
+            v_idem_key
+        );
+
+        UPDATE referral.click
+           SET credited  = TRUE,
+               ledger_id = v_ledger_id
+         WHERE id = v_click_id;
+
+        v_credited := TRUE;
+    END IF;
+
     RETURN QUERY
     SELECT v_click_id,
+           v_target.slug,
+           v_target.url,
            v_qualifies,
-           v_qualifies,
-           v_ledger_id,
-           v_target.url;
+           v_credited,
+           v_ledger_id;
 END;
 $fn$;
 
@@ -202,9 +244,8 @@ GRANT EXECUTE ON FUNCTION referral.record_click(
 -- ------------------------------------------------------------
 -- resolve_user_target(user_id, slug?)
 --
--- Picks (slug, title, url) for a click. Used by the axum handler when
--- the URL omits an explicit target (returns the user's is_default row)
--- or to verify the user has the supplied target enabled.
+-- Picks (slug, title, url) for a click. Only ACTIVE user_target rows
+-- AND active catalog rows participate.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.resolve_user_target(
     p_user_id      UUID,
@@ -220,6 +261,7 @@ AS $fn$
       FROM referral.user_target ut
       JOIN referral.target t ON t.slug = ut.target_slug
      WHERE ut.user_id = p_user_id
+       AND ut.active
        AND t.active
        AND (
            (p_target_slug IS NOT NULL AND ut.target_slug = p_target_slug)
