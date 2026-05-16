@@ -380,6 +380,32 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/service/verify-balance/{account_id}",
             get(super::wallet::service_verify_balance),
         )
+        // marketplace — anon browse + authenticated trade/management.
+        .route(
+            "/api/v1/market/listings",
+            get(super::market::list_active).post(super::market::create_listing),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}",
+            get(super::market::listing_detail),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/bid",
+            post(super::market::place_bid),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/buy-now",
+            post(super::market::buy_now),
+        )
+        .route(
+            "/api/v1/market/listings/{listing_id}/cancel",
+            post(super::market::cancel_listing),
+        )
+        .route(
+            "/api/v1/market/me/listings",
+            get(super::market::me_listings),
+        )
+        .route("/api/v1/market/me/bids", get(super::market::me_bids))
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));

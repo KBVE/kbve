@@ -69,7 +69,8 @@ impl Modify for SecurityAddon {
         (name = "mc", description = "Minecraft RCON-backed live data: player list, head textures."),
         (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
         (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."),
-        (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows.")
+        (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows."),
+        (name = "market", description = "Player marketplace: list, browse, bid, buy-now. Khash-only with a 1% KBVE Treasury fee.")
     ),
     paths(
         // system
@@ -112,6 +113,17 @@ impl Modify for SecurityAddon {
         crate::transport::wallet::service_redeem_coupon,
         crate::transport::wallet::service_revoke_coupon,
         crate::transport::wallet::service_verify_balance,
+        // marketplace — public browse
+        crate::transport::market::list_active,
+        crate::transport::market::listing_detail,
+        // marketplace — caller scope
+        crate::transport::market::me_listings,
+        crate::transport::market::me_bids,
+        // marketplace — write
+        crate::transport::market::create_listing,
+        crate::transport::market::place_bid,
+        crate::transport::market::buy_now,
+        crate::transport::market::cancel_listing,
     ),
     components(
         schemas(
@@ -152,6 +164,16 @@ impl Modify for SecurityAddon {
             crate::transport::wallet::ServiceRevokeCouponBody,
             crate::transport::wallet::ServiceRevokeDto,
             crate::transport::wallet::ServiceVerifyBalanceDto,
+            // marketplace
+            crate::transport::market::MarketListingDto,
+            crate::transport::market::MarketListingDetailDto,
+            crate::transport::market::MarketMyListingDto,
+            crate::transport::market::MarketMyBidDto,
+            crate::transport::market::CreateListingBody,
+            crate::transport::market::PlaceBidBody,
+            crate::transport::market::BuyNowBody,
+            crate::transport::market::CancelListingBody,
+            crate::transport::market::MarketIdDto,
         )
     ),
     modifiers(&SecurityAddon)

@@ -29,6 +29,7 @@
 
 pub mod client;
 pub mod error;
+pub mod market;
 pub mod proxy;
 pub mod service;
 pub mod types;
