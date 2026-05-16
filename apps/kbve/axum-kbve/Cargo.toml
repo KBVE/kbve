@@ -89,6 +89,10 @@ jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
+# Referral handler hashes client IP + subnet before any DB write.
+hmac = "0.12"
+sha2 = "0.10"
+
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 

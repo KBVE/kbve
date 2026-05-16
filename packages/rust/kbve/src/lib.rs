@@ -30,6 +30,10 @@ pub mod markdown;
 #[cfg(feature = "wallet")]
 pub mod wallet;
 
+// Referral piggybacks on the wallet pool, so it shares the feature gate.
+#[cfg(feature = "wallet")]
+pub mod referral;
+
 pub use holy;
 
 #[cfg(feature = "legacy-sync-db")]
