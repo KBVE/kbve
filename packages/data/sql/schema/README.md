@@ -4,21 +4,22 @@ Hand-authored reference DDL grouped by Postgres schema. This tree is the **revie
 
 ## Schemas
 
-| Directory                    | Postgres schema | Owner / consumers                                                                   |
-| ---------------------------- | --------------- | ----------------------------------------------------------------------------------- |
-| [`discordsh/`](./discordsh/) | `discordsh`     | Discord game-data service (servers, votes, dungeon profiles, guild vault).          |
-| [`forum/`](./forum/)         | `forum`         | KBVE forum core (spaces, threads, engagement, moderation, RPCs).                    |
-| [`mc/`](./mc/)               | `mc`            | Minecraft server (auth, characters, containers, players, skills, transfers).        |
-| [`meme/`](./meme/)           | `meme`          | Meme social platform (cards, engagement, moderation, social, RPCs).                 |
-| [`n8n/`](./n8n/)             | `n8n`           | n8n workflow engine bootstrap.                                                      |
-| [`osrs/`](./osrs/)           | `osrs`          | OSRS data tables and read RPCs.                                                     |
-| [`ows/`](./ows/)             | `ows`           | Open World Server (characters, abilities, inventories, chat, areas of interest, …). |
-| [`profile/`](./profile/)     | `profile`       | Cross-app user profiles.                                                            |
-| [`realtime/`](./realtime/)   | `realtime`      | Supabase Realtime publication and broadcast helpers.                                |
-| [`staff/`](./staff/)         | `staff`         | Bitwise staff permission / access-control tables.                                   |
-| [`tracker/`](./tracker/)     | `tracker`       | Activity / metrics tracking.                                                        |
-| [`vault/`](./vault/)         | `vault`         | Encrypted secret storage helpers.                                                   |
-| [`wallet/`](./wallet/)       | `wallet`        | Multi-currency ledger + coupons + khash marketplace (listings, bids, treasury fee). |
+| Directory                    | Postgres schema | Owner / consumers                                                                                  |
+| ---------------------------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| [`discordsh/`](./discordsh/) | `discordsh`     | Discord game-data service (servers, votes, dungeon profiles, guild vault).                         |
+| [`forum/`](./forum/)         | `forum`         | KBVE forum core (spaces, threads, engagement, moderation, RPCs).                                   |
+| [`mc/`](./mc/)               | `mc`            | Minecraft server (auth, characters, containers, players, skills, transfers).                       |
+| [`meme/`](./meme/)           | `meme`          | Meme social platform (cards, engagement, moderation, social, RPCs).                                |
+| [`n8n/`](./n8n/)             | `n8n`           | n8n workflow engine bootstrap.                                                                     |
+| [`osrs/`](./osrs/)           | `osrs`          | OSRS data tables and read RPCs.                                                                    |
+| [`ows/`](./ows/)             | `ows`           | Open World Server (characters, abilities, inventories, chat, areas of interest, …).                |
+| [`profile/`](./profile/)     | `profile`       | Cross-app user profiles.                                                                           |
+| [`realtime/`](./realtime/)   | `realtime`      | Supabase Realtime publication and broadcast helpers.                                               |
+| [`referral/`](./referral/)   | `referral`      | Per-user referral links, click log, reward policy. Credits to wallet via `'referral'` source_kind. |
+| [`staff/`](./staff/)         | `staff`         | Bitwise staff permission / access-control tables.                                                  |
+| [`tracker/`](./tracker/)     | `tracker`       | Activity / metrics tracking.                                                                       |
+| [`vault/`](./vault/)         | `vault`         | Encrypted secret storage helpers.                                                                  |
+| [`wallet/`](./wallet/)       | `wallet`        | Multi-currency ledger + coupons + khash marketplace (listings, bids, treasury fee).                |
 
 ## File layout convention
 

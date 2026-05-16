@@ -47,7 +47,8 @@ CREATE TYPE wallet.account_kind AS ENUM (
 
 CREATE TYPE wallet.source_kind AS ENUM (
     'reward', 'purchase', 'refund', 'admin', 'coupon',
-    'market_buy', 'market_sell', 'market_fee', 'transfer'
+    'market_buy', 'market_sell', 'market_fee', 'transfer',
+    'referral'
 );
 
 CREATE TYPE wallet.reward_kind AS ENUM (
