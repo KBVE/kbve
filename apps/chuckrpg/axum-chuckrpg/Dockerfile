@@ -52,8 +52,8 @@ RUN find . -type f \( \
         -name "*.html" \
     \) -print0 | \
     xargs -0 -P "$(nproc)" -n 1 sh -c ' \
-        gzip -9 -k "$1" && \
-        brotli -q 9 --keep "$1" \
+        gzip -9 -f -k "$1" && \
+        brotli -q 9 -f --keep "$1" \
     ' _ && \
     echo "Precompression complete (brotli-9 + gzip-9, parallel x $(nproc))"
 
