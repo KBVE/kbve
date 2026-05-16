@@ -66,6 +66,9 @@ subjects:
     - kind: ServiceAccount
       name: cryptothrone-external-secrets
       namespace: cryptothrone
+    - kind: ServiceAccount
+      name: firecracker-external-secrets
+      namespace: firecracker
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
