@@ -298,6 +298,32 @@ pub fn build_input_accept_check(vm_subnet: &str) -> Vec<String> {
     ]
 }
 
+/// Allow OUTPUT to the VM subnet. Without this the pod's OUTPUT chain (DROP
+/// policy on firecracker-ctl-net via Gluetun) silently drops every prober /
+/// proxy SYN heading for the guest; TAP TX stays at 0 and endpoints sit in
+/// `Starting` forever.
+pub fn build_output_accept(vm_subnet: &str) -> Vec<String> {
+    vec![
+        "-I".into(),
+        "OUTPUT".into(),
+        "-d".into(),
+        vm_subnet.into(),
+        "-j".into(),
+        "ACCEPT".into(),
+    ]
+}
+
+pub fn build_output_accept_check(vm_subnet: &str) -> Vec<String> {
+    vec![
+        "-C".into(),
+        "OUTPUT".into(),
+        "-d".into(),
+        vm_subnet.into(),
+        "-j".into(),
+        "ACCEPT".into(),
+    ]
+}
+
 // Gluetun installs `from all to 172.16.0.0/12 lookup 199` at pref 99 and
 // table 199 routes 172.16.0.0/12 via eth0. That swallows VM-bound return
 // traffic (the VM subnet is inside 172.16/12), so DNS replies from
@@ -449,6 +475,10 @@ impl TapManager {
 
         if !iptables_rule_exists(&build_input_accept_check(&self.config.vm_subnet)).await? {
             run_iptables(&build_input_accept(&self.config.vm_subnet)).await?;
+        }
+
+        if !iptables_rule_exists(&build_output_accept_check(&self.config.vm_subnet)).await? {
+            run_iptables(&build_output_accept(&self.config.vm_subnet)).await?;
         }
 
         // ip rule that beats Gluetun's `from all to 172.16/12 lookup 199`
