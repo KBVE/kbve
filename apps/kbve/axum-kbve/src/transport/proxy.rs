@@ -246,26 +246,35 @@ impl ServiceProxy {
             }
         };
 
-        // Wrap 5xx upstream responses so the frontend always gets a parseable
-        // {"reason", "detail"} JSON instead of raw upstream HTML/text.
+        // Pass JSON 5xx through unchanged so deliberate signals
+        // (Retry-After, rate-limit body, etc.) survive. Wrap only when the
+        // upstream body is raw HTML/text, where the frontend can't parse it.
         if upstream_status >= 500 {
-            let body_preview =
-                String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
+            let upstream_is_json = resp_headers
+                .get(axum::http::header::CONTENT_TYPE)
+                .and_then(|v| v.to_str().ok())
+                .map(|ct| ct.starts_with("application/json"))
+                .unwrap_or(false);
 
-            warn!(
-                %upstream_url, upstream_status,
-                "{} upstream returned {}: {}", self.name, upstream_status, body_preview
-            );
+            if !upstream_is_json {
+                let body_preview =
+                    String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
 
-            return (
-                StatusCode::BAD_GATEWAY,
-                axum::Json(json!({
-                    "error": format!("{} upstream error", self.name),
-                    "reason": format!("upstream returned {upstream_status}"),
-                    "detail": body_preview,
-                })),
-            )
-                .into_response();
+                warn!(
+                    %upstream_url, upstream_status,
+                    "{} upstream returned {}: {}", self.name, upstream_status, body_preview
+                );
+
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    axum::Json(json!({
+                        "error": format!("{} upstream error", self.name),
+                        "reason": format!("upstream returned {upstream_status}"),
+                        "detail": body_preview,
+                    })),
+                )
+                    .into_response();
+            }
         }
 
         let mut response = Response::builder().status(status);
@@ -1536,14 +1545,7 @@ pub async fn firecracker_net_proxy_handler(
     }
 }
 
-/// Public-shaped alias for the persistent endpoint surface of
-/// firecracker-ctl-net. Forwards `/api/v1/fc/<rest>` to
-/// `firecracker-ctl-net/fc/<rest>` after the same staff gate as
-/// [`firecracker_net_proxy_handler`].
-///
-/// Lets IDE clients, scripts, and the dashboard hit a stable
-/// `/api/v1/fc/deploy` (etc.) without leaking the internal
-/// `/dashboard/firecracker-net/proxy/...` path layout.
+/// Stable `/api/v1/fc/<rest>` → `/fc/<rest>` alias under the staff gate.
 pub async fn firecracker_fc_alias_handler(
     Path(rest): Path<String>,
     req: Request<Body>,
@@ -1571,9 +1573,8 @@ pub async fn firecracker_fc_alias_handler(
     }
 }
 
-/// Rewrites `/fc/{name}/{*path}` → firecracker-ctl-net `/proxy/{name}/{*path}`.
-/// Staff-gated (same level as `/dashboard/firecracker-net/*`) because the
-/// networked ecosystem has outbound internet via the VPN tunnel.
+/// Staff-tier `/fc/{name}/[*path]` → ctl-net `/proxy/{name}/[*path]`.
+/// Gated at DASHBOARD_MANAGE because the persistent ecosystem has VPN egress.
 pub async fn firecracker_fc_handler(
     axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
     req: Request<Body>,
@@ -1625,19 +1626,13 @@ pub async fn firecracker_fc_handler(
     }
 }
 
-/// Rewrites `/fc/public/<rest>` → firecracker-ctl-net `/public-proxy/<rest>`.
-/// No JWT gate here — ctl-net enforces that the endpoint was deployed with
-/// `visibility: "public"`, returning 403 otherwise.
+/// Anonymous `/fc/public/<rest>` → ctl-net `/public-proxy/<rest>`. ctl-net
+/// 403s when the endpoint wasn't deployed `visibility: "public"`.
 ///
-/// One catch-all so `/fc/public/my-api`, `/fc/public/my-api/`, and
-/// `/fc/public/my-api/sub/path` all match. Splitting into separate
-/// `{name}` + `{name}/{*path}` routes left `/fc/public/my-api/` (trailing
-/// slash, empty path) unmatched and falling through to the staff
-/// `/fc/{name}/{*path}` — visible as a spurious 401.
-///
-/// Upstream prefix is `/public-proxy/`, not `/proxy/public/`, because the
-/// nested form overlapped with the staff `/proxy/{name}/{*path}` route on
-/// ctl-net (matchit picked the catch-all → name="public" → 404).
+/// Catch-all (not `{name}` + `{name}/{*path}`) so the trailing-slash form
+/// doesn't fall through to staff `/fc/{name}/...`. Upstream prefix is
+/// `/public-proxy/` not `/proxy/public/` — the nested form overlapped
+/// with `/proxy/{name}/{*path}` and matchit kept picking the staff route.
 pub async fn firecracker_fc_public_handler(
     rest: Option<Path<String>>,
     req: Request<Body>,

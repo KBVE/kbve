@@ -192,6 +192,7 @@ export default defineConfig({
 						{ label: 'Grafana', link: '/dashboard/grafana/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Virtual Machines', link: '/dashboard/vm/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'IDE', link: '/dashboard/ide/', attrs: { 'data-auth-visibility': 'staff' } },
+						{ label: 'ROWS (Game Ops)', link: '/dashboard/rows/', attrs: { 'data-auth-visibility': 'staff' } },
 					],
 				},
 				{
