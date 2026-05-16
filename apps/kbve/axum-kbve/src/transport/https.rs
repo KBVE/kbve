@@ -375,6 +375,10 @@ fn router(state: AppState) -> Router {
         )
         // service_role JWT required; anon / authenticated JWTs are rejected with 403.
         .route(
+            "/api/v1/wallet/service/balance/{user_id}",
+            get(super::wallet::service_balance),
+        )
+        .route(
             "/api/v1/wallet/service/credit",
             post(super::wallet::service_credit),
         )

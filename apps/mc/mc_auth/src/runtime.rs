@@ -211,41 +211,60 @@ async fn handle_job(
         }
     };
 
-    // Fire daily-khash credit for any newly-confirmed linked player. The
-    // server's idempotency key (UUIDv5 over user_id + UTC date) dedups
-    // multiple joins on the same day, so we can call this on every link
-    // confirmation without tracking per-player state on the mod side.
-    // Errors are logged and swallowed — they must not block the player.
-    if let Some(client) = wallet {
-        let user_id = match &event {
-            PlayerEvent::AlreadyLinked {
-                supabase_user_id, ..
-            } => Some(supabase_user_id.clone()),
-            PlayerEvent::LinkVerified {
-                supabase_user_id, ..
-            } => Some(supabase_user_id.clone()),
-            _ => None,
-        };
-        if let Some(uid) = user_id {
-            let client = client.clone();
-            tokio::spawn(async move {
-                match client.daily_credit_khash(&uid).await {
-                    Ok(resp) => {
-                        debug!(
-                            user_id = %uid,
-                            ledger_id = resp.ledger_id,
-                            "mc_auth: daily khash credit ok (or replay)"
-                        );
-                    }
-                    Err(e) => {
-                        warn!(user_id = %uid, error = %e, "mc_auth: daily khash credit failed");
-                    }
-                }
-            });
-        }
-    }
+    // Pull the player_uuid + user_id BEFORE moving `event` into the channel
+    // so the post-emit wallet tasks can reference both.
+    let linked_pair = match &event {
+        PlayerEvent::AlreadyLinked {
+            player_uuid,
+            supabase_user_id,
+        } => Some((player_uuid.clone(), supabase_user_id.clone())),
+        PlayerEvent::LinkVerified {
+            player_uuid,
+            supabase_user_id,
+        } => Some((player_uuid.clone(), supabase_user_id.clone())),
+        _ => None,
+    };
 
     if event_tx.try_send(event).is_err() {
         warn!("mc_auth: event channel full dropping primary event");
+    }
+
+    // Fire daily-khash credit + emit a WalletBalance follow-up for any
+    // newly-confirmed linked player. Both calls are best-effort: errors
+    // are logged and swallowed — they must not block the player. The
+    // daily credit's idempotency key (UUIDv5 over user_id + UTC date)
+    // dedups multiple joins on the same day, so calling on every
+    // confirmation is safe.
+    if let (Some(client), Some((player_uuid, uid))) = (wallet, linked_pair) {
+        let client = client.clone();
+        let tx = event_tx.clone();
+        tokio::spawn(async move {
+            match client.daily_credit_khash(&uid).await {
+                Ok(resp) => debug!(
+                    user_id = %uid,
+                    ledger_id = resp.ledger_id,
+                    "mc_auth: daily khash credit ok (or replay)"
+                ),
+                Err(e) => warn!(user_id = %uid, error = %e, "mc_auth: daily khash credit failed"),
+            }
+
+            match client.balance_for_user(&uid).await {
+                Ok(snapshot) => {
+                    let evt = PlayerEvent::WalletBalance {
+                        player_uuid,
+                        credits: snapshot.credits,
+                        khash: snapshot.khash,
+                    };
+                    if tx.try_send(evt).is_err() {
+                        warn!("mc_auth: event channel full dropping WalletBalance");
+                    }
+                }
+                Err(e) => warn!(
+                    user_id = %uid,
+                    error = %e,
+                    "mc_auth: balance fetch failed — skipping WalletBalance event"
+                ),
+            }
+        });
     }
 }

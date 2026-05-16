@@ -97,4 +97,12 @@ pub enum PlayerEvent {
     /// Supabase lookup / verify failed for a transport reason (network,
     /// 5xx, bad JSON). Treat as unlinked in graceful mode — never kick.
     AuthFailure { player_uuid: String, reason: String },
+    /// Wallet balance snapshot for a linked player, emitted after a
+    /// successful AlreadyLinked or LinkVerified so the JVM side can chat
+    /// the current credits + khash without a second JNI round trip.
+    WalletBalance {
+        player_uuid: String,
+        credits: i64,
+        khash: i64,
+    },
 }
