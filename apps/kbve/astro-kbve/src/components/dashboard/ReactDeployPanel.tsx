@@ -13,6 +13,8 @@ import {
 	ExternalLink,
 	Copy,
 	CheckCircle2,
+	FileText,
+	X,
 } from 'lucide-react';
 import { EditorView, basicSetup } from 'codemirror';
 import { keymap } from '@codemirror/view';
@@ -61,10 +63,11 @@ function CopyButton({ value }: CopyButtonProps) {
 interface EndpointRowProps {
 	endpoint: DeployedEndpoint;
 	onStop: (name: string) => void;
+	onLogs: (name: string) => void;
 	stopping: boolean;
 }
 
-function EndpointRow({ endpoint, onStop, stopping }: EndpointRowProps) {
+function EndpointRow({ endpoint, onStop, onLogs, stopping }: EndpointRowProps) {
 	const url = deployService.urlFor(endpoint.name);
 	const publicUrl =
 		endpoint.visibility === 'public'
@@ -132,17 +135,92 @@ function EndpointRow({ endpoint, onStop, stopping }: EndpointRowProps) {
 				</div>
 			</td>
 			<td>
-				<button
-					type="button"
-					onClick={() => onStop(endpoint.name)}
-					disabled={stopping}
-					className="deploy-stop"
-					aria-label={`Stop ${endpoint.name}`}>
-					<Square size={12} />
-					Stop
-				</button>
+				<div className="deploy-row-actions">
+					<button
+						type="button"
+						onClick={() => onLogs(endpoint.name)}
+						className="deploy-logs-btn"
+						aria-label={`Logs for ${endpoint.name}`}>
+						<FileText size={12} />
+						Logs
+					</button>
+					<button
+						type="button"
+						onClick={() => onStop(endpoint.name)}
+						disabled={stopping}
+						className="deploy-stop"
+						aria-label={`Stop ${endpoint.name}`}>
+						<Square size={12} />
+						Stop
+					</button>
+				</div>
 			</td>
 		</tr>
+	);
+}
+
+interface LogsModalProps {
+	name: string;
+	token: string;
+	onClose: () => void;
+}
+
+function LogsModal({ name, token, onClose }: LogsModalProps) {
+	const [logs, setLogs] = useState<string>('');
+	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
+	const preRef = useRef<HTMLPreElement | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		const tick = async () => {
+			try {
+				const text = await deployService.fetchLogs(token, name);
+				if (cancelled) return;
+				setLogs(text);
+				setError(null);
+				setLoading(false);
+				if (preRef.current) {
+					preRef.current.scrollTop = preRef.current.scrollHeight;
+				}
+			} catch (err) {
+				if (cancelled) return;
+				setError(err instanceof Error ? err.message : String(err));
+				setLoading(false);
+			}
+		};
+		void tick();
+		const id = window.setInterval(tick, 2000);
+		return () => {
+			cancelled = true;
+			window.clearInterval(id);
+		};
+	}, [name, token]);
+
+	return (
+		<div className="deploy-logs-overlay" role="dialog" aria-modal="true">
+			<div className="deploy-logs-modal">
+				<header className="deploy-logs-head">
+					<span>
+						<FileText size={14} /> Logs · <code>{name}</code>
+					</span>
+					<button
+						type="button"
+						onClick={onClose}
+						className="deploy-logs-close"
+						aria-label="Close logs">
+						<X size={14} />
+					</button>
+				</header>
+				{loading && !logs && (
+					<p className="deploy-logs-empty">Loading…</p>
+				)}
+				{error && <div className="deploy-error">{error}</div>}
+				<pre ref={preRef} className="deploy-logs-pre">
+					{logs || (loading ? '' : '(no output yet)')}
+				</pre>
+			</div>
+		</div>
 	);
 }
 
@@ -169,6 +247,9 @@ export default function ReactDeployPanel() {
 	const langCompartment = useRef(new Compartment());
 
 	const [stoppingName, setStoppingName] = useState<string | null>(null);
+	const [logsName, setLogsName] = useState<string | null>(null);
+	const handleLogs = useCallback((name: string) => setLogsName(name), []);
+	const handleCloseLogs = useCallback(() => setLogsName(null), []);
 
 	// Mount editor once.
 	useEffect(() => {
@@ -489,6 +570,7 @@ export default function ReactDeployPanel() {
 									key={ep.name}
 									endpoint={ep}
 									onStop={handleStop}
+									onLogs={handleLogs}
 									stopping={stoppingName === ep.name}
 								/>
 							))}
@@ -533,7 +615,22 @@ export default function ReactDeployPanel() {
 				.deploy-url-tag--public { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.35); color: rgba(134,239,172,0.95); opacity: 1; }
 				.deploy-tier { font-size: 0.65rem; padding: 0.05rem 0.35rem; border-radius: 0.2rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); opacity: 0.75; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 				.deploy-tier--public { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.35); color: rgba(134,239,172,0.95); opacity: 1; }
+				.deploy-row-actions { display: inline-flex; gap: 0.4rem; align-items: center; }
+				.deploy-logs-btn { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.55rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 0.25rem; background: rgba(255,255,255,0.04); color: inherit; cursor: pointer; font: inherit; font-size: 0.78rem; }
+				.deploy-logs-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
+				.deploy-logs-modal { width: min(900px, 100%); max-height: 80vh; display: flex; flex-direction: column; background: #111; border: 1px solid rgba(255,255,255,0.12); border-radius: 0.5rem; overflow: hidden; }
+				.deploy-logs-head { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.85rem; }
+				.deploy-logs-close { background: transparent; border: none; color: inherit; cursor: pointer; padding: 0.2rem; }
+				.deploy-logs-pre { margin: 0; padding: 0.8rem 1rem; overflow: auto; flex: 1; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; background: #0a0a0a; }
+				.deploy-logs-empty { padding: 1rem; opacity: 0.6; font-size: 0.85rem; }
 			`}</style>
+			{logsName && token && (
+				<LogsModal
+					name={logsName}
+					token={token}
+					onClose={handleCloseLogs}
+				/>
+			)}
 		</section>
 	);
 }
