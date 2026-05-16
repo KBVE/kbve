@@ -7,6 +7,12 @@
 	"targets": {
 		"dev": {
 			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "build-embed",
+					"projects": "self"
+				}
+			],
 			"options": {
 				"cwd": "apps/irc/astro-irc",
 				"commands": [
@@ -20,6 +26,12 @@
 		"build": {
 			"executor": "nx:run-commands",
 			"outputs": ["{workspaceRoot}/dist/apps/astro-irc"],
+			"dependsOn": [
+				{
+					"target": "build-embed",
+					"projects": "self"
+				}
+			],
 			"options": {
 				"cwd": "apps/irc/astro-irc",
 				"commands": [
@@ -27,6 +39,16 @@
 					"npx astro sync",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" npx astro build"
 				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"build-embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/embed"],
+			"options": {
+				"cwd": "apps/irc/astro-irc",
+				"commands": ["npx vite build --config vite.embed.config.ts"],
 				"parallel": false
 			},
 			"cache": true
