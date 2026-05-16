@@ -87,15 +87,16 @@ pg_text_enum! {
 pg_text_enum! {
     /// `wallet.source_kind`
     SourceKind {
-        Reward     => "reward",
-        Purchase   => "purchase",
-        Refund     => "refund",
-        Admin      => "admin",
-        Coupon     => "coupon",
-        MarketBuy  => "market_buy",
-        MarketSell => "market_sell",
-        MarketFee  => "market_fee",
-        Transfer   => "transfer",
+        Reward             => "reward",
+        Purchase           => "purchase",
+        Refund             => "refund",
+        Admin              => "admin",
+        Coupon             => "coupon",
+        MarketBuy          => "market_buy",
+        MarketSell         => "market_sell",
+        MarketFee          => "market_fee",
+        Transfer           => "transfer",
+        FirecrackerSession => "firecracker_session",
     }
 }
 
@@ -312,4 +313,53 @@ pub struct MarketBuyNowRequest {
 pub struct MarketCancelListingRequest {
     pub listing_id: i64,
     pub reason: Option<String>,
+}
+
+// ---------------------------------------------------------------------------
+// Firecracker session billing
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerHoldRow {
+    pub vm_id: String,
+    pub account_id: Uuid,
+    pub amount: i64,
+    pub watermark: i64,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerPlaceHoldRequest {
+    pub account_id: Uuid,
+    pub vm_id: String,
+    pub amount: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerSettleRequest {
+    pub vm_id: String,
+    pub final_amount: i64,
+    pub idempotency_key: Uuid,
+    pub reason: Option<String>,
+}
+
+pg_text_enum! {
+    /// `wallet.firecracker_settle` status column.
+    FirecrackerSettleStatus {
+        Settled            => "settled",
+        SettledCapped      => "settled_capped",
+        ReleasedZeroCharge => "released_zero_charge",
+        AlreadyMissing     => "already_missing",
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerSettleResult {
+    pub status: FirecrackerSettleStatus,
+    pub ledger_id: Option<i64>,
+    pub account_id: Option<Uuid>,
+    pub reserved_amount: i64,
+    pub debited_amount: i64,
+    pub released_amount: i64,
 }
