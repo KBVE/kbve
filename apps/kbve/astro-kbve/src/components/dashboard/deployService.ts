@@ -380,6 +380,22 @@ class DeployService {
 			this.$error.set(err instanceof Error ? err.message : String(err));
 		}
 	}
+
+	public async fetchLogs(token: string, name: string): Promise<string> {
+		const resp = await fetch(
+			`${FC_BASE}/${encodeURIComponent(name)}/logs`,
+			{
+				method: 'GET',
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(20000),
+			},
+		);
+		if (!resp.ok) {
+			const text = await resp.text().catch(() => '');
+			throw new Error(`fc ${resp.status}: ${text.slice(0, 300)}`);
+		}
+		return resp.text();
+	}
 }
 
 export const deployService = new DeployService();

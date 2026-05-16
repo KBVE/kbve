@@ -235,6 +235,48 @@ struct PersistentEndpoint {
     metrics: Arc<EndpointMetrics>,
     /// Idle TTL in seconds. 0 disables auto-teardown.
     idle_ttl_secs: u32,
+    /// Per-endpoint VM stdout/stderr ring buffer. Capped at 256 KiB.
+    logs: Arc<LogRing>,
+}
+
+/// Bounded byte ring backing `GET /fc/{name}/logs`. Drops oldest bytes
+/// when full. Drainer tasks call `push` from the VM stdio reader; readers
+/// snapshot via `bytes`.
+struct LogRing {
+    inner: std::sync::Mutex<std::collections::VecDeque<u8>>,
+    cap: usize,
+}
+
+impl LogRing {
+    const CAP_BYTES: usize = 256 * 1024;
+
+    fn new() -> Self {
+        Self {
+            inner: std::sync::Mutex::new(std::collections::VecDeque::with_capacity(
+                Self::CAP_BYTES,
+            )),
+            cap: Self::CAP_BYTES,
+        }
+    }
+
+    fn push(&self, chunk: &[u8]) {
+        let mut buf = self.inner.lock().expect("poisoned");
+        if chunk.len() >= self.cap {
+            buf.clear();
+            buf.extend(chunk[chunk.len() - self.cap..].iter().copied());
+            return;
+        }
+        let overflow = (buf.len() + chunk.len()).saturating_sub(self.cap);
+        for _ in 0..overflow {
+            buf.pop_front();
+        }
+        buf.extend(chunk.iter().copied());
+    }
+
+    fn snapshot(&self) -> Vec<u8> {
+        let buf = self.inner.lock().expect("poisoned");
+        buf.iter().copied().collect()
+    }
 }
 
 #[derive(Default)]
@@ -1011,14 +1053,24 @@ async fn fc_deploy(
         };
 
     let pid = spawn_result.child.id();
+    let logs = Arc::new(LogRing::new());
 
-    // Spawn a background task that monitors the child process. If it
-    // exits unexpectedly, mark the endpoint as degraded so the proxy
-    // returns 502 with a meaningful message rather than silently timing out.
+    // Drain stdout + stderr into the LogRing while mirroring to ctl-net's
+    // own stdout for the k8s pod log. Without a reader the pipe fills and
+    // stalls the guest mid-boot (#11044).
     {
+        let mut child = spawn_result.child;
+        let stdout = child.stdout.take();
+        let stderr = child.stderr.take();
+        if let Some(out) = stdout {
+            tokio::spawn(drain_vm_stream(out, logs.clone(), false));
+        }
+        if let Some(err) = stderr {
+            tokio::spawn(drain_vm_stream(err, logs.clone(), true));
+        }
+
         let ps = persistent.clone();
         let name = req.name.clone();
-        let mut child = spawn_result.child;
         let config_path = spawn_result.config_path;
         let socket_path = spawn_result.socket_path;
         let code_path = spawn_result.code_path;
@@ -1056,6 +1108,7 @@ async fn fc_deploy(
         http_config: req.http_config.clone(),
         metrics: Arc::new(EndpointMetrics::default()),
         idle_ttl_secs: req.idle_ttl_secs,
+        logs,
     };
     let info = PersistentEndpointInfo::from(&endpoint);
     persistent.endpoints.insert(req.name.clone(), endpoint);
@@ -1075,6 +1128,33 @@ async fn fc_deploy(
         StatusCode::CREATED,
         Json(serde_json::json!({ "endpoint": info })),
     )
+}
+
+/// Read a VM stdio stream, mirror to ctl-net's own stdout/stderr for the
+/// pod log, and tee into the per-endpoint LogRing for `/fc/{name}/logs`.
+async fn drain_vm_stream<R>(reader: R, logs: Arc<LogRing>, is_stderr: bool)
+where
+    R: tokio::io::AsyncRead + Unpin + Send + 'static,
+{
+    use tokio::io::AsyncReadExt;
+    use tokio::io::AsyncWriteExt;
+
+    let mut reader = reader;
+    let mut buf = [0u8; 4096];
+    loop {
+        match reader.read(&mut buf).await {
+            Ok(0) => return,
+            Ok(n) => {
+                logs.push(&buf[..n]);
+                if is_stderr {
+                    let _ = tokio::io::stderr().write_all(&buf[..n]).await;
+                } else {
+                    let _ = tokio::io::stdout().write_all(&buf[..n]).await;
+                }
+            }
+            Err(_) => return,
+        }
+    }
 }
 
 /// Polls the guest health path on 2s cadence. First 2xx flips
@@ -1199,6 +1279,43 @@ async fn fc_get(
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({"error": "endpoint not found", "name": name})),
         ),
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/fc/{name}/logs",
+    tag = "persistent",
+    params(("name" = String, Path, description = "Persistent endpoint name")),
+    responses(
+        (status = 200, description = "VM stdout/stderr ring (up to 256 KiB)", content_type = "text/plain"),
+        (status = 404, description = "Endpoint not found"),
+        (status = 503, description = "Persistent endpoints not enabled")
+    )
+)]
+async fn fc_logs(State(state): State<AppState>, Path(name): Path<String>) -> Response {
+    let persistent = match state.persistent.as_ref() {
+        Some(p) => p,
+        None => {
+            let (status, body) = not_enabled();
+            return (status, body).into_response();
+        }
+    };
+    match persistent.endpoints.get(&name) {
+        Some(entry) => {
+            let body = entry.value().logs.snapshot();
+            (
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+                body,
+            )
+                .into_response()
+        }
+        None => (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error": "endpoint not found", "name": name})),
+        )
+            .into_response(),
     }
 }
 
@@ -2467,12 +2584,14 @@ async fn spawn_persistent(
         .await
         .map_err(|e| format!("config write failed: {e}"))?;
 
-    // Inherit stdio. `piped()` without a reader fills the 64 KiB pipe
-    // mid-boot and stalls the guest on the next serial write.
+    // Pipe stdio. Drainer tasks (spawned in fc_deploy) read continuously
+    // into the per-endpoint LogRing and mirror to ctl-net's own stdout
+    // so the pod log still carries the VM serial console. Without a
+    // reader the 64 KiB pipe fills mid-boot and stalls the guest.
     let child = tokio::process::Command::new("firecracker")
         .args(["--api-sock", &socket_path, "--config-file", &config_path])
-        .stdout(std::process::Stdio::inherit())
-        .stderr(std::process::Stdio::inherit())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("firecracker spawn failed: {e}"))?;
 
@@ -2859,6 +2978,7 @@ async fn main() {
         .route("/fc/list", get(fc_list))
         .route("/fc/{name}", get(fc_get))
         .route("/fc/{name}", delete(fc_destroy))
+        .route("/fc/{name}/logs", get(fc_logs))
         .route("/proxy/{name}", axum::routing::any(fc_proxy))
         .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
         // Sibling prefix, not nested. `/proxy/public/{name}` overlapped
@@ -4027,6 +4147,7 @@ mod tests {
             http_config: http_config.clone(),
             metrics: Arc::new(EndpointMetrics::default()),
             idle_ttl_secs: 0,
+            logs: Arc::new(LogRing::new()),
         }
     }
 
