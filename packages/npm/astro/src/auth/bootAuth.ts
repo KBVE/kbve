@@ -2,6 +2,8 @@ import {
 	$auth,
 	DroidEvents,
 	AuthPresets,
+	applyStaffFlagFromCache,
+	setStaffPermsCache,
 	type SupabaseGateway,
 } from '@kbve/droid';
 import type { AuthBridge } from './AuthBridge';
@@ -192,6 +194,10 @@ export async function resolveStaffFlag(
 	const state = $auth.get();
 	if (state.tone !== 'auth' || !state.id) return;
 
+	// Cache fast path — apply STAFF synchronously if the bitmask is
+	// still fresh, so the UI doesn't flicker while the RPC is in flight.
+	applyStaffFlagFromCache(state.id);
+
 	try {
 		const session = await gateway.getSession().catch(() => null);
 		const token = session?.session?.access_token;
@@ -220,15 +226,18 @@ export async function resolveStaffFlag(
 
 		const permissions = await res.json();
 		// staff_permissions returns an integer bitmask; any non-zero value means staff
-		if (typeof permissions === 'number' && permissions > 0) {
-			console.log(
-				'[resolveStaffFlag] Staff permissions resolved:',
-				permissions,
-			);
-			$auth.set({
-				...state,
-				flags: AuthPresets.STAFF,
-			});
+		if (typeof permissions === 'number') {
+			setStaffPermsCache(state.id, permissions);
+			if (permissions > 0) {
+				console.log(
+					'[resolveStaffFlag] Staff permissions resolved:',
+					permissions,
+				);
+				$auth.set({
+					...state,
+					flags: AuthPresets.STAFF,
+				});
+			}
 		}
 	} catch {
 		// Staff check failure is non-fatal — user stays at USER flags

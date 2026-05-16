@@ -1,14 +1,18 @@
 import {
 	setAuth,
 	AuthPresets,
+	applyStaffFlagFromCache,
+	bootStaffPermissions,
 	clearProfileCache as clearDroidProfileCache,
+	clearStaffPermsCache,
 	fetchAndCacheProfile,
 	getProfileFromCache,
+	installSyncBusListener,
 	readProfileForFastPaint,
 	setProfileCache as setDroidProfileCache,
 	type DroidProfile,
 } from '@kbve/droid';
-import { initSupa, getSupa } from '@/lib/supa';
+import { initSupa, getSupa, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supa';
 import {
 	bootMinecraftCard,
 	clearMinecraftCardCache,
@@ -80,6 +84,7 @@ function switchState(
 
 function clearProfileCache() {
 	clearDroidProfileCache();
+	clearStaffPermsCache();
 	try {
 		clearMinecraftCardCache();
 	} catch {
@@ -94,22 +99,18 @@ async function fetchProfile(token: string): Promise<ApiProfile | null> {
 // ── Staff permissions check ─────────────────────────────────────────────────
 
 /**
- * Call the Supabase staff_permissions RPC to check if the user has
- * dashboard access. Updates the global $auth flags so dashboard panels
- * (Grafana, ArgoCD, ClickHouse, etc.) become visible.
+ * Boot staff permissions via the droid cache: synchronously apply the
+ * cached bitmask to `$auth` (paints staff-only panels instantly on a
+ * warm cache) and kick off a background refresh that updates the
+ * persistent atom for the next paint.
  */
-async function fetchStaffFlags(_token: string): Promise<void> {
-	try {
-		const supa = getSupa();
-		const data = await supa.rpc('staff_permissions');
-		// data is the integer bitmask from the RPC
-		const perms = typeof data === 'number' ? data : 0;
-		if (perms > 0) {
-			setAuth({ flags: AuthPresets.STAFF });
-		}
-	} catch {
-		// Non-critical — staff panels just won't show
-	}
+function bootStaff(userId: string, token: string): void {
+	bootStaffPermissions({
+		userId,
+		token,
+		apikey: SUPABASE_ANON_KEY,
+		supabaseUrl: SUPABASE_URL,
+	});
 }
 
 // ── Populate profile card slots ─────────────────────────────────────────────
@@ -318,8 +319,8 @@ async function handleSession(session: any) {
 		avatar: session.user.user_metadata?.avatar_url,
 	});
 
-	// Check staff permissions via Supabase RPC (non-blocking for UI)
-	fetchStaffFlags(token).catch(() => {});
+	// Apply cached staff flag synchronously, refresh in background.
+	bootStaff(userId, token);
 
 	// Cache-first for instant display
 	const cached = getProfileFromCache(userId);
@@ -369,6 +370,11 @@ export async function bootProfile() {
 	switchState('loading');
 	wireLogout();
 
+	// Subscribe to the cross-context cache bus so a service worker /
+	// shared worker can push a profile or staff refresh into the
+	// persistent stores. Idempotent — safe to call repeatedly.
+	installSyncBusListener();
+
 	// Fast paint: read session + cached profile straight from localStorage
 	// before awaiting the Supabase SharedWorker init. With a warm cache the
 	// profile card paints in tens of ms instead of the multi-second
@@ -376,10 +382,31 @@ export async function bootProfile() {
 	const fastPaint = readProfileForFastPaint();
 	let painted = false;
 	if (fastPaint && fastPaint.profile.username) {
+		const fpUserId = fastPaint.session.user?.id;
 		populateProfile(fastPaint.profile, fastPaint.session);
 		switchState('profile');
 		painted = true;
-		const fpUserId = fastPaint.session.user?.id;
+		if (fpUserId) {
+			// Paint USER flags immediately so the staff cache can lift them
+			// to STAFF without flicker, then paint cached staff state.
+			setAuth({
+				tone: 'auth',
+				flags: AuthPresets.USER,
+				id: fpUserId,
+				name:
+					((
+						fastPaint.session.user?.user_metadata as
+							| Record<string, unknown>
+							| undefined
+					)?.full_name as string | undefined) ?? '',
+				avatar: (
+					fastPaint.session.user?.user_metadata as
+						| Record<string, unknown>
+						| undefined
+				)?.avatar_url as string | undefined,
+			});
+			applyStaffFlagFromCache(fpUserId);
+		}
 		const fpToken = fastPaint.session.access_token;
 		if (fpUserId && fpToken) {
 			bootMinecraftCard(fpUserId, fpToken).catch(() => {});
