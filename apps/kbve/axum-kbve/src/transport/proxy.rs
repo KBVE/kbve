@@ -247,25 +247,37 @@ impl ServiceProxy {
         };
 
         // Wrap 5xx upstream responses so the frontend always gets a parseable
-        // {"reason", "detail"} JSON instead of raw upstream HTML/text.
+        // {"reason", "detail"} JSON instead of raw upstream HTML/text — but
+        // only when the upstream body isn't already JSON. Pass JSON through
+        // so deliberate signals (e.g. firecracker-ctl-net's 503 + Retry-After
+        // readiness gate, ctl-net's 429 rate-limit body) reach the caller
+        // unmolested with their original status code + headers.
         if upstream_status >= 500 {
-            let body_preview =
-                String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
+            let upstream_is_json = resp_headers
+                .get(axum::http::header::CONTENT_TYPE)
+                .and_then(|v| v.to_str().ok())
+                .map(|ct| ct.starts_with("application/json"))
+                .unwrap_or(false);
 
-            warn!(
-                %upstream_url, upstream_status,
-                "{} upstream returned {}: {}", self.name, upstream_status, body_preview
-            );
+            if !upstream_is_json {
+                let body_preview =
+                    String::from_utf8_lossy(&resp_body[..resp_body.len().min(512)]).to_string();
 
-            return (
-                StatusCode::BAD_GATEWAY,
-                axum::Json(json!({
-                    "error": format!("{} upstream error", self.name),
-                    "reason": format!("upstream returned {upstream_status}"),
-                    "detail": body_preview,
-                })),
-            )
-                .into_response();
+                warn!(
+                    %upstream_url, upstream_status,
+                    "{} upstream returned {}: {}", self.name, upstream_status, body_preview
+                );
+
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    axum::Json(json!({
+                        "error": format!("{} upstream error", self.name),
+                        "reason": format!("upstream returned {upstream_status}"),
+                        "detail": body_preview,
+                    })),
+                )
+                    .into_response();
+            }
         }
 
         let mut response = Response::builder().status(status);
