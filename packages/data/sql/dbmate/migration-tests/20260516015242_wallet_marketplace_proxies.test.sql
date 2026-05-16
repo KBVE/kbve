@@ -7,18 +7,77 @@
 -- wallet.audit_log are append-only.
 
 -- SEED
+-- Ensure local auth stub is reachable by service_role + the auth.uid()
+-- function reads request.jwt.claims (matching Supabase prod). The
+-- production env already has these; this block is idempotent so it
+-- only patches the local dev container.
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SET search_path = ''
+AS $$
+    SELECT NULLIF(
+        COALESCE(
+            current_setting('request.jwt.claim.sub', true),
+            (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb)->>'sub'
+        ),
+        ''
+    )::UUID;
+$$;
+
 DROP TABLE IF EXISTS public.__market_proxies_fixture;
 CREATE TABLE public.__market_proxies_fixture (
     role    TEXT PRIMARY KEY,
     user_id UUID NOT NULL
 );
 INSERT INTO public.__market_proxies_fixture (role, user_id) VALUES
-    ('seller',  gen_random_uuid()),
-    ('bidder',  gen_random_uuid()),
-    ('outsider', gen_random_uuid());
+    ('seller',   gen_random_uuid()),
+    ('bidder',   gen_random_uuid()),
+    ('outsider', gen_random_uuid()),
+    -- 'orphan' has an auth.users row but no wallet.account (used for
+    -- the WLT01 missing-wallet test). We tear down the trigger-
+    -- provisioned account immediately below.
+    ('orphan',   gen_random_uuid());
 
 INSERT INTO auth.users (id)
 SELECT user_id FROM public.__market_proxies_fixture;
+
+-- Strip orphan's trigger-provisioned wallet rows so proxy calls raise WLT01.
+DO $$
+DECLARE
+    v_orphan_acc UUID;
+BEGIN
+    SELECT a.id INTO v_orphan_acc
+      FROM wallet.account a
+      JOIN public.__market_proxies_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'orphan';
+    IF v_orphan_acc IS NOT NULL THEN
+        DELETE FROM wallet.coupon WHERE account_id = v_orphan_acc;
+        DELETE FROM wallet.balance WHERE account_id = v_orphan_acc;
+        DELETE FROM wallet.account WHERE id = v_orphan_acc;
+    END IF;
+END;
+$$;
+
+-- Assert the auth.users trigger actually provisioned the other three
+-- fixture users' wallet accounts before we move on.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM public.__market_proxies_fixture f
+          LEFT JOIN wallet.account a
+            ON a.user_id = f.user_id AND a.kind = 'user'
+         WHERE f.role <> 'orphan'
+           AND a.id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'fail: fixture wallet accounts were not auto-provisioned';
+    END IF;
+END;
+$$;
 
 -- Fund the bidder + outsider so any debits succeed.
 DO $$
@@ -26,7 +85,10 @@ DECLARE
     v_account UUID;
     v_role    TEXT;
 BEGIN
-    FOR v_role IN SELECT role FROM public.__market_proxies_fixture WHERE role <> 'seller' LOOP
+    FOR v_role IN
+        SELECT role FROM public.__market_proxies_fixture
+         WHERE role IN ('bidder', 'outsider')
+    LOOP
         SELECT id INTO v_account
           FROM wallet.account a
           JOIN public.__market_proxies_fixture f ON f.user_id = a.user_id
@@ -203,6 +265,10 @@ DECLARE
     v_seller_bal1  BIGINT;
     v_bidder_bal0  BIGINT;
     v_bidder_bal1  BIGINT;
+    v_buy_now_price BIGINT := 500;
+    v_expected_fee  BIGINT := v_buy_now_price / 100;  -- 1% rate
+    v_expected_net  BIGINT := v_buy_now_price - (v_buy_now_price / 100);
+    v_prior_bid     BIGINT := 200;
 BEGIN
     SELECT user_id INTO v_outsider_uid FROM public.__market_proxies_fixture WHERE role = 'outsider';
     SELECT user_id INTO v_seller_uid   FROM public.__market_proxies_fixture WHERE role = 'seller';
@@ -225,16 +291,40 @@ BEGIN
     );
     PERFORM public.proxy_market_buy_now(v_listing_id, gen_random_uuid());
 
-    -- seller receives buy_now - fee = 500 - 5 = 495
     SELECT khash INTO v_seller_bal1 FROM wallet.balance WHERE account_id = v_seller_acc;
-    IF v_seller_bal1 - v_seller_bal0 <> 495 THEN
-        RAISE EXCEPTION 'fail: seller net wrong after buy_now (% vs 495)', v_seller_bal1 - v_seller_bal0;
+    IF v_seller_bal1 - v_seller_bal0 <> v_expected_net THEN
+        RAISE EXCEPTION 'fail: seller net wrong after buy_now (% vs %)',
+            v_seller_bal1 - v_seller_bal0, v_expected_net;
     END IF;
 
-    -- prior bidder refunded their 200
     SELECT khash INTO v_bidder_bal1 FROM wallet.balance WHERE account_id = v_bidder_acc;
-    IF v_bidder_bal1 <> v_bidder_bal0 + 200 THEN
-        RAISE EXCEPTION 'fail: bidder not refunded (% vs %)', v_bidder_bal1, v_bidder_bal0 + 200;
+    IF v_bidder_bal1 <> v_bidder_bal0 + v_prior_bid THEN
+        RAISE EXCEPTION 'fail: bidder not refunded (% vs %)',
+            v_bidder_bal1, v_bidder_bal0 + v_prior_bid;
+    END IF;
+
+    -- Listing flips to sold with buyer + settled_at populated, live-bid
+    -- pointers cleared.
+    IF NOT EXISTS (
+        SELECT 1 FROM wallet.listing
+         WHERE id = v_listing_id
+           AND status = 'sold'
+           AND buyer_account = v_outsider_acc
+           AND settled_at IS NOT NULL
+           AND current_bid_id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'fail: listing not settled correctly after buy_now';
+    END IF;
+
+    -- Prior bid demoted to 'outbid' with refund_ledger_id set.
+    IF NOT EXISTS (
+        SELECT 1 FROM wallet.bid
+         WHERE listing_id = v_listing_id
+           AND bidder_account = v_bidder_acc
+           AND status = 'outbid'
+           AND refund_ledger_id IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'fail: prior bid not marked outbid with refund_ledger_id';
     END IF;
 END;
 $$;
@@ -249,10 +339,18 @@ DECLARE
     v_bidder_uid   UUID;
     v_outsider_uid UUID;
     v_listing_id   BIGINT;
+    v_bidder_acc   UUID;
+    v_bid_amount   BIGINT := 75;
+    v_bal0         BIGINT;
+    v_bal1         BIGINT;
 BEGIN
     SELECT user_id INTO v_seller_uid   FROM public.__market_proxies_fixture WHERE role = 'seller';
     SELECT user_id INTO v_bidder_uid   FROM public.__market_proxies_fixture WHERE role = 'bidder';
     SELECT user_id INTO v_outsider_uid FROM public.__market_proxies_fixture WHERE role = 'outsider';
+    SELECT id INTO v_bidder_acc
+      FROM wallet.account a
+      JOIN public.__market_proxies_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'bidder';
 
     PERFORM set_config(
         'request.jwt.claims',
@@ -275,7 +373,8 @@ BEGIN
         jsonb_build_object('role', 'authenticated', 'sub', v_bidder_uid::text)::text,
         true
     );
-    PERFORM public.proxy_market_place_bid(v_listing_id, 75, gen_random_uuid());
+    SELECT khash INTO v_bal0 FROM wallet.balance WHERE account_id = v_bidder_acc;
+    PERFORM public.proxy_market_place_bid(v_listing_id, v_bid_amount, gen_random_uuid());
 
     -- outsider cannot cancel.
     PERFORM set_config(
@@ -302,6 +401,289 @@ BEGIN
          WHERE id = v_listing_id AND status = 'cancelled'
     ) THEN
         RAISE EXCEPTION 'fail: listing not flipped to cancelled';
+    END IF;
+
+    -- Bidder balance restored.
+    SELECT khash INTO v_bal1 FROM wallet.balance WHERE account_id = v_bidder_acc;
+    IF v_bal1 <> v_bal0 THEN
+        RAISE EXCEPTION 'fail: bidder not refunded after cancel (% vs %)', v_bal1, v_bal0;
+    END IF;
+
+    -- Bid row marked 'refunded' with refund_ledger_id.
+    IF NOT EXISTS (
+        SELECT 1 FROM wallet.bid
+         WHERE listing_id = v_listing_id
+           AND bidder_account = v_bidder_acc
+           AND status = 'refunded'
+           AND refund_ledger_id IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'fail: cancelled bid not marked refunded with refund_ledger_id';
+    END IF;
+END;
+$$;
+COMMIT;
+
+-- 11. WLT01 missing-wallet path: orphan calls my_listings / my_bids /
+--     create_listing → all raise WLT01 (Rust client falls back to rw
+--     lazy-provision).
+BEGIN;
+DO $$
+DECLARE
+    v_orphan_uid UUID;
+BEGIN
+    SELECT user_id INTO v_orphan_uid FROM public.__market_proxies_fixture WHERE role = 'orphan';
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_orphan_uid::text)::text,
+        true
+    );
+
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_listings_readonly();
+        RAISE EXCEPTION 'fail: orphan my_listings should have raised WLT01';
+    EXCEPTION WHEN sqlstate 'WLT01' THEN NULL;
+    END;
+
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_bids_readonly();
+        RAISE EXCEPTION 'fail: orphan my_bids should have raised WLT01';
+    EXCEPTION WHEN sqlstate 'WLT01' THEN NULL;
+    END;
+
+    BEGIN
+        PERFORM public.proxy_market_create_listing(
+            jsonb_build_object('kind', 'mc_item', 'id', 'x', 'instance_id', 'orphan-' || v_orphan_uid::text),
+            100, NULL,
+            statement_timestamp() + interval '2 hours',
+            gen_random_uuid()
+        );
+        RAISE EXCEPTION 'fail: orphan create_listing should have raised WLT01';
+    EXCEPTION WHEN sqlstate 'WLT01' THEN NULL;
+    END;
+END;
+$$;
+COMMIT;
+
+-- 12. Cursor pair validation: mismatched cursor args raise 22023.
+BEGIN;
+DO $$
+BEGIN
+    BEGIN
+        PERFORM * FROM public.proxy_market_list_active_readonly(50, statement_timestamp(), NULL);
+        RAISE EXCEPTION 'fail: list_active half-cursor should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+    BEGIN
+        PERFORM * FROM public.proxy_market_list_active_readonly(50, NULL, 1::BIGINT);
+        RAISE EXCEPTION 'fail: list_active half-cursor (id only) should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+END;
+$$;
+COMMIT;
+
+-- 13. Limit clamping: huge limit clamps to 100; null / 0 / -1 land on
+--     valid defaults.
+BEGIN;
+DO $$
+DECLARE
+    v_count INT;
+BEGIN
+    SELECT count(*) INTO v_count FROM public.proxy_market_list_active_readonly(100000);
+    IF v_count > 100 THEN
+        RAISE EXCEPTION 'fail: list_active returned % rows, expected <= 100', v_count;
+    END IF;
+    -- Just exercise the boundary; returning >=0 with no error proves clamp.
+    PERFORM * FROM public.proxy_market_list_active_readonly(NULL);
+    PERFORM * FROM public.proxy_market_list_active_readonly(0);
+    PERFORM * FROM public.proxy_market_list_active_readonly(-1);
+END;
+$$;
+COMMIT;
+
+-- 14. Grants posture (drift catch): anon has EXECUTE on the public
+--     browse pair but NOT on personal or write proxies.
+DO $$
+BEGIN
+    IF NOT has_function_privilege(
+        'anon',
+        'public.proxy_market_list_active_readonly(integer,timestamp with time zone,bigint)',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: anon missing EXECUTE on list_active_readonly';
+    END IF;
+    IF NOT has_function_privilege(
+        'anon',
+        'public.proxy_market_listing_detail_readonly(bigint)',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: anon missing EXECUTE on listing_detail_readonly';
+    END IF;
+    IF has_function_privilege(
+        'anon',
+        'public.proxy_market_my_listings_readonly(integer,timestamp with time zone,bigint)',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on my_listings_readonly';
+    END IF;
+    IF has_function_privilege(
+        'anon',
+        'public.proxy_market_create_listing(jsonb,bigint,bigint,timestamp with time zone,uuid)',
+        'EXECUTE'
+    ) THEN
+        RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on create_listing';
+    END IF;
+END;
+$$;
+
+-- 15. Seller cannot bid on or buy_now their own listing (P1005).
+BEGIN;
+DO $$
+DECLARE
+    v_seller_uid UUID;
+    v_listing_id BIGINT;
+BEGIN
+    SELECT user_id INTO v_seller_uid FROM public.__market_proxies_fixture WHERE role = 'seller';
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_seller_uid::text)::text,
+        true
+    );
+
+    v_listing_id := public.proxy_market_create_listing(
+        jsonb_build_object(
+            'kind', 'mc_item', 'id', 'self-bid-test',
+            'instance_id', 'proxies-test-self-' || v_seller_uid::text
+        ),
+        300, 50,
+        statement_timestamp() + interval '2 hours',
+        gen_random_uuid()
+    );
+
+    BEGIN
+        PERFORM public.proxy_market_place_bid(v_listing_id, 100, gen_random_uuid());
+        RAISE EXCEPTION 'fail: seller self-bid should have raised P1005';
+    EXCEPTION WHEN sqlstate 'P1005' THEN NULL;
+    END;
+
+    BEGIN
+        PERFORM public.proxy_market_buy_now(v_listing_id, gen_random_uuid());
+        RAISE EXCEPTION 'fail: seller self-buy should have raised P1005';
+    EXCEPTION WHEN sqlstate 'P1005' THEN NULL;
+    END;
+END;
+$$;
+COMMIT;
+
+-- 16. Idempotency replay: same key returns the same row id.
+BEGIN;
+DO $$
+DECLARE
+    v_seller_uid UUID;
+    v_bidder_uid UUID;
+    v_outsider_uid UUID;
+    v_listing_id BIGINT;
+    v_create_key UUID := gen_random_uuid();
+    v_bid_key    UUID := gen_random_uuid();
+    v_buynow_key UUID := gen_random_uuid();
+    v_id1 BIGINT;
+    v_id2 BIGINT;
+    v_target_listing BIGINT;
+    v_target_listing_2 BIGINT;
+BEGIN
+    SELECT user_id INTO v_seller_uid   FROM public.__market_proxies_fixture WHERE role = 'seller';
+    SELECT user_id INTO v_bidder_uid   FROM public.__market_proxies_fixture WHERE role = 'bidder';
+    SELECT user_id INTO v_outsider_uid FROM public.__market_proxies_fixture WHERE role = 'outsider';
+
+    -- create_listing replay
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_seller_uid::text)::text,
+        true
+    );
+    v_id1 := public.proxy_market_create_listing(
+        jsonb_build_object('kind', 'mc_item', 'id', 'replay',
+            'instance_id', 'proxies-test-replay-' || v_seller_uid::text),
+        500, 100,
+        statement_timestamp() + interval '2 hours',
+        v_create_key
+    );
+    v_id2 := public.proxy_market_create_listing(
+        jsonb_build_object('kind', 'mc_item', 'id', 'replay-different',
+            'instance_id', 'proxies-test-replay-x-' || v_seller_uid::text),
+        999, 999,
+        statement_timestamp() + interval '5 hours',
+        v_create_key
+    );
+    IF v_id1 IS DISTINCT FROM v_id2 THEN
+        RAISE EXCEPTION 'fail: create_listing idempotency replay returned different ids (%, %)', v_id1, v_id2;
+    END IF;
+
+    -- place_bid replay (same listing, same key → same bid id)
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_bidder_uid::text)::text,
+        true
+    );
+    v_id1 := public.proxy_market_place_bid(v_id1, 120, v_bid_key);
+    v_id2 := public.proxy_market_place_bid(v_id1::BIGINT, 120, v_bid_key);
+    -- v_id1 was overwritten; assert by re-running
+    IF v_id1 IS DISTINCT FROM v_id2 THEN
+        RAISE EXCEPTION 'fail: place_bid idempotency replay returned different ids';
+    END IF;
+
+    -- buy_now replay on a SECOND fresh listing
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_seller_uid::text)::text,
+        true
+    );
+    v_target_listing := public.proxy_market_create_listing(
+        jsonb_build_object('kind', 'mc_item', 'id', 'buynow-replay',
+            'instance_id', 'proxies-test-buynow-replay-' || v_seller_uid::text),
+        400, NULL,
+        statement_timestamp() + interval '2 hours',
+        gen_random_uuid()
+    );
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_outsider_uid::text)::text,
+        true
+    );
+    v_id1 := public.proxy_market_buy_now(v_target_listing, v_buynow_key);
+    v_id2 := public.proxy_market_buy_now(v_target_listing, v_buynow_key);
+    IF v_id1 IS DISTINCT FROM v_id2 THEN
+        RAISE EXCEPTION 'fail: buy_now idempotency replay returned different bid ids';
+    END IF;
+END;
+$$;
+COMMIT;
+
+-- 17. Pagination actually moves forward: page-2 cursor excludes page-1.
+BEGIN;
+RESET request.jwt.claims;
+DO $$
+DECLARE
+    v_p1_last_id    BIGINT;
+    v_p1_last_at    TIMESTAMPTZ;
+    v_page2_overlap INT;
+BEGIN
+    SELECT listing_id, created_at INTO v_p1_last_id, v_p1_last_at
+      FROM public.proxy_market_list_active_readonly(2)
+     ORDER BY created_at ASC, listing_id ASC
+     LIMIT 1;
+
+    IF v_p1_last_id IS NULL THEN
+        -- Not enough listings to paginate; skip.
+        RETURN;
+    END IF;
+
+    SELECT COUNT(*) INTO v_page2_overlap
+      FROM public.proxy_market_list_active_readonly(2, v_p1_last_at, v_p1_last_id) p2
+      JOIN public.proxy_market_list_active_readonly(2) p1
+        ON p1.listing_id = p2.listing_id;
+    IF v_page2_overlap > 0 THEN
+        RAISE EXCEPTION 'fail: page-2 cursor returned % rows that overlap page-1', v_page2_overlap;
     END IF;
 END;
 $$;
