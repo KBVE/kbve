@@ -1,0 +1,60 @@
+---
+// Live preview of the chat embed bundle on the front page.
+// Dogfoods the public chat.js bundle (built by astro-irc:build-embed and
+// served from /embed/chat.js). Shadow DOM keeps it isolated from
+// Starlight's body styles.
+interface Props {
+	channel?: string;
+	height?: string;
+	theme?: 'dark' | 'light';
+}
+
+const { channel = '#general', height = '420px', theme = 'dark' } = Astro.props;
+---
+
+<div class="home-chat-embed not-content">
+	<div class="home-chat-embed__frame">
+		<div
+			id="kbve-home-chat"
+			data-channel={channel}
+			data-theme={theme}
+			data-height={height}>
+		</div>
+	</div>
+	<p class="home-chat-embed__caption">
+		Live preview powered by the same <code>chat.js</code> bundle any site can
+		drop in.
+	</p>
+</div>
+
+<script is:inline src="/embed/chat.js" defer></script>
+
+<style>
+	.home-chat-embed {
+		margin: 2rem auto;
+		max-width: 960px;
+	}
+
+	.home-chat-embed__frame {
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow:
+			0 24px 64px -20px rgba(0, 0, 0, 0.4),
+			0 0 0 1px var(--sl-color-border);
+		background: var(--sl-color-bg-nav, #0a0d14);
+	}
+
+	.home-chat-embed__caption {
+		text-align: center;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+		margin-top: 0.75rem;
+	}
+
+	.home-chat-embed__caption code {
+		font-size: 0.85em;
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+		background: var(--sl-color-bg-inline-code);
+	}
+</style>
