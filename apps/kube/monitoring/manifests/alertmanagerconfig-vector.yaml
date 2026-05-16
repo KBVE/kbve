@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+    name: vector-sink
+    namespace: monitoring
+    labels:
+        app: alertmanager-vector-sink
+spec:
+    route:
+        receiver: vector-webhook
+        groupBy:
+            - alertname
+            - namespace
+            - severity
+        groupWait: 10s
+        groupInterval: 30s
+        repeatInterval: 5m
+        continue: true
+        matchers:
+            - name: severity
+              matcher: '=~'
+              value: 'critical|warning|info'
+    receivers:
+        - name: vector-webhook
+          webhookConfigs:
+              - url: http://vector.vector.svc.cluster.local:9002/alertmanager
+                sendResolved: true
+                maxAlerts: 0

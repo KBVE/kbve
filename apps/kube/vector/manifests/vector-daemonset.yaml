@@ -25,6 +25,8 @@ spec:
                   ports:
                       - containerPort: 9001
                         name: api
+                      - containerPort: 9002
+                        name: alertmanager
                   env:
                       - name: VECTOR_SELF_NODE_NAME
                         valueFrom:
@@ -143,5 +145,9 @@ spec:
           targetPort: 9001
           protocol: TCP
           name: api
+        - port: 9002
+          targetPort: 9002
+          protocol: TCP
+          name: alertmanager
     selector:
         app: supabase-vector
