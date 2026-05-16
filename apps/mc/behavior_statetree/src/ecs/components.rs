@@ -261,22 +261,31 @@ impl CooldownState for GlobalCallCooldown {
 pub struct WorldSpawnProtection {
     pub min: [i32; 3],
     pub max: [i32; 3],
+    pub buffer: i32,
 }
 
 impl WorldSpawnProtection {
-    /// Cheap inside-cube test against a floating-point world position. Mirrors
-    /// the Java safety net so both sides agree on the same boundary.
     #[inline]
     pub fn contains_pos(&self, pos: [f64; 3]) -> bool {
+        self.contains_pos_with_padding(pos, 0)
+    }
+
+    #[inline]
+    pub fn contains_pos_buffered(&self, pos: [f64; 3]) -> bool {
+        self.contains_pos_with_padding(pos, self.buffer)
+    }
+
+    #[inline]
+    fn contains_pos_with_padding(&self, pos: [f64; 3], pad: i32) -> bool {
         let x = pos[0].floor() as i32;
         let y = pos[1].floor() as i32;
         let z = pos[2].floor() as i32;
-        x >= self.min[0]
-            && x <= self.max[0]
-            && y >= self.min[1]
-            && y <= self.max[1]
-            && z >= self.min[2]
-            && z <= self.max[2]
+        x >= self.min[0] - pad
+            && x <= self.max[0] + pad
+            && y >= self.min[1] - pad
+            && y <= self.max[1] + pad
+            && z >= self.min[2] - pad
+            && z <= self.max[2] + pad
     }
 }
 
@@ -285,6 +294,7 @@ impl Default for WorldSpawnProtection {
         Self {
             min: [-200, -200, -200],
             max: [200, 200, 200],
+            buffer: 64,
         }
     }
 }
@@ -313,7 +323,7 @@ impl Default for SkeletonPopulationConfig {
             max_skeletons: 2,
             spawn_radius: 32,
             despawn_range: 64.0,
-            manage_interval_ticks: 200, // 20s at 100ms ECS ticks
+            manage_interval_ticks: 60,
         }
     }
 }
