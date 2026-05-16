@@ -274,7 +274,7 @@ pub(crate) async fn me_redeem_coupon(
     }
 }
 
-async fn resolve_user(headers: &HeaderMap) -> Result<Uuid, Response> {
+pub(crate) async fn resolve_user(headers: &HeaderMap) -> Result<Uuid, Response> {
     let s = auth_user_id(headers).await?;
     Uuid::parse_str(&s).map_err(|_| {
         (
@@ -285,7 +285,7 @@ async fn resolve_user(headers: &HeaderMap) -> Result<Uuid, Response> {
     })
 }
 
-fn service_unavailable() -> Response {
+pub(crate) fn service_unavailable() -> Response {
     (
         StatusCode::SERVICE_UNAVAILABLE,
         Json(json!({"error": "Wallet service unavailable"})),
@@ -363,7 +363,7 @@ fn parse_source_kind(s: &str) -> Result<SourceKind, Response> {
     })
 }
 
-fn wallet_error_response(err: WalletError) -> Response {
+pub(crate) fn wallet_error_response(err: WalletError) -> Response {
     let (status, code) = match &err {
         WalletError::InsufficientFunds => (StatusCode::PAYMENT_REQUIRED, "insufficient_funds"),
         WalletError::ReplayMismatch => (StatusCode::CONFLICT, "replay_mismatch"),
