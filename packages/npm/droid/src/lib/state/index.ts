@@ -37,3 +37,21 @@ export {
 
 export { OverlayManager } from './overlay-manager';
 export type { RenderPath } from './overlay-manager';
+
+export {
+	$profileCache,
+	clearProfileCache,
+	fetchAndCacheProfile,
+	fetchProfileFromApi,
+	getProfileFromCache,
+	PROFILE_CACHE_TTL_MS,
+	PROFILE_DEFAULT_API_BASE,
+	readProfileForFastPaint,
+	readSupabaseSessionFromStorage,
+	setProfileCache,
+	type CachedSupabaseSession,
+	type DroidProfile,
+	type FetchProfileOptions,
+	type ProfileCacheEnvelope,
+	type ProfileFastPaintResult,
+} from './profile';
