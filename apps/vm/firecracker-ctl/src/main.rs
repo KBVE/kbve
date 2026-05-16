@@ -1218,6 +1218,159 @@ async fn health_prober_task(persistent: Arc<PersistentState>, name: String) {
     }
 }
 
+/// Prometheus text-format exposition. Emits per-endpoint counters
+/// (requests, errors, throttled, forbidden, bytes, status) plus pool +
+/// process gauges. Hand-rolled to avoid a crate dependency for ~80 lines
+/// of output. Scraped by the ServiceMonitor in
+/// `apps/kube/firecracker/manifests/firecracker-net-servicemonitor.yaml`.
+async fn metrics_handler(State(state): State<AppState>) -> Response {
+    let mut out = String::with_capacity(2048);
+
+    out.push_str("# HELP fc_build_info Build identity (always 1).\n");
+    out.push_str("# TYPE fc_build_info gauge\n");
+    out.push_str(&format!(
+        "fc_build_info{{version=\"{}\"}} 1\n",
+        env!("CARGO_PKG_VERSION")
+    ));
+
+    out.push_str("# HELP fc_jailer_enabled 1 if jailer is configured.\n");
+    out.push_str("# TYPE fc_jailer_enabled gauge\n");
+    out.push_str(&format!(
+        "fc_jailer_enabled {}\n",
+        i32::from(state.jailer.is_some())
+    ));
+
+    let Some(persistent) = state.persistent.as_ref() else {
+        out.push_str("# HELP fc_persistent_enabled 1 if /fc/* endpoints are wired.\n");
+        out.push_str("# TYPE fc_persistent_enabled gauge\n");
+        out.push_str("fc_persistent_enabled 0\n");
+        return (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+            out,
+        )
+            .into_response();
+    };
+
+    out.push_str("# HELP fc_persistent_enabled 1 if /fc/* endpoints are wired.\n");
+    out.push_str("# TYPE fc_persistent_enabled gauge\n");
+    out.push_str("fc_persistent_enabled 1\n");
+
+    let pool_used = persistent.pool.in_use();
+    let pool_capacity = persistent.pool.capacity();
+    out.push_str("# HELP fc_ip_pool_used Currently-allocated /30 slots.\n");
+    out.push_str("# TYPE fc_ip_pool_used gauge\n");
+    out.push_str(&format!("fc_ip_pool_used {pool_used}\n"));
+    out.push_str("# HELP fc_ip_pool_capacity Maximum /30 slots available.\n");
+    out.push_str("# TYPE fc_ip_pool_capacity gauge\n");
+    out.push_str(&format!("fc_ip_pool_capacity {pool_capacity}\n"));
+
+    out.push_str("# HELP fc_endpoint_status Status of each persistent endpoint (1 = current).\n");
+    out.push_str("# TYPE fc_endpoint_status gauge\n");
+    out.push_str("# HELP fc_endpoint_requests_total Total proxied requests by outcome.\n");
+    out.push_str("# TYPE fc_endpoint_requests_total counter\n");
+    out.push_str("# HELP fc_endpoint_bytes_total Bytes proxied by direction.\n");
+    out.push_str("# TYPE fc_endpoint_bytes_total counter\n");
+    out.push_str(
+        "# HELP fc_endpoint_last_request_age_seconds Seconds since last forwarded request (NaN if never).\n",
+    );
+    out.push_str("# TYPE fc_endpoint_last_request_age_seconds gauge\n");
+    out.push_str("# HELP fc_endpoint_uptime_seconds Seconds since endpoint registered.\n");
+    out.push_str("# TYPE fc_endpoint_uptime_seconds gauge\n");
+
+    let mut status_counts: [u64; 5] = [0; 5];
+
+    for entry in persistent.endpoints.iter() {
+        let ep = entry.value();
+        let name = &ep.name;
+        let visibility = match ep.visibility {
+            EndpointVisibility::Staff => "staff",
+            EndpointVisibility::Public => "public",
+        };
+        let common = format!("name=\"{name}\",visibility=\"{visibility}\"");
+
+        let status_idx = match ep.status {
+            EndpointStatus::Pending => 0,
+            EndpointStatus::Starting => 1,
+            EndpointStatus::Healthy => 2,
+            EndpointStatus::Degraded => 3,
+            EndpointStatus::Stopping => 4,
+        };
+        status_counts[status_idx] += 1;
+        for (idx, label) in ["pending", "starting", "healthy", "degraded", "stopping"]
+            .iter()
+            .enumerate()
+        {
+            out.push_str(&format!(
+                "fc_endpoint_status{{{common},status=\"{label}\"}} {}\n",
+                i32::from(idx == status_idx)
+            ));
+        }
+
+        let m = &ep.metrics;
+        let total = m.requests_total.load(Ordering::Relaxed);
+        let throttled = m.requests_throttled.load(Ordering::Relaxed);
+        let forbidden = m.requests_forbidden.load(Ordering::Relaxed);
+        let upstream_errors = m.upstream_errors.load(Ordering::Relaxed);
+        let ok = total.saturating_sub(upstream_errors);
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"ok\"}} {ok}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"throttled\"}} {throttled}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"forbidden\"}} {forbidden}\n"
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_requests_total{{{common},outcome=\"upstream_error\"}} {upstream_errors}\n"
+        ));
+
+        out.push_str(&format!(
+            "fc_endpoint_bytes_total{{{common},direction=\"in\"}} {}\n",
+            m.bytes_in.load(Ordering::Relaxed)
+        ));
+        out.push_str(&format!(
+            "fc_endpoint_bytes_total{{{common},direction=\"out\"}} {}\n",
+            m.bytes_out.load(Ordering::Relaxed)
+        ));
+
+        let last = m.last_request_micros.load(Ordering::Relaxed);
+        let age = if last == 0 {
+            "NaN".to_string()
+        } else {
+            format!("{:.0}", ((now_micros() - last).max(0) as f64) / 1_000_000.0)
+        };
+        out.push_str(&format!(
+            "fc_endpoint_last_request_age_seconds{{{common}}} {age}\n"
+        ));
+
+        out.push_str(&format!(
+            "fc_endpoint_uptime_seconds{{{common}}} {}\n",
+            ep.created.elapsed().as_secs()
+        ));
+    }
+
+    out.push_str("# HELP fc_endpoints_total Endpoints in registry by status.\n");
+    out.push_str("# TYPE fc_endpoints_total gauge\n");
+    for (idx, label) in ["pending", "starting", "healthy", "degraded", "stopping"]
+        .iter()
+        .enumerate()
+    {
+        out.push_str(&format!(
+            "fc_endpoints_total{{status=\"{label}\"}} {}\n",
+            status_counts[idx]
+        ));
+    }
+
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+        out,
+    )
+        .into_response()
+}
+
 #[utoipa::path(
     get,
     path = "/fc/list",
@@ -2967,6 +3120,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
+        .route("/metrics", get(metrics_handler))
         .route("/openapi.json", get(openapi::openapi_json))
         .route("/vm/create", post(create_vm))
         .route("/vm", get(list_vms))
