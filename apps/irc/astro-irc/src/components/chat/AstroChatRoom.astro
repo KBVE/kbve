@@ -1,0 +1,83 @@
+---
+import { ChatBootController } from './islands/ChatBootController';
+import { ConnectionPill } from './islands/ConnectionPill';
+import { MeAvatar } from './islands/MeAvatar';
+import { ChannelPill } from './islands/ChannelPill';
+import { ChannelRail } from './islands/ChannelRail';
+import { MessageFeed } from './islands/MessageFeed';
+import { ChatInput } from './islands/ChatInput';
+import { UserList } from './islands/UserList';
+import { AuthOverlay } from './islands/AuthOverlay';
+
+interface Props {
+	wsUrl?: string;
+}
+
+const { wsUrl = 'wss://chat.kbve.com/ws' } = Astro.props;
+---
+
+<div class="kbve-chat" id="kbve-chat-root">
+	<ChatBootController client:only="react" wsUrl={wsUrl} />
+
+	<header class="kbve-chat__topbar">
+		<button
+			type="button"
+			class="kbve-chat__icon-btn kbve-chat__rail-toggle"
+			data-target="rail"
+			aria-label="Toggle channels">
+			☰
+		</button>
+
+		<ChannelPill client:only="react" />
+
+		<div class="kbve-chat__topbar-spacer"></div>
+
+		<ConnectionPill client:only="react" wsUrl={wsUrl} />
+		<MeAvatar client:only="react" />
+
+		<button
+			type="button"
+			class="kbve-chat__icon-btn kbve-chat__users-toggle"
+			data-target="users"
+			aria-label="Toggle members">
+			👥
+		</button>
+	</header>
+
+	<aside class="kbve-chat__rail" data-panel="rail">
+		<ChannelRail client:only="react" />
+	</aside>
+
+	<section class="kbve-chat__main">
+		<MessageFeed client:only="react" />
+		<ChatInput client:only="react" />
+		<AuthOverlay client:only="react" />
+	</section>
+
+	<aside class="kbve-chat__users" data-panel="users">
+		<UserList client:only="react" />
+	</aside>
+
+	<div class="kbve-chat__skeleton" data-ready="false">
+		<div class="kbve-chat__spinner"></div>
+	</div>
+</div>
+
+<script>
+	const root = document.getElementById('kbve-chat-root');
+	if (root) {
+		root.addEventListener('click', (e) => {
+			const btn = (e.target as HTMLElement).closest<HTMLElement>(
+				'[data-target]',
+			);
+			if (!btn) return;
+			const target = btn.dataset.target;
+			if (!target) return;
+			const panel = root.querySelector<HTMLElement>(
+				`[data-panel="${target}"]`,
+			);
+			if (!panel) return;
+			panel.classList.toggle(`kbve-chat__${target}--open`);
+		});
+	}
+</script>
