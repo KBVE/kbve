@@ -16,13 +16,30 @@ CREATE TABLE IF NOT EXISTS auth.users (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Stub auth.uid() — returns NULL locally (proxy functions won't work,
--- but the migration DDL will succeed)
+-- Stub auth.uid() — reads request.jwt.claims (matches Supabase auth's
+-- behaviour closely enough for proxy-function tests that set the GUC
+-- via `SET LOCAL request.jwt.claims = '{"role":...,"sub":...}'`.
+-- Returns NULL when no claims are set (matches anon callers).
 CREATE OR REPLACE FUNCTION auth.uid()
 RETURNS UUID
 LANGUAGE sql
 STABLE
-AS $$ SELECT NULL::UUID; $$;
+SET search_path = ''
+AS $$
+    SELECT NULLIF(
+        COALESCE(
+            current_setting('request.jwt.claim.sub', true),
+            (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb)->>'sub'
+        ),
+        ''
+    )::UUID;
+$$;
+
+-- Grant the auth helpers to the standard Supabase roles so SECURITY
+-- DEFINER functions owned by service_role (and called from
+-- authenticated/anon proxy paths) can resolve them.
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.uid()  TO anon, authenticated, service_role;
 
 -- Stub auth.jwt() — returns empty JSON locally
 -- Used by vault functions and trigger bypass checks
