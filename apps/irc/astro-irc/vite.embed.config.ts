@@ -17,7 +17,9 @@ export default defineConfig({
 	},
 	build: {
 		outDir: 'public/embed',
-		emptyOutDir: true,
+		// Don't wipe — public/embed also holds example.html (live docs).
+		// Only chat.js gets overwritten on each build.
+		emptyOutDir: false,
 		minify: 'terser',
 		sourcemap: false,
 		target: 'es2020',

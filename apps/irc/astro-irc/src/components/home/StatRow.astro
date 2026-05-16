@@ -1,0 +1,79 @@
+---
+// Simple stat strip. Each item rendered as { value, label }. Values
+// should be short ("4", "<70 KB", "MIT").
+interface Stat {
+	value: string;
+	label: string;
+	hint?: string;
+}
+
+interface Props {
+	stats: Stat[];
+}
+
+const { stats } = Astro.props as Props;
+---
+
+<div class="stat-row not-content">
+	{
+		stats.map((s) => (
+			<div class="stat-row__item" title={s.hint}>
+				<div class="stat-row__value">{s.value}</div>
+				<div class="stat-row__label">{s.label}</div>
+			</div>
+		))
+	}
+</div>
+
+<style>
+	.stat-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1px;
+		margin: 2rem auto;
+		max-width: 760px;
+		padding: 1px;
+		border-radius: 16px;
+		background: linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--sl-color-accent) 45%, transparent) 0%,
+			color-mix(in srgb, var(--sl-color-text-accent) 25%, transparent)
+				100%
+		);
+		overflow: hidden;
+	}
+
+	.stat-row__item {
+		padding: 1.25rem 1rem;
+		text-align: center;
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg-accent) 14%,
+			var(--sl-color-bg)
+		);
+	}
+
+	.stat-row__value {
+		font-size: 1.85rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		background: linear-gradient(
+			135deg,
+			var(--sl-color-text-accent) 0%,
+			var(--sl-color-accent) 100%
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.stat-row__label {
+		margin-top: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3);
+	}
+</style>

@@ -1,0 +1,134 @@
+---
+// Glassy feature card with accent glow on hover.
+// MDX-friendly: drop in like Starlight Card, takes a `title`, optional
+// `icon` (emoji or short text), and slotted body.
+interface Props {
+	title: string;
+	icon?: string;
+	href?: string;
+}
+
+const { title, icon, href } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+	class:list={['feature-card not-content', { 'feature-card--link': !!href }]}
+	href={href}>
+	{icon && <span class="feature-card__icon">{icon}</span>}
+	<h3 class="feature-card__title">{title}</h3>
+	<div class="feature-card__body">
+		<slot />
+	</div>
+	{
+		href && (
+			<span class="feature-card__arrow" aria-hidden="true">
+				→
+			</span>
+		)
+	}
+</Tag>
+
+<style>
+	.feature-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.25rem 1.25rem 1.5rem;
+		border-radius: 14px;
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg-accent) 14%,
+			var(--sl-color-bg)
+		);
+		border: 1px solid var(--sl-color-border);
+		color: var(--sl-color-text);
+		text-decoration: none;
+		overflow: hidden;
+		isolation: isolate;
+		transition:
+			transform 0.18s ease,
+			border-color 0.18s ease,
+			box-shadow 0.18s ease;
+	}
+
+	.feature-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		opacity: 0;
+		background: radial-gradient(
+			circle at top right,
+			color-mix(in srgb, var(--sl-color-accent) 35%, transparent) 0%,
+			transparent 65%
+		);
+		transition: opacity 0.25s ease;
+	}
+
+	.feature-card:hover {
+		transform: translateY(-2px);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 55%,
+			var(--sl-color-border)
+		);
+		box-shadow: 0 16px 40px -16px
+			color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+	}
+
+	.feature-card:hover::before {
+		opacity: 1;
+	}
+
+	.feature-card__icon {
+		display: inline-flex;
+		width: 2.25rem;
+		height: 2.25rem;
+		align-items: center;
+		justify-content: center;
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+		color: var(--sl-color-text-accent);
+		font-size: 1.15rem;
+		font-weight: 700;
+	}
+
+	.feature-card__title {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-text);
+	}
+
+	.feature-card__body {
+		font-size: 0.92rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+
+	.feature-card__body :global(p) {
+		margin: 0;
+	}
+
+	.feature-card__body :global(code) {
+		font-size: 0.85em;
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+		background: var(--sl-color-bg-inline-code);
+	}
+
+	.feature-card__arrow {
+		margin-top: 0.5rem;
+		font-size: 1rem;
+		color: var(--sl-color-text-accent);
+		font-weight: 700;
+		transition: transform 0.18s ease;
+	}
+
+	.feature-card:hover .feature-card__arrow {
+		transform: translateX(3px);
+	}
+</style>
