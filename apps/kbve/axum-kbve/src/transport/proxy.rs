@@ -11,7 +11,10 @@ use serde_json::json;
 use std::time::Duration;
 use tracing::{debug, warn};
 
-use crate::auth::{extract_bearer_token, get_jwt_cache, jwt_cache::staff_perm};
+use crate::auth::{
+    extract_bearer_token, get_jwt_cache,
+    jwt_cache::{TokenInfo, staff_perm},
+};
 
 struct ServiceProxy {
     name: &'static str,
@@ -341,7 +344,7 @@ async fn require_dashboard_manage_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
-) -> Result<(), Response> {
+) -> Result<TokenInfo, Response> {
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
@@ -395,7 +398,7 @@ async fn require_dashboard_manage_with_query(
             .into_response());
     }
 
-    Ok(())
+    Ok(token_info)
 }
 
 async fn require_dashboard_view_with_query(
@@ -1497,6 +1500,27 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
 
+async fn resolve_account_for_token(token: &TokenInfo) -> Option<uuid::Uuid> {
+    let user_id = token.user_id.parse::<uuid::Uuid>().ok()?;
+    let wallet = crate::db::get_wallet_client()?;
+    match wallet.service_account_for_user(user_id).await {
+        Ok(a) => Some(a),
+        Err(e) => {
+            warn!(%user_id, "fc-billing: account resolution failed: {e}");
+            None
+        }
+    }
+}
+
+fn set_account_id_header(req: &mut Request<Body>, account_id: Option<uuid::Uuid>) {
+    req.headers_mut().remove("x-kbve-account-id");
+    if let Some(acc) = account_id {
+        if let Ok(v) = HeaderValue::from_str(&acc.to_string()) {
+            req.headers_mut().insert("x-kbve-account-id", v);
+        }
+    }
+}
+
 static FIRECRACKER: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_firecracker_proxy() -> bool {
@@ -1586,19 +1610,22 @@ pub fn init_firecracker_net_proxy() -> bool {
 
 pub async fn firecracker_net_proxy_handler(
     path: Option<Path<String>>,
-    req: Request<Body>,
+    mut req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(str::to_owned);
-    if let Err(resp) =
-        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-Net").await
-    {
-        return resp;
-    }
+    let token =
+        match require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-Net")
+            .await
+        {
+            Ok(t) => t,
+            Err(resp) => return resp,
+        };
+
+    let account_id = resolve_account_for_token(&token).await;
+    set_account_id_header(&mut req, account_id);
 
     match FIRECRACKER_NET.get() {
-        // DASHBOARD_MANAGE already authenticated above — skip the inner
-        // DASHBOARD_VIEW check to avoid a double JWT fetch.
         Some(proxy) => proxy.handle_preauthorized(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
@@ -1611,15 +1638,20 @@ pub async fn firecracker_net_proxy_handler(
 /// Stable `/api/v1/fc/<rest>` → `/fc/<rest>` alias under the staff gate.
 pub async fn firecracker_fc_alias_handler(
     Path(rest): Path<String>,
-    req: Request<Body>,
+    mut req: Request<Body>,
 ) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(str::to_owned);
-    if let Err(resp) =
-        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC").await
-    {
-        return resp;
-    }
+    let token =
+        match require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC")
+            .await
+        {
+            Ok(t) => t,
+            Err(resp) => return resp,
+        };
+
+    let account_id = resolve_account_for_token(&token).await;
+    set_account_id_header(&mut req, account_id);
 
     match FIRECRACKER_NET.get() {
         Some(proxy) => {
@@ -1645,7 +1677,9 @@ pub async fn firecracker_fc_handler(
     let headers = req.headers().clone();
     let query = req.uri().query().map(str::to_owned);
     if let Err(resp) =
-        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC").await
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Firecracker-FC")
+            .await
+            .map(|_| ())
     {
         return resp;
     }

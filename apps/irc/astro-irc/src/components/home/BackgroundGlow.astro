@@ -1,0 +1,121 @@
+---
+// Fixed-position radial gradient backdrop. Subtle accent halos that
+// drift slowly behind the page content. Tints derived from Starlight
+// theme vars so light/dark both look right.
+---
+
+<div class="bg-glow not-content" aria-hidden="true">
+	<span class="bg-glow__blob bg-glow__blob--a"></span>
+	<span class="bg-glow__blob bg-glow__blob--b"></span>
+	<span class="bg-glow__blob bg-glow__blob--c"></span>
+	<div class="bg-glow__grid"></div>
+</div>
+
+<style>
+	.bg-glow {
+		position: fixed;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.bg-glow__blob {
+		position: absolute;
+		width: 48rem;
+		height: 48rem;
+		border-radius: 50%;
+		filter: blur(80px);
+		opacity: 0.45;
+		mix-blend-mode: screen;
+		will-change: transform;
+	}
+
+	.bg-glow__blob--a {
+		top: -16rem;
+		left: -12rem;
+		background: radial-gradient(
+			circle,
+			color-mix(in srgb, var(--sl-color-accent) 65%, transparent) 0%,
+			transparent 65%
+		);
+		animation: bg-glow-drift-a 22s ease-in-out infinite alternate;
+	}
+
+	.bg-glow__blob--b {
+		top: 20%;
+		right: -18rem;
+		background: radial-gradient(
+			circle,
+			color-mix(in srgb, var(--sl-color-text-accent) 55%, transparent) 0%,
+			transparent 65%
+		);
+		animation: bg-glow-drift-b 28s ease-in-out infinite alternate;
+	}
+
+	.bg-glow__blob--c {
+		bottom: -20rem;
+		left: 30%;
+		background: radial-gradient(
+			circle,
+			color-mix(in srgb, var(--sl-color-accent-high) 50%, transparent) 0%,
+			transparent 65%
+		);
+		animation: bg-glow-drift-c 32s ease-in-out infinite alternate;
+	}
+
+	.bg-glow__grid {
+		position: absolute;
+		inset: 0;
+		background-image:
+			linear-gradient(
+				to right,
+				color-mix(in srgb, var(--sl-color-gray-5) 14%, transparent) 1px,
+				transparent 1px
+			),
+			linear-gradient(
+				to bottom,
+				color-mix(in srgb, var(--sl-color-gray-5) 14%, transparent) 1px,
+				transparent 1px
+			);
+		background-size: 48px 48px;
+		mask-image: radial-gradient(
+			ellipse at center,
+			black 0%,
+			transparent 70%
+		);
+	}
+
+	@keyframes bg-glow-drift-a {
+		from {
+			transform: translate3d(0, 0, 0) scale(1);
+		}
+		to {
+			transform: translate3d(4rem, 3rem, 0) scale(1.1);
+		}
+	}
+
+	@keyframes bg-glow-drift-b {
+		from {
+			transform: translate3d(0, 0, 0) scale(1);
+		}
+		to {
+			transform: translate3d(-3rem, 4rem, 0) scale(0.95);
+		}
+	}
+
+	@keyframes bg-glow-drift-c {
+		from {
+			transform: translate3d(0, 0, 0) scale(1);
+		}
+		to {
+			transform: translate3d(2rem, -4rem, 0) scale(1.08);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bg-glow__blob {
+			animation: none;
+		}
+	}
+</style>

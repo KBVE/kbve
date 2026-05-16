@@ -1,0 +1,58 @@
+---
+// Section header with optional eyebrow + center align.
+interface Props {
+	eyebrow?: string;
+	title: string;
+}
+
+const { eyebrow, title } = Astro.props;
+---
+
+<div class="section-title not-content">
+	{eyebrow && <div class="section-title__eyebrow">{eyebrow}</div>}
+	<h2 class="section-title__title">{title}</h2>
+	<div class="section-title__rule" aria-hidden="true"></div>
+</div>
+
+<style>
+	.section-title {
+		text-align: center;
+		margin: 4rem auto 1.5rem;
+		max-width: 720px;
+	}
+
+	.section-title__eyebrow {
+		display: inline-block;
+		padding: 4px 12px;
+		border-radius: 999px;
+		font-size: 0.72rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--sl-color-text-accent);
+		background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+		margin-bottom: 1rem;
+	}
+
+	.section-title__title {
+		font-size: clamp(1.6rem, 3vw, 2.25rem);
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		margin: 0;
+		color: var(--sl-color-text);
+	}
+
+	.section-title__rule {
+		margin: 1rem auto 0;
+		height: 3px;
+		width: 56px;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			var(--sl-color-accent) 0%,
+			var(--sl-color-text-accent) 100%
+		);
+	}
+</style>

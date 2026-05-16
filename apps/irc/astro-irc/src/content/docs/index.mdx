@@ -1,16 +1,100 @@
 ---
-title: KBVE IRC
-description: Authenticated chat powered by Ergo IRC
+title: KBVE Chat
+description: Real-time IRC chat for the KBVE community — sign in with GitHub, Discord, or Twitch and hop in.
 template: splash
 hero:
-  tagline: Sign in with your KBVE account to start chatting.
+  title: Real-time chat. Open by default.
+  tagline: Authenticated IRC for the KBVE community. Sign in once, chat from anywhere on the web.
   actions:
     - text: Open Chat
       link: /chat/
       icon: right-arrow
       variant: primary
-    - text: Getting Started
+    - text: View Guides
       link: /guides/getting-started/
-      icon: right-arrow
+      icon: open-book
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/kbve/kbve
+      icon: external
       variant: minimal
 ---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import BackgroundGlow from '../../components/home/BackgroundGlow.astro';
+import HomeChatEmbed from '../../components/home/HomeChatEmbed.astro';
+import FeatureCard from '../../components/home/FeatureCard.astro';
+import StatRow from '../../components/home/StatRow.astro';
+import SectionTitle from '../../components/home/SectionTitle.astro';
+import CodeWindow from '../../components/home/CodeWindow.astro';
+
+<BackgroundGlow />
+
+<StatRow stats={[
+	{ value: '4', label: 'Channels & growing' },
+	{ value: '67 KB', label: 'Embed gzipped' },
+	{ value: '3', label: 'OAuth providers' },
+	{ value: 'MIT', label: 'License' },
+]} />
+
+<SectionTitle eyebrow="Why KBVE Chat" title="Built to feel like the web should" />
+
+<div class="not-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+	<FeatureCard title="One identity, everywhere" icon="ID">
+		Sign in with GitHub, Discord, or Twitch. Your `kbve_username` follows
+		you across every KBVE service — no per-tool nicks.
+	</FeatureCard>
+	<FeatureCard title="Drop-in embed" icon="JS">
+		One `<script>` tag puts chat on your blog, dashboard, or stream overlay.
+		Shadow-DOM isolated, ~67 KB gzipped.
+	</FeatureCard>
+	<FeatureCard title="Open protocol" icon="IRC">
+		Plain IRC under the hood (Ergo server). Use any IRC client if the web UI
+		isn't your jam — same channels, same identity.
+	</FeatureCard>
+	<FeatureCard title="Built for builders" icon=">_">
+		Astro + React islands on the front, Rust gateway in the middle, Ergo IRC
+		at the core. Every piece is in the open monorepo.
+	</FeatureCard>
+</div>
+
+<SectionTitle eyebrow="Live preview" title="Read along — sign in to send" />
+
+<HomeChatEmbed channel="#general" height="440px" theme="dark" />
+
+<SectionTitle eyebrow="Embed it" title="Three lines of HTML, zero npm install" />
+
+<CodeWindow filename="index.html" lang="html">
+
+```html
+<div id="kbve-chat" data-channel="#general" data-theme="dark"></div>
+<script src="https://chat.kbve.com/embed/chat.js" defer></script>
+```
+
+</CodeWindow>
+
+<CodeWindow filename="programmatic.js" lang="js">
+
+```js
+window.KbveChat.mount({
+  el: '#kbve-chat',
+  channel: '#general',
+  theme: 'light',
+  height: '480px',
+});
+```
+
+</CodeWindow>
+
+<div class="not-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+	<FeatureCard title="Open Chat" href="/chat/" icon="→">
+		Jump straight into `#general`.
+	</FeatureCard>
+	<FeatureCard title="Embed guide" href="/guides/getting-started/" icon="GD">
+		Config, theming, programmatic mount, cross-origin auth.
+	</FeatureCard>
+	<FeatureCard title="Source on GitHub" href="https://github.com/kbve/kbve" icon="GH">
+		MIT-licensed monorepo. PRs welcome.
+	</FeatureCard>
+</div>
+

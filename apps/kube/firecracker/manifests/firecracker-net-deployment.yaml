@@ -144,6 +144,18 @@ spec:
                         value: 'true'
                       - name: FC_TUNNEL_IFACE
                         value: 'tun0'
+                      - name: FC_BILLING_ENABLED
+                        value: 'false'
+                      - name: WALLET_DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url
+                      - name: WALLET_DATABASE_URL_RO
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
                   securityContext:
                       # jailer pivot_root requires Unconfined seccomp.
                       seccompProfile:
