@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getAccessToken, useSession } from '@kbve/astro';
-import { formatCompact } from '../wallet/format';
 
 /**
  * Profile wallet island.
@@ -272,24 +271,14 @@ export function ReactProfileWallet() {
 			<div style={styles.balances}>
 				<div style={styles.balanceCard}>
 					<div style={styles.balanceLabel}>Credits</div>
-					<div
-						style={styles.balanceValue}
-						title={
-							balance
-								? balance.credits.toLocaleString()
-								: undefined
-						}>
-						{balance ? formatCompact(balance.credits) : '—'}
+					<div style={styles.balanceValue}>
+						{balance ? balance.credits.toLocaleString() : '—'}
 					</div>
 				</div>
 				<div style={styles.balanceCard}>
 					<div style={styles.balanceLabel}>KHash</div>
-					<div
-						style={styles.balanceValue}
-						title={
-							balance ? balance.khash.toLocaleString() : undefined
-						}>
-						{balance ? formatCompact(balance.khash) : '—'}
+					<div style={styles.balanceValue}>
+						{balance ? balance.khash.toLocaleString() : '—'}
 					</div>
 				</div>
 			</div>

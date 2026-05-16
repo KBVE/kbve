@@ -1,11 +1,23 @@
 ---
 import { ReactWalletCard } from './ReactWalletCard';
+
+interface Props {
+	/** "full" (default) — 1,234 / 1,234,567 thousands-separated integer.
+	 *  "compact"        — 1.2K / 1.2M short form.
+	 *  Wallet *cards* (this component) get the full balance everywhere
+	 *  they mount (/profile/account/, /profile/<user>/, mc dashboard) so
+	 *  users always see the exact number. Only the cramped nav pill
+	 *  (ReactWalletBadge, a separate component) stays compact. */
+	format?: 'compact' | 'full';
+}
+const { format = 'full' } = Astro.props;
 ---
 
 <section
 	class="kbve-wallet-card not-content"
 	data-kbve-wallet-shell
 	data-kbve-wallet-state="loading"
+	data-kbve-wallet-format={format}
 	aria-label="Your wallet">
 	<header class="kbve-wallet-card__header">
 		<span class="kbve-wallet-card__title">Wallet</span>
