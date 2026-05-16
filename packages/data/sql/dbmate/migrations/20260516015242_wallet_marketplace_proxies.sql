@@ -72,8 +72,20 @@ BEGIN
            AND array_length(i.indkey, 1) = 1
            AND a.attname = 'user_id'
            AND i.indpred IS NOT NULL
-           AND pg_get_expr(i.indpred, i.indrelid) LIKE '%kind%'
-           AND pg_get_expr(i.indpred, i.indrelid) LIKE '%user%'
+           -- Normalize whitespace + match the rendered predicate
+           -- against the known shapes. Postgres can emit any of:
+           --   (kind = 'user'::wallet.account_kind)
+           --   ((kind)::text = 'user'::text)
+           --   (kind = 'user'::text)
+           -- depending on cast direction; accept all three.
+           AND regexp_replace(
+                   pg_get_expr(i.indpred, i.indrelid),
+                   '\s+', ' ', 'g'
+               ) IN (
+                   '(kind = ''user''::wallet.account_kind)',
+                   '((kind)::text = ''user''::text)',
+                   '(kind = ''user''::text)'
+               )
     ) THEN
         RAISE EXCEPTION 'dependency missing: wallet.account partial unique on (user_id) WHERE kind=user';
     END IF;
@@ -107,13 +119,22 @@ $$;
 
 CREATE SCHEMA IF NOT EXISTS private;
 REVOKE ALL ON SCHEMA private FROM PUBLIC;
+-- Belt-and-suspenders: REVOKE from PUBLIC covers the named-role
+-- defaults too, but a prior migration may have explicitly granted
+-- USAGE to anon/authenticated. These explicit revokes audit-proof
+-- that path closed.
+REVOKE ALL ON SCHEMA private FROM anon;
+REVOKE ALL ON SCHEMA private FROM authenticated;
 GRANT USAGE ON SCHEMA private TO service_role;
 
 -- Defaults for future objects: any function created in `private` by
 -- service_role automatically has EXECUTE revoked from PUBLIC, so a
 -- future helper can't accidentally inherit anon/authenticated reach
--- if a future maintainer forgets the explicit REVOKE.
-ALTER DEFAULT PRIVILEGES IN SCHEMA private
+-- if a future maintainer forgets the explicit REVOKE. Scoped to
+-- service_role since SECURITY DEFINER functions will be owned by
+-- service_role; postgres-owned objects won't pick up this default
+-- (those don't need protection — they aren't reachable via PostgREST).
+ALTER DEFAULT PRIVILEGES FOR ROLE service_role IN SCHEMA private
     REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION private.proxy_market_caller_account()
