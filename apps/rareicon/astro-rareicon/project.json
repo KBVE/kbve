@@ -63,7 +63,8 @@
 				"cwd": "apps/rareicon/astro-rareicon",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"sync": {
 			"executor": "nx:run-commands",

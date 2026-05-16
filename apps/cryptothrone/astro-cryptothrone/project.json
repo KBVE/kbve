@@ -19,13 +19,15 @@
 		},
 		"build": {
 			"executor": "nx:run-commands",
+			"outputs": ["{workspaceRoot}/dist/apps/astro-cryptothrone"],
 			"options": {
 				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": [
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 				],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"preview": {
 			"dependsOn": [
@@ -47,7 +49,8 @@
 				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": ["nx exec -- astro check"],
 				"parallel": false
-			}
+			},
+			"cache": true
 		},
 		"sync": {
 			"executor": "nx:run-commands",
