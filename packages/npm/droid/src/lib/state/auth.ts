@@ -54,7 +54,85 @@ const DEFAULT_AUTH: AuthState = {
 	error: undefined,
 };
 
-export const $auth = map<AuthState>({ ...DEFAULT_AUTH });
+const SB_AUTH_TOKEN_KEY = 'sb-auth-token';
+const PROFILE_CACHE_KEY = 'cache:profile:me';
+const STAFF_CACHE_KEY = 'cache:staff:perms';
+
+function seedAuthFromStorage(): AuthState {
+	if (typeof localStorage === 'undefined') return { ...DEFAULT_AUTH };
+
+	let session: {
+		user?: { id?: string; user_metadata?: Record<string, unknown> };
+	} | null = null;
+	try {
+		const raw = localStorage.getItem(SB_AUTH_TOKEN_KEY);
+		if (!raw) return { ...DEFAULT_AUTH };
+		const parsed = JSON.parse(raw);
+		const inner = parsed?.currentSession ?? parsed;
+		if (inner?.user?.id) session = inner;
+	} catch {
+		return { ...DEFAULT_AUTH };
+	}
+	if (!session?.user?.id) return { ...DEFAULT_AUTH };
+
+	const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
+	let username: string | undefined;
+	let avatar: string | undefined =
+		typeof meta['avatar_url'] === 'string'
+			? (meta['avatar_url'] as string)
+			: undefined;
+
+	try {
+		const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+		if (raw && raw !== 'null') {
+			const env = JSON.parse(raw);
+			if (env?.user_id === session.user.id) {
+				const profile = env.profile ?? {};
+				if (typeof profile.username === 'string')
+					username = profile.username;
+				avatar =
+					profile.discord?.avatar_url ||
+					profile.github?.avatar_url ||
+					profile.twitch?.avatar_url ||
+					avatar;
+			}
+		}
+	} catch {
+		/* best effort */
+	}
+
+	let flags: number = AuthPresets.USER;
+	try {
+		const raw = localStorage.getItem(STAFF_CACHE_KEY);
+		if (raw && raw !== 'null') {
+			const env = JSON.parse(raw);
+			if (
+				env?.user_id === session.user.id &&
+				typeof env?.bitmask === 'number' &&
+				env.bitmask > 0
+			) {
+				flags = AuthPresets.STAFF;
+			}
+		}
+	} catch {
+		/* best effort */
+	}
+
+	return {
+		tone: 'auth',
+		flags,
+		name:
+			typeof meta['full_name'] === 'string'
+				? (meta['full_name'] as string)
+				: '',
+		username,
+		avatar,
+		id: session.user.id,
+		error: undefined,
+	};
+}
+
+export const $auth = map<AuthState>(seedAuthFromStorage());
 
 export const $isStaff = computed($auth, (s) =>
 	hasAuthFlag(s.flags, AuthFlags.STAFF),
