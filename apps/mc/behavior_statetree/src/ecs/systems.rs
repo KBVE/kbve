@@ -320,9 +320,7 @@ pub fn manage_skeleton_population(
                 .fold(f64::INFINITY, f64::min)
                 > despawn_sq
         };
-        // Skeletons that wander into the protected hub also despawn so the
-        // spawn city stays clean even if pathing carries them past the edge.
-        let inside_spawn = protection.contains_pos(sk_xyz);
+        let inside_spawn = protection.contains_pos_buffered(sk_xyz);
         if too_far || inside_spawn {
             world_intents.ready.push(IntentReady {
                 entity_id: 0,
@@ -347,16 +345,12 @@ pub fn manage_skeleton_population(
         SkeletonArchetype::Melee,
         SkeletonArchetype::Mage,
     ];
-    // Skip players standing inside the spawn protection cube so the city
-    // never becomes a spawn anchor for hostile reinforcements. Java has a
-    // belt-and-suspenders surface check too, but filtering here saves a
-    // JNI hop on every doomed attempt.
     let mut anchor_idx: usize = 0;
     for (player_id, player_pos) in player_positions.iter() {
         if anchor_idx >= needed {
             break;
         }
-        if protection.contains_pos(*player_pos) {
+        if protection.contains_pos_buffered(*player_pos) {
             continue;
         }
         let archetype = archetype_cycle[anchor_idx % archetype_cycle.len()];
