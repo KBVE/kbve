@@ -7,6 +7,11 @@
 --   wallet.source_kind = 'referral' (20260515220000_wallet_source_kind_referral)
 --   pgcrypto for gen_random_uuid()
 --
+-- Custom SQLSTATEs raised by record_click for the Phase 2 axum handler:
+--   RFP01 = referral.reward_policy row missing
+--   RFT01 = referral target not found / inactive
+--   RFU01 = referrer does not have target enabled in user_target
+--
 -- Surface (consumed in Phase 2 by axum-kbve):
 --   /referral/@<handle>/             → user's default target
 --   /referral/@<handle>/<target>/    → specific target from the catalog
@@ -77,7 +82,15 @@ CREATE TABLE IF NOT EXISTS referral.user_target (
     active       BOOLEAN NOT NULL DEFAULT TRUE,
     enabled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     disabled_at  TIMESTAMPTZ,
-    PRIMARY KEY (user_id, target_slug)
+    PRIMARY KEY (user_id, target_slug),
+    -- Active rows must have NULL disabled_at; inactive rows must have a
+    -- timestamp. Keeps the audit invariant that "disabled_at marks the
+    -- moment the row stopped being live" honest.
+    CONSTRAINT user_target_active_disabled_chk
+        CHECK (
+            (active AND disabled_at IS NULL)
+         OR (NOT active AND disabled_at IS NOT NULL)
+        )
 );
 -- One default target per user, only counted among active rows.
 CREATE UNIQUE INDEX IF NOT EXISTS user_target_one_default
@@ -98,10 +111,12 @@ CREATE TABLE IF NOT EXISTS referral.click (
     accept_lang   TEXT,
     qualified     BOOLEAN NOT NULL DEFAULT FALSE,
     credited      BOOLEAN NOT NULL DEFAULT FALSE,
-    -- FK so the ledger row a credit click points at must really exist.
-    -- ON DELETE SET NULL keeps the click history visible even if a ledger
-    -- entry is ever rolled back out-of-band.
-    ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE SET NULL,
+    -- FK so the ledger row a click points at must exist. ON DELETE
+    -- RESTRICT because credited = TRUE implies a real ledger row;
+    -- SET NULL would let a stray ledger DELETE silently drift the
+    -- invariant. wallet.ledger is append-only in practice, so RESTRICT
+    -- is the safe default.
+    ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS click_created_at ON referral.click (created_at);
@@ -138,10 +153,31 @@ INSERT INTO referral.reward_policy (id, credits_per_click, dedup_window_days)
 VALUES (1, 10, 30)
 ON CONFLICT (id) DO NOTHING;
 
+-- Auto-bump updated_at on policy changes so audits don't have to trust
+-- that the admin remembered to set it manually.
+CREATE OR REPLACE FUNCTION referral.reward_policy_touch()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $fn$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;
+END;
+$fn$;
+DROP TRIGGER IF EXISTS reward_policy_set_updated_at ON referral.reward_policy;
+CREATE TRIGGER reward_policy_set_updated_at
+    BEFORE UPDATE ON referral.reward_policy
+    FOR EACH ROW EXECUTE FUNCTION referral.reward_policy_touch();
+
 -- ---------------------------------------------------------------------------
 -- Lock down direct table access. Only the SECURITY DEFINER functions
 -- below should read or write these tables. PostgREST never sees rows
 -- because RLS is on and no policy grants are issued.
+--
+-- service_role intentionally has schema USAGE + function EXECUTE only
+-- (granted below). It does NOT get direct table SELECT/INSERT etc.
+-- Every callable path is a SECURITY DEFINER function owned by postgres
+-- so the wallet writes carry the correct privileges.
 -- ---------------------------------------------------------------------------
 ALTER TABLE referral.target          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referral.user_target     ENABLE ROW LEVEL SECURITY;
@@ -329,9 +365,15 @@ BEGIN
 
     v_qualifies := v_existing_id IS NULL;
 
-    -- Insert the click row first so the wallet credit can reference its
-    -- id via ref_id, and so the idempotency key is deterministic on the
-    -- fresh click_id (retries will not double-credit).
+    -- Insert the click row first so the ledger entry can carry
+    -- ref_id = click_id for cross-table traceability AND so a wallet
+    -- credit failure rolls the row back with it (atomic strict mode —
+    -- no orphan click rows pointing at a missing ledger entry).
+    --
+    -- Cross-request retry guards live higher up: the advisory lock +
+    -- dedup window prevent the second logical click from re-entering
+    -- this branch. The wallet idempotency key here is just a stable
+    -- value per *successful* credit, not a cross-RPC replay shield.
     INSERT INTO referral.click (
         referrer_id, target_slug, ip_hash, subnet_hash,
         user_agent, referer, accept_lang,

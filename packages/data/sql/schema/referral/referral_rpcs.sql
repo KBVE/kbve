@@ -9,11 +9,15 @@
 -- handler holds a service_role JWT and is the only consumer for
 -- Phase 1.
 --
--- Custom SQLSTATEs (RF...) let the handler distinguish referral errors
--- from generic PL/pgSQL data-not-found paths:
---   RFP01 = reward_policy row missing
---   RFT01 = target not found / inactive
---   RFU01 = referrer does not have target enabled
+-- Custom SQLSTATEs raised by record_click. Keep this list in sync with
+-- the Phase 2 axum error mapper so users see the right 4xx code:
+--   RFP01 = referral.reward_policy row missing
+--   RFT01 = referral target not found / inactive
+--   RFU01 = referrer does not have target enabled in user_target
+--
+-- service_role intentionally holds USAGE on the schema + EXECUTE on
+-- these functions only. It does NOT have direct table privileges; the
+-- definer-owned functions are the only callable surface.
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -183,6 +187,11 @@ BEGIN
 
     v_qualifies := v_existing_id IS NULL;
 
+    -- Insert click row first so the ledger entry can carry
+    -- ref_id = click_id, and so a wallet credit failure rolls the row
+    -- back with it (atomic strict mode — no orphan click rows pointing
+    -- at a missing ledger entry). Cross-RPC retry guards live higher up
+    -- (advisory lock + dedup window).
     INSERT INTO referral.click (
         referrer_id, target_slug, ip_hash, subnet_hash,
         user_agent, referer, accept_lang,

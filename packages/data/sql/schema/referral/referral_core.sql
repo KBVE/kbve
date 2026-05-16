@@ -80,7 +80,12 @@ CREATE TABLE IF NOT EXISTS referral.user_target (
     active       BOOLEAN NOT NULL DEFAULT TRUE,
     enabled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     disabled_at  TIMESTAMPTZ,
-    PRIMARY KEY (user_id, target_slug)
+    PRIMARY KEY (user_id, target_slug),
+    CONSTRAINT user_target_active_disabled_chk
+        CHECK (
+            (active AND disabled_at IS NULL)
+         OR (NOT active AND disabled_at IS NOT NULL)
+        )
 );
 -- One active default per user.
 CREATE UNIQUE INDEX IF NOT EXISTS user_target_one_default
@@ -99,7 +104,10 @@ CREATE TABLE IF NOT EXISTS referral.click (
     accept_lang   TEXT,
     qualified     BOOLEAN NOT NULL DEFAULT FALSE,
     credited      BOOLEAN NOT NULL DEFAULT FALSE,
-    ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE SET NULL,
+    -- ON DELETE RESTRICT because credited = TRUE implies a real ledger
+    -- row; SET NULL would let a stray ledger DELETE silently drift the
+    -- invariant. wallet.ledger is append-only in practice.
+    ledger_id     BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS click_created_at ON referral.click (created_at);
@@ -133,6 +141,22 @@ CREATE TABLE IF NOT EXISTS referral.reward_policy (
 INSERT INTO referral.reward_policy (id, credits_per_click, dedup_window_days)
 VALUES (1, 10, 30)
 ON CONFLICT (id) DO NOTHING;
+
+-- Auto-bump updated_at on policy changes so audits don't have to trust
+-- that the admin remembered to set it manually.
+CREATE OR REPLACE FUNCTION referral.reward_policy_touch()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $fn$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;
+END;
+$fn$;
+DROP TRIGGER IF EXISTS reward_policy_set_updated_at ON referral.reward_policy;
+CREATE TRIGGER reward_policy_set_updated_at
+    BEFORE UPDATE ON referral.reward_policy
+    FOR EACH ROW EXECUTE FUNCTION referral.reward_policy_touch();
 
 COMMENT ON TABLE referral.target IS
     'Curated redirect destinations. Admin-only writes (no RLS policy
