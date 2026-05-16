@@ -2463,10 +2463,15 @@ async fn spawn_persistent(
         .await
         .map_err(|e| format!("config write failed: {e}"))?;
 
+    // Inherit stdio. Earlier `piped()` setup was never drained, so the
+    // kernel serial console filled the 64 KiB pipe buffer mid-boot and
+    // the guest hung on the next write — health prober then never saw a
+    // 2xx. With `inherit()` the VM's stdout/stderr flow to
+    // firecracker-ctl's own stdout, which k8s drains via the pod log.
     let child = tokio::process::Command::new("firecracker")
         .args(["--api-sock", &socket_path, "--config-file", &config_path])
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
         .spawn()
         .map_err(|e| format!("firecracker spawn failed: {e}"))?;
 
