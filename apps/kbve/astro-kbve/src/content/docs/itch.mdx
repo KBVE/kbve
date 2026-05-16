@@ -3,7 +3,6 @@ title: Itch.io
 description: Browse KBVE indie games, jam entries, and demos on itch.io.
 ogTitle: "KBVE on itch.io — Indie Games, Jam Entries, Demos"
 ogDescription: "Ship-when-ready indie projects from KBVE. Browse demos, jam entries, and free downloads."
-template: splash
 sidebar:
   label: Itch
   order: 9
@@ -13,66 +12,20 @@ tableOfContents: false
 ---
 
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import ItchHero from '@/components/itch/ItchHero.astro';
+import ItchGames from '@/components/itch/ItchGames.astro';
 
-## KBVE on itch.io
+<ItchHero />
 
-Indie demos, jam entries, and small projects. Ship-when-ready, no Steam queue.
+## Games
 
-<div class="itch-page">
-  <a
-    class="itch-cta"
-    href="https://kbve.itch.io"
-    target="_blank"
-    rel="noopener noreferrer">
-    <span class="itch-cta__icon" aria-hidden="true">▣</span>
-    <span class="itch-cta__label">Visit kbve.itch.io</span>
-  </a>
+Click any card to jump straight to its itch.io page.
 
-  <div class="itch-embed">
-    <iframe
-      src="https://itch.io/embed/kbve"
-      title="KBVE on itch.io"
-      frameborder="0"
-      loading="lazy"></iframe>
-  </div>
-</div>
+<ItchGames />
+
+## What's the difference vs Steam?
+
+- **itch.io** is where KBVE ships early prototypes, jam builds, and demos. No queue, no review gate — fast iteration.
+- **Steam** is where flagship titles land once they're past the demo stage. Wishlist on [the KBVE curator](/steam/) to follow those.
 
 <Adsense />
-
-<style is:global>{`
-  .itch-page {
-    max-width: 720px;
-    margin: 1.5rem auto;
-    display: grid;
-    gap: 1rem;
-  }
-  .itch-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 10px;
-    background: #fa5c5c;
-    color: #fff;
-    font-weight: 600;
-    text-decoration: none;
-    width: fit-content;
-    box-shadow: 0 6px 20px color-mix(in srgb, #fa5c5c 30%, transparent);
-    transition: transform 0.12s ease;
-  }
-  .itch-cta:hover { transform: translateY(-1px); }
-  .itch-cta__icon { font-size: 1.1rem; line-height: 1; }
-  .itch-embed {
-    width: 100%;
-    min-height: 167px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--sl-color-gray-5, #2a2a33);
-    background: var(--sl-color-bg-nav, #131318);
-  }
-  .itch-embed iframe {
-    width: 100%;
-    min-height: 167px;
-    border: 0;
-  }
-`}</style>

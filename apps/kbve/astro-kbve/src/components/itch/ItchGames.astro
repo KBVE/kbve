@@ -1,0 +1,200 @@
+---
+import {
+	KBVE_ITCH_GAMES,
+	ITCH_PROFILE_URL,
+	ITCH_PLATFORM_META,
+	type ItchGame,
+} from './itchGames';
+
+interface Props {
+	games?: ItchGame[];
+}
+
+const games = (Astro.props.games ?? KBVE_ITCH_GAMES).slice();
+games.sort((a, b) => (a.featured === b.featured ? 0 : a.featured ? -1 : 1));
+---
+
+<section class="itch-games" aria-label="KBVE games on itch.io">
+	{
+		games.map((g) => {
+			const url = `${ITCH_PROFILE_URL}/${g.slug}`;
+			const fallbackBg = g.thumbColor ?? '#1f1f24';
+			return (
+				<a
+					class:list={[
+						'itch-card',
+						g.featured && 'itch-card--featured',
+					]}
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-game-id={g.id}>
+					<div
+						class="itch-card__thumb"
+						style={`background-color:${fallbackBg}`}>
+						{g.thumb ? (
+							<img
+								src={g.thumb}
+								alt={`${g.title} thumbnail`}
+								loading="lazy"
+								width="315"
+								height="250"
+							/>
+						) : (
+							<span
+								class="itch-card__thumb-fallback"
+								aria-hidden="true">
+								{g.title.charAt(0)}
+							</span>
+						)}
+						{g.featured && (
+							<span class="itch-card__badge">Featured</span>
+						)}
+					</div>
+					<div class="itch-card__body">
+						<div class="itch-card__title">{g.title}</div>
+						{g.desc && <div class="itch-card__desc">{g.desc}</div>}
+						<div class="itch-card__meta">
+							{g.genre && (
+								<span class="itch-card__genre">{g.genre}</span>
+							)}
+							<span class="itch-card__platforms">
+								{g.platforms.map((p) => (
+									<span
+										class:list={[
+											'itch-card__plat',
+											`itch-card__plat--${p}`,
+										]}
+										title={ITCH_PLATFORM_META[p].label}>
+										{ITCH_PLATFORM_META[p].label}
+									</span>
+								))}
+							</span>
+						</div>
+					</div>
+				</a>
+			);
+		})
+	}
+</section>
+
+<style>
+	.itch-games {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 1rem;
+		margin: 1.25rem 0;
+	}
+	.itch-card {
+		display: flex;
+		flex-direction: column;
+		border-radius: 12px;
+		overflow: hidden;
+		border: 1px solid var(--sl-color-gray-5, #2a2a33);
+		background: var(--sl-color-bg-nav, #131318);
+		color: var(--sl-color-text, #e6edf3);
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.itch-card:hover {
+		transform: translateY(-3px);
+		border-color: #fa5c5c;
+		box-shadow: 0 8px 24px color-mix(in srgb, #fa5c5c 22%, transparent);
+	}
+	.itch-card--featured {
+		grid-column: span 2;
+		border-color: #fa5c5c;
+		box-shadow: 0 4px 18px color-mix(in srgb, #fa5c5c 18%, transparent);
+	}
+	@media (max-width: 600px) {
+		.itch-card--featured {
+			grid-column: span 1;
+		}
+	}
+	.itch-card__thumb {
+		position: relative;
+		aspect-ratio: 315 / 250;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+	.itch-card__thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.itch-card__thumb-fallback {
+		font-size: 3rem;
+		font-weight: 700;
+		color: rgba(255, 255, 255, 0.55);
+		letter-spacing: -2px;
+	}
+	.itch-card__badge {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		background: #fa5c5c;
+		color: #fff;
+		font-size: 11px;
+		font-weight: 600;
+		padding: 3px 8px;
+		border-radius: 999px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.itch-card__body {
+		padding: 0.85rem 1rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		flex: 1;
+	}
+	.itch-card__title {
+		font-weight: 600;
+		font-size: 1rem;
+		color: var(--sl-color-white, #f3f4f6);
+	}
+	.itch-card__desc {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		line-height: 1.45;
+	}
+	.itch-card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-top: auto;
+		padding-top: 0.4rem;
+	}
+	.itch-card__genre {
+		font-size: 0.7rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 2px 8px;
+		border-radius: 4px;
+		background: rgba(250, 92, 92, 0.12);
+		color: #fa8080;
+	}
+	.itch-card__platforms {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+	.itch-card__plat {
+		font-size: 0.68rem;
+		font-weight: 500;
+		padding: 2px 7px;
+		border-radius: 4px;
+		background: rgba(148, 163, 184, 0.12);
+		color: #94a3b8;
+	}
+	.itch-card__plat--web {
+		background: rgba(102, 192, 244, 0.14);
+		color: #a5d8ff;
+	}
+</style>
