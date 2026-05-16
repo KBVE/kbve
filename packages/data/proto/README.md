@@ -4,13 +4,15 @@ This directory contains **protobuf definition files** (`.proto`) that serve as t
 
 ## Structure
 
-| Directory | Purpose |
-|-----------|---------|
-| `kbve/` | Core KBVE protos (OSRS items, discordsh, common types) |
-| `npc/` | NPC database proto (`npcdb.proto`) — universal NPC definitions |
-| `google/` | Google well-known proto imports |
-| `jedi/` | Jedi-specific protos |
-| `meme/` | Meme schema protos |
+| Directory   | Purpose                                                                      |
+| ----------- | ---------------------------------------------------------------------------- |
+| `kbve/`     | Core KBVE protos (OSRS items, discordsh, common types)                       |
+| `npc/`      | NPC database proto (`npcdb.proto`) — universal NPC definitions               |
+| `google/`   | Google well-known proto imports                                              |
+| `jedi/`     | Jedi-specific protos                                                         |
+| `meme/`     | Meme schema protos                                                           |
+| `referral/` | Referral system schema (per-user redirect links + click log + reward policy) |
+| `wallet/`   | Wallet schema (ledger + coupons + marketplace + treasury)                    |
 
 ## Rules
 
