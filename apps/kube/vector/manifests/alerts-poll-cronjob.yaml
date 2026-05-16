@@ -5,41 +5,56 @@ metadata:
     name: alerts-poll-script
     namespace: vector
 data:
-    poll.sh: |
-        #!/bin/sh
-        set -eu
+    poll.py: |
+        #!/usr/bin/env python3
+        # Pure-python alerts poller. Reads /api/v1/alerts from Prometheus,
+        # normalizes each alert into the observability.alerts_distributed
+        # schema, and posts JSONEachRow to ClickHouse. No curl, no jq —
+        # works on python:3.12-alpine with readOnlyRootFilesystem + non-root.
+        import datetime
+        import hashlib
+        import json
+        import os
+        import sys
+        import urllib.error
+        import urllib.parse
+        import urllib.request
 
-        PROM_URL="${PROM_URL:-http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090}"
-        SOURCE_LABEL="${SOURCE_LABEL:-poll}"
+        PROM_URL = os.environ.get(
+            "PROM_URL",
+            "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090",
+        ).rstrip("/")
+        SOURCE_LABEL = os.environ.get("SOURCE_LABEL", "poll")
+        CH_ENDPOINT = os.environ["CLICKHOUSE_ENDPOINT"].rstrip("/")
+        CH_USER = os.environ["CLICKHOUSE_USER"]
+        CH_PASSWORD = os.environ["CLICKHOUSE_PASSWORD"]
 
-        echo "Polling Prometheus alerts at ${PROM_URL}/api/v1/alerts ..."
-        PAYLOAD=$(curl -sf --max-time 15 "${PROM_URL}/api/v1/alerts") || {
-            echo "ERROR: Prometheus /api/v1/alerts unreachable"
-            exit 1
-        }
+        prom_url = f"{PROM_URL}/api/v1/alerts"
+        print(f"Polling Prometheus alerts at {prom_url} ...", flush=True)
 
-        # Extract array length without jq (busybox shell + python).
-        COUNT=$(echo "$PAYLOAD" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d.get("data",{}).get("alerts",[])))')
-        echo "Prometheus reports ${COUNT} active alert(s)."
-        if [ "$COUNT" -eq 0 ]; then
-            echo "Nothing to insert."
-            exit 0
-        fi
+        try:
+            with urllib.request.urlopen(prom_url, timeout=15) as r:
+                payload = json.load(r)
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+            print(f"ERROR: Prometheus /api/v1/alerts unreachable: {e}", file=sys.stderr)
+            sys.exit(1)
 
-        # Build a JSONEachRow blob: one row per active alert. Use python for
-        # safe field extraction; never trust upstream label/annotation strings.
-        ROWS=$(echo "$PAYLOAD" | python3 - <<PY
-        import json, sys, hashlib, datetime
-        d = json.load(sys.stdin)
-        for a in d.get("data", {}).get("alerts", []):
+        alerts = payload.get("data", {}).get("alerts", []) or []
+        print(f"Prometheus reports {len(alerts)} active alert(s).", flush=True)
+        if not alerts:
+            print("Nothing to insert.")
+            sys.exit(0)
+
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
+        lines = []
+        for a in alerts:
             labels = a.get("labels", {}) or {}
             anno = a.get("annotations", {}) or {}
             fp = hashlib.sha256(
                 ("|".join(f"{k}={v}" for k, v in sorted(labels.items()))).encode()
             ).hexdigest()
-            starts = a.get("activeAt") or datetime.datetime.utcnow().isoformat() + "Z"
             row = {
-                "timestamp": datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+                "timestamp": now_iso,
                 "status": a.get("state", "firing"),
                 "alertname": labels.get("alertname", "unknown"),
                 "severity": labels.get("severity", ""),
@@ -51,22 +66,34 @@ data:
                 "labels": json.dumps(labels, sort_keys=True),
                 "annotations": json.dumps(anno, sort_keys=True),
                 "fingerprint": fp,
-                "starts_at": starts,
+                "starts_at": a.get("activeAt") or now_iso,
                 "ends_at": None,
-                "generator_url": a.get("annotations", {}).get("runbook_url", ""),
-                "source": "${SOURCE_LABEL}",
+                "generator_url": anno.get("runbook_url", ""),
+                "source": SOURCE_LABEL,
             }
-            print(json.dumps(row))
-        PY
-        )
+            lines.append(json.dumps(row))
 
-        echo "Inserting ${COUNT} rows into observability.alerts_distributed ..."
-        echo "$ROWS" | curl -sf --max-time 30 --data-binary @- \
-            "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}&query=INSERT%20INTO%20observability.alerts_distributed%20FORMAT%20JSONEachRow" || {
-            echo "ERROR: ClickHouse insert failed"
-            exit 1
-        }
-        echo "Insert OK."
+        body = "\n".join(lines).encode("utf-8")
+        q = urllib.parse.urlencode({
+            "user": CH_USER,
+            "password": CH_PASSWORD,
+            "query": "INSERT INTO observability.alerts_distributed FORMAT JSONEachRow",
+        })
+        insert_url = f"{CH_ENDPOINT}/?{q}"
+        print(f"Inserting {len(lines)} rows into observability.alerts_distributed ...", flush=True)
+        req = urllib.request.Request(insert_url, data=body, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                if r.status >= 300:
+                    print(f"ERROR: ClickHouse insert returned {r.status}", file=sys.stderr)
+                    sys.exit(1)
+        except urllib.error.HTTPError as e:
+            print(f"ERROR: ClickHouse insert failed: {e.code} {e.reason}", file=sys.stderr)
+            sys.exit(1)
+        except (urllib.error.URLError, TimeoutError) as e:
+            print(f"ERROR: ClickHouse unreachable: {e}", file=sys.stderr)
+            sys.exit(1)
+        print("Insert OK.")
 
 ---
 apiVersion: batch/v1
@@ -95,7 +122,7 @@ spec:
                     containers:
                         - name: poll
                           image: python:3.12-alpine
-                          command: ['/bin/sh', '/scripts/poll.sh']
+                          command: ['python3', '/scripts/poll.py']
                           env:
                               - name: PROM_URL
                                 value: 'http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090'
