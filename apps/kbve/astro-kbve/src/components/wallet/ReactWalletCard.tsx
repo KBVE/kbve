@@ -32,6 +32,35 @@ const SHELL_SELECTOR = '[data-kbve-wallet-shell]';
 const SLOT_CREDITS = '[data-kbve-wallet-credits]';
 const SLOT_KHASH = '[data-kbve-wallet-khash]';
 const SLOT_UPDATED = '[data-kbve-wallet-updated]';
+const CACHE_KEY = 'kbve:wallet:balance:v1';
+const BROADCAST_CHANNEL = 'kbve-wallet-sync';
+
+function readCachedBalance(): Balance | null {
+	if (typeof localStorage === 'undefined') return null;
+	try {
+		const raw = localStorage.getItem(CACHE_KEY);
+		return raw ? (JSON.parse(raw) as Balance) : null;
+	} catch {
+		return null;
+	}
+}
+
+function writeCachedBalance(b: Balance | null) {
+	if (typeof localStorage === 'undefined') return;
+	try {
+		if (b) localStorage.setItem(CACHE_KEY, JSON.stringify(b));
+		else localStorage.removeItem(CACHE_KEY);
+	} catch {}
+}
+
+function balancesEqual(a: Balance | null, b: Balance | null): boolean {
+	if (!a || !b) return a === b;
+	return (
+		a.credits === b.credits &&
+		a.khash === b.khash &&
+		a.updated_at === b.updated_at
+	);
+}
 
 async function authedFetch(path: string, init: RequestInit = {}) {
 	const token = await getAccessToken();
@@ -80,6 +109,7 @@ export function ReactWalletCard() {
 	const [coupons, setCoupons] = useState<Coupon[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [claiming, setClaiming] = useState<number | null>(null);
+	const lastBalanceRef = useRef<Balance | null>(null);
 
 	useEffect(() => {
 		setShell(findShell(mountRef.current));
@@ -99,6 +129,7 @@ export function ReactWalletCard() {
 				SLOT_UPDATED,
 				b ? `updated ${new Date(b.updated_at).toLocaleString()}` : '…',
 			);
+			lastBalanceRef.current = b;
 		},
 		[shell],
 	);
@@ -109,7 +140,18 @@ export function ReactWalletCard() {
 				authedFetch('/api/v1/wallet/me/balance'),
 				authedFetch('/api/v1/wallet/me/coupons'),
 			]);
-			applyBalance(bal as Balance);
+			const balance = bal as Balance;
+			if (!balancesEqual(balance, lastBalanceRef.current)) {
+				applyBalance(balance);
+				writeCachedBalance(balance);
+				if (typeof BroadcastChannel !== 'undefined') {
+					try {
+						const ch = new BroadcastChannel(BROADCAST_CHANNEL);
+						ch.postMessage({ type: 'balance', balance });
+						ch.close();
+					} catch {}
+				}
+			}
 			setCoupons(cps as Coupon[]);
 			setError(null);
 		} catch (err) {
@@ -122,12 +164,41 @@ export function ReactWalletCard() {
 	useEffect(() => {
 		if (!shell || !ready) return;
 		if (!authenticated) {
-			shell.hidden = true;
+			shell.dataset.kbveWalletState = 'signed-out';
+			applyBalance(null);
+			writeCachedBalance(null);
 			return;
 		}
-		shell.hidden = false;
+		shell.dataset.kbveWalletState = 'authenticated';
+		const cached = readCachedBalance();
+		if (cached) {
+			applyBalance(cached);
+		}
 		void refresh();
-	}, [shell, ready, authenticated, refresh]);
+	}, [shell, ready, authenticated, applyBalance, refresh]);
+
+	useEffect(() => {
+		if (!authenticated || typeof BroadcastChannel === 'undefined') return;
+		let ch: BroadcastChannel;
+		try {
+			ch = new BroadcastChannel(BROADCAST_CHANNEL);
+		} catch {
+			return;
+		}
+		const onMessage = (event: MessageEvent) => {
+			const data = event.data as { type?: string; balance?: Balance };
+			if (data?.type === 'balance' && data.balance) {
+				if (!balancesEqual(data.balance, lastBalanceRef.current)) {
+					applyBalance(data.balance);
+				}
+			}
+		};
+		ch.addEventListener('message', onMessage);
+		return () => {
+			ch.removeEventListener('message', onMessage);
+			ch.close();
+		};
+	}, [authenticated, applyBalance]);
 
 	const claim = useCallback(
 		async (couponId: number) => {

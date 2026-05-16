@@ -2,4 +2,28 @@
 import { ReactMcAuthLink } from './ReactMcAuthLink';
 ---
 
-<ReactMcAuthLink client:only="react" />
+<div class="kbve-mc-auth-shell" data-kbve-mc-auth-shell>
+	<noscript>
+		<div class="kbve-mc-auth-shell__nojs">
+			Enable JavaScript to link your Minecraft account.
+		</div>
+	</noscript>
+	<ReactMcAuthLink client:only="react" />
+</div>
+
+<style>
+	.kbve-mc-auth-shell {
+		min-height: 200px;
+		margin-bottom: 1.5rem;
+		display: block;
+		contain: layout;
+	}
+	.kbve-mc-auth-shell__nojs {
+		padding: 1rem 1.25rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-gray-3);
+		font-size: 0.9rem;
+	}
+</style>
