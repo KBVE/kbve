@@ -464,18 +464,60 @@ END;
 $$;
 COMMIT;
 
--- 12. Cursor pair validation: mismatched cursor args raise 22023.
+-- 12. Cursor pair validation: mismatched cursor args raise 22023 for
+--     all three paged read proxies.
 BEGIN;
 DO $$
+DECLARE
+    v_seller_uid UUID;
+    v_bidder_uid UUID;
 BEGIN
+    SELECT user_id INTO v_seller_uid FROM public.__market_proxies_fixture WHERE role = 'seller';
+    SELECT user_id INTO v_bidder_uid FROM public.__market_proxies_fixture WHERE role = 'bidder';
+
+    -- list_active_readonly (anon)
     BEGIN
         PERFORM * FROM public.proxy_market_list_active_readonly(50, statement_timestamp(), NULL);
-        RAISE EXCEPTION 'fail: list_active half-cursor should have raised';
+        RAISE EXCEPTION 'fail: list_active half-cursor (no id) should have raised';
     EXCEPTION WHEN sqlstate '22023' THEN NULL;
     END;
     BEGIN
         PERFORM * FROM public.proxy_market_list_active_readonly(50, NULL, 1::BIGINT);
         RAISE EXCEPTION 'fail: list_active half-cursor (id only) should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- my_listings_readonly (authenticated as seller)
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_seller_uid::text)::text,
+        true
+    );
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_listings_readonly(50, statement_timestamp(), NULL);
+        RAISE EXCEPTION 'fail: my_listings half-cursor (no id) should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_listings_readonly(50, NULL, 1::BIGINT);
+        RAISE EXCEPTION 'fail: my_listings half-cursor (id only) should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+
+    -- my_bids_readonly (authenticated as bidder)
+    PERFORM set_config(
+        'request.jwt.claims',
+        jsonb_build_object('role', 'authenticated', 'sub', v_bidder_uid::text)::text,
+        true
+    );
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_bids_readonly(50, statement_timestamp(), NULL);
+        RAISE EXCEPTION 'fail: my_bids half-cursor (no id) should have raised';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL;
+    END;
+    BEGIN
+        PERFORM * FROM public.proxy_market_my_bids_readonly(50, NULL, 1::BIGINT);
+        RAISE EXCEPTION 'fail: my_bids half-cursor (id only) should have raised';
     EXCEPTION WHEN sqlstate '22023' THEN NULL;
     END;
 END;
@@ -501,38 +543,49 @@ END;
 $$;
 COMMIT;
 
--- 14. Grants posture (drift catch): anon has EXECUTE on the public
---     browse pair but NOT on personal or write proxies.
+-- 14. Grants posture (drift catch). Locks down the full anon vs
+--     authenticated boundary across all 8 public proxies.
 DO $$
-BEGIN
-    IF NOT has_function_privilege(
-        'anon',
+DECLARE
+    v_anon_must_execute TEXT[] := ARRAY[
         'public.proxy_market_list_active_readonly(integer,timestamp with time zone,bigint)',
-        'EXECUTE'
-    ) THEN
-        RAISE EXCEPTION 'fail: anon missing EXECUTE on list_active_readonly';
-    END IF;
-    IF NOT has_function_privilege(
-        'anon',
-        'public.proxy_market_listing_detail_readonly(bigint)',
-        'EXECUTE'
-    ) THEN
-        RAISE EXCEPTION 'fail: anon missing EXECUTE on listing_detail_readonly';
-    END IF;
-    IF has_function_privilege(
-        'anon',
+        'public.proxy_market_listing_detail_readonly(bigint)'
+    ];
+    v_anon_must_NOT_execute TEXT[] := ARRAY[
         'public.proxy_market_my_listings_readonly(integer,timestamp with time zone,bigint)',
-        'EXECUTE'
-    ) THEN
-        RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on my_listings_readonly';
-    END IF;
-    IF has_function_privilege(
-        'anon',
+        'public.proxy_market_my_bids_readonly(integer,timestamp with time zone,bigint)',
         'public.proxy_market_create_listing(jsonb,bigint,bigint,timestamp with time zone,uuid)',
-        'EXECUTE'
-    ) THEN
-        RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on create_listing';
-    END IF;
+        'public.proxy_market_place_bid(bigint,bigint,uuid)',
+        'public.proxy_market_buy_now(bigint,uuid)',
+        'public.proxy_market_cancel_listing(bigint,text)'
+    ];
+    v_auth_must_execute TEXT[] := ARRAY[
+        'public.proxy_market_list_active_readonly(integer,timestamp with time zone,bigint)',
+        'public.proxy_market_listing_detail_readonly(bigint)',
+        'public.proxy_market_my_listings_readonly(integer,timestamp with time zone,bigint)',
+        'public.proxy_market_my_bids_readonly(integer,timestamp with time zone,bigint)',
+        'public.proxy_market_create_listing(jsonb,bigint,bigint,timestamp with time zone,uuid)',
+        'public.proxy_market_place_bid(bigint,bigint,uuid)',
+        'public.proxy_market_buy_now(bigint,uuid)',
+        'public.proxy_market_cancel_listing(bigint,text)'
+    ];
+    v_fn TEXT;
+BEGIN
+    FOREACH v_fn IN ARRAY v_anon_must_execute LOOP
+        IF NOT has_function_privilege('anon', v_fn, 'EXECUTE') THEN
+            RAISE EXCEPTION 'fail: anon missing EXECUTE on %', v_fn;
+        END IF;
+    END LOOP;
+    FOREACH v_fn IN ARRAY v_anon_must_NOT_execute LOOP
+        IF has_function_privilege('anon', v_fn, 'EXECUTE') THEN
+            RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on %', v_fn;
+        END IF;
+    END LOOP;
+    FOREACH v_fn IN ARRAY v_auth_must_execute LOOP
+        IF NOT has_function_privilege('authenticated', v_fn, 'EXECUTE') THEN
+            RAISE EXCEPTION 'fail: authenticated missing EXECUTE on %', v_fn;
+        END IF;
+    END LOOP;
 END;
 $$;
 
@@ -901,14 +954,11 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM jsonb_array_elements(v_bid_json) elem
              WHERE elem ? 'bidder_account'
+                OR elem ? 'settled_at'
+                OR elem ? 'escrow_ledger_id'
+                OR elem ? 'refund_ledger_id'
         ) THEN
-            RAISE EXCEPTION 'fail: public bids array leaks bidder_account';
-        END IF;
-        IF EXISTS (
-            SELECT 1 FROM jsonb_array_elements(v_bid_json) elem
-             WHERE elem ? 'settled_at'
-        ) THEN
-            RAISE EXCEPTION 'fail: public bids array leaks settled_at';
+            RAISE EXCEPTION 'fail: public bids array leaks a redacted field';
         END IF;
     END IF;
 END;
