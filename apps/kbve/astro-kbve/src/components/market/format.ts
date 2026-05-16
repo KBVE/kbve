@@ -40,3 +40,9 @@ export function itemRefLabel(itemRef: unknown): string {
 	if (id) return id;
 	return JSON.stringify(itemRef).slice(0, 64);
 }
+
+export function itemRefHasEnchants(itemRef: unknown): boolean {
+	if (!itemRef || typeof itemRef !== 'object') return false;
+	const e = (itemRef as { enchants?: unknown }).enchants;
+	return Array.isArray(e) && e.length > 0;
+}

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useSession } from '@kbve/astro';
 import { createListing, MarketApiError } from './api';
+import { EnchantEditor } from './EnchantEditor';
+import type { Enchant } from './enchants';
 
 const KIND_OPTIONS = [
 	{ value: 'mc_item', label: 'Minecraft item' },
@@ -22,6 +24,7 @@ export function MarketCreateForm() {
 	const [buyNow, setBuyNow] = useState('');
 	const [minBid, setMinBid] = useState('');
 	const [expires, setExpires] = useState(defaultExpiry());
+	const [enchants, setEnchants] = useState<Enchant[]>([]);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<number | null>(null);
@@ -60,6 +63,12 @@ export function MarketCreateForm() {
 		const expiryIso = new Date(expires).toISOString();
 		const item_ref: Record<string, unknown> = { kind, id: itemId.trim() };
 		if (instanceId.trim()) item_ref.instance_id = instanceId.trim();
+		if (kind === 'mc_item' && enchants.length > 0) {
+			item_ref.enchants = enchants.map((e) => ({
+				id: e.id,
+				level: e.level,
+			}));
+		}
 		setBusy(true);
 		try {
 			const res = await createListing({
@@ -74,6 +83,7 @@ export function MarketCreateForm() {
 			setInstanceId('');
 			setBuyNow('');
 			setMinBid('');
+			setEnchants([]);
 		} catch (err) {
 			setError(
 				err instanceof MarketApiError ? err.message : 'create failed',
@@ -155,6 +165,13 @@ export function MarketCreateForm() {
 					/>
 				</label>
 			</div>
+			{kind === 'mc_item' && (
+				<EnchantEditor
+					value={enchants}
+					onChange={setEnchants}
+					disabled={busy}
+				/>
+			)}
 			<div className="kbve-market__form-actions">
 				<button
 					type="submit"

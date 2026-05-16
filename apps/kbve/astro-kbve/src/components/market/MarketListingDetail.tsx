@@ -11,6 +11,7 @@ import {
 import { formatKhash, formatRelative, itemRefLabel } from './format';
 import { useCountdown, formatCountdown } from './countdown';
 import { ItemIcon } from './ItemIcon';
+import { EnchantList } from './EnchantList';
 
 function readListingId(): number | null {
 	if (typeof window === 'undefined') return null;
@@ -204,6 +205,7 @@ export function MarketListingDetail() {
 					<h1 className="kbve-market__item-title">
 						{itemRefLabel(row.item_ref)}
 					</h1>
+					<EnchantList itemRef={row.item_ref} />
 					<p className="kbve-market__hero-seller">
 						Seller{' '}
 						<code title={row.seller_account}>

@@ -13,6 +13,7 @@ import {
 	formatRelative,
 	itemRefLabel,
 } from './format';
+import { EnchantList } from './EnchantList';
 
 type Tab = 'listings' | 'bids';
 
@@ -105,6 +106,7 @@ export function MarketProfileShell() {
 							<div className="kbve-market__card-head">
 								<span className="kbve-market__card-item">
 									{itemRefLabel(r.item_ref)}
+									<EnchantList itemRef={r.item_ref} compact />
 								</span>
 								<span
 									className={`kbve-market__badge kbve-market__badge--${r.listing_status}`}>

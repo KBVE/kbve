@@ -3,6 +3,7 @@ import { listActive, type MarketListing, MarketApiError } from './api';
 import { formatKhash, itemRefLabel } from './format';
 import { useCountdown, formatCountdown } from './countdown';
 import { ItemIcon } from './ItemIcon';
+import { EnchantList } from './EnchantList';
 
 const PAGE_SIZE = 25;
 
@@ -26,6 +27,7 @@ function ListingCard({ row }: { row: MarketListing }) {
 			<div className="kbve-market__grid-body">
 				<div className="kbve-market__grid-title">
 					{itemRefLabel(row.item_ref)}
+					<EnchantList itemRef={row.item_ref} compact />
 				</div>
 				<div className="kbve-market__grid-prices">
 					{row.buy_now_price !== null && (
