@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { dockerExec, dockerExecSafe, dockerExecScript } from './helpers/docker';
+import { execSync } from 'node:child_process';
+import {
+	dockerExec,
+	dockerExecSafe,
+	dockerExecScript,
+	IMAGE_NAME,
+} from './helpers/docker';
 
 describe('arc-runner image — baked-in tools', () => {
 	it('git-lfs is on PATH and reports a version', () => {
@@ -203,5 +209,115 @@ describe('arc-runner image — git-lfs functional smudge', () => {
 			rm -rf "$D"
 		`);
 		expect(out).toBe('ok');
+	});
+});
+
+describe('arc-runner image — regression guards', () => {
+	it('uncompressed image stays under 2 GiB', () => {
+		const raw = execSync(
+			`docker image inspect ${IMAGE_NAME} --format '{{.Size}}'`,
+			{ encoding: 'utf-8' },
+		).trim();
+		const bytes = Number.parseInt(raw, 10);
+		expect(bytes).toBeGreaterThan(500 * 1024 * 1024);
+		expect(bytes).toBeLessThan(2 * 1024 * 1024 * 1024);
+	});
+
+	it('docker history reports 20 layers or fewer', () => {
+		const raw = execSync(
+			`docker history --no-trunc --format '{{.ID}}' ${IMAGE_NAME}`,
+			{ encoding: 'utf-8' },
+		).trim();
+		const layers = raw.split('\n').length;
+		expect(layers).toBeLessThanOrEqual(20);
+	});
+});
+
+describe('arc-runner image — network primitives', () => {
+	it('resolves github.com via DNS', () => {
+		const out = dockerExecScript(`
+			getent hosts github.com | awk 'NR==1 { print $2 }'
+		`);
+		expect(out).toBe('github.com');
+	});
+
+	it('curl validates TLS chain against api.github.com', () => {
+		// Confirms ca-certificates from the Dockerfile bake is wired into
+		// curl's default trust store. Network-dependent — relies on ARC
+		// runner egress allowing HTTPS to api.github.com.
+		const out = dockerExecScript(`
+			curl -sSf -o /dev/null -w '%{http_code}' https://api.github.com
+		`);
+		expect(out).toBe('200');
+	});
+});
+
+describe('arc-runner image — install hygiene', () => {
+	it('apt list directory was cleared at build time', () => {
+		const out = dockerExecScript(`
+			find /var/lib/apt/lists -type f 2>/dev/null | wc -l
+		`);
+		expect(Number.parseInt(out, 10)).toBe(0);
+	});
+
+	it('gh CLI keyring is present with mode 0644', () => {
+		const out = dockerExecScript(`
+			test -f /etc/apt/keyrings/githubcli-archive-keyring.gpg
+			stat -c '%a' /etc/apt/keyrings/githubcli-archive-keyring.gpg
+		`);
+		expect(out).toBe('644');
+	});
+
+	it('gh CLI apt source line is registered', () => {
+		const out = dockerExec(
+			"bash -lc 'cat /etc/apt/sources.list.d/github-cli.list'",
+		);
+		expect(out).toContain('https://cli.github.com/packages');
+	});
+});
+
+describe('arc-runner image — kubectl runtime parse', () => {
+	it('kubectl parses a synthesised kubeconfig and reports kind=Config', () => {
+		// Beyond `kubectl version --client`: ensures the binary can read
+		// a YAML kubeconfig, walk through the structure, and emit JSON.
+		// ci-dbmate-deploy templates a kubeconfig at runtime and pipes
+		// it into kubectl, so the parse path actually matters.
+		const out = dockerExecScript(`
+			D=$(mktemp -d)
+			cat > "$D/kc.yaml" <<'YAML'
+apiVersion: v1
+kind: Config
+current-context: fake
+clusters:
+- name: fake
+  cluster:
+    server: https://127.0.0.1:6443
+contexts:
+- name: fake
+  context:
+    cluster: fake
+    user: fake
+users:
+- name: fake
+  user:
+    token: dummy
+YAML
+			kubectl --kubeconfig="$D/kc.yaml" config view -o json | jq -r .kind
+			rm -rf "$D"
+		`);
+		expect(out).toBe('Config');
+	});
+});
+
+describe('arc-runner image — locale + unicode', () => {
+	it('bash + wc handle multi-byte UTF-8 characters', () => {
+		// `wc -m` counts characters, `wc -c` counts bytes. "café" is
+		// 4 characters but 5 bytes in UTF-8 — a C/POSIX locale would
+		// fall back to byte counting and return 5. Asserts the runner
+		// inherits a UTF-8 locale from the upstream image.
+		const out = dockerExecScript(`
+			printf 'café' | wc -m
+		`);
+		expect(out.trim()).toBe('4');
 	});
 });
