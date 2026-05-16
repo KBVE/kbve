@@ -619,17 +619,19 @@ BEGIN
         RAISE EXCEPTION 'fail: create_listing idempotency replay returned different ids (%, %)', v_id1, v_id2;
     END IF;
 
-    -- place_bid replay (same listing, same key → same bid id)
+    -- place_bid replay (same listing, same key → same bid id).
+    -- Capture the listing id separately so the second call still uses
+    -- the listing, not the just-returned bid_id.
+    v_target_listing_2 := v_id1;
     PERFORM set_config(
         'request.jwt.claims',
         jsonb_build_object('role', 'authenticated', 'sub', v_bidder_uid::text)::text,
         true
     );
-    v_id1 := public.proxy_market_place_bid(v_id1, 120, v_bid_key);
-    v_id2 := public.proxy_market_place_bid(v_id1::BIGINT, 120, v_bid_key);
-    -- v_id1 was overwritten; assert by re-running
+    v_id1 := public.proxy_market_place_bid(v_target_listing_2, 120, v_bid_key);
+    v_id2 := public.proxy_market_place_bid(v_target_listing_2, 120, v_bid_key);
     IF v_id1 IS DISTINCT FROM v_id2 THEN
-        RAISE EXCEPTION 'fail: place_bid idempotency replay returned different ids';
+        RAISE EXCEPTION 'fail: place_bid idempotency replay returned different ids (%, %)', v_id1, v_id2;
     END IF;
 
     -- buy_now replay on a SECOND fresh listing
@@ -841,13 +843,101 @@ END;
 $$;
 COMMIT;
 
+-- 20. Anon-callable proxies do not leak wallet account UUIDs we
+--     intentionally redacted. Public bid history must also not carry
+--     bidder_account or settled_at.
+BEGIN;
+RESET request.jwt.claims;
+DO $$
+DECLARE
+    v_seller_acc UUID;
+    v_listing_id BIGINT;
+    v_detail_cols TEXT[];
+    v_bid_json    JSONB;
+BEGIN
+    SELECT id INTO v_seller_acc
+      FROM wallet.account a
+      JOIN public.__market_proxies_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'seller';
+
+    -- Pick an active listing the seller owns (any one will do).
+    SELECT id INTO v_listing_id
+      FROM wallet.listing
+     WHERE seller_account = v_seller_acc AND status = 'active'
+     ORDER BY id DESC LIMIT 1;
+    IF v_listing_id IS NULL THEN RETURN; END IF;
+
+    -- Browse return columns: current_bid_account must not be present.
+    SELECT array_agg(p.parameter_name::text) INTO v_detail_cols
+      FROM information_schema.routines r
+      JOIN information_schema.parameters p
+        ON r.specific_name = p.specific_name
+     WHERE r.routine_schema = 'public'
+       AND r.routine_name = 'proxy_market_list_active_readonly'
+       AND p.parameter_mode = 'OUT';
+    IF 'current_bid_account' = ANY (v_detail_cols) THEN
+        RAISE EXCEPTION 'fail: list_active leaks current_bid_account';
+    END IF;
+
+    -- Detail return columns: buyer_account + current_bid_account redacted.
+    SELECT array_agg(p.parameter_name::text) INTO v_detail_cols
+      FROM information_schema.routines r
+      JOIN information_schema.parameters p
+        ON r.specific_name = p.specific_name
+     WHERE r.routine_schema = 'public'
+       AND r.routine_name = 'proxy_market_listing_detail_readonly'
+       AND p.parameter_mode = 'OUT';
+    IF 'current_bid_account' = ANY (v_detail_cols) THEN
+        RAISE EXCEPTION 'fail: listing_detail leaks current_bid_account';
+    END IF;
+    IF 'buyer_account' = ANY (v_detail_cols) THEN
+        RAISE EXCEPTION 'fail: listing_detail leaks buyer_account';
+    END IF;
+
+    -- Public bid JSON shape: no bidder_account, no settled_at.
+    SELECT bids INTO v_bid_json
+      FROM public.proxy_market_listing_detail_readonly(v_listing_id);
+    IF v_bid_json IS NOT NULL AND jsonb_array_length(v_bid_json) > 0 THEN
+        IF EXISTS (
+            SELECT 1 FROM jsonb_array_elements(v_bid_json) elem
+             WHERE elem ? 'bidder_account'
+        ) THEN
+            RAISE EXCEPTION 'fail: public bids array leaks bidder_account';
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM jsonb_array_elements(v_bid_json) elem
+             WHERE elem ? 'settled_at'
+        ) THEN
+            RAISE EXCEPTION 'fail: public bids array leaks settled_at';
+        END IF;
+    END IF;
+END;
+$$;
+COMMIT;
+
+-- 21. private.proxy_market_caller_account is not reachable through
+--     PostgREST: anon + authenticated have no USAGE on schema private.
+DO $$
+BEGIN
+    IF has_schema_privilege('anon', 'private', 'USAGE') THEN
+        RAISE EXCEPTION 'fail: anon should NOT have USAGE on schema private';
+    END IF;
+    IF has_schema_privilege('authenticated', 'private', 'USAGE') THEN
+        RAISE EXCEPTION 'fail: authenticated should NOT have USAGE on schema private';
+    END IF;
+    IF NOT has_schema_privilege('service_role', 'private', 'USAGE') THEN
+        RAISE EXCEPTION 'fail: service_role missing USAGE on schema private';
+    END IF;
+END;
+$$;
+
 -- ASSERT_AFTER_DOWN
 
 DO $$
 BEGIN
     IF EXISTS (
         SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-         WHERE n.nspname = 'public' AND p.proname LIKE 'proxy_market_%'
+         WHERE n.nspname IN ('public', 'private') AND p.proname LIKE 'proxy_market_%'
     ) THEN
         RAISE EXCEPTION 'fail: proxy_market_* still present after rollback';
     END IF;

@@ -53,15 +53,25 @@ BEGIN
     IF to_regclass('wallet.account') IS NULL THEN
         RAISE EXCEPTION 'dependency missing: wallet.account';
     END IF;
-    -- proxy_market_caller_account relies on this partial unique to
-    -- safely SELECT INTO without STRICT.
+    -- proxy_market_caller_account relies on a partial-unique invariant
+    -- (one user-wallet per auth.uid) so SELECT INTO is safe without
+    -- STRICT. Verify the actual shape, not just an index by name.
     IF NOT EXISTS (
-        SELECT 1 FROM pg_indexes
-         WHERE schemaname = 'wallet'
-           AND tablename = 'account'
-           AND indexname = 'wallet_account_user_uq'
+        SELECT 1
+          FROM pg_index i
+          JOIN pg_class c   ON c.oid = i.indrelid
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+          JOIN pg_attribute a
+            ON a.attrelid = i.indrelid
+           AND a.attnum = i.indkey[0]
+         WHERE n.nspname = 'wallet'
+           AND c.relname = 'account'
+           AND i.indisunique
+           AND array_length(i.indkey, 1) = 1
+           AND a.attname = 'user_id'
+           AND i.indpred IS NOT NULL
     ) THEN
-        RAISE EXCEPTION 'dependency missing: wallet_account_user_uq partial unique index';
+        RAISE EXCEPTION 'dependency missing: wallet.account partial unique on (user_id) WHERE kind=user';
     END IF;
 END;
 $$;
@@ -79,12 +89,23 @@ $$;
 -- ============================================================================
 -- INTERNAL HELPER: resolve auth.uid() → wallet.account.id
 --
+-- Lives in the `private` schema so it's never reachable through
+-- PostgREST: anon + authenticated have no USAGE on `private`, so the
+-- function is effectively invisible to JWT callers. service_role
+-- still needs an explicit EXECUTE grant — verified empirically in
+-- Phase 2 round-7 that REVOKE EXECUTE FROM owner_role does strip
+-- owner's execute privilege.
+--
 -- Raises 28000 if unauthenticated, WLT01 if the caller has no wallet
 -- account (Rust client falls back to the rw lazy-provision path).
 -- Used by every authenticated proxy below.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION public.proxy_market_caller_account()
+CREATE SCHEMA IF NOT EXISTS private;
+REVOKE ALL ON SCHEMA private FROM PUBLIC;
+GRANT USAGE ON SCHEMA private TO service_role;
+
+CREATE OR REPLACE FUNCTION private.proxy_market_caller_account()
 RETURNS UUID
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
@@ -103,11 +124,11 @@ BEGIN
     RETURN v_account_id;
 END;
 $$;
-ALTER FUNCTION public.proxy_market_caller_account() OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_market_caller_account() FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.proxy_market_caller_account() TO service_role;
-COMMENT ON FUNCTION public.proxy_market_caller_account() IS
-    'INTERNAL marketplace proxy helper. Resolves auth.uid() → wallet.account.id. Raises 28000 on anon, WLT01 on missing wallet account.';
+ALTER FUNCTION private.proxy_market_caller_account() OWNER TO service_role;
+REVOKE ALL ON FUNCTION private.proxy_market_caller_account() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.proxy_market_caller_account() TO service_role;
+COMMENT ON FUNCTION private.proxy_market_caller_account() IS
+    'INTERNAL marketplace proxy helper. Resolves auth.uid() → wallet.account.id. Raises 28000 on anon, WLT01 on missing wallet account. Lives in the private schema so PostgREST never exposes it.';
 
 -- ============================================================================
 -- public.proxy_market_list_active_readonly
@@ -213,9 +234,9 @@ BEGIN
     END IF;
 
     -- Anon-visible bid history: bidder_account intentionally redacted.
-    -- A future profile-join refactor will expose a stable public
-    -- handle here; for now the bid amount + timing + status is enough
-    -- for browse UX without leaking the wallet account graph.
+    -- settled_at also dropped so refund/cancel timing isn't leaked
+    -- for outbid/refunded transitions. Browse UX only needs the bid
+    -- amount + placement + current status.
     SELECT COALESCE(jsonb_agg(sub.row ORDER BY sub.placed_at DESC, sub.id DESC), '[]'::jsonb)
       INTO v_bids
       FROM (
@@ -223,8 +244,7 @@ BEGIN
               'bid_id', b.id,
               'amount', b.amount,
               'status', b.status,
-              'placed_at', b.placed_at,
-              'settled_at', b.settled_at
+              'placed_at', b.placed_at
           ) AS row, b.placed_at, b.id
             FROM wallet.bid b
            WHERE b.listing_id = p_listing_id
@@ -284,7 +304,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
 DECLARE
-    v_seller UUID := public.proxy_market_caller_account();
+    v_seller UUID := private.proxy_market_caller_account();
     v_limit  INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
     IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
@@ -335,7 +355,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
 DECLARE
-    v_bidder UUID := public.proxy_market_caller_account();
+    v_bidder UUID := private.proxy_market_caller_account();
     v_limit  INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
     IF (p_before_placed_at IS NULL) <> (p_before_id IS NULL) THEN
@@ -378,7 +398,7 @@ CREATE OR REPLACE FUNCTION public.proxy_market_create_listing(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_seller UUID := public.proxy_market_caller_account();
+    v_seller UUID := private.proxy_market_caller_account();
 BEGIN
     -- Reject obviously bad inputs early; Phase 2 service does deeper
     -- validation but a clean proxy boundary avoids surfacing the
@@ -425,7 +445,7 @@ CREATE OR REPLACE FUNCTION public.proxy_market_place_bid(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_bidder UUID := public.proxy_market_caller_account();
+    v_bidder UUID := private.proxy_market_caller_account();
 BEGIN
     IF p_listing_id IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'listing_id and idempotency_key are required' USING ERRCODE = '22004';
@@ -453,7 +473,7 @@ CREATE OR REPLACE FUNCTION public.proxy_market_buy_now(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_buyer UUID := public.proxy_market_caller_account();
+    v_buyer UUID := private.proxy_market_caller_account();
 BEGIN
     IF p_listing_id IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'listing_id and idempotency_key are required' USING ERRCODE = '22004';
@@ -478,7 +498,7 @@ CREATE OR REPLACE FUNCTION public.proxy_market_cancel_listing(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_seller UUID := public.proxy_market_caller_account();
+    v_seller UUID := private.proxy_market_caller_account();
     v_reason TEXT;
 BEGIN
     IF p_listing_id IS NULL THEN
@@ -510,6 +530,12 @@ DROP FUNCTION IF EXISTS public.proxy_market_my_bids_readonly(INTEGER, TIMESTAMPT
 DROP FUNCTION IF EXISTS public.proxy_market_my_listings_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
 DROP FUNCTION IF EXISTS public.proxy_market_listing_detail_readonly(BIGINT);
 DROP FUNCTION IF EXISTS public.proxy_market_list_active_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
+-- Defensive: earlier draft of this migration shipped the helper in
+-- public. Drop both signatures so rollback is clean across DB states.
 DROP FUNCTION IF EXISTS public.proxy_market_caller_account();
+DROP FUNCTION IF EXISTS private.proxy_market_caller_account();
+-- Intentionally do NOT DROP SCHEMA private — other migrations may
+-- place objects there too. CREATE SCHEMA IF NOT EXISTS on up is
+-- idempotent regardless.
 
 NOTIFY pgrst, 'reload schema';
