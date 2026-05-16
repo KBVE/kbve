@@ -15,7 +15,8 @@ tower = { version = "0.5.3", features = ["util", "timeout"] }
 tower-http = { version = "0.6.8", features = ["trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "v5"] }
+kbve = { path = "../../../packages/rust/kbve", default-features = false, features = ["wallet"] }
 tokio-stream = "0.1"
 dashmap = "6"
 # Used by /fc/* persistent endpoint proxy (Phase 2d) to reverse-proxy
