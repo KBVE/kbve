@@ -69,7 +69,7 @@ tokio-stream = "0.1"
 rustls = { version = "0.23", features = ["ring"] }
 
 # Workspace path dependencies
-jedi = { path = "../../packages/rust/jedi" }
+jedi = { path = "../../packages/rust/jedi", features = ["prometheus"] }
 kbve = { path = "../../packages/rust/kbve" }
 
 [build-dependencies]
