@@ -16,6 +16,10 @@ import {
 	FileText,
 	X,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Tooltip } from './Tooltip';
+import { BillingErrorBanner } from './BillingErrorBanner';
+import { parseBillingError } from './billingError';
 import { EditorView, basicSetup } from 'codemirror';
 import { keymap } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
@@ -507,24 +511,48 @@ export default function ReactDeployPanel() {
 			<div ref={editorRef} className="deploy-editor" />
 
 			<div className="deploy-actions">
-				<button
-					type="button"
-					onClick={handleDeploy}
-					disabled={submitting || !token}
-					className="deploy-submit">
-					<Rocket size={14} /> {submitting ? 'Deploying…' : 'Deploy'}
-				</button>
-				<button
-					type="button"
-					onClick={() => token && void deployService.refresh(token)}
-					disabled={!token}
-					className="deploy-refresh"
-					aria-label="Refresh endpoint list">
-					<RefreshCw size={14} />
-				</button>
+				<Tooltip
+					content={
+						submitting
+							? 'Spawning the persistent VM…'
+							: 'Reserve credits + spawn this endpoint'
+					}
+					side="top">
+					<motion.button
+						type="button"
+						whileHover={{ scale: 1.03 }}
+						whileTap={{ scale: 0.96 }}
+						transition={{ duration: 0.1 }}
+						onClick={handleDeploy}
+						disabled={submitting || !token}
+						className="deploy-submit">
+						<Rocket size={14} />{' '}
+						{submitting ? 'Deploying…' : 'Deploy'}
+					</motion.button>
+				</Tooltip>
+				<Tooltip content="Refresh endpoint list" side="top">
+					<motion.button
+						type="button"
+						whileHover={{ scale: 1.05, rotate: 90 }}
+						whileTap={{ scale: 0.92 }}
+						transition={{ duration: 0.15 }}
+						onClick={() =>
+							token && void deployService.refresh(token)
+						}
+						disabled={!token}
+						className="deploy-refresh"
+						aria-label="Refresh endpoint list">
+						<RefreshCw size={14} />
+					</motion.button>
+				</Tooltip>
 			</div>
 
-			{error && <div className="deploy-error">{error}</div>}
+			{error &&
+				(parseBillingError(error) ? (
+					<BillingErrorBanner info={parseBillingError(error)!} />
+				) : (
+					<div className="deploy-error">{error}</div>
+				))}
 
 			{phase === 'ready' && lastDeployed && (
 				<div className="deploy-ready">
