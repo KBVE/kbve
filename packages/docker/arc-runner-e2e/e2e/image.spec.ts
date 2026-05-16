@@ -509,3 +509,107 @@ describe('arc-runner image — workflow shell glue', () => {
 		expect(out).toBe('ok');
 	});
 });
+
+describe('arc-runner image — OCI metadata', () => {
+	it('preserves the OCI labels set in the Dockerfile', () => {
+		const raw = execSync(
+			`docker image inspect ${IMAGE_NAME} --format '{{json .Config.Labels}}'`,
+			{ encoding: 'utf-8' },
+		).trim();
+		const labels = JSON.parse(raw) as Record<string, string>;
+		expect(labels['org.opencontainers.image.source']).toBe(
+			'https://github.com/kbve/kbve',
+		);
+		expect(labels['org.opencontainers.image.licenses']).toBe('MIT');
+		expect(labels['org.opencontainers.image.description']).toMatch(
+			/arc-runner-set/,
+		);
+	});
+
+	it('reports linux/amd64 (single-arch guard)', () => {
+		const raw = execSync(
+			`docker image inspect ${IMAGE_NAME} --format '{{.Os}}/{{.Architecture}}'`,
+			{ encoding: 'utf-8' },
+		).trim();
+		expect(raw).toBe('linux/amd64');
+	});
+});
+
+describe('arc-runner image — security surface', () => {
+	it('SUID binary set is bounded and contains only expected entries', () => {
+		// A new SUID binary appearing after a Dockerfile edit is almost
+		// always a packaging mistake. Allow-list the upstream Ubuntu
+		// defaults (sudo, mount, su, etc); fail on anything else.
+		const raw = dockerExecScript(`
+			find / -xdev -perm -4000 -type f 2>/dev/null | sort
+		`);
+		const found = raw.split('\n').filter(Boolean);
+		const allowed = new Set([
+			'/usr/bin/chfn',
+			'/usr/bin/chsh',
+			'/usr/bin/gpasswd',
+			'/usr/bin/mount',
+			'/usr/bin/newgrp',
+			'/usr/bin/passwd',
+			'/usr/bin/su',
+			'/usr/bin/sudo',
+			'/usr/bin/umount',
+			'/usr/libexec/openssh/ssh-keysign',
+		]);
+		const unexpected = found.filter((p) => !allowed.has(p));
+		expect(unexpected).toEqual([]);
+	});
+});
+
+describe('arc-runner image — actions-runner agent structure', () => {
+	it('Runner.Listener binary survives the layered build', () => {
+		// /home/runner/run.sh execs bin/Runner.Listener; without it the
+		// pod registers but cannot pick up jobs. A future apt clean-up
+		// or COPY that strips the bin/ tree surfaces here.
+		const out = dockerExec(
+			"bash -lc 'test -f /home/runner/bin/Runner.Listener && echo present'",
+		);
+		expect(out).toBe('present');
+	});
+
+	it('Runner.Worker binary survives the layered build', () => {
+		const out = dockerExec(
+			"bash -lc 'test -f /home/runner/bin/Runner.Worker && echo present'",
+		);
+		expect(out).toBe('present');
+	});
+});
+
+describe('arc-runner image — archive + runtime ergonomics', () => {
+	it('tar + gzip round-trip a directory through .tar.gz', () => {
+		// Parallel to the existing xz round-trip — gzip is the most
+		// common archive format inside CI shell glue (cache save, SDK
+		// distribution). Catches a regression that strips gzip from
+		// the apt-install list.
+		const out = dockerExecScript(`
+			D=$(mktemp -d)
+			mkdir -p "$D/src"
+			echo payload > "$D/src/file.txt"
+			tar -C "$D" -czf "$D/out.tar.gz" src
+			mkdir "$D/dst"
+			tar -C "$D/dst" -xzf "$D/out.tar.gz"
+			cat "$D/dst/src/file.txt"
+			rm -rf "$D"
+		`);
+		expect(out).toBe('payload');
+	});
+
+	it('default umask is 0022 (group + world readable, not writable)', () => {
+		const out = dockerExec("bash -lc 'umask'");
+		expect(out).toBe('0022');
+	});
+
+	it('ulimit -n is at least 65536 for parallel HTTP + file workloads', () => {
+		// game-ci, vitest, and the Bevy build all open many fds at once.
+		// The DinD sidecar sets nofile to 1048576; the runner container
+		// inherits the same daemon limit.
+		const out = dockerExec("bash -lc 'ulimit -n'");
+		const n = Number.parseInt(out, 10);
+		expect(n).toBeGreaterThanOrEqual(65536);
+	});
+});
