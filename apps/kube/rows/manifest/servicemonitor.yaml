@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: rows-metrics
+    namespace: rows
+    labels:
+        app: rows
+        release: prometheus
+spec:
+    selector:
+        matchLabels:
+            app: rows
+    endpoints:
+        - port: metrics
+          interval: 30s
+          path: /metrics

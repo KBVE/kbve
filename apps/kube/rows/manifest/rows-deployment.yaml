@@ -87,12 +87,17 @@ spec:
                         value: '2000'
                       - name: ROWS_SPINUP_INITIAL_DELAY_MS
                         value: '3000'
+                      - name: METRICS_PORT
+                        value: '4324'
                   ports:
                       - name: http
                         containerPort: 4322
                         protocol: TCP
                       - name: docs
                         containerPort: 4323
+                        protocol: TCP
+                      - name: metrics
+                        containerPort: 4324
                         protocol: TCP
                   resources:
                       requests:
@@ -138,6 +143,10 @@ spec:
         - name: docs
           port: 4323
           targetPort: 4323
+          protocol: TCP
+        - name: metrics
+          port: 4324
+          targetPort: 4324
           protocol: TCP
 ---
 # PodDisruptionBudget — ensure at least 1 pod during rolling updates
