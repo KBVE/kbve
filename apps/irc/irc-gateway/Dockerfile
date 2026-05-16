@@ -26,6 +26,12 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 COPY apps/irc/astro-irc/ apps/irc/astro-irc/
 
 WORKDIR /app/apps/irc/astro-irc
+
+# Build the embed bundle FIRST — output lands in public/embed/chat.js so
+# the subsequent astro build picks it up and ships it under /embed/chat.js.
+# Host pages drop in `<script src="https://chat.kbve.com/embed/chat.js">`.
+RUN npx vite build --config vite.embed.config.ts
+
 RUN rm -rf .astro && npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
 
