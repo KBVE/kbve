@@ -18,6 +18,7 @@ import {
 	Copy,
 	CheckCircle2,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { EditorView, basicSetup } from 'codemirror';
 import { keymap } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
@@ -25,6 +26,9 @@ import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Extension } from '@codemirror/state';
+import { Tooltip } from './Tooltip';
+import { BillingErrorBanner } from './BillingErrorBanner';
+import { parseBillingError } from './billingError';
 
 function langExtension(language: string): Extension {
 	switch (language) {
@@ -93,28 +97,42 @@ function PhaseIndicator({
 function CopyButton({ text }: { text: string }) {
 	const [copied, setCopied] = useState(false);
 	return (
-		<button
-			onClick={() => {
-				navigator.clipboard.writeText(text);
-				setCopied(true);
-				setTimeout(() => setCopied(false), 2000);
-			}}
-			title="Copy to clipboard"
-			style={{
-				display: 'inline-flex',
-				alignItems: 'center',
-				gap: '0.25rem',
-				padding: '0.2rem 0.5rem',
-				background: 'rgba(255,255,255,0.05)',
-				border: '1px solid rgba(255,255,255,0.1)',
-				borderRadius: '4px',
-				color: copied ? '#22c55e' : 'rgba(255,255,255,0.4)',
-				fontSize: '0.7rem',
-				cursor: 'pointer',
-			}}>
-			<Copy size={12} />
-			{copied ? 'Copied' : 'Copy'}
-		</button>
+		<Tooltip content={copied ? 'Copied!' : 'Copy to clipboard'}>
+			<motion.button
+				whileHover={{
+					scale: 1.04,
+					backgroundColor: 'rgba(255,255,255,0.1)',
+				}}
+				whileTap={{ scale: 0.95 }}
+				transition={{ duration: 0.1 }}
+				onClick={() => {
+					navigator.clipboard.writeText(text);
+					setCopied(true);
+					setTimeout(() => setCopied(false), 2000);
+				}}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: '0.25rem',
+					padding: '0.2rem 0.5rem',
+					background: 'rgba(255,255,255,0.05)',
+					border: '1px solid rgba(255,255,255,0.1)',
+					borderRadius: '4px',
+					color: copied ? '#22c55e' : 'rgba(255,255,255,0.4)',
+					fontSize: '0.7rem',
+					cursor: 'pointer',
+				}}>
+				<motion.span
+					key={copied ? 'check' : 'copy'}
+					initial={{ opacity: 0, scale: 0.6 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ duration: 0.12 }}
+					style={{ display: 'inline-flex', alignItems: 'center' }}>
+					{copied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+				</motion.span>
+				{copied ? 'Copied' : 'Copy'}
+			</motion.button>
+		</Tooltip>
 	);
 }
 
@@ -141,6 +159,14 @@ function OutputPanel({
 	const [tab, setTab] = useState<'output' | 'log'>('output');
 
 	if (error) {
+		const billing = parseBillingError(error);
+		if (billing) {
+			return (
+				<div style={{ padding: '0.85rem' }}>
+					<BillingErrorBanner info={billing} />
+				</div>
+			);
+		}
 		return (
 			<div
 				style={{
@@ -199,16 +225,20 @@ function OutputPanel({
 					borderBottom: '1px solid rgba(255,255,255,0.08)',
 					padding: '0 1rem',
 				}}>
-				<button
+				<motion.button
+					whileHover={{ color: '#e6edf3' }}
+					whileTap={{ scale: 0.96 }}
 					style={tabStyle(tab === 'output')}
 					onClick={() => setTab('output')}>
 					Output
-				</button>
-				<button
+				</motion.button>
+				<motion.button
+					whileHover={{ color: '#e6edf3' }}
+					whileTap={{ scale: 0.96 }}
 					style={tabStyle(tab === 'log')}
 					onClick={() => setTab('log')}>
 					Full Log
-				</button>
+				</motion.button>
 				<div style={{ flex: 1 }} />
 				<div style={{ padding: '0.25rem 0' }}>
 					<CopyButton text={displayText ?? ''} />
@@ -550,67 +580,98 @@ export default function ReactCodeIDE() {
 					}}>
 					<div style={{ display: 'flex', gap: '0.5rem' }}>
 						{isRunning ? (
-							<button
-								onClick={handleCancel}
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: '0.3rem',
-									padding: '0.4rem 1rem',
-									background: '#ef444422',
-									border: '1px solid #ef444444',
-									borderRadius: '6px',
-									color: '#ef4444',
-									fontSize: '0.85rem',
-									cursor: 'pointer',
-									fontWeight: 500,
-								}}>
-								<Square size={14} />
-								Cancel
-							</button>
-						) : (
-							<>
-								<button
-									onClick={handleRun}
+							<Tooltip
+								content="Send kill signal to the running VM"
+								side="bottom">
+								<motion.button
+									whileHover={{
+										scale: 1.03,
+										backgroundColor: '#ef444433',
+									}}
+									whileTap={{ scale: 0.96 }}
+									transition={{ duration: 0.1 }}
+									onClick={handleCancel}
 									style={{
 										display: 'inline-flex',
 										alignItems: 'center',
 										gap: '0.3rem',
 										padding: '0.4rem 1rem',
-										background: '#22c55e22',
-										border: '1px solid #22c55e44',
+										background: '#ef444422',
+										border: '1px solid #ef444444',
 										borderRadius: '6px',
-										color: '#22c55e',
+										color: '#ef4444',
 										fontSize: '0.85rem',
 										cursor: 'pointer',
 										fontWeight: 500,
 									}}>
-									<Play size={14} />
-									Run
-								</button>
-								{(result || error) && (
-									<button
-										onClick={() => {
-											ideService.$result.set(null);
-											ideService.$error.set(null);
-											ideService.$phase.set('idle');
+									<Square size={14} />
+									Cancel
+								</motion.button>
+							</Tooltip>
+						) : (
+							<>
+								<Tooltip
+									content="Run the current code (⌘/Ctrl+Enter)"
+									side="bottom">
+									<motion.button
+										whileHover={{
+											scale: 1.03,
+											backgroundColor: '#22c55e33',
 										}}
+										whileTap={{ scale: 0.96 }}
+										transition={{ duration: 0.1 }}
+										onClick={handleRun}
 										style={{
 											display: 'inline-flex',
 											alignItems: 'center',
 											gap: '0.3rem',
-											padding: '0.4rem 0.75rem',
-											background:
-												'rgba(255,255,255,0.03)',
-											border: '1px solid rgba(255,255,255,0.08)',
+											padding: '0.4rem 1rem',
+											background: '#22c55e22',
+											border: '1px solid #22c55e44',
 											borderRadius: '6px',
-											color: 'rgba(255,255,255,0.5)',
+											color: '#22c55e',
 											fontSize: '0.85rem',
 											cursor: 'pointer',
+											fontWeight: 500,
 										}}>
-										<Trash2 size={14} />
-										Clear
-									</button>
+										<Play size={14} />
+										Run
+									</motion.button>
+								</Tooltip>
+								{(result || error) && (
+									<Tooltip
+										content="Clear the last output"
+										side="bottom">
+										<motion.button
+											whileHover={{
+												scale: 1.03,
+												backgroundColor:
+													'rgba(255,255,255,0.08)',
+											}}
+											whileTap={{ scale: 0.96 }}
+											transition={{ duration: 0.1 }}
+											onClick={() => {
+												ideService.$result.set(null);
+												ideService.$error.set(null);
+												ideService.$phase.set('idle');
+											}}
+											style={{
+												display: 'inline-flex',
+												alignItems: 'center',
+												gap: '0.3rem',
+												padding: '0.4rem 0.75rem',
+												background:
+													'rgba(255,255,255,0.03)',
+												border: '1px solid rgba(255,255,255,0.08)',
+												borderRadius: '6px',
+												color: 'rgba(255,255,255,0.5)',
+												fontSize: '0.85rem',
+												cursor: 'pointer',
+											}}>
+											<Trash2 size={14} />
+											Clear
+										</motion.button>
+									</Tooltip>
 								)}
 							</>
 						)}
