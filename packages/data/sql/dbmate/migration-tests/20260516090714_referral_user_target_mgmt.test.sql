@@ -25,33 +25,52 @@ ON CONFLICT (id) DO NOTHING;
 DO $$
 DECLARE
     u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-    row referral.user_target;
+    r RECORD;
 BEGIN
-    SELECT * INTO row FROM referral.service_enable_target(u, 'rareicon');
-    IF NOT row.active THEN
+    SELECT * INTO r FROM referral.service_enable_target(u, 'rareicon');
+    IF NOT r.active THEN
         RAISE EXCEPTION 'fail: enable should activate row';
     END IF;
-    IF NOT row.is_default THEN
+    IF NOT r.is_default THEN
         RAISE EXCEPTION 'fail: first enable should auto-default';
+    END IF;
+    -- First enable: nobody to demote.
+    IF r.demoted_target_slug IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: first enable should have NULL demoted_target_slug, got %',
+                        r.demoted_target_slug;
     END IF;
 
     -- Second enable WITHOUT set_as_default keeps the existing default.
-    SELECT * INTO row FROM referral.service_enable_target(u, 'mc');
-    IF row.is_default THEN
+    SELECT * INTO r FROM referral.service_enable_target(u, 'mc');
+    IF r.is_default THEN
         RAISE EXCEPTION 'fail: second enable should not steal default';
+    END IF;
+    -- No demotion when we don't take the default.
+    IF r.demoted_target_slug IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: enable without set_as_default should not demote';
     END IF;
 END $$;
 
--- service_set_default_target swaps cleanly.
+-- service_set_default_target swaps cleanly and returns demoted slug.
 DO $$
 DECLARE
     u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-    row referral.user_target;
+    r RECORD;
     rare_def BOOLEAN;
 BEGIN
-    SELECT * INTO row FROM referral.service_set_default_target(u, 'mc');
-    IF NOT row.is_default THEN
+    SELECT * INTO r FROM referral.service_set_default_target(u, 'mc');
+    IF NOT r.is_default THEN
         RAISE EXCEPTION 'fail: set_default should mark target as default';
+    END IF;
+    IF r.demoted_target_slug IS NULL THEN
+        RAISE EXCEPTION 'fail: set_default should return demoted slug';
+    END IF;
+    IF r.demoted_target_slug <> 'rareicon' THEN
+        RAISE EXCEPTION 'fail: set_default should report rareicon as demoted, got %',
+                        r.demoted_target_slug;
+    END IF;
+    IF r.demoted_updated_at IS NULL THEN
+        RAISE EXCEPTION 'fail: demoted_updated_at should be set when demotion happened';
     END IF;
 
     -- Old default must have flipped to FALSE.
@@ -127,7 +146,7 @@ DO $$
 DECLARE
     u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
     before_enabled_at TIMESTAMPTZ;
-    after_row referral.user_target;
+    after_row RECORD;
 BEGIN
     SELECT enabled_at INTO before_enabled_at
       FROM referral.user_target
@@ -407,6 +426,40 @@ BEGIN
     IF r.updated_at IS NULL THEN
         RAISE EXCEPTION 'fail: list should include updated_at';
     END IF;
+END $$;
+
+-- Immutability trigger: user_id, target_slug, and enabled_at are
+-- locked after insert. Each direct UPDATE must raise SQLSTATE 22023.
+DO $$
+DECLARE
+    u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+BEGIN
+    BEGIN
+        UPDATE referral.user_target
+           SET target_slug = 'rareicon-stolen'
+         WHERE user_id = u AND target_slug = 'rareicon';
+        RAISE EXCEPTION 'fail: target_slug UPDATE should have raised 22023';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+
+    BEGIN
+        UPDATE referral.user_target
+           SET enabled_at = '2020-01-01'::TIMESTAMPTZ
+         WHERE user_id = u AND target_slug = 'rareicon';
+        RAISE EXCEPTION 'fail: enabled_at UPDATE should have raised 22023';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
+
+    BEGIN
+        UPDATE referral.user_target
+           SET user_id = '11111111-1111-1111-1111-111111111111'::UUID
+         WHERE user_id = u AND target_slug = 'rareicon';
+        RAISE EXCEPTION 'fail: user_id UPDATE should have raised 22023';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        -- expected
+    END;
 END $$;
 
 -- ASSERT_AFTER_DOWN

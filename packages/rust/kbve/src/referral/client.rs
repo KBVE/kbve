@@ -120,8 +120,8 @@ impl ReferralClient {
         let inner: &mut AsyncPgConnection = &mut *conn;
 
         let row: UserTargetMutationRow = sql_query(
-            "SELECT user_id, target_slug, is_default, active, enabled_at, \
-                    disabled_at \
+            "SELECT target_slug, demoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at, updated_at, demoted_updated_at \
              FROM referral.service_enable_target($1, $2, $3)",
         )
         .bind::<SqlUuid, _>(user_id)
@@ -170,8 +170,8 @@ impl ReferralClient {
         let inner: &mut AsyncPgConnection = &mut *conn;
 
         let row: UserTargetMutationRow = sql_query(
-            "SELECT user_id, target_slug, is_default, active, enabled_at, \
-                    disabled_at \
+            "SELECT target_slug, demoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at, updated_at, demoted_updated_at \
              FROM referral.service_set_default_target($1, $2)",
         )
         .bind::<SqlUuid, _>(user_id)

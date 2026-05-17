@@ -39,11 +39,12 @@ LANGUAGE plpgsql
 SET search_path = ''
 AS $fn$
 BEGIN
-    -- Only bump on material change. Idempotent self-writes (e.g.
-    -- `SET active = active`) don't fire downstream cache invalidation.
-    IF ROW(NEW.active, NEW.is_default, NEW.disabled_at, NEW.target_slug)
+    -- Only bump on material change. target_slug / user_id / enabled_at
+    -- are immutable after insert (separate trigger enforces this) so
+    -- they aren't part of the material-change tuple.
+    IF ROW(NEW.active, NEW.is_default, NEW.disabled_at)
        IS DISTINCT FROM
-       ROW(OLD.active, OLD.is_default, OLD.disabled_at, OLD.target_slug)
+       ROW(OLD.active, OLD.is_default, OLD.disabled_at)
     THEN
         NEW.updated_at := statement_timestamp();
     END IF;
@@ -55,6 +56,37 @@ DROP TRIGGER IF EXISTS user_target_set_updated_at ON referral.user_target;
 CREATE TRIGGER user_target_set_updated_at
     BEFORE UPDATE ON referral.user_target
     FOR EACH ROW EXECUTE FUNCTION referral.user_target_touch();
+
+-- Identity / audit immutability. (user_id, target_slug) is the row's
+-- identity; enabled_at is the audit anchor that survives a disable +
+-- re-enable cycle. Changing any of them would silently invalidate
+-- historical click + ledger references.
+CREATE OR REPLACE FUNCTION referral.user_target_assert_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $fn$
+BEGIN
+    IF NEW.user_id IS DISTINCT FROM OLD.user_id THEN
+        RAISE EXCEPTION 'user_target.user_id is immutable after insert'
+            USING ERRCODE = '22023';
+    END IF;
+    IF NEW.target_slug IS DISTINCT FROM OLD.target_slug THEN
+        RAISE EXCEPTION 'user_target.target_slug is immutable after insert'
+            USING ERRCODE = '22023';
+    END IF;
+    IF NEW.enabled_at IS DISTINCT FROM OLD.enabled_at THEN
+        RAISE EXCEPTION 'user_target.enabled_at is immutable after insert'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$fn$;
+
+DROP TRIGGER IF EXISTS user_target_assert_immutable ON referral.user_target;
+CREATE TRIGGER user_target_assert_immutable
+    BEFORE UPDATE ON referral.user_target
+    FOR EACH ROW EXECUTE FUNCTION referral.user_target_assert_immutable();
 
 -- Belt-and-suspenders: a row cannot be is_default AND inactive at the
 -- same time. The partial unique index on (user_id) WHERE is_default
@@ -179,32 +211,46 @@ $$Returns one row per (user, target) including inactive rows, with
 lifetime click + credit aggregates. Ledger join filters source_kind =
 'referral'. Service-role only.$$;
 
+-- Return shape changed to TABLE(...) so callers learn the demoted slug.
+DROP FUNCTION IF EXISTS referral.service_enable_target(UUID, TEXT, BOOLEAN);
+
 -- ------------------------------------------------------------
 -- service_enable_target(user_id, target_slug, set_as_default)
 --
 -- Inserts a new row, re-activates an inactive one, OR returns the
 -- existing row unchanged (idempotent fast path — skips updated_at
 -- bump on no-op calls). First enable auto-promotes to default so
--- /referral/@<user>/ always has a destination. Concurrent enable /
--- set-default attempts serialize on a per-user advisory lock to
--- prevent two is_default rows briefly existing for the same user.
+-- /referral/@<user>/ always has a destination. When promotion demotes
+-- another row, the demoted slug + updated_at come back so the caller
+-- can repair cache state in one round trip.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_enable_target(
     p_user_id        UUID,
     p_target_slug    TEXT,
     p_set_as_default BOOLEAN DEFAULT FALSE
 )
-RETURNS referral.user_target
+RETURNS TABLE (
+    target_slug          TEXT,
+    demoted_target_slug  TEXT,
+    is_default           BOOLEAN,
+    active               BOOLEAN,
+    enabled_at           TIMESTAMPTZ,
+    disabled_at          TIMESTAMPTZ,
+    updated_at           TIMESTAMPTZ,
+    demoted_updated_at   TIMESTAMPTZ
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_target          referral.target%ROWTYPE;
-    v_existing        referral.user_target%ROWTYPE;
-    v_now             TIMESTAMPTZ := statement_timestamp();
-    v_should_default  BOOLEAN;
-    v_row             referral.user_target;
+    v_target              referral.target%ROWTYPE;
+    v_existing            referral.user_target%ROWTYPE;
+    v_now                 TIMESTAMPTZ := statement_timestamp();
+    v_should_default      BOOLEAN;
+    v_row                 referral.user_target;
+    v_demoted_slug        TEXT;
+    v_demoted_updated_at  TIMESTAMPTZ;
 BEGIN
     IF p_user_id IS NULL THEN
         RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
@@ -217,28 +263,31 @@ BEGIN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
 
-    SELECT * INTO v_target
-      FROM referral.target
-     WHERE slug = p_target_slug AND active;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'target % not found or inactive', p_target_slug
-            USING ERRCODE = 'RFT01';
-    END IF;
-
+    -- Lock first so target-active check + write share one critical
+    -- section; FOR SHARE pins the target row against deactivation.
     PERFORM pg_advisory_xact_lock(
         hashtext('referral.user_target'),
         hashtext(p_user_id::TEXT)
     );
 
-    SELECT * INTO v_existing
-      FROM referral.user_target
-     WHERE user_id = p_user_id AND target_slug = p_target_slug
+    SELECT t.* INTO v_target
+      FROM referral.target t
+     WHERE t.slug = p_target_slug AND t.active
+       FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'target % not found or inactive', p_target_slug
+            USING ERRCODE = 'RFT01';
+    END IF;
+
+    SELECT ut.* INTO v_existing
+      FROM referral.user_target ut
+     WHERE ut.user_id = p_user_id AND ut.target_slug = p_target_slug
        FOR UPDATE;
 
     v_should_default := p_set_as_default OR NOT EXISTS (
         SELECT 1
-          FROM referral.user_target
-         WHERE user_id = p_user_id AND active
+          FROM referral.user_target ut2
+         WHERE ut2.user_id = p_user_id AND ut2.active
     );
 
     IF v_existing.user_id IS NOT NULL
@@ -246,35 +295,54 @@ BEGIN
        AND v_existing.disabled_at IS NULL
        AND (NOT v_should_default OR v_existing.is_default)
     THEN
-        RETURN v_existing;
+        target_slug          := v_existing.target_slug;
+        demoted_target_slug  := NULL;
+        is_default           := v_existing.is_default;
+        active               := v_existing.active;
+        enabled_at           := v_existing.enabled_at;
+        disabled_at          := v_existing.disabled_at;
+        updated_at           := v_existing.updated_at;
+        demoted_updated_at   := NULL;
+        RETURN NEXT;
+        RETURN;
     END IF;
 
     IF v_should_default THEN
-        UPDATE referral.user_target
+        UPDATE referral.user_target AS ut
            SET is_default = FALSE
-         WHERE user_id = p_user_id
-           AND is_default
-           AND active
-           AND target_slug IS DISTINCT FROM p_target_slug;
+         WHERE ut.user_id = p_user_id
+           AND ut.is_default
+           AND ut.active
+           AND ut.target_slug IS DISTINCT FROM p_target_slug
+         RETURNING ut.target_slug, ut.updated_at
+              INTO v_demoted_slug, v_demoted_updated_at;
     END IF;
 
     IF v_existing.user_id IS NOT NULL THEN
-        UPDATE referral.user_target
-           SET active       = TRUE,
-               is_default   = CASE WHEN v_should_default THEN TRUE ELSE is_default END,
-               disabled_at  = NULL
-         WHERE user_id = p_user_id AND target_slug = p_target_slug
-         RETURNING * INTO v_row;
+        UPDATE referral.user_target AS ut
+           SET active      = TRUE,
+               is_default  = CASE WHEN v_should_default THEN TRUE ELSE ut.is_default END,
+               disabled_at = NULL
+         WHERE ut.user_id = p_user_id AND ut.target_slug = p_target_slug
+         RETURNING ut.* INTO v_row;
     ELSE
         INSERT INTO referral.user_target (
             user_id, target_slug, is_default, active, enabled_at
         ) VALUES (
             p_user_id, p_target_slug, v_should_default, TRUE, v_now
         )
-        RETURNING * INTO v_row;
+        RETURNING referral.user_target.* INTO v_row;
     END IF;
 
-    RETURN v_row;
+    target_slug          := v_row.target_slug;
+    demoted_target_slug  := v_demoted_slug;
+    is_default           := v_row.is_default;
+    active               := v_row.active;
+    enabled_at           := v_row.enabled_at;
+    disabled_at          := v_row.disabled_at;
+    updated_at           := v_row.updated_at;
+    demoted_updated_at   := v_demoted_updated_at;
+    RETURN NEXT;
 END;
 $fn$;
 
@@ -289,7 +357,9 @@ COMMENT ON FUNCTION referral.service_enable_target(UUID, TEXT, BOOLEAN) IS
 $$Inserts or reactivates a (user, target) row. First enable auto-
 promotes to default so /referral/@<user>/ always has a destination.
 Idempotent: a no-op call returns the existing row without bumping
-updated_at. Service-role only.$$;
+updated_at. When the call promotes this slug to default and demotes
+another, the demoted slug + updated_at come back as
+demoted_target_slug / demoted_updated_at. Service-role only.$$;
 
 -- Return shape changed across iterations; drop before recreate.
 DROP FUNCTION IF EXISTS referral.service_disable_target(UUID, TEXT);
@@ -365,7 +435,8 @@ BEGIN
            AND ut.active
            AND ut.target_slug IS DISTINCT FROM p_target_slug
          ORDER BY ut.enabled_at DESC, ut.target_slug ASC
-         LIMIT 1;
+         LIMIT 1
+           FOR UPDATE;
 
         IF v_other_slug IS NULL THEN
             RAISE EXCEPTION 'cannot disable last active default for user %', p_user_id
@@ -414,6 +485,9 @@ promoted_updated_at. Caller gets enough state to refresh local cache
 in one round trip. Raises RFM01 when no inheritor exists.
 Service-role only.$$;
 
+-- Return shape changed to TABLE(...) for parity with enable.
+DROP FUNCTION IF EXISTS referral.service_set_default_target(UUID, TEXT);
+
 -- ------------------------------------------------------------
 -- service_set_default_target(user_id, target_slug)
 --
@@ -421,20 +495,32 @@ Service-role only.$$;
 -- partial unique index (user_id) WHERE is_default AND active is
 -- enforced row-by-row inside a single UPDATE — a one-statement
 -- CASE-based swap would briefly hold two defaults and trip the index.
--- Idempotent fast path returns the row unchanged when it's already
--- the default so repeated calls don't churn updated_at.
+-- Idempotent when the slug is already the user's default. Returns
+-- the demoted slug + updated_at so callers can repair cache state in
+-- one round trip.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_set_default_target(
     p_user_id      UUID,
     p_target_slug  TEXT
 )
-RETURNS referral.user_target
+RETURNS TABLE (
+    target_slug          TEXT,
+    demoted_target_slug  TEXT,
+    is_default           BOOLEAN,
+    active               BOOLEAN,
+    enabled_at           TIMESTAMPTZ,
+    disabled_at          TIMESTAMPTZ,
+    updated_at           TIMESTAMPTZ,
+    demoted_updated_at   TIMESTAMPTZ
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_row referral.user_target;
+    v_row                 referral.user_target;
+    v_demoted_slug        TEXT;
+    v_demoted_updated_at  TIMESTAMPTZ;
 BEGIN
     IF p_user_id IS NULL THEN
         RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
@@ -452,10 +538,10 @@ BEGIN
         hashtext(p_user_id::TEXT)
     );
 
-    SELECT * INTO v_row
-      FROM referral.user_target
-     WHERE user_id = p_user_id
-       AND target_slug = p_target_slug
+    SELECT ut.* INTO v_row
+      FROM referral.user_target ut
+     WHERE ut.user_id = p_user_id
+       AND ut.target_slug = p_target_slug
        FOR UPDATE;
     IF NOT FOUND OR NOT v_row.active THEN
         RAISE EXCEPTION 'target % is not active for user %',
@@ -464,24 +550,43 @@ BEGIN
     END IF;
 
     IF v_row.is_default THEN
-        RETURN v_row;
+        target_slug          := v_row.target_slug;
+        demoted_target_slug  := NULL;
+        is_default           := v_row.is_default;
+        active               := v_row.active;
+        enabled_at           := v_row.enabled_at;
+        disabled_at          := v_row.disabled_at;
+        updated_at           := v_row.updated_at;
+        demoted_updated_at   := NULL;
+        RETURN NEXT;
+        RETURN;
     END IF;
 
-    UPDATE referral.user_target
+    UPDATE referral.user_target AS ut
        SET is_default = FALSE
-     WHERE user_id = p_user_id
-       AND is_default
-       AND active
-       AND target_slug IS DISTINCT FROM p_target_slug;
+     WHERE ut.user_id = p_user_id
+       AND ut.is_default
+       AND ut.active
+       AND ut.target_slug IS DISTINCT FROM p_target_slug
+     RETURNING ut.target_slug, ut.updated_at
+          INTO v_demoted_slug, v_demoted_updated_at;
 
-    UPDATE referral.user_target
+    UPDATE referral.user_target AS ut
        SET is_default = TRUE
-     WHERE user_id = p_user_id
-       AND target_slug = p_target_slug
-       AND active
-     RETURNING * INTO v_row;
+     WHERE ut.user_id = p_user_id
+       AND ut.target_slug = p_target_slug
+       AND ut.active
+     RETURNING ut.* INTO v_row;
 
-    RETURN v_row;
+    target_slug          := v_row.target_slug;
+    demoted_target_slug  := v_demoted_slug;
+    is_default           := v_row.is_default;
+    active               := v_row.active;
+    enabled_at           := v_row.enabled_at;
+    disabled_at          := v_row.disabled_at;
+    updated_at           := v_row.updated_at;
+    demoted_updated_at   := v_demoted_updated_at;
+    RETURN NEXT;
 END;
 $fn$;
 
@@ -492,8 +597,9 @@ GRANT EXECUTE ON FUNCTION referral.service_set_default_target(UUID, TEXT)
 
 COMMENT ON FUNCTION referral.service_set_default_target(UUID, TEXT) IS
 $$Atomic default swap (demote-then-promote). Idempotent when the slug
-is already the user's default. Raises RFU01 when the slug is not an
-active row for the user. Service-role only.$$;
+is already the user's default. Returns the demoted slug + updated_at
+as demoted_target_slug / demoted_updated_at. Raises RFU01 when the
+slug is not an active row for the user. Service-role only.$$;
 
 -- ------------------------------------------------------------
 -- service_get_user_stats(user_id)

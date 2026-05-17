@@ -142,14 +142,17 @@ impl From<UserTargetRow> for UserTargetView {
     }
 }
 
-/// Returned by service_enable_target / disable_target / set_default_target.
-/// Mirrors the `referral.user_target` rowtype (no stats).
+/// Row shape returned by `referral.service_enable_target` and
+/// `referral.service_set_default_target`. Carries the affected row's
+/// fields PLUS the slug that lost the default (NULL when no demotion
+/// happened) so callers can refresh cache state without a follow-up
+/// list call.
 #[derive(Debug, QueryableByName)]
 pub struct UserTargetMutationRow {
-    #[diesel(sql_type = diesel::sql_types::Uuid)]
-    pub user_id: Uuid,
     #[diesel(sql_type = Text)]
     pub target_slug: String,
+    #[diesel(sql_type = diesel::sql_types::Nullable<Text>)]
+    pub demoted_target_slug: Option<String>,
     #[diesel(sql_type = Bool)]
     pub is_default: bool,
     #[diesel(sql_type = Bool)]
@@ -158,25 +161,35 @@ pub struct UserTargetMutationRow {
     pub enabled_at: DateTime<Utc>,
     #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
     pub disabled_at: Option<DateTime<Utc>>,
+    #[diesel(sql_type = Timestamptz)]
+    pub updated_at: DateTime<Utc>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
+    pub demoted_updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct UserTargetMutation {
     pub target_slug: String,
+    pub demoted_target_slug: Option<String>,
     pub is_default: bool,
     pub active: bool,
     pub enabled_at: DateTime<Utc>,
     pub disabled_at: Option<DateTime<Utc>>,
+    pub updated_at: DateTime<Utc>,
+    pub demoted_updated_at: Option<DateTime<Utc>>,
 }
 
 impl From<UserTargetMutationRow> for UserTargetMutation {
     fn from(r: UserTargetMutationRow) -> Self {
         Self {
             target_slug: r.target_slug,
+            demoted_target_slug: r.demoted_target_slug,
             is_default: r.is_default,
             active: r.active,
             enabled_at: r.enabled_at,
             disabled_at: r.disabled_at,
+            updated_at: r.updated_at,
+            demoted_updated_at: r.demoted_updated_at,
         }
     }
 }
