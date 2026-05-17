@@ -1565,7 +1565,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.fireAt(b, b.fixedTarget.x, b.fixedTarget.y, null);
 				continue;
 			}
-			const targetEid = this.findTarget(b);
+			const targetEid = this.findTarget(b, nowMs);
 			if (targetEid === null) continue;
 			b.lastFireAtMs = nowMs;
 			this.fireAt(
@@ -1577,13 +1577,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
-	private findTarget(t: TowerBuilding): number | null {
+	private findTarget(t: TowerBuilding, nowMs: number): number | null {
 		let best = -1;
 		let bestProgress = -1;
 		const range = towerRange(t);
 		const rangeSq = range * range;
+		const skipSlowed = t.spec.avoidSlowed;
 		for (const eid of query(this.world, [EnemyTag, Position, EnemyStats])) {
 			if (!this.enemyVisuals.has(eid)) continue;
+			if (skipSlowed && EnemyStats.slowUntilMs[eid] > nowMs) continue;
 			const dx = Position.x[eid] - t.x;
 			const dy = Position.y[eid] - t.y;
 			if (dx * dx + dy * dy > rangeSq) continue;

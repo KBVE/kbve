@@ -90,6 +90,7 @@ export interface TowerSpec extends BuildSpecBase {
 	burnRadius: number;
 	homing: boolean;
 	arcHeight: number;
+	avoidSlowed: boolean;
 }
 
 export interface GeneratorSpec extends BuildSpecBase {
@@ -140,6 +141,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnRadius: 0,
 		homing: true,
 		arcHeight: 0,
+		avoidSlowed: false,
 	},
 	bomb: {
 		id: 'bomb',
@@ -162,6 +164,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnRadius: 0,
 		homing: true,
 		arcHeight: 0,
+		avoidSlowed: false,
 	},
 	ice: {
 		id: 'ice',
@@ -177,13 +180,14 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		color: 0x63b3ed,
 		projectileColor: 0xbee3f8,
 		splashRadius: 0,
-		slowMs: 1500,
+		slowMs: 1800,
 		slowFactor: 0.45,
 		burnDps: 0,
 		burnMs: 0,
 		burnRadius: 0,
 		homing: true,
 		arcHeight: 0,
+		avoidSlowed: true,
 	},
 	fire: {
 		id: 'fire',
@@ -202,10 +206,11 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		slowMs: 0,
 		slowFactor: 1,
 		burnDps: 9,
-		burnMs: 3200,
+		burnMs: 3840,
 		burnRadius: 50,
 		homing: true,
 		arcHeight: 0,
+		avoidSlowed: false,
 	},
 	artillery: {
 		id: 'artillery',
@@ -228,6 +233,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnRadius: 0,
 		homing: false,
 		arcHeight: 110,
+		avoidSlowed: false,
 	},
 };
 
