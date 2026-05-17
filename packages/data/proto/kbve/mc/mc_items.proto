@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+package kbve.mc;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Minecraft vanilla item registry — source of truth for /mc/items/<slug> MDX
+// pages and the marketplace item picker. Mirror the OSRS proto + Zod pipeline;
+// data lives in apps/kbve/astro-kbve/src/content/docs/mc/items/<slug>.mdx and
+// is bootstrapped by scripts/generate-mc-items.mjs from the PrismarineJS
+// `minecraft-data` registry.
+//
+// File layout: this folder (proto/kbve/mc/) is the home for all Minecraft-
+// scoped vanilla data — items today; future enchants.proto, blocks.proto,
+// recipes.proto follow the same pattern (one .proto per domain, package
+// kbve.mc shared).
+//
+// Item identity:
+//   id          numeric registry id (e.g. 829)
+//   ref         namespaced id, no prefix (e.g. "diamond_sword"); used by
+//               item_ref.id in marketplace listings — keep these stable
+//   slug        kebab-case URL slug (e.g. "diamond-sword")
+// =============================================================================
+
+// MCRarity mirrors the in-game tooltip colour band. Values come from
+// vanilla data and tooltip overrides.
+enum MCRarity {
+  MC_RARITY_UNSPECIFIED = 0;
+  MC_RARITY_COMMON      = 1;
+  MC_RARITY_UNCOMMON    = 2;
+  MC_RARITY_RARE        = 3;
+  MC_RARITY_EPIC        = 4;
+}
+
+// MCItemCategory is the high-level UI bucket. Not 1:1 with vanilla
+// creative tabs; tuned for marketplace filtering.
+enum MCItemCategory {
+  MC_ITEM_CATEGORY_UNSPECIFIED   = 0;
+  MC_ITEM_CATEGORY_TOOL          = 1;
+  MC_ITEM_CATEGORY_WEAPON        = 2;
+  MC_ITEM_CATEGORY_ARMOR         = 3;
+  MC_ITEM_CATEGORY_FOOD          = 4;
+  MC_ITEM_CATEGORY_BLOCK         = 5;
+  MC_ITEM_CATEGORY_MATERIAL      = 6;
+  MC_ITEM_CATEGORY_REDSTONE      = 7;
+  MC_ITEM_CATEGORY_TRANSPORT     = 8;
+  MC_ITEM_CATEGORY_DECORATION    = 9;
+  MC_ITEM_CATEGORY_BREWING       = 10;
+  MC_ITEM_CATEGORY_SPAWN_EGG     = 11;
+  MC_ITEM_CATEGORY_MUSIC         = 12;
+  MC_ITEM_CATEGORY_BANNER        = 13;
+  MC_ITEM_CATEGORY_MAP           = 14;
+  MC_ITEM_CATEGORY_MISC          = 99;
+}
+
+// MCToolTier is the durability/damage band for tools and armor.
+enum MCToolTier {
+  MC_TOOL_TIER_UNSPECIFIED = 0;
+  MC_TOOL_TIER_WOODEN      = 1;
+  MC_TOOL_TIER_STONE       = 2;
+  MC_TOOL_TIER_GOLDEN      = 3;
+  MC_TOOL_TIER_IRON        = 4;
+  MC_TOOL_TIER_DIAMOND     = 5;
+  MC_TOOL_TIER_NETHERITE   = 6;
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// MCEquipment describes the slot + protection if this is wearable.
+message MCEquipment {
+  // "head", "chest", "legs", "feet", "offhand", or empty
+  string slot           = 1;
+  int32  armor_points   = 2;
+  int32  toughness      = 3;
+  int32  knockback_resistance = 4;
+}
+
+// MCDamage models tool/weapon damage profile.
+message MCDamage {
+  int32 attack_damage = 1;
+  float attack_speed  = 2;
+}
+
+// MCFood is set for consumables.
+message MCFood {
+  int32 nutrition  = 1;
+  float saturation = 2;
+  // "always", "when_hungry", or empty
+  string eatable   = 3;
+}
+
+// MCMiningProfile is set for pickaxes / shovels / axes / hoes / shears.
+message MCMiningProfile {
+  // "pickaxe", "axe", "shovel", "hoe", "shears", "sword"
+  string tool_type = 1;
+  // mining level (1 = wood, 2 = stone, ..., 6 = netherite)
+  int32  tier      = 2;
+}
+
+// MCEnchantCompat lists enchantment ids this item natively accepts.
+// e.g. swords accept ["sharpness", "smite", "knockback", ...].
+message MCEnchantCompat {
+  repeated string allowed = 1;
+}
+
+// MCRecipeIngredient is a single ingredient inside a recipe. Either `ref`
+// (specific item like "iron_ingot") or `tag_ref` (vanilla item tag like
+// "planks") must be set. `row`+`col` are 0-indexed within the crafting
+// grid for SHAPED recipes — ignored otherwise.
+message MCRecipeIngredient {
+  string ref     = 1;
+  string tag_ref = 2;
+  int32  qty     = 3;
+  int32  row     = 4;
+  int32  col     = 5;
+}
+
+// MCRecipeKind / MCCraftingStation mirror the standalone mc_recipes.proto
+// values; embedded as strings here so the item is fully self-describing.
+// Recipes for an item live inline on MCItem.recipes — there is no separate
+// recipe registry. The full vanilla recipe shape (grid, cook time, xp,
+// smithing template, brewing base) is captured so the per-item MDX page
+// renders without a join.
+message MCRecipe {
+  // "shaped" | "shapeless" | "smelting" | "blasting" | "smoking" |
+  // "campfire_cooking" | "stonecutting" | "smithing" | "brewing" | "trade"
+  string kind = 1;
+
+  // "crafting_table" | "furnace" | "blast_furnace" | "smoker" | "campfire" |
+  // "stonecutter" | "smithing_table" | "brewing_stand" | "villager" | "none"
+  string station = 2;
+
+  // produced quantity per recipe (e.g. 4 for sticks-from-planks)
+  int32 yields = 3;
+
+  repeated MCRecipeIngredient ingredients = 4;
+
+  // SHAPED only: grid dimensions (rows = height, cols = width).
+  int32 width  = 5;
+  int32 height = 6;
+
+  // Cooking recipes: time in ticks (20 ticks == 1 second).
+  int32 cook_time_ticks = 7;
+  // XP awarded on completion (cooking + smithing).
+  float experience = 8;
+
+  // Smithing recipes: namespaced template ref (1.20+ smithing rework).
+  string smithing_template_ref = 9;
+  // Brewing recipes: namespaced base potion ref ("awkward_potion").
+  string brewing_base_ref = 10;
+}
+
+// MCAbout is generic prose for the MDX page.
+message MCAbout {
+  string description = 1;
+  string lore        = 2;
+}
+
+// =============================================================================
+// MCItem — top-level item record (one MDX file == one MCItem).
+// =============================================================================
+message MCItem {
+  // Numeric registry id from minecraft-data. NOT a stable contract — newer
+  // vanilla versions may renumber. Use `ref` for cross-system references.
+  int32 id = 1;
+
+  // Namespaced id without the "minecraft:" prefix, e.g. "diamond_sword".
+  // This IS the cross-system contract: marketplace item_ref.id matches.
+  string ref = 2;
+
+  // URL slug (kebab-case).
+  string slug = 3;
+
+  // Display name as shown in-game ("Diamond Sword").
+  string display_name = 4;
+
+  MCItemCategory category = 5;
+  MCRarity       rarity   = 6;
+
+  // Vanilla max stack size (1, 16, 64).
+  int32 stack_size = 7;
+
+  // 0 if not damageable.
+  int32 max_durability = 8;
+
+  // Set if equippable.
+  MCEquipment equipment = 9;
+
+  // Set for tools/weapons that deal damage.
+  MCDamage damage = 10;
+
+  // Set if consumable.
+  MCFood food = 11;
+
+  // Set for mining/digging tools.
+  MCMiningProfile mining = 12;
+
+  // Compatible enchantments (vanilla rules).
+  MCEnchantCompat enchants = 13;
+
+  // Tool tier if applicable.
+  MCToolTier tier = 14;
+
+  // Free-form tags for filtering ("redstone_component", "wool", "music_disc").
+  repeated string tags = 15;
+
+  // Recipes that produce this item.
+  repeated MCRecipe recipes = 16;
+
+  // Mobs / entities / blocks that drop this item, by ref.
+  repeated string drop_sources = 17;
+
+  // Prose for the MDX body.
+  MCAbout about = 18;
+
+  // Optional: mc:datapack vanilla version this record was generated from
+  // ("1.21.5"). Set by the generator script.
+  string data_version = 19;
+
+  // Optional: relative path to the bundled texture asset (UI only). Leave
+  // empty to fall back to mcasset.cloud per the marketplace ItemIcon logic.
+  string icon = 20;
+}

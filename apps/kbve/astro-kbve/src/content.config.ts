@@ -13,6 +13,9 @@ import {
 	INpcSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
+	MCItemSchema,
+	McEnchantSchema,
+	McBlockSchema,
 } from '@/data/schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
@@ -128,6 +131,9 @@ export const collections = {
 				mapdb: z.array(IMapObjectSchema).optional(),
 				npcdb: z.array(INpcSchema).optional(),
 				osrs: OSRSFrontmatterSchema.optional(),
+				mc_item: MCItemSchema.optional(),
+				mc_enchant: McEnchantSchema.optional(),
+				mc_block: McBlockSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
 				// Per-page social-meta overrides consumed by

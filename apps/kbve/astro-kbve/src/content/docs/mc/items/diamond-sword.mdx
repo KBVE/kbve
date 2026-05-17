@@ -1,0 +1,75 @@
+---
+title: Diamond Sword
+description: |
+    Diamond Sword — high-tier melee weapon. 7 attack damage, 1561
+    durability. Accepts every melee enchant.
+sidebar:
+    label: Diamond Sword
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 829
+    ref: diamond_sword
+    slug: diamond-sword
+    display_name: Diamond Sword
+    category: weapon
+    rarity: common
+    stack_size: 1
+    max_durability: 1561
+    tier: diamond
+    damage:
+        attack_damage: 7
+        attack_speed: 1.6
+    enchants:
+        allowed:
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - knockback
+            - fire_aspect
+            - looting
+            - sweeping_edge
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags:
+        - melee
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 1
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: stick
+                qty: 1
+                row: 2
+                col: 0
+    drop_sources:
+        - vindicator
+        - piglin_brute
+    about:
+        description: |
+            The Diamond Sword is a mid-late game weapon crafted from two
+            diamonds and a stick. Deals 7 base attack damage with a 1.6
+            attack speed, putting it just below Netherite in raw damage.
+        lore: |
+            For decades the meta — until Netherite displaced it. Still
+            the cheapest blade that can carry a full enchant stack.
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />
