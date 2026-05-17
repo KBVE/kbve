@@ -54,7 +54,9 @@ enum MCItemCategory {
   MC_ITEM_CATEGORY_MISC          = 99;
 }
 
-// MCToolTier is the durability/damage band for tools and armor.
+// MCToolTier is the durability/damage band for tools and armor. The
+// mining-tool hierarchy is WOODEN..NETHERITE; armor adds LEATHER,
+// CHAINMAIL, and TURTLE which have no mining-tier semantics.
 enum MCToolTier {
   MC_TOOL_TIER_UNSPECIFIED = 0;
   MC_TOOL_TIER_WOODEN      = 1;
@@ -63,6 +65,9 @@ enum MCToolTier {
   MC_TOOL_TIER_IRON        = 4;
   MC_TOOL_TIER_DIAMOND     = 5;
   MC_TOOL_TIER_NETHERITE   = 6;
+  MC_TOOL_TIER_LEATHER     = 7;
+  MC_TOOL_TIER_CHAINMAIL   = 8;
+  MC_TOOL_TIER_TURTLE      = 9;
 }
 
 // =============================================================================

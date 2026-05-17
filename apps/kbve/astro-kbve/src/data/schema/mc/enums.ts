@@ -35,7 +35,9 @@ export const MCItemCategories = [
 export const MCItemCategorySchema = z.enum(MCItemCategories);
 export type MCItemCategory = z.infer<typeof MCItemCategorySchema>;
 
-// proto: MCToolTier
+// proto: MCToolTier. Applies to both mining tools and armor — vanilla
+// armor adds `leather`, `chainmail`, and `turtle` to the mining-tool
+// hierarchy (wooden..netherite).
 export const MCToolTiers = [
 	'wooden',
 	'stone',
@@ -43,6 +45,9 @@ export const MCToolTiers = [
 	'iron',
 	'diamond',
 	'netherite',
+	'leather',
+	'chainmail',
+	'turtle',
 ] as const;
 export const MCToolTierSchema = z.enum(MCToolTiers);
 export type MCToolTier = z.infer<typeof MCToolTierSchema>;
@@ -157,12 +162,15 @@ export const MCIdentitySchema = z.object({
 		.string()
 		.min(1)
 		.regex(
-			/^[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
-			'ref must be lowercase snake_case (slashes allowed for recipe namespaces)',
+			/^(?:[a-z]+:)?[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
+			'ref must be lowercase snake_case, optionally prefixed by a namespace like "kbve:" or "minecraft:"',
 		),
 	slug: z
 		.string()
 		.min(1)
-		.regex(/^[a-z0-9-]+$/, 'slug must be kebab-case'),
+		.regex(
+			/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/,
+			'slug must be kebab-case (slashes allowed)',
+		),
 });
 export type MCIdentity = z.infer<typeof MCIdentitySchema>;
