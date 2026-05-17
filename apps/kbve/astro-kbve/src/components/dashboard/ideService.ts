@@ -153,6 +153,21 @@ async function fcFetch<T>(
 	return JSON.parse(text) as T;
 }
 
+export interface QuoteRequest {
+	vcpu_count: number;
+	mem_size_mib: number;
+	duration_secs?: number;
+	expected_requests?: number;
+}
+
+export async function fetchVmQuote(
+	token: string,
+	req: QuoteRequest,
+	useNetwork = false,
+): Promise<unknown> {
+	return fcFetch<unknown>(token, '/vm/quote', 'POST', req, useNetwork);
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------

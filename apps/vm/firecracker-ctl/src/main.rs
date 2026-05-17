@@ -635,6 +635,38 @@ async fn health(State(state): State<AppState>) -> impl IntoResponse {
     }))
 }
 
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct QuoteVmRequest {
+    pub vcpu_count: u8,
+    pub mem_size_mib: u16,
+    #[serde(default = "default_quote_duration")]
+    pub duration_secs: u64,
+    #[serde(default)]
+    pub expected_requests: u64,
+}
+
+fn default_quote_duration() -> u64 {
+    30
+}
+
+#[utoipa::path(
+    post,
+    path = "/vm/quote",
+    tag = "billing",
+    request_body = QuoteVmRequest,
+    responses(
+        (status = 200, description = "Pure pricing breakdown for the requested spec", body = billing::VmCostBreakdown)
+    )
+)]
+async fn quote_vm(Json(req): Json<QuoteVmRequest>) -> Json<billing::VmCostBreakdown> {
+    Json(billing::quote(
+        req.vcpu_count,
+        req.mem_size_mib,
+        req.duration_secs,
+        req.expected_requests,
+    ))
+}
+
 #[utoipa::path(
     post,
     path = "/vm/create",
@@ -3289,6 +3321,7 @@ async fn main() {
         .route("/metrics", get(metrics_handler))
         .route("/openapi.json", get(openapi::openapi_json))
         .route("/vm/create", post(create_vm))
+        .route("/vm/quote", post(quote_vm))
         .route("/vm", get(list_vms))
         .route("/vm/{vm_id}", get(get_vm_status))
         .route("/vm/{vm_id}/result", get(get_vm_result))
