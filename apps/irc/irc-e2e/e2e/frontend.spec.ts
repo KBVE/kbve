@@ -14,8 +14,8 @@ test.describe('Frontend: Index Page', () => {
 
 	test('index page title contains site name', async ({ page }) => {
 		await page.goto('/');
-		// Starlight sets <title> from the config: "KBVE IRC"
-		await expect(page).toHaveTitle(/KBVE\s*IRC/i);
+		// Starlight sets <title> from the splash MDX frontmatter: "KBVE Chat"
+		await expect(page).toHaveTitle(/KBVE\s*Chat/i);
 	});
 });
 
