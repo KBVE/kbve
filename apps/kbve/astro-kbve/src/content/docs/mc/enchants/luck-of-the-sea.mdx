@@ -1,0 +1,40 @@
+---
+title: Luck of the Sea
+description: |
+    Minecraft Luck of the Sea — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Luck of the Sea
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 20
+    ref: luck_of_the_sea
+    slug: luck-of-the-sea
+    display_name: Luck of the Sea
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - fishing_rod
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 9
+        b_min: 6
+        a_max: 9
+        b_max: 56
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

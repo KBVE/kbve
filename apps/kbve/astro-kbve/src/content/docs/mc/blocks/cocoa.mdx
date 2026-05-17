@@ -1,0 +1,35 @@
+---
+title: Cocoa
+description: |
+    Minecraft Cocoa — vanilla 1.21.5 block record (auto-generated).
+sidebar:
+    label: Cocoa
+tags:
+    - minecraft
+    - mc
+    - mc-block
+mc_block:
+    id: 365
+    ref: cocoa
+    slug: cocoa
+    display_name: Cocoa
+    material: plant
+    hardness: 0.2
+    blast_resistance: 3
+    best_tool: axe
+    required_tool_tier: 0
+    light_emission: 0
+    light_opacity: 0
+    transparent: true
+    placeable: true
+    solid: true
+    renewable: false
+    diggable: true
+    drops: []
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';
+
+<MCBlockPanel data={frontmatter.mc_block} />

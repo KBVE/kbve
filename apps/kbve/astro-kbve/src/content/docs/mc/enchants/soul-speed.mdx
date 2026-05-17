@@ -1,0 +1,40 @@
+---
+title: Soul Speed
+description: |
+    Minecraft Soul Speed — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Soul Speed
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 35
+    ref: soul_speed
+    slug: soul-speed
+    display_name: Soul Speed
+    rarity: common
+    max_level: 3
+    weight: 1
+    treasure: true
+    curse: false
+    tradeable: false
+    discoverable: false
+    available_in_creative: true
+    targets:
+        - armor_feet
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 10
+        b_min: 0
+        a_max: 10
+        b_max: 15
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

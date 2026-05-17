@@ -1,0 +1,45 @@
+---
+title: Impaling
+description: |
+    Minecraft Impaling — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Impaling
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 15
+    ref: impaling
+    slug: impaling
+    display_name: Impaling
+    rarity: common
+    max_level: 5
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - trident
+    incompatible_with:
+        - bane_of_arthropods
+        - breach
+        - density
+        - sharpness
+        - smite
+    anvil_cost: 1
+    cost:
+        a_min: 8
+        b_min: -7
+        a_max: 8
+        b_max: 13
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

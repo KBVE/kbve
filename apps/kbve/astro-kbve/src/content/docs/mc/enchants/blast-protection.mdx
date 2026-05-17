@@ -1,0 +1,43 @@
+---
+title: Blast Protection
+description: |
+    Minecraft Blast Protection — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Blast Protection
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 3
+    ref: blast_protection
+    slug: blast-protection
+    display_name: Blast Protection
+    rarity: common
+    max_level: 4
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - armor
+    incompatible_with:
+        - fire_protection
+        - projectile_protection
+        - protection
+    anvil_cost: 1
+    cost:
+        a_min: 8
+        b_min: -3
+        a_max: 8
+        b_max: 5
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

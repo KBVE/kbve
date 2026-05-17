@@ -1,0 +1,40 @@
+---
+title: Wind Burst
+description: |
+    Minecraft Wind Burst — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Wind Burst
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 41
+    ref: wind_burst
+    slug: wind-burst
+    display_name: Wind Burst
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: true
+    curse: false
+    tradeable: false
+    discoverable: false
+    available_in_creative: true
+    targets:
+        - mace
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 9
+        b_min: 6
+        a_max: 9
+        b_max: 56
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />
