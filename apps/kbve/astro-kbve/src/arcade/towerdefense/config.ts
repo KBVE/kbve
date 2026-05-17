@@ -76,6 +76,7 @@ export interface BuildSpecBase {
 	kind: BuildKind;
 	cost: number;
 	maxHp: number;
+	defense: number;
 	color: number;
 }
 
@@ -150,6 +151,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		kind: 'tower',
 		cost: 50,
 		maxHp: 50,
+		defense: 0,
 		power: 1,
 		range: 140,
 		damage: 12,
@@ -173,6 +175,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		kind: 'tower',
 		cost: 130,
 		maxHp: 70,
+		defense: 1,
 		power: 3,
 		range: 160,
 		damage: 28,
@@ -196,6 +199,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		kind: 'tower',
 		cost: 90,
 		maxHp: 45,
+		defense: 0,
 		power: 2,
 		range: 150,
 		damage: 4,
@@ -219,6 +223,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		kind: 'tower',
 		cost: 110,
 		maxHp: 55,
+		defense: 0,
 		power: 2,
 		range: 120,
 		damage: 0,
@@ -242,6 +247,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		kind: 'tower',
 		cost: 260,
 		maxHp: 70,
+		defense: 2,
 		power: 4,
 		range: BASE_WIDTH + BASE_HEIGHT,
 		damage: 45,
@@ -268,6 +274,7 @@ export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
 		kind: 'generator',
 		cost: 60,
 		maxHp: 60,
+		defense: 1,
 		power: 3,
 		color: 0xf6e05e,
 	},
@@ -277,6 +284,7 @@ export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
 		kind: 'generator',
 		cost: 160,
 		maxHp: 90,
+		defense: 2,
 		power: 10,
 		color: 0xa0aec0,
 	},
@@ -286,6 +294,7 @@ export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
 		kind: 'generator',
 		cost: 520,
 		maxHp: 200,
+		defense: 4,
 		power: 30,
 		color: 0x9ae6b4,
 	},
@@ -298,6 +307,7 @@ export const BATTERY_CATALOG: Record<BatteryId, BatterySpec> = {
 		kind: 'battery',
 		cost: 100,
 		maxHp: 75,
+		defense: 2,
 		capacity: 25,
 		chargeRate: 6,
 		color: 0xd6bcfa,
@@ -311,6 +321,7 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 		kind: 'repair',
 		cost: 180,
 		maxHp: 65,
+		defense: 1,
 		power: 2,
 		cooldownMs: 3500,
 		repairAmount: 25,
@@ -325,6 +336,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		kind: 'armoury',
 		cost: 220,
 		maxHp: 80,
+		defense: 2,
 		power: 2,
 		spawnIntervalMs: 3000,
 		soldierHp: 28,
@@ -422,7 +434,7 @@ export function specFor(id: BuildId): BuildSpec {
 	return ARMOURY_CATALOG[id as ArmouryId];
 }
 
-export type EnemyTypeId = 'runner' | 'brute' | 'scout';
+export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';
 
 export interface EnemyType {
 	id: EnemyTypeId;
@@ -481,6 +493,20 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		canAttack: true,
 		sizeRadius: 0.4,
 		bountyMultiplier: 2,
+	},
+	boss: {
+		id: 'boss',
+		name: 'Boss',
+		color: 0xffd700,
+		hpMultiplier: 7,
+		speedMultiplier: 0.5,
+		attackDamage: 14,
+		attackRateMs: 900,
+		attackRange: 100,
+		defense: 8,
+		canAttack: true,
+		sizeRadius: 0.55,
+		bountyMultiplier: 10,
 	},
 };
 

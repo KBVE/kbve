@@ -26,7 +26,12 @@ export const EnemyStats = {
 	typeIndex: [] as number[],
 };
 
-export const ENEMY_TYPE_INDEX: EnemyTypeId[] = ['runner', 'scout', 'brute'];
+export const ENEMY_TYPE_INDEX: EnemyTypeId[] = [
+	'runner',
+	'scout',
+	'brute',
+	'boss',
+];
 
 export function enemyTypeIndexFromId(id: EnemyTypeId): number {
 	const i = ENEMY_TYPE_INDEX.indexOf(id);

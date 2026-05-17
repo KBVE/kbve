@@ -27,6 +27,7 @@ import {
 	type ArmourySpec,
 	type BatterySpec,
 	type BuildId,
+	type EnemyTypeId,
 	type GeneratorSpec,
 	type RepairSpec,
 	type TowerSpec,
@@ -113,6 +114,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private path!: GeneratedPath;
 	private world!: World;
 	private enemyVisuals = new SideMap<EnemyVisual>();
+	private pendingBosses = 0;
 	private buildings: Building[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
@@ -177,6 +179,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	init(): void {
 		this.world = createWorld();
 		this.enemyVisuals = new SideMap<EnemyVisual>();
+		this.pendingBosses = 0;
 		this.buildings = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
@@ -1454,7 +1457,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			GAME_CONFIG.enemiesPerWave +
 				(this.wave - 1) * GAME_CONFIG.enemiesPerWaveScale,
 		);
-		this.enemiesToSpawn = count;
+		const bossWave = this.wave % 5 === 0;
+		this.pendingBosses = bossWave ? 1 : 0;
+		this.enemiesToSpawn = count + this.pendingBosses;
 		this.spawnAccumulatorMs = 0;
 		this.cardPickedThisInterval = false;
 		const armouryNow = this.time.now;
@@ -1502,7 +1507,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private spawnEnemy(): void {
 		const start = this.path.waypoints[0];
-		const typeId = rollEnemyType(this.wave);
+		let typeId: EnemyTypeId;
+		if (this.pendingBosses > 0) {
+			this.pendingBosses -= 1;
+			typeId = 'boss';
+		} else {
+			typeId = rollEnemyType(this.wave);
+		}
 		const type = ENEMY_CATALOG[typeId];
 		const baseHp = Math.floor(
 			GAME_CONFIG.enemyBaseHp *
@@ -1621,7 +1632,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
-		b.hp -= dmg;
+		const reduced = Math.max(1, dmg - b.spec.defense);
+		b.hp -= reduced;
 		if (b.hp <= 0) {
 			this.destroyBuilding(b);
 		} else {
@@ -2374,19 +2386,61 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.isGameOver = true;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
+		this.add
+			.rectangle(
+				BASE_WIDTH / 2,
+				BASE_HEIGHT / 2,
+				BASE_WIDTH,
+				BASE_HEIGHT,
+				0x000000,
+				0.55,
+			)
+			.setDepth(149);
 		this.gameOverText = this.add
 			.text(
 				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				`${win ? 'Victory' : 'Defeat'} — wave ${this.wave}\nPress R to restart`,
+				BASE_HEIGHT / 2 - 40,
+				`${win ? 'Victory' : 'Defeat'} — wave ${this.wave}`,
 				{
 					fontFamily: 'monospace',
-					fontSize: '32px',
+					fontSize: '36px',
 					color: win ? '#48bb78' : '#fc8181',
 					align: 'center',
+					fontStyle: 'bold',
 				},
 			)
-			.setOrigin(0.5);
+			.setOrigin(0.5)
+			.setDepth(150);
+		const btnBg = this.add
+			.rectangle(
+				BASE_WIDTH / 2,
+				BASE_HEIGHT / 2 + 40,
+				220,
+				56,
+				0x111827,
+				0.95,
+			)
+			.setStrokeStyle(2, 0xfbd38d, 0.9)
+			.setDepth(150)
+			.setInteractive({ useHandCursor: true });
+		this.add
+			.text(BASE_WIDTH / 2, BASE_HEIGHT / 2 + 40, 'RESTART', {
+				fontFamily: 'monospace',
+				fontSize: '20px',
+				color: '#fbd38d',
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5)
+			.setDepth(150);
+		this.add
+			.text(BASE_WIDTH / 2, BASE_HEIGHT / 2 + 86, 'or press R', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: '#a0aec0',
+			})
+			.setOrigin(0.5)
+			.setDepth(150);
+		btnBg.on('pointerdown', () => this.scene.restart());
 	}
 
 	update(_time: number, deltaMs: number): void {
