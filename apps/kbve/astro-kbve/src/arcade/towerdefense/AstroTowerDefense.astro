@@ -1,0 +1,37 @@
+---
+import ReactTowerDefenseApp from './ReactTowerDefenseApp';
+---
+
+<div class="not-content w-full h-full">
+	<div
+		id="towerdefense-game-container"
+		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0d1117]"
+		style="width: 100%; aspect-ratio: 16/9;"
+		tabindex="0">
+		<div id="towerdefense-game-inner" class="w-full h-full">
+			<ReactTowerDefenseApp client:only="react" />
+		</div>
+	</div>
+	<p class="text-xs text-gray-400 mt-2 text-center">
+		Pick a build (<kbd>1</kbd>–<kbd>0</kbd>), click an empty tile to place.
+		Generators only power buildings reachable through adjacent
+		wires/buildings — lay wire to extend the grid. Battery stores surplus.
+		Repair stations dispatch drones to fix damaged buildings. Enemies stop
+		on path edges to attack nearby builds. Press <kbd>N</kbd> for a fresh map
+		· <kbd>R</kbd> after game over.
+	</p>
+</div>
+
+<style>
+	#towerdefense-game-container {
+		container-type: inline-size;
+		touch-action: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	@container (max-width: 600px) {
+		#towerdefense-game-container {
+			aspect-ratio: 4/3;
+		}
+	}
+</style>
