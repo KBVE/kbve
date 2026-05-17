@@ -4,7 +4,8 @@ export type CardId =
 	| 'soldier_squad'
 	| 'field_repair'
 	| 'battery_surge'
-	| 'wave_bounty';
+	| 'wave_bounty'
+	| 'structure_upgrade';
 
 export interface CardOption {
 	id: CardId;
@@ -49,6 +50,12 @@ export const CARD_POOL: CardOption[] = [
 		name: 'Wave Bounty',
 		description: '+50% kill rewards next wave',
 		color: 0xfc8181,
+	},
+	{
+		id: 'structure_upgrade',
+		name: 'Field Promotion',
+		description: 'Free upgrade on a random structure',
+		color: 0xb794f4,
 	},
 ];
 

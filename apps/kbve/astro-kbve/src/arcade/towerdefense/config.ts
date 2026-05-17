@@ -430,6 +430,74 @@ export function upgradeCost(def: UpgradeDef, currentLevel: number): number {
 	return Math.floor(def.baseCost * (currentLevel + 1));
 }
 
+export type ArmouryUpgradeKind = 'capacity' | 'damage' | 'vigor' | 'tempo';
+
+export interface ArmouryUpgradeDef {
+	id: ArmouryUpgradeKind;
+	name: string;
+	description: string;
+	color: number;
+	baseCost: number;
+	maxLevel: number;
+	perLevel: number;
+}
+
+export const ARMOURY_UPGRADE_DEFS: Record<
+	ArmouryUpgradeKind,
+	ArmouryUpgradeDef
+> = {
+	capacity: {
+		id: 'capacity',
+		name: 'Capacity',
+		description: '+1 soldier slot',
+		color: 0xb794f4,
+		baseCost: 90,
+		maxLevel: 4,
+		perLevel: 1,
+	},
+	damage: {
+		id: 'damage',
+		name: 'Firepower',
+		description: 'Soldier dmg +25%',
+		color: 0xfc8181,
+		baseCost: 75,
+		maxLevel: 4,
+		perLevel: 0.25,
+	},
+	vigor: {
+		id: 'vigor',
+		name: 'Vigor',
+		description: 'Soldier HP +25%',
+		color: 0x9ae6b4,
+		baseCost: 65,
+		maxLevel: 4,
+		perLevel: 0.25,
+	},
+	tempo: {
+		id: 'tempo',
+		name: 'Tempo',
+		description: 'Spawn rate +15%',
+		color: 0xfbd38d,
+		baseCost: 70,
+		maxLevel: 4,
+		perLevel: 0.15,
+	},
+};
+
+export const ARMOURY_UPGRADE_ORDER: ArmouryUpgradeKind[] = [
+	'capacity',
+	'damage',
+	'vigor',
+	'tempo',
+];
+
+export function armouryUpgradeCost(
+	def: ArmouryUpgradeDef,
+	currentLevel: number,
+): number {
+	return Math.floor(def.baseCost * (currentLevel + 1));
+}
+
 export function specFor(id: BuildId): BuildSpec {
 	if (id in TOWER_CATALOG) return TOWER_CATALOG[id as TowerId];
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];

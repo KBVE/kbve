@@ -19,8 +19,11 @@ import {
 	PALETTE_ORDER,
 	ROWS,
 	TILE,
+	ARMOURY_UPGRADE_DEFS,
+	ARMOURY_UPGRADE_ORDER,
 	UPGRADE_DEFS,
 	UPGRADE_ORDER,
+	armouryUpgradeCost,
 	rollEnemyType,
 	specFor,
 	upgradeCost,
@@ -93,6 +96,12 @@ import {
 	towerMaxHp,
 	towerRange,
 } from './tower-stats';
+import {
+	armouryMaxSoldiers,
+	armourySoldierDamage,
+	armourySoldierHp,
+	armourySpawnIntervalMs,
+} from './armoury-stats';
 import type {
 	ArmouryBuilding,
 	BaseBuilding,
@@ -706,8 +715,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 
 		const isTower = b.kind === 'tower';
+		const isArmoury = b.kind === 'armoury';
 		const supportsFixed = isTower && this.supportsFixedTarget(b);
-		const upgradeRows = isTower ? UPGRADE_ORDER.length : 0;
+		const upgradeRows = isTower
+			? UPGRADE_ORDER.length
+			: isArmoury
+				? ARMOURY_UPGRADE_ORDER.length
+				: 0;
 		const rowH = 32;
 		const headerH = 52;
 		const demolishRowH = 36;
@@ -771,102 +785,123 @@ export class TowerDefenseScene extends Phaser.Scene {
 		});
 		container.add(stats);
 
+		interface UpgradeRowData {
+			kind: string;
+			def: {
+				name: string;
+				description: string;
+				color: number;
+				maxLevel: number;
+			};
+			lvl: number;
+			cost: number;
+		}
+		let rows: UpgradeRowData[] = [];
 		if (isTower) {
-			for (let i = 0; i < UPGRADE_ORDER.length; i++) {
-				const kind = UPGRADE_ORDER[i];
-				const def = UPGRADE_DEFS[kind];
-				const lvl = b.upgrades[kind];
-				const maxed = lvl >= def.maxLevel;
-				const cost = upgradeCost(def, lvl);
-				const affordable = this.gold >= cost;
-				const y = headerH + i * rowH;
+			rows = UPGRADE_ORDER.map((k) => {
+				const def = UPGRADE_DEFS[k];
+				const lvl = b.upgrades[k];
+				return { kind: k, def, lvl, cost: upgradeCost(def, lvl) };
+			});
+		} else if (isArmoury) {
+			rows = ARMOURY_UPGRADE_ORDER.map((k) => {
+				const def = ARMOURY_UPGRADE_DEFS[k];
+				const lvl = b.upgrades[k];
+				return {
+					kind: k,
+					def,
+					lvl,
+					cost: armouryUpgradeCost(def, lvl),
+				};
+			});
+		}
+		for (let i = 0; i < rows.length; i++) {
+			const { kind, def, lvl, cost } = rows[i];
+			const maxed = lvl >= def.maxLevel;
+			const affordable = this.gold >= cost;
+			const y = headerH + i * rowH;
 
-				const row = this.add
-					.rectangle(8, y, panelW - 16, rowH - 4, 0x1f2937, 0.85)
-					.setOrigin(0, 0)
-					.setStrokeStyle(1, def.color, 0.7);
-				container.add(row);
+			const row = this.add
+				.rectangle(8, y, panelW - 16, rowH - 4, 0x1f2937, 0.85)
+				.setOrigin(0, 0)
+				.setStrokeStyle(1, def.color, 0.7);
+			container.add(row);
 
-				const dot = this.add.rectangle(
-					20,
+			const dot = this.add.rectangle(
+				20,
+				y + (rowH - 4) / 2,
+				10,
+				10,
+				def.color,
+			);
+			container.add(dot);
+
+			const label = this.add.text(
+				36,
+				y + 4,
+				`${def.name}  ${def.description}`,
+				{
+					fontFamily: 'monospace',
+					fontSize: '11px',
+					color: COLORS.hudText,
+				},
+			);
+			container.add(label);
+
+			const levelText = this.add.text(
+				36,
+				y + 16,
+				`Lv ${lvl}/${def.maxLevel}`,
+				{
+					fontFamily: 'monospace',
+					fontSize: '10px',
+					color: COLORS.hudDim,
+				},
+			);
+			container.add(levelText);
+
+			const btnLabel = maxed ? 'MAX' : `${cost}g`;
+			const btnColor = maxed
+				? COLORS.hudDim
+				: affordable
+					? COLORS.goldText
+					: COLORS.powerLow;
+			const btn = this.add
+				.rectangle(
+					panelW - 16,
 					y + (rowH - 4) / 2,
-					10,
-					10,
-					def.color,
-				);
-				container.add(dot);
+					64,
+					rowH - 8,
+					0x111827,
+					0.95,
+				)
+				.setOrigin(1, 0.5)
+				.setStrokeStyle(1, def.color, maxed || !affordable ? 0.3 : 0.9);
+			const btnText = this.add
+				.text(panelW - 48, y + (rowH - 4) / 2, btnLabel, {
+					fontFamily: 'monospace',
+					fontSize: '11px',
+					color: btnColor,
+					fontStyle: 'bold',
+				})
+				.setOrigin(0.5);
+			container.add(btn);
+			container.add(btnText);
 
-				const label = this.add.text(
-					36,
-					y + 4,
-					`${def.name}  ${def.description}`,
-					{
-						fontFamily: 'monospace',
-						fontSize: '11px',
-						color: COLORS.hudText,
+			if (!maxed && affordable) {
+				btn.setInteractive({ useHandCursor: true });
+				btn.on(
+					'pointerdown',
+					(
+						_p: Phaser.Input.Pointer,
+						_x: number,
+						_y: number,
+						ev: Phaser.Types.Input.EventData,
+					) => {
+						ev.stopPropagation();
+						this.applyUpgradeByKind(b, kind);
 					},
 				);
-				container.add(label);
-
-				const levelText = this.add.text(
-					36,
-					y + 16,
-					`Lv ${lvl}/${def.maxLevel}`,
-					{
-						fontFamily: 'monospace',
-						fontSize: '10px',
-						color: COLORS.hudDim,
-					},
-				);
-				container.add(levelText);
-
-				const btnLabel = maxed ? 'MAX' : `${cost}g`;
-				const btnColor = maxed
-					? COLORS.hudDim
-					: affordable
-						? COLORS.goldText
-						: COLORS.powerLow;
-				const btn = this.add
-					.rectangle(
-						panelW - 16,
-						y + (rowH - 4) / 2,
-						64,
-						rowH - 8,
-						0x111827,
-						0.95,
-					)
-					.setOrigin(1, 0.5)
-					.setStrokeStyle(
-						1,
-						def.color,
-						maxed || !affordable ? 0.3 : 0.9,
-					);
-				const btnText = this.add
-					.text(panelW - 48, y + (rowH - 4) / 2, btnLabel, {
-						fontFamily: 'monospace',
-						fontSize: '11px',
-						color: btnColor,
-						fontStyle: 'bold',
-					})
-					.setOrigin(0.5);
-				container.add(btn);
-				container.add(btnText);
-
-				if (!maxed && affordable) {
-					btn.setInteractive({ useHandCursor: true });
-					btn.on(
-						'pointerdown',
-						(
-							_p: Phaser.Input.Pointer,
-							_x: number,
-							_y: number,
-							ev: Phaser.Types.Input.EventData,
-						) => {
-							ev.stopPropagation();
-							this.applyUpgrade(b, kind);
-						},
-					);
-				}
 			}
 		}
 
@@ -1064,6 +1099,32 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.redrawUpgradePips(tower);
 		this.refreshHud();
 		this.openBuildingPanel(tower);
+	}
+
+	private applyArmouryUpgrade(
+		armoury: ArmouryBuilding,
+		kind: keyof ArmouryBuilding['upgrades'],
+	): void {
+		const def = ARMOURY_UPGRADE_DEFS[kind];
+		const lvl = armoury.upgrades[kind];
+		if (lvl >= def.maxLevel) return;
+		const cost = armouryUpgradeCost(def, lvl);
+		if (this.gold < cost) return;
+		this.gold -= cost;
+		armoury.upgrades[kind] = lvl + 1;
+		this.refreshHud();
+		this.openBuildingPanel(armoury);
+	}
+
+	private applyUpgradeByKind(b: Building, kind: string): void {
+		if (b.kind === 'tower') {
+			this.applyUpgrade(b, kind as UpgradeKind);
+		} else if (b.kind === 'armoury') {
+			this.applyArmouryUpgrade(
+				b,
+				kind as keyof ArmouryBuilding['upgrades'],
+			);
+		}
 	}
 
 	private redrawUpgradePips(t: TowerBuilding): void {
@@ -1305,6 +1366,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				online: true,
 				powerIndicator,
 				nextSpawnAtMs: 0,
+				upgrades: { capacity: 0, damage: 0, vigor: 0, tempo: 0 },
 			};
 			building = b;
 		} else {
@@ -1597,10 +1659,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.kind !== 'armoury') continue;
 			if (!b.online) continue;
 			const owned = this.countSoldiersOwnedBy(b.id);
-			if (owned >= b.spec.maxSoldiers) continue;
+			if (owned >= armouryMaxSoldiers(b)) continue;
 			if (nowMs < b.nextSpawnAtMs) continue;
 			this.spawnSoldier(b);
-			b.nextSpawnAtMs = nowMs + b.spec.spawnIntervalMs;
+			b.nextSpawnAtMs = nowMs + armourySpawnIntervalMs(b);
 		}
 	}
 
@@ -1620,10 +1682,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		addComponent(this.world, eid, SoldierStats);
 		Position.x[eid] = armoury.x;
 		Position.y[eid] = armoury.y;
-		SoldierStats.hp[eid] = armoury.spec.soldierHp;
-		SoldierStats.maxHp[eid] = armoury.spec.soldierHp;
+		const hp = armourySoldierHp(armoury);
+		SoldierStats.hp[eid] = hp;
+		SoldierStats.maxHp[eid] = hp;
 		SoldierStats.speed[eid] = armoury.spec.soldierSpeed;
-		SoldierStats.attackDamage[eid] = armoury.spec.soldierDamage;
+		SoldierStats.attackDamage[eid] = armourySoldierDamage(armoury);
 		SoldierStats.attackRateMs[eid] = armoury.spec.soldierAttackRateMs;
 		SoldierStats.attackRange[eid] = armoury.spec.soldierAttackRange;
 		SoldierStats.lastAttackAtMs[eid] = 0;
@@ -2443,6 +2506,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			case 'wave_bounty':
 				this.bountyBonusMultiplier = 1.5;
 				break;
+			case 'structure_upgrade':
+				this.applyRandomStructureUpgrade();
+				break;
 		}
 		this.closeCardPanel();
 		this.cardPickedThisInterval = true;
@@ -2482,6 +2548,49 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.destroyed) continue;
 			b.hp = b.maxHp;
 		}
+	}
+
+	private applyRandomStructureUpgrade(): void {
+		interface UpgradeCandidate {
+			apply: () => void;
+		}
+		const candidates: UpgradeCandidate[] = [];
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.kind === 'tower') {
+				for (const k of UPGRADE_ORDER) {
+					if (b.upgrades[k] >= UPGRADE_DEFS[k].maxLevel) continue;
+					candidates.push({
+						apply: () => {
+							const prevMaxHp = towerMaxHp(b);
+							b.upgrades[k] += 1;
+							b.maxHp = towerMaxHp(b);
+							if (k === 'armor') {
+								const delta = b.maxHp - prevMaxHp;
+								b.hp = Math.min(b.maxHp, b.hp + delta);
+							}
+							this.redrawUpgradePips(b);
+						},
+					});
+				}
+			} else if (b.kind === 'armoury') {
+				for (const k of ARMOURY_UPGRADE_ORDER) {
+					if (b.upgrades[k] >= ARMOURY_UPGRADE_DEFS[k].maxLevel)
+						continue;
+					candidates.push({
+						apply: () => {
+							b.upgrades[k] += 1;
+						},
+					});
+				}
+			}
+		}
+		if (candidates.length === 0) {
+			this.gold += 120;
+			return;
+		}
+		const pick = candidates[Math.floor(Math.random() * candidates.length)];
+		pick.apply();
 	}
 
 	private boostBatteries(amount: number): void {

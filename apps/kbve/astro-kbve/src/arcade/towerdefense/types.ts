@@ -69,12 +69,20 @@ export interface RepairBuilding extends BaseBuilding {
 	activeDroneEid: number | null;
 }
 
+export interface ArmouryUpgrades {
+	capacity: number;
+	damage: number;
+	vigor: number;
+	tempo: number;
+}
+
 export interface ArmouryBuilding extends BaseBuilding {
 	kind: 'armoury';
 	spec: ArmourySpec;
 	online: boolean;
 	powerIndicator: Phaser.GameObjects.Arc;
 	nextSpawnAtMs: number;
+	upgrades: ArmouryUpgrades;
 }
 
 export type Building =
