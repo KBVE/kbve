@@ -4,6 +4,12 @@ import { createListing, MarketApiError } from './api';
 import { EnchantEditor } from './EnchantEditor';
 import type { Enchant } from './enchants';
 import { MCItemPicker } from './MCItemPicker';
+import { RareiconItemPicker } from './RareiconItemPicker';
+
+const BROWSE_LINKS: Record<string, { label: string; href: string }> = {
+	mc_item: { label: 'Browse Minecraft items →', href: '/mc/items/' },
+	rareicon_item: { label: 'Browse Rareicon items →', href: '/itemdb/' },
+};
 
 const KIND_OPTIONS = [
 	{ value: 'mc_item', label: 'Minecraft item' },
@@ -112,21 +118,38 @@ export function MarketCreateForm() {
 				</label>
 				<label>
 					Item ID
-					{kind === 'mc_item' ? (
+					{kind === 'mc_item' && (
 						<MCItemPicker
 							value={itemId}
 							onChange={setItemId}
 							disabled={busy}
 						/>
-					) : (
+					)}
+					{kind === 'rareicon_item' && (
+						<RareiconItemPicker
+							value={itemId}
+							onChange={setItemId}
+							disabled={busy}
+						/>
+					)}
+					{kind !== 'mc_item' && kind !== 'rareicon_item' && (
 						<input
 							type="text"
 							required
-							placeholder="diamond_sword"
+							placeholder="custom_ref"
 							value={itemId}
 							onChange={(e) => setItemId(e.target.value)}
 							className="kbve-market__input"
 						/>
+					)}
+					{BROWSE_LINKS[kind] && (
+						<a
+							className="kbve-market__hint"
+							href={BROWSE_LINKS[kind].href}
+							target="_blank"
+							rel="noopener">
+							{BROWSE_LINKS[kind].label}
+						</a>
 					)}
 				</label>
 				<label>

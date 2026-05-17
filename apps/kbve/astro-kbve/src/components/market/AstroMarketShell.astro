@@ -988,9 +988,9 @@ import MarketCreateForm from './MarketCreateForm';
 		width: 100%;
 		text-align: left;
 		display: grid;
-		grid-template-columns: 1fr auto auto;
+		grid-template-columns: auto 1fr auto auto;
 		gap: 0.5rem;
-		align-items: baseline;
+		align-items: center;
 		padding: 0.4rem 0.6rem;
 		border-radius: 6px;
 		background: transparent;
@@ -998,6 +998,43 @@ import MarketCreateForm from './MarketCreateForm';
 		color: var(--sl-color-text);
 		cursor: pointer;
 		font: inherit;
+	}
+	.kbve-mcpicker__input-row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+	.kbve-mcpicker__input-row .kbve-mcpicker__input {
+		flex: 1;
+	}
+	.kbve-mcpicker__preview {
+		width: 32px;
+		height: 32px;
+		image-rendering: pixelated;
+		border-radius: 6px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		padding: 3px;
+		object-fit: contain;
+		flex-shrink: 0;
+	}
+	.kbve-mcpicker__row-img {
+		width: 24px;
+		height: 24px;
+		image-rendering: pixelated;
+		border-radius: 4px;
+		background: var(--sl-color-bg-nav);
+		padding: 2px;
+		object-fit: contain;
+		flex-shrink: 0;
+	}
+	.kbve-mcpicker__row-img--missing {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--sl-color-gray-3);
+		font-weight: 800;
+		font-size: 0.7rem;
 	}
 	.kbve-mcpicker__list button:hover {
 		background: var(--sl-color-bg-nav);

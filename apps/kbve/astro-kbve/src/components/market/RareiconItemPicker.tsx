@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { mcTextureUrls } from '../mcdb/texture';
 
-type MCItemIndexEntry = {
-	id: number;
+type RareiconItem = {
+	id: string;
+	key: number;
 	ref: string;
-	slug: string;
-	display_name: string;
-	category: string;
-	rarity: string;
-	stack_size: number;
-	tier: string | null;
-	tags: string[];
+	name?: string;
+	img?: string;
+	rarity?: string;
+	type_flags?: number;
 };
 
 type Props = {
@@ -20,12 +17,12 @@ type Props = {
 	placeholder?: string;
 };
 
-const CACHE_KEY = 'kbve:mc-items:index:v1';
-const ENDPOINT = '/api/mc-items.json';
+const CACHE_KEY = 'kbve:rareicon-items:index:v1';
+const ENDPOINT = '/api/itemdb.json';
 
-type CachedPayload = { items: MCItemIndexEntry[]; cachedAt: number };
+type CachedPayload = { items: RareiconItem[]; cachedAt: number };
 
-function readCache(): MCItemIndexEntry[] | null {
+function readCache(): RareiconItem[] | null {
 	if (typeof localStorage === 'undefined') return null;
 	try {
 		const raw = localStorage.getItem(CACHE_KEY);
@@ -38,7 +35,7 @@ function readCache(): MCItemIndexEntry[] | null {
 	}
 }
 
-function writeCache(items: MCItemIndexEntry[]) {
+function writeCache(items: RareiconItem[]) {
 	if (typeof localStorage === 'undefined') return;
 	try {
 		localStorage.setItem(
@@ -51,13 +48,13 @@ function writeCache(items: MCItemIndexEntry[]) {
 	} catch {}
 }
 
-export function MCItemPicker({
+export function RareiconItemPicker({
 	value,
 	onChange,
 	disabled,
-	placeholder = 'diamond_sword',
+	placeholder = 'coal',
 }: Props) {
-	const [items, setItems] = useState<MCItemIndexEntry[] | null>(null);
+	const [items, setItems] = useState<RareiconItem[] | null>(null);
 	const [query, setQuery] = useState(value);
 	const [open, setOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -74,9 +71,7 @@ export function MCItemPicker({
 			try {
 				const res = await fetch(ENDPOINT);
 				if (!res.ok) throw new Error(`${res.status}`);
-				const json = (await res.json()) as {
-					items: MCItemIndexEntry[];
-				};
+				const json = (await res.json()) as { items: RareiconItem[] };
 				if (cancelled) return;
 				setItems(json.items);
 				writeCache(json.items);
@@ -97,8 +92,8 @@ export function MCItemPicker({
 		return items
 			.filter(
 				(it) =>
-					it.ref.includes(q) ||
-					it.display_name.toLowerCase().includes(q),
+					it.ref.toLowerCase().includes(q) ||
+					(it.name?.toLowerCase().includes(q) ?? false),
 			)
 			.slice(0, 25);
 	}, [items, query]);
@@ -114,22 +109,14 @@ export function MCItemPicker({
 		setOpen(false);
 	};
 
-	const knownTex = known ? mcTextureUrls(known.ref, known.category) : null;
-
 	return (
 		<div className="kbve-mcpicker">
 			<div className="kbve-mcpicker__input-row">
-				{knownTex && (
+				{known?.img && (
 					<img
 						className="kbve-mcpicker__preview"
-						src={knownTex.primary}
-						alt={known?.display_name ?? ''}
-						onError={(ev) => {
-							const img = ev.currentTarget;
-							if (img.dataset.fb === '1') return;
-							img.dataset.fb = '1';
-							img.src = knownTex.fallback;
-						}}
+						src={known.img}
+						alt={known.name ?? known.ref}
 						loading="lazy"
 					/>
 				)}
@@ -153,54 +140,57 @@ export function MCItemPicker({
 			{known && (
 				<a
 					className="kbve-mcpicker__known"
-					href={`/mc/items/${known.slug}/`}
+					href={`/itemdb/${known.ref}/`}
 					target="_blank"
 					rel="noopener"
-					title={`${known.display_name} — open page`}>
-					✓ {known.display_name}
+					title={`${known.name ?? known.ref} — open page`}>
+					✓ {known.name ?? known.ref}
 				</a>
 			)}
 			{open && matches.length > 0 && (
 				<ul className="kbve-mcpicker__list" role="listbox">
-					{matches.map((it) => {
-						const tex = mcTextureUrls(it.ref, it.category);
-						return (
-							<li key={it.ref} role="option">
-								<button
-									type="button"
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={() => onPick(it.ref)}>
+					{matches.map((it) => (
+						<li key={it.ref} role="option">
+							<button
+								type="button"
+								onMouseDown={(e) => e.preventDefault()}
+								onClick={() => onPick(it.ref)}>
+								{it.img ? (
 									<img
 										className="kbve-mcpicker__row-img"
-										src={tex.primary}
-										alt={it.display_name}
-										onError={(ev) => {
-											const img = ev.currentTarget;
-											if (img.dataset.fb === '1') return;
-											img.dataset.fb = '1';
-											img.src = tex.fallback;
-										}}
+										src={it.img}
+										alt={it.name ?? it.ref}
 										loading="lazy"
 									/>
-									<span className="kbve-mcpicker__name">
-										{it.display_name}
+								) : (
+									<span
+										className="kbve-mcpicker__row-img kbve-mcpicker__row-img--missing"
+										aria-hidden>
+										{(it.name ?? it.ref)
+											.charAt(0)
+											.toUpperCase()}
 									</span>
-									<span className="kbve-mcpicker__ref">
-										{it.ref}
-									</span>
+								)}
+								<span className="kbve-mcpicker__name">
+									{it.name ?? it.ref}
+								</span>
+								<span className="kbve-mcpicker__ref">
+									{it.ref}
+								</span>
+								{it.rarity && (
 									<span className="kbve-mcpicker__cat">
-										{it.category}
+										{it.rarity}
 									</span>
-								</button>
-							</li>
-						);
-					})}
+								)}
+							</button>
+						</li>
+					))}
 				</ul>
 			)}
 			{open && items && matches.length === 0 && query.trim() && (
 				<div className="kbve-mcpicker__empty">
 					Unknown ref. You can still list <code>{query}</code> — but
-					it won't link to a /mc/items page.
+					it won't link to a /itemdb page.
 				</div>
 			)}
 			{error && (
@@ -212,4 +202,4 @@ export function MCItemPicker({
 	);
 }
 
-export default MCItemPicker;
+export default RareiconItemPicker;
