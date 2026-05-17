@@ -1,7 +1,6 @@
 import type Phaser from 'phaser';
 import type {
 	BatterySpec,
-	EnemyType,
 	GeneratorSpec,
 	RepairSpec,
 	TowerSpec,
@@ -28,6 +27,12 @@ export interface TowerUpgrades {
 	armor: number;
 }
 
+export interface FixedTarget {
+	x: number;
+	y: number;
+	marker: Phaser.GameObjects.Graphics;
+}
+
 export interface TowerBuilding extends BaseBuilding {
 	kind: 'tower';
 	spec: TowerSpec;
@@ -35,6 +40,7 @@ export interface TowerBuilding extends BaseBuilding {
 	online: boolean;
 	powerIndicator: Phaser.GameObjects.Arc;
 	upgrades: TowerUpgrades;
+	fixedTarget: FixedTarget | null;
 }
 
 export interface GeneratorBuilding extends BaseBuilding {
@@ -67,29 +73,6 @@ export type Building =
 	| BatteryBuilding
 	| RepairBuilding;
 
-export interface Enemy {
-	type: EnemyType;
-	sprite: Phaser.GameObjects.Arc;
-	statusRing: Phaser.GameObjects.Arc;
-	hpBar: Phaser.GameObjects.Rectangle;
-	hpBarBg: Phaser.GameObjects.Rectangle;
-	hp: number;
-	maxHp: number;
-	baseSpeed: number;
-	pathIndex: number;
-	alive: boolean;
-	slowUntilMs: number;
-	slowFactor: number;
-	burnUntilMs: number;
-	burnDps: number;
-	attackDamage: number;
-	attackRateMs: number;
-	canAttack: boolean;
-	attackTarget: Building | null;
-	lastAttackAtMs: number;
-	bountyMultiplier: number;
-}
-
 export interface Projectile {
 	sprite: Phaser.GameObjects.Arc;
 	tower: TowerBuilding;
@@ -97,7 +80,7 @@ export interface Projectile {
 	startY: number;
 	targetX: number;
 	targetY: number;
-	enemy: Enemy | null;
+	enemyId: number | null;
 	speed: number;
 	alive: boolean;
 	homing: boolean;

@@ -1,5 +1,14 @@
 import Phaser from 'phaser';
 import {
+	addComponent,
+	addEntity,
+	createWorld,
+	query,
+	removeEntity,
+	SideMap,
+	type World,
+} from '@kbve/laser';
+import {
 	BASE_HEIGHT,
 	BASE_WIDTH,
 	COLORS,
@@ -23,6 +32,13 @@ import {
 	type UpgradeKind,
 } from './config';
 import {
+	EnemyStats,
+	EnemyTag,
+	enemyTypeIndexFromId,
+	Position,
+	type EnemyVisual,
+} from './ecs';
+import {
 	generatePath,
 	type GeneratedPath,
 	type Waypoint,
@@ -41,7 +57,6 @@ import type {
 	BatteryBuilding,
 	BurnPatch,
 	Building,
-	Enemy,
 	GeneratorBuilding,
 	Projectile,
 	RepairBuilding,
@@ -61,9 +76,22 @@ interface PaletteButton {
 const HUD_HEIGHT = TILE * HUD_ROWS_TOP;
 const PALETTE_HEIGHT = TILE * 2;
 
+function refundForBuilding(b: Building): number {
+	let value = b.spec.cost;
+	if (b.kind === 'tower') {
+		for (const kind of UPGRADE_ORDER) {
+			const def = UPGRADE_DEFS[kind];
+			const lvl = b.upgrades[kind];
+			value += def.baseCost * ((lvl * (lvl + 1)) / 2);
+		}
+	}
+	return Math.floor(value * 0.5);
+}
+
 export class TowerDefenseScene extends Phaser.Scene {
 	private path!: GeneratedPath;
-	private enemies: Enemy[] = [];
+	private world!: World;
+	private enemyVisuals = new SideMap<EnemyVisual>();
 	private buildings: Building[] = [];
 	private projectiles: Projectile[] = [];
 	private burnPatches: BurnPatch[] = [];
@@ -94,9 +122,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private paletteButtons: PaletteButton[] = [];
 
 	private upgradePanel: Phaser.GameObjects.Container | null = null;
-	private upgradeTarget: TowerBuilding | null = null;
+	private upgradeTarget: Building | null = null;
 	private upgradeRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private upgradeBounds: Phaser.Geom.Rectangle | null = null;
+	private targetingTower: TowerBuilding | null = null;
+	private targetingHint: Phaser.GameObjects.Text | null = null;
 
 	private cachedPower = {
 		supply: 0,
@@ -108,6 +138,39 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	constructor() {
 		super({ key: 'TowerDefenseScene' });
+	}
+
+	init(): void {
+		this.world = createWorld();
+		this.enemyVisuals = new SideMap<EnemyVisual>();
+		this.buildings = [];
+		this.projectiles = [];
+		this.burnPatches = [];
+		this.drones = [];
+		this.nextEntityId = 1;
+		this.gold = GAME_CONFIG.startingGold;
+		this.lives = GAME_CONFIG.startingLives;
+		this.wave = 0;
+		this.enemiesToSpawn = 0;
+		this.spawnAccumulatorMs = 0;
+		this.interWaveDelayMs = 0;
+		this.isGameOver = false;
+		this.paletteButtons = [];
+		this.upgradePanel = null;
+		this.upgradeTarget = null;
+		this.upgradeRangeIndicator = null;
+		this.upgradeBounds = null;
+		this.targetingTower = null;
+		this.targetingHint = null;
+		this.cachedPower = {
+			supply: 0,
+			demand: 0,
+			batteryCharge: 0,
+			batteryCapacity: 0,
+		};
+		this.powerRefreshAccumulatorMs = 0;
+		this.selection = 'basic';
+		this.gameOverText = undefined;
 	}
 
 	create(): void {
@@ -132,6 +195,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				if (this.isGameOver) this.scene.restart();
 			});
 			kb.on('keydown-N', () => this.scene.restart());
+			kb.on('keydown-ESC', () => {
+				if (this.targetingTower) this.cancelTargeting();
+				else if (this.upgradePanel) this.closeUpgradePanel();
+			});
 			const digitCodes = [
 				Phaser.Input.Keyboard.KeyCodes.ONE,
 				Phaser.Input.Keyboard.KeyCodes.TWO,
@@ -412,7 +479,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.hudGoldVal.setText(`${this.gold}`);
 		this.hudLivesVal.setText(`${this.lives}`);
 		this.hudWaveVal.setText(`${this.wave}`);
-		const remaining = this.enemiesToSpawn + this.enemies.length;
+		const remaining = this.enemiesToSpawn + this.enemyVisuals.size;
 		this.hudEnemiesVal.setText(`${remaining}`);
 		const { supply, demand, batteryCharge, batteryCapacity } =
 			this.cachedPower;
@@ -425,7 +492,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				? `${Math.floor(batteryCharge)}/${batteryCapacity}`
 				: '—',
 		);
-		if (this.enemiesToSpawn > 0 || this.enemies.length > 0) {
+		if (this.enemiesToSpawn > 0 || this.enemyVisuals.size > 0) {
 			this.hudTimerVal.setText('—');
 			this.hudTimerLabel.setText('IN PROGRESS');
 		} else {
@@ -466,6 +533,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerMove(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+		if (this.targetingTower) {
+			this.placementPreview.setVisible(false);
+			this.placementRange.setVisible(false);
+			if (this.targetingHint) {
+				this.targetingHint.setPosition(
+					pointer.worldX + 12,
+					pointer.worldY + 12,
+				);
+			}
+			return;
+		}
 		if (
 			pointer.worldY < HUD_HEIGHT ||
 			pointer.worldY > BASE_HEIGHT - PALETTE_HEIGHT
@@ -499,6 +577,24 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
 
+		if (this.targetingTower) {
+			if (pointer.worldY < HUD_HEIGHT) {
+				this.cancelTargeting();
+				return;
+			}
+			if (pointer.worldY > BASE_HEIGHT - PALETTE_HEIGHT) {
+				this.cancelTargeting();
+				return;
+			}
+			this.setFixedTarget(
+				this.targetingTower,
+				pointer.worldX,
+				pointer.worldY,
+			);
+			this.cancelTargeting();
+			return;
+		}
+
 		if (this.upgradePanel && this.upgradeBounds) {
 			if (this.upgradeBounds.contains(pointer.worldX, pointer.worldY)) {
 				return;
@@ -508,10 +604,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (
 				probeHit &&
 				!probeHit.destroyed &&
-				probeHit.kind === 'tower' &&
 				probeHit !== this.upgradeTarget
 			) {
-				this.openUpgradePanel(probeHit);
+				this.openBuildingPanel(probeHit);
 				return;
 			}
 			this.closeUpgradePanel();
@@ -529,8 +624,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 
 		const existing = this.findBuildingAt(col, row);
-		if (existing && !existing.destroyed && existing.kind === 'tower') {
-			this.openUpgradePanel(existing);
+		if (existing && !existing.destroyed) {
+			this.openBuildingPanel(existing);
 			return;
 		}
 
@@ -550,24 +645,36 @@ export class TowerDefenseScene extends Phaser.Scene {
 		return null;
 	}
 
-	private openUpgradePanel(tower: TowerBuilding): void {
+	private openBuildingPanel(b: Building): void {
 		this.closeUpgradePanel();
-		this.upgradeTarget = tower;
+		this.upgradeTarget = b;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
 
-		const rangeRadius = towerRange(tower);
-		this.upgradeRangeIndicator = this.add
-			.circle(tower.x, tower.y, rangeRadius, tower.spec.color, 0.12)
-			.setStrokeStyle(2, tower.spec.color, 0.6);
+		if (b.kind === 'tower') {
+			this.upgradeRangeIndicator = this.add
+				.circle(b.x, b.y, towerRange(b), b.spec.color, 0.12)
+				.setStrokeStyle(2, b.spec.color, 0.6);
+		}
 
+		const isTower = b.kind === 'tower';
+		const supportsFixed = isTower && this.supportsFixedTarget(b);
+		const upgradeRows = isTower ? UPGRADE_ORDER.length : 0;
+		const rowH = 32;
+		const headerH = 52;
+		const demolishRowH = 36;
+		const padBottom = 12;
 		const panelW = 300;
-		const panelH = 200;
-		let panelX = tower.x + TILE;
-		let panelY = tower.y - panelH / 2;
-		if (panelX + panelW / 2 > BASE_WIDTH - 12)
-			panelX = tower.x - TILE - panelW;
-		else panelX = tower.x + TILE;
+		const panelH =
+			headerH +
+			upgradeRows * rowH +
+			(supportsFixed ? rowH : 0) +
+			demolishRowH +
+			padBottom;
+
+		let panelX = b.x + TILE;
+		let panelY = b.y - panelH / 2;
+		if (panelX + panelW > BASE_WIDTH - 12) panelX = b.x - TILE - panelW;
 		if (panelX < 12) panelX = 12;
 		if (panelY < HUD_HEIGHT + 8) panelY = HUD_HEIGHT + 8;
 		if (panelY + panelH > BASE_HEIGHT - PALETTE_HEIGHT - 8)
@@ -580,7 +687,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			.setOrigin(0, 0);
 		container.add(bg);
 
-		const title = this.add.text(12, 8, `${tower.spec.name} Tower`, {
+		const title = this.add.text(12, 8, this.panelTitle(b), {
 			fontFamily: 'monospace',
 			fontSize: '14px',
 			color: COLORS.hudText,
@@ -609,111 +716,248 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 		container.add(close);
 
-		const stats = this.add.text(12, 28, this.upgradeStatsLine(tower), {
+		const stats = this.add.text(12, 28, this.buildingStatsLine(b), {
 			fontFamily: 'monospace',
 			fontSize: '10px',
 			color: COLORS.hudDim,
 		});
 		container.add(stats);
 
-		const rowH = 32;
-		const startY = 52;
-		for (let i = 0; i < UPGRADE_ORDER.length; i++) {
-			const kind = UPGRADE_ORDER[i];
-			const def = UPGRADE_DEFS[kind];
-			const lvl = tower.upgrades[kind];
-			const maxed = lvl >= def.maxLevel;
-			const cost = upgradeCost(def, lvl);
-			const affordable = this.gold >= cost;
-			const y = startY + i * rowH;
+		if (isTower) {
+			for (let i = 0; i < UPGRADE_ORDER.length; i++) {
+				const kind = UPGRADE_ORDER[i];
+				const def = UPGRADE_DEFS[kind];
+				const lvl = b.upgrades[kind];
+				const maxed = lvl >= def.maxLevel;
+				const cost = upgradeCost(def, lvl);
+				const affordable = this.gold >= cost;
+				const y = headerH + i * rowH;
 
-			const row = this.add
-				.rectangle(8, y, panelW - 16, rowH - 4, 0x1f2937, 0.85)
+				const row = this.add
+					.rectangle(8, y, panelW - 16, rowH - 4, 0x1f2937, 0.85)
+					.setOrigin(0, 0)
+					.setStrokeStyle(1, def.color, 0.7);
+				container.add(row);
+
+				const dot = this.add.rectangle(
+					20,
+					y + (rowH - 4) / 2,
+					10,
+					10,
+					def.color,
+				);
+				container.add(dot);
+
+				const label = this.add.text(
+					36,
+					y + 4,
+					`${def.name}  ${def.description}`,
+					{
+						fontFamily: 'monospace',
+						fontSize: '11px',
+						color: COLORS.hudText,
+					},
+				);
+				container.add(label);
+
+				const levelText = this.add.text(
+					36,
+					y + 16,
+					`Lv ${lvl}/${def.maxLevel}`,
+					{
+						fontFamily: 'monospace',
+						fontSize: '10px',
+						color: COLORS.hudDim,
+					},
+				);
+				container.add(levelText);
+
+				const btnLabel = maxed ? 'MAX' : `${cost}g`;
+				const btnColor = maxed
+					? COLORS.hudDim
+					: affordable
+						? COLORS.goldText
+						: COLORS.powerLow;
+				const btn = this.add
+					.rectangle(
+						panelW - 16,
+						y + (rowH - 4) / 2,
+						64,
+						rowH - 8,
+						0x111827,
+						0.95,
+					)
+					.setOrigin(1, 0.5)
+					.setStrokeStyle(
+						1,
+						def.color,
+						maxed || !affordable ? 0.3 : 0.9,
+					);
+				const btnText = this.add
+					.text(panelW - 48, y + (rowH - 4) / 2, btnLabel, {
+						fontFamily: 'monospace',
+						fontSize: '11px',
+						color: btnColor,
+						fontStyle: 'bold',
+					})
+					.setOrigin(0.5);
+				container.add(btn);
+				container.add(btnText);
+
+				if (!maxed && affordable) {
+					btn.setInteractive({ useHandCursor: true });
+					btn.on(
+						'pointerdown',
+						(
+							_p: Phaser.Input.Pointer,
+							_x: number,
+							_y: number,
+							ev: Phaser.Types.Input.EventData,
+						) => {
+							ev.stopPropagation();
+							this.applyUpgrade(b, kind);
+						},
+					);
+				}
+			}
+		}
+
+		let fixedRowEndY = headerH + upgradeRows * rowH;
+		if (isTower && this.supportsFixedTarget(b)) {
+			const fy = fixedRowEndY + 4;
+			const hasTarget = b.fixedTarget !== null;
+			const fixedRow = this.add
+				.rectangle(8, fy, panelW - 16, rowH - 4, 0x1c2541, 0.85)
 				.setOrigin(0, 0)
-				.setStrokeStyle(1, def.color, 0.7);
-			container.add(row);
-
-			const dot = this.add.rectangle(
+				.setStrokeStyle(1, b.spec.color, 0.7);
+			container.add(fixedRow);
+			const fLabel = this.add.text(20, fy + 4, 'Fixed Target', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: COLORS.hudText,
+			});
+			container.add(fLabel);
+			const fHint = this.add.text(
 				20,
-				y + (rowH - 4) / 2,
-				10,
-				10,
-				def.color,
-			);
-			container.add(dot);
-
-			const label = this.add.text(
-				36,
-				y + 4,
-				`${def.name}  ${def.description}`,
-				{
-					fontFamily: 'monospace',
-					fontSize: '11px',
-					color: COLORS.hudText,
-				},
-			);
-			container.add(label);
-
-			const levelText = this.add.text(
-				36,
-				y + 16,
-				`Lv ${lvl}/${def.maxLevel}`,
+				fy + 16,
+				hasTarget
+					? `Locked at (${b.fixedTarget!.x.toFixed(0)}, ${b.fixedTarget!.y.toFixed(0)})`
+					: 'Auto-targeting enemies',
 				{
 					fontFamily: 'monospace',
 					fontSize: '10px',
 					color: COLORS.hudDim,
 				},
 			);
-			container.add(levelText);
-
-			const btnLabel = maxed
-				? 'MAX'
-				: affordable
-					? `${cost}g`
-					: `${cost}g`;
-			const btnColor = maxed
-				? COLORS.hudDim
-				: affordable
-					? COLORS.goldText
-					: COLORS.powerLow;
-			const btn = this.add
+			container.add(fHint);
+			const fBtnLabel = hasTarget ? 'CLEAR' : 'SET';
+			const fBtn = this.add
 				.rectangle(
 					panelW - 16,
-					y + (rowH - 4) / 2,
+					fy + (rowH - 4) / 2,
 					64,
 					rowH - 8,
 					0x111827,
 					0.95,
 				)
 				.setOrigin(1, 0.5)
-				.setStrokeStyle(1, def.color, maxed || !affordable ? 0.3 : 0.9);
-			const btnText = this.add
-				.text(panelW - 48, y + (rowH - 4) / 2, btnLabel, {
+				.setStrokeStyle(1, b.spec.color, 0.9)
+				.setInteractive({ useHandCursor: true });
+			const fBtnText = this.add
+				.text(panelW - 48, fy + (rowH - 4) / 2, fBtnLabel, {
 					fontFamily: 'monospace',
 					fontSize: '11px',
-					color: btnColor,
+					color: COLORS.hudText,
 					fontStyle: 'bold',
 				})
 				.setOrigin(0.5);
-			container.add(btn);
-			container.add(btnText);
-
-			if (!maxed && affordable) {
-				btn.setInteractive({ useHandCursor: true });
-				btn.on(
-					'pointerdown',
-					(
-						_p: Phaser.Input.Pointer,
-						_x: number,
-						_y: number,
-						ev: Phaser.Types.Input.EventData,
-					) => {
-						ev.stopPropagation();
-						this.applyUpgrade(tower, kind);
-					},
-				);
-			}
+			container.add(fBtn);
+			container.add(fBtnText);
+			fBtn.on(
+				'pointerdown',
+				(
+					_p: Phaser.Input.Pointer,
+					_x: number,
+					_y: number,
+					ev: Phaser.Types.Input.EventData,
+				) => {
+					ev.stopPropagation();
+					if (hasTarget) {
+						this.clearFixedTarget(b);
+						this.openBuildingPanel(b);
+					} else {
+						this.enterTargeting(b);
+					}
+				},
+			);
+			fixedRowEndY += rowH;
 		}
+		const demolishY = fixedRowEndY + 4;
+		const refund = refundForBuilding(b);
+		const demolishRow = this.add
+			.rectangle(
+				8,
+				demolishY,
+				panelW - 16,
+				demolishRowH - 8,
+				0x2d1212,
+				0.85,
+			)
+			.setOrigin(0, 0)
+			.setStrokeStyle(1, 0xfc8181, 0.7);
+		container.add(demolishRow);
+		const demolishLabel = this.add.text(20, demolishY + 6, 'Demolish', {
+			fontFamily: 'monospace',
+			fontSize: '12px',
+			color: COLORS.hudText,
+			fontStyle: 'bold',
+		});
+		container.add(demolishLabel);
+		const demolishHint = this.add.text(
+			20,
+			demolishY + 20,
+			`Refund ${refund}g (50% of investment)`,
+			{
+				fontFamily: 'monospace',
+				fontSize: '9px',
+				color: COLORS.hudDim,
+			},
+		);
+		container.add(demolishHint);
+		const demolishBtn = this.add
+			.rectangle(
+				panelW - 16,
+				demolishY + (demolishRowH - 8) / 2,
+				72,
+				demolishRowH - 14,
+				0x611818,
+				0.95,
+			)
+			.setOrigin(1, 0.5)
+			.setStrokeStyle(1, 0xfc8181, 0.9)
+			.setInteractive({ useHandCursor: true });
+		const demolishBtnText = this.add
+			.text(panelW - 52, demolishY + (demolishRowH - 8) / 2, 'SELL', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: '#fed7d7',
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5);
+		container.add(demolishBtn);
+		container.add(demolishBtnText);
+		demolishBtn.on(
+			'pointerdown',
+			(
+				_p: Phaser.Input.Pointer,
+				_x: number,
+				_y: number,
+				ev: Phaser.Types.Input.EventData,
+			) => {
+				ev.stopPropagation();
+				this.demolishBuilding(b);
+			},
+		);
 
 		this.upgradePanel = container;
 		this.upgradeBounds = new Phaser.Geom.Rectangle(
@@ -724,12 +968,28 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 	}
 
-	private upgradeStatsLine(t: TowerBuilding): string {
-		const dmg = towerDamage(t).toFixed(0);
-		const rate = (towerFireRateMs(t) / 1000).toFixed(2);
-		const rng = towerRange(t).toFixed(0);
-		const hp = `${Math.floor(t.hp)}/${towerMaxHp(t)}`;
-		return `DMG ${dmg} · RATE ${rate}s · RNG ${rng} · HP ${hp}`;
+	private panelTitle(b: Building): string {
+		if (b.kind === 'tower') return `${b.spec.name} Tower`;
+		if (b.kind === 'generator') return `${b.spec.name} Generator`;
+		if (b.kind === 'battery') return `${b.spec.name}`;
+		return `${b.spec.name} Station`;
+	}
+
+	private buildingStatsLine(b: Building): string {
+		if (b.kind === 'tower') {
+			const dmg = towerDamage(b).toFixed(0);
+			const rate = (towerFireRateMs(b) / 1000).toFixed(2);
+			const rng = towerRange(b).toFixed(0);
+			const hp = `${Math.floor(b.hp)}/${towerMaxHp(b)}`;
+			return `DMG ${dmg} · RATE ${rate}s · RNG ${rng} · HP ${hp}`;
+		}
+		if (b.kind === 'generator') {
+			return `OUTPUT +${b.spec.power}⚡ · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		}
+		if (b.kind === 'battery') {
+			return `CHARGE ${Math.floor(b.charge)}/${b.capacity} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		}
+		return `LOAD -${b.spec.power}⚡ · HEALS ${b.spec.repairAmount} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 	}
 
 	private applyUpgrade(tower: TowerBuilding, kind: UpgradeKind): void {
@@ -749,7 +1009,61 @@ export class TowerDefenseScene extends Phaser.Scene {
 			tower.hp = Math.min(tower.hp, tower.maxHp);
 		}
 		this.refreshHud();
-		this.openUpgradePanel(tower);
+		this.openBuildingPanel(tower);
+	}
+
+	private demolishBuilding(b: Building): void {
+		const refund = refundForBuilding(b);
+		this.gold += refund;
+		this.closeUpgradePanel();
+		this.destroyBuilding(b);
+		this.recomputePower(0);
+		this.refreshHud();
+	}
+
+	private supportsFixedTarget(t: TowerBuilding): boolean {
+		return t.spec.arcHeight > 0;
+	}
+
+	private enterTargeting(tower: TowerBuilding): void {
+		this.closeUpgradePanel();
+		this.targetingTower = tower;
+		this.targetingHint = this.add
+			.text(0, 0, 'Click to set fire point · Esc to cancel', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: COLORS.hudText,
+				backgroundColor: '#1f2937',
+				padding: { x: 6, y: 3 },
+			})
+			.setDepth(110);
+	}
+
+	private cancelTargeting(): void {
+		this.targetingTower = null;
+		if (this.targetingHint) {
+			this.targetingHint.destroy();
+			this.targetingHint = null;
+		}
+	}
+
+	private setFixedTarget(t: TowerBuilding, x: number, y: number): void {
+		this.clearFixedTarget(t);
+		const marker = this.add.graphics().setDepth(50);
+		marker.lineStyle(2, t.spec.color, 0.85);
+		marker.strokeCircle(x, y, 14);
+		marker.lineBetween(x - 18, y, x - 6, y);
+		marker.lineBetween(x + 6, y, x + 18, y);
+		marker.lineBetween(x, y - 18, x, y - 6);
+		marker.lineBetween(x, y + 6, x, y + 18);
+		t.fixedTarget = { x, y, marker };
+	}
+
+	private clearFixedTarget(t: TowerBuilding): void {
+		if (t.fixedTarget) {
+			t.fixedTarget.marker.destroy();
+			t.fixedTarget = null;
+		}
 	}
 
 	private closeUpgradePanel(): void {
@@ -832,6 +1146,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				online: true,
 				powerIndicator,
 				upgrades: { radar: 0, attack: 0, speed: 0, armor: 0 },
+				fixedTarget: null,
 			};
 			building = b;
 		} else if (spec.kind === 'generator') {
@@ -958,10 +1273,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			: 0;
 		const radius = TILE * type.sizeRadius;
 		const sprite = this.add.circle(start.x, start.y, radius, type.color);
-		const statusRing = this.add
-			.circle(start.x, start.y, radius + 4, 0xffffff, 0)
-			.setStrokeStyle(2, 0xffffff, 0)
-			.setVisible(false);
+		const statusRing = this.add.graphics().setVisible(false);
+		const ringRadius = radius + 4;
 		const hpBarBg = this.add
 			.rectangle(
 				start.x,
@@ -980,38 +1293,47 @@ export class TowerDefenseScene extends Phaser.Scene {
 				COLORS.enemyHpBar,
 			)
 			.setOrigin(0, 0.5);
-		this.enemies.push({
-			type,
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, EnemyTag);
+		addComponent(this.world, eid, EnemyStats);
+		Position.x[eid] = start.x;
+		Position.y[eid] = start.y;
+		EnemyStats.hp[eid] = hp;
+		EnemyStats.maxHp[eid] = hp;
+		EnemyStats.baseSpeed[eid] = speed;
+		EnemyStats.pathIndex[eid] = 1;
+		EnemyStats.slowUntilMs[eid] = 0;
+		EnemyStats.slowDurationMs[eid] = 0;
+		EnemyStats.slowFactor[eid] = 1;
+		EnemyStats.burnUntilMs[eid] = 0;
+		EnemyStats.burnDps[eid] = 0;
+		EnemyStats.attackDamage[eid] = attackDamage;
+		EnemyStats.attackRateMs[eid] = type.attackRateMs;
+		EnemyStats.lastAttackAtMs[eid] = 0;
+		EnemyStats.canAttack[eid] = type.canAttack ? 1 : 0;
+		EnemyStats.bountyMultiplier[eid] = type.bountyMultiplier;
+		EnemyStats.typeIndex[eid] = enemyTypeIndexFromId(type.id);
+		this.enemyVisuals.set(eid, {
 			sprite,
 			statusRing,
 			hpBar,
 			hpBarBg,
-			hp,
-			maxHp: hp,
-			baseSpeed: speed,
-			pathIndex: 1,
-			alive: true,
-			slowUntilMs: 0,
-			slowFactor: 1,
-			burnUntilMs: 0,
-			burnDps: 0,
-			attackDamage,
-			attackRateMs: type.attackRateMs,
-			canAttack: type.canAttack,
+			ringRadius,
 			attackTarget: null,
-			lastAttackAtMs: 0,
-			bountyMultiplier: type.bountyMultiplier,
 		});
 	}
 
-	private findAttackTarget(e: Enemy): Building | null {
+	private findAttackTarget(eid: number): Building | null {
 		const range = GAME_CONFIG.enemyAttackRange;
+		const ex = Position.x[eid];
+		const ey = Position.y[eid];
 		let best: Building | null = null;
 		let bestDist2 = range * range;
 		for (const b of this.buildings) {
 			if (b.destroyed) continue;
-			const dx = b.x - e.sprite.x;
-			const dy = b.y - e.sprite.y;
+			const dx = b.x - ex;
+			const dy = b.y - ey;
 			const d2 = dx * dx + dy * dy;
 			if (d2 <= bestDist2) {
 				bestDist2 = d2;
@@ -1037,12 +1359,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'tower' || b.kind === 'repair') {
 			b.powerIndicator.destroy();
 		}
+		if (b.kind === 'tower' && b.fixedTarget) {
+			b.fixedTarget.marker.destroy();
+			b.fixedTarget = null;
+		}
 		if (b.kind === 'battery') {
 			b.chargeBar.destroy();
 			b.chargeBarBg.destroy();
 		}
-		for (const e of this.enemies) {
-			if (e.attackTarget === b) e.attackTarget = null;
+		if (this.targetingTower === b) this.cancelTargeting();
+		for (const v of this.enemyVisuals.values()) {
+			if (v.attackTarget === b) v.attackTarget = null;
 		}
 		for (const d of this.drones) {
 			if (d.target === b || d.station === (b as RepairBuilding)) {
@@ -1056,95 +1383,145 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
-		for (const e of this.enemies) {
-			if (!e.alive) continue;
-			if (e.burnUntilMs > nowMs && e.burnDps > 0) {
-				e.hp -= e.burnDps * dt;
-				if (e.hp <= 0) {
-					this.killEnemy(e, true);
+		const eids = query(this.world, [EnemyTag, Position, EnemyStats]);
+		for (const eid of eids) {
+			if (!this.enemyVisuals.has(eid)) continue;
+			if (
+				EnemyStats.burnUntilMs[eid] > nowMs &&
+				EnemyStats.burnDps[eid] > 0
+			) {
+				EnemyStats.hp[eid] -= EnemyStats.burnDps[eid] * dt;
+				if (EnemyStats.hp[eid] <= 0) {
+					this.killEnemy(eid, true);
 					continue;
 				}
 			}
 
-			if (e.canAttack) {
-				if (e.attackTarget && e.attackTarget.destroyed)
-					e.attackTarget = null;
-				if (!e.attackTarget) {
-					e.attackTarget = this.findAttackTarget(e);
+			if (EnemyStats.canAttack[eid] === 1) {
+				const v = this.enemyVisuals.get(eid)!;
+				if (v.attackTarget && v.attackTarget.destroyed)
+					v.attackTarget = null;
+				if (!v.attackTarget) {
+					v.attackTarget = this.findAttackTarget(eid);
 				} else {
-					const dx = e.attackTarget.x - e.sprite.x;
-					const dy = e.attackTarget.y - e.sprite.y;
+					const dx = v.attackTarget.x - Position.x[eid];
+					const dy = v.attackTarget.y - Position.y[eid];
 					if (
 						dx * dx + dy * dy >
 						GAME_CONFIG.enemyAttackRange *
 							GAME_CONFIG.enemyAttackRange *
 							2.25
 					) {
-						e.attackTarget = null;
+						v.attackTarget = null;
 					}
 				}
 
-				if (e.attackTarget) {
-					if (nowMs - e.lastAttackAtMs >= e.attackRateMs) {
-						e.lastAttackAtMs = nowMs;
-						this.damageBuilding(e.attackTarget, e.attackDamage);
+				if (v.attackTarget) {
+					if (
+						nowMs - EnemyStats.lastAttackAtMs[eid] >=
+						EnemyStats.attackRateMs[eid]
+					) {
+						EnemyStats.lastAttackAtMs[eid] = nowMs;
+						this.damageBuilding(
+							v.attackTarget,
+							EnemyStats.attackDamage[eid],
+						);
 					}
-					const slowed = e.slowUntilMs > nowMs;
+					const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
+					const baseSpeed = EnemyStats.baseSpeed[eid];
 					const speed =
-						(slowed ? e.baseSpeed * e.slowFactor : e.baseSpeed) *
-						GAME_CONFIG.enemyAttackSpeedFactor;
-					if (speed > 0) this.moveAlongPath(e, speed, dt);
-					this.updateEnemyVisuals(e, nowMs);
+						(slowed
+							? baseSpeed * EnemyStats.slowFactor[eid]
+							: baseSpeed) * GAME_CONFIG.enemyAttackSpeedFactor;
+					if (speed > 0) this.moveAlongPath(eid, speed, dt);
+					this.updateEnemyVisuals(eid, nowMs);
 					continue;
 				}
 			}
 
-			const slowed = e.slowUntilMs > nowMs;
-			const speed = slowed ? e.baseSpeed * e.slowFactor : e.baseSpeed;
-			this.moveAlongPath(e, speed, dt);
-			this.updateEnemyVisuals(e, nowMs);
+			const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
+			const baseSpeed = EnemyStats.baseSpeed[eid];
+			const speed = slowed
+				? baseSpeed * EnemyStats.slowFactor[eid]
+				: baseSpeed;
+			this.moveAlongPath(eid, speed, dt);
+			this.updateEnemyVisuals(eid, nowMs);
 		}
-		this.enemies = this.enemies.filter((e) => e.alive);
 	}
 
-	private moveAlongPath(e: Enemy, speed: number, dt: number): void {
-		const target: Waypoint | undefined = this.path.waypoints[e.pathIndex];
+	private moveAlongPath(eid: number, speed: number, dt: number): void {
+		const target: Waypoint | undefined =
+			this.path.waypoints[EnemyStats.pathIndex[eid]];
 		if (!target) {
-			this.killEnemy(e, false);
+			this.killEnemy(eid, false);
 			this.lives -= 1;
 			if (this.lives <= 0) this.endGame(false);
 			return;
 		}
-		const dx = target.x - e.sprite.x;
-		const dy = target.y - e.sprite.y;
+		const px = Position.x[eid];
+		const py = Position.y[eid];
+		const dx = target.x - px;
+		const dy = target.y - py;
 		const dist = Math.hypot(dx, dy);
 		const step = speed * dt;
 		if (step >= dist) {
-			e.sprite.x = target.x;
-			e.sprite.y = target.y;
-			e.pathIndex += 1;
+			Position.x[eid] = target.x;
+			Position.y[eid] = target.y;
+			EnemyStats.pathIndex[eid] += 1;
 		} else {
-			e.sprite.x += (dx / dist) * step;
-			e.sprite.y += (dy / dist) * step;
+			Position.x[eid] = px + (dx / dist) * step;
+			Position.y[eid] = py + (dy / dist) * step;
 		}
 	}
 
-	private updateEnemyVisuals(e: Enemy, nowMs: number): void {
-		e.hpBarBg.setPosition(e.sprite.x, e.sprite.y - TILE * 0.5);
-		e.hpBar.setPosition(
-			e.sprite.x - (TILE * 0.7) / 2,
-			e.sprite.y - TILE * 0.5,
-		);
-		e.hpBar.width = (e.hp / e.maxHp) * TILE * 0.7;
-		e.statusRing.setPosition(e.sprite.x, e.sprite.y);
-		const slowed = e.slowUntilMs > nowMs;
-		const burning = e.burnUntilMs > nowMs;
+	private updateEnemyVisuals(eid: number, nowMs: number): void {
+		const v = this.enemyVisuals.get(eid);
+		if (!v) return;
+		const x = Position.x[eid];
+		const y = Position.y[eid];
+		v.sprite.setPosition(x, y);
+		v.hpBarBg.setPosition(x, y - TILE * 0.5);
+		v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
+		v.hpBar.width =
+			(EnemyStats.hp[eid] / EnemyStats.maxHp[eid]) * TILE * 0.7;
+		const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
+		const burning = EnemyStats.burnUntilMs[eid] > nowMs;
+		v.statusRing.clear();
 		if (slowed || burning) {
-			e.statusRing.setVisible(true);
-			const color = burning ? COLORS.statusBurn : COLORS.statusSlow;
-			e.statusRing.setStrokeStyle(2, color, 0.8);
+			v.statusRing.setVisible(true);
+			if (slowed) {
+				const dur = EnemyStats.slowDurationMs[eid];
+				const slowRatio =
+					dur > 0
+						? Math.max(
+								0,
+								Math.min(
+									1,
+									(EnemyStats.slowUntilMs[eid] - nowMs) / dur,
+								),
+							)
+						: 0;
+				v.statusRing.lineStyle(3, COLORS.statusSlow, 0.85);
+				v.statusRing.beginPath();
+				v.statusRing.arc(
+					x,
+					y,
+					v.ringRadius,
+					-Math.PI / 2,
+					-Math.PI / 2 + Math.PI * 2 * slowRatio,
+				);
+				v.statusRing.strokePath();
+			}
+			if (burning) {
+				v.statusRing.lineStyle(2, COLORS.statusBurn, 0.8);
+				v.statusRing.strokeCircle(
+					x,
+					y,
+					v.ringRadius + (slowed ? 4 : 0),
+				);
+			}
 		} else {
-			e.statusRing.setVisible(false);
+			v.statusRing.setVisible(false);
 		}
 	}
 
@@ -1154,32 +1531,48 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.kind !== 'tower') continue;
 			if (!b.online) continue;
 			if (nowMs - b.lastFireAtMs < towerFireRateMs(b)) continue;
-			const target = this.findTarget(b);
-			if (!target) continue;
+			if (b.fixedTarget) {
+				b.lastFireAtMs = nowMs;
+				this.fireAt(b, b.fixedTarget.x, b.fixedTarget.y, null);
+				continue;
+			}
+			const targetEid = this.findTarget(b);
+			if (targetEid === null) continue;
 			b.lastFireAtMs = nowMs;
-			this.fireProjectile(b, target);
+			this.fireAt(
+				b,
+				Position.x[targetEid],
+				Position.y[targetEid],
+				targetEid,
+			);
 		}
 	}
 
-	private findTarget(t: TowerBuilding): Enemy | null {
-		let best: Enemy | null = null;
+	private findTarget(t: TowerBuilding): number | null {
+		let best = -1;
 		let bestProgress = -1;
 		const range = towerRange(t);
 		const rangeSq = range * range;
-		for (const e of this.enemies) {
-			if (!e.alive) continue;
-			const dx = e.sprite.x - t.x;
-			const dy = e.sprite.y - t.y;
+		for (const eid of query(this.world, [EnemyTag, Position, EnemyStats])) {
+			if (!this.enemyVisuals.has(eid)) continue;
+			const dx = Position.x[eid] - t.x;
+			const dy = Position.y[eid] - t.y;
 			if (dx * dx + dy * dy > rangeSq) continue;
-			if (e.pathIndex > bestProgress) {
-				bestProgress = e.pathIndex;
-				best = e;
+			const prog = EnemyStats.pathIndex[eid];
+			if (prog > bestProgress) {
+				bestProgress = prog;
+				best = eid;
 			}
 		}
-		return best;
+		return best >= 0 ? best : null;
 	}
 
-	private fireProjectile(t: TowerBuilding, enemy: Enemy): void {
+	private fireAt(
+		t: TowerBuilding,
+		targetX: number,
+		targetY: number,
+		enemyId: number | null,
+	): void {
 		const radius = t.spec.arcHeight > 0 ? 6 : 4;
 		const sprite = this.add.circle(
 			t.x,
@@ -1187,8 +1580,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			radius,
 			t.spec.projectileColor,
 		);
-		const targetX = enemy.sprite.x;
-		const targetY = enemy.sprite.y;
 		const totalDist = Math.hypot(targetX - t.x, targetY - t.y);
 		this.projectiles.push({
 			sprite,
@@ -1197,7 +1588,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			startY: t.y,
 			targetX,
 			targetY,
-			enemy: t.spec.homing ? enemy : null,
+			enemyId: t.spec.homing ? enemyId : null,
 			speed: t.spec.projectileSpeed,
 			alive: true,
 			homing: t.spec.homing,
@@ -1207,13 +1598,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		});
 	}
 
+	private isEnemyAlive(eid: number | null): eid is number {
+		return eid !== null && this.enemyVisuals.has(eid);
+	}
+
 	private updateProjectiles(dt: number, nowMs: number): void {
 		for (const p of this.projectiles) {
 			if (!p.alive) continue;
 			if (p.homing) {
-				if (p.enemy && p.enemy.alive) {
-					p.targetX = p.enemy.sprite.x;
-					p.targetY = p.enemy.sprite.y;
+				if (this.isEnemyAlive(p.enemyId)) {
+					p.targetX = Position.x[p.enemyId];
+					p.targetY = Position.y[p.enemyId];
 				}
 				const dx = p.targetX - p.sprite.x;
 				const dy = p.targetY - p.sprite.y;
@@ -1261,35 +1656,38 @@ export class TowerDefenseScene extends Phaser.Scene {
 			return;
 		}
 		if (spec.splashRadius > 0) {
-			for (const e of this.enemies) {
-				if (!e.alive) continue;
-				const dx = e.sprite.x - x;
-				const dy = e.sprite.y - y;
-				if (
-					dx * dx + dy * dy <=
-					spec.splashRadius * spec.splashRadius
-				) {
-					this.damageEnemy(e, damage);
+			const r2 = spec.splashRadius * spec.splashRadius;
+			for (const eid of query(this.world, [
+				EnemyTag,
+				Position,
+				EnemyStats,
+			])) {
+				if (!this.enemyVisuals.has(eid)) continue;
+				const dx = Position.x[eid] - x;
+				const dy = Position.y[eid] - y;
+				if (dx * dx + dy * dy <= r2) {
+					this.damageEnemy(eid, damage);
 				}
 			}
 			this.spawnSplashFlash(x, y, spec.splashRadius);
 			return;
 		}
-		if (p.enemy && p.enemy.alive) {
-			this.damageEnemy(p.enemy, damage);
-			if (p.enemy.alive && spec.slowMs > 0) {
-				p.enemy.slowUntilMs = Math.max(
-					p.enemy.slowUntilMs,
+		if (this.isEnemyAlive(p.enemyId)) {
+			this.damageEnemy(p.enemyId, damage);
+			if (this.isEnemyAlive(p.enemyId) && spec.slowMs > 0) {
+				EnemyStats.slowUntilMs[p.enemyId] = Math.max(
+					EnemyStats.slowUntilMs[p.enemyId],
 					nowMs + spec.slowMs,
 				);
-				p.enemy.slowFactor = spec.slowFactor;
+				EnemyStats.slowDurationMs[p.enemyId] = spec.slowMs;
+				EnemyStats.slowFactor[p.enemyId] = spec.slowFactor;
 			}
 		}
 	}
 
-	private damageEnemy(e: Enemy, dmg: number): void {
-		e.hp -= dmg;
-		if (e.hp <= 0) this.killEnemy(e, true);
+	private damageEnemy(eid: number, dmg: number): void {
+		EnemyStats.hp[eid] -= dmg;
+		if (EnemyStats.hp[eid] <= 0) this.killEnemy(eid, true);
 	}
 
 	private spawnBurnPatch(
@@ -1316,15 +1714,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateBurnPatches(dt: number, nowMs: number): void {
+		const enemyEids = query(this.world, [EnemyTag, Position, EnemyStats]);
 		for (const patch of this.burnPatches) {
 			if (nowMs >= patch.expiresAtMs) continue;
-			for (const e of this.enemies) {
-				if (!e.alive) continue;
-				const dx = e.sprite.x - patch.x;
-				const dy = e.sprite.y - patch.y;
-				if (dx * dx + dy * dy <= patch.radius * patch.radius) {
-					e.burnUntilMs = Math.max(e.burnUntilMs, nowMs + 500);
-					e.burnDps = Math.max(e.burnDps, patch.dps);
+			const r2 = patch.radius * patch.radius;
+			for (const eid of enemyEids) {
+				if (!this.enemyVisuals.has(eid)) continue;
+				const dx = Position.x[eid] - patch.x;
+				const dy = Position.y[eid] - patch.y;
+				if (dx * dx + dy * dy <= r2) {
+					EnemyStats.burnUntilMs[eid] = Math.max(
+						EnemyStats.burnUntilMs[eid],
+						nowMs + 500,
+					);
+					EnemyStats.burnDps[eid] = Math.max(
+						EnemyStats.burnDps[eid],
+						patch.dps,
+					);
 				}
 			}
 			const remaining = (patch.expiresAtMs - nowMs) / 1000;
@@ -1441,18 +1847,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.drones.push(drone);
 	}
 
-	private killEnemy(e: Enemy, reward: boolean): void {
-		if (!e.alive) return;
-		e.alive = false;
-		e.sprite.destroy();
-		e.statusRing.destroy();
-		e.hpBar.destroy();
-		e.hpBarBg.destroy();
+	private killEnemy(eid: number, reward: boolean): void {
+		const v = this.enemyVisuals.delete(eid);
+		if (!v) return;
+		v.sprite.destroy();
+		v.statusRing.destroy();
+		v.hpBar.destroy();
+		v.hpBarBg.destroy();
 		if (reward) {
 			this.gold += Math.round(
-				GAME_CONFIG.goldPerKill * e.bountyMultiplier,
+				GAME_CONFIG.goldPerKill * EnemyStats.bountyMultiplier[eid],
 			);
 		}
+		removeEntity(this.world, eid);
 	}
 
 	private endGame(win: boolean): void {
@@ -1489,7 +1896,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.spawnEnemy();
 				this.enemiesToSpawn -= 1;
 			}
-		} else if (this.enemies.length === 0) {
+		} else if (this.enemyVisuals.size === 0) {
 			this.interWaveDelayMs -= deltaMs;
 			if (this.interWaveDelayMs <= 0) {
 				this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
