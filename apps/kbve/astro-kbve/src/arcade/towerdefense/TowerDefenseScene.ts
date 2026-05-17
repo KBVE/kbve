@@ -806,6 +806,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.upgradeRangeIndicator = this.add
 				.circle(b.x, b.y, towerRange(b), b.spec.color, 0.12)
 				.setStrokeStyle(2, b.spec.color, 0.6);
+		} else if (b.kind === 'repair') {
+			this.upgradeRangeIndicator = this.add
+				.circle(b.x, b.y, b.spec.repairRange, b.spec.color, 0.1)
+				.setStrokeStyle(2, b.spec.color, 0.6);
 		}
 
 		const isTower = b.kind === 'tower';
@@ -1171,6 +1175,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private redrawUpgradePips(t: TowerBuilding): void {
 		t.upgradePips.clear();
+		const anyUpgraded = UPGRADE_ORDER.some((k) => t.upgrades[k] > 0);
+		if (!anyUpgraded) return;
 		const pipW = 3;
 		const pipH = TILE * 0.5;
 		const startX = t.x + TILE * 0.42;
@@ -1180,13 +1186,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const lvl = t.upgrades[kind];
 			const def = UPGRADE_DEFS[kind];
 			const px = startX + i * (pipW + 1);
-			t.upgradePips.fillStyle(0x111827, 0.7);
-			t.upgradePips.fillRect(px, baseY - pipH, pipW, pipH);
-			if (lvl > 0) {
-				const filled = (lvl / def.maxLevel) * pipH;
-				t.upgradePips.fillStyle(def.color, 0.95);
-				t.upgradePips.fillRect(px, baseY - filled, pipW, filled);
-			}
+			if (lvl <= 0) continue;
+			const filled = (lvl / def.maxLevel) * pipH;
+			t.upgradePips.fillStyle(def.color, 0.95);
+			t.upgradePips.fillRect(px, baseY - filled, pipW, filled);
 		}
 	}
 
@@ -1757,22 +1760,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findEnemyForSoldier(seid: number): number {
 		const sx = Position.x[seid];
 		const sy = Position.y[seid];
-		const armouryEid = SoldierStats.armouryEid[seid];
-		const armoury = this.buildingByEid.get(armouryEid);
-		const ax = armoury && !armoury.destroyed ? armoury.x : sx;
-		const ay = armoury && !armoury.destroyed ? armoury.y : sy;
-		const roam =
-			armoury && armoury.kind === 'armoury'
-				? armoury.spec.soldierRoamRange
-				: 240;
-		const roamSq = roam * roam;
 		let best = -1;
 		let bestDist2 = Infinity;
 		for (const eeid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eeid)) continue;
-			const adx = Position.x[eeid] - ax;
-			const ady = Position.y[eeid] - ay;
-			if (adx * adx + ady * ady > roamSq) continue;
 			const dx = Position.x[eeid] - sx;
 			const dy = Position.y[eeid] - sy;
 			const d2 = dx * dx + dy * dy;
@@ -2311,11 +2302,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findRepairTarget(station: RepairBuilding): Building | null {
 		let best: Building | null = null;
 		let bestRatio = 1;
+		const rangeSq = station.spec.repairRange * station.spec.repairRange;
 		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
 			if (!b || b.destroyed) continue;
 			if (b === station) continue;
 			if (b.hp >= b.maxHp) continue;
+			const dx = b.x - station.x;
+			const dy = b.y - station.y;
+			if (dx * dx + dy * dy > rangeSq) continue;
 			const ratio = b.hp / b.maxHp;
 			if (ratio < bestRatio) {
 				bestRatio = ratio;
