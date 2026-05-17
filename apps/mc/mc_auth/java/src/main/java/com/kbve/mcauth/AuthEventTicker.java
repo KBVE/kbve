@@ -176,6 +176,7 @@ public final class AuthEventTicker {
                 ServerPlayerEntity player = findPlayer(server, uuid);
                 if (player != null) {
                     sendBalanceMessage(player, credits, khash);
+                    WalletNetworking.pushBalance(player, credits, khash);
                 }
                 LOGGER.debug(
                         "[{}] WalletBalance uuid={} credits={} khash={}",
