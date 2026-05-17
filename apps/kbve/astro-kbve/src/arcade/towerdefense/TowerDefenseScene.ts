@@ -69,6 +69,7 @@ import {
 import {
 	batteryCapacityAtom,
 	batteryChargeAtom,
+	bestWaveAtom,
 	bountyMulAtom,
 	canSkipAtom,
 	demandAtom,
@@ -77,8 +78,11 @@ import {
 	gameOverAtom,
 	goldAtom,
 	livesAtom,
+	loadBestWave,
+	nextWavePreviewAtom,
 	resetHudStore,
 	restartSignalAtom,
+	saveBestWave,
 	skipSignalAtom,
 	speedFactorAtom,
 	supplyAtom,
@@ -263,6 +267,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.simNow = 0;
 		this.speedFactor = 1;
 		resetHudStore();
+		bestWaveAtom.set(loadBestWave());
 	}
 
 	create(): void {
@@ -290,6 +295,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-ESC', () => {
 				if (this.targetingTower) this.cancelTargeting();
 				else if (this.upgradePanel) this.closeUpgradePanel();
+				else if (this.awaitingCardPick) this.skipCardPick();
 			});
 			const digitCodes = [
 				Phaser.Input.Keyboard.KeyCodes.ONE,
@@ -1553,6 +1559,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.destroyed) continue;
 			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
 		}
+		nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 		this.showWaveSplash();
 	}
 
@@ -2458,7 +2465,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.isGameOver = true;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
-		gameOverAtom.set({ visible: true, win, wave: this.wave });
+		const previousBest = loadBestWave();
+		const newRecord = this.wave > previousBest;
+		if (newRecord) {
+			saveBestWave(this.wave);
+			bestWaveAtom.set(this.wave);
+		}
+		gameOverAtom.set({
+			visible: true,
+			win,
+			wave: this.wave,
+			bestBefore: previousBest,
+			newRecord,
+		});
 	}
 
 	update(_time: number, deltaMs: number): void {
@@ -2488,6 +2507,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.enemiesToSpawn -= 1;
 			}
 		} else if (this.enemyVisuals.size === 0) {
+			this.pushNextWavePreview();
 			if (
 				this.wave >= 1 &&
 				!this.cardPickedThisInterval &&
@@ -2663,6 +2683,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.cardBackdrop = null;
 		}
 		this.awaitingCardPick = false;
+	}
+
+	private skipCardPick(): void {
+		this.closeCardPanel();
+		this.cardPickedThisInterval = true;
+		this.interWaveDelayMs = 1500;
+	}
+
+	private pushNextWavePreview(): void {
+		const next = this.wave + 1;
+		const baseCount = Math.floor(
+			GAME_CONFIG.enemiesPerWave +
+				(next - 1) * GAME_CONFIG.enemiesPerWaveScale,
+		);
+		const bossCount = next % 5 === 0 ? 1 : 0;
+		nextWavePreviewAtom.set({
+			count: baseCount + bossCount,
+			bossCount,
+		});
 	}
 
 	private summonSoldierSquad(count: number): void {

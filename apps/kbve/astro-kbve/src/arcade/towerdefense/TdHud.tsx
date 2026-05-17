@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
+	bestWaveAtom,
 	batteryCapacityAtom,
 	batteryChargeAtom,
 	bountyMulAtom,
@@ -11,6 +12,7 @@ import {
 	gameOverAtom,
 	goldAtom,
 	livesAtom,
+	nextWavePreviewAtom,
 	restartSignalAtom,
 	skipSignalAtom,
 	speedFactorAtom,
@@ -249,6 +251,23 @@ function SpeedControls() {
 	);
 }
 
+function NextWavePreview() {
+	const state = useStore(timerStateAtom);
+	const preview = useStore(nextWavePreviewAtom);
+	if (state === 'IN_PROGRESS' || preview.count === 0) return null;
+	const summary =
+		preview.bossCount > 0 ? `${preview.count} + boss` : `${preview.count}`;
+	return (
+		<Chip
+			icon="target"
+			label="Incoming"
+			value={summary}
+			tone={preview.bossCount > 0 ? 'danger' : 'default'}
+			title="Composition of the next wave"
+		/>
+	);
+}
+
 function TimerSlot() {
 	const state = useStore(timerStateAtom);
 	const sec = useStore(timerSecAtom);
@@ -285,8 +304,9 @@ function TimerSlot() {
 
 function GameOverOverlay() {
 	const state = useStore(gameOverAtom);
+	const best = useStore(bestWaveAtom);
 	if (!state.visible) return null;
-	const accent = state.win ? '#48bb78' : '#fc8181';
+	const accent = state.win || state.newRecord ? '#48bb78' : '#fc8181';
 	const style = { '--td-accent': accent } as CSSProperties;
 	return (
 		<div className="td-over" style={style}>
@@ -300,6 +320,13 @@ function GameOverOverlay() {
 				<div className="td-over-sub">
 					Cleared {state.wave} {state.wave === 1 ? 'wave' : 'waves'}
 				</div>
+				{state.newRecord ? (
+					<div className="td-over-record">
+						🏆 New best — beat {state.bestBefore}
+					</div>
+				) : (
+					<div className="td-over-record-dim">Best: wave {best}</div>
+				)}
 				<button
 					type="button"
 					className="td-over-restart"
@@ -337,6 +364,7 @@ export default function TdHud() {
 					<BountyChip />
 				</div>
 				<div className="td-spacer" />
+				<NextWavePreview />
 				<SpeedControls />
 				<div className="td-divider" />
 				<TimerSlot />
