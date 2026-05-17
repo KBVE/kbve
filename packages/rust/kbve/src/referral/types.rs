@@ -94,6 +94,8 @@ pub struct UserTargetRow {
     pub enabled_at: DateTime<Utc>,
     #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
     pub disabled_at: Option<DateTime<Utc>>,
+    #[diesel(sql_type = Timestamptz)]
+    pub updated_at: DateTime<Utc>,
     #[diesel(sql_type = BigInt)]
     pub clicks_total: i64,
     #[diesel(sql_type = BigInt)]
@@ -114,6 +116,7 @@ pub struct UserTargetView {
     pub active: bool,
     pub enabled_at: DateTime<Utc>,
     pub disabled_at: Option<DateTime<Utc>>,
+    pub updated_at: DateTime<Utc>,
     pub clicks_total: i64,
     pub clicks_credited: i64,
     pub credits_total: i64,
@@ -130,6 +133,7 @@ impl From<UserTargetRow> for UserTargetView {
             active: r.active,
             enabled_at: r.enabled_at,
             disabled_at: r.disabled_at,
+            updated_at: r.updated_at,
             clicks_total: r.clicks_total,
             clicks_credited: r.clicks_credited,
             credits_total: r.credits_total,
@@ -169,6 +173,49 @@ impl From<UserTargetMutationRow> for UserTargetMutation {
     fn from(r: UserTargetMutationRow) -> Self {
         Self {
             target_slug: r.target_slug,
+            is_default: r.is_default,
+            active: r.active,
+            enabled_at: r.enabled_at,
+            disabled_at: r.disabled_at,
+        }
+    }
+}
+
+/// Row shape returned by `referral.service_disable_target`. Carries the
+/// disabled row's fields PLUS the slug that inherited the default
+/// (NULL when no promotion happened) so callers can refresh local UI
+/// state without a follow-up list call.
+#[derive(Debug, QueryableByName)]
+pub struct DisableTargetRow {
+    #[diesel(sql_type = Text)]
+    pub target_slug: String,
+    #[diesel(sql_type = diesel::sql_types::Nullable<Text>)]
+    pub promoted_target_slug: Option<String>,
+    #[diesel(sql_type = Bool)]
+    pub is_default: bool,
+    #[diesel(sql_type = Bool)]
+    pub active: bool,
+    #[diesel(sql_type = Timestamptz)]
+    pub enabled_at: DateTime<Utc>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
+    pub disabled_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct DisableTargetOutcome {
+    pub target_slug: String,
+    pub promoted_target_slug: Option<String>,
+    pub is_default: bool,
+    pub active: bool,
+    pub enabled_at: DateTime<Utc>,
+    pub disabled_at: Option<DateTime<Utc>>,
+}
+
+impl From<DisableTargetRow> for DisableTargetOutcome {
+    fn from(r: DisableTargetRow) -> Self {
+        Self {
+            target_slug: r.target_slug,
+            promoted_target_slug: r.promoted_target_slug,
             is_default: r.is_default,
             active: r.active,
             enabled_at: r.enabled_at,

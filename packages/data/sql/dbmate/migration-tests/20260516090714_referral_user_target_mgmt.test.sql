@@ -275,6 +275,107 @@ BEGIN
     END;
 END $$;
 
+-- Idempotent fast path: enabling an already-active row in the desired
+-- state must not bump updated_at. Skipping the UPDATE keeps cache
+-- invalidation hooks honest.
+DO $$
+DECLARE
+    u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    ts_before TIMESTAMPTZ;
+    ts_after  TIMESTAMPTZ;
+BEGIN
+    SELECT updated_at INTO ts_before
+      FROM referral.user_target
+     WHERE user_id = u AND target_slug = 'rareicon';
+
+    PERFORM pg_sleep(0.05);
+    PERFORM * FROM referral.service_enable_target(u, 'rareicon');
+
+    SELECT updated_at INTO ts_after
+      FROM referral.user_target
+     WHERE user_id = u AND target_slug = 'rareicon';
+    IF ts_after <> ts_before THEN
+        RAISE EXCEPTION 'fail: idempotent enable should not bump updated_at (was %, now %)',
+                        ts_before, ts_after;
+    END IF;
+END $$;
+
+-- Idempotent fast path: set_default on the row that is already default
+-- must be a no-op (no updated_at bump).
+DO $$
+DECLARE
+    u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    ts_before TIMESTAMPTZ;
+    ts_after  TIMESTAMPTZ;
+BEGIN
+    SELECT updated_at INTO ts_before
+      FROM referral.user_target
+     WHERE user_id = u AND target_slug = 'mc';
+
+    PERFORM pg_sleep(0.05);
+    PERFORM * FROM referral.service_set_default_target(u, 'mc');
+
+    SELECT updated_at INTO ts_after
+      FROM referral.user_target
+     WHERE user_id = u AND target_slug = 'mc';
+    IF ts_after <> ts_before THEN
+        RAISE EXCEPTION 'fail: idempotent set_default should not bump updated_at (was %, now %)',
+                        ts_before, ts_after;
+    END IF;
+END $$;
+
+-- service_disable_target returns the disabled slug AND the slug that
+-- inherited the default when one is promoted.
+DO $$
+DECLARE
+    u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    r RECORD;
+BEGIN
+    -- mc is currently default, rareicon active. Disabling mc must
+    -- promote rareicon to default and return its slug.
+    SELECT * INTO r FROM referral.service_disable_target(u, 'mc');
+    IF r.target_slug <> 'mc' THEN
+        RAISE EXCEPTION 'fail: disable should return mc, got %', r.target_slug;
+    END IF;
+    IF r.promoted_target_slug IS NULL THEN
+        RAISE EXCEPTION 'fail: disable should return a promoted_target_slug';
+    END IF;
+    IF r.promoted_target_slug <> 'rareicon' THEN
+        RAISE EXCEPTION 'fail: disable should promote rareicon, got %', r.promoted_target_slug;
+    END IF;
+    IF r.active THEN
+        RAISE EXCEPTION 'fail: disabled row should not be active';
+    END IF;
+    IF r.disabled_at IS NULL THEN
+        RAISE EXCEPTION 'fail: disabled_at should be set';
+    END IF;
+
+    -- Re-enable mc as non-default; rareicon stays default.
+    PERFORM * FROM referral.service_enable_target(u, 'mc');
+    -- Disabling mc when it is not the default must return NULL for
+    -- promoted_target_slug.
+    SELECT * INTO r FROM referral.service_disable_target(u, 'mc');
+    IF r.promoted_target_slug IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: disabling non-default should leave promoted_target_slug NULL, got %',
+                        r.promoted_target_slug;
+    END IF;
+END $$;
+
+-- service_list_user_targets exposes updated_at to callers.
+DO $$
+DECLARE
+    u UUID := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    r RECORD;
+BEGIN
+    PERFORM * FROM referral.service_enable_target(u, 'mc');
+    SELECT * INTO r
+      FROM referral.service_list_user_targets(u)
+     WHERE target_slug = 'rareicon';
+    IF r.updated_at IS NULL THEN
+        RAISE EXCEPTION 'fail: list should include updated_at';
+    END IF;
+END $$;
+
 -- ASSERT_AFTER_DOWN
 
 -- migrate:down is intentionally a no-op. Verify the schema + functions

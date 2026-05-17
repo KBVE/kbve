@@ -18,8 +18,9 @@ use crate::wallet::client::WalletPool;
 
 use super::error::{ReferralError, Result};
 use super::types::{
-    RecordClickInput, RecordClickOutcome, RecordClickRow, ResolvedTargetRow, UserStats,
-    UserStatsRow, UserTargetMutation, UserTargetMutationRow, UserTargetRow, UserTargetView,
+    DisableTargetOutcome, DisableTargetRow, RecordClickInput, RecordClickOutcome, RecordClickRow,
+    ResolvedTargetRow, UserStats, UserStatsRow, UserTargetMutation, UserTargetMutationRow,
+    UserTargetRow, UserTargetView,
 };
 
 #[derive(Clone)]
@@ -96,8 +97,8 @@ impl ReferralClient {
 
         let rows: Vec<UserTargetRow> = sql_query(
             "SELECT target_slug, title, url, is_default, active, enabled_at, \
-                    disabled_at, clicks_total, clicks_credited, credits_total, \
-                    last_click_at \
+                    disabled_at, updated_at, clicks_total, clicks_credited, \
+                    credits_total, last_click_at \
              FROM referral.service_list_user_targets($1)",
         )
         .bind::<SqlUuid, _>(user_id)
@@ -133,18 +134,21 @@ impl ReferralClient {
         Ok(row.into())
     }
 
-    /// `referral.service_disable_target(user_id, slug)`.
+    /// `referral.service_disable_target(user_id, slug)`. Result carries
+    /// `promoted_target_slug` when a remaining active row inherited the
+    /// default — clients use it to refresh local UI without a follow-up
+    /// list call.
     pub async fn disable_target(
         &self,
         user_id: Uuid,
         target_slug: &str,
-    ) -> Result<UserTargetMutation> {
+    ) -> Result<DisableTargetOutcome> {
         let mut conn = self.pool.get().await?;
         let inner: &mut AsyncPgConnection = &mut *conn;
 
-        let row: UserTargetMutationRow = sql_query(
-            "SELECT user_id, target_slug, is_default, active, enabled_at, \
-                    disabled_at \
+        let row: DisableTargetRow = sql_query(
+            "SELECT target_slug, promoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at \
              FROM referral.service_disable_target($1, $2)",
         )
         .bind::<SqlUuid, _>(user_id)

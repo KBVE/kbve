@@ -36,6 +36,7 @@ ALTER TABLE referral.user_target
 CREATE OR REPLACE FUNCTION referral.user_target_touch()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SET search_path = ''
 AS $fn$
 BEGIN
     NEW.updated_at := statement_timestamp();
@@ -54,23 +55,38 @@ CREATE TRIGGER user_target_set_updated_at
 -- an out-of-band UPDATE leaves a disabled row marked is_default = TRUE.
 DO $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-          FROM pg_constraint
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
          WHERE conrelid = 'referral.user_target'::regclass
            AND conname = 'user_target_default_requires_active'
     ) THEN
         ALTER TABLE referral.user_target
-            ADD CONSTRAINT user_target_default_requires_active
+            RENAME CONSTRAINT user_target_default_requires_active
+            TO referral_user_target_default_requires_active_ck;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+         WHERE conrelid = 'referral.user_target'::regclass
+           AND conname = 'referral_user_target_default_requires_active_ck'
+    ) THEN
+        ALTER TABLE referral.user_target
+            ADD CONSTRAINT referral_user_target_default_requires_active_ck
             CHECK (active OR NOT is_default);
     END IF;
 END $$;
 
--- Hot-path indexes for the stats lateral aggregates in
+-- (No `credited → ledger_id` CHECK added here: Phase 1's
+-- click_credit_ledger_chk already enforces the stronger biconditional
+-- `credited <=> ledger_id IS NOT NULL`.)
+
+-- Hot-path indexes for the stats aggregates in
 -- service_list_user_targets / service_get_user_stats.
-CREATE INDEX IF NOT EXISTS click_referrer_target_idx
+DROP INDEX IF EXISTS referral.click_referrer_target_idx;
+DROP INDEX IF EXISTS referral.click_referrer_credited_ledger_idx;
+CREATE INDEX IF NOT EXISTS referral_click_referrer_target_created_idx
     ON referral.click (referrer_id, target_slug, created_at DESC);
-CREATE INDEX IF NOT EXISTS click_referrer_credited_ledger_idx
+CREATE INDEX IF NOT EXISTS referral_click_referrer_credited_ledger_idx
     ON referral.click (referrer_id)
     WHERE credited AND ledger_id IS NOT NULL;
 
@@ -79,23 +95,24 @@ CREATE INDEX IF NOT EXISTS click_referrer_credited_ledger_idx
 --
 -- One row per (user, target) including inactive rows so the UI can
 -- offer a "re-enable" affordance. Joins to wallet.ledger for the
--- credits_total rollup.
+-- credits_total rollup, filtered to source_kind = 'referral'.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_list_user_targets(
     p_user_id UUID
 )
 RETURNS TABLE (
-    target_slug    TEXT,
-    title          TEXT,
-    url            TEXT,
-    is_default     BOOLEAN,
-    active         BOOLEAN,
-    enabled_at     TIMESTAMPTZ,
-    disabled_at    TIMESTAMPTZ,
-    clicks_total   BIGINT,
+    target_slug     TEXT,
+    title           TEXT,
+    url             TEXT,
+    is_default      BOOLEAN,
+    active          BOOLEAN,
+    enabled_at      TIMESTAMPTZ,
+    disabled_at     TIMESTAMPTZ,
+    updated_at      TIMESTAMPTZ,
+    clicks_total    BIGINT,
     clicks_credited BIGINT,
-    credits_total  BIGINT,
-    last_click_at  TIMESTAMPTZ
+    credits_total   BIGINT,
+    last_click_at   TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 STABLE
@@ -107,9 +124,6 @@ BEGIN
         RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
     END IF;
 
-    -- Aggregate click stats once over the user's click rows and join
-    -- onto user_target. Avoids the per-target lateral aggregate that
-    -- scaled with target count.
     RETURN QUERY
     WITH stats AS (
         SELECT
@@ -121,7 +135,9 @@ BEGIN
             ), 0)::BIGINT                                     AS credits_total,
             MAX(c.created_at)                                 AS last_click_at
         FROM referral.click c
-        LEFT JOIN wallet.ledger l ON l.id = c.ledger_id
+        LEFT JOIN wallet.ledger l
+               ON l.id = c.ledger_id
+              AND l.source_kind = 'referral'
         WHERE c.referrer_id = p_user_id
         GROUP BY c.target_slug
     )
@@ -133,6 +149,7 @@ BEGIN
         ut.active,
         ut.enabled_at,
         ut.disabled_at,
+        ut.updated_at,
         COALESCE(s.clicks_total, 0)    AS clicks_total,
         COALESCE(s.clicks_credited, 0) AS clicks_credited,
         COALESCE(s.credits_total, 0)   AS credits_total,
@@ -151,14 +168,20 @@ REVOKE ALL ON FUNCTION referral.service_list_user_targets(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION referral.service_list_user_targets(UUID)
     TO service_role;
 
+COMMENT ON FUNCTION referral.service_list_user_targets(UUID) IS
+$$Returns one row per (user, target) including inactive rows, with
+lifetime click + credit aggregates. Ledger join filters source_kind =
+'referral'. Service-role only.$$;
+
 -- ------------------------------------------------------------
 -- service_enable_target(user_id, target_slug, set_as_default)
 --
--- Inserts a new row OR re-activates an inactive one. First enable
--- auto-promotes to default so /referral/@<user>/ always has a
--- destination. Concurrent enable / set-default attempts serialize on
--- a per-user advisory lock to prevent two is_default rows briefly
--- existing for the same user.
+-- Inserts a new row, re-activates an inactive one, OR returns the
+-- existing row unchanged (idempotent fast path — skips updated_at
+-- bump on no-op calls). First enable auto-promotes to default so
+-- /referral/@<user>/ always has a destination. Concurrent enable /
+-- set-default attempts serialize on a per-user advisory lock to
+-- prevent two is_default rows briefly existing for the same user.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_enable_target(
     p_user_id        UUID,
@@ -202,7 +225,8 @@ BEGIN
 
     SELECT * INTO v_existing
       FROM referral.user_target
-     WHERE user_id = p_user_id AND target_slug = p_target_slug;
+     WHERE user_id = p_user_id AND target_slug = p_target_slug
+       FOR UPDATE;
 
     v_should_default := p_set_as_default OR NOT EXISTS (
         SELECT 1
@@ -210,15 +234,24 @@ BEGIN
          WHERE user_id = p_user_id AND active
     );
 
+    IF v_existing.user_id IS NOT NULL
+       AND v_existing.active
+       AND v_existing.disabled_at IS NULL
+       AND (NOT v_should_default OR v_existing.is_default)
+    THEN
+        RETURN v_existing;
+    END IF;
+
     IF v_should_default THEN
         UPDATE referral.user_target
            SET is_default = FALSE
          WHERE user_id = p_user_id
            AND is_default
+           AND active
            AND target_slug IS DISTINCT FROM p_target_slug;
     END IF;
 
-    IF FOUND OR v_existing.user_id IS NOT NULL THEN
+    IF v_existing.user_id IS NOT NULL THEN
         UPDATE referral.user_target
            SET active       = TRUE,
                is_default   = CASE WHEN v_should_default THEN TRUE ELSE is_default END,
@@ -245,6 +278,15 @@ REVOKE ALL ON FUNCTION referral.service_enable_target(UUID, TEXT, BOOLEAN)
 GRANT EXECUTE ON FUNCTION referral.service_enable_target(UUID, TEXT, BOOLEAN)
     TO service_role;
 
+COMMENT ON FUNCTION referral.service_enable_target(UUID, TEXT, BOOLEAN) IS
+$$Inserts or reactivates a (user, target) row. First enable auto-
+promotes to default so /referral/@<user>/ always has a destination.
+Idempotent: a no-op call returns the existing row without bumping
+updated_at. Service-role only.$$;
+
+-- Return shape changed across iterations; drop before recreate.
+DROP FUNCTION IF EXISTS referral.service_disable_target(UUID, TEXT);
+
 -- ------------------------------------------------------------
 -- service_disable_target(user_id, target_slug)
 --
@@ -252,12 +294,22 @@ GRANT EXECUTE ON FUNCTION referral.service_enable_target(UUID, TEXT, BOOLEAN)
 -- enabled remaining active row inherits the default. If no other
 -- active row exists, raises RFM01 so the caller picks a new default
 -- explicitly instead of silently breaking /referral/@<user>/.
+--
+-- Returns disabled-row fields PLUS promoted_target_slug (NULL when no
+-- promotion happened) so the UI can refresh without a follow-up list.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_disable_target(
     p_user_id      UUID,
     p_target_slug  TEXT
 )
-RETURNS referral.user_target
+RETURNS TABLE (
+    target_slug          TEXT,
+    promoted_target_slug TEXT,
+    is_default           BOOLEAN,
+    active               BOOLEAN,
+    enabled_at           TIMESTAMPTZ,
+    disabled_at          TIMESTAMPTZ
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
@@ -268,6 +320,8 @@ DECLARE
     v_now        TIMESTAMPTZ := statement_timestamp();
     v_row        referral.user_target;
 BEGIN
+    -- RETURNS TABLE column names shadow same-named table columns
+    -- inside this function, so every reference is aliased with `ut.`.
     IF p_user_id IS NULL THEN
         RAISE EXCEPTION 'user_id is required' USING ERRCODE = '22004';
     END IF;
@@ -283,9 +337,10 @@ BEGIN
         hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
     );
 
-    SELECT * INTO v_existing
-      FROM referral.user_target
-     WHERE user_id = p_user_id AND target_slug = p_target_slug;
+    SELECT ut.* INTO v_existing
+      FROM referral.user_target ut
+     WHERE ut.user_id = p_user_id AND ut.target_slug = p_target_slug
+       FOR UPDATE;
     IF NOT FOUND OR NOT v_existing.active THEN
         RAISE EXCEPTION 'target % is not active for user %',
                         p_target_slug, p_user_id
@@ -307,20 +362,28 @@ BEGIN
         END IF;
     END IF;
 
-    UPDATE referral.user_target
+    UPDATE referral.user_target AS ut
        SET active      = FALSE,
            is_default  = FALSE,
            disabled_at = v_now
-     WHERE user_id = p_user_id AND target_slug = p_target_slug
-     RETURNING * INTO v_row;
+     WHERE ut.user_id = p_user_id AND ut.target_slug = p_target_slug
+     RETURNING ut.* INTO v_row;
 
     IF v_other_slug IS NOT NULL THEN
-        UPDATE referral.user_target
+        UPDATE referral.user_target AS ut
            SET is_default = TRUE
-         WHERE user_id = p_user_id AND target_slug = v_other_slug;
+         WHERE ut.user_id = p_user_id
+           AND ut.target_slug = v_other_slug
+           AND ut.active;
     END IF;
 
-    RETURN v_row;
+    target_slug          := v_row.target_slug;
+    promoted_target_slug := v_other_slug;
+    is_default           := v_row.is_default;
+    active               := v_row.active;
+    enabled_at           := v_row.enabled_at;
+    disabled_at          := v_row.disabled_at;
+    RETURN NEXT;
 END;
 $fn$;
 
@@ -329,6 +392,12 @@ REVOKE ALL ON FUNCTION referral.service_disable_target(UUID, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
     TO service_role;
 
+COMMENT ON FUNCTION referral.service_disable_target(UUID, TEXT) IS
+$$Marks the (user, target) row inactive. If the row was default, the
+most-recently enabled remaining active row inherits the default and
+its slug comes back as promoted_target_slug. Raises RFM01 when no
+inheritor exists. Service-role only.$$;
+
 -- ------------------------------------------------------------
 -- service_set_default_target(user_id, target_slug)
 --
@@ -336,6 +405,8 @@ GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
 -- partial unique index (user_id) WHERE is_default AND active is
 -- enforced row-by-row inside a single UPDATE — a one-statement
 -- CASE-based swap would briefly hold two defaults and trip the index.
+-- Idempotent fast path returns the row unchanged when it's already
+-- the default so repeated calls don't churn updated_at.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_set_default_target(
     p_user_id      UUID,
@@ -364,21 +435,26 @@ BEGIN
         hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
     );
 
-    IF NOT EXISTS (
-        SELECT 1 FROM referral.user_target
-         WHERE user_id = p_user_id
-           AND target_slug = p_target_slug
-           AND active
-    ) THEN
+    SELECT * INTO v_row
+      FROM referral.user_target
+     WHERE user_id = p_user_id
+       AND target_slug = p_target_slug
+       FOR UPDATE;
+    IF NOT FOUND OR NOT v_row.active THEN
         RAISE EXCEPTION 'target % is not active for user %',
                         p_target_slug, p_user_id
             USING ERRCODE = 'RFU01';
+    END IF;
+
+    IF v_row.is_default THEN
+        RETURN v_row;
     END IF;
 
     UPDATE referral.user_target
        SET is_default = FALSE
      WHERE user_id = p_user_id
        AND is_default
+       AND active
        AND target_slug IS DISTINCT FROM p_target_slug;
 
     UPDATE referral.user_target
@@ -397,11 +473,16 @@ REVOKE ALL ON FUNCTION referral.service_set_default_target(UUID, TEXT) FROM PUBL
 GRANT EXECUTE ON FUNCTION referral.service_set_default_target(UUID, TEXT)
     TO service_role;
 
+COMMENT ON FUNCTION referral.service_set_default_target(UUID, TEXT) IS
+$$Atomic default swap (demote-then-promote). Idempotent when the slug
+is already the user's default. Raises RFU01 when the slug is not an
+active row for the user. Service-role only.$$;
+
 -- ------------------------------------------------------------
 -- service_get_user_stats(user_id)
 --
 -- Lifetime rollup across all targets. Cheap counter query used by the
--- profile widget.
+-- profile widget. Ledger join filters source_kind = 'referral'.
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION referral.service_get_user_stats(
     p_user_id UUID
@@ -431,7 +512,9 @@ BEGIN
         ), 0)::BIGINT                                     AS credits_total,
         MAX(c.created_at)                                 AS last_click_at
     FROM referral.click c
-    LEFT JOIN wallet.ledger l ON l.id = c.ledger_id
+    LEFT JOIN wallet.ledger l
+           ON l.id = c.ledger_id
+          AND l.source_kind = 'referral'
     WHERE c.referrer_id = p_user_id;
 END;
 $fn$;
@@ -440,3 +523,7 @@ ALTER FUNCTION referral.service_get_user_stats(UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION referral.service_get_user_stats(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION referral.service_get_user_stats(UUID)
     TO service_role;
+
+COMMENT ON FUNCTION referral.service_get_user_stats(UUID) IS
+$$Lifetime click + credit rollup across all targets for one user.
+Ledger join filters source_kind = 'referral'. Service-role only.$$;
