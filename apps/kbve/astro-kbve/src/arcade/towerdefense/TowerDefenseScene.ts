@@ -24,6 +24,7 @@ import {
 	rollEnemyType,
 	specFor,
 	upgradeCost,
+	type ArmourySpec,
 	type BatterySpec,
 	type BuildId,
 	type GeneratorSpec,
@@ -32,6 +33,7 @@ import {
 	type UpgradeKind,
 } from './config';
 import {
+	ArmouryTag,
 	BatteryTag,
 	BuildingTag,
 	DroneStats,
@@ -43,10 +45,20 @@ import {
 	GeneratorTag,
 	Position,
 	RepairTag,
+	SoldierStats,
+	SoldierTag,
 	TowerTag,
+	type AttackTarget,
 	type DroneVisual,
 	type EnemyVisual,
+	type SoldierVisual,
 } from './ecs';
+import {
+	CARD_POOL,
+	pickThreeCards,
+	type CardId,
+	type CardOption,
+} from './cards';
 import {
 	generatePath,
 	type GeneratedPath,
@@ -62,6 +74,7 @@ import {
 	towerRange,
 } from './tower-stats';
 import type {
+	ArmouryBuilding,
 	BaseBuilding,
 	BatteryBuilding,
 	BurnPatch,
@@ -103,8 +116,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private buildings: Building[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
+	private soldierVisuals = new SideMap<SoldierVisual>();
 	private projectiles: Projectile[] = [];
 	private burnPatches: BurnPatch[] = [];
+
+	private freeBasicTowers = 0;
+	private bountyBonusMultiplier = 1;
+	private awaitingCardPick = false;
+	private cardPanel: Phaser.GameObjects.Container | null = null;
+	private cardPickedThisInterval = false;
 
 	private gold = GAME_CONFIG.startingGold;
 	private lives = GAME_CONFIG.startingLives;
@@ -154,8 +174,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.buildings = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
+		this.soldierVisuals = new SideMap<SoldierVisual>();
 		this.projectiles = [];
 		this.burnPatches = [];
+		this.freeBasicTowers = 0;
+		this.bountyBonusMultiplier = 1;
+		this.awaitingCardPick = false;
+		this.cardPanel = null;
+		this.cardPickedThisInterval = false;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -531,7 +557,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (col < 0 || col >= COLS) return false;
 		if (this.path.cells.has(`${col},${row}`)) return false;
 		const spec = specFor(id);
-		if (this.gold < spec.cost) return false;
+		const isFree = id === 'basic' && this.freeBasicTowers > 0;
+		if (!isFree && this.gold < spec.cost) return false;
 		for (const b of this.buildings) {
 			if (b.destroyed) continue;
 			if (b.col === col && b.row === row) return false;
@@ -639,7 +666,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 		if (!this.canPlaceAt(col, row, this.selection)) return;
 		const spec = specFor(this.selection);
-		this.gold -= spec.cost;
+		if (this.selection === 'basic' && this.freeBasicTowers > 0) {
+			this.freeBasicTowers -= 1;
+		} else {
+			this.gold -= spec.cost;
+		}
 		this.spawnBuilding(this.selection, col, row, cx, cy);
 		this.recomputePower(0);
 		this.refreshHud();
@@ -980,6 +1011,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'tower') return `${b.spec.name} Tower`;
 		if (b.kind === 'generator') return `${b.spec.name} Generator`;
 		if (b.kind === 'battery') return `${b.spec.name}`;
+		if (b.kind === 'armoury') return `${b.spec.name}`;
 		return `${b.spec.name} Station`;
 	}
 
@@ -996,6 +1028,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (b.kind === 'battery') {
 			return `CHARGE ${Math.floor(b.charge)}/${b.capacity} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		}
+		if (b.kind === 'armoury') {
+			const rate = (b.spec.spawnIntervalMs / 1000).toFixed(1);
+			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 		}
 		return `LOAD -${b.spec.power}⚡ · HEALS ${b.spec.repairAmount} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 	}
@@ -1221,6 +1257,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 				activeDroneEid: null,
 			};
 			building = b;
+		} else if (spec.kind === 'armoury') {
+			addComponent(this.world, eid, ArmouryTag);
+			const powerIndicator = this.add.circle(
+				x + TILE * 0.3,
+				y - TILE * 0.3,
+				4,
+				0x9ae6b4,
+			);
+			const b: ArmouryBuilding = {
+				...base,
+				kind: 'armoury',
+				spec: spec as ArmourySpec,
+				online: true,
+				powerIndicator,
+				nextSpawnAtMs: 0,
+			};
+			building = b;
 		} else {
 			throw new Error(
 				`unknown build kind: ${(spec as { kind: string }).kind}`,
@@ -1258,6 +1311,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else if (b.kind === 'repair') {
 				b.sprite.setAlpha(b.online ? 1 : 0.45);
 				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
+			} else if (b.kind === 'armoury') {
+				b.sprite.setAlpha(b.online ? 1 : 0.45);
+				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
 			} else if (b.kind === 'battery') {
 				b.chargeBar.width = (b.charge / b.capacity) * TILE * 0.7;
 			}
@@ -1272,6 +1328,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 		this.enemiesToSpawn = count;
 		this.spawnAccumulatorMs = 0;
+		this.cardPickedThisInterval = false;
+		const armouryNow = this.time.now;
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
+		}
 	}
 
 	private spawnEnemy(): void {
@@ -1342,11 +1404,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		});
 	}
 
-	private findAttackTarget(eid: number): Building | null {
+	private findAttackTarget(eid: number): AttackTarget | null {
 		const range = GAME_CONFIG.enemyAttackRange;
 		const ex = Position.x[eid];
 		const ey = Position.y[eid];
-		let best: Building | null = null;
+		let best: AttackTarget | null = null;
 		let bestDist2 = range * range;
 		for (const beid of query(this.world, [BuildingTag, Position])) {
 			const b = this.buildingByEid.get(beid);
@@ -1356,10 +1418,39 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const d2 = dx * dx + dy * dy;
 			if (d2 <= bestDist2) {
 				bestDist2 = d2;
-				best = b;
+				best = { kind: 'building', b };
+			}
+		}
+		for (const seid of query(this.world, [
+			SoldierTag,
+			Position,
+			SoldierStats,
+		])) {
+			if (!this.soldierVisuals.has(seid)) continue;
+			const dx = Position.x[seid] - ex;
+			const dy = Position.y[seid] - ey;
+			const d2 = dx * dx + dy * dy;
+			if (d2 <= bestDist2) {
+				bestDist2 = d2;
+				best = { kind: 'soldier', eid: seid };
 			}
 		}
 		return best;
+	}
+
+	private attackTargetPos(t: AttackTarget): { x: number; y: number } {
+		if (t.kind === 'building') return { x: t.b.x, y: t.b.y };
+		return { x: Position.x[t.eid], y: Position.y[t.eid] };
+	}
+
+	private attackTargetAlive(t: AttackTarget): boolean {
+		if (t.kind === 'building') return !t.b.destroyed;
+		return this.soldierVisuals.has(t.eid);
+	}
+
+	private applyAttackTargetDamage(t: AttackTarget, dmg: number): void {
+		if (t.kind === 'building') this.damageBuilding(t.b, dmg);
+		else this.damageSoldier(t.eid, dmg);
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
@@ -1375,7 +1466,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
-		if (b.kind === 'tower' || b.kind === 'repair') {
+		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
 			b.powerIndicator.destroy();
 		}
 		if (b.kind === 'tower' && b.fixedTarget) {
@@ -1388,7 +1479,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (this.targetingTower === b) this.cancelTargeting();
 		for (const v of this.enemyVisuals.values()) {
-			if (v.attackTarget === b) v.attackTarget = null;
+			if (
+				v.attackTarget &&
+				v.attackTarget.kind === 'building' &&
+				v.attackTarget.b === b
+			) {
+				v.attackTarget = null;
+			}
 		}
 		const droneKills: number[] = [];
 		for (const [deid, dv] of this.droneVisuals.entries()) {
@@ -1411,6 +1508,176 @@ export class TowerDefenseScene extends Phaser.Scene {
 		removeEntity(this.world, eid);
 	}
 
+	private updateArmouries(nowMs: number): void {
+		const waveActive =
+			this.enemiesToSpawn > 0 || this.enemyVisuals.size > 0;
+		if (!waveActive) return;
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.kind !== 'armoury') continue;
+			if (!b.online) continue;
+			if (nowMs < b.nextSpawnAtMs) continue;
+			this.spawnSoldier(b);
+			b.nextSpawnAtMs = nowMs + b.spec.spawnIntervalMs;
+		}
+	}
+
+	private spawnSoldier(armoury: ArmouryBuilding): void {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, SoldierTag);
+		addComponent(this.world, eid, SoldierStats);
+		Position.x[eid] = armoury.x;
+		Position.y[eid] = armoury.y;
+		SoldierStats.hp[eid] = armoury.spec.soldierHp;
+		SoldierStats.maxHp[eid] = armoury.spec.soldierHp;
+		SoldierStats.speed[eid] = armoury.spec.soldierSpeed;
+		SoldierStats.attackDamage[eid] = armoury.spec.soldierDamage;
+		SoldierStats.attackRateMs[eid] = armoury.spec.soldierAttackRateMs;
+		SoldierStats.attackRange[eid] = armoury.spec.soldierAttackRange;
+		SoldierStats.lastAttackAtMs[eid] = 0;
+		SoldierStats.targetEnemyEid[eid] = 0;
+		SoldierStats.armouryEid[eid] = armoury.id;
+		const sprite = this.add.rectangle(
+			armoury.x,
+			armoury.y,
+			TILE * 0.3,
+			TILE * 0.3,
+			armoury.spec.soldierColor,
+		);
+		sprite.setStrokeStyle(1, 0xffffff, 0.6);
+		const barWidth = TILE * 0.5;
+		const hpBarBg = this.add
+			.rectangle(
+				armoury.x,
+				armoury.y - TILE * 0.32,
+				barWidth,
+				3,
+				COLORS.enemyHpBarBg,
+			)
+			.setOrigin(0.5);
+		const hpBar = this.add
+			.rectangle(
+				armoury.x - barWidth / 2,
+				armoury.y - TILE * 0.32,
+				barWidth,
+				3,
+				COLORS.enemyHpBar,
+			)
+			.setOrigin(0, 0.5);
+		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+	}
+
+	private findEnemyForSoldier(seid: number): number {
+		const sx = Position.x[seid];
+		const sy = Position.y[seid];
+		let best = -1;
+		let bestDist2 = Infinity;
+		for (const eeid of query(this.world, [
+			EnemyTag,
+			Position,
+			EnemyStats,
+		])) {
+			if (!this.enemyVisuals.has(eeid)) continue;
+			const dx = Position.x[eeid] - sx;
+			const dy = Position.y[eeid] - sy;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestDist2) {
+				bestDist2 = d2;
+				best = eeid;
+			}
+		}
+		return best;
+	}
+
+	private damageSoldier(eid: number, dmg: number): void {
+		if (!this.soldierVisuals.has(eid)) return;
+		SoldierStats.hp[eid] -= dmg;
+		if (SoldierStats.hp[eid] <= 0) this.killSoldier(eid);
+	}
+
+	private killSoldier(eid: number): void {
+		const v = this.soldierVisuals.delete(eid);
+		if (!v) return;
+		v.sprite.destroy();
+		v.hpBar.destroy();
+		v.hpBarBg.destroy();
+		for (const ev of this.enemyVisuals.values()) {
+			if (
+				ev.attackTarget &&
+				ev.attackTarget.kind === 'soldier' &&
+				ev.attackTarget.eid === eid
+			) {
+				ev.attackTarget = null;
+			}
+		}
+		removeEntity(this.world, eid);
+	}
+
+	private despawnAllSoldiers(): void {
+		const eids: number[] = [];
+		for (const eid of this.soldierVisuals.entries()) eids.push(eid[0]);
+		for (const eid of eids) this.killSoldier(eid);
+	}
+
+	private updateSoldiers(dt: number, nowMs: number): void {
+		for (const seid of query(this.world, [
+			SoldierTag,
+			Position,
+			SoldierStats,
+		])) {
+			if (!this.soldierVisuals.has(seid)) continue;
+			let target = SoldierStats.targetEnemyEid[seid];
+			if (target === 0 || !this.enemyVisuals.has(target)) {
+				target = this.findEnemyForSoldier(seid);
+				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
+			}
+			if (SoldierStats.targetEnemyEid[seid] === 0) {
+				this.syncSoldierVisuals(seid);
+				continue;
+			}
+			target = SoldierStats.targetEnemyEid[seid];
+			const tx = Position.x[target];
+			const ty = Position.y[target];
+			const dx = tx - Position.x[seid];
+			const dy = ty - Position.y[seid];
+			const dist = Math.hypot(dx, dy);
+			const range = SoldierStats.attackRange[seid];
+			if (dist <= range) {
+				if (
+					nowMs - SoldierStats.lastAttackAtMs[seid] >=
+					SoldierStats.attackRateMs[seid]
+				) {
+					SoldierStats.lastAttackAtMs[seid] = nowMs;
+					this.damageEnemy(target, SoldierStats.attackDamage[seid]);
+				}
+			} else {
+				const step = SoldierStats.speed[seid] * dt;
+				if (step >= dist) {
+					Position.x[seid] = tx;
+					Position.y[seid] = ty;
+				} else {
+					Position.x[seid] += (dx / dist) * step;
+					Position.y[seid] += (dy / dist) * step;
+				}
+			}
+			this.syncSoldierVisuals(seid);
+		}
+	}
+
+	private syncSoldierVisuals(seid: number): void {
+		const v = this.soldierVisuals.get(seid);
+		if (!v) return;
+		const x = Position.x[seid];
+		const y = Position.y[seid];
+		v.sprite.setPosition(x, y);
+		const barWidth = TILE * 0.5;
+		v.hpBarBg.setPosition(x, y - TILE * 0.32);
+		v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
+		v.hpBar.width =
+			(SoldierStats.hp[seid] / SoldierStats.maxHp[seid]) * barWidth;
+	}
+
 	private updateEnemies(dt: number, nowMs: number): void {
 		const eids = query(this.world, [EnemyTag, Position, EnemyStats]);
 		for (const eid of eids) {
@@ -1428,13 +1695,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 			if (EnemyStats.canAttack[eid] === 1) {
 				const v = this.enemyVisuals.get(eid)!;
-				if (v.attackTarget && v.attackTarget.destroyed)
+				if (v.attackTarget && !this.attackTargetAlive(v.attackTarget))
 					v.attackTarget = null;
 				if (!v.attackTarget) {
 					v.attackTarget = this.findAttackTarget(eid);
 				} else {
-					const dx = v.attackTarget.x - Position.x[eid];
-					const dy = v.attackTarget.y - Position.y[eid];
+					const pos = this.attackTargetPos(v.attackTarget);
+					const dx = pos.x - Position.x[eid];
+					const dy = pos.y - Position.y[eid];
 					if (
 						dx * dx + dy * dy >
 						GAME_CONFIG.enemyAttackRange *
@@ -1451,7 +1719,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 						EnemyStats.attackRateMs[eid]
 					) {
 						EnemyStats.lastAttackAtMs[eid] = nowMs;
-						this.damageBuilding(
+						this.applyAttackTargetDamage(
 							v.attackTarget,
 							EnemyStats.attackDamage[eid],
 						);
@@ -1904,7 +2172,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		v.hpBarBg.destroy();
 		if (reward) {
 			this.gold += Math.round(
-				GAME_CONFIG.goldPerKill * EnemyStats.bountyMultiplier[eid],
+				GAME_CONFIG.goldPerKill *
+					EnemyStats.bountyMultiplier[eid] *
+					this.bountyBonusMultiplier,
 			);
 		}
 		removeEntity(this.world, eid);
@@ -1931,6 +2201,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	update(_time: number, deltaMs: number): void {
 		if (this.isGameOver) return;
+		if (this.awaitingCardPick) {
+			this.refreshHud();
+			return;
+		}
 		const dt = deltaMs / 1000;
 		const nowMs = this.time.now;
 
@@ -1945,10 +2219,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.enemiesToSpawn -= 1;
 			}
 		} else if (this.enemyVisuals.size === 0) {
-			this.interWaveDelayMs -= deltaMs;
-			if (this.interWaveDelayMs <= 0) {
-				this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
-				this.startNextWave();
+			if (
+				this.wave >= 1 &&
+				!this.cardPickedThisInterval &&
+				!this.cardPanel
+			) {
+				this.despawnAllSoldiers();
+				this.openCardPanel();
+			} else {
+				this.interWaveDelayMs -= deltaMs;
+				if (this.interWaveDelayMs <= 0) {
+					this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
+					this.startNextWave();
+				}
 			}
 		}
 
@@ -1957,6 +2240,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateTowers(nowMs);
 		this.updateProjectiles(dt, nowMs);
 		this.updateRepair(dt);
+		this.updateArmouries(nowMs);
+		this.updateSoldiers(dt, nowMs);
 
 		this.powerRefreshAccumulatorMs += deltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {
@@ -1965,5 +2250,156 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 
 		this.refreshHud();
+	}
+
+	private openCardPanel(): void {
+		this.awaitingCardPick = true;
+		this.bountyBonusMultiplier = 1;
+		const cards = pickThreeCards();
+		const panelW = 720;
+		const panelH = 260;
+		const panelX = (BASE_WIDTH - panelW) / 2;
+		const panelY = (BASE_HEIGHT - panelH) / 2;
+		const container = this.add.container(panelX, panelY).setDepth(200);
+		const bg = this.add
+			.rectangle(0, 0, panelW, panelH, COLORS.hudPanel, 0.97)
+			.setStrokeStyle(2, COLORS.paletteSelected)
+			.setOrigin(0, 0);
+		container.add(bg);
+		const title = this.add
+			.text(panelW / 2, 14, `Wave ${this.wave} Cleared — Pick a Reward`, {
+				fontFamily: 'monospace',
+				fontSize: '18px',
+				color: COLORS.hudText,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5, 0);
+		container.add(title);
+
+		const cardW = 200;
+		const cardH = 180;
+		const gap = 24;
+		const startX = (panelW - (cardW * 3 + gap * 2)) / 2;
+		for (let i = 0; i < cards.length; i++) {
+			const card = cards[i];
+			const cx = startX + i * (cardW + gap);
+			const cy = 50;
+			const cardBg = this.add
+				.rectangle(cx, cy, cardW, cardH, 0x1f2937, 0.95)
+				.setStrokeStyle(2, card.color, 0.85)
+				.setOrigin(0, 0)
+				.setInteractive({ useHandCursor: true });
+			container.add(cardBg);
+			const icon = this.add.rectangle(
+				cx + cardW / 2,
+				cy + 28,
+				36,
+				36,
+				card.color,
+			);
+			container.add(icon);
+			const name = this.add
+				.text(cx + cardW / 2, cy + 64, card.name, {
+					fontFamily: 'monospace',
+					fontSize: '15px',
+					color: COLORS.hudText,
+					fontStyle: 'bold',
+				})
+				.setOrigin(0.5, 0);
+			container.add(name);
+			const desc = this.add
+				.text(cx + cardW / 2, cy + 90, card.description, {
+					fontFamily: 'monospace',
+					fontSize: '11px',
+					color: COLORS.hudDim,
+					wordWrap: { width: cardW - 16 },
+					align: 'center',
+				})
+				.setOrigin(0.5, 0);
+			container.add(desc);
+			cardBg.on(
+				'pointerdown',
+				(
+					_p: Phaser.Input.Pointer,
+					_x: number,
+					_y: number,
+					ev: Phaser.Types.Input.EventData,
+				) => {
+					ev.stopPropagation();
+					this.applyCardPick(card);
+				},
+			);
+		}
+		this.cardPanel = container;
+	}
+
+	private applyCardPick(card: CardOption): void {
+		switch (card.id) {
+			case 'bonus_gold':
+				this.gold += 150;
+				break;
+			case 'free_basic_tower':
+				this.freeBasicTowers += 1;
+				break;
+			case 'soldier_squad':
+				this.summonSoldierSquad(5);
+				break;
+			case 'field_repair':
+				this.healAllBuildings();
+				break;
+			case 'battery_surge':
+				this.boostBatteries(30);
+				break;
+			case 'wave_bounty':
+				this.bountyBonusMultiplier = 1.5;
+				break;
+		}
+		this.closeCardPanel();
+		this.cardPickedThisInterval = true;
+		this.interWaveDelayMs = 1500;
+	}
+
+	private closeCardPanel(): void {
+		if (this.cardPanel) {
+			this.cardPanel.destroy(true);
+			this.cardPanel = null;
+		}
+		this.awaitingCardPick = false;
+	}
+
+	private summonSoldierSquad(count: number): void {
+		const armouries: ArmouryBuilding[] = [];
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.kind !== 'armoury') continue;
+			armouries.push(b);
+		}
+		if (armouries.length === 0) {
+			this.gold += 60;
+			return;
+		}
+		for (let i = 0; i < count; i++) {
+			this.spawnSoldier(armouries[i % armouries.length]);
+		}
+	}
+
+	private healAllBuildings(): void {
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			b.hp = b.maxHp;
+		}
+	}
+
+	private boostBatteries(amount: number): void {
+		let left = amount;
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.kind !== 'battery') continue;
+			const room = b.capacity - b.charge;
+			const add = Math.min(room, left);
+			b.charge += add;
+			left -= add;
+			if (left <= 0) break;
+		}
 	}
 }

@@ -63,7 +63,12 @@ export const COLORS = {
 	repairBeam: 0xfbd38d,
 } as const;
 
-export type BuildKind = 'tower' | 'generator' | 'battery' | 'repair';
+export type BuildKind =
+	| 'tower'
+	| 'generator'
+	| 'battery'
+	| 'repair'
+	| 'armoury';
 
 export interface BuildSpecBase {
 	id: BuildId;
@@ -111,13 +116,31 @@ export interface RepairSpec extends BuildSpecBase {
 	repairAmount: number;
 }
 
-export type BuildSpec = TowerSpec | GeneratorSpec | BatterySpec | RepairSpec;
+export interface ArmourySpec extends BuildSpecBase {
+	kind: 'armoury';
+	power: number;
+	spawnIntervalMs: number;
+	soldierHp: number;
+	soldierDamage: number;
+	soldierAttackRateMs: number;
+	soldierAttackRange: number;
+	soldierSpeed: number;
+	soldierColor: number;
+}
+
+export type BuildSpec =
+	| TowerSpec
+	| GeneratorSpec
+	| BatterySpec
+	| RepairSpec
+	| ArmourySpec;
 
 export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
-export type BuildId = TowerId | GeneratorId | BatteryId | RepairId;
+export type ArmouryId = 'armoury';
+export type BuildId = TowerId | GeneratorId | BatteryId | RepairId | ArmouryId;
 
 export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 	basic: {
@@ -206,7 +229,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		slowMs: 0,
 		slowFactor: 1,
 		burnDps: 9,
-		burnMs: 3840,
+		burnMs: 5500,
 		burnRadius: 50,
 		homing: true,
 		arcHeight: 0,
@@ -294,6 +317,25 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 	},
 };
 
+export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
+	armoury: {
+		id: 'armoury',
+		name: 'Armoury',
+		kind: 'armoury',
+		cost: 220,
+		maxHp: 80,
+		power: 2,
+		spawnIntervalMs: 3000,
+		soldierHp: 28,
+		soldierDamage: 5,
+		soldierAttackRateMs: 800,
+		soldierAttackRange: 70,
+		soldierSpeed: 90,
+		color: 0xb794f4,
+		soldierColor: 0xd6bcfa,
+	},
+};
+
 export const PALETTE_ORDER: BuildId[] = [
 	'basic',
 	'bomb',
@@ -305,6 +347,7 @@ export const PALETTE_ORDER: BuildId[] = [
 	'nuclear',
 	'battery',
 	'repair',
+	'armoury',
 ];
 
 export type UpgradeKind = 'radar' | 'attack' | 'speed' | 'armor';
@@ -373,7 +416,8 @@ export function specFor(id: BuildId): BuildSpec {
 	if (id in TOWER_CATALOG) return TOWER_CATALOG[id as TowerId];
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];
 	if (id in BATTERY_CATALOG) return BATTERY_CATALOG[id as BatteryId];
-	return REPAIR_CATALOG[id as RepairId];
+	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
+	return ARMOURY_CATALOG[id as ArmouryId];
 }
 
 export type EnemyTypeId = 'runner' | 'brute' | 'scout';

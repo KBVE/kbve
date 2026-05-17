@@ -22,10 +22,11 @@ export function planStarterKit(pathCells: Set<string>): KitItem[] {
 		{ id: 'battery', dc: 1, dr: 0 },
 		{ id: 'basic', dc: 0, dr: -1 },
 		{ id: 'basic', dc: 1, dr: -1 },
+		{ id: 'armoury', dc: 2, dr: 0 },
 	];
 
 	for (let r = minRow + 1; r <= maxRow; r++) {
-		for (let c = 1; c < COLS - 2; c++) {
+		for (let c = 1; c < COLS - 3; c++) {
 			let ok = true;
 			for (const item of layout) {
 				const cc = c + item.dc;

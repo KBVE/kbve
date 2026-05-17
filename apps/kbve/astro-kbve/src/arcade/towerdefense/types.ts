@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type {
+	ArmourySpec,
 	BatterySpec,
 	GeneratorSpec,
 	RepairSpec,
@@ -67,11 +68,20 @@ export interface RepairBuilding extends BaseBuilding {
 	activeDroneEid: number | null;
 }
 
+export interface ArmouryBuilding extends BaseBuilding {
+	kind: 'armoury';
+	spec: ArmourySpec;
+	online: boolean;
+	powerIndicator: Phaser.GameObjects.Arc;
+	nextSpawnAtMs: number;
+}
+
 export type Building =
 	| TowerBuilding
 	| GeneratorBuilding
 	| BatteryBuilding
-	| RepairBuilding;
+	| RepairBuilding
+	| ArmouryBuilding;
 
 export interface Projectile {
 	sprite: Phaser.GameObjects.Arc;

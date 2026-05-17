@@ -33,6 +33,11 @@ export function computeAndApplyPower(
 			consumers.push(
 				b as Building & { online: boolean; spec: { power: number } },
 			);
+		} else if (b.kind === 'armoury') {
+			demand += b.spec.power;
+			consumers.push(
+				b as Building & { online: boolean; spec: { power: number } },
+			);
 		} else if (b.kind === 'battery') {
 			batteries.push(b);
 		}
