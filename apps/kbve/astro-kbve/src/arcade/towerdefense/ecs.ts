@@ -21,7 +21,7 @@ export const EnemyStats = {
 	attackRange: [] as number[],
 	lastAttackAtMs: [] as number[],
 	canAttack: [] as number[],
-	canAttackBuildings: [] as number[],
+	defense: [] as number[],
 	bountyMultiplier: [] as number[],
 	typeIndex: [] as number[],
 };

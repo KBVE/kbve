@@ -1557,7 +1557,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		EnemyStats.attackRange[eid] = type.attackRange;
 		EnemyStats.lastAttackAtMs[eid] = 0;
 		EnemyStats.canAttack[eid] = type.canAttack ? 1 : 0;
-		EnemyStats.canAttackBuildings[eid] = type.canAttackBuildings ? 1 : 0;
+		EnemyStats.defense[eid] = type.defense;
 		EnemyStats.bountyMultiplier[eid] = type.bountyMultiplier;
 		EnemyStats.typeIndex[eid] = enemyTypeIndexFromId(type.id);
 		this.enemyVisuals.set(eid, {
@@ -1577,17 +1577,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const ey = Position.y[eid];
 		let best: AttackTarget | null = null;
 		let bestDist2 = range * range;
-		if (EnemyStats.canAttackBuildings[eid] === 1) {
-			for (const beid of query(this.world, [BuildingTag, Position])) {
-				const b = this.buildingByEid.get(beid);
-				if (!b || b.destroyed) continue;
-				const dx = Position.x[beid] - ex;
-				const dy = Position.y[beid] - ey;
-				const d2 = dx * dx + dy * dy;
-				if (d2 <= bestDist2) {
-					bestDist2 = d2;
-					best = { kind: 'building', b };
-				}
+		for (const beid of query(this.world, [BuildingTag, Position])) {
+			const b = this.buildingByEid.get(beid);
+			if (!b || b.destroyed) continue;
+			const dx = Position.x[beid] - ex;
+			const dy = Position.y[beid] - ey;
+			const d2 = dx * dx + dy * dy;
+			if (d2 <= bestDist2) {
+				bestDist2 = d2;
+				best = { kind: 'building', b };
 			}
 		}
 		for (const seid of query(this.world, [
@@ -2171,7 +2169,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private damageEnemy(eid: number, dmg: number): void {
-		EnemyStats.hp[eid] -= dmg;
+		const reduced = Math.max(1, dmg - EnemyStats.defense[eid]);
+		EnemyStats.hp[eid] -= reduced;
 		if (EnemyStats.hp[eid] <= 0) {
 			this.killEnemy(eid, true);
 			return;
