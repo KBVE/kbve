@@ -2,6 +2,9 @@
 resolver = "2"
 members = [
     "apps/vm/firecracker-ctl",
+    "packages/rust/kbve",
+    "packages/rust/jedi",
+    "packages/rust/holy",
 ]
 
 [profile.release]
