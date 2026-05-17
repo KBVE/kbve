@@ -117,6 +117,10 @@ public final class NativeRuntime {
      */
     public static native String mintChatToken(String uuid, String username);
 
+    public static native String loadPlayerSnapshot(String uuid, String serverId);
+
+    public static native String savePlayerSnapshot(String uuid, String snapshotJson);
+
     /** Check if the native library loaded successfully. */
     public static boolean isLoaded() {
         return loaded;

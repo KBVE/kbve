@@ -40,10 +40,12 @@ public class McAuthMod implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             PlayerLoginHandler.onJoin(handler.getPlayer());
+            PlayerSnapshotHandler.requestLoad(handler.getPlayer());
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             if (handler.getPlayer() != null) {
+                PlayerSnapshotHandler.requestSave(handler.getPlayer());
                 LinkStatusRegistry.remove(handler.getPlayer().getUuidAsString());
             }
         });

@@ -184,6 +184,31 @@ public final class AuthEventTicker {
                         khash);
                 break;
             }
+            case "PlayerSnapshotLoaded": {
+                String uuid = payload.get("player_uuid").getAsString();
+                String snapshotJson = (payload.has("snapshot_json") && !payload.get("snapshot_json").isJsonNull())
+                        ? payload.get("snapshot_json").getAsString()
+                        : null;
+                if (snapshotJson != null) {
+                    PlayerSnapshotHandler.applyLoadedSnapshot(server, uuid, snapshotJson);
+                }
+                LOGGER.debug(
+                        "[{}] PlayerSnapshotLoaded uuid={} present={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        snapshotJson != null);
+                break;
+            }
+            case "PlayerSnapshotSaved": {
+                String uuid = payload.get("player_uuid").getAsString();
+                boolean success = payload.has("success") && payload.get("success").getAsBoolean();
+                LOGGER.debug(
+                        "[{}] PlayerSnapshotSaved uuid={} success={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        success);
+                break;
+            }
             default:
                 LOGGER.debug("[{}] unknown PlayerEvent variant: {}", McAuthMod.MOD_ID, variant);
         }
