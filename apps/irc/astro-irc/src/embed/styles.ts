@@ -1,6 +1,15 @@
 // Self-contained CSS for the embed bundle. Injected into shadow root so
 // host page styles can't reach in and our utilities can't leak out.
-// No Starlight tokens — all colors baked in for portability.
+//
+// Token resolution (CSS custom properties cross the shadow boundary):
+//   --kbve-chat-*    host-page override (highest priority — opinionated)
+//   --sl-color-*     Starlight theme var if host is a Starlight site
+//   <baked default>  built-in dark palette (or light when [data-theme="light"])
+//
+// Embedding on Rareicon / astro-kbve / any Starlight site picks up that
+// site's colors automatically. Bare HTML hosts get the default palette.
+// Set --kbve-chat-accent on the host element to override a single token
+// without writing a full theme.
 
 export const EMBED_CSS = `
 :host {
@@ -8,32 +17,35 @@ export const EMBED_CSS = `
   display: block;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
   color: var(--kbc-text);
-  --kbc-bg: #0a0d14;
-  --kbc-elev-1: #11161f;
-  --kbc-elev-2: #161c28;
-  --kbc-hover: #1c2433;
-  --kbc-border: #1f2735;
-  --kbc-text: #e6ebf2;
-  --kbc-text-dim: #8a93a3;
-  --kbc-text-muted: #5b6373;
-  --kbc-accent: #7c5cff;
-  --kbc-accent-soft: rgba(124, 92, 255, 0.16);
-  --kbc-success: #22c55e;
-  --kbc-warn: #f59e0b;
-  --kbc-danger: #ef4444;
-  --kbc-radius: 12px;
-  --kbc-radius-sm: 8px;
+
+  --kbc-bg:         var(--kbve-chat-bg,         var(--sl-color-bg,         #0a0d14));
+  --kbc-elev-1:     var(--kbve-chat-elev-1,     var(--sl-color-bg-nav,     #11161f));
+  --kbc-elev-2:     var(--kbve-chat-elev-2,     var(--sl-color-bg-sidebar, #161c28));
+  --kbc-hover:      var(--kbve-chat-hover,      var(--sl-color-gray-6,     #1c2433));
+  --kbc-border:     var(--kbve-chat-border,     var(--sl-color-border,     #1f2735));
+  --kbc-text:       var(--kbve-chat-text,       var(--sl-color-text,       #e6ebf2));
+  --kbc-text-dim:   var(--kbve-chat-text-dim,   var(--sl-color-gray-2,     #8a93a3));
+  --kbc-text-muted: var(--kbve-chat-text-muted, var(--sl-color-gray-4,     #5b6373));
+  --kbc-accent:     var(--kbve-chat-accent,     var(--sl-color-accent,     #7c5cff));
+  --kbc-accent-soft: color-mix(in srgb, var(--kbc-accent) 16%, transparent);
+  --kbc-success:    var(--kbve-chat-success, #22c55e);
+  --kbc-warn:       var(--kbve-chat-warn,    #f59e0b);
+  --kbc-danger:     var(--kbve-chat-danger,  #ef4444);
+  --kbc-radius:     var(--kbve-chat-radius,    12px);
+  --kbc-radius-sm:  var(--kbve-chat-radius-sm, 8px);
 }
 
+/* Explicit light-theme overrides only kick in when the host page didn't
+ * supply --sl-color-* / --kbve-chat-* vars to begin with. */
 :host([data-theme="light"]) {
-  --kbc-bg: #ffffff;
-  --kbc-elev-1: #f7f8fa;
-  --kbc-elev-2: #eef0f4;
-  --kbc-hover: #e6e9ef;
-  --kbc-border: #d8dde5;
-  --kbc-text: #1a1f2c;
-  --kbc-text-dim: #515b6b;
-  --kbc-text-muted: #8a93a3;
+  --kbc-bg:         var(--kbve-chat-bg,         var(--sl-color-bg,         #ffffff));
+  --kbc-elev-1:     var(--kbve-chat-elev-1,     var(--sl-color-bg-nav,     #f7f8fa));
+  --kbc-elev-2:     var(--kbve-chat-elev-2,     var(--sl-color-bg-sidebar, #eef0f4));
+  --kbc-hover:      var(--kbve-chat-hover,      var(--sl-color-gray-6,     #e6e9ef));
+  --kbc-border:     var(--kbve-chat-border,     var(--sl-color-border,     #d8dde5));
+  --kbc-text:       var(--kbve-chat-text,       var(--sl-color-text,       #1a1f2c));
+  --kbc-text-dim:   var(--kbve-chat-text-dim,   var(--sl-color-gray-2,     #515b6b));
+  --kbc-text-muted: var(--kbve-chat-text-muted, var(--sl-color-gray-4,     #8a93a3));
 }
 
 .root {
