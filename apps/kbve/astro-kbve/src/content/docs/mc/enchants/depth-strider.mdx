@@ -1,0 +1,42 @@
+---
+title: Depth Strider
+description: |
+    Minecraft Depth Strider — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Depth Strider
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 7
+    ref: depth_strider
+    slug: depth-strider
+    display_name: Depth Strider
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - armor_feet
+    incompatible_with:
+        - frost_walker
+    anvil_cost: 1
+    cost:
+        a_min: 10
+        b_min: 0
+        a_max: 10
+        b_max: 15
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

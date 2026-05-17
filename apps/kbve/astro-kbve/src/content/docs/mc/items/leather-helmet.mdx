@@ -1,0 +1,46 @@
+---
+title: Leather Cap
+description: |
+    Minecraft Leather Cap — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Leather Cap
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 896
+    ref: leather_helmet
+    slug: leather-helmet
+    display_name: Leather Cap
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 55
+    tier: leather
+    equipment:
+        slot: head
+        armor_points: 1
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - aqua_affinity
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - respiration
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

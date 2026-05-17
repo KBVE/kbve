@@ -1,0 +1,46 @@
+---
+title: Iron Helmet
+description: |
+    Minecraft Iron Helmet — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Iron Helmet
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 904
+    ref: iron_helmet
+    slug: iron-helmet
+    display_name: Iron Helmet
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 165
+    tier: iron
+    equipment:
+        slot: head
+        armor_points: 2
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - aqua_affinity
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - respiration
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

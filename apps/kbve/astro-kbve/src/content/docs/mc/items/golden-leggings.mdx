@@ -1,0 +1,45 @@
+---
+title: Golden Leggings
+description: |
+    Minecraft Golden Leggings — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Golden Leggings
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 914
+    ref: golden_leggings
+    slug: golden-leggings
+    display_name: Golden Leggings
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 105
+    tier: golden
+    equipment:
+        slot: legs
+        armor_points: 3
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - swift_sneak
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

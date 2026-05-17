@@ -1,0 +1,43 @@
+---
+title: Riptide
+description: |
+    Minecraft Riptide — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Riptide
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 31
+    ref: riptide
+    slug: riptide
+    display_name: Riptide
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - trident
+    incompatible_with:
+        - channeling
+        - loyalty
+    anvil_cost: 1
+    cost:
+        a_min: 7
+        b_min: 10
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

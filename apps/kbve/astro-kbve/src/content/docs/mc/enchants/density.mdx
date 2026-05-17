@@ -1,0 +1,46 @@
+---
+title: Density
+description: |
+    Minecraft Density — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Density
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 6
+    ref: density
+    slug: density
+    display_name: Density
+    rarity: common
+    max_level: 5
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - mace
+    incompatible_with:
+        - bane_of_arthropods
+        - breach
+        - impaling
+        - sharpness
+        - smite
+    anvil_cost: 1
+    cost:
+        a_min: 8
+        b_min: -3
+        a_max: 8
+        b_max: 17
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

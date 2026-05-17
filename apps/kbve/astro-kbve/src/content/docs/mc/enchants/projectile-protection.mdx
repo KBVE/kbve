@@ -1,0 +1,44 @@
+---
+title: Projectile Protection
+description: |
+    Minecraft Projectile Protection — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Projectile Protection
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 26
+    ref: projectile_protection
+    slug: projectile-protection
+    display_name: Projectile Protection
+    rarity: common
+    max_level: 4
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - armor
+    incompatible_with:
+        - blast_protection
+        - fire_protection
+        - protection
+    anvil_cost: 1
+    cost:
+        a_min: 6
+        b_min: -3
+        a_max: 6
+        b_max: 3
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

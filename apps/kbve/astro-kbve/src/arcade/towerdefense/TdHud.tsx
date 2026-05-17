@@ -1,0 +1,321 @@
+import { useStore } from '@nanostores/react';
+import type { CSSProperties, ReactNode } from 'react';
+import {
+	batteryCapacityAtom,
+	batteryChargeAtom,
+	bountyMulAtom,
+	canSkipAtom,
+	demandAtom,
+	enemiesLeftAtom,
+	freeTowersAtom,
+	gameOverAtom,
+	goldAtom,
+	livesAtom,
+	restartSignalAtom,
+	skipSignalAtom,
+	supplyAtom,
+	timerSecAtom,
+	timerStateAtom,
+	waveAtom,
+} from './td-hud-store';
+
+type IconName =
+	| 'coin'
+	| 'heart'
+	| 'list'
+	| 'target'
+	| 'zap'
+	| 'battery'
+	| 'plus'
+	| 'dollar'
+	| 'hourglass'
+	| 'swords';
+
+const ICON_PATHS: Record<IconName, ReactNode> = {
+	coin: (
+		<>
+			<circle cx="12" cy="12" r="9" />
+			<path d="M14.5 9H10.5a1.5 1.5 0 0 0 0 3h3a1.5 1.5 0 0 1 0 3H9.5M12 7v1.5M12 15.5V17" />
+		</>
+	),
+	heart: (
+		<path d="M19.5 13.572L12 21l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 7.566z" />
+	),
+	list: <path d="M4 6h16M4 12h16M4 18h16" />,
+	target: (
+		<>
+			<circle cx="12" cy="12" r="9" />
+			<circle cx="12" cy="12" r="5" />
+			<circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+		</>
+	),
+	zap: <path d="M13 2L4 14h7l-1 8 10-12h-7l1-8z" />,
+	battery: (
+		<>
+			<rect x="2" y="8" width="16" height="8" rx="1.5" />
+			<path d="M20 11v2" />
+		</>
+	),
+	plus: <path d="M12 5v14M5 12h14" />,
+	dollar: (
+		<path d="M12 2v20M16 6.5C15 5 13.6 4 12 4c-2.5 0-4.5 1.5-4.5 4s2 3 4.5 3.5c2.5.5 4.5 1 4.5 3.5s-2 4-4.5 4c-1.6 0-3-1-4-2.5" />
+	),
+	hourglass: (
+		<path d="M6 2h12M6 22h12M6 2v3a6 6 0 0 0 12 0V2M6 22v-3a6 6 0 0 1 12 0v3" />
+	),
+	swords: (
+		<>
+			<path d="M14.5 17.5L3 6V3h3l11.5 11.5" />
+			<path d="M13 19l2-2 4 4-2 2-4-4z" />
+			<path d="M16 16l4-4M14.5 5.5L20 3l-2.5 5.5z" />
+			<path d="M5 14l-2 5 5-2-3-3z" />
+		</>
+	),
+};
+
+interface IconProps {
+	name: IconName;
+	size?: number;
+}
+
+function Icon({ name, size = 13 }: IconProps) {
+	return (
+		<svg
+			className="td-chip-svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden>
+			{ICON_PATHS[name]}
+		</svg>
+	);
+}
+
+interface ChipProps {
+	icon: IconName;
+	label: string;
+	value: string | number;
+	tone?: 'default' | 'danger' | 'good' | 'gold' | 'battery';
+	title?: string;
+}
+
+function Chip({ icon, label, value, tone = 'default', title }: ChipProps) {
+	return (
+		<div className={`td-chip td-chip-${tone}`} title={title}>
+			<Icon name={icon} />
+			<span className="td-chip-label">{label}</span>
+			<span className="td-chip-value">{value}</span>
+		</div>
+	);
+}
+
+function GoldChip() {
+	const v = useStore(goldAtom);
+	return (
+		<Chip
+			icon="coin"
+			label="Gold"
+			value={v}
+			tone="gold"
+			title="Coins earned from kills + cards. Spend to place buildings + upgrade."
+		/>
+	);
+}
+
+function LivesChip() {
+	const v = useStore(livesAtom);
+	const tone = v <= 5 ? 'danger' : 'default';
+	return (
+		<Chip
+			icon="heart"
+			label="Lives"
+			value={v}
+			tone={tone}
+			title="Lost when an enemy reaches the path end. Hit zero = game over."
+		/>
+	);
+}
+
+function WaveChip() {
+	const v = useStore(waveAtom);
+	return (
+		<Chip
+			icon="list"
+			label="Wave"
+			value={v}
+			tone="default"
+			title="Current wave. Every 5th wave spawns a boss."
+		/>
+	);
+}
+
+function EnemiesChip() {
+	const v = useStore(enemiesLeftAtom);
+	return (
+		<Chip
+			icon="target"
+			label="Left"
+			value={v}
+			tone="default"
+			title="Enemies remaining to spawn + alive in this wave."
+		/>
+	);
+}
+
+function PowerChip() {
+	const supply = useStore(supplyAtom);
+	const demand = useStore(demandAtom);
+	const tone = supply >= demand ? 'good' : 'danger';
+	return (
+		<Chip
+			icon="zap"
+			label="Power"
+			value={`${supply}/${demand}`}
+			tone={tone}
+			title="Supply / demand. Excess charges batteries; deficit drains them then knocks towers offline by placement order."
+		/>
+	);
+}
+
+function BatteryChip() {
+	const charge = useStore(batteryChargeAtom);
+	const cap = useStore(batteryCapacityAtom);
+	if (cap <= 0) return null;
+	return (
+		<Chip
+			icon="battery"
+			label="Charge"
+			value={`${Math.floor(charge)}/${cap}`}
+			tone="battery"
+			title="Stored battery energy. Burned when supply < demand."
+		/>
+	);
+}
+
+function FreeTowerChip() {
+	const v = useStore(freeTowersAtom);
+	if (v <= 0) return null;
+	return (
+		<Chip
+			icon="plus"
+			label="Free Tower"
+			value={v}
+			tone="gold"
+			title="Next basic tower placement is free (from a card)."
+		/>
+	);
+}
+
+function BountyChip() {
+	const v = useStore(bountyMulAtom);
+	if (v <= 1) return null;
+	return (
+		<Chip
+			icon="dollar"
+			label="Bounty"
+			value={`×${v.toFixed(1)}`}
+			tone="battery"
+			title="Kill rewards multiplier this wave (from a card)."
+		/>
+	);
+}
+
+function TimerSlot() {
+	const state = useStore(timerStateAtom);
+	const sec = useStore(timerSecAtom);
+	const canSkip = useStore(canSkipAtom);
+	const inProgress = state === 'IN_PROGRESS';
+	const label = inProgress ? 'Wave' : 'Next';
+	const value = inProgress ? 'live' : `${Math.max(0, sec)}s`;
+	return (
+		<div
+			className="td-timer"
+			title={
+				inProgress
+					? 'Wave in progress'
+					: 'Time until the next wave starts. Press Skip to start it now.'
+			}>
+			<Icon name={inProgress ? 'swords' : 'hourglass'} />
+			<span className="td-chip-label">{label}</span>
+			<span className="td-chip-value">{value}</span>
+			{canSkip ? (
+				<button
+					type="button"
+					className="td-skip"
+					onClick={() => skipSignalAtom.set(skipSignalAtom.get() + 1)}
+					title="Skip the countdown">
+					Skip
+					<span className="td-skip-arrow" aria-hidden>
+						→
+					</span>
+				</button>
+			) : null}
+		</div>
+	);
+}
+
+function GameOverOverlay() {
+	const state = useStore(gameOverAtom);
+	if (!state.visible) return null;
+	const accent = state.win ? '#48bb78' : '#fc8181';
+	const style = { '--td-accent': accent } as CSSProperties;
+	return (
+		<div className="td-over" style={style}>
+			<div className="td-over-card">
+				<div className="td-over-eyebrow">
+					{state.win ? 'Mission Complete' : 'Mission Failed'}
+				</div>
+				<div className="td-over-title">
+					{state.win ? 'VICTORY' : 'DEFEAT'}
+				</div>
+				<div className="td-over-sub">
+					Cleared {state.wave} {state.wave === 1 ? 'wave' : 'waves'}
+				</div>
+				<button
+					type="button"
+					className="td-over-restart"
+					onClick={() =>
+						restartSignalAtom.set(restartSignalAtom.get() + 1)
+					}>
+					Restart
+				</button>
+				<div className="td-over-hint">or press R</div>
+			</div>
+		</div>
+	);
+}
+
+export default function TdHud() {
+	return (
+		<div className="td-root">
+			<div className="td-bar">
+				<div className="td-group">
+					<GoldChip />
+					<LivesChip />
+				</div>
+				<div className="td-divider" />
+				<div className="td-group">
+					<WaveChip />
+					<EnemiesChip />
+				</div>
+				<div className="td-divider" />
+				<div className="td-group">
+					<PowerChip />
+					<BatteryChip />
+				</div>
+				<div className="td-group td-group-buffs">
+					<FreeTowerChip />
+					<BountyChip />
+				</div>
+				<div className="td-spacer" />
+				<TimerSlot />
+			</div>
+			<GameOverOverlay />
+		</div>
+	);
+}

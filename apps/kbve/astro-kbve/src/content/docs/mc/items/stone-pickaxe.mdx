@@ -1,0 +1,42 @@
+---
+title: Stone Pickaxe
+description: |
+    Minecraft Stone Pickaxe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Stone Pickaxe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 865
+    ref: stone_pickaxe
+    slug: stone-pickaxe
+    display_name: Stone Pickaxe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 131
+    tier: stone
+    damage:
+        attack_damage: 3
+        attack_speed: 1.2
+    mining:
+        tool_type: pickaxe
+        tier: 2
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

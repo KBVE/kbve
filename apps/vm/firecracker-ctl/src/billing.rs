@@ -55,7 +55,7 @@ pub const fn sku_for(vcpu_count: u8, mem_size_mib: u16) -> Sku {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
-pub struct VmCostQuote {
+pub struct VmCostBreakdown {
     pub sku: Sku,
     pub upfront: u64,
     pub credits_per_sec: u64,
@@ -70,12 +70,12 @@ pub fn quote(
     mem_size_mib: u16,
     duration_secs: u64,
     expected_requests: u64,
-) -> VmCostQuote {
+) -> VmCostBreakdown {
     let sku = sku_for(vcpu_count, mem_size_mib);
     let r = rate(sku);
     let runtime_cost = r.credits_per_sec.saturating_mul(duration_secs);
     let request_cost = (expected_requests / 1000).saturating_mul(r.credits_per_1k_requests);
-    VmCostQuote {
+    VmCostBreakdown {
         sku,
         upfront: r.upfront,
         credits_per_sec: r.credits_per_sec,

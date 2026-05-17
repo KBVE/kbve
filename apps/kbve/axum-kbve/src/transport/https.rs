@@ -368,10 +368,53 @@ fn router(state: AppState) -> Router {
         // routes before falling through to the static resolver, so these
         // win over any /referral/<...>/index.html that may still ship in
         // the astro dist.
+        //
+        // Each form gets two routes so a trailing slash on the public URL
+        // (e.g. /referral/@fudster/ vs /referral/@fudster) doesn't 404.
+        // axum's path matching is exact — there's no built-in
+        // trailing-slash normalization.
         .route("/referral/{handle}", get(super::referral::redirect_default))
+        .route(
+            "/referral/{handle}/",
+            get(super::referral::redirect_default),
+        )
         .route(
             "/referral/{handle}/{slug}",
             get(super::referral::redirect_slug),
+        )
+        .route(
+            "/referral/{handle}/{slug}/",
+            get(super::referral::redirect_slug),
+        )
+        // API surface also tolerates trailing slashes for parity with the
+        // public URLs above.
+        .route(
+            "/api/v1/referral/{handle}/",
+            get(super::referral::redirect_default),
+        )
+        .route(
+            "/api/v1/referral/{handle}/{slug}/",
+            get(super::referral::redirect_slug),
+        )
+        // Phase 3a self-service management. All `/me/*` routes require
+        // a Supabase user JWT; user_id is pulled from the JWT `sub`
+        // claim, never trusted from the path or body.
+        .route(
+            "/api/v1/referral/me/targets",
+            get(super::referral::me_list_targets),
+        )
+        .route("/api/v1/referral/me/stats", get(super::referral::me_stats))
+        .route(
+            "/api/v1/referral/me/targets/{slug}/enable",
+            post(super::referral::me_enable_target),
+        )
+        .route(
+            "/api/v1/referral/me/targets/{slug}/disable",
+            post(super::referral::me_disable_target),
+        )
+        .route(
+            "/api/v1/referral/me/targets/{slug}/set-default",
+            post(super::referral::me_set_default),
         )
         // service_role JWT required; anon / authenticated JWTs are rejected with 403.
         .route(

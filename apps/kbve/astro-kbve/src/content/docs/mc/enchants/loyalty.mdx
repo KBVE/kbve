@@ -1,0 +1,42 @@
+---
+title: Loyalty
+description: |
+    Minecraft Loyalty — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Loyalty
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 19
+    ref: loyalty
+    slug: loyalty
+    display_name: Loyalty
+    rarity: common
+    max_level: 3
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - trident
+    incompatible_with:
+        - riptide
+    anvil_cost: 1
+    cost:
+        a_min: 7
+        b_min: 5
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

@@ -105,10 +105,21 @@ message VmCharge {
   ChargeOutcome outcome = 7;
 }
 
-// Pre-flight quote — "what would this cost". Caller can reject before commit.
+// Pure pricing breakdown returned by `/vm/quote`. No wallet/auth needed.
+message VmCostBreakdown {
+  string sku = 1;
+  uint64 upfront = 2;
+  uint64 credits_per_sec = 3;
+  uint64 credits_per_1k_requests = 4;
+  uint64 estimated_duration_secs = 5;
+  uint64 estimated_requests = 6;
+  uint64 estimated_total = 7;
+}
+
+// Pre-flight quote — "what would this cost AND can I afford it". Wallet-aware.
 message VmCostQuote {
   VmSpec spec = 1;
-  uint64 max_credits = 2;
+  VmCostBreakdown breakdown = 2;
   uint64 account_balance_credits = 3;
   bool affordable = 4;
 }

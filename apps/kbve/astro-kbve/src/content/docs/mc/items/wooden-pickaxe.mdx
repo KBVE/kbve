@@ -1,0 +1,42 @@
+---
+title: Wooden Pickaxe
+description: |
+    Minecraft Wooden Pickaxe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Wooden Pickaxe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 860
+    ref: wooden_pickaxe
+    slug: wooden-pickaxe
+    display_name: Wooden Pickaxe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 59
+    tier: wooden
+    damage:
+        attack_damage: 2
+        attack_speed: 1.2
+    mining:
+        tool_type: pickaxe
+        tier: 1
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

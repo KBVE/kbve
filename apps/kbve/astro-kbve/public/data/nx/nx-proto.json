@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-05-16T08:41:08.670Z",
+  "generated_at": "2026-05-17T08:49:28.044Z",
   "summary": {
-    "total_protos": 31,
+    "total_protos": 35,
     "registered": 26,
-    "orphaned": 4,
+    "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 641,
-    "total_enums": 129
+    "total_messages": 662,
+    "total_enums": 136
   },
   "protos": [
     {
@@ -576,6 +576,77 @@
       "enums": [],
       "message_count": 20,
       "enum_count": 0,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/mc/mc_blocks.proto",
+      "package": "kbve.mc",
+      "messages": [
+        "McBlockDrop",
+        "McBlock"
+      ],
+      "enums": [
+        "McBlockTool",
+        "McBlockMaterial"
+      ],
+      "message_count": 2,
+      "enum_count": 2,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/mc/mc_enchants.proto",
+      "package": "kbve.mc",
+      "messages": [
+        "MCEnchantCostRange",
+        "McEnchant"
+      ],
+      "enums": [
+        "MCEnchantRarity",
+        "MCEnchantTarget"
+      ],
+      "message_count": 2,
+      "enum_count": 2,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/mc/mc_items.proto",
+      "package": "kbve.mc",
+      "messages": [
+        "MCEquipment",
+        "MCDamage",
+        "MCFood",
+        "MCMiningProfile",
+        "MCEnchantCompat",
+        "MCRecipeIngredient",
+        "MCRecipe",
+        "MCAbout",
+        "MCItem"
+      ],
+      "enums": [
+        "MCRarity",
+        "MCItemCategory",
+        "MCToolTier"
+      ],
+      "message_count": 9,
+      "enum_count": 3,
       "codegen": {
         "registered": false,
         "name": null,
@@ -1185,6 +1256,30 @@
       }
     },
     {
+      "proto": "packages/data/proto/referral/referral.proto",
+      "package": "referral",
+      "messages": [
+        "Target",
+        "UserTarget",
+        "RewardPolicy",
+        "Click",
+        "RecordClickRequest",
+        "RecordClickResponse",
+        "ResolveUserTargetRequest",
+        "ResolveUserTargetResponse"
+      ],
+      "enums": [],
+      "message_count": 8,
+      "enum_count": 0,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
+      }
+    },
+    {
       "proto": "packages/data/proto/rows/rows.proto",
       "package": "rows",
       "messages": [
@@ -1299,9 +1394,13 @@
     "packages/data/proto/empire/empire.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
+    "packages/data/proto/kbve/mc/mc_blocks.proto",
+    "packages/data/proto/kbve/mc/mc_enchants.proto",
+    "packages/data/proto/kbve/mc/mc_items.proto",
+    "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-16T08:41:08Z",
+  "checked_at": "2026-05-17T08:49:28Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",

@@ -1,0 +1,38 @@
+---
+title: Diamond
+description: |
+    Diamond — material gem. Crafts all diamond tools, armor, and the
+    diamond block. Smelts from diamond ore.
+sidebar:
+    label: Diamond
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 814
+    ref: diamond
+    slug: diamond
+    display_name: Diamond
+    category: material
+    rarity: common
+    stack_size: 64
+    drop_sources:
+        - diamond_ore
+        - deepslate_diamond_ore
+    tags:
+        - gem
+        - tier_diamond
+    about:
+        description: |
+            Diamonds are the staple endgame material before Netherite.
+            Mined with iron pickaxe or better, drops 1 per ore (Fortune
+            III can yield up to 4). Trades, jungle temples, and shipwreck
+            chests are alternative sources.
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

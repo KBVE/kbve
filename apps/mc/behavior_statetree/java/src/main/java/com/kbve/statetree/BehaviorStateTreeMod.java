@@ -69,6 +69,8 @@ public class BehaviorStateTreeMod implements ModInitializer {
         // No-op when OPAC isn't loaded.
         SpawnAutoClaim.register();
 
+        com.kbve.statetree.wallet.WalletScreens.register();
+
         if (!NativeRuntime.isLoaded()) {
             LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
             return;

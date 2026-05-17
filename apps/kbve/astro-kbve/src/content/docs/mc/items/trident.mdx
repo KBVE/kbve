@@ -1,0 +1,35 @@
+---
+title: Trident
+description: |
+    Minecraft Trident — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Trident
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 1251
+    ref: trident
+    slug: trident
+    display_name: Trident
+    category: misc
+    rarity: common
+    stack_size: 1
+    enchants:
+        allowed:
+            - channeling
+            - impaling
+            - loyalty
+            - riptide
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -1,0 +1,41 @@
+---
+title: Curse of Vanishing
+description: |
+    Minecraft Curse of Vanishing — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Curse of Vanishing
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 40
+    ref: vanishing_curse
+    slug: vanishing-curse
+    display_name: Curse of Vanishing
+    rarity: common
+    max_level: 1
+    weight: 1
+    treasure: true
+    curse: true
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - vanishable
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 0
+        b_min: 25
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

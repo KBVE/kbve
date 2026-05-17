@@ -1,0 +1,280 @@
+---
+import ReactTowerDefenseApp from './ReactTowerDefenseApp';
+import TdHud from './TdHud';
+---
+
+<div class="not-content w-full h-full">
+	<div
+		id="towerdefense-game-container"
+		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#0d1117]"
+		style="width: 100%; aspect-ratio: 16/9;"
+		tabindex="0">
+		<div id="towerdefense-game-inner" class="w-full h-full">
+			<ReactTowerDefenseApp client:only="react" />
+		</div>
+		<div class="td-hud-mount">
+			<TdHud client:only="react" />
+		</div>
+	</div>
+	<p class="text-xs text-gray-400 mt-2 text-center">
+		Pick a build (<kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd>), click an empty
+		tile to place. Click any existing tower to open its upgrade panel
+		(Radar, Attack, Speed, Armor). Generators feed the global grid;
+		batteries store surplus. Repair stations dispatch drones to fix damaged
+		buildings. Brutes (purple) stop to chew nearby builds — runners and
+		scouts speed past. Artillery hits anywhere on the map but fires slowly.
+		Press <kbd>N</kbd>
+		for a fresh map · <kbd>R</kbd> after game over.
+	</p>
+</div>
+
+<style is:global>
+	#towerdefense-game-container {
+		container-type: inline-size;
+		touch-action: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	@container (max-width: 600px) {
+		#towerdefense-game-container {
+			aspect-ratio: 4/3;
+		}
+	}
+
+	.td-hud-mount {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 5;
+		color: #e2e8f0;
+		font-family:
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			'Segoe UI',
+			sans-serif;
+		font-feature-settings: 'tnum' 1;
+	}
+
+	.td-root {
+		position: absolute;
+		inset: 0;
+	}
+
+	.td-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		height: 36px;
+		padding: 0 14px;
+		overflow: hidden;
+		flex-wrap: nowrap;
+		background: rgba(11, 14, 20, 0.72);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		backdrop-filter: blur(10px) saturate(140%);
+		-webkit-backdrop-filter: blur(10px) saturate(140%);
+		pointer-events: auto;
+	}
+
+	.td-group {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.td-group-buffs:empty {
+		display: none;
+	}
+
+	.td-divider {
+		width: 1px;
+		height: 16px;
+		background: rgba(255, 255, 255, 0.1);
+		flex: 0 0 auto;
+	}
+
+	.td-spacer {
+		flex: 1;
+	}
+
+	.td-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 0;
+		color: #e2e8f0;
+		line-height: 1;
+		white-space: nowrap;
+	}
+
+	.td-chip-svg {
+		flex: 0 0 auto;
+		color: #94a3b8;
+	}
+
+	.td-chip-label {
+		font-size: 10px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #94a3b8;
+	}
+
+	.td-chip-value {
+		font-variant-numeric: tabular-nums;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+
+	.td-chip-gold .td-chip-svg,
+	.td-chip-gold .td-chip-value {
+		color: #fbd38d;
+	}
+
+	.td-chip-danger .td-chip-svg,
+	.td-chip-danger .td-chip-value {
+		color: #fc8181;
+	}
+
+	.td-chip-good .td-chip-svg,
+	.td-chip-good .td-chip-value {
+		color: #9ae6b4;
+	}
+
+	.td-chip-battery .td-chip-svg,
+	.td-chip-battery .td-chip-value {
+		color: #f6e05e;
+	}
+
+	.td-timer {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding-left: 12px;
+		border-left: 1px solid rgba(255, 255, 255, 0.1);
+		color: #e2e8f0;
+		line-height: 1;
+	}
+
+	.td-skip {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-left: 4px;
+		padding: 3px 10px;
+		font-family: inherit;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #0b0e14;
+		background: #fbd38d;
+		border: none;
+		border-radius: 999px;
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			transform 90ms ease;
+		pointer-events: auto;
+	}
+
+	.td-skip:hover {
+		background: #f6ad55;
+	}
+
+	.td-skip:active {
+		transform: scale(0.97);
+	}
+
+	.td-skip-arrow {
+		font-size: 12px;
+	}
+
+	.td-over {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(8, 10, 14, 0.7);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		pointer-events: auto;
+		z-index: 10;
+	}
+
+	.td-over-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		padding: 36px 56px 28px;
+		background: rgba(15, 19, 26, 0.95);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-top: 2px solid var(--td-accent, #fbd38d);
+		border-radius: 14px;
+		box-shadow:
+			0 30px 80px rgba(0, 0, 0, 0.55),
+			0 1px 0 rgba(255, 255, 255, 0.04) inset;
+		min-width: 320px;
+	}
+
+	.td-over-eyebrow {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.28em;
+		text-transform: uppercase;
+		color: #94a3b8;
+	}
+
+	.td-over-title {
+		font-size: 44px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		line-height: 1;
+		color: var(--td-accent, #e2e8f0);
+		margin-top: 2px;
+	}
+
+	.td-over-sub {
+		font-size: 13px;
+		color: #cbd5e0;
+		margin-bottom: 10px;
+	}
+
+	.td-over-restart {
+		padding: 10px 30px;
+		font-family: inherit;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #0b0e14;
+		background: var(--td-accent, #fbd38d);
+		border: none;
+		border-radius: 999px;
+		cursor: pointer;
+		transition:
+			filter 120ms ease,
+			transform 90ms ease;
+	}
+
+	.td-over-restart:hover {
+		filter: brightness(1.08);
+	}
+
+	.td-over-restart:active {
+		transform: scale(0.97);
+	}
+
+	.td-over-hint {
+		font-size: 11px;
+		color: #64748b;
+		letter-spacing: 0.06em;
+	}
+</style>

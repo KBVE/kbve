@@ -1,0 +1,78 @@
+---
+title: Diamond Pickaxe
+description: |
+    Diamond Pickaxe — tier 5 mining tool. Required to mine obsidian,
+    ancient debris, and netherite. 1561 durability.
+sidebar:
+    label: Diamond Pickaxe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 825
+    ref: diamond_pickaxe
+    slug: diamond-pickaxe
+    display_name: Diamond Pickaxe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 1561
+    tier: diamond
+    damage:
+        attack_damage: 5
+        attack_speed: 1.2
+    mining:
+        tool_type: pickaxe
+        tier: 5
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags:
+        - mining
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 3
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 2
+              - ref: stick
+                qty: 1
+                row: 1
+                col: 1
+              - ref: stick
+                qty: 1
+                row: 2
+                col: 1
+    about:
+        description: |
+            The Diamond Pickaxe is the cheapest tool capable of mining
+            obsidian (and the gate to Netherite). 1561 durability matches
+            the diamond family; pair with Unbreaking + Mending for an
+            endgame mining setup.
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -1,0 +1,42 @@
+---
+title: Wooden Shovel
+description: |
+    Minecraft Wooden Shovel — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Wooden Shovel
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 859
+    ref: wooden_shovel
+    slug: wooden-shovel
+    display_name: Wooden Shovel
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 59
+    tier: wooden
+    damage:
+        attack_damage: 2.5
+        attack_speed: 1
+    mining:
+        tool_type: shovel
+        tier: 1
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

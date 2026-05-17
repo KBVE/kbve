@@ -1,0 +1,42 @@
+---
+title: Iron Hoe
+description: |
+    Minecraft Iron Hoe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Iron Hoe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 877
+    ref: iron_hoe
+    slug: iron-hoe
+    display_name: Iron Hoe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 250
+    tier: iron
+    damage:
+        attack_damage: 1
+        attack_speed: 3
+    mining:
+        tool_type: hoe
+        tier: 3
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

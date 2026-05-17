@@ -1,0 +1,46 @@
+---
+title: Netherite Helmet
+description: |
+    Minecraft Netherite Helmet — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Netherite Helmet
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 916
+    ref: netherite_helmet
+    slug: netherite-helmet
+    display_name: Netherite Helmet
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 407
+    tier: netherite
+    equipment:
+        slot: head
+        armor_points: 3
+        toughness: 3
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - aqua_affinity
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - respiration
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

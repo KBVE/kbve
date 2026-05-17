@@ -1,0 +1,41 @@
+---
+title: Knockback
+description: |
+    Minecraft Knockback — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Knockback
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 17
+    ref: knockback
+    slug: knockback
+    display_name: Knockback
+    rarity: common
+    max_level: 2
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - weapon
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 20
+        b_min: -15
+        a_max: 20
+        b_max: 35
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

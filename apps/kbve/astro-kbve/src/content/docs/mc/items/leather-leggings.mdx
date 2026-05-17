@@ -1,0 +1,45 @@
+---
+title: Leather Pants
+description: |
+    Minecraft Leather Pants — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Leather Pants
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 898
+    ref: leather_leggings
+    slug: leather-leggings
+    display_name: Leather Pants
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 75
+    tier: leather
+    equipment:
+        slot: legs
+        armor_points: 2
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - swift_sneak
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

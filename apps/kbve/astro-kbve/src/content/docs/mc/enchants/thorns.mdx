@@ -1,0 +1,41 @@
+---
+title: Thorns
+description: |
+    Minecraft Thorns — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Thorns
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 38
+    ref: thorns
+    slug: thorns
+    display_name: Thorns
+    rarity: common
+    max_level: 3
+    weight: 1
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - armor
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 20
+        b_min: -10
+        a_max: 20
+        b_max: 40
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

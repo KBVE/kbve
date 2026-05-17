@@ -1,0 +1,41 @@
+---
+title: Unbreaking
+description: |
+    Minecraft Unbreaking — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Unbreaking
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 39
+    ref: unbreaking
+    slug: unbreaking
+    display_name: Unbreaking
+    rarity: common
+    max_level: 3
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - breakable
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 8
+        b_min: -3
+        a_max: 8
+        b_max: 47
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

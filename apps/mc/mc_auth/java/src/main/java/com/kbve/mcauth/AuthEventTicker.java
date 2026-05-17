@@ -172,9 +172,11 @@ public final class AuthEventTicker {
                 String uuid = payload.get("player_uuid").getAsString();
                 long credits = payload.get("credits").getAsLong();
                 long khash = payload.get("khash").getAsLong();
+                WalletBalanceCache.put(uuid, credits, khash);
                 ServerPlayerEntity player = findPlayer(server, uuid);
                 if (player != null) {
                     sendBalanceMessage(player, credits, khash);
+                    WalletNetworking.pushBalance(player, credits, khash);
                 }
                 LOGGER.debug(
                         "[{}] WalletBalance uuid={} credits={} khash={}",
@@ -182,6 +184,31 @@ public final class AuthEventTicker {
                         uuid,
                         credits,
                         khash);
+                break;
+            }
+            case "PlayerSnapshotLoaded": {
+                String uuid = payload.get("player_uuid").getAsString();
+                String snapshotJson = (payload.has("snapshot_json") && !payload.get("snapshot_json").isJsonNull())
+                        ? payload.get("snapshot_json").getAsString()
+                        : null;
+                if (snapshotJson != null) {
+                    PlayerSnapshotHandler.applyLoadedSnapshot(server, uuid, snapshotJson);
+                }
+                LOGGER.debug(
+                        "[{}] PlayerSnapshotLoaded uuid={} present={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        snapshotJson != null);
+                break;
+            }
+            case "PlayerSnapshotSaved": {
+                String uuid = payload.get("player_uuid").getAsString();
+                boolean success = payload.has("success") && payload.get("success").getAsBoolean();
+                LOGGER.debug(
+                        "[{}] PlayerSnapshotSaved uuid={} success={}",
+                        McAuthMod.MOD_ID,
+                        uuid,
+                        success);
                 break;
             }
             default:

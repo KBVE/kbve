@@ -1,0 +1,36 @@
+---
+title: Block of Redstone
+description: |
+    Minecraft Block of Redstone — vanilla 1.21.5 block record (auto-generated).
+sidebar:
+    label: Block of Redstone
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-block
+mc_block:
+    id: 443
+    ref: redstone_block
+    slug: redstone-block
+    display_name: Block of Redstone
+    material: redstone
+    hardness: 5
+    blast_resistance: 6
+    best_tool: pickaxe
+    required_tool_tier: 0
+    light_emission: 0
+    light_opacity: 15
+    transparent: false
+    placeable: true
+    solid: true
+    renewable: false
+    diggable: true
+    drops: []
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';
+
+<MCBlockPanel data={frontmatter.mc_block} />

@@ -37,15 +37,16 @@ export { Stage } from './lib/r3f/components/Stage';
 export type { StageProps } from './lib/r3f/components/Stage';
 export { useGameLoop } from './lib/r3f/hooks/use-game-loop';
 
-// ECS (bitecs)
+// ECS (bitecs) — full re-export of bitecs core API
+export * from './lib/ecs/bitecs';
+
+// ECS helpers (spatial queries, side-map for managed refs)
 export {
-	createWorld,
-	addEntity,
-	removeEntity,
-	addComponent,
-	hasComponent,
-	query,
-} from './lib/ecs/bitecs';
+	SideMap,
+	nearestInRange,
+	queryInRange,
+	type PositionLike,
+} from './lib/ecs/helpers';
 
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';

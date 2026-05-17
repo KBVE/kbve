@@ -1,0 +1,42 @@
+---
+title: Stone Shovel
+description: |
+    Minecraft Stone Shovel — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Stone Shovel
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 864
+    ref: stone_shovel
+    slug: stone-shovel
+    display_name: Stone Shovel
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 131
+    tier: stone
+    damage:
+        attack_damage: 3.5
+        attack_speed: 1
+    mining:
+        tool_type: shovel
+        tier: 2
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

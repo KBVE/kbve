@@ -1,0 +1,46 @@
+---
+title: Golden Helmet
+description: |
+    Minecraft Golden Helmet — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Golden Helmet
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 912
+    ref: golden_helmet
+    slug: golden-helmet
+    display_name: Golden Helmet
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 77
+    tier: golden
+    equipment:
+        slot: head
+        armor_points: 2
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - aqua_affinity
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - respiration
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

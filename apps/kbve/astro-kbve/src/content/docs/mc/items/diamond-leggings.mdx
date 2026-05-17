@@ -1,0 +1,82 @@
+---
+title: Diamond Leggings
+description: |
+    Diamond Leggings — leg armor. 6 armor + 2 toughness. 495 durability.
+sidebar:
+    label: Diamond Leggings
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 832
+    ref: diamond_leggings
+    slug: diamond-leggings
+    display_name: Diamond Leggings
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 495
+    tier: diamond
+    equipment:
+        slot: legs
+        armor_points: 6
+        toughness: 2
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - swift_sneak
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags:
+        - armor
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 3
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 2
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 2
+                col: 2
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

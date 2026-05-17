@@ -1,0 +1,48 @@
+---
+title: Iron Boots
+description: |
+    Minecraft Iron Boots — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Iron Boots
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 907
+    ref: iron_boots
+    slug: iron-boots
+    display_name: Iron Boots
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 195
+    tier: iron
+    equipment:
+        slot: feet
+        armor_points: 2
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - depth_strider
+            - feather_falling
+            - fire_protection
+            - frost_walker
+            - projectile_protection
+            - protection
+            - soul_speed
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

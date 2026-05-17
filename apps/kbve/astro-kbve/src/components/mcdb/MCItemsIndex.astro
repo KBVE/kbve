@@ -1,0 +1,212 @@
+---
+import MCItemsBrowser from './MCItemsBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>Minecraft Items</h1>
+			<p>
+				Browse every vanilla Minecraft 1.21.5 item we've published —
+				tools, weapons, armor, blocks, foods, brewing reagents,
+				decoration, music discs, and more. Search by ref or display
+				name, filter by category or tier, click a card for the full item
+				page (durability, damage, compatible enchants, recipes). The
+				same index powers the marketplace create-form picker.
+			</p>
+		</div>
+	</header>
+
+	<MCItemsBrowser client:load />
+</section>
+
+<style is:global>
+	.mcdb-browse__shell {
+		display: grid;
+		gap: 1rem;
+	}
+	.mcdb-browse__head h1 {
+		margin: 0;
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.mcdb-browse__head p {
+		margin: 0.5rem 0 0;
+		color: var(--sl-color-gray-3);
+		line-height: 1.55;
+	}
+	.mcdb-browse {
+		display: grid;
+		gap: 0.85rem;
+	}
+	.mcdb-browse__filters {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		align-items: end;
+		padding: 0.75rem 1rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.mcdb-browse__filter {
+		display: grid;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-text);
+	}
+	.mcdb-browse__filter--search {
+		flex: 1;
+		min-width: 220px;
+	}
+	.mcdb-browse__input {
+		padding: 0.4rem 0.65rem;
+		border-radius: 8px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-text);
+		font: inherit;
+	}
+	.mcdb-browse__reset {
+		padding: 0.45rem 0.85rem;
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-text);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.mcdb-browse__reset:hover {
+		background: var(--sl-color-bg-sidebar);
+		border-color: var(--sl-color-accent);
+	}
+	.mcdb-browse__count {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.mcdb-browse__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 0.6rem;
+	}
+	.mcdb-browse__card {
+		display: grid;
+		gap: 0.3rem;
+		padding: 0.75rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-text);
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.mcdb-browse__card:hover {
+		transform: translateY(-2px);
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 14px 22px -16px
+			color-mix(in srgb, var(--sl-color-accent) 50%, transparent);
+	}
+	.mcdb-browse__icon {
+		width: 100%;
+		aspect-ratio: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background:
+			repeating-linear-gradient(
+				45deg,
+				color-mix(in srgb, var(--sl-color-black) 14%, transparent) 0 6px,
+				transparent 6px 12px
+			),
+			linear-gradient(
+				135deg,
+				var(--sl-color-bg-nav) 0%,
+				var(--sl-color-bg-sidebar) 100%
+			);
+		border-radius: 8px;
+		padding: 12%;
+	}
+	.mcdb-browse__icon img {
+		max-width: 100%;
+		max-height: 100%;
+		image-rendering: pixelated;
+		object-fit: contain;
+	}
+	.mcdb-browse__name {
+		font-weight: 700;
+		font-size: 0.9rem;
+		line-height: 1.2;
+		color: var(--sl-color-white, var(--sl-color-text));
+		word-break: break-word;
+	}
+	.mcdb-browse__meta {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+		font-size: 0.7rem;
+	}
+	.mcdb-browse__cat {
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+		font-weight: 700;
+	}
+	.mcdb-browse__tier {
+		color: var(--sl-color-gray-3);
+		font-weight: 600;
+	}
+	.mcdb-browse__status {
+		padding: 1rem;
+		border-radius: 10px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-gray-3);
+		text-align: center;
+	}
+	.mcdb-browse__status--error {
+		color: var(--color-red, var(--sl-color-text-accent));
+		border-color: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 45%,
+			transparent
+		);
+	}
+	.mcdb-browse__pager {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: center;
+		align-items: center;
+		padding: 0.5rem 0;
+	}
+	.mcdb-browse__page-btn {
+		padding: 0.45rem 0.85rem;
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-text);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.mcdb-browse__page-btn:hover:not(:disabled) {
+		background: var(--sl-color-bg-sidebar);
+		border-color: var(--sl-color-accent);
+	}
+	.mcdb-browse__page-btn:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+	.mcdb-browse__page-info {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+</style>

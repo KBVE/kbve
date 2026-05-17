@@ -1,0 +1,42 @@
+---
+title: Wooden Hoe
+description: |
+    Minecraft Wooden Hoe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Wooden Hoe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 862
+    ref: wooden_hoe
+    slug: wooden-hoe
+    display_name: Wooden Hoe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 59
+    tier: wooden
+    damage:
+        attack_damage: 1
+        attack_speed: 1
+    mining:
+        tool_type: hoe
+        tier: 1
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

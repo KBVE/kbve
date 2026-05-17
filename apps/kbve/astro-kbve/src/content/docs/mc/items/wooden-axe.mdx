@@ -1,0 +1,45 @@
+---
+title: Wooden Axe
+description: |
+    Minecraft Wooden Axe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Wooden Axe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 861
+    ref: wooden_axe
+    slug: wooden-axe
+    display_name: Wooden Axe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 59
+    tier: wooden
+    damage:
+        attack_damage: 7
+        attack_speed: 0.8
+    mining:
+        tool_type: axe
+        tier: 1
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

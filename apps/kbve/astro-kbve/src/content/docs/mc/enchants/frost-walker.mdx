@@ -1,0 +1,42 @@
+---
+title: Frost Walker
+description: |
+    Minecraft Frost Walker — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Frost Walker
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 14
+    ref: frost_walker
+    slug: frost-walker
+    display_name: Frost Walker
+    rarity: common
+    max_level: 2
+    weight: 2
+    treasure: true
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - armor_feet
+    incompatible_with:
+        - depth_strider
+    anvil_cost: 1
+    cost:
+        a_min: 10
+        b_min: 0
+        a_max: 10
+        b_max: 15
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

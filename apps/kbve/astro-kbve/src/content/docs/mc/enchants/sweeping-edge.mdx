@@ -1,0 +1,41 @@
+---
+title: Sweeping Edge
+description: |
+    Minecraft Sweeping Edge — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Sweeping Edge
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 36
+    ref: sweeping_edge
+    slug: sweeping-edge
+    display_name: Sweeping Edge
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - weapon
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 9
+        b_min: -4
+        a_max: 9
+        b_max: 11
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

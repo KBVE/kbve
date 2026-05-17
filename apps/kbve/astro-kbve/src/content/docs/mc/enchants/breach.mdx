@@ -1,0 +1,46 @@
+---
+title: Breach
+description: |
+    Minecraft Breach — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Breach
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 4
+    ref: breach
+    slug: breach
+    display_name: Breach
+    rarity: common
+    max_level: 4
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - mace
+    incompatible_with:
+        - bane_of_arthropods
+        - density
+        - impaling
+        - sharpness
+        - smite
+    anvil_cost: 1
+    cost:
+        a_min: 9
+        b_min: 6
+        a_max: 9
+        b_max: 56
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

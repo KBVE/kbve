@@ -1,0 +1,42 @@
+---
+title: Golden Shovel
+description: |
+    Minecraft Golden Shovel — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Golden Shovel
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 869
+    ref: golden_shovel
+    slug: golden-shovel
+    display_name: Golden Shovel
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 32
+    tier: golden
+    damage:
+        attack_damage: 2.5
+        attack_speed: 1
+    mining:
+        tool_type: shovel
+        tier: 1
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

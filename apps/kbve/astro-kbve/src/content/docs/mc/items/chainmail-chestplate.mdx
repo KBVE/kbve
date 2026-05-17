@@ -1,0 +1,44 @@
+---
+title: Chainmail Chestplate
+description: |
+    Minecraft Chainmail Chestplate — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Chainmail Chestplate
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 901
+    ref: chainmail_chestplate
+    slug: chainmail-chestplate
+    display_name: Chainmail Chestplate
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 240
+    tier: chainmail
+    equipment:
+        slot: chest
+        armor_points: 5
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

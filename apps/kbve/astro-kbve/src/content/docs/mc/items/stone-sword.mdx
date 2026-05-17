@@ -1,0 +1,43 @@
+---
+title: Stone Sword
+description: |
+    Minecraft Stone Sword — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Stone Sword
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 863
+    ref: stone_sword
+    slug: stone-sword
+    display_name: Stone Sword
+    category: weapon
+    rarity: common
+    stack_size: 1
+    max_durability: 131
+    tier: stone
+    damage:
+        attack_damage: 5
+        attack_speed: 1.6
+    enchants:
+        allowed:
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - knockback
+            - fire_aspect
+            - looting
+            - sweeping_edge
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

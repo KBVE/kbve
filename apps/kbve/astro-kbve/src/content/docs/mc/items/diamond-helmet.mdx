@@ -1,0 +1,75 @@
+---
+title: Diamond Helmet
+description: |
+    Diamond Helmet — head armor. 3 armor + 2 toughness. 363 durability.
+sidebar:
+    label: Diamond Helmet
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 830
+    ref: diamond_helmet
+    slug: diamond-helmet
+    display_name: Diamond Helmet
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 363
+    tier: diamond
+    equipment:
+        slot: head
+        armor_points: 3
+        toughness: 2
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - aqua_affinity
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - respiration
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags:
+        - armor
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 3
+          height: 2
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 2
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

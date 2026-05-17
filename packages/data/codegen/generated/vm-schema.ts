@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/vm.binpb
  * Config: ../vm-zod-config.json
- * Generated: 2026-05-14T09:46:28.583Z
+ * Generated: 2026-05-17T05:45:48.556Z
  */
 
 import { z } from 'zod';
@@ -64,10 +64,23 @@ export const VmSpecSchema = z.object({
 
 export type VmSpec = z.infer<typeof VmSpecSchema>;
 
+// VmCostBreakdown
+export const VmCostBreakdownSchema = z.object({
+	sku: z.string(),
+	upfront: z.number(),
+	credits_per_sec: z.number(),
+	credits_per_1k_requests: z.number(),
+	estimated_duration_secs: z.number(),
+	estimated_requests: z.number(),
+	estimated_total: z.number(),
+});
+
+export type VmCostBreakdown = z.infer<typeof VmCostBreakdownSchema>;
+
 // VmCostQuote
 export const VmCostQuoteSchema = z.object({
 	spec: VmSpecSchema.optional(),
-	max_credits: z.number(),
+	breakdown: VmCostBreakdownSchema.optional(),
 	account_balance_credits: z.number(),
 	affordable: z.boolean(),
 });

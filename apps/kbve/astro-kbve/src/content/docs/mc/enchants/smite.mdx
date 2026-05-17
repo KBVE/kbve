@@ -1,0 +1,46 @@
+---
+title: Smite
+description: |
+    Minecraft Smite — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Smite
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 34
+    ref: smite
+    slug: smite
+    display_name: Smite
+    rarity: common
+    max_level: 5
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - weapon
+    incompatible_with:
+        - bane_of_arthropods
+        - breach
+        - density
+        - impaling
+        - sharpness
+    anvil_cost: 1
+    cost:
+        a_min: 8
+        b_min: -3
+        a_max: 8
+        b_max: 17
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

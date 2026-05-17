@@ -1,0 +1,45 @@
+---
+title: Netherite Axe
+description: |
+    Minecraft Netherite Axe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Netherite Axe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 886
+    ref: netherite_axe
+    slug: netherite-axe
+    display_name: Netherite Axe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 2031
+    tier: netherite
+    damage:
+        attack_damage: 10
+        attack_speed: 1
+    mining:
+        tool_type: axe
+        tier: 5
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

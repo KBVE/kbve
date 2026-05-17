@@ -1,0 +1,45 @@
+---
+title: Chainmail Leggings
+description: |
+    Minecraft Chainmail Leggings — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Chainmail Leggings
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 902
+    ref: chainmail_leggings
+    slug: chainmail-leggings
+    display_name: Chainmail Leggings
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 225
+    tier: chainmail
+    equipment:
+        slot: legs
+        armor_points: 4
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - swift_sneak
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -1,0 +1,45 @@
+---
+title: Iron Leggings
+description: |
+    Minecraft Iron Leggings — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Iron Leggings
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 906
+    ref: iron_leggings
+    slug: iron-leggings
+    display_name: Iron Leggings
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 225
+    tier: iron
+    equipment:
+        slot: legs
+        armor_points: 5
+        toughness: 0
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - fire_protection
+            - projectile_protection
+            - protection
+            - swift_sneak
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -10,12 +10,14 @@
 //! functions are the only thing the handler talks to on the SQL side.
 
 use axum::{
+    Json,
     extract::Path,
     http::{HeaderMap, StatusCode, header},
     response::{IntoResponse, Response},
 };
 use hmac::{Hmac, Mac};
 use kbve::referral::{RecordClickInput, ReferralError};
+use serde::Deserialize;
 use serde_json::json;
 use sha2::Sha256;
 use std::env;
@@ -267,4 +269,163 @@ fn server_error(msg: &str) -> Response {
         axum::Json(json!({ "error": msg })),
     )
         .into_response()
+}
+
+// ===========================================================================
+// Phase 3a — self-service management routes
+//
+// All `/api/v1/referral/me/*` routes require a Supabase user JWT. The caller's
+// user_id is resolved from the JWT `sub` claim (never trusted from the body
+// or path) so a user can only manage their own user_target rows.
+// ===========================================================================
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct EnableBody {
+    #[serde(default)]
+    pub set_as_default: bool,
+}
+
+fn referral_error_response(e: ReferralError) -> Response {
+    match e {
+        ReferralError::TargetNotFound => not_found("target not found or inactive"),
+        ReferralError::TargetNotEnabled => not_found("target not enabled for user"),
+        ReferralError::PolicyMissing => server_error("reward policy missing"),
+        ReferralError::WalletAccountProvisioning => {
+            server_error("wallet account provisioning failed")
+        }
+        ReferralError::InvalidArgument(msg) => (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({ "error": "invalid argument", "detail": msg })),
+        )
+            .into_response(),
+        ReferralError::Pool(msg) => {
+            tracing::error!(error = %msg, "referral pool error");
+            service_unavailable("referral pool unavailable")
+        }
+        ReferralError::Db(err) => {
+            tracing::error!(error = %err, "referral db error");
+            server_error("internal error")
+        }
+    }
+}
+
+async fn require_user(headers: &HeaderMap) -> Result<Uuid, Response> {
+    // Reuse the wallet flow's JWT-sub → UUID parser. Same auth posture
+    // (Supabase bearer JWT), same error envelope shape.
+    super::wallet::resolve_user(headers).await
+}
+
+fn require_referral_client() -> Result<&'static kbve::referral::ReferralClient, Response> {
+    get_referral_client().ok_or_else(|| service_unavailable("referral client uninitialized"))
+}
+
+/// `GET /api/v1/referral/me/targets` — full list (active + inactive) with
+/// per-target click + credit totals.
+pub(crate) async fn me_list_targets(headers: HeaderMap) -> Response {
+    let user_id = match require_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let referral = match require_referral_client() {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    match referral.list_user_targets(user_id).await {
+        Ok(rows) => Json(rows).into_response(),
+        Err(e) => referral_error_response(e),
+    }
+}
+
+/// `GET /api/v1/referral/me/stats` — lifetime rollup across targets.
+pub(crate) async fn me_stats(headers: HeaderMap) -> Response {
+    let user_id = match require_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let referral = match require_referral_client() {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    match referral.get_user_stats(user_id).await {
+        Ok(stats) => Json(stats).into_response(),
+        Err(e) => referral_error_response(e),
+    }
+}
+
+/// `POST /api/v1/referral/me/targets/{slug}/enable`
+/// Body: `{ "set_as_default": bool }` (optional; defaults to false).
+pub(crate) async fn me_enable_target(
+    Path(slug): Path<String>,
+    headers: HeaderMap,
+    body: Option<Json<EnableBody>>,
+) -> Response {
+    let user_id = match require_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let referral = match require_referral_client() {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    let set_as_default = body.map(|b| b.0.set_as_default).unwrap_or(false);
+
+    match referral.enable_target(user_id, &slug, set_as_default).await {
+        Ok(row) => Json(row).into_response(),
+        Err(e) => referral_error_response(e),
+    }
+}
+
+/// `POST /api/v1/referral/me/targets/{slug}/disable`
+pub(crate) async fn me_disable_target(Path(slug): Path<String>, headers: HeaderMap) -> Response {
+    let user_id = match require_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let referral = match require_referral_client() {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    match referral.disable_target(user_id, &slug).await {
+        Ok(row) => Json(row).into_response(),
+        Err(ReferralError::Db(err)) => {
+            // Surface the custom RFM01 ("can't disable last default")
+            // through to the client as a 409 so the UI can prompt the
+            // user to pick a new default first.
+            let msg = err.to_string();
+            if msg.contains("cannot disable last active default") {
+                return (
+                    StatusCode::CONFLICT,
+                    axum::Json(json!({
+                        "error": "no_other_default",
+                        "detail": "Pick another target as the default before disabling this one.",
+                    })),
+                )
+                    .into_response();
+            }
+            tracing::error!(error = %err, "disable_target db error");
+            server_error("internal error")
+        }
+        Err(e) => referral_error_response(e),
+    }
+}
+
+/// `POST /api/v1/referral/me/targets/{slug}/set-default`
+pub(crate) async fn me_set_default(Path(slug): Path<String>, headers: HeaderMap) -> Response {
+    let user_id = match require_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let referral = match require_referral_client() {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    match referral.set_default_target(user_id, &slug).await {
+        Ok(row) => Json(row).into_response(),
+        Err(e) => referral_error_response(e),
+    }
 }

@@ -9,12 +9,13 @@
 -- handler holds a service_role JWT and is the only consumer for
 -- Phase 1.
 --
--- Custom SQLSTATEs. Keep this list in sync with the Phase 2 axum error
--- mapper so users see the right 4xx code:
+-- Custom SQLSTATEs. Keep this list in sync with the axum error mapper
+-- so users see the right 4xx code:
 --   RFP01  = referral.reward_policy row missing
 --   RFT01  = referral target not found / inactive
 --   RFU01  = referrer does not have target enabled in user_target
 --   RFWA1  = ensure_referrer_account failed to provision a wallet account
+--   RFM01  = cannot disable the last active default (Phase 3a)
 --
 -- service_role intentionally holds USAGE on the schema + EXECUTE on
 -- these functions only. It does NOT have direct table privileges; the

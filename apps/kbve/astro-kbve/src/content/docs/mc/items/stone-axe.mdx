@@ -1,0 +1,45 @@
+---
+title: Stone Axe
+description: |
+    Minecraft Stone Axe — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Stone Axe
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 866
+    ref: stone_axe
+    slug: stone-axe
+    display_name: Stone Axe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 131
+    tier: stone
+    damage:
+        attack_damage: 9
+        attack_speed: 0.9
+    mining:
+        tool_type: axe
+        tier: 2
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -209,6 +209,49 @@ async fn handle_job(
                 }
             }
         }
+        AuthJob::LoadPlayerSnapshot {
+            player_uuid,
+            server_id,
+        } => {
+            debug!(%player_uuid, %server_id, "mc_auth: processing load_player_snapshot");
+            match supabase
+                .load_player_snapshot(&player_uuid, &server_id)
+                .await
+            {
+                Ok(snapshot_json) => PlayerEvent::PlayerSnapshotLoaded {
+                    player_uuid,
+                    snapshot_json,
+                },
+                Err(reason) => {
+                    warn!(%player_uuid, %reason, "mc_auth: load snapshot failed");
+                    PlayerEvent::PlayerSnapshotLoaded {
+                        player_uuid,
+                        snapshot_json: None,
+                    }
+                }
+            }
+        }
+        AuthJob::SavePlayerSnapshot {
+            player_uuid,
+            snapshot_json,
+        } => {
+            debug!(%player_uuid, "mc_auth: processing save_player_snapshot");
+            match supabase.save_player_snapshot(&snapshot_json).await {
+                Ok(()) => PlayerEvent::PlayerSnapshotSaved {
+                    player_uuid,
+                    success: true,
+                    error: None,
+                },
+                Err(reason) => {
+                    warn!(%player_uuid, %reason, "mc_auth: save snapshot failed");
+                    PlayerEvent::PlayerSnapshotSaved {
+                        player_uuid,
+                        success: false,
+                        error: Some(reason),
+                    }
+                }
+            }
+        }
     };
 
     // Pull the player_uuid + user_id BEFORE moving `event` into the channel

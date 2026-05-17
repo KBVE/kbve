@@ -36,6 +36,8 @@ public class ShipClientMod implements ClientModInitializer {
     /** Pilot-only descend key — separate from sneak so sneak stays vanilla dismount. */
     private static KeyBinding descendKey;
 
+    private static KeyBinding walletKey;
+
     @Override
     public void onInitializeClient() {
         EntityRendererRegistry.register(ShipEntityTypes.SHIP, BBModelShipRenderer::new);
@@ -44,12 +46,44 @@ public class ShipClientMod implements ClientModInitializer {
                 .registerReloadListener(new BBModelLoader());
 
         HandledScreens.register(ShipScreenHandlerTypes.SHIP, ShipScreen::new);
+        HandledScreens.register(
+                com.kbve.statetree.wallet.WalletScreens.HANDLER_TYPE,
+                com.kbve.statetree.wallet.WalletScreen::new);
+
+        com.kbve.statetree.wallet.WalletCapabilityPayload.registerClientCodec();
+        net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry.playC2S()
+                .register(
+                        com.kbve.statetree.wallet.WalletOpenPayload.ID,
+                        com.kbve.statetree.wallet.WalletOpenPayload.CODEC);
+        net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry.playS2C()
+                .register(
+                        com.kbve.statetree.wallet.WalletBalanceSyncPayload.ID,
+                        com.kbve.statetree.wallet.WalletBalanceSyncPayload.CODEC);
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN
+                .register((handler, sender, client) -> {
+                    if (ClientPlayNetworking.canSend(
+                            com.kbve.statetree.wallet.WalletCapabilityPayload.ID)) {
+                        ClientPlayNetworking.send(
+                                new com.kbve.statetree.wallet.WalletCapabilityPayload((byte) 1));
+                    }
+                });
+        ClientPlayNetworking.registerGlobalReceiver(
+                com.kbve.statetree.wallet.WalletBalanceSyncPayload.ID,
+                (payload, context) -> {
+                    com.kbve.statetree.wallet.ClientWalletState.set(payload.credits(), payload.khash());
+                });
 
         descendKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.behavior_statetree.descend",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_C,
                 KeyBinding.Category.MOVEMENT));
+
+        walletKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.behavior_statetree.wallet",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_K,
+                KeyBinding.Category.MISC));
 
         HudRenderCallback.EVENT.register(hud);
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
@@ -59,6 +93,12 @@ public class ShipClientMod implements ClientModInitializer {
 
     private void onClientTick(MinecraftClient client) {
         if (client.player == null) return;
+
+        while (walletKey != null && walletKey.wasPressed()) {
+            if (ClientPlayNetworking.canSend(com.kbve.statetree.wallet.WalletOpenPayload.ID)) {
+                ClientPlayNetworking.send(new com.kbve.statetree.wallet.WalletOpenPayload((byte) 1));
+            }
+        }
 
         Entity vehicle = client.player.getVehicle();
         if (vehicle instanceof ShipEntity shipEntity) {

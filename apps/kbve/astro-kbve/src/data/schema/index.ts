@@ -3,6 +3,7 @@ export * from './IQuestSchema';
 export * from './IMapSchema';
 export * from './INpcSchema';
 export * from './osrs';
+export * from './mc';
 export * from './ICiProjectSchema';
 export * from './IClickHouseSchema';
 export * from './IForumSchema';

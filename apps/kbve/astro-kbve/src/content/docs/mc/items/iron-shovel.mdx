@@ -1,0 +1,42 @@
+---
+title: Iron Shovel
+description: |
+    Minecraft Iron Shovel — vanilla 1.21.5 item record (auto-generated).
+sidebar:
+    label: Iron Shovel
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 874
+    ref: iron_shovel
+    slug: iron-shovel
+    display_name: Iron Shovel
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 250
+    tier: iron
+    damage:
+        attack_damage: 4.5
+        attack_speed: 1
+    mining:
+        tool_type: shovel
+        tier: 3
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags: []
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

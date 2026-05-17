@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package kbve.mc;
+
+// =============================================================================
+// Minecraft vanilla block registry — companion to mcitems.proto. Source of
+// truth for `/mc/blocks/<slug>` MDX pages, the world-builder UI, and bot/AI
+// pathfinding hints. Bootstrapped by scripts/generate-mc-blocks.mjs from the
+// PrismarineJS `minecraft-data` registry.
+//
+// Identity:
+//   id    numeric registry id (NOT stable across versions — use ref)
+//   ref   namespaced id without "minecraft:" prefix ("oak_log", "stone")
+//   slug  kebab-case URL slug ("oak-log", "deepslate-redstone-ore")
+//
+// Most blocks have a 1:1 item form (placeable). The link is via `ref` —
+// `mcitems.proto MCItem.ref == mcblocks.proto McBlock.ref` for placeable
+// blocks. Block-only refs (e.g. "fire", "water") have no item.
+// =============================================================================
+
+// McBlockTool is the preferred tool category for harvesting.
+enum McBlockTool {
+  MC_BLOCK_TOOL_UNSPECIFIED = 0;
+  MC_BLOCK_TOOL_HAND        = 1;
+  MC_BLOCK_TOOL_PICKAXE     = 2;
+  MC_BLOCK_TOOL_AXE         = 3;
+  MC_BLOCK_TOOL_SHOVEL      = 4;
+  MC_BLOCK_TOOL_HOE         = 5;
+  MC_BLOCK_TOOL_SHEARS      = 6;
+  MC_BLOCK_TOOL_SWORD       = 7;
+}
+
+// McBlockMaterial groups blocks by physical / sound profile.
+enum McBlockMaterial {
+  MC_BLOCK_MATERIAL_UNSPECIFIED = 0;
+  MC_BLOCK_MATERIAL_AIR         = 1;
+  MC_BLOCK_MATERIAL_STONE       = 2;
+  MC_BLOCK_MATERIAL_WOOD        = 3;
+  MC_BLOCK_MATERIAL_DIRT        = 4;
+  MC_BLOCK_MATERIAL_SAND        = 5;
+  MC_BLOCK_MATERIAL_GRAVEL      = 6;
+  MC_BLOCK_MATERIAL_METAL       = 7;
+  MC_BLOCK_MATERIAL_GLASS       = 8;
+  MC_BLOCK_MATERIAL_WOOL        = 9;
+  MC_BLOCK_MATERIAL_PLANT       = 10;
+  MC_BLOCK_MATERIAL_LEAVES      = 11;
+  MC_BLOCK_MATERIAL_ICE         = 12;
+  MC_BLOCK_MATERIAL_SNOW        = 13;
+  MC_BLOCK_MATERIAL_LIQUID      = 14;
+  MC_BLOCK_MATERIAL_REDSTONE    = 15;
+  MC_BLOCK_MATERIAL_NETHER      = 16;
+  MC_BLOCK_MATERIAL_END         = 17;
+  MC_BLOCK_MATERIAL_MISC        = 99;
+}
+
+// McBlockDrop is one possible drop from breaking this block.
+message McBlockDrop {
+  // namespaced ref of the dropped item, e.g. "cobblestone"
+  string ref      = 1;
+  // base drop quantity (silk touch / fortune handled elsewhere)
+  int32  qty_min  = 2;
+  int32  qty_max  = 3;
+  // requires silk touch to drop the block as itself
+  bool   silk_touch_only = 4;
+  // fortune multiplier applies (true for ores etc.)
+  bool   affected_by_fortune = 5;
+}
+
+// McBlock — top-level block record (one MDX file == one McBlock).
+message McBlock {
+  int32  id           = 1;
+  string ref          = 2;
+  string slug         = 3;
+  string display_name = 4;
+
+  McBlockMaterial material = 5;
+
+  // Base hardness in vanilla units (-1 == indestructible like bedrock).
+  float hardness = 6;
+
+  // Blast resistance vs explosions.
+  float blast_resistance = 7;
+
+  // Preferred mining tool (informational; vanilla allows hand mining for many).
+  McBlockTool best_tool = 8;
+
+  // Minimum tool tier required to drop (0 = hand OK, 1..6 = wooden..netherite).
+  // Matches mcitems.proto MCToolTier band.
+  int32 required_tool_tier = 9;
+
+  // Light emission level (0..15).
+  int32 light_emission = 10;
+
+  // Opacity to light (0 = transparent, 15 = opaque).
+  int32 light_opacity = 11;
+
+  bool transparent = 12;
+
+  // Block has its own item form (placeable from inventory).
+  bool placeable = 13;
+
+  // Solid for entity collision (false for water, air, plants).
+  bool solid = 14;
+
+  // Renewable in vanilla (informational for collector flows).
+  bool renewable = 15;
+
+  // Diggable at all (false for bedrock, command_block).
+  bool diggable = 16;
+
+  // Default drops when broken without silk touch / fortune.
+  repeated McBlockDrop drops = 17;
+
+  // Free-form tags for filtering ("ore", "log", "wool", "sapling",
+  // "redstone_component").
+  repeated string tags = 18;
+
+  // Vanilla version this record was generated from ("1.21.5"). Set by the
+  // generator script.
+  string data_version = 19;
+}
