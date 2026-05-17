@@ -32,10 +32,19 @@ import {
 	type UpgradeKind,
 } from './config';
 import {
+	BatteryTag,
+	BuildingTag,
+	DroneStats,
+	DroneState,
+	DroneTag,
 	EnemyStats,
 	EnemyTag,
 	enemyTypeIndexFromId,
+	GeneratorTag,
 	Position,
+	RepairTag,
+	TowerTag,
+	type DroneVisual,
 	type EnemyVisual,
 } from './ecs';
 import {
@@ -60,7 +69,6 @@ import type {
 	GeneratorBuilding,
 	Projectile,
 	RepairBuilding,
-	RepairDrone,
 	TowerBuilding,
 } from './types';
 
@@ -93,10 +101,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private world!: World;
 	private enemyVisuals = new SideMap<EnemyVisual>();
 	private buildings: Building[] = [];
+	private buildingByEid = new SideMap<Building>();
+	private droneVisuals = new SideMap<DroneVisual>();
 	private projectiles: Projectile[] = [];
 	private burnPatches: BurnPatch[] = [];
-	private drones: RepairDrone[] = [];
-	private nextEntityId = 1;
 
 	private gold = GAME_CONFIG.startingGold;
 	private lives = GAME_CONFIG.startingLives;
@@ -144,10 +152,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.world = createWorld();
 		this.enemyVisuals = new SideMap<EnemyVisual>();
 		this.buildings = [];
+		this.buildingByEid = new SideMap<Building>();
+		this.droneVisuals = new SideMap<DroneVisual>();
 		this.projectiles = [];
 		this.burnPatches = [];
-		this.drones = [];
-		this.nextEntityId = 1;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -1116,8 +1124,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			.setOrigin(0, 0.5)
 			.setVisible(false);
 
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, BuildingTag);
+		Position.x[eid] = x;
+		Position.y[eid] = y;
 		const base: BaseBuilding = {
-			id: this.nextEntityId++,
+			id: eid,
 			col,
 			row,
 			x,
@@ -1132,6 +1145,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 		let building: Building;
 		if (spec.kind === 'tower') {
+			addComponent(this.world, eid, TowerTag);
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1150,6 +1164,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			};
 			building = b;
 		} else if (spec.kind === 'generator') {
+			addComponent(this.world, eid, GeneratorTag);
 			const b: GeneratorBuilding = {
 				...base,
 				kind: 'generator',
@@ -1158,6 +1173,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			};
 			building = b;
 		} else if (spec.kind === 'battery') {
+			addComponent(this.world, eid, BatteryTag);
 			const bspec = spec as BatterySpec;
 			const chargeBarBg = this.add
 				.rectangle(
@@ -1188,6 +1204,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			};
 			building = b;
 		} else if (spec.kind === 'repair') {
+			addComponent(this.world, eid, RepairTag);
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1201,7 +1218,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				online: true,
 				powerIndicator,
 				cooldownLeftMs: 0,
-				activeDrone: null,
+				activeDroneEid: null,
 			};
 			building = b;
 		} else {
@@ -1211,6 +1228,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 
 		this.buildings.push(building);
+		this.buildingByEid.set(eid, building);
 		return building;
 	}
 
@@ -1330,10 +1348,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const ey = Position.y[eid];
 		let best: Building | null = null;
 		let bestDist2 = range * range;
-		for (const b of this.buildings) {
-			if (b.destroyed) continue;
-			const dx = b.x - ex;
-			const dy = b.y - ey;
+		for (const beid of query(this.world, [BuildingTag, Position])) {
+			const b = this.buildingByEid.get(beid);
+			if (!b || b.destroyed) continue;
+			const dx = Position.x[beid] - ex;
+			const dy = Position.y[beid] - ey;
 			const d2 = dx * dx + dy * dy;
 			if (d2 <= bestDist2) {
 				bestDist2 = d2;
@@ -1371,15 +1390,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const v of this.enemyVisuals.values()) {
 			if (v.attackTarget === b) v.attackTarget = null;
 		}
-		for (const d of this.drones) {
-			if (d.target === b || d.station === (b as RepairBuilding)) {
-				d.alive = false;
-				d.sprite.destroy();
-				d.beam.destroy();
-			}
+		const droneKills: number[] = [];
+		for (const [deid, dv] of this.droneVisuals.entries()) {
+			if (dv.target === b || dv.station === b) droneKills.push(deid);
 		}
-		this.drones = this.drones.filter((d) => d.alive);
+		for (const deid of droneKills) this.killDrone(deid);
+		this.buildingByEid.delete(b.id);
+		removeEntity(this.world, b.id);
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
+	}
+
+	private killDrone(eid: number): void {
+		const v = this.droneVisuals.delete(eid);
+		if (!v) return;
+		v.sprite.destroy();
+		v.beam.destroy();
+		if (v.station.kind === 'repair' && v.station.activeDroneEid === eid) {
+			v.station.activeDroneEid = null;
+		}
+		removeEntity(this.world, eid);
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -1751,7 +1780,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.destroyed) continue;
 			if (b.kind !== 'repair') continue;
 			if (!b.online) continue;
-			if (b.activeDrone && b.activeDrone.alive) continue;
+			if (
+				b.activeDroneEid !== null &&
+				this.droneVisuals.has(b.activeDroneEid)
+			)
+				continue;
 			b.cooldownLeftMs -= dtMs;
 			if (b.cooldownLeftMs > 0) continue;
 			const target = this.findRepairTarget(b);
@@ -1763,54 +1796,64 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.spawnDrone(b, target);
 		}
 
-		for (const d of this.drones) {
-			if (!d.alive) continue;
-			if (d.target.destroyed) {
-				d.alive = false;
-				d.sprite.destroy();
-				d.beam.destroy();
+		const deathRow: number[] = [];
+		for (const deid of query(this.world, [
+			DroneTag,
+			Position,
+			DroneStats,
+		])) {
+			const v = this.droneVisuals.get(deid);
+			if (!v) continue;
+			if (v.target.destroyed) {
+				deathRow.push(deid);
 				continue;
 			}
-			const dest = d.state === 'outbound' ? d.target : d.station;
-			const dx = dest.x - d.x;
-			const dy = dest.y - d.y;
+			const dest =
+				DroneStats.state[deid] === DroneState.Outbound
+					? v.target
+					: v.station;
+			const dx = dest.x - Position.x[deid];
+			const dy = dest.y - Position.y[deid];
 			const dist = Math.hypot(dx, dy);
-			const step = d.speed * dt;
+			const step = DroneStats.speed[deid] * dt;
 			if (step >= dist) {
-				d.x = dest.x;
-				d.y = dest.y;
-				if (d.state === 'outbound') {
-					d.target.hp = Math.min(
-						d.target.maxHp,
-						d.target.hp + d.station.spec.repairAmount,
+				Position.x[deid] = dest.x;
+				Position.y[deid] = dest.y;
+				if (DroneStats.state[deid] === DroneState.Outbound) {
+					v.target.hp = Math.min(
+						v.target.maxHp,
+						v.target.hp + v.repairAmount,
 					);
-					d.state = 'returning';
+					DroneStats.state[deid] = DroneState.Returning;
 				} else {
-					d.alive = false;
-					d.sprite.destroy();
-					d.beam.destroy();
-					d.station.activeDrone = null;
+					deathRow.push(deid);
 					continue;
 				}
 			} else {
-				d.x += (dx / dist) * step;
-				d.y += (dy / dist) * step;
+				Position.x[deid] += (dx / dist) * step;
+				Position.y[deid] += (dy / dist) * step;
 			}
-			d.sprite.setPosition(d.x, d.y);
-			d.beam.clear();
-			if (d.state === 'outbound') {
-				d.beam.lineStyle(2, COLORS.repairBeam, 0.7);
-				d.beam.lineBetween(d.x, d.y, d.target.x, d.target.y);
+			v.sprite.setPosition(Position.x[deid], Position.y[deid]);
+			v.beam.clear();
+			if (DroneStats.state[deid] === DroneState.Outbound) {
+				v.beam.lineStyle(2, COLORS.repairBeam, 0.7);
+				v.beam.lineBetween(
+					Position.x[deid],
+					Position.y[deid],
+					v.target.x,
+					v.target.y,
+				);
 			}
 		}
-		this.drones = this.drones.filter((d) => d.alive);
+		for (const deid of deathRow) this.killDrone(deid);
 	}
 
 	private findRepairTarget(station: RepairBuilding): Building | null {
 		let best: Building | null = null;
 		let bestRatio = 1;
-		for (const b of this.buildings) {
-			if (b.destroyed) continue;
+		for (const beid of query(this.world, [BuildingTag])) {
+			const b = this.buildingByEid.get(beid);
+			if (!b || b.destroyed) continue;
 			if (b === station) continue;
 			if (b.hp >= b.maxHp) continue;
 			const ratio = b.hp / b.maxHp;
@@ -1832,19 +1875,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const beam = this.add.graphics();
 		beam.lineStyle(2, COLORS.repairBeam, 0.7);
 		beam.lineBetween(station.x, station.y, target.x, target.y);
-		const drone: RepairDrone = {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, DroneTag);
+		addComponent(this.world, eid, DroneStats);
+		Position.x[eid] = station.x;
+		Position.y[eid] = station.y;
+		DroneStats.speed[eid] = GAME_CONFIG.repairDroneSpeed;
+		DroneStats.state[eid] = DroneState.Outbound;
+		this.droneVisuals.set(eid, {
 			sprite,
 			beam,
 			station,
 			target,
-			x: station.x,
-			y: station.y,
-			speed: GAME_CONFIG.repairDroneSpeed,
-			state: 'outbound',
-			alive: true,
-		};
-		station.activeDrone = drone;
-		this.drones.push(drone);
+			repairAmount: station.spec.repairAmount,
+		});
+		station.activeDroneEid = eid;
 	}
 
 	private killEnemy(eid: number, reward: boolean): void {

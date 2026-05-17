@@ -64,7 +64,7 @@ export interface RepairBuilding extends BaseBuilding {
 	online: boolean;
 	powerIndicator: Phaser.GameObjects.Arc;
 	cooldownLeftMs: number;
-	activeDrone: RepairDrone | null;
+	activeDroneEid: number | null;
 }
 
 export type Building =
@@ -96,16 +96,4 @@ export interface BurnPatch {
 	radius: number;
 	dps: number;
 	expiresAtMs: number;
-}
-
-export interface RepairDrone {
-	sprite: Phaser.GameObjects.Arc;
-	beam: Phaser.GameObjects.Graphics;
-	station: RepairBuilding;
-	target: Building;
-	x: number;
-	y: number;
-	speed: number;
-	state: 'outbound' | 'returning';
-	alive: boolean;
 }
