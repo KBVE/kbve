@@ -51,6 +51,14 @@
 -- service_set_default_target return the demoted slug separately, so
 -- both sides of the swap are observable by the caller.
 --
+-- Orphan-row prevention is handled at the schema level, not in this
+-- migration: Phase 1 (20260515221756_referral_schema_init) declared
+--   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
+-- on referral.user_target, so the service-role RPCs below cannot
+-- create rows for non-existent users — a bad UUID raises 23503
+-- before any state change. The same FK auto-cleans referral state
+-- when an auth user is deleted.
+--
 -- Timestamp policy: every RPC uses statement_timestamp() so a single
 -- disable + promote (or enable + demote) round-trip stamps both rows
 -- with the same updated_at. Callers that depend on a strict per-row
@@ -189,10 +197,13 @@ END $$;
 DROP INDEX IF EXISTS referral.click_referrer_target_idx;
 DROP INDEX IF EXISTS referral.click_referrer_credited_ledger_idx;
 
--- (referrer_id, target_slug, created_at DESC) covers both per-target
--- group-bys in service_list_user_targets AND the global rollup in
--- service_get_user_stats (the latter range-scans the leading
--- referrer_id prefix). One index serves both paths.
+-- Primary shape targets the per-(referrer_id, target_slug) group-by
+-- in service_list_user_targets. service_get_user_stats can scan the
+-- leading referrer_id prefix, but that's acceptable-not-ideal because
+-- target_slug sits between referrer_id and created_at. If the global
+-- rollup ever becomes hot, the natural follow-up index is
+--   (referrer_id, created_at DESC)
+-- — add it then, not preemptively.
 CREATE INDEX IF NOT EXISTS referral_click_referrer_target_created_idx
     ON referral.click (referrer_id, target_slug, created_at DESC);
 
@@ -780,6 +791,8 @@ Ledger join filters source_kind = 'referral'. Service-role only.$$;
 --   -- Indexes live in the same schema as the table they index, so the
 --   -- `referral.<name>` qualifier below is the index's schema-qualified
 --   -- object name (the name itself just happens to start with `referral_`).
+--   -- If a future migration adds (referrer_id, created_at DESC) for the
+--   -- global rollup path, drop it here too.
 --   DROP INDEX  IF EXISTS referral.referral_click_referrer_credited_ledger_idx;
 --   DROP INDEX  IF EXISTS referral.referral_click_referrer_target_created_idx;
 --   ALTER TABLE referral.user_target
@@ -788,6 +801,22 @@ Ledger join filters source_kind = 'referral'. Service-role only.$$;
 --   DROP FUNCTION IF EXISTS referral.user_target_assert_immutable();
 --   DROP TRIGGER  IF EXISTS user_target_set_updated_at ON referral.user_target;
 --   DROP FUNCTION IF EXISTS referral.user_target_touch();
+--   COMMENT ON TABLE referral.user_target IS NULL;
 --   ALTER TABLE referral.user_target DROP COLUMN IF EXISTS updated_at;
+--
+-- Emergency repair on identity columns (user_id / target_slug /
+-- enabled_at): disable the immutability trigger for the session,
+-- repair, re-enable. The trigger is `BEFORE UPDATE FOR EACH ROW`, so
+-- session-scoped disable is enough — no other writer can sneak
+-- through a bad write while it's off, because writers hold the
+-- per-user advisory lock.
+--
+--   BEGIN;
+--   ALTER TABLE referral.user_target
+--     DISABLE TRIGGER user_target_assert_immutable;
+--   -- targeted UPDATE here
+--   ALTER TABLE referral.user_target
+--     ENABLE TRIGGER user_target_assert_immutable;
+--   COMMIT;
 
 SELECT 1;

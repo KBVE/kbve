@@ -134,8 +134,12 @@ END $$;
 DROP INDEX IF EXISTS referral.click_referrer_target_idx;
 DROP INDEX IF EXISTS referral.click_referrer_credited_ledger_idx;
 
--- One index for both per-target group-by and global rollup (the
--- latter range-scans the leading referrer_id prefix).
+-- Primary shape targets per-(referrer_id, target_slug) group-by in
+-- service_list_user_targets. service_get_user_stats can scan the
+-- leading referrer_id prefix (acceptable-not-ideal — target_slug
+-- sits between referrer_id and created_at). Add a narrower
+-- (referrer_id, created_at DESC) follow-up index when the global
+-- rollup actually becomes hot.
 CREATE INDEX IF NOT EXISTS referral_click_referrer_target_created_idx
     ON referral.click (referrer_id, target_slug, created_at DESC);
 
