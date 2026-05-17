@@ -24,6 +24,7 @@ export const gameOverAtom = atom<{
 
 export const skipSignalAtom = atom(0);
 export const restartSignalAtom = atom(0);
+export const speedFactorAtom = atom(1);
 
 export function resetHudStore(): void {
 	goldAtom.set(0);
@@ -40,4 +41,5 @@ export function resetHudStore(): void {
 	timerSecAtom.set(0);
 	canSkipAtom.set(false);
 	gameOverAtom.set({ visible: false, win: false, wave: 0 });
+	speedFactorAtom.set(1);
 }

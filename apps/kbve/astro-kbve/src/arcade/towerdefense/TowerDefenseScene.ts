@@ -77,6 +77,7 @@ import {
 	resetHudStore,
 	restartSignalAtom,
 	skipSignalAtom,
+	speedFactorAtom,
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
@@ -173,6 +174,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private hudUnsubs: Array<() => void> = [];
 	private lastSkipSignal = 0;
 	private lastRestartSignal = 0;
+	private simNow = 0;
+	private speedFactor = 1;
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -253,6 +256,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
+		this.simNow = 0;
+		this.speedFactor = 1;
 		resetHudStore();
 	}
 
@@ -369,7 +374,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.lastRestartSignal = v;
 			this.scene.restart();
 		});
-		this.hudUnsubs.push(skipUnsub, restartUnsub);
+		const speedUnsub = speedFactorAtom.subscribe((v: number) => {
+			this.speedFactor = v;
+			const scale = v <= 0 ? 0 : v;
+			this.time.timeScale = scale;
+			this.tweens.timeScale = scale === 0 ? 1 : scale;
+		});
+		this.hudUnsubs.push(skipUnsub, restartUnsub, speedUnsub);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
 			this.hudUnsubs = [];
@@ -1498,7 +1509,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.enemiesToSpawn = count + this.pendingBosses;
 		this.spawnAccumulatorMs = 0;
 		this.cardPickedThisInterval = false;
-		const armouryNow = this.time.now;
+		const armouryNow = this.simNow;
 		for (const b of this.buildings) {
 			if (b.destroyed) continue;
 			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
@@ -2416,11 +2427,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.refreshHud();
 			return;
 		}
-		const dt = deltaMs / 1000;
-		const nowMs = this.time.now;
+		const factor = this.speedFactor;
+		if (factor <= 0) {
+			this.refreshHud();
+			return;
+		}
+		const scaledDeltaMs = deltaMs * factor;
+		const dt = scaledDeltaMs / 1000;
+		this.simNow += scaledDeltaMs;
+		const nowMs = this.simNow;
 
 		if (this.enemiesToSpawn > 0) {
-			this.spawnAccumulatorMs += deltaMs;
+			this.spawnAccumulatorMs += scaledDeltaMs;
 			while (
 				this.spawnAccumulatorMs >= GAME_CONFIG.enemySpawnIntervalMs &&
 				this.enemiesToSpawn > 0
@@ -2437,7 +2455,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			) {
 				this.openCardPanel();
 			} else {
-				this.interWaveDelayMs -= deltaMs;
+				this.interWaveDelayMs -= scaledDeltaMs;
 				if (this.interWaveDelayMs <= 0) {
 					this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
 					this.startNextWave();
@@ -2466,7 +2484,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateArmouries(nowMs);
 		this.updateSoldiers(dt, nowMs);
 
-		this.powerRefreshAccumulatorMs += deltaMs;
+		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {
 			this.recomputePower(this.powerRefreshAccumulatorMs / 1000);
 			this.powerRefreshAccumulatorMs = 0;

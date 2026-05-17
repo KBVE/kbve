@@ -13,6 +13,7 @@ import {
 	livesAtom,
 	restartSignalAtom,
 	skipSignalAtom,
+	speedFactorAtom,
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
@@ -225,6 +226,29 @@ function BountyChip() {
 	);
 }
 
+function SpeedControls() {
+	const speed = useStore(speedFactorAtom);
+	const opts: Array<{ label: string; value: number }> = [
+		{ label: '❚❚', value: 0 },
+		{ label: '1×', value: 1 },
+		{ label: '2×', value: 2 },
+		{ label: '3×', value: 3 },
+	];
+	return (
+		<div className="td-speed" title="Pause / game speed">
+			{opts.map((opt) => (
+				<button
+					key={opt.value}
+					type="button"
+					className={`td-speed-btn${speed === opt.value ? ' td-speed-btn-active' : ''}`}
+					onClick={() => speedFactorAtom.set(opt.value)}>
+					{opt.label}
+				</button>
+			))}
+		</div>
+	);
+}
+
 function TimerSlot() {
 	const state = useStore(timerStateAtom);
 	const sec = useStore(timerSecAtom);
@@ -313,6 +337,8 @@ export default function TdHud() {
 					<BountyChip />
 				</div>
 				<div className="td-spacer" />
+				<SpeedControls />
+				<div className="td-divider" />
 				<TimerSlot />
 			</div>
 			<GameOverOverlay />
