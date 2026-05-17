@@ -115,6 +115,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private world!: World;
 	private enemyVisuals = new SideMap<EnemyVisual>();
 	private pendingBosses = 0;
+	private frameEnemyEids: Iterable<number> = [];
+	private frameSoldierEids: Iterable<number> = [];
+	private frameBuildingEids: Iterable<number> = [];
 	private buildings: Building[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
@@ -180,6 +183,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.world = createWorld();
 		this.enemyVisuals = new SideMap<EnemyVisual>();
 		this.pendingBosses = 0;
+		this.frameEnemyEids = [];
+		this.frameSoldierEids = [];
+		this.frameBuildingEids = [];
 		this.buildings = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
@@ -1588,7 +1594,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const ey = Position.y[eid];
 		let best: AttackTarget | null = null;
 		let bestDist2 = range * range;
-		for (const beid of query(this.world, [BuildingTag, Position])) {
+		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
 			if (!b || b.destroyed) continue;
 			const dx = Position.x[beid] - ex;
@@ -1599,11 +1605,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				best = { kind: 'building', b };
 			}
 		}
-		for (const seid of query(this.world, [
-			SoldierTag,
-			Position,
-			SoldierStats,
-		])) {
+		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
 			const dx = Position.x[seid] - ex;
 			const dy = Position.y[seid] - ey;
@@ -1766,11 +1768,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const roamSq = roam * roam;
 		let best = -1;
 		let bestDist2 = Infinity;
-		for (const eeid of query(this.world, [
-			EnemyTag,
-			Position,
-			EnemyStats,
-		])) {
+		for (const eeid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eeid)) continue;
 			const adx = Position.x[eeid] - ax;
 			const ady = Position.y[eeid] - ay;
@@ -1821,11 +1819,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateSoldiers(dt: number, nowMs: number): void {
-		for (const seid of query(this.world, [
-			SoldierTag,
-			Position,
-			SoldierStats,
-		])) {
+		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
 			let target = SoldierStats.targetEnemyEid[seid];
 			if (target === 0 || !this.enemyVisuals.has(target)) {
@@ -1879,8 +1873,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
-		const eids = query(this.world, [EnemyTag, Position, EnemyStats]);
-		for (const eid of eids) {
+		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
 			if (
 				EnemyStats.burnUntilMs[eid] > nowMs &&
@@ -2047,7 +2040,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const range = towerRange(t);
 		const rangeSq = range * range;
 		const skipSlowed = t.spec.avoidSlowed;
-		for (const eid of query(this.world, [EnemyTag, Position, EnemyStats])) {
+		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
 			if (skipSlowed && EnemyStats.slowUntilMs[eid] > nowMs) continue;
 			const dx = Position.x[eid] - t.x;
@@ -2152,11 +2145,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (spec.splashRadius > 0) {
 			const r2 = spec.splashRadius * spec.splashRadius;
-			for (const eid of query(this.world, [
-				EnemyTag,
-				Position,
-				EnemyStats,
-			])) {
+			for (const eid of this.frameEnemyEids) {
 				if (!this.enemyVisuals.has(eid)) continue;
 				const dx = Position.x[eid] - x;
 				const dy = Position.y[eid] - y;
@@ -2215,11 +2204,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateBurnPatches(dt: number, nowMs: number): void {
-		const enemyEids = query(this.world, [EnemyTag, Position, EnemyStats]);
 		for (const patch of this.burnPatches) {
 			if (nowMs >= patch.expiresAtMs) continue;
 			const r2 = patch.radius * patch.radius;
-			for (const eid of enemyEids) {
+			for (const eid of this.frameEnemyEids) {
 				if (!this.enemyVisuals.has(eid)) continue;
 				const dx = Position.x[eid] - patch.x;
 				const dy = Position.y[eid] - patch.y;
@@ -2323,7 +2311,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findRepairTarget(station: RepairBuilding): Building | null {
 		let best: Building | null = null;
 		let bestRatio = 1;
-		for (const beid of query(this.world, [BuildingTag])) {
+		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
 			if (!b || b.destroyed) continue;
 			if (b === station) continue;
@@ -2478,6 +2466,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 		}
+
+		this.frameEnemyEids = query(this.world, [
+			EnemyTag,
+			Position,
+			EnemyStats,
+		]);
+		this.frameSoldierEids = query(this.world, [
+			SoldierTag,
+			Position,
+			SoldierStats,
+		]);
+		this.frameBuildingEids = query(this.world, [BuildingTag, Position]);
 
 		this.updateBurnPatches(dt, nowMs);
 		this.updateEnemies(dt, nowMs);
