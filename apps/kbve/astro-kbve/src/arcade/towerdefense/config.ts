@@ -498,6 +498,62 @@ export function armouryUpgradeCost(
 	return Math.floor(def.baseCost * (currentLevel + 1));
 }
 
+export type RepairUpgradeKind = 'reach' | 'yield' | 'tempo';
+
+export interface RepairUpgradeDef {
+	id: RepairUpgradeKind;
+	name: string;
+	description: string;
+	color: number;
+	baseCost: number;
+	maxLevel: number;
+	perLevel: number;
+}
+
+export const REPAIR_UPGRADE_DEFS: Record<RepairUpgradeKind, RepairUpgradeDef> =
+	{
+		reach: {
+			id: 'reach',
+			name: 'Reach',
+			description: 'Range +25%',
+			color: 0x90cdf4,
+			baseCost: 70,
+			maxLevel: 4,
+			perLevel: 0.25,
+		},
+		yield: {
+			id: 'yield',
+			name: 'Yield',
+			description: 'Heal +25%',
+			color: 0x9ae6b4,
+			baseCost: 60,
+			maxLevel: 4,
+			perLevel: 0.25,
+		},
+		tempo: {
+			id: 'tempo',
+			name: 'Tempo',
+			description: 'Drone rate +15%',
+			color: 0xfbd38d,
+			baseCost: 65,
+			maxLevel: 4,
+			perLevel: 0.15,
+		},
+	};
+
+export const REPAIR_UPGRADE_ORDER: RepairUpgradeKind[] = [
+	'reach',
+	'yield',
+	'tempo',
+];
+
+export function repairUpgradeCost(
+	def: RepairUpgradeDef,
+	currentLevel: number,
+): number {
+	return Math.floor(def.baseCost * (currentLevel + 1));
+}
+
 export function specFor(id: BuildId): BuildSpec {
 	if (id in TOWER_CATALOG) return TOWER_CATALOG[id as TowerId];
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];

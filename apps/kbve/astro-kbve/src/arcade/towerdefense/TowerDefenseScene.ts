@@ -21,9 +21,12 @@ import {
 	TILE,
 	ARMOURY_UPGRADE_DEFS,
 	ARMOURY_UPGRADE_ORDER,
+	REPAIR_UPGRADE_DEFS,
+	REPAIR_UPGRADE_ORDER,
 	UPGRADE_DEFS,
 	UPGRADE_ORDER,
 	armouryUpgradeCost,
+	repairUpgradeCost,
 	rollEnemyType,
 	specFor,
 	upgradeCost,
@@ -99,6 +102,7 @@ import {
 	armourySoldierHp,
 	armourySpawnIntervalMs,
 } from './armoury-stats';
+import { repairAmount, repairCooldownMs, repairRange } from './repair-stats';
 import type {
 	ArmouryBuilding,
 	BaseBuilding,
@@ -614,7 +618,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			radius = towerRange(b);
 			color = b.spec.color;
 		} else if (b.kind === 'repair') {
-			radius = b.spec.repairRange;
+			radius = repairRange(b);
 			color = b.spec.color;
 		} else if (b.kind === 'armoury') {
 			radius = b.spec.soldierRoamRange;
@@ -793,18 +797,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 				.setStrokeStyle(2, b.spec.color, 0.6);
 		} else if (b.kind === 'repair') {
 			this.upgradeRangeIndicator = this.add
-				.circle(b.x, b.y, b.spec.repairRange, b.spec.color, 0.1)
+				.circle(b.x, b.y, repairRange(b), b.spec.color, 0.1)
 				.setStrokeStyle(2, b.spec.color, 0.6);
 		}
 
 		const isTower = b.kind === 'tower';
 		const isArmoury = b.kind === 'armoury';
+		const isRepair = b.kind === 'repair';
 		const supportsFixed = isTower && this.supportsFixedTarget(b);
 		const upgradeRows = isTower
 			? UPGRADE_ORDER.length
 			: isArmoury
 				? ARMOURY_UPGRADE_ORDER.length
-				: 0;
+				: isRepair
+					? REPAIR_UPGRADE_ORDER.length
+					: 0;
 		const rowH = 32;
 		const headerH = 52;
 		const demolishRowH = 36;
@@ -895,6 +902,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 					def,
 					lvl,
 					cost: armouryUpgradeCost(def, lvl),
+				};
+			});
+		} else if (isRepair) {
+			rows = REPAIR_UPGRADE_ORDER.map((k) => {
+				const def = REPAIR_UPGRADE_DEFS[k];
+				const lvl = b.upgrades[k];
+				return {
+					kind: k,
+					def,
+					lvl,
+					cost: repairUpgradeCost(def, lvl),
 				};
 			});
 		}
@@ -1160,7 +1178,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const rate = (b.spec.spawnIntervalMs / 1000).toFixed(1);
 			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 		}
-		return `LOAD -${b.spec.power}⚡ · HEALS ${b.spec.repairAmount} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 	}
 
 	private applyUpgrade(tower: TowerBuilding, kind: UpgradeKind): void {
@@ -1207,7 +1225,27 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b,
 				kind as keyof ArmouryBuilding['upgrades'],
 			);
+		} else if (b.kind === 'repair') {
+			this.applyRepairUpgrade(
+				b,
+				kind as keyof RepairBuilding['upgrades'],
+			);
 		}
+	}
+
+	private applyRepairUpgrade(
+		station: RepairBuilding,
+		kind: keyof RepairBuilding['upgrades'],
+	): void {
+		const def = REPAIR_UPGRADE_DEFS[kind];
+		const lvl = station.upgrades[kind];
+		if (lvl >= def.maxLevel) return;
+		const cost = repairUpgradeCost(def, lvl);
+		if (this.gold < cost) return;
+		this.gold -= cost;
+		station.upgrades[kind] = lvl + 1;
+		this.refreshHud();
+		this.openBuildingPanel(station);
 	}
 
 	private redrawUpgradePips(t: TowerBuilding): void {
@@ -1432,6 +1470,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 				cooldownLeftMs: 0,
 				activeDroneEid: null,
+				upgrades: { reach: 0, yield: 0, tempo: 0 },
 			};
 			building = b;
 		} else if (spec.kind === 'armoury') {
@@ -2292,7 +2331,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.cooldownLeftMs = 0;
 				continue;
 			}
-			b.cooldownLeftMs = b.spec.cooldownMs;
+			b.cooldownLeftMs = repairCooldownMs(b);
 			this.spawnDrone(b, target);
 		}
 
@@ -2351,7 +2390,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findRepairTarget(station: RepairBuilding): Building | null {
 		let best: Building | null = null;
 		let bestRatio = 1;
-		const rangeSq = station.spec.repairRange * station.spec.repairRange;
+		const range = repairRange(station);
+		const rangeSq = range * range;
 		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
 			if (!b || b.destroyed) continue;
@@ -2392,7 +2432,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			beam,
 			station,
 			target,
-			repairAmount: station.spec.repairAmount,
+			repairAmount: repairAmount(station),
 		});
 		station.activeDroneEid = eid;
 	}
@@ -2674,6 +2714,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else if (b.kind === 'armoury') {
 				for (const k of ARMOURY_UPGRADE_ORDER) {
 					if (b.upgrades[k] >= ARMOURY_UPGRADE_DEFS[k].maxLevel)
+						continue;
+					candidates.push({
+						apply: () => {
+							b.upgrades[k] += 1;
+						},
+					});
+				}
+			} else if (b.kind === 'repair') {
+				for (const k of REPAIR_UPGRADE_ORDER) {
+					if (b.upgrades[k] >= REPAIR_UPGRADE_DEFS[k].maxLevel)
 						continue;
 					candidates.push({
 						apply: () => {
