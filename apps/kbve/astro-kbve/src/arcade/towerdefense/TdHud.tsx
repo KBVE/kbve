@@ -1,23 +1,33 @@
 import { useStore } from '@nanostores/react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
+	bestWaveAtom,
 	batteryCapacityAtom,
 	batteryChargeAtom,
 	bountyMulAtom,
 	canSkipAtom,
+	cardOptionsAtom,
+	cardPickSignalAtom,
+	cardSkipSignalAtom,
+	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
 	livesAtom,
+	nextWavePreviewAtom,
 	restartSignalAtom,
+	selectedBuildAtom,
 	skipSignalAtom,
+	speedFactorAtom,
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
 	waveAtom,
 } from './td-hud-store';
+import type { CardOption } from './cards';
+import { PALETTE_ORDER, specFor, type BuildId } from './config';
 
 type IconName =
 	| 'coin'
@@ -225,6 +235,46 @@ function BountyChip() {
 	);
 }
 
+function SpeedControls() {
+	const speed = useStore(speedFactorAtom);
+	const opts: Array<{ label: string; value: number }> = [
+		{ label: '❚❚', value: 0 },
+		{ label: '1×', value: 1 },
+		{ label: '2×', value: 2 },
+		{ label: '3×', value: 3 },
+	];
+	return (
+		<div className="td-speed" title="Pause / game speed">
+			{opts.map((opt) => (
+				<button
+					key={opt.value}
+					type="button"
+					className={`td-speed-btn${speed === opt.value ? ' td-speed-btn-active' : ''}`}
+					onClick={() => speedFactorAtom.set(opt.value)}>
+					{opt.label}
+				</button>
+			))}
+		</div>
+	);
+}
+
+function NextWavePreview() {
+	const state = useStore(timerStateAtom);
+	const preview = useStore(nextWavePreviewAtom);
+	if (state === 'IN_PROGRESS' || preview.count === 0) return null;
+	const summary =
+		preview.bossCount > 0 ? `${preview.count} + boss` : `${preview.count}`;
+	return (
+		<Chip
+			icon="target"
+			label="Incoming"
+			value={summary}
+			tone={preview.bossCount > 0 ? 'danger' : 'default'}
+			title="Composition of the next wave"
+		/>
+	);
+}
+
 function TimerSlot() {
 	const state = useStore(timerStateAtom);
 	const sec = useStore(timerSecAtom);
@@ -259,10 +309,119 @@ function TimerSlot() {
 	);
 }
 
+function hexColor(n: number): string {
+	return '#' + n.toString(16).padStart(6, '0');
+}
+
+function PaletteBar() {
+	const selected = useStore(selectedBuildAtom);
+	const gold = useStore(goldAtom);
+	const freeTowers = useStore(freeTowersAtom);
+	return (
+		<div className="td-palette">
+			{PALETTE_ORDER.map((id: BuildId, i) => {
+				const spec = specFor(id);
+				const isFree = id === 'basic' && freeTowers > 0;
+				const canAfford = isFree || gold >= spec.cost;
+				const hotkey = i < 10 ? String((i + 1) % 10) : '';
+				const accent = hexColor(spec.color);
+				const style = { '--pal-accent': accent } as CSSProperties;
+				const costLabel = isFree ? 'FREE' : `${spec.cost}g`;
+				const powerSuffix =
+					spec.kind === 'generator'
+						? `+${spec.power}⚡`
+						: spec.kind === 'tower' ||
+							  spec.kind === 'repair' ||
+							  spec.kind === 'armoury'
+							? `−${spec.power}⚡`
+							: spec.kind === 'battery'
+								? `🔋${spec.capacity}`
+								: '';
+				const isActive = id === selected;
+				const className =
+					'td-pal' +
+					(isActive ? ' td-pal-active' : '') +
+					(!canAfford ? ' td-pal-poor' : '');
+				return (
+					<button
+						key={id}
+						type="button"
+						className={className}
+						style={style}
+						title={`${spec.name} — ${costLabel}${powerSuffix ? ' · ' + powerSuffix : ''}`}
+						onClick={() => selectedBuildAtom.set(id)}>
+						{hotkey ? (
+							<span className="td-pal-key">{hotkey}</span>
+						) : null}
+						<span className="td-pal-icon" />
+						<span className="td-pal-name">{spec.name}</span>
+						<span className="td-pal-cost">{costLabel}</span>
+						{powerSuffix ? (
+							<span className="td-pal-power">{powerSuffix}</span>
+						) : null}
+					</button>
+				);
+			})}
+		</div>
+	);
+}
+
+function CardModal() {
+	const cards = useStore(cardOptionsAtom);
+	const wave = useStore(cardWaveAtom);
+	if (!cards) return null;
+	const onPick = (card: CardOption) => {
+		cardPickSignalAtom.set({
+			id: card.id,
+			n: cardPickSignalAtom.get().n + 1,
+		});
+	};
+	const onSkip = () => {
+		cardSkipSignalAtom.set(cardSkipSignalAtom.get() + 1);
+	};
+	return (
+		<div className="td-cards">
+			<div className="td-cards-panel">
+				<div className="td-cards-eyebrow">Wave {wave} Cleared</div>
+				<div className="td-cards-title">Pick a Reward</div>
+				<div className="td-cards-row">
+					{cards.map((card) => {
+						const accent = hexColor(card.color);
+						const style = {
+							'--card-accent': accent,
+						} as CSSProperties;
+						return (
+							<button
+								key={card.id}
+								type="button"
+								className="td-card"
+								style={style}
+								onClick={() => onPick(card)}>
+								<div className="td-card-mark" />
+								<div className="td-card-name">{card.name}</div>
+								<div className="td-card-desc">
+									{card.description}
+								</div>
+							</button>
+						);
+					})}
+				</div>
+				<button
+					type="button"
+					className="td-cards-skip"
+					onClick={onSkip}>
+					Skip · Esc
+				</button>
+			</div>
+		</div>
+	);
+}
+
 function GameOverOverlay() {
 	const state = useStore(gameOverAtom);
+	const best = useStore(bestWaveAtom);
 	if (!state.visible) return null;
-	const accent = state.win ? '#48bb78' : '#fc8181';
+	const accent = state.win || state.newRecord ? '#48bb78' : '#fc8181';
 	const style = { '--td-accent': accent } as CSSProperties;
 	return (
 		<div className="td-over" style={style}>
@@ -276,6 +435,13 @@ function GameOverOverlay() {
 				<div className="td-over-sub">
 					Cleared {state.wave} {state.wave === 1 ? 'wave' : 'waves'}
 				</div>
+				{state.newRecord ? (
+					<div className="td-over-record">
+						🏆 New best — beat {state.bestBefore}
+					</div>
+				) : (
+					<div className="td-over-record-dim">Best: wave {best}</div>
+				)}
 				<button
 					type="button"
 					className="td-over-restart"
@@ -313,8 +479,13 @@ export default function TdHud() {
 					<BountyChip />
 				</div>
 				<div className="td-spacer" />
+				<NextWavePreview />
+				<SpeedControls />
+				<div className="td-divider" />
 				<TimerSlot />
 			</div>
+			<PaletteBar />
+			<CardModal />
 			<GameOverOverlay />
 		</div>
 	);

@@ -1,12 +1,14 @@
 use axum::{
-    http::{header, StatusCode},
-    response::IntoResponse,
     Router,
+    http::{HeaderName, HeaderValue, StatusCode, header},
+    response::IntoResponse,
 };
 use std::convert::Infallible;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tower::ServiceBuilder;
 use tower_http::services::ServeDir;
+use tower_http::set_header::SetResponseHeaderLayer;
 
 pub struct StaticConfig {
     pub base_dir: PathBuf,
@@ -33,9 +35,8 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
     let precompressed = config.precompressed;
 
     let not_found_html = Arc::new(
-        std::fs::read_to_string(base.join("404.html")).unwrap_or_else(|_| {
-            "<html><body><h1>404 - Not Found</h1></body></html>".to_string()
-        }),
+        std::fs::read_to_string(base.join("404.html"))
+            .unwrap_or_else(|_| "<html><body><h1>404 - Not Found</h1></body></html>".to_string()),
     );
 
     let serve_dir = |path: PathBuf| {
@@ -52,6 +53,36 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
     let chunks_service = serve_dir(base.join("chunks"));
 
     let images_service = ServeDir::new(base.join("images"));
+
+    // /embed/* — chat.js bundle + example.html.
+    // These are designed to be loaded cross-origin from third-party hosts
+    // (rareicon.com, kbve.com, anyone's blog). Wire dedicated headers:
+    //   * Cross-Origin-Resource-Policy: cross-origin
+    //       Lets COEP-isolated host pages load chat.js. Without this,
+    //       embedding on a site with `Cross-Origin-Embedder-Policy:
+    //       require-corp` (Astro 6+ default in some configs) silently
+    //       blocks the script load.
+    //   * Access-Control-Allow-Origin: *
+    //       Redundant with the global permissive CORS layer, but spelled
+    //       out here so the /embed/ surface is independently correct if
+    //       global CORS is ever tightened to specific origins.
+    //   * Cache-Control: public, max-age=300, must-revalidate
+    //       Short cache so embed updates propagate within minutes —
+    //       `chat.js` is the evergreen URL, immutable would block fixes.
+    let embed_service = ServiceBuilder::new()
+        .layer(SetResponseHeaderLayer::overriding(
+            HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("cross-origin"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            header::ACCESS_CONTROL_ALLOW_ORIGIN,
+            HeaderValue::from_static("*"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("public, max-age=300, must-revalidate"),
+        ))
+        .service(serve_dir(base.join("embed")));
 
     let not_found_svc = {
         let html = not_found_html.clone();
@@ -86,13 +117,18 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
         .nest_service("/assets", assets_service)
         .nest_service("/chunks", chunks_service)
         .nest_service("/images", images_service)
+        .nest_service("/embed", embed_service)
         .fallback_service(fallback_svc)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{body::Body, extract::Request, http::StatusCode};
     use serial_test::serial;
+    use std::fs;
+    use tempfile::TempDir;
+    use tower::ServiceExt;
 
     #[test]
     #[serial]
@@ -132,5 +168,48 @@ mod tests {
         assert!(!config.precompressed);
 
         std::env::remove_var("STATIC_PRECOMPRESSED");
+    }
+
+    #[tokio::test]
+    async fn embed_chat_js_has_cross_origin_headers() {
+        let tmp = TempDir::new().unwrap();
+        let embed_dir = tmp.path().join("embed");
+        fs::create_dir_all(&embed_dir).unwrap();
+        fs::write(embed_dir.join("chat.js"), b"console.log('embed');").unwrap();
+        fs::write(tmp.path().join("404.html"), b"<h1>404</h1>").unwrap();
+
+        let config = StaticConfig {
+            base_dir: tmp.path().to_path_buf(),
+            precompressed: false,
+        };
+        let app = build_static_router(&config);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/embed/chat.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let headers = response.headers();
+        assert_eq!(
+            headers.get("cross-origin-resource-policy").unwrap(),
+            "cross-origin",
+            "embed needs CORP so COEP-isolated hosts can load the script"
+        );
+        assert_eq!(
+            headers.get("access-control-allow-origin").unwrap(),
+            "*",
+            "embed is intentionally available from any origin"
+        );
+        let cache = headers.get("cache-control").unwrap().to_str().unwrap();
+        assert!(
+            cache.contains("max-age="),
+            "embed must set explicit Cache-Control (got {cache:?})"
+        );
     }
 }

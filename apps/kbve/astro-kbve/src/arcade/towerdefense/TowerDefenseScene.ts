@@ -21,9 +21,12 @@ import {
 	TILE,
 	ARMOURY_UPGRADE_DEFS,
 	ARMOURY_UPGRADE_ORDER,
+	REPAIR_UPGRADE_DEFS,
+	REPAIR_UPGRADE_ORDER,
 	UPGRADE_DEFS,
 	UPGRADE_ORDER,
 	armouryUpgradeCost,
+	repairUpgradeCost,
 	rollEnemyType,
 	specFor,
 	upgradeCost,
@@ -66,24 +69,38 @@ import {
 import {
 	batteryCapacityAtom,
 	batteryChargeAtom,
+	bestWaveAtom,
 	bountyMulAtom,
 	canSkipAtom,
+	cardOptionsAtom,
+	cardPickSignalAtom,
+	cardSkipSignalAtom,
+	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
 	livesAtom,
+	loadBestWave,
+	nextWavePreviewAtom,
 	resetHudStore,
 	restartSignalAtom,
+	saveBestWave,
+	selectedBuildAtom,
 	skipSignalAtom,
+	speedFactorAtom,
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { computeAndApplyPower } from './power';
+import {
+	computeAndApplyPower,
+	isPowerConsumer,
+	type PowerConsumer,
+} from './power';
 import { planStarterKit } from './starter-kit';
 import {
 	towerBurnDps,
@@ -98,6 +115,7 @@ import {
 	armourySoldierHp,
 	armourySpawnIntervalMs,
 } from './armoury-stats';
+import { repairAmount, repairCooldownMs, repairRange } from './repair-stats';
 import type {
 	ArmouryBuilding,
 	BaseBuilding,
@@ -109,15 +127,6 @@ import type {
 	RepairBuilding,
 	TowerBuilding,
 } from './types';
-
-interface PaletteButton {
-	id: BuildId;
-	rect: Phaser.GameObjects.Rectangle;
-	icon: Phaser.GameObjects.Rectangle;
-	label: Phaser.GameObjects.Text;
-	cost: Phaser.GameObjects.Text;
-	hotkey: Phaser.GameObjects.Text;
-}
 
 const HUD_HEIGHT = TILE * HUD_ROWS_TOP;
 const PALETTE_HEIGHT = TILE * 2;
@@ -149,6 +158,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private leadEnemyEid = -1;
 	private leadPathIndex = -1;
 	private buildings: Building[] = [];
+	private powerGenerators: GeneratorBuilding[] = [];
+	private powerConsumers: PowerConsumer[] = [];
+	private powerBatteries: BatteryBuilding[] = [];
+	private towers: TowerBuilding[] = [];
+	private armouries: ArmouryBuilding[] = [];
+	private repairStations: RepairBuilding[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
@@ -158,8 +173,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
 	private awaitingCardPick = false;
-	private cardPanel: Phaser.GameObjects.Container | null = null;
-	private cardBackdrop: Phaser.GameObjects.Rectangle | null = null;
+	private lastCardPickN = 0;
+	private lastCardSkipN = 0;
 	private cardPickedThisInterval = false;
 
 	private gold = GAME_CONFIG.startingGold;
@@ -173,13 +188,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private hudUnsubs: Array<() => void> = [];
 	private lastSkipSignal = 0;
 	private lastRestartSignal = 0;
+	private simNow = 0;
+	private speedFactor = 1;
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
-	private selection: BuildId = 'basic';
-	private paletteButtons: PaletteButton[] = [];
 
 	private upgradePanel: Phaser.GameObjects.Container | null = null;
 	private upgradeTarget: Building | null = null;
@@ -215,6 +230,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.leadEnemyEid = -1;
 		this.leadPathIndex = -1;
 		this.buildings = [];
+		this.powerGenerators = [];
+		this.powerConsumers = [];
+		this.powerBatteries = [];
+		this.towers = [];
+		this.armouries = [];
+		this.repairStations = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
@@ -223,9 +244,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
-		this.cardPanel = null;
-		this.cardBackdrop = null;
 		this.cardPickedThisInterval = false;
+		this.lastCardPickN = cardPickSignalAtom.get().n;
+		this.lastCardSkipN = cardSkipSignalAtom.get();
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -233,7 +254,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.spawnAccumulatorMs = 0;
 		this.interWaveDelayMs = 0;
 		this.isGameOver = false;
-		this.paletteButtons = [];
 		this.upgradePanel = null;
 		this.upgradeTarget = null;
 		this.upgradeRangeIndicator = null;
@@ -249,11 +269,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			batteryCapacity: 0,
 		};
 		this.powerRefreshAccumulatorMs = 0;
-		this.selection = 'basic';
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
+		this.simNow = 0;
+		this.speedFactor = 1;
 		resetHudStore();
+		bestWaveAtom.set(loadBestWave());
 	}
 
 	create(): void {
@@ -263,7 +285,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.drawGridLines();
 		this.drawPath();
 		this.subscribeHudSignals();
-		this.buildPalette();
 		this.buildPlacementPreview();
 		this.placeStarterKit();
 		this.recomputePower(0);
@@ -281,6 +302,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-ESC', () => {
 				if (this.targetingTower) this.cancelTargeting();
 				else if (this.upgradePanel) this.closeUpgradePanel();
+				else if (this.awaitingCardPick) this.skipCardPick();
 			});
 			const digitCodes = [
 				Phaser.Input.Keyboard.KeyCodes.ONE,
@@ -301,12 +323,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			) {
 				const id = PALETTE_ORDER[i];
 				const key = kb.addKey(digitCodes[i]);
-				key.on('down', () => this.selectBuild(id));
+				key.on('down', () => selectedBuildAtom.set(id));
 			}
 		}
 
 		this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
-		this.refreshPaletteHighlight();
 	}
 
 	private drawGrass(): void {
@@ -369,7 +390,33 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.lastRestartSignal = v;
 			this.scene.restart();
 		});
-		this.hudUnsubs.push(skipUnsub, restartUnsub);
+		const speedUnsub = speedFactorAtom.subscribe((v: number) => {
+			this.speedFactor = v;
+			const scale = v <= 0 ? 0 : v;
+			this.time.timeScale = scale;
+			this.tweens.timeScale = scale === 0 ? 1 : scale;
+		});
+		const cardPickUnsub = cardPickSignalAtom.subscribe((s) => {
+			if (s.n === this.lastCardPickN) return;
+			this.lastCardPickN = s.n;
+			if (!s.id || !this.awaitingCardPick) return;
+			const opts = cardOptionsAtom.get();
+			if (!opts) return;
+			const card = opts.find((o) => o.id === s.id);
+			if (card) this.applyCardPick(card);
+		});
+		const cardSkipUnsub = cardSkipSignalAtom.subscribe((v: number) => {
+			if (v === this.lastCardSkipN) return;
+			this.lastCardSkipN = v;
+			if (this.awaitingCardPick) this.skipCardPick();
+		});
+		this.hudUnsubs.push(
+			skipUnsub,
+			restartUnsub,
+			speedUnsub,
+			cardPickUnsub,
+			cardSkipUnsub,
+		);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
 			this.hudUnsubs = [];
@@ -384,101 +431,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.placementPreview = this.add
 			.rectangle(0, 0, TILE * 0.8, TILE * 0.8, COLORS.previewValid, 0.6)
 			.setVisible(false);
-	}
-
-	private buildPalette(): void {
-		const btnW = 108;
-		const btnH = PALETTE_HEIGHT - 16;
-		const total =
-			btnW * PALETTE_ORDER.length + 6 * (PALETTE_ORDER.length - 1);
-		const startX = (BASE_WIDTH - total) / 2;
-		const y = BASE_HEIGHT - PALETTE_HEIGHT / 2;
-
-		this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				y,
-				BASE_WIDTH,
-				PALETTE_HEIGHT,
-				COLORS.hudPanel,
-				0.95,
-			)
-			.setStrokeStyle(2, COLORS.hudPanelBorder);
-
-		for (let i = 0; i < PALETTE_ORDER.length; i++) {
-			const id = PALETTE_ORDER[i];
-			const spec = specFor(id);
-			const x = startX + i * (btnW + 6) + btnW / 2;
-			const rect = this.add
-				.rectangle(x, y, btnW, btnH, COLORS.paletteBg, 0.9)
-				.setStrokeStyle(2, COLORS.paletteBorder)
-				.setInteractive({ useHandCursor: true });
-			const icon = this.add.rectangle(
-				x - btnW / 2 + 14,
-				y,
-				18,
-				18,
-				spec.color,
-			);
-			const label = this.add
-				.text(x - btnW / 2 + 28, y - 14, spec.name, {
-					fontFamily: 'monospace',
-					fontSize: '13px',
-					color: COLORS.hudText,
-				})
-				.setOrigin(0, 0);
-			const extra =
-				spec.kind === 'tower'
-					? `${spec.cost}g -${spec.power}⚡`
-					: spec.kind === 'generator'
-						? `${spec.cost}g +${spec.power}⚡`
-						: spec.kind === 'battery'
-							? `${spec.cost}g 🔋${spec.capacity}`
-							: `${spec.cost}g -${spec.power}⚡`;
-			const cost = this.add
-				.text(x - btnW / 2 + 28, y + 2, extra, {
-					fontFamily: 'monospace',
-					fontSize: '10px',
-					color: COLORS.hudDim,
-				})
-				.setOrigin(0, 0);
-			const hotkey = this.add
-				.text(x + btnW / 2 - 8, y - btnH / 2 + 4, `${(i + 1) % 10}`, {
-					fontFamily: 'monospace',
-					fontSize: '11px',
-					color: COLORS.hudDim,
-				})
-				.setOrigin(1, 0);
-			rect.on(
-				'pointerdown',
-				(
-					_p: Phaser.Input.Pointer,
-					_x: number,
-					_y: number,
-					event: Phaser.Types.Input.EventData,
-				) => {
-					event.stopPropagation();
-					this.selectBuild(id);
-				},
-			);
-			this.paletteButtons.push({ id, rect, icon, label, cost, hotkey });
-		}
-	}
-
-	private refreshPaletteHighlight(): void {
-		for (const b of this.paletteButtons) {
-			const selected = b.id === this.selection;
-			b.rect.setStrokeStyle(
-				2,
-				selected ? COLORS.paletteSelected : COLORS.paletteBorder,
-			);
-			b.rect.setFillStyle(COLORS.paletteBg, selected ? 0.95 : 0.85);
-		}
-	}
-
-	private selectBuild(id: BuildId): void {
-		this.selection = id;
-		this.refreshPaletteHighlight();
 	}
 
 	private placeStarterKit(): void {
@@ -570,8 +522,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 		const existing = this.findBuildingAt(col, row);
 		this.updateHoverRange(existing);
-		const ok = this.canPlaceAt(col, row, this.selection);
-		const spec = specFor(this.selection);
+		const ok = this.canPlaceAt(col, row, selectedBuildAtom.get());
+		const spec = specFor(selectedBuildAtom.get());
 		this.placementPreview
 			.setPosition(cx, cy)
 			.setFillStyle(ok ? spec.color : COLORS.previewInvalid, 0.6)
@@ -603,7 +555,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			radius = towerRange(b);
 			color = b.spec.color;
 		} else if (b.kind === 'repair') {
-			radius = b.spec.repairRange;
+			radius = repairRange(b);
 			color = b.spec.color;
 		} else if (b.kind === 'armoury') {
 			radius = b.spec.soldierRoamRange;
@@ -750,14 +702,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			return;
 		}
 
-		if (!this.canPlaceAt(col, row, this.selection)) return;
-		const spec = specFor(this.selection);
-		if (this.selection === 'basic' && this.freeBasicTowers > 0) {
+		if (!this.canPlaceAt(col, row, selectedBuildAtom.get())) return;
+		const spec = specFor(selectedBuildAtom.get());
+		if (selectedBuildAtom.get() === 'basic' && this.freeBasicTowers > 0) {
 			this.freeBasicTowers -= 1;
 		} else {
 			this.gold -= spec.cost;
 		}
-		this.spawnBuilding(this.selection, col, row, cx, cy);
+		this.spawnBuilding(selectedBuildAtom.get(), col, row, cx, cy);
 		this.recomputePower(0);
 		this.refreshHud();
 	}
@@ -782,18 +734,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 				.setStrokeStyle(2, b.spec.color, 0.6);
 		} else if (b.kind === 'repair') {
 			this.upgradeRangeIndicator = this.add
-				.circle(b.x, b.y, b.spec.repairRange, b.spec.color, 0.1)
+				.circle(b.x, b.y, repairRange(b), b.spec.color, 0.1)
 				.setStrokeStyle(2, b.spec.color, 0.6);
 		}
 
 		const isTower = b.kind === 'tower';
 		const isArmoury = b.kind === 'armoury';
+		const isRepair = b.kind === 'repair';
 		const supportsFixed = isTower && this.supportsFixedTarget(b);
 		const upgradeRows = isTower
 			? UPGRADE_ORDER.length
 			: isArmoury
 				? ARMOURY_UPGRADE_ORDER.length
-				: 0;
+				: isRepair
+					? REPAIR_UPGRADE_ORDER.length
+					: 0;
 		const rowH = 32;
 		const headerH = 52;
 		const demolishRowH = 36;
@@ -884,6 +839,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 					def,
 					lvl,
 					cost: armouryUpgradeCost(def, lvl),
+				};
+			});
+		} else if (isRepair) {
+			rows = REPAIR_UPGRADE_ORDER.map((k) => {
+				const def = REPAIR_UPGRADE_DEFS[k];
+				const lvl = b.upgrades[k];
+				return {
+					kind: k,
+					def,
+					lvl,
+					cost: repairUpgradeCost(def, lvl),
 				};
 			});
 		}
@@ -1149,7 +1115,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const rate = (b.spec.spawnIntervalMs / 1000).toFixed(1);
 			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 		}
-		return `LOAD -${b.spec.power}⚡ · HEALS ${b.spec.repairAmount} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
 	}
 
 	private applyUpgrade(tower: TowerBuilding, kind: UpgradeKind): void {
@@ -1196,7 +1162,27 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b,
 				kind as keyof ArmouryBuilding['upgrades'],
 			);
+		} else if (b.kind === 'repair') {
+			this.applyRepairUpgrade(
+				b,
+				kind as keyof RepairBuilding['upgrades'],
+			);
 		}
+	}
+
+	private applyRepairUpgrade(
+		station: RepairBuilding,
+		kind: keyof RepairBuilding['upgrades'],
+	): void {
+		const def = REPAIR_UPGRADE_DEFS[kind];
+		const lvl = station.upgrades[kind];
+		if (lvl >= def.maxLevel) return;
+		const cost = repairUpgradeCost(def, lvl);
+		if (this.gold < cost) return;
+		this.gold -= cost;
+		station.upgrades[kind] = lvl + 1;
+		this.refreshHud();
+		this.openBuildingPanel(station);
 	}
 
 	private redrawUpgradePips(t: TowerBuilding): void {
@@ -1421,6 +1407,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 				cooldownLeftMs: 0,
 				activeDroneEid: null,
+				upgrades: { reach: 0, yield: 0, tempo: 0 },
 			};
 			building = b;
 		} else if (spec.kind === 'armoury') {
@@ -1449,11 +1436,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 		this.buildings.push(building);
 		this.buildingByEid.set(eid, building);
+		if (building.kind === 'generator') {
+			this.powerGenerators.push(building);
+		} else if (building.kind === 'battery') {
+			this.powerBatteries.push(building);
+		} else if (isPowerConsumer(building)) {
+			this.powerConsumers.push(building);
+		}
+		if (building.kind === 'tower') {
+			this.towers.push(building);
+		} else if (building.kind === 'armoury') {
+			this.armouries.push(building);
+		} else if (building.kind === 'repair') {
+			this.repairStations.push(building);
+		}
 		return building;
 	}
 
 	private recomputePower(dt: number): void {
-		const result = computeAndApplyPower(this.buildings, dt);
+		const result = computeAndApplyPower(
+			this.powerGenerators,
+			this.powerConsumers,
+			this.powerBatteries,
+			dt,
+		);
 		this.cachedPower.supply = result.supply;
 		this.cachedPower.demand = result.demand;
 		this.cachedPower.batteryCharge = result.batteryCharge;
@@ -1498,11 +1504,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.enemiesToSpawn = count + this.pendingBosses;
 		this.spawnAccumulatorMs = 0;
 		this.cardPickedThisInterval = false;
-		const armouryNow = this.time.now;
-		for (const b of this.buildings) {
+		const armouryNow = this.simNow;
+		for (let i = 0; i < this.armouries.length; i++) {
+			const b = this.armouries[i];
 			if (b.destroyed) continue;
-			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
+			b.nextSpawnAtMs = armouryNow;
 		}
+		nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 		this.showWaveSplash();
 	}
 
@@ -1614,6 +1622,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			hpBar,
 			hpBarBg,
 			ringRadius,
+			statusVisible: false,
 			attackTarget: null,
 		});
 	}
@@ -1711,6 +1720,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const deid of droneKills) this.killDrone(deid);
 		this.buildingByEid.delete(b.id);
 		removeEntity(this.world, b.id);
+		if (b.kind === 'generator') {
+			const idx = this.powerGenerators.indexOf(b);
+			if (idx >= 0) this.powerGenerators.splice(idx, 1);
+		} else if (b.kind === 'battery') {
+			const idx = this.powerBatteries.indexOf(b);
+			if (idx >= 0) this.powerBatteries.splice(idx, 1);
+		} else if (isPowerConsumer(b)) {
+			const idx = this.powerConsumers.indexOf(b);
+			if (idx >= 0) this.powerConsumers.splice(idx, 1);
+		}
+		if (b.kind === 'tower') {
+			const idx = this.towers.indexOf(b);
+			if (idx >= 0) this.towers.splice(idx, 1);
+		} else if (b.kind === 'armoury') {
+			const idx = this.armouries.indexOf(b);
+			if (idx >= 0) this.armouries.splice(idx, 1);
+		} else if (b.kind === 'repair') {
+			const idx = this.repairStations.indexOf(b);
+			if (idx >= 0) this.repairStations.splice(idx, 1);
+		}
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
@@ -1727,9 +1756,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateArmouries(nowMs: number): void {
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.armouries.length; i++) {
+			const b = this.armouries[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'armoury') continue;
 			if (!b.online) continue;
 			const owned = this.countSoldiersOwnedBy(b.id);
 			if (owned >= armouryMaxSoldiers(b)) continue;
@@ -1999,9 +2028,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			(EnemyStats.hp[eid] / EnemyStats.maxHp[eid]) * TILE * 0.7;
 		const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
 		const burning = EnemyStats.burnUntilMs[eid] > nowMs;
+		const hasStatus = slowed || burning;
+		if (!hasStatus && !v.statusVisible) return;
 		v.statusRing.clear();
-		if (slowed || burning) {
+		if (hasStatus) {
 			v.statusRing.setVisible(true);
+			v.statusVisible = true;
 			if (slowed) {
 				const dur = EnemyStats.slowDurationMs[eid];
 				const slowRatio =
@@ -2035,13 +2067,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		} else {
 			v.statusRing.setVisible(false);
+			v.statusVisible = false;
 		}
 	}
 
 	private updateTowers(nowMs: number): void {
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.towers.length; i++) {
+			const b = this.towers[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'tower') continue;
 			if (!b.online) continue;
 			if (nowMs - b.lastFireAtMs < towerFireRateMs(b)) continue;
 			if (b.fixedTarget) {
@@ -2151,7 +2184,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 		}
-		this.projectiles = this.projectiles.filter((p) => p.alive);
+		let write = 0;
+		for (let read = 0; read < this.projectiles.length; read++) {
+			const p = this.projectiles[read];
+			if (!p.alive) continue;
+			if (write !== read) this.projectiles[write] = p;
+			write++;
+		}
+		this.projectiles.length = write;
 	}
 
 	private applyHit(p: Projectile, nowMs: number, x: number, y: number): void {
@@ -2238,20 +2278,24 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const remaining = (patch.expiresAtMs - nowMs) / 1000;
 			patch.sprite.setAlpha(0.1 + Math.min(0.25, remaining * 0.1));
 		}
-		this.burnPatches = this.burnPatches.filter((p) => {
+		let writeBurn = 0;
+		for (let read = 0; read < this.burnPatches.length; read++) {
+			const p = this.burnPatches[read];
 			if (nowMs >= p.expiresAtMs) {
 				p.sprite.destroy();
-				return false;
+				continue;
 			}
-			return true;
-		});
+			if (writeBurn !== read) this.burnPatches[writeBurn] = p;
+			writeBurn++;
+		}
+		this.burnPatches.length = writeBurn;
 	}
 
 	private updateRepair(dt: number): void {
 		const dtMs = dt * 1000;
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.repairStations.length; i++) {
+			const b = this.repairStations[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'repair') continue;
 			if (!b.online) continue;
 			if (
 				b.activeDroneEid !== null &&
@@ -2265,7 +2309,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.cooldownLeftMs = 0;
 				continue;
 			}
-			b.cooldownLeftMs = b.spec.cooldownMs;
+			b.cooldownLeftMs = repairCooldownMs(b);
 			this.spawnDrone(b, target);
 		}
 
@@ -2324,7 +2368,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findRepairTarget(station: RepairBuilding): Building | null {
 		let best: Building | null = null;
 		let bestRatio = 1;
-		const rangeSq = station.spec.repairRange * station.spec.repairRange;
+		const range = repairRange(station);
+		const rangeSq = range * range;
 		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
 			if (!b || b.destroyed) continue;
@@ -2365,7 +2410,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			beam,
 			station,
 			target,
-			repairAmount: station.spec.repairAmount,
+			repairAmount: repairAmount(station),
 		});
 		station.activeDroneEid = eid;
 	}
@@ -2391,7 +2436,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.isGameOver = true;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
-		gameOverAtom.set({ visible: true, win, wave: this.wave });
+		const previousBest = loadBestWave();
+		const newRecord = this.wave > previousBest;
+		if (newRecord) {
+			saveBestWave(this.wave);
+			bestWaveAtom.set(this.wave);
+		}
+		gameOverAtom.set({
+			visible: true,
+			win,
+			wave: this.wave,
+			bestBefore: previousBest,
+			newRecord,
+		});
 	}
 
 	update(_time: number, deltaMs: number): void {
@@ -2400,11 +2457,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.refreshHud();
 			return;
 		}
-		const dt = deltaMs / 1000;
-		const nowMs = this.time.now;
+		const factor = this.speedFactor;
+		if (factor <= 0) {
+			this.refreshHud();
+			return;
+		}
+		const scaledDeltaMs = deltaMs * factor;
+		const dt = scaledDeltaMs / 1000;
+		this.simNow += scaledDeltaMs;
+		const nowMs = this.simNow;
 
 		if (this.enemiesToSpawn > 0) {
-			this.spawnAccumulatorMs += deltaMs;
+			this.spawnAccumulatorMs += scaledDeltaMs;
 			while (
 				this.spawnAccumulatorMs >= GAME_CONFIG.enemySpawnIntervalMs &&
 				this.enemiesToSpawn > 0
@@ -2414,14 +2478,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.enemiesToSpawn -= 1;
 			}
 		} else if (this.enemyVisuals.size === 0) {
+			this.pushNextWavePreview();
 			if (
 				this.wave >= 1 &&
 				!this.cardPickedThisInterval &&
-				!this.cardPanel
+				!cardOptionsAtom.get()
 			) {
 				this.openCardPanel();
 			} else {
-				this.interWaveDelayMs -= deltaMs;
+				this.interWaveDelayMs -= scaledDeltaMs;
 				if (this.interWaveDelayMs <= 0) {
 					this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
 					this.startNextWave();
@@ -2450,7 +2515,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateArmouries(nowMs);
 		this.updateSoldiers(dt, nowMs);
 
-		this.powerRefreshAccumulatorMs += deltaMs;
+		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {
 			this.recomputePower(this.powerRefreshAccumulatorMs / 1000);
 			this.powerRefreshAccumulatorMs = 0;
@@ -2463,91 +2528,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.awaitingCardPick = true;
 		this.bountyBonusMultiplier = 1;
 		const cards = pickThreeCards();
-		const panelW = 720;
-		const panelH = 260;
-		const panelX = (BASE_WIDTH - panelW) / 2;
-		const panelY = (BASE_HEIGHT - panelH) / 2;
-		this.cardBackdrop = this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				BASE_WIDTH,
-				BASE_HEIGHT,
-				0x000000,
-				0.6,
-			)
-			.setDepth(195);
-		const container = this.add.container(panelX, panelY).setDepth(200);
-		const bg = this.add
-			.rectangle(0, 0, panelW, panelH, COLORS.hudPanel, 0.97)
-			.setStrokeStyle(2, COLORS.paletteSelected)
-			.setOrigin(0, 0);
-		container.add(bg);
-		const title = this.add
-			.text(panelW / 2, 14, `Wave ${this.wave} Cleared — Pick a Reward`, {
-				fontFamily: 'monospace',
-				fontSize: '18px',
-				color: COLORS.hudText,
-				fontStyle: 'bold',
-			})
-			.setOrigin(0.5, 0);
-		container.add(title);
-
-		const cardW = 200;
-		const cardH = 180;
-		const gap = 24;
-		const startX = (panelW - (cardW * 3 + gap * 2)) / 2;
-		for (let i = 0; i < cards.length; i++) {
-			const card = cards[i];
-			const cx = startX + i * (cardW + gap);
-			const cy = 50;
-			const cardBg = this.add
-				.rectangle(cx, cy, cardW, cardH, 0x1f2937, 0.95)
-				.setStrokeStyle(2, card.color, 0.85)
-				.setOrigin(0, 0)
-				.setInteractive({ useHandCursor: true });
-			container.add(cardBg);
-			const icon = this.add.rectangle(
-				cx + cardW / 2,
-				cy + 28,
-				36,
-				36,
-				card.color,
-			);
-			container.add(icon);
-			const name = this.add
-				.text(cx + cardW / 2, cy + 64, card.name, {
-					fontFamily: 'monospace',
-					fontSize: '15px',
-					color: COLORS.hudText,
-					fontStyle: 'bold',
-				})
-				.setOrigin(0.5, 0);
-			container.add(name);
-			const desc = this.add
-				.text(cx + cardW / 2, cy + 90, card.description, {
-					fontFamily: 'monospace',
-					fontSize: '11px',
-					color: COLORS.hudDim,
-					wordWrap: { width: cardW - 16 },
-					align: 'center',
-				})
-				.setOrigin(0.5, 0);
-			container.add(desc);
-			cardBg.on(
-				'pointerdown',
-				(
-					_p: Phaser.Input.Pointer,
-					_x: number,
-					_y: number,
-					ev: Phaser.Types.Input.EventData,
-				) => {
-					ev.stopPropagation();
-					this.applyCardPick(card);
-				},
-			);
-		}
-		this.cardPanel = container;
+		cardWaveAtom.set(this.wave);
+		cardOptionsAtom.set(cards);
 	}
 
 	private applyCardPick(card: CardOption): void {
@@ -2580,30 +2562,37 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private closeCardPanel(): void {
-		if (this.cardPanel) {
-			this.cardPanel.destroy(true);
-			this.cardPanel = null;
-		}
-		if (this.cardBackdrop) {
-			this.cardBackdrop.destroy();
-			this.cardBackdrop = null;
-		}
+		cardOptionsAtom.set(null);
 		this.awaitingCardPick = false;
 	}
 
+	private skipCardPick(): void {
+		this.closeCardPanel();
+		this.cardPickedThisInterval = true;
+		this.interWaveDelayMs = 1500;
+	}
+
+	private pushNextWavePreview(): void {
+		const next = this.wave + 1;
+		const baseCount = Math.floor(
+			GAME_CONFIG.enemiesPerWave +
+				(next - 1) * GAME_CONFIG.enemiesPerWaveScale,
+		);
+		const bossCount = next % 5 === 0 ? 1 : 0;
+		nextWavePreviewAtom.set({
+			count: baseCount + bossCount,
+			bossCount,
+		});
+	}
+
 	private summonSoldierSquad(count: number): void {
-		const armouries: ArmouryBuilding[] = [];
-		for (const b of this.buildings) {
-			if (b.destroyed) continue;
-			if (b.kind !== 'armoury') continue;
-			armouries.push(b);
-		}
-		if (armouries.length === 0) {
+		const alive = this.armouries.filter((a) => !a.destroyed);
+		if (alive.length === 0) {
 			this.gold += 60;
 			return;
 		}
 		for (let i = 0; i < count; i++) {
-			this.spawnSoldier(armouries[i % armouries.length]);
+			this.spawnSoldier(alive[i % alive.length]);
 		}
 	}
 
@@ -2640,6 +2629,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else if (b.kind === 'armoury') {
 				for (const k of ARMOURY_UPGRADE_ORDER) {
 					if (b.upgrades[k] >= ARMOURY_UPGRADE_DEFS[k].maxLevel)
+						continue;
+					candidates.push({
+						apply: () => {
+							b.upgrades[k] += 1;
+						},
+					});
+				}
+			} else if (b.kind === 'repair') {
+				for (const k of REPAIR_UPGRADE_ORDER) {
+					if (b.upgrades[k] >= REPAIR_UPGRADE_DEFS[k].maxLevel)
 						continue;
 					candidates.push({
 						apply: () => {

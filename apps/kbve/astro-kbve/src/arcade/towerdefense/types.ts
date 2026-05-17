@@ -60,6 +60,12 @@ export interface BatteryBuilding extends BaseBuilding {
 	chargeBarBg: Phaser.GameObjects.Rectangle;
 }
 
+export interface RepairUpgrades {
+	reach: number;
+	yield: number;
+	tempo: number;
+}
+
 export interface RepairBuilding extends BaseBuilding {
 	kind: 'repair';
 	spec: RepairSpec;
@@ -67,6 +73,7 @@ export interface RepairBuilding extends BaseBuilding {
 	powerIndicator: Phaser.GameObjects.Arc;
 	cooldownLeftMs: number;
 	activeDroneEid: number | null;
+	upgrades: RepairUpgrades;
 }
 
 export interface ArmouryUpgrades {
