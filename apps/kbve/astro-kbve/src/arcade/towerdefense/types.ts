@@ -42,6 +42,7 @@ export interface TowerBuilding extends BaseBuilding {
 	powerIndicator: Phaser.GameObjects.Arc;
 	upgrades: TowerUpgrades;
 	fixedTarget: FixedTarget | null;
+	upgradePips: Phaser.GameObjects.Graphics;
 }
 
 export interface GeneratorBuilding extends BaseBuilding {

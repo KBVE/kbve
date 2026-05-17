@@ -124,7 +124,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private bountyBonusMultiplier = 1;
 	private awaitingCardPick = false;
 	private cardPanel: Phaser.GameObjects.Container | null = null;
+	private cardBackdrop: Phaser.GameObjects.Rectangle | null = null;
 	private cardPickedThisInterval = false;
+	private skipButton: Phaser.GameObjects.Container | null = null;
+	private hudFreeTowerLabel!: Phaser.GameObjects.Text;
+	private hudFreeTowerVal!: Phaser.GameObjects.Text;
+	private hudBountyLabel!: Phaser.GameObjects.Text;
+	private hudBountyVal!: Phaser.GameObjects.Text;
 
 	private gold = GAME_CONFIG.startingGold;
 	private lives = GAME_CONFIG.startingLives;
@@ -181,7 +187,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
 		this.cardPanel = null;
+		this.cardBackdrop = null;
 		this.cardPickedThisInterval = false;
+		this.skipButton = null;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -380,6 +388,38 @@ export class TowerDefenseScene extends Phaser.Scene {
 			p.out(this.add.text(0, 0, ''), v);
 		}
 
+		this.hudFreeTowerLabel = this.add
+			.text(940, 8, 'FREE TWR', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: COLORS.hudDim,
+			})
+			.setVisible(false);
+		this.hudFreeTowerVal = this.add
+			.text(940, 24, '0', {
+				fontFamily: 'monospace',
+				fontSize: '20px',
+				color: COLORS.goldText,
+				fontStyle: 'bold',
+			})
+			.setVisible(false);
+
+		this.hudBountyLabel = this.add
+			.text(1060, 8, 'BOUNTY', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: COLORS.hudDim,
+			})
+			.setVisible(false);
+		this.hudBountyVal = this.add
+			.text(1060, 24, '×1.0', {
+				fontFamily: 'monospace',
+				fontSize: '20px',
+				color: COLORS.batteryFull,
+				fontStyle: 'bold',
+			})
+			.setVisible(false);
+
 		this.hudTimerLabel = this.add.text(BASE_WIDTH - 16, 8, 'NEXT WAVE', {
 			fontFamily: 'monospace',
 			fontSize: '11px',
@@ -393,6 +433,57 @@ export class TowerDefenseScene extends Phaser.Scene {
 			fontStyle: 'bold',
 		});
 		this.hudTimerVal.setOrigin(1, 0);
+		this.buildSkipButton();
+	}
+
+	private buildSkipButton(): void {
+		const w = 76;
+		const h = 26;
+		const x = BASE_WIDTH - 16 - w / 2;
+		const y = HUD_HEIGHT + h / 2 + 4;
+		const container = this.add
+			.container(x, y)
+			.setDepth(20)
+			.setVisible(false);
+		const bg = this.add
+			.rectangle(0, 0, w, h, 0x111827, 0.95)
+			.setStrokeStyle(2, COLORS.paletteSelected, 0.9)
+			.setInteractive({ useHandCursor: true });
+		const label = this.add
+			.text(0, 0, 'SKIP →', {
+				fontFamily: 'monospace',
+				fontSize: '12px',
+				color: COLORS.goldText,
+				fontStyle: 'bold',
+			})
+			.setOrigin(0.5);
+		container.add(bg);
+		container.add(label);
+		bg.on(
+			'pointerdown',
+			(
+				_p: Phaser.Input.Pointer,
+				_x: number,
+				_y: number,
+				ev: Phaser.Types.Input.EventData,
+			) => {
+				ev.stopPropagation();
+				if (this.canSkipWave()) {
+					this.interWaveDelayMs = 0;
+				}
+			},
+		);
+		this.skipButton = container;
+	}
+
+	private canSkipWave(): boolean {
+		return (
+			!this.awaitingCardPick &&
+			!this.isGameOver &&
+			this.enemiesToSpawn === 0 &&
+			this.enemyVisuals.size === 0 &&
+			this.interWaveDelayMs > 0
+		);
 	}
 
 	private buildPlacementPreview(): void {
@@ -535,6 +626,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 				`${Math.ceil(this.interWaveDelayMs / 1000)}s`,
 			);
 		}
+		const showFree = this.freeBasicTowers > 0;
+		this.hudFreeTowerLabel.setVisible(showFree);
+		this.hudFreeTowerVal.setVisible(showFree);
+		if (showFree) this.hudFreeTowerVal.setText(`${this.freeBasicTowers}`);
+		const showBounty = this.bountyBonusMultiplier > 1;
+		this.hudBountyLabel.setVisible(showBounty);
+		this.hudBountyVal.setVisible(showBounty);
+		if (showBounty)
+			this.hudBountyVal.setText(
+				`×${this.bountyBonusMultiplier.toFixed(1)}`,
+			);
+		if (this.skipButton) this.skipButton.setVisible(this.canSkipWave());
 	}
 
 	private snapToTile(
@@ -1052,8 +1155,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else {
 			tower.hp = Math.min(tower.hp, tower.maxHp);
 		}
+		this.redrawUpgradePips(tower);
 		this.refreshHud();
 		this.openBuildingPanel(tower);
+	}
+
+	private redrawUpgradePips(t: TowerBuilding): void {
+		t.upgradePips.clear();
+		const pipW = 3;
+		const pipH = TILE * 0.5;
+		const startX = t.x + TILE * 0.42;
+		const baseY = t.y + pipH / 2;
+		for (let i = 0; i < UPGRADE_ORDER.length; i++) {
+			const kind = UPGRADE_ORDER[i];
+			const lvl = t.upgrades[kind];
+			const def = UPGRADE_DEFS[kind];
+			const px = startX + i * (pipW + 1);
+			t.upgradePips.fillStyle(0x111827, 0.7);
+			t.upgradePips.fillRect(px, baseY - pipH, pipW, pipH);
+			if (lvl > 0) {
+				const filled = (lvl / def.maxLevel) * pipH;
+				t.upgradePips.fillStyle(def.color, 0.95);
+				t.upgradePips.fillRect(px, baseY - filled, pipW, filled);
+			}
+		}
 	}
 
 	private demolishBuilding(b: Building): void {
@@ -1188,6 +1313,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				4,
 				0x9ae6b4,
 			);
+			const upgradePips = this.add.graphics();
 			const b: TowerBuilding = {
 				...base,
 				kind: 'tower',
@@ -1197,7 +1323,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 				upgrades: { radar: 0, attack: 0, speed: 0, armor: 0 },
 				fixedTarget: null,
+				upgradePips,
 			};
+			this.redrawUpgradePips(b);
 			building = b;
 		} else if (spec.kind === 'generator') {
 			addComponent(this.world, eid, GeneratorTag);
@@ -1472,6 +1600,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'tower' && b.fixedTarget) {
 			b.fixedTarget.marker.destroy();
 			b.fixedTarget = null;
+		}
+		if (b.kind === 'tower') {
+			b.upgradePips.destroy();
 		}
 		if (b.kind === 'battery') {
 			b.chargeBar.destroy();
@@ -2260,6 +2391,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const panelH = 260;
 		const panelX = (BASE_WIDTH - panelW) / 2;
 		const panelY = (BASE_HEIGHT - panelH) / 2;
+		this.cardBackdrop = this.add
+			.rectangle(
+				BASE_WIDTH / 2,
+				BASE_HEIGHT / 2,
+				BASE_WIDTH,
+				BASE_HEIGHT,
+				0x000000,
+				0.6,
+			)
+			.setDepth(195);
 		const container = this.add.container(panelX, panelY).setDepth(200);
 		const bg = this.add
 			.rectangle(0, 0, panelW, panelH, COLORS.hudPanel, 0.97)
@@ -2363,6 +2504,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (this.cardPanel) {
 			this.cardPanel.destroy(true);
 			this.cardPanel = null;
+		}
+		if (this.cardBackdrop) {
+			this.cardBackdrop.destroy();
+			this.cardBackdrop = null;
 		}
 		this.awaitingCardPick = false;
 	}
