@@ -1,0 +1,77 @@
+---
+title: Block of Diamond
+description: |
+    Block of Diamond — storage form for 9 diamonds. Doubles as a beacon
+    pyramid base.
+sidebar:
+    label: Block of Diamond
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 113
+    ref: diamond_block
+    slug: diamond-block
+    display_name: Block of Diamond
+    category: block
+    rarity: common
+    stack_size: 64
+    tags:
+        - storage
+        - tier_diamond
+        - beacon_base
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 3
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 2
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 2
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 2
+                col: 2
+    about:
+        description: |
+            Compacts 9 diamonds into one storage block. Crafting back
+            into 9 individual diamonds at any time. Counts as a tier-2
+            beacon pyramid material.
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

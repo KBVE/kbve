@@ -1,0 +1,80 @@
+---
+title: Diamond Axe
+description: |
+    Diamond Axe — high damage weapon + tier 5 wood-mining tool. 9 attack
+    damage, 1561 durability.
+sidebar:
+    label: Diamond Axe
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 826
+    ref: diamond_axe
+    slug: diamond-axe
+    display_name: Diamond Axe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 1561
+    tier: diamond
+    damage:
+        attack_damage: 9
+        attack_speed: 1.0
+    mining:
+        tool_type: axe
+        tier: 5
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - sharpness
+            - smite
+            - bane_of_arthropods
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags:
+        - melee
+        - mining
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 2
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: stick
+                qty: 1
+                row: 1
+                col: 1
+              - ref: stick
+                qty: 1
+                row: 2
+                col: 1
+    about:
+        description: |
+            The Diamond Axe deals more damage per hit than the Diamond
+            Sword (9 vs 7), trading attack speed (1.0 vs 1.6). Also chops
+            wood and harvests pumpkins / melons faster than swords.
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

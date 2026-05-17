@@ -946,4 +946,88 @@ import MarketCreateForm from './MarketCreateForm';
 			justify-self: end;
 		}
 	}
+
+	/* ---- Phase 5.3b: MC item picker ---- */
+	.kbve-mcpicker {
+		position: relative;
+		display: grid;
+		gap: 0.35rem;
+	}
+	.kbve-mcpicker__input {
+		width: 100%;
+	}
+	.kbve-mcpicker__known {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+		text-decoration: none;
+	}
+	.kbve-mcpicker__known:hover {
+		text-decoration: underline;
+	}
+	.kbve-mcpicker__list {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		margin: 0.25rem 0 0;
+		padding: 0.3rem;
+		list-style: none;
+		display: grid;
+		gap: 0.15rem;
+		max-height: 280px;
+		overflow-y: auto;
+		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		border-radius: 10px;
+		z-index: 50;
+		box-shadow: 0 12px 24px -8px
+			color-mix(in srgb, var(--sl-color-black) 50%, transparent);
+	}
+	.kbve-mcpicker__list button {
+		width: 100%;
+		text-align: left;
+		display: grid;
+		grid-template-columns: 1fr auto auto;
+		gap: 0.5rem;
+		align-items: baseline;
+		padding: 0.4rem 0.6rem;
+		border-radius: 6px;
+		background: transparent;
+		border: none;
+		color: var(--sl-color-text);
+		cursor: pointer;
+		font: inherit;
+	}
+	.kbve-mcpicker__list button:hover {
+		background: var(--sl-color-bg-nav);
+	}
+	.kbve-mcpicker__name {
+		font-weight: 700;
+	}
+	.kbve-mcpicker__ref {
+		font-size: 0.78rem;
+		color: var(--sl-color-gray-3);
+		font-family: var(--sl-font-mono, monospace);
+	}
+	.kbve-mcpicker__cat {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.kbve-mcpicker__empty {
+		margin-top: 0.3rem;
+		padding: 0.5rem 0.65rem;
+		border-radius: 8px;
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3);
+		background: var(--sl-color-bg-nav);
+		border: 1px dashed var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.kbve-mcpicker__empty code {
+		padding: 0.05rem 0.35rem;
+		border-radius: 4px;
+		background: var(--sl-color-bg-inline-code);
+	}
 </style>
