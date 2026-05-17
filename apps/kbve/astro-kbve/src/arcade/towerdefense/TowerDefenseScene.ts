@@ -142,6 +142,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameEnemyEids: Iterable<number> = [];
 	private frameSoldierEids: Iterable<number> = [];
 	private frameBuildingEids: Iterable<number> = [];
+	private static readonly ENEMY_GRID_CELL = 80;
+	private static readonly ENEMY_GRID_COLS = Math.ceil(BASE_WIDTH / 80);
+	private static readonly ENEMY_GRID_ROWS = Math.ceil(BASE_HEIGHT / 80);
+	private enemyGrid: number[][] = [];
+	private leadEnemyEid = -1;
+	private leadPathIndex = -1;
 	private buildings: Building[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
@@ -201,6 +207,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameEnemyEids = [];
 		this.frameSoldierEids = [];
 		this.frameBuildingEids = [];
+		const gridCells =
+			TowerDefenseScene.ENEMY_GRID_COLS *
+			TowerDefenseScene.ENEMY_GRID_ROWS;
+		this.enemyGrid = new Array(gridCells);
+		for (let i = 0; i < gridCells; i++) this.enemyGrid[i] = [];
+		this.leadEnemyEid = -1;
+		this.leadPathIndex = -1;
 		this.buildings = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
@@ -617,6 +630,69 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.hoverRangeIndicator = null;
 		}
 		this.hoverRangeOwner = null;
+	}
+
+	private rebuildEnemyGrid(): void {
+		const cell = TowerDefenseScene.ENEMY_GRID_CELL;
+		const cols = TowerDefenseScene.ENEMY_GRID_COLS;
+		const rows = TowerDefenseScene.ENEMY_GRID_ROWS;
+		for (let i = 0; i < this.enemyGrid.length; i++) {
+			this.enemyGrid[i].length = 0;
+		}
+		let leadEid = -1;
+		let leadProgress = -1;
+		for (const eid of this.frameEnemyEids) {
+			if (!this.enemyVisuals.has(eid)) continue;
+			const x = Position.x[eid];
+			const y = Position.y[eid];
+			let col = Math.floor(x / cell);
+			let row = Math.floor(y / cell);
+			if (col < 0) col = 0;
+			else if (col >= cols) col = cols - 1;
+			if (row < 0) row = 0;
+			else if (row >= rows) row = rows - 1;
+			this.enemyGrid[row * cols + col].push(eid);
+			const prog = EnemyStats.pathIndex[eid];
+			if (prog > leadProgress) {
+				leadProgress = prog;
+				leadEid = eid;
+			}
+		}
+		this.leadEnemyEid = leadEid;
+		this.leadPathIndex = leadProgress;
+	}
+
+	private forEachEnemyInRange(
+		cx: number,
+		cy: number,
+		range: number,
+		fn: (eid: number) => void,
+	): void {
+		const cell = TowerDefenseScene.ENEMY_GRID_CELL;
+		const cols = TowerDefenseScene.ENEMY_GRID_COLS;
+		const rows = TowerDefenseScene.ENEMY_GRID_ROWS;
+		let minCol = Math.floor((cx - range) / cell);
+		let maxCol = Math.floor((cx + range) / cell);
+		let minRow = Math.floor((cy - range) / cell);
+		let maxRow = Math.floor((cy + range) / cell);
+		if (minCol < 0) minCol = 0;
+		if (minRow < 0) minRow = 0;
+		if (maxCol >= cols) maxCol = cols - 1;
+		if (maxRow >= rows) maxRow = rows - 1;
+		const rangeSq = range * range;
+		for (let r = minRow; r <= maxRow; r++) {
+			for (let c = minCol; c <= maxCol; c++) {
+				const bucket = this.enemyGrid[r * cols + c];
+				for (let i = 0; i < bucket.length; i++) {
+					const eid = bucket[i];
+					if (!this.enemyVisuals.has(eid)) continue;
+					const dx = Position.x[eid] - cx;
+					const dy = Position.y[eid] - cy;
+					if (dx * dx + dy * dy > rangeSq) continue;
+					fn(eid);
+				}
+			}
+		}
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
@@ -1986,23 +2062,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private findTarget(t: TowerBuilding, nowMs: number): number | null {
+		const range = towerRange(t);
+		if (t.spec.arcHeight > 0 && !t.spec.avoidSlowed) {
+			return this.leadEnemyEid >= 0 ? this.leadEnemyEid : null;
+		}
 		let best = -1;
 		let bestProgress = -1;
-		const range = towerRange(t);
-		const rangeSq = range * range;
 		const skipSlowed = t.spec.avoidSlowed;
-		for (const eid of this.frameEnemyEids) {
-			if (!this.enemyVisuals.has(eid)) continue;
-			if (skipSlowed && EnemyStats.slowUntilMs[eid] > nowMs) continue;
-			const dx = Position.x[eid] - t.x;
-			const dy = Position.y[eid] - t.y;
-			if (dx * dx + dy * dy > rangeSq) continue;
+		this.forEachEnemyInRange(t.x, t.y, range, (eid) => {
+			if (skipSlowed && EnemyStats.slowUntilMs[eid] > nowMs) return;
 			const prog = EnemyStats.pathIndex[eid];
 			if (prog > bestProgress) {
 				bestProgress = prog;
 				best = eid;
 			}
-		}
+		});
 		return best >= 0 ? best : null;
 	}
 
@@ -2095,15 +2169,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			return;
 		}
 		if (spec.splashRadius > 0) {
-			const r2 = spec.splashRadius * spec.splashRadius;
-			for (const eid of this.frameEnemyEids) {
-				if (!this.enemyVisuals.has(eid)) continue;
-				const dx = Position.x[eid] - x;
-				const dy = Position.y[eid] - y;
-				if (dx * dx + dy * dy <= r2) {
-					this.damageEnemy(eid, damage);
-				}
-			}
+			this.forEachEnemyInRange(x, y, spec.splashRadius, (eid) => {
+				this.damageEnemy(eid, damage);
+			});
 			this.spawnSplashFlash(x, y, spec.splashRadius);
 			return;
 		}
@@ -2157,22 +2225,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateBurnPatches(dt: number, nowMs: number): void {
 		for (const patch of this.burnPatches) {
 			if (nowMs >= patch.expiresAtMs) continue;
-			const r2 = patch.radius * patch.radius;
-			for (const eid of this.frameEnemyEids) {
-				if (!this.enemyVisuals.has(eid)) continue;
-				const dx = Position.x[eid] - patch.x;
-				const dy = Position.y[eid] - patch.y;
-				if (dx * dx + dy * dy <= r2) {
-					EnemyStats.burnUntilMs[eid] = Math.max(
-						EnemyStats.burnUntilMs[eid],
-						nowMs + 500,
-					);
-					EnemyStats.burnDps[eid] = Math.max(
-						EnemyStats.burnDps[eid],
-						patch.dps,
-					);
-				}
-			}
+			this.forEachEnemyInRange(patch.x, patch.y, patch.radius, (eid) => {
+				EnemyStats.burnUntilMs[eid] = Math.max(
+					EnemyStats.burnUntilMs[eid],
+					nowMs + 500,
+				);
+				EnemyStats.burnDps[eid] = Math.max(
+					EnemyStats.burnDps[eid],
+					patch.dps,
+				);
+			});
 			const remaining = (patch.expiresAtMs - nowMs) / 1000;
 			patch.sprite.setAlpha(0.1 + Math.min(0.25, remaining * 0.1));
 		}
@@ -2378,6 +2440,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			SoldierStats,
 		]);
 		this.frameBuildingEids = query(this.world, [BuildingTag, Position]);
+		this.rebuildEnemyGrid();
 
 		this.updateBurnPatches(dt, nowMs);
 		this.updateEnemies(dt, nowMs);
