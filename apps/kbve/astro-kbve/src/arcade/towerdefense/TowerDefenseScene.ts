@@ -61,6 +61,25 @@ import {
 	type CardOption,
 } from './cards';
 import {
+	batteryCapacityAtom,
+	batteryChargeAtom,
+	bountyMulAtom,
+	canSkipAtom,
+	demandAtom,
+	enemiesLeftAtom,
+	freeTowersAtom,
+	gameOverAtom,
+	goldAtom,
+	livesAtom,
+	resetHudStore,
+	restartSignalAtom,
+	skipSignalAtom,
+	supplyAtom,
+	timerSecAtom,
+	timerStateAtom,
+	waveAtom,
+} from './td-hud-store';
+import {
 	generatePath,
 	type GeneratedPath,
 	type Waypoint,
@@ -131,11 +150,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private cardPanel: Phaser.GameObjects.Container | null = null;
 	private cardBackdrop: Phaser.GameObjects.Rectangle | null = null;
 	private cardPickedThisInterval = false;
-	private skipButton: Phaser.GameObjects.Container | null = null;
-	private hudFreeTowerLabel!: Phaser.GameObjects.Text;
-	private hudFreeTowerVal!: Phaser.GameObjects.Text;
-	private hudBountyLabel!: Phaser.GameObjects.Text;
-	private hudBountyVal!: Phaser.GameObjects.Text;
 
 	private gold = GAME_CONFIG.startingGold;
 	private lives = GAME_CONFIG.startingLives;
@@ -145,15 +159,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private interWaveDelayMs = 0;
 	private isGameOver = false;
 
-	private hudGoldVal!: Phaser.GameObjects.Text;
-	private hudLivesVal!: Phaser.GameObjects.Text;
-	private hudWaveVal!: Phaser.GameObjects.Text;
-	private hudEnemiesVal!: Phaser.GameObjects.Text;
-	private hudPowerVal!: Phaser.GameObjects.Text;
-	private hudBatteryVal!: Phaser.GameObjects.Text;
-	private hudTimerVal!: Phaser.GameObjects.Text;
-	private hudTimerLabel!: Phaser.GameObjects.Text;
-	private gameOverText?: Phaser.GameObjects.Text;
+	private hudUnsubs: Array<() => void> = [];
+	private lastSkipSignal = 0;
+	private lastRestartSignal = 0;
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -198,7 +206,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.cardPanel = null;
 		this.cardBackdrop = null;
 		this.cardPickedThisInterval = false;
-		this.skipButton = null;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -221,7 +228,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		};
 		this.powerRefreshAccumulatorMs = 0;
 		this.selection = 'basic';
-		this.gameOverText = undefined;
+		this.hudUnsubs = [];
+		this.lastSkipSignal = skipSignalAtom.get();
+		this.lastRestartSignal = restartSignalAtom.get();
+		resetHudStore();
 	}
 
 	create(): void {
@@ -230,7 +240,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.drawGrass();
 		this.drawGridLines();
 		this.drawPath();
-		this.buildHud();
+		this.subscribeHudSignals();
 		this.buildPalette();
 		this.buildPlacementPreview();
 		this.placeStarterKit();
@@ -316,175 +326,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		border.strokePath();
 	}
 
-	private buildHud(): void {
-		this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				HUD_HEIGHT / 2,
-				BASE_WIDTH,
-				HUD_HEIGHT,
-				COLORS.hudPanel,
-				0.92,
-			)
-			.setStrokeStyle(2, COLORS.hudPanelBorder);
-
-		const panelTexts: Array<{
-			labelX: number;
-			label: string;
-			color: string;
-			valueColor: string;
-			out: (
-				label: Phaser.GameObjects.Text,
-				value: Phaser.GameObjects.Text,
-			) => void;
-		}> = [
-			{
-				labelX: 16,
-				label: 'GOLD',
-				color: COLORS.hudDim,
-				valueColor: COLORS.goldText,
-				out: (_l, v) => (this.hudGoldVal = v),
-			},
-			{
-				labelX: 160,
-				label: 'LIVES',
-				color: COLORS.hudDim,
-				valueColor: COLORS.livesText,
-				out: (_l, v) => (this.hudLivesVal = v),
-			},
-			{
-				labelX: 300,
-				label: 'WAVE',
-				color: COLORS.hudDim,
-				valueColor: COLORS.waveText,
-				out: (_l, v) => (this.hudWaveVal = v),
-			},
-			{
-				labelX: 440,
-				label: 'ENEMIES',
-				color: COLORS.hudDim,
-				valueColor: COLORS.hudText,
-				out: (_l, v) => (this.hudEnemiesVal = v),
-			},
-			{
-				labelX: 600,
-				label: 'POWER',
-				color: COLORS.hudDim,
-				valueColor: COLORS.powerOk,
-				out: (_l, v) => (this.hudPowerVal = v),
-			},
-			{
-				labelX: 800,
-				label: 'BATTERY',
-				color: COLORS.hudDim,
-				valueColor: COLORS.batteryFull,
-				out: (_l, v) => (this.hudBatteryVal = v),
-			},
-		];
-
-		for (const p of panelTexts) {
-			this.add.text(p.labelX, 8, p.label, {
-				fontFamily: 'monospace',
-				fontSize: '11px',
-				color: p.color,
-			});
-			const v = this.add.text(p.labelX, 24, '—', {
-				fontFamily: 'monospace',
-				fontSize: '20px',
-				color: p.valueColor,
-				fontStyle: 'bold',
-			});
-			p.out(this.add.text(0, 0, ''), v);
-		}
-
-		this.hudFreeTowerLabel = this.add
-			.text(940, 8, 'FREE TWR', {
-				fontFamily: 'monospace',
-				fontSize: '11px',
-				color: COLORS.hudDim,
-			})
-			.setVisible(false);
-		this.hudFreeTowerVal = this.add
-			.text(940, 24, '0', {
-				fontFamily: 'monospace',
-				fontSize: '20px',
-				color: COLORS.goldText,
-				fontStyle: 'bold',
-			})
-			.setVisible(false);
-
-		this.hudBountyLabel = this.add
-			.text(1060, 8, 'BOUNTY', {
-				fontFamily: 'monospace',
-				fontSize: '11px',
-				color: COLORS.hudDim,
-			})
-			.setVisible(false);
-		this.hudBountyVal = this.add
-			.text(1060, 24, '×1.0', {
-				fontFamily: 'monospace',
-				fontSize: '20px',
-				color: COLORS.batteryFull,
-				fontStyle: 'bold',
-			})
-			.setVisible(false);
-
-		this.hudTimerLabel = this.add.text(BASE_WIDTH - 16, 8, 'NEXT WAVE', {
-			fontFamily: 'monospace',
-			fontSize: '11px',
-			color: COLORS.hudDim,
-		});
-		this.hudTimerLabel.setOrigin(1, 0);
-		this.hudTimerVal = this.add.text(BASE_WIDTH - 16, 24, '—', {
-			fontFamily: 'monospace',
-			fontSize: '20px',
-			color: COLORS.hudText,
-			fontStyle: 'bold',
-		});
-		this.hudTimerVal.setOrigin(1, 0);
-		this.buildSkipButton();
-	}
-
-	private buildSkipButton(): void {
-		const w = 76;
-		const h = 26;
-		const x = BASE_WIDTH - 16 - w / 2;
-		const y = HUD_HEIGHT + h / 2 + 4;
-		const container = this.add
-			.container(x, y)
-			.setDepth(20)
-			.setVisible(false);
-		const bg = this.add
-			.rectangle(0, 0, w, h, 0x111827, 0.95)
-			.setStrokeStyle(2, COLORS.paletteSelected, 0.9)
-			.setInteractive({ useHandCursor: true });
-		const label = this.add
-			.text(0, 0, 'SKIP →', {
-				fontFamily: 'monospace',
-				fontSize: '12px',
-				color: COLORS.goldText,
-				fontStyle: 'bold',
-			})
-			.setOrigin(0.5);
-		container.add(bg);
-		container.add(label);
-		bg.on(
-			'pointerdown',
-			(
-				_p: Phaser.Input.Pointer,
-				_x: number,
-				_y: number,
-				ev: Phaser.Types.Input.EventData,
-			) => {
-				ev.stopPropagation();
-				if (this.canSkipWave()) {
-					this.interWaveDelayMs = 0;
-				}
-			},
-		);
-		this.skipButton = container;
-	}
-
 	private canSkipWave(): boolean {
 		return (
 			!this.awaitingCardPick &&
@@ -493,6 +334,24 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.enemyVisuals.size === 0 &&
 			this.interWaveDelayMs > 0
 		);
+	}
+
+	private subscribeHudSignals(): void {
+		const skipUnsub = skipSignalAtom.subscribe((v) => {
+			if (v === this.lastSkipSignal) return;
+			this.lastSkipSignal = v;
+			if (this.canSkipWave()) this.interWaveDelayMs = 0;
+		});
+		const restartUnsub = restartSignalAtom.subscribe((v) => {
+			if (v === this.lastRestartSignal) return;
+			this.lastRestartSignal = v;
+			this.scene.restart();
+		});
+		this.hudUnsubs.push(skipUnsub, restartUnsub);
+		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+			for (const u of this.hudUnsubs) u();
+			this.hudUnsubs = [];
+		});
 	}
 
 	private buildPlacementPreview(): void {
@@ -610,43 +469,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private refreshHud(): void {
-		this.hudGoldVal.setText(`${this.gold}`);
-		this.hudLivesVal.setText(`${this.lives}`);
-		this.hudWaveVal.setText(`${this.wave}`);
-		const remaining = this.enemiesToSpawn + this.enemyVisuals.size;
-		this.hudEnemiesVal.setText(`${remaining}`);
+		goldAtom.set(this.gold);
+		livesAtom.set(this.lives);
+		waveAtom.set(this.wave);
+		enemiesLeftAtom.set(this.enemiesToSpawn + this.enemyVisuals.size);
 		const { supply, demand, batteryCharge, batteryCapacity } =
 			this.cachedPower;
-		this.hudPowerVal.setText(`${supply}/${demand}`);
-		this.hudPowerVal.setColor(
-			supply >= demand ? COLORS.powerOk : COLORS.powerLow,
-		);
-		this.hudBatteryVal.setText(
-			batteryCapacity > 0
-				? `${Math.floor(batteryCharge)}/${batteryCapacity}`
-				: '—',
-		);
+		supplyAtom.set(supply);
+		demandAtom.set(demand);
+		batteryChargeAtom.set(batteryCharge);
+		batteryCapacityAtom.set(batteryCapacity);
+		freeTowersAtom.set(this.freeBasicTowers);
+		bountyMulAtom.set(this.bountyBonusMultiplier);
 		if (this.enemiesToSpawn > 0 || this.enemyVisuals.size > 0) {
-			this.hudTimerVal.setText('—');
-			this.hudTimerLabel.setText('IN PROGRESS');
+			timerStateAtom.set('IN_PROGRESS');
+			timerSecAtom.set(0);
 		} else {
-			this.hudTimerLabel.setText('NEXT WAVE');
-			this.hudTimerVal.setText(
-				`${Math.ceil(this.interWaveDelayMs / 1000)}s`,
-			);
+			timerStateAtom.set('NEXT_WAVE');
+			timerSecAtom.set(Math.ceil(this.interWaveDelayMs / 1000));
 		}
-		const showFree = this.freeBasicTowers > 0;
-		this.hudFreeTowerLabel.setVisible(showFree);
-		this.hudFreeTowerVal.setVisible(showFree);
-		if (showFree) this.hudFreeTowerVal.setText(`${this.freeBasicTowers}`);
-		const showBounty = this.bountyBonusMultiplier > 1;
-		this.hudBountyLabel.setVisible(showBounty);
-		this.hudBountyVal.setVisible(showBounty);
-		if (showBounty)
-			this.hudBountyVal.setText(
-				`×${this.bountyBonusMultiplier.toFixed(1)}`,
-			);
-		if (this.skipButton) this.skipButton.setVisible(this.canSkipWave());
+		canSkipAtom.set(this.canSkipWave());
 	}
 
 	private snapToTile(
@@ -2369,61 +2211,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.isGameOver = true;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
-		this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				BASE_WIDTH,
-				BASE_HEIGHT,
-				0x000000,
-				0.55,
-			)
-			.setDepth(149);
-		this.gameOverText = this.add
-			.text(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2 - 40,
-				`${win ? 'Victory' : 'Defeat'} — wave ${this.wave}`,
-				{
-					fontFamily: 'monospace',
-					fontSize: '36px',
-					color: win ? '#48bb78' : '#fc8181',
-					align: 'center',
-					fontStyle: 'bold',
-				},
-			)
-			.setOrigin(0.5)
-			.setDepth(150);
-		const btnBg = this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2 + 40,
-				220,
-				56,
-				0x111827,
-				0.95,
-			)
-			.setStrokeStyle(2, 0xfbd38d, 0.9)
-			.setDepth(150)
-			.setInteractive({ useHandCursor: true });
-		this.add
-			.text(BASE_WIDTH / 2, BASE_HEIGHT / 2 + 40, 'RESTART', {
-				fontFamily: 'monospace',
-				fontSize: '20px',
-				color: '#fbd38d',
-				fontStyle: 'bold',
-			})
-			.setOrigin(0.5)
-			.setDepth(150);
-		this.add
-			.text(BASE_WIDTH / 2, BASE_HEIGHT / 2 + 86, 'or press R', {
-				fontFamily: 'monospace',
-				fontSize: '11px',
-				color: '#a0aec0',
-			})
-			.setOrigin(0.5)
-			.setDepth(150);
-		btnBg.on('pointerdown', () => this.scene.restart());
+		gameOverAtom.set({ visible: true, win, wave: this.wave });
 	}
 
 	update(_time: number, deltaMs: number): void {

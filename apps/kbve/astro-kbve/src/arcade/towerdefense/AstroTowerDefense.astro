@@ -1,5 +1,6 @@
 ---
 import ReactTowerDefenseApp from './ReactTowerDefenseApp';
+import TdHud from './TdHud';
 ---
 
 <div class="not-content w-full h-full">
@@ -10,6 +11,9 @@ import ReactTowerDefenseApp from './ReactTowerDefenseApp';
 		tabindex="0">
 		<div id="towerdefense-game-inner" class="w-full h-full">
 			<ReactTowerDefenseApp client:only="react" />
+		</div>
+		<div class="td-hud-mount">
+			<TdHud client:only="react" />
 		</div>
 	</div>
 	<p class="text-xs text-gray-400 mt-2 text-center">
@@ -35,5 +39,125 @@ import ReactTowerDefenseApp from './ReactTowerDefenseApp';
 		#towerdefense-game-container {
 			aspect-ratio: 4/3;
 		}
+	}
+
+	.td-hud-mount {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 5;
+		color: #f7fafc;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	}
+
+	.td-hud-root {
+		position: absolute;
+		inset: 0;
+	}
+
+	.td-hud-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: stretch;
+		padding: 8px 16px;
+		background: rgba(17, 24, 39, 0.9);
+		border-bottom: 2px solid #374151;
+		pointer-events: auto;
+	}
+
+	.td-hud-left {
+		display: flex;
+		gap: 24px;
+		flex-wrap: wrap;
+	}
+
+	.td-hud-right {
+		display: flex;
+		align-items: flex-end;
+		gap: 8px;
+	}
+
+	.td-hud-stat {
+		display: flex;
+		flex-direction: column;
+		min-width: 60px;
+	}
+
+	.td-hud-stat-label {
+		font-size: 11px;
+		color: #a0aec0;
+		letter-spacing: 0.04em;
+	}
+
+	.td-hud-stat-value {
+		font-size: 20px;
+		font-weight: 700;
+		line-height: 1.1;
+	}
+
+	.td-hud-timer {
+		display: flex;
+		align-items: flex-end;
+		gap: 8px;
+	}
+
+	.td-hud-skip-btn {
+		padding: 4px 10px;
+		font-family: inherit;
+		font-size: 12px;
+		font-weight: 700;
+		color: #fbd38d;
+		background: #111827;
+		border: 2px solid #fbd38d;
+		border-radius: 4px;
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.td-hud-skip-btn:hover {
+		background: #1f2937;
+	}
+
+	.td-hud-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		background: rgba(0, 0, 0, 0.55);
+		pointer-events: auto;
+		z-index: 10;
+	}
+
+	.td-hud-overlay-text {
+		font-size: 36px;
+		font-weight: 700;
+	}
+
+	.td-hud-restart-btn {
+		padding: 14px 36px;
+		font-family: inherit;
+		font-size: 20px;
+		font-weight: 700;
+		color: #fbd38d;
+		background: #111827;
+		border: 2px solid #fbd38d;
+		border-radius: 6px;
+		cursor: pointer;
+	}
+
+	.td-hud-restart-btn:hover {
+		background: #1f2937;
+	}
+
+	.td-hud-overlay-hint {
+		font-size: 11px;
+		color: #a0aec0;
 	}
 </style>
