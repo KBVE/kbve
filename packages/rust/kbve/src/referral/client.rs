@@ -10,14 +10,18 @@
 
 use diesel::OptionalExtension;
 use diesel::sql_query;
-use diesel::sql_types::{Bytea, Nullable, Text, Uuid as SqlUuid};
+use diesel::sql_types::{Bool, Bytea, Nullable, Text, Uuid as SqlUuid};
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::wallet::client::WalletPool;
 
 use super::error::{ReferralError, Result};
-use super::types::{RecordClickInput, RecordClickOutcome, RecordClickRow, ResolvedTargetRow};
+use super::types::{
+    DisableTargetOutcome, DisableTargetRow, RecordClickInput, RecordClickOutcome, RecordClickRow,
+    ResolvedTargetRow, UserStats, UserStatsRow, UserTargetMutation, UserTargetMutationRow,
+    UserTargetRow, UserTargetView,
+};
 
 #[derive(Clone)]
 pub struct ReferralClient {
@@ -78,5 +82,121 @@ impl ReferralClient {
         .map_err(ReferralError::from_diesel)?;
 
         Ok(row)
+    }
+
+    // ---------------------------------------------------------------------
+    // Phase 3a — user-target management
+    // ---------------------------------------------------------------------
+
+    /// `SELECT * FROM referral.service_list_user_targets(user_id)`. One
+    /// row per (user, target) regardless of active state — the UI shows
+    /// disabled rows with a re-enable affordance.
+    pub async fn list_user_targets(&self, user_id: Uuid) -> Result<Vec<UserTargetView>> {
+        let mut conn = self.pool.get().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+
+        let rows: Vec<UserTargetRow> = sql_query(
+            "SELECT target_slug, title, url, is_default, active, enabled_at, \
+                    disabled_at, updated_at, clicks_total, clicks_credited, \
+                    credits_total, last_click_at \
+             FROM referral.service_list_user_targets($1)",
+        )
+        .bind::<SqlUuid, _>(user_id)
+        .get_results::<UserTargetRow>(inner)
+        .await
+        .map_err(ReferralError::from_diesel)?;
+
+        Ok(rows.into_iter().map(UserTargetView::from).collect())
+    }
+
+    /// `referral.service_enable_target(user_id, slug, set_as_default)`.
+    pub async fn enable_target(
+        &self,
+        user_id: Uuid,
+        target_slug: &str,
+        set_as_default: bool,
+    ) -> Result<UserTargetMutation> {
+        let mut conn = self.pool.get().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+
+        let row: UserTargetMutationRow = sql_query(
+            "SELECT target_slug, demoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at, updated_at, demoted_updated_at \
+             FROM referral.service_enable_target($1, $2, $3)",
+        )
+        .bind::<SqlUuid, _>(user_id)
+        .bind::<Text, _>(target_slug)
+        .bind::<Bool, _>(set_as_default)
+        .get_result(inner)
+        .await
+        .map_err(ReferralError::from_diesel)?;
+
+        Ok(row.into())
+    }
+
+    /// `referral.service_disable_target(user_id, slug)`. Result carries
+    /// `promoted_target_slug` when a remaining active row inherited the
+    /// default — clients use it to refresh local UI without a follow-up
+    /// list call.
+    pub async fn disable_target(
+        &self,
+        user_id: Uuid,
+        target_slug: &str,
+    ) -> Result<DisableTargetOutcome> {
+        let mut conn = self.pool.get().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+
+        let row: DisableTargetRow = sql_query(
+            "SELECT target_slug, promoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at, updated_at, promoted_updated_at \
+             FROM referral.service_disable_target($1, $2)",
+        )
+        .bind::<SqlUuid, _>(user_id)
+        .bind::<Text, _>(target_slug)
+        .get_result(inner)
+        .await
+        .map_err(ReferralError::from_diesel)?;
+
+        Ok(row.into())
+    }
+
+    /// `referral.service_set_default_target(user_id, slug)`.
+    pub async fn set_default_target(
+        &self,
+        user_id: Uuid,
+        target_slug: &str,
+    ) -> Result<UserTargetMutation> {
+        let mut conn = self.pool.get().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+
+        let row: UserTargetMutationRow = sql_query(
+            "SELECT target_slug, demoted_target_slug, is_default, active, \
+                    enabled_at, disabled_at, updated_at, demoted_updated_at \
+             FROM referral.service_set_default_target($1, $2)",
+        )
+        .bind::<SqlUuid, _>(user_id)
+        .bind::<Text, _>(target_slug)
+        .get_result(inner)
+        .await
+        .map_err(ReferralError::from_diesel)?;
+
+        Ok(row.into())
+    }
+
+    /// `referral.service_get_user_stats(user_id)`.
+    pub async fn get_user_stats(&self, user_id: Uuid) -> Result<UserStats> {
+        let mut conn = self.pool.get().await?;
+        let inner: &mut AsyncPgConnection = &mut *conn;
+
+        let row: UserStatsRow = sql_query(
+            "SELECT clicks_total, clicks_credited, credits_total, last_click_at \
+             FROM referral.service_get_user_stats($1)",
+        )
+        .bind::<SqlUuid, _>(user_id)
+        .get_result(inner)
+        .await
+        .map_err(ReferralError::from_diesel)?;
+
+        Ok(row.into())
     }
 }
