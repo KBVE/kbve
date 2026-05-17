@@ -165,6 +165,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
+	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
+	private hoverRangeOwner: Building | null = null;
 	private selection: BuildId = 'basic';
 	private paletteButtons: PaletteButton[] = [];
 
@@ -220,6 +222,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.upgradeBounds = null;
 		this.targetingTower = null;
 		this.targetingHint = null;
+		this.hoverRangeIndicator = null;
+		this.hoverRangeOwner = null;
 		this.cachedPower = {
 			supply: 0,
 			demand: 0,
@@ -539,12 +543,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 		) {
 			this.placementPreview.setVisible(false);
 			this.placementRange.setVisible(false);
+			this.clearHoverRange();
 			return;
 		}
 		const { col, row, cx, cy } = this.snapToTile(
 			pointer.worldX,
 			pointer.worldY,
 		);
+		const existing = this.findBuildingAt(col, row);
+		this.updateHoverRange(existing);
 		const ok = this.canPlaceAt(col, row, this.selection);
 		const spec = specFor(this.selection);
 		this.placementPreview
@@ -561,6 +568,50 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else {
 			this.placementRange.setVisible(false);
 		}
+	}
+
+	private updateHoverRange(b: Building | null): void {
+		if (this.upgradePanel) {
+			this.clearHoverRange();
+			return;
+		}
+		if (!b || b.destroyed) {
+			this.clearHoverRange();
+			return;
+		}
+		let radius = 0;
+		let color = 0xffffff;
+		if (b.kind === 'tower') {
+			radius = towerRange(b);
+			color = b.spec.color;
+		} else if (b.kind === 'repair') {
+			radius = b.spec.repairRange;
+			color = b.spec.color;
+		} else if (b.kind === 'armoury') {
+			radius = b.spec.soldierRoamRange;
+			color = b.spec.color;
+		} else {
+			this.clearHoverRange();
+			return;
+		}
+		if (this.hoverRangeOwner === b && this.hoverRangeIndicator) {
+			this.hoverRangeIndicator.setPosition(b.x, b.y).setRadius(radius);
+			return;
+		}
+		this.clearHoverRange();
+		this.hoverRangeIndicator = this.add
+			.circle(b.x, b.y, radius, color, 0.08)
+			.setStrokeStyle(1.5, color, 0.55)
+			.setDepth(2);
+		this.hoverRangeOwner = b;
+	}
+
+	private clearHoverRange(): void {
+		if (this.hoverRangeIndicator) {
+			this.hoverRangeIndicator.destroy();
+			this.hoverRangeIndicator = null;
+		}
+		this.hoverRangeOwner = null;
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
@@ -1526,6 +1577,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.buildingByEid.delete(b.id);
 		removeEntity(this.world, b.id);
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
+		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
 
 	private killDrone(eid: number): void {
@@ -1540,17 +1592,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateArmouries(nowMs: number): void {
-		const waveActive =
-			this.enemiesToSpawn > 0 || this.enemyVisuals.size > 0;
-		if (!waveActive) return;
 		for (const b of this.buildings) {
 			if (b.destroyed) continue;
 			if (b.kind !== 'armoury') continue;
 			if (!b.online) continue;
+			const owned = this.countSoldiersOwnedBy(b.id);
+			if (owned >= b.spec.maxSoldiers) continue;
 			if (nowMs < b.nextSpawnAtMs) continue;
 			this.spawnSoldier(b);
 			b.nextSpawnAtMs = nowMs + b.spec.spawnIntervalMs;
 		}
+	}
+
+	private countSoldiersOwnedBy(armouryEid: number): number {
+		let n = 0;
+		for (const seid of this.frameSoldierEids) {
+			if (!this.soldierVisuals.has(seid)) continue;
+			if (SoldierStats.armouryEid[seid] === armouryEid) n++;
+		}
+		return n;
 	}
 
 	private spawnSoldier(armoury: ArmouryBuilding): void {
@@ -1643,12 +1703,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		}
 		removeEntity(this.world, eid);
-	}
-
-	private despawnAllSoldiers(): void {
-		const eids: number[] = [];
-		for (const eid of this.soldierVisuals.entries()) eids.push(eid[0]);
-		for (const eid of eids) this.killSoldier(eid);
 	}
 
 	private updateSoldiers(dt: number, nowMs: number): void {
@@ -2239,7 +2293,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 				!this.cardPickedThisInterval &&
 				!this.cardPanel
 			) {
-				this.despawnAllSoldiers();
 				this.openCardPanel();
 			} else {
 				this.interWaveDelayMs -= deltaMs;

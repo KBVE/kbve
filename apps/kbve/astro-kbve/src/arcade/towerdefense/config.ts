@@ -122,6 +122,7 @@ export interface ArmourySpec extends BuildSpecBase {
 	kind: 'armoury';
 	power: number;
 	spawnIntervalMs: number;
+	maxSoldiers: number;
 	soldierHp: number;
 	soldierDamage: number;
 	soldierAttackRateMs: number;
@@ -340,7 +341,8 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		maxHp: 280,
 		defense: 3,
 		power: 2,
-		spawnIntervalMs: 3000,
+		spawnIntervalMs: 2500,
+		maxSoldiers: 5,
 		soldierHp: 30,
 		soldierDamage: 3,
 		soldierAttackRateMs: 800,
