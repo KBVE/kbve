@@ -50,7 +50,16 @@ LANGUAGE plpgsql
 SET search_path = ''
 AS $fn$
 BEGIN
-    NEW.updated_at := statement_timestamp();
+    -- Only bump on material change. Idempotent self-updates (e.g.
+    -- `SET active = active` or re-writing the same disabled_at) are
+    -- no-ops; downstream cache invalidation hooks shouldn't fire for
+    -- writes that didn't move user-visible state.
+    IF ROW(NEW.active, NEW.is_default, NEW.disabled_at, NEW.target_slug)
+       IS DISTINCT FROM
+       ROW(OLD.active, OLD.is_default, OLD.disabled_at, OLD.target_slug)
+    THEN
+        NEW.updated_at := statement_timestamp();
+    END IF;
     RETURN NEW;
 END;
 $fn$;
@@ -129,7 +138,6 @@ RETURNS TABLE (
     last_click_at   TIMESTAMPTZ
 )
 LANGUAGE plpgsql
-STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
@@ -240,8 +248,12 @@ BEGIN
 
     -- Serialize concurrent enable / set-default attempts so we don't
     -- briefly hold two is_default = TRUE rows for the same user.
+    -- Explicit two-int form keeps the namespace separate from the
+    -- per-user key so future advisory-lock users in other domains
+    -- can't accidentally collide on a single-int hash.
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     -- FOR UPDATE pins the existing row (if any) for the rest of the tx
@@ -341,17 +353,20 @@ RETURNS TABLE (
     is_default           BOOLEAN,
     active               BOOLEAN,
     enabled_at           TIMESTAMPTZ,
-    disabled_at          TIMESTAMPTZ
+    disabled_at          TIMESTAMPTZ,
+    updated_at           TIMESTAMPTZ,
+    promoted_updated_at  TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_existing   referral.user_target%ROWTYPE;
-    v_other_slug TEXT;
-    v_now        TIMESTAMPTZ := statement_timestamp();
-    v_row        referral.user_target;
+    v_existing            referral.user_target%ROWTYPE;
+    v_other_slug          TEXT;
+    v_now                 TIMESTAMPTZ := statement_timestamp();
+    v_row                 referral.user_target;
+    v_promoted_updated_at TIMESTAMPTZ;
 BEGIN
     -- RETURNS TABLE column names (target_slug, is_default, active, ...)
     -- shadow same-named table columns inside this function, so every
@@ -367,8 +382,12 @@ BEGIN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
 
+    -- Explicit two-int form keeps the namespace separate from the
+    -- per-user key so future advisory-lock users in other domains
+    -- can't accidentally collide on a single-int hash.
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     SELECT ut.* INTO v_existing
@@ -408,7 +427,8 @@ BEGIN
            SET is_default = TRUE
          WHERE ut.user_id = p_user_id
            AND ut.target_slug = v_other_slug
-           AND ut.active;
+           AND ut.active
+         RETURNING ut.updated_at INTO v_promoted_updated_at;
     END IF;
 
     target_slug          := v_row.target_slug;
@@ -417,6 +437,8 @@ BEGIN
     active               := v_row.active;
     enabled_at           := v_row.enabled_at;
     disabled_at          := v_row.disabled_at;
+    updated_at           := v_row.updated_at;
+    promoted_updated_at  := v_promoted_updated_at;
     RETURN NEXT;
 END;
 $fn$;
@@ -429,8 +451,10 @@ GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
 COMMENT ON FUNCTION referral.service_disable_target(UUID, TEXT) IS
 $$Marks the (user, target) row inactive. If the row was default, the
 most-recently enabled remaining active row inherits the default and
-its slug comes back as promoted_target_slug. Raises RFM01 when no
-inheritor exists. Service-role only.$$;
+its slug + updated_at come back as promoted_target_slug /
+promoted_updated_at. Caller gets enough state to refresh local cache
+in one round trip. Raises RFM01 when no inheritor exists.
+Service-role only.$$;
 
 -- ---------------------------------------------------------------------------
 -- service_set_default_target — atomic default swap. Errors RFU01 if the
@@ -461,8 +485,12 @@ BEGIN
         RAISE EXCEPTION 'target_slug is required' USING ERRCODE = '22023';
     END IF;
 
+    -- Explicit two-int form keeps the namespace separate from the
+    -- per-user key so future advisory-lock users in other domains
+    -- can't accidentally collide on a single-int hash.
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     SELECT * INTO v_row
@@ -529,7 +557,6 @@ RETURNS TABLE (
     last_click_at   TIMESTAMPTZ
 )
 LANGUAGE plpgsql
-STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
@@ -574,6 +601,9 @@ Ledger join filters source_kind = 'referral'. Service-role only.$$;
 --   DROP FUNCTION IF EXISTS referral.service_disable_target(UUID, TEXT);
 --   DROP FUNCTION IF EXISTS referral.service_enable_target(UUID, TEXT, BOOLEAN);
 --   DROP FUNCTION IF EXISTS referral.service_list_user_targets(UUID);
+--   -- Indexes live in the same schema as the table they index, so the
+--   -- `referral.<name>` qualifier below is the index's schema-qualified
+--   -- object name (the name itself just happens to start with `referral_`).
 --   DROP INDEX  IF EXISTS referral.referral_click_referrer_credited_ledger_idx;
 --   DROP INDEX  IF EXISTS referral.referral_click_referrer_target_created_idx;
 --   ALTER TABLE referral.user_target

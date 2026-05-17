@@ -199,6 +199,10 @@ pub struct DisableTargetRow {
     pub enabled_at: DateTime<Utc>,
     #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
     pub disabled_at: Option<DateTime<Utc>>,
+    #[diesel(sql_type = Timestamptz)]
+    pub updated_at: DateTime<Utc>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<Timestamptz>)]
+    pub promoted_updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -209,6 +213,8 @@ pub struct DisableTargetOutcome {
     pub active: bool,
     pub enabled_at: DateTime<Utc>,
     pub disabled_at: Option<DateTime<Utc>>,
+    pub updated_at: DateTime<Utc>,
+    pub promoted_updated_at: Option<DateTime<Utc>>,
 }
 
 impl From<DisableTargetRow> for DisableTargetOutcome {
@@ -220,6 +226,8 @@ impl From<DisableTargetRow> for DisableTargetOutcome {
             active: r.active,
             enabled_at: r.enabled_at,
             disabled_at: r.disabled_at,
+            updated_at: r.updated_at,
+            promoted_updated_at: r.promoted_updated_at,
         }
     }
 }

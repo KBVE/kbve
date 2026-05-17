@@ -249,9 +249,11 @@ BEGIN
         -- expected
     END;
 
-    -- updated_at trigger bumps the column on any UPDATE.
+    -- updated_at trigger gates on material change: a no-op rewrite of
+    -- a watched column must NOT bump, while a real flip MUST bump.
     DECLARE
         ts_before TIMESTAMPTZ;
+        ts_noop   TIMESTAMPTZ;
         ts_after  TIMESTAMPTZ;
     BEGIN
         SELECT updated_at INTO ts_before
@@ -263,15 +265,37 @@ BEGIN
 
         PERFORM pg_sleep(0.05);
         UPDATE referral.user_target
-           SET disabled_at = NULL  -- harmless touch
+           SET active = active   -- no-op rewrite
+         WHERE user_id = u AND target_slug = 'rareicon';
+
+        SELECT updated_at INTO ts_noop
+          FROM referral.user_target
+         WHERE user_id = u AND target_slug = 'rareicon';
+        IF ts_noop <> ts_before THEN
+            RAISE EXCEPTION 'fail: no-op UPDATE should not bump updated_at';
+        END IF;
+
+        PERFORM pg_sleep(0.05);
+        -- active + disabled_at are coupled by user_target_active_disabled_chk,
+        -- so flip them together to make a legal material change.
+        UPDATE referral.user_target
+           SET active = FALSE,
+               disabled_at = statement_timestamp()
          WHERE user_id = u AND target_slug = 'rareicon';
 
         SELECT updated_at INTO ts_after
           FROM referral.user_target
          WHERE user_id = u AND target_slug = 'rareicon';
         IF ts_after <= ts_before THEN
-            RAISE EXCEPTION 'fail: updated_at trigger did not bump';
+            RAISE EXCEPTION 'fail: material UPDATE should bump updated_at';
         END IF;
+
+        -- Restore rareicon to active so downstream tests find it in
+        -- a clean state.
+        UPDATE referral.user_target
+           SET active = TRUE,
+               disabled_at = NULL
+         WHERE user_id = u AND target_slug = 'rareicon';
     END;
 END $$;
 
@@ -349,15 +373,24 @@ BEGIN
     IF r.disabled_at IS NULL THEN
         RAISE EXCEPTION 'fail: disabled_at should be set';
     END IF;
+    IF r.updated_at IS NULL THEN
+        RAISE EXCEPTION 'fail: disable return should include updated_at';
+    END IF;
+    IF r.promoted_updated_at IS NULL THEN
+        RAISE EXCEPTION 'fail: disable return should include promoted_updated_at when promotion happened';
+    END IF;
 
     -- Re-enable mc as non-default; rareicon stays default.
     PERFORM * FROM referral.service_enable_target(u, 'mc');
     -- Disabling mc when it is not the default must return NULL for
-    -- promoted_target_slug.
+    -- promoted_target_slug AND promoted_updated_at (nothing was promoted).
     SELECT * INTO r FROM referral.service_disable_target(u, 'mc');
     IF r.promoted_target_slug IS NOT NULL THEN
         RAISE EXCEPTION 'fail: disabling non-default should leave promoted_target_slug NULL, got %',
                         r.promoted_target_slug;
+    END IF;
+    IF r.promoted_updated_at IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: disabling non-default should leave promoted_updated_at NULL';
     END IF;
 END $$;
 

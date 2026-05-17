@@ -148,7 +148,7 @@ impl ReferralClient {
 
         let row: DisableTargetRow = sql_query(
             "SELECT target_slug, promoted_target_slug, is_default, active, \
-                    enabled_at, disabled_at \
+                    enabled_at, disabled_at, updated_at, promoted_updated_at \
              FROM referral.service_disable_target($1, $2)",
         )
         .bind::<SqlUuid, _>(user_id)

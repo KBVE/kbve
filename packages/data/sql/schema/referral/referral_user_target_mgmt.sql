@@ -39,7 +39,14 @@ LANGUAGE plpgsql
 SET search_path = ''
 AS $fn$
 BEGIN
-    NEW.updated_at := statement_timestamp();
+    -- Only bump on material change. Idempotent self-writes (e.g.
+    -- `SET active = active`) don't fire downstream cache invalidation.
+    IF ROW(NEW.active, NEW.is_default, NEW.disabled_at, NEW.target_slug)
+       IS DISTINCT FROM
+       ROW(OLD.active, OLD.is_default, OLD.disabled_at, OLD.target_slug)
+    THEN
+        NEW.updated_at := statement_timestamp();
+    END IF;
     RETURN NEW;
 END;
 $fn$;
@@ -115,7 +122,6 @@ RETURNS TABLE (
     last_click_at   TIMESTAMPTZ
 )
 LANGUAGE plpgsql
-STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
@@ -220,7 +226,8 @@ BEGIN
     END IF;
 
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     SELECT * INTO v_existing
@@ -308,17 +315,20 @@ RETURNS TABLE (
     is_default           BOOLEAN,
     active               BOOLEAN,
     enabled_at           TIMESTAMPTZ,
-    disabled_at          TIMESTAMPTZ
+    disabled_at          TIMESTAMPTZ,
+    updated_at           TIMESTAMPTZ,
+    promoted_updated_at  TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
 DECLARE
-    v_existing   referral.user_target%ROWTYPE;
-    v_other_slug TEXT;
-    v_now        TIMESTAMPTZ := statement_timestamp();
-    v_row        referral.user_target;
+    v_existing            referral.user_target%ROWTYPE;
+    v_other_slug          TEXT;
+    v_now                 TIMESTAMPTZ := statement_timestamp();
+    v_row                 referral.user_target;
+    v_promoted_updated_at TIMESTAMPTZ;
 BEGIN
     -- RETURNS TABLE column names shadow same-named table columns
     -- inside this function, so every reference is aliased with `ut.`.
@@ -334,7 +344,8 @@ BEGIN
     END IF;
 
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     SELECT ut.* INTO v_existing
@@ -374,7 +385,8 @@ BEGIN
            SET is_default = TRUE
          WHERE ut.user_id = p_user_id
            AND ut.target_slug = v_other_slug
-           AND ut.active;
+           AND ut.active
+         RETURNING ut.updated_at INTO v_promoted_updated_at;
     END IF;
 
     target_slug          := v_row.target_slug;
@@ -383,6 +395,8 @@ BEGIN
     active               := v_row.active;
     enabled_at           := v_row.enabled_at;
     disabled_at          := v_row.disabled_at;
+    updated_at           := v_row.updated_at;
+    promoted_updated_at  := v_promoted_updated_at;
     RETURN NEXT;
 END;
 $fn$;
@@ -395,8 +409,10 @@ GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
 COMMENT ON FUNCTION referral.service_disable_target(UUID, TEXT) IS
 $$Marks the (user, target) row inactive. If the row was default, the
 most-recently enabled remaining active row inherits the default and
-its slug comes back as promoted_target_slug. Raises RFM01 when no
-inheritor exists. Service-role only.$$;
+its slug + updated_at come back as promoted_target_slug /
+promoted_updated_at. Caller gets enough state to refresh local cache
+in one round trip. Raises RFM01 when no inheritor exists.
+Service-role only.$$;
 
 -- ------------------------------------------------------------
 -- service_set_default_target(user_id, target_slug)
@@ -432,7 +448,8 @@ BEGIN
     END IF;
 
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('referral.user_target:' || p_user_id::TEXT, 0)
+        hashtext('referral.user_target'),
+        hashtext(p_user_id::TEXT)
     );
 
     SELECT * INTO v_row
@@ -494,7 +511,6 @@ RETURNS TABLE (
     last_click_at   TIMESTAMPTZ
 )
 LANGUAGE plpgsql
-STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $fn$
