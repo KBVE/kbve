@@ -88,6 +88,8 @@ export interface TowerSpec extends BuildSpecBase {
 	burnDps: number;
 	burnMs: number;
 	burnRadius: number;
+	homing: boolean;
+	arcHeight: number;
 }
 
 export interface GeneratorSpec extends BuildSpecBase {
@@ -110,7 +112,7 @@ export interface RepairSpec extends BuildSpecBase {
 
 export type BuildSpec = TowerSpec | GeneratorSpec | BatterySpec | RepairSpec;
 
-export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire';
+export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
@@ -136,6 +138,8 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnDps: 0,
 		burnMs: 0,
 		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
 	},
 	bomb: {
 		id: 'bomb',
@@ -156,6 +160,8 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnDps: 0,
 		burnMs: 0,
 		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
 	},
 	ice: {
 		id: 'ice',
@@ -176,6 +182,8 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnDps: 0,
 		burnMs: 0,
 		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
 	},
 	fire: {
 		id: 'fire',
@@ -196,6 +204,30 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		burnDps: 9,
 		burnMs: 3200,
 		burnRadius: 50,
+		homing: true,
+		arcHeight: 0,
+	},
+	artillery: {
+		id: 'artillery',
+		name: 'Artillery',
+		kind: 'tower',
+		cost: 260,
+		maxHp: 70,
+		power: 4,
+		range: BASE_WIDTH + BASE_HEIGHT,
+		damage: 45,
+		fireRateMs: 2600,
+		projectileSpeed: 380,
+		color: 0xa0522d,
+		projectileColor: 0xfff5b1,
+		splashRadius: 95,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: false,
+		arcHeight: 110,
 	},
 };
 
@@ -261,12 +293,75 @@ export const PALETTE_ORDER: BuildId[] = [
 	'bomb',
 	'ice',
 	'fire',
+	'artillery',
 	'solar',
 	'diesel',
 	'nuclear',
 	'battery',
 	'repair',
 ];
+
+export type UpgradeKind = 'radar' | 'attack' | 'speed' | 'armor';
+
+export interface UpgradeDef {
+	id: UpgradeKind;
+	name: string;
+	description: string;
+	color: number;
+	baseCost: number;
+	maxLevel: number;
+	perLevel: number;
+}
+
+export const UPGRADE_DEFS: Record<UpgradeKind, UpgradeDef> = {
+	radar: {
+		id: 'radar',
+		name: 'Radar',
+		description: 'Range +25%',
+		color: 0x90cdf4,
+		baseCost: 40,
+		maxLevel: 4,
+		perLevel: 0.25,
+	},
+	attack: {
+		id: 'attack',
+		name: 'Attack',
+		description: 'Damage +30%',
+		color: 0xfc8181,
+		baseCost: 55,
+		maxLevel: 4,
+		perLevel: 0.3,
+	},
+	speed: {
+		id: 'speed',
+		name: 'Speed',
+		description: 'Fire rate +15%',
+		color: 0xfbd38d,
+		baseCost: 60,
+		maxLevel: 4,
+		perLevel: 0.15,
+	},
+	armor: {
+		id: 'armor',
+		name: 'Armor',
+		description: 'Max HP +30%',
+		color: 0x9ae6b4,
+		baseCost: 35,
+		maxLevel: 4,
+		perLevel: 0.3,
+	},
+};
+
+export const UPGRADE_ORDER: UpgradeKind[] = [
+	'radar',
+	'attack',
+	'speed',
+	'armor',
+];
+
+export function upgradeCost(def: UpgradeDef, currentLevel: number): number {
+	return Math.floor(def.baseCost * (currentLevel + 1));
+}
 
 export function specFor(id: BuildId): BuildSpec {
 	if (id in TOWER_CATALOG) return TOWER_CATALOG[id as TowerId];

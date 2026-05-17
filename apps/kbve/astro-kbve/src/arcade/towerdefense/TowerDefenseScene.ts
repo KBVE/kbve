@@ -10,13 +10,17 @@ import {
 	PALETTE_ORDER,
 	ROWS,
 	TILE,
+	UPGRADE_DEFS,
+	UPGRADE_ORDER,
 	rollEnemyType,
 	specFor,
+	upgradeCost,
 	type BatterySpec,
 	type BuildId,
 	type GeneratorSpec,
 	type RepairSpec,
 	type TowerSpec,
+	type UpgradeKind,
 } from './config';
 import {
 	generatePath,
@@ -25,6 +29,13 @@ import {
 } from './path-generator';
 import { computeAndApplyPower } from './power';
 import { planStarterKit } from './starter-kit';
+import {
+	towerBurnDps,
+	towerDamage,
+	towerFireRateMs,
+	towerMaxHp,
+	towerRange,
+} from './tower-stats';
 import type {
 	BaseBuilding,
 	BatteryBuilding,
@@ -81,6 +92,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private placementRange!: Phaser.GameObjects.Arc;
 	private selection: BuildId = 'basic';
 	private paletteButtons: PaletteButton[] = [];
+
+	private upgradePanel: Phaser.GameObjects.Container | null = null;
+	private upgradeTarget: TowerBuilding | null = null;
+	private upgradeRangeIndicator: Phaser.GameObjects.Arc | null = null;
+	private upgradeBounds: Phaser.Geom.Rectangle | null = null;
 
 	private cachedPower = {
 		supply: 0,
@@ -289,7 +305,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private buildPalette(): void {
-		const btnW = 120;
+		const btnW = 108;
 		const btnH = PALETTE_HEIGHT - 16;
 		const total =
 			btnW * PALETTE_ORDER.length + 6 * (PALETTE_ORDER.length - 1);
@@ -482,6 +498,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+
+		if (this.upgradePanel && this.upgradeBounds) {
+			if (this.upgradeBounds.contains(pointer.worldX, pointer.worldY)) {
+				return;
+			}
+			const probe = this.snapToTile(pointer.worldX, pointer.worldY);
+			const probeHit = this.findBuildingAt(probe.col, probe.row);
+			if (
+				probeHit &&
+				!probeHit.destroyed &&
+				probeHit.kind === 'tower' &&
+				probeHit !== this.upgradeTarget
+			) {
+				this.openUpgradePanel(probeHit);
+				return;
+			}
+			this.closeUpgradePanel();
+			return;
+		}
+
 		if (
 			pointer.worldY < HUD_HEIGHT ||
 			pointer.worldY > BASE_HEIGHT - PALETTE_HEIGHT
@@ -491,12 +527,242 @@ export class TowerDefenseScene extends Phaser.Scene {
 			pointer.worldX,
 			pointer.worldY,
 		);
+
+		const existing = this.findBuildingAt(col, row);
+		if (existing && !existing.destroyed && existing.kind === 'tower') {
+			this.openUpgradePanel(existing);
+			return;
+		}
+
 		if (!this.canPlaceAt(col, row, this.selection)) return;
 		const spec = specFor(this.selection);
 		this.gold -= spec.cost;
 		this.spawnBuilding(this.selection, col, row, cx, cy);
 		this.recomputePower(0);
 		this.refreshHud();
+	}
+
+	private findBuildingAt(col: number, row: number): Building | null {
+		for (const b of this.buildings) {
+			if (b.destroyed) continue;
+			if (b.col === col && b.row === row) return b;
+		}
+		return null;
+	}
+
+	private openUpgradePanel(tower: TowerBuilding): void {
+		this.closeUpgradePanel();
+		this.upgradeTarget = tower;
+		this.placementPreview.setVisible(false);
+		this.placementRange.setVisible(false);
+
+		const rangeRadius = towerRange(tower);
+		this.upgradeRangeIndicator = this.add
+			.circle(tower.x, tower.y, rangeRadius, tower.spec.color, 0.12)
+			.setStrokeStyle(2, tower.spec.color, 0.6);
+
+		const panelW = 300;
+		const panelH = 200;
+		let panelX = tower.x + TILE;
+		let panelY = tower.y - panelH / 2;
+		if (panelX + panelW / 2 > BASE_WIDTH - 12)
+			panelX = tower.x - TILE - panelW;
+		else panelX = tower.x + TILE;
+		if (panelX < 12) panelX = 12;
+		if (panelY < HUD_HEIGHT + 8) panelY = HUD_HEIGHT + 8;
+		if (panelY + panelH > BASE_HEIGHT - PALETTE_HEIGHT - 8)
+			panelY = BASE_HEIGHT - PALETTE_HEIGHT - panelH - 8;
+
+		const container = this.add.container(panelX, panelY).setDepth(100);
+		const bg = this.add
+			.rectangle(0, 0, panelW, panelH, COLORS.hudPanel, 0.96)
+			.setStrokeStyle(2, COLORS.hudPanelBorder)
+			.setOrigin(0, 0);
+		container.add(bg);
+
+		const title = this.add.text(12, 8, `${tower.spec.name} Tower`, {
+			fontFamily: 'monospace',
+			fontSize: '14px',
+			color: COLORS.hudText,
+			fontStyle: 'bold',
+		});
+		container.add(title);
+
+		const close = this.add
+			.text(panelW - 18, 6, '✕', {
+				fontFamily: 'monospace',
+				fontSize: '16px',
+				color: COLORS.hudDim,
+			})
+			.setInteractive({ useHandCursor: true });
+		close.on(
+			'pointerdown',
+			(
+				_p: Phaser.Input.Pointer,
+				_x: number,
+				_y: number,
+				ev: Phaser.Types.Input.EventData,
+			) => {
+				ev.stopPropagation();
+				this.closeUpgradePanel();
+			},
+		);
+		container.add(close);
+
+		const stats = this.add.text(12, 28, this.upgradeStatsLine(tower), {
+			fontFamily: 'monospace',
+			fontSize: '10px',
+			color: COLORS.hudDim,
+		});
+		container.add(stats);
+
+		const rowH = 32;
+		const startY = 52;
+		for (let i = 0; i < UPGRADE_ORDER.length; i++) {
+			const kind = UPGRADE_ORDER[i];
+			const def = UPGRADE_DEFS[kind];
+			const lvl = tower.upgrades[kind];
+			const maxed = lvl >= def.maxLevel;
+			const cost = upgradeCost(def, lvl);
+			const affordable = this.gold >= cost;
+			const y = startY + i * rowH;
+
+			const row = this.add
+				.rectangle(8, y, panelW - 16, rowH - 4, 0x1f2937, 0.85)
+				.setOrigin(0, 0)
+				.setStrokeStyle(1, def.color, 0.7);
+			container.add(row);
+
+			const dot = this.add.rectangle(
+				20,
+				y + (rowH - 4) / 2,
+				10,
+				10,
+				def.color,
+			);
+			container.add(dot);
+
+			const label = this.add.text(
+				36,
+				y + 4,
+				`${def.name}  ${def.description}`,
+				{
+					fontFamily: 'monospace',
+					fontSize: '11px',
+					color: COLORS.hudText,
+				},
+			);
+			container.add(label);
+
+			const levelText = this.add.text(
+				36,
+				y + 16,
+				`Lv ${lvl}/${def.maxLevel}`,
+				{
+					fontFamily: 'monospace',
+					fontSize: '10px',
+					color: COLORS.hudDim,
+				},
+			);
+			container.add(levelText);
+
+			const btnLabel = maxed
+				? 'MAX'
+				: affordable
+					? `${cost}g`
+					: `${cost}g`;
+			const btnColor = maxed
+				? COLORS.hudDim
+				: affordable
+					? COLORS.goldText
+					: COLORS.powerLow;
+			const btn = this.add
+				.rectangle(
+					panelW - 16,
+					y + (rowH - 4) / 2,
+					64,
+					rowH - 8,
+					0x111827,
+					0.95,
+				)
+				.setOrigin(1, 0.5)
+				.setStrokeStyle(1, def.color, maxed || !affordable ? 0.3 : 0.9);
+			const btnText = this.add
+				.text(panelW - 48, y + (rowH - 4) / 2, btnLabel, {
+					fontFamily: 'monospace',
+					fontSize: '11px',
+					color: btnColor,
+					fontStyle: 'bold',
+				})
+				.setOrigin(0.5);
+			container.add(btn);
+			container.add(btnText);
+
+			if (!maxed && affordable) {
+				btn.setInteractive({ useHandCursor: true });
+				btn.on(
+					'pointerdown',
+					(
+						_p: Phaser.Input.Pointer,
+						_x: number,
+						_y: number,
+						ev: Phaser.Types.Input.EventData,
+					) => {
+						ev.stopPropagation();
+						this.applyUpgrade(tower, kind);
+					},
+				);
+			}
+		}
+
+		this.upgradePanel = container;
+		this.upgradeBounds = new Phaser.Geom.Rectangle(
+			panelX,
+			panelY,
+			panelW,
+			panelH,
+		);
+	}
+
+	private upgradeStatsLine(t: TowerBuilding): string {
+		const dmg = towerDamage(t).toFixed(0);
+		const rate = (towerFireRateMs(t) / 1000).toFixed(2);
+		const rng = towerRange(t).toFixed(0);
+		const hp = `${Math.floor(t.hp)}/${towerMaxHp(t)}`;
+		return `DMG ${dmg} · RATE ${rate}s · RNG ${rng} · HP ${hp}`;
+	}
+
+	private applyUpgrade(tower: TowerBuilding, kind: UpgradeKind): void {
+		const def = UPGRADE_DEFS[kind];
+		const lvl = tower.upgrades[kind];
+		if (lvl >= def.maxLevel) return;
+		const cost = upgradeCost(def, lvl);
+		if (this.gold < cost) return;
+		this.gold -= cost;
+		const prevMaxHp = towerMaxHp(tower);
+		tower.upgrades[kind] = lvl + 1;
+		tower.maxHp = towerMaxHp(tower);
+		if (kind === 'armor') {
+			const delta = tower.maxHp - prevMaxHp;
+			tower.hp = Math.min(tower.maxHp, tower.hp + delta);
+		} else {
+			tower.hp = Math.min(tower.hp, tower.maxHp);
+		}
+		this.refreshHud();
+		this.openUpgradePanel(tower);
+	}
+
+	private closeUpgradePanel(): void {
+		if (this.upgradePanel) {
+			this.upgradePanel.destroy(true);
+			this.upgradePanel = null;
+		}
+		if (this.upgradeRangeIndicator) {
+			this.upgradeRangeIndicator.destroy();
+			this.upgradeRangeIndicator = null;
+		}
+		this.upgradeTarget = null;
+		this.upgradeBounds = null;
 	}
 
 	private spawnBuilding(
@@ -565,6 +831,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				lastFireAtMs: 0,
 				online: true,
 				powerIndicator,
+				upgrades: { radar: 0, attack: 0, speed: 0, armor: 0 },
 			};
 			building = b;
 		} else if (spec.kind === 'generator') {
@@ -785,6 +1052,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		}
 		this.drones = this.drones.filter((d) => d.alive);
+		if (this.upgradeTarget === b) this.closeUpgradePanel();
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -885,7 +1153,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.destroyed) continue;
 			if (b.kind !== 'tower') continue;
 			if (!b.online) continue;
-			if (nowMs - b.lastFireAtMs < b.spec.fireRateMs) continue;
+			if (nowMs - b.lastFireAtMs < towerFireRateMs(b)) continue;
 			const target = this.findTarget(b);
 			if (!target) continue;
 			b.lastFireAtMs = nowMs;
@@ -896,11 +1164,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findTarget(t: TowerBuilding): Enemy | null {
 		let best: Enemy | null = null;
 		let bestProgress = -1;
+		const range = towerRange(t);
+		const rangeSq = range * range;
 		for (const e of this.enemies) {
 			if (!e.alive) continue;
 			const dx = e.sprite.x - t.x;
 			const dy = e.sprite.y - t.y;
-			if (dx * dx + dy * dy > t.spec.range * t.spec.range) continue;
+			if (dx * dx + dy * dy > rangeSq) continue;
 			if (e.pathIndex > bestProgress) {
 				bestProgress = e.pathIndex;
 				best = e;
@@ -910,51 +1180,82 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private fireProjectile(t: TowerBuilding, enemy: Enemy): void {
-		const sprite = this.add.circle(t.x, t.y, 4, t.spec.projectileColor);
+		const radius = t.spec.arcHeight > 0 ? 6 : 4;
+		const sprite = this.add.circle(
+			t.x,
+			t.y,
+			radius,
+			t.spec.projectileColor,
+		);
+		const targetX = enemy.sprite.x;
+		const targetY = enemy.sprite.y;
+		const totalDist = Math.hypot(targetX - t.x, targetY - t.y);
 		this.projectiles.push({
 			sprite,
 			tower: t,
-			targetX: enemy.sprite.x,
-			targetY: enemy.sprite.y,
-			enemy,
+			startX: t.x,
+			startY: t.y,
+			targetX,
+			targetY,
+			enemy: t.spec.homing ? enemy : null,
 			speed: t.spec.projectileSpeed,
 			alive: true,
+			homing: t.spec.homing,
+			arcHeight: t.spec.arcHeight,
+			traveled: 0,
+			totalDist,
 		});
 	}
 
 	private updateProjectiles(dt: number, nowMs: number): void {
 		for (const p of this.projectiles) {
 			if (!p.alive) continue;
-			if (p.enemy && p.enemy.alive) {
-				p.targetX = p.enemy.sprite.x;
-				p.targetY = p.enemy.sprite.y;
-			}
-			const dx = p.targetX - p.sprite.x;
-			const dy = p.targetY - p.sprite.y;
-			const dist = Math.hypot(dx, dy);
-			const step = p.speed * dt;
-			if (step >= dist) {
-				this.applyHit(p, nowMs);
-				p.alive = false;
-				p.sprite.destroy();
+			if (p.homing) {
+				if (p.enemy && p.enemy.alive) {
+					p.targetX = p.enemy.sprite.x;
+					p.targetY = p.enemy.sprite.y;
+				}
+				const dx = p.targetX - p.sprite.x;
+				const dy = p.targetY - p.sprite.y;
+				const dist = Math.hypot(dx, dy);
+				const step = p.speed * dt;
+				if (step >= dist) {
+					this.applyHit(p, nowMs, p.sprite.x, p.sprite.y);
+					p.alive = false;
+					p.sprite.destroy();
+				} else {
+					p.sprite.x += (dx / dist) * step;
+					p.sprite.y += (dy / dist) * step;
+				}
 			} else {
-				p.sprite.x += (dx / dist) * step;
-				p.sprite.y += (dy / dist) * step;
+				p.traveled += p.speed * dt;
+				const t =
+					p.totalDist > 0 ? Math.min(1, p.traveled / p.totalDist) : 1;
+				const baseX = p.startX + (p.targetX - p.startX) * t;
+				const baseY = p.startY + (p.targetY - p.startY) * t;
+				const arcOffset = -Math.sin(Math.PI * t) * p.arcHeight;
+				p.sprite.x = baseX;
+				p.sprite.y = baseY + arcOffset;
+				if (t >= 1) {
+					this.applyHit(p, nowMs, p.targetX, p.targetY);
+					p.alive = false;
+					p.sprite.destroy();
+				}
 			}
 		}
 		this.projectiles = this.projectiles.filter((p) => p.alive);
 	}
 
-	private applyHit(p: Projectile, nowMs: number): void {
+	private applyHit(p: Projectile, nowMs: number, x: number, y: number): void {
 		const spec = p.tower.spec;
-		const x = p.sprite.x;
-		const y = p.sprite.y;
-		if (spec.burnDps > 0 && spec.burnMs > 0 && spec.burnRadius > 0) {
+		const damage = towerDamage(p.tower);
+		const burnDps = towerBurnDps(p.tower);
+		if (burnDps > 0 && spec.burnMs > 0 && spec.burnRadius > 0) {
 			this.spawnBurnPatch(
 				x,
 				y,
 				spec.burnRadius,
-				spec.burnDps,
+				burnDps,
 				nowMs + spec.burnMs,
 			);
 			return;
@@ -968,14 +1269,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 					dx * dx + dy * dy <=
 					spec.splashRadius * spec.splashRadius
 				) {
-					this.damageEnemy(e, spec.damage);
+					this.damageEnemy(e, damage);
 				}
 			}
 			this.spawnSplashFlash(x, y, spec.splashRadius);
 			return;
 		}
 		if (p.enemy && p.enemy.alive) {
-			this.damageEnemy(p.enemy, spec.damage);
+			this.damageEnemy(p.enemy, damage);
 			if (p.enemy.alive && spec.slowMs > 0) {
 				p.enemy.slowUntilMs = Math.max(
 					p.enemy.slowUntilMs,

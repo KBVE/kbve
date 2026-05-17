@@ -21,12 +21,20 @@ export interface BaseBuilding {
 	destroyed: boolean;
 }
 
+export interface TowerUpgrades {
+	radar: number;
+	attack: number;
+	speed: number;
+	armor: number;
+}
+
 export interface TowerBuilding extends BaseBuilding {
 	kind: 'tower';
 	spec: TowerSpec;
 	lastFireAtMs: number;
 	online: boolean;
 	powerIndicator: Phaser.GameObjects.Arc;
+	upgrades: TowerUpgrades;
 }
 
 export interface GeneratorBuilding extends BaseBuilding {
@@ -85,11 +93,17 @@ export interface Enemy {
 export interface Projectile {
 	sprite: Phaser.GameObjects.Arc;
 	tower: TowerBuilding;
+	startX: number;
+	startY: number;
 	targetX: number;
 	targetY: number;
 	enemy: Enemy | null;
 	speed: number;
 	alive: boolean;
+	homing: boolean;
+	arcHeight: number;
+	traveled: number;
+	totalDist: number;
 }
 
 export interface BurnPatch {
