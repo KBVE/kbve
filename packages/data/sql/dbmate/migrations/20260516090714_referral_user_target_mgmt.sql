@@ -37,7 +37,19 @@
 -- preserve the "at most one is_default+active row per user" invariant
 -- across the demote / promote two-statement swap. The partial unique
 -- index on (user_id) WHERE is_default AND active catches violations,
--- but the lock keeps callers from racing into it.
+-- but the lock keeps callers from racing into it. The contract is
+-- also stamped onto referral.user_target via COMMENT ON TABLE below
+-- so it surfaces in `\d+` and pg_catalog introspection.
+--
+-- Promote-ordering contract (used by service_disable_target when the
+-- disabled row was default): the inheritor is picked with
+--   ORDER BY enabled_at DESC, target_slug ASC LIMIT 1
+-- i.e. the most-recently-enabled active target wins, with target_slug
+-- as a deterministic tiebreaker for rows sharing enabled_at. This is
+-- a behavioral contract callers can rely on, not an accident of the
+-- current implementation. service_enable_target and
+-- service_set_default_target return the demoted slug separately, so
+-- both sides of the swap are observable by the caller.
 --
 -- Timestamp policy: every RPC uses statement_timestamp() so a single
 -- disable + promote (or enable + demote) round-trip stamps both rows
@@ -124,6 +136,19 @@ CREATE TRIGGER user_target_assert_immutable
     BEFORE UPDATE ON referral.user_target
     FOR EACH ROW EXECUTE FUNCTION referral.user_target_assert_immutable();
 
+-- Discoverable via `\d+ referral.user_target` and pg_description: the
+-- advisory-lock contract that every writer to this table must follow.
+COMMENT ON TABLE referral.user_target IS
+$$Per-(user, target) opt-in. At most one row per user has
+is_default = TRUE AND active = TRUE (enforced by a partial unique
+index). Every mutating writer MUST take
+  pg_advisory_xact_lock(hashtext('referral.user_target'),
+                        hashtext(user_id::text))
+before reading + writing or the demote / promote two-statement swap
+can race. Identity columns (user_id, target_slug) and audit anchor
+(enabled_at) are immutable after insert (enforced by
+referral.user_target_assert_immutable trigger).$$;
+
 -- Belt-and-suspenders invariant: a row cannot be is_default AND inactive
 -- at the same time. The partial unique index on (user_id) WHERE
 -- is_default AND active already prevents two defaults; this CHECK
@@ -163,10 +188,23 @@ END $$;
 -- iterations to the schema_table_columns_idx convention.
 DROP INDEX IF EXISTS referral.click_referrer_target_idx;
 DROP INDEX IF EXISTS referral.click_referrer_credited_ledger_idx;
+
+-- (referrer_id, target_slug, created_at DESC) covers both per-target
+-- group-bys in service_list_user_targets AND the global rollup in
+-- service_get_user_stats (the latter range-scans the leading
+-- referrer_id prefix). One index serves both paths.
 CREATE INDEX IF NOT EXISTS referral_click_referrer_target_created_idx
     ON referral.click (referrer_id, target_slug, created_at DESC);
+
+-- Partial index over credited rows carries (referrer_id, ledger_id)
+-- so the wallet.ledger join can use it as the outer side of the join
+-- without a heap fetch for ledger_id. An earlier iteration only
+-- indexed (referrer_id), forcing a heap probe to recover ledger_id
+-- per matching row; widen here while the table is empty so the next
+-- iteration doesn't need a separate rebuild migration.
+DROP INDEX IF EXISTS referral.referral_click_referrer_credited_ledger_idx;
 CREATE INDEX IF NOT EXISTS referral_click_referrer_credited_ledger_idx
-    ON referral.click (referrer_id)
+    ON referral.click (referrer_id, ledger_id)
     WHERE credited AND ledger_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
@@ -322,8 +360,13 @@ BEGIN
         hashtext(p_user_id::TEXT)
     );
 
-    -- FOR SHARE pins the target row against deactivation for the rest
-    -- of this tx without blocking other readers.
+    -- FOR SHARE acquires a SHARE row lock on this exact target row;
+    -- blocks concurrent UPDATE / DELETE on it (including an admin
+    -- flipping referral.target.active = FALSE) until this tx commits.
+    -- It does NOT guard against replacement patterns at the
+    -- application layer (delete-then-reinsert under the same slug);
+    -- those would need higher-level coordination. For the in-process
+    -- mgmt RPCs it's sufficient.
     SELECT t.* INTO v_target
       FROM referral.target t
      WHERE t.slug = p_target_slug AND t.active
@@ -546,11 +589,13 @@ GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
 
 COMMENT ON FUNCTION referral.service_disable_target(UUID, TEXT) IS
 $$Marks the (user, target) row inactive. If the row was default, the
-most-recently enabled remaining active row inherits the default and
-its slug + updated_at come back as promoted_target_slug /
-promoted_updated_at. Caller gets enough state to refresh local cache
-in one round trip. Raises RFM01 when no inheritor exists.
-Service-role only.$$;
+inheritor is picked deterministically by
+  ORDER BY enabled_at DESC, target_slug ASC LIMIT 1
+(most-recently-enabled wins; slug breaks enabled_at ties). The
+inheritor's slug + updated_at come back as promoted_target_slug /
+promoted_updated_at so the caller can refresh local cache in one
+round trip. Raises RFM01 when no inheritor exists. Service-role
+only.$$;
 
 -- Return-shape change carries demoted info, same reasoning as
 -- service_enable_target above.

@@ -88,6 +88,16 @@ CREATE TRIGGER user_target_assert_immutable
     BEFORE UPDATE ON referral.user_target
     FOR EACH ROW EXECUTE FUNCTION referral.user_target_assert_immutable();
 
+COMMENT ON TABLE referral.user_target IS
+$$Per-(user, target) opt-in. At most one row per user has
+is_default = TRUE AND active = TRUE (partial unique index enforces).
+Every mutating writer MUST take
+  pg_advisory_xact_lock(hashtext('referral.user_target'),
+                        hashtext(user_id::text))
+before reading + writing or the demote / promote two-statement swap
+can race. Identity columns (user_id, target_slug) and audit anchor
+(enabled_at) are immutable after insert.$$;
+
 -- Belt-and-suspenders: a row cannot be is_default AND inactive at the
 -- same time. The partial unique index on (user_id) WHERE is_default
 -- AND active prevents two defaults; this CHECK closes the gap where
@@ -123,10 +133,18 @@ END $$;
 -- service_list_user_targets / service_get_user_stats.
 DROP INDEX IF EXISTS referral.click_referrer_target_idx;
 DROP INDEX IF EXISTS referral.click_referrer_credited_ledger_idx;
+
+-- One index for both per-target group-by and global rollup (the
+-- latter range-scans the leading referrer_id prefix).
 CREATE INDEX IF NOT EXISTS referral_click_referrer_target_created_idx
     ON referral.click (referrer_id, target_slug, created_at DESC);
+
+-- Partial index over credited rows carries (referrer_id, ledger_id)
+-- so the wallet.ledger join can use it as outer side without a heap
+-- fetch for ledger_id.
+DROP INDEX IF EXISTS referral.referral_click_referrer_credited_ledger_idx;
 CREATE INDEX IF NOT EXISTS referral_click_referrer_credited_ledger_idx
-    ON referral.click (referrer_id)
+    ON referral.click (referrer_id, ledger_id)
     WHERE credited AND ledger_id IS NOT NULL;
 
 -- ------------------------------------------------------------
@@ -270,6 +288,10 @@ BEGIN
         hashtext(p_user_id::TEXT)
     );
 
+    -- FOR SHARE locks this exact target row; blocks concurrent
+    -- UPDATE/DELETE on it (e.g. an admin flipping active = FALSE)
+    -- until this tx commits. Doesn't guard against delete-then-
+    -- reinsert at the app layer.
     SELECT t.* INTO v_target
       FROM referral.target t
      WHERE t.slug = p_target_slug AND t.active
@@ -479,11 +501,13 @@ GRANT EXECUTE ON FUNCTION referral.service_disable_target(UUID, TEXT)
 
 COMMENT ON FUNCTION referral.service_disable_target(UUID, TEXT) IS
 $$Marks the (user, target) row inactive. If the row was default, the
-most-recently enabled remaining active row inherits the default and
-its slug + updated_at come back as promoted_target_slug /
-promoted_updated_at. Caller gets enough state to refresh local cache
-in one round trip. Raises RFM01 when no inheritor exists.
-Service-role only.$$;
+inheritor is picked deterministically by
+  ORDER BY enabled_at DESC, target_slug ASC LIMIT 1
+(most-recently-enabled wins; slug breaks enabled_at ties). The
+inheritor's slug + updated_at come back as promoted_target_slug /
+promoted_updated_at so the caller can refresh local cache in one
+round trip. Raises RFM01 when no inheritor exists. Service-role
+only.$$;
 
 -- Return shape changed to TABLE(...) for parity with enable.
 DROP FUNCTION IF EXISTS referral.service_set_default_target(UUID, TEXT);
