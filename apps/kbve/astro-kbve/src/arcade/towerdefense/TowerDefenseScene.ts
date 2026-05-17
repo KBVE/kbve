@@ -1826,7 +1826,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const ty = Position.y[target];
 			const dx = tx - Position.x[seid];
 			const dy = ty - Position.y[seid];
-			const dist = Math.hypot(dx, dy);
+			const dist = Math.sqrt(dx * dx + dy * dy);
 			const range = SoldierStats.attackRange[seid];
 			if (dist <= range) {
 				if (
@@ -1939,7 +1939,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const py = Position.y[eid];
 		const dx = target.x - px;
 		const dy = target.y - py;
-		const dist = Math.hypot(dx, dy);
+		const dist = Math.sqrt(dx * dx + dy * dy);
 		const step = speed * dt;
 		if (step >= dist) {
 			Position.x[eid] = target.x;
@@ -2091,7 +2091,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 				const dx = p.targetX - p.sprite.x;
 				const dy = p.targetY - p.sprite.y;
-				const dist = Math.hypot(dx, dy);
+				const dist = Math.sqrt(dx * dx + dy * dy);
 				const step = p.speed * dt;
 				if (step >= dist) {
 					this.applyHit(p, nowMs, p.sprite.x, p.sprite.y);
@@ -2265,7 +2265,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 					: v.station;
 			const dx = dest.x - Position.x[deid];
 			const dy = dest.y - Position.y[deid];
-			const dist = Math.hypot(dx, dy);
+			const dist = Math.sqrt(dx * dx + dy * dy);
 			const step = DroneStats.speed[deid] * dt;
 			if (step >= dist) {
 				Position.x[deid] = dest.x;
