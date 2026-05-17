@@ -87,6 +87,7 @@ import {
 	resetHudStore,
 	restartSignalAtom,
 	saveBestWave,
+	selectedBuildAtom,
 	skipSignalAtom,
 	speedFactorAtom,
 	supplyAtom,
@@ -122,15 +123,6 @@ import type {
 	RepairBuilding,
 	TowerBuilding,
 } from './types';
-
-interface PaletteButton {
-	id: BuildId;
-	rect: Phaser.GameObjects.Rectangle;
-	icon: Phaser.GameObjects.Rectangle;
-	label: Phaser.GameObjects.Text;
-	cost: Phaser.GameObjects.Text;
-	hotkey: Phaser.GameObjects.Text;
-}
 
 const HUD_HEIGHT = TILE * HUD_ROWS_TOP;
 const PALETTE_HEIGHT = TILE * 2;
@@ -193,8 +185,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private placementRange!: Phaser.GameObjects.Arc;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
-	private selection: BuildId = 'basic';
-	private paletteButtons: PaletteButton[] = [];
 
 	private upgradePanel: Phaser.GameObjects.Container | null = null;
 	private upgradeTarget: Building | null = null;
@@ -248,7 +238,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.spawnAccumulatorMs = 0;
 		this.interWaveDelayMs = 0;
 		this.isGameOver = false;
-		this.paletteButtons = [];
 		this.upgradePanel = null;
 		this.upgradeTarget = null;
 		this.upgradeRangeIndicator = null;
@@ -264,7 +253,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			batteryCapacity: 0,
 		};
 		this.powerRefreshAccumulatorMs = 0;
-		this.selection = 'basic';
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
@@ -281,7 +269,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.drawGridLines();
 		this.drawPath();
 		this.subscribeHudSignals();
-		this.buildPalette();
 		this.buildPlacementPreview();
 		this.placeStarterKit();
 		this.recomputePower(0);
@@ -320,12 +307,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			) {
 				const id = PALETTE_ORDER[i];
 				const key = kb.addKey(digitCodes[i]);
-				key.on('down', () => this.selectBuild(id));
+				key.on('down', () => selectedBuildAtom.set(id));
 			}
 		}
 
 		this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
-		this.refreshPaletteHighlight();
 	}
 
 	private drawGrass(): void {
@@ -431,101 +417,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			.setVisible(false);
 	}
 
-	private buildPalette(): void {
-		const btnW = 108;
-		const btnH = PALETTE_HEIGHT - 16;
-		const total =
-			btnW * PALETTE_ORDER.length + 6 * (PALETTE_ORDER.length - 1);
-		const startX = (BASE_WIDTH - total) / 2;
-		const y = BASE_HEIGHT - PALETTE_HEIGHT / 2;
-
-		this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				y,
-				BASE_WIDTH,
-				PALETTE_HEIGHT,
-				COLORS.hudPanel,
-				0.95,
-			)
-			.setStrokeStyle(2, COLORS.hudPanelBorder);
-
-		for (let i = 0; i < PALETTE_ORDER.length; i++) {
-			const id = PALETTE_ORDER[i];
-			const spec = specFor(id);
-			const x = startX + i * (btnW + 6) + btnW / 2;
-			const rect = this.add
-				.rectangle(x, y, btnW, btnH, COLORS.paletteBg, 0.9)
-				.setStrokeStyle(2, COLORS.paletteBorder)
-				.setInteractive({ useHandCursor: true });
-			const icon = this.add.rectangle(
-				x - btnW / 2 + 14,
-				y,
-				18,
-				18,
-				spec.color,
-			);
-			const label = this.add
-				.text(x - btnW / 2 + 28, y - 14, spec.name, {
-					fontFamily: 'monospace',
-					fontSize: '13px',
-					color: COLORS.hudText,
-				})
-				.setOrigin(0, 0);
-			const extra =
-				spec.kind === 'tower'
-					? `${spec.cost}g -${spec.power}⚡`
-					: spec.kind === 'generator'
-						? `${spec.cost}g +${spec.power}⚡`
-						: spec.kind === 'battery'
-							? `${spec.cost}g 🔋${spec.capacity}`
-							: `${spec.cost}g -${spec.power}⚡`;
-			const cost = this.add
-				.text(x - btnW / 2 + 28, y + 2, extra, {
-					fontFamily: 'monospace',
-					fontSize: '10px',
-					color: COLORS.hudDim,
-				})
-				.setOrigin(0, 0);
-			const hotkey = this.add
-				.text(x + btnW / 2 - 8, y - btnH / 2 + 4, `${(i + 1) % 10}`, {
-					fontFamily: 'monospace',
-					fontSize: '11px',
-					color: COLORS.hudDim,
-				})
-				.setOrigin(1, 0);
-			rect.on(
-				'pointerdown',
-				(
-					_p: Phaser.Input.Pointer,
-					_x: number,
-					_y: number,
-					event: Phaser.Types.Input.EventData,
-				) => {
-					event.stopPropagation();
-					this.selectBuild(id);
-				},
-			);
-			this.paletteButtons.push({ id, rect, icon, label, cost, hotkey });
-		}
-	}
-
-	private refreshPaletteHighlight(): void {
-		for (const b of this.paletteButtons) {
-			const selected = b.id === this.selection;
-			b.rect.setStrokeStyle(
-				2,
-				selected ? COLORS.paletteSelected : COLORS.paletteBorder,
-			);
-			b.rect.setFillStyle(COLORS.paletteBg, selected ? 0.95 : 0.85);
-		}
-	}
-
-	private selectBuild(id: BuildId): void {
-		this.selection = id;
-		this.refreshPaletteHighlight();
-	}
-
 	private placeStarterKit(): void {
 		const items = planStarterKit(this.path.cells, this.path.startRow);
 		for (const item of items) {
@@ -615,8 +506,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 		const existing = this.findBuildingAt(col, row);
 		this.updateHoverRange(existing);
-		const ok = this.canPlaceAt(col, row, this.selection);
-		const spec = specFor(this.selection);
+		const ok = this.canPlaceAt(col, row, selectedBuildAtom.get());
+		const spec = specFor(selectedBuildAtom.get());
 		this.placementPreview
 			.setPosition(cx, cy)
 			.setFillStyle(ok ? spec.color : COLORS.previewInvalid, 0.6)
@@ -795,14 +686,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			return;
 		}
 
-		if (!this.canPlaceAt(col, row, this.selection)) return;
-		const spec = specFor(this.selection);
-		if (this.selection === 'basic' && this.freeBasicTowers > 0) {
+		if (!this.canPlaceAt(col, row, selectedBuildAtom.get())) return;
+		const spec = specFor(selectedBuildAtom.get());
+		if (selectedBuildAtom.get() === 'basic' && this.freeBasicTowers > 0) {
 			this.freeBasicTowers -= 1;
 		} else {
 			this.gold -= spec.cost;
 		}
-		this.spawnBuilding(this.selection, col, row, cx, cy);
+		this.spawnBuilding(selectedBuildAtom.get(), col, row, cx, cy);
 		this.recomputePower(0);
 		this.refreshHud();
 	}

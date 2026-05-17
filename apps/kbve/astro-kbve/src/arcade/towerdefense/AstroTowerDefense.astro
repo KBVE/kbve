@@ -498,4 +498,114 @@ import TdHud from './TdHud';
 		color: #e2e8f0;
 		border-color: rgba(255, 255, 255, 0.28);
 	}
+
+	.td-palette {
+		position: absolute;
+		left: 8px;
+		right: 8px;
+		bottom: 8px;
+		display: flex;
+		justify-content: center;
+		gap: 6px;
+		padding: 6px 10px;
+		background: rgba(11, 14, 20, 0.78);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 10px;
+		backdrop-filter: blur(10px) saturate(140%);
+		-webkit-backdrop-filter: blur(10px) saturate(140%);
+		pointer-events: auto;
+		overflow-x: auto;
+	}
+
+	.td-pal {
+		position: relative;
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		min-width: 72px;
+		padding: 6px 8px 7px;
+		font-family: inherit;
+		color: #e2e8f0;
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		border-top: 2px solid var(--pal-accent, #fbd38d);
+		border-radius: 7px;
+		cursor: pointer;
+		transition:
+			transform 100ms ease,
+			border-color 100ms ease,
+			background 100ms ease,
+			box-shadow 120ms ease;
+	}
+
+	.td-pal:hover {
+		background: rgba(31, 41, 55, 0.85);
+		transform: translateY(-1px);
+	}
+
+	.td-pal-active {
+		background: rgba(31, 41, 55, 0.95);
+		border-color: var(--pal-accent, #fbd38d);
+		box-shadow:
+			0 0 0 1px var(--pal-accent, #fbd38d),
+			0 0 18px -4px var(--pal-accent, #fbd38d),
+			0 4px 14px rgba(0, 0, 0, 0.4);
+	}
+
+	.td-pal-poor {
+		opacity: 0.55;
+		filter: saturate(0.6);
+	}
+
+	.td-pal-icon {
+		display: block;
+		width: 22px;
+		height: 22px;
+		border-radius: 4px;
+		background:
+			radial-gradient(
+				circle at 30% 30%,
+				rgba(255, 255, 255, 0.45) 0%,
+				transparent 65%
+			),
+			var(--pal-accent, #fbd38d);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+	}
+
+	.td-pal-name {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+	}
+
+	.td-pal-cost {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10px;
+		font-weight: 700;
+		color: #fbd38d;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.td-pal-power {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9px;
+		font-weight: 600;
+		color: #94a3b8;
+	}
+
+	.td-pal-key {
+		position: absolute;
+		top: 3px;
+		right: 5px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9px;
+		font-weight: 700;
+		color: #64748b;
+	}
+
+	.td-pal-active .td-pal-key {
+		color: var(--pal-accent, #fbd38d);
+	}
 </style>

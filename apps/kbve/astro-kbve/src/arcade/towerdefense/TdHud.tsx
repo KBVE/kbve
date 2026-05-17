@@ -18,6 +18,7 @@ import {
 	livesAtom,
 	nextWavePreviewAtom,
 	restartSignalAtom,
+	selectedBuildAtom,
 	skipSignalAtom,
 	speedFactorAtom,
 	supplyAtom,
@@ -26,6 +27,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import type { CardOption } from './cards';
+import { PALETTE_ORDER, specFor, type BuildId } from './config';
 
 type IconName =
 	| 'coin'
@@ -311,6 +313,59 @@ function hexColor(n: number): string {
 	return '#' + n.toString(16).padStart(6, '0');
 }
 
+function PaletteBar() {
+	const selected = useStore(selectedBuildAtom);
+	const gold = useStore(goldAtom);
+	const freeTowers = useStore(freeTowersAtom);
+	return (
+		<div className="td-palette">
+			{PALETTE_ORDER.map((id: BuildId, i) => {
+				const spec = specFor(id);
+				const isFree = id === 'basic' && freeTowers > 0;
+				const canAfford = isFree || gold >= spec.cost;
+				const hotkey = i < 10 ? String((i + 1) % 10) : '';
+				const accent = hexColor(spec.color);
+				const style = { '--pal-accent': accent } as CSSProperties;
+				const costLabel = isFree ? 'FREE' : `${spec.cost}g`;
+				const powerSuffix =
+					spec.kind === 'generator'
+						? `+${spec.power}⚡`
+						: spec.kind === 'tower' ||
+							  spec.kind === 'repair' ||
+							  spec.kind === 'armoury'
+							? `−${spec.power}⚡`
+							: spec.kind === 'battery'
+								? `🔋${spec.capacity}`
+								: '';
+				const isActive = id === selected;
+				const className =
+					'td-pal' +
+					(isActive ? ' td-pal-active' : '') +
+					(!canAfford ? ' td-pal-poor' : '');
+				return (
+					<button
+						key={id}
+						type="button"
+						className={className}
+						style={style}
+						title={`${spec.name} — ${costLabel}${powerSuffix ? ' · ' + powerSuffix : ''}`}
+						onClick={() => selectedBuildAtom.set(id)}>
+						{hotkey ? (
+							<span className="td-pal-key">{hotkey}</span>
+						) : null}
+						<span className="td-pal-icon" />
+						<span className="td-pal-name">{spec.name}</span>
+						<span className="td-pal-cost">{costLabel}</span>
+						{powerSuffix ? (
+							<span className="td-pal-power">{powerSuffix}</span>
+						) : null}
+					</button>
+				);
+			})}
+		</div>
+	);
+}
+
 function CardModal() {
 	const cards = useStore(cardOptionsAtom);
 	const wave = useStore(cardWaveAtom);
@@ -429,6 +484,7 @@ export default function TdHud() {
 				<div className="td-divider" />
 				<TimerSlot />
 			</div>
+			<PaletteBar />
 			<CardModal />
 			<GameOverOverlay />
 		</div>
