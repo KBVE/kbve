@@ -1,4 +1,5 @@
 import { atom } from 'nanostores';
+import type { CardId, CardOption } from './cards';
 
 export const goldAtom = atom(0);
 export const livesAtom = atom(0);
@@ -57,6 +58,14 @@ export const skipSignalAtom = atom(0);
 export const restartSignalAtom = atom(0);
 export const speedFactorAtom = atom(1);
 
+export const cardOptionsAtom = atom<CardOption[] | null>(null);
+export const cardWaveAtom = atom(0);
+export const cardPickSignalAtom = atom<{ id: CardId | null; n: number }>({
+	id: null,
+	n: 0,
+});
+export const cardSkipSignalAtom = atom(0);
+
 export function resetHudStore(): void {
 	goldAtom.set(0);
 	livesAtom.set(0);
@@ -80,4 +89,7 @@ export function resetHudStore(): void {
 	});
 	nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 	speedFactorAtom.set(1);
+	cardOptionsAtom.set(null);
+	cardWaveAtom.set(0);
+	cardPickSignalAtom.set({ id: null, n: cardPickSignalAtom.get().n });
 }

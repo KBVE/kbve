@@ -6,6 +6,10 @@ import {
 	batteryChargeAtom,
 	bountyMulAtom,
 	canSkipAtom,
+	cardOptionsAtom,
+	cardPickSignalAtom,
+	cardSkipSignalAtom,
+	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
 	freeTowersAtom,
@@ -21,6 +25,7 @@ import {
 	timerStateAtom,
 	waveAtom,
 } from './td-hud-store';
+import type { CardOption } from './cards';
 
 type IconName =
 	| 'coin'
@@ -302,6 +307,61 @@ function TimerSlot() {
 	);
 }
 
+function hexColor(n: number): string {
+	return '#' + n.toString(16).padStart(6, '0');
+}
+
+function CardModal() {
+	const cards = useStore(cardOptionsAtom);
+	const wave = useStore(cardWaveAtom);
+	if (!cards) return null;
+	const onPick = (card: CardOption) => {
+		cardPickSignalAtom.set({
+			id: card.id,
+			n: cardPickSignalAtom.get().n + 1,
+		});
+	};
+	const onSkip = () => {
+		cardSkipSignalAtom.set(cardSkipSignalAtom.get() + 1);
+	};
+	return (
+		<div className="td-cards">
+			<div className="td-cards-panel">
+				<div className="td-cards-eyebrow">Wave {wave} Cleared</div>
+				<div className="td-cards-title">Pick a Reward</div>
+				<div className="td-cards-row">
+					{cards.map((card) => {
+						const accent = hexColor(card.color);
+						const style = {
+							'--card-accent': accent,
+						} as CSSProperties;
+						return (
+							<button
+								key={card.id}
+								type="button"
+								className="td-card"
+								style={style}
+								onClick={() => onPick(card)}>
+								<div className="td-card-mark" />
+								<div className="td-card-name">{card.name}</div>
+								<div className="td-card-desc">
+									{card.description}
+								</div>
+							</button>
+						);
+					})}
+				</div>
+				<button
+					type="button"
+					className="td-cards-skip"
+					onClick={onSkip}>
+					Skip · Esc
+				</button>
+			</div>
+		</div>
+	);
+}
+
 function GameOverOverlay() {
 	const state = useStore(gameOverAtom);
 	const best = useStore(bestWaveAtom);
@@ -369,6 +429,7 @@ export default function TdHud() {
 				<div className="td-divider" />
 				<TimerSlot />
 			</div>
+			<CardModal />
 			<GameOverOverlay />
 		</div>
 	);

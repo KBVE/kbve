@@ -72,6 +72,10 @@ import {
 	bestWaveAtom,
 	bountyMulAtom,
 	canSkipAtom,
+	cardOptionsAtom,
+	cardPickSignalAtom,
+	cardSkipSignalAtom,
+	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
 	freeTowersAtom,
@@ -167,8 +171,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
 	private awaitingCardPick = false;
-	private cardPanel: Phaser.GameObjects.Container | null = null;
-	private cardBackdrop: Phaser.GameObjects.Rectangle | null = null;
+	private lastCardPickN = 0;
+	private lastCardSkipN = 0;
 	private cardPickedThisInterval = false;
 
 	private gold = GAME_CONFIG.startingGold;
@@ -234,9 +238,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
-		this.cardPanel = null;
-		this.cardBackdrop = null;
 		this.cardPickedThisInterval = false;
+		this.lastCardPickN = cardPickSignalAtom.get().n;
+		this.lastCardSkipN = cardSkipSignalAtom.get();
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -390,7 +394,27 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.time.timeScale = scale;
 			this.tweens.timeScale = scale === 0 ? 1 : scale;
 		});
-		this.hudUnsubs.push(skipUnsub, restartUnsub, speedUnsub);
+		const cardPickUnsub = cardPickSignalAtom.subscribe((s) => {
+			if (s.n === this.lastCardPickN) return;
+			this.lastCardPickN = s.n;
+			if (!s.id || !this.awaitingCardPick) return;
+			const opts = cardOptionsAtom.get();
+			if (!opts) return;
+			const card = opts.find((o) => o.id === s.id);
+			if (card) this.applyCardPick(card);
+		});
+		const cardSkipUnsub = cardSkipSignalAtom.subscribe((v: number) => {
+			if (v === this.lastCardSkipN) return;
+			this.lastCardSkipN = v;
+			if (this.awaitingCardPick) this.skipCardPick();
+		});
+		this.hudUnsubs.push(
+			skipUnsub,
+			restartUnsub,
+			speedUnsub,
+			cardPickUnsub,
+			cardSkipUnsub,
+		);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
 			this.hudUnsubs = [];
@@ -2511,7 +2535,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (
 				this.wave >= 1 &&
 				!this.cardPickedThisInterval &&
-				!this.cardPanel
+				!cardOptionsAtom.get()
 			) {
 				this.openCardPanel();
 			} else {
@@ -2557,91 +2581,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.awaitingCardPick = true;
 		this.bountyBonusMultiplier = 1;
 		const cards = pickThreeCards();
-		const panelW = 720;
-		const panelH = 260;
-		const panelX = (BASE_WIDTH - panelW) / 2;
-		const panelY = (BASE_HEIGHT - panelH) / 2;
-		this.cardBackdrop = this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				BASE_WIDTH,
-				BASE_HEIGHT,
-				0x000000,
-				0.6,
-			)
-			.setDepth(195);
-		const container = this.add.container(panelX, panelY).setDepth(200);
-		const bg = this.add
-			.rectangle(0, 0, panelW, panelH, COLORS.hudPanel, 0.97)
-			.setStrokeStyle(2, COLORS.paletteSelected)
-			.setOrigin(0, 0);
-		container.add(bg);
-		const title = this.add
-			.text(panelW / 2, 14, `Wave ${this.wave} Cleared — Pick a Reward`, {
-				fontFamily: 'monospace',
-				fontSize: '18px',
-				color: COLORS.hudText,
-				fontStyle: 'bold',
-			})
-			.setOrigin(0.5, 0);
-		container.add(title);
-
-		const cardW = 200;
-		const cardH = 180;
-		const gap = 24;
-		const startX = (panelW - (cardW * 3 + gap * 2)) / 2;
-		for (let i = 0; i < cards.length; i++) {
-			const card = cards[i];
-			const cx = startX + i * (cardW + gap);
-			const cy = 50;
-			const cardBg = this.add
-				.rectangle(cx, cy, cardW, cardH, 0x1f2937, 0.95)
-				.setStrokeStyle(2, card.color, 0.85)
-				.setOrigin(0, 0)
-				.setInteractive({ useHandCursor: true });
-			container.add(cardBg);
-			const icon = this.add.rectangle(
-				cx + cardW / 2,
-				cy + 28,
-				36,
-				36,
-				card.color,
-			);
-			container.add(icon);
-			const name = this.add
-				.text(cx + cardW / 2, cy + 64, card.name, {
-					fontFamily: 'monospace',
-					fontSize: '15px',
-					color: COLORS.hudText,
-					fontStyle: 'bold',
-				})
-				.setOrigin(0.5, 0);
-			container.add(name);
-			const desc = this.add
-				.text(cx + cardW / 2, cy + 90, card.description, {
-					fontFamily: 'monospace',
-					fontSize: '11px',
-					color: COLORS.hudDim,
-					wordWrap: { width: cardW - 16 },
-					align: 'center',
-				})
-				.setOrigin(0.5, 0);
-			container.add(desc);
-			cardBg.on(
-				'pointerdown',
-				(
-					_p: Phaser.Input.Pointer,
-					_x: number,
-					_y: number,
-					ev: Phaser.Types.Input.EventData,
-				) => {
-					ev.stopPropagation();
-					this.applyCardPick(card);
-				},
-			);
-		}
-		this.cardPanel = container;
+		cardWaveAtom.set(this.wave);
+		cardOptionsAtom.set(cards);
 	}
 
 	private applyCardPick(card: CardOption): void {
@@ -2674,14 +2615,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private closeCardPanel(): void {
-		if (this.cardPanel) {
-			this.cardPanel.destroy(true);
-			this.cardPanel = null;
-		}
-		if (this.cardBackdrop) {
-			this.cardBackdrop.destroy();
-			this.cardBackdrop = null;
-		}
+		cardOptionsAtom.set(null);
 		this.awaitingCardPick = false;
 	}
 
