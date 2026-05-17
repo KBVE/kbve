@@ -161,6 +161,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private powerGenerators: GeneratorBuilding[] = [];
 	private powerConsumers: PowerConsumer[] = [];
 	private powerBatteries: BatteryBuilding[] = [];
+	private towers: TowerBuilding[] = [];
+	private armouries: ArmouryBuilding[] = [];
+	private repairStations: RepairBuilding[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
@@ -230,6 +233,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.powerGenerators = [];
 		this.powerConsumers = [];
 		this.powerBatteries = [];
+		this.towers = [];
+		this.armouries = [];
+		this.repairStations = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
@@ -1437,6 +1443,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else if (isPowerConsumer(building)) {
 			this.powerConsumers.push(building);
 		}
+		if (building.kind === 'tower') {
+			this.towers.push(building);
+		} else if (building.kind === 'armoury') {
+			this.armouries.push(building);
+		} else if (building.kind === 'repair') {
+			this.repairStations.push(building);
+		}
 		return building;
 	}
 
@@ -1492,9 +1505,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.spawnAccumulatorMs = 0;
 		this.cardPickedThisInterval = false;
 		const armouryNow = this.simNow;
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.armouries.length; i++) {
+			const b = this.armouries[i];
 			if (b.destroyed) continue;
-			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
+			b.nextSpawnAtMs = armouryNow;
 		}
 		nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 		this.showWaveSplash();
@@ -1716,6 +1730,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const idx = this.powerConsumers.indexOf(b);
 			if (idx >= 0) this.powerConsumers.splice(idx, 1);
 		}
+		if (b.kind === 'tower') {
+			const idx = this.towers.indexOf(b);
+			if (idx >= 0) this.towers.splice(idx, 1);
+		} else if (b.kind === 'armoury') {
+			const idx = this.armouries.indexOf(b);
+			if (idx >= 0) this.armouries.splice(idx, 1);
+		} else if (b.kind === 'repair') {
+			const idx = this.repairStations.indexOf(b);
+			if (idx >= 0) this.repairStations.splice(idx, 1);
+		}
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
@@ -1732,9 +1756,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateArmouries(nowMs: number): void {
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.armouries.length; i++) {
+			const b = this.armouries[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'armoury') continue;
 			if (!b.online) continue;
 			const owned = this.countSoldiersOwnedBy(b.id);
 			if (owned >= armouryMaxSoldiers(b)) continue;
@@ -2048,9 +2072,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateTowers(nowMs: number): void {
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.towers.length; i++) {
+			const b = this.towers[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'tower') continue;
 			if (!b.online) continue;
 			if (nowMs - b.lastFireAtMs < towerFireRateMs(b)) continue;
 			if (b.fixedTarget) {
@@ -2269,9 +2293,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private updateRepair(dt: number): void {
 		const dtMs = dt * 1000;
-		for (const b of this.buildings) {
+		for (let i = 0; i < this.repairStations.length; i++) {
+			const b = this.repairStations[i];
 			if (b.destroyed) continue;
-			if (b.kind !== 'repair') continue;
 			if (!b.online) continue;
 			if (
 				b.activeDroneEid !== null &&
@@ -2562,18 +2586,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private summonSoldierSquad(count: number): void {
-		const armouries: ArmouryBuilding[] = [];
-		for (const b of this.buildings) {
-			if (b.destroyed) continue;
-			if (b.kind !== 'armoury') continue;
-			armouries.push(b);
-		}
-		if (armouries.length === 0) {
+		const alive = this.armouries.filter((a) => !a.destroyed);
+		if (alive.length === 0) {
 			this.gold += 60;
 			return;
 		}
 		for (let i = 0; i < count; i++) {
-			this.spawnSoldier(armouries[i % armouries.length]);
+			this.spawnSoldier(alive[i % alive.length]);
 		}
 	}
 
