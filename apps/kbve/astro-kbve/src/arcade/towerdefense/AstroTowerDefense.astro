@@ -103,23 +103,25 @@ import TdHud from './TdHud';
 
 	.td-chip {
 		display: inline-flex;
-		align-items: baseline;
-		gap: 6px;
+		align-items: center;
+		gap: 5px;
 		padding: 0;
 		color: #e2e8f0;
 		line-height: 1;
 		white-space: nowrap;
 	}
 
-	.td-chip-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 14px;
-		font-size: 11px;
-		font-weight: 700;
+	.td-chip-svg {
+		flex: 0 0 auto;
 		color: #94a3b8;
-		letter-spacing: 0;
+	}
+
+	.td-chip-label {
+		font-size: 10px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #94a3b8;
 	}
 
 	.td-chip-value {
@@ -129,47 +131,34 @@ import TdHud from './TdHud';
 		letter-spacing: -0.01em;
 	}
 
-	.td-chip-gold .td-chip-icon,
+	.td-chip-gold .td-chip-svg,
 	.td-chip-gold .td-chip-value {
 		color: #fbd38d;
 	}
 
-	.td-chip-danger .td-chip-icon,
+	.td-chip-danger .td-chip-svg,
 	.td-chip-danger .td-chip-value {
 		color: #fc8181;
 	}
 
-	.td-chip-good .td-chip-icon,
+	.td-chip-good .td-chip-svg,
 	.td-chip-good .td-chip-value {
 		color: #9ae6b4;
 	}
 
-	.td-chip-battery .td-chip-icon,
+	.td-chip-battery .td-chip-svg,
 	.td-chip-battery .td-chip-value {
 		color: #f6e05e;
 	}
 
 	.td-timer {
 		display: inline-flex;
-		align-items: baseline;
-		gap: 8px;
+		align-items: center;
+		gap: 5px;
 		padding-left: 12px;
 		border-left: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.td-timer-label {
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 0.18em;
-		color: #94a3b8;
-		text-transform: uppercase;
-	}
-
-	.td-timer-value {
-		font-variant-numeric: tabular-nums;
-		font-size: 14px;
-		font-weight: 700;
 		color: #e2e8f0;
+		line-height: 1;
 	}
 
 	.td-skip {

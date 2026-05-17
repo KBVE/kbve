@@ -8,7 +8,7 @@ export const HUD_ROWS_TOP = 2;
 export const HUD_ROWS_BOTTOM = 2;
 
 export const GAME_CONFIG = {
-	startingGold: 400,
+	startingGold: 600,
 	startingLives: 20,
 	waveDelayMs: 6000,
 	enemyBaseHp: 40,

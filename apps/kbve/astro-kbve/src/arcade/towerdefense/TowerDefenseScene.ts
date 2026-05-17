@@ -460,7 +460,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private placeStarterKit(): void {
-		const items = planStarterKit(this.path.cells);
+		const items = planStarterKit(this.path.cells, this.path.startRow);
 		for (const item of items) {
 			const cx = item.col * TILE + TILE / 2;
 			const cy = item.row * TILE + TILE / 2;
