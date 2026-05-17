@@ -46,15 +46,21 @@ public class McAuthMod implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             if (handler.getPlayer() != null) {
                 PlayerSnapshotHandler.requestSave(handler.getPlayer());
-                LinkStatusRegistry.remove(handler.getPlayer().getUuidAsString());
+                String uuid = handler.getPlayer().getUuidAsString();
+                LinkStatusRegistry.remove(uuid);
+                WalletBalanceCache.remove(uuid);
+                WalletCapabilityRegistry.remove(uuid);
             }
         });
 
         ServerTickEvents.END_SERVER_TICK.register(AuthEventTicker::onEndTick);
 
+        WalletNetworking.register();
+
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             LinkCommand.register(dispatcher);
             ChatTokenCommand.register(dispatcher);
+            WalletCommand.register(dispatcher);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
