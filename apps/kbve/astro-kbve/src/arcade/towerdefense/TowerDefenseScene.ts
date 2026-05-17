@@ -1614,6 +1614,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			hpBar,
 			hpBarBg,
 			ringRadius,
+			statusVisible: false,
 			attackTarget: null,
 		});
 	}
@@ -1999,9 +2000,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			(EnemyStats.hp[eid] / EnemyStats.maxHp[eid]) * TILE * 0.7;
 		const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
 		const burning = EnemyStats.burnUntilMs[eid] > nowMs;
+		const hasStatus = slowed || burning;
+		if (!hasStatus && !v.statusVisible) return;
 		v.statusRing.clear();
-		if (slowed || burning) {
+		if (hasStatus) {
 			v.statusRing.setVisible(true);
+			v.statusVisible = true;
 			if (slowed) {
 				const dur = EnemyStats.slowDurationMs[eid];
 				const slowRatio =
@@ -2035,6 +2039,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		} else {
 			v.statusRing.setVisible(false);
+			v.statusVisible = false;
 		}
 	}
 
@@ -2151,7 +2156,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 		}
-		this.projectiles = this.projectiles.filter((p) => p.alive);
+		let write = 0;
+		for (let read = 0; read < this.projectiles.length; read++) {
+			const p = this.projectiles[read];
+			if (!p.alive) continue;
+			if (write !== read) this.projectiles[write] = p;
+			write++;
+		}
+		this.projectiles.length = write;
 	}
 
 	private applyHit(p: Projectile, nowMs: number, x: number, y: number): void {
@@ -2238,13 +2250,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const remaining = (patch.expiresAtMs - nowMs) / 1000;
 			patch.sprite.setAlpha(0.1 + Math.min(0.25, remaining * 0.1));
 		}
-		this.burnPatches = this.burnPatches.filter((p) => {
+		let writeBurn = 0;
+		for (let read = 0; read < this.burnPatches.length; read++) {
+			const p = this.burnPatches[read];
 			if (nowMs >= p.expiresAtMs) {
 				p.sprite.destroy();
-				return false;
+				continue;
 			}
-			return true;
-		});
+			if (writeBurn !== read) this.burnPatches[writeBurn] = p;
+			writeBurn++;
+		}
+		this.burnPatches.length = writeBurn;
 	}
 
 	private updateRepair(dt: number): void {
