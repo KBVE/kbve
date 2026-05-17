@@ -126,6 +126,7 @@ export interface ArmourySpec extends BuildSpecBase {
 	soldierAttackRange: number;
 	soldierSpeed: number;
 	soldierColor: number;
+	soldierRoamRange: number;
 }
 
 export type BuildSpec =
@@ -333,6 +334,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		soldierSpeed: 90,
 		color: 0xb794f4,
 		soldierColor: 0xd6bcfa,
+		soldierRoamRange: 240,
 	},
 };
 

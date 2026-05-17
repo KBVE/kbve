@@ -1462,6 +1462,42 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (b.destroyed) continue;
 			if (b.kind === 'armoury') b.nextSpawnAtMs = armouryNow;
 		}
+		this.showWaveSplash();
+	}
+
+	private showWaveSplash(): void {
+		const splash = this.add
+			.text(BASE_WIDTH / 2, BASE_HEIGHT / 2 - 40, `WAVE ${this.wave}`, {
+				fontFamily: 'monospace',
+				fontSize: '64px',
+				color: COLORS.hudText,
+				fontStyle: 'bold',
+				stroke: '#000000',
+				strokeThickness: 6,
+			})
+			.setOrigin(0.5)
+			.setDepth(140)
+			.setAlpha(0);
+		this.tweens.add({
+			targets: splash,
+			alpha: 1,
+			duration: 220,
+			yoyo: true,
+			hold: 700,
+			onComplete: () => splash.destroy(),
+		});
+	}
+
+	private flashSprite(
+		sprite: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Arc,
+		color: number,
+	): void {
+		const original = sprite.fillColor;
+		sprite.setFillStyle(color);
+		this.time.delayedCall(80, () => {
+			if (!sprite.scene) return;
+			sprite.setFillStyle(original);
+		});
 	}
 
 	private spawnEnemy(): void {
@@ -1585,6 +1621,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.hp -= dmg;
 		if (b.hp <= 0) {
 			this.destroyBuilding(b);
+		} else {
+			this.flashSprite(b.sprite, 0xffffff);
 		}
 	}
 
@@ -1702,6 +1740,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findEnemyForSoldier(seid: number): number {
 		const sx = Position.x[seid];
 		const sy = Position.y[seid];
+		const armouryEid = SoldierStats.armouryEid[seid];
+		const armoury = this.buildingByEid.get(armouryEid);
+		const ax = armoury && !armoury.destroyed ? armoury.x : sx;
+		const ay = armoury && !armoury.destroyed ? armoury.y : sy;
+		const roam =
+			armoury && armoury.kind === 'armoury'
+				? armoury.spec.soldierRoamRange
+				: 240;
+		const roamSq = roam * roam;
 		let best = -1;
 		let bestDist2 = Infinity;
 		for (const eeid of query(this.world, [
@@ -1710,6 +1757,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			EnemyStats,
 		])) {
 			if (!this.enemyVisuals.has(eeid)) continue;
+			const adx = Position.x[eeid] - ax;
+			const ady = Position.y[eeid] - ay;
+			if (adx * adx + ady * ady > roamSq) continue;
 			const dx = Position.x[eeid] - sx;
 			const dy = Position.y[eeid] - sy;
 			const d2 = dx * dx + dy * dy;
@@ -1724,6 +1774,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private damageSoldier(eid: number, dmg: number): void {
 		if (!this.soldierVisuals.has(eid)) return;
 		SoldierStats.hp[eid] -= dmg;
+		if (SoldierStats.hp[eid] > 0) {
+			const v = this.soldierVisuals.get(eid);
+			if (v) this.flashSprite(v.sprite, 0xffffff);
+		}
 		if (SoldierStats.hp[eid] <= 0) this.killSoldier(eid);
 	}
 
@@ -2117,7 +2171,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private damageEnemy(eid: number, dmg: number): void {
 		EnemyStats.hp[eid] -= dmg;
-		if (EnemyStats.hp[eid] <= 0) this.killEnemy(eid, true);
+		if (EnemyStats.hp[eid] <= 0) {
+			this.killEnemy(eid, true);
+			return;
+		}
+		const v = this.enemyVisuals.get(eid);
+		if (v) this.flashSprite(v.sprite, 0xffffff);
 	}
 
 	private spawnBurnPatch(
