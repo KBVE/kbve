@@ -6,6 +6,7 @@
 		"kbve.vm.VmUsageEvent",
 		"kbve.vm.VmRateCard",
 		"kbve.vm.VmCharge",
+		"kbve.vm.VmCostBreakdown",
 		"kbve.vm.VmCostQuote"
 	],
 

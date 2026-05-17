@@ -29,6 +29,49 @@ import type { Extension } from '@codemirror/state';
 import { Tooltip } from './Tooltip';
 import { BillingErrorBanner } from './BillingErrorBanner';
 import { parseBillingError } from './billingError';
+import { fetchVmQuote } from './ideService';
+import {
+	VmCostBreakdownSchema,
+	type VmCostBreakdown,
+} from '../../../../../../packages/data/codegen/generated/vm-schema';
+
+function formatCredits(n: number): string {
+	return n.toLocaleString();
+}
+
+function useVmQuote(
+	token: string | null,
+	vcpu: number,
+	mem: number,
+	secs: number,
+	useNetwork: boolean,
+): VmCostBreakdown | null {
+	const [quote, setQuote] = useState<VmCostBreakdown | null>(null);
+	useEffect(() => {
+		if (!token) {
+			setQuote(null);
+			return;
+		}
+		let cancelled = false;
+		fetchVmQuote(
+			token,
+			{ vcpu_count: vcpu, mem_size_mib: mem, duration_secs: secs },
+			useNetwork,
+		)
+			.then((raw) => {
+				if (cancelled) return;
+				const parsed = VmCostBreakdownSchema.safeParse(raw);
+				setQuote(parsed.success ? parsed.data : null);
+			})
+			.catch(() => {
+				if (!cancelled) setQuote(null);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [token, vcpu, mem, secs, useNetwork]);
+	return quote;
+}
 
 function langExtension(language: string): Extension {
 	switch (language) {
@@ -300,6 +343,13 @@ export default function ReactCodeIDE() {
 	const error = useStore(ideService.$error);
 	const preset = useStore(ideService.$preset);
 	const useNetwork = useStore(ideService.$useNetwork);
+	const vmQuote = useVmQuote(
+		token,
+		preset.vcpu_count,
+		preset.mem_size_mib,
+		Math.ceil(preset.timeout_ms / 1000),
+		useNetwork,
+	);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
 	const langCompartment = useRef(new Compartment());
@@ -678,12 +728,55 @@ export default function ReactCodeIDE() {
 					</div>
 					<span
 						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: '0.5rem',
 							fontSize: '0.7rem',
 							color: 'rgba(255,255,255,0.3)',
 						}}>
-						{preset.rootfs} · {preset.vcpu_count} vCPU ·{' '}
-						{preset.mem_size_mib} MiB · {preset.timeout_ms / 1000}s
-						· ⌘/Ctrl+Enter to run
+						<span>
+							{preset.rootfs} · {preset.vcpu_count} vCPU ·{' '}
+							{preset.mem_size_mib} MiB ·{' '}
+							{preset.timeout_ms / 1000}s · ⌘/Ctrl+Enter to run
+						</span>
+						{vmQuote && (
+							<Tooltip
+								side="left"
+								content={
+									<span
+										style={{
+											whiteSpace: 'normal',
+											maxWidth: 240,
+											display: 'inline-block',
+										}}>
+										SKU <b>{vmQuote.sku}</b> · upfront{' '}
+										{formatCredits(vmQuote.upfront)} +{' '}
+										{formatCredits(vmQuote.credits_per_sec)}{' '}
+										/ sec for up to{' '}
+										{Math.ceil(preset.timeout_ms / 1000)}s
+									</span>
+								}>
+								<motion.span
+									whileHover={{ scale: 1.05 }}
+									transition={{ duration: 0.1 }}
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										gap: '0.25rem',
+										padding: '0.1rem 0.45rem',
+										border: '1px solid rgba(245,158,11,0.25)',
+										borderRadius: '4px',
+										background: 'rgba(245,158,11,0.06)',
+										color: '#f59e0b',
+										fontSize: '0.7rem',
+										fontWeight: 500,
+										cursor: 'help',
+									}}>
+									≤{formatCredits(vmQuote.estimated_total)}{' '}
+									credits
+								</motion.span>
+							</Tooltip>
+						)}
 					</span>
 				</div>
 
