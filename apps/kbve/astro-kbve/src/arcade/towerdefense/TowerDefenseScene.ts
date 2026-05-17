@@ -1554,8 +1554,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		EnemyStats.burnDps[eid] = 0;
 		EnemyStats.attackDamage[eid] = attackDamage;
 		EnemyStats.attackRateMs[eid] = type.attackRateMs;
+		EnemyStats.attackRange[eid] = type.attackRange;
 		EnemyStats.lastAttackAtMs[eid] = 0;
 		EnemyStats.canAttack[eid] = type.canAttack ? 1 : 0;
+		EnemyStats.canAttackBuildings[eid] = type.canAttackBuildings ? 1 : 0;
 		EnemyStats.bountyMultiplier[eid] = type.bountyMultiplier;
 		EnemyStats.typeIndex[eid] = enemyTypeIndexFromId(type.id);
 		this.enemyVisuals.set(eid, {
@@ -1569,20 +1571,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private findAttackTarget(eid: number): AttackTarget | null {
-		const range = GAME_CONFIG.enemyAttackRange;
+		const range = EnemyStats.attackRange[eid];
+		if (range <= 0) return null;
 		const ex = Position.x[eid];
 		const ey = Position.y[eid];
 		let best: AttackTarget | null = null;
 		let bestDist2 = range * range;
-		for (const beid of query(this.world, [BuildingTag, Position])) {
-			const b = this.buildingByEid.get(beid);
-			if (!b || b.destroyed) continue;
-			const dx = Position.x[beid] - ex;
-			const dy = Position.y[beid] - ey;
-			const d2 = dx * dx + dy * dy;
-			if (d2 <= bestDist2) {
-				bestDist2 = d2;
-				best = { kind: 'building', b };
+		if (EnemyStats.canAttackBuildings[eid] === 1) {
+			for (const beid of query(this.world, [BuildingTag, Position])) {
+				const b = this.buildingByEid.get(beid);
+				if (!b || b.destroyed) continue;
+				const dx = Position.x[beid] - ex;
+				const dy = Position.y[beid] - ey;
+				const d2 = dx * dx + dy * dy;
+				if (d2 <= bestDist2) {
+					bestDist2 = d2;
+					best = { kind: 'building', b };
+				}
 			}
 		}
 		for (const seid of query(this.world, [
@@ -1888,12 +1893,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 					const pos = this.attackTargetPos(v.attackTarget);
 					const dx = pos.x - Position.x[eid];
 					const dy = pos.y - Position.y[eid];
-					if (
-						dx * dx + dy * dy >
-						GAME_CONFIG.enemyAttackRange *
-							GAME_CONFIG.enemyAttackRange *
-							2.25
-					) {
+					const range = EnemyStats.attackRange[eid];
+					if (dx * dx + dy * dy > range * range * 2.25) {
 						v.attackTarget = null;
 					}
 				}

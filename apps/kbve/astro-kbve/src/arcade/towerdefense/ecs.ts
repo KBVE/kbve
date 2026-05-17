@@ -18,8 +18,10 @@ export const EnemyStats = {
 	burnDps: [] as number[],
 	attackDamage: [] as number[],
 	attackRateMs: [] as number[],
+	attackRange: [] as number[],
 	lastAttackAtMs: [] as number[],
 	canAttack: [] as number[],
+	canAttackBuildings: [] as number[],
 	bountyMultiplier: [] as number[],
 	typeIndex: [] as number[],
 };

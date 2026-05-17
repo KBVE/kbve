@@ -432,7 +432,9 @@ export interface EnemyType {
 	speedMultiplier: number;
 	attackDamage: number;
 	attackRateMs: number;
+	attackRange: number;
 	canAttack: boolean;
+	canAttackBuildings: boolean;
 	sizeRadius: number;
 	bountyMultiplier: number;
 }
@@ -444,9 +446,11 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		color: 0xe53e3e,
 		hpMultiplier: 1,
 		speedMultiplier: 1,
-		attackDamage: 0,
-		attackRateMs: 0,
-		canAttack: false,
+		attackDamage: 3,
+		attackRateMs: 900,
+		attackRange: 55,
+		canAttack: true,
+		canAttackBuildings: false,
 		sizeRadius: 0.3,
 		bountyMultiplier: 1,
 	},
@@ -456,9 +460,11 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		color: 0xf6ad55,
 		hpMultiplier: 0.6,
 		speedMultiplier: 1.5,
-		attackDamage: 0,
-		attackRateMs: 0,
-		canAttack: false,
+		attackDamage: 2,
+		attackRateMs: 700,
+		attackRange: 50,
+		canAttack: true,
+		canAttackBuildings: false,
 		sizeRadius: 0.24,
 		bountyMultiplier: 0.75,
 	},
@@ -470,7 +476,9 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		speedMultiplier: 0.65,
 		attackDamage: 7,
 		attackRateMs: 800,
+		attackRange: 80,
 		canAttack: true,
+		canAttackBuildings: true,
 		sizeRadius: 0.4,
 		bountyMultiplier: 2,
 	},
