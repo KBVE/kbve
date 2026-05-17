@@ -2,32 +2,28 @@ import Phaser from 'phaser';
 import {
 	BASE_HEIGHT,
 	BASE_WIDTH,
-	BATTERY_CATALOG,
 	COLORS,
 	COLS,
+	ENEMY_CATALOG,
 	GAME_CONFIG,
-	GENERATOR_CATALOG,
 	HUD_ROWS_TOP,
 	PALETTE_ORDER,
-	REPAIR_CATALOG,
 	ROWS,
 	TILE,
-	TOWER_CATALOG,
-	WIRE_CATALOG,
+	rollEnemyType,
 	specFor,
 	type BatterySpec,
 	type BuildId,
 	type GeneratorSpec,
 	type RepairSpec,
 	type TowerSpec,
-	type WireSpec,
 } from './config';
 import {
 	generatePath,
 	type GeneratedPath,
 	type Waypoint,
 } from './path-generator';
-import { applyPowerTick, buildComponents } from './power';
+import { computeAndApplyPower } from './power';
 import { planStarterKit } from './starter-kit';
 import type {
 	BaseBuilding,
@@ -40,7 +36,6 @@ import type {
 	RepairBuilding,
 	RepairDrone,
 	TowerBuilding,
-	WireBuilding,
 } from './types';
 
 interface PaletteButton {
@@ -341,9 +336,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 						? `${spec.cost}g +${spec.power}⚡`
 						: spec.kind === 'battery'
 							? `${spec.cost}g 🔋${spec.capacity}`
-							: spec.kind === 'repair'
-								? `${spec.cost}g -${spec.power}⚡`
-								: `${spec.cost}g`;
+							: `${spec.cost}g -${spec.power}⚡`;
 			const cost = this.add
 				.text(x - btnW / 2 + 28, y + 2, extra, {
 					fontFamily: 'monospace',
@@ -630,14 +623,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			};
 			building = b;
 		} else {
-			sprite.setScale(0.6);
-			const b: WireBuilding = {
-				...base,
-				kind: 'wire',
-				spec: spec as WireSpec,
-				powered: false,
-			};
-			building = b;
+			throw new Error(
+				`unknown build kind: ${(spec as { kind: string }).kind}`,
+			);
 		}
 
 		this.buildings.push(building);
@@ -645,12 +633,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private recomputePower(dt: number): void {
-		const result = buildComponents(this.buildings);
-		applyPowerTick(this.buildings, result, dt);
-		this.cachedPower.supply = result.totalSupply;
-		this.cachedPower.demand = result.totalDemand;
-		this.cachedPower.batteryCharge = result.totalBatteryCharge;
-		this.cachedPower.batteryCapacity = result.totalBatteryCapacity;
+		const result = computeAndApplyPower(this.buildings, dt);
+		this.cachedPower.supply = result.supply;
+		this.cachedPower.demand = result.demand;
+		this.cachedPower.batteryCharge = result.batteryCharge;
+		this.cachedPower.batteryCapacity = result.batteryCapacity;
 		this.syncBuildingVisuals();
 	}
 
@@ -671,8 +658,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else if (b.kind === 'repair') {
 				b.sprite.setAlpha(b.online ? 1 : 0.45);
 				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
-			} else if (b.kind === 'wire') {
-				b.sprite.setFillStyle(b.powered ? COLORS.wire : COLORS.wireOff);
 			} else if (b.kind === 'battery') {
 				b.chargeBar.width = (b.charge / b.capacity) * TILE * 0.7;
 			}
@@ -691,22 +676,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private spawnEnemy(): void {
 		const start = this.path.waypoints[0];
-		const hp = Math.floor(
+		const typeId = rollEnemyType(this.wave);
+		const type = ENEMY_CATALOG[typeId];
+		const baseHp = Math.floor(
 			GAME_CONFIG.enemyBaseHp *
 				Math.pow(GAME_CONFIG.enemyHpScale, this.wave - 1),
 		);
-		const speed = GAME_CONFIG.enemyBaseSpeed + (this.wave - 1) * 4;
-		const attackDamage =
-			GAME_CONFIG.enemyBaseAttackDamage +
-			(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale;
-		const sprite = this.add.circle(
-			start.x,
-			start.y,
-			TILE * 0.3,
-			COLORS.enemy,
-		);
+		const hp = Math.floor(baseHp * type.hpMultiplier);
+		const baseSpeed = GAME_CONFIG.enemyBaseSpeed + (this.wave - 1) * 4;
+		const speed = baseSpeed * type.speedMultiplier;
+		const attackDamage = type.canAttack
+			? type.attackDamage +
+				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
+			: 0;
+		const radius = TILE * type.sizeRadius;
+		const sprite = this.add.circle(start.x, start.y, radius, type.color);
 		const statusRing = this.add
-			.circle(start.x, start.y, TILE * 0.36, 0xffffff, 0)
+			.circle(start.x, start.y, radius + 4, 0xffffff, 0)
 			.setStrokeStyle(2, 0xffffff, 0)
 			.setVisible(false);
 		const hpBarBg = this.add
@@ -728,6 +714,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			)
 			.setOrigin(0, 0.5);
 		this.enemies.push({
+			type,
 			sprite,
 			statusRing,
 			hpBar,
@@ -742,8 +729,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			burnUntilMs: 0,
 			burnDps: 0,
 			attackDamage,
+			attackRateMs: type.attackRateMs,
+			canAttack: type.canAttack,
 			attackTarget: null,
 			lastAttackAtMs: 0,
+			bountyMultiplier: type.bountyMultiplier,
 		});
 	}
 
@@ -808,35 +798,37 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 
-			if (e.attackTarget && e.attackTarget.destroyed)
-				e.attackTarget = null;
-			if (!e.attackTarget) {
-				e.attackTarget = this.findAttackTarget(e);
-			} else {
-				const dx = e.attackTarget.x - e.sprite.x;
-				const dy = e.attackTarget.y - e.sprite.y;
-				if (
-					dx * dx + dy * dy >
-					GAME_CONFIG.enemyAttackRange *
-						GAME_CONFIG.enemyAttackRange *
-						2.25
-				) {
+			if (e.canAttack) {
+				if (e.attackTarget && e.attackTarget.destroyed)
 					e.attackTarget = null;
+				if (!e.attackTarget) {
+					e.attackTarget = this.findAttackTarget(e);
+				} else {
+					const dx = e.attackTarget.x - e.sprite.x;
+					const dy = e.attackTarget.y - e.sprite.y;
+					if (
+						dx * dx + dy * dy >
+						GAME_CONFIG.enemyAttackRange *
+							GAME_CONFIG.enemyAttackRange *
+							2.25
+					) {
+						e.attackTarget = null;
+					}
 				}
-			}
 
-			if (e.attackTarget) {
-				if (nowMs - e.lastAttackAtMs >= GAME_CONFIG.enemyAttackRateMs) {
-					e.lastAttackAtMs = nowMs;
-					this.damageBuilding(e.attackTarget, e.attackDamage);
+				if (e.attackTarget) {
+					if (nowMs - e.lastAttackAtMs >= e.attackRateMs) {
+						e.lastAttackAtMs = nowMs;
+						this.damageBuilding(e.attackTarget, e.attackDamage);
+					}
+					const slowed = e.slowUntilMs > nowMs;
+					const speed =
+						(slowed ? e.baseSpeed * e.slowFactor : e.baseSpeed) *
+						GAME_CONFIG.enemyAttackSpeedFactor;
+					if (speed > 0) this.moveAlongPath(e, speed, dt);
+					this.updateEnemyVisuals(e, nowMs);
+					continue;
 				}
-				const slowed = e.slowUntilMs > nowMs;
-				const speed =
-					(slowed ? e.baseSpeed * e.slowFactor : e.baseSpeed) *
-					GAME_CONFIG.enemyAttackSpeedFactor;
-				if (speed > 0) this.moveAlongPath(e, speed, dt);
-				this.updateEnemyVisuals(e, nowMs);
-				continue;
 			}
 
 			const slowed = e.slowUntilMs > nowMs;
@@ -1156,7 +1148,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		e.hpBar.destroy();
 		e.hpBarBg.destroy();
 		if (reward) {
-			this.gold += GAME_CONFIG.goldPerKill;
+			this.gold += Math.round(
+				GAME_CONFIG.goldPerKill * e.bountyMultiplier,
+			);
 		}
 	}
 

@@ -1,10 +1,10 @@
 import type Phaser from 'phaser';
 import type {
 	BatterySpec,
+	EnemyType,
 	GeneratorSpec,
 	RepairSpec,
 	TowerSpec,
-	WireSpec,
 } from './config';
 
 export interface BaseBuilding {
@@ -53,20 +53,14 @@ export interface RepairBuilding extends BaseBuilding {
 	activeDrone: RepairDrone | null;
 }
 
-export interface WireBuilding extends BaseBuilding {
-	kind: 'wire';
-	spec: WireSpec;
-	powered: boolean;
-}
-
 export type Building =
 	| TowerBuilding
 	| GeneratorBuilding
 	| BatteryBuilding
-	| RepairBuilding
-	| WireBuilding;
+	| RepairBuilding;
 
 export interface Enemy {
+	type: EnemyType;
 	sprite: Phaser.GameObjects.Arc;
 	statusRing: Phaser.GameObjects.Arc;
 	hpBar: Phaser.GameObjects.Rectangle;
@@ -81,8 +75,11 @@ export interface Enemy {
 	burnUntilMs: number;
 	burnDps: number;
 	attackDamage: number;
+	attackRateMs: number;
+	canAttack: boolean;
 	attackTarget: Building | null;
 	lastAttackAtMs: number;
+	bountyMultiplier: number;
 }
 
 export interface Projectile {

@@ -63,7 +63,7 @@ export const COLORS = {
 	repairBeam: 0xfbd38d,
 } as const;
 
-export type BuildKind = 'tower' | 'generator' | 'battery' | 'repair' | 'wire';
+export type BuildKind = 'tower' | 'generator' | 'battery' | 'repair';
 
 export interface BuildSpecBase {
 	id: BuildId;
@@ -108,23 +108,13 @@ export interface RepairSpec extends BuildSpecBase {
 	repairAmount: number;
 }
 
-export interface WireSpec extends BuildSpecBase {
-	kind: 'wire';
-}
-
-export type BuildSpec =
-	| TowerSpec
-	| GeneratorSpec
-	| BatterySpec
-	| RepairSpec
-	| WireSpec;
+export type BuildSpec = TowerSpec | GeneratorSpec | BatterySpec | RepairSpec;
 
 export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
-export type WireId = 'wire';
-export type BuildId = TowerId | GeneratorId | BatteryId | RepairId | WireId;
+export type BuildId = TowerId | GeneratorId | BatteryId | RepairId;
 
 export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 	basic: {
@@ -266,17 +256,6 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 	},
 };
 
-export const WIRE_CATALOG: Record<WireId, WireSpec> = {
-	wire: {
-		id: 'wire',
-		name: 'Wire',
-		kind: 'wire',
-		cost: 8,
-		maxHp: 12,
-		color: 0xfbd38d,
-	},
-};
-
 export const PALETTE_ORDER: BuildId[] = [
 	'basic',
 	'bomb',
@@ -287,13 +266,74 @@ export const PALETTE_ORDER: BuildId[] = [
 	'nuclear',
 	'battery',
 	'repair',
-	'wire',
 ];
 
 export function specFor(id: BuildId): BuildSpec {
 	if (id in TOWER_CATALOG) return TOWER_CATALOG[id as TowerId];
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];
 	if (id in BATTERY_CATALOG) return BATTERY_CATALOG[id as BatteryId];
-	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
-	return WIRE_CATALOG[id as WireId];
+	return REPAIR_CATALOG[id as RepairId];
+}
+
+export type EnemyTypeId = 'runner' | 'brute' | 'scout';
+
+export interface EnemyType {
+	id: EnemyTypeId;
+	name: string;
+	color: number;
+	hpMultiplier: number;
+	speedMultiplier: number;
+	attackDamage: number;
+	attackRateMs: number;
+	canAttack: boolean;
+	sizeRadius: number;
+	bountyMultiplier: number;
+}
+
+export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
+	runner: {
+		id: 'runner',
+		name: 'Runner',
+		color: 0xe53e3e,
+		hpMultiplier: 1,
+		speedMultiplier: 1,
+		attackDamage: 0,
+		attackRateMs: 0,
+		canAttack: false,
+		sizeRadius: 0.3,
+		bountyMultiplier: 1,
+	},
+	scout: {
+		id: 'scout',
+		name: 'Scout',
+		color: 0xf6ad55,
+		hpMultiplier: 0.6,
+		speedMultiplier: 1.5,
+		attackDamage: 0,
+		attackRateMs: 0,
+		canAttack: false,
+		sizeRadius: 0.24,
+		bountyMultiplier: 0.75,
+	},
+	brute: {
+		id: 'brute',
+		name: 'Brute',
+		color: 0x9f7aea,
+		hpMultiplier: 2.2,
+		speedMultiplier: 0.65,
+		attackDamage: 7,
+		attackRateMs: 800,
+		canAttack: true,
+		sizeRadius: 0.4,
+		bountyMultiplier: 2,
+	},
+};
+
+export function rollEnemyType(wave: number): EnemyTypeId {
+	const bruteChance = Math.min(0.4, (wave - 1) * 0.07);
+	const scoutChance = wave >= 2 ? Math.min(0.25, (wave - 1) * 0.05) : 0;
+	const roll = Math.random();
+	if (roll < bruteChance) return 'brute';
+	if (roll < bruteChance + scoutChance) return 'scout';
+	return 'runner';
 }
