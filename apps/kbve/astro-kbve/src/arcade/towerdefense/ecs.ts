@@ -11,6 +11,7 @@ export const EnemyStats = {
 	maxHp: [] as number[],
 	baseSpeed: [] as number[],
 	pathIndex: [] as number[],
+	segmentT: [] as number[],
 	slowUntilMs: [] as number[],
 	slowDurationMs: [] as number[],
 	slowFactor: [] as number[],

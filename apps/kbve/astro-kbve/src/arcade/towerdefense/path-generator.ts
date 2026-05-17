@@ -12,11 +12,45 @@ export interface Waypoint {
 	y: number;
 }
 
+export interface PathSegment {
+	startX: number;
+	startY: number;
+	endX: number;
+	endY: number;
+	dx: number;
+	dy: number;
+	len: number;
+	invLen: number;
+}
+
 export interface GeneratedPath {
 	waypoints: Waypoint[];
+	segments: PathSegment[];
 	cells: Set<string>;
 	startRow: number;
 	endRow: number;
+}
+
+export function buildPathSegments(waypoints: Waypoint[]): PathSegment[] {
+	const out: PathSegment[] = [];
+	for (let i = 0; i < waypoints.length - 1; i++) {
+		const a = waypoints[i];
+		const b = waypoints[i + 1];
+		const dx = b.x - a.x;
+		const dy = b.y - a.y;
+		const len = Math.sqrt(dx * dx + dy * dy);
+		out.push({
+			startX: a.x,
+			startY: a.y,
+			endX: b.x,
+			endY: b.y,
+			dx,
+			dy,
+			len,
+			invLen: len > 0 ? 1 / len : 0,
+		});
+	}
+	return out;
 }
 
 const cellKey = (c: number, r: number) => `${c},${r}`;
@@ -86,7 +120,8 @@ function tryGenerate(): GeneratedPath | null {
 	}
 
 	const waypoints = compressToCorners(order);
-	return { waypoints, cells, startRow, endRow: row };
+	const segments = buildPathSegments(waypoints);
+	return { waypoints, segments, cells, startRow, endRow: row };
 }
 
 function compressToCorners(order: Array<[number, number]>): Waypoint[] {
@@ -119,8 +154,10 @@ function fallbackPath(): GeneratedPath {
 		cells.add(cellKey(c, row));
 		order.push([c, row]);
 	}
+	const waypoints = compressToCorners(order);
 	return {
-		waypoints: compressToCorners(order),
+		waypoints,
+		segments: buildPathSegments(waypoints),
 		cells,
 		startRow: row,
 		endRow: row,

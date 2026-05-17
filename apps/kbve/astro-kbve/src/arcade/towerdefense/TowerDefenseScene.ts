@@ -82,11 +82,7 @@ import {
 	timerStateAtom,
 	waveAtom,
 } from './td-hud-store';
-import {
-	generatePath,
-	type GeneratedPath,
-	type Waypoint,
-} from './path-generator';
+import { generatePath, type GeneratedPath } from './path-generator';
 import { computeAndApplyPower } from './power';
 import { planStarterKit } from './starter-kit';
 import {
@@ -1522,6 +1518,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		EnemyStats.maxHp[eid] = hp;
 		EnemyStats.baseSpeed[eid] = speed;
 		EnemyStats.pathIndex[eid] = 1;
+		EnemyStats.segmentT[eid] = 0;
 		EnemyStats.slowUntilMs[eid] = 0;
 		EnemyStats.slowDurationMs[eid] = 0;
 		EnemyStats.slowFactor[eid] = 1;
@@ -1886,27 +1883,31 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
-		const target: Waypoint | undefined =
-			this.path.waypoints[EnemyStats.pathIndex[eid]];
-		if (!target) {
-			this.killEnemy(eid, false);
-			this.lives -= 1;
-			if (this.lives <= 0) this.endGame(false);
-			return;
-		}
-		const px = Position.x[eid];
-		const py = Position.y[eid];
-		const dx = target.x - px;
-		const dy = target.y - py;
-		const dist = Math.sqrt(dx * dx + dy * dy);
-		const step = speed * dt;
-		if (step >= dist) {
-			Position.x[eid] = target.x;
-			Position.y[eid] = target.y;
-			EnemyStats.pathIndex[eid] += 1;
-		} else {
-			Position.x[eid] = px + (dx / dist) * step;
-			Position.y[eid] = py + (dy / dist) * step;
+		let segIdx = EnemyStats.pathIndex[eid] - 1;
+		let remaining = speed * dt;
+		while (remaining > 0) {
+			const seg = this.path.segments[segIdx];
+			if (!seg) {
+				this.killEnemy(eid, false);
+				this.lives -= 1;
+				if (this.lives <= 0) this.endGame(false);
+				return;
+			}
+			const tDelta = remaining * seg.invLen;
+			const nextT = EnemyStats.segmentT[eid] + tDelta;
+			if (nextT < 1) {
+				EnemyStats.segmentT[eid] = nextT;
+				Position.x[eid] = seg.startX + seg.dx * nextT;
+				Position.y[eid] = seg.startY + seg.dy * nextT;
+				return;
+			}
+			const overshoot = (nextT - 1) * seg.len;
+			Position.x[eid] = seg.endX;
+			Position.y[eid] = seg.endY;
+			segIdx += 1;
+			EnemyStats.pathIndex[eid] = segIdx + 1;
+			EnemyStats.segmentT[eid] = 0;
+			remaining = overshoot;
 		}
 	}
 
