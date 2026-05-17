@@ -19,9 +19,37 @@
 			}
 			.row {
 				display: grid;
-				grid-template-columns: 1fr 1fr;
+				grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 				gap: 24px;
 				margin-top: 16px;
+			}
+			/* Host-theme override demo — sets --kbve-chat-* vars on the embed
+			 * host element. These cross the shadow boundary and override the
+			 * baked palette without changing the bundle. */
+			.kbve-themed {
+				--kbve-chat-bg: #fff7ed;
+				--kbve-chat-elev-1: #ffedd5;
+				--kbve-chat-elev-2: #fed7aa;
+				--kbve-chat-hover: #fdba74;
+				--kbve-chat-border: #fb923c;
+				--kbve-chat-text: #431407;
+				--kbve-chat-text-dim: #7c2d12;
+				--kbve-chat-text-muted: #c2410c;
+				--kbve-chat-accent: #ea580c;
+			}
+			/* Starlight-style host — exposes --sl-color-* so the embed picks
+			 * them up automatically (this is what Rareicon / astro-kbve
+			 * already provide via the Starlight integration). */
+			.sl-themed {
+				--sl-color-bg: #0f172a;
+				--sl-color-bg-nav: #1e293b;
+				--sl-color-bg-sidebar: #1e293b;
+				--sl-color-gray-2: #cbd5e1;
+				--sl-color-gray-4: #64748b;
+				--sl-color-gray-6: #334155;
+				--sl-color-border: #334155;
+				--sl-color-text: #e2e8f0;
+				--sl-color-accent: #22d3ee;
 			}
 			.card {
 				background: white;
@@ -47,7 +75,7 @@
 		<h1>KbveChat embed bundle — smoke test</h1>
 		<div class="row">
 			<div class="card">
-				<p class="label">Auto-discover (#kbve-chat)</p>
+				<p class="label">Default dark (auto-discover)</p>
 				<div
 					id="kbve-chat"
 					class="host"
@@ -56,23 +84,42 @@
 					data-theme="dark"></div>
 			</div>
 			<div class="card">
-				<p class="label">Programmatic mount (light theme)</p>
+				<p class="label">Programmatic light theme</p>
 				<div id="kbve-chat-2" class="host"></div>
+			</div>
+			<div class="card">
+				<p class="label">Host override via --kbve-chat-* vars (warm)</p>
+				<div id="kbve-chat-3" class="host kbve-themed"></div>
+			</div>
+			<div class="card">
+				<p class="label">Starlight host via --sl-color-* vars</p>
+				<div id="kbve-chat-4" class="host sl-themed"></div>
 			</div>
 		</div>
 
 		<script src="/embed/chat.js" defer></script>
 		<script>
 			window.addEventListener('load', () => {
-				if (window.KbveChat) {
-					window.KbveChat.mount({
-						el: '#kbve-chat-2',
-						channel: '#general',
-						ws: 'wss://chat.kbve.com/ws',
-						theme: 'light',
-						height: '480px',
-					});
-				}
+				if (!window.KbveChat) return;
+				window.KbveChat.mount({
+					el: '#kbve-chat-2',
+					channel: '#general',
+					ws: 'wss://chat.kbve.com/ws',
+					theme: 'light',
+					height: '480px',
+				});
+				window.KbveChat.mount({
+					el: '#kbve-chat-3',
+					channel: '#general',
+					ws: 'wss://chat.kbve.com/ws',
+					height: '480px',
+				});
+				window.KbveChat.mount({
+					el: '#kbve-chat-4',
+					channel: '#general',
+					ws: 'wss://chat.kbve.com/ws',
+					height: '480px',
+				});
 			});
 		</script>
 	</body>
