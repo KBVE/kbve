@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package kbve.mc;
+
+// =============================================================================
+// Minecraft vanilla enchantment registry — source of truth for the marketplace
+// enchant picker, `/mc/enchants/<slug>` MDX pages, and bot/dialog code that
+// needs to validate / display enchantments. Bootstrapped by
+// scripts/generate-mc-enchants.mjs from the PrismarineJS `minecraft-data`
+// registry.
+//
+// Identity:
+//   id    numeric registry id (NOT stable across versions — use ref)
+//   ref   namespaced id without "minecraft:" prefix ("sharpness", "mending")
+//   slug  kebab-case URL slug ("sharpness", "curse-of-binding")
+//
+// Cross-system contracts: marketplace listings store `enchants[].id` as the
+// ref string; the Astro `enchants.ts` table and the in-game NBT must agree.
+// =============================================================================
+
+// MCEnchantRarity is the vanilla rarity used to compute table cost weights.
+enum MCEnchantRarity {
+  MC_ENCHANT_RARITY_UNSPECIFIED = 0;
+  MC_ENCHANT_RARITY_COMMON      = 1;
+  MC_ENCHANT_RARITY_UNCOMMON    = 2;
+  MC_ENCHANT_RARITY_RARE        = 3;
+  MC_ENCHANT_RARITY_VERY_RARE   = 4;
+}
+
+// MCEnchantTarget describes which equipment classes an enchant can apply to.
+// Multiple targets may overlap — Mending applies to all damageable items.
+enum MCEnchantTarget {
+  MC_ENCHANT_TARGET_UNSPECIFIED = 0;
+  MC_ENCHANT_TARGET_ARMOR       = 1;
+  MC_ENCHANT_TARGET_ARMOR_HEAD  = 2;
+  MC_ENCHANT_TARGET_ARMOR_CHEST = 3;
+  MC_ENCHANT_TARGET_ARMOR_LEGS  = 4;
+  MC_ENCHANT_TARGET_ARMOR_FEET  = 5;
+  MC_ENCHANT_TARGET_WEAPON      = 6;
+  MC_ENCHANT_TARGET_DIGGER      = 7;
+  MC_ENCHANT_TARGET_FISHING_ROD = 8;
+  MC_ENCHANT_TARGET_TRIDENT     = 9;
+  MC_ENCHANT_TARGET_CROSSBOW    = 10;
+  MC_ENCHANT_TARGET_BOW         = 11;
+  MC_ENCHANT_TARGET_WEARABLE    = 12;
+  MC_ENCHANT_TARGET_BREAKABLE   = 13;
+  MC_ENCHANT_TARGET_VANISHABLE  = 14;
+  MC_ENCHANT_TARGET_MACE        = 15;
+}
+
+// MCEnchantCostRange models the minimum + maximum table cost for a given
+// level (vanilla formula: a + b*level). Both client UI and bots use this
+// to display "needs level N" hints.
+message MCEnchantCostRange {
+  // a + b*level where level is the enchant level (1..max_level).
+  int32 a_min = 1;
+  int32 b_min = 2;
+  int32 a_max = 3;
+  int32 b_max = 4;
+}
+
+// MCEnchant — top-level enchantment record (one MDX file == one McEnchant).
+message McEnchant {
+  int32  id           = 1;
+  string ref          = 2;
+  string slug         = 3;
+  string display_name = 4;
+
+  MCEnchantRarity rarity = 5;
+
+  // Maximum vanilla level (1..5 typically; some treasure enchants stay at 1).
+  int32 max_level = 6;
+
+  // Selection weight at the enchantment table; bigger == more likely.
+  int32 weight = 7;
+
+  // Treasure: only obtainable via loot / trading / fishing, not the table.
+  bool treasure = 8;
+
+  // Curse: cannot be removed by grindstone; persists across death.
+  bool curse = 9;
+
+  // Tradeable with librarians (controls early-game accessibility).
+  bool tradeable = 10;
+
+  // Discoverable at the enchantment table (false implies treasure-only).
+  bool discoverable = 11;
+
+  // Available in the creative-mode enchanting reagent list.
+  bool available_in_creative = 12;
+
+  // Targets this enchant can natively apply to (vanilla rules).
+  repeated MCEnchantTarget targets = 13;
+
+  // Other enchant refs that cannot coexist on the same item
+  // ("sharpness" ↔ "smite" ↔ "bane_of_arthropods", etc.).
+  repeated string incompatible_with = 14;
+
+  // Anvil cost multiplier per stored level (vanilla 1..10).
+  int32 anvil_cost = 15;
+
+  MCEnchantCostRange cost = 16;
+
+  // Free-form tags for filtering ("damage", "protection", "utility",
+  // "mining", "ranged", "tridents", "books_only").
+  repeated string tags = 17;
+
+  // Short description for the MDX body / tooltip overlay.
+  string description = 18;
+
+  // Vanilla version this record was generated from ("1.21.5"). Set by the
+  // generator script.
+  string data_version = 19;
+}

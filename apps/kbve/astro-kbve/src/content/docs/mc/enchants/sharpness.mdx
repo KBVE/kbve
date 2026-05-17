@@ -1,0 +1,48 @@
+---
+title: Sharpness
+description: |
+    Sharpness — common melee damage enchant. +0.5 base damage per level
+    on top of +1 flat. Max level V.
+sidebar:
+    label: Sharpness
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 12
+    ref: sharpness
+    slug: sharpness
+    display_name: Sharpness
+    rarity: common
+    max_level: 5
+    weight: 10
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - weapon
+    incompatible_with:
+        - smite
+        - bane_of_arthropods
+    anvil_cost: 1
+    cost:
+        a_min: 1
+        b_min: 11
+        a_max: 21
+        b_max: 11
+    tags:
+        - damage
+        - melee
+    description: |
+        Increases melee damage on swords (and axes, since 1.9). Each
+        level adds 0.5 damage on top of a flat 1.0 baseline. Cannot
+        coexist with Smite or Bane of Arthropods on the same weapon.
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

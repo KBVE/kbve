@@ -1,0 +1,113 @@
+---
+import { McBlockSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const b = McBlockSchema.parse(data);
+
+const MC_ASSET_VERSION = '1.21.5';
+const iconSrc = `https://mcasset.cloud/${MC_ASSET_VERSION}/assets/minecraft/textures/block/${b.ref}.png`;
+---
+
+<section class="mcdb-panel not-content">
+	<header class="mcdb-panel__head">
+		<div class="mcdb-panel__icon">
+			<img src={iconSrc} alt={b.display_name} loading="lazy" />
+		</div>
+		<div class="mcdb-panel__title">
+			<h2>{b.display_name}</h2>
+			<div class="mcdb-panel__meta">
+				<span class="mcdb-pill mcdb-pill--kind">{b.material}</span>
+				{b.placeable && <span class="mcdb-pill">placeable</span>}
+				{
+					!b.diggable && (
+						<span class="mcdb-pill mcdb-pill--curse">
+							indestructible
+						</span>
+					)
+				}
+			</div>
+			<code class="mcdb-panel__ref">minecraft:{b.ref}</code>
+		</div>
+	</header>
+
+	<dl class="mcdb-grid">
+		<div><dt>Hardness</dt><dd>{b.hardness < 0 ? '∞' : b.hardness}</dd></div>
+		<div><dt>Blast Res.</dt><dd>{b.blast_resistance}</dd></div>
+		<div><dt>Best Tool</dt><dd>{b.best_tool}</dd></div>
+		{
+			b.required_tool_tier > 0 && (
+				<div>
+					<>
+						<dt>Tool Tier</dt>
+						<dd>{b.required_tool_tier}</dd>
+					</>
+				</div>
+			)
+		}
+		{
+			b.light_emission > 0 && (
+				<div>
+					<>
+						<dt>Light</dt>
+						<dd>{b.light_emission}</dd>
+					</>
+				</div>
+			)
+		}
+		<div><dt>Transparent</dt><dd>{b.transparent ? 'yes' : 'no'}</dd></div>
+	</dl>
+
+	{
+		b.drops.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Drops</h3>
+				<ul class="mcdb-recipes">
+					{b.drops.map((d) => (
+						<li>
+							<a href={`/mc/items/${d.ref.replace(/_/g, '-')}/`}>
+								{d.ref}
+							</a>
+							<span class="mcdb-recipe-yields">
+								{d.qty_min === d.qty_max
+									? `× ${d.qty_min}`
+									: `× ${d.qty_min}–${d.qty_max}`}
+							</span>
+							{d.silk_touch_only && (
+								<span class="mcdb-recipe-kind">silk-touch</span>
+							)}
+							{d.affected_by_fortune && (
+								<span class="mcdb-recipe-kind">fortune</span>
+							)}
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		b.tags.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Tags</h3>
+				<ul class="mcdb-chips mcdb-chips--muted">
+					{b.tags.map((t) => (
+						<li>{t}</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	<footer class="mcdb-panel__foot">
+		<a
+			href={`/mc/items/${b.ref.replace(/_/g, '-')}/`}
+			class="mcdb-panel__market">
+			View item form →
+		</a>
+		{
+			b.data_version && (
+				<span class="mcdb-panel__version">data: {b.data_version}</span>
+			)
+		}
+	</footer>
+</section>

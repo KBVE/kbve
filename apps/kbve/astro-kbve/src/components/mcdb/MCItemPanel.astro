@@ -1,0 +1,549 @@
+---
+import { MCItemSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const item = MCItemSchema.parse(data);
+
+const MC_ASSET_VERSION = '1.21.5';
+const candidates = [
+	`https://mcasset.cloud/${MC_ASSET_VERSION}/assets/minecraft/textures/item/${item.ref}.png`,
+	`https://mcasset.cloud/${MC_ASSET_VERSION}/assets/minecraft/textures/block/${item.ref}.png`,
+];
+const iconSrc = item.icon || candidates[0];
+const fallbackSrc = candidates[1];
+---
+
+<section class="mcdb-panel not-content">
+	<header class="mcdb-panel__head">
+		<div class="mcdb-panel__icon" data-fallback={fallbackSrc}>
+			<img src={iconSrc} alt={item.display_name} loading="lazy" />
+		</div>
+		<div class="mcdb-panel__title">
+			<h2>{item.display_name}</h2>
+			<div class="mcdb-panel__meta">
+				<span class="mcdb-pill mcdb-pill--kind">{item.category}</span>
+				{
+					item.rarity !== 'common' && (
+						<span
+							class={`mcdb-pill mcdb-pill--rarity mcdb-pill--rarity-${item.rarity}`}>
+							{item.rarity}
+						</span>
+					)
+				}
+				{
+					item.tier && (
+						<span class="mcdb-pill mcdb-pill--tier">
+							{item.tier}
+						</span>
+					)
+				}
+			</div>
+			<code class="mcdb-panel__ref">minecraft:{item.ref}</code>
+		</div>
+	</header>
+
+	{
+		item.about?.description && (
+			<p class="mcdb-panel__desc">{item.about.description}</p>
+		)
+	}
+
+	<dl class="mcdb-grid">
+		<div><dt>Stack</dt><dd>{item.stack_size}</dd></div>
+		{
+			item.max_durability > 0 && (
+				<div>
+					<>
+						<dt>Durability</dt>
+						<dd>{item.max_durability.toLocaleString()}</dd>
+					</>
+				</div>
+			)
+		}
+		{
+			item.damage && (
+				<>
+					<div>
+						<>
+							<dt>Attack Damage</dt>
+							<dd>{item.damage.attack_damage}</dd>
+						</>
+					</div>
+					<div>
+						<>
+							<dt>Attack Speed</dt>
+							<dd>{item.damage.attack_speed}</dd>
+						</>
+					</div>
+				</>
+			)
+		}
+		{
+			item.equipment?.slot && (
+				<>
+					<div>
+						<>
+							<dt>Slot</dt>
+							<dd>{item.equipment.slot}</dd>
+						</>
+					</div>
+					{item.equipment.armor_points > 0 && (
+						<div>
+							<dt>Armor</dt>
+							<dd>{item.equipment.armor_points}</dd>
+						</div>
+					)}
+					{item.equipment.toughness > 0 && (
+						<div>
+							<dt>Toughness</dt>
+							<dd>{item.equipment.toughness}</dd>
+						</div>
+					)}
+				</>
+			)
+		}
+		{
+			item.food && (
+				<>
+					<div>
+						<>
+							<dt>Nutrition</dt>
+							<dd>{item.food.nutrition}</dd>
+						</>
+					</div>
+					<div>
+						<>
+							<dt>Saturation</dt>
+							<dd>{item.food.saturation}</dd>
+						</>
+					</div>
+				</>
+			)
+		}
+		{
+			item.mining && (
+				<>
+					<div>
+						<>
+							<dt>Tool</dt>
+							<dd>{item.mining.tool_type}</dd>
+						</>
+					</div>
+					<div>
+						<>
+							<dt>Mining Tier</dt>
+							<dd>{item.mining.tier}</dd>
+						</>
+					</div>
+				</>
+			)
+		}
+	</dl>
+
+	{
+		item.enchants && item.enchants.allowed.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Compatible Enchants</h3>
+				<ul class="mcdb-chips">
+					{item.enchants.allowed.map((ref) => (
+						<li>
+							<a href={`/mc/enchants/${ref.replace(/_/g, '-')}/`}>
+								{ref.replace(/_/g, ' ')}
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		item.tags.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Tags</h3>
+				<ul class="mcdb-chips mcdb-chips--muted">
+					{item.tags.map((t) => (
+						<li>{t}</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		item.recipes.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Recipes</h3>
+				{item.recipes.map((r) => {
+					const isShaped =
+						r.kind === 'shaped' && r.width > 0 && r.height > 0;
+					const grid: ((typeof r.ingredients)[number] | null)[][] =
+						[];
+					if (isShaped) {
+						for (let row = 0; row < r.height; row++) {
+							grid.push(
+								Array.from({ length: r.width }, () => null),
+							);
+						}
+						for (const ing of r.ingredients) {
+							if (
+								grid[ing.row] &&
+								grid[ing.row][ing.col] === null
+							) {
+								grid[ing.row][ing.col] = ing;
+							}
+						}
+					}
+					return (
+						<div class="mcdb-recipe-card">
+							<div class="mcdb-recipe-card__meta">
+								<span class="mcdb-recipe-kind">{r.kind}</span>
+								{r.station !== 'none' && (
+									<span class="mcdb-recipe-station">
+										@ {r.station}
+									</span>
+								)}
+								<span class="mcdb-recipe-yields">
+									yields × {r.yields}
+								</span>
+								{r.cook_time_ticks > 0 && (
+									<span class="mcdb-recipe-station">
+										{(r.cook_time_ticks / 20).toFixed(1)}s
+									</span>
+								)}
+								{r.experience > 0 && (
+									<span class="mcdb-recipe-station">
+										{r.experience} XP
+									</span>
+								)}
+							</div>
+							{isShaped ? (
+								<div
+									class="mcdb-grid-recipe"
+									style={`--cols: ${r.width};`}>
+									{grid.flat().map((cell) => (
+										<div class="mcdb-grid-cell">
+											{cell && (
+												<>
+													<span class="mcdb-grid-qty">
+														{cell.qty}
+													</span>
+													<span class="mcdb-grid-ref">
+														{cell.ref ||
+															`#${cell.tag_ref}`}
+													</span>
+												</>
+											)}
+										</div>
+									))}
+								</div>
+							) : (
+								<ul class="mcdb-recipes">
+									{r.ingredients.map((ing) => (
+										<li>
+											<span class="mcdb-recipe-yields">
+												× {ing.qty}
+											</span>
+											<a
+												href={`/mc/items/${(ing.ref || ing.tag_ref).replace(/_/g, '-')}/`}>
+												{ing.ref || `#${ing.tag_ref}`}
+											</a>
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					);
+				})}
+			</section>
+		)
+	}
+
+	<footer class="mcdb-panel__foot">
+		<a
+			href={`/market/?kind=mc_item&q=${item.ref}`}
+			class="mcdb-panel__market">
+			Open marketplace listings →
+		</a>
+		{
+			item.data_version && (
+				<span class="mcdb-panel__version">
+					data: {item.data_version}
+				</span>
+			)
+		}
+	</footer>
+</section>
+
+<script>
+	for (const node of document.querySelectorAll(
+		'.mcdb-panel__icon[data-fallback]',
+	)) {
+		const img = node.querySelector('img');
+		const fallback = (node as HTMLElement).dataset.fallback;
+		if (!img || !fallback) continue;
+		img.addEventListener(
+			'error',
+			() => {
+				if (img.dataset.fb === 'done') return;
+				img.dataset.fb = 'done';
+				img.src = fallback;
+			},
+			{ once: true },
+		);
+	}
+</script>
+
+<style is:global>
+	.mcdb-panel {
+		display: grid;
+		gap: 1rem;
+		padding: 1.25rem 1.5rem;
+		border-radius: 18px;
+		background: linear-gradient(
+			165deg,
+			var(--sl-color-bg-nav) 0%,
+			var(--sl-color-bg) 100%
+		);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-text);
+	}
+	.mcdb-panel__head {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 1rem;
+		align-items: center;
+	}
+	.mcdb-panel__icon {
+		width: 96px;
+		height: 96px;
+		border-radius: 14px;
+		background:
+			repeating-linear-gradient(
+				45deg,
+				color-mix(in srgb, var(--sl-color-black) 18%, transparent) 0 6px,
+				transparent 6px 12px
+			),
+			linear-gradient(
+				135deg,
+				var(--sl-color-bg-nav) 0%,
+				var(--sl-color-bg-sidebar) 100%
+			);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		padding: 10%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.mcdb-panel__icon img {
+		width: 100%;
+		height: 100%;
+		image-rendering: pixelated;
+		object-fit: contain;
+	}
+	.mcdb-panel__title h2 {
+		margin: 0;
+		font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+		font-weight: 800;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.mcdb-panel__meta {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+		margin: 0.4rem 0 0.3rem;
+	}
+	.mcdb-pill {
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-text);
+	}
+	.mcdb-pill--kind {
+		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 50%,
+			transparent
+		);
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.mcdb-pill--rarity-uncommon {
+		color: rgb(120, 200, 120);
+	}
+	.mcdb-pill--rarity-rare {
+		color: rgb(120, 180, 240);
+	}
+	.mcdb-pill--rarity-epic {
+		color: rgb(210, 120, 240);
+	}
+	.mcdb-panel__ref {
+		display: inline-block;
+		font-size: 0.78rem;
+		padding: 0.05rem 0.45rem;
+		border-radius: 6px;
+		background: var(--sl-color-bg-inline-code);
+		color: var(--sl-color-text);
+	}
+	.mcdb-panel__desc {
+		margin: 0;
+		color: var(--sl-color-gray-3);
+		line-height: 1.55;
+	}
+	.mcdb-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.6rem;
+		margin: 0;
+	}
+	.mcdb-grid > div {
+		padding: 0.55rem 0.8rem;
+		border-radius: 10px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.mcdb-grid dt {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+	}
+	.mcdb-grid dd {
+		margin: 0.15rem 0 0;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+	}
+	.mcdb-section h3 {
+		margin: 0 0 0.5rem;
+		font-size: 1rem;
+		font-weight: 800;
+	}
+	.mcdb-chips {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+	.mcdb-chips li {
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 600;
+		background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent) 50%, transparent);
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.mcdb-chips--muted li {
+		background: var(--sl-color-bg-nav);
+		border-color: var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-gray-3);
+	}
+	.mcdb-chips a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.mcdb-recipes {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+	.mcdb-recipes li {
+		padding: 0.5rem 0.75rem;
+		border-radius: 10px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		font-size: 0.85rem;
+	}
+	.mcdb-recipe-kind {
+		font-weight: 700;
+		text-transform: uppercase;
+		font-size: 0.7rem;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.mcdb-panel__foot {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.mcdb-panel__market {
+		color: var(--sl-color-text-accent);
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.mcdb-panel__market:hover {
+		text-decoration: underline;
+	}
+	.mcdb-panel__version {
+		color: var(--sl-color-gray-3);
+		font-size: 0.78rem;
+		font-variant-numeric: tabular-nums;
+	}
+	.mcdb-recipe-card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		margin-top: 0.5rem;
+	}
+	.mcdb-recipe-card__meta {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+	.mcdb-recipe-station {
+		font-size: 0.78rem;
+		color: var(--sl-color-gray-3);
+	}
+	.mcdb-grid-recipe {
+		display: grid;
+		grid-template-columns: repeat(var(--cols, 3), 72px);
+		gap: 0.4rem;
+		justify-content: start;
+	}
+	.mcdb-grid-cell {
+		width: 72px;
+		height: 72px;
+		border-radius: 10px;
+		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.15rem;
+		padding: 0.3rem;
+		font-size: 0.7rem;
+		text-align: center;
+	}
+	.mcdb-grid-qty {
+		font-weight: 800;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+	}
+	.mcdb-grid-ref {
+		color: var(--sl-color-gray-3);
+		font-size: 0.65rem;
+		line-height: 1.1;
+		word-break: break-all;
+	}
+</style>

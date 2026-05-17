@@ -1,0 +1,128 @@
+---
+import { McEnchantSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const e = McEnchantSchema.parse(data);
+---
+
+<section class="mcdb-panel not-content">
+	<header class="mcdb-panel__head">
+		<div class="mcdb-panel__icon mcdb-panel__icon--text">
+			<span>{e.display_name.charAt(0)}</span>
+		</div>
+		<div class="mcdb-panel__title">
+			<h2>{e.display_name}</h2>
+			<div class="mcdb-panel__meta">
+				<span
+					class={`mcdb-pill mcdb-pill--rarity mcdb-pill--rarity-${e.rarity}`}>
+					{e.rarity}
+				</span>
+				{
+					e.curse && (
+						<span class="mcdb-pill mcdb-pill--curse">curse</span>
+					)
+				}
+				{
+					e.treasure && (
+						<span class="mcdb-pill mcdb-pill--treasure">
+							treasure
+						</span>
+					)
+				}
+			</div>
+			<code class="mcdb-panel__ref">minecraft:{e.ref}</code>
+		</div>
+	</header>
+
+	{e.description && <p class="mcdb-panel__desc">{e.description}</p>}
+
+	<dl class="mcdb-grid">
+		<div><dt>Max Level</dt><dd>{e.max_level}</dd></div>
+		<div><dt>Weight</dt><dd>{e.weight}</dd></div>
+		<div><dt>Anvil Cost</dt><dd>{e.anvil_cost}</dd></div>
+		<div><dt>Tradeable</dt><dd>{e.tradeable ? 'yes' : 'no'}</dd></div>
+		<div><dt>From Table</dt><dd>{e.discoverable ? 'yes' : 'no'}</dd></div>
+	</dl>
+
+	{
+		e.targets.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Applies to</h3>
+				<ul class="mcdb-chips mcdb-chips--muted">
+					{e.targets.map((t) => (
+						<li>{t.replace(/_/g, ' ')}</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		e.incompatible_with.length > 0 && (
+			<section class="mcdb-section">
+				<h3>Incompatible with</h3>
+				<ul class="mcdb-chips mcdb-chips--muted">
+					{e.incompatible_with.map((ref) => (
+						<li>
+							<a href={`/mc/enchants/${ref.replace(/_/g, '-')}/`}>
+								{ref.replace(/_/g, ' ')}
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	<footer class="mcdb-panel__foot">
+		<a
+			href={`/market/?kind=mc_item&enchant=${e.ref}`}
+			class="mcdb-panel__market">
+			Find enchanted listings →
+		</a>
+		{
+			e.data_version && (
+				<span class="mcdb-panel__version">data: {e.data_version}</span>
+			)
+		}
+	</footer>
+</section>
+
+<style is:global>
+	.mcdb-panel__icon--text {
+		font-size: 2.5rem;
+		font-weight: 800;
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+		background: linear-gradient(
+			135deg,
+			var(--sl-color-bg-sidebar) 0%,
+			var(--sl-color-bg) 100%
+		);
+	}
+	.mcdb-pill--curse {
+		background: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 18%,
+			transparent
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 55%,
+			transparent
+		);
+		color: var(--color-red, var(--sl-color-text-accent));
+	}
+	.mcdb-pill--treasure {
+		background: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 18%,
+			transparent
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 50%,
+			transparent
+		);
+		color: var(--color-gold-light, var(--sl-color-accent));
+	}
+</style>
