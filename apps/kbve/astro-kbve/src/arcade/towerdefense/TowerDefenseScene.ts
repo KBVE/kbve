@@ -96,7 +96,11 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { computeAndApplyPower } from './power';
+import {
+	computeAndApplyPower,
+	isPowerConsumer,
+	type PowerConsumer,
+} from './power';
 import { planStarterKit } from './starter-kit';
 import {
 	towerBurnDps,
@@ -154,6 +158,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private leadEnemyEid = -1;
 	private leadPathIndex = -1;
 	private buildings: Building[] = [];
+	private powerGenerators: GeneratorBuilding[] = [];
+	private powerConsumers: PowerConsumer[] = [];
+	private powerBatteries: BatteryBuilding[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
@@ -220,6 +227,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.leadEnemyEid = -1;
 		this.leadPathIndex = -1;
 		this.buildings = [];
+		this.powerGenerators = [];
+		this.powerConsumers = [];
+		this.powerBatteries = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
@@ -1420,11 +1430,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 		this.buildings.push(building);
 		this.buildingByEid.set(eid, building);
+		if (building.kind === 'generator') {
+			this.powerGenerators.push(building);
+		} else if (building.kind === 'battery') {
+			this.powerBatteries.push(building);
+		} else if (isPowerConsumer(building)) {
+			this.powerConsumers.push(building);
+		}
 		return building;
 	}
 
 	private recomputePower(dt: number): void {
-		const result = computeAndApplyPower(this.buildings, dt);
+		const result = computeAndApplyPower(
+			this.powerGenerators,
+			this.powerConsumers,
+			this.powerBatteries,
+			dt,
+		);
 		this.cachedPower.supply = result.supply;
 		this.cachedPower.demand = result.demand;
 		this.cachedPower.batteryCharge = result.batteryCharge;
@@ -1684,6 +1706,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const deid of droneKills) this.killDrone(deid);
 		this.buildingByEid.delete(b.id);
 		removeEntity(this.world, b.id);
+		if (b.kind === 'generator') {
+			const idx = this.powerGenerators.indexOf(b);
+			if (idx >= 0) this.powerGenerators.splice(idx, 1);
+		} else if (b.kind === 'battery') {
+			const idx = this.powerBatteries.indexOf(b);
+			if (idx >= 0) this.powerBatteries.splice(idx, 1);
+		} else if (isPowerConsumer(b)) {
+			const idx = this.powerConsumers.indexOf(b);
+			if (idx >= 0) this.powerConsumers.splice(idx, 1);
+		}
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
