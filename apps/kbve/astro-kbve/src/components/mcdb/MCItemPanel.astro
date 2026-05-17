@@ -1,22 +1,21 @@
 ---
 import { MCItemSchema } from '@/data/schema';
+import MCTextureImage from './MCTextureImage';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
-
-const MC_ASSET_VERSION = '1.21.5';
-const candidates = [
-	`https://mcasset.cloud/${MC_ASSET_VERSION}/assets/minecraft/textures/item/${item.ref}.png`,
-	`https://mcasset.cloud/${MC_ASSET_VERSION}/assets/minecraft/textures/block/${item.ref}.png`,
-];
-const iconSrc = item.icon || candidates[0];
-const fallbackSrc = candidates[1];
 ---
 
 <section class="mcdb-panel not-content">
 	<header class="mcdb-panel__head">
-		<div class="mcdb-panel__icon" data-fallback={fallbackSrc}>
-			<img src={iconSrc} alt={item.display_name} loading="lazy" />
+		<div class="mcdb-panel__icon">
+			<MCTextureImage
+				client:load
+				ref={item.ref}
+				category={item.category}
+				alt={item.display_name}
+				size={96}
+			/>
 		</div>
 		<div class="mcdb-panel__title">
 			<h2>{item.display_name}</h2>
@@ -221,35 +220,65 @@ const fallbackSrc = candidates[1];
 								<div
 									class="mcdb-grid-recipe"
 									style={`--cols: ${r.width};`}>
-									{grid.flat().map((cell) => (
-										<div class="mcdb-grid-cell">
-											{cell && (
-												<>
+									{grid.flat().map((cell) => {
+										if (!cell)
+											return (
+												<div class="mcdb-grid-cell" />
+											);
+										const ingRef = cell.ref || cell.tag_ref;
+										return (
+											<a
+												class="mcdb-grid-cell mcdb-grid-cell--filled"
+												href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
+												title={`${cell.qty}× ${ingRef}`}>
+												{cell.qty > 1 && (
 													<span class="mcdb-grid-qty">
 														{cell.qty}
 													</span>
+												)}
+												{cell.ref ? (
+													<MCTextureImage
+														client:load
+														ref={cell.ref}
+														alt={cell.ref}
+														size={56}
+														className="mcdb-grid-img"
+													/>
+												) : (
 													<span class="mcdb-grid-ref">
-														{cell.ref ||
-															`#${cell.tag_ref}`}
+														#{cell.tag_ref}
 													</span>
-												</>
-											)}
-										</div>
-									))}
+												)}
+											</a>
+										);
+									})}
 								</div>
 							) : (
 								<ul class="mcdb-recipes">
-									{r.ingredients.map((ing) => (
-										<li>
-											<span class="mcdb-recipe-yields">
-												× {ing.qty}
-											</span>
-											<a
-												href={`/mc/items/${(ing.ref || ing.tag_ref).replace(/_/g, '-')}/`}>
-												{ing.ref || `#${ing.tag_ref}`}
-											</a>
-										</li>
-									))}
+									{r.ingredients.map((ing) => {
+										const ingRef = ing.ref || ing.tag_ref;
+										return (
+											<li>
+												{ing.ref && (
+													<MCTextureImage
+														client:load
+														ref={ing.ref}
+														alt={ing.ref}
+														size={28}
+														className="mcdb-recipe-img"
+													/>
+												)}
+												<span class="mcdb-recipe-yields">
+													× {ing.qty}
+												</span>
+												<a
+													href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}>
+													{ing.ref ||
+														`#${ing.tag_ref}`}
+												</a>
+											</li>
+										);
+									})}
 								</ul>
 							)}
 						</div>
@@ -274,25 +303,6 @@ const fallbackSrc = candidates[1];
 		}
 	</footer>
 </section>
-
-<script>
-	for (const node of document.querySelectorAll(
-		'.mcdb-panel__icon[data-fallback]',
-	)) {
-		const img = node.querySelector('img');
-		const fallback = (node as HTMLElement).dataset.fallback;
-		if (!img || !fallback) continue;
-		img.addEventListener(
-			'error',
-			() => {
-				if (img.dataset.fb === 'done') return;
-				img.dataset.fb = 'done';
-				img.src = fallback;
-			},
-			{ once: true },
-		);
-	}
-</script>
 
 <style is:global>
 	.mcdb-panel {
@@ -545,5 +555,28 @@ const fallbackSrc = candidates[1];
 		font-size: 0.65rem;
 		line-height: 1.1;
 		word-break: break-all;
+	}
+	.kbve-mc-tex {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		image-rendering: pixelated;
+		object-fit: contain;
+	}
+	.kbve-mc-tex--missing {
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		border-radius: 6px;
+		color: var(--sl-color-gray-3);
+		font-weight: 800;
+	}
+	.mcdb-grid-cell .kbve-mc-tex,
+	.mcdb-grid-img.kbve-mc-tex {
+		max-width: 80%;
+		max-height: 80%;
+	}
+	.mcdb-recipe-img.kbve-mc-tex {
+		flex-shrink: 0;
+		margin-right: 0.25rem;
 	}
 </style>
