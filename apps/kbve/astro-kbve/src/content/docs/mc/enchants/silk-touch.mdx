@@ -1,0 +1,41 @@
+---
+title: Silk Touch
+description: |
+    Minecraft Silk Touch — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Silk Touch
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 33
+    ref: silk_touch
+    slug: silk-touch
+    display_name: Silk Touch
+    rarity: common
+    max_level: 1
+    weight: 1
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - digger
+    incompatible_with:
+        - fortune
+    anvil_cost: 1
+    cost:
+        a_min: 0
+        b_min: 15
+        a_max: 0
+        b_max: 65
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

@@ -1,0 +1,41 @@
+---
+title: Piercing
+description: |
+    Minecraft Piercing — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Piercing
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 24
+    ref: piercing
+    slug: piercing
+    display_name: Piercing
+    rarity: common
+    max_level: 4
+    weight: 10
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - crossbow
+    incompatible_with:
+        - multishot
+    anvil_cost: 1
+    cost:
+        a_min: 10
+        b_min: -9
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

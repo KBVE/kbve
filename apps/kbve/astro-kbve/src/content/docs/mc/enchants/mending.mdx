@@ -1,0 +1,41 @@
+---
+title: Mending
+description: |
+    Minecraft Mending — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Mending
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 22
+    ref: mending
+    slug: mending
+    display_name: Mending
+    rarity: common
+    max_level: 1
+    weight: 2
+    treasure: true
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - breakable
+    incompatible_with:
+        - infinity
+    anvil_cost: 1
+    cost:
+        a_min: 25
+        b_min: 0
+        a_max: 25
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

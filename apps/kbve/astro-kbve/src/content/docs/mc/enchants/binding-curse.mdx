@@ -1,0 +1,40 @@
+---
+title: Curse of Binding
+description: |
+    Minecraft Curse of Binding — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Curse of Binding
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 2
+    ref: binding_curse
+    slug: binding-curse
+    display_name: Curse of Binding
+    rarity: common
+    max_level: 1
+    weight: 1
+    treasure: true
+    curse: true
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - wearable
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 0
+        b_min: 25
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

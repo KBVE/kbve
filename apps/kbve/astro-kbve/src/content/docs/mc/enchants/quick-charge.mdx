@@ -1,0 +1,40 @@
+---
+title: Quick Charge
+description: |
+    Minecraft Quick Charge — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Quick Charge
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 29
+    ref: quick_charge
+    slug: quick-charge
+    display_name: Quick Charge
+    rarity: common
+    max_level: 3
+    weight: 5
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - crossbow
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 20
+        b_min: -8
+        a_max: 0
+        b_max: 50
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

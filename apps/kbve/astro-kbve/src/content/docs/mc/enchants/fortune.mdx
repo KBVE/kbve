@@ -1,0 +1,41 @@
+---
+title: Fortune
+description: |
+    Minecraft Fortune — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Fortune
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 13
+    ref: fortune
+    slug: fortune
+    display_name: Fortune
+    rarity: common
+    max_level: 3
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - digger
+    incompatible_with:
+        - silk_touch
+    anvil_cost: 1
+    cost:
+        a_min: 9
+        b_min: 6
+        a_max: 9
+        b_max: 56
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />

@@ -1,0 +1,40 @@
+---
+title: Fire Aspect
+description: |
+    Minecraft Fire Aspect — vanilla 1.21.5 enchantment record (auto-generated).
+sidebar:
+    label: Fire Aspect
+tags:
+    - minecraft
+    - mc
+    - mc-enchant
+mc_enchant:
+    id: 10
+    ref: fire_aspect
+    slug: fire-aspect
+    display_name: Fire Aspect
+    rarity: common
+    max_level: 2
+    weight: 2
+    treasure: false
+    curse: false
+    tradeable: true
+    discoverable: true
+    available_in_creative: true
+    targets:
+        - weapon
+    incompatible_with: []
+    anvil_cost: 1
+    cost:
+        a_min: 20
+        b_min: -10
+        a_max: 20
+        b_max: 40
+    tags: []
+    description: ''
+    data_version: "1.21.5"
+---
+
+import MCEnchantPanel from '@/components/mcdb/MCEnchantPanel.astro';
+
+<MCEnchantPanel data={frontmatter.mc_enchant} />
