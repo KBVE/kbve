@@ -1,0 +1,66 @@
+---
+title: Diamond Hoe
+description: |
+    Diamond Hoe — tier 5 farming tool. 1561 durability.
+sidebar:
+    label: Diamond Hoe
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 827
+    ref: diamond_hoe
+    slug: diamond-hoe
+    display_name: Diamond Hoe
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 1561
+    tier: diamond
+    damage:
+        attack_damage: 1
+        attack_speed: 4.0
+    mining:
+        tool_type: hoe
+        tier: 5
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags:
+        - farming
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 2
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 1
+              - ref: stick
+                qty: 1
+                row: 1
+                col: 1
+              - ref: stick
+                qty: 1
+                row: 2
+                col: 1
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

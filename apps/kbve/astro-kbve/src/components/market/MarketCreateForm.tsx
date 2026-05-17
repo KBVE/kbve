@@ -3,6 +3,7 @@ import { useSession } from '@kbve/astro';
 import { createListing, MarketApiError } from './api';
 import { EnchantEditor } from './EnchantEditor';
 import type { Enchant } from './enchants';
+import { MCItemPicker } from './MCItemPicker';
 
 const KIND_OPTIONS = [
 	{ value: 'mc_item', label: 'Minecraft item' },
@@ -111,14 +112,22 @@ export function MarketCreateForm() {
 				</label>
 				<label>
 					Item ID
-					<input
-						type="text"
-						required
-						placeholder="diamond_sword"
-						value={itemId}
-						onChange={(e) => setItemId(e.target.value)}
-						className="kbve-market__input"
-					/>
+					{kind === 'mc_item' ? (
+						<MCItemPicker
+							value={itemId}
+							onChange={setItemId}
+							disabled={busy}
+						/>
+					) : (
+						<input
+							type="text"
+							required
+							placeholder="diamond_sword"
+							value={itemId}
+							onChange={(e) => setItemId(e.target.value)}
+							className="kbve-market__input"
+						/>
+					)}
 				</label>
 				<label>
 					Instance ID (optional)

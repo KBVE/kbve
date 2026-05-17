@@ -26,9 +26,10 @@ export const MCEquipmentSchema = z.object({
 });
 export type MCEquipment = z.infer<typeof MCEquipmentSchema>;
 
-// proto: MCDamage
+// proto: MCDamage. MC tools deal fractional base damage (e.g. shovel +1.5)
+// — accept float; the in-game tooltip rounds to display.
 export const MCDamageSchema = z.object({
-	attack_damage: z.number().int().nonnegative(),
+	attack_damage: z.number().nonnegative(),
 	attack_speed: z.number(),
 });
 export type MCDamage = z.infer<typeof MCDamageSchema>;

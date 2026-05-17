@@ -78,9 +78,10 @@ message MCEquipment {
   int32  knockback_resistance = 4;
 }
 
-// MCDamage models tool/weapon damage profile.
+// MCDamage models tool/weapon damage profile. attack_damage is float
+// because MC tools deal fractional base damage (shovel +1.5, hoe +1.0).
 message MCDamage {
-  int32 attack_damage = 1;
+  float attack_damage = 1;
   float attack_speed  = 2;
 }
 

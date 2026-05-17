@@ -1,0 +1,72 @@
+---
+title: Diamond Boots
+description: |
+    Diamond Boots — foot armor. 3 armor + 2 toughness. 429 durability.
+sidebar:
+    label: Diamond Boots
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 833
+    ref: diamond_boots
+    slug: diamond-boots
+    display_name: Diamond Boots
+    category: armor
+    rarity: common
+    stack_size: 1
+    max_durability: 429
+    tier: diamond
+    equipment:
+        slot: feet
+        armor_points: 3
+        toughness: 2
+        knockback_resistance: 0
+    enchants:
+        allowed:
+            - blast_protection
+            - depth_strider
+            - feather_falling
+            - fire_protection
+            - frost_walker
+            - projectile_protection
+            - protection
+            - soul_speed
+            - thorns
+            - unbreaking
+            - mending
+            - binding_curse
+            - vanishing_curse
+    tags:
+        - armor
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 3
+          height: 2
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 2
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 0
+              - ref: diamond
+                qty: 1
+                row: 1
+                col: 2
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

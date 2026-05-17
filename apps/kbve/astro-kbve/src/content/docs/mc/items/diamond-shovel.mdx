@@ -1,0 +1,62 @@
+---
+title: Diamond Shovel
+description: |
+    Diamond Shovel — tier 5 dirt/sand/gravel/snow tool. 1561 durability.
+sidebar:
+    label: Diamond Shovel
+tags:
+    - minecraft
+    - mc
+    - mc-item
+mc_item:
+    id: 824
+    ref: diamond_shovel
+    slug: diamond-shovel
+    display_name: Diamond Shovel
+    category: tool
+    rarity: common
+    stack_size: 1
+    max_durability: 1561
+    tier: diamond
+    damage:
+        attack_damage: 5.5
+        attack_speed: 1.0
+    mining:
+        tool_type: shovel
+        tier: 5
+    enchants:
+        allowed:
+            - efficiency
+            - fortune
+            - silk_touch
+            - unbreaking
+            - mending
+            - vanishing_curse
+    tags:
+        - mining
+        - tier_diamond
+    recipes:
+        - kind: shaped
+          station: crafting_table
+          yields: 1
+          width: 1
+          height: 3
+          ingredients:
+              - ref: diamond
+                qty: 1
+                row: 0
+                col: 0
+              - ref: stick
+                qty: 1
+                row: 1
+                col: 0
+              - ref: stick
+                qty: 1
+                row: 2
+                col: 0
+    data_version: "1.21.5"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />
