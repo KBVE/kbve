@@ -8344,6 +8344,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "socket2 0.6.3",
+ "tempfile",
  "thiserror 2.0.18",
  "tikv-jemallocator",
  "tokio",
