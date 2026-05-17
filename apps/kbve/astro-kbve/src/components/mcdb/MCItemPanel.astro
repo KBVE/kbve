@@ -1,10 +1,13 @@
 ---
 import { MCItemSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
+import MCLinkTooltip from './MCLinkTooltip';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
 ---
+
+<MCLinkTooltip client:load />
 
 <section class="mcdb-panel not-content">
 	<header class="mcdb-panel__head">
@@ -176,17 +179,18 @@ const item = MCItemSchema.parse(data);
 				{item.recipes.map((r) => {
 					const isShaped =
 						r.kind === 'shaped' && r.width > 0 && r.height > 0;
+					const GRID_DIM = 3;
 					const grid: ((typeof r.ingredients)[number] | null)[][] =
-						[];
+						Array.from({ length: GRID_DIM }, () =>
+							Array.from({ length: GRID_DIM }, () => null),
+						);
 					if (isShaped) {
-						for (let row = 0; row < r.height; row++) {
-							grid.push(
-								Array.from({ length: r.width }, () => null),
-							);
-						}
 						for (const ing of r.ingredients) {
 							if (
-								grid[ing.row] &&
+								ing.row >= 0 &&
+								ing.row < GRID_DIM &&
+								ing.col >= 0 &&
+								ing.col < GRID_DIM &&
 								grid[ing.row][ing.col] === null
 							) {
 								grid[ing.row][ing.col] = ing;
@@ -219,7 +223,7 @@ const item = MCItemSchema.parse(data);
 							{isShaped ? (
 								<div
 									class="mcdb-grid-recipe"
-									style={`--cols: ${r.width};`}>
+									style={`--cols: ${GRID_DIM};`}>
 									{grid.flat().map((cell) => {
 										if (!cell)
 											return (
@@ -230,6 +234,12 @@ const item = MCItemSchema.parse(data);
 											<a
 												class="mcdb-grid-cell mcdb-grid-cell--filled"
 												href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
+												data-mc-tooltip
+												data-mc-ref={cell.ref || ''}
+												data-mc-tag-ref={
+													cell.tag_ref || ''
+												}
+												data-mc-qty={cell.qty}
 												title={`${cell.qty}× ${ingRef}`}>
 												{cell.qty > 1 && (
 													<span class="mcdb-grid-qty">
@@ -272,7 +282,13 @@ const item = MCItemSchema.parse(data);
 													× {ing.qty}
 												</span>
 												<a
-													href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}>
+													href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
+													data-mc-tooltip
+													data-mc-ref={ing.ref || ''}
+													data-mc-tag-ref={
+														ing.tag_ref || ''
+													}
+													data-mc-qty={ing.qty}>
 													{ing.ref ||
 														`#${ing.tag_ref}`}
 												</a>
@@ -578,5 +594,73 @@ const item = MCItemSchema.parse(data);
 	.mcdb-recipe-img.kbve-mc-tex {
 		flex-shrink: 0;
 		margin-right: 0.25rem;
+	}
+
+	.mc-link-tooltip {
+		position: fixed;
+		z-index: 9999;
+		pointer-events: none;
+		min-width: 200px;
+		max-width: 280px;
+		padding: 0.7rem 0.85rem;
+		border-radius: 12px;
+		background: linear-gradient(
+			165deg,
+			var(--sl-color-bg-sidebar) 0%,
+			var(--sl-color-bg) 100%
+		);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		box-shadow: 0 18px 32px -12px
+			color-mix(in srgb, var(--sl-color-black) 60%, transparent);
+		color: var(--sl-color-text);
+		font-size: 0.85rem;
+	}
+	.mc-link-tooltip__head {
+		display: flex;
+		gap: 0.65rem;
+		align-items: center;
+		margin-bottom: 0.45rem;
+	}
+	.mc-link-tooltip__icon {
+		width: 40px;
+		height: 40px;
+		image-rendering: pixelated;
+		border-radius: 8px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		padding: 4px;
+		object-fit: contain;
+	}
+	.mc-link-tooltip__name {
+		font-weight: 800;
+		color: var(--sl-color-white, var(--sl-color-text));
+		font-size: 0.95rem;
+	}
+	.mc-link-tooltip__qty {
+		color: var(--sl-color-accent-high, var(--sl-color-accent));
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		font-size: 0.8rem;
+	}
+	.mc-link-tooltip__rows {
+		display: grid;
+		gap: 0.25rem;
+		margin: 0;
+	}
+	.mc-link-tooltip__rows > div {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.5rem;
+		font-size: 0.8rem;
+	}
+	.mc-link-tooltip__rows dt {
+		color: var(--sl-color-gray-3);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		font-size: 0.7rem;
+	}
+	.mc-link-tooltip__rows dd {
+		margin: 0;
+		font-weight: 600;
 	}
 </style>
