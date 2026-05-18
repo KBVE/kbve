@@ -1915,6 +1915,27 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (Damageable.hp[targetEid] <= 0) {
 			this.deathQueue.push(targetEid);
+			this.hideDyingVisual(targetEid);
+		}
+	}
+
+	private hideDyingVisual(eid: number): void {
+		const kind = Damageable.kind[eid];
+		if (kind === DAMAGEABLE_KIND.enemy) {
+			const v = this.enemyVisuals.get(eid);
+			if (v) {
+				v.sprite.setVisible(false);
+				v.hpBar.setVisible(false);
+				v.hpBarBg.setVisible(false);
+				v.statusRing.setVisible(false);
+			}
+		} else if (kind === DAMAGEABLE_KIND.soldier) {
+			const v = this.soldierVisuals.get(eid);
+			if (v) {
+				v.sprite.setVisible(false);
+				v.hpBar.setVisible(false);
+				v.hpBarBg.setVisible(false);
+			}
 		}
 	}
 
@@ -2405,10 +2426,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 					}
 					const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 					const baseSpeed = EnemyStats.baseSpeed[eid];
+					const wounded = this.woundedFactor(eid);
 					const speed =
 						(slowed
 							? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-							: baseSpeed) * GAME_CONFIG.enemyAttackSpeedFactor;
+							: baseSpeed) *
+						GAME_CONFIG.enemyAttackSpeedFactor *
+						wounded;
 					if (speed > 0) this.moveAlongPath(eid, speed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
@@ -2417,12 +2441,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 			const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 			const baseSpeed = EnemyStats.baseSpeed[eid];
-			const speed = slowed
-				? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-				: baseSpeed;
+			const wounded = this.woundedFactor(eid);
+			const speed =
+				(slowed
+					? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
+					: baseSpeed) * wounded;
 			this.moveAlongPath(eid, speed, dt);
 			this.updateEnemyVisuals(eid, nowMs);
 		}
+	}
+
+	private woundedFactor(eid: number): number {
+		const maxHp = Damageable.maxHp[eid];
+		if (maxHp <= 0) return 1;
+		const hpRatio = Damageable.hp[eid] / maxHp;
+		if (hpRatio >= 0.5) return 1;
+		return Math.max(0.4, hpRatio + 0.4);
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
