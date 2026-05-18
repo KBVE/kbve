@@ -154,6 +154,31 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_savePlayerSnapshot<'lo
     make_jstring(&mut env, &response)
 }
 
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_fetchBalance<'local>(
+    mut env: JNIEnv<'local>,
+    _class: JClass<'local>,
+    uuid: JString<'local>,
+    user_id: JString<'local>,
+) -> jstring {
+    let player_uuid: String = match env.get_string(&uuid) {
+        Ok(s) => s.into(),
+        Err(_) => return make_jstring(&mut env, &AuthResponse::error("invalid uuid string")),
+    };
+    let supabase_user_id: String = match env.get_string(&user_id) {
+        Ok(s) => s.into(),
+        Err(_) => return make_jstring(&mut env, &AuthResponse::error("invalid user_id string")),
+    };
+    let response = match RUNTIME.get() {
+        Some(rt) => rt.submit(AuthJob::FetchBalance {
+            player_uuid,
+            supabase_user_id,
+        }),
+        None => AuthResponse::error("runtime not initialized"),
+    };
+    make_jstring(&mut env, &response)
+}
+
 /// Poll all pending `PlayerEvent`s as a JSON array string. Called each
 /// server tick to drain results back into Fabric.
 #[unsafe(no_mangle)]
