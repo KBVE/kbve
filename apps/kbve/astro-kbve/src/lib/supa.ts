@@ -79,24 +79,18 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 		await migrateAuthStorage();
 		console.log(`[Supabase] Using ${gateway.getStrategyDescription()}`);
 
-		const init = (async () => {
-			await gateway.init(SUPABASE_URL, SUPABASE_ANON_KEY, options);
-			await bootAuth(gateway);
-		})();
-
-		const timeout = new Promise<never>((_, reject) =>
-			setTimeout(
-				() => reject(new Error('init timeout')),
-				INIT_TIMEOUT_MS,
-			),
-		);
-
 		try {
-			await Promise.race([init, timeout]);
+			await gateway.init(SUPABASE_URL, SUPABASE_ANON_KEY, options);
 		} catch (err) {
+			console.warn(
+				'[Supabase] Gateway init failed in both worker and direct modes — falling back to localStorage-seeded auth only.',
+				err,
+			);
 			void autoRecoverStaleClient();
 			throw err;
 		}
+
+		await bootAuth(gateway);
 
 		void resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
 	})()
