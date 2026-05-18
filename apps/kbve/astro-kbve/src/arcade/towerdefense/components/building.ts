@@ -1,4 +1,5 @@
 import type { BuildId } from '../config';
+import { MAX_ENTITIES } from './shared';
 
 export const BuildingTag: Record<string, never> = {};
 export const TowerTag: Record<string, never> = {};
@@ -43,54 +44,54 @@ export function buildIndexFromId(id: BuildId): number {
 }
 
 export const BuildingState = {
-	hp: [] as number[],
-	maxHp: [] as number[],
-	online: [] as number[],
-	destroyed: [] as number[],
-	col: [] as number[],
-	row: [] as number[],
-	specIndex: [] as number[],
-	kindIndex: [] as number[],
-	power: [] as number[],
+	hp: new Float32Array(MAX_ENTITIES),
+	maxHp: new Float32Array(MAX_ENTITIES),
+	online: new Uint8Array(MAX_ENTITIES),
+	destroyed: new Uint8Array(MAX_ENTITIES),
+	col: new Int32Array(MAX_ENTITIES),
+	row: new Int32Array(MAX_ENTITIES),
+	specIndex: new Uint8Array(MAX_ENTITIES),
+	kindIndex: new Uint8Array(MAX_ENTITIES),
+	power: new Float32Array(MAX_ENTITIES),
 };
 
 export const TowerState = {
-	lastFireAtMs: [] as number[],
-	hasFixedTarget: [] as number[],
-	fixedTargetX: [] as number[],
-	fixedTargetY: [] as number[],
+	lastFireAtMs: new Float32Array(MAX_ENTITIES),
+	hasFixedTarget: new Uint8Array(MAX_ENTITIES),
+	fixedTargetX: new Float32Array(MAX_ENTITIES),
+	fixedTargetY: new Float32Array(MAX_ENTITIES),
 };
 
 export const TowerUpgradeStats = {
-	radar: [] as number[],
-	attack: [] as number[],
-	speed: [] as number[],
-	armor: [] as number[],
+	radar: new Uint8Array(MAX_ENTITIES),
+	attack: new Uint8Array(MAX_ENTITIES),
+	speed: new Uint8Array(MAX_ENTITIES),
+	armor: new Uint8Array(MAX_ENTITIES),
 };
 
 export const BatteryState = {
-	charge: [] as number[],
-	capacity: [] as number[],
+	charge: new Float32Array(MAX_ENTITIES),
+	capacity: new Float32Array(MAX_ENTITIES),
 };
 
 export const RepairState = {
-	cooldownLeftMs: [] as number[],
-	activeDroneEid: [] as number[],
+	cooldownLeftMs: new Float32Array(MAX_ENTITIES),
+	activeDroneEid: new Int32Array(MAX_ENTITIES),
 };
 
 export const RepairUpgradeStats = {
-	reach: [] as number[],
-	yield: [] as number[],
-	tempo: [] as number[],
+	reach: new Uint8Array(MAX_ENTITIES),
+	yield: new Uint8Array(MAX_ENTITIES),
+	tempo: new Uint8Array(MAX_ENTITIES),
 };
 
 export const ArmouryState = {
-	nextSpawnAtMs: [] as number[],
+	nextSpawnAtMs: new Float32Array(MAX_ENTITIES),
 };
 
 export const ArmouryUpgradeStats = {
-	capacity: [] as number[],
-	damage: [] as number[],
-	vigor: [] as number[],
-	tempo: [] as number[],
+	capacity: new Uint8Array(MAX_ENTITIES),
+	damage: new Uint8Array(MAX_ENTITIES),
+	vigor: new Uint8Array(MAX_ENTITIES),
+	tempo: new Uint8Array(MAX_ENTITIES),
 };

@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { MAX_ENTITIES } from './shared';
 
 export const DroneTag: Record<string, never> = {};
 
@@ -8,14 +9,14 @@ export const enum DroneState {
 }
 
 export const DroneStats = {
-	speed: [] as number[],
-	state: [] as number[],
-	stationEid: [] as number[],
-	targetEid: [] as number[],
-	repairAmount: [] as number[],
+	speed: new Float32Array(MAX_ENTITIES),
+	state: new Uint8Array(MAX_ENTITIES),
+	stationEid: new Int32Array(MAX_ENTITIES),
+	targetEid: new Int32Array(MAX_ENTITIES),
+	repairAmount: new Float32Array(MAX_ENTITIES),
 };
 
 export interface DroneVisual {
 	sprite: Phaser.GameObjects.Arc;
-	beam: Phaser.GameObjects.Graphics;
+	beam: Phaser.GameObjects.Line;
 }
