@@ -550,16 +550,20 @@ impl ProfileService {
             .await
             .map_err(|e| format!("Failed to read response: {}", e))?;
 
-        // RPC returns the canonical username as a JSON string
         if text.is_empty() || text == "null" {
             return Err("Failed to set username - no response from database".to_string());
         }
 
-        let canonical: String = serde_json::from_str(&text)
+        #[derive(serde::Deserialize)]
+        struct UsernameRow {
+            username: String,
+        }
+
+        let row: UsernameRow = serde_json::from_str(&text)
             .map_err(|e| format!("Failed to parse response: {} (response: {})", e, text))?;
 
-        tracing::info!("Username '{}' set for user {}", canonical, user_id);
-        Ok(canonical)
+        tracing::info!("Username '{}' set for user {}", row.username, user_id);
+        Ok(row.username)
     }
 
     /// Batch resolve `user_id → username` via direct PostgREST SELECT on
