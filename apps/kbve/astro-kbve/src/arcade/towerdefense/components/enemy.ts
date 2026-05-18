@@ -13,6 +13,8 @@ export const ATTACK_TARGET_KIND = {
 export const EnemyStats = {
 	hp: new Float32Array(MAX_ENTITIES),
 	maxHp: new Float32Array(MAX_ENTITIES),
+	armor: new Float32Array(MAX_ENTITIES),
+	maxArmor: new Float32Array(MAX_ENTITIES),
 	baseSpeed: new Float32Array(MAX_ENTITIES),
 	pathIndex: new Int32Array(MAX_ENTITIES),
 	segmentT: new Float32Array(MAX_ENTITIES),

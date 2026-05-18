@@ -23,9 +23,13 @@ export const GAME_CONFIG = {
 	enemyAttackRateMs: 800,
 	enemyAttackRange: 32,
 	enemyAttackSpeedFactor: 0.6,
-	repairAmount: 25,
+	repairAmount: 29,
 	repairDroneSpeed: 220,
 	repairDroneCooldownMs: 3500,
+	armorBuildingRatio: 0.4,
+	armorEnemyRatio: 0.35,
+	passiveRepairIntervalMs: 1500,
+	passiveRepairArmor: 12,
 } as const;
 
 export const COLORS = {
@@ -326,7 +330,7 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 		defense: 5,
 		power: 2,
 		cooldownMs: 3500,
-		repairAmount: 25,
+		repairAmount: 29,
 		repairRange: 280,
 		color: 0x68d391,
 	},

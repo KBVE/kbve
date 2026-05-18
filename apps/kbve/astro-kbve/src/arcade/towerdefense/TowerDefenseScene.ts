@@ -228,6 +228,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		batteryCapacity: 0,
 	};
 	private powerRefreshAccumulatorMs = 0;
+	private passiveRepairAccumulatorMs = 0;
 
 	constructor() {
 		super({ key: 'TowerDefenseScene' });
@@ -293,6 +294,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			batteryCapacity: 0,
 		};
 		this.powerRefreshAccumulatorMs = 0;
+		this.passiveRepairAccumulatorMs = 0;
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
@@ -1352,6 +1354,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.y[eid] = y;
 		BuildingState.hp[eid] = spec.maxHp;
 		BuildingState.maxHp[eid] = spec.maxHp;
+		const buildingArmor = Math.floor(
+			spec.maxHp * GAME_CONFIG.armorBuildingRatio,
+		);
+		BuildingState.armor[eid] = buildingArmor;
+		BuildingState.maxArmor[eid] = buildingArmor;
 		BuildingState.online[eid] = 1;
 		BuildingState.destroyed[eid] = 0;
 		BuildingState.col[eid] = col;
@@ -1673,6 +1680,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.y[eid] = start.y;
 		EnemyStats.hp[eid] = hp;
 		EnemyStats.maxHp[eid] = hp;
+		const enemyArmor = Math.floor(hp * GAME_CONFIG.armorEnemyRatio);
+		EnemyStats.armor[eid] = enemyArmor;
+		EnemyStats.maxArmor[eid] = enemyArmor;
 		EnemyStats.baseSpeed[eid] = speed;
 		EnemyStats.pathIndex[eid] = 1;
 		EnemyStats.segmentT[eid] = 0;
@@ -1760,9 +1770,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
-		const reduced = Math.max(1, dmg - b.spec.defense);
 		const eid = b.id;
-		BuildingState.hp[eid] -= reduced;
+		let remaining = dmg;
+		const armor = BuildingState.armor[eid];
+		if (armor > 0) {
+			if (remaining <= armor) {
+				BuildingState.armor[eid] = armor - remaining;
+				remaining = 0;
+			} else {
+				BuildingState.armor[eid] = 0;
+				remaining -= armor;
+			}
+		}
+		if (remaining > 0) {
+			const reduced = Math.max(1, remaining - b.spec.defense);
+			BuildingState.hp[eid] -= reduced;
+		}
 		if (BuildingState.hp[eid] <= 0) {
 			this.destroyBuilding(b);
 		} else {
@@ -2479,8 +2502,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private damageEnemy(eid: number, dmg: number): void {
-		const reduced = Math.max(1, dmg - EnemyStats.defense[eid]);
-		EnemyStats.hp[eid] -= reduced;
+		let remaining = dmg;
+		const armor = EnemyStats.armor[eid];
+		if (armor > 0) {
+			if (remaining <= armor) {
+				EnemyStats.armor[eid] = armor - remaining;
+				remaining = 0;
+			} else {
+				EnemyStats.armor[eid] = 0;
+				remaining -= armor;
+			}
+		}
+		if (remaining > 0) {
+			const reduced = Math.max(1, remaining - EnemyStats.defense[eid]);
+			EnemyStats.hp[eid] -= reduced;
+		}
 		if (EnemyStats.hp[eid] <= 0) {
 			this.killEnemy(eid, true);
 			return;
@@ -2606,10 +2642,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 				Position.x[deid] = destX;
 				Position.y[deid] = destY;
 				if (DroneStats.state[deid] === DroneState.Outbound) {
-					BuildingState.hp[tEid] = Math.min(
-						BuildingState.maxHp[tEid],
-						BuildingState.hp[tEid] + DroneStats.repairAmount[deid],
-					);
+					let heal = DroneStats.repairAmount[deid];
+					const armorRoom =
+						BuildingState.maxArmor[tEid] -
+						BuildingState.armor[tEid];
+					if (armorRoom > 0) {
+						const addArmor = heal < armorRoom ? heal : armorRoom;
+						BuildingState.armor[tEid] += addArmor;
+						heal -= addArmor;
+					}
+					if (heal > 0) {
+						BuildingState.hp[tEid] = Math.min(
+							BuildingState.maxHp[tEid],
+							BuildingState.hp[tEid] + heal,
+						);
+					}
 					DroneStats.state[deid] = DroneState.Returning;
 				} else {
 					deathRow.push(deid);
@@ -2633,6 +2680,33 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		}
 		for (const deid of deathRow) this.killDrone(deid);
+	}
+
+	private applyPassiveArmorAura(): void {
+		const heal = GAME_CONFIG.passiveRepairArmor;
+		for (let i = 0; i < this.frameRepairEids.length; i++) {
+			const sEid = this.frameRepairEids[i];
+			if (BuildingState.destroyed[sEid]) continue;
+			if (!BuildingState.online[sEid]) continue;
+			const station = this.buildingByEid.get(sEid);
+			if (!station || station.kind !== 'repair') continue;
+			const range = repairRange(station);
+			const rangeSq = range * range;
+			const sx = station.x;
+			const sy = station.y;
+			for (const beid of this.frameBuildingEids) {
+				if (beid === sEid) continue;
+				if (BuildingState.destroyed[beid]) continue;
+				const max = BuildingState.maxArmor[beid];
+				const cur = BuildingState.armor[beid];
+				if (cur >= max) continue;
+				const dx = Position.x[beid] - sx;
+				const dy = Position.y[beid] - sy;
+				if (dx * dx + dy * dy > rangeSq) continue;
+				const room = max - cur;
+				BuildingState.armor[beid] = cur + (heal < room ? heal : room);
+			}
+		}
 	}
 
 	private findRepairTarget(station: RepairBuilding): Building | null {
@@ -2790,6 +2864,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
 		this.updateSoldiers(dt, nowMs);
+
+		this.passiveRepairAccumulatorMs += scaledDeltaMs;
+		if (
+			this.passiveRepairAccumulatorMs >=
+			GAME_CONFIG.passiveRepairIntervalMs
+		) {
+			this.passiveRepairAccumulatorMs -=
+				GAME_CONFIG.passiveRepairIntervalMs;
+			this.applyPassiveArmorAura();
+		}
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {
