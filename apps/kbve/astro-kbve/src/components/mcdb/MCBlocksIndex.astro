@@ -1,0 +1,21 @@
+---
+import MCBlocksBrowser from './MCBlocksBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>Minecraft Blocks</h1>
+			<p>
+				Every vanilla block we've published. Search by ref or display
+				name, filter by material or best mining tool, and jump to the
+				per-block page for hardness, blast resistance, drops, and tags.
+			</p>
+		</div>
+	</header>
+
+	<MCBlocksBrowser client:load />
+</section>
