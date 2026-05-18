@@ -1,0 +1,593 @@
+---
+
+---
+
+<section
+	class="kbve-referral-card not-content"
+	data-kbve-referral-shell
+	data-kbve-referral-state="loading"
+	aria-label="Your referral targets">
+	<header class="kbve-referral-card__header">
+		<div>
+			<h2 class="kbve-referral-card__title">Referral targets</h2>
+			<p class="kbve-referral-card__lede">
+				Manage the destinations <code>/referral/@&lt;you&gt;/</code> sends
+				visitors to. The default target loads when someone hits the bare handle.
+			</p>
+		</div>
+	</header>
+
+	<dl class="kbve-referral-card__stats" data-kbve-referral-stats hidden>
+		<div>
+			<dt>Total clicks</dt>
+			<dd data-kbve-referral-stat="clicks_total">—</dd>
+		</div>
+		<div>
+			<dt>Credited</dt>
+			<dd data-kbve-referral-stat="clicks_credited">—</dd>
+		</div>
+		<div>
+			<dt>Credits earned</dt>
+			<dd data-kbve-referral-stat="credits_total">—</dd>
+		</div>
+	</dl>
+
+	<div class="kbve-referral-card__signed-out" data-kbve-referral-signed-out>
+		Sign in to manage your referral targets.
+	</div>
+
+	<div class="kbve-referral-card__error" data-kbve-referral-error hidden>
+	</div>
+
+	<ul class="kbve-referral-card__list" data-kbve-referral-list hidden></ul>
+
+	<form class="kbve-referral-card__add" data-kbve-referral-add hidden>
+		<label class="kbve-referral-card__field">
+			<span>Add a target</span>
+			<input
+				type="text"
+				name="slug"
+				placeholder="rareicon"
+				autocomplete="off"
+				required
+				maxlength="64"
+			/>
+			<small>
+				Known slugs: <code>rareicon</code>, <code>mc</code>. Adding your
+				first target auto-sets it as default.
+			</small>
+		</label>
+		<button type="submit">Enable target</button>
+		<output
+			class="kbve-referral-card__status"
+			data-kbve-referral-add-status>
+		</output>
+	</form>
+</section>
+
+<script>
+	import { initSupa, getSupa } from '@/lib/supa';
+
+	const shell = document.querySelector<HTMLElement>(
+		'[data-kbve-referral-shell]',
+	);
+	if (shell) {
+		const statsEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-referral-stats]',
+		);
+		const signedOutEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-referral-signed-out]',
+		);
+		const errorEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-referral-error]',
+		);
+		const listEl = shell.querySelector<HTMLUListElement>(
+			'[data-kbve-referral-list]',
+		);
+		const addForm = shell.querySelector<HTMLFormElement>(
+			'[data-kbve-referral-add]',
+		);
+		const addStatus = shell.querySelector<HTMLOutputElement>(
+			'[data-kbve-referral-add-status]',
+		);
+
+		const setState = (
+			state: 'loading' | 'signed-out' | 'ready' | 'error',
+		) => {
+			shell.dataset.kbveReferralState = state;
+			if (state === 'signed-out') {
+				signedOutEl?.removeAttribute('hidden');
+				statsEl?.setAttribute('hidden', '');
+				listEl?.setAttribute('hidden', '');
+				addForm?.setAttribute('hidden', '');
+			} else if (state === 'ready') {
+				signedOutEl?.setAttribute('hidden', '');
+				statsEl?.removeAttribute('hidden');
+				listEl?.removeAttribute('hidden');
+				addForm?.removeAttribute('hidden');
+			}
+		};
+
+		const setError = (msg: string | null) => {
+			if (!errorEl) return;
+			if (!msg) {
+				errorEl.setAttribute('hidden', '');
+				errorEl.textContent = '';
+			} else {
+				errorEl.removeAttribute('hidden');
+				errorEl.textContent = msg;
+			}
+		};
+
+		const setAddStatus = (
+			kind: 'idle' | 'busy' | 'error' | 'ok',
+			msg = '',
+		) => {
+			if (!addStatus) return;
+			addStatus.dataset.kind = kind;
+			addStatus.textContent = msg;
+		};
+
+		const fmt = (n: unknown) => {
+			const v = typeof n === 'number' ? n : Number(n);
+			return Number.isFinite(v) ? v.toLocaleString() : '—';
+		};
+
+		type TargetRow = {
+			target_slug: string;
+			title: string;
+			url: string;
+			is_default: boolean;
+			active: boolean;
+			enabled_at: string;
+			disabled_at: string | null;
+			updated_at: string;
+			clicks_total: number;
+			clicks_credited: number;
+			credits_total: number;
+			last_click_at: string | null;
+		};
+		type Stats = {
+			clicks_total: number;
+			clicks_credited: number;
+			credits_total: number;
+			last_click_at: string | null;
+		};
+
+		const renderTargets = (rows: TargetRow[]) => {
+			if (!listEl) return;
+			listEl.innerHTML = '';
+			if (rows.length === 0) {
+				const empty = document.createElement('li');
+				empty.className = 'kbve-referral-card__empty';
+				empty.textContent = 'No targets enabled yet. Add one below.';
+				listEl.appendChild(empty);
+				return;
+			}
+			for (const row of rows) {
+				const li = document.createElement('li');
+				li.className = 'kbve-referral-card__row';
+				li.dataset.active = row.active ? 'true' : 'false';
+				li.dataset.default = row.is_default ? 'true' : 'false';
+				li.innerHTML = `
+					<div class="kbve-referral-card__row-main">
+						<div class="kbve-referral-card__row-title">
+							<span class="kbve-referral-card__slug">${row.target_slug}</span>
+							${row.is_default ? '<span class="kbve-referral-card__badge kbve-referral-card__badge--default">Default</span>' : ''}
+							${!row.active ? '<span class="kbve-referral-card__badge kbve-referral-card__badge--inactive">Inactive</span>' : ''}
+						</div>
+						<div class="kbve-referral-card__row-meta">
+							${row.title} · <a href="${row.url}" target="_blank" rel="noopener">${row.url}</a>
+						</div>
+						<div class="kbve-referral-card__row-stats">
+							${fmt(row.clicks_total)} clicks · ${fmt(row.clicks_credited)} credited · ${fmt(row.credits_total)} credits
+						</div>
+					</div>
+					<div class="kbve-referral-card__row-actions">
+						${row.active && !row.is_default ? `<button type="button" data-action="set-default" data-slug="${row.target_slug}">Set default</button>` : ''}
+						${row.active ? `<button type="button" data-action="disable" data-slug="${row.target_slug}">Disable</button>` : `<button type="button" data-action="enable" data-slug="${row.target_slug}">Re-enable</button>`}
+					</div>
+				`;
+				listEl.appendChild(li);
+			}
+		};
+
+		const renderStats = (stats: Stats) => {
+			if (!statsEl) return;
+			for (const el of statsEl.querySelectorAll<HTMLElement>(
+				'[data-kbve-referral-stat]',
+			)) {
+				const key = el.dataset.kbveReferralStat as keyof Stats;
+				const value = stats[key];
+				el.textContent =
+					key === 'last_click_at'
+						? value
+							? String(value)
+							: '—'
+						: fmt(value);
+			}
+		};
+
+		const authHeaders = (token: string) => ({
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json',
+		});
+
+		const fetchJson = async <T,>(
+			url: string,
+			init: RequestInit,
+		): Promise<T> => {
+			const res = await fetch(url, init);
+			if (!res.ok) {
+				const body = await res.text().catch(() => '');
+				let detail = res.statusText;
+				try {
+					const parsed = JSON.parse(body) as {
+						error?: string;
+						detail?: string;
+					};
+					detail = parsed.detail || parsed.error || detail;
+				} catch {}
+				throw new Error(`${res.status}: ${detail}`);
+			}
+			return (await res.json()) as T;
+		};
+
+		const refresh = async (token: string) => {
+			try {
+				const [targets, stats] = await Promise.all([
+					fetchJson<TargetRow[]>('/api/v1/referral/me/targets', {
+						headers: authHeaders(token),
+					}),
+					fetchJson<Stats>('/api/v1/referral/me/stats', {
+						headers: authHeaders(token),
+					}),
+				]);
+				renderTargets(targets);
+				renderStats(stats);
+				setError(null);
+				setState('ready');
+			} catch (err) {
+				setError(
+					err instanceof Error
+						? err.message
+						: 'Failed to load referral state.',
+				);
+				setState('error');
+			}
+		};
+
+		const mutate = async (token: string, path: string, body?: unknown) => {
+			await fetchJson<unknown>(`/api/v1/referral/me${path}`, {
+				method: 'POST',
+				headers: authHeaders(token),
+				body: body ? JSON.stringify(body) : undefined,
+			});
+			await refresh(token);
+		};
+
+		(async () => {
+			try {
+				await initSupa();
+			} catch {
+				setState('signed-out');
+				return;
+			}
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const token = sessionResult?.session?.access_token;
+			if (!token) {
+				setState('signed-out');
+				return;
+			}
+			await refresh(token);
+
+			listEl?.addEventListener('click', async (ev) => {
+				const target = ev.target;
+				if (!(target instanceof HTMLButtonElement)) return;
+				const action = target.dataset.action;
+				const slug = target.dataset.slug;
+				if (!action || !slug) return;
+				target.disabled = true;
+				try {
+					if (action === 'set-default') {
+						await mutate(
+							token,
+							`/targets/${encodeURIComponent(slug)}/set-default`,
+						);
+					} else if (action === 'disable') {
+						await mutate(
+							token,
+							`/targets/${encodeURIComponent(slug)}/disable`,
+						);
+					} else if (action === 'enable') {
+						await mutate(
+							token,
+							`/targets/${encodeURIComponent(slug)}/enable`,
+							{ set_as_default: false },
+						);
+					}
+				} catch (err) {
+					setError(
+						err instanceof Error ? err.message : 'Action failed.',
+					);
+				} finally {
+					target.disabled = false;
+				}
+			});
+
+			addForm?.addEventListener('submit', async (ev) => {
+				ev.preventDefault();
+				setAddStatus('idle');
+				const fd = new FormData(addForm);
+				const slug = String(fd.get('slug') || '')
+					.trim()
+					.toLowerCase();
+				if (!slug) {
+					setAddStatus('error', 'Slug is required.');
+					return;
+				}
+				setAddStatus('busy', 'Enabling…');
+				try {
+					await mutate(
+						token,
+						`/targets/${encodeURIComponent(slug)}/enable`,
+						{ set_as_default: false },
+					);
+					addForm.reset();
+					setAddStatus('ok', `Enabled ${slug}.`);
+				} catch (err) {
+					setAddStatus(
+						'error',
+						err instanceof Error ? err.message : 'Enable failed.',
+					);
+				}
+			});
+		})();
+	}
+</script>
+
+<style>
+	.kbve-referral-card {
+		margin-top: 1rem;
+		padding: 1.25rem;
+		border-radius: 16px;
+		background: linear-gradient(
+			145deg,
+			rgba(30, 41, 59, 0.9) 0%,
+			rgba(15, 23, 42, 0.95) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.9);
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		display: grid;
+		gap: 1rem;
+	}
+	.kbve-referral-card__header h2 {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 700;
+	}
+	.kbve-referral-card__lede {
+		margin: 0.25rem 0 0;
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.85rem;
+		line-height: 1.5;
+	}
+	.kbve-referral-card__lede code {
+		font-size: 0.85em;
+		padding: 0 0.3em;
+		background: rgba(255, 255, 255, 0.08);
+		border-radius: 4px;
+	}
+
+	.kbve-referral-card__stats {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem;
+		margin: 0;
+	}
+	.kbve-referral-card__stats > div {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 10px;
+		padding: 0.65rem 0.85rem;
+	}
+	.kbve-referral-card__stats dt {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: rgba(255, 255, 255, 0.55);
+		margin: 0 0 0.2rem;
+	}
+	.kbve-referral-card__stats dd {
+		margin: 0;
+		font-weight: 700;
+		font-size: 1.1rem;
+	}
+
+	.kbve-referral-card__signed-out {
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.9rem;
+	}
+	.kbve-referral-card[data-kbve-referral-state='signed-out']
+		.kbve-referral-card__stats,
+	.kbve-referral-card[data-kbve-referral-state='signed-out']
+		.kbve-referral-card__list,
+	.kbve-referral-card[data-kbve-referral-state='signed-out']
+		.kbve-referral-card__add {
+		display: none;
+	}
+	.kbve-referral-card[data-kbve-referral-state='ready']
+		.kbve-referral-card__signed-out {
+		display: none;
+	}
+
+	.kbve-referral-card__error {
+		padding: 0.5rem 0.85rem;
+		background: rgba(248, 113, 113, 0.1);
+		border: 1px solid rgba(248, 113, 113, 0.3);
+		border-radius: 8px;
+		color: #fca5a5;
+		font-size: 0.85rem;
+	}
+
+	.kbve-referral-card__list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.kbve-referral-card__row {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		justify-content: space-between;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 10px;
+		padding: 0.75rem 0.95rem;
+		flex-wrap: wrap;
+	}
+	.kbve-referral-card__row[data-active='false'] {
+		opacity: 0.55;
+	}
+	.kbve-referral-card__row-main {
+		display: grid;
+		gap: 0.2rem;
+		min-width: 0;
+		flex: 1 1 14rem;
+	}
+	.kbve-referral-card__row-title {
+		display: flex;
+		gap: 0.45rem;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.kbve-referral-card__slug {
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+	.kbve-referral-card__badge {
+		font-size: 0.65rem;
+		padding: 0.1rem 0.45rem;
+		border-radius: 999px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-weight: 600;
+	}
+	.kbve-referral-card__badge--default {
+		background: rgba(139, 92, 246, 0.2);
+		color: #c4b5fd;
+		border: 1px solid rgba(139, 92, 246, 0.4);
+	}
+	.kbve-referral-card__badge--inactive {
+		background: rgba(255, 255, 255, 0.06);
+		color: rgba(255, 255, 255, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+	.kbve-referral-card__row-meta {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.55);
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.kbve-referral-card__row-meta a {
+		color: rgba(255, 255, 255, 0.7);
+	}
+	.kbve-referral-card__row-stats {
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+	.kbve-referral-card__row-actions {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+	.kbve-referral-card__row-actions button {
+		padding: 0.4rem 0.85rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		color: rgba(255, 255, 255, 0.9);
+		font-size: 0.8rem;
+		font-weight: 500;
+		cursor: pointer;
+	}
+	.kbve-referral-card__row-actions button:hover:not(:disabled) {
+		border-color: rgba(139, 92, 246, 0.5);
+	}
+	.kbve-referral-card__row-actions button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.kbve-referral-card__empty {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.55);
+		padding: 0.6rem 0;
+	}
+
+	.kbve-referral-card__add {
+		display: grid;
+		gap: 0.65rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		padding-top: 1rem;
+	}
+	.kbve-referral-card__field {
+		display: grid;
+		gap: 0.35rem;
+	}
+	.kbve-referral-card__field > span {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: rgba(255, 255, 255, 0.55);
+		font-weight: 600;
+	}
+	.kbve-referral-card__field input {
+		padding: 0.55rem 0.8rem;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		color: rgba(255, 255, 255, 0.95);
+		font-family: inherit;
+		font-size: 0.9rem;
+	}
+	.kbve-referral-card__field input:focus {
+		outline: 2px solid rgba(139, 92, 246, 0.5);
+		outline-offset: -2px;
+	}
+	.kbve-referral-card__field small {
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+	.kbve-referral-card__add button[type='submit'] {
+		justify-self: end;
+		padding: 0.5rem 1.1rem;
+		background: rgba(139, 92, 246, 0.85);
+		border: none;
+		border-radius: 8px;
+		color: white;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.kbve-referral-card__add button[type='submit']:hover {
+		background: rgba(139, 92, 246, 1);
+	}
+	.kbve-referral-card__status {
+		font-size: 0.8rem;
+		min-height: 1em;
+	}
+	.kbve-referral-card__status[data-kind='busy'] {
+		color: rgba(255, 255, 255, 0.6);
+	}
+	.kbve-referral-card__status[data-kind='error'] {
+		color: #f87171;
+	}
+	.kbve-referral-card__status[data-kind='ok'] {
+		color: #34d399;
+	}
+</style>
