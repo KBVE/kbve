@@ -51,6 +51,11 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
 fi
 export DATABASE_URL
 
+# Inventory down migration refuses to run unless this GUC is set on the
+# session. Local test harness opts in; prod URLs never set it, so a
+# stray `dbmate rollback` against prod aborts before any drop.
+export PGOPTIONS="${PGOPTIONS:-} -c app.allow_destructive_inventory_down=true"
+
 PSQL_URL="postgresql://postgres:postgres@localhost:54322/postgres?sslmode=disable"
 
 bring_up_compose() {
