@@ -84,11 +84,22 @@ export interface BuildSpecBase {
 	color: number;
 }
 
+export const TOWER_DAMAGE_TYPE = {
+	kinetic: 0,
+	explosive: 1,
+	fire: 2,
+	cold: 3,
+	energy: 4,
+} as const;
+export type TowerDamageType =
+	(typeof TOWER_DAMAGE_TYPE)[keyof typeof TOWER_DAMAGE_TYPE];
+
 export interface TowerSpec extends BuildSpecBase {
 	kind: 'tower';
 	power: number;
 	range: number;
 	damage: number;
+	damageType: TowerDamageType;
 	fireRateMs: number;
 	projectileSpeed: number;
 	projectileColor: number;
@@ -161,6 +172,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		power: 1,
 		range: 140,
 		damage: 12,
+		damageType: TOWER_DAMAGE_TYPE.kinetic,
 		fireRateMs: 600,
 		projectileSpeed: 420,
 		color: 0x4299e1,
@@ -185,6 +197,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		power: 3,
 		range: 160,
 		damage: 28,
+		damageType: TOWER_DAMAGE_TYPE.explosive,
 		fireRateMs: 1300,
 		projectileSpeed: 280,
 		color: 0xed8936,
@@ -209,6 +222,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		power: 2,
 		range: 150,
 		damage: 4,
+		damageType: TOWER_DAMAGE_TYPE.cold,
 		fireRateMs: 500,
 		projectileSpeed: 450,
 		color: 0x63b3ed,
@@ -233,6 +247,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		power: 2,
 		range: 120,
 		damage: 0,
+		damageType: TOWER_DAMAGE_TYPE.fire,
 		fireRateMs: 1100,
 		projectileSpeed: 300,
 		color: 0xfc8181,
@@ -257,6 +272,7 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		power: 4,
 		range: BASE_WIDTH + BASE_HEIGHT,
 		damage: 45,
+		damageType: TOWER_DAMAGE_TYPE.explosive,
 		fireRateMs: 2600,
 		projectileSpeed: 380,
 		color: 0xa0522d,

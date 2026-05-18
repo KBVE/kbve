@@ -2445,6 +2445,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		ProjectileStats.splashRadius[eid] = spec.splashRadius;
 		ProjectileStats.slowMs[eid] = spec.slowMs;
 		ProjectileStats.slowFactor[eid] = spec.slowFactor;
+		ProjectileStats.damageType[eid] = spec.damageType;
 		this.projectileVisuals.set(eid, { sprite });
 	}
 
@@ -2527,17 +2528,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 			return;
 		}
 		const damage = ProjectileStats.damage[eid];
+		const dmgType = ProjectileStats.damageType[eid];
 		const splashRadius = ProjectileStats.splashRadius[eid];
 		if (splashRadius > 0) {
 			this.forEachEnemyInRange(x, y, splashRadius, (id) => {
-				this.damageEnemy(id, damage);
+				this.applyDamage(id, damage, dmgType, DAMAGE_FLAG.none);
+				if (Damageable.hp[id] > 0) {
+					const v = this.enemyVisuals.get(id);
+					if (v) this.flashSprite(v.sprite, 0xffffff);
+				}
 			});
 			this.spawnSplashFlash(x, y, splashRadius);
 			return;
 		}
 		const targetEid = ProjectileStats.enemyEid[eid];
 		if (this.isEnemyAlive(targetEid)) {
-			this.damageEnemy(targetEid, damage);
+			this.applyDamage(targetEid, damage, dmgType, DAMAGE_FLAG.none);
+			if (Damageable.hp[targetEid] > 0) {
+				const v = this.enemyVisuals.get(targetEid);
+				if (v) this.flashSprite(v.sprite, 0xffffff);
+			}
 			const slowMs = ProjectileStats.slowMs[eid];
 			if (this.isEnemyAlive(targetEid) && slowMs > 0) {
 				EnemyStats.slowUntilMs[targetEid] = Math.max(
