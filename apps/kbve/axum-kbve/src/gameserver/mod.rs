@@ -18,15 +18,17 @@ use lightyear::prelude::*;
 use bevy_inventory::Inventory;
 use bevy_items::ItemDb;
 use bevy_items::inventory_adapter::{ProtoItemKind, init_item_db};
+use bevy_items::skilling_type_to_skill_ref;
 use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest,
     CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch, CreatureKind,
     CreaturePositionSync, CreatureSnapshot, CreatureSyncChannel, DamageEvent, GameChannel,
     InventorySlotState, InventorySync, InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerName,
-    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeChannel,
-    TimeSyncMessage,
+    PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, SkillXpGrant, TileKey,
+    TimeChannel, TimeSyncMessage,
 };
+use bevy_skills::{BevySkillsPlugin, GrantXpMsg, SkillDef, SkillId, SkillProfile, SkillRegistry};
 
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -164,6 +166,35 @@ fn slot_to_state(
             .unwrap_or_default(),
         quantity: stack.quantity,
     }
+}
+
+/// Register the same gathering skills the client knows about so the server
+/// can grant XP and gate access by level. Keep the slugs aligned with
+/// `apps/kbve/isometric/.../skills.rs::register_skills` — drift will desync
+/// the XP curves between server and client.
+fn register_server_skills(mut registry: ResMut<SkillRegistry>) {
+    registry.register(SkillDef {
+        r#ref: "woodcutting".into(),
+        name: "Woodcutting".into(),
+        category: "gathering".into(),
+        icon: None,
+        xp_curve: None,
+    });
+    registry.register(SkillDef {
+        r#ref: "mining".into(),
+        name: "Mining".into(),
+        category: "gathering".into(),
+        icon: None,
+        xp_curve: None,
+    });
+    registry.register(SkillDef {
+        r#ref: "foraging".into(),
+        name: "Foraging".into(),
+        category: "gathering".into(),
+        icon: None,
+        xp_curve: None,
+    });
+    tracing::info!("[skills] server registered {} skills", registry.len());
 }
 
 // ---------------------------------------------------------------------------
@@ -695,6 +726,8 @@ fn run_bevy_app(
     app.init_resource::<CollectedObjects>();
     app.init_resource::<PlayerInventories>();
     load_server_itemdb();
+    app.add_plugins(BevySkillsPlugin);
+    app.add_systems(Startup, register_server_skills);
     app.init_resource::<DayCycle>();
     app.init_resource::<CreatureSeed>();
     app.init_resource::<WindState>();
@@ -1619,6 +1652,9 @@ fn spawn_player(
             Rotation::default(),
             LinearVelocity::default(),
             Collider::cuboid(0.6, 1.2, 0.6),
+            // Server-side skill state. Persistence + cross-session restore is
+            // not wired yet — fresh profile each session.
+            SkillProfile::default(),
             // Target a specific server entity — avoids .single() failure when
             // multiple Server entities exist (WS + WT).
             Replicate::new(lightyear::prelude::ReplicationMode::Server(
@@ -1691,11 +1727,14 @@ fn process_collect_requests(
     mut receivers: Query<(Entity, &mut MessageReceiver<CollectRequest>), Without<PendingAuth>>,
     positions: Query<&Position>,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
+    skill_profiles: Query<&SkillProfile>,
+    mut xp_writer: MessageWriter<GrantXpMsg>,
     legacy: Res<LegacyBroadcastFlag>,
     mut multi: ServerMultiMessageSender<With<Connected>>,
     servers: Query<&Server>,
     mut legacy_senders: Query<&mut MessageSender<ObjectRemoved>, With<Connected>>,
     mut inv_senders: Query<&mut MessageSender<InventoryUpdate>, With<Connected>>,
+    mut xp_senders: Query<&mut MessageSender<SkillXpGrant>, With<Connected>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -1728,6 +1767,43 @@ fn process_collect_requests(
                             tile.tz
                         );
                         continue;
+                    }
+                }
+            }
+
+            // Resolve the candidate item ref + skilling metadata up-front so we
+            // can gate the collect before marking the tile consumed.
+            let candidate_item_ref = bevy_kbve_net::item_ref_at(tile.tx, tile.tz).unwrap_or("");
+            let player_entity_opt = client_player_map.0.get(&client_entity).copied();
+            let skilling_meta = if candidate_item_ref.is_empty() {
+                None
+            } else {
+                ProtoItemKind::from_ref(candidate_item_ref)
+                    .item()
+                    .and_then(|i| i.skilling.as_ref())
+            };
+
+            // Skill-level gating: reject the collect if the item declares a
+            // required skill level and the player hasn't reached it. Tile stays
+            // un-collected so the world object is still interactable.
+            if let (Some(player_entity), Some(skilling)) = (player_entity_opt, skilling_meta) {
+                if let Some(skill_ref) = skilling_type_to_skill_ref(
+                    bevy_items::SkillingType::try_from(skilling.skill)
+                        .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
+                ) {
+                    let required = skilling.skill_level.unwrap_or(0).max(0) as u32;
+                    if required > 0 {
+                        if let Ok(profile) = skill_profiles.get(player_entity) {
+                            let current = profile.level(SkillId::from_ref(skill_ref));
+                            if current < required {
+                                tracing::info!(
+                                    "[gameserver] collect rejected for player {player_entity:?}: \
+                                     {skill_ref} level {current} < required {required} \
+                                     (item={candidate_item_ref})"
+                                );
+                                continue;
+                            }
+                        }
                     }
                 }
             }
@@ -1809,6 +1885,38 @@ fn process_collect_requests(
                             };
                             if let Ok(mut sender) = inv_senders.get_mut(client_entity) {
                                 sender.send::<bevy_kbve_net::GameChannel>(update);
+                            }
+                        }
+
+                        // Award gathering XP based on the item's skilling metadata.
+                        // Server queues a GrantXpMsg for its own SkillProfile and
+                        // mirrors the same delta to the owning client so the local
+                        // SkillProfile stays in sync without a separate add.
+                        if let Some(skilling) = kind.item().and_then(|i| i.skilling.as_ref()) {
+                            if let Some(skill_ref) = skilling_type_to_skill_ref(
+                                bevy_items::SkillingType::try_from(skilling.skill)
+                                    .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
+                            ) {
+                                let xp_per = skilling.xp_reward.unwrap_or(0.0).max(0.0);
+                                if xp_per > 0.0 {
+                                    let amount = (xp_per * granted as f32).round() as u64;
+                                    if amount > 0 {
+                                        xp_writer.write(GrantXpMsg {
+                                            entity: player_entity,
+                                            skill: SkillId::from_ref(skill_ref),
+                                            amount,
+                                        });
+                                        if let Ok(mut sender) = xp_senders.get_mut(client_entity) {
+                                            sender.send::<bevy_kbve_net::GameChannel>(
+                                                SkillXpGrant {
+                                                    player_id: collector_id,
+                                                    skill_ref: skill_ref.to_string(),
+                                                    amount,
+                                                },
+                                            );
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

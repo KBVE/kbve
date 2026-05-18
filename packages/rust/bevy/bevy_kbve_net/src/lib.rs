@@ -25,7 +25,7 @@ pub use protocol::{
     CreatureSyncChannel, DamageEvent, DamageSource, GameChannel, InventorySlotState, InventorySync,
     InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
     PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
-    TimeChannel, TimeSyncMessage,
+    SkillXpGrant, TimeChannel, TimeSyncMessage,
 };
 pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile};
 
