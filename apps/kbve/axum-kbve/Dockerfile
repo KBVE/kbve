@@ -104,6 +104,9 @@ COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
 COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
 COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
 COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
+COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
+COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
+COPY packages/rust/bevy/bevy_skills/Cargo.toml packages/rust/bevy/bevy_skills/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -113,7 +116,10 @@ RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbv
     mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -166,6 +172,9 @@ COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
+COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
+COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -176,7 +185,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker && \
+    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
+        -p bevy_inventory -p bevy_items -p bevy_skills && \
     (sccache --show-stats || true)
 
 # ============================================================================
@@ -199,6 +209,9 @@ COPY packages/rust/holy packages/rust/holy
 COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
 COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
+COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
+COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
+COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/kbve/axum-kbve apps/kbve/axum-kbve

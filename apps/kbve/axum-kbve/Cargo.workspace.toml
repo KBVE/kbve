@@ -7,6 +7,9 @@ members = [
     "packages/rust/holy",
     "packages/rust/bevy/bevy_kbve_net",
     "packages/rust/bevy/bevy_npc",
+    "packages/rust/bevy/bevy_inventory",
+    "packages/rust/bevy/bevy_items",
+    "packages/rust/bevy/bevy_skills",
 ]
 
 [profile.release]
