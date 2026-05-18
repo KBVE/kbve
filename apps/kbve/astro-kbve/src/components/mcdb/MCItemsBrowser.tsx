@@ -52,10 +52,14 @@ function ItemCard({ item }: { item: ItemEntry }) {
 	);
 }
 
-export function MCItemsBrowser() {
+type Props = {
+	lockedCategory?: string;
+};
+
+export function MCItemsBrowser({ lockedCategory }: Props = {}) {
 	const [items, setItems] = useState<ItemEntry[] | null>(null);
 	const [query, setQuery] = useState('');
-	const [category, setCategory] = useState<string>('all');
+	const [category, setCategory] = useState<string>(lockedCategory ?? 'all');
 	const [tier, setTier] = useState<string>('all');
 	const [page, setPage] = useState(0);
 	const [error, setError] = useState<string | null>(null);
@@ -143,20 +147,22 @@ export function MCItemsBrowser() {
 						autoComplete="off"
 					/>
 				</label>
-				<label className="mcdb-browse__filter">
-					<span>Category</span>
-					<select
-						value={category}
-						onChange={(e) => setCategory(e.target.value)}
-						className="mcdb-browse__input">
-						<option value="all">All</option>
-						{categories.map((c) => (
-							<option key={c} value={c}>
-								{c}
-							</option>
-						))}
-					</select>
-				</label>
+				{!lockedCategory && (
+					<label className="mcdb-browse__filter">
+						<span>Category</span>
+						<select
+							value={category}
+							onChange={(e) => setCategory(e.target.value)}
+							className="mcdb-browse__input">
+							<option value="all">All</option>
+							{categories.map((c) => (
+								<option key={c} value={c}>
+									{c}
+								</option>
+							))}
+						</select>
+					</label>
+				)}
 				<label className="mcdb-browse__filter">
 					<span>Tier</span>
 					<select
@@ -176,7 +182,7 @@ export function MCItemsBrowser() {
 					className="mcdb-browse__reset"
 					onClick={() => {
 						setQuery('');
-						setCategory('all');
+						if (!lockedCategory) setCategory('all');
 						setTier('all');
 						resetPage();
 					}}>
