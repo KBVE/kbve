@@ -1,0 +1,23 @@
+---
+import MCEnchantsBrowser from './MCEnchantsBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>Minecraft Enchants</h1>
+			<p>
+				Every vanilla enchantment we've published. Search by ref or
+				display name, filter by group (armor / weapon / tool / ranged /
+				fishing / treasure / curse), and pop into the per-enchant page
+				for max level, weight, anvil cost, targets, and
+				incompatibilities.
+			</p>
+		</div>
+	</header>
+
+	<MCEnchantsBrowser client:load />
+</section>

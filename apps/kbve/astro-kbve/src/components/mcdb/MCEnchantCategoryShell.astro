@@ -1,0 +1,32 @@
+---
+import MCEnchantsBrowser from './MCEnchantsBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+
+interface Props {
+	group:
+		| 'armor'
+		| 'weapon'
+		| 'tool'
+		| 'ranged'
+		| 'fishing'
+		| 'treasure'
+		| 'curse';
+	title: string;
+	description: string;
+}
+
+const { group, title, description } = Astro.props;
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>{title}</h1>
+			<p>{description}</p>
+		</div>
+	</header>
+
+	<MCEnchantsBrowser client:load lockedGroup={group} />
+</section>
