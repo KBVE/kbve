@@ -1,0 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: customer-guid-reader-for-kbve
+    namespace: rows
+    labels:
+        app.kubernetes.io/part-of: rows
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list', 'watch']
+      resourceNames: ['ows-customer-guid']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-read-customer-guid
+    namespace: rows
+    labels:
+        app.kubernetes.io/part-of: rows
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: customer-guid-reader-for-kbve
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve
