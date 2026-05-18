@@ -201,6 +201,12 @@ async fn main() -> anyhow::Result<()> {
         info!("ChuckRPG proxy not configured (CHUCKRPG_UPSTREAM_URL not set)");
     }
 
+    if transport::proxy::init_chuckrpg_docs_proxy() {
+        info!("ChuckRPG docs proxy initialized - /api/rows/openapi.json enabled");
+    } else {
+        info!("ChuckRPG docs proxy not configured (CHUCKRPG_DOCS_URL not set)");
+    }
+
     // Initialize game server (headless Bevy + lightyear + avian3d)
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();

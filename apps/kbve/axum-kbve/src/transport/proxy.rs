@@ -2037,6 +2037,47 @@ pub async fn chuckrpg_proxy_handler(path: Option<Path<String>>, req: Request<Bod
     }
 }
 
+static CHUCKRPG_DOCS: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_chuckrpg_docs_proxy() -> bool {
+    let upstream = std::env::var("CHUCKRPG_DOCS_URL")
+        .unwrap_or_else(|_| "http://rows.rows.svc.cluster.local:4323".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
+        .build()
+        .expect("failed to build reqwest client for chuckrpg docs proxy");
+
+    CHUCKRPG_DOCS
+        .set(ServiceProxy {
+            name: "ChuckRPG-Docs",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: false,
+        })
+        .is_ok()
+}
+
+pub async fn chuckrpg_openapi_handler(req: Request<Body>) -> Response {
+    match CHUCKRPG_DOCS.get() {
+        Some(proxy) => {
+            proxy
+                .handle_preauthorized(Some(Path("api-docs/openapi.json".to_string())), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "ChuckRPG docs proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
     let mut out = reqwest::header::HeaderMap::new();
     for (k, v) in headers {
