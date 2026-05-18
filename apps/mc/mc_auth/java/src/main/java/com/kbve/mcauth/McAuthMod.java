@@ -50,6 +50,7 @@ public class McAuthMod implements ModInitializer {
                 LinkStatusRegistry.remove(uuid);
                 WalletBalanceCache.remove(uuid);
                 WalletCapabilityRegistry.remove(uuid);
+                WalletCommand.clearPending(uuid);
             }
         });
 

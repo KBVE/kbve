@@ -252,6 +252,32 @@ async fn handle_job(
                 }
             }
         }
+        AuthJob::FetchBalance {
+            player_uuid,
+            supabase_user_id,
+        } => {
+            debug!(%player_uuid, %supabase_user_id, "mc_auth: processing fetch_balance");
+            match supabase.user_balance(&supabase_user_id).await {
+                Ok(Some((credits, khash))) => PlayerEvent::WalletBalance {
+                    player_uuid,
+                    credits,
+                    khash,
+                },
+                Ok(None) => PlayerEvent::WalletBalance {
+                    player_uuid,
+                    credits: 0,
+                    khash: 0,
+                },
+                Err(e) => {
+                    warn!(%player_uuid, error = %e, "mc_auth: lazy balance fetch failed");
+                    PlayerEvent::WalletBalance {
+                        player_uuid,
+                        credits: 0,
+                        khash: 0,
+                    }
+                }
+            }
+        }
     };
 
     // Pull the player_uuid + user_id BEFORE moving `event` into the channel
@@ -272,16 +298,8 @@ async fn handle_job(
         warn!("mc_auth: event channel full dropping primary event");
     }
 
-    // Fire daily-khash credit + emit a WalletBalance follow-up for any
-    // newly-confirmed linked player. Both calls are best-effort: errors
-    // are logged and swallowed — they must not block the player. The
-    // daily credit's idempotency key (UUIDv5 over user_id + UTC date)
-    // dedups multiple joins on the same day, so calling on every
-    // confirmation is safe.
-    if let (Some(client), Some((player_uuid, uid))) = (wallet, linked_pair) {
-        let client = client.clone();
-        let tx = event_tx.clone();
-        tokio::spawn(async move {
+    if let Some((player_uuid, uid)) = linked_pair {
+        if let Some(client) = wallet {
             match client.daily_credit_khash(&uid).await {
                 Ok(resp) => debug!(
                     user_id = %uid,
@@ -290,24 +308,23 @@ async fn handle_job(
                 ),
                 Err(e) => warn!(user_id = %uid, error = %e, "mc_auth: daily khash credit failed"),
             }
+        }
 
-            match client.balance_for_user(&uid).await {
-                Ok(snapshot) => {
-                    let evt = PlayerEvent::WalletBalance {
-                        player_uuid,
-                        credits: snapshot.credits,
-                        khash: snapshot.khash,
-                    };
-                    if tx.try_send(evt).is_err() {
-                        warn!("mc_auth: event channel full dropping WalletBalance");
-                    }
-                }
-                Err(e) => warn!(
-                    user_id = %uid,
-                    error = %e,
-                    "mc_auth: balance fetch failed — skipping WalletBalance event"
-                ),
+        let (credits, khash) = match supabase.user_balance(&uid).await {
+            Ok(Some((c, k))) => (c, k),
+            Ok(None) => (0, 0),
+            Err(e) => {
+                warn!(user_id = %uid, error = %e, "mc_auth: balance fetch failed");
+                (0, 0)
             }
-        });
+        };
+        let evt = PlayerEvent::WalletBalance {
+            player_uuid,
+            credits,
+            khash,
+        };
+        if event_tx.try_send(evt).is_err() {
+            warn!("mc_auth: event channel full dropping WalletBalance");
+        }
     }
 }
