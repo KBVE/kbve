@@ -102,12 +102,47 @@ export class SupabaseGateway implements ISupabaseStrategy {
 
 	// Delegate all methods to the selected strategy
 
-	init(
+	async init(
 		url: string,
 		anonKey: string,
 		options?: Record<string, unknown>,
 	): Promise<SessionResponse> {
-		return this.strategy.init(url, anonKey, options);
+		if (this.strategyType === 'direct') {
+			return this.strategy.init(url, anonKey, options);
+		}
+
+		const WORKER_INIT_FALLBACK_MS = 3500;
+		const primary = this.strategy.init(url, anonKey, options);
+
+		let timer: ReturnType<typeof setTimeout> | null = null;
+		const fallback = new Promise<never>((_, reject) => {
+			timer = setTimeout(
+				() => reject(new Error('worker init stalled')),
+				WORKER_INIT_FALLBACK_MS,
+			);
+		});
+
+		try {
+			const result = await Promise.race([primary, fallback]);
+			if (timer) clearTimeout(timer);
+			return result;
+		} catch (err) {
+			if (timer) clearTimeout(timer);
+			const previousType = this.strategyType;
+			console.warn(
+				`[SupabaseGateway] ${previousType} init did not respond in ${WORKER_INIT_FALLBACK_MS}ms — switching to direct strategy.`,
+				err,
+			);
+			this.strategy = new DirectStrategy();
+			this.strategyType = 'direct';
+			DroidEvents.emit('gateway-strategy-fallback', {
+				timestamp: Date.now(),
+				from: previousType,
+				to: 'direct',
+				reason: err instanceof Error ? err.message : String(err),
+			});
+			return this.strategy.init(url, anonKey, options);
+		}
 	}
 
 	on(event: string, callback: (payload: unknown) => void): () => void {

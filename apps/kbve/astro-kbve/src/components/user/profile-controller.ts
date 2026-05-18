@@ -10,6 +10,7 @@ import {
 	installProfileSync,
 	installSyncBusListener,
 	readProfileForFastPaint,
+	readSupabaseSessionFromStorage,
 	setProfileCache as setDroidProfileCache,
 	type DroidProfile,
 } from '@kbve/droid';
@@ -293,8 +294,20 @@ function wireLogout() {
 
 // ── Session handler (shared between boot and auth listener) ─────────────────
 
-async function handleSession(session: any) {
+async function handleSession(
+	session: any,
+	source: 'init' | 'auth-event' = 'init',
+) {
 	if (!session?.user) {
+		if (source === 'init') {
+			const storageSession = readSupabaseSessionFromStorage();
+			if (storageSession?.user?.id) {
+				console.log(
+					'[profile] Gateway returned no session, but localStorage still has one — keeping cached auth.',
+				);
+				return;
+			}
+		}
 		clearProfileCache();
 		setAuth({
 			tone: 'anon',
@@ -449,11 +462,11 @@ export async function bootProfile() {
 	const session = s?.session ?? null;
 
 	// Handle current state — refresh whatever the fast paint already showed.
-	await handleSession(session);
+	await handleSession(session, 'init');
 
 	// Listen for auth changes (sign-in / sign-out from other tabs or navbar)
 	supa.on('auth', async (msg: any) => {
 		const newSession = msg.session ?? null;
-		await handleSession(newSession);
+		await handleSession(newSession, 'auth-event');
 	});
 }
