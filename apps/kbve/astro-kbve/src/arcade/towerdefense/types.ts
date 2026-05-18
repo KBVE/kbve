@@ -63,22 +63,6 @@ export type Building =
 	| RepairBuilding
 	| ArmouryBuilding;
 
-export interface Projectile {
-	sprite: Phaser.GameObjects.Arc;
-	tower: TowerBuilding;
-	startX: number;
-	startY: number;
-	targetX: number;
-	targetY: number;
-	enemyId: number | null;
-	speed: number;
-	alive: boolean;
-	homing: boolean;
-	arcHeight: number;
-	traveled: number;
-	totalDist: number;
-}
-
 export interface BurnPatch {
 	sprite: Phaser.GameObjects.Arc;
 	x: number;

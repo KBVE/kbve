@@ -10,6 +10,11 @@ export {
 export { SoldierTag, SoldierStats, type SoldierVisual } from './soldier';
 export { DroneTag, DroneState, DroneStats, type DroneVisual } from './drone';
 export {
+	ProjectileTag,
+	ProjectileStats,
+	type ProjectileVisual,
+} from './projectile';
+export {
 	BuildingTag,
 	TowerTag,
 	GeneratorTag,
