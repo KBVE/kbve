@@ -27,7 +27,7 @@ pub use protocol::{
     PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
     SkillXpGrant, TimeChannel, TimeSyncMessage,
 };
-pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile};
+pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile, roll_loot_at};
 
 pub mod terrain;
 

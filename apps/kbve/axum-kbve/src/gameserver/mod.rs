@@ -1816,23 +1816,30 @@ fn process_collect_requests(
                 tile.tz
             );
 
-            // Broadcast ObjectRemoved to all connected clients
+            // Roll the full drop table for this tile. Deterministic per coord
+            // so reconnects + replays see the same loot. The first entry is
+            // the canonical primary (drives the client-side fall/break anim
+            // via ObjectRemoved); any remaining entries are bonus drops that
+            // only show up as extra InventoryUpdate messages.
+            let drops = bevy_kbve_net::roll_loot_at(tile.tx, tile.tz);
+
+            // Broadcast ObjectRemoved to all connected clients.
             let collector_id = client_player_map
                 .0
                 .get(&client_entity)
                 .and_then(|&pe| player_ids.get(pe).ok())
                 .map(|pid| pid.0)
                 .unwrap_or(0);
-            let item_ref = bevy_kbve_net::item_ref_at(tile.tx, tile.tz)
-                .unwrap_or("")
-                .to_string();
-            let quantity = if item_ref.is_empty() { 0 } else { 1 };
+            let (primary_ref, primary_qty) = drops
+                .first()
+                .map(|(r, q)| ((*r).to_string(), *q))
+                .unwrap_or_else(|| (String::new(), 0));
             let removal = ObjectRemoved {
                 tile,
                 kind,
                 collector_id,
-                item_ref,
-                quantity,
+                item_ref: primary_ref,
+                quantity: primary_qty,
             };
             if legacy.is_legacy() {
                 // Suspenders: per-client clone loop (legacy path).
@@ -1854,67 +1861,64 @@ fn process_collect_requests(
                 }
             }
 
-            // Server-authoritative inventory: grant the loot into the collecting
-            // player's inventory and push an InventoryUpdate to that client only.
-            if !removal.item_ref.is_empty() && removal.quantity > 0 {
-                if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
-                    let kind = ProtoItemKind::from_ref(&removal.item_ref);
+            // Server-authoritative inventory: grant every rolled drop into the
+            // collecting player's inventory and push one InventoryUpdate per
+            // mutated slot. XP is granted per-drop based on each item's own
+            // SkillingInfo (a bonus "branches" drop also awards woodcutting XP).
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                for (drop_ref, drop_qty) in &drops {
+                    if drop_ref.is_empty() || *drop_qty == 0 {
+                        continue;
+                    }
+                    let kind = ProtoItemKind::from_ref(drop_ref);
                     let inv = inventories.get_or_init(player_entity);
-                    let overflow = inv.add(kind, removal.quantity);
-                    let granted = removal.quantity - overflow;
+                    let overflow = inv.add(kind, *drop_qty);
+                    let granted = drop_qty - overflow;
                     if granted == 0 {
                         tracing::warn!(
                             "[gameserver] inventory full for player {player_entity:?} — \
-                             dropping {} x{}",
-                            removal.item_ref,
-                            removal.quantity
+                             dropping {drop_ref} x{drop_qty}"
                         );
-                    } else {
-                        // Find the slot that now holds (more of) this kind so the
-                        // client can mirror just that delta.
-                        if let Some((slot_index, stack)) = inv
-                            .items
-                            .iter()
-                            .enumerate()
-                            .rev()
-                            .find(|(_, s)| s.kind == kind)
-                        {
-                            let update = InventoryUpdate {
-                                player_id: collector_id,
-                                slot: slot_to_state(slot_index as u32, stack),
-                            };
-                            if let Ok(mut sender) = inv_senders.get_mut(client_entity) {
-                                sender.send::<bevy_kbve_net::GameChannel>(update);
-                            }
-                        }
+                        continue;
+                    }
 
-                        // Award gathering XP based on the item's skilling metadata.
-                        // Server queues a GrantXpMsg for its own SkillProfile and
-                        // mirrors the same delta to the owning client so the local
-                        // SkillProfile stays in sync without a separate add.
-                        if let Some(skilling) = kind.item().and_then(|i| i.skilling.as_ref()) {
-                            if let Some(skill_ref) = skilling_type_to_skill_ref(
-                                bevy_items::SkillingType::try_from(skilling.skill)
-                                    .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
-                            ) {
-                                let xp_per = skilling.xp_reward.unwrap_or(0.0).max(0.0);
-                                if xp_per > 0.0 {
-                                    let amount = (xp_per * granted as f32).round() as u64;
-                                    if amount > 0 {
-                                        xp_writer.write(GrantXpMsg {
-                                            entity: player_entity,
-                                            skill: SkillId::from_ref(skill_ref),
+                    if let Some((slot_index, stack)) = inv
+                        .items
+                        .iter()
+                        .enumerate()
+                        .rev()
+                        .find(|(_, s)| s.kind == kind)
+                    {
+                        let update = InventoryUpdate {
+                            player_id: collector_id,
+                            slot: slot_to_state(slot_index as u32, stack),
+                        };
+                        if let Ok(mut sender) = inv_senders.get_mut(client_entity) {
+                            sender.send::<bevy_kbve_net::GameChannel>(update);
+                        }
+                    }
+
+                    // XP per-drop from the item's own skilling metadata.
+                    if let Some(skilling) = kind.item().and_then(|i| i.skilling.as_ref()) {
+                        if let Some(skill_ref) = skilling_type_to_skill_ref(
+                            bevy_items::SkillingType::try_from(skilling.skill)
+                                .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
+                        ) {
+                            let xp_per = skilling.xp_reward.unwrap_or(0.0).max(0.0);
+                            if xp_per > 0.0 {
+                                let amount = (xp_per * granted as f32).round() as u64;
+                                if amount > 0 {
+                                    xp_writer.write(GrantXpMsg {
+                                        entity: player_entity,
+                                        skill: SkillId::from_ref(skill_ref),
+                                        amount,
+                                    });
+                                    if let Ok(mut sender) = xp_senders.get_mut(client_entity) {
+                                        sender.send::<bevy_kbve_net::GameChannel>(SkillXpGrant {
+                                            player_id: collector_id,
+                                            skill_ref: skill_ref.to_string(),
                                             amount,
                                         });
-                                        if let Ok(mut sender) = xp_senders.get_mut(client_entity) {
-                                            sender.send::<bevy_kbve_net::GameChannel>(
-                                                SkillXpGrant {
-                                                    player_id: collector_id,
-                                                    skill_ref: skill_ref.to_string(),
-                                                    amount,
-                                                },
-                                            );
-                                        }
                                     }
                                 }
                             }
