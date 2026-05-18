@@ -41,56 +41,73 @@ public final class SpawnAutoClaim {
             LOGGER.info("[spawn-autoclaim] OPAC not loaded — skipping admin-claim seed");
             return;
         }
+        Object claims;
+        Method getMethod;
+        Method tryToClaimMethod;
         try {
             Class<?> apiClass = Class.forName("xaero.pac.common.server.api.OpenPACServerAPI");
             Object api = apiClass.getMethod("get", MinecraftServer.class).invoke(null, server);
-            Object claims = apiClass.getMethod("getServerClaimsManager").invoke(api);
+            claims = apiClass.getMethod("getServerClaimsManager").invoke(api);
             Class<?> claimsCls = claims.getClass();
 
-            Method getMethod = findMethod(claimsCls, "get", Identifier.class, int.class, int.class);
-            Method claimMethod = findMethod(
+            getMethod = findMethod(claimsCls, "get", Identifier.class, int.class, int.class);
+            tryToClaimMethod = findMethod(
                     claimsCls,
-                    "claim",
+                    "tryToClaim",
                     Identifier.class,
                     UUID.class,
                     int.class,
                     int.class,
                     int.class,
+                    int.class,
+                    int.class,
                     boolean.class);
-            if (getMethod == null || claimMethod == null) {
-                LOGGER.warn("[spawn-autoclaim] OPAC API signature mismatch — get={} claim={}",
-                        getMethod, claimMethod);
+            if (getMethod == null || tryToClaimMethod == null) {
+                LOGGER.warn("[spawn-autoclaim] OPAC API signature mismatch — get={} tryToClaim={}",
+                        getMethod, tryToClaimMethod);
                 return;
             }
+        } catch (Throwable t) {
+            LOGGER.warn("[spawn-autoclaim] OPAC bootstrap failed: {}", t.toString());
+            return;
+        }
 
-            int totalClaimed = 0;
-            int totalSkipped = 0;
-            for (RegistryKey<World> dimKey : DIMENSIONS) {
-                Identifier dimId = dimKey.getValue();
-                for (int cx = FROM_CHUNK_X; cx <= TO_CHUNK_X; cx++) {
-                    for (int cz = FROM_CHUNK_Z; cz <= TO_CHUNK_Z; cz++) {
+        for (RegistryKey<World> dimKey : DIMENSIONS) {
+            Identifier dimId = dimKey.getValue();
+            int claimed = 0;
+            int skipped = 0;
+            int failed = 0;
+            for (int cx = FROM_CHUNK_X; cx <= TO_CHUNK_X; cx++) {
+                for (int cz = FROM_CHUNK_Z; cz <= TO_CHUNK_Z; cz++) {
+                    try {
                         Object existing = getMethod.invoke(claims, dimId, cx, cz);
                         if (existing != null && isServerOwned(existing)) {
-                            totalSkipped++;
+                            skipped++;
                             continue;
                         }
-                        claimMethod.invoke(claims, dimId, SERVER_CLAIM_UUID, cx, cz, 0, false);
-                        totalClaimed++;
+                        tryToClaimMethod.invoke(
+                                claims, dimId, SERVER_CLAIM_UUID, cx, cz, cx, cz, 0, true);
+                        claimed++;
+                    } catch (Throwable t) {
+                        failed++;
+                        if (failed <= 5) {
+                            LOGGER.warn(
+                                    "[spawn-autoclaim] chunk ({},{}) in {} failed: {}",
+                                    cx, cz, dimId, t.toString());
+                        }
                     }
                 }
-                LOGGER.info(
-                        "[spawn-autoclaim] dimension={} chunks=({},{})..({},{}) claimed={} skipped={}",
-                        dimId,
-                        FROM_CHUNK_X,
-                        FROM_CHUNK_Z,
-                        TO_CHUNK_X,
-                        TO_CHUNK_Z,
-                        totalClaimed,
-                        totalSkipped);
             }
-        } catch (Throwable t) {
-            LOGGER.warn("[spawn-autoclaim] OPAC integration failed (claim skipped): {}",
-                    t.toString());
+            LOGGER.info(
+                    "[spawn-autoclaim] dimension={} chunks=({},{})..({},{}) claimed={} skipped={} failed={}",
+                    dimId,
+                    FROM_CHUNK_X,
+                    FROM_CHUNK_Z,
+                    TO_CHUNK_X,
+                    TO_CHUNK_Z,
+                    claimed,
+                    skipped,
+                    failed);
         }
     }
 
