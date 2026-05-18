@@ -322,6 +322,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
                 if let Some(val) = pair
                     .strip_prefix("kasm_session=")
                     .or_else(|| pair.strip_prefix("dashboard_session="))
+                    .or_else(|| pair.strip_prefix("sb-access-token="))
                 {
                     if !val.is_empty() {
                         return Some(val.to_string());

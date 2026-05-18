@@ -184,6 +184,46 @@ pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
         .or_else(|| auth_header.strip_prefix("bearer "))
 }
 
+pub const SB_ACCESS_TOKEN_COOKIE: &str = "sb-access-token";
+
+pub fn extract_cookie_value<'a>(cookie_header: &'a str, name: &str) -> Option<&'a str> {
+    for pair in cookie_header.split(';') {
+        let pair = pair.trim();
+        if let Some((k, v)) = pair.split_once('=') {
+            if k == name {
+                return Some(v);
+            }
+        }
+    }
+    None
+}
+
+pub fn extract_request_token(headers: &axum::http::HeaderMap) -> Option<String> {
+    if let Some(auth_header) = headers.get(axum::http::header::AUTHORIZATION) {
+        if let Ok(s) = auth_header.to_str() {
+            if let Some(t) = extract_bearer_token(s) {
+                let trimmed = t.trim();
+                if !trimmed.is_empty() {
+                    return Some(trimmed.to_string());
+                }
+            }
+        }
+    }
+
+    if let Some(cookie_header) = headers.get(axum::http::header::COOKIE) {
+        if let Ok(cookie_str) = cookie_header.to_str() {
+            if let Some(v) = extract_cookie_value(cookie_str, SB_ACCESS_TOKEN_COOKIE) {
+                let trimmed = v.trim();
+                if !trimmed.is_empty() {
+                    return Some(trimmed.to_string());
+                }
+            }
+        }
+    }
+
+    None
+}
+
 #[allow(dead_code)]
 pub fn is_token_expired(claims: &Claims, grace_seconds: i64) -> bool {
     let now = chrono::Utc::now().timestamp();

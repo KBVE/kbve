@@ -24,12 +24,32 @@ export async function parseJwt(token: string): Promise<JwtClaims> {
   return payload as JwtClaims;
 }
 
+export const SB_ACCESS_TOKEN_COOKIE = "sb-access-token";
+
+function readCookie(req: Request, name: string): string | null {
+  const raw = req.headers.get("cookie");
+  if (!raw) return null;
+  for (const piece of raw.split(";")) {
+    const pair = piece.trim();
+    const eq = pair.indexOf("=");
+    if (eq <= 0) continue;
+    if (pair.slice(0, eq) === name) {
+      const v = pair.slice(eq + 1).trim();
+      return v.length > 0 ? v : null;
+    }
+  }
+  return null;
+}
+
 export function extractToken(req: Request): string {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new Error("Missing or invalid authorization header");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token.length > 0) return token;
   }
-  return authHeader.slice(7);
+  const cookieToken = readCookie(req, SB_ACCESS_TOKEN_COOKIE);
+  if (cookieToken) return cookieToken;
+  throw new Error("Missing or invalid authorization header");
 }
 
 export function jsonResponse(data: unknown, status = 200) {
