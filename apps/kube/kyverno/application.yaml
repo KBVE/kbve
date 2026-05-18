@@ -60,6 +60,9 @@ spec:
     ignoreDifferences:
         - group: apiextensions.k8s.io
           kind: CustomResourceDefinition
+          jsonPointers:
+              - /metadata/labels
+              - /metadata/annotations
           managedFieldsManagers:
               - kubectl-kyverno
     syncPolicy:
