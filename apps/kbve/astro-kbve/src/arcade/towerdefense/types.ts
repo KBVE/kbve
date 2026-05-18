@@ -18,17 +18,11 @@ export interface BaseBuilding {
 	hpBarBg: Phaser.GameObjects.Rectangle;
 }
 
-export interface FixedTarget {
-	x: number;
-	y: number;
-	marker: Phaser.GameObjects.Graphics;
-}
-
 export interface TowerBuilding extends BaseBuilding {
 	kind: 'tower';
 	spec: TowerSpec;
 	powerIndicator: Phaser.GameObjects.Arc;
-	fixedTarget: FixedTarget | null;
+	fixedTargetMarker: Phaser.GameObjects.Graphics | null;
 	upgradePips: Phaser.GameObjects.Graphics;
 }
 
@@ -62,12 +56,3 @@ export type Building =
 	| BatteryBuilding
 	| RepairBuilding
 	| ArmouryBuilding;
-
-export interface BurnPatch {
-	sprite: Phaser.GameObjects.Arc;
-	x: number;
-	y: number;
-	radius: number;
-	dps: number;
-	expiresAtMs: number;
-}

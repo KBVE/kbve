@@ -3,8 +3,8 @@ export {
 	EnemyTag,
 	EnemyStats,
 	ENEMY_TYPE_INDEX,
+	ATTACK_TARGET_KIND,
 	enemyTypeIndexFromId,
-	type AttackTarget,
 	type EnemyVisual,
 } from './enemy';
 export { SoldierTag, SoldierStats, type SoldierVisual } from './soldier';
@@ -14,6 +14,11 @@ export {
 	ProjectileStats,
 	type ProjectileVisual,
 } from './projectile';
+export {
+	BurnPatchTag,
+	BurnPatchStats,
+	type BurnPatchVisual,
+} from './burn-patch';
 export {
 	BuildingTag,
 	TowerTag,
