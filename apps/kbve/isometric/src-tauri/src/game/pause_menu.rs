@@ -23,6 +23,9 @@ pub enum UiOverlay {
     PauseMenu,
     Inventory,
     Interaction,
+    Equipment,
+    Crafting,
+    Deploy,
 }
 
 impl UiOverlay {
