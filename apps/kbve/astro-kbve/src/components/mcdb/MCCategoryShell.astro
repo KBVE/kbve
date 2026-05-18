@@ -1,0 +1,25 @@
+---
+import MCItemsBrowser from './MCItemsBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+
+interface Props {
+	category: string;
+	title: string;
+	description: string;
+}
+
+const { category, title, description } = Astro.props;
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>{title}</h1>
+			<p>{description}</p>
+		</div>
+	</header>
+
+	<MCItemsBrowser client:load lockedCategory={category} />
+</section>
