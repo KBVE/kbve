@@ -702,6 +702,59 @@ import TdHud from './TdHud';
 		color: #fbd38d;
 	}
 
+	.td-target-banner {
+		position: absolute;
+		top: 44px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 6px 10px 6px 14px;
+		background: rgba(183, 148, 244, 0.18);
+		border: 1px solid rgba(183, 148, 244, 0.7);
+		border-radius: 999px;
+		color: #f7fafc;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+		pointer-events: auto;
+		z-index: 6;
+		animation: td-cards-in 180ms ease-out;
+	}
+
+	.td-target-banner-label {
+		color: #d6bcfa;
+		text-transform: uppercase;
+		letter-spacing: 0.16em;
+	}
+
+	.td-target-banner-hint {
+		color: #cbd5e0;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+	}
+
+	.td-target-banner-close {
+		width: 22px;
+		height: 22px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.18);
+		border-radius: 999px;
+		color: #cbd5e0;
+		font-family: inherit;
+		cursor: pointer;
+	}
+
+	.td-target-banner-close:hover {
+		color: #f7fafc;
+		border-color: rgba(255, 255, 255, 0.35);
+	}
+
 	.td-palette {
 		position: absolute;
 		left: 8px;

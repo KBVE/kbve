@@ -76,6 +76,7 @@ export const useItemSignalAtom = atom<{ id: ItemId | null; n: number }>({
 	id: null,
 	n: 0,
 });
+export const pendingItemTargetAtom = atom<ItemId | null>(null);
 
 export function resetHudStore(): void {
 	goldAtom.set(0);
@@ -107,4 +108,5 @@ export function resetHudStore(): void {
 	inventoryAtom.set([]);
 	inventoryOpenAtom.set(false);
 	useItemSignalAtom.set({ id: null, n: useItemSignalAtom.get().n });
+	pendingItemTargetAtom.set(null);
 }

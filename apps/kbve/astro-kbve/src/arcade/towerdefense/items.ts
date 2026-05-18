@@ -1,4 +1,4 @@
-export type ItemId = 'emergency_call_allies';
+export type ItemId = 'emergency_call_allies' | 'field_promotion';
 
 export interface ItemDef {
 	id: ItemId;
@@ -6,6 +6,7 @@ export interface ItemDef {
 	description: string;
 	color: number;
 	defaultCharges: number;
+	targeted: boolean;
 }
 
 export interface ItemInstance {
@@ -22,6 +23,16 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
 			'Summons 20 ally soldiers. Lasts up to 5 waves or until they fall.',
 		color: 0xf6ad55,
 		defaultCharges: 1,
+		targeted: false,
+	},
+	field_promotion: {
+		id: 'field_promotion',
+		name: 'Field Promotion',
+		description:
+			'Click a building to apply a free random upgrade to one of its tracks.',
+		color: 0xb794f4,
+		defaultCharges: 1,
+		targeted: true,
 	},
 };
 

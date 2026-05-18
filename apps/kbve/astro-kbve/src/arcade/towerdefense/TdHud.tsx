@@ -18,6 +18,7 @@ import {
 	inventoryAtom,
 	inventoryOpenAtom,
 	livesAtom,
+	pendingItemTargetAtom,
 	nextWavePreviewAtom,
 	restartSignalAtom,
 	selectedBuildAtom,
@@ -451,6 +452,27 @@ function InventoryPanel() {
 	);
 }
 
+function PendingTargetBanner() {
+	const pending = useStore(pendingItemTargetAtom);
+	if (!pending) return null;
+	const def = defFor(pending);
+	return (
+		<div className="td-target-banner">
+			<span className="td-target-banner-label">{def.name}</span>
+			<span className="td-target-banner-hint">
+				Click a building · Esc to cancel
+			</span>
+			<button
+				type="button"
+				className="td-target-banner-close"
+				onClick={() => pendingItemTargetAtom.set(null)}
+				aria-label="Cancel targeting">
+				✕
+			</button>
+		</div>
+	);
+}
+
 function CardModal() {
 	const cards = useStore(cardOptionsAtom);
 	const wave = useStore(cardWaveAtom);
@@ -572,6 +594,7 @@ export default function TdHud() {
 				<TimerSlot />
 			</div>
 			<PaletteBar />
+			<PendingTargetBanner />
 			<InventoryPanel />
 			<CardModal />
 			<GameOverOverlay />

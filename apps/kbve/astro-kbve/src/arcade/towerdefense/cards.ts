@@ -55,7 +55,8 @@ export const CARD_POOL: CardOption[] = [
 	{
 		id: 'structure_upgrade',
 		name: 'Field Promotion',
-		description: 'Free upgrade on a random structure',
+		description:
+			'Adds an item. Use it on any building for a free random upgrade.',
 		color: 0xb794f4,
 	},
 	{

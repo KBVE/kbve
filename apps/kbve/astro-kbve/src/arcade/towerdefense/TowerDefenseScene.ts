@@ -118,7 +118,9 @@ import {
 	gameOverAtom,
 	goldAtom,
 	inventoryAtom,
+	inventoryOpenAtom,
 	livesAtom,
+	pendingItemTargetAtom,
 	loadBestWave,
 	nextWavePreviewAtom,
 	resetHudStore,
@@ -359,7 +361,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			});
 			kb.on('keydown-N', () => this.scene.restart());
 			kb.on('keydown-ESC', () => {
-				if (this.targetingTower) this.cancelTargeting();
+				if (pendingItemTargetAtom.get()) this.cancelPendingItem();
+				else if (this.targetingTower) this.cancelTargeting();
 				else if (this.upgradePanel) this.closeUpgradePanel();
 				else if (this.awaitingCardPick) this.skipCardPick();
 			});
@@ -719,6 +722,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+
+		if (pendingItemTargetAtom.get()) {
+			if (pointer.worldY < HUD_HEIGHT) {
+				this.cancelPendingItem();
+				return;
+			}
+			if (pointer.worldY > BASE_HEIGHT - PALETTE_HEIGHT) {
+				this.cancelPendingItem();
+				return;
+			}
+			const probe = this.snapToTile(pointer.worldX, pointer.worldY);
+			const probeHit = this.findBuildingAt(probe.col, probe.row);
+			if (probeHit && !BuildingState.destroyed[probeHit.id]) {
+				this.applyPendingItemAt(probeHit);
+			}
+			return;
+		}
 
 		if (this.targetingTower) {
 			if (pointer.worldY < HUD_HEIGHT) {
@@ -2050,20 +2070,46 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const items = inventoryAtom.get();
 		const idx = items.findIndex((it) => it.id === id && it.charges > 0);
 		if (idx < 0) return;
-		const item = items[idx];
 		if (id === 'emergency_call_allies') {
 			this.useEmergencyCallAllies();
-		} else {
+			this.decrementItemCharge(id);
 			return;
 		}
+		if (id === 'field_promotion') {
+			this.cancelTargeting();
+			if (this.upgradePanel) this.closeUpgradePanel();
+			pendingItemTargetAtom.set('field_promotion');
+			inventoryOpenAtom.set(false);
+			return;
+		}
+	}
+
+	private decrementItemCharge(id: ItemId): void {
+		const items = inventoryAtom.get();
+		const idx = items.findIndex((it) => it.id === id && it.charges > 0);
+		if (idx < 0) return;
+		const item = items[idx];
 		const remaining = item.charges - 1;
 		const next = [...items];
-		if (remaining <= 0) {
-			next.splice(idx, 1);
-		} else {
-			next[idx] = { ...item, charges: remaining };
-		}
+		if (remaining <= 0) next.splice(idx, 1);
+		else next[idx] = { ...item, charges: remaining };
 		inventoryAtom.set(next);
+	}
+
+	private applyPendingItemAt(b: Building): boolean {
+		const id = pendingItemTargetAtom.get();
+		if (!id) return false;
+		if (id === 'field_promotion') {
+			if (!this.applyRandomUpgradeTo(b)) return false;
+			pendingItemTargetAtom.set(null);
+			this.decrementItemCharge(id);
+			return true;
+		}
+		return false;
+	}
+
+	private cancelPendingItem(): void {
+		pendingItemTargetAtom.set(null);
 	}
 
 	private useEmergencyCallAllies(): void {
@@ -3247,7 +3293,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.bountyBonusMultiplier = 1.5;
 				break;
 			case 'structure_upgrade':
-				this.applyRandomStructureUpgrade();
+				inventoryAtom.set([
+					...inventoryAtom.get(),
+					createItem('field_promotion'),
+				]);
 				break;
 			case 'item_call_allies':
 				inventoryAtom.set([
@@ -3308,76 +3357,66 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
-	private applyRandomStructureUpgrade(): void {
+	private applyRandomUpgradeTo(b: Building): boolean {
 		interface UpgradeCandidate {
 			apply: () => void;
 		}
 		const candidates: UpgradeCandidate[] = [];
-		for (const eid of query(this.world, [BuildingTag])) {
-			if (BuildingState.destroyed[eid]) continue;
-			const b = this.buildingByEid.get(eid);
-			if (!b) continue;
-			if (b.kind === 'tower') {
-				const tower = b;
-				for (const k of UPGRADE_ORDER) {
-					if (
-						TowerUpgradeStats[k][tower.id] >=
-						UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							const prevMaxHp = towerMaxHp(tower);
-							TowerUpgradeStats[k][tower.id] += 1;
-							const newMaxHp = towerMaxHp(tower);
-							Damageable.maxHp[tower.id] = newMaxHp;
-							if (k === 'armor') {
-								const delta = newMaxHp - prevMaxHp;
-								Damageable.hp[tower.id] = Math.min(
-									newMaxHp,
-									Damageable.hp[tower.id] + delta,
-								);
-							}
-							this.redrawUpgradePips(tower);
-						},
-					});
-				}
-			} else if (b.kind === 'armoury') {
-				const armoury = b;
-				for (const k of ARMOURY_UPGRADE_ORDER) {
-					if (
-						ArmouryUpgradeStats[k][armoury.id] >=
-						ARMOURY_UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							ArmouryUpgradeStats[k][armoury.id] += 1;
-						},
-					});
-				}
-			} else if (b.kind === 'repair') {
-				const station = b;
-				for (const k of REPAIR_UPGRADE_ORDER) {
-					if (
-						RepairUpgradeStats[k][station.id] >=
-						REPAIR_UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							RepairUpgradeStats[k][station.id] += 1;
-						},
-					});
-				}
+		if (b.kind === 'tower') {
+			const tower = b;
+			for (const k of UPGRADE_ORDER) {
+				if (TowerUpgradeStats[k][tower.id] >= UPGRADE_DEFS[k].maxLevel)
+					continue;
+				candidates.push({
+					apply: () => {
+						const prevMaxHp = towerMaxHp(tower);
+						TowerUpgradeStats[k][tower.id] += 1;
+						const newMaxHp = towerMaxHp(tower);
+						Damageable.maxHp[tower.id] = newMaxHp;
+						if (k === 'armor') {
+							const delta = newMaxHp - prevMaxHp;
+							Damageable.hp[tower.id] = Math.min(
+								newMaxHp,
+								Damageable.hp[tower.id] + delta,
+							);
+						}
+						this.redrawUpgradePips(tower);
+					},
+				});
+			}
+		} else if (b.kind === 'armoury') {
+			const armoury = b;
+			for (const k of ARMOURY_UPGRADE_ORDER) {
+				if (
+					ArmouryUpgradeStats[k][armoury.id] >=
+					ARMOURY_UPGRADE_DEFS[k].maxLevel
+				)
+					continue;
+				candidates.push({
+					apply: () => {
+						ArmouryUpgradeStats[k][armoury.id] += 1;
+					},
+				});
+			}
+		} else if (b.kind === 'repair') {
+			const station = b;
+			for (const k of REPAIR_UPGRADE_ORDER) {
+				if (
+					RepairUpgradeStats[k][station.id] >=
+					REPAIR_UPGRADE_DEFS[k].maxLevel
+				)
+					continue;
+				candidates.push({
+					apply: () => {
+						RepairUpgradeStats[k][station.id] += 1;
+					},
+				});
 			}
 		}
-		if (candidates.length === 0) {
-			this.gold += 120;
-			return;
-		}
+		if (candidates.length === 0) return false;
 		const pick = candidates[Math.floor(Math.random() * candidates.length)];
 		pick.apply();
+		return true;
 	}
 
 	private boostBatteries(amount: number): void {
