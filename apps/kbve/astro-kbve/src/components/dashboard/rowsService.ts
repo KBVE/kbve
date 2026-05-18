@@ -18,10 +18,9 @@ export interface RowsHealth {
 	version: string;
 	uptime_seconds: number;
 	checks: {
-		postgres: HealthCheck;
-		rabbitmq: HealthCheck;
-		agones: HealthCheck;
-		valkey: HealthCheck;
+		postgres?: HealthCheck;
+		rabbitmq?: HealthCheck;
+		agones?: HealthCheck;
 	};
 	active_sessions: number;
 	active_instances: number;
@@ -161,7 +160,10 @@ export async function fetchHealth(): Promise<void> {
 	const data = await fetchRows<RowsHealth>('/api/System/Health');
 	if (data) {
 		$rowsHealth.set(data);
-		const allOk = Object.values(data.checks).every((c) => c.ok);
+		const checks = Object.values(data.checks ?? {}).filter(
+			(c): c is HealthCheck => !!c,
+		);
+		const allOk = checks.length > 0 && checks.every((c) => c.ok);
 		$rowsHealthStatus.set(allOk ? 'ok' : 'degraded');
 	} else {
 		$rowsHealthStatus.set('error');

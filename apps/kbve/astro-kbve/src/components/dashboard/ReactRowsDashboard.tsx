@@ -10,7 +10,6 @@ import {
 	fetchAll,
 	statusColor,
 	formatUptime,
-	type ServiceStatus,
 	type HealthCheck,
 } from './rowsService';
 import {
@@ -18,14 +17,8 @@ import {
 	Server,
 	Users,
 	Clock,
-	CheckCircle2,
 	XCircle,
-	AlertTriangle,
 	Loader2,
-	RefreshCw,
-	Database,
-	Wifi,
-	Box,
 	Info,
 } from 'lucide-react';
 
@@ -69,7 +62,14 @@ const sub: React.CSSProperties = {
 // Health Check Dot
 // ---------------------------------------------------------------------------
 
-function HealthDot({ check, label }: { check: HealthCheck; label: string }) {
+function HealthDot({
+	check,
+	label,
+}: {
+	check: HealthCheck | undefined;
+	label: string;
+}) {
+	if (!check) return null;
 	const color = check.ok ? '#3fb950' : '#f85149';
 	return (
 		<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -219,7 +219,6 @@ function HealthCard() {
 				<HealthDot check={health.checks.postgres} label="Postgres" />
 				<HealthDot check={health.checks.rabbitmq} label="RabbitMQ" />
 				<HealthDot check={health.checks.agones} label="Agones" />
-				<HealthDot check={health.checks.valkey} label="Valkey" />
 			</div>
 			<div style={{ display: 'flex', gap: '1.5rem' }}>
 				<div>
