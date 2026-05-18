@@ -252,6 +252,37 @@ async fn handle_job(
                 }
             }
         }
+        AuthJob::FetchBalance {
+            player_uuid,
+            supabase_user_id,
+        } => {
+            debug!(%player_uuid, %supabase_user_id, "mc_auth: processing fetch_balance");
+            match wallet {
+                Some(client) => match client.balance_for_user(&supabase_user_id).await {
+                    Ok(snapshot) => PlayerEvent::WalletBalance {
+                        player_uuid,
+                        credits: snapshot.credits,
+                        khash: snapshot.khash,
+                    },
+                    Err(e) => {
+                        warn!(%player_uuid, error = %e, "mc_auth: lazy balance fetch failed");
+                        PlayerEvent::WalletBalance {
+                            player_uuid,
+                            credits: 0,
+                            khash: 0,
+                        }
+                    }
+                },
+                None => {
+                    warn!(%player_uuid, "mc_auth: wallet client disabled — emitting zero balance");
+                    PlayerEvent::WalletBalance {
+                        player_uuid,
+                        credits: 0,
+                        khash: 0,
+                    }
+                }
+            }
+        }
     };
 
     // Pull the player_uuid + user_id BEFORE moving `event` into the channel

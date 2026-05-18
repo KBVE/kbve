@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -18,7 +20,17 @@ public final class WalletCommand {
     private static final String CUSTOM_OPENER_CLASS = "com.kbve.statetree.wallet.WalletScreens";
     private static final String CUSTOM_OPENER_METHOD = "openCustom";
 
+    private static final Set<String> PENDING_OPEN = ConcurrentHashMap.newKeySet();
+
     private WalletCommand() {}
+
+    public static boolean consumePending(String uuid) {
+        return uuid != null && PENDING_OPEN.remove(uuid);
+    }
+
+    public static void clearPending(String uuid) {
+        if (uuid != null) PENDING_OPEN.remove(uuid);
+    }
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("wallet").executes(ctx -> {
@@ -45,10 +57,7 @@ public final class WalletCommand {
         String uuid = player.getUuidAsString();
         WalletBalanceCache.Entry cached = WalletBalanceCache.get(uuid);
         if (cached == null) {
-            player.sendMessage(
-                    Text.literal("[KBVE] Wallet balance not loaded yet — try again in a moment.")
-                            .formatted(Formatting.GRAY),
-                    false);
+            requestLazyFetch(player, uuid);
             return;
         }
 
@@ -59,6 +68,40 @@ public final class WalletCommand {
             return;
         }
         player.openHandledScreen(WalletChestFactory.build(credits, khash));
+    }
+
+    private static void requestLazyFetch(ServerPlayerEntity player, String uuid) {
+        LinkStatusRegistry.Entry link = LinkStatusRegistry.get(uuid);
+        if (link == null
+                || link.state != LinkStatusRegistry.State.LINKED
+                || link.supabaseUserId == null) {
+            player.sendMessage(
+                    Text.literal("[KBVE] Wallet is only available for linked accounts. Run /link first.")
+                            .formatted(Formatting.GRAY),
+                    false);
+            return;
+        }
+        if (!NativeRuntime.isLoaded()) {
+            player.sendMessage(
+                    Text.literal("[KBVE] Wallet runtime offline — try again later.")
+                            .formatted(Formatting.GRAY),
+                    false);
+            return;
+        }
+        PENDING_OPEN.add(uuid);
+        try {
+            NativeRuntime.fetchBalance(uuid, link.supabaseUserId);
+            player.sendMessage(
+                    Text.literal("[KBVE] Fetching wallet balance…").formatted(Formatting.GRAY),
+                    false);
+        } catch (Throwable t) {
+            PENDING_OPEN.remove(uuid);
+            LOGGER.warn("[{}] fetchBalance threw: {}", McAuthMod.MOD_ID, t.getMessage());
+            player.sendMessage(
+                    Text.literal("[KBVE] Wallet fetch failed — try again later.")
+                            .formatted(Formatting.RED),
+                    false);
+        }
     }
 
     private static boolean tryCustom(ServerPlayerEntity player, long credits, long khash) {

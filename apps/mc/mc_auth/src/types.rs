@@ -30,6 +30,10 @@ pub enum AuthJob {
         player_uuid: String,
         snapshot_json: String,
     },
+    FetchBalance {
+        player_uuid: String,
+        supabase_user_id: String,
+    },
 }
 
 /// Immediate response returned synchronously from JNI entry points.

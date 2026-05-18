@@ -114,6 +114,14 @@ spec:
                                         name: mc-supabase-credentials
                                         key: service-role-key
                                         optional: true
+                              - name: AXUM_KBVE_URL
+                                value: 'http://kbve-service.kbve.svc.cluster.local:4321'
+                              - name: WALLET_SERVICE_JWT
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: mc-supabase-credentials
+                                        key: service-role-key
+                                        optional: true
                               - name: MOTD
                                 value: 'KBVE Minecraft Server'
                               - name: MAX_PLAYERS
