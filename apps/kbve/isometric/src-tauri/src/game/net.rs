@@ -17,11 +17,12 @@ use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
 use bevy_kbve_net::{
-    AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureCapturedBatch, CreatureKind, DamageEvent, DamageSource, GameChannel, InventorySync,
-    InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
-    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
-    SkillXpGrant, TileKey, TimeSyncMessage,
+    AuthAck, AuthMessage, AuthResponse, CollectRequest, CraftRequest, CraftResult,
+    CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch, CreatureKind, DamageEvent,
+    DamageSource, DeployRequest, EquipRequest, EquipmentSync, EquipmentUpdate, GameChannel,
+    InventorySync, InventoryUpdate, ItemDeployed, ObjectRemoved, ObjectRespawned, PlayerColor,
+    PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, SkillXpGrant, TileKey, TimeSyncMessage, UnequipRequest, UseItemRequest,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -281,6 +282,31 @@ impl Plugin for NetPlugin {
         // Server-authoritative skill XP — mirror server-side grants into the
         // local SkillProfile so the level-up toast + skill UI stay in sync.
         app.add_systems(Update, receive_skill_xp_grant);
+
+        // Equipment / crafting / consumables / deployables — full client
+        // pipeline: outgoing dispatch (UI Event → network) + incoming receive
+        // (network → local state + toast).
+        app.init_resource::<LocalPlayerEquipment>();
+        app.init_resource::<LocalDeployedItems>();
+        app.add_message::<EquipRequestEvent>();
+        app.add_message::<UnequipRequestEvent>();
+        app.add_message::<CraftRequestEvent>();
+        app.add_message::<UseItemRequestEvent>();
+        app.add_message::<DeployRequestEvent>();
+        app.add_systems(
+            Update,
+            (
+                forward_equip_requests,
+                forward_unequip_requests,
+                forward_craft_requests,
+                forward_use_item_requests,
+                forward_deploy_requests,
+                receive_equipment_update,
+                receive_equipment_sync,
+                receive_craft_result,
+                receive_item_deployed,
+            ),
+        );
 
         // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
@@ -1609,6 +1635,216 @@ fn receive_object_respawned(
             let (tx, tz) = (msg.tile.tx, msg.tile.tz);
             collected_tiles.0.remove(&(tx, tz));
             info!("[net] object respawned at ({tx},{tz}) — {:?}", msg.kind);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Equipment / Crafting / Consumables / Deployables — client mirror state +
+// dispatch events. The events let UI code (buttons, hotkeys, panels) trigger
+// server requests without having to touch lightyear MessageSender directly.
+// ---------------------------------------------------------------------------
+
+/// Local mirror of the server-side equipment slot map (proto EquipSlot i32 →
+/// itemdb ref). Authoritative copy lives on the server; this resource is
+/// rebuilt from EquipmentUpdate / EquipmentSync messages.
+#[derive(Resource, Default, Debug, Clone)]
+pub struct LocalPlayerEquipment {
+    pub slots: std::collections::HashMap<i32, String>,
+}
+
+/// Local mirror of every deployable currently placed in the world. Populated
+/// on join via the ItemDeployed catch-up and updated by live broadcasts.
+#[derive(Resource, Default, Debug, Clone)]
+pub struct LocalDeployedItems {
+    pub entries: std::collections::HashMap<(i32, i32), (u64, String)>,
+}
+
+#[derive(bevy::prelude::Message, Debug, Clone)]
+pub struct EquipRequestEvent {
+    pub inventory_slot: u32,
+}
+#[derive(bevy::prelude::Message, Debug, Clone)]
+pub struct UnequipRequestEvent {
+    pub equip_slot: i32,
+}
+#[derive(bevy::prelude::Message, Debug, Clone)]
+pub struct CraftRequestEvent {
+    pub output_item_ref: String,
+    pub recipe_index: u32,
+    pub batches: u32,
+}
+#[derive(bevy::prelude::Message, Debug, Clone)]
+pub struct UseItemRequestEvent {
+    pub inventory_slot: u32,
+}
+#[derive(bevy::prelude::Message, Debug, Clone)]
+pub struct DeployRequestEvent {
+    pub inventory_slot: u32,
+    pub tile_tx: i32,
+    pub tile_tz: i32,
+}
+
+fn forward_equip_requests(
+    mut reader: MessageReader<EquipRequestEvent>,
+    mut senders: Query<&mut MessageSender<EquipRequest>, With<Connected>>,
+) {
+    for ev in reader.read() {
+        for mut sender in &mut senders {
+            sender.send::<GameChannel>(EquipRequest {
+                inventory_slot: ev.inventory_slot,
+            });
+        }
+    }
+}
+
+fn forward_unequip_requests(
+    mut reader: MessageReader<UnequipRequestEvent>,
+    mut senders: Query<&mut MessageSender<UnequipRequest>, With<Connected>>,
+) {
+    for ev in reader.read() {
+        for mut sender in &mut senders {
+            sender.send::<GameChannel>(UnequipRequest {
+                equip_slot: ev.equip_slot,
+            });
+        }
+    }
+}
+
+fn forward_craft_requests(
+    mut reader: MessageReader<CraftRequestEvent>,
+    mut senders: Query<&mut MessageSender<CraftRequest>, With<Connected>>,
+) {
+    for ev in reader.read() {
+        for mut sender in &mut senders {
+            sender.send::<GameChannel>(CraftRequest {
+                output_item_ref: ev.output_item_ref.clone(),
+                recipe_index: ev.recipe_index,
+                batches: ev.batches.max(1),
+            });
+        }
+    }
+}
+
+fn forward_use_item_requests(
+    mut reader: MessageReader<UseItemRequestEvent>,
+    mut senders: Query<&mut MessageSender<UseItemRequest>, With<Connected>>,
+) {
+    for ev in reader.read() {
+        for mut sender in &mut senders {
+            sender.send::<GameChannel>(UseItemRequest {
+                inventory_slot: ev.inventory_slot,
+            });
+        }
+    }
+}
+
+fn forward_deploy_requests(
+    mut reader: MessageReader<DeployRequestEvent>,
+    mut senders: Query<&mut MessageSender<DeployRequest>, With<Connected>>,
+) {
+    for ev in reader.read() {
+        for mut sender in &mut senders {
+            sender.send::<GameChannel>(DeployRequest {
+                inventory_slot: ev.inventory_slot,
+                tile: TileKey {
+                    tx: ev.tile_tx,
+                    tz: ev.tile_tz,
+                },
+            });
+        }
+    }
+}
+
+fn receive_equipment_update(
+    my_player_id: Res<MyPlayerId>,
+    mut equipment: ResMut<LocalPlayerEquipment>,
+    mut query: Query<(Entity, &mut MessageReceiver<EquipmentUpdate>)>,
+) {
+    for (_e, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            if msg.item_ref.is_empty() {
+                equipment.slots.remove(&msg.equip_slot);
+            } else {
+                equipment.slots.insert(msg.equip_slot, msg.item_ref);
+            }
+        }
+    }
+}
+
+fn receive_equipment_sync(
+    my_player_id: Res<MyPlayerId>,
+    mut equipment: ResMut<LocalPlayerEquipment>,
+    mut query: Query<(Entity, &mut MessageReceiver<EquipmentSync>)>,
+) {
+    for (_e, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            equipment.slots.clear();
+            for (slot, item_ref) in msg.slots {
+                if !item_ref.is_empty() {
+                    equipment.slots.insert(slot, item_ref);
+                }
+            }
+        }
+    }
+}
+
+fn receive_craft_result(
+    my_player_id: Res<MyPlayerId>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut MessageReceiver<CraftResult>)>,
+) {
+    for (_e, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            if msg.success {
+                commands.trigger(super::toast::Toast::loot(format!(
+                    "Crafted {}x {}",
+                    msg.produced, msg.output_item_ref
+                )));
+            } else {
+                let reason = match msg.failure_reason {
+                    Some(bevy_kbve_net::CraftFailureReason::UnknownItem) => "unknown item",
+                    Some(bevy_kbve_net::CraftFailureReason::InvalidRecipe) => "bad recipe",
+                    Some(bevy_kbve_net::CraftFailureReason::MissingIngredients) => {
+                        "missing ingredients"
+                    }
+                    Some(bevy_kbve_net::CraftFailureReason::SkillTooLow) => "skill too low",
+                    Some(bevy_kbve_net::CraftFailureReason::InventoryFull) => "bag full",
+                    None => "rejected",
+                };
+                commands.trigger(super::toast::Toast::warn(format!(
+                    "Craft failed: {}",
+                    reason
+                )));
+            }
+        }
+    }
+}
+
+fn receive_item_deployed(
+    mut deployed: ResMut<LocalDeployedItems>,
+    mut query: Query<(Entity, &mut MessageReceiver<ItemDeployed>)>,
+) {
+    for (_e, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            info!(
+                "[net] item deployed: {} at ({},{}) by player {}",
+                msg.item_ref, msg.tile.tx, msg.tile.tz, msg.owner_id
+            );
+            deployed
+                .entries
+                .insert((msg.tile.tx, msg.tile.tz), (msg.owner_id, msg.item_ref));
+            // Visual spawn of the deployed entity is a UI surface that will
+            // land in a follow-up: today we only mirror the wire state.
         }
     }
 }

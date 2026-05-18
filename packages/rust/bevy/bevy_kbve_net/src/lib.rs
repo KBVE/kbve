@@ -19,13 +19,15 @@ pub mod worldgen;
 
 pub use inputs::PlayerInput;
 pub use protocol::{
-    AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest,
-    CreatureAttackRequest, CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch,
-    CreatureEventKind, CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureStateEvent,
-    CreatureSyncChannel, DamageEvent, DamageSource, GameChannel, InventorySlotState, InventorySync,
-    InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
-    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
-    SkillXpGrant, TimeChannel, TimeSyncMessage,
+    AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest, CraftFailureReason,
+    CraftRequest, CraftResult, CreatureAttackRequest, CreatureCaptureRequest, CreatureCaptured,
+    CreatureCapturedBatch, CreatureEventKind, CreatureKind, CreaturePositionSync, CreatureSnapshot,
+    CreatureStateEvent, CreatureSyncChannel, DamageEvent, DamageSource, DeployRequest,
+    EquipRequest, EquipmentSync, EquipmentUpdate, GameChannel, InventorySlotState, InventorySync,
+    InventoryUpdate, ItemDeployed, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId,
+    PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest,
+    SetUsernameResponse, SkillXpGrant, TimeChannel, TimeSyncMessage, UnequipRequest,
+    UseItemRequest,
 };
 pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile, roll_loot_at};
 
