@@ -1,6 +1,7 @@
 pub mod ai;
 #[cfg(feature = "supabase")]
 pub mod member;
+#[cfg(feature = "legacy-sync-db")]
 pub mod resend;
 #[cfg(feature = "supabase")]
 pub mod supabase;
@@ -10,6 +11,7 @@ pub mod vault;
 pub use ai::*;
 #[cfg(feature = "supabase")]
 pub use member::*;
+#[cfg(feature = "legacy-sync-db")]
 pub use resend::*;
 #[cfg(feature = "supabase")]
 pub use supabase::*;
