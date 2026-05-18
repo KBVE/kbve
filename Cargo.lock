@@ -355,12 +355,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "aeronet_io"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bdc30d6e77d611cffd0e6c418299de1eccf21696205de3368f75afc71413a98"
+dependencies = [
+ "anyhow",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bytes",
+ "derive_more 2.1.1",
+ "log",
+]
+
+[[package]]
 name = "aeronet_steam"
 version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c9fea14c3de9d1f8c4cb7bdd8be3e304ae4a45be9f3a8c02008b033165df976"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "anyhow",
  "bevy_app",
  "bevy_ecs",
@@ -380,7 +396,7 @@ version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab40ded6412a153f6e189620251f44cb74dc43a218eddea9f4fe4ba55a72e763"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "bevy_platform",
@@ -407,7 +423,37 @@ version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af4243f8320cca7bf4ce0e1e41aea4553007279685e181e3d566325260a49822"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
+ "base64 0.22.1",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bytes",
+ "cfg-if",
+ "derive_more 2.1.1",
+ "futures",
+ "gloo-timers",
+ "js-sys",
+ "spki",
+ "tokio",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wtransport",
+ "x509-cert",
+ "xwt-core",
+ "xwt-web",
+ "xwt-wtransport",
+]
+
+[[package]]
+name = "aeronet_webtransport"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9a52676600f8c6e29f395c427b5823aada27a5dbdb5ab2855a93b09117dae78"
+dependencies = [
+ "aeronet_io 0.20.0",
  "base64 0.22.1",
  "bevy_app",
  "bevy_ecs",
@@ -2597,7 +2643,7 @@ dependencies = [
 name = "bevy_kbve_net"
 version = "0.1.0"
 dependencies = [
- "aeronet_webtransport",
+ "aeronet_webtransport 0.20.0",
  "avian3d",
  "base64 0.22.1",
  "bevy",
@@ -9232,7 +9278,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be51d4b8fe01a81efe7b0e53f1d5577719a507ca3bbd40cadcbf3ccaea82030d"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "console_error_panic_hook",
@@ -9276,7 +9322,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a8e7f2b66a63bba410403708bf9c98a7c8e0834a0a069db010e63e669e6735b"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
@@ -9562,7 +9608,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db834d08f6826a2c25c9a355a33bb0db036da2da98b5f43b3982e6b5c41a0f4e"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
@@ -9617,7 +9663,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "631b5527b4f11d1e199f823ecdcd02585136fc55dd3261d5280e03bbcc29cdd3"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "lightyear_connection",
@@ -9690,7 +9736,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02b513c7aaeeaee3fbfe82e4ab7698cc3360d42526d167054af357920a166566"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "aeronet_steam",
  "bevy_app",
  "bevy_ecs",
@@ -9761,7 +9807,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "367cdb2e11ac6448bec036a26ce1aa7a97a695e1a50a28e2d3d4e3f8ae34c670"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "bevy_platform",
@@ -9828,7 +9874,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e5ee75b46e0be8f9e746f1b53464376715d400fbddb4a3faf8fb348eec2919"
 dependencies = [
- "aeronet_io",
+ "aeronet_io 0.19.1",
  "aeronet_websocket",
  "bevy_app",
  "bevy_ecs",
@@ -9845,8 +9891,8 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c100a3f88ced77327f04ab3e583ecca627e53d93031c5aaf7c2260d6c9faf25"
 dependencies = [
- "aeronet_io",
- "aeronet_webtransport",
+ "aeronet_io 0.19.1",
+ "aeronet_webtransport 0.19.1",
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
