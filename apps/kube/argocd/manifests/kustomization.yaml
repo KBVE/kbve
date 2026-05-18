@@ -5,6 +5,8 @@ resources:
     - ingress.yaml
     - argocd-server-cert.yaml
     - httproute.yaml
+    - servicemonitor.yaml
+    - prometheusrule.yaml
 patches:
     - path: patch-argocd-cm-cert-health.yaml
       target:

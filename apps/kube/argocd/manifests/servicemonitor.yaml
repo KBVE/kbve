@@ -1,0 +1,59 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: argocd-metrics
+    namespace: argocd
+    labels:
+        release: monitoring
+        app.kubernetes.io/part-of: argocd
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: argocd-metrics
+    namespaceSelector:
+        matchNames:
+            - argocd
+    endpoints:
+        - port: metrics
+          interval: 30s
+          scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: argocd-server-metrics
+    namespace: argocd
+    labels:
+        release: monitoring
+        app.kubernetes.io/part-of: argocd
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: argocd-server-metrics
+    namespaceSelector:
+        matchNames:
+            - argocd
+    endpoints:
+        - port: metrics
+          interval: 30s
+          scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: argocd-notifications-controller-metrics
+    namespace: argocd
+    labels:
+        release: monitoring
+        app.kubernetes.io/part-of: argocd
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: argocd-notifications-controller-metrics
+    namespaceSelector:
+        matchNames:
+            - argocd
+    endpoints:
+        - port: metrics
+          interval: 30s
+          scrapeTimeout: 10s
