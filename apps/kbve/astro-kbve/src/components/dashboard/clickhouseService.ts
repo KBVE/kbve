@@ -185,6 +185,15 @@ function queryParamsKey(params: QueryParams): string {
 	return JSON.stringify(params, Object.keys(params).sort());
 }
 
+async function readErrorBody(resp: Response): Promise<string | undefined> {
+	try {
+		const text = await resp.text();
+		return text.slice(0, 500) || undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 let _nextTabId = 1;
 function genTabId(): string {
 	return `qt-${Date.now()}-${_nextTabId++}`;
@@ -193,6 +202,12 @@ function genTabId(): string {
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
+
+export interface UpstreamErrorInfo {
+	source: 'stats' | 'logs';
+	status: number;
+	body?: string;
+}
 
 class ClickHouseService {
 	// Auth
@@ -206,6 +221,8 @@ class ClickHouseService {
 	// Loading
 	public readonly $statsLoading = atom<boolean>(true);
 	public readonly $logsLoading = atom<boolean>(false);
+
+	public readonly $upstreamError = atom<UpstreamErrorInfo | null>(null);
 
 	// Time range
 	public readonly $minutes = atom<number>(60);
@@ -330,14 +347,25 @@ class ClickHouseService {
 				return;
 			}
 			if (!resp.ok) {
+				this.$upstreamError.set({
+					source: 'stats',
+					status: resp.status,
+					body: await readErrorBody(resp),
+				});
 				this.$statsLoading.set(false);
 				return;
 			}
 			const data: StatsData = await resp.json();
 			setCache(cacheKey, data);
 			this.$stats.set(data);
-		} catch {
-			// network error
+			const current = this.$upstreamError.get();
+			if (current?.source === 'stats') this.$upstreamError.set(null);
+		} catch (err) {
+			this.$upstreamError.set({
+				source: 'stats',
+				status: 0,
+				body: err instanceof Error ? err.message : 'network error',
+			});
 		}
 		this.$statsLoading.set(false);
 	}
@@ -375,13 +403,24 @@ class ClickHouseService {
 				return;
 			}
 			if (!resp.ok) {
+				this.$upstreamError.set({
+					source: 'logs',
+					status: resp.status,
+					body: await readErrorBody(resp),
+				});
 				this.$logsLoading.set(false);
 				return;
 			}
 			const data: QueryData = await resp.json();
 			this.$logs.set(data);
-		} catch {
-			// network error
+			const current = this.$upstreamError.get();
+			if (current?.source === 'logs') this.$upstreamError.set(null);
+		} catch (err) {
+			this.$upstreamError.set({
+				source: 'logs',
+				status: 0,
+				body: err instanceof Error ? err.message : 'network error',
+			});
 		}
 		this.$logsLoading.set(false);
 	}
