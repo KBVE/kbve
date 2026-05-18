@@ -121,6 +121,8 @@ public final class NativeRuntime {
 
     public static native String savePlayerSnapshot(String uuid, String snapshotJson);
 
+    public static native String fetchBalance(String uuid, String supabaseUserId);
+
     /** Check if the native library loaded successfully. */
     public static boolean isLoaded() {
         return loaded;

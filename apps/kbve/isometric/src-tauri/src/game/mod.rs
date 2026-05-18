@@ -4,8 +4,12 @@ pub mod campfire;
 pub mod candle;
 pub mod chat;
 pub mod client_profile;
+pub mod crafting_ui;
 pub mod creatures;
+pub mod deploy_ui;
+pub mod equipment_ui;
 pub mod grass;
+pub mod hotbar_ui;
 pub mod hover_bvh;
 pub mod input_bridge;
 pub mod interaction_ui;
@@ -42,7 +46,11 @@ use actions::ActionsPlugin;
 use camera::IsometricCameraPlugin;
 use campfire::CampfirePlugin;
 use candle::CandlePlugin;
+use crafting_ui::CraftingUiPlugin;
 use creatures::CreaturesPlugin;
+use deploy_ui::DeployUiPlugin;
+use equipment_ui::EquipmentUiPlugin;
+use hotbar_ui::HotbarUiPlugin;
 use input_bridge::InputBridgePlugin;
 use interaction_ui::InteractionUiPlugin;
 use inventory::{BevyItemsPlugin, InventoryPlugin, ItemKind};
@@ -164,6 +172,10 @@ impl PluginGroup for GamePluginGroup {
             .add(chat::GameChatPlugin)
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
+            .add(EquipmentUiPlugin)
+            .add(HotbarUiPlugin)
+            .add(CraftingUiPlugin)
+            .add(DeployUiPlugin)
             .add(skills::SkillsPlugin)
             .add(PauseMenuPlugin)
             .add(PersistPlugin)

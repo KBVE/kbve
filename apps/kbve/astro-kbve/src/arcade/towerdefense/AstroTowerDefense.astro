@@ -340,6 +340,8 @@ import TdHud from './TdHud';
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		padding: 12px;
+		overflow: auto;
 		background: radial-gradient(
 			ellipse at center,
 			rgba(8, 10, 14, 0.55) 0%,
@@ -365,15 +367,17 @@ import TdHud from './TdHud';
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 16px;
-		padding: 24px 32px 22px;
+		gap: clamp(8px, 1.5vh, 16px);
+		padding: clamp(12px, 2.5vh, 24px) clamp(14px, 3vw, 32px)
+			clamp(10px, 2.2vh, 22px);
 		background: rgba(15, 19, 26, 0.96);
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-top: 2px solid #fbd38d;
 		border-radius: 16px;
 		box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-		min-width: 540px;
-		max-width: 88%;
+		width: min(560px, 96%);
+		max-height: 100%;
+		overflow: auto;
 	}
 
 	.td-cards-eyebrow {
@@ -385,7 +389,7 @@ import TdHud from './TdHud';
 	}
 
 	.td-cards-title {
-		font-size: 24px;
+		font-size: clamp(16px, 2.6vh, 24px);
 		font-weight: 800;
 		letter-spacing: -0.01em;
 		color: #f7fafc;
@@ -394,18 +398,22 @@ import TdHud from './TdHud';
 
 	.td-cards-row {
 		display: flex;
-		gap: 14px;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: clamp(8px, 1.4vw, 14px);
+		width: 100%;
 	}
 
 	.td-card {
-		flex: 1 1 0;
-		min-width: 160px;
+		flex: 1 1 140px;
+		min-width: 0;
 		max-width: 200px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
-		padding: 20px 14px 18px;
+		gap: clamp(6px, 1.2vh, 10px);
+		padding: clamp(12px, 2vh, 20px) clamp(10px, 1.5vw, 14px)
+			clamp(10px, 1.8vh, 18px);
 		background: linear-gradient(
 			180deg,
 			rgba(31, 41, 55, 0.85) 0%,
@@ -441,8 +449,8 @@ import TdHud from './TdHud';
 	}
 
 	.td-card-mark {
-		width: 42px;
-		height: 42px;
+		width: clamp(28px, 4.5vh, 42px);
+		height: clamp(28px, 4.5vh, 42px);
 		border-radius: 50%;
 		background:
 			radial-gradient(

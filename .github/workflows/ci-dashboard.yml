@@ -1336,14 +1336,37 @@ jobs:
                         core.info(`Auto-merge (squash) enabled for PR #${prNumber}`);
                       } catch (err) {
                         core.info(`enableAutoMerge unavailable (${err.message}), attempting direct squash merge`);
-                        await github.rest.pulls.merge({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          pull_number: prNumber,
-                          merge_method: 'squash',
-                          commit_title: 'chore(dashboard): daily sync',
-                        });
-                        core.info(`PR #${prNumber} squash-merged directly`);
+
+                        const attempts = [0, 60, 120, 120];
+                        let merged = false;
+                        let lastErr = null;
+                        for (let i = 0; i < attempts.length; i++) {
+                          if (attempts[i] > 0) {
+                            core.info(`Waiting ${attempts[i]}s before retry ${i}/${attempts.length - 1}…`);
+                            await new Promise(r => setTimeout(r, attempts[i] * 1000));
+                          }
+                          try {
+                            await github.rest.pulls.merge({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              pull_number: prNumber,
+                              merge_method: 'squash',
+                              commit_title: 'chore(dashboard): daily sync',
+                            });
+                            core.info(`PR #${prNumber} squash-merged directly (attempt ${i + 1}).`);
+                            merged = true;
+                            break;
+                          } catch (mergeErr) {
+                            lastErr = mergeErr;
+                            const status = mergeErr.status ?? mergeErr.response?.status;
+                            const transient = status === 405 || status === 409 || status === 422;
+                            if (!transient || i === attempts.length - 1) {
+                              throw mergeErr;
+                            }
+                            core.warning(`Merge attempt ${i + 1} failed (status ${status}): ${mergeErr.message}. Retrying…`);
+                          }
+                        }
+                        if (!merged) throw lastErr;
                       }
 
     # ── Failure tracker ──────────────────────────────────────

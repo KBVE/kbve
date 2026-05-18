@@ -191,6 +191,115 @@ pub struct SkillXpGrant {
     pub amount: u64,
 }
 
+// ---------------------------------------------------------------------------
+// Equipment
+// ---------------------------------------------------------------------------
+
+/// Equip an item already in the player's inventory. The server resolves
+/// the proto EquipSlot from the item's EquipmentInfo, so the client only
+/// needs to identify which inventory slot to equip from.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct EquipRequest {
+    pub inventory_slot: u32,
+}
+
+/// Unequip whatever currently occupies an equipment slot, returning it to
+/// inventory. `equip_slot` mirrors the proto `EquipSlot` enum's i32 value.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct UnequipRequest {
+    pub equip_slot: i32,
+}
+
+/// Server pushes the canonical state of one equipment slot after any mutation
+/// (equip / unequip / loss-on-death). Empty `item_ref` means the slot is now
+/// empty.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct EquipmentUpdate {
+    pub player_id: u64,
+    pub equip_slot: i32,
+    pub item_ref: String,
+}
+
+/// Full equipment snapshot for join / reconnect.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct EquipmentSync {
+    pub player_id: u64,
+    pub slots: Vec<(i32, String)>,
+}
+
+// ---------------------------------------------------------------------------
+// Crafting
+// ---------------------------------------------------------------------------
+
+/// Ask the server to craft `output_item_ref`. Server resolves the recipe
+/// from the item's `CraftingRecipe` list, validates ingredients + skill +
+/// (eventually) facility/tool, then consumes ingredients and grants the
+/// output. Multiple recipes may exist per output — `recipe_index` picks one.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CraftRequest {
+    pub output_item_ref: String,
+    pub recipe_index: u32,
+    pub batches: u32,
+}
+
+/// Reason a craft failed; emitted server → owning client so the UI can
+/// surface a meaningful error toast.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum CraftFailureReason {
+    UnknownItem,
+    InvalidRecipe,
+    MissingIngredients,
+    SkillTooLow,
+    InventoryFull,
+    MissingFacility,
+}
+
+/// Server response to a craft attempt — covers both success and failure.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct CraftResult {
+    pub player_id: u64,
+    pub output_item_ref: String,
+    pub success: bool,
+    pub failure_reason: Option<CraftFailureReason>,
+    /// Total quantity produced (0 on failure).
+    pub produced: u32,
+}
+
+// ---------------------------------------------------------------------------
+// Consumables
+// ---------------------------------------------------------------------------
+
+/// Client asks to use a consumable from a given inventory slot. Server
+/// validates `consumable=true`, applies the UseEffect list (heal/buff/
+/// damage), decrements the stack, and broadcasts inventory + vital updates.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct UseItemRequest {
+    pub inventory_slot: u32,
+}
+
+// ---------------------------------------------------------------------------
+// Deployables
+// ---------------------------------------------------------------------------
+
+/// Client asks to deploy an item at a world tile (campfire, fence, etc.).
+/// Server validates the item carries `DeployableInfo`, removes one from
+/// inventory, and replicates a placement to all clients via
+/// `ItemDeployed`.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct DeployRequest {
+    pub inventory_slot: u32,
+    pub tile: TileKey,
+}
+
+/// Server broadcasts that a deployable item was placed at a world tile so
+/// every client can spawn a matching visual entity.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ItemDeployed {
+    pub owner_id: u64,
+    pub tile: TileKey,
+    pub item_ref: String,
+}
+
 /// Server periodically broadcasts canonical game time and creature seed.
 /// Clients use this to keep DayCycle, wind, and creature behavior in sync.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -406,6 +515,32 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
         // SkillXpGrant: server → owning client (mirrored skill XP delta)
         app.register_message::<SkillXpGrant>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // Equipment
+        app.register_message::<EquipRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<UnequipRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<EquipmentUpdate>()
+            .add_direction(NetworkDirection::ServerToClient);
+        app.register_message::<EquipmentSync>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // Crafting
+        app.register_message::<CraftRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<CraftResult>()
+            .add_direction(NetworkDirection::ServerToClient);
+
+        // Consumables
+        app.register_message::<UseItemRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+
+        // Deployables
+        app.register_message::<DeployRequest>()
+            .add_direction(NetworkDirection::ClientToServer);
+        app.register_message::<ItemDeployed>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // TimeSyncMessage: server → all clients (unreliable, periodic)

@@ -4,8 +4,6 @@ import { MAX_ENTITIES } from './shared';
 export const SoldierTag: Record<string, never> = {};
 
 export const SoldierStats = {
-	hp: new Float32Array(MAX_ENTITIES),
-	maxHp: new Float32Array(MAX_ENTITIES),
 	speed: new Float32Array(MAX_ENTITIES),
 	attackDamage: new Float32Array(MAX_ENTITIES),
 	attackRateMs: new Float32Array(MAX_ENTITIES),

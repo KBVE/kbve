@@ -21,6 +21,7 @@ export const ProjectileStats = {
 	splashRadius: new Float32Array(MAX_ENTITIES),
 	slowMs: new Float32Array(MAX_ENTITIES),
 	slowFactor: new Float32Array(MAX_ENTITIES),
+	damageType: new Uint8Array(MAX_ENTITIES),
 };
 
 export interface ProjectileVisual {

@@ -177,6 +177,9 @@ public final class AuthEventTicker {
                 if (player != null) {
                     sendBalanceMessage(player, credits, khash);
                     WalletNetworking.pushBalance(player, credits, khash);
+                    if (WalletCommand.consumePending(uuid)) {
+                        WalletCommand.openFor(player);
+                    }
                 }
                 LOGGER.debug(
                         "[{}] WalletBalance uuid={} credits={} khash={}",

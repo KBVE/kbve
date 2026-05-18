@@ -3333,10 +3333,12 @@ async fn main() {
         .route("/fc/{name}", delete(fc_destroy))
         .route("/fc/{name}/logs", get(fc_logs))
         .route("/proxy/{name}", axum::routing::any(fc_proxy))
+        .route("/proxy/{name}/", axum::routing::any(fc_proxy))
         .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
         // Sibling prefix, not nested. `/proxy/public/{name}` overlapped
         // `/proxy/{name}/{*path}` and matchit kept routing to fc_proxy.
         .route("/public-proxy/{name}", axum::routing::any(fc_proxy_public))
+        .route("/public-proxy/{name}/", axum::routing::any(fc_proxy_public))
         .route(
             "/public-proxy/{name}/{*path}",
             axum::routing::any(fc_proxy_public),
@@ -4543,8 +4545,10 @@ mod tests {
             .route("/fc/{name}", get(fc_get))
             .route("/fc/{name}", delete(fc_destroy))
             .route("/proxy/{name}", axum::routing::any(fc_proxy))
+            .route("/proxy/{name}/", axum::routing::any(fc_proxy))
             .route("/proxy/{name}/{*path}", axum::routing::any(fc_proxy))
             .route("/public-proxy/{name}", axum::routing::any(fc_proxy_public))
+            .route("/public-proxy/{name}/", axum::routing::any(fc_proxy_public))
             .route(
                 "/public-proxy/{name}/{*path}",
                 axum::routing::any(fc_proxy_public),
@@ -4572,6 +4576,44 @@ mod tests {
         assert_eq!(&bytes[..], b"root-ok");
         let snapshot = ps.endpoints.get("demo").unwrap().metrics.snapshot();
         assert_eq!(snapshot.requests_total, 1);
+    }
+
+    #[tokio::test]
+    async fn proxy_staff_trailing_slash_hits_upstream_root() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Staff, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/proxy/demo/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(&bytes[..], b"root-ok");
+    }
+
+    #[tokio::test]
+    async fn proxy_public_trailing_slash_hits_upstream_root() {
+        let port = spawn_upstream().await;
+        let ep = make_endpoint("demo", port, EndpointVisibility::Public, http_cfg());
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/public-proxy/demo/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(&bytes[..], b"root-ok");
     }
 
     #[tokio::test]

@@ -22,6 +22,7 @@ rules:
               'supabase-db',
               'twitch-oauth-config',
               'ows-db-password',
+              'referral-hash',
           ]
       verbs: ['get', 'list', 'watch']
 ---

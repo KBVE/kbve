@@ -1,4 +1,15 @@
-export { Position } from './shared';
+export { Position, MAX_ENTITIES } from './shared';
+export {
+	Damageable,
+	DAMAGEABLE_KIND,
+	DamageableTag,
+	DAMAGE_TYPE,
+	DAMAGE_FLAG,
+	resistForType,
+	initDamageable,
+	type DamageableKind,
+	type DamageType,
+} from './damageable';
 export {
 	EnemyTag,
 	EnemyStats,
@@ -19,6 +30,24 @@ export {
 	BurnPatchStats,
 	type BurnPatchVisual,
 } from './burn-patch';
+export {
+	STATUS_KIND,
+	StatusState,
+	applyStatus,
+	hasStatus,
+	statusMagnitude,
+	statusExtra,
+	statusExpiresAt,
+	clearStatus,
+	type StatusKind,
+} from './status';
+export {
+	AURA_KIND,
+	AuraEmitter,
+	AuraEmitterTag,
+	initAura,
+	type AuraKind,
+} from './aura';
 export {
 	BuildingTag,
 	TowerTag,

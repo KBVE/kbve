@@ -11,22 +11,14 @@ export const ATTACK_TARGET_KIND = {
 } as const;
 
 export const EnemyStats = {
-	hp: new Float32Array(MAX_ENTITIES),
-	maxHp: new Float32Array(MAX_ENTITIES),
 	baseSpeed: new Float32Array(MAX_ENTITIES),
 	pathIndex: new Int32Array(MAX_ENTITIES),
 	segmentT: new Float32Array(MAX_ENTITIES),
-	slowUntilMs: new Float32Array(MAX_ENTITIES),
-	slowDurationMs: new Float32Array(MAX_ENTITIES),
-	slowFactor: new Float32Array(MAX_ENTITIES),
-	burnUntilMs: new Float32Array(MAX_ENTITIES),
-	burnDps: new Float32Array(MAX_ENTITIES),
 	attackDamage: new Float32Array(MAX_ENTITIES),
 	attackRateMs: new Float32Array(MAX_ENTITIES),
 	attackRange: new Float32Array(MAX_ENTITIES),
 	lastAttackAtMs: new Float32Array(MAX_ENTITIES),
 	canAttack: new Uint8Array(MAX_ENTITIES),
-	defense: new Float32Array(MAX_ENTITIES),
 	bountyMultiplier: new Float32Array(MAX_ENTITIES),
 	typeIndex: new Uint8Array(MAX_ENTITIES),
 	targetEid: new Int32Array(MAX_ENTITIES),

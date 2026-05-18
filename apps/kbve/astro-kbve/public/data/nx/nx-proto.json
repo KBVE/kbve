@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-05-17T08:49:28.044Z",
+  "generated_at": "2026-05-18T09:21:50.108Z",
   "summary": {
     "total_protos": 35,
     "registered": 26,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 662,
+    "total_messages": 663,
     "total_enums": 136
   },
   "protos": [
@@ -875,6 +875,7 @@
         "VmUsageEvent",
         "VmRateCard",
         "VmCharge",
+        "VmCostBreakdown",
         "VmCostQuote"
       ],
       "enums": [
@@ -882,7 +883,7 @@
         "VmExitReason",
         "ChargeOutcome"
       ],
-      "message_count": 7,
+      "message_count": 8,
       "enum_count": 3,
       "codegen": {
         "registered": true,
@@ -1400,7 +1401,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-17T08:49:28Z",
+  "checked_at": "2026-05-18T09:21:50Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",

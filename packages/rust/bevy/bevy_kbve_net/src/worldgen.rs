@@ -136,3 +136,59 @@ pub fn item_ref_at(tx: i32, tz: i32) -> Option<&'static str> {
         WorldObjectKind::Mushroom => Some(mushroom_item_ref(tx, tz)),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Drop tables — deterministic per-tile loot rolls
+//
+// The first entry of every roll is the canonical primary drop (so it matches
+// `item_ref_at` and drives the client-side fall/break animation + toast).
+// Additional entries are bonus drops; quantities are variance rolls keyed off
+// `hash2d` so the same tile re-rolled gives the same loot — important for
+// reconnects + future server replays.
+// ---------------------------------------------------------------------------
+
+fn roll_quantity_in_range(seed_a: i32, seed_b: i32, tx: i32, tz: i32, min: u32, max: u32) -> u32 {
+    if max <= min {
+        return min;
+    }
+    let span = max - min + 1;
+    let v = hash2d(tx + seed_a, tz + seed_b);
+    min + ((v * span as f32) as u32).min(span - 1)
+}
+
+fn roll_rock_loot(tx: i32, tz: i32) -> Vec<(&'static str, u32)> {
+    let primary = rock_item_ref(tx, tz);
+    let qty = match primary {
+        "crystal-ore" => roll_quantity_in_range(30001, 22001, tx, tz, 1, 3),
+        "iron-ore" | "copper-ore" => roll_quantity_in_range(30001, 22001, tx, tz, 1, 2),
+        _ => 1,
+    };
+    vec![(primary, qty)]
+}
+
+fn roll_tree_loot(tx: i32, tz: i32) -> Vec<(&'static str, u32)> {
+    let mut drops = vec![("log", 1u32)];
+    // 10% chance to also drop branches.
+    if hash2d(tx + 31001, tz + 23001) < 0.10 {
+        drops.push(("branches", 1));
+    }
+    // 5% chance to also drop ash (singed deadfall flavor).
+    if hash2d(tx + 32001, tz + 24001) < 0.05 {
+        drops.push(("ash", 1));
+    }
+    drops
+}
+
+/// Roll the full loot table for the object at (tx, tz). Deterministic per
+/// tile coords. Returns an empty Vec if no collectible object exists.
+pub fn roll_loot_at(tx: i32, tz: i32) -> Vec<(&'static str, u32)> {
+    let Some(kind) = object_at_tile(tx, tz) else {
+        return Vec::new();
+    };
+    match kind {
+        WorldObjectKind::Tree => roll_tree_loot(tx, tz),
+        WorldObjectKind::Rock => roll_rock_loot(tx, tz),
+        WorldObjectKind::Flower => vec![(flower_item_ref(tx, tz), 1)],
+        WorldObjectKind::Mushroom => vec![(mushroom_item_ref(tx, tz), 1)],
+    }
+}
