@@ -134,6 +134,11 @@ spec:
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
                       - name: CHUCKRPG_UPSTREAM_URL
                         value: 'http://rows.rows.svc.cluster.local:4322'
+                      - name: CHUCKRPG_CUSTOMER_GUID
+                        valueFrom:
+                            secretKeyRef:
+                                name: chuckrpg-customer-guid
+                                key: customer-guid
                       # MC RCON (multi-server) — drives /api/v1/mc/players.
                       # axum-kbve polls both backends in parallel, tags each
                       # player with the server they're on, and writes

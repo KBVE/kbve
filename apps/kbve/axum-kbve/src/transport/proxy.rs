@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use axum::{
     body::{Body, Bytes},
     extract::{FromRequestParts, Path, Request},
-    http::{HeaderMap, HeaderValue, StatusCode, header},
+    http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
 };
 use reqwest::Client;
@@ -23,6 +23,7 @@ struct ServiceProxy {
     /// If set, injected as `Authorization: Bearer <token>` on upstream requests.
     /// When `None`, no auth header is sent upstream (e.g. Grafana anonymous).
     upstream_token: Option<String>,
+    upstream_headers: Vec<(HeaderName, HeaderValue)>,
     /// When true, strip X-Frame-Options and Content-Security-Policy frame-ancestors
     /// from upstream responses so the proxied service can be embedded in an iframe
     /// (e.g. KASM workspace viewer).
@@ -114,6 +115,10 @@ impl ServiceProxy {
             if let Ok(val) = HeaderValue::from_str(&format!("Bearer {token}")) {
                 headers.insert(header::AUTHORIZATION, val);
             }
+        }
+
+        for (name, value) in &self.upstream_headers {
+            headers.insert(name.clone(), value.clone());
         }
 
         let body_bytes = match axum::body::to_bytes(req.into_body(), 10 * 1024 * 1024).await {
@@ -486,6 +491,7 @@ pub fn init_grafana_proxy() -> bool {
             client,
             upstream,
             upstream_token: None,
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -549,6 +555,7 @@ pub fn init_argo_proxy() -> bool {
         client,
         upstream,
         upstream_token: Some(auth_token),
+        upstream_headers: Vec::new(),
         iframe_safe: false,
         streaming: false,
     })
@@ -820,6 +827,7 @@ pub fn init_forgejo_proxy() -> bool {
             client,
             upstream,
             upstream_token: Some(auth_token),
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -897,6 +905,7 @@ pub fn init_kubevirt_proxy() -> bool {
             client,
             upstream,
             upstream_token: Some(auth_token),
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -1046,6 +1055,7 @@ pub fn init_kasm_proxy() -> bool {
         client,
         upstream: upstream.trim_end_matches('/').to_string(),
         upstream_token: None,
+        upstream_headers: Vec::new(),
         iframe_safe: true,
         // websockify chunked responses fail when buffered.
         streaming: true,
@@ -1541,6 +1551,7 @@ pub fn init_firecracker_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -1603,6 +1614,7 @@ pub fn init_firecracker_net_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -1789,6 +1801,7 @@ pub fn init_guacamole_proxy() -> bool {
             client,
             upstream: upstream.trim_end_matches('/').to_string(),
             upstream_token: None,
+            upstream_headers: Vec::new(),
             iframe_safe: false,
             streaming: false,
         })
@@ -1947,6 +1960,7 @@ pub fn init_edge_proxy() -> bool {
         client,
         upstream,
         upstream_token: Some(service_role_key),
+        upstream_headers: Vec::new(),
         iframe_safe: false,
         streaming: false,
     })
@@ -1972,6 +1986,26 @@ pub fn init_chuckrpg_proxy() -> bool {
         Err(_) => return false,
     };
 
+    let mut upstream_headers: Vec<(HeaderName, HeaderValue)> = Vec::new();
+    match std::env::var("CHUCKRPG_CUSTOMER_GUID") {
+        Ok(guid) => {
+            let trimmed = guid.trim();
+            if trimmed.is_empty() {
+                warn!("CHUCKRPG_CUSTOMER_GUID set but empty — ROWS /api/System/* will return 401");
+            } else {
+                match HeaderValue::from_str(trimmed) {
+                    Ok(val) => {
+                        upstream_headers.push((HeaderName::from_static("x-customerguid"), val))
+                    }
+                    Err(e) => {
+                        warn!(error = %e, "invalid CHUCKRPG_CUSTOMER_GUID, header not injected")
+                    }
+                }
+            }
+        }
+        Err(_) => warn!("CHUCKRPG_CUSTOMER_GUID unset — ROWS /api/System/* will return 401"),
+    }
+
     let client = Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(5))
@@ -1985,6 +2019,7 @@ pub fn init_chuckrpg_proxy() -> bool {
             client,
             upstream,
             upstream_token: None,
+            upstream_headers,
             iframe_safe: false,
             streaming: false,
         })
