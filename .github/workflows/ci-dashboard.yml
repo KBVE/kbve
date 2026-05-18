@@ -83,7 +83,7 @@ jobs:
                   node-version: 24
 
             - name: Setup pnpm v10
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 10.33.0
                   run_install: false
@@ -305,7 +305,7 @@ jobs:
                   node-version: 24
 
             - name: Setup pnpm v10
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 10.33.0
                   run_install: false
@@ -1046,7 +1046,7 @@ jobs:
                   protoc --version
 
             - name: Setup pnpm v10
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 10.33.0
                   run_install: false
@@ -1285,7 +1285,7 @@ jobs:
             # Build gate + auto-merge (same pattern as kanban-sync)
             - name: Setup pnpm
               if: steps.pr.outputs.pr_number != ''
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 10.33.0
 
