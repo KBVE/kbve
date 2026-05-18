@@ -26,7 +26,8 @@ import MarketCreateForm from './MarketCreateForm';
 
 <style is:global>
 	.kbve-market {
-		max-width: 960px;
+		width: 100%;
+		max-width: 1280px;
 		margin: 1.25rem auto 4rem;
 		padding: 0 1rem;
 		color: rgba(255, 255, 255, 0.9);
@@ -339,8 +340,16 @@ import MarketCreateForm from './MarketCreateForm';
 	}
 	.kbve-market__form-row {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-		gap: 0.75rem;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 0.85rem;
+	}
+	@media (min-width: 720px) {
+		.kbve-market__form-row {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+	.kbve-market__form-label--wide {
+		grid-column: 1 / -1;
 	}
 	.kbve-market__form label {
 		display: grid;
