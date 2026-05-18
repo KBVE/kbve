@@ -251,6 +251,7 @@ pub enum CraftFailureReason {
     MissingIngredients,
     SkillTooLow,
     InventoryFull,
+    MissingFacility,
 }
 
 /// Server response to a craft attempt — covers both success and failure.

@@ -2087,10 +2087,37 @@ fn process_unequip_requests(
 }
 
 /// ── P2 Crafting ────────────────────────────────────────────────────
+const FACILITY_REACH: f32 = 5.0;
+
+fn near_facility(player_pos: &Position, deployed: &DeployedItems, facility_type: &str) -> bool {
+    for (tile, entry) in &deployed.0 {
+        let kind = ProtoItemKind::from_ref(&entry.item_ref);
+        let Some(item) = kind.item() else { continue };
+        let Some(dep) = item.deployable.as_ref() else {
+            continue;
+        };
+        let matches = dep
+            .deployable_type
+            .as_deref()
+            .map(|t| t == facility_type)
+            .unwrap_or(false);
+        if !matches {
+            continue;
+        }
+        let tile_world = Vec3::new(tile.tx as f32, player_pos.0.y, tile.tz as f32);
+        if (player_pos.0 - tile_world).length() <= FACILITY_REACH {
+            return true;
+        }
+    }
+    false
+}
+
 #[allow(clippy::too_many_arguments)]
 fn process_craft_requests(
     client_player_map: Res<ClientPlayerMap>,
     mut inventories: ResMut<PlayerInventories>,
+    deployed: Res<DeployedItems>,
+    positions: Query<&Position>,
     player_ids: Query<&bevy_kbve_net::PlayerId>,
     skill_profiles: Query<&SkillProfile>,
     mut xp_writer: MessageWriter<GrantXpMsg>,
@@ -2152,6 +2179,28 @@ fn process_craft_requests(
                             continue;
                         }
                     }
+                }
+            }
+
+            // Facility check (recipe.facility = "furnace", "workbench", etc.)
+            // The player must be standing near a deployed item whose proto
+            // DeployableInfo.deployable_type matches.
+            if let Some(facility) = recipe.facility.as_deref() {
+                let nearby = positions
+                    .get(player_entity)
+                    .map(|pos| near_facility(pos, &deployed, facility))
+                    .unwrap_or(false);
+                if !nearby {
+                    if let Ok(mut s) = craft_senders.get_mut(client_entity) {
+                        s.send::<bevy_kbve_net::GameChannel>(CraftResult {
+                            player_id,
+                            output_item_ref: msg.output_item_ref.clone(),
+                            success: false,
+                            failure_reason: Some(CraftFailureReason::MissingFacility),
+                            produced: 0,
+                        });
+                    }
+                    continue;
                 }
             }
 
@@ -2300,6 +2349,11 @@ fn process_use_item_requests(
                         }
                         Ok(bevy_items::UseEffectType::UseEffectFullHeal) => {
                             v.health = v.max_health;
+                        }
+                        Ok(bevy_items::UseEffectType::UseEffectRemoveAllNegative) => {
+                            // PlayerVitals has no status-effect list yet; this
+                            // is a no-op until a StatusEffects component lands.
+                            // Kept here so the proto enum arm is reachable.
                         }
                         _ => {}
                     }
@@ -2464,10 +2518,12 @@ fn tick_respawns(
 }
 
 /// Process creature capture requests: validate against CreatureRegistry, track, broadcast.
+#[allow(clippy::too_many_arguments)]
 fn process_creature_captures(
     client_player_map: Res<ClientPlayerMap>,
     mut captured: ResMut<CapturedCreatures>,
     mut capture_log: ResMut<CapturedCreatureLog>,
+    mut inventories: ResMut<PlayerInventories>,
     mut receivers: Query<
         (Entity, &mut MessageReceiver<CreatureCaptureRequest>),
         Without<PendingAuth>,
@@ -2477,6 +2533,7 @@ fn process_creature_captures(
     mut multi: ServerMultiMessageSender<With<Connected>>,
     servers: Query<&Server>,
     mut legacy_senders: Query<&mut MessageSender<CreatureCaptured>, With<Connected>>,
+    mut inv_sync_senders: Query<&mut MessageSender<InventorySync>, With<Connected>>,
 ) {
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
@@ -2531,6 +2588,34 @@ fn process_creature_captures(
                         .inspect_err(|e| {
                             tracing::error!("[gameserver] CreatureCaptured broadcast failed: {e}")
                         });
+                }
+            }
+
+            // Inventory bridge: grant a captured-{npc_ref} item if itemdb has
+            // a matching entry. No-op when the item ref is unknown so we don't
+            // silently fail on new creature kinds.
+            if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
+                let captured_ref = format!("captured-{}", creature_kind_to_npc_ref(msg.kind));
+                let kind = ProtoItemKind::from_ref(&captured_ref);
+                if kind.item().is_some() {
+                    let inv = inventories.get_or_init(player_entity);
+                    let overflow = inv.add(kind, 1);
+                    if overflow == 0 {
+                        let sync = build_inventory_sync(captor_id, inv);
+                        if let Ok(mut s) = inv_sync_senders.get_mut(client_entity) {
+                            s.send::<bevy_kbve_net::GameChannel>(sync);
+                        }
+                    } else {
+                        tracing::warn!(
+                            "[gameserver] capture bag full for player {player_entity:?} \
+                             — dropping {captured_ref}"
+                        );
+                    }
+                } else {
+                    tracing::debug!(
+                        "[gameserver] no itemdb entry for {captured_ref} \
+                         — capture broadcast only, no inventory grant"
+                    );
                 }
             }
         }

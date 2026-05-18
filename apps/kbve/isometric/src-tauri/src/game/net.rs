@@ -1819,6 +1819,9 @@ fn receive_craft_result(
                     }
                     Some(bevy_kbve_net::CraftFailureReason::SkillTooLow) => "skill too low",
                     Some(bevy_kbve_net::CraftFailureReason::InventoryFull) => "bag full",
+                    Some(bevy_kbve_net::CraftFailureReason::MissingFacility) => {
+                        "no nearby facility"
+                    }
                     None => "rejected",
                 };
                 commands.trigger(super::toast::Toast::warn(format!(
