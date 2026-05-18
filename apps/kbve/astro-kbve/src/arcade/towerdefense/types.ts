@@ -13,7 +13,7 @@ export interface BaseBuilding {
 	row: number;
 	x: number;
 	y: number;
-	sprite: Phaser.GameObjects.Rectangle;
+	sprite: Phaser.GameObjects.Image;
 	hpBar: Phaser.GameObjects.Rectangle;
 	hpBarBg: Phaser.GameObjects.Rectangle;
 }
