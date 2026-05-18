@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: referral-hash
+    namespace: kilobase
+spec:
+    encryptedData:
+        secret: AgCCrqSnospmSur8lKL36rlsfmpT6oVLh7lmHyv36A0AtyYc9KoMzCQeF9Wwqwpz5lmgY2VMdCh9fON/8+4TrDQUiM/IdL5neBBmTgvKp5ZQ2I3e06XZR9Rq5NTvoVwmI4MOApTBYZW20EKoc6dPoeIKYW6Q5osIjgM9CG1kCYIzKgwD2SfS2i5b15PXd7sMYpdSFihP/kbHcaM54zqKc9PlylvhzukfBNhbNoop/6rn8HUYkRhk0Dv1f0mW+U9zqyRZ5iAMtVofo5p7GY8lf8NBNCYVIpHeMmAJwvEgvLHw1WskFUBJcfLwd8Y+Vk+wg56QOiPykc4yBm2Be4LSjgK4Ii/J2DhYIldIbhHNg7nkek0bipVGAw/TPCRutV2hk4IsrO4R7lcqzZNcBvS0XN5ubkNJflv7NDSrc91wDksJ5z6UxLjaIEVCMfuGkqW8CwifWzxtVuBGdn0HzgmOKrs4ImbuZzeMLlOeHoV0xjNVhoGgKKUHtGWCTe63peKZsP+DvLFmnrH2aWeGM/pu2Wn/e3elSQKK8q5lh0+ipECd3Hh8knisr9wy7x94ec5AQN+hNYM73Sfq4F2Oe5mub/ZBDZPMzyGaF1rfb0u46rRWcsmEe1qUetIKaFg1zyXFunLEc7ksvtkKQdfDh7auTrdzIiaQFXppGufnTupcn900Fp4CcZutjsZwaEF7AO3IBZfAwsQGpkHPDJOmgRKFmfWnbOefRDFsLWJxL+dwGp9jW9clOSpRZUMc6hCRj09j5d5PYlTaaBeW0tYNYP640dXq
+    template:
+        metadata:
+            name: referral-hash
+            namespace: kilobase
