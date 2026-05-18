@@ -13,6 +13,30 @@ import MarketCreateForm from './MarketCreateForm';
 				until you're outbid or the listing settles.
 			</p>
 		</div>
+		<button
+			type="button"
+			class="kbve-search-trigger"
+			data-kbve-search-trigger
+			aria-label="Open universal search">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<circle cx="11" cy="11" r="7"></circle>
+				<path d="m20 20-3-3"></path>
+			</svg>
+			<span class="kbve-search-trigger__label">Search…</span>
+			<span class="kbve-search-trigger__keycap" data-kbve-search-keycap>
+				Ctrl+K
+			</span>
+		</button>
 	</header>
 
 	<details class="kbve-market__create">
@@ -33,9 +57,18 @@ import MarketCreateForm from './MarketCreateForm';
 		color: rgba(255, 255, 255, 0.9);
 	}
 	.kbve-market__header {
+		display: flex;
+		gap: 1rem;
+		align-items: flex-start;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		margin-bottom: 1.5rem;
+	}
+	.kbve-market__header > div {
 		display: grid;
 		gap: 0.5rem;
-		margin-bottom: 1.5rem;
+		flex: 1;
+		min-width: 0;
 	}
 	.kbve-market__header h1 {
 		font-size: clamp(1.75rem, 3.5vw, 2.25rem);
