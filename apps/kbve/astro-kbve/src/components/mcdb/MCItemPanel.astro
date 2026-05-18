@@ -2,6 +2,7 @@
 import { MCItemSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
 import MCTooltipMount from './MCTooltipMount.astro';
+import MCItemMarketSidecar from '@/components/market/MCItemMarketSidecar';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
@@ -303,6 +304,11 @@ const item = MCItemSchema.parse(data);
 			</section>
 		)
 	}
+
+	<section class="mcdb-section">
+		<h3>Marketplace</h3>
+		<MCItemMarketSidecar client:visible ref={item.ref} />
+	</section>
 
 	<footer class="mcdb-panel__foot">
 		<a
