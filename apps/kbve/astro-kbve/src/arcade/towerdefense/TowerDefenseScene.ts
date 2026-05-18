@@ -54,13 +54,24 @@ import {
 	buildIndexFromId,
 	BurnPatchStats,
 	BurnPatchTag,
+	applyStatus,
+	AURA_KIND,
+	AuraEmitter,
+	AuraEmitterTag,
+	clearStatus,
 	DAMAGE_FLAG,
 	DAMAGE_TYPE,
 	DAMAGEABLE_KIND,
 	Damageable,
 	DamageableTag,
+	hasStatus,
+	initAura,
 	initDamageable,
 	resistForType,
+	STATUS_KIND,
+	statusExpiresAt,
+	statusExtra,
+	statusMagnitude,
 	DroneStats,
 	DroneState,
 	DroneTag,
@@ -236,7 +247,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		batteryCapacity: 0,
 	};
 	private powerRefreshAccumulatorMs = 0;
-	private passiveRepairAccumulatorMs = 0;
 
 	constructor() {
 		super({ key: 'TowerDefenseScene' });
@@ -303,7 +313,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 			batteryCapacity: 0,
 		};
 		this.powerRefreshAccumulatorMs = 0;
-		this.passiveRepairAccumulatorMs = 0;
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
@@ -1465,6 +1474,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 			RepairUpgradeStats.reach[eid] = 0;
 			RepairUpgradeStats.yield[eid] = 0;
 			RepairUpgradeStats.tempo[eid] = 0;
+			addComponent(this.world, eid, AuraEmitterTag);
+			addComponent(this.world, eid, AuraEmitter);
+			initAura(
+				eid,
+				AURA_KIND.repairArmor,
+				(spec as RepairSpec).repairRange,
+				GAME_CONFIG.passiveRepairArmor,
+				GAME_CONFIG.passiveRepairIntervalMs,
+			);
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1705,11 +1723,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		EnemyStats.baseSpeed[eid] = speed;
 		EnemyStats.pathIndex[eid] = 1;
 		EnemyStats.segmentT[eid] = 0;
-		EnemyStats.slowUntilMs[eid] = 0;
-		EnemyStats.slowDurationMs[eid] = 0;
-		EnemyStats.slowFactor[eid] = 1;
-		EnemyStats.burnUntilMs[eid] = 0;
-		EnemyStats.burnDps[eid] = 0;
+		clearStatus(eid, STATUS_KIND.slow);
+		clearStatus(eid, STATUS_KIND.burn);
 		EnemyStats.attackDamage[eid] = attackDamage;
 		EnemyStats.attackRateMs[eid] = type.attackRateMs;
 		EnemyStats.attackRange[eid] = type.attackRange;
@@ -2070,17 +2085,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemies(dt: number, nowMs: number): void {
 		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
-			if (
-				EnemyStats.burnUntilMs[eid] > nowMs &&
-				EnemyStats.burnDps[eid] > 0
-			) {
-				this.applyDamage(
-					eid,
-					EnemyStats.burnDps[eid] * dt,
-					DAMAGE_TYPE.fire,
-					DAMAGE_FLAG.ignoresArmor,
-				);
-				if (Damageable.hp[eid] <= 0) continue;
+			if (hasStatus(eid, STATUS_KIND.burn, nowMs)) {
+				const dps = statusMagnitude(eid, STATUS_KIND.burn);
+				if (dps > 0) {
+					this.applyDamage(
+						eid,
+						dps * dt,
+						DAMAGE_TYPE.fire,
+						DAMAGE_FLAG.ignoresArmor,
+					);
+					if (Damageable.hp[eid] <= 0) continue;
+				}
 			}
 
 			if (EnemyStats.canAttack[eid] === 1) {
@@ -2128,11 +2143,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 							EnemyStats.attackDamage[eid],
 						);
 					}
-					const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
+					const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 					const baseSpeed = EnemyStats.baseSpeed[eid];
 					const speed =
 						(slowed
-							? baseSpeed * EnemyStats.slowFactor[eid]
+							? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
 							: baseSpeed) * GAME_CONFIG.enemyAttackSpeedFactor;
 					if (speed > 0) this.moveAlongPath(eid, speed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
@@ -2140,10 +2155,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 
-			const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
+			const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 			const baseSpeed = EnemyStats.baseSpeed[eid];
 			const speed = slowed
-				? baseSpeed * EnemyStats.slowFactor[eid]
+				? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
 				: baseSpeed;
 			this.moveAlongPath(eid, speed, dt);
 			this.updateEnemyVisuals(eid, nowMs);
@@ -2189,23 +2204,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 		v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
 		v.hpBar.width =
 			(Damageable.hp[eid] / Damageable.maxHp[eid]) * TILE * 0.7;
-		const slowed = EnemyStats.slowUntilMs[eid] > nowMs;
-		const burning = EnemyStats.burnUntilMs[eid] > nowMs;
-		const hasStatus = slowed || burning;
-		if (!hasStatus && !v.statusVisible) return;
+		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
+		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
+		const anyStatus = slowed || burning;
+		if (!anyStatus && !v.statusVisible) return;
 		v.statusRing.clear();
-		if (hasStatus) {
+		if (anyStatus) {
 			v.statusRing.setVisible(true);
 			v.statusVisible = true;
 			if (slowed) {
-				const dur = EnemyStats.slowDurationMs[eid];
+				const dur = statusExtra(eid, STATUS_KIND.slow);
 				const slowRatio =
 					dur > 0
 						? Math.max(
 								0,
 								Math.min(
 									1,
-									(EnemyStats.slowUntilMs[eid] - nowMs) / dur,
+									(statusExpiresAt(eid, STATUS_KIND.slow) -
+										nowMs) /
+										dur,
 								),
 							)
 						: 0;
@@ -2274,7 +2291,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		let bestProgress = -1;
 		const skipSlowed = t.spec.avoidSlowed;
 		this.forEachEnemyInRange(t.x, t.y, range, (eid) => {
-			if (skipSlowed && EnemyStats.slowUntilMs[eid] > nowMs) return;
+			if (skipSlowed && hasStatus(eid, STATUS_KIND.slow, nowMs)) return;
 			const prog = EnemyStats.pathIndex[eid];
 			if (prog > bestProgress) {
 				bestProgress = prog;
@@ -2550,13 +2567,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 			const slowMs = ProjectileStats.slowMs[eid];
 			if (this.isEnemyAlive(targetEid) && slowMs > 0) {
-				EnemyStats.slowUntilMs[targetEid] = Math.max(
-					EnemyStats.slowUntilMs[targetEid],
+				applyStatus(
+					targetEid,
+					STATUS_KIND.slow,
 					nowMs + slowMs,
+					ProjectileStats.slowFactor[eid],
+					slowMs,
 				);
-				EnemyStats.slowDurationMs[targetEid] = slowMs;
-				EnemyStats.slowFactor[targetEid] =
-					ProjectileStats.slowFactor[eid];
 			}
 		}
 	}
@@ -2614,13 +2631,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const radius = BurnPatchStats.radius[eid];
 			const dps = BurnPatchStats.dps[eid];
 			this.forEachEnemyInRange(x, y, radius, (enemyEid) => {
-				EnemyStats.burnUntilMs[enemyEid] = Math.max(
-					EnemyStats.burnUntilMs[enemyEid],
+				const currentDps = statusMagnitude(enemyEid, STATUS_KIND.burn);
+				applyStatus(
+					enemyEid,
+					STATUS_KIND.burn,
 					nowMs + 500,
-				);
-				EnemyStats.burnDps[enemyEid] = Math.max(
-					EnemyStats.burnDps[enemyEid],
-					dps,
+					currentDps > dps ? currentDps : dps,
 				);
 			});
 			if (v) {
@@ -2724,29 +2740,42 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const deid of deathRow) this.killDrone(deid);
 	}
 
-	private applyPassiveArmorAura(): void {
-		const heal = GAME_CONFIG.passiveRepairArmor;
-		for (let i = 0; i < this.frameRepairEids.length; i++) {
-			const sEid = this.frameRepairEids[i];
-			if (BuildingState.destroyed[sEid]) continue;
-			if (!BuildingState.online[sEid]) continue;
-			const station = this.buildingByEid.get(sEid);
-			if (!station || station.kind !== 'repair') continue;
-			const range = repairRange(station);
-			const rangeSq = range * range;
-			const sx = station.x;
-			const sy = station.y;
-			for (const beid of this.frameBuildingEids) {
-				if (beid === sEid) continue;
-				if (BuildingState.destroyed[beid]) continue;
-				const max = Damageable.maxArmor[beid];
-				const cur = Damageable.armor[beid];
-				if (cur >= max) continue;
-				const dx = Position.x[beid] - sx;
-				const dy = Position.y[beid] - sy;
-				if (dx * dx + dy * dy > rangeSq) continue;
-				const room = max - cur;
-				Damageable.armor[beid] = cur + (heal < room ? heal : room);
+	private tickAuraEmitters(nowMs: number): void {
+		for (const eid of query(this.world, [AuraEmitterTag, Position])) {
+			if (nowMs < AuraEmitter.nextTickAtMs[eid]) continue;
+			if (
+				Damageable.kind[eid] === DAMAGEABLE_KIND.building &&
+				(BuildingState.destroyed[eid] || !BuildingState.online[eid])
+			) {
+				AuraEmitter.nextTickAtMs[eid] =
+					nowMs + AuraEmitter.intervalMs[eid];
+				continue;
+			}
+			AuraEmitter.nextTickAtMs[eid] = nowMs + AuraEmitter.intervalMs[eid];
+			const kind = AuraEmitter.kind[eid];
+			const magnitude = AuraEmitter.magnitude[eid];
+			let range = AuraEmitter.range[eid];
+			if (kind === AURA_KIND.repairArmor) {
+				const station = this.buildingByEid.get(eid);
+				if (station && station.kind === 'repair') {
+					range = repairRange(station);
+				}
+				const rangeSq = range * range;
+				const sx = Position.x[eid];
+				const sy = Position.y[eid];
+				for (const beid of this.frameBuildingEids) {
+					if (beid === eid) continue;
+					if (BuildingState.destroyed[beid]) continue;
+					const max = Damageable.maxArmor[beid];
+					const cur = Damageable.armor[beid];
+					if (cur >= max) continue;
+					const dx = Position.x[beid] - sx;
+					const dy = Position.y[beid] - sy;
+					if (dx * dx + dy * dy > rangeSq) continue;
+					const room = max - cur;
+					Damageable.armor[beid] =
+						cur + (magnitude < room ? magnitude : room);
+				}
 			}
 		}
 	}
@@ -2908,15 +2937,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateSoldiers(dt, nowMs);
 		this.flushDeaths();
 
-		this.passiveRepairAccumulatorMs += scaledDeltaMs;
-		if (
-			this.passiveRepairAccumulatorMs >=
-			GAME_CONFIG.passiveRepairIntervalMs
-		) {
-			this.passiveRepairAccumulatorMs -=
-				GAME_CONFIG.passiveRepairIntervalMs;
-			this.applyPassiveArmorAura();
-		}
+		this.tickAuraEmitters(nowMs);
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {

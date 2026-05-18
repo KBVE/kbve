@@ -31,6 +31,24 @@ export {
 	type BurnPatchVisual,
 } from './burn-patch';
 export {
+	STATUS_KIND,
+	StatusState,
+	applyStatus,
+	hasStatus,
+	statusMagnitude,
+	statusExtra,
+	statusExpiresAt,
+	clearStatus,
+	type StatusKind,
+} from './status';
+export {
+	AURA_KIND,
+	AuraEmitter,
+	AuraEmitterTag,
+	initAura,
+	type AuraKind,
+} from './aura';
+export {
 	BuildingTag,
 	TowerTag,
 	GeneratorTag,
