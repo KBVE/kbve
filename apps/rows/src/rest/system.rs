@@ -109,6 +109,7 @@ async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::V
     let active_sessions = hs.app.sessions.len();
     let active_instances = hs.app.zone_servers.len();
     let spinup_locks = hs.app.zone_spinup_locks.len();
+    let uptime_seconds = hs.app.started_at.elapsed().as_secs();
 
     let overall = if pg_ok && agones_ok {
         "healthy"
@@ -121,6 +122,7 @@ async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::V
     Json(serde_json::json!({
         "status": overall,
         "version": env!("CARGO_PKG_VERSION"),
+        "uptime_seconds": uptime_seconds,
         "checks": {
             "postgres": { "ok": pg_ok, "latency_ms": pg_latency },
             "rabbitmq": { "ok": mq_ok },

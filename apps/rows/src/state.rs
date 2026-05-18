@@ -28,6 +28,7 @@ pub struct AppState {
     pub supabase: SupabaseConfig,
     /// Instance lifecycle event log (ring buffer, max 200 entries)
     pub instance_log: crate::rest::system::InstanceEventLog,
+    pub started_at: Instant,
 }
 
 pub struct AppConfig {
@@ -96,6 +97,7 @@ impl AppStateBuilder {
             agones: self.agones,
             supabase: SupabaseConfig::from_env(),
             instance_log: crate::rest::system::InstanceEventLog::new(),
+            started_at: Instant::now(),
         }))
     }
 }
