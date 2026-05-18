@@ -2519,15 +2519,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				Position.y[deid] += (dy / dist) * step;
 			}
 			v.sprite.setPosition(Position.x[deid], Position.y[deid]);
-			v.beam.clear();
 			if (DroneStats.state[deid] === DroneState.Outbound) {
-				v.beam.lineStyle(2, COLORS.repairBeam, 0.7);
-				v.beam.lineBetween(
+				v.beam.setVisible(true);
+				v.beam.setTo(
 					Position.x[deid],
 					Position.y[deid],
 					Position.x[tEid],
 					Position.y[tEid],
 				);
+			} else {
+				v.beam.setVisible(false);
 			}
 		}
 		for (const deid of deathRow) this.killDrone(deid);
@@ -2564,9 +2565,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 			5,
 			COLORS.repairDrone,
 		);
-		const beam = this.add.graphics();
-		beam.lineStyle(2, COLORS.repairBeam, 0.7);
-		beam.lineBetween(station.x, station.y, target.x, target.y);
+		const beam = this.add
+			.line(
+				0,
+				0,
+				station.x,
+				station.y,
+				target.x,
+				target.y,
+				COLORS.repairBeam,
+			)
+			.setOrigin(0, 0)
+			.setLineWidth(2)
+			.setAlpha(0.7);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, DroneTag);
