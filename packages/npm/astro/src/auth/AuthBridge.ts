@@ -81,6 +81,14 @@ export class AuthBridge {
 		this.client = null;
 	}
 
+	async refreshSession() {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.refreshSession();
+		if (error || !data.session) return null;
+		setSharedToken(data.session.access_token);
+		return data.session;
+	}
+
 	async getSession(refreshBufferSec = 30) {
 		const client = this.ensureClient();
 		const { data, error } = await client.auth.getSession();

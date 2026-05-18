@@ -1,4 +1,5 @@
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
+use ulid::Ulid;
 
 /// Typed wrapper for a request ID, stored in request extensions.
 ///
@@ -17,7 +18,7 @@ pub struct RequestId(pub String);
 /// - Inserts a `RequestId` into request extensions for downstream handlers
 /// - Adds `x-request-id` header to the response
 pub async fn request_id_middleware(mut req: Request, next: Next) -> Response {
-    let id = crate::utility::generate_ulid_as_string();
+    let id = Ulid::new().to_string();
 
     req.extensions_mut().insert(RequestId(id.clone()));
 

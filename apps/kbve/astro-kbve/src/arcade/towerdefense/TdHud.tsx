@@ -15,7 +15,10 @@ import {
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
+	inventoryAtom,
+	inventoryOpenAtom,
 	livesAtom,
+	pendingItemTargetAtom,
 	nextWavePreviewAtom,
 	restartSignalAtom,
 	selectedBuildAtom,
@@ -24,10 +27,12 @@ import {
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
+	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
 import type { CardOption } from './cards';
 import { PALETTE_ORDER, specFor, type BuildId } from './config';
+import { defFor, type ItemInstance } from './items';
 
 type IconName =
 	| 'coin'
@@ -366,6 +371,108 @@ function PaletteBar() {
 	);
 }
 
+function InventoryChip() {
+	const inventory = useStore(inventoryAtom);
+	const open = useStore(inventoryOpenAtom);
+	const count = inventory.reduce((s, it) => s + (it.charges > 0 ? 1 : 0), 0);
+	return (
+		<button
+			type="button"
+			className={`td-inv-btn${open ? ' td-inv-btn-open' : ''}`}
+			onClick={() => inventoryOpenAtom.set(!open)}
+			aria-label="Inventory">
+			<span className="td-inv-btn-label">INV</span>
+			<span className="td-inv-btn-count">{count}</span>
+		</button>
+	);
+}
+
+function InventoryPanel() {
+	const open = useStore(inventoryOpenAtom);
+	const inventory = useStore(inventoryAtom);
+	if (!open) return null;
+	const onUse = (it: ItemInstance) => {
+		useItemSignalAtom.set({
+			id: it.id,
+			n: useItemSignalAtom.get().n + 1,
+		});
+	};
+	const onClose = () => inventoryOpenAtom.set(false);
+	return (
+		<div className="td-inv" onClick={onClose}>
+			<div className="td-inv-panel" onClick={(e) => e.stopPropagation()}>
+				<div className="td-inv-head">
+					<div className="td-inv-title">Inventory</div>
+					<button
+						type="button"
+						className="td-inv-close"
+						onClick={onClose}
+						aria-label="Close inventory">
+						✕
+					</button>
+				</div>
+				{inventory.length === 0 ? (
+					<div className="td-inv-empty">
+						No items yet. Earn rewards from wave cards.
+					</div>
+				) : (
+					<div className="td-inv-list">
+						{inventory.map((it) => {
+							const def = defFor(it.id);
+							const accent = hexColor(def.color);
+							const style = {
+								'--card-accent': accent,
+							} as CSSProperties;
+							return (
+								<button
+									key={it.uid}
+									type="button"
+									className="td-inv-item"
+									style={style}
+									onClick={() => onUse(it)}>
+									<div className="td-inv-item-mark" />
+									<div className="td-inv-item-body">
+										<div className="td-inv-item-name">
+											{def.name}
+										</div>
+										<div className="td-inv-item-desc">
+											{def.description}
+										</div>
+									</div>
+									<div className="td-inv-item-charges">
+										×{it.charges}
+									</div>
+								</button>
+							);
+						})}
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function PendingTargetBanner() {
+	const pending = useStore(pendingItemTargetAtom);
+	if (!pending) return null;
+	const def = defFor(pending);
+	return (
+		<div className="td-target-banner">
+			<span className="td-target-banner-label">{def.name}</span>
+			<span className="td-target-banner-hint">
+				Click a building · Esc to cancel
+			</span>
+			<button
+				type="button"
+				className="td-target-banner-close"
+				onClick={() => pendingItemTargetAtom.set(null)}
+				aria-label="Cancel targeting">
+				✕
+			</button>
+		</div>
+	);
+}
+
 function CardModal() {
 	const cards = useStore(cardOptionsAtom);
 	const wave = useStore(cardWaveAtom);
@@ -482,9 +589,13 @@ export default function TdHud() {
 				<NextWavePreview />
 				<SpeedControls />
 				<div className="td-divider" />
+				<InventoryChip />
+				<div className="td-divider" />
 				<TimerSlot />
 			</div>
 			<PaletteBar />
+			<PendingTargetBanner />
+			<InventoryPanel />
 			<CardModal />
 			<GameOverOverlay />
 		</div>

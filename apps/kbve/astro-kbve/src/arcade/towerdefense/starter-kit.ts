@@ -15,6 +15,7 @@ export interface KitItem {
 const LAYOUT: Array<{ id: BuildId; dc: number; dr: number }> = [
 	{ id: 'basic', dc: 0, dr: -1 },
 	{ id: 'basic', dc: 1, dr: -1 },
+	{ id: 'repair', dc: 2, dr: -1 },
 	{ id: 'solar', dc: 0, dr: 0 },
 	{ id: 'battery', dc: 1, dr: 0 },
 	{ id: 'diesel', dc: 2, dr: 0 },

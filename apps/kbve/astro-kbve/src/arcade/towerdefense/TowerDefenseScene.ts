@@ -117,7 +117,10 @@ import {
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
+	inventoryAtom,
+	inventoryOpenAtom,
 	livesAtom,
+	pendingItemTargetAtom,
 	loadBestWave,
 	nextWavePreviewAtom,
 	resetHudStore,
@@ -129,10 +132,17 @@ import {
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
+	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
+import { createItem, type ItemId } from './items';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { buildingTextureKey, ensureBuildingTextures } from './art/sprite-mint';
+import {
+	buildingTextureKey,
+	ensureBuildingTextures,
+	ensureEnemyTextures,
+	enemyTextureKey,
+} from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
@@ -207,12 +217,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
 	private linePool: Phaser.GameObjects.Line[] = [];
+	private imagePool: Phaser.GameObjects.Image[] = [];
 
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
 	private awaitingCardPick = false;
 	private lastCardPickN = 0;
 	private lastCardSkipN = 0;
+	private lastUseItemN = 0;
 	private cardPickedThisInterval = false;
 
 	private gold = GAME_CONFIG.startingGold;
@@ -286,12 +298,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.rectPool = [];
 		this.graphicsPool = [];
 		this.linePool = [];
+		this.imagePool = [];
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
 		this.cardPickedThisInterval = false;
 		this.lastCardPickN = cardPickSignalAtom.get().n;
 		this.lastCardSkipN = cardSkipSignalAtom.get();
+		this.lastUseItemN = useItemSignalAtom.get().n;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -325,6 +339,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	create(): void {
 		ensureBuildingTextures(this);
+		ensureEnemyTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.drawGrass();
@@ -346,7 +361,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			});
 			kb.on('keydown-N', () => this.scene.restart());
 			kb.on('keydown-ESC', () => {
-				if (this.targetingTower) this.cancelTargeting();
+				if (pendingItemTargetAtom.get()) this.cancelPendingItem();
+				else if (this.targetingTower) this.cancelTargeting();
 				else if (this.upgradePanel) this.closeUpgradePanel();
 				else if (this.awaitingCardPick) this.skipCardPick();
 			});
@@ -456,12 +472,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.lastCardSkipN = v;
 			if (this.awaitingCardPick) this.skipCardPick();
 		});
+		const useItemUnsub = useItemSignalAtom.subscribe((s) => {
+			if (s.n === this.lastUseItemN) return;
+			this.lastUseItemN = s.n;
+			if (!s.id || this.isGameOver) return;
+			this.consumeInventoryItem(s.id);
+		});
 		this.hudUnsubs.push(
 			skipUnsub,
 			restartUnsub,
 			speedUnsub,
 			cardPickUnsub,
 			cardSkipUnsub,
+			useItemUnsub,
 		);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
@@ -699,6 +722,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+
+		if (pendingItemTargetAtom.get()) {
+			if (pointer.worldY < HUD_HEIGHT) {
+				this.cancelPendingItem();
+				return;
+			}
+			if (pointer.worldY > BASE_HEIGHT - PALETTE_HEIGHT) {
+				this.cancelPendingItem();
+				return;
+			}
+			const probe = this.snapToTile(pointer.worldX, pointer.worldY);
+			const probeHit = this.findBuildingAt(probe.col, probe.row);
+			if (probeHit && !BuildingState.destroyed[probeHit.id]) {
+				this.applyPendingItemAt(probeHit);
+			}
+			return;
+		}
 
 		if (this.targetingTower) {
 			if (pointer.worldY < HUD_HEIGHT) {
@@ -1360,6 +1400,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 			)
 			.setOrigin(0, 0.5)
 			.setVisible(false);
+		const armorBarBg = this.add
+			.rectangle(
+				x,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				COLORS.buildingHpBarBg,
+			)
+			.setOrigin(0.5)
+			.setVisible(false);
+		const armorBar = this.add
+			.rectangle(
+				x - (TILE * 0.7) / 2,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				0x63b3ed,
+			)
+			.setOrigin(0, 0.5)
+			.setVisible(false);
 
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -1394,6 +1454,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			sprite,
 			hpBar,
 			hpBarBg,
+			armorBar,
+			armorBarBg,
 		};
 
 		let building: Building;
@@ -1587,6 +1649,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
 			}
+			const armor = Damageable.armor[eid];
+			const maxArmor = Damageable.maxArmor[eid];
+			if (maxArmor > 0 && armor < maxArmor) {
+				b.armorBar.setVisible(true);
+				b.armorBarBg.setVisible(true);
+				b.armorBar.width = (armor / maxArmor) * TILE * 0.7;
+			} else {
+				b.armorBar.setVisible(false);
+				b.armorBarBg.setVisible(false);
+			}
 			if (
 				b.kind === 'tower' ||
 				b.kind === 'repair' ||
@@ -1606,6 +1678,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private startNextWave(): void {
 		this.wave += 1;
+		this.sweepExpiredAllies();
 		const count = Math.floor(
 			GAME_CONFIG.enemiesPerWave +
 				(this.wave - 1) * GAME_CONFIG.enemiesPerWaveScale,
@@ -1692,7 +1765,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
 			: 0;
 		const radius = TILE * type.sizeRadius;
-		const sprite = this.acquireArc(start.x, start.y, radius, type.color);
+		const sprite = this.acquireImage(
+			start.x,
+			start.y,
+			enemyTextureKey(type.id),
+		);
+		sprite.setScale((radius * 2) / 24);
 		const statusRing = this.acquireGraphics();
 		statusRing.setVisible(false);
 		const ringRadius = radius + 4;
@@ -1837,6 +1915,27 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (Damageable.hp[targetEid] <= 0) {
 			this.deathQueue.push(targetEid);
+			this.hideDyingVisual(targetEid);
+		}
+	}
+
+	private hideDyingVisual(eid: number): void {
+		const kind = Damageable.kind[eid];
+		if (kind === DAMAGEABLE_KIND.enemy) {
+			const v = this.enemyVisuals.get(eid);
+			if (v) {
+				v.sprite.setVisible(false);
+				v.hpBar.setVisible(false);
+				v.hpBarBg.setVisible(false);
+				v.statusRing.setVisible(false);
+			}
+		} else if (kind === DAMAGEABLE_KIND.soldier) {
+			const v = this.soldierVisuals.get(eid);
+			if (v) {
+				v.sprite.setVisible(false);
+				v.hpBar.setVisible(false);
+				v.hpBarBg.setVisible(false);
+			}
 		}
 	}
 
@@ -1871,6 +1970,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
+		b.armorBar.destroy();
+		b.armorBarBg.destroy();
 		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
 			b.powerIndicator.destroy();
 		}
@@ -1936,6 +2037,133 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private spawnAllySoldier(
+		x: number,
+		y: number,
+		expiresAtWave: number,
+	): void {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, SoldierTag);
+		addComponent(this.world, eid, SoldierStats);
+		Position.x[eid] = x;
+		Position.y[eid] = y;
+		const hp = GAME_CONFIG.allyHp;
+		addComponent(this.world, eid, DamageableTag);
+		addComponent(this.world, eid, Damageable);
+		initDamageable(eid, hp, 0, 0, DAMAGEABLE_KIND.soldier);
+		SoldierStats.speed[eid] = GAME_CONFIG.allySpeed;
+		SoldierStats.attackDamage[eid] = GAME_CONFIG.allyDamage;
+		SoldierStats.attackRateMs[eid] = GAME_CONFIG.allyAttackRateMs;
+		SoldierStats.attackRange[eid] = GAME_CONFIG.allyAttackRange;
+		SoldierStats.lastAttackAtMs[eid] = 0;
+		SoldierStats.targetEnemyEid[eid] = 0;
+		SoldierStats.armouryEid[eid] = -1;
+		SoldierStats.expiresAtWave[eid] = expiresAtWave;
+		const sprite = this.acquireRect(
+			x,
+			y,
+			TILE * 0.3,
+			TILE * 0.3,
+			GAME_CONFIG.allyColor,
+		);
+		sprite.setStrokeStyle(1, 0xffffff, 0.7);
+		const barWidth = TILE * 0.5;
+		const hpBarBg = this.acquireRect(
+			x,
+			y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBarBg,
+		);
+		const hpBar = this.acquireRect(
+			x - barWidth / 2,
+			y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBar,
+		);
+		hpBar.setOrigin(0, 0.5);
+		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+	}
+
+	private consumeInventoryItem(id: ItemId): void {
+		const items = inventoryAtom.get();
+		const idx = items.findIndex((it) => it.id === id && it.charges > 0);
+		if (idx < 0) return;
+		if (id === 'emergency_call_allies') {
+			this.useEmergencyCallAllies();
+			this.decrementItemCharge(id);
+			return;
+		}
+		if (id === 'field_promotion') {
+			this.cancelTargeting();
+			if (this.upgradePanel) this.closeUpgradePanel();
+			pendingItemTargetAtom.set('field_promotion');
+			inventoryOpenAtom.set(false);
+			return;
+		}
+	}
+
+	private decrementItemCharge(id: ItemId): void {
+		const items = inventoryAtom.get();
+		const idx = items.findIndex((it) => it.id === id && it.charges > 0);
+		if (idx < 0) return;
+		const item = items[idx];
+		const remaining = item.charges - 1;
+		const next = [...items];
+		if (remaining <= 0) next.splice(idx, 1);
+		else next[idx] = { ...item, charges: remaining };
+		inventoryAtom.set(next);
+	}
+
+	private applyPendingItemAt(b: Building): boolean {
+		const id = pendingItemTargetAtom.get();
+		if (!id) return false;
+		if (id === 'field_promotion') {
+			if (!this.applyRandomUpgradeTo(b)) return false;
+			pendingItemTargetAtom.set(null);
+			this.decrementItemCharge(id);
+			return true;
+		}
+		return false;
+	}
+
+	private cancelPendingItem(): void {
+		pendingItemTargetAtom.set(null);
+	}
+
+	private useEmergencyCallAllies(): void {
+		const path = this.path;
+		let cx = BASE_WIDTH / 2;
+		let cy = BASE_HEIGHT / 2;
+		const mid = path.waypoints[Math.floor(path.waypoints.length / 2)];
+		if (mid) {
+			cx = mid.x;
+			cy = mid.y;
+		}
+		const expires = this.wave + GAME_CONFIG.allyLifespanWaves;
+		const count = GAME_CONFIG.allyCallCount;
+		for (let i = 0; i < count; i++) {
+			const angle = (i / count) * Math.PI * 2;
+			const radius = TILE * 0.6 + (i % 3) * 6;
+			const sx = cx + Math.cos(angle) * radius;
+			const sy = cy + Math.sin(angle) * radius;
+			this.spawnAllySoldier(sx, sy, expires);
+		}
+	}
+
+	private sweepExpiredAllies(): void {
+		const wave = this.wave;
+		for (const seid of query(this.world, [SoldierTag])) {
+			if (!this.soldierVisuals.has(seid)) continue;
+			const exp = SoldierStats.expiresAtWave[seid];
+			if (exp > 0 && wave > exp) {
+				this.killSoldier(seid);
+			}
+		}
+	}
+
 	private countSoldiersOwnedBy(armouryEid: number): number {
 		let n = 0;
 		for (const seid of this.frameSoldierEids) {
@@ -1963,6 +2191,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.lastAttackAtMs[eid] = 0;
 		SoldierStats.targetEnemyEid[eid] = 0;
 		SoldierStats.armouryEid[eid] = armoury.id;
+		SoldierStats.expiresAtWave[eid] = -1;
 		const sprite = this.acquireRect(
 			armoury.x,
 			armoury.y,
@@ -2044,6 +2273,43 @@ export class TowerDefenseScene extends Phaser.Scene {
 				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
 			}
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
+				const hp = Damageable.hp[seid];
+				const maxHp = Damageable.maxHp[seid];
+				if (hp < maxHp) {
+					const armouryEid = SoldierStats.armouryEid[seid];
+					const armoury =
+						armouryEid >= 0
+							? this.buildingByEid.get(armouryEid)
+							: undefined;
+					if (
+						armoury &&
+						armoury.kind === 'armoury' &&
+						!BuildingState.destroyed[armouryEid]
+					) {
+						const ax = armoury.x;
+						const ay = armoury.y;
+						const dx = ax - Position.x[seid];
+						const dy = ay - Position.y[seid];
+						const dist = Math.sqrt(dx * dx + dy * dy);
+						const healRange =
+							TILE * GAME_CONFIG.soldierHealRangeRatio;
+						if (dist <= healRange) {
+							Damageable.hp[seid] = Math.min(
+								maxHp,
+								hp + GAME_CONFIG.soldierHealPerSec * dt,
+							);
+						} else {
+							const step = SoldierStats.speed[seid] * dt;
+							if (step >= dist) {
+								Position.x[seid] = ax;
+								Position.y[seid] = ay;
+							} else {
+								Position.x[seid] += (dx / dist) * step;
+								Position.y[seid] += (dy / dist) * step;
+							}
+						}
+					}
+				}
 				this.syncSoldierVisuals(seid);
 				continue;
 			}
@@ -2082,11 +2348,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[seid];
 		const y = Position.y[seid];
 		v.sprite.setPosition(x, y);
-		const barWidth = TILE * 0.5;
-		v.hpBarBg.setPosition(x, y - TILE * 0.32);
-		v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
-		v.hpBar.width =
-			(Damageable.hp[seid] / Damageable.maxHp[seid]) * barWidth;
+		const hp = Damageable.hp[seid];
+		const maxHp = Damageable.maxHp[seid];
+		if (hp < maxHp) {
+			const barWidth = TILE * 0.5;
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.32);
+			v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
+			v.hpBar.width = (hp / maxHp) * barWidth;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -2152,10 +2426,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 					}
 					const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 					const baseSpeed = EnemyStats.baseSpeed[eid];
+					const wounded = this.woundedFactor(eid);
 					const speed =
 						(slowed
 							? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-							: baseSpeed) * GAME_CONFIG.enemyAttackSpeedFactor;
+							: baseSpeed) *
+						GAME_CONFIG.enemyAttackSpeedFactor *
+						wounded;
 					if (speed > 0) this.moveAlongPath(eid, speed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
@@ -2164,12 +2441,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 			const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 			const baseSpeed = EnemyStats.baseSpeed[eid];
-			const speed = slowed
-				? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-				: baseSpeed;
+			const wounded = this.woundedFactor(eid);
+			const speed =
+				(slowed
+					? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
+					: baseSpeed) * wounded;
 			this.moveAlongPath(eid, speed, dt);
 			this.updateEnemyVisuals(eid, nowMs);
 		}
+	}
+
+	private woundedFactor(eid: number): number {
+		const maxHp = Damageable.maxHp[eid];
+		if (maxHp <= 0) return 1;
+		const hpRatio = Damageable.hp[eid] / maxHp;
+		if (hpRatio >= 0.5) return 1;
+		return Math.max(0.4, hpRatio + 0.4);
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
@@ -2207,10 +2494,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[eid];
 		const y = Position.y[eid];
 		v.sprite.setPosition(x, y);
-		v.hpBarBg.setPosition(x, y - TILE * 0.5);
-		v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
-		v.hpBar.width =
-			(Damageable.hp[eid] / Damageable.maxHp[eid]) * TILE * 0.7;
+		const hpEnemy = Damageable.hp[eid];
+		const maxHpEnemy = Damageable.maxHp[eid];
+		if (hpEnemy < maxHpEnemy) {
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.5);
+			v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
+			v.hpBar.width = (hpEnemy / maxHpEnemy) * TILE * 0.7;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
 		const anyStatus = slowed || burning;
@@ -2289,6 +2584,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private syncTowerFireFrames(nowMs: number): void {
+		const recoilWindow = 150;
+		for (let i = 0; i < this.frameTowerEids.length; i++) {
+			const eid = this.frameTowerEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'tower') continue;
+			const elapsed = nowMs - TowerState.lastFireAtMs[eid];
+			const wantFire = elapsed >= 0 && elapsed < recoilWindow;
+			const desired = wantFire ? 'fire' : 'idle';
+			const desiredKey = buildingTextureKey(b.spec.id, desired);
+			if (b.sprite.texture.key !== desiredKey) {
+				b.sprite.setTexture(desiredKey);
+			}
+		}
+	}
+
 	private findTarget(t: TowerBuilding, nowMs: number): number | null {
 		const range = towerRange(t);
 		if (t.spec.arcHeight > 0 && !t.spec.avoidSlowed) {
@@ -2353,7 +2665,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseArc(sprite: Phaser.GameObjects.Arc): void {
-		sprite.setActive(false).setVisible(false).setStrokeStyle();
+		sprite
+			.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.arcPool.push(sprite);
 	}
 
@@ -2379,7 +2695,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseRect(rect: Phaser.GameObjects.Rectangle): void {
-		rect.setActive(false).setVisible(false).setStrokeStyle();
+		rect.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.rectPool.push(rect);
 	}
 
@@ -2428,6 +2747,29 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private releaseLine(line: Phaser.GameObjects.Line): void {
 		line.setActive(false).setVisible(false);
 		this.linePool.push(line);
+	}
+
+	private acquireImage(
+		x: number,
+		y: number,
+		key: string,
+	): Phaser.GameObjects.Image {
+		const pooled = this.imagePool.pop();
+		if (pooled) {
+			pooled.setPosition(x, y).setTexture(key).setOrigin(0.5).clearTint();
+			pooled.setActive(true).setVisible(true).setAlpha(1).setScale(1);
+			return pooled;
+		}
+		return this.add.image(x, y, key).setOrigin(0.5);
+	}
+
+	private releaseImage(img: Phaser.GameObjects.Image): void {
+		img.clearTint();
+		img.setActive(false)
+			.setVisible(false)
+			.setPosition(-1000, -1000)
+			.setScale(1);
+		this.imagePool.push(img);
 	}
 
 	private fireAt(
@@ -2845,7 +3187,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
-		this.releaseArc(v.sprite);
+		this.releaseImage(v.sprite);
 		this.releaseGraphics(v.statusRing);
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
@@ -2938,6 +3280,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateBurnPatches(dt, nowMs);
 		this.updateEnemies(dt, nowMs);
 		this.updateTowers(nowMs);
+		this.syncTowerFireFrames(nowMs);
 		this.updateProjectiles(dt, nowMs);
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
@@ -2984,7 +3327,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.bountyBonusMultiplier = 1.5;
 				break;
 			case 'structure_upgrade':
-				this.applyRandomStructureUpgrade();
+				inventoryAtom.set([
+					...inventoryAtom.get(),
+					createItem('field_promotion'),
+				]);
+				break;
+			case 'item_call_allies':
+				inventoryAtom.set([
+					...inventoryAtom.get(),
+					createItem('emergency_call_allies'),
+				]);
 				break;
 		}
 		this.closeCardPanel();
@@ -3039,76 +3391,66 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
-	private applyRandomStructureUpgrade(): void {
+	private applyRandomUpgradeTo(b: Building): boolean {
 		interface UpgradeCandidate {
 			apply: () => void;
 		}
 		const candidates: UpgradeCandidate[] = [];
-		for (const eid of query(this.world, [BuildingTag])) {
-			if (BuildingState.destroyed[eid]) continue;
-			const b = this.buildingByEid.get(eid);
-			if (!b) continue;
-			if (b.kind === 'tower') {
-				const tower = b;
-				for (const k of UPGRADE_ORDER) {
-					if (
-						TowerUpgradeStats[k][tower.id] >=
-						UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							const prevMaxHp = towerMaxHp(tower);
-							TowerUpgradeStats[k][tower.id] += 1;
-							const newMaxHp = towerMaxHp(tower);
-							Damageable.maxHp[tower.id] = newMaxHp;
-							if (k === 'armor') {
-								const delta = newMaxHp - prevMaxHp;
-								Damageable.hp[tower.id] = Math.min(
-									newMaxHp,
-									Damageable.hp[tower.id] + delta,
-								);
-							}
-							this.redrawUpgradePips(tower);
-						},
-					});
-				}
-			} else if (b.kind === 'armoury') {
-				const armoury = b;
-				for (const k of ARMOURY_UPGRADE_ORDER) {
-					if (
-						ArmouryUpgradeStats[k][armoury.id] >=
-						ARMOURY_UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							ArmouryUpgradeStats[k][armoury.id] += 1;
-						},
-					});
-				}
-			} else if (b.kind === 'repair') {
-				const station = b;
-				for (const k of REPAIR_UPGRADE_ORDER) {
-					if (
-						RepairUpgradeStats[k][station.id] >=
-						REPAIR_UPGRADE_DEFS[k].maxLevel
-					)
-						continue;
-					candidates.push({
-						apply: () => {
-							RepairUpgradeStats[k][station.id] += 1;
-						},
-					});
-				}
+		if (b.kind === 'tower') {
+			const tower = b;
+			for (const k of UPGRADE_ORDER) {
+				if (TowerUpgradeStats[k][tower.id] >= UPGRADE_DEFS[k].maxLevel)
+					continue;
+				candidates.push({
+					apply: () => {
+						const prevMaxHp = towerMaxHp(tower);
+						TowerUpgradeStats[k][tower.id] += 1;
+						const newMaxHp = towerMaxHp(tower);
+						Damageable.maxHp[tower.id] = newMaxHp;
+						if (k === 'armor') {
+							const delta = newMaxHp - prevMaxHp;
+							Damageable.hp[tower.id] = Math.min(
+								newMaxHp,
+								Damageable.hp[tower.id] + delta,
+							);
+						}
+						this.redrawUpgradePips(tower);
+					},
+				});
+			}
+		} else if (b.kind === 'armoury') {
+			const armoury = b;
+			for (const k of ARMOURY_UPGRADE_ORDER) {
+				if (
+					ArmouryUpgradeStats[k][armoury.id] >=
+					ARMOURY_UPGRADE_DEFS[k].maxLevel
+				)
+					continue;
+				candidates.push({
+					apply: () => {
+						ArmouryUpgradeStats[k][armoury.id] += 1;
+					},
+				});
+			}
+		} else if (b.kind === 'repair') {
+			const station = b;
+			for (const k of REPAIR_UPGRADE_ORDER) {
+				if (
+					RepairUpgradeStats[k][station.id] >=
+					REPAIR_UPGRADE_DEFS[k].maxLevel
+				)
+					continue;
+				candidates.push({
+					apply: () => {
+						RepairUpgradeStats[k][station.id] += 1;
+					},
+				});
 			}
 		}
-		if (candidates.length === 0) {
-			this.gold += 120;
-			return;
-		}
+		if (candidates.length === 0) return false;
 		const pick = candidates[Math.floor(Math.random() * candidates.length)];
 		pick.apply();
+		return true;
 	}
 
 	private boostBatteries(amount: number): void {

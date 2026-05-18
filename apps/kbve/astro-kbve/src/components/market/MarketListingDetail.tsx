@@ -13,6 +13,7 @@ import { useCountdown, formatCountdown } from './countdown';
 import { ItemIcon } from './ItemIcon';
 import { EnchantList } from './EnchantList';
 import { WatchToggle } from './WatchToggle';
+import { MCItemMarketSidecar } from './MCItemMarketSidecar';
 
 function readListingId(): number | null {
 	if (typeof window === 'undefined') return null;
@@ -397,6 +398,14 @@ export function MarketListingDetail() {
 					</div>
 				)}
 			</section>
+
+			{(row.item_ref as { kind?: unknown } | null)?.kind === 'mc_item' &&
+				(row.item_ref as { id?: unknown }).id != null && (
+					<MCItemMarketSidecar
+						ref={String((row.item_ref as { id: unknown }).id)}
+						excludeListingId={row.listing_id}
+					/>
+				)}
 		</div>
 	);
 }

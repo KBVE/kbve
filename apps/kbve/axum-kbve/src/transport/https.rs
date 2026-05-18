@@ -268,6 +268,10 @@ fn router(state: AppState) -> Router {
             "/api/firecracker/openapi.json",
             get(super::proxy::firecracker_openapi_handler),
         )
+        .route(
+            "/api/rows/openapi.json",
+            get(super::proxy::chuckrpg_openapi_handler),
+        )
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))

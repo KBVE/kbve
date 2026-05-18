@@ -29,6 +29,8 @@ export const PROVIDERS: { id: OAuthProvider; label: string }[] = [
 
 export const USERNAME_SETUP_URL = 'https://kbve.com/askama/profile';
 
+export const KBVE_API_BASE = 'https://kbve.com';
+
 export function decodeJwtUsername(token: string): string | null {
 	const parts = token.split('.');
 	if (parts.length < 2) return null;
@@ -111,4 +113,68 @@ export async function bootAuth(): Promise<void> {
 	})();
 
 	return booting;
+}
+
+export async function refreshAuth(): Promise<AuthState> {
+	try {
+		const { authBridge } = await import('../../lib/supa');
+		const session = await authBridge.refreshSession();
+		if (!session?.access_token) {
+			const { getSharedToken } = await import('@kbve/astro');
+			const sharedToken = getSharedToken();
+			if (sharedToken) {
+				$authToken.set(sharedToken);
+				const state = decodeJwtUsername(sharedToken)
+					? 'auth'
+					: 'no-username';
+				$authState.set(state);
+				return state;
+			}
+			$authState.set('anon');
+			return 'anon';
+		}
+		const meta = session.user?.user_metadata ?? {};
+		const avatar =
+			meta.avatar_url || meta.picture || meta.profile_image_url || '';
+		if (avatar) $avatarUrl.set(avatar);
+		$authToken.set(session.access_token);
+		const state = decodeJwtUsername(session.access_token)
+			? 'auth'
+			: 'no-username';
+		$authState.set(state);
+		return state;
+	} catch (err: any) {
+		console.error('[chat] refreshAuth failed:', err);
+		return $authState.get();
+	}
+}
+
+export async function setUsername(
+	username: string,
+	token: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+	const trimmed = username.trim().toLowerCase();
+	try {
+		const res = await fetch(`${KBVE_API_BASE}/api/v1/profile/username`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ username: trimmed }),
+		});
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}));
+			return {
+				ok: false,
+				error: body?.message || body?.error || `HTTP ${res.status}`,
+			};
+		}
+		return { ok: true };
+	} catch (err: any) {
+		return {
+			ok: false,
+			error: err?.message ?? 'Network error',
+		};
+	}
 }

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	bootAuth,
+	refreshAuth,
 	$authState,
 	$authToken,
 	$bootReady,
@@ -53,6 +54,32 @@ export const ChatBootController: React.FC<ChatBootControllerProps> = ({
 			connect(wsUrl, token);
 		}
 	}, [authState, ready, token, wsUrl]);
+
+	useEffect(() => {
+		if (authState !== 'no-username') return;
+		let cancelled = false;
+		const tick = async () => {
+			if (cancelled) return;
+			const next = await refreshAuth();
+			if (cancelled) return;
+			if (next === 'no-username') {
+				timer = window.setTimeout(tick, 15_000);
+			}
+		};
+		let timer = window.setTimeout(tick, 15_000);
+		const onVisibility = () => {
+			if (document.visibilityState === 'visible') {
+				window.clearTimeout(timer);
+				void tick();
+			}
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+		return () => {
+			cancelled = true;
+			window.clearTimeout(timer);
+			document.removeEventListener('visibilitychange', onVisibility);
+		};
+	}, [authState]);
 
 	useEffect(() => {
 		const handleUnload = () => {

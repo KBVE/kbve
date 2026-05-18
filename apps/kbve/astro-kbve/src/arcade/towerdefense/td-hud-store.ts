@@ -1,6 +1,7 @@
 import { atom } from 'nanostores';
 import type { CardId, CardOption } from './cards';
 import type { BuildId } from './config';
+import type { ItemId, ItemInstance } from './items';
 
 export const goldAtom = atom(0);
 export const livesAtom = atom(0);
@@ -69,6 +70,14 @@ export const cardPickSignalAtom = atom<{ id: CardId | null; n: number }>({
 });
 export const cardSkipSignalAtom = atom(0);
 
+export const inventoryAtom = atom<ItemInstance[]>([]);
+export const inventoryOpenAtom = atom(false);
+export const useItemSignalAtom = atom<{ id: ItemId | null; n: number }>({
+	id: null,
+	n: 0,
+});
+export const pendingItemTargetAtom = atom<ItemId | null>(null);
+
 export function resetHudStore(): void {
 	goldAtom.set(0);
 	livesAtom.set(0);
@@ -96,4 +105,8 @@ export function resetHudStore(): void {
 	cardWaveAtom.set(0);
 	cardPickSignalAtom.set({ id: null, n: cardPickSignalAtom.get().n });
 	selectedBuildAtom.set('basic');
+	inventoryAtom.set([]);
+	inventoryOpenAtom.set(false);
+	useItemSignalAtom.set({ id: null, n: useItemSignalAtom.get().n });
+	pendingItemTargetAtom.set(null);
 }

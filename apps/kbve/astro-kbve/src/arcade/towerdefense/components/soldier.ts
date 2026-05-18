@@ -11,6 +11,7 @@ export const SoldierStats = {
 	lastAttackAtMs: new Float32Array(MAX_ENTITIES),
 	targetEnemyEid: new Int32Array(MAX_ENTITIES),
 	armouryEid: new Int32Array(MAX_ENTITIES),
+	expiresAtWave: new Int32Array(MAX_ENTITIES),
 };
 
 export interface SoldierVisual {

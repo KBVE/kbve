@@ -17,7 +17,6 @@ pub mod spellbook;
 #[cfg(feature = "legacy-sync-db")]
 pub mod utility;
 
-#[cfg(feature = "legacy-sync-db")]
 pub mod entity;
 #[cfg(feature = "legacy-sync-db")]
 pub mod sys;
@@ -50,7 +49,6 @@ pub use schema::*;
 #[cfg(feature = "legacy-sync-db")]
 pub use utility::*;
 
-#[cfg(feature = "legacy-sync-db")]
 pub use entity::*;
 #[cfg(feature = "legacy-sync-db")]
 pub use sys::*;

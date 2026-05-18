@@ -2,18 +2,32 @@ import Phaser from 'phaser';
 import {
 	ARMOURY_CATALOG,
 	BATTERY_CATALOG,
+	ENEMY_CATALOG,
 	GENERATOR_CATALOG,
 	REPAIR_CATALOG,
 	TOWER_CATALOG,
 	type BuildId,
+	type EnemyTypeId,
+	type TowerId,
 } from '../config';
 import { derivePalette, type BuildingPalette } from './palette';
 import { BUILDING_GRIDS, GRID_PIXEL_SIZE } from './grids';
+import { ENEMY_GRIDS, ENEMY_PIXEL_SIZE } from './enemy-grids';
 
-const TEXTURE_PREFIX = 'td_building_';
+const BUILDING_PREFIX = 'td_building_';
+const ENEMY_PREFIX = 'td_enemy_';
 
-export function buildingTextureKey(id: BuildId): string {
-	return `${TEXTURE_PREFIX}${id}`;
+export type BuildingVariant = 'idle' | 'fire';
+
+export function buildingTextureKey(
+	id: BuildId,
+	variant: BuildingVariant = 'idle',
+): string {
+	return `${BUILDING_PREFIX}${id}_${variant}`;
+}
+
+export function enemyTextureKey(id: EnemyTypeId): string {
+	return `${ENEMY_PREFIX}${id}`;
 }
 
 function paletteFor(ch: string, p: BuildingPalette): string | null {
@@ -61,6 +75,14 @@ function mintTexture(
 	tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
 }
 
+function recoilGrid(idle: string[]): string[] {
+	const blank = '.'.repeat(idle[0].length);
+	const out: string[] = [blank];
+	for (let i = 0; i < 6; i++) out.push(idle[i]);
+	for (let i = 7; i < idle.length; i++) out.push(idle[i]);
+	return out;
+}
+
 const BUILD_CATALOG_COLORS: Record<BuildId, number> = (() => {
 	const out: Record<string, number> = {};
 	for (const id in TOWER_CATALOG)
@@ -76,16 +98,44 @@ const BUILD_CATALOG_COLORS: Record<BuildId, number> = (() => {
 	return out as Record<BuildId, number>;
 })();
 
+const TOWER_IDS: TowerId[] = ['basic', 'bomb', 'ice', 'fire', 'artillery'];
+
 export function ensureBuildingTextures(scene: Phaser.Scene): void {
 	for (const idRaw in BUILDING_GRIDS) {
 		const id = idRaw as BuildId;
 		const palette = derivePalette(BUILD_CATALOG_COLORS[id]);
 		mintTexture(
 			scene,
-			buildingTextureKey(id),
+			buildingTextureKey(id, 'idle'),
 			BUILDING_GRIDS[id],
 			palette,
 			GRID_PIXEL_SIZE,
+		);
+	}
+	for (let i = 0; i < TOWER_IDS.length; i++) {
+		const id = TOWER_IDS[i];
+		const palette = derivePalette(BUILD_CATALOG_COLORS[id]);
+		mintTexture(
+			scene,
+			buildingTextureKey(id, 'fire'),
+			recoilGrid(BUILDING_GRIDS[id]),
+			palette,
+			GRID_PIXEL_SIZE,
+		);
+	}
+}
+
+export function ensureEnemyTextures(scene: Phaser.Scene): void {
+	for (const idRaw in ENEMY_GRIDS) {
+		const id = idRaw as EnemyTypeId;
+		const baseColor = ENEMY_CATALOG[id].color;
+		const palette = derivePalette(baseColor);
+		mintTexture(
+			scene,
+			enemyTextureKey(id),
+			ENEMY_GRIDS[id],
+			palette,
+			ENEMY_PIXEL_SIZE,
 		);
 	}
 }

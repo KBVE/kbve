@@ -13,6 +13,30 @@ import MarketCreateForm from './MarketCreateForm';
 				until you're outbid or the listing settles.
 			</p>
 		</div>
+		<button
+			type="button"
+			class="kbve-search-trigger"
+			data-kbve-search-trigger
+			aria-label="Open universal search">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<circle cx="11" cy="11" r="7"></circle>
+				<path d="m20 20-3-3"></path>
+			</svg>
+			<span class="kbve-search-trigger__label">Search…</span>
+			<span class="kbve-search-trigger__keycap" data-kbve-search-keycap>
+				Ctrl+K
+			</span>
+		</button>
 	</header>
 
 	<details class="kbve-market__create">
@@ -33,9 +57,18 @@ import MarketCreateForm from './MarketCreateForm';
 		color: rgba(255, 255, 255, 0.9);
 	}
 	.kbve-market__header {
+		display: flex;
+		gap: 1rem;
+		align-items: flex-start;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		margin-bottom: 1.5rem;
+	}
+	.kbve-market__header > div {
 		display: grid;
 		gap: 0.5rem;
-		margin-bottom: 1.5rem;
+		flex: 1;
+		min-width: 0;
 	}
 	.kbve-market__header h1 {
 		font-size: clamp(1.75rem, 3.5vw, 2.25rem);
@@ -1175,5 +1208,165 @@ import MarketCreateForm from './MarketCreateForm';
 			var(--color-red, var(--sl-color-text-accent)) 55%,
 			transparent
 		);
+	}
+	.kbve-market__sidecar {
+		display: grid;
+		gap: 1rem;
+	}
+	.kbve-market__sidecar-head {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+	.kbve-market__sidecar-head h3 {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 800;
+		color: var(--sl-color-white, var(--sl-color-text));
+	}
+	.kbve-market__sidecar-count {
+		padding: 0.1rem 0.55rem;
+		border-radius: 999px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.kbve-market__sidecar-empty {
+		padding: 1rem 1.25rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav);
+		border: 1px dashed var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-gray-3);
+		text-align: center;
+		font-size: 0.9rem;
+	}
+	.kbve-market__sidecar-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.6rem;
+		margin: 0;
+	}
+	.kbve-market__sidecar-stats > div {
+		padding: 0.55rem 0.8rem;
+		border-radius: 10px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	.kbve-market__sidecar-stats dt {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-gray-3);
+		margin: 0;
+	}
+	.kbve-market__sidecar-stats dd {
+		margin: 0.15rem 0 0;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-text);
+	}
+	.kbve-market__sidecar-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.65rem;
+	}
+	.kbve-market__sidecar-card {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.65rem;
+		align-items: center;
+		padding: 0.65rem 0.75rem;
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: inherit;
+		text-decoration: none;
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease;
+	}
+	.kbve-market__sidecar-card:hover {
+		transform: translateY(-1px);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 60%,
+			transparent
+		);
+	}
+	.kbve-market__sidecar-card-icon {
+		width: 48px;
+		height: 48px;
+		border-radius: 8px;
+		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4px;
+		flex-shrink: 0;
+	}
+	.kbve-market__sidecar-card-icon .kbve-mc-tex {
+		max-width: 100%;
+		max-height: 100%;
+	}
+	.kbve-market__sidecar-card-body {
+		display: grid;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+	.kbve-market__sidecar-card-title {
+		font-weight: 700;
+		font-size: 0.9rem;
+		color: var(--sl-color-text);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.kbve-market__sidecar-card-prices {
+		display: flex;
+		gap: 0.5rem;
+		align-items: baseline;
+		flex-wrap: wrap;
+		font-variant-numeric: tabular-nums;
+	}
+	.kbve-market__sidecar-card-buy {
+		font-weight: 800;
+		font-size: 0.92rem;
+		color: var(--sl-color-text-accent);
+	}
+	.kbve-market__sidecar-card-bid {
+		font-size: 0.78rem;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__sidecar-card-foot {
+		font-size: 0.72rem;
+		color: var(--sl-color-gray-3);
+	}
+	.kbve-market__sidecar-skeleton {
+		display: grid;
+		gap: 0.4rem;
+	}
+	.kbve-market__sidecar-skeleton-row {
+		height: 48px;
+		border-radius: 10px;
+		background: linear-gradient(
+			90deg,
+			var(--sl-color-bg-nav) 0%,
+			var(--sl-color-bg-sidebar, var(--sl-color-bg-nav)) 50%,
+			var(--sl-color-bg-nav) 100%
+		);
+		background-size: 200% 100%;
+		animation: kbve-market-sidecar-shimmer 1.4s ease-in-out infinite;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	}
+	@keyframes kbve-market-sidecar-shimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
 	}
 </style>
