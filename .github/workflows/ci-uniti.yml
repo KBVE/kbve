@@ -164,7 +164,7 @@ jobs:
               run: cargo build -p uniti --release --target x86_64-unknown-linux-gnu
 
             - name: Upload Linux libuniti.so
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: uniti-linux-x86_64
                   path: ${{ env.CARGO_TARGET_DIR }}/x86_64-unknown-linux-gnu/release/libuniti.so
@@ -212,7 +212,7 @@ jobs:
                       -o ./android-out build -p uniti --release
 
             - name: Upload Android per-ABI .so
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: uniti-android
                   path: packages/rust/bevy/uniti/android-out
@@ -257,7 +257,7 @@ jobs:
                       -output ios-out/uniti.xcframework
 
             - name: Upload iOS XCFramework
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: uniti-ios
                   path: ios-out/uniti.xcframework
