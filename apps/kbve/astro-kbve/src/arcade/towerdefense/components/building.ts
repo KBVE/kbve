@@ -44,10 +44,6 @@ export function buildIndexFromId(id: BuildId): number {
 }
 
 export const BuildingState = {
-	hp: new Float32Array(MAX_ENTITIES),
-	maxHp: new Float32Array(MAX_ENTITIES),
-	armor: new Float32Array(MAX_ENTITIES),
-	maxArmor: new Float32Array(MAX_ENTITIES),
 	online: new Uint8Array(MAX_ENTITIES),
 	destroyed: new Uint8Array(MAX_ENTITIES),
 	col: new Int32Array(MAX_ENTITIES),

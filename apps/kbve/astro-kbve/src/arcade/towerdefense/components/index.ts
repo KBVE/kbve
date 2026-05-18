@@ -1,4 +1,15 @@
-export { Position } from './shared';
+export { Position, MAX_ENTITIES } from './shared';
+export {
+	Damageable,
+	DAMAGEABLE_KIND,
+	DamageableTag,
+	DAMAGE_TYPE,
+	DAMAGE_FLAG,
+	resistForType,
+	initDamageable,
+	type DamageableKind,
+	type DamageType,
+} from './damageable';
 export {
 	EnemyTag,
 	EnemyStats,
