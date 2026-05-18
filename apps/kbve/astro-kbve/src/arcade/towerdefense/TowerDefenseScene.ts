@@ -45,12 +45,15 @@ import {
 	ArmouryState,
 	ArmouryTag,
 	ArmouryUpgradeStats,
+	ATTACK_TARGET_KIND,
 	BatteryState,
 	BatteryTag,
 	BUILDING_KIND,
 	BuildingState,
 	BuildingTag,
 	buildIndexFromId,
+	BurnPatchStats,
+	BurnPatchTag,
 	DroneStats,
 	DroneState,
 	DroneTag,
@@ -59,6 +62,8 @@ import {
 	enemyTypeIndexFromId,
 	GeneratorTag,
 	Position,
+	ProjectileStats,
+	ProjectileTag,
 	RepairState,
 	RepairTag,
 	RepairUpgradeStats,
@@ -67,9 +72,10 @@ import {
 	TowerState,
 	TowerTag,
 	TowerUpgradeStats,
-	type AttackTarget,
+	type BurnPatchVisual,
 	type DroneVisual,
 	type EnemyVisual,
+	type ProjectileVisual,
 	type SoldierVisual,
 } from './components';
 import {
@@ -108,7 +114,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { computeAndApplyPower, isPowerConsumer } from './systems';
+import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
 	armouryMaxSoldiers,
@@ -128,10 +134,8 @@ import type {
 	ArmouryBuilding,
 	BaseBuilding,
 	BatteryBuilding,
-	BurnPatch,
 	Building,
 	GeneratorBuilding,
-	Projectile,
 	RepairBuilding,
 	TowerBuilding,
 } from './types';
@@ -165,18 +169,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private enemyGrid: number[][] = [];
 	private leadEnemyEid = -1;
 	private leadPathIndex = -1;
-	private buildings: Building[] = [];
-	private powerGenerators: number[] = [];
-	private powerConsumers: number[] = [];
-	private powerBatteries: number[] = [];
-	private towers: TowerBuilding[] = [];
-	private armouries: ArmouryBuilding[] = [];
-	private repairStations: RepairBuilding[] = [];
+	private frameGeneratorEids: number[] = [];
+	private frameBatteryEids: number[] = [];
+	private frameTowerEids: number[] = [];
+	private frameArmouryEids: number[] = [];
+	private frameRepairEids: number[] = [];
+	private frameConsumerEids: number[] = [];
 	private buildingByEid = new SideMap<Building>();
 	private droneVisuals = new SideMap<DroneVisual>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
-	private projectiles: Projectile[] = [];
-	private burnPatches: BurnPatch[] = [];
+	private projectileVisuals = new SideMap<ProjectileVisual>();
+	private projectileSpritePool: Phaser.GameObjects.Arc[] = [];
+	private projectileDeathRow: number[] = [];
+	private burnPatchVisuals = new SideMap<BurnPatchVisual>();
+	private burnPatchDeathRow: number[] = [];
 
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
@@ -237,18 +243,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (let i = 0; i < gridCells; i++) this.enemyGrid[i] = [];
 		this.leadEnemyEid = -1;
 		this.leadPathIndex = -1;
-		this.buildings = [];
-		this.powerGenerators = [];
-		this.powerConsumers = [];
-		this.powerBatteries = [];
-		this.towers = [];
-		this.armouries = [];
-		this.repairStations = [];
+		this.frameGeneratorEids = [];
+		this.frameBatteryEids = [];
+		this.frameTowerEids = [];
+		this.frameArmouryEids = [];
+		this.frameRepairEids = [];
+		this.frameConsumerEids = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.droneVisuals = new SideMap<DroneVisual>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
-		this.projectiles = [];
-		this.burnPatches = [];
+		this.projectileVisuals = new SideMap<ProjectileVisual>();
+		this.projectileSpritePool = [];
+		this.projectileDeathRow = [];
+		this.burnPatchVisuals = new SideMap<BurnPatchVisual>();
+		this.burnPatchDeathRow = [];
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
@@ -495,9 +503,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const spec = specFor(id);
 		const isFree = id === 'basic' && this.freeBasicTowers > 0;
 		if (!isFree && this.gold < spec.cost) return false;
-		for (const b of this.buildings) {
-			if (BuildingState.destroyed[b.id]) continue;
-			if (b.col === col && b.row === row) return false;
+		for (const eid of query(this.world, [BuildingTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			if (
+				BuildingState.col[eid] === col &&
+				BuildingState.row[eid] === row
+			)
+				return false;
 		}
 		return true;
 	}
@@ -723,9 +735,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private findBuildingAt(col: number, row: number): Building | null {
-		for (const b of this.buildings) {
-			if (BuildingState.destroyed[b.id]) continue;
-			if (b.col === col && b.row === row) return b;
+		for (const eid of query(this.world, [BuildingTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			if (
+				BuildingState.col[eid] === col &&
+				BuildingState.row[eid] === row
+			) {
+				return this.buildingByEid.get(eid) ?? null;
+			}
 		}
 		return null;
 	}
@@ -954,7 +971,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		let fixedRowEndY = headerH + upgradeRows * rowH;
 		if (isTower && this.supportsFixedTarget(b)) {
 			const fy = fixedRowEndY + 4;
-			const hasTarget = b.fixedTarget !== null;
+			const hasTarget = TowerState.hasFixedTarget[b.id] === 1;
 			const fixedRow = this.add
 				.rectangle(8, fy, panelW - 16, rowH - 4, 0x1c2541, 0.85)
 				.setOrigin(0, 0)
@@ -970,7 +987,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				20,
 				fy + 16,
 				hasTarget
-					? `Locked at (${b.fixedTarget!.x.toFixed(0)}, ${b.fixedTarget!.y.toFixed(0)})`
+					? `Locked at (${TowerState.fixedTargetX[b.id].toFixed(0)}, ${TowerState.fixedTargetY[b.id].toFixed(0)})`
 					: 'Auto-targeting enemies',
 				{
 					fontFamily: 'monospace',
@@ -1256,14 +1273,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 		marker.lineBetween(x + 6, y, x + 18, y);
 		marker.lineBetween(x, y - 18, x, y - 6);
 		marker.lineBetween(x, y + 6, x, y + 18);
-		t.fixedTarget = { x, y, marker };
+		t.fixedTargetMarker = marker;
+		TowerState.hasFixedTarget[t.id] = 1;
+		TowerState.fixedTargetX[t.id] = x;
+		TowerState.fixedTargetY[t.id] = y;
 	}
 
 	private clearFixedTarget(t: TowerBuilding): void {
-		if (t.fixedTarget) {
-			t.fixedTarget.marker.destroy();
-			t.fixedTarget = null;
+		if (t.fixedTargetMarker) {
+			t.fixedTargetMarker.destroy();
+			t.fixedTargetMarker = null;
 		}
+		TowerState.hasFixedTarget[t.id] = 0;
 	}
 
 	private closeUpgradePanel(): void {
@@ -1364,7 +1385,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				kind: 'tower',
 				spec: spec as TowerSpec,
 				powerIndicator,
-				fixedTarget: null,
+				fixedTargetMarker: null,
 				upgradePips,
 			};
 			this.redrawUpgradePips(b);
@@ -1454,30 +1475,51 @@ export class TowerDefenseScene extends Phaser.Scene {
 			);
 		}
 
-		this.buildings.push(building);
 		this.buildingByEid.set(eid, building);
-		if (building.kind === 'generator') {
-			this.powerGenerators.push(eid);
-		} else if (building.kind === 'battery') {
-			this.powerBatteries.push(eid);
-		} else if (isPowerConsumer(building)) {
-			this.powerConsumers.push(eid);
-		}
-		if (building.kind === 'tower') {
-			this.towers.push(building);
-		} else if (building.kind === 'armoury') {
-			this.armouries.push(building);
-		} else if (building.kind === 'repair') {
-			this.repairStations.push(building);
-		}
 		return building;
 	}
 
+	private rebuildBuildingFrameCaches(): void {
+		this.frameGeneratorEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, GeneratorTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameGeneratorEids.push(eid);
+		}
+		this.frameBatteryEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, BatteryTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameBatteryEids.push(eid);
+		}
+		this.frameTowerEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, TowerTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameTowerEids.push(eid);
+		}
+		this.frameArmouryEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, ArmouryTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameArmouryEids.push(eid);
+		}
+		this.frameRepairEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, RepairTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameRepairEids.push(eid);
+		}
+		this.frameConsumerEids.length = 0;
+		for (let i = 0; i < this.frameTowerEids.length; i++)
+			this.frameConsumerEids.push(this.frameTowerEids[i]);
+		for (let i = 0; i < this.frameRepairEids.length; i++)
+			this.frameConsumerEids.push(this.frameRepairEids[i]);
+		for (let i = 0; i < this.frameArmouryEids.length; i++)
+			this.frameConsumerEids.push(this.frameArmouryEids[i]);
+	}
+
 	private recomputePower(dt: number): void {
+		this.rebuildBuildingFrameCaches();
 		const result = computeAndApplyPower(
-			this.powerGenerators,
-			this.powerConsumers,
-			this.powerBatteries,
+			this.frameGeneratorEids,
+			this.frameConsumerEids,
+			this.frameBatteryEids,
 			dt,
 		);
 		this.cachedPower.supply = result.supply;
@@ -1488,9 +1530,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private syncBuildingVisuals(): void {
-		for (const b of this.buildings) {
-			const eid = b.id;
+		for (const eid of query(this.world, [BuildingTag])) {
 			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b) continue;
 			const hp = BuildingState.hp[eid];
 			const maxHp = BuildingState.maxHp[eid];
 			if (hp < maxHp) {
@@ -1530,10 +1573,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.spawnAccumulatorMs = 0;
 		this.cardPickedThisInterval = false;
 		const armouryNow = this.simNow;
-		for (let i = 0; i < this.armouries.length; i++) {
-			const b = this.armouries[i];
-			if (BuildingState.destroyed[b.id]) continue;
-			ArmouryState.nextSpawnAtMs[b.id] = armouryNow;
+		for (const eid of query(this.world, [ArmouryTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			ArmouryState.nextSpawnAtMs[eid] = armouryNow;
 		}
 		nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 		this.showWaveSplash();
@@ -1648,26 +1690,28 @@ export class TowerDefenseScene extends Phaser.Scene {
 			hpBarBg,
 			ringRadius,
 			statusVisible: false,
-			attackTarget: null,
 		});
+		EnemyStats.targetEid[eid] = -1;
+		EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
 	}
 
-	private findAttackTarget(eid: number): AttackTarget | null {
+	private findAttackTargetFor(eid: number): boolean {
 		const range = EnemyStats.attackRange[eid];
-		if (range <= 0) return null;
+		if (range <= 0) return false;
 		const ex = Position.x[eid];
 		const ey = Position.y[eid];
-		let best: AttackTarget | null = null;
+		let bestEid = -1;
+		let bestKind: number = ATTACK_TARGET_KIND.none;
 		let bestDist2 = range * range;
 		for (const beid of this.frameBuildingEids) {
-			const b = this.buildingByEid.get(beid);
-			if (!b || BuildingState.destroyed[b.id]) continue;
+			if (BuildingState.destroyed[beid]) continue;
 			const dx = Position.x[beid] - ex;
 			const dy = Position.y[beid] - ey;
 			const d2 = dx * dx + dy * dy;
 			if (d2 <= bestDist2) {
 				bestDist2 = d2;
-				best = { kind: 'building', b };
+				bestEid = beid;
+				bestKind = ATTACK_TARGET_KIND.building;
 			}
 		}
 		for (const seid of this.frameSoldierEids) {
@@ -1677,25 +1721,36 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const d2 = dx * dx + dy * dy;
 			if (d2 <= bestDist2) {
 				bestDist2 = d2;
-				best = { kind: 'soldier', eid: seid };
+				bestEid = seid;
+				bestKind = ATTACK_TARGET_KIND.soldier;
 			}
 		}
-		return best;
+		EnemyStats.targetEid[eid] = bestEid;
+		EnemyStats.targetKind[eid] = bestKind;
+		return bestKind !== ATTACK_TARGET_KIND.none;
 	}
 
-	private attackTargetPos(t: AttackTarget): { x: number; y: number } {
-		if (t.kind === 'building') return { x: t.b.x, y: t.b.y };
-		return { x: Position.x[t.eid], y: Position.y[t.eid] };
+	private targetAlive(targetEid: number, targetKind: number): boolean {
+		if (targetKind === ATTACK_TARGET_KIND.building) {
+			return !BuildingState.destroyed[targetEid];
+		}
+		if (targetKind === ATTACK_TARGET_KIND.soldier) {
+			return this.soldierVisuals.has(targetEid);
+		}
+		return false;
 	}
 
-	private attackTargetAlive(t: AttackTarget): boolean {
-		if (t.kind === 'building') return !BuildingState.destroyed[t.b.id];
-		return this.soldierVisuals.has(t.eid);
-	}
-
-	private applyAttackTargetDamage(t: AttackTarget, dmg: number): void {
-		if (t.kind === 'building') this.damageBuilding(t.b, dmg);
-		else this.damageSoldier(t.eid, dmg);
+	private applyTargetDamage(
+		targetEid: number,
+		targetKind: number,
+		dmg: number,
+	): void {
+		if (targetKind === ATTACK_TARGET_KIND.building) {
+			const b = this.buildingByEid.get(targetEid);
+			if (b) this.damageBuilding(b, dmg);
+		} else if (targetKind === ATTACK_TARGET_KIND.soldier) {
+			this.damageSoldier(targetEid, dmg);
+		}
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
@@ -1720,9 +1775,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
 			b.powerIndicator.destroy();
 		}
-		if (b.kind === 'tower' && b.fixedTarget) {
-			b.fixedTarget.marker.destroy();
-			b.fixedTarget = null;
+		if (b.kind === 'tower' && b.fixedTargetMarker) {
+			b.fixedTargetMarker.destroy();
+			b.fixedTargetMarker = null;
 		}
 		if (b.kind === 'tower') {
 			b.upgradePips.destroy();
@@ -1732,42 +1787,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 			b.chargeBarBg.destroy();
 		}
 		if (this.targetingTower === b) this.cancelTargeting();
-		for (const v of this.enemyVisuals.values()) {
+		for (const eid of query(this.world, [EnemyTag])) {
 			if (
-				v.attackTarget &&
-				v.attackTarget.kind === 'building' &&
-				v.attackTarget.b === b
+				EnemyStats.targetKind[eid] === ATTACK_TARGET_KIND.building &&
+				EnemyStats.targetEid[eid] === b.id
 			) {
-				v.attackTarget = null;
+				EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
 			}
 		}
 		const droneKills: number[] = [];
-		for (const [deid, dv] of this.droneVisuals.entries()) {
-			if (dv.target === b || dv.station === b) droneKills.push(deid);
+		for (const deid of query(this.world, [DroneTag])) {
+			if (
+				DroneStats.targetEid[deid] === b.id ||
+				DroneStats.stationEid[deid] === b.id
+			)
+				droneKills.push(deid);
 		}
 		for (const deid of droneKills) this.killDrone(deid);
 		this.buildingByEid.delete(b.id);
 		removeEntity(this.world, b.id);
-		if (b.kind === 'generator') {
-			const idx = this.powerGenerators.indexOf(b.id);
-			if (idx >= 0) this.powerGenerators.splice(idx, 1);
-		} else if (b.kind === 'battery') {
-			const idx = this.powerBatteries.indexOf(b.id);
-			if (idx >= 0) this.powerBatteries.splice(idx, 1);
-		} else if (isPowerConsumer(b)) {
-			const idx = this.powerConsumers.indexOf(b.id);
-			if (idx >= 0) this.powerConsumers.splice(idx, 1);
-		}
-		if (b.kind === 'tower') {
-			const idx = this.towers.indexOf(b);
-			if (idx >= 0) this.towers.splice(idx, 1);
-		} else if (b.kind === 'armoury') {
-			const idx = this.armouries.indexOf(b);
-			if (idx >= 0) this.armouries.splice(idx, 1);
-		} else if (b.kind === 'repair') {
-			const idx = this.repairStations.indexOf(b);
-			if (idx >= 0) this.repairStations.splice(idx, 1);
-		}
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
@@ -1777,21 +1815,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (!v) return;
 		v.sprite.destroy();
 		v.beam.destroy();
-		if (
-			v.station.kind === 'repair' &&
-			RepairState.activeDroneEid[v.station.id] === eid
-		) {
-			RepairState.activeDroneEid[v.station.id] = -1;
+		const stationEid = DroneStats.stationEid[eid];
+		if (stationEid >= 0 && RepairState.activeDroneEid[stationEid] === eid) {
+			RepairState.activeDroneEid[stationEid] = -1;
 		}
 		removeEntity(this.world, eid);
 	}
 
 	private updateArmouries(nowMs: number): void {
-		for (let i = 0; i < this.armouries.length; i++) {
-			const b = this.armouries[i];
-			const eid = b.id;
+		for (let i = 0; i < this.frameArmouryEids.length; i++) {
+			const eid = this.frameArmouryEids[i];
 			if (BuildingState.destroyed[eid]) continue;
 			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'armoury') continue;
 			const owned = this.countSoldiersOwnedBy(eid);
 			if (owned >= armouryMaxSoldiers(b)) continue;
 			if (nowMs < ArmouryState.nextSpawnAtMs[eid]) continue;
@@ -1890,13 +1927,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		v.sprite.destroy();
 		v.hpBar.destroy();
 		v.hpBarBg.destroy();
-		for (const ev of this.enemyVisuals.values()) {
+		for (const enemyEid of query(this.world, [EnemyTag])) {
 			if (
-				ev.attackTarget &&
-				ev.attackTarget.kind === 'soldier' &&
-				ev.attackTarget.eid === eid
+				EnemyStats.targetKind[enemyEid] ===
+					ATTACK_TARGET_KIND.soldier &&
+				EnemyStats.targetEid[enemyEid] === eid
 			) {
-				ev.attackTarget = null;
+				EnemyStats.targetKind[enemyEid] = ATTACK_TARGET_KIND.none;
 			}
 		}
 		removeEntity(this.world, eid);
@@ -1971,29 +2008,47 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 
 			if (EnemyStats.canAttack[eid] === 1) {
-				const v = this.enemyVisuals.get(eid)!;
-				if (v.attackTarget && !this.attackTargetAlive(v.attackTarget))
-					v.attackTarget = null;
-				if (!v.attackTarget) {
-					v.attackTarget = this.findAttackTarget(eid);
+				let targetEid = EnemyStats.targetEid[eid];
+				let targetKind = EnemyStats.targetKind[eid];
+				if (
+					targetKind !== ATTACK_TARGET_KIND.none &&
+					!this.targetAlive(targetEid, targetKind)
+				) {
+					targetKind = ATTACK_TARGET_KIND.none;
+					EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
+				}
+				if (targetKind === ATTACK_TARGET_KIND.none) {
+					if (this.findAttackTargetFor(eid)) {
+						targetEid = EnemyStats.targetEid[eid];
+						targetKind = EnemyStats.targetKind[eid];
+					}
 				} else {
-					const pos = this.attackTargetPos(v.attackTarget);
-					const dx = pos.x - Position.x[eid];
-					const dy = pos.y - Position.y[eid];
+					const tx =
+						targetKind === ATTACK_TARGET_KIND.building
+							? Position.x[targetEid]
+							: Position.x[targetEid];
+					const ty =
+						targetKind === ATTACK_TARGET_KIND.building
+							? Position.y[targetEid]
+							: Position.y[targetEid];
+					const dx = tx - Position.x[eid];
+					const dy = ty - Position.y[eid];
 					const range = EnemyStats.attackRange[eid];
 					if (dx * dx + dy * dy > range * range * 2.25) {
-						v.attackTarget = null;
+						targetKind = ATTACK_TARGET_KIND.none;
+						EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
 					}
 				}
 
-				if (v.attackTarget) {
+				if (targetKind !== ATTACK_TARGET_KIND.none) {
 					if (
 						nowMs - EnemyStats.lastAttackAtMs[eid] >=
 						EnemyStats.attackRateMs[eid]
 					) {
 						EnemyStats.lastAttackAtMs[eid] = nowMs;
-						this.applyAttackTargetDamage(
-							v.attackTarget,
+						this.applyTargetDamage(
+							targetEid,
+							targetKind,
 							EnemyStats.attackDamage[eid],
 						);
 					}
@@ -2104,16 +2159,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateTowers(nowMs: number): void {
-		for (let i = 0; i < this.towers.length; i++) {
-			const b = this.towers[i];
-			const eid = b.id;
+		for (let i = 0; i < this.frameTowerEids.length; i++) {
+			const eid = this.frameTowerEids[i];
 			if (BuildingState.destroyed[eid]) continue;
 			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'tower') continue;
 			if (nowMs - TowerState.lastFireAtMs[eid] < towerFireRateMs(b))
 				continue;
-			if (b.fixedTarget) {
+			if (TowerState.hasFixedTarget[eid] === 1) {
 				TowerState.lastFireAtMs[eid] = nowMs;
-				this.fireAt(b, b.fixedTarget.x, b.fixedTarget.y, null);
+				this.fireAt(
+					b,
+					TowerState.fixedTargetX[eid],
+					TowerState.fixedTargetY[eid],
+					null,
+				);
 				continue;
 			}
 			const targetEid = this.findTarget(b, nowMs);
@@ -2147,117 +2208,171 @@ export class TowerDefenseScene extends Phaser.Scene {
 		return best >= 0 ? best : null;
 	}
 
+	private acquireProjectileSprite(
+		x: number,
+		y: number,
+		radius: number,
+		color: number,
+	): Phaser.GameObjects.Arc {
+		const pooled = this.projectileSpritePool.pop();
+		if (pooled) {
+			pooled.setPosition(x, y);
+			pooled.setRadius(radius);
+			pooled.setFillStyle(color);
+			pooled.setActive(true);
+			pooled.setVisible(true);
+			return pooled;
+		}
+		return this.add.circle(x, y, radius, color);
+	}
+
+	private releaseProjectileSprite(sprite: Phaser.GameObjects.Arc): void {
+		sprite.setActive(false);
+		sprite.setVisible(false);
+		this.projectileSpritePool.push(sprite);
+	}
+
 	private fireAt(
 		t: TowerBuilding,
 		targetX: number,
 		targetY: number,
 		enemyId: number | null,
 	): void {
-		const radius = t.spec.arcHeight > 0 ? 6 : 4;
-		const sprite = this.add.circle(
+		const spec = t.spec;
+		const radius = spec.arcHeight > 0 ? 6 : 4;
+		const sprite = this.acquireProjectileSprite(
 			t.x,
 			t.y,
 			radius,
-			t.spec.projectileColor,
+			spec.projectileColor,
 		);
 		const totalDist = Math.hypot(targetX - t.x, targetY - t.y);
-		this.projectiles.push({
-			sprite,
-			tower: t,
-			startX: t.x,
-			startY: t.y,
-			targetX,
-			targetY,
-			enemyId: t.spec.homing ? enemyId : null,
-			speed: t.spec.projectileSpeed,
-			alive: true,
-			homing: t.spec.homing,
-			arcHeight: t.spec.arcHeight,
-			traveled: 0,
-			totalDist,
-		});
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, ProjectileTag);
+		addComponent(this.world, eid, ProjectileStats);
+		Position.x[eid] = t.x;
+		Position.y[eid] = t.y;
+		ProjectileStats.startX[eid] = t.x;
+		ProjectileStats.startY[eid] = t.y;
+		ProjectileStats.targetX[eid] = targetX;
+		ProjectileStats.targetY[eid] = targetY;
+		ProjectileStats.traveled[eid] = 0;
+		ProjectileStats.totalDist[eid] = totalDist;
+		ProjectileStats.speed[eid] = spec.projectileSpeed;
+		ProjectileStats.arcHeight[eid] = spec.arcHeight;
+		ProjectileStats.homing[eid] = spec.homing ? 1 : 0;
+		ProjectileStats.enemyEid[eid] =
+			spec.homing && enemyId !== null ? enemyId : -1;
+		ProjectileStats.damage[eid] = towerDamage(t);
+		ProjectileStats.burnDps[eid] = towerBurnDps(t);
+		ProjectileStats.burnMs[eid] = spec.burnMs;
+		ProjectileStats.burnRadius[eid] = spec.burnRadius;
+		ProjectileStats.splashRadius[eid] = spec.splashRadius;
+		ProjectileStats.slowMs[eid] = spec.slowMs;
+		ProjectileStats.slowFactor[eid] = spec.slowFactor;
+		this.projectileVisuals.set(eid, { sprite });
 	}
 
 	private isEnemyAlive(eid: number | null): eid is number {
-		return eid !== null && this.enemyVisuals.has(eid);
+		return eid !== null && eid >= 0 && this.enemyVisuals.has(eid);
 	}
 
 	private updateProjectiles(dt: number, nowMs: number): void {
-		for (const p of this.projectiles) {
-			if (!p.alive) continue;
-			if (p.homing) {
-				if (this.isEnemyAlive(p.enemyId)) {
-					p.targetX = Position.x[p.enemyId];
-					p.targetY = Position.y[p.enemyId];
+		this.projectileDeathRow.length = 0;
+		for (const eid of query(this.world, [ProjectileTag, Position])) {
+			const v = this.projectileVisuals.get(eid);
+			if (!v) {
+				this.projectileDeathRow.push(eid);
+				continue;
+			}
+			const speed = ProjectileStats.speed[eid];
+			if (ProjectileStats.homing[eid] === 1) {
+				const targetEid = ProjectileStats.enemyEid[eid];
+				if (this.isEnemyAlive(targetEid)) {
+					ProjectileStats.targetX[eid] = Position.x[targetEid];
+					ProjectileStats.targetY[eid] = Position.y[targetEid];
 				}
-				const dx = p.targetX - p.sprite.x;
-				const dy = p.targetY - p.sprite.y;
+				const px = Position.x[eid];
+				const py = Position.y[eid];
+				const dx = ProjectileStats.targetX[eid] - px;
+				const dy = ProjectileStats.targetY[eid] - py;
 				const dist = Math.sqrt(dx * dx + dy * dy);
-				const step = p.speed * dt;
+				const step = speed * dt;
 				if (step >= dist) {
-					this.applyHit(p, nowMs, p.sprite.x, p.sprite.y);
-					p.alive = false;
-					p.sprite.destroy();
+					this.applyProjectileHit(eid, nowMs, px, py);
+					this.projectileDeathRow.push(eid);
 				} else {
-					p.sprite.x += (dx / dist) * step;
-					p.sprite.y += (dy / dist) * step;
+					Position.x[eid] = px + (dx / dist) * step;
+					Position.y[eid] = py + (dy / dist) * step;
+					v.sprite.setPosition(Position.x[eid], Position.y[eid]);
 				}
 			} else {
-				p.traveled += p.speed * dt;
-				const t =
-					p.totalDist > 0 ? Math.min(1, p.traveled / p.totalDist) : 1;
-				const baseX = p.startX + (p.targetX - p.startX) * t;
-				const baseY = p.startY + (p.targetY - p.startY) * t;
-				const arcOffset = -Math.sin(Math.PI * t) * p.arcHeight;
-				p.sprite.x = baseX;
-				p.sprite.y = baseY + arcOffset;
-				if (t >= 1) {
-					this.applyHit(p, nowMs, p.targetX, p.targetY);
-					p.alive = false;
-					p.sprite.destroy();
+				ProjectileStats.traveled[eid] += speed * dt;
+				const total = ProjectileStats.totalDist[eid];
+				const tt =
+					total > 0
+						? Math.min(1, ProjectileStats.traveled[eid] / total)
+						: 1;
+				const sx = ProjectileStats.startX[eid];
+				const sy = ProjectileStats.startY[eid];
+				const tx = ProjectileStats.targetX[eid];
+				const ty = ProjectileStats.targetY[eid];
+				const baseX = sx + (tx - sx) * tt;
+				const baseY = sy + (ty - sy) * tt;
+				const arcOffset =
+					-Math.sin(Math.PI * tt) * ProjectileStats.arcHeight[eid];
+				Position.x[eid] = baseX;
+				Position.y[eid] = baseY + arcOffset;
+				v.sprite.setPosition(Position.x[eid], Position.y[eid]);
+				if (tt >= 1) {
+					this.applyProjectileHit(eid, nowMs, tx, ty);
+					this.projectileDeathRow.push(eid);
 				}
 			}
 		}
-		let write = 0;
-		for (let read = 0; read < this.projectiles.length; read++) {
-			const p = this.projectiles[read];
-			if (!p.alive) continue;
-			if (write !== read) this.projectiles[write] = p;
-			write++;
+		for (let i = 0; i < this.projectileDeathRow.length; i++) {
+			const eid = this.projectileDeathRow[i];
+			const v = this.projectileVisuals.delete(eid);
+			if (v) this.releaseProjectileSprite(v.sprite);
+			removeEntity(this.world, eid);
 		}
-		this.projectiles.length = write;
 	}
 
-	private applyHit(p: Projectile, nowMs: number, x: number, y: number): void {
-		const spec = p.tower.spec;
-		const damage = towerDamage(p.tower);
-		const burnDps = towerBurnDps(p.tower);
-		if (burnDps > 0 && spec.burnMs > 0 && spec.burnRadius > 0) {
-			this.spawnBurnPatch(
-				x,
-				y,
-				spec.burnRadius,
-				burnDps,
-				nowMs + spec.burnMs,
-			);
+	private applyProjectileHit(
+		eid: number,
+		nowMs: number,
+		x: number,
+		y: number,
+	): void {
+		const burnDps = ProjectileStats.burnDps[eid];
+		const burnMs = ProjectileStats.burnMs[eid];
+		const burnRadius = ProjectileStats.burnRadius[eid];
+		if (burnDps > 0 && burnMs > 0 && burnRadius > 0) {
+			this.spawnBurnPatch(x, y, burnRadius, burnDps, nowMs + burnMs);
 			return;
 		}
-		if (spec.splashRadius > 0) {
-			this.forEachEnemyInRange(x, y, spec.splashRadius, (eid) => {
-				this.damageEnemy(eid, damage);
+		const damage = ProjectileStats.damage[eid];
+		const splashRadius = ProjectileStats.splashRadius[eid];
+		if (splashRadius > 0) {
+			this.forEachEnemyInRange(x, y, splashRadius, (id) => {
+				this.damageEnemy(id, damage);
 			});
-			this.spawnSplashFlash(x, y, spec.splashRadius);
+			this.spawnSplashFlash(x, y, splashRadius);
 			return;
 		}
-		if (this.isEnemyAlive(p.enemyId)) {
-			this.damageEnemy(p.enemyId, damage);
-			if (this.isEnemyAlive(p.enemyId) && spec.slowMs > 0) {
-				EnemyStats.slowUntilMs[p.enemyId] = Math.max(
-					EnemyStats.slowUntilMs[p.enemyId],
-					nowMs + spec.slowMs,
+		const targetEid = ProjectileStats.enemyEid[eid];
+		if (this.isEnemyAlive(targetEid)) {
+			this.damageEnemy(targetEid, damage);
+			const slowMs = ProjectileStats.slowMs[eid];
+			if (this.isEnemyAlive(targetEid) && slowMs > 0) {
+				EnemyStats.slowUntilMs[targetEid] = Math.max(
+					EnemyStats.slowUntilMs[targetEid],
+					nowMs + slowMs,
 				);
-				EnemyStats.slowDurationMs[p.enemyId] = spec.slowMs;
-				EnemyStats.slowFactor[p.enemyId] = spec.slowFactor;
+				EnemyStats.slowDurationMs[targetEid] = slowMs;
+				EnemyStats.slowFactor[targetEid] =
+					ProjectileStats.slowFactor[eid];
 			}
 		}
 	}
@@ -2282,7 +2397,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 	): void {
 		const sprite = this.add.circle(x, y, radius, COLORS.burnPatch, 0.25);
 		sprite.setStrokeStyle(2, COLORS.burnPatch, 0.6);
-		this.burnPatches.push({ sprite, x, y, radius, dps, expiresAtMs });
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, BurnPatchTag);
+		addComponent(this.world, eid, BurnPatchStats);
+		Position.x[eid] = x;
+		Position.y[eid] = y;
+		BurnPatchStats.radius[eid] = radius;
+		BurnPatchStats.dps[eid] = dps;
+		BurnPatchStats.expiresAtMs[eid] = expiresAtMs;
+		this.burnPatchVisuals.set(eid, { sprite });
 	}
 
 	private spawnSplashFlash(x: number, y: number, radius: number): void {
@@ -2297,41 +2421,49 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateBurnPatches(dt: number, nowMs: number): void {
-		for (const patch of this.burnPatches) {
-			if (nowMs >= patch.expiresAtMs) continue;
-			this.forEachEnemyInRange(patch.x, patch.y, patch.radius, (eid) => {
-				EnemyStats.burnUntilMs[eid] = Math.max(
-					EnemyStats.burnUntilMs[eid],
-					nowMs + 500,
-				);
-				EnemyStats.burnDps[eid] = Math.max(
-					EnemyStats.burnDps[eid],
-					patch.dps,
-				);
-			});
-			const remaining = (patch.expiresAtMs - nowMs) / 1000;
-			patch.sprite.setAlpha(0.1 + Math.min(0.25, remaining * 0.1));
-		}
-		let writeBurn = 0;
-		for (let read = 0; read < this.burnPatches.length; read++) {
-			const p = this.burnPatches[read];
-			if (nowMs >= p.expiresAtMs) {
-				p.sprite.destroy();
+		this.burnPatchDeathRow.length = 0;
+		for (const eid of query(this.world, [BurnPatchTag, Position])) {
+			const expires = BurnPatchStats.expiresAtMs[eid];
+			const v = this.burnPatchVisuals.get(eid);
+			if (nowMs >= expires) {
+				this.burnPatchDeathRow.push(eid);
 				continue;
 			}
-			if (writeBurn !== read) this.burnPatches[writeBurn] = p;
-			writeBurn++;
+			const x = Position.x[eid];
+			const y = Position.y[eid];
+			const radius = BurnPatchStats.radius[eid];
+			const dps = BurnPatchStats.dps[eid];
+			this.forEachEnemyInRange(x, y, radius, (enemyEid) => {
+				EnemyStats.burnUntilMs[enemyEid] = Math.max(
+					EnemyStats.burnUntilMs[enemyEid],
+					nowMs + 500,
+				);
+				EnemyStats.burnDps[enemyEid] = Math.max(
+					EnemyStats.burnDps[enemyEid],
+					dps,
+				);
+			});
+			if (v) {
+				const remaining = (expires - nowMs) / 1000;
+				v.sprite.setAlpha(0.1 + Math.min(0.25, remaining * 0.1));
+			}
 		}
-		this.burnPatches.length = writeBurn;
+		for (let i = 0; i < this.burnPatchDeathRow.length; i++) {
+			const eid = this.burnPatchDeathRow[i];
+			const v = this.burnPatchVisuals.delete(eid);
+			if (v) v.sprite.destroy();
+			removeEntity(this.world, eid);
+		}
 	}
 
 	private updateRepair(dt: number): void {
 		const dtMs = dt * 1000;
-		for (let i = 0; i < this.repairStations.length; i++) {
-			const b = this.repairStations[i];
-			const eid = b.id;
+		for (let i = 0; i < this.frameRepairEids.length; i++) {
+			const eid = this.frameRepairEids[i];
 			if (BuildingState.destroyed[eid]) continue;
 			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'repair') continue;
 			const activeDrone = RepairState.activeDroneEid[eid];
 			if (activeDrone >= 0 && this.droneVisuals.has(activeDrone))
 				continue;
@@ -2354,26 +2486,28 @@ export class TowerDefenseScene extends Phaser.Scene {
 		])) {
 			const v = this.droneVisuals.get(deid);
 			if (!v) continue;
-			if (BuildingState.destroyed[v.target.id]) {
+			const tEid = DroneStats.targetEid[deid];
+			if (BuildingState.destroyed[tEid]) {
 				deathRow.push(deid);
 				continue;
 			}
-			const dest =
+			const destEid =
 				DroneStats.state[deid] === DroneState.Outbound
-					? v.target
-					: v.station;
-			const dx = dest.x - Position.x[deid];
-			const dy = dest.y - Position.y[deid];
+					? tEid
+					: DroneStats.stationEid[deid];
+			const destX = Position.x[destEid];
+			const destY = Position.y[destEid];
+			const dx = destX - Position.x[deid];
+			const dy = destY - Position.y[deid];
 			const dist = Math.sqrt(dx * dx + dy * dy);
 			const step = DroneStats.speed[deid] * dt;
 			if (step >= dist) {
-				Position.x[deid] = dest.x;
-				Position.y[deid] = dest.y;
+				Position.x[deid] = destX;
+				Position.y[deid] = destY;
 				if (DroneStats.state[deid] === DroneState.Outbound) {
-					const tEid = v.target.id;
 					BuildingState.hp[tEid] = Math.min(
 						BuildingState.maxHp[tEid],
-						BuildingState.hp[tEid] + v.repairAmount,
+						BuildingState.hp[tEid] + DroneStats.repairAmount[deid],
 					);
 					DroneStats.state[deid] = DroneState.Returning;
 				} else {
@@ -2391,8 +2525,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 				v.beam.lineBetween(
 					Position.x[deid],
 					Position.y[deid],
-					v.target.x,
-					v.target.y,
+					Position.x[tEid],
+					Position.y[tEid],
 				);
 			}
 		}
@@ -2441,13 +2575,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.y[eid] = station.y;
 		DroneStats.speed[eid] = GAME_CONFIG.repairDroneSpeed;
 		DroneStats.state[eid] = DroneState.Outbound;
-		this.droneVisuals.set(eid, {
-			sprite,
-			beam,
-			station,
-			target,
-			repairAmount: repairAmount(station),
-		});
+		DroneStats.stationEid[eid] = station.id;
+		DroneStats.targetEid[eid] = target.id;
+		DroneStats.repairAmount[eid] = repairAmount(station);
+		this.droneVisuals.set(eid, { sprite, beam });
 		RepairState.activeDroneEid[station.id] = eid;
 	}
 
@@ -2541,6 +2672,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			SoldierStats,
 		]);
 		this.frameBuildingEids = query(this.world, [BuildingTag, Position]);
+		this.rebuildBuildingFrameCaches();
 		this.rebuildEnemyGrid();
 
 		this.updateBurnPatches(dt, nowMs);
@@ -2622,9 +2754,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private summonSoldierSquad(count: number): void {
-		const alive = this.armouries.filter(
-			(a) => !BuildingState.destroyed[a.id],
-		);
+		const alive: ArmouryBuilding[] = [];
+		for (const eid of query(this.world, [ArmouryTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (b && b.kind === 'armoury') alive.push(b);
+		}
 		if (alive.length === 0) {
 			this.gold += 60;
 			return;
@@ -2635,9 +2770,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private healAllBuildings(): void {
-		for (const b of this.buildings) {
-			if (BuildingState.destroyed[b.id]) continue;
-			BuildingState.hp[b.id] = BuildingState.maxHp[b.id];
+		for (const eid of query(this.world, [BuildingTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			BuildingState.hp[eid] = BuildingState.maxHp[eid];
 		}
 	}
 
@@ -2646,8 +2781,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			apply: () => void;
 		}
 		const candidates: UpgradeCandidate[] = [];
-		for (const b of this.buildings) {
-			if (BuildingState.destroyed[b.id]) continue;
+		for (const eid of query(this.world, [BuildingTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b) continue;
 			if (b.kind === 'tower') {
 				const tower = b;
 				for (const k of UPGRADE_ORDER) {
@@ -2713,10 +2850,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private boostBatteries(amount: number): void {
 		let left = amount;
-		for (const b of this.buildings) {
-			if (BuildingState.destroyed[b.id]) continue;
-			if (b.kind !== 'battery') continue;
-			const eid = b.id;
+		for (const eid of query(this.world, [BatteryTag])) {
+			if (BuildingState.destroyed[eid]) continue;
 			const room = BatteryState.capacity[eid] - BatteryState.charge[eid];
 			const add = Math.min(room, left);
 			BatteryState.charge[eid] += add;

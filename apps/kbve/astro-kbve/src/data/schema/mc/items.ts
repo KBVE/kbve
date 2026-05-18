@@ -1,12 +1,3 @@
-/**
- * Proto-aligned Zod schema for kbve.mc.MCItem.
- *
- * Mirrors packages/data/proto/kbve/mc/mc_items.proto. Validates frontmatter
- * for content/docs/mc/items/<slug>.mdx. Marketplace listings whose
- * item_ref.kind === 'mc_item' MUST carry an item_ref.id that matches an
- * MCItem.ref defined here — that's the cross-system contract.
- */
-
 import { z } from 'astro/zod';
 import {
 	MCIdentitySchema,
@@ -17,7 +8,6 @@ import {
 	McRecipeKindSchema,
 } from './enums';
 
-// proto: MCEquipment
 export const MCEquipmentSchema = z.object({
 	slot: z.enum(['head', 'chest', 'legs', 'feet', 'offhand', '']).default(''),
 	armor_points: z.number().int().nonnegative().default(0),
@@ -26,15 +16,12 @@ export const MCEquipmentSchema = z.object({
 });
 export type MCEquipment = z.infer<typeof MCEquipmentSchema>;
 
-// proto: MCDamage. MC tools deal fractional base damage (e.g. shovel +1.5)
-// — accept float; the in-game tooltip rounds to display.
 export const MCDamageSchema = z.object({
 	attack_damage: z.number().nonnegative(),
 	attack_speed: z.number(),
 });
 export type MCDamage = z.infer<typeof MCDamageSchema>;
 
-// proto: MCFood
 export const MCFoodSchema = z.object({
 	nutrition: z.number().int().nonnegative(),
 	saturation: z.number().nonnegative(),
@@ -42,23 +29,17 @@ export const MCFoodSchema = z.object({
 });
 export type MCFood = z.infer<typeof MCFoodSchema>;
 
-// proto: MCMiningProfile
 export const MCMiningProfileSchema = z.object({
 	tool_type: z.enum(['pickaxe', 'axe', 'shovel', 'hoe', 'shears', 'sword']),
 	tier: z.number().int().min(1).max(6),
 });
 export type MCMiningProfile = z.infer<typeof MCMiningProfileSchema>;
 
-// proto: MCEnchantCompat
 export const MCEnchantCompatSchema = z.object({
 	allowed: z.array(z.string().min(1)).default([]),
 });
 export type MCEnchantCompat = z.infer<typeof MCEnchantCompatSchema>;
 
-// proto: MCRecipeIngredient (inline). `tag_ref` covers vanilla item tags
-// like "minecraft:planks" — when set, the slot accepts any item matching
-// the tag. `row` + `col` are 0-indexed within the crafting grid (shaped
-// recipes only).
 export const MCItemRecipeIngredientSchema = z
 	.object({
 		ref: z.string().default(''),
@@ -71,9 +52,6 @@ export const MCItemRecipeIngredientSchema = z
 		message: 'ingredient must set ref or tag_ref',
 	});
 
-// proto: MCRecipe (inline on the item). Carries the full vanilla recipe
-// shape (grid dimensions, cook time, XP, smithing template, brewing base)
-// so the per-item MDX is self-contained — no separate recipe registry.
 export const MCItemRecipeSchema = z.object({
 	kind: McRecipeKindSchema,
 	station: McCraftingStationSchema.default('none'),
@@ -88,17 +66,12 @@ export const MCItemRecipeSchema = z.object({
 });
 export type MCItemRecipe = z.infer<typeof MCItemRecipeSchema>;
 
-// proto: MCAbout
 export const MCAboutSchema = z.object({
 	description: z.string().default(''),
 	lore: z.string().default(''),
 });
 export type MCAbout = z.infer<typeof MCAboutSchema>;
 
-/**
- * proto: MCItem — top-level item record. Used as the Zod schema for MDX
- * frontmatter under content/docs/mc/items/.
- */
 export const MCItemSchema = MCIdentitySchema.extend({
 	display_name: z.string().min(1),
 	category: MCItemCategorySchema,

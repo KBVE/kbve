@@ -39,6 +39,31 @@ pub use proto::item::*;
 // Re-export registry types
 pub use registry::{ItemDb, ProtoItemId};
 
+/// Map a proto [`SkillingType`] enum to the matching `bevy_skills` skill ref
+/// string (the same slugs used in the SkillRegistry on both client and server).
+/// Returns `None` for [`SkillingType::SkillingUnspecified`] so callers can
+/// short-circuit gate logic without a fake fallback.
+pub fn skilling_type_to_skill_ref(skilling: SkillingType) -> Option<&'static str> {
+    match skilling {
+        SkillingType::SkillingUnspecified => None,
+        SkillingType::SkillingCooking => Some("cooking"),
+        SkillingType::SkillingSmithing => Some("smithing"),
+        SkillingType::SkillingCrafting => Some("crafting"),
+        SkillingType::SkillingAlchemy => Some("alchemy"),
+        SkillingType::SkillingWoodcutting => Some("woodcutting"),
+        SkillingType::SkillingMining => Some("mining"),
+        SkillingType::SkillingFishing => Some("fishing"),
+        SkillingType::SkillingFarming => Some("farming"),
+        SkillingType::SkillingHerblore => Some("herblore"),
+        SkillingType::SkillingFletching => Some("fletching"),
+        SkillingType::SkillingHunting => Some("hunting"),
+        SkillingType::SkillingForaging => Some("foraging"),
+        SkillingType::SkillingEnchanting => Some("enchanting"),
+        SkillingType::SkillingTailoring => Some("tailoring"),
+        SkillingType::SkillingConstruction => Some("construction"),
+    }
+}
+
 use bevy::prelude::*;
 
 /// Bevy plugin that registers the [`ItemDb`] resource.

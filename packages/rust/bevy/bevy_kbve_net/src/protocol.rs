@@ -177,6 +177,20 @@ pub struct InventorySync {
     pub max_slots: u32,
 }
 
+/// Server pushes a skill-XP grant after an authoritative skilling action
+/// (collect, craft, etc.) so the owning client can mirror its `SkillProfile`
+/// and run client-side level-up effects (toasts, audio). The grant is
+/// idempotent at the message level — if the client misses one, the next
+/// `InventorySync` round-trip will not heal it, so prefer reliable channel.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SkillXpGrant {
+    pub player_id: u64,
+    /// Skill ref slug (e.g. "woodcutting"). Matches the SkillRegistry on
+    /// both sides.
+    pub skill_ref: String,
+    pub amount: u64,
+}
+
 /// Server periodically broadcasts canonical game time and creature seed.
 /// Clients use this to keep DayCycle, wind, and creature behavior in sync.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -389,6 +403,9 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
         // InventorySync: server → owning client (full snapshot on join)
         app.register_message::<InventorySync>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // SkillXpGrant: server → owning client (mirrored skill XP delta)
+        app.register_message::<SkillXpGrant>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // TimeSyncMessage: server → all clients (unreliable, periodic)

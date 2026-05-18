@@ -1,8 +1,13 @@
 import type Phaser from 'phaser';
 import type { EnemyTypeId } from '../config';
-import type { Building } from '../types';
 
 export const EnemyTag: Record<string, never> = {};
+
+export const ATTACK_TARGET_KIND = {
+	none: 0,
+	building: 1,
+	soldier: 2,
+} as const;
 
 export const EnemyStats = {
 	hp: [] as number[],
@@ -23,6 +28,8 @@ export const EnemyStats = {
 	defense: [] as number[],
 	bountyMultiplier: [] as number[],
 	typeIndex: [] as number[],
+	targetEid: [] as number[],
+	targetKind: [] as number[],
 };
 
 export const ENEMY_TYPE_INDEX: EnemyTypeId[] = [
@@ -37,10 +44,6 @@ export function enemyTypeIndexFromId(id: EnemyTypeId): number {
 	return i >= 0 ? i : 0;
 }
 
-export type AttackTarget =
-	| { kind: 'building'; b: Building }
-	| { kind: 'soldier'; eid: number };
-
 export interface EnemyVisual {
 	sprite: Phaser.GameObjects.Arc;
 	statusRing: Phaser.GameObjects.Graphics;
@@ -48,5 +51,4 @@ export interface EnemyVisual {
 	hpBarBg: Phaser.GameObjects.Rectangle;
 	ringRadius: number;
 	statusVisible: boolean;
-	attackTarget: AttackTarget | null;
 }

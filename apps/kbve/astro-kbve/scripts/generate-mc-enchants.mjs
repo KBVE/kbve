@@ -1,14 +1,3 @@
-/**
- * Bootstrap new Minecraft enchant MDX files from the
- * PrismarineJS/minecraft-data registry. Skips enchants whose MDX already
- * exists (matched by `mc_enchant.ref` in frontmatter). Generates a
- * minimal frontmatter block that validates against McEnchantSchema; rich
- * descriptions and rarity tuning are left for manual enrichment.
- *
- * Run: node scripts/generate-mc-enchants.mjs
- *   --audit   print would-be new MDX files; no writes
- */
-
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -22,13 +11,6 @@ const OUTPUT_DIR = resolve(__dirname, '../src/content/docs/mc/enchants');
 const args = process.argv.slice(2);
 const auditMode = args.includes('--audit');
 
-// Map upstream `category` strings → schema MCEnchantTarget enum.
-// Upstream uses gameplay buckets (e.g. `sharp_weapon`, `mining_loot`)
-// that don't appear in our proto enum — fold them into the closest
-// existing target. `equippable` and `durability` apply to anything that
-// can be worn / broken, so they map to the catch-all `wearable` /
-// `breakable` targets. `vanishing` (curse of vanishing) maps to
-// `vanishable`.
 const CATEGORY_TO_TARGET = {
 	armor: 'armor',
 	head_armor: 'armor_head',

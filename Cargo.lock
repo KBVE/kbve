@@ -1603,6 +1603,7 @@ dependencies = [
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",
+ "bevy_skills",
  "chrono",
  "dashmap 6.1.0",
  "dotenvy",

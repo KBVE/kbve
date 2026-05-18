@@ -1,20 +1,9 @@
-/**
- * Proto-aligned MC enum tables.
- *
- * Each `as const` array mirrors a proto enum in packages/data/proto/kbve/mc/.
- * Stored on the MDX side as lowercase strings (we strip the proto prefix and
- * lowercase the suffix — e.g. `MC_RARITY_COMMON` → `"common"`). Zod uses
- * z.enum on these arrays so frontmatter validation rejects unknown values.
- */
-
 import { z } from 'astro/zod';
 
-// proto: MCRarity
 export const MCRarities = ['common', 'uncommon', 'rare', 'epic'] as const;
 export const MCRaritySchema = z.enum(MCRarities);
 export type MCRarity = z.infer<typeof MCRaritySchema>;
 
-// proto: MCItemCategory
 export const MCItemCategories = [
 	'tool',
 	'weapon',
@@ -35,9 +24,6 @@ export const MCItemCategories = [
 export const MCItemCategorySchema = z.enum(MCItemCategories);
 export type MCItemCategory = z.infer<typeof MCItemCategorySchema>;
 
-// proto: MCToolTier. Applies to both mining tools and armor — vanilla
-// armor adds `leather`, `chainmail`, and `turtle` to the mining-tool
-// hierarchy (wooden..netherite).
 export const MCToolTiers = [
 	'wooden',
 	'stone',
@@ -52,7 +38,6 @@ export const MCToolTiers = [
 export const MCToolTierSchema = z.enum(MCToolTiers);
 export type MCToolTier = z.infer<typeof MCToolTierSchema>;
 
-// proto: MCEnchantRarity
 export const MCEnchantRarities = [
 	'common',
 	'uncommon',
@@ -62,7 +47,6 @@ export const MCEnchantRarities = [
 export const MCEnchantRaritySchema = z.enum(MCEnchantRarities);
 export type MCEnchantRarity = z.infer<typeof MCEnchantRaritySchema>;
 
-// proto: MCEnchantTarget
 export const MCEnchantTargets = [
 	'armor',
 	'armor_head',
@@ -83,7 +67,6 @@ export const MCEnchantTargets = [
 export const MCEnchantTargetSchema = z.enum(MCEnchantTargets);
 export type MCEnchantTarget = z.infer<typeof MCEnchantTargetSchema>;
 
-// proto: McBlockTool
 export const McBlockTools = [
 	'hand',
 	'pickaxe',
@@ -96,7 +79,6 @@ export const McBlockTools = [
 export const McBlockToolSchema = z.enum(McBlockTools);
 export type McBlockTool = z.infer<typeof McBlockToolSchema>;
 
-// proto: McBlockMaterial
 export const McBlockMaterials = [
 	'air',
 	'stone',
@@ -120,7 +102,6 @@ export const McBlockMaterials = [
 export const McBlockMaterialSchema = z.enum(McBlockMaterials);
 export type McBlockMaterial = z.infer<typeof McBlockMaterialSchema>;
 
-// proto: McRecipeKind
 export const McRecipeKinds = [
 	'shaped',
 	'shapeless',
@@ -136,7 +117,6 @@ export const McRecipeKinds = [
 export const McRecipeKindSchema = z.enum(McRecipeKinds);
 export type McRecipeKind = z.infer<typeof McRecipeKindSchema>;
 
-// proto: McCraftingStation
 export const McCraftingStations = [
 	'crafting_table',
 	'furnace',
@@ -152,10 +132,6 @@ export const McCraftingStations = [
 export const McCraftingStationSchema = z.enum(McCraftingStations);
 export type McCraftingStation = z.infer<typeof McCraftingStationSchema>;
 
-/**
- * Shared identity fields. Every top-level MC record (item, enchant, block,
- * recipe) carries an int id, a stable string ref, and a kebab-case slug.
- */
 export const MCIdentitySchema = z.object({
 	id: z.number().int().nonnegative(),
 	ref: z

@@ -20,8 +20,8 @@ use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
     CreatureCapturedBatch, CreatureKind, DamageEvent, DamageSource, GameChannel, InventorySync,
     InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
-    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey,
-    TimeSyncMessage,
+    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
+    SkillXpGrant, TileKey, TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
@@ -277,6 +277,10 @@ impl Plugin for NetPlugin {
         // Server-authoritative inventory: full snapshot on join + per-slot deltas
         app.add_systems(Update, receive_inventory_sync);
         app.add_systems(Update, receive_inventory_update);
+
+        // Server-authoritative skill XP — mirror server-side grants into the
+        // local SkillProfile so the level-up toast + skill UI stay in sync.
+        app.add_systems(Update, receive_skill_xp_grant);
 
         // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
@@ -1383,8 +1387,8 @@ fn forward_fall_damage_to_server(
 
 /// Receive ObjectRemoved messages from the server.
 /// For entities not already animating locally, attach the appropriate animation
-/// component. If we are the collector, grant loot (server-confirmed).
-#[allow(clippy::too_many_arguments)]
+/// component. Loot grants and XP grants live in their dedicated receivers
+/// (`receive_inventory_update`, `receive_skill_xp_grant`).
 fn receive_object_removed(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
@@ -1398,8 +1402,6 @@ fn receive_object_removed(
             Without<CollectingForageable>,
         ),
     >,
-    player_q: Query<Entity, With<Player>>,
-    mut xp_writer: MessageWriter<bevy_skills::GrantXpMsg>,
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
@@ -1408,17 +1410,14 @@ fn receive_object_removed(
 
             let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
 
-            // Loot grant + toast moved to receive_inventory_update so the server's
-            // InventoryUpdate is the sole writer to the local inventory. Here we
-            // only grant gathering XP (driven by WorldObjectKind from ObjectRemoved).
+            // Loot grant + toast moved to receive_inventory_update. Skill XP
+            // moved to receive_skill_xp_grant. This branch just records the
+            // confirmation log so we keep the same trace shape.
             if is_mine && !msg.item_ref.is_empty() && msg.quantity > 0 {
                 info!(
                     "[net] server confirmed loot: {} x{} at ({tx},{tz})",
                     msg.item_ref, msg.quantity
                 );
-                if let Ok(player_entity) = player_q.single() {
-                    super::skills::grant_collection_xp(&mut xp_writer, player_entity, &msg.kind);
-                }
             }
 
             // Start removal animation for entities not already animating.
@@ -1569,6 +1568,33 @@ fn receive_inventory_update(
                 let name = kind.display_name();
                 commands.trigger(super::toast::Toast::loot(format!("+ {delta}x {name}")));
             }
+        }
+    }
+}
+
+/// Receive server-issued SkillXpGrant deltas and mirror them onto the local
+/// player's SkillProfile via a GrantXpMsg. The local bevy_skills processor
+/// recomputes the cached level + fires LevelUpMsg, which the toast system
+/// already observes — no extra UI plumbing needed.
+fn receive_skill_xp_grant(
+    my_player_id: Res<MyPlayerId>,
+    player_q: Query<Entity, With<Player>>,
+    mut xp_writer: MessageWriter<bevy_skills::GrantXpMsg>,
+    mut query: Query<(Entity, &mut MessageReceiver<SkillXpGrant>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            let Ok(player_entity) = player_q.single() else {
+                continue;
+            };
+            xp_writer.write(bevy_skills::GrantXpMsg {
+                entity: player_entity,
+                skill: bevy_skills::SkillId::from_ref(&msg.skill_ref),
+                amount: msg.amount,
+            });
         }
     }
 }
