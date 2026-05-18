@@ -147,6 +147,36 @@ pub struct ObjectRespawned {
     pub kind: WorldObjectKind,
 }
 
+/// One slot in a server-authoritative inventory snapshot.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct InventorySlotState {
+    pub slot_index: u32,
+    /// itemdb `ref`. Empty string means the slot is empty.
+    pub item_ref: String,
+    pub quantity: u32,
+}
+
+/// Server pushes a single-slot delta after an authoritative inventory mutation
+/// (loot grant, consume, equip-move). Targeted at the owning client only.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct InventoryUpdate {
+    /// Owning player — clients use it to filter foreign updates and to ignore
+    /// stale messages addressed at a previous session.
+    pub player_id: u64,
+    pub slot: InventorySlotState,
+}
+
+/// Server pushes the full inventory snapshot on connect / reconnect so the
+/// client can replace its local state in one shot before any deltas land.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct InventorySync {
+    pub player_id: u64,
+    /// Sparse list: only occupied slots are included.
+    pub slots: Vec<InventorySlotState>,
+    /// Total capacity (max_slots) the server expects the client to mirror.
+    pub max_slots: u32,
+}
+
 /// Server periodically broadcasts canonical game time and creature seed.
 /// Clients use this to keep DayCycle, wind, and creature behavior in sync.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -353,6 +383,12 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
         // ObjectRespawned: server → all clients
         app.register_message::<ObjectRespawned>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // InventoryUpdate: server → owning client (loot delta)
+        app.register_message::<InventoryUpdate>()
+            .add_direction(NetworkDirection::ServerToClient);
+        // InventorySync: server → owning client (full snapshot on join)
+        app.register_message::<InventorySync>()
             .add_direction(NetworkDirection::ServerToClient);
 
         // TimeSyncMessage: server → all clients (unreliable, periodic)

@@ -1600,6 +1600,8 @@ dependencies = [
  "axum-server",
  "base64 0.22.1",
  "bevy",
+ "bevy_inventory",
+ "bevy_items",
  "bevy_kbve_net",
  "chrono",
  "dashmap 6.1.0",
