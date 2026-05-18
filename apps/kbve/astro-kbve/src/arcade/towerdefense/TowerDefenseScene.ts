@@ -2091,6 +2091,43 @@ export class TowerDefenseScene extends Phaser.Scene {
 				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
 			}
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
+				const hp = Damageable.hp[seid];
+				const maxHp = Damageable.maxHp[seid];
+				if (hp < maxHp) {
+					const armouryEid = SoldierStats.armouryEid[seid];
+					const armoury =
+						armouryEid >= 0
+							? this.buildingByEid.get(armouryEid)
+							: undefined;
+					if (
+						armoury &&
+						armoury.kind === 'armoury' &&
+						!BuildingState.destroyed[armouryEid]
+					) {
+						const ax = armoury.x;
+						const ay = armoury.y;
+						const dx = ax - Position.x[seid];
+						const dy = ay - Position.y[seid];
+						const dist = Math.sqrt(dx * dx + dy * dy);
+						const healRange =
+							TILE * GAME_CONFIG.soldierHealRangeRatio;
+						if (dist <= healRange) {
+							Damageable.hp[seid] = Math.min(
+								maxHp,
+								hp + GAME_CONFIG.soldierHealPerSec * dt,
+							);
+						} else {
+							const step = SoldierStats.speed[seid] * dt;
+							if (step >= dist) {
+								Position.x[seid] = ax;
+								Position.y[seid] = ay;
+							} else {
+								Position.x[seid] += (dx / dist) * step;
+								Position.y[seid] += (dy / dist) * step;
+							}
+						}
+					}
+				}
 				this.syncSoldierVisuals(seid);
 				continue;
 			}

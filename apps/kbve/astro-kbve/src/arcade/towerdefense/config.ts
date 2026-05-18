@@ -8,7 +8,7 @@ export const HUD_ROWS_TOP = 2;
 export const HUD_ROWS_BOTTOM = 2;
 
 export const GAME_CONFIG = {
-	startingGold: 600,
+	startingGold: 800,
 	startingLives: 20,
 	waveDelayMs: 6000,
 	enemyBaseHp: 40,
@@ -30,6 +30,8 @@ export const GAME_CONFIG = {
 	armorEnemyRatio: 0.35,
 	passiveRepairIntervalMs: 1500,
 	passiveRepairArmor: 12,
+	soldierHealPerSec: 14,
+	soldierHealRangeRatio: 0.6,
 } as const;
 
 export const COLORS = {
@@ -362,7 +364,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		defense: 6,
 		power: 2,
 		spawnIntervalMs: 2500,
-		maxSoldiers: 5,
+		maxSoldiers: 10,
 		soldierHp: 30,
 		soldierDamage: 3,
 		soldierAttackRateMs: 800,
