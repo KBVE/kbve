@@ -1914,27 +1914,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 			Damageable.hp[targetEid] -= reduced;
 		}
 		if (Damageable.hp[targetEid] <= 0) {
-			this.deathQueue.push(targetEid);
-			this.hideDyingVisual(targetEid);
-		}
-	}
-
-	private hideDyingVisual(eid: number): void {
-		const kind = Damageable.kind[eid];
-		if (kind === DAMAGEABLE_KIND.enemy) {
-			const v = this.enemyVisuals.get(eid);
-			if (v) {
-				v.sprite.setVisible(false);
-				v.hpBar.setVisible(false);
-				v.hpBarBg.setVisible(false);
-				v.statusRing.setVisible(false);
-			}
-		} else if (kind === DAMAGEABLE_KIND.soldier) {
-			const v = this.soldierVisuals.get(eid);
-			if (v) {
-				v.sprite.setVisible(false);
-				v.hpBar.setVisible(false);
-				v.hpBarBg.setVisible(false);
+			const kind = Damageable.kind[targetEid];
+			if (kind === DAMAGEABLE_KIND.enemy) {
+				this.killEnemy(targetEid, true);
+			} else if (kind === DAMAGEABLE_KIND.soldier) {
+				this.killSoldier(targetEid);
+			} else if (kind === DAMAGEABLE_KIND.building) {
+				BuildingState.destroyed[targetEid] = 1;
+				BuildingState.online[targetEid] = 0;
+				this.deathQueue.push(targetEid);
 			}
 		}
 	}
@@ -1943,16 +1931,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (this.deathQueue.length === 0) return;
 		for (let i = 0; i < this.deathQueue.length; i++) {
 			const eid = this.deathQueue[i];
-			if (Damageable.hp[eid] > 0) continue;
-			const kind = Damageable.kind[eid];
-			if (kind === DAMAGEABLE_KIND.enemy) {
-				this.killEnemy(eid, true);
-			} else if (kind === DAMAGEABLE_KIND.building) {
-				const b = this.buildingByEid.get(eid);
-				if (b) this.destroyBuilding(b);
-			} else if (kind === DAMAGEABLE_KIND.soldier) {
-				this.killSoldier(eid);
-			}
+			if (Damageable.kind[eid] !== DAMAGEABLE_KIND.building) continue;
+			const b = this.buildingByEid.get(eid);
+			if (b) this.destroyBuilding(b);
 		}
 		this.deathQueue.length = 0;
 	}
