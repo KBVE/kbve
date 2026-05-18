@@ -1,6 +1,7 @@
 ---
 import ReactCHAuth from './ReactCHAuth';
 import ReactCHHeader from './ReactCHHeader';
+import ReactCHErrorBanner from './ReactCHErrorBanner';
 import ReactCHSummary from './ReactCHSummary';
 import ReactCHNamespaceGrid from './ReactCHNamespaceGrid';
 import ReactCHFilterBar from './ReactCHFilterBar';
@@ -18,6 +19,10 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 				<!-- Island: Header (time range selector, refresh) -->
 				<div id="ch-header">
 					<ReactCHHeader client:only="react" />
+				</div>
+
+				<div id="ch-error-banner">
+					<ReactCHErrorBanner client:only="react" />
 				</div>
 
 				<!-- Island: Summary bar (total logs, errors, warnings, namespace count) -->
