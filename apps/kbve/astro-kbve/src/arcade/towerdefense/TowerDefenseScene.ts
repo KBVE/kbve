@@ -2129,11 +2129,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[seid];
 		const y = Position.y[seid];
 		v.sprite.setPosition(x, y);
-		const barWidth = TILE * 0.5;
-		v.hpBarBg.setPosition(x, y - TILE * 0.32);
-		v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
-		v.hpBar.width =
-			(Damageable.hp[seid] / Damageable.maxHp[seid]) * barWidth;
+		const hp = Damageable.hp[seid];
+		const maxHp = Damageable.maxHp[seid];
+		if (hp < maxHp) {
+			const barWidth = TILE * 0.5;
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.32);
+			v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
+			v.hpBar.width = (hp / maxHp) * barWidth;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -2254,10 +2262,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[eid];
 		const y = Position.y[eid];
 		v.sprite.setPosition(x, y);
-		v.hpBarBg.setPosition(x, y - TILE * 0.5);
-		v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
-		v.hpBar.width =
-			(Damageable.hp[eid] / Damageable.maxHp[eid]) * TILE * 0.7;
+		const hpEnemy = Damageable.hp[eid];
+		const maxHpEnemy = Damageable.maxHp[eid];
+		if (hpEnemy < maxHpEnemy) {
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.5);
+			v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
+			v.hpBar.width = (hpEnemy / maxHpEnemy) * TILE * 0.7;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
 		const anyStatus = slowed || burning;
@@ -2417,7 +2433,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseArc(sprite: Phaser.GameObjects.Arc): void {
-		sprite.setActive(false).setVisible(false).setStrokeStyle();
+		sprite
+			.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.arcPool.push(sprite);
 	}
 
@@ -2443,7 +2463,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseRect(rect: Phaser.GameObjects.Rectangle): void {
-		rect.setActive(false).setVisible(false).setStrokeStyle();
+		rect.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.rectPool.push(rect);
 	}
 
@@ -2510,7 +2533,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private releaseImage(img: Phaser.GameObjects.Image): void {
 		img.clearTint();
-		img.setActive(false).setVisible(false);
+		img.setActive(false)
+			.setVisible(false)
+			.setPosition(-1000, -1000)
+			.setScale(1);
 		this.imagePool.push(img);
 	}
 
