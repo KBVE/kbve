@@ -56,15 +56,9 @@ resources:
     - memes/application.yaml
     - n8n/application.yaml
     - rabbitmq/application.yaml
-    # Agones — game server operator (GameServer/Fleet/Allocator CRDs)
     - agones/application.yaml
-    # Agones OWS — HubWorldMMO game server fleet
-    - agones/ows/application.yaml
-    # Agones MC — Fabric Minecraft server fleet
+    - agones/rows/application.yaml
     - agones/mc/application.yaml
-    # OWS — Open World Server .NET microservices (5 services + ValKey)
-    - ows/application.yaml
-    # ChuckRPG — game website + API
     - chuckrpg/application.yaml
     # RareIcon — bullet-hell roguelite website + API
     - rareicon/application.yaml
