@@ -205,6 +205,37 @@ impl SupabaseClient {
         }
     }
 
+    pub async fn user_balance(&self, user_id: &str) -> Result<Option<(i64, i64)>, String> {
+        let client = self
+            .inner
+            .as_ref()
+            .ok_or_else(|| "auth disabled (no supabase env)".to_string())?;
+        let params = json!({ "p_user_id": user_id });
+        let resp = client
+            .rpc_schema("service_user_balance", params, "wallet")
+            .await
+            .map_err(|e| format!("supa: {e}"))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("http {}: {}", status, truncate(&body, 200)));
+        }
+        #[derive(serde::Deserialize)]
+        struct Row {
+            credits: i64,
+            khash: i64,
+        }
+        let rows: Vec<Row> = resp.json().await.map_err(|e| format!("decode: {e}"))?;
+        if rows.len() > 1 {
+            warn!(
+                user_id = %user_id,
+                row_count = rows.len(),
+                "wallet.service_user_balance returned multiple rows — wallet_account_user_uq invariant violated"
+            );
+        }
+        Ok(rows.into_iter().next().map(|r| (r.credits, r.khash)))
+    }
+
     pub async fn save_player_snapshot(&self, snapshot_json: &str) -> Result<(), String> {
         let client = self
             .inner

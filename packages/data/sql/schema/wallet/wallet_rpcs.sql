@@ -925,5 +925,45 @@ ALTER FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, B
 COMMENT ON FUNCTION public.proxy_wallet_list_coupons_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
     'Read-only paged coupon list. Keyset pagination on (granted_at DESC, id DESC). Limit clamped to [1, 100], default 50. Raises SQLSTATE WLT01 (wallet_account_missing) when the caller has no wallet account; the client falls back to the rw pool.';
 
+-- ============================================================================
+-- wallet.service_user_balance — read a user's balance via service-role JWT
+--
+-- Used by backend bridges (mc_auth) that hold a Supabase service-role key
+-- and cannot authenticate against /auth/v1/user. PostgREST trusts the
+-- service-role role unconditionally, so this RPC is the read-side bypass
+-- for axum-kbve's per-user wallet endpoints.
+--
+-- The partial unique index wallet_account_user_uq guarantees at most one
+-- user-kind account per user_id, so LIMIT 1 is intentionally omitted —
+-- duplicate rows surface as multiple results rather than silently
+-- selecting one. Rust callers should warn loudly when rows > 1.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.service_user_balance(p_user_id uuid)
+RETURNS TABLE(
+    account_id uuid,
+    credits bigint,
+    khash bigint,
+    updated_at timestamptz
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT b.account_id, b.credits, b.khash, b.updated_at
+    FROM wallet.account a
+    JOIN wallet.balance b ON b.account_id = a.id
+    WHERE a.kind = 'user'
+      AND a.user_id = p_user_id;
+$$;
+
+REVOKE ALL ON FUNCTION wallet.service_user_balance(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wallet.service_user_balance(uuid) TO service_role;
+ALTER FUNCTION wallet.service_user_balance(uuid) OWNER TO service_role;
+
+COMMENT ON FUNCTION wallet.service_user_balance(uuid) IS
+'Service-role read of the current wallet balance for a Supabase user. Returns the row from wallet.balance for the user-kind account, or no rows if the user has no wallet yet or (corruption case) the account row exists without a matching balance row. STABLE because the function only reads tables. The wallet_account_user_uq partial unique index makes LIMIT 1 unnecessary — duplicates surface as multiple rows so corruption is visible.';
+
 -- PostgREST schema cache refresh after the public.* surface lands.
 NOTIFY pgrst, 'reload schema';
