@@ -1,11 +1,5 @@
-import type {
-	ArmouryBuilding,
-	BatteryBuilding,
-	Building,
-	GeneratorBuilding,
-	RepairBuilding,
-	TowerBuilding,
-} from '../types';
+import { BatteryState, BuildingState, BUILDING_KIND } from '../components';
+import type { Building } from '../types';
 
 export interface PowerResult {
 	supply: number;
@@ -14,18 +8,24 @@ export interface PowerResult {
 	batteryCapacity: number;
 }
 
-export type PowerConsumer = TowerBuilding | RepairBuilding | ArmouryBuilding;
+export function isPowerConsumerKind(kindIndex: number): boolean {
+	return (
+		kindIndex === BUILDING_KIND.tower ||
+		kindIndex === BUILDING_KIND.repair ||
+		kindIndex === BUILDING_KIND.armoury
+	);
+}
 
-export function isPowerConsumer(b: Building): b is PowerConsumer {
+export function isPowerConsumer(b: Building): boolean {
 	return b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury';
 }
 
 const CHARGE_RATE = 6;
 
 export function computeAndApplyPower(
-	generators: GeneratorBuilding[],
-	consumers: PowerConsumer[],
-	batteries: BatteryBuilding[],
+	generatorEids: number[],
+	consumerEids: number[],
+	batteryEids: number[],
 	dt: number,
 ): PowerResult {
 	let supply = 0;
@@ -33,69 +33,70 @@ export function computeAndApplyPower(
 	let batteryCharge = 0;
 	let batteryCapacity = 0;
 
-	for (let i = 0; i < generators.length; i++) {
-		const g = generators[i];
-		if (g.destroyed) continue;
-		supply += g.spec.power;
-		g.online = true;
+	for (let i = 0; i < generatorEids.length; i++) {
+		const eid = generatorEids[i];
+		if (BuildingState.destroyed[eid]) continue;
+		supply += BuildingState.power[eid];
+		BuildingState.online[eid] = 1;
 	}
 
-	for (let i = 0; i < consumers.length; i++) {
-		const c = consumers[i];
-		if (c.destroyed) continue;
-		demand += c.spec.power;
+	for (let i = 0; i < consumerEids.length; i++) {
+		const eid = consumerEids[i];
+		if (BuildingState.destroyed[eid]) continue;
+		demand += BuildingState.power[eid];
 	}
 
-	for (let i = 0; i < batteries.length; i++) {
-		const bat = batteries[i];
-		if (bat.destroyed) continue;
-		batteryCharge += bat.charge;
-		batteryCapacity += bat.capacity;
+	for (let i = 0; i < batteryEids.length; i++) {
+		const eid = batteryEids[i];
+		if (BuildingState.destroyed[eid]) continue;
+		batteryCharge += BatteryState.charge[eid];
+		batteryCapacity += BatteryState.capacity[eid];
 	}
 
 	const net = supply - demand;
 
 	if (net >= 0) {
-		for (let i = 0; i < consumers.length; i++) {
-			const c = consumers[i];
-			if (c.destroyed) continue;
-			c.online = true;
+		for (let i = 0; i < consumerEids.length; i++) {
+			const eid = consumerEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			BuildingState.online[eid] = 1;
 		}
 		let surplus = net * dt * CHARGE_RATE;
-		for (let i = 0; i < batteries.length; i++) {
+		for (let i = 0; i < batteryEids.length; i++) {
 			if (surplus <= 0) break;
-			const bat = batteries[i];
-			if (bat.destroyed) continue;
-			const room = bat.capacity - bat.charge;
+			const eid = batteryEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const room = BatteryState.capacity[eid] - BatteryState.charge[eid];
 			if (room <= 0) continue;
 			const add = room < surplus ? room : surplus;
-			bat.charge += add;
+			BatteryState.charge[eid] += add;
 			batteryCharge += add;
 			surplus -= add;
 		}
 	} else {
 		let uncoveredDeficit = -net * dt;
-		for (let i = 0; i < batteries.length; i++) {
+		for (let i = 0; i < batteryEids.length; i++) {
 			if (uncoveredDeficit <= 0) break;
-			const bat = batteries[i];
-			if (bat.destroyed || bat.charge <= 0) continue;
-			const take =
-				bat.charge < uncoveredDeficit ? bat.charge : uncoveredDeficit;
-			bat.charge -= take;
+			const eid = batteryEids[i];
+			if (BuildingState.destroyed[eid] || BatteryState.charge[eid] <= 0)
+				continue;
+			const charge = BatteryState.charge[eid];
+			const take = charge < uncoveredDeficit ? charge : uncoveredDeficit;
+			BatteryState.charge[eid] -= take;
 			batteryCharge -= take;
 			uncoveredDeficit -= take;
 		}
 		const batteryCoveredThisTick = uncoveredDeficit <= 0;
 		let remaining = batteryCoveredThisTick ? demand : supply;
-		for (let i = 0; i < consumers.length; i++) {
-			const c = consumers[i];
-			if (c.destroyed) continue;
-			const cost = c.spec.power;
+		for (let i = 0; i < consumerEids.length; i++) {
+			const eid = consumerEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const cost = BuildingState.power[eid];
 			if (remaining >= cost) {
-				c.online = true;
+				BuildingState.online[eid] = 1;
 				remaining -= cost;
 			} else {
-				c.online = false;
+				BuildingState.online[eid] = 0;
 			}
 		}
 	}

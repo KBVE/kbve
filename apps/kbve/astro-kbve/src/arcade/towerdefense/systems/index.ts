@@ -1,6 +1,6 @@
 export {
 	computeAndApplyPower,
 	isPowerConsumer,
-	type PowerConsumer,
+	isPowerConsumerKind,
 	type PowerResult,
 } from './power';

@@ -31,11 +31,13 @@ import {
 	specFor,
 	upgradeCost,
 	type ArmourySpec,
+	type ArmouryUpgradeKind,
 	type BatterySpec,
 	type BuildId,
 	type EnemyTypeId,
 	type GeneratorSpec,
 	type RepairSpec,
+	type RepairUpgradeKind,
 	type TowerSpec,
 	type UpgradeKind,
 } from './config';
@@ -106,11 +108,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import {
-	computeAndApplyPower,
-	isPowerConsumer,
-	type PowerConsumer,
-} from './systems';
+import { computeAndApplyPower, isPowerConsumer } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
 	armouryMaxSoldiers,
@@ -146,7 +144,7 @@ function refundForBuilding(b: Building): number {
 	if (b.kind === 'tower') {
 		for (const kind of UPGRADE_ORDER) {
 			const def = UPGRADE_DEFS[kind];
-			const lvl = b.upgrades[kind];
+			const lvl = TowerUpgradeStats[kind][b.id];
 			value += def.baseCost * ((lvl * (lvl + 1)) / 2);
 		}
 	}
@@ -168,9 +166,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private leadEnemyEid = -1;
 	private leadPathIndex = -1;
 	private buildings: Building[] = [];
-	private powerGenerators: GeneratorBuilding[] = [];
-	private powerConsumers: PowerConsumer[] = [];
-	private powerBatteries: BatteryBuilding[] = [];
+	private powerGenerators: number[] = [];
+	private powerConsumers: number[] = [];
+	private powerBatteries: number[] = [];
 	private towers: TowerBuilding[] = [];
 	private armouries: ArmouryBuilding[] = [];
 	private repairStations: RepairBuilding[] = [];
@@ -498,7 +496,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const isFree = id === 'basic' && this.freeBasicTowers > 0;
 		if (!isFree && this.gold < spec.cost) return false;
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
+			if (BuildingState.destroyed[b.id]) continue;
 			if (b.col === col && b.row === row) return false;
 		}
 		return true;
@@ -555,7 +553,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.clearHoverRange();
 			return;
 		}
-		if (!b || b.destroyed) {
+		if (!b || BuildingState.destroyed[b.id]) {
 			this.clearHoverRange();
 			return;
 		}
@@ -686,7 +684,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const probeHit = this.findBuildingAt(probe.col, probe.row);
 			if (
 				probeHit &&
-				!probeHit.destroyed &&
+				!BuildingState.destroyed[probeHit.id] &&
 				probeHit !== this.upgradeTarget
 			) {
 				this.openBuildingPanel(probeHit);
@@ -707,7 +705,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 
 		const existing = this.findBuildingAt(col, row);
-		if (existing && !existing.destroyed) {
+		if (existing && !BuildingState.destroyed[existing.id]) {
 			this.openBuildingPanel(existing);
 			return;
 		}
@@ -726,7 +724,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private findBuildingAt(col: number, row: number): Building | null {
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
+			if (BuildingState.destroyed[b.id]) continue;
 			if (b.col === col && b.row === row) return b;
 		}
 		return null;
@@ -837,13 +835,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (isTower) {
 			rows = UPGRADE_ORDER.map((k) => {
 				const def = UPGRADE_DEFS[k];
-				const lvl = b.upgrades[k];
+				const lvl = TowerUpgradeStats[k][b.id];
 				return { kind: k, def, lvl, cost: upgradeCost(def, lvl) };
 			});
 		} else if (isArmoury) {
 			rows = ARMOURY_UPGRADE_ORDER.map((k) => {
 				const def = ARMOURY_UPGRADE_DEFS[k];
-				const lvl = b.upgrades[k];
+				const lvl = ArmouryUpgradeStats[k][b.id];
 				return {
 					kind: k,
 					def,
@@ -854,7 +852,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else if (isRepair) {
 			rows = REPAIR_UPGRADE_ORDER.map((k) => {
 				const def = REPAIR_UPGRADE_DEFS[k];
-				const lvl = b.upgrades[k];
+				const lvl = RepairUpgradeStats[k][b.id];
 				return {
 					kind: k,
 					def,
@@ -1112,37 +1110,40 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const dmg = towerDamage(b).toFixed(0);
 			const rate = (towerFireRateMs(b) / 1000).toFixed(2);
 			const rng = towerRange(b).toFixed(0);
-			const hp = `${Math.floor(b.hp)}/${towerMaxHp(b)}`;
+			const hp = `${Math.floor(BuildingState.hp[b.id])}/${towerMaxHp(b)}`;
 			return `DMG ${dmg} · RATE ${rate}s · RNG ${rng} · HP ${hp}`;
 		}
+		const hpText = `${Math.floor(BuildingState.hp[b.id])}/${BuildingState.maxHp[b.id]}`;
 		if (b.kind === 'generator') {
-			return `OUTPUT +${b.spec.power}⚡ · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+			return `OUTPUT +${b.spec.power}⚡ · HP ${hpText}`;
 		}
 		if (b.kind === 'battery') {
-			return `CHARGE ${Math.floor(b.charge)}/${b.capacity} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+			return `CHARGE ${Math.floor(BatteryState.charge[b.id])}/${BatteryState.capacity[b.id]} · HP ${hpText}`;
 		}
 		if (b.kind === 'armoury') {
 			const rate = (b.spec.spawnIntervalMs / 1000).toFixed(1);
-			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${hpText}`;
 		}
-		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${Math.floor(b.hp)}/${b.maxHp}`;
+		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${hpText}`;
 	}
 
 	private applyUpgrade(tower: TowerBuilding, kind: UpgradeKind): void {
 		const def = UPGRADE_DEFS[kind];
-		const lvl = tower.upgrades[kind];
+		const lvl = TowerUpgradeStats[kind][tower.id];
 		if (lvl >= def.maxLevel) return;
 		const cost = upgradeCost(def, lvl);
 		if (this.gold < cost) return;
 		this.gold -= cost;
 		const prevMaxHp = towerMaxHp(tower);
-		tower.upgrades[kind] = lvl + 1;
-		tower.maxHp = towerMaxHp(tower);
+		TowerUpgradeStats[kind][tower.id] = lvl + 1;
+		const newMaxHp = towerMaxHp(tower);
+		BuildingState.maxHp[tower.id] = newMaxHp;
+		const currentHp = BuildingState.hp[tower.id];
 		if (kind === 'armor') {
-			const delta = tower.maxHp - prevMaxHp;
-			tower.hp = Math.min(tower.maxHp, tower.hp + delta);
+			const delta = newMaxHp - prevMaxHp;
+			BuildingState.hp[tower.id] = Math.min(newMaxHp, currentHp + delta);
 		} else {
-			tower.hp = Math.min(tower.hp, tower.maxHp);
+			BuildingState.hp[tower.id] = Math.min(currentHp, newMaxHp);
 		}
 		this.redrawUpgradePips(tower);
 		this.refreshHud();
@@ -1151,15 +1152,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private applyArmouryUpgrade(
 		armoury: ArmouryBuilding,
-		kind: keyof ArmouryBuilding['upgrades'],
+		kind: ArmouryUpgradeKind,
 	): void {
 		const def = ARMOURY_UPGRADE_DEFS[kind];
-		const lvl = armoury.upgrades[kind];
+		const lvl = ArmouryUpgradeStats[kind][armoury.id];
 		if (lvl >= def.maxLevel) return;
 		const cost = armouryUpgradeCost(def, lvl);
 		if (this.gold < cost) return;
 		this.gold -= cost;
-		armoury.upgrades[kind] = lvl + 1;
+		ArmouryUpgradeStats[kind][armoury.id] = lvl + 1;
 		this.refreshHud();
 		this.openBuildingPanel(armoury);
 	}
@@ -1168,36 +1169,32 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'tower') {
 			this.applyUpgrade(b, kind as UpgradeKind);
 		} else if (b.kind === 'armoury') {
-			this.applyArmouryUpgrade(
-				b,
-				kind as keyof ArmouryBuilding['upgrades'],
-			);
+			this.applyArmouryUpgrade(b, kind as ArmouryUpgradeKind);
 		} else if (b.kind === 'repair') {
-			this.applyRepairUpgrade(
-				b,
-				kind as keyof RepairBuilding['upgrades'],
-			);
+			this.applyRepairUpgrade(b, kind as RepairUpgradeKind);
 		}
 	}
 
 	private applyRepairUpgrade(
 		station: RepairBuilding,
-		kind: keyof RepairBuilding['upgrades'],
+		kind: RepairUpgradeKind,
 	): void {
 		const def = REPAIR_UPGRADE_DEFS[kind];
-		const lvl = station.upgrades[kind];
+		const lvl = RepairUpgradeStats[kind][station.id];
 		if (lvl >= def.maxLevel) return;
 		const cost = repairUpgradeCost(def, lvl);
 		if (this.gold < cost) return;
 		this.gold -= cost;
-		station.upgrades[kind] = lvl + 1;
+		RepairUpgradeStats[kind][station.id] = lvl + 1;
 		this.refreshHud();
 		this.openBuildingPanel(station);
 	}
 
 	private redrawUpgradePips(t: TowerBuilding): void {
 		t.upgradePips.clear();
-		const anyUpgraded = UPGRADE_ORDER.some((k) => t.upgrades[k] > 0);
+		const anyUpgraded = UPGRADE_ORDER.some(
+			(k) => TowerUpgradeStats[k][t.id] > 0,
+		);
 		if (!anyUpgraded) return;
 		const pipW = 3;
 		const pipH = TILE * 0.5;
@@ -1205,7 +1202,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const baseY = t.y + pipH / 2;
 		for (let i = 0; i < UPGRADE_ORDER.length; i++) {
 			const kind = UPGRADE_ORDER[i];
-			const lvl = t.upgrades[kind];
+			const lvl = TowerUpgradeStats[kind][t.id];
 			const def = UPGRADE_DEFS[kind];
 			const px = startX + i * (pipW + 1);
 			if (lvl <= 0) continue;
@@ -1332,18 +1329,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.row[eid] = row;
 		BuildingState.specIndex[eid] = buildIndexFromId(spec.id);
 		BuildingState.kindIndex[eid] = BUILDING_KIND[spec.kind];
+		BuildingState.power[eid] = spec.kind === 'battery' ? 0 : spec.power;
 		const base: BaseBuilding = {
 			id: eid,
 			col,
 			row,
 			x,
 			y,
-			hp: spec.maxHp,
-			maxHp: spec.maxHp,
 			sprite,
 			hpBar,
 			hpBarBg,
-			destroyed: false,
 		};
 
 		let building: Building;
@@ -1368,10 +1363,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				...base,
 				kind: 'tower',
 				spec: spec as TowerSpec,
-				lastFireAtMs: 0,
-				online: true,
 				powerIndicator,
-				upgrades: { radar: 0, attack: 0, speed: 0, armor: 0 },
 				fixedTarget: null,
 				upgradePips,
 			};
@@ -1383,7 +1375,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 				...base,
 				kind: 'generator',
 				spec: spec as GeneratorSpec,
-				online: true,
 			};
 			building = b;
 		} else if (spec.kind === 'battery') {
@@ -1413,8 +1404,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 				...base,
 				kind: 'battery',
 				spec: bspec,
-				charge: 0,
-				capacity: bspec.capacity,
 				chargeBar,
 				chargeBarBg,
 			};
@@ -1424,7 +1413,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			RepairState.cooldownLeftMs[eid] = 0;
 			RepairState.activeDroneEid[eid] = -1;
 			RepairUpgradeStats.reach[eid] = 0;
-			RepairUpgradeStats.yieldLvl[eid] = 0;
+			RepairUpgradeStats.yield[eid] = 0;
 			RepairUpgradeStats.tempo[eid] = 0;
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
@@ -1436,11 +1425,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				...base,
 				kind: 'repair',
 				spec: spec as RepairSpec,
-				online: true,
 				powerIndicator,
-				cooldownLeftMs: 0,
-				activeDroneEid: null,
-				upgrades: { reach: 0, yield: 0, tempo: 0 },
 			};
 			building = b;
 		} else if (spec.kind === 'armoury') {
@@ -1460,10 +1445,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				...base,
 				kind: 'armoury',
 				spec: spec as ArmourySpec,
-				online: true,
 				powerIndicator,
-				nextSpawnAtMs: 0,
-				upgrades: { capacity: 0, damage: 0, vigor: 0, tempo: 0 },
 			};
 			building = b;
 		} else {
@@ -1475,11 +1457,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.buildings.push(building);
 		this.buildingByEid.set(eid, building);
 		if (building.kind === 'generator') {
-			this.powerGenerators.push(building);
+			this.powerGenerators.push(eid);
 		} else if (building.kind === 'battery') {
-			this.powerBatteries.push(building);
+			this.powerBatteries.push(eid);
 		} else if (isPowerConsumer(building)) {
-			this.powerConsumers.push(building);
+			this.powerConsumers.push(eid);
 		}
 		if (building.kind === 'tower') {
 			this.towers.push(building);
@@ -1507,26 +1489,31 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private syncBuildingVisuals(): void {
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
-			if (b.hp < b.maxHp) {
+			const eid = b.id;
+			if (BuildingState.destroyed[eid]) continue;
+			const hp = BuildingState.hp[eid];
+			const maxHp = BuildingState.maxHp[eid];
+			if (hp < maxHp) {
 				b.hpBar.setVisible(true);
 				b.hpBarBg.setVisible(true);
-				b.hpBar.width = (b.hp / b.maxHp) * TILE * 0.7;
+				b.hpBar.width = (hp / maxHp) * TILE * 0.7;
 			} else {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
 			}
-			if (b.kind === 'tower') {
-				b.sprite.setAlpha(b.online ? 1 : 0.45);
-				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
-			} else if (b.kind === 'repair') {
-				b.sprite.setAlpha(b.online ? 1 : 0.45);
-				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
-			} else if (b.kind === 'armoury') {
-				b.sprite.setAlpha(b.online ? 1 : 0.45);
-				b.powerIndicator.setFillStyle(b.online ? 0x9ae6b4 : 0xfc8181);
+			if (
+				b.kind === 'tower' ||
+				b.kind === 'repair' ||
+				b.kind === 'armoury'
+			) {
+				const online = BuildingState.online[eid] === 1;
+				b.sprite.setAlpha(online ? 1 : 0.45);
+				b.powerIndicator.setFillStyle(online ? 0x9ae6b4 : 0xfc8181);
 			} else if (b.kind === 'battery') {
-				b.chargeBar.width = (b.charge / b.capacity) * TILE * 0.7;
+				b.chargeBar.width =
+					(BatteryState.charge[eid] / BatteryState.capacity[eid]) *
+					TILE *
+					0.7;
 			}
 		}
 	}
@@ -1545,8 +1532,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const armouryNow = this.simNow;
 		for (let i = 0; i < this.armouries.length; i++) {
 			const b = this.armouries[i];
-			if (b.destroyed) continue;
-			b.nextSpawnAtMs = armouryNow;
+			if (BuildingState.destroyed[b.id]) continue;
+			ArmouryState.nextSpawnAtMs[b.id] = armouryNow;
 		}
 		nextWavePreviewAtom.set({ count: 0, bossCount: 0 });
 		this.showWaveSplash();
@@ -1674,7 +1661,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		let bestDist2 = range * range;
 		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
-			if (!b || b.destroyed) continue;
+			if (!b || BuildingState.destroyed[b.id]) continue;
 			const dx = Position.x[beid] - ex;
 			const dy = Position.y[beid] - ey;
 			const d2 = dx * dx + dy * dy;
@@ -1702,7 +1689,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private attackTargetAlive(t: AttackTarget): boolean {
-		if (t.kind === 'building') return !t.b.destroyed;
+		if (t.kind === 'building') return !BuildingState.destroyed[t.b.id];
 		return this.soldierVisuals.has(t.eid);
 	}
 
@@ -1713,8 +1700,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private damageBuilding(b: Building, dmg: number): void {
 		const reduced = Math.max(1, dmg - b.spec.defense);
-		b.hp -= reduced;
-		if (b.hp <= 0) {
+		const eid = b.id;
+		BuildingState.hp[eid] -= reduced;
+		if (BuildingState.hp[eid] <= 0) {
 			this.destroyBuilding(b);
 		} else {
 			this.flashSprite(b.sprite, 0xffffff);
@@ -1722,8 +1710,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private destroyBuilding(b: Building): void {
-		if (b.destroyed) return;
-		b.destroyed = true;
+		if (BuildingState.destroyed[b.id]) return;
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		BuildingState.hp[b.id] = 0;
@@ -1762,13 +1749,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.buildingByEid.delete(b.id);
 		removeEntity(this.world, b.id);
 		if (b.kind === 'generator') {
-			const idx = this.powerGenerators.indexOf(b);
+			const idx = this.powerGenerators.indexOf(b.id);
 			if (idx >= 0) this.powerGenerators.splice(idx, 1);
 		} else if (b.kind === 'battery') {
-			const idx = this.powerBatteries.indexOf(b);
+			const idx = this.powerBatteries.indexOf(b.id);
 			if (idx >= 0) this.powerBatteries.splice(idx, 1);
 		} else if (isPowerConsumer(b)) {
-			const idx = this.powerConsumers.indexOf(b);
+			const idx = this.powerConsumers.indexOf(b.id);
 			if (idx >= 0) this.powerConsumers.splice(idx, 1);
 		}
 		if (b.kind === 'tower') {
@@ -1790,8 +1777,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (!v) return;
 		v.sprite.destroy();
 		v.beam.destroy();
-		if (v.station.kind === 'repair' && v.station.activeDroneEid === eid) {
-			v.station.activeDroneEid = null;
+		if (
+			v.station.kind === 'repair' &&
+			RepairState.activeDroneEid[v.station.id] === eid
+		) {
+			RepairState.activeDroneEid[v.station.id] = -1;
 		}
 		removeEntity(this.world, eid);
 	}
@@ -1799,13 +1789,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateArmouries(nowMs: number): void {
 		for (let i = 0; i < this.armouries.length; i++) {
 			const b = this.armouries[i];
-			if (b.destroyed) continue;
-			if (!b.online) continue;
-			const owned = this.countSoldiersOwnedBy(b.id);
+			const eid = b.id;
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			const owned = this.countSoldiersOwnedBy(eid);
 			if (owned >= armouryMaxSoldiers(b)) continue;
-			if (nowMs < b.nextSpawnAtMs) continue;
+			if (nowMs < ArmouryState.nextSpawnAtMs[eid]) continue;
 			this.spawnSoldier(b);
-			b.nextSpawnAtMs = nowMs + armourySpawnIntervalMs(b);
+			ArmouryState.nextSpawnAtMs[eid] = nowMs + armourySpawnIntervalMs(b);
 		}
 	}
 
@@ -2115,17 +2106,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateTowers(nowMs: number): void {
 		for (let i = 0; i < this.towers.length; i++) {
 			const b = this.towers[i];
-			if (b.destroyed) continue;
-			if (!b.online) continue;
-			if (nowMs - b.lastFireAtMs < towerFireRateMs(b)) continue;
+			const eid = b.id;
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			if (nowMs - TowerState.lastFireAtMs[eid] < towerFireRateMs(b))
+				continue;
 			if (b.fixedTarget) {
-				b.lastFireAtMs = nowMs;
+				TowerState.lastFireAtMs[eid] = nowMs;
 				this.fireAt(b, b.fixedTarget.x, b.fixedTarget.y, null);
 				continue;
 			}
 			const targetEid = this.findTarget(b, nowMs);
 			if (targetEid === null) continue;
-			b.lastFireAtMs = nowMs;
+			TowerState.lastFireAtMs[eid] = nowMs;
 			this.fireAt(
 				b,
 				Position.x[targetEid],
@@ -2336,21 +2329,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const dtMs = dt * 1000;
 		for (let i = 0; i < this.repairStations.length; i++) {
 			const b = this.repairStations[i];
-			if (b.destroyed) continue;
-			if (!b.online) continue;
-			if (
-				b.activeDroneEid !== null &&
-				this.droneVisuals.has(b.activeDroneEid)
-			)
+			const eid = b.id;
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			const activeDrone = RepairState.activeDroneEid[eid];
+			if (activeDrone >= 0 && this.droneVisuals.has(activeDrone))
 				continue;
-			b.cooldownLeftMs -= dtMs;
-			if (b.cooldownLeftMs > 0) continue;
+			RepairState.cooldownLeftMs[eid] -= dtMs;
+			if (RepairState.cooldownLeftMs[eid] > 0) continue;
 			const target = this.findRepairTarget(b);
 			if (!target) {
-				b.cooldownLeftMs = 0;
+				RepairState.cooldownLeftMs[eid] = 0;
 				continue;
 			}
-			b.cooldownLeftMs = repairCooldownMs(b);
+			RepairState.cooldownLeftMs[eid] = repairCooldownMs(b);
 			this.spawnDrone(b, target);
 		}
 
@@ -2362,7 +2354,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		])) {
 			const v = this.droneVisuals.get(deid);
 			if (!v) continue;
-			if (v.target.destroyed) {
+			if (BuildingState.destroyed[v.target.id]) {
 				deathRow.push(deid);
 				continue;
 			}
@@ -2378,9 +2370,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				Position.x[deid] = dest.x;
 				Position.y[deid] = dest.y;
 				if (DroneStats.state[deid] === DroneState.Outbound) {
-					v.target.hp = Math.min(
-						v.target.maxHp,
-						v.target.hp + v.repairAmount,
+					const tEid = v.target.id;
+					BuildingState.hp[tEid] = Math.min(
+						BuildingState.maxHp[tEid],
+						BuildingState.hp[tEid] + v.repairAmount,
 					);
 					DroneStats.state[deid] = DroneState.Returning;
 				} else {
@@ -2413,13 +2406,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const rangeSq = range * range;
 		for (const beid of this.frameBuildingEids) {
 			const b = this.buildingByEid.get(beid);
-			if (!b || b.destroyed) continue;
+			if (!b || BuildingState.destroyed[b.id]) continue;
 			if (b === station) continue;
-			if (b.hp >= b.maxHp) continue;
+			const hp = BuildingState.hp[b.id];
+			const maxHp = BuildingState.maxHp[b.id];
+			if (hp >= maxHp) continue;
 			const dx = b.x - station.x;
 			const dy = b.y - station.y;
 			if (dx * dx + dy * dy > rangeSq) continue;
-			const ratio = b.hp / b.maxHp;
+			const ratio = hp / maxHp;
 			if (ratio < bestRatio) {
 				bestRatio = ratio;
 				best = b;
@@ -2453,7 +2448,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			target,
 			repairAmount: repairAmount(station),
 		});
-		station.activeDroneEid = eid;
+		RepairState.activeDroneEid[station.id] = eid;
 	}
 
 	private killEnemy(eid: number, reward: boolean): void {
@@ -2627,7 +2622,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private summonSoldierSquad(count: number): void {
-		const alive = this.armouries.filter((a) => !a.destroyed);
+		const alive = this.armouries.filter(
+			(a) => !BuildingState.destroyed[a.id],
+		);
 		if (alive.length === 0) {
 			this.gold += 60;
 			return;
@@ -2639,8 +2636,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private healAllBuildings(): void {
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
-			b.hp = b.maxHp;
+			if (BuildingState.destroyed[b.id]) continue;
+			BuildingState.hp[b.id] = BuildingState.maxHp[b.id];
 		}
 	}
 
@@ -2650,40 +2647,57 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		const candidates: UpgradeCandidate[] = [];
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
+			if (BuildingState.destroyed[b.id]) continue;
 			if (b.kind === 'tower') {
+				const tower = b;
 				for (const k of UPGRADE_ORDER) {
-					if (b.upgrades[k] >= UPGRADE_DEFS[k].maxLevel) continue;
+					if (
+						TowerUpgradeStats[k][tower.id] >=
+						UPGRADE_DEFS[k].maxLevel
+					)
+						continue;
 					candidates.push({
 						apply: () => {
-							const prevMaxHp = towerMaxHp(b);
-							b.upgrades[k] += 1;
-							b.maxHp = towerMaxHp(b);
+							const prevMaxHp = towerMaxHp(tower);
+							TowerUpgradeStats[k][tower.id] += 1;
+							const newMaxHp = towerMaxHp(tower);
+							BuildingState.maxHp[tower.id] = newMaxHp;
 							if (k === 'armor') {
-								const delta = b.maxHp - prevMaxHp;
-								b.hp = Math.min(b.maxHp, b.hp + delta);
+								const delta = newMaxHp - prevMaxHp;
+								BuildingState.hp[tower.id] = Math.min(
+									newMaxHp,
+									BuildingState.hp[tower.id] + delta,
+								);
 							}
-							this.redrawUpgradePips(b);
+							this.redrawUpgradePips(tower);
 						},
 					});
 				}
 			} else if (b.kind === 'armoury') {
+				const armoury = b;
 				for (const k of ARMOURY_UPGRADE_ORDER) {
-					if (b.upgrades[k] >= ARMOURY_UPGRADE_DEFS[k].maxLevel)
+					if (
+						ArmouryUpgradeStats[k][armoury.id] >=
+						ARMOURY_UPGRADE_DEFS[k].maxLevel
+					)
 						continue;
 					candidates.push({
 						apply: () => {
-							b.upgrades[k] += 1;
+							ArmouryUpgradeStats[k][armoury.id] += 1;
 						},
 					});
 				}
 			} else if (b.kind === 'repair') {
+				const station = b;
 				for (const k of REPAIR_UPGRADE_ORDER) {
-					if (b.upgrades[k] >= REPAIR_UPGRADE_DEFS[k].maxLevel)
+					if (
+						RepairUpgradeStats[k][station.id] >=
+						REPAIR_UPGRADE_DEFS[k].maxLevel
+					)
 						continue;
 					candidates.push({
 						apply: () => {
-							b.upgrades[k] += 1;
+							RepairUpgradeStats[k][station.id] += 1;
 						},
 					});
 				}
@@ -2700,11 +2714,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private boostBatteries(amount: number): void {
 		let left = amount;
 		for (const b of this.buildings) {
-			if (b.destroyed) continue;
+			if (BuildingState.destroyed[b.id]) continue;
 			if (b.kind !== 'battery') continue;
-			const room = b.capacity - b.charge;
+			const eid = b.id;
+			const room = BatteryState.capacity[eid] - BatteryState.charge[eid];
 			const add = Math.min(room, left);
-			b.charge += add;
+			BatteryState.charge[eid] += add;
 			left -= add;
 			if (left <= 0) break;
 		}

@@ -51,6 +51,7 @@ export const BuildingState = {
 	row: [] as number[],
 	specIndex: [] as number[],
 	kindIndex: [] as number[],
+	power: [] as number[],
 };
 
 export const TowerState = {
@@ -79,7 +80,7 @@ export const RepairState = {
 
 export const RepairUpgradeStats = {
 	reach: [] as number[],
-	yieldLvl: [] as number[],
+	yield: [] as number[],
 	tempo: [] as number[],
 };
 
