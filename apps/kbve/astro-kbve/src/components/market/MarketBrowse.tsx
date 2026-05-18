@@ -4,6 +4,7 @@ import { formatKhash, itemRefLabel } from './format';
 import { useCountdown, formatCountdown } from './countdown';
 import { ItemIcon } from './ItemIcon';
 import { EnchantList } from './EnchantList';
+import { WatchToggle } from './WatchToggle';
 
 const PAGE_SIZE = 25;
 
@@ -17,10 +18,21 @@ const KIND_FILTERS: { value: string; label: string }[] = [
 function ListingCard({ row }: { row: MarketListing }) {
 	const countdown = useCountdown(row.expires_at);
 	const urgent = countdown.totalMs < 60 * 60 * 1000;
+	const refObj = (row.item_ref ?? {}) as { kind?: unknown; id?: unknown };
+	const refKind = typeof refObj.kind === 'string' ? refObj.kind : '';
+	const refId =
+		typeof refObj.id === 'string' || typeof refObj.id === 'number'
+			? String(refObj.id)
+			: '';
 	return (
 		<a
 			href={`/market/listing/?id=${row.listing_id}`}
 			className="kbve-market__grid-card">
+			{refKind && refId && (
+				<div className="kbve-market__grid-watch">
+					<WatchToggle kind={refKind} ref={refId} size="sm" />
+				</div>
+			)}
 			<div className="kbve-market__grid-icon">
 				<ItemIcon itemRef={row.item_ref} size={96} />
 			</div>
