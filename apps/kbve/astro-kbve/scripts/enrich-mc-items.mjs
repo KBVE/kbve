@@ -1,27 +1,3 @@
-/**
- * Phase 5.3-C: secondary enrichment pass for vanilla MC item MDX.
- *
- * Reads every existing apps/kbve/astro-kbve/src/content/docs/mc/items/*.mdx,
- * parses the frontmatter, and for each item fills in stat blocks from the
- * PrismarineJS/minecraft-data upstream registry + a hand-coded constant
- * table for damage / armor / durability — but ONLY for fields explicitly
- * listed in the allow-set below, and ONLY when the current value is missing
- * or empty. Already-populated fields (hand-curated diamond tier, etc.) are
- * left untouched.
- *
- * Allow-set:
- *   - max_durability        (only if 0 / missing)
- *   - damage block          (only if missing entirely)
- *   - mining block          (only if missing AND ref ends in pickaxe/axe/shovel/hoe)
- *   - equipment block       (only if missing AND ref ends in helmet/chestplate/leggings/boots)
- *   - food block            (only if missing AND ref appears in foods.json)
- *   - enchants block        (only if missing) — small static table by category
- *
- * Run:
- *   node scripts/enrich-mc-items.mjs --audit   dry-run, prints planned changes
- *   node scripts/enrich-mc-items.mjs           write changes
- */
-
 import { readFile, writeFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';
@@ -34,11 +10,6 @@ const OUTPUT_DIR = './src/content/docs/mc/items';
 const args = process.argv.slice(2);
 const auditMode = args.includes('--audit');
 
-// ---------------------------------------------------------------------------
-// Hand-coded vanilla stat tables (1.21.5)
-// ---------------------------------------------------------------------------
-
-// max_durability — index = tier
 const TOOL_DURABILITY = {
 	wooden: 59,
 	stone: 131,
@@ -55,12 +26,10 @@ const ARMOR_DURABILITY = {
 	boots:      { leather: 65, chainmail: 195, iron: 195, golden: 91,  diamond: 429, netherite: 481 },
 };
 
-// Sword: attack_damage by tier, attack_speed 1.6 across
 const SWORD_DAMAGE = {
 	wooden: 4, stone: 5, iron: 6, golden: 4, diamond: 7, netherite: 8,
 };
 
-// Axe: per-tier damage + speed
 const AXE_DAMAGE = {
 	wooden:    { damage: 7,  speed: 0.8 },
 	stone:     { damage: 9,  speed: 0.9 },
@@ -70,12 +39,10 @@ const AXE_DAMAGE = {
 	netherite: { damage: 10, speed: 1.0 },
 };
 
-// Pickaxe: attack_damage by tier, attack_speed 1.2 across
 const PICKAXE_DAMAGE = {
 	wooden: 2, stone: 3, iron: 4, golden: 2, diamond: 5, netherite: 6,
 };
 
-// Shovel: pickaxe + 0.5 (matches existing diamond-shovel.mdx hand-curated value), speed 1.0
 const SHOVEL_DAMAGE = {
 	wooden:    { damage: 2.5, speed: 1.0 },
 	stone:     { damage: 3.5, speed: 1.0 },
@@ -85,7 +52,6 @@ const SHOVEL_DAMAGE = {
 	netherite: { damage: 6.5, speed: 1.0 },
 };
 
-// Hoe: damage 1, speed varies (gold/wooden 1.0, stone 2.0, iron 3.0, diamond/netherite 4.0)
 const HOE_DAMAGE = {
 	wooden:    { damage: 1, speed: 1.0 },
 	stone:     { damage: 1, speed: 2.0 },
@@ -95,7 +61,6 @@ const HOE_DAMAGE = {
 	netherite: { damage: 1, speed: 4.0 },
 };
 
-// Mining tier: 1..5 (netherite). schema bound is 1..6.
 const MINING_TIER = {
 	wooden:    1,
 	golden:    1,
@@ -105,8 +70,6 @@ const MINING_TIER = {
 	netherite: 5,
 };
 
-// Armor points + toughness + knockback_resistance per slot/tier
-// Source: minecraft.wiki/w/Armor (1.21.5 vanilla values)
 const ARMOR_STATS = {
 	helmet: {
 		leather:   { armor_points: 1, toughness: 0, knockback_resistance: 0 },
@@ -143,9 +106,6 @@ const ARMOR_STATS = {
 	},
 };
 
-// Enchant allow-lists by category (mirrors the hand-curated diamond tier MDX
-// pages — sword/pickaxe/axe/shovel/hoe/helmet/chestplate/leggings/boots/bow/
-// crossbow/trident/mace).
 const ENCHANTS_SWORD = [
 	'sharpness', 'smite', 'bane_of_arthropods', 'knockback', 'fire_aspect',
 	'looting', 'sweeping_edge', 'unbreaking', 'mending', 'vanishing_curse',
@@ -196,10 +156,6 @@ const ENCHANTS_FISHING_ROD = [
 	'lure', 'luck_of_the_sea', 'unbreaking', 'mending', 'vanishing_curse',
 ];
 const ENCHANTS_SHEARS = ['efficiency', 'unbreaking', 'mending', 'vanishing_curse'];
-
-// ---------------------------------------------------------------------------
-// Inference helpers
-// ---------------------------------------------------------------------------
 
 const TIERS_FROM_REF = ['netherite', 'diamond', 'golden', 'iron', 'stone', 'wooden', 'leather', 'chainmail', 'turtle'];
 
@@ -261,10 +217,6 @@ function enchantsForRef(ref) {
 	if (ref === 'fishing_rod') return ENCHANTS_FISHING_ROD;
 	return null;
 }
-
-// ---------------------------------------------------------------------------
-// Stat lookups
-// ---------------------------------------------------------------------------
 
 function lookupMaxDurability(ref) {
 	const tier = tierFromRef(ref);
@@ -351,10 +303,6 @@ function lookupFood(ref, foodsByRef) {
 	return { nutrition, saturation };
 }
 
-// ---------------------------------------------------------------------------
-// MDX parsing / surgical injection
-// ---------------------------------------------------------------------------
-
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 const MC_ITEM_BLOCK_RE = /^(mc_item:\s*\n)((?:    [^\n]*\n?)+)/m;
 
@@ -366,11 +314,6 @@ function parseFrontmatter(content) {
 	return { frontmatter: fm, raw: content };
 }
 
-/**
- * Format a small structured object as 4-space-indented YAML lines that fit
- * under `mc_item:`. Hand-rolled to keep the existing MDX formatting (no
- * roundtrip noise from the yaml library). Only handles the shapes we emit.
- */
 function formatYamlBlock(key, value, baseIndent = '    ') {
 	const lines = [];
 	const child = baseIndent + '    ';
@@ -404,21 +347,12 @@ function formatScalar(v) {
 	return String(v);
 }
 
-/**
- * Inject new YAML lines into the mc_item: block of a frontmatter string.
- * `insertions` is an array of objects describing where to put each block.
- *   { lines: string[], beforeKey?: string, afterKey?: string }
- * If beforeKey matches a `    <key>:` line in mc_item, insert above it.
- * Otherwise append to end of mc_item block (before next top-level key or
- * end of frontmatter).
- */
 function injectIntoMcItem(rawMdx, insertions) {
 	const m = rawMdx.match(FRONTMATTER_RE);
 	if (!m) return null;
 	const fmBlock = m[1];
 	const body = m[2];
 
-	// Split the frontmatter into lines and find the mc_item: section bounds.
 	const lines = fmBlock.split('\n');
 	let mcItemStart = -1;
 	let mcItemEnd = lines.length; // exclusive
@@ -426,7 +360,6 @@ function injectIntoMcItem(rawMdx, insertions) {
 		if (mcItemStart === -1) {
 			if (/^mc_item:\s*$/.test(lines[i])) mcItemStart = i + 1;
 		} else {
-			// mc_item ends at next top-level key (non-indented, non-blank starting with letter)
 			if (/^[A-Za-z]/.test(lines[i]) && !lines[i].startsWith(' ')) {
 				mcItemEnd = i;
 				break;
@@ -435,13 +368,9 @@ function injectIntoMcItem(rawMdx, insertions) {
 	}
 	if (mcItemStart === -1) return null;
 
-	// Find each insertion's target line index within mc_item block.
-	// We process inserts in order; each insert grabs its index against the
-	// current array, which may have grown from previous inserts.
 	let working = lines.slice();
 	const shift = (target, count) => {
 		if (target <= mcItemStart) return;
-		// adjust mcItemEnd accordingly
 		mcItemEnd += count;
 	};
 
@@ -473,46 +402,36 @@ function injectIntoMcItem(rawMdx, insertions) {
 	return `---\n${newFm}\n---\n${body}`;
 }
 
-// ---------------------------------------------------------------------------
-// Per-item plan
-// ---------------------------------------------------------------------------
-
 function planEnrichment(mc, foodsByRef) {
 	const plan = [];
 	if (!mc || !mc.ref) return plan;
 	const ref = mc.ref;
 
-	// max_durability — only if currently 0/missing
 	if (!mc.max_durability || mc.max_durability === 0) {
 		const v = lookupMaxDurability(ref);
 		if (v) plan.push({ field: 'max_durability', value: v });
 	}
 
-	// damage — only if block missing entirely
 	if (!mc.damage) {
 		const v = lookupDamage(ref);
 		if (v) plan.push({ field: 'damage', value: v });
 	}
 
-	// mining — only if missing AND ref ends in pickaxe/axe/shovel/hoe
 	if (!mc.mining) {
 		const v = lookupMining(ref);
 		if (v) plan.push({ field: 'mining', value: v });
 	}
 
-	// equipment — only if missing AND armor slot inferrable
 	if (!mc.equipment) {
 		const v = lookupEquipment(ref);
 		if (v) plan.push({ field: 'equipment', value: v });
 	}
 
-	// food — only if missing AND in foods.json
 	if (!mc.food) {
 		const v = lookupFood(ref, foodsByRef);
 		if (v) plan.push({ field: 'food', value: v });
 	}
 
-	// enchants — only if missing AND we have a category list
 	if (!mc.enchants) {
 		const list = enchantsForRef(ref);
 		if (list && list.length > 0) plan.push({ field: 'enchants', value: { allowed: list } });
@@ -523,7 +442,6 @@ function planEnrichment(mc, foodsByRef) {
 
 function planToInsertions(plan) {
 	const insertions = [];
-	// max_durability is a scalar — insert before `tier:` if present, else before `tags:`
 	for (const step of plan) {
 		if (step.field === 'max_durability') {
 			insertions.push({
@@ -565,10 +483,6 @@ function planToInsertions(plan) {
 	}
 	return insertions;
 }
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 
 async function fetchJson(url) {
 	const res = await fetch(url);

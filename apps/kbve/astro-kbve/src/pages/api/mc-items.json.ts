@@ -1,11 +1,5 @@
 import { getCollection } from 'astro:content';
 
-/**
- * `/api/mc-items.json` — flat index of every MC item with a published MDX
- * page. Built at SSG time from the docs collection (frontmatter
- * `mc_item:` block). Consumed by the marketplace create-form picker and
- * any future autocomplete surface.
- */
 export const GET = async () => {
 	const entries = await getCollection(
 		'docs',

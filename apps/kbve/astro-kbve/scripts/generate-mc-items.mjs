@@ -1,15 +1,3 @@
-/**
- * Bootstrap new Minecraft item MDX files from the
- * PrismarineJS/minecraft-data registry. Skips items whose MDX already
- * exists (matched by `mc_item.ref` in frontmatter) so hand-curated rich
- * pages stay intact. Generates a minimal frontmatter block — display_name,
- * stack_size, plus best-effort category + tier guessed from the ref —
- * everything else is left for manual enrichment.
- *
- * Run: node scripts/generate-mc-items.mjs
- *   --audit   print would-be new MDX files; no writes
- */
-
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';

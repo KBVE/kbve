@@ -1,12 +1,3 @@
-/**
- * Local validator: parse every MDX file under content/docs/mc/{enchants,blocks}
- * and validate frontmatter against a self-contained Zod mirror of the
- * proto-aligned schemas. Used to verify generator output without the
- * full astro/nx build (which mis-resolves paths across git worktrees).
- *
- * Run: node scripts/validate-mc-mdx.mjs
- */
-
 import { readdir, readFile, stat } from 'fs/promises';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';

@@ -1,16 +1,3 @@
-/**
- * Fetch Minecraft vanilla item + block textures from
- * InventivetalentDev/minecraft-assets and write them under
- * apps/kbve/astro-kbve/public/mc/textures/{item,block}/.
- *
- * Reads refs from each MDX page under src/content/docs/mc/items/<slug>.mdx
- * (frontmatter `mc_item.ref` + every `recipes[*].ingredients[*].ref`) and
- * src/content/docs/mc/blocks/<slug>.mdx (`mc_block.ref` + drops). Skips refs
- * we already have on disk. Pinned to MC_ASSET_VERSION below.
- *
- * Run: node scripts/fetch-mc-textures.mjs
- */
-
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';
