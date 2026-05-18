@@ -1368,6 +1368,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 			)
 			.setOrigin(0, 0.5)
 			.setVisible(false);
+		const armorBarBg = this.add
+			.rectangle(
+				x,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				COLORS.buildingHpBarBg,
+			)
+			.setOrigin(0.5)
+			.setVisible(false);
+		const armorBar = this.add
+			.rectangle(
+				x - (TILE * 0.7) / 2,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				0x63b3ed,
+			)
+			.setOrigin(0, 0.5)
+			.setVisible(false);
 
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -1402,6 +1422,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			sprite,
 			hpBar,
 			hpBarBg,
+			armorBar,
+			armorBarBg,
 		};
 
 		let building: Building;
@@ -1594,6 +1616,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
+			}
+			const armor = Damageable.armor[eid];
+			const maxArmor = Damageable.maxArmor[eid];
+			if (maxArmor > 0 && armor < maxArmor) {
+				b.armorBar.setVisible(true);
+				b.armorBarBg.setVisible(true);
+				b.armorBar.width = (armor / maxArmor) * TILE * 0.7;
+			} else {
+				b.armorBar.setVisible(false);
+				b.armorBarBg.setVisible(false);
 			}
 			if (
 				b.kind === 'tower' ||
@@ -1884,6 +1916,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
+		b.armorBar.destroy();
+		b.armorBarBg.destroy();
 		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
 			b.powerIndicator.destroy();
 		}
