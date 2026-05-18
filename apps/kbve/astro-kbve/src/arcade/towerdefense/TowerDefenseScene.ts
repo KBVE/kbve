@@ -183,6 +183,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private projectileDeathRow: number[] = [];
 	private burnPatchVisuals = new SideMap<BurnPatchVisual>();
 	private burnPatchDeathRow: number[] = [];
+	private arcPool: Phaser.GameObjects.Arc[] = [];
+	private rectPool: Phaser.GameObjects.Rectangle[] = [];
+	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
+	private linePool: Phaser.GameObjects.Line[] = [];
 
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
@@ -257,6 +261,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.projectileDeathRow = [];
 		this.burnPatchVisuals = new SideMap<BurnPatchVisual>();
 		this.burnPatchDeathRow = [];
+		this.arcPool = [];
+		this.rectPool = [];
+		this.graphicsPool = [];
+		this.linePool = [];
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
@@ -1638,27 +1646,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
 			: 0;
 		const radius = TILE * type.sizeRadius;
-		const sprite = this.add.circle(start.x, start.y, radius, type.color);
-		const statusRing = this.add.graphics().setVisible(false);
+		const sprite = this.acquireArc(start.x, start.y, radius, type.color);
+		const statusRing = this.acquireGraphics();
+		statusRing.setVisible(false);
 		const ringRadius = radius + 4;
-		const hpBarBg = this.add
-			.rectangle(
-				start.x,
-				start.y - TILE * 0.5,
-				TILE * 0.7,
-				4,
-				COLORS.enemyHpBarBg,
-			)
-			.setOrigin(0.5);
-		const hpBar = this.add
-			.rectangle(
-				start.x - (TILE * 0.7) / 2,
-				start.y - TILE * 0.5,
-				TILE * 0.7,
-				4,
-				COLORS.enemyHpBar,
-			)
-			.setOrigin(0, 0.5);
+		const hpBarBg = this.acquireRect(
+			start.x,
+			start.y - TILE * 0.5,
+			TILE * 0.7,
+			4,
+			COLORS.enemyHpBarBg,
+		);
+		const hpBar = this.acquireRect(
+			start.x - (TILE * 0.7) / 2,
+			start.y - TILE * 0.5,
+			TILE * 0.7,
+			4,
+			COLORS.enemyHpBar,
+		);
+		hpBar.setOrigin(0, 0.5);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, EnemyTag);
@@ -1813,8 +1819,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killDrone(eid: number): void {
 		const v = this.droneVisuals.delete(eid);
 		if (!v) return;
-		v.sprite.destroy();
-		v.beam.destroy();
+		this.releaseArc(v.sprite);
+		this.releaseLine(v.beam);
 		const stationEid = DroneStats.stationEid[eid];
 		if (stationEid >= 0 && RepairState.activeDroneEid[stationEid] === eid) {
 			RepairState.activeDroneEid[stationEid] = -1;
@@ -1863,7 +1869,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.lastAttackAtMs[eid] = 0;
 		SoldierStats.targetEnemyEid[eid] = 0;
 		SoldierStats.armouryEid[eid] = armoury.id;
-		const sprite = this.add.rectangle(
+		const sprite = this.acquireRect(
 			armoury.x,
 			armoury.y,
 			TILE * 0.3,
@@ -1872,24 +1878,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 		);
 		sprite.setStrokeStyle(1, 0xffffff, 0.6);
 		const barWidth = TILE * 0.5;
-		const hpBarBg = this.add
-			.rectangle(
-				armoury.x,
-				armoury.y - TILE * 0.32,
-				barWidth,
-				3,
-				COLORS.enemyHpBarBg,
-			)
-			.setOrigin(0.5);
-		const hpBar = this.add
-			.rectangle(
-				armoury.x - barWidth / 2,
-				armoury.y - TILE * 0.32,
-				barWidth,
-				3,
-				COLORS.enemyHpBar,
-			)
-			.setOrigin(0, 0.5);
+		const hpBarBg = this.acquireRect(
+			armoury.x,
+			armoury.y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBarBg,
+		);
+		const hpBar = this.acquireRect(
+			armoury.x - barWidth / 2,
+			armoury.y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBar,
+		);
+		hpBar.setOrigin(0, 0.5);
 		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
 	}
 
@@ -1924,9 +1927,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killSoldier(eid: number): void {
 		const v = this.soldierVisuals.delete(eid);
 		if (!v) return;
-		v.sprite.destroy();
-		v.hpBar.destroy();
-		v.hpBarBg.destroy();
+		this.releaseRect(v.sprite);
+		this.releaseRect(v.hpBar);
+		this.releaseRect(v.hpBarBg);
 		for (const enemyEid of query(this.world, [EnemyTag])) {
 			if (
 				EnemyStats.targetKind[enemyEid] ===
@@ -2232,6 +2235,104 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.projectileSpritePool.push(sprite);
 	}
 
+	private acquireArc(
+		x: number,
+		y: number,
+		radius: number,
+		color: number,
+		alpha = 1,
+	): Phaser.GameObjects.Arc {
+		const pooled = this.arcPool.pop();
+		if (pooled) {
+			pooled
+				.setPosition(x, y)
+				.setRadius(radius)
+				.setFillStyle(color, alpha)
+				.setStrokeStyle();
+			pooled.setActive(true).setVisible(true).setAlpha(1).setScale(1);
+			return pooled;
+		}
+		return this.add.circle(x, y, radius, color, alpha);
+	}
+
+	private releaseArc(sprite: Phaser.GameObjects.Arc): void {
+		sprite.setActive(false).setVisible(false).setStrokeStyle();
+		this.arcPool.push(sprite);
+	}
+
+	private acquireRect(
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		color: number,
+		alpha = 1,
+	): Phaser.GameObjects.Rectangle {
+		const pooled = this.rectPool.pop();
+		if (pooled) {
+			pooled
+				.setPosition(x, y)
+				.setSize(w, h)
+				.setFillStyle(color, alpha)
+				.setOrigin(0.5);
+			pooled.setActive(true).setVisible(true).setAlpha(1);
+			return pooled;
+		}
+		return this.add.rectangle(x, y, w, h, color, alpha);
+	}
+
+	private releaseRect(rect: Phaser.GameObjects.Rectangle): void {
+		rect.setActive(false).setVisible(false).setStrokeStyle();
+		this.rectPool.push(rect);
+	}
+
+	private acquireGraphics(): Phaser.GameObjects.Graphics {
+		const pooled = this.graphicsPool.pop();
+		if (pooled) {
+			pooled.clear();
+			pooled.setActive(true).setVisible(true);
+			return pooled;
+		}
+		return this.add.graphics();
+	}
+
+	private releaseGraphics(g: Phaser.GameObjects.Graphics): void {
+		g.clear();
+		g.setActive(false).setVisible(false);
+		this.graphicsPool.push(g);
+	}
+
+	private acquireLine(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		color: number,
+		alpha = 1,
+		width = 2,
+	): Phaser.GameObjects.Line {
+		const pooled = this.linePool.pop();
+		if (pooled) {
+			pooled
+				.setTo(x1, y1, x2, y2)
+				.setStrokeStyle(width, color, alpha)
+				.setLineWidth(width)
+				.setOrigin(0, 0);
+			pooled.setActive(true).setVisible(true).setAlpha(alpha);
+			return pooled;
+		}
+		return this.add
+			.line(0, 0, x1, y1, x2, y2, color)
+			.setOrigin(0, 0)
+			.setLineWidth(width)
+			.setAlpha(alpha);
+	}
+
+	private releaseLine(line: Phaser.GameObjects.Line): void {
+		line.setActive(false).setVisible(false);
+		this.linePool.push(line);
+	}
+
 	private fireAt(
 		t: TowerBuilding,
 		targetX: number,
@@ -2395,7 +2496,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		dps: number,
 		expiresAtMs: number,
 	): void {
-		const sprite = this.add.circle(x, y, radius, COLORS.burnPatch, 0.25);
+		const sprite = this.acquireArc(x, y, radius, COLORS.burnPatch, 0.25);
 		sprite.setStrokeStyle(2, COLORS.burnPatch, 0.6);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -2410,13 +2511,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private spawnSplashFlash(x: number, y: number, radius: number): void {
-		const flash = this.add.circle(x, y, radius, 0xfbd38d, 0.45);
+		const flash = this.acquireArc(x, y, radius, 0xfbd38d, 0.45);
 		this.tweens.add({
 			targets: flash,
 			alpha: 0,
 			scale: 1.2,
 			duration: 220,
-			onComplete: () => flash.destroy(),
+			onComplete: () => this.releaseArc(flash),
 		});
 	}
 
@@ -2451,7 +2552,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (let i = 0; i < this.burnPatchDeathRow.length; i++) {
 			const eid = this.burnPatchDeathRow[i];
 			const v = this.burnPatchVisuals.delete(eid);
-			if (v) v.sprite.destroy();
+			if (v) this.releaseArc(v.sprite);
 			removeEntity(this.world, eid);
 		}
 	}
@@ -2559,25 +2660,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private spawnDrone(station: RepairBuilding, target: Building): void {
-		const sprite = this.add.circle(
+		const sprite = this.acquireArc(
 			station.x,
 			station.y,
 			5,
 			COLORS.repairDrone,
 		);
-		const beam = this.add
-			.line(
-				0,
-				0,
-				station.x,
-				station.y,
-				target.x,
-				target.y,
-				COLORS.repairBeam,
-			)
-			.setOrigin(0, 0)
-			.setLineWidth(2)
-			.setAlpha(0.7);
+		const beam = this.acquireLine(
+			station.x,
+			station.y,
+			target.x,
+			target.y,
+			COLORS.repairBeam,
+			0.7,
+			2,
+		);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, DroneTag);
@@ -2596,10 +2693,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
-		v.sprite.destroy();
-		v.statusRing.destroy();
-		v.hpBar.destroy();
-		v.hpBarBg.destroy();
+		this.releaseArc(v.sprite);
+		this.releaseGraphics(v.statusRing);
+		this.releaseRect(v.hpBar);
+		this.releaseRect(v.hpBarBg);
 		if (reward) {
 			this.gold += Math.round(
 				GAME_CONFIG.goldPerKill *
