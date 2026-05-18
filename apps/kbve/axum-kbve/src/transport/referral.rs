@@ -30,6 +30,8 @@ use crate::db::{get_profile_service, get_referral_client};
 
 type HmacSha256 = Hmac<Sha256>;
 
+const SITE_DEFAULT_URL: &str = "https://store.steampowered.com/app/2238370/RareIcon/";
+
 /// Stores the resolved HMAC secret (read once from env). A missing secret
 /// is fatal for the route — we refuse to fabricate placeholder bytes that
 /// would be predictable across deploys.
@@ -178,7 +180,13 @@ async fn handle_referral(headers: HeaderMap, handle: String, slug: Option<String
         .await
     {
         Ok(Some(row)) => row,
-        Ok(None) => return not_found("no matching referral target"),
+        Ok(None) => {
+            tracing::info!(
+                handle = %normalized_handle,
+                "no user_target opt-in — redirecting to site default"
+            );
+            return redirect_to(SITE_DEFAULT_URL);
+        }
         Err(e) => {
             tracing::warn!(error = %e, "resolve_user_target failed");
             return server_error("resolve_user_target failed");
