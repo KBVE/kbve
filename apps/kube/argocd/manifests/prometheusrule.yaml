@@ -1,0 +1,71 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: argocd-app-health
+    namespace: argocd
+    labels:
+        release: monitoring
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: argocd.apps
+          rules:
+              - alert: ArgoCDAppDegraded
+                expr: |
+                    argocd_app_info{health_status="Degraded"} == 1
+                for: 10m
+                labels:
+                    severity: warning
+                    service: argocd
+                annotations:
+                    summary: 'ArgoCD app {{ $labels.name }} is Degraded'
+                    description: 'Application {{ $labels.name }} in project {{ $labels.project }} has been Degraded for >10m (sync={{ $labels.sync_status }}).'
+
+              - alert: ArgoCDAppMissing
+                expr: |
+                    argocd_app_info{health_status="Missing"} == 1
+                for: 15m
+                labels:
+                    severity: warning
+                    service: argocd
+                annotations:
+                    summary: 'ArgoCD app {{ $labels.name }} is Missing'
+                    description: 'Application {{ $labels.name }} resources are Missing for >15m (sync={{ $labels.sync_status }}).'
+
+              - alert: ArgoCDAppSyncFailed
+                expr: |
+                    sum by (name, namespace, project) (
+                        increase(argocd_app_sync_total{phase="Failed"}[15m])
+                    ) > 0
+                for: 5m
+                labels:
+                    severity: warning
+                    service: argocd
+                annotations:
+                    summary: 'ArgoCD app {{ $labels.name }} sync failing'
+                    description: 'Application {{ $labels.name }} has had {{ $value | printf "%.0f" }} failed sync(s) in the last 15m.'
+
+              - alert: ArgoCDAppOutOfSync
+                expr: |
+                    argocd_app_info{sync_status="OutOfSync", autosync_enabled="true"} == 1
+                for: 1h
+                labels:
+                    severity: info
+                    service: argocd
+                annotations:
+                    summary: 'ArgoCD app {{ $labels.name }} OutOfSync (autosync on)'
+                    description: 'Application {{ $labels.name }} is OutOfSync for >1h despite autosync being enabled — automation may be stuck.'
+
+        - name: argocd.controllers
+          rules:
+              - alert: ArgoCDControllerDown
+                expr: |
+                    up{job=~"argocd-metrics|argocd-server-metrics|argocd-notifications-controller-metrics"} == 0
+                for: 10m
+                labels:
+                    severity: critical
+                    service: argocd
+                annotations:
+                    summary: 'ArgoCD component {{ $labels.job }} scrape down'
+                    description: '{{ $labels.job }} ({{ $labels.pod }}) has not been scrapable for >10m.'

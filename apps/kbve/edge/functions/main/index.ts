@@ -11,16 +11,37 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const PUBLIC_ROUTES = new Set(["health"]);
 const STAFF_ROUTES = new Set(["argo"]);
 
+const SB_ACCESS_TOKEN_COOKIE = "sb-access-token";
+
+function readCookieValue(req: Request, name: string): string | null {
+  const raw = req.headers.get("cookie");
+  if (!raw) return null;
+  for (const piece of raw.split(";")) {
+    const pair = piece.trim();
+    const eq = pair.indexOf("=");
+    if (eq <= 0) continue;
+    if (pair.slice(0, eq) === name) {
+      const v = pair.slice(eq + 1).trim();
+      return v.length > 0 ? v : null;
+    }
+  }
+  return null;
+}
+
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader) {
-    throw new Error("Missing authorization header");
+  if (authHeader) {
+    const [bearer, token] = authHeader.split(" ");
+    if (bearer !== "Bearer") {
+      throw new Error(`Auth header is not 'Bearer {token}'`);
+    }
+    if (token && token.trim().length > 0) {
+      return token.trim();
+    }
   }
-  const [bearer, token] = authHeader.split(" ");
-  if (bearer !== "Bearer") {
-    throw new Error(`Auth header is not 'Bearer {token}'`);
-  }
-  return token;
+  const cookieToken = readCookieValue(req, SB_ACCESS_TOKEN_COOKIE);
+  if (cookieToken) return cookieToken;
+  throw new Error("Missing authorization header");
 }
 
 async function verifyJWT(jwt: string): Promise<boolean> {

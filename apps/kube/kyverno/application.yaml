@@ -10,24 +10,10 @@ spec:
     source:
         repoURL: https://kyverno.github.io/kyverno
         chart: kyverno
-        # Bumped from 3.4.4 (Kyverno v1.14) to 3.8.0 (Kyverno v1.18) to
-        # drop the chart's dependency on `bitnami/kubectl:1.32.3`. That
-        # image was deleted from docker.io's public tier when Bitnami
-        # moved its catalog to the authenticated `bitnamisecure` repo
-        # in August 2025, and the helm-hook cleanup Jobs were stuck in
-        # ImagePullBackOff. Chart 3.8.0 replaces every bitnami/kubectl
-        # reference with `ghcr.io/kyverno/readiness-checker` and
-        # `reg.kyverno.io/kyverno/kyverno-cli`, both pulling from
-        # registries Kyverno itself controls. ClusterPolicy CRD still
-        # serves v1, v2, and v1beta1 in 3.8.0, so the existing
-        # apps/kube/kilobase/manifests/dbmate-runner-kyverno-policy.yaml
-        # (kyverno.io/v1) keeps working without changes.
         targetRevision: 3.8.0
         helm:
             values: |
                 fullnameOverride: kyverno
-                # Admission controller: 2 replicas for HA. Background
-                # controller: handle generate/synchronize rules.
                 admissionController:
                     replicas: 2
                     resources:
@@ -42,8 +28,6 @@ spec:
                     replicas: 1
                 reportsController:
                     replicas: 1
-                # Skip enforcing on system namespaces so we don't lock
-                # ourselves out of cluster bootstrap.
                 config:
                     excludeKyvernoNamespace: true
                     resourceFilters:
@@ -73,6 +57,11 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: kyverno
+    ignoreDifferences:
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          managedFieldsManagers:
+              - kubectl-kyverno
     syncPolicy:
         automated:
             prune: true
@@ -80,3 +69,4 @@ spec:
         syncOptions:
             - CreateNamespace=true
             - ServerSideApply=true
+            - RespectIgnoreDifferences=true

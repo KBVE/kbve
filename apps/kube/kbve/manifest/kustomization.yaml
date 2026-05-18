@@ -7,6 +7,7 @@ resources:
     - kbve-externalsecret.yaml
     - mc-rcon-externalsecret.yaml
     - clickhouse-externalsecret.yaml
+    - rows-customer-guid-externalsecret.yaml
     - forgejo-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml

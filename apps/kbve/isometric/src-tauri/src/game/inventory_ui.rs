@@ -5,7 +5,6 @@
 //! and quantities.
 
 use bevy::prelude::*;
-use bevy_inventory::ItemKind as ItemKindTrait;
 
 use super::inventory::ItemKind;
 use super::pause_menu::UiOverlay;
@@ -91,51 +90,18 @@ impl Plugin for InventoryUiPlugin {
 // ---------------------------------------------------------------------------
 
 /// Map display name to emoji icon.
-fn item_icon(display_name: &str) -> &'static str {
-    match display_name {
-        "Log" => "\u{1fab5}",
-        "Stone" | "Mossy Stone" => "\u{1faa8}",
-        "Copper Ore" => "\u{1f7e4}",
-        "Iron Ore" => "\u{2b1b}",
-        "Crystal Ore" => "\u{1f7e3}",
-        "Tulip" => "\u{1f337}",
-        "Daisy" => "\u{1f33c}",
-        "Lavender" => "\u{1f49c}",
-        "Bellflower" => "\u{1f514}",
-        "Wildflower" | "Sunflower" => "\u{1f33b}",
-        "Rose" => "\u{1f339}",
-        "Cornflower" => "\u{1f499}",
-        "Allium" => "\u{1f7e3}",
-        "Blue Orchid" => "\u{1f48e}",
-        "Porcini" | "Chanterelle" | "Fly Agaric" => "\u{1f344}",
-        _ => "?",
-    }
+fn slot_icon(stack: &bevy_inventory::ItemStack<ItemKind>) -> String {
+    stack
+        .kind
+        .item()
+        .and_then(|i| i.emoji.as_deref())
+        .unwrap_or("?")
+        .to_string()
 }
 
-/// Abbreviate display name for slot label.
-fn item_short_name(display_name: &str) -> &'static str {
-    match display_name {
-        "Log" => "Log",
-        "Stone" => "Stn",
-        "Mossy Stone" => "Mss",
-        "Copper Ore" => "Cu",
-        "Iron Ore" => "Fe",
-        "Crystal Ore" => "Cry",
-        "Tulip" => "Tlp",
-        "Daisy" => "Dsy",
-        "Lavender" => "Lvn",
-        "Bellflower" => "Bel",
-        "Wildflower" => "Wld",
-        "Sunflower" => "Sun",
-        "Rose" => "Rse",
-        "Cornflower" => "Crn",
-        "Allium" => "All",
-        "Blue Orchid" => "Orc",
-        "Porcini" => "Por",
-        "Chanterelle" => "Chn",
-        "Fly Agaric" => "Fly",
-        _ => "???",
-    }
+fn slot_short_name(stack: &bevy_inventory::ItemStack<ItemKind>) -> String {
+    let name = stack.kind.item().map(|i| i.name.as_str()).unwrap_or("???");
+    name.chars().take(3).collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -333,14 +299,13 @@ fn update_inventory_slots(
     mut name_q: Query<(&SlotName, &mut Text), (Without<SlotIcon>, Without<SlotQty>)>,
     mut qty_q: Query<(&SlotQty, &mut Text), (Without<SlotIcon>, Without<SlotName>)>,
 ) {
-    if !state.open || !inventory.is_changed() {
+    if !state.open || (!inventory.is_changed() && !state.is_changed()) {
         return;
     }
 
     for (slot, mut txt) in &mut icon_q {
         if let Some(stack) = inventory.items.get(slot.index) {
-            let name = stack.kind.display_name();
-            **txt = item_icon(name).to_string();
+            **txt = slot_icon(stack);
         } else {
             **txt = String::new();
         }
@@ -348,8 +313,7 @@ fn update_inventory_slots(
 
     for (slot, mut txt) in &mut name_q {
         if let Some(stack) = inventory.items.get(slot.index) {
-            let name = stack.kind.display_name();
-            **txt = item_short_name(name).to_string();
+            **txt = slot_short_name(stack);
         } else {
             **txt = String::new();
         }

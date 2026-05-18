@@ -18,14 +18,15 @@ use lightyear::prelude::*;
 
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CollectRequest, CreatureCaptureRequest, CreatureCaptured,
-    CreatureCapturedBatch, CreatureKind, DamageEvent, DamageSource, GameChannel, ObjectRemoved,
-    ObjectRespawned, PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate,
-    ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey, TimeSyncMessage,
+    CreatureCapturedBatch, CreatureKind, DamageEvent, DamageSource, GameChannel, InventorySync,
+    InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
+    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, TileKey,
+    TimeSyncMessage,
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
 use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
-use super::inventory::{ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent};
+use super::inventory::ItemKind;
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
@@ -272,6 +273,10 @@ impl Plugin for NetPlugin {
         // Receive ObjectRemoved / ObjectRespawned messages from server
         app.add_systems(Update, receive_object_removed);
         app.add_systems(Update, receive_object_respawned);
+
+        // Server-authoritative inventory: full snapshot on join + per-slot deltas
+        app.add_systems(Update, receive_inventory_sync);
+        app.add_systems(Update, receive_inventory_update);
 
         // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
@@ -1403,28 +1408,14 @@ fn receive_object_removed(
 
             let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
 
-            // Grant loot to the collecting player (server-confirmed)
-            if is_mine {
-                let (kind, qty) = match msg.kind {
-                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::from_ref(ITEM_LOG), 1),
-                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::from_ref(ITEM_STONE), 1),
-                    bevy_kbve_net::WorldObjectKind::Flower => {
-                        (ItemKind::from_ref(ITEM_WILDFLOWER), 1)
-                    }
-                    bevy_kbve_net::WorldObjectKind::Mushroom => {
-                        (ItemKind::from_ref(ITEM_PORCINI), 1)
-                    }
-                };
-                commands.trigger(LootEvent {
-                    kind,
-                    quantity: qty,
-                });
+            // Loot grant + toast moved to receive_inventory_update so the server's
+            // InventoryUpdate is the sole writer to the local inventory. Here we
+            // only grant gathering XP (driven by WorldObjectKind from ObjectRemoved).
+            if is_mine && !msg.item_ref.is_empty() && msg.quantity > 0 {
                 info!(
-                    "[net] server confirmed loot: {:?} x{qty} at ({tx},{tz})",
-                    kind
+                    "[net] server confirmed loot: {} x{} at ({tx},{tz})",
+                    msg.item_ref, msg.quantity
                 );
-
-                // Grant gathering XP
                 if let Ok(player_entity) = player_q.single() {
                     super::skills::grant_collection_xp(&mut xp_writer, player_entity, &msg.kind);
                 }
@@ -1467,7 +1458,7 @@ fn receive_object_removed(
                                 original_scale: Vec3::ONE,
                                 smoke_spawned: false,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_STONE),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Flower => {
@@ -1475,7 +1466,7 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_WILDFLOWER),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Mushroom => {
@@ -1483,11 +1474,100 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_PORCINI),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Receive InventorySync from the server — full snapshot at connect/reconnect.
+/// Server is authoritative: the local inventory is replaced wholesale.
+fn receive_inventory_sync(
+    my_player_id: Res<MyPlayerId>,
+    mut inventory: ResMut<bevy_inventory::Inventory<ItemKind>>,
+    mut query: Query<(Entity, &mut MessageReceiver<InventorySync>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            // Only apply sync if it targets us. player_id=0 means "no auth yet" —
+            // we still accept it because the server may push the sync before our
+            // own player_id is observed via AuthResponse.
+            if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            inventory.items.clear();
+            inventory.max_slots = msg.max_slots as usize;
+            for slot in &msg.slots {
+                if slot.item_ref.is_empty() || slot.quantity == 0 {
+                    continue;
+                }
+                inventory.items.push(bevy_inventory::ItemStack {
+                    kind: ItemKind::from_ref(&slot.item_ref),
+                    quantity: slot.quantity,
+                });
+            }
+            info!(
+                "[net] InventorySync: {} slots / cap {}",
+                msg.slots.len(),
+                msg.max_slots
+            );
+        }
+    }
+}
+
+/// Receive InventoryUpdate from the server — per-slot authoritative write.
+/// Sole writer to the local inventory for gameplay loot. Also fires a Toast
+/// for the positive delta so the player sees what they just gained.
+fn receive_inventory_update(
+    my_player_id: Res<MyPlayerId>,
+    mut inventory: ResMut<bevy_inventory::Inventory<ItemKind>>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut MessageReceiver<InventoryUpdate>)>,
+) {
+    for (_entity, mut receiver) in &mut query {
+        for msg in receiver.receive() {
+            if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
+                continue;
+            }
+            let idx = msg.slot.slot_index as usize;
+            let empty = msg.slot.item_ref.is_empty() || msg.slot.quantity == 0;
+
+            if empty {
+                if idx < inventory.items.len() {
+                    inventory.items.remove(idx);
+                }
+                continue;
+            }
+
+            let kind = ItemKind::from_ref(&msg.slot.item_ref);
+
+            // Compute positive delta vs. current local state for toast text.
+            let prev_qty = inventory
+                .items
+                .get(idx)
+                .filter(|s| s.kind == kind)
+                .map(|s| s.quantity)
+                .unwrap_or(0);
+            let delta = msg.slot.quantity.saturating_sub(prev_qty);
+
+            let stack = bevy_inventory::ItemStack {
+                kind,
+                quantity: msg.slot.quantity,
+            };
+            if idx < inventory.items.len() {
+                inventory.items[idx] = stack;
+            } else if idx == inventory.items.len() && inventory.items.len() < inventory.max_slots {
+                inventory.items.push(stack);
+            }
+
+            if delta > 0 {
+                use bevy_inventory::ItemKind as _;
+                let name = kind.display_name();
+                commands.trigger(super::toast::Toast::loot(format!("+ {delta}x {name}")));
             }
         }
     }

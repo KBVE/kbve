@@ -18,8 +18,13 @@ const ITEMDB_DIR = resolve(
 	__dirname,
 	'../../astro-kbve/src/content/docs/itemdb',
 );
-const OUTPUT_DIR = resolve(__dirname, '../src-tauri/src/data');
-const OUTPUT_FILE = join(OUTPUT_DIR, 'itemdb.json');
+// Both the isometric Tauri build and the axum-kbve server embed the same
+// itemdb.json via `include_str!` — emit to both locations so server-authoritative
+// inventory operations can resolve stack sizes / metadata without a network hop.
+const OUTPUT_TARGETS = [
+	resolve(__dirname, '../src-tauri/src/data/itemdb.json'),
+	resolve(__dirname, '../../axum-kbve/src/data/itemdb.json'),
+];
 
 function extractFrontmatter(content) {
 	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -53,12 +58,12 @@ function main() {
 		index[data.ref] = idx;
 	}
 
-	mkdirSync(OUTPUT_DIR, { recursive: true });
-	writeFileSync(OUTPUT_FILE, JSON.stringify({ items, index }, null, 2));
-
-	console.log(
-		`[sync-itemdb] wrote ${items.length} items to ${OUTPUT_FILE}`,
-	);
+	const payload = JSON.stringify({ items, index }, null, 2);
+	for (const target of OUTPUT_TARGETS) {
+		mkdirSync(dirname(target), { recursive: true });
+		writeFileSync(target, payload);
+		console.log(`[sync-itemdb] wrote ${items.length} items to ${target}`);
+	}
 }
 
 main();

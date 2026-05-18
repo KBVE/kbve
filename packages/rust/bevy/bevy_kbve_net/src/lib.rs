@@ -22,11 +22,12 @@ pub use protocol::{
     AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest,
     CreatureAttackRequest, CreatureCaptureRequest, CreatureCaptured, CreatureCapturedBatch,
     CreatureEventKind, CreatureKind, CreaturePositionSync, CreatureSnapshot, CreatureStateEvent,
-    CreatureSyncChannel, DamageEvent, DamageSource, GameChannel, ObjectRemoved, ObjectRespawned,
-    PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
-    SetUsernameRequest, SetUsernameResponse, TimeChannel, TimeSyncMessage,
+    CreatureSyncChannel, DamageEvent, DamageSource, GameChannel, InventorySlotState, InventorySync,
+    InventoryUpdate, ObjectRemoved, ObjectRespawned, PlayerColor, PlayerId, PlayerName,
+    PlayerVitals, PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse,
+    TimeChannel, TimeSyncMessage,
 };
-pub use worldgen::{TileKey, WorldObjectKind, hash2d, object_at_tile};
+pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile};
 
 pub mod terrain;
 

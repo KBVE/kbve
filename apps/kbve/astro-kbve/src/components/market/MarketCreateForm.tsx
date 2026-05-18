@@ -152,7 +152,9 @@ export function MarketCreateForm() {
 						</a>
 					)}
 				</label>
-				<label>
+			</div>
+			<div className="kbve-market__form-row">
+				<label className="kbve-market__form-label--wide">
 					Instance ID (optional)
 					<input
 						type="text"
@@ -186,7 +188,9 @@ export function MarketCreateForm() {
 						className="kbve-market__input"
 					/>
 				</label>
-				<label>
+			</div>
+			<div className="kbve-market__form-row">
+				<label className="kbve-market__form-label--wide">
 					Expires At
 					<input
 						type="datetime-local"

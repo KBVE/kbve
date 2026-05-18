@@ -23,7 +23,7 @@ use crate::astro::askama::{
     ProfileForumCommentRowPartial, ProfileForumThreadRowPartial, ProfileNotFoundTemplate,
     ProfileTemplate, RentEarthCharacterDisplay, TemplateResponse,
 };
-use crate::auth::{extract_bearer_token, get_jwt_cache};
+use crate::auth::{extract_request_token, get_jwt_cache};
 use crate::db::{
     CommentRow, DiscordClient, FeedQuery, FeedRow, SpaceRow, ThreadRow, UserProfile,
     get_discord_client, get_forum_service, get_mc_service, get_osrs_cache, get_profile_cache,
@@ -1611,44 +1611,20 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
     security(("bearerAuth" = [])),
 )]
 pub(crate) async fn profile_me_handler(headers: HeaderMap) -> impl IntoResponse {
-    let auth_header = match headers.get(header::AUTHORIZATION) {
-        Some(h) => match h.to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "error": "Invalid Authorization header encoding"
-                    })),
-                )
-                    .into_response();
-            }
-        },
-        None => {
-            return (
-                StatusCode::UNAUTHORIZED,
-                Json(json!({
-                    "error": "Missing Authorization header",
-                    "hint": "Include 'Authorization: Bearer <token>' header"
-                })),
-            )
-                .into_response();
-        }
-    };
-
-    let token = match extract_bearer_token(auth_header) {
+    let token = match extract_request_token(&headers) {
         Some(t) => t,
         None => {
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({
-                    "error": "Invalid Authorization header format",
-                    "hint": "Use 'Bearer <token>' format"
+                    "error": "Missing authentication",
+                    "hint": "Include 'Authorization: Bearer <token>' header or 'sb-access-token' cookie"
                 })),
             )
                 .into_response();
         }
     };
+    let token = token.as_str();
 
     let jwt_cache = match get_jwt_cache() {
         Some(cache) => cache,
@@ -1771,44 +1747,20 @@ pub(crate) async fn set_username_handler(
     headers: HeaderMap,
     Json(body): Json<SetUsernameRequest>,
 ) -> impl IntoResponse {
-    let auth_header = match headers.get(header::AUTHORIZATION) {
-        Some(h) => match h.to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "error": "Invalid Authorization header encoding"
-                    })),
-                )
-                    .into_response();
-            }
-        },
-        None => {
-            return (
-                StatusCode::UNAUTHORIZED,
-                Json(json!({
-                    "error": "Missing Authorization header",
-                    "hint": "Include 'Authorization: Bearer <token>' header"
-                })),
-            )
-                .into_response();
-        }
-    };
-
-    let token = match extract_bearer_token(auth_header) {
+    let token = match extract_request_token(&headers) {
         Some(t) => t,
         None => {
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({
-                    "error": "Invalid Authorization header format",
-                    "hint": "Use 'Bearer <token>' format"
+                    "error": "Missing authentication",
+                    "hint": "Include 'Authorization: Bearer <token>' header or 'sb-access-token' cookie"
                 })),
             )
                 .into_response();
         }
     };
+    let token = token.as_str();
 
     let jwt_cache = match get_jwt_cache() {
         Some(cache) => cache,
@@ -2830,24 +2782,11 @@ async fn forum_compose_handler(
     .into_response()
 }
 
-/// Helper: pull `Authorization: Bearer <token>` and verify via the JWT
-/// cache. Returns Ok(user_id) or an error response.
 pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response> {
-    let auth_header = headers
-        .get(header::AUTHORIZATION)
-        .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| {
-            (
-                StatusCode::UNAUTHORIZED,
-                Json(json!({"error": "Missing Authorization header"})),
-            )
-                .into_response()
-        })?;
-
-    let token = extract_bearer_token(auth_header).ok_or_else(|| {
+    let token = extract_request_token(headers).ok_or_else(|| {
         (
             StatusCode::UNAUTHORIZED,
-            Json(json!({"error": "Invalid bearer token"})),
+            Json(json!({"error": "Missing authentication"})),
         )
             .into_response()
     })?;
@@ -2861,7 +2800,7 @@ pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response
     })?;
 
     cache
-        .verify_and_cache(token)
+        .verify_and_cache(&token)
         .await
         .map(|info| info.user_id)
         .map_err(|e| {
