@@ -40,9 +40,15 @@ import {
 	type UpgradeKind,
 } from './config';
 import {
+	ArmouryState,
 	ArmouryTag,
+	ArmouryUpgradeStats,
+	BatteryState,
 	BatteryTag,
+	BUILDING_KIND,
+	BuildingState,
 	BuildingTag,
+	buildIndexFromId,
 	DroneStats,
 	DroneState,
 	DroneTag,
@@ -51,10 +57,14 @@ import {
 	enemyTypeIndexFromId,
 	GeneratorTag,
 	Position,
+	RepairState,
 	RepairTag,
+	RepairUpgradeStats,
 	SoldierStats,
 	SoldierTag,
+	TowerState,
 	TowerTag,
+	TowerUpgradeStats,
 	type AttackTarget,
 	type DroneVisual,
 	type EnemyVisual,
@@ -1314,6 +1324,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		addComponent(this.world, eid, BuildingTag);
 		Position.x[eid] = x;
 		Position.y[eid] = y;
+		BuildingState.hp[eid] = spec.maxHp;
+		BuildingState.maxHp[eid] = spec.maxHp;
+		BuildingState.online[eid] = 1;
+		BuildingState.destroyed[eid] = 0;
+		BuildingState.col[eid] = col;
+		BuildingState.row[eid] = row;
+		BuildingState.specIndex[eid] = buildIndexFromId(spec.id);
+		BuildingState.kindIndex[eid] = BUILDING_KIND[spec.kind];
 		const base: BaseBuilding = {
 			id: eid,
 			col,
@@ -1331,6 +1349,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		let building: Building;
 		if (spec.kind === 'tower') {
 			addComponent(this.world, eid, TowerTag);
+			TowerState.lastFireAtMs[eid] = 0;
+			TowerState.hasFixedTarget[eid] = 0;
+			TowerState.fixedTargetX[eid] = 0;
+			TowerState.fixedTargetY[eid] = 0;
+			TowerUpgradeStats.radar[eid] = 0;
+			TowerUpgradeStats.attack[eid] = 0;
+			TowerUpgradeStats.speed[eid] = 0;
+			TowerUpgradeStats.armor[eid] = 0;
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1363,6 +1389,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else if (spec.kind === 'battery') {
 			addComponent(this.world, eid, BatteryTag);
 			const bspec = spec as BatterySpec;
+			BatteryState.charge[eid] = 0;
+			BatteryState.capacity[eid] = bspec.capacity;
 			const chargeBarBg = this.add
 				.rectangle(
 					x,
@@ -1393,6 +1421,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			building = b;
 		} else if (spec.kind === 'repair') {
 			addComponent(this.world, eid, RepairTag);
+			RepairState.cooldownLeftMs[eid] = 0;
+			RepairState.activeDroneEid[eid] = -1;
+			RepairUpgradeStats.reach[eid] = 0;
+			RepairUpgradeStats.yieldLvl[eid] = 0;
+			RepairUpgradeStats.tempo[eid] = 0;
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1412,6 +1445,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			building = b;
 		} else if (spec.kind === 'armoury') {
 			addComponent(this.world, eid, ArmouryTag);
+			ArmouryState.nextSpawnAtMs[eid] = 0;
+			ArmouryUpgradeStats.capacity[eid] = 0;
+			ArmouryUpgradeStats.damage[eid] = 0;
+			ArmouryUpgradeStats.vigor[eid] = 0;
+			ArmouryUpgradeStats.tempo[eid] = 0;
 			const powerIndicator = this.add.circle(
 				x + TILE * 0.3,
 				y - TILE * 0.3,
@@ -1686,6 +1724,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private destroyBuilding(b: Building): void {
 		if (b.destroyed) return;
 		b.destroyed = true;
+		BuildingState.destroyed[b.id] = 1;
+		BuildingState.online[b.id] = 0;
+		BuildingState.hp[b.id] = 0;
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
