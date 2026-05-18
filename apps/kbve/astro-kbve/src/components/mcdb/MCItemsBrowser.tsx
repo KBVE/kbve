@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { mcTextureUrls } from './texture';
+import { WatchToggle } from '@/components/market/WatchToggle';
 
 type ItemEntry = {
 	id: number;
@@ -27,6 +28,9 @@ function ItemCard({ item }: { item: ItemEntry }) {
 			className="mcdb-browse__card"
 			data-mc-tooltip
 			data-mc-ref={item.ref}>
+			<div className="mcdb-browse__watch">
+				<WatchToggle kind="mc_item" ref={item.ref} size="sm" />
+			</div>
 			<div className="mcdb-browse__icon">
 				<img
 					ref={fbRef}

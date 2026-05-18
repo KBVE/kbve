@@ -132,6 +132,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
+import { buildingTextureKey, ensureBuildingTextures } from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
@@ -323,6 +324,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	create(): void {
+		ensureBuildingTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.drawGrass();
@@ -1336,14 +1338,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		y: number,
 	): Building {
 		const spec = specFor(id);
-		const sprite = this.add.rectangle(
-			x,
-			y,
-			TILE * 0.8,
-			TILE * 0.8,
-			spec.color,
-		);
-		sprite.setStrokeStyle(2, 0xffffff, 0.45);
+		const sprite = this.add.image(x, y, buildingTextureKey(id));
+		sprite.setOrigin(0.5);
 		const hpBarBg = this.add
 			.rectangle(
 				x,
@@ -1652,9 +1648,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private flashSprite(
-		sprite: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Arc,
+		sprite:
+			| Phaser.GameObjects.Rectangle
+			| Phaser.GameObjects.Arc
+			| Phaser.GameObjects.Image,
 		color: number,
 	): void {
+		if (sprite instanceof Phaser.GameObjects.Image) {
+			sprite.setTint(color);
+			this.time.delayedCall(80, () => {
+				if (!sprite.scene) return;
+				sprite.clearTint();
+			});
+			return;
+		}
 		const original = sprite.fillColor;
 		sprite.setFillStyle(color);
 		this.time.delayedCall(80, () => {

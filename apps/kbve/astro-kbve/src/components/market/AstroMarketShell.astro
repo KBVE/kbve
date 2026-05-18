@@ -519,6 +519,7 @@ import MarketCreateForm from './MarketCreateForm';
 		gap: 0.9rem;
 	}
 	.kbve-market__grid-card {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: 0.65rem;
@@ -536,6 +537,12 @@ import MarketCreateForm from './MarketCreateForm';
 			transform 0.15s ease,
 			border-color 0.15s ease,
 			box-shadow 0.15s ease;
+	}
+	.kbve-market__grid-watch {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		z-index: 2;
 	}
 	.kbve-market__grid-card:hover {
 		transform: translateY(-2px);
@@ -1070,5 +1077,103 @@ import MarketCreateForm from './MarketCreateForm';
 		padding: 0.05rem 0.35rem;
 		border-radius: 4px;
 		background: var(--sl-color-bg-inline-code);
+	}
+
+	.kbve-market__watch {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--sl-color-bg) 75%, transparent);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		color: var(--sl-color-gray-3);
+		font-size: 1.05rem;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease,
+			border-color 0.15s ease,
+			transform 0.15s ease;
+		backdrop-filter: blur(2px);
+	}
+	.kbve-market__watch:hover {
+		color: var(--color-gold-light, var(--sl-color-accent));
+		border-color: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 60%,
+			transparent
+		);
+		transform: scale(1.05);
+	}
+	.kbve-market__watch--on {
+		color: var(--color-gold-light, var(--sl-color-accent));
+		border-color: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 65%,
+			transparent
+		);
+		background: color-mix(
+			in srgb,
+			var(--color-gold-light, var(--sl-color-accent)) 15%,
+			var(--sl-color-bg-nav)
+		);
+	}
+	.kbve-market__watch--sm {
+		width: 1.7rem;
+		height: 1.7rem;
+		font-size: 0.95rem;
+		border-radius: 6px;
+	}
+
+	.kbve-market__card--tiled {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: center;
+		gap: 0.85rem;
+	}
+	.kbve-market__card-thumb {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 48px;
+		height: 48px;
+		padding: 4px;
+		border-radius: 10px;
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		flex-shrink: 0;
+	}
+	.kbve-market__card-thumb img,
+	.kbve-market__card-thumb .kbve-mc-tex {
+		max-width: 100%;
+		max-height: 100%;
+	}
+	.kbve-market__card-body {
+		display: grid;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+	.kbve-market__watch-remove {
+		margin-left: auto;
+		padding: 0.25rem 0.65rem;
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+		background: transparent;
+		color: var(--sl-color-gray-3);
+		font-size: 0.78rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.kbve-market__watch-remove:hover {
+		color: var(--color-red, var(--sl-color-text-accent));
+		border-color: color-mix(
+			in srgb,
+			var(--color-red, var(--sl-color-text-accent)) 55%,
+			transparent
+		);
 	}
 </style>

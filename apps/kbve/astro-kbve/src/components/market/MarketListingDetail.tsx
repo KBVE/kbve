@@ -12,6 +12,7 @@ import { formatKhash, formatRelative, itemRefLabel } from './format';
 import { useCountdown, formatCountdown } from './countdown';
 import { ItemIcon } from './ItemIcon';
 import { EnchantList } from './EnchantList';
+import { WatchToggle } from './WatchToggle';
 
 function readListingId(): number | null {
 	if (typeof window === 'undefined') return null;
@@ -176,9 +177,15 @@ export function MarketListingDetail() {
 	const active = row.listing_status === 'active';
 	const minNextBid =
 		(row.current_bid ?? (row.min_bid !== null ? row.min_bid - 1 : 0)) + 1;
-	const kind = String(
-		((row.item_ref ?? {}) as { kind?: unknown }).kind ?? 'generic',
-	);
+	const itemRefObj = (row.item_ref ?? {}) as {
+		kind?: unknown;
+		id?: unknown;
+	};
+	const kind = String(itemRefObj.kind ?? 'generic');
+	const watchRef =
+		typeof itemRefObj.id === 'string' || typeof itemRefObj.id === 'number'
+			? String(itemRefObj.id)
+			: '';
 
 	return (
 		<div className="kbve-market__detail-v2">
@@ -201,6 +208,7 @@ export function MarketListingDetail() {
 							className={`kbve-market__badge kbve-market__badge--${row.listing_status}`}>
 							{row.listing_status}
 						</span>
+						{watchRef && <WatchToggle kind={kind} ref={watchRef} />}
 					</div>
 					<h1 className="kbve-market__item-title">
 						{itemRefLabel(row.item_ref)}
