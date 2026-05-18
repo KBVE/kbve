@@ -1,0 +1,25 @@
+---
+import MCBlocksBrowser from './MCBlocksBrowser';
+import MCTooltipMount from './MCTooltipMount.astro';
+
+interface Props {
+	material: string;
+	title: string;
+	description: string;
+}
+
+const { material, title, description } = Astro.props;
+---
+
+<MCTooltipMount />
+
+<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+	<header class="mcdb-browse__head">
+		<div>
+			<h1>{title}</h1>
+			<p>{description}</p>
+		</div>
+	</header>
+
+	<MCBlocksBrowser client:load lockedMaterial={material} />
+</section>

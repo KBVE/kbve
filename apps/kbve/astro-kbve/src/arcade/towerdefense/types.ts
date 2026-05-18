@@ -16,6 +16,8 @@ export interface BaseBuilding {
 	sprite: Phaser.GameObjects.Image;
 	hpBar: Phaser.GameObjects.Rectangle;
 	hpBarBg: Phaser.GameObjects.Rectangle;
+	armorBar: Phaser.GameObjects.Rectangle;
+	armorBarBg: Phaser.GameObjects.Rectangle;
 }
 
 export interface TowerBuilding extends BaseBuilding {

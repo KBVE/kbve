@@ -18,6 +18,30 @@ import MCTooltipMount from './MCTooltipMount.astro';
 				same index powers the marketplace create-form picker.
 			</p>
 		</div>
+		<button
+			type="button"
+			class="kbve-search-trigger"
+			data-kbve-search-trigger
+			aria-label="Open universal search">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<circle cx="11" cy="11" r="7"></circle>
+				<path d="m20 20-3-3"></path>
+			</svg>
+			<span class="kbve-search-trigger__label">Search…</span>
+			<span class="kbve-search-trigger__keycap" data-kbve-search-keycap>
+				Ctrl+K
+			</span>
+		</button>
 	</header>
 
 	<MCItemsBrowser client:load />
@@ -27,6 +51,17 @@ import MCTooltipMount from './MCTooltipMount.astro';
 	.mcdb-browse__shell {
 		display: grid;
 		gap: 1rem;
+	}
+	.mcdb-browse__head {
+		display: flex;
+		gap: 1rem;
+		align-items: flex-start;
+		justify-content: space-between;
+		flex-wrap: wrap;
+	}
+	.mcdb-browse__head > div {
+		flex: 1;
+		min-width: 0;
 	}
 	.mcdb-browse__head h1 {
 		margin: 0;

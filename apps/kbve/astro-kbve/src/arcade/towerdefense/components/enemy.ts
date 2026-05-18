@@ -38,7 +38,7 @@ export function enemyTypeIndexFromId(id: EnemyTypeId): number {
 }
 
 export interface EnemyVisual {
-	sprite: Phaser.GameObjects.Arc;
+	sprite: Phaser.GameObjects.Image;
 	statusRing: Phaser.GameObjects.Graphics;
 	hpBar: Phaser.GameObjects.Rectangle;
 	hpBarBg: Phaser.GameObjects.Rectangle;

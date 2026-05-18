@@ -132,7 +132,12 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { buildingTextureKey, ensureBuildingTextures } from './art/sprite-mint';
+import {
+	buildingTextureKey,
+	ensureBuildingTextures,
+	ensureEnemyTextures,
+	enemyTextureKey,
+} from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
@@ -207,6 +212,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
 	private linePool: Phaser.GameObjects.Line[] = [];
+	private imagePool: Phaser.GameObjects.Image[] = [];
 
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
@@ -286,6 +292,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.rectPool = [];
 		this.graphicsPool = [];
 		this.linePool = [];
+		this.imagePool = [];
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
@@ -325,6 +332,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	create(): void {
 		ensureBuildingTextures(this);
+		ensureEnemyTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.drawGrass();
@@ -1360,6 +1368,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 			)
 			.setOrigin(0, 0.5)
 			.setVisible(false);
+		const armorBarBg = this.add
+			.rectangle(
+				x,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				COLORS.buildingHpBarBg,
+			)
+			.setOrigin(0.5)
+			.setVisible(false);
+		const armorBar = this.add
+			.rectangle(
+				x - (TILE * 0.7) / 2,
+				y - TILE * 0.55 - 5,
+				TILE * 0.7,
+				3,
+				0x63b3ed,
+			)
+			.setOrigin(0, 0.5)
+			.setVisible(false);
 
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -1394,6 +1422,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			sprite,
 			hpBar,
 			hpBarBg,
+			armorBar,
+			armorBarBg,
 		};
 
 		let building: Building;
@@ -1587,6 +1617,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
 			}
+			const armor = Damageable.armor[eid];
+			const maxArmor = Damageable.maxArmor[eid];
+			if (maxArmor > 0 && armor < maxArmor) {
+				b.armorBar.setVisible(true);
+				b.armorBarBg.setVisible(true);
+				b.armorBar.width = (armor / maxArmor) * TILE * 0.7;
+			} else {
+				b.armorBar.setVisible(false);
+				b.armorBarBg.setVisible(false);
+			}
 			if (
 				b.kind === 'tower' ||
 				b.kind === 'repair' ||
@@ -1692,7 +1732,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
 			: 0;
 		const radius = TILE * type.sizeRadius;
-		const sprite = this.acquireArc(start.x, start.y, radius, type.color);
+		const sprite = this.acquireImage(
+			start.x,
+			start.y,
+			enemyTextureKey(type.id),
+		);
+		sprite.setScale((radius * 2) / 24);
 		const statusRing = this.acquireGraphics();
 		statusRing.setVisible(false);
 		const ringRadius = radius + 4;
@@ -1871,6 +1916,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
+		b.armorBar.destroy();
+		b.armorBarBg.destroy();
 		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
 			b.powerIndicator.destroy();
 		}
@@ -2044,6 +2091,43 @@ export class TowerDefenseScene extends Phaser.Scene {
 				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
 			}
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
+				const hp = Damageable.hp[seid];
+				const maxHp = Damageable.maxHp[seid];
+				if (hp < maxHp) {
+					const armouryEid = SoldierStats.armouryEid[seid];
+					const armoury =
+						armouryEid >= 0
+							? this.buildingByEid.get(armouryEid)
+							: undefined;
+					if (
+						armoury &&
+						armoury.kind === 'armoury' &&
+						!BuildingState.destroyed[armouryEid]
+					) {
+						const ax = armoury.x;
+						const ay = armoury.y;
+						const dx = ax - Position.x[seid];
+						const dy = ay - Position.y[seid];
+						const dist = Math.sqrt(dx * dx + dy * dy);
+						const healRange =
+							TILE * GAME_CONFIG.soldierHealRangeRatio;
+						if (dist <= healRange) {
+							Damageable.hp[seid] = Math.min(
+								maxHp,
+								hp + GAME_CONFIG.soldierHealPerSec * dt,
+							);
+						} else {
+							const step = SoldierStats.speed[seid] * dt;
+							if (step >= dist) {
+								Position.x[seid] = ax;
+								Position.y[seid] = ay;
+							} else {
+								Position.x[seid] += (dx / dist) * step;
+								Position.y[seid] += (dy / dist) * step;
+							}
+						}
+					}
+				}
 				this.syncSoldierVisuals(seid);
 				continue;
 			}
@@ -2082,11 +2166,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[seid];
 		const y = Position.y[seid];
 		v.sprite.setPosition(x, y);
-		const barWidth = TILE * 0.5;
-		v.hpBarBg.setPosition(x, y - TILE * 0.32);
-		v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
-		v.hpBar.width =
-			(Damageable.hp[seid] / Damageable.maxHp[seid]) * barWidth;
+		const hp = Damageable.hp[seid];
+		const maxHp = Damageable.maxHp[seid];
+		if (hp < maxHp) {
+			const barWidth = TILE * 0.5;
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.32);
+			v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
+			v.hpBar.width = (hp / maxHp) * barWidth;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -2207,10 +2299,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[eid];
 		const y = Position.y[eid];
 		v.sprite.setPosition(x, y);
-		v.hpBarBg.setPosition(x, y - TILE * 0.5);
-		v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
-		v.hpBar.width =
-			(Damageable.hp[eid] / Damageable.maxHp[eid]) * TILE * 0.7;
+		const hpEnemy = Damageable.hp[eid];
+		const maxHpEnemy = Damageable.maxHp[eid];
+		if (hpEnemy < maxHpEnemy) {
+			v.hpBarBg.setVisible(true);
+			v.hpBar.setVisible(true);
+			v.hpBarBg.setPosition(x, y - TILE * 0.5);
+			v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
+			v.hpBar.width = (hpEnemy / maxHpEnemy) * TILE * 0.7;
+		} else {
+			v.hpBarBg.setVisible(false);
+			v.hpBar.setVisible(false);
+		}
 		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
 		const anyStatus = slowed || burning;
@@ -2289,6 +2389,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private syncTowerFireFrames(nowMs: number): void {
+		const recoilWindow = 150;
+		for (let i = 0; i < this.frameTowerEids.length; i++) {
+			const eid = this.frameTowerEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'tower') continue;
+			const elapsed = nowMs - TowerState.lastFireAtMs[eid];
+			const wantFire = elapsed >= 0 && elapsed < recoilWindow;
+			const desired = wantFire ? 'fire' : 'idle';
+			const desiredKey = buildingTextureKey(b.spec.id, desired);
+			if (b.sprite.texture.key !== desiredKey) {
+				b.sprite.setTexture(desiredKey);
+			}
+		}
+	}
+
 	private findTarget(t: TowerBuilding, nowMs: number): number | null {
 		const range = towerRange(t);
 		if (t.spec.arcHeight > 0 && !t.spec.avoidSlowed) {
@@ -2353,7 +2470,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseArc(sprite: Phaser.GameObjects.Arc): void {
-		sprite.setActive(false).setVisible(false).setStrokeStyle();
+		sprite
+			.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.arcPool.push(sprite);
 	}
 
@@ -2379,7 +2500,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private releaseRect(rect: Phaser.GameObjects.Rectangle): void {
-		rect.setActive(false).setVisible(false).setStrokeStyle();
+		rect.setActive(false)
+			.setVisible(false)
+			.setStrokeStyle()
+			.setPosition(-1000, -1000);
 		this.rectPool.push(rect);
 	}
 
@@ -2428,6 +2552,29 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private releaseLine(line: Phaser.GameObjects.Line): void {
 		line.setActive(false).setVisible(false);
 		this.linePool.push(line);
+	}
+
+	private acquireImage(
+		x: number,
+		y: number,
+		key: string,
+	): Phaser.GameObjects.Image {
+		const pooled = this.imagePool.pop();
+		if (pooled) {
+			pooled.setPosition(x, y).setTexture(key).setOrigin(0.5).clearTint();
+			pooled.setActive(true).setVisible(true).setAlpha(1).setScale(1);
+			return pooled;
+		}
+		return this.add.image(x, y, key).setOrigin(0.5);
+	}
+
+	private releaseImage(img: Phaser.GameObjects.Image): void {
+		img.clearTint();
+		img.setActive(false)
+			.setVisible(false)
+			.setPosition(-1000, -1000)
+			.setScale(1);
+		this.imagePool.push(img);
 	}
 
 	private fireAt(
@@ -2845,7 +2992,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
-		this.releaseArc(v.sprite);
+		this.releaseImage(v.sprite);
 		this.releaseGraphics(v.statusRing);
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
@@ -2938,6 +3085,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateBurnPatches(dt, nowMs);
 		this.updateEnemies(dt, nowMs);
 		this.updateTowers(nowMs);
+		this.syncTowerFireFrames(nowMs);
 		this.updateProjectiles(dt, nowMs);
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
