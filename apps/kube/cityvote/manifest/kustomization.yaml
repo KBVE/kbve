@@ -6,4 +6,3 @@ resources:
     - cityvote-serviceaccount.yaml
     - cityvote-deployment.yaml
     - httproute.yaml
-    - nginx-ingress.yaml
