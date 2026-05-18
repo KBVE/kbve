@@ -5,7 +5,8 @@ export type CardId =
 	| 'field_repair'
 	| 'battery_surge'
 	| 'wave_bounty'
-	| 'structure_upgrade';
+	| 'structure_upgrade'
+	| 'item_call_allies';
 
 export interface CardOption {
 	id: CardId;
@@ -56,6 +57,12 @@ export const CARD_POOL: CardOption[] = [
 		name: 'Field Promotion',
 		description: 'Free upgrade on a random structure',
 		color: 0xb794f4,
+	},
+	{
+		id: 'item_call_allies',
+		name: 'Ally Nation Beacon',
+		description: 'Adds a single-use Call for Ally Nation item to inventory',
+		color: 0xf6ad55,
 	},
 ];
 

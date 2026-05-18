@@ -117,6 +117,7 @@ import {
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
+	inventoryAtom,
 	livesAtom,
 	loadBestWave,
 	nextWavePreviewAtom,
@@ -129,8 +130,10 @@ import {
 	supplyAtom,
 	timerSecAtom,
 	timerStateAtom,
+	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
+import { createItem, type ItemId } from './items';
 import { generatePath, type GeneratedPath } from './path-generator';
 import {
 	buildingTextureKey,
@@ -219,6 +222,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private awaitingCardPick = false;
 	private lastCardPickN = 0;
 	private lastCardSkipN = 0;
+	private lastUseItemN = 0;
 	private cardPickedThisInterval = false;
 
 	private gold = GAME_CONFIG.startingGold;
@@ -299,6 +303,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.cardPickedThisInterval = false;
 		this.lastCardPickN = cardPickSignalAtom.get().n;
 		this.lastCardSkipN = cardSkipSignalAtom.get();
+		this.lastUseItemN = useItemSignalAtom.get().n;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.wave = 0;
@@ -464,12 +469,19 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.lastCardSkipN = v;
 			if (this.awaitingCardPick) this.skipCardPick();
 		});
+		const useItemUnsub = useItemSignalAtom.subscribe((s) => {
+			if (s.n === this.lastUseItemN) return;
+			this.lastUseItemN = s.n;
+			if (!s.id || this.isGameOver) return;
+			this.consumeInventoryItem(s.id);
+		});
 		this.hudUnsubs.push(
 			skipUnsub,
 			restartUnsub,
 			speedUnsub,
 			cardPickUnsub,
 			cardSkipUnsub,
+			useItemUnsub,
 		);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
@@ -1646,6 +1658,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private startNextWave(): void {
 		this.wave += 1;
+		this.sweepExpiredAllies();
 		const count = Math.floor(
 			GAME_CONFIG.enemiesPerWave +
 				(this.wave - 1) * GAME_CONFIG.enemiesPerWaveScale,
@@ -1983,6 +1996,107 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private spawnAllySoldier(
+		x: number,
+		y: number,
+		expiresAtWave: number,
+	): void {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, SoldierTag);
+		addComponent(this.world, eid, SoldierStats);
+		Position.x[eid] = x;
+		Position.y[eid] = y;
+		const hp = GAME_CONFIG.allyHp;
+		addComponent(this.world, eid, DamageableTag);
+		addComponent(this.world, eid, Damageable);
+		initDamageable(eid, hp, 0, 0, DAMAGEABLE_KIND.soldier);
+		SoldierStats.speed[eid] = GAME_CONFIG.allySpeed;
+		SoldierStats.attackDamage[eid] = GAME_CONFIG.allyDamage;
+		SoldierStats.attackRateMs[eid] = GAME_CONFIG.allyAttackRateMs;
+		SoldierStats.attackRange[eid] = GAME_CONFIG.allyAttackRange;
+		SoldierStats.lastAttackAtMs[eid] = 0;
+		SoldierStats.targetEnemyEid[eid] = 0;
+		SoldierStats.armouryEid[eid] = -1;
+		SoldierStats.expiresAtWave[eid] = expiresAtWave;
+		const sprite = this.acquireRect(
+			x,
+			y,
+			TILE * 0.3,
+			TILE * 0.3,
+			GAME_CONFIG.allyColor,
+		);
+		sprite.setStrokeStyle(1, 0xffffff, 0.7);
+		const barWidth = TILE * 0.5;
+		const hpBarBg = this.acquireRect(
+			x,
+			y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBarBg,
+		);
+		const hpBar = this.acquireRect(
+			x - barWidth / 2,
+			y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBar,
+		);
+		hpBar.setOrigin(0, 0.5);
+		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+	}
+
+	private consumeInventoryItem(id: ItemId): void {
+		const items = inventoryAtom.get();
+		const idx = items.findIndex((it) => it.id === id && it.charges > 0);
+		if (idx < 0) return;
+		const item = items[idx];
+		if (id === 'emergency_call_allies') {
+			this.useEmergencyCallAllies();
+		} else {
+			return;
+		}
+		const remaining = item.charges - 1;
+		const next = [...items];
+		if (remaining <= 0) {
+			next.splice(idx, 1);
+		} else {
+			next[idx] = { ...item, charges: remaining };
+		}
+		inventoryAtom.set(next);
+	}
+
+	private useEmergencyCallAllies(): void {
+		const path = this.path;
+		let cx = BASE_WIDTH / 2;
+		let cy = BASE_HEIGHT / 2;
+		const mid = path.waypoints[Math.floor(path.waypoints.length / 2)];
+		if (mid) {
+			cx = mid.x;
+			cy = mid.y;
+		}
+		const expires = this.wave + GAME_CONFIG.allyLifespanWaves;
+		const count = GAME_CONFIG.allyCallCount;
+		for (let i = 0; i < count; i++) {
+			const angle = (i / count) * Math.PI * 2;
+			const radius = TILE * 0.6 + (i % 3) * 6;
+			const sx = cx + Math.cos(angle) * radius;
+			const sy = cy + Math.sin(angle) * radius;
+			this.spawnAllySoldier(sx, sy, expires);
+		}
+	}
+
+	private sweepExpiredAllies(): void {
+		const wave = this.wave;
+		for (const seid of query(this.world, [SoldierTag])) {
+			if (!this.soldierVisuals.has(seid)) continue;
+			const exp = SoldierStats.expiresAtWave[seid];
+			if (exp > 0 && wave > exp) {
+				this.killSoldier(seid);
+			}
+		}
+	}
+
 	private countSoldiersOwnedBy(armouryEid: number): number {
 		let n = 0;
 		for (const seid of this.frameSoldierEids) {
@@ -2010,6 +2124,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.lastAttackAtMs[eid] = 0;
 		SoldierStats.targetEnemyEid[eid] = 0;
 		SoldierStats.armouryEid[eid] = armoury.id;
+		SoldierStats.expiresAtWave[eid] = -1;
 		const sprite = this.acquireRect(
 			armoury.x,
 			armoury.y,
@@ -3133,6 +3248,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 				break;
 			case 'structure_upgrade':
 				this.applyRandomStructureUpgrade();
+				break;
+			case 'item_call_allies':
+				inventoryAtom.set([
+					...inventoryAtom.get(),
+					createItem('emergency_call_allies'),
+				]);
 				break;
 		}
 		this.closeCardPanel();

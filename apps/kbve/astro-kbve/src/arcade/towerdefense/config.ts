@@ -32,6 +32,14 @@ export const GAME_CONFIG = {
 	passiveRepairArmor: 12,
 	soldierHealPerSec: 14,
 	soldierHealRangeRatio: 0.6,
+	allyCallCount: 20,
+	allyLifespanWaves: 5,
+	allyHp: 45,
+	allyDamage: 5,
+	allySpeed: 110,
+	allyAttackRange: 60,
+	allyAttackRateMs: 700,
+	allyColor: 0xfbd38d,
 } as const;
 
 export const COLORS = {
