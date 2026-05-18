@@ -1682,10 +1682,16 @@ fn process_collect_requests(
                 .and_then(|&pe| player_ids.get(pe).ok())
                 .map(|pid| pid.0)
                 .unwrap_or(0);
+            let item_ref = bevy_kbve_net::item_ref_at(tile.tx, tile.tz)
+                .unwrap_or("")
+                .to_string();
+            let quantity = if item_ref.is_empty() { 0 } else { 1 };
             let removal = ObjectRemoved {
                 tile,
                 kind,
                 collector_id,
+                item_ref,
+                quantity,
             };
             if legacy.is_legacy() {
                 // Suspenders: per-client clone loop (legacy path).
@@ -1851,11 +1857,13 @@ fn send_collected_state_to_new_clients(
             for &tile in collected.0.keys() {
                 if let Some(kind) = bevy_kbve_net::object_at_tile(tile.tx, tile.tz) {
                     // collector_id=0 for catch-up messages — new client just skips spawning,
-                    // no loot is granted.
+                    // no loot is granted. item_ref/quantity stay empty for the same reason.
                     sender.send::<bevy_kbve_net::GameChannel>(ObjectRemoved {
                         tile,
                         kind,
                         collector_id: 0,
+                        item_ref: String::new(),
+                        quantity: 0,
                     });
                 }
             }

@@ -25,7 +25,7 @@ use bevy_kbve_net::{
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
 use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
-use super::inventory::{ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent};
+use super::inventory::{ItemKind, LootEvent};
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
 use super::state::PlayerState;
@@ -1403,25 +1403,16 @@ fn receive_object_removed(
 
             let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
 
-            // Grant loot to the collecting player (server-confirmed)
-            if is_mine {
-                let (kind, qty) = match msg.kind {
-                    bevy_kbve_net::WorldObjectKind::Tree => (ItemKind::from_ref(ITEM_LOG), 1),
-                    bevy_kbve_net::WorldObjectKind::Rock => (ItemKind::from_ref(ITEM_STONE), 1),
-                    bevy_kbve_net::WorldObjectKind::Flower => {
-                        (ItemKind::from_ref(ITEM_WILDFLOWER), 1)
-                    }
-                    bevy_kbve_net::WorldObjectKind::Mushroom => {
-                        (ItemKind::from_ref(ITEM_PORCINI), 1)
-                    }
-                };
+            // Grant loot to the collecting player (server-authoritative item_ref + quantity)
+            if is_mine && !msg.item_ref.is_empty() && msg.quantity > 0 {
+                let kind = ItemKind::from_ref(&msg.item_ref);
                 commands.trigger(LootEvent {
                     kind,
-                    quantity: qty,
+                    quantity: msg.quantity,
                 });
                 info!(
-                    "[net] server confirmed loot: {:?} x{qty} at ({tx},{tz})",
-                    kind
+                    "[net] server confirmed loot: {} x{} at ({tx},{tz})",
+                    msg.item_ref, msg.quantity
                 );
 
                 // Grant gathering XP
@@ -1467,7 +1458,7 @@ fn receive_object_removed(
                                 original_scale: Vec3::ONE,
                                 smoke_spawned: false,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_STONE),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Flower => {
@@ -1475,7 +1466,7 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_WILDFLOWER),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                         bevy_kbve_net::WorldObjectKind::Mushroom => {
@@ -1483,7 +1474,7 @@ fn receive_object_removed(
                                 timer: Timer::from_seconds(0.5, TimerMode::Once),
                                 original_scale: Vec3::ONE,
                                 loot_dropped: true,
-                                loot_item: ItemKind::from_ref(ITEM_PORCINI),
+                                loot_item: ItemKind::from_ref(&msg.item_ref),
                             });
                         }
                     }

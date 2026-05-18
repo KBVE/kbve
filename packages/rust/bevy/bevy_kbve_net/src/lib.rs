@@ -26,7 +26,7 @@ pub use protocol::{
     PlayerColor, PlayerId, PlayerName, PlayerVitals, PositionUpdate, ProtocolPlugin,
     SetUsernameRequest, SetUsernameResponse, TimeChannel, TimeSyncMessage,
 };
-pub use worldgen::{TileKey, WorldObjectKind, hash2d, object_at_tile};
+pub use worldgen::{TileKey, WorldObjectKind, hash2d, item_ref_at, object_at_tile};
 
 pub mod terrain;
 

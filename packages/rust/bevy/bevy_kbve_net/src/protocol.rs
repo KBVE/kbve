@@ -117,6 +117,11 @@ pub struct ObjectRemoved {
     pub kind: WorldObjectKind,
     /// Player ID of the collector — client uses this to grant loot only to the right player.
     pub collector_id: u64,
+    /// Canonical itemdb `ref` (e.g. "log", "copper-ore") — server-authoritative.
+    /// Empty string means "no item" (e.g. world-sync replays where loot was already claimed).
+    pub item_ref: String,
+    /// Server-rolled quantity. 0 when `item_ref` is empty.
+    pub quantity: u32,
 }
 
 /// Client requests to set their username (when they don't have one).
