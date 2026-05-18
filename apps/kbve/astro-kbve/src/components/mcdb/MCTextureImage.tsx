@@ -9,12 +9,6 @@ type Props = {
 	className?: string;
 };
 
-/**
- * `<MCTextureImage>` resolves a vanilla MC texture URL via the
- * texture.ts util, then walks the [primary, fallback] pair on `onError`.
- * Pure React — no global DOM walks, no scripts-after-parse races.
- * Drop in anywhere we'd otherwise emit a raw `<img>` for an item / block.
- */
 export function MCTextureImage({
 	ref,
 	category,

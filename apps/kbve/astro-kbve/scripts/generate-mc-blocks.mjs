@@ -1,14 +1,3 @@
-/**
- * Bootstrap new Minecraft block MDX files from the
- * PrismarineJS/minecraft-data registry. Skips blocks whose MDX already
- * exists (matched by `mc_block.ref` in frontmatter). Generates a
- * minimal frontmatter block that validates against McBlockSchema; drops,
- * required_tool_tier, and tag enrichment are left for manual passes.
- *
- * Run: node scripts/generate-mc-blocks.mjs
- *   --audit   print would-be new MDX files; no writes
- */
-
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -30,8 +19,6 @@ function clamp(n, lo, hi) {
 	return Math.max(lo, Math.min(hi, n));
 }
 
-// Best-effort material guess from ref name. Used as a name-based
-// override before falling back to the upstream `material` string.
 function inferMaterialFromRef(ref) {
 	if (ref === 'air' || ref === 'cave_air' || ref === 'void_air') return 'air';
 	if (/(water|lava|bubble_column)/.test(ref)) return 'liquid';
@@ -87,7 +74,6 @@ function mapMaterial(ref, upstream) {
 	if (upstream === 'default' || upstream === 'incorrect_for_wooden_tool') {
 		return 'stone';
 	}
-	// Compound markers like `plant;mineable/axe`.
 	const parts = upstream.split(';');
 	if (parts.includes('leaves')) return 'leaves';
 	if (parts.includes('plant') || parts.includes('gourd') || parts.includes('vine_or_glow_lichen')) {

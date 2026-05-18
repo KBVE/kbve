@@ -1,11 +1,3 @@
-/**
- * Proto-aligned Zod schema for kbve.mc.McEnchant.
- *
- * Mirrors packages/data/proto/kbve/mc/mc_enchants.proto. Validates
- * frontmatter for content/docs/mc/enchants/<slug>.mdx. The marketplace
- * `enchants.ts` table (Phase 5.2) MUST stay aligned with refs here.
- */
-
 import { z } from 'astro/zod';
 import {
 	MCEnchantRaritySchema,
@@ -13,7 +5,6 @@ import {
 	MCIdentitySchema,
 } from './enums';
 
-// proto: MCEnchantCostRange
 export const MCEnchantCostRangeSchema = z.object({
 	a_min: z.number().int(),
 	b_min: z.number().int(),
@@ -22,9 +13,6 @@ export const MCEnchantCostRangeSchema = z.object({
 });
 export type MCEnchantCostRange = z.infer<typeof MCEnchantCostRangeSchema>;
 
-/**
- * proto: McEnchant — top-level enchantment record.
- */
 export const McEnchantSchema = MCIdentitySchema.extend({
 	display_name: z.string().min(1),
 	rarity: MCEnchantRaritySchema,

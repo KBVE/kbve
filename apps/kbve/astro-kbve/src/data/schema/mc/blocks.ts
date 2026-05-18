@@ -1,11 +1,3 @@
-/**
- * Proto-aligned Zod schema for kbve.mc.McBlock.
- *
- * Mirrors packages/data/proto/kbve/mc/mc_blocks.proto. Validates frontmatter
- * for content/docs/mc/blocks/<slug>.mdx. Placeable blocks share `ref` with
- * the mc_items.proto MCItem of the same name (item form).
- */
-
 import { z } from 'astro/zod';
 import {
 	MCIdentitySchema,
@@ -13,7 +5,6 @@ import {
 	McBlockToolSchema,
 } from './enums';
 
-// proto: McBlockDrop
 export const McBlockDropSchema = z.object({
 	ref: z.string().min(1),
 	qty_min: z.number().int().nonnegative().default(1),
@@ -23,14 +14,10 @@ export const McBlockDropSchema = z.object({
 });
 export type McBlockDrop = z.infer<typeof McBlockDropSchema>;
 
-/**
- * proto: McBlock — top-level block record.
- */
 export const McBlockSchema = MCIdentitySchema.extend({
 	display_name: z.string().min(1),
 	material: McBlockMaterialSchema,
 
-	// hardness can be -1 for indestructible blocks (bedrock); allow negatives.
 	hardness: z.number(),
 	blast_resistance: z.number().nonnegative(),
 
