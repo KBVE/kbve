@@ -1,5 +1,5 @@
-import { UPGRADE_DEFS } from './config';
-import type { TowerBuilding } from './types';
+import { UPGRADE_DEFS } from '../config';
+import type { TowerBuilding } from '../types';
 
 export function towerRange(t: TowerBuilding): number {
 	return t.spec.range * (1 + t.upgrades.radar * UPGRADE_DEFS.radar.perLevel);

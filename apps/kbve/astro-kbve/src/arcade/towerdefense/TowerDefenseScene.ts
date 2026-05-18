@@ -59,7 +59,7 @@ import {
 	type DroneVisual,
 	type EnemyVisual,
 	type SoldierVisual,
-} from './ecs';
+} from './components';
 import {
 	CARD_POOL,
 	pickThreeCards,
@@ -100,22 +100,22 @@ import {
 	computeAndApplyPower,
 	isPowerConsumer,
 	type PowerConsumer,
-} from './power';
+} from './systems';
 import { planStarterKit } from './starter-kit';
-import {
-	towerBurnDps,
-	towerDamage,
-	towerFireRateMs,
-	towerMaxHp,
-	towerRange,
-} from './tower-stats';
 import {
 	armouryMaxSoldiers,
 	armourySoldierDamage,
 	armourySoldierHp,
 	armourySpawnIntervalMs,
-} from './armoury-stats';
-import { repairAmount, repairCooldownMs, repairRange } from './repair-stats';
+	repairAmount,
+	repairCooldownMs,
+	repairRange,
+	towerBurnDps,
+	towerDamage,
+	towerFireRateMs,
+	towerMaxHp,
+	towerRange,
+} from './stats';
 import type {
 	ArmouryBuilding,
 	BaseBuilding,

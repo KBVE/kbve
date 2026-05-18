@@ -1,5 +1,5 @@
-import { REPAIR_UPGRADE_DEFS } from './config';
-import type { RepairBuilding } from './types';
+import { REPAIR_UPGRADE_DEFS } from '../config';
+import type { RepairBuilding } from '../types';
 
 export function repairRange(b: RepairBuilding): number {
 	return (

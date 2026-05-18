@@ -5,7 +5,7 @@ import type {
 	GeneratorBuilding,
 	RepairBuilding,
 	TowerBuilding,
-} from './types';
+} from '../types';
 
 export interface PowerResult {
 	supply: number;

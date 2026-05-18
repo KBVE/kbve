@@ -1,5 +1,5 @@
-import { ARMOURY_UPGRADE_DEFS } from './config';
-import type { ArmouryBuilding } from './types';
+import { ARMOURY_UPGRADE_DEFS } from '../config';
+import type { ArmouryBuilding } from '../types';
 
 export function armouryMaxSoldiers(a: ArmouryBuilding): number {
 	return (
