@@ -132,7 +132,12 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { generatePath, type GeneratedPath } from './path-generator';
-import { buildingTextureKey, ensureBuildingTextures } from './art/sprite-mint';
+import {
+	buildingTextureKey,
+	ensureBuildingTextures,
+	ensureEnemyTextures,
+	enemyTextureKey,
+} from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
@@ -207,6 +212,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
 	private linePool: Phaser.GameObjects.Line[] = [];
+	private imagePool: Phaser.GameObjects.Image[] = [];
 
 	private freeBasicTowers = 0;
 	private bountyBonusMultiplier = 1;
@@ -286,6 +292,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.rectPool = [];
 		this.graphicsPool = [];
 		this.linePool = [];
+		this.imagePool = [];
 		this.freeBasicTowers = 0;
 		this.bountyBonusMultiplier = 1;
 		this.awaitingCardPick = false;
@@ -325,6 +332,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	create(): void {
 		ensureBuildingTextures(this);
+		ensureEnemyTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.drawGrass();
@@ -1692,7 +1700,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
 			: 0;
 		const radius = TILE * type.sizeRadius;
-		const sprite = this.acquireArc(start.x, start.y, radius, type.color);
+		const sprite = this.acquireImage(
+			start.x,
+			start.y,
+			enemyTextureKey(type.id),
+		);
+		sprite.setScale((radius * 2) / 24);
 		const statusRing = this.acquireGraphics();
 		statusRing.setVisible(false);
 		const ringRadius = radius + 4;
@@ -2289,6 +2302,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private syncTowerFireFrames(nowMs: number): void {
+		const recoilWindow = 150;
+		for (let i = 0; i < this.frameTowerEids.length; i++) {
+			const eid = this.frameTowerEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'tower') continue;
+			const elapsed = nowMs - TowerState.lastFireAtMs[eid];
+			const wantFire = elapsed >= 0 && elapsed < recoilWindow;
+			const desired = wantFire ? 'fire' : 'idle';
+			const desiredKey = buildingTextureKey(b.spec.id, desired);
+			if (b.sprite.texture.key !== desiredKey) {
+				b.sprite.setTexture(desiredKey);
+			}
+		}
+	}
+
 	private findTarget(t: TowerBuilding, nowMs: number): number | null {
 		const range = towerRange(t);
 		if (t.spec.arcHeight > 0 && !t.spec.avoidSlowed) {
@@ -2428,6 +2458,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private releaseLine(line: Phaser.GameObjects.Line): void {
 		line.setActive(false).setVisible(false);
 		this.linePool.push(line);
+	}
+
+	private acquireImage(
+		x: number,
+		y: number,
+		key: string,
+	): Phaser.GameObjects.Image {
+		const pooled = this.imagePool.pop();
+		if (pooled) {
+			pooled.setPosition(x, y).setTexture(key).setOrigin(0.5).clearTint();
+			pooled.setActive(true).setVisible(true).setAlpha(1).setScale(1);
+			return pooled;
+		}
+		return this.add.image(x, y, key).setOrigin(0.5);
+	}
+
+	private releaseImage(img: Phaser.GameObjects.Image): void {
+		img.clearTint();
+		img.setActive(false).setVisible(false);
+		this.imagePool.push(img);
 	}
 
 	private fireAt(
@@ -2845,7 +2895,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
-		this.releaseArc(v.sprite);
+		this.releaseImage(v.sprite);
 		this.releaseGraphics(v.statusRing);
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
@@ -2938,6 +2988,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateBurnPatches(dt, nowMs);
 		this.updateEnemies(dt, nowMs);
 		this.updateTowers(nowMs);
+		this.syncTowerFireFrames(nowMs);
 		this.updateProjectiles(dt, nowMs);
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
