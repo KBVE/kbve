@@ -60,21 +60,29 @@ import {
 	AURA_KIND,
 	AuraEmitter,
 	AuraEmitterTag,
+	Armor,
+	ArmorTag,
 	clearStatus,
 	DAMAGE_FLAG,
 	DAMAGE_TYPE,
-	DAMAGEABLE_KIND,
-	Damageable,
-	DamageableTag,
 	DeadTag,
+	Defense,
+	DefenseTag,
+	Health,
+	HealthTag,
 	ImmobileTag,
 	hasStatus,
+	initArmor,
 	initAura,
-	initDamageable,
+	initDefense,
+	initHealth,
 	initMovement,
+	initResistance,
 	Movement,
 	MovementTag,
 	resistForType,
+	Resistance,
+	ResistanceTag,
 	STATUS_KIND,
 	statusExpiresAt,
 	statusExtra,
@@ -1206,10 +1214,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const dmg = towerDamage(b).toFixed(0);
 			const rate = (towerFireRateMs(b) / 1000).toFixed(2);
 			const rng = towerRange(b).toFixed(0);
-			const hp = `${Math.floor(Damageable.hp[b.id])}/${towerMaxHp(b)}`;
+			const hp = `${Math.floor(Health.hp[b.id])}/${towerMaxHp(b)}`;
 			return `DMG ${dmg} · RATE ${rate}s · RNG ${rng} · HP ${hp}`;
 		}
-		const hpText = `${Math.floor(Damageable.hp[b.id])}/${Damageable.maxHp[b.id]}`;
+		const hpText = `${Math.floor(Health.hp[b.id])}/${Health.maxHp[b.id]}`;
 		if (b.kind === 'generator') {
 			return `OUTPUT +${b.spec.power}⚡ · HP ${hpText}`;
 		}
@@ -1233,13 +1241,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const prevMaxHp = towerMaxHp(tower);
 		TowerUpgradeStats[kind][tower.id] = lvl + 1;
 		const newMaxHp = towerMaxHp(tower);
-		Damageable.maxHp[tower.id] = newMaxHp;
-		const currentHp = Damageable.hp[tower.id];
+		Health.maxHp[tower.id] = newMaxHp;
+		const currentHp = Health.hp[tower.id];
 		if (kind === 'armor') {
 			const delta = newMaxHp - prevMaxHp;
-			Damageable.hp[tower.id] = Math.min(newMaxHp, currentHp + delta);
+			Health.hp[tower.id] = Math.min(newMaxHp, currentHp + delta);
 		} else {
-			Damageable.hp[tower.id] = Math.min(currentHp, newMaxHp);
+			Health.hp[tower.id] = Math.min(currentHp, newMaxHp);
 		}
 		this.redrawUpgradePips(tower);
 		this.refreshHud();
@@ -1438,15 +1446,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const buildingArmor = Math.floor(
 			spec.maxHp * GAME_CONFIG.armorBuildingRatio,
 		);
-		addComponent(this.world, eid, DamageableTag);
-		addComponent(this.world, eid, Damageable);
-		initDamageable(
-			eid,
-			spec.maxHp,
-			buildingArmor,
-			spec.defense,
-			DAMAGEABLE_KIND.building,
-		);
+		this.addDamageable(eid, spec.maxHp, buildingArmor, spec.defense);
 		BuildingState.online[eid] = 1;
 		BuildingState.destroyed[eid] = 0;
 		BuildingState.col[eid] = col;
@@ -1648,8 +1648,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (BuildingState.destroyed[eid]) continue;
 			const b = this.buildingByEid.get(eid);
 			if (!b) continue;
-			const hp = Damageable.hp[eid];
-			const maxHp = Damageable.maxHp[eid];
+			const hp = Health.hp[eid];
+			const maxHp = Health.maxHp[eid];
 			if (hp < maxHp) {
 				b.hpBar.setVisible(true);
 				b.hpBarBg.setVisible(true);
@@ -1658,8 +1658,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
 			}
-			const armor = Damageable.armor[eid];
-			const maxArmor = Damageable.maxArmor[eid];
+			const armor = Armor.armor[eid];
+			const maxArmor = Armor.maxArmor[eid];
 			if (maxArmor > 0 && armor < maxArmor) {
 				b.armorBar.setVisible(true);
 				b.armorBarBg.setVisible(true);
@@ -1807,15 +1807,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.x[eid] = start.x;
 		Position.y[eid] = start.y;
 		const enemyArmor = Math.floor(hp * GAME_CONFIG.armorEnemyRatio);
-		addComponent(this.world, eid, DamageableTag);
-		addComponent(this.world, eid, Damageable);
-		initDamageable(
-			eid,
-			hp,
-			enemyArmor,
-			type.defense,
-			DAMAGEABLE_KIND.enemy,
-		);
+		this.addDamageable(eid, hp, enemyArmor, type.defense);
 		EnemyStats.baseSpeed[eid] = speed;
 		addComponent(this.world, eid, MovementTag);
 		addComponent(this.world, eid, Movement);
@@ -1907,52 +1899,71 @@ export class TowerDefenseScene extends Phaser.Scene {
 		type: number = DAMAGE_TYPE.kinetic,
 		flags: number = DAMAGE_FLAG.none,
 	): void {
-		if (Damageable.hp[targetEid] <= 0) return;
+		if (Health.hp[targetEid] <= 0) return;
 		let remaining = amount * resistForType(targetEid, type);
 		if (remaining <= 0) return;
 		if ((flags & DAMAGE_FLAG.ignoresArmor) === 0) {
-			const armor = Damageable.armor[targetEid];
+			const armor = Armor.armor[targetEid];
 			if (armor > 0) {
 				if (remaining <= armor) {
-					Damageable.armor[targetEid] = armor - remaining;
+					Armor.armor[targetEid] = armor - remaining;
 					remaining = 0;
 				} else {
-					Damageable.armor[targetEid] = 0;
+					Armor.armor[targetEid] = 0;
 					remaining -= armor;
 				}
 			}
 		}
 		if (remaining > 0) {
-			const defense = Damageable.defense[targetEid];
+			const defense = Defense.defense[targetEid];
 			const reduced = Math.max(1, remaining - defense);
-			Damageable.hp[targetEid] -= reduced;
+			Health.hp[targetEid] -= reduced;
 		}
-		if (Damageable.hp[targetEid] <= 0) {
+		if (Health.hp[targetEid] <= 0) {
 			if (!hasComponent(this.world, targetEid, DeadTag)) {
 				addComponent(this.world, targetEid, DeadTag);
 			}
-			const kind = Damageable.kind[targetEid];
-			if (kind === DAMAGEABLE_KIND.enemy) {
+			if (hasComponent(this.world, targetEid, EnemyTag)) {
 				this.killEnemy(targetEid, true);
-			} else if (kind === DAMAGEABLE_KIND.soldier) {
+			} else if (hasComponent(this.world, targetEid, SoldierTag)) {
 				this.killSoldier(targetEid);
-			} else if (kind === DAMAGEABLE_KIND.building) {
+			} else if (hasComponent(this.world, targetEid, BuildingTag)) {
 				const b = this.buildingByEid.get(targetEid);
 				if (b) this.destroyBuilding(b);
 			}
 		}
 	}
 
+	private addDamageable(
+		eid: number,
+		hp: number,
+		armor: number,
+		defense: number,
+	): void {
+		addComponent(this.world, eid, HealthTag);
+		addComponent(this.world, eid, Health);
+		initHealth(eid, hp);
+		addComponent(this.world, eid, ArmorTag);
+		addComponent(this.world, eid, Armor);
+		initArmor(eid, armor);
+		addComponent(this.world, eid, DefenseTag);
+		addComponent(this.world, eid, Defense);
+		initDefense(eid, defense);
+		addComponent(this.world, eid, ResistanceTag);
+		addComponent(this.world, eid, Resistance);
+		initResistance(eid);
+	}
+
 	private damageBuilding(b: Building, dmg: number): void {
 		this.applyDamage(b.id, dmg, DAMAGE_TYPE.kinetic, DAMAGE_FLAG.none);
-		if (Damageable.hp[b.id] > 0) this.flashSprite(b.sprite, 0xffffff);
+		if (Health.hp[b.id] > 0) this.flashSprite(b.sprite, 0xffffff);
 	}
 
 	private destroyBuilding(b: Building): void {
 		if (BuildingState.destroyed[b.id]) return;
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
-		Damageable.hp[b.id] = 0;
+		Health.hp[b.id] = 0;
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
@@ -2035,9 +2046,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.x[eid] = x;
 		Position.y[eid] = y;
 		const hp = GAME_CONFIG.allyHp;
-		addComponent(this.world, eid, DamageableTag);
-		addComponent(this.world, eid, Damageable);
-		initDamageable(eid, hp, 0, 0, DAMAGEABLE_KIND.soldier);
+		this.addDamageable(eid, hp, 0, 0);
 		SoldierStats.speed[eid] = GAME_CONFIG.allySpeed;
 		SoldierStats.attackDamage[eid] = GAME_CONFIG.allyDamage;
 		SoldierStats.attackRateMs[eid] = GAME_CONFIG.allyAttackRateMs;
@@ -2167,9 +2176,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		Position.x[eid] = armoury.x;
 		Position.y[eid] = armoury.y;
 		const hp = armourySoldierHp(armoury);
-		addComponent(this.world, eid, DamageableTag);
-		addComponent(this.world, eid, Damageable);
-		initDamageable(eid, hp, 0, 0, DAMAGEABLE_KIND.soldier);
+		this.addDamageable(eid, hp, 0, 0);
 		SoldierStats.speed[eid] = armoury.spec.soldierSpeed;
 		SoldierStats.attackDamage[eid] = armourySoldierDamage(armoury);
 		SoldierStats.attackRateMs[eid] = armoury.spec.soldierAttackRateMs;
@@ -2226,7 +2233,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private damageSoldier(eid: number, dmg: number): void {
 		if (!this.soldierVisuals.has(eid)) return;
 		this.applyDamage(eid, dmg, DAMAGE_TYPE.kinetic, DAMAGE_FLAG.none);
-		if (Damageable.hp[eid] > 0) {
+		if (Health.hp[eid] > 0) {
 			const v = this.soldierVisuals.get(eid);
 			if (v) this.flashSprite(v.sprite, 0xffffff);
 		}
@@ -2253,7 +2260,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateSoldiers(dt: number, nowMs: number): void {
 		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
-			if (Damageable.hp[seid] <= 0) {
+			if (Health.hp[seid] <= 0) {
 				this.killSoldier(seid);
 				continue;
 			}
@@ -2263,8 +2270,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
 			}
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
-				const hp = Damageable.hp[seid];
-				const maxHp = Damageable.maxHp[seid];
+				const hp = Health.hp[seid];
+				const maxHp = Health.maxHp[seid];
 				if (hp < maxHp) {
 					const armouryEid = SoldierStats.armouryEid[seid];
 					const armoury =
@@ -2284,7 +2291,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 						const healRange =
 							TILE * GAME_CONFIG.soldierHealRangeRatio;
 						if (dist <= healRange) {
-							Damageable.hp[seid] = Math.min(
+							Health.hp[seid] = Math.min(
 								maxHp,
 								hp + GAME_CONFIG.soldierHealPerSec * dt,
 							);
@@ -2338,8 +2345,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[seid];
 		const y = Position.y[seid];
 		v.sprite.setPosition(x, y);
-		const hp = Damageable.hp[seid];
-		const maxHp = Damageable.maxHp[seid];
+		const hp = Health.hp[seid];
+		const maxHp = Health.maxHp[seid];
 		if (hp < maxHp) {
 			const barWidth = TILE * 0.5;
 			v.hpBarBg.setVisible(true);
@@ -2356,8 +2363,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemies(dt: number, nowMs: number): void {
 		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
-			const hpCheck = Damageable.hp[eid];
-			const maxHpCheck = Damageable.maxHp[eid];
+			const hpCheck = Health.hp[eid];
+			const maxHpCheck = Health.maxHp[eid];
 			if (
 				hpCheck <= 0 ||
 				!Number.isFinite(hpCheck) ||
@@ -2375,7 +2382,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 						DAMAGE_TYPE.fire,
 						DAMAGE_FLAG.ignoresArmor,
 					);
-					if (Damageable.hp[eid] <= 0) continue;
+					if (Health.hp[eid] <= 0) continue;
 				}
 			}
 
@@ -2443,8 +2450,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private recomputeEnemyMovement(eid: number, nowMs: number): void {
 		const baseSpeed = Movement.baseSpeed[eid];
-		const maxHp = Damageable.maxHp[eid];
-		const hp = Damageable.hp[eid];
+		const maxHp = Health.maxHp[eid];
+		const hp = Health.hp[eid];
 		let wounded = 1;
 		if (hp <= 0 || !Number.isFinite(hp) || !Number.isFinite(maxHp)) {
 			wounded = 0;
@@ -2503,8 +2510,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = Position.x[eid];
 		const y = Position.y[eid];
 		v.sprite.setPosition(x, y);
-		const hpEnemy = Damageable.hp[eid];
-		const maxHpEnemy = Damageable.maxHp[eid];
+		const hpEnemy = Health.hp[eid];
+		const maxHpEnemy = Health.maxHp[eid];
 		if (hpEnemy < maxHpEnemy) {
 			v.hpBarBg.setVisible(true);
 			v.hpBar.setVisible(true);
@@ -2908,7 +2915,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (splashRadius > 0) {
 			this.forEachEnemyInRange(x, y, splashRadius, (id) => {
 				this.applyDamage(id, damage, dmgType, DAMAGE_FLAG.none);
-				if (Damageable.hp[id] > 0) {
+				if (Health.hp[id] > 0) {
 					const v = this.enemyVisuals.get(id);
 					if (v) this.flashSprite(v.sprite, 0xffffff);
 				}
@@ -2919,7 +2926,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const targetEid = ProjectileStats.enemyEid[eid];
 		if (this.isEnemyAlive(targetEid)) {
 			this.applyDamage(targetEid, damage, dmgType, DAMAGE_FLAG.none);
-			if (Damageable.hp[targetEid] > 0) {
+			if (Health.hp[targetEid] > 0) {
 				const v = this.enemyVisuals.get(targetEid);
 				if (v) this.flashSprite(v.sprite, 0xffffff);
 			}
@@ -2938,7 +2945,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private damageEnemy(eid: number, dmg: number): void {
 		this.applyDamage(eid, dmg, DAMAGE_TYPE.kinetic, DAMAGE_FLAG.none);
-		if (Damageable.hp[eid] <= 0) return;
+		if (Health.hp[eid] <= 0) return;
 		const v = this.enemyVisuals.get(eid);
 		if (v) this.flashSprite(v.sprite, 0xffffff);
 	}
@@ -3060,17 +3067,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				Position.y[deid] = destY;
 				if (DroneStats.state[deid] === DroneState.Outbound) {
 					let heal = DroneStats.repairAmount[deid];
-					const armorRoom =
-						Damageable.maxArmor[tEid] - Damageable.armor[tEid];
+					const armorRoom = Armor.maxArmor[tEid] - Armor.armor[tEid];
 					if (armorRoom > 0) {
 						const addArmor = heal < armorRoom ? heal : armorRoom;
-						Damageable.armor[tEid] += addArmor;
+						Armor.armor[tEid] += addArmor;
 						heal -= addArmor;
 					}
 					if (heal > 0) {
-						Damageable.hp[tEid] = Math.min(
-							Damageable.maxHp[tEid],
-							Damageable.hp[tEid] + heal,
+						Health.hp[tEid] = Math.min(
+							Health.maxHp[tEid],
+							Health.hp[tEid] + heal,
 						);
 					}
 					DroneStats.state[deid] = DroneState.Returning;
@@ -3130,10 +3136,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const typeName = ENEMY_TYPE_INDEX[typeIndex] ?? 'unknown';
 		const speed = Movement.speed[bestEid];
 		const baseSpeed = Movement.baseSpeed[bestEid];
-		const hp = Damageable.hp[bestEid];
-		const maxHp = Damageable.maxHp[bestEid];
-		const armor = Damageable.armor[bestEid];
-		const maxArmor = Damageable.maxArmor[bestEid];
+		const hp = Health.hp[bestEid];
+		const maxHp = Health.maxHp[bestEid];
+		const armor = Armor.armor[bestEid];
+		const maxArmor = Armor.maxArmor[bestEid];
 		const immobile = baseSpeed > 0 && speed <= 0;
 		const dead = hp <= 0;
 		const cam = this.cameras.main;
@@ -3156,14 +3162,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private deathSystem(): void {
-		for (const eid of query(this.world, [DamageableTag])) {
-			if (Damageable.hp[eid] > 0) continue;
-			const kind = Damageable.kind[eid];
-			if (kind === DAMAGEABLE_KIND.enemy) {
+		for (const eid of query(this.world, [HealthTag])) {
+			if (Health.hp[eid] > 0) continue;
+			if (!hasComponent(this.world, eid, DeadTag)) {
+				addComponent(this.world, eid, DeadTag);
+			}
+			if (hasComponent(this.world, eid, EnemyTag)) {
 				if (this.enemyVisuals.has(eid)) this.killEnemy(eid, false);
-			} else if (kind === DAMAGEABLE_KIND.soldier) {
+			} else if (hasComponent(this.world, eid, SoldierTag)) {
 				if (this.soldierVisuals.has(eid)) this.killSoldier(eid);
-			} else if (kind === DAMAGEABLE_KIND.building) {
+			} else if (hasComponent(this.world, eid, BuildingTag)) {
 				if (BuildingState.destroyed[eid]) continue;
 				const b = this.buildingByEid.get(eid);
 				if (b) this.destroyBuilding(b);
@@ -3183,7 +3191,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const eid of query(this.world, [AuraEmitterTag, Position])) {
 			if (nowMs < AuraEmitter.nextTickAtMs[eid]) continue;
 			if (
-				Damageable.kind[eid] === DAMAGEABLE_KIND.building &&
+				hasComponent(this.world, eid, BuildingTag) &&
 				(BuildingState.destroyed[eid] || !BuildingState.online[eid])
 			) {
 				AuraEmitter.nextTickAtMs[eid] =
@@ -3205,14 +3213,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				for (const beid of this.frameBuildingEids) {
 					if (beid === eid) continue;
 					if (BuildingState.destroyed[beid]) continue;
-					const max = Damageable.maxArmor[beid];
-					const cur = Damageable.armor[beid];
+					const max = Armor.maxArmor[beid];
+					const cur = Armor.armor[beid];
 					if (cur >= max) continue;
 					const dx = Position.x[beid] - sx;
 					const dy = Position.y[beid] - sy;
 					if (dx * dx + dy * dy > rangeSq) continue;
 					const room = max - cur;
-					Damageable.armor[beid] =
+					Armor.armor[beid] =
 						cur + (magnitude < room ? magnitude : room);
 				}
 			}
@@ -3228,8 +3236,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const b = this.buildingByEid.get(beid);
 			if (!b || BuildingState.destroyed[b.id]) continue;
 			if (b === station) continue;
-			const hp = Damageable.hp[b.id];
-			const maxHp = Damageable.maxHp[b.id];
+			const hp = Health.hp[b.id];
+			const maxHp = Health.maxHp[b.id];
 			if (hp >= maxHp) continue;
 			const dx = b.x - station.x;
 			const dy = b.y - station.y;
@@ -3479,7 +3487,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private healAllBuildings(): void {
 		for (const eid of query(this.world, [BuildingTag])) {
 			if (BuildingState.destroyed[eid]) continue;
-			Damageable.hp[eid] = Damageable.maxHp[eid];
+			Health.hp[eid] = Health.maxHp[eid];
 		}
 	}
 
@@ -3498,12 +3506,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 						const prevMaxHp = towerMaxHp(tower);
 						TowerUpgradeStats[k][tower.id] += 1;
 						const newMaxHp = towerMaxHp(tower);
-						Damageable.maxHp[tower.id] = newMaxHp;
+						Health.maxHp[tower.id] = newMaxHp;
 						if (k === 'armor') {
 							const delta = newMaxHp - prevMaxHp;
-							Damageable.hp[tower.id] = Math.min(
+							Health.hp[tower.id] = Math.min(
 								newMaxHp,
-								Damageable.hp[tower.id] + delta,
+								Health.hp[tower.id] + delta,
 							);
 						}
 						this.redrawUpgradePips(tower);
