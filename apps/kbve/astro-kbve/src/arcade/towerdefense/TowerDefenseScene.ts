@@ -1792,6 +1792,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
+		hpBar.setVisible(false);
+		hpBarBg.setVisible(false);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, EnemyTag);
@@ -2345,8 +2347,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemies(dt: number, nowMs: number): void {
 		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
-			if (Damageable.hp[eid] <= 0) {
-				this.killEnemy(eid, false);
+			const hpCheck = Damageable.hp[eid];
+			const maxHpCheck = Damageable.maxHp[eid];
+			if (
+				hpCheck <= 0 ||
+				!Number.isFinite(hpCheck) ||
+				(maxHpCheck > 0 && hpCheck <= maxHpCheck * 0.05)
+			) {
+				this.killEnemy(eid, true);
 				continue;
 			}
 			if (hasStatus(eid, STATUS_KIND.burn, nowMs)) {
@@ -2429,13 +2437,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const maxHp = Damageable.maxHp[eid];
 		const hp = Damageable.hp[eid];
 		let wounded = 1;
-		if (hp <= 0) {
+		if (hp <= 0 || !Number.isFinite(hp) || !Number.isFinite(maxHp)) {
 			wounded = 0;
 		} else if (maxHp > 0) {
 			const hpRatio = hp / maxHp;
-			if (hpRatio < 0.5) {
-				wounded = hpRatio <= 0.2 ? 0 : ((hpRatio - 0.2) / 0.3) * 0.85;
-			}
+			if (hpRatio <= 0.3) wounded = 0;
+			else if (hpRatio < 0.5) wounded = ((hpRatio - 0.3) / 0.2) * 0.85;
 		}
 		const slow = hasStatus(eid, STATUS_KIND.slow, nowMs)
 			? statusMagnitude(eid, STATUS_KIND.slow)
