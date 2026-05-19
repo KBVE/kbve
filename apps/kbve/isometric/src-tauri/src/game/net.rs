@@ -1465,6 +1465,11 @@ fn receive_object_removed(
                     // Insert animation — loot_dropped=true since loot is handled above
                     match msg.kind {
                         bevy_kbve_net::WorldObjectKind::Tree => {
+                            // Wind sway would clobber the fall rotation each
+                            // tick; drop it so chop animation owns transform.
+                            commands
+                                .entity(obj_entity)
+                                .remove::<super::trees::TreeWindSway>();
                             let angle = (tx as f32 * 1.618 + tz as f32 * 2.71)
                                 % (2.0 * std::f32::consts::PI);
                             let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();

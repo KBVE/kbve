@@ -223,6 +223,11 @@ fn process_action_buffer(
                 ec.remove::<Collider>();
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();
+                // animate_tree_wind keeps overwriting transform.rotation every
+                // tick, which clobbers the fall rotation that animate_tree_chop
+                // writes — the tree appears stuck upright. Drop the sway so the
+                // chop animation is the only writer.
+                ec.remove::<super::trees::TreeWindSway>();
 
                 ec.insert(ChoppingTree {
                     timer: Timer::from_seconds(1.0, TimerMode::Once),
