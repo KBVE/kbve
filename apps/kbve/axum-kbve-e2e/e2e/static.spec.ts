@@ -31,6 +31,15 @@ describe('Static file serving', () => {
 		}
 	});
 
+	it('serves favicon.ico from the static dist root', async () => {
+		const res = await fetch(`${BASE_URL}/favicon.ico`);
+		expect(res.status).toBe(200);
+		const contentType = res.headers.get('content-type') ?? '';
+		expect(contentType).toMatch(/image\/(x-icon|vnd\.microsoft\.icon|png)/);
+		const body = await res.arrayBuffer();
+		expect(body.byteLength).toBeGreaterThan(0);
+	});
+
 	it('returns 404 for non-existent static paths', async () => {
 		const res = await fetch(
 			`${BASE_URL}/definitely-not-a-real-page-12345.html`,
