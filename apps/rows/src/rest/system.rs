@@ -146,15 +146,14 @@ async fn active_players(
 ) -> Json<serde_json::Value> {
     let customer_guid = crate::middleware::extract_customer_guid(&headers);
 
-    // Query: sessions joined with characters and map instances
-    let rows: Vec<(String, String, Option<String>, Option<i32>)> = sqlx::query_as(
+    let rows: Vec<(String, String, Option<String>, i32)> = sqlx::query_as(
         "SELECT c.charname, us.usersessionguid::text,
                 m.zonename, cmi.mapinstanceid
          FROM usersessions us
          JOIN characters c ON c.userguid = us.userguid
             AND c.customerguid = us.customerguid
             AND c.charname = us.selectedcharactername
-         LEFT JOIN charonmapinstance cmi ON cmi.characterid = c.characterid
+         JOIN charonmapinstance cmi ON cmi.characterid = c.characterid
             AND cmi.customerguid = c.customerguid
          LEFT JOIN mapinstances mi ON mi.mapinstanceid = cmi.mapinstanceid
             AND mi.customerguid = cmi.customerguid
