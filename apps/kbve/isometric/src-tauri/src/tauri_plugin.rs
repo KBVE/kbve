@@ -203,7 +203,12 @@ mod desktop {
         app.cleanup();
     }
 
-    /// Forward Tauri window events to Bevy.
+    /// Forward Tauri window-level events. Mouse + keyboard are NOT visible
+    /// here — Tauri's WindowEvent enum only exposes high-level lifecycle
+    /// events (resize, focus, scale change) because the webview consumes the
+    /// raw pointer/key stream. Native input forwarding lives in
+    /// `crate::commands::forward_pointer_event` etc., which JS captures off
+    /// the webview's DOM and invokes via tauri::generate_handler!.
     fn handle_window_event(event: &tauri::WindowEvent, app: &mut App) {
         if let tauri::WindowEvent::Resized(size) = event {
             let world = app.world_mut();

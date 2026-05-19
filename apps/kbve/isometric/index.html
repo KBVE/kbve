@@ -13,7 +13,10 @@
             }
             html,
             body {
-                background: #1a1a26;
+                /* Transparent so the underlying wgpu surface (Bevy render in
+                 * Tauri's native webview) shows through. The browser/WASM
+                 * path covers this with the bevy-canvas element anyway. */
+                background: transparent;
                 overflow: hidden;
                 width: 100%;
                 height: 100%;
@@ -49,17 +52,28 @@
         <script src="bug-report-shim.js"></script>
         <script src="safari-shim.js"></script>
         <script>
-            // Auto-focus the Bevy canvas so keyboard events reach winit.
-            // Re-focus after any click on the page (React buttons steal focus).
-            document.addEventListener('pointerup', function() {
+            // Native Tauri build renders Bevy directly to the webview's wgpu
+            // surface (no canvas attachment). The bevy-canvas element + body
+            // would otherwise eat clicks before tao forwards them to Bevy.
+            // Detect Tauri and make the DOM click-through; React UI children
+            // opt back in via pointer-events: auto when needed.
+            if (window.__TAURI_INTERNALS__ || window.__TAURI__) {
+                document.documentElement.style.pointerEvents = 'none';
+                document.body.style.pointerEvents = 'none';
                 var c = document.getElementById('bevy-canvas');
-                if (c && document.activeElement !== c) c.focus();
-            });
-            // Focus on first keydown if canvas isn't focused
-            document.addEventListener('keydown', function() {
-                var c = document.getElementById('bevy-canvas');
-                if (c && document.activeElement !== c) c.focus();
-            });
+                if (c) c.style.pointerEvents = 'none';
+            } else {
+                // WASM browser build keeps the canvas focused so winit's web
+                // backend receives keyboard events.
+                document.addEventListener('pointerup', function() {
+                    var c = document.getElementById('bevy-canvas');
+                    if (c && document.activeElement !== c) c.focus();
+                });
+                document.addEventListener('keydown', function() {
+                    var c = document.getElementById('bevy-canvas');
+                    if (c && document.activeElement !== c) c.focus();
+                });
+            }
         </script>
         <script type="module" src="/src/main.tsx"></script>
     </body>
