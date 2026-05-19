@@ -134,7 +134,10 @@ import {
 	enemyHoverAtom,
 	freeTowersAtom,
 	gameOverAtom,
+	gameStateAtom,
+	gameStatsAtom,
 	goldAtom,
+	playRequestSignalAtom,
 	inventoryAtom,
 	inventoryOpenAtom,
 	livesAtom,
@@ -252,6 +255,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private spawnAccumulatorMs = 0;
 	private interWaveDelayMs = 0;
 	private isGameOver = false;
+	private statGoldEarned = 0;
+	private statEnemiesKilled = 0;
+	private statBossesKilled = 0;
+	private statBuildingsBuilt = 0;
+	private lastPlayRequestN = 0;
 
 	private hudUnsubs: Array<() => void> = [];
 	private lastSkipSignal = 0;
@@ -331,6 +339,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.spawnAccumulatorMs = 0;
 		this.interWaveDelayMs = 0;
 		this.isGameOver = false;
+		this.statGoldEarned = 0;
+		this.statEnemiesKilled = 0;
+		this.statBossesKilled = 0;
+		this.statBuildingsBuilt = 0;
+		this.lastPlayRequestN = playRequestSignalAtom.get();
 		this.upgradePanel = null;
 		this.upgradeTarget = null;
 		this.upgradeRangeIndicator = null;
@@ -496,6 +509,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (!s.id || this.isGameOver) return;
 			this.consumeInventoryItem(s.id);
 		});
+		const playRequestUnsub = playRequestSignalAtom.subscribe((v) => {
+			if (v === this.lastPlayRequestN) return;
+			this.lastPlayRequestN = v;
+			gameStateAtom.set('playing');
+			gameStatsAtom.set(null);
+			this.scene.restart();
+		});
 		this.hudUnsubs.push(
 			skipUnsub,
 			restartUnsub,
@@ -503,6 +523,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			cardPickUnsub,
 			cardSkipUnsub,
 			useItemUnsub,
+			playRequestUnsub,
 		);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			for (const u of this.hudUnsubs) u();
@@ -818,6 +839,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.gold -= spec.cost;
 		}
 		this.spawnBuilding(selectedBuildAtom.get(), col, row, cx, cy);
+		this.statBuildingsBuilt += 1;
 		this.recomputePower(0);
 		this.refreshHud();
 	}
@@ -3417,11 +3439,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
 		if (reward) {
-			this.gold += Math.round(
+			const award = Math.round(
 				GAME_CONFIG.goldPerKill *
 					EnemyStats.bountyMultiplier[eid] *
 					this.bountyBonusMultiplier,
 			);
+			this.gold += award;
+			this.statGoldEarned += award;
+			this.statEnemiesKilled += 1;
+			if (EnemyStats.typeIndex[eid] === enemyTypeIndexFromId('boss')) {
+				this.statBossesKilled += 1;
+			}
 		}
 		this.removeEntityQueue.push(eid);
 	}
@@ -3443,9 +3471,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 			bestBefore: previousBest,
 			newRecord,
 		});
+		gameStatsAtom.set({
+			win,
+			wave: this.wave,
+			livesLeft: Math.max(0, this.lives),
+			goldEarned: this.statGoldEarned,
+			enemiesKilled: this.statEnemiesKilled,
+			bossesKilled: this.statBossesKilled,
+			buildingsBuilt: this.statBuildingsBuilt,
+			bestBefore: previousBest,
+			newRecord,
+		});
+		gameStateAtom.set('gameover');
 	}
 
 	update(_time: number, deltaMs: number): void {
+		if (gameStateAtom.get() !== 'playing') return;
 		if (this.isGameOver) return;
 		if (this.awaitingCardPick) {
 			this.refreshHud();

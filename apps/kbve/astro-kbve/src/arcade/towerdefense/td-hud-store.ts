@@ -94,6 +94,23 @@ export interface EnemyHoverInfo {
 }
 export const enemyHoverAtom = atom<EnemyHoverInfo | null>(null);
 
+export type GameState = 'title' | 'playing' | 'gameover';
+export const gameStateAtom = atom<GameState>('title');
+
+export interface GameStats {
+	win: boolean;
+	wave: number;
+	livesLeft: number;
+	goldEarned: number;
+	enemiesKilled: number;
+	bossesKilled: number;
+	buildingsBuilt: number;
+	bestBefore: number;
+	newRecord: boolean;
+}
+export const gameStatsAtom = atom<GameStats | null>(null);
+export const playRequestSignalAtom = atom(0);
+
 export function resetHudStore(): void {
 	goldAtom.set(0);
 	livesAtom.set(0);
@@ -126,4 +143,5 @@ export function resetHudStore(): void {
 	useItemSignalAtom.set({ id: null, n: useItemSignalAtom.get().n });
 	pendingItemTargetAtom.set(null);
 	enemyHoverAtom.set(null);
+	gameStatsAtom.set(null);
 }

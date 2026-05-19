@@ -19,7 +19,10 @@ import {
 	inventoryOpenAtom,
 	livesAtom,
 	enemyHoverAtom,
+	gameStateAtom,
+	gameStatsAtom,
 	pendingItemTargetAtom,
+	playRequestSignalAtom,
 	nextWavePreviewAtom,
 	restartSignalAtom,
 	selectedBuildAtom,
@@ -572,10 +575,113 @@ function CardModal() {
 	);
 }
 
+function TitleScreen() {
+	const state = useStore(gameStateAtom);
+	const best = useStore(bestWaveAtom);
+	if (state !== 'title') return null;
+	const onPlay = () => {
+		playRequestSignalAtom.set(playRequestSignalAtom.get() + 1);
+	};
+	return (
+		<div className="td-title">
+			<div className="td-title-card">
+				<div className="td-title-eyebrow">KBVE Arcade</div>
+				<div className="td-title-name">TOWER DEFENSE</div>
+				<div className="td-title-tag">
+					Hold the line. Build, upgrade, survive the swarm.
+				</div>
+				<button
+					type="button"
+					className="td-title-play"
+					onClick={onPlay}>
+					Play
+				</button>
+				<div className="td-title-best">
+					{best > 0 ? `Best run: wave ${best}` : 'No runs yet'}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function GameOverRecap() {
+	const state = useStore(gameStateAtom);
+	const stats = useStore(gameStatsAtom);
+	const best = useStore(bestWaveAtom);
+	if (state !== 'gameover' || !stats) return null;
+	const accent = stats.win || stats.newRecord ? '#48bb78' : '#fc8181';
+	const style = { '--td-accent': accent } as CSSProperties;
+	const onTitle = () => {
+		gameStateAtom.set('title');
+	};
+	const onReplay = () => {
+		playRequestSignalAtom.set(playRequestSignalAtom.get() + 1);
+	};
+	return (
+		<div className="td-over" style={style}>
+			<div className="td-over-card">
+				<div className="td-over-eyebrow">
+					{stats.win ? 'Mission Complete' : 'Mission Failed'}
+				</div>
+				<div className="td-over-title">
+					{stats.win ? 'VICTORY' : 'DEFEAT'}
+				</div>
+				<div className="td-over-sub">
+					Cleared {stats.wave} {stats.wave === 1 ? 'wave' : 'waves'}
+				</div>
+				<div className="td-recap-grid">
+					<div className="td-recap-row">
+						<span>Enemies killed</span>
+						<span>{stats.enemiesKilled}</span>
+					</div>
+					<div className="td-recap-row">
+						<span>Bosses killed</span>
+						<span>{stats.bossesKilled}</span>
+					</div>
+					<div className="td-recap-row">
+						<span>Buildings built</span>
+						<span>{stats.buildingsBuilt}</span>
+					</div>
+					<div className="td-recap-row">
+						<span>Gold earned</span>
+						<span>{stats.goldEarned}</span>
+					</div>
+					<div className="td-recap-row">
+						<span>Lives remaining</span>
+						<span>{stats.livesLeft}</span>
+					</div>
+				</div>
+				{stats.newRecord ? (
+					<div className="td-over-record">
+						🏆 New best — beat {stats.bestBefore}
+					</div>
+				) : (
+					<div className="td-over-record-dim">Best: wave {best}</div>
+				)}
+				<div className="td-over-actions">
+					<button
+						type="button"
+						className="td-over-restart"
+						onClick={onReplay}>
+						Play Again
+					</button>
+					<button
+						type="button"
+						className="td-over-title-btn"
+						onClick={onTitle}>
+						Title Screen
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 function GameOverOverlay() {
 	const state = useStore(gameOverAtom);
 	const best = useStore(bestWaveAtom);
-	if (!state.visible) return null;
+	const flow = useStore(gameStateAtom);
+	if (!state.visible || flow === 'gameover') return null;
 	const accent = state.win || state.newRecord ? '#48bb78' : '#fc8181';
 	const style = { '--td-accent': accent } as CSSProperties;
 	return (
@@ -647,6 +753,8 @@ export default function TdHud() {
 			<EnemyTooltip />
 			<CardModal />
 			<GameOverOverlay />
+			<GameOverRecap />
+			<TitleScreen />
 		</div>
 	);
 }
