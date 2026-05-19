@@ -12,14 +12,15 @@ mod desktop {
     use std::time::{Duration, Instant};
     use tauri::{Manager, RunEvent};
 
-    use crate::game::pixelate::PixelatePlugin;
     use crate::renderer::CustomRendererPlugin;
 
     type BuilderFn =
         Box<dyn FnOnce(tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> + Send>;
+    type PostRenderFn = Box<dyn FnOnce(&mut App) + Send>;
 
     pub struct TauriPlugin {
         builder_fn: Mutex<Option<BuilderFn>>,
+        post_render_fn: Mutex<Option<PostRenderFn>>,
     }
 
     impl TauriPlugin {
@@ -29,7 +30,19 @@ mod desktop {
         {
             Self {
                 builder_fn: Mutex::new(Some(Box::new(builder_fn))),
+                post_render_fn: Mutex::new(None),
             }
+        }
+
+        /// Register a closure that adds render-dependent plugins (materials,
+        /// shaders, pixelate, game plugins that allocate Shader handles) once
+        /// Tauri's webview surface exists and RenderPlugin has been installed.
+        pub fn with_post_render_setup<F>(self, f: F) -> Self
+        where
+            F: FnOnce(&mut App) + Send + 'static,
+        {
+            *self.post_render_fn.lock().unwrap() = Some(Box::new(f));
+            self
         }
     }
 
@@ -49,12 +62,16 @@ mod desktop {
 
             app.insert_non_send_resource(tauri_app.handle().clone());
             app.insert_non_send_resource(TauriAppResource(Some(tauri_app)));
+            if let Some(post_render) = self.post_render_fn.lock().unwrap().take() {
+                app.insert_non_send_resource(PostRenderSetup(Some(post_render)));
+            }
             app.add_systems(Startup, create_window_handle);
             app.set_runner(run_tauri_app);
         }
     }
 
     struct TauriAppResource(Option<tauri::App>);
+    struct PostRenderSetup(Option<PostRenderFn>);
 
     /// Attaches the Tauri webview's raw window handle to the Bevy Window entity
     /// so Bevy's render pipeline can create a wgpu surface for it.
@@ -158,19 +175,27 @@ mod desktop {
             bevy::light::LightPlugin,
             bevy::core_pipeline::CorePipelinePlugin,
             bevy::sprite::SpritePlugin,
+            bevy::sprite_render::SpriteRenderPlugin,
             bevy::text::TextPlugin,
             bevy::ui::UiPlugin,
+            bevy::ui_render::UiRenderPlugin,
             bevy::pbr::PbrPlugin::default(),
             bevy::gizmos::GizmoPlugin,
         ));
 
-        // Game plugin with render dependency (FullscreenMaterialPlugin needs RenderApp)
-        app.add_plugins(PixelatePlugin);
-
-        // Debug render for avian3d physics
         app.add_plugins(avian3d::prelude::PhysicsDebugPlugin::default());
 
-        // Wait for all plugins to finish async initialization
+        // Caller-supplied game plugins. Must run after RenderPlugin so
+        // anything they install (MaterialPlugin etc) can allocate Shader
+        // asset handles.
+        let post_render = app
+            .world_mut()
+            .remove_non_send_resource::<PostRenderSetup>()
+            .and_then(|mut h| h.0.take());
+        if let Some(setup) = post_render {
+            setup(app);
+        }
+
         while app.plugins_state() != PluginsState::Ready {
             bevy::tasks::tick_global_task_pools_on_main_thread();
         }

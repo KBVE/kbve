@@ -30,21 +30,26 @@ fn main() {
             file_path: "../public/assets".to_string(),
             ..default()
         },
+        bevy::state::app::StatesPlugin,
     ));
 
     #[cfg(any(unix, windows))]
     app.add_plugins(bevy::app::TerminalCtrlCHandlerPlugin);
 
     app.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
-    app.add_plugins(PhysicsPlugins::default());
-    app.add_plugins(GamePluginGroup);
 
-    app.add_plugins(TauriPlugin::new(|builder| {
-        builder.invoke_handler(tauri::generate_handler![
-            isometric_game::commands::dispatch_action,
-            isometric_game::commands::greet,
-        ])
-    }));
+    app.add_plugins(
+        TauriPlugin::new(|builder| {
+            builder.invoke_handler(tauri::generate_handler![
+                isometric_game::commands::dispatch_action,
+                isometric_game::commands::greet,
+            ])
+        })
+        .with_post_render_setup(|app| {
+            app.add_plugins(PhysicsPlugins::default());
+            app.add_plugins(GamePluginGroup);
+        }),
+    );
 
     app.run();
 }
