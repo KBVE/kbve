@@ -212,6 +212,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private projectileDeathRow: number[] = [];
 	private burnPatchVisuals = new SideMap<BurnPatchVisual>();
 	private burnPatchDeathRow: number[] = [];
+	private removeEntityQueue: number[] = [];
 	private arcPool: Phaser.GameObjects.Arc[] = [];
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
@@ -292,6 +293,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.projectileDeathRow = [];
 		this.burnPatchVisuals = new SideMap<BurnPatchVisual>();
 		this.burnPatchDeathRow = [];
+		this.removeEntityQueue = [];
 		this.arcPool = [];
 		this.rectPool = [];
 		this.graphicsPool = [];
@@ -1972,7 +1974,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		for (const deid of droneKills) this.killDrone(deid);
 		this.buildingByEid.delete(b.id);
-		removeEntity(this.world, b.id);
+		this.removeEntityQueue.push(b.id);
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
@@ -1986,7 +1988,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (stationEid >= 0 && RepairState.activeDroneEid[stationEid] === eid) {
 			RepairState.activeDroneEid[stationEid] = -1;
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private updateArmouries(nowMs: number): void {
@@ -2228,7 +2230,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				EnemyStats.targetKind[enemyEid] = ATTACK_TARGET_KIND.none;
 			}
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private updateSoldiers(dt: number, nowMs: number): void {
@@ -2423,7 +2425,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (maxHp <= 0) return 1;
 		const hpRatio = Damageable.hp[eid] / maxHp;
 		if (hpRatio >= 0.5) return 1;
-		return Math.max(0.4, hpRatio + 0.4);
+		if (hpRatio <= 0.1) return 0;
+		return ((hpRatio - 0.1) / 0.4) * 0.85;
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
@@ -2843,7 +2846,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const eid = this.projectileDeathRow[i];
 			const v = this.projectileVisuals.delete(eid);
 			if (v) this.releaseProjectileSprite(v.sprite);
-			removeEntity(this.world, eid);
+			this.removeEntityQueue.push(eid);
 		}
 	}
 
@@ -2964,7 +2967,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const eid = this.burnPatchDeathRow[i];
 			const v = this.burnPatchVisuals.delete(eid);
 			if (v) this.releaseArc(v.sprite);
-			removeEntity(this.world, eid);
+			this.removeEntityQueue.push(eid);
 		}
 	}
 
@@ -3054,6 +3057,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		}
 		for (const deid of deathRow) this.killDrone(deid);
+	}
+
+	private drainRemoveEntityQueue(): void {
+		if (this.removeEntityQueue.length === 0) return;
+		for (let i = 0; i < this.removeEntityQueue.length; i++) {
+			removeEntity(this.world, this.removeEntityQueue[i]);
+		}
+		this.removeEntityQueue.length = 0;
 	}
 
 	private tickAuraEmitters(nowMs: number): void {
@@ -3165,7 +3176,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 					this.bountyBonusMultiplier,
 			);
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private endGame(win: boolean): void {
@@ -3254,6 +3265,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateSoldiers(dt, nowMs);
 
 		this.tickAuraEmitters(nowMs);
+		this.drainRemoveEntityQueue();
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {
