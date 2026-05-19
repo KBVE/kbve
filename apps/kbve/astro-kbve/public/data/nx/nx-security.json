@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-18T09:24:37Z",
+  "generated_at": "2026-05-19T09:22:50Z",
   "summary": {
     "critical": 0,
     "high": 27,
-    "medium": 49,
+    "medium": 52,
     "low": 6,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 67,
+      "total": 70,
       "severities": {
         "critical": 0,
         "high": 27,
-        "medium": 34,
+        "medium": 37,
         "low": 6,
         "info": 0
       },
@@ -486,6 +486,27 @@
           "severity": "high",
           "package": "devalue",
           "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
+        },
+        {
+          "id": "1119074",
+          "title": "webpack-dev-server vulnerable to cross-origin source code exposure on non-HTTPS origins",
+          "severity": "medium",
+          "package": "webpack-dev-server",
+          "url": "https://github.com/advisories/GHSA-79cf-xcqc-c78w"
+        },
+        {
+          "id": "1119088",
+          "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
+        },
+        {
+          "id": "1119108",
+          "title": "ws: Uninitialized memory disclosure",
+          "severity": "medium",
+          "package": "ws",
+          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
         }
       ]
     },
