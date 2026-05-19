@@ -40,6 +40,17 @@ export const GAME_CONFIG = {
 	allyAttackRange: 60,
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
+	archerInitialCount: 3,
+	archerHpMultiplier: 0.8,
+	archerDamage: 6,
+	archerSpeed: 90,
+	archerAttackRangeMultiplier: 3,
+	archerAttackRateMs: 1100,
+	archerProjectileSpeed: 360,
+	archerSlowMs: 1200,
+	archerSlowFactor: 0.55,
+	archerColor: 0x63b3ed,
+	archerProjectileColor: 0xbee3f8,
 } as const;
 
 export const COLORS = {
@@ -367,7 +378,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		id: 'armoury',
 		name: 'Armoury',
 		kind: 'armoury',
-		cost: 220,
+		cost: 300,
 		maxHp: 500,
 		defense: 6,
 		power: 2,

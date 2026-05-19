@@ -19,7 +19,7 @@ export const CARD_POOL: CardOption[] = [
 	{
 		id: 'bonus_gold',
 		name: 'Bonus Gold',
-		description: '+150 gold',
+		description: '+150 gold plus wave bonus (+1 per wave)',
 		color: 0xfbd38d,
 	},
 	{
@@ -67,13 +67,17 @@ export const CARD_POOL: CardOption[] = [
 	},
 ];
 
-export function pickThreeCards(): CardOption[] {
+export function pickCards(n: number): CardOption[] {
 	const pool = [...CARD_POOL];
 	const out: CardOption[] = [];
-	for (let i = 0; i < 3 && pool.length > 0; i++) {
+	for (let i = 0; i < n && pool.length > 0; i++) {
 		const idx = Math.floor(Math.random() * pool.length);
 		out.push(pool[idx]);
 		pool.splice(idx, 1);
 	}
 	return out;
+}
+
+export function pickCardsForWave(wave: number): CardOption[] {
+	return pickCards(wave >= 20 ? 5 : 3);
 }

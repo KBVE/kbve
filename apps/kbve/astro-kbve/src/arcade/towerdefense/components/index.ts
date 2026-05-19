@@ -19,7 +19,13 @@ export {
 	enemyTypeIndexFromId,
 	type EnemyVisual,
 } from './enemy';
-export { SoldierTag, SoldierStats, type SoldierVisual } from './soldier';
+export {
+	SoldierTag,
+	SoldierStats,
+	SOLDIER_KIND,
+	type SoldierKind,
+	type SoldierVisual,
+} from './soldier';
 export { DroneTag, DroneState, DroneStats, type DroneVisual } from './drone';
 export {
 	ProjectileTag,
