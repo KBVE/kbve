@@ -7,15 +7,12 @@ import {
 } from 'react';
 import { ToastProvider } from '../toast/toast-context';
 import { ModalProvider } from '../modal/modal-context';
-import { MenuProvider } from '../menu/menu-context';
 import { ToastContainer } from '../toast/ToastContainer';
 import { ModalOverlay } from '../modal/ModalOverlay';
-import { PauseMenu } from '../menu/PauseMenu';
 import {
 	ModalStateContext,
 	ModalDispatchContext,
 } from '../modal/modal-context';
-import { MenuStateContext, MenuDispatchContext } from '../menu/menu-context';
 import { useKeyboard } from '../shared/use-keyboard';
 
 /** Re-focus the Bevy canvas so winit receives keyboard events again. */
@@ -26,12 +23,12 @@ function focusCanvas() {
 function KeyboardRouter() {
 	const modalState = useContext(ModalStateContext);
 	const modalDispatch = useContext(ModalDispatchContext);
-	const menuState = useContext(MenuStateContext);
-	const menuDispatch = useContext(MenuDispatchContext);
 
-	// Track previous overlay state to detect close transitions
+	// Track previous overlay state to detect close transitions. The pause
+	// menu now lives in Bevy (PauseMenuPlugin owns Escape); only modals stay
+	// React-side.
 	const prevOverlay = useRef(false);
-	const overlayActive = modalState.isOpen || menuState.isOpen;
+	const overlayActive = modalState.isOpen;
 
 	useEffect(() => {
 		if (prevOverlay.current && !overlayActive) {
@@ -43,12 +40,8 @@ function KeyboardRouter() {
 	const handleEscape = useCallback(() => {
 		if (modalState.isOpen) {
 			modalDispatch({ type: 'CLOSE' });
-		} else if (menuState.isOpen) {
-			menuDispatch({ type: 'CLOSE' });
-		} else {
-			menuDispatch({ type: 'OPEN' });
 		}
-	}, [modalState.isOpen, menuState.isOpen, modalDispatch, menuDispatch]);
+	}, [modalState.isOpen, modalDispatch]);
 
 	useKeyboard('Escape', handleEscape);
 
@@ -59,13 +52,10 @@ export function GameUIProvider({ children }: { children: ReactNode }) {
 	return (
 		<ToastProvider>
 			<ModalProvider>
-				<MenuProvider>
-					<KeyboardRouter />
-					{children}
-					<ToastContainer />
-					<ModalOverlay />
-					<PauseMenu />
-				</MenuProvider>
+				<KeyboardRouter />
+				{children}
+				<ToastContainer />
+				<ModalOverlay />
 			</ModalProvider>
 		</ToastProvider>
 	);
