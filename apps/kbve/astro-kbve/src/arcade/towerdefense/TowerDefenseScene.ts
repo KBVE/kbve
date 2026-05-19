@@ -1783,17 +1783,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const statusRing = this.acquireGraphics();
 		statusRing.setVisible(false);
 		const ringRadius = radius + 4;
+		const barWidth = Math.min(
+			TILE * 1.2,
+			Math.max(TILE * 0.4, TILE * type.sizeRadius * 2),
+		);
 		const hpBarBg = this.acquireRect(
 			start.x,
 			start.y - TILE * 0.5,
-			TILE * 0.7,
+			barWidth,
 			4,
 			COLORS.enemyHpBarBg,
 		);
 		const hpBar = this.acquireRect(
-			start.x - (TILE * 0.7) / 2,
+			start.x - barWidth / 2,
 			start.y - TILE * 0.5,
-			TILE * 0.7,
+			barWidth,
 			4,
 			COLORS.enemyHpBar,
 		);
@@ -1829,6 +1833,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			hpBar,
 			hpBarBg,
 			ringRadius,
+			barWidth,
 			statusVisible: false,
 		});
 		EnemyStats.targetEid[eid] = -1;
@@ -2516,8 +2521,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			v.hpBarBg.setVisible(true);
 			v.hpBar.setVisible(true);
 			v.hpBarBg.setPosition(x, y - TILE * 0.5);
-			v.hpBar.setPosition(x - (TILE * 0.7) / 2, y - TILE * 0.5);
-			v.hpBar.width = (hpEnemy / maxHpEnemy) * TILE * 0.7;
+			v.hpBar.setPosition(x - v.barWidth / 2, y - TILE * 0.5);
+			const ratio = maxHpEnemy > 0 ? hpEnemy / maxHpEnemy : 0;
+			v.hpBar.width = Math.max(0, ratio) * v.barWidth;
+			const hpColor =
+				ratio > 0.6
+					? COLORS.enemyHpBar
+					: ratio > 0.3
+						? 0xf6ad55
+						: 0xfc8181;
+			v.hpBar.setFillStyle(hpColor);
 		} else {
 			v.hpBarBg.setVisible(false);
 			v.hpBar.setVisible(false);
