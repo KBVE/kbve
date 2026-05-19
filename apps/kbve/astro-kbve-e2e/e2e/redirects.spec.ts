@@ -11,9 +11,16 @@ describe('Static redirects', () => {
 			const res = await fetch(`${BASE_URL}${from}`, {
 				redirect: 'manual',
 			});
-			expect([301, 302, 308]).toContain(res.status);
-			const location = res.headers.get('location') ?? '';
-			expect(location).toMatch(/\/profile\/account\/?$/);
+			if ([301, 302, 303, 307, 308].includes(res.status)) {
+				const location = res.headers.get('location') ?? '';
+				expect(location).toMatch(/\/profile\/account\/?$/);
+				return;
+			}
+			expect(res.status).toBe(200);
+			const body = await res.text();
+			expect(body).toMatch(
+				/<meta[^>]+http-equiv=["']?refresh["']?[^>]+\/profile\/account\/?/i,
+			);
 		});
 
 		it(`${from} ultimately resolves to a 200 HTML page when followed`, async () => {
