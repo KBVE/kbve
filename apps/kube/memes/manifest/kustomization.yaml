@@ -7,4 +7,3 @@ resources:
     - memes-externalsecret.yaml
     - memes-deployment.yaml
     - httproute.yaml
-    - nginx-ingress.yaml
