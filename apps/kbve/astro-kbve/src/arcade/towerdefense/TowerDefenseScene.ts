@@ -67,6 +67,9 @@ import {
 	hasStatus,
 	initAura,
 	initDamageable,
+	initMovement,
+	Movement,
+	MovementTag,
 	resistForType,
 	STATUS_KIND,
 	statusExpiresAt,
@@ -1806,6 +1809,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			DAMAGEABLE_KIND.enemy,
 		);
 		EnemyStats.baseSpeed[eid] = speed;
+		addComponent(this.world, eid, MovementTag);
+		addComponent(this.world, eid, Movement);
+		initMovement(eid, speed);
 		EnemyStats.pathIndex[eid] = 1;
 		EnemyStats.segmentT[eid] = 0;
 		clearStatus(eid, STATUS_KIND.slow);
@@ -2236,6 +2242,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateSoldiers(dt: number, nowMs: number): void {
 		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
+			if (Damageable.hp[seid] <= 0) {
+				this.killSoldier(seid);
+				continue;
+			}
 			let target = SoldierStats.targetEnemyEid[seid];
 			if (target === 0 || !this.enemyVisuals.has(target)) {
 				target = this.findEnemyForSoldier(seid);
@@ -2335,6 +2345,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemies(dt: number, nowMs: number): void {
 		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
+			if (Damageable.hp[eid] <= 0) {
+				this.killEnemy(eid, false);
+				continue;
+			}
 			if (hasStatus(eid, STATUS_KIND.burn, nowMs)) {
 				const dps = statusMagnitude(eid, STATUS_KIND.burn);
 				if (dps > 0) {
@@ -2393,40 +2407,42 @@ export class TowerDefenseScene extends Phaser.Scene {
 							EnemyStats.attackDamage[eid],
 						);
 					}
-					const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
-					const baseSpeed = EnemyStats.baseSpeed[eid];
-					const wounded = this.woundedFactor(eid);
+					this.recomputeEnemyMovement(eid, nowMs);
 					const speed =
-						(slowed
-							? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-							: baseSpeed) *
-						GAME_CONFIG.enemyAttackSpeedFactor *
-						wounded;
+						Movement.speed[eid] *
+						GAME_CONFIG.enemyAttackSpeedFactor;
 					if (speed > 0) this.moveAlongPath(eid, speed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
 				}
 			}
 
-			const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
-			const baseSpeed = EnemyStats.baseSpeed[eid];
-			const wounded = this.woundedFactor(eid);
-			const speed =
-				(slowed
-					? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-					: baseSpeed) * wounded;
+			this.recomputeEnemyMovement(eid, nowMs);
+			const speed = Movement.speed[eid];
 			this.moveAlongPath(eid, speed, dt);
 			this.updateEnemyVisuals(eid, nowMs);
 		}
 	}
 
-	private woundedFactor(eid: number): number {
+	private recomputeEnemyMovement(eid: number, nowMs: number): void {
+		const baseSpeed = Movement.baseSpeed[eid];
 		const maxHp = Damageable.maxHp[eid];
-		if (maxHp <= 0) return 1;
-		const hpRatio = Damageable.hp[eid] / maxHp;
-		if (hpRatio >= 0.5) return 1;
-		if (hpRatio <= 0.1) return 0;
-		return ((hpRatio - 0.1) / 0.4) * 0.85;
+		const hp = Damageable.hp[eid];
+		let wounded = 1;
+		if (hp <= 0) {
+			wounded = 0;
+		} else if (maxHp > 0) {
+			const hpRatio = hp / maxHp;
+			if (hpRatio < 0.5) {
+				wounded = hpRatio <= 0.2 ? 0 : ((hpRatio - 0.2) / 0.3) * 0.85;
+			}
+		}
+		const slow = hasStatus(eid, STATUS_KIND.slow, nowMs)
+			? statusMagnitude(eid, STATUS_KIND.slow)
+			: 1;
+		const next = baseSpeed * wounded * slow;
+		Movement.speed[eid] = next;
+		Movement.frozen[eid] = next <= 0 ? 1 : 0;
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
@@ -3059,6 +3075,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const deid of deathRow) this.killDrone(deid);
 	}
 
+	private deathSystem(): void {
+		for (const eid of query(this.world, [DamageableTag])) {
+			if (Damageable.hp[eid] > 0) continue;
+			const kind = Damageable.kind[eid];
+			if (kind === DAMAGEABLE_KIND.enemy) {
+				if (this.enemyVisuals.has(eid)) this.killEnemy(eid, false);
+			} else if (kind === DAMAGEABLE_KIND.soldier) {
+				if (this.soldierVisuals.has(eid)) this.killSoldier(eid);
+			} else if (kind === DAMAGEABLE_KIND.building) {
+				if (BuildingState.destroyed[eid]) continue;
+				const b = this.buildingByEid.get(eid);
+				if (b) this.destroyBuilding(b);
+			}
+		}
+	}
+
 	private drainRemoveEntityQueue(): void {
 		if (this.removeEntityQueue.length === 0) return;
 		for (let i = 0; i < this.removeEntityQueue.length; i++) {
@@ -3265,6 +3297,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateSoldiers(dt, nowMs);
 
 		this.tickAuraEmitters(nowMs);
+		this.deathSystem();
 		this.drainRemoveEntityQueue();
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;
