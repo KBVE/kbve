@@ -3,7 +3,6 @@ use crate::error::RowsError;
 use crate::models::*;
 use uuid::Uuid;
 
-/// Global data repository — key-value world state.
 pub struct GlobalDataRepo<'a>(pub &'a DbPool);
 
 impl<'a> GlobalDataRepo<'a> {

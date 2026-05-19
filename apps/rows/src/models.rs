@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-/// Character — maps to the OWS Characters table and GetCharByCharName stored proc.
-/// Uses PascalCase serde renames to match UE's case-sensitive GetStringField calls.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct Character {
@@ -30,7 +28,6 @@ pub struct Character {
     pub rx: f64,
     pub ry: f64,
     pub rz: f64,
-    // Core stats (double precision in DB)
     pub perception: f64,
     pub acrobatics: f64,
     pub climb: f64,
@@ -53,7 +50,6 @@ pub struct Character {
     pub wounds: f64,
     pub size: i16,
     pub weight: f64,
-    // Vitals
     #[sqlx(rename = "maxhealth")]
     pub max_health: f64,
     pub health: f64,
@@ -74,7 +70,6 @@ pub struct Character {
     pub stamina: f64,
     #[sqlx(rename = "staminaregenrate")]
     pub stamina_regen_rate: f64,
-    // Abilities (double precision in DB)
     pub strength: f64,
     pub dexterity: f64,
     pub constitution: f64,
@@ -82,7 +77,6 @@ pub struct Character {
     pub wisdom: f64,
     pub charisma: f64,
     pub agility: f64,
-    // Combat (double precision in DB)
     #[sqlx(rename = "baseattack")]
     pub base_attack: f64,
     #[sqlx(rename = "baseattackbonus")]
@@ -96,7 +90,6 @@ pub struct Character {
     #[sqlx(rename = "critmultiplier")]
     pub crit_multiplier: f64,
     pub defense: f64,
-    // Currencies (integer in DB)
     pub silver: i32,
     pub copper: i32,
     #[sqlx(rename = "freecurrency")]
@@ -105,7 +98,6 @@ pub struct Character {
     pub premium_currency: i32,
     pub fame: f64,
     pub alignment: f64,
-    // Admin flags
     #[sqlx(rename = "isadmin")]
     pub is_admin: bool,
     #[sqlx(rename = "ismoderator")]
@@ -117,7 +109,6 @@ pub struct Character {
     pub create_date: Option<NaiveDateTime>,
 }
 
-/// User session from GetUserSession stored proc.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSession {
@@ -138,8 +129,6 @@ pub struct UserSession {
     pub role: String,
 }
 
-/// User session with selected character data — matches C# GetUserSession stored proc.
-/// UE OWS plugin reads these fields with PascalCase GetStringField/GetNumberField.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct UserSessionWithCharacter {
     #[sqlx(rename = "customerguid")]
@@ -165,7 +154,6 @@ pub struct UserSessionWithCharacter {
     pub last_access: Option<NaiveDateTime>,
     #[serde(rename = "Role")]
     pub role: String,
-    // Character data (from LEFT JOIN)
     #[sqlx(rename = "characterid")]
     #[serde(rename = "CharacterID")]
     pub character_id: Option<i32>,
@@ -189,7 +177,6 @@ pub struct UserSessionWithCharacter {
     pub zone_name: Option<String>,
 }
 
-/// Login result
 #[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResult {
@@ -198,8 +185,6 @@ pub struct LoginResult {
     pub error_message: String,
 }
 
-/// Zone instance info from GetZoneInstancesForWorldServer
-/// PascalCase matches UE's FZoneInstance UPROPERTY names for JsonArrayToUStruct.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct ZoneInstance {
@@ -232,7 +217,6 @@ pub struct ZoneInstance {
     pub minutes_to_shutdown_after_empty: i32,
 }
 
-/// JoinMapByCharName result
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinMapResult {
@@ -258,7 +242,6 @@ pub struct JoinMapResult {
     pub error_message: String,
 }
 
-/// Global data key-value pair
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct GlobalData {
@@ -266,7 +249,6 @@ pub struct GlobalData {
     pub global_data_value: Option<String>,
 }
 
-/// Custom character data
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct CustomCharacterData {
@@ -274,7 +256,6 @@ pub struct CustomCharacterData {
     pub field_value: Option<String>,
 }
 
-/// Character ability
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct CharacterAbility {
@@ -284,13 +265,11 @@ pub struct CharacterAbility {
     pub custom_json: Option<String>,
 }
 
-/// Typed wrapper for custom data rows response
 #[derive(Debug, Serialize, ToSchema)]
 pub struct CustomDataRows {
     pub rows: Vec<CustomCharacterData>,
 }
 
-/// Ability bar
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct AbilityBar {
@@ -303,7 +282,6 @@ pub struct AbilityBar {
     pub custom_json: Option<String>,
 }
 
-/// Ability bar with abilities
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct AbilityBarAbility {
@@ -317,8 +295,6 @@ pub struct AbilityBarAbility {
     pub custom_json: Option<String>,
 }
 
-/// Server instance info from GetZoneInstance / GetServerInstanceFromPort
-/// PascalCase matches UE's FGetServerInstanceFromPort UPROPERTY names.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct ServerInstanceInfo {
@@ -336,7 +312,6 @@ pub struct ServerInstanceInfo {
     pub internal_server_ip: Option<String>,
 }
 
-/// Character online/offline status
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct CharacterStatus {
@@ -345,7 +320,6 @@ pub struct CharacterStatus {
     pub is_online: bool,
 }
 
-/// Player group membership — PascalCase to match UE's case-sensitive GetNumberField/GetStringField
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct PlayerGroupMembership {
     #[serde(rename = "PlayerGroupID")]
@@ -362,7 +336,6 @@ pub struct PlayerGroupMembership {
     pub create_date: Option<NaiveDateTime>,
 }
 
-/// User info for management endpoints
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserInfo {
@@ -374,14 +347,12 @@ pub struct UserInfo {
     pub create_date: Option<NaiveDateTime>,
 }
 
-/// Health check response
 #[derive(Serialize, ToSchema)]
 pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,
 }
 
-/// Zone instance info for shutdown routing.
 #[derive(sqlx::FromRow)]
 pub struct ZoneInstanceInfo {
     pub map_instance_id: i32,
@@ -392,22 +363,16 @@ pub struct ZoneInstanceInfo {
     pub zone_name: String,
 }
 
-/// Zone assignment for Iris integration.
-/// Returned by GetZoneAssignment — tells the server which map to load.
-/// Seed field supports procedural world generation (0 = handcrafted map).
 #[derive(sqlx::FromRow)]
 pub struct ZoneAssignment {
     pub zone_instance_id: i32,
     pub map_name: String,
     pub zone_name: String,
     pub port: i32,
-    /// Procedural world seed — 0 means handcrafted (no PCG).
-    /// When non-zero, the server passes this to the PCG framework
-    /// via URL option: ServerTravel("...?seed=<value>")
+    /// `0` = handcrafted map (no PCG); non-zero passes through to `ServerTravel("...?seed=<value>")`.
     #[sqlx(default)]
     pub seed: i64,
-    /// Biome hint for the procedural generator (e.g. "Arctic", "Desert").
-    /// Optional — PCG can derive biome from seed if not set.
+    /// Optional biome override (e.g. "Arctic"); when absent PCG derives biome from seed.
     #[sqlx(default)]
     pub biome: Option<String>,
 }

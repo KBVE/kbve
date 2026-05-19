@@ -214,7 +214,7 @@ async fn shut_down_instance_launcher(
     headers: HeaderMap,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
-    // world_server_id would come from the launcher's state — use 0 as fallback
+    // Launcher doesn't echo its world_server_id back, so we fall back to 0 (all launchers).
     match hs.svc.shut_down_launcher(customer_guid, 0).await {
         Ok(()) => Json(SuccessResponse::ok()),
         Err(e) => Json(SuccessResponse::err(e.to_string())),
@@ -382,8 +382,6 @@ async fn update_number_of_players(
     }
 }
 
-// ─── Instance Lookups ────────────────────────────────────────
-
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ZoneInstanceIdDto {
@@ -422,17 +420,8 @@ async fn get_server_instance_from_port(
     Ok(Json(info))
 }
 
-// ─── Zone Assignment (Iris Integration) ─────────────────────
-
-/// GET /api/Instance/GetZoneAssignment
-/// Called by the dedicated server to check if it has been assigned a zone.
-/// Returns the zone/map info if an allocation exists for this world server,
-/// or empty if no assignment yet (server should keep polling).
-///
-/// Flow:
-///   Server starts on Entry → registers with ROWS → polls this endpoint every 5s
-///   ROWS allocates → creates mapinstance → this returns the zone info
-///   Server receives → ServerTravel to the map → stops polling
+/// Polled by Iris dedicated servers every ~5s; returns the assigned zone once allocation
+/// completes, or `assigned: false` while we're still waiting.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ZoneAssignmentDto {
@@ -447,7 +436,6 @@ async fn get_zone_assignment(
     let customer_guid = extract_customer_guid(&headers);
     let repo = crate::repo::InstanceRepo(&hs.app.db);
 
-    // Look for an active mapinstance assigned to this world server
     match repo
         .get_zone_assignment(customer_guid, body.world_server_id)
         .await

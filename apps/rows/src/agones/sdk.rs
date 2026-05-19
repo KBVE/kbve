@@ -1,17 +1,7 @@
-//! Agones SDK proxy — K8s API operations on GameServer resources.
-//!
-//! ROWS runs external to GameServer pods, so it can't reach the sidecar
-//! at localhost:9358. Instead, it uses the K8s API to read/write
-//! GameServer labels, annotations, and status — achieving the same
-//! observability as the in-pod SDK.
-//!
-//! The UE5 GameServer calls the actual SDK sidecar for:
-//!   Ready(), HealthPing(), Shutdown(), PlayerConnect(), PlayerDisconnect()
-//!
-//! ROWS uses the K8s API for:
-//!   SetLabel(), SetAnnotation(), GetGameServer(), GetPlayerCount()
-//!
-//! Belt-and-suspenders: both sides update state, ROWS can reconcile.
+//! ROWS lives outside the GameServer pod, so the Agones sidecar (`localhost:9358`) is unreachable.
+//! Instead we drive K8s API patches against the GameServer resource directly. The UE5 SDK
+//! continues to call the sidecar from inside the pod for `Ready()` / `Shutdown()` —
+//! both sides update state and ROWS reconciles.
 
 use super::client::AgonesClient;
 use super::error::AgonesError;
@@ -19,7 +9,6 @@ use serde_json::json;
 use std::time::Duration;
 use tracing::info;
 
-/// Labels used by ROWS on GameServer resources.
 pub mod labels {
     pub const ZONE: &str = "ows.kbve.com/zone";
     pub const MAP: &str = "ows.kbve.com/map";
@@ -29,13 +18,11 @@ pub mod labels {
     pub const VERSION: &str = "ows.kbve.com/version";
 }
 
-/// Annotations used by ROWS on GameServer resources.
 pub mod annotations {
     pub const ALLOCATED_AT: &str = "ows.kbve.com/allocated-at";
     pub const CUSTOMER_GUID: &str = "ows.kbve.com/customer-guid";
 }
 
-/// GameServer runtime info read from the K8s API.
 #[derive(Debug, Clone)]
 pub struct GameServerInfo {
     pub name: String,
@@ -48,8 +35,6 @@ pub struct GameServerInfo {
 }
 
 impl AgonesClient {
-    /// Set a label on a GameServer resource via K8s API.
-    /// Used to tag allocated servers with zone, map, version info.
     #[tracing::instrument(skip(self), fields(gs = %gs_name, key = %key))]
     pub async fn set_label(
         &self,
@@ -62,7 +47,6 @@ impl AgonesClient {
             self.namespace, gs_name
         );
 
-        // Use JSON Merge Patch to set a single label
         let body = json!({
             "metadata": {
                 "labels": {
@@ -87,7 +71,6 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Set an annotation on a GameServer resource.
     #[tracing::instrument(skip(self), fields(gs = %gs_name, key = %key))]
     pub async fn set_annotation(
         &self,
@@ -123,8 +106,7 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Set multiple labels on a GameServer in a single PATCH.
-    /// More efficient than multiple set_label() calls.
+    /// Single PATCH instead of N round-trips; prefer over chained `set_label` calls.
     #[tracing::instrument(skip(self, labels), fields(gs = %gs_name, count = labels.len()))]
     pub async fn set_labels(
         &self,
@@ -163,7 +145,6 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Get detailed info about a specific GameServer.
     #[tracing::instrument(skip(self), fields(gs = %gs_name))]
     pub async fn get_gameserver(&self, gs_name: &str) -> Result<GameServerInfo, AgonesError> {
         let url = format!(
@@ -229,9 +210,8 @@ impl AgonesClient {
         })
     }
 
-    /// Mark a GameServer as draining — sets ows.kbve.com/draining=true label.
-    /// The watcher picks this up and initiates graceful shutdown sequence.
-    /// Belt-and-suspenders: UE5 SDK also calls Shutdown() from inside the pod.
+    /// Belt-and-suspenders signal: sets `ows.kbve.com/draining=true` so the watcher starts a
+    /// graceful shutdown even if the UE5 SDK never calls `Shutdown()` from inside the pod.
     #[tracing::instrument(skip(self), fields(gs = %gs_name))]
     pub async fn mark_draining(&self, gs_name: &str) -> Result<(), AgonesError> {
         self.set_label(gs_name, labels::DRAINING, "true").await?;
@@ -239,8 +219,6 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Tag a GameServer with full allocation metadata after successful allocation.
-    /// Called from the pipeline after register_world_server + create_instance.
     #[tracing::instrument(skip(self), fields(gs = %gs_name))]
     pub async fn tag_allocated(
         &self,
@@ -251,7 +229,6 @@ impl AgonesClient {
         world_server_id: i32,
         customer_guid: &str,
     ) -> Result<(), AgonesError> {
-        // Set labels (queryable, used by fleet autoscaler)
         self.set_labels(
             gs_name,
             &[
@@ -263,7 +240,6 @@ impl AgonesClient {
         )
         .await?;
 
-        // Set annotations (metadata, not queryable)
         self.set_annotation(
             gs_name,
             annotations::ALLOCATED_AT,
@@ -285,9 +261,7 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Reconcile in-memory tracking with actual Agones fleet state.
-    /// Called on ROWS startup to rebuild zone_servers map from live GameServers.
-    /// Belt-and-suspenders: ensures ROWS restarts don't lose allocation tracking.
+    /// Rebuilds `zone_servers` from the live fleet so a ROWS restart doesn't lose allocations.
     #[tracing::instrument(skip(self))]
     pub async fn reconcile_allocations(&self) -> Result<Vec<(i32, String)>, AgonesError> {
         let label_selector = format!("agones.dev/fleet={}", self.fleet);
@@ -360,29 +334,3 @@ impl AgonesClient {
         Ok(allocations)
     }
 }
-
-// ─── TODO: Future Integrations ──────────────────────────────
-//
-// TODO(prometheus): Export metrics for:
-//   - agones_allocation_total (counter)
-//   - agones_allocation_duration_seconds (histogram)
-//   - agones_circuit_breaker_state (gauge: 0=closed, 1=open)
-//   - agones_fleet_ready_replicas (gauge)
-//   - agones_fleet_allocated_replicas (gauge)
-//   - agones_retry_total (counter by operation)
-//
-// TODO(distributed-lock): Replace DashMap spinup locks with:
-//   - Redis SETNX for distributed locking across ROWS replicas
-//   - Or PostgreSQL advisory locks for simpler setup
-//   - Current DashMap is fine for single-replica ROWS
-//
-// TODO(multi-cluster): Support multiple Agones fleets across clusters:
-//   - Geographic routing based on player location
-//   - Cluster health-aware allocation (skip unhealthy clusters)
-//   - Cross-cluster player migration
-//
-// TODO(player-capacity): Read player capacity from GameServer status:
-//   - UE5 SDK sets player count via PlayerConnect()/PlayerDisconnect()
-//   - ROWS reads status.players.count from K8s API
-//   - Use for smarter allocation (prefer servers with fewer players)
-//   - Fleet autoscaler can use player count for scaling decisions

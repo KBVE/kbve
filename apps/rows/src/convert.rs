@@ -76,7 +76,6 @@ impl From<&Character> for ProtoCharacter {
     }
 }
 
-/// Convert a Vec<Character> to Vec<ProtoCharacter> without cloning the vec.
 pub fn to_proto_characters(chars: &[Character]) -> Vec<ProtoCharacter> {
     chars.iter().map(ProtoCharacter::from).collect()
 }

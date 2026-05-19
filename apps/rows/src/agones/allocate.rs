@@ -1,5 +1,3 @@
-//! GameServer allocation via Agones API.
-
 use super::client::AgonesClient;
 use super::error::AgonesError;
 use serde_json::json;
@@ -9,7 +7,6 @@ use tracing::{info, warn};
 const MAX_RETRIES: u32 = 3;
 const INITIAL_BACKOFF_MS: u64 = 200;
 
-/// Result of a successful GameServer allocation.
 #[derive(Debug, Clone)]
 pub struct AllocationResult {
     pub game_server_name: String,
@@ -18,8 +15,7 @@ pub struct AllocationResult {
 }
 
 impl AgonesClient {
-    /// Allocate a GameServer from the fleet for a given zone.
-    /// Retries on transient K8s API errors with exponential backoff.
+    /// Retries transient K8s API errors with exponential backoff up to `MAX_RETRIES`.
     #[tracing::instrument(skip(self), fields(fleet = %self.fleet, namespace = %self.namespace))]
     pub async fn allocate(
         &self,
@@ -72,7 +68,6 @@ impl AgonesClient {
         }))
     }
 
-    /// Single allocation attempt against the Agones API.
     #[tracing::instrument(skip(self))]
     async fn try_allocate(
         &self,
@@ -145,7 +140,6 @@ impl AgonesClient {
             .unwrap_or("")
             .to_string();
 
-        // Validate: reject allocations with missing critical fields
         if address.is_empty() {
             return Err(AgonesError::Other(anyhow::anyhow!(
                 "Allocated GameServer has empty address"

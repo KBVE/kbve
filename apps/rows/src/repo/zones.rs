@@ -2,7 +2,6 @@ use crate::db::DbPool;
 use crate::error::RowsError;
 use uuid::Uuid;
 
-/// Zones repository — map zone management.
 pub struct ZonesRepo<'a>(pub &'a DbPool);
 
 impl<'a> ZonesRepo<'a> {

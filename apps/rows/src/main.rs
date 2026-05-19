@@ -1,7 +1,4 @@
-// OWS parity requires many-arg functions in repo/service layers.
 #![allow(clippy::too_many_arguments)]
-// SDK proxy, pipeline accessors, and repo methods are wired incrementally.
-// Dead code warnings suppressed until Iris/FastNoise/dashboard features are complete.
 #![allow(dead_code)]
 
 mod agones;
@@ -32,8 +29,7 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 use uuid::Uuid;
 
-/// Compiled protobuf types from ows.proto + rows.proto.
-/// Vendored in src/proto/ — regenerate with `BUILD_PROTO=1 cargo build -p rows`.
+/// Regenerate with `BUILD_PROTO=1 cargo build -p rows`.
 pub mod proto {
     pub mod ows {
         include!("proto/ows.rs");
@@ -45,8 +41,7 @@ pub mod proto {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Install rustls crypto provider before any TLS operations (kube-rs, sqlx).
-    // Required since rustls 0.23+ no longer auto-selects a provider.
+    // rustls 0.23+ no longer auto-selects a provider; must install before any TLS (kube-rs, sqlx).
     rustls::crypto::ring::default_provider()
         .install_default()
         .expect("Failed to install rustls crypto provider");
@@ -78,25 +73,21 @@ async fn main() -> anyhow::Result<()> {
         .parse()?;
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
 
-    // Database with retry
     let pool = db::connect(&database_url).await?;
     info!("Database connected");
 
-    // RabbitMQ (non-fatal if unavailable)
     let mq_producer = mq::try_connect(&rabbitmq_url).await;
     info!(
         available = mq_producer.is_some(),
         "RabbitMQ initialization complete"
     );
 
-    // Agones (non-fatal if not in-cluster)
     let agones_client = agones::AgonesClient::try_new(&agones_ns, &agones_fleet).await;
     info!(
         available = agones_client.is_some(),
         "Agones initialization complete"
     );
 
-    // Build shared state
     let app_state = state::AppState::builder()
         .db(pool)
         .customer_guid(Uuid::parse_str(&api_key)?)
@@ -105,10 +96,9 @@ async fn main() -> anyhow::Result<()> {
         .agones(agones_client)
         .build()?;
 
-    // Transport-agnostic service layer
     let svc = Arc::new(service::OWSService::new(app_state.clone()));
 
-    // Reconcile: rebuild tracking map from live Agones allocations (crash recovery)
+    // Crash-recovery: rebuild tracking map from live Agones allocations.
     if let Some(ref agones) = app_state.agones {
         match agones.reconcile_allocations().await {
             Ok(allocs) => {
@@ -123,10 +113,8 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    // Background jobs (health monitoring, cleanup)
     jobs::spawn_all(svc.clone());
 
-    // GameServer watcher — auto-cleanup DB on server shutdown/delete
     {
         let watcher_state = app_state.clone();
         tokio::spawn(async move {
@@ -135,17 +123,11 @@ async fn main() -> anyhow::Result<()> {
         info!("GameServer watcher spawned");
     }
 
-    // RabbitMQ consumer (instance launcher handshake)
-    // world_server_id=0 is a placeholder — real value comes from register_launcher
+    // world_server_id=0 is a placeholder; real value comes from register_launcher.
     mq::spawn_consumer(&rabbitmq_url, 0, svc.clone()).await;
 
-    // gRPC services
     let grpc_router = grpc::router(svc.clone());
-
-    // REST routes (backward-compat)
     let rest_router = rest::router(app_state, svc.clone());
-
-    // WebSocket routes
     let ws_router = ws::router(svc);
 
     let (prom_layer, prom_handle) = jedi::entity::pipe_prometheus::build_metrics_layer("rows");
@@ -174,7 +156,7 @@ async fn main() -> anyhow::Result<()> {
         prom_handle,
     ));
 
-    // Swagger UI on internal-only port (not exposed via HTTPRoute/gateway)
+    // Swagger UI binds an internal-only port; deliberately not exposed via HTTPRoute/gateway.
     let docs_port: u16 = std::env::var("DOCS_PORT")
         .unwrap_or_else(|_| "4323".into())
         .parse()
@@ -191,7 +173,6 @@ async fn main() -> anyhow::Result<()> {
 
     info!("ROWS listening on {addr} (REST + gRPC + WS multiplexed)");
 
-    // Graceful shutdown: drain in-flight requests on SIGTERM/SIGINT
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())

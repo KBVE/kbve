@@ -15,20 +15,14 @@ use crate::proto::rows::public_api_server::{PublicApi, PublicApiServer};
 use crate::proto::rows::*;
 use crate::service::OWSService;
 
-/// Helper: parse session GUID from string, return gRPC InvalidArgument on failure.
 #[allow(clippy::result_large_err)]
 fn parse_session(s: &str) -> Result<Uuid, Status> {
     Uuid::parse_str(s).map_err(|_| Status::invalid_argument("Invalid session GUID"))
 }
 
-/// Helper: convert RowsError to tonic::Status.
 fn to_status(e: crate::error::RowsError) -> Status {
     e.into_tonic()
 }
-
-// ──────────────────────────────────────────────
-// Public API
-// ──────────────────────────────────────────────
 
 pub struct PublicApiService {
     svc: Arc<OWSService>,
@@ -174,10 +168,6 @@ impl PublicApi for PublicApiService {
     }
 }
 
-// ──────────────────────────────────────────────
-// Instance Management
-// ──────────────────────────────────────────────
-
 pub struct InstanceManagementService {
     svc: Arc<OWSService>,
 }
@@ -266,10 +256,6 @@ impl InstanceManagement for InstanceManagementService {
         }))
     }
 }
-
-// ──────────────────────────────────────────────
-// Character Persistence
-// ──────────────────────────────────────────────
 
 pub struct CharacterPersistenceService {
     svc: Arc<OWSService>,
@@ -370,10 +356,6 @@ impl CharacterPersistence for CharacterPersistenceService {
     }
 }
 
-// ──────────────────────────────────────────────
-// Global Data
-// ──────────────────────────────────────────────
-
 pub struct GlobalDataServiceImpl {
     svc: Arc<OWSService>,
 }
@@ -410,10 +392,6 @@ impl GlobalDataService for GlobalDataServiceImpl {
     }
 }
 
-// ──────────────────────────────────────────────
-// Game Server Health — bi-directional streaming
-// ──────────────────────────────────────────────
-
 use crate::proto::rows::game_server_health_server::{GameServerHealth, GameServerHealthServer};
 use crate::proto::rows::{ServerCommand, ServerHeartbeat};
 use tokio_stream::wrappers::ReceiverStream;
@@ -446,7 +424,6 @@ impl GameServerHealth for GameServerHealthService {
                     "Heartbeat received"
                 );
 
-                // Update player count in DB
                 if let Err(e) = svc
                     .update_number_of_players(
                         guid,
@@ -458,13 +435,12 @@ impl GameServerHealth for GameServerHealthService {
                     tracing::warn!(error = %e, "Failed to update player count from heartbeat");
                 }
 
-                // Send acknowledgement command back
                 let cmd = ServerCommand {
                     command: "ack".to_string(),
                     payload: String::new(),
                 };
                 if tx.send(Ok(cmd)).await.is_err() {
-                    break; // client disconnected
+                    break;
                 }
             }
 
@@ -474,10 +450,6 @@ impl GameServerHealth for GameServerHealthService {
         Ok(Response::new(ReceiverStream::new(rx)))
     }
 }
-
-// ──────────────────────────────────────────────
-// Router
-// ──────────────────────────────────────────────
 
 pub fn router(svc: Arc<OWSService>) -> tonic::service::Routes {
     tonic::service::Routes::new(PublicApiServer::new(PublicApiService { svc: svc.clone() }))

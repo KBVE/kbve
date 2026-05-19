@@ -8,25 +8,16 @@ use std::sync::Arc;
 use std::time::Instant;
 use uuid::Uuid;
 
-/// Shared application state — single Arc allocation, no Clone on inner fields.
 pub struct AppState {
     pub db: DbPool,
-    /// In-memory session cache: user_session_guid → CachedSession
     pub sessions: DashMap<Uuid, CachedSession>,
-    /// Zone instance → GameServer name tracking (Agones)
     pub zone_servers: DashMap<i32, String>,
-    /// Spin-up lock: zone_key → acquisition timestamp.
-    /// Prevents duplicate Agones allocations for the same zone.
-    /// Timestamp enables stale lock cleanup (vs old bool that had no age info).
+    /// Spin-up lock keyed by zone; stores timestamp so stale locks can be aged out.
     pub zone_spinup_locks: DashMap<String, Instant>,
     pub config: AppConfig,
-    /// RabbitMQ producer (None if unavailable — non-fatal)
     pub mq: Option<MqProducer>,
-    /// Agones allocator (None if not in-cluster — non-fatal)
     pub agones: Option<AgonesClient>,
-    /// Supabase auth config (None fields if not configured — legacy mode)
     pub supabase: SupabaseConfig,
-    /// Instance lifecycle event log (ring buffer, max 200 entries)
     pub instance_log: crate::rest::system::InstanceEventLog,
     pub started_at: Instant,
 }

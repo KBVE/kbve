@@ -5,35 +5,7 @@ use crate::models::*;
 use crate::repo::{CharsRepo, InstanceRepo};
 use uuid::Uuid;
 
-// ─── Edge Case Notes ─────────────────────────────────────────
-//
-// TODO(concurrent-allocation): Two players requesting the same zone simultaneously
-//   can both trigger allocation. The spinup lock prevents duplicate Agones allocations
-//   but the second request still polls for 60s. Consider:
-//   - Returning the in-progress allocation immediately (skip poll, return "pending")
-//   - Using a tokio::sync::watch channel to notify waiters when allocation completes
-//
-// TODO(zone-capacity): Check zone player cap before allocation:
-//   - Query mapinstances.numberofreportedplayers for the zone
-//   - If above soft_player_cap, try to allocate a new instance instead of joining existing
-//   - If above hard_player_cap, return error "Zone is full"
-//
-// TODO(graceful-travel): Handle client disconnect during GetServerToConnectTo:
-//   - Client HTTP timeout (30s) vs server allocation time (up to 60s)
-//   - If client disconnects, the allocated server is still created
-//   - Consider: allocation should be idempotent per character — same char gets same instance
-//
-// TODO(cross-zone-travel): Support ServerTravel between zones:
-//   - Player on Zone A wants to enter Zone B
-//   - Save position on Zone A → allocate on Zone B → return Zone B IP:port
-//   - Client does ClientTravel → new server handles the rest
-//   - Requires: character position save before zone handoff (partially done in OWS)
-//
-// ──────────────────────────────────────────────────────────────
-
 impl OWSService {
-    /// Get a server for a player to connect to.
-    /// Resolves zone name → finds or allocates a GameServer → returns IP + port.
     #[tracing::instrument(skip(self), fields(%customer_guid, char_name, zone_name))]
     pub async fn get_server_to_connect_to(
         &self,
@@ -41,25 +13,22 @@ impl OWSService {
         char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        // Step 1: Resolve GETLASTZONENAME
         let resolved_zone = self
             .resolve_zone(customer_guid, char_name, zone_name)
             .await?;
 
-        // Step 2: Try to find an existing ready instance (fast path)
         let pipeline = AllocationPipeline::new(customer_guid, &resolved_zone, &self.state.db);
         match pipeline.find_existing(char_name).await {
             Err(crate::agones::pipeline::FindResult::Found(result)) => return Ok(result),
             Err(crate::agones::pipeline::FindResult::Error(e)) => return Err(e),
             Ok(pipeline) => {
-                // Step 3: No ready instance — allocate via Agones or MQ
                 self.allocate_and_track(pipeline, customer_guid, char_name, &resolved_zone)
                     .await
             }
         }
     }
 
-    /// Resolve zone name — handles GETLASTZONENAME magic string.
+    /// Handles the `GETLASTZONENAME` magic string by reading the character's last `map_name`.
     async fn resolve_zone(
         &self,
         customer_guid: Uuid,
@@ -86,7 +55,7 @@ impl OWSService {
         Ok(resolved)
     }
 
-    /// Allocate a server and track it — Agones direct (primary) → MQ (fallback).
+    /// Primary path: Agones direct; falls back to MQ when Agones is unavailable.
     async fn allocate_and_track(
         &self,
         pipeline: AllocationPipeline<'_>,
@@ -94,18 +63,16 @@ impl OWSService {
         char_name: &str,
         zone: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        // Acquire spin-up lock (skip if already in progress)
         let pipeline = match pipeline.acquire_lock(&self.state.zone_spinup_locks) {
             Ok(p) => p,
             Err(_) => {
-                // Another allocation in progress — just poll
+                // Another allocation is already in-flight; tail the poll loop without re-allocating.
                 return AllocationPipeline::new(customer_guid, zone, &self.state.db)
                     .poll_until_ready(char_name)
                     .await;
             }
         };
 
-        // Agones pipeline: allocate → register → create → notify MQ → health → track → poll
         if let Some(ref agones) = self.state.agones {
             let mq_ref = self.state.mq.as_ref();
             let instance_log = &self.state.instance_log;
@@ -115,7 +82,7 @@ impl OWSService {
                 let p = p.create_instance().await?;
                 let p = p.tag_gameserver(agones).await?;
 
-                // Notify server via MQ which map to load (Iris integration)
+                // Hand the Iris-side server its map assignment via MQ.
                 if let Some(mq) = mq_ref {
                     let msg = crate::mq::SpinUpMessage {
                         customer_guid: customer_guid.to_string(),
@@ -123,15 +90,14 @@ impl OWSService {
                         zone_instance_id: p.instance_id(),
                         map_name: zone.to_string(),
                         port: p.port().unwrap_or(0),
-                        seed: 0,     // TODO(fastnoise): look up seed from maps table
-                        biome: None, // TODO(fastnoise): look up biome from maps table
+                        seed: 0,
+                        biome: None,
                     };
                     if let Err(e) = mq.publish_spin_up(p.world_server_id(), &msg).await {
                         tracing::warn!(error = %e, "MQ spin-up publish failed (non-fatal)");
                     }
                 }
 
-                // Log the allocation event
                 instance_log.push(crate::rest::system::InstanceEvent {
                     timestamp: chrono::Utc::now(),
                     event: "allocated".into(),
@@ -152,11 +118,9 @@ impl OWSService {
             if let Err(ref e) = result {
                 tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up");
 
-                // Release spinup lock
                 let lock_key = format!("{customer_guid}:{zone}");
                 self.state.zone_spinup_locks.remove(&lock_key);
 
-                // Best-effort cleanup: delete any DB entries created during the failed pipeline
                 let repo = crate::repo::InstanceRepo(&self.state.db);
                 if let Err(cleanup_err) = repo.delete_all_map_instances(customer_guid).await {
                     tracing::warn!(error = %cleanup_err, "Failed to clean up stale mapinstances after pipeline failure");
@@ -165,7 +129,6 @@ impl OWSService {
                     tracing::warn!(error = %cleanup_err, "Failed to deactivate world servers after pipeline failure");
                 }
 
-                // Log the failure event
                 instance_log.push(crate::rest::system::InstanceEvent {
                     timestamp: chrono::Utc::now(),
                     event: "allocation_failed".into(),
@@ -177,7 +140,6 @@ impl OWSService {
             }
             result
         } else if let Some(ref mq) = self.state.mq {
-            // Fallback: MQ → poll
             match pipeline.publish_via_mq(mq).await {
                 Ok(pipeline) => {
                     pipeline

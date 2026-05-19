@@ -13,7 +13,7 @@ use crate::state::AppState;
 use axum::{Json, Router, extract::State, response::IntoResponse, routing::get};
 use std::sync::Arc;
 
-/// Shared handler state — holds both AppState (for middleware) and OWSService (for logic).
+/// Bundles `AppState` (for middleware) and `OWSService` (for handlers) into one extractor.
 #[derive(Clone)]
 pub struct HandlerState {
     pub app: Arc<AppState>,
@@ -65,13 +65,13 @@ pub async fn health() -> Json<HealthResponse> {
     })
 }
 
-/// Deep readiness check — probes DB pool. Returns 503 if database is unavailable.
+/// Probes the DB pool; MQ/Agones are optional so they don't gate readiness. 503 when DB is down.
 async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
     let db_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
     let mq_ok = hs.app.mq.is_some();
     let agones_ok = hs.app.agones.is_some();
 
-    let all_ok = db_ok; // MQ and Agones are optional
+    let all_ok = db_ok;
     let status = if all_ok { "ready" } else { "degraded" };
     let http_status = if all_ok {
         axum::http::StatusCode::OK

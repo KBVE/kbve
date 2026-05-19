@@ -1,8 +1,3 @@
-//! Agones GameServer lifecycle management module.
-//!
-//! Handles the full lifecycle: allocation → tracking → health → deallocation.
-//! Uses kube-rs for K8s API access with retry + circuit breaker.
-
 mod allocate;
 mod client;
 mod deallocate;
