@@ -15,6 +15,10 @@ ENV CARGO_INCREMENTAL=0
 COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
 COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
 
+COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
+
 RUN mkdir -p apps/vm/firecracker-ctl/src && \
     echo "fn main() {}" > apps/vm/firecracker-ctl/src/main.rs
 
@@ -29,6 +33,7 @@ ENV CARGO_INCREMENTAL=0
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml ./
 COPY --from=planner /app/apps apps
+COPY --from=planner /app/packages packages
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -47,6 +52,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 
 COPY apps/vm/firecracker-ctl apps/vm/firecracker-ctl
+COPY packages/rust/kbve packages/rust/kbve
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/holy packages/rust/holy
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
