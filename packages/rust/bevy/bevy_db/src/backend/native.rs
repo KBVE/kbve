@@ -29,11 +29,61 @@ pub(crate) struct NativeStore {
 }
 
 impl NativeStore {
-    /// Open or create the database at the given path.
+    /// Open or create the database at the given path. If the file exists but
+    /// can't be opened because the on-disk format is from an older redb major
+    /// version, the file is rotated to `<name>.bak-<unix-ts>` and a fresh
+    /// database is created. Players' progress is preserved on disk (just
+    /// inaccessible to the new code) so a future migration tool can recover
+    /// it.
     pub fn open(path: PathBuf) -> Result<Self, DbError> {
-        let db = Database::create(path).map_err(|e| DbError::Backend(format!("redb open: {e}")))?;
-        Ok(Self { db: Arc::new(db) })
+        match Database::create(&path) {
+            Ok(db) => Ok(Self { db: Arc::new(db) }),
+            Err(err) if Self::is_upgrade_error(&err) => {
+                let backup = rotate_path(&path);
+                if path.exists() {
+                    std::fs::rename(&path, &backup).map_err(|e| {
+                        DbError::Backend(format!(
+                            "redb open failed with version mismatch; backup rename also failed: {e}"
+                        ))
+                    })?;
+                }
+                eprintln!(
+                    "[bevy_db] on-disk redb file from an older version detected; \
+                     rotated to {} and creating a fresh database. The old data \
+                     stays on disk for manual recovery.",
+                    backup.display()
+                );
+                let db = Database::create(&path)
+                    .map_err(|e| DbError::Backend(format!("redb open after rotate: {e}")))?;
+                Ok(Self { db: Arc::new(db) })
+            }
+            Err(e) => Err(DbError::Backend(format!("redb open: {e}"))),
+        }
     }
+
+    /// Heuristic match against redb's "Manual upgrade required" wording.
+    /// redb stores the file-format version in the file header, so any error
+    /// containing the upgrade phrase means the file predates the current
+    /// redb major. Other open failures (corruption, IO) intentionally fall
+    /// through so they aren't silently rotated away.
+    fn is_upgrade_error(err: &redb::DatabaseError) -> bool {
+        let msg = err.to_string();
+        msg.contains("Manual upgrade required") || msg.contains("file format version")
+    }
+}
+
+fn rotate_path(path: &std::path::Path) -> PathBuf {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let mut backup = path.to_path_buf();
+    let file_name = path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("kbve_db.redb");
+    backup.set_file_name(format!("{file_name}.bak-{ts}"));
+    backup
 }
 
 impl DbStore for NativeStore {
