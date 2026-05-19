@@ -95,6 +95,54 @@ fn header_str<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
     headers.get(name).and_then(|h| h.to_str().ok())
 }
 
+const BOT_UA_TOKENS: &[&str] = &[
+    "bot",
+    "crawl",
+    "spider",
+    "scrape",
+    "preview",
+    "fetch",
+    "facebookexternalhit",
+    "meta-externalagent",
+    "discordbot",
+    "slackbot",
+    "slack-imgproxy",
+    "telegrambot",
+    "whatsapp",
+    "skypeuripreview",
+    "vkshare",
+    "pinterest",
+    "linkedinbot",
+    "twitterbot",
+    "x-clientuseragent",
+    "redditbot",
+    "googlebot",
+    "applebot",
+    "bingbot",
+    "duckduckbot",
+    "baiduspider",
+    "yandexbot",
+    "embedly",
+    "iframely",
+    "go-http-client",
+    "python-requests",
+    "curl/",
+    "wget/",
+    "httpx",
+    "node-fetch",
+    "okhttp",
+];
+
+fn is_likely_bot(user_agent: Option<&str>) -> bool {
+    match user_agent {
+        None => true,
+        Some(ua) => {
+            let lower = ua.to_ascii_lowercase();
+            BOT_UA_TOKENS.iter().any(|token| lower.contains(token))
+        }
+    }
+}
+
 /// `GET /api/v1/referral/{handle}` — resolves the user's default target.
 #[utoipa::path(
     get,
@@ -193,12 +241,21 @@ async fn handle_referral(headers: HeaderMap, handle: String, slug: Option<String
         }
     };
 
+    let user_agent = header_str(&headers, header::USER_AGENT.as_str());
+    if is_likely_bot(user_agent) {
+        tracing::info!(
+            handle = %normalized_handle,
+            target = %resolved.slug,
+            ua = %user_agent.unwrap_or("<none>"),
+            "bot UA detected — redirecting without recording click"
+        );
+        return redirect_to(&resolved.url);
+    }
+
     let client_ip = extract_client_ip(&headers);
     let ip_string = match client_ip {
         Some(ip) => ip.to_string(),
         None => {
-            // No upstream IP header → we cannot dedup or credit safely.
-            // Still redirect (don't lock out the visitor), but log the gap.
             tracing::warn!(
                 handle = %normalized_handle,
                 target = %resolved.slug,
