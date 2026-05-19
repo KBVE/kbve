@@ -36,7 +36,17 @@ pub fn system_routes(hs: HandlerState) -> Router {
 
 // ─── Fleet Status ────────────────────────────────────────────
 
-async fn fleet_status(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
+#[utoipa::path(
+    get,
+    path = "/api/System/FleetStatus",
+    tag = "system",
+    summary = "Agones fleet status",
+    description = "Returns the current Agones GameServer fleet state — ready, allocated, shutdown counts plus per-server detail (name, address, port, age).",
+    responses(
+        (status = 200, description = "Fleet status (or { error } if Agones is not configured)"),
+    )
+)]
+pub async fn fleet_status(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
     match &hs.app.agones {
         Some(agones) => match agones.fleet_status().await {
             Ok(status) => Json(serde_json::json!(status)),
@@ -61,7 +71,17 @@ struct HealthCheck {
     error: Option<String>,
 }
 
-async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
+#[utoipa::path(
+    get,
+    path = "/api/System/Health",
+    tag = "system",
+    summary = "Aggregated health",
+    description = "Per-dependency health (postgres, rabbitmq, agones) plus overall status, uptime, in-memory session/instance/spinup-lock counts.",
+    responses(
+        (status = 200, description = "Aggregated health document"),
+    )
+)]
+pub async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
     // Postgres
     let pg_start = Instant::now();
     let pg_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
@@ -140,7 +160,17 @@ async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::V
 
 // ─── Active Players ──────────────────────────────────────────
 
-async fn active_players(
+#[utoipa::path(
+    get,
+    path = "/api/System/ActivePlayers",
+    tag = "system",
+    summary = "Active players",
+    description = "Characters currently bound to a live MapInstance (INNER JOIN charonmapinstance) — represents in-world presence, not the count of open auth sessions.",
+    responses(
+        (status = 200, description = "List of in-world players { total, players[{ character_name, user_session_guid, zone_name, zone_instance_id }] }"),
+    )
+)]
+pub async fn active_players(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
 ) -> Json<serde_json::Value> {
@@ -228,7 +258,20 @@ impl InstanceEventLog {
     }
 }
 
-async fn instance_log(
+#[utoipa::path(
+    get,
+    path = "/api/System/InstanceLog",
+    tag = "system",
+    summary = "Instance lifecycle events",
+    description = "Recent zone-instance events from the in-memory ring buffer (allocate, deallocate, restart, verify_*). Max 200 entries retained; default page size 50, capped at 200 via `limit`.",
+    params(
+        ("limit" = Option<usize>, Query, description = "Max entries to return (default 50, max 200)")
+    ),
+    responses(
+        (status = 200, description = "{ events: InstanceEvent[] }"),
+    )
+)]
+pub async fn instance_log(
     State(hs): State<HandlerState>,
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> Json<serde_json::Value> {
@@ -247,7 +290,17 @@ async fn instance_log(
 
 // ─── Deployment Info ─────────────────────────────────────────
 
-async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
+#[utoipa::path(
+    get,
+    path = "/api/System/DeploymentInfo",
+    tag = "system",
+    summary = "Deployment metadata",
+    description = "Build identity (version, rust_version), Agones binding (namespace, fleet), runtime ports, and Supabase configuration flags.",
+    responses(
+        (status = 200, description = "Static deployment metadata"),
+    )
+)]
+pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "version": env!("CARGO_PKG_VERSION"),
         "rust_version": env!("CARGO_PKG_RUST_VERSION", "unknown"),
@@ -273,7 +326,21 @@ async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json::Val
 /// Restart a specific GameServer by zone_instance_id.
 /// Flow: send MQ shutdown → delete Agones GameServer → watcher auto-cleans DB.
 /// Agones auto-replaces with a fresh pod from the fleet.
-async fn restart_game_server(
+#[utoipa::path(
+    post,
+    path = "/api/System/RestartGameServer",
+    tag = "system",
+    summary = "Restart a single GameServer",
+    description = "Sends MQ shutdown, deletes the Agones GameServer for the target zone_instance_id, and lets the fleet auto-replace. DB cleanup runs via the GameServer watcher.",
+    request_body(
+        description = "{ zone_instance_id: i32 } — accepts either snake or camelCase",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "{ success: bool, message?: string, error?: string }"),
+    )
+)]
+pub async fn restart_game_server(
     State(hs): State<HandlerState>,
     Json(body): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
@@ -354,7 +421,21 @@ async fn restart_game_server(
 
 /// Restart the entire fleet — scale to 0, clean all DB entries, scale back up.
 /// Use with caution — disconnects all players.
-async fn restart_fleet(
+#[utoipa::path(
+    post,
+    path = "/api/System/RestartFleet",
+    tag = "system",
+    summary = "Restart the full fleet",
+    description = "Scales the Agones fleet to 0, deletes all map instances + deactivates world servers, clears in-memory tracking, then scales back up to `replicas` (default 2). Disconnects every player — use with caution.",
+    request_body(
+        description = "{ replicas?: i32 } (default 2)",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "{ success: bool, message?: string, error?: string }"),
+    )
+)]
+pub async fn restart_fleet(
     State(hs): State<HandlerState>,
     Json(body): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
@@ -423,7 +504,21 @@ async fn restart_fleet(
 /// Post-deployment verification — checks that the fleet is healthy after restart.
 /// Polls Agones for Ready servers, verifies count matches desired, checks DB is clean.
 /// Returns a detailed report with per-check pass/fail status.
-async fn verify_deployment(
+#[utoipa::path(
+    post,
+    path = "/api/System/VerifyDeployment",
+    tag = "system",
+    summary = "Verify deployment health",
+    description = "Polls Agones until `expected_ready` servers report Ready (up to `max_wait_secs`), confirms DB has no stale map instances, runs an allocate/deallocate smoke test, and reports per-check pass/fail.",
+    request_body(
+        description = "{ expected_ready?: i32 (default 2), max_wait_secs?: i64 (default 90) }",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "{ success, elapsed_secs, checks[], summary }"),
+    )
+)]
+pub async fn verify_deployment(
     State(hs): State<HandlerState>,
     Json(body): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
