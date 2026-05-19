@@ -69,27 +69,49 @@
                 // React handlers (those re-arm pointer-events: auto on their
                 // own children).
                 var ti = window.__TAURI_INTERNALS__;
-                var invoke = (ti && ti.invoke) || (window.__TAURI__ && window.__TAURI__.invoke);
-                if (invoke) {
+                var rawInvoke = (ti && ti.invoke) || (window.__TAURI__ && window.__TAURI__.invoke);
+                if (rawInvoke) {
+                    var logged = false;
+                    var call = function (cmd, args) {
+                        try {
+                            var p = rawInvoke(cmd, args);
+                            if (p && p.catch) {
+                                p.catch(function (err) {
+                                    if (!logged) {
+                                        console.error('[native-input] invoke failed', cmd, err);
+                                        logged = true;
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            if (!logged) {
+                                console.error('[native-input] invoke threw', cmd, err);
+                                logged = true;
+                            }
+                        }
+                    };
                     var dpr = window.devicePixelRatio || 1;
                     window.addEventListener('pointermove', function (e) {
-                        invoke('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
+                        call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
                     }, true);
                     window.addEventListener('pointerdown', function (e) {
-                        invoke('forward_pointer_button', { button: e.button, pressed: true });
+                        call('forward_pointer_button', { button: e.button, pressed: true });
                     }, true);
                     window.addEventListener('pointerup', function (e) {
-                        invoke('forward_pointer_button', { button: e.button, pressed: false });
+                        call('forward_pointer_button', { button: e.button, pressed: false });
                     }, true);
                     window.addEventListener('wheel', function (e) {
-                        invoke('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
+                        call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
                     }, { capture: true, passive: true });
                     window.addEventListener('keydown', function (e) {
-                        invoke('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
+                        call('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
                     }, true);
                     window.addEventListener('keyup', function (e) {
-                        invoke('forward_key', { code: e.code, pressed: false, repeat: false });
+                        call('forward_key', { code: e.code, pressed: false, repeat: false });
                     }, true);
+                    console.log('[native-input] forwarder armed');
+                } else {
+                    console.warn('[native-input] no tauri invoke available; input wont reach Bevy');
                 }
             } else {
                 // WASM browser build keeps the canvas focused so winit's web

@@ -16,8 +16,9 @@ use std::sync::{LazyLock, Mutex};
 use bevy::input::ButtonState;
 use bevy::input::keyboard::{Key, KeyCode, KeyboardInput};
 use bevy::input::mouse::{MouseButton, MouseButtonInput, MouseScrollUnit, MouseWheel};
+use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy::window::{CursorMoved, PrimaryWindow};
+use bevy::window::{CursorMoved, PrimaryWindow, Window};
 
 use super::phase::GamePhase;
 
@@ -66,13 +67,13 @@ impl Plugin for NativeInputPlugin {
 
 #[allow(clippy::too_many_arguments)]
 fn drain_native_input(
-    window_q: Query<Entity, With<PrimaryWindow>>,
+    mut window_q: Query<(Entity, &mut Window), With<PrimaryWindow>>,
     mut cursor_writer: MessageWriter<CursorMoved>,
     mut button_writer: MessageWriter<MouseButtonInput>,
     mut wheel_writer: MessageWriter<MouseWheel>,
     mut key_writer: MessageWriter<KeyboardInput>,
 ) {
-    let Ok(window_entity) = window_q.single() else {
+    let Ok((window_entity, mut window)) = window_q.single_mut() else {
         return;
     };
     let events = drain_events();
@@ -82,9 +83,13 @@ fn drain_native_input(
     for ev in events {
         match ev {
             NativeInputEvent::PointerMove { x, y } => {
+                // Bevy's picking + hover systems read Window.physical_cursor_
+                // position(), not the CursorMoved event. Sync both so picking
+                // works.
+                window.set_physical_cursor_position(Some(DVec2::new(x, y)));
                 cursor_writer.write(CursorMoved {
                     window: window_entity,
-                    position: Vec2::new(x as f32, y as f32),
+                    position: Vec2::new(x as f32, y as f32) / window.scale_factor(),
                     delta: None,
                 });
             }
