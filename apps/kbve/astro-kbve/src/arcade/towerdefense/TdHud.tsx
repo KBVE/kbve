@@ -37,6 +37,7 @@ import {
 import type { CardOption } from './cards';
 import { PALETTE_ORDER, specFor, type BuildId } from './config';
 import { defFor, type ItemInstance } from './items';
+import { $auth } from '@kbve/astro';
 
 type IconName =
 	| 'coin'
@@ -578,10 +579,13 @@ function CardModal() {
 function TitleScreen() {
 	const state = useStore(gameStateAtom);
 	const best = useStore(bestWaveAtom);
+	const auth = useStore($auth);
 	if (state !== 'title') return null;
 	const onPlay = () => {
 		playRequestSignalAtom.set(playRequestSignalAtom.get() + 1);
 	};
+	const authed = auth.tone === 'auth';
+	const displayName = auth.username || auth.name || '';
 	return (
 		<div className="td-title">
 			<div className="td-title-card">
@@ -590,6 +594,24 @@ function TitleScreen() {
 				<div className="td-title-tag">
 					Hold the line. Build, upgrade, survive the swarm.
 				</div>
+				{authed && displayName ? (
+					<div className="td-title-user">
+						{auth.avatar ? (
+							<img
+								className="td-title-avatar"
+								src={auth.avatar}
+								alt=""
+							/>
+						) : null}
+						<span>
+							Welcome back, <strong>{displayName}</strong>
+						</span>
+					</div>
+				) : auth.tone === 'anon' ? (
+					<div className="td-title-user td-title-user-anon">
+						Playing as guest — sign in to save runs
+					</div>
+				) : null}
 				<button
 					type="button"
 					className="td-title-play"

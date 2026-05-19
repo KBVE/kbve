@@ -2059,10 +2059,24 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (!BuildingState.online[eid]) continue;
 			const b = this.buildingByEid.get(eid);
 			if (!b || b.kind !== 'armoury') continue;
-			const owned = this.countSoldiersOwnedBy(eid);
-			if (owned >= armouryMaxSoldiers(b)) continue;
 			if (nowMs < ArmouryState.nextSpawnAtMs[eid]) continue;
-			this.spawnSoldier(b);
+			const meleeCount = this.countSoldiersOwnedBy(
+				eid,
+				SOLDIER_KIND.melee,
+			);
+			const archerCount = this.countSoldiersOwnedBy(
+				eid,
+				SOLDIER_KIND.archer,
+			);
+			const meleeCap = armouryMaxSoldiers(b);
+			const archerCap = GAME_CONFIG.archerInitialCount;
+			if (archerCount < archerCap) {
+				this.spawnArcher(b);
+			} else if (meleeCount < meleeCap) {
+				this.spawnSoldier(b);
+			} else {
+				continue;
+			}
 			ArmouryState.nextSpawnAtMs[eid] = nowMs + armourySpawnIntervalMs(b);
 		}
 	}
@@ -2193,11 +2207,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
-	private countSoldiersOwnedBy(armouryEid: number): number {
+	private countSoldiersOwnedBy(armouryEid: number, kind?: number): number {
 		let n = 0;
 		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
-			if (SoldierStats.armouryEid[seid] === armouryEid) n++;
+			if (SoldierStats.armouryEid[seid] !== armouryEid) continue;
+			if (kind !== undefined && SoldierStats.unitKind[seid] !== kind)
+				continue;
+			n++;
 		}
 		return n;
 	}
