@@ -70,21 +70,13 @@ async fn login(
     Ok(Json(result))
 }
 
-/// External login via Supabase JWT.
-///
-/// The client authenticates via Supabase OAuth (GitHub/Discord) and receives a JWT.
-/// This endpoint validates that JWT, finds-or-creates an OWS user by email,
-/// creates a session, and returns a UserSessionGUID for subsequent API calls.
-///
-/// Accepts either:
-///   - { "accessToken": "<jwt>" } (new format)
-///   - { "provider": "...", "providerToken": "<jwt>" } (legacy format, uses providerToken)
+/// Accepts both the new `{ "accessToken": "<jwt>" }` shape and the legacy
+/// `{ "provider": "...", "providerToken": "<jwt>" }` payload for backward compat.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ExternalLoginDto {
     #[serde(default)]
     access_token: Option<String>,
-    // Legacy fields for backward compat
     #[serde(default)]
     provider: Option<String>,
     #[serde(default)]

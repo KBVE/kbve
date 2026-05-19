@@ -1,5 +1,3 @@
-//! Agones error types and retry policy.
-
 #[derive(Debug, thiserror::Error)]
 pub enum AgonesError {
     #[error("circuit breaker open — {consecutive_failures} consecutive failures")]
@@ -19,7 +17,6 @@ pub enum AgonesError {
 }
 
 impl AgonesError {
-    /// Whether this error is transient and the operation should be retried.
     pub fn is_retryable(&self) -> bool {
         matches!(self, AgonesError::ApiError(_))
     }

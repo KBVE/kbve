@@ -3,7 +3,6 @@ use crate::error::RowsError;
 use crate::models::*;
 use uuid::Uuid;
 
-/// Characters repository — CRUD, position, stats.
 pub struct CharsRepo<'a>(pub &'a DbPool);
 
 impl<'a> CharsRepo<'a> {
@@ -220,8 +219,7 @@ impl<'a> CharsRepo<'a> {
         Ok(data)
     }
 
-    /// Default stat columns for character INSERT — all NOT NULL in the DB.
-    /// NOT NULL stat columns (excludes x/y/z/rx/ry/rz which are set explicitly).
+    /// NOT NULL stat columns for character INSERT; excludes x/y/z/rx/ry/rz which are set explicitly.
     const CHAR_DEFAULTS: &'static str = "
         perception, acrobatics, climb, stealth, spirit, magic,
         teamnumber, thirst, hunger, gold, score, characterlevel,
@@ -290,8 +288,7 @@ impl<'a> CharsRepo<'a> {
         Ok(())
     }
 
-    /// Create character using default values from the DefaultCharacterValues table.
-    /// Matches C# CreateCharacterUsingDefaultCharacterValues endpoint.
+    /// Mirrors C# `CreateCharacterUsingDefaultCharacterValues`.
     pub async fn create_character_with_defaults(
         &self,
         customer_guid: Uuid,
@@ -334,7 +331,7 @@ impl<'a> CharsRepo<'a> {
         Ok(())
     }
 
-    /// Allowlisted stat columns that can be updated via JSON.
+    /// Allowlist — `update_stats` only patches columns named here, keeping the dynamic SQL safe.
     const STAT_COLUMNS: &'static [&'static str] = &[
         "health",
         "maxhealth",
@@ -401,13 +398,11 @@ impl<'a> CharsRepo<'a> {
             .as_object()
             .ok_or_else(|| RowsError::BadRequest("Stats must be a JSON object".into()))?;
 
-        // Build SET clause from allowlisted keys only (SQL injection safe).
-        // Pre-allocate with capacity to avoid realloc.
         use std::fmt::Write;
         let mut sql = String::with_capacity(256);
         sql.push_str("UPDATE characters SET ");
         let mut vals: Vec<f64> = Vec::with_capacity(obj.len().min(Self::STAT_COLUMNS.len()));
-        let mut idx = 3u32; // $1 = customer_guid, $2 = charname
+        let mut idx = 3u32;
         let mut first = true;
 
         for (key, val) in obj {
@@ -417,7 +412,6 @@ impl<'a> CharsRepo<'a> {
                     if !first {
                         sql.push_str(", ");
                     }
-                    // write! into pre-allocated String — no extra allocation
                     let _ = write!(sql, "{col} = ${idx}");
                     vals.push(n);
                     idx += 1;
@@ -427,7 +421,7 @@ impl<'a> CharsRepo<'a> {
         }
 
         if first {
-            return Ok(()); // no valid columns
+            return Ok(());
         }
 
         sql.push_str(" WHERE customerguid = $1 AND charname = $2");

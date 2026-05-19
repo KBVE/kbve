@@ -3,7 +3,6 @@ use crate::error::RowsError;
 use crate::models::*;
 use uuid::Uuid;
 
-/// Instance management repository — zone lifecycle.
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
 impl<'a> InstanceRepo<'a> {
@@ -67,15 +66,14 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Core zone join logic — finds or creates a map instance for a character.
-    /// Returns server connection info. This is the heart of GetServerToConnectTo.
+    /// Core of `GetServerToConnectTo`: returns the connection info for an existing ready instance,
+    /// or a pending placeholder telling the caller to spin one up.
     pub async fn join_map_by_char_name(
         &self,
         customer_guid: Uuid,
         _char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        // Try to find an existing ready instance for this zone
         let existing: Option<JoinMapResult> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
@@ -107,7 +105,6 @@ impl<'a> InstanceRepo<'a> {
             return Ok(result);
         }
 
-        // No ready instance — need to spin one up
         let pending: Option<JoinMapResult> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
@@ -153,8 +150,7 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
-    /// Register or update a world server launcher. Uses UPSERT on the stable
-    /// ZoneServerGUID to prevent duplicate rows on launcher restart.
+    /// UPSERT keyed on the stable `ZoneServerGUID` so a launcher restart doesn't dupe rows.
     pub async fn register_launcher(
         &self,
         customer_guid: Uuid,
@@ -326,8 +322,8 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
-    /// Get active world servers sorted by instance load (least loaded first).
-    /// Uses LEFT JOIN + GROUP BY instead of correlated subquery (N+1 fix).
+    /// LEFT JOIN + GROUP BY instead of the previous correlated subquery (N+1 fix); returns
+    /// `(world_server_id, server_ip, instance_count)` sorted least-loaded first.
     pub async fn get_active_world_servers_by_load(
         &self,
         customer_guid: Uuid,
@@ -387,8 +383,8 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Create a map instance with status=2 (ready) for Agones-allocated servers.
-    /// Unlike spin_up_server_instance (status=1), Agones servers are already running.
+    /// Inserts with `status=2` (ready) because Agones-allocated servers are already running;
+    /// contrast `spin_up_server_instance` which leaves the row at `status=1`.
     pub async fn spin_up_server_instance_ready(
         &self,
         customer_guid: Uuid,
@@ -513,13 +509,12 @@ impl<'a> InstanceRepo<'a> {
         Ok(info)
     }
 
-    /// Delete a map instance by ID. Used during GameServer shutdown cleanup.
     pub async fn delete_map_instance(
         &self,
         customer_guid: Uuid,
         instance_id: i32,
     ) -> Result<(), RowsError> {
-        // First clean up char_on_map_instance references
+        // FK from charonmapinstance → mapinstances forces this two-step delete.
         sqlx::query(
             "DELETE FROM charonmapinstance
              WHERE mapinstanceid = $1 AND customerguid = $2",
@@ -529,7 +524,6 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
 
-        // Then delete the instance itself
         sqlx::query(
             "DELETE FROM mapinstances
              WHERE mapinstanceid = $1 AND customerguid = $2",
@@ -542,8 +536,6 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Deactivate the world server associated with a map instance.
-    /// Sets serverstatus=0 for the world server that owns this instance.
     pub async fn deactivate_world_server_by_instance(
         &self,
         customer_guid: Uuid,
@@ -565,7 +557,6 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Delete all map instances for a customer. Used during fleet restart.
     pub async fn delete_all_map_instances(&self, customer_guid: Uuid) -> Result<(), RowsError> {
         sqlx::query("DELETE FROM charonmapinstance WHERE customerguid = $1")
             .bind(customer_guid)
@@ -580,7 +571,6 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Deactivate all world servers for a customer. Used during fleet restart.
     pub async fn deactivate_all_world_servers(&self, customer_guid: Uuid) -> Result<(), RowsError> {
         sqlx::query("UPDATE worldservers SET serverstatus = 0 WHERE customerguid = $1")
             .bind(customer_guid)
@@ -590,7 +580,6 @@ impl<'a> InstanceRepo<'a> {
         Ok(())
     }
 
-    /// Get zone instance info by ID (for shutdown routing).
     pub async fn get_zone_instance_info(
         &self,
         customer_guid: Uuid,
@@ -615,8 +604,7 @@ impl<'a> InstanceRepo<'a> {
         Ok(info)
     }
 
-    /// Get zone assignment for a world server (Iris integration).
-    /// Returns the first active mapinstance assigned to this world server.
+    /// Iris uses this to read the mapinstance currently assigned to a world server.
     pub async fn get_zone_assignment(
         &self,
         customer_guid: Uuid,
@@ -643,7 +631,6 @@ impl<'a> InstanceRepo<'a> {
         Ok(assignment)
     }
 
-    /// Count active mapinstances for a customer. Used by deployment verification.
     pub async fn count_active_instances(&self, customer_guid: Uuid) -> Result<i64, RowsError> {
         let row: (i64,) = sqlx::query_as(
             "SELECT COUNT(*) FROM mapinstances WHERE customerguid = $1 AND status > 0",

@@ -6,11 +6,9 @@ use axum::{
 };
 use uuid::Uuid;
 
-/// Header key matching C# OWS middleware
 pub const CUSTOMER_GUID_HEADER: &str = "x-customerguid";
 
-/// Extract and validate X-CustomerGUID header.
-/// Skips auth for /health endpoint (matches C# StoreCustomerGUIDMiddleware).
+/// Mirrors C# StoreCustomerGUIDMiddleware: skips `/health`, otherwise demands a valid GUID.
 pub async fn require_customer_guid(req: Request, next: Next) -> Response {
     if req.uri().path() == "/health" {
         return next.run(req).await;
@@ -35,10 +33,7 @@ pub async fn require_customer_guid(req: Request, next: Next) -> Response {
     }
 }
 
-/// Extract X-CustomerGUID from request headers.
-/// Returns Uuid::nil() if not present — callers behind require_customer_guid
-/// middleware are guaranteed a valid GUID, but this avoids panics if called
-/// from unprotected routes.
+/// Returns `Uuid::nil()` when the header is missing or malformed so unprotected callers don't panic.
 pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
     headers
         .get(CUSTOMER_GUID_HEADER)

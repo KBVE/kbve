@@ -1,30 +1,3 @@
-//! GameServer watcher — monitors Agones GameServer state changes.
-//!
-//! Watches for Shutdown/Delete events and auto-cleans stale DB entries
-//! (worldservers + mapinstances) so clients never connect to dead ports.
-//!
-//! # Edge Cases
-//!
-//! TODO(orphan-detection): Detect GameServers not in tracking map:
-//!   - On every Init/InitDone cycle, compare Allocated GameServers with tracking map
-//!   - If Allocated GS has no entry in zone_servers → it's orphaned from a previous ROWS
-//!   - Options: adopt it (add to tracking), deallocate it, or log for manual review
-//!
-//! TODO(partial-cleanup): Handle DB failures during cleanup:
-//!   - If deactivate_world_server succeeds but delete_map_instance fails,
-//!     the worldserver is inactive but mapinstance remains → stale data
-//!   - Consider: retry cleanup with exponential backoff, or mark as "needs_cleanup"
-//!
-//! TODO(event-ordering): Handle out-of-order events:
-//!   - Watcher may receive Shutdown for a GS that was just re-allocated
-//!   - Check GS creation timestamp before cleaning up — if it's newer than the
-//!     event, skip cleanup (it's a different GS with the same name)
-//!
-//! TODO(multi-customer): Support multiple customers on one fleet:
-//!   - Current cleanup uses a single customer_guid from config
-//!   - If fleet serves multiple customers, need to look up customer from GS labels
-//!   - Or use ows.kbve.com/customer-guid annotation set during tag_allocated()
-
 use crate::repo::InstanceRepo;
 use crate::state::AppState;
 use futures_lite::StreamExt;
@@ -36,11 +9,9 @@ use kube::{
 use std::sync::Arc;
 use tracing::{error, info, warn};
 
-/// Max backoff between watcher restart attempts.
 const MAX_BACKOFF_SECS: u64 = 60;
 
-/// Spawn a background watcher with auto-restart and exponential backoff.
-/// If the watch stream dies (network blip, API error), it restarts automatically.
+/// Auto-restarts with exponential backoff when the watch stream dies (network blip / API error).
 pub async fn spawn_gameserver_watcher(state: Arc<AppState>) {
     let mut backoff_secs: u64 = 1;
 
@@ -73,7 +44,6 @@ enum WatcherExit {
     ClientError(String),
 }
 
-/// Single run of the watcher — returns when the stream ends or errors.
 async fn run_watcher(state: &AppState) -> WatcherExit {
     let client = match Client::try_default().await {
         Ok(c) => c,
@@ -130,9 +100,7 @@ async fn run_watcher(state: &AppState) -> WatcherExit {
     WatcherExit::StreamEnded
 }
 
-/// Clean up DB entries for a shutdown/deleted GameServer.
 async fn cleanup_shutdown_server(gs_name: &str, state: &AppState) {
-    // Find instance ID by GameServer name in tracking map
     let instance_id = state
         .zone_servers
         .iter()
@@ -140,14 +108,13 @@ async fn cleanup_shutdown_server(gs_name: &str, state: &AppState) {
         .map(|entry| *entry.key());
 
     let Some(instance_id) = instance_id else {
-        // Not tracked — might be an old pod or one we didn't allocate
         return;
     };
 
     let customer_guid = state.config.customer_guid;
     let repo = InstanceRepo(&state.db);
 
-    // Deactivate worldserver BEFORE deleting mapinstance (FK dependency)
+    // FK on mapinstances → worldservers forces this order.
     if let Err(e) = repo
         .deactivate_world_server_by_instance(customer_guid, instance_id)
         .await
@@ -155,23 +122,19 @@ async fn cleanup_shutdown_server(gs_name: &str, state: &AppState) {
         error!(error = %e, instance_id, gs = gs_name, "Failed to deactivate worldserver");
     }
 
-    // Delete mapinstance
     if let Err(e) = repo.delete_map_instance(customer_guid, instance_id).await {
         error!(error = %e, instance_id, gs = gs_name, "Failed to delete mapinstance");
     } else {
         info!(instance_id, gs = gs_name, "Deleted mapinstance");
     }
 
-    // Remove from tracking
     state.zone_servers.remove(&instance_id);
 
-    // Release any spinup locks for this customer
     let guid_prefix = customer_guid.to_string();
     state
         .zone_spinup_locks
         .retain(|key, _| !key.starts_with(&guid_prefix));
 
-    // Log the event
     state.instance_log.push(crate::rest::system::InstanceEvent {
         timestamp: chrono::Utc::now(),
         event: "shutdown_cleanup".into(),

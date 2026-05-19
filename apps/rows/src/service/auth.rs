@@ -9,7 +9,6 @@ impl OWSService {
         let repo = UsersRepo(&self.state.db);
         let result = repo.login(email, password).await?;
 
-        // Cache session on successful login
         if result.authenticated {
             if let Some(session_guid) = result.user_session_guid {
                 if let Ok(Some(session)) = repo.get_session(session_guid).await {
@@ -61,14 +60,12 @@ impl OWSService {
             .ok_or_else(|| RowsError::NotFound("Session not found".into()))
     }
 
-    /// Resolve session from cache (DashMap) or DB. Caches on miss.
+    /// DashMap fast path; falls back to a DB lookup and writes through to the cache.
     pub async fn resolve_session(&self, session_guid: Uuid) -> Result<CachedSession, RowsError> {
-        // Fast path: DashMap
         if let Some(cached) = self.state.sessions.get(&session_guid) {
             return Ok(cached.clone());
         }
 
-        // Slow path: DB
         let repo = UsersRepo(&self.state.db);
         let session = repo
             .get_session(session_guid)
@@ -89,14 +86,8 @@ impl OWSService {
         Ok(cached)
     }
 
-    /// External login via Supabase JWT — validates token, finds-or-creates OWS user, creates session.
-    ///
-    /// Flow:
-    ///   1. Validate Supabase JWT → extract email
-    ///   2. Find existing OWS user by email, or create a new one under customer_guid
-    ///   3. Delete old sessions, create new session
-    ///   4. Cache session in DashMap
-    ///   5. Return LoginResult with session GUID
+    /// Validates a Supabase JWT, find-or-creates the OWS user under `customer_guid`, and issues
+    /// a fresh session — replacing any prior session for that user.
     pub async fn external_login(&self, access_token: &str) -> Result<LoginResult, RowsError> {
         let validated = crate::supabase::validate_jwt(access_token, &self.state.supabase)
             .map_err(|e| RowsError::BadRequest(format!("Invalid access token: {e}")))?;
@@ -108,7 +99,6 @@ impl OWSService {
         let customer_guid = self.state.config.customer_guid;
         let repo = UsersRepo(&self.state.db);
 
-        // Derive display name from email prefix
         let name_part = email.split('@').next().unwrap_or("Player");
 
         let user_guid = repo
@@ -117,7 +107,6 @@ impl OWSService {
 
         let session_guid = repo.create_session(customer_guid, user_guid).await?;
 
-        // Cache session
         self.state.sessions.insert(
             session_guid,
             CachedSession {
@@ -147,9 +136,7 @@ impl OWSService {
         char_name: &str,
     ) -> Result<UserSessionWithCharacter, RowsError> {
         let repo = UsersRepo(&self.state.db);
-        // First update the selected character
         let _ = repo.set_selected_character(session_guid, char_name).await?;
-        // Then fetch session with character data (including position)
         repo.get_session_with_character(session_guid)
             .await?
             .ok_or_else(|| RowsError::NotFound("Session not found".into()))

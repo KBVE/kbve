@@ -77,7 +77,7 @@ async fn update_all_positions(
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
 
-    // Parse pipe-separated format: CharName:X:Y:Z:RX:RY:RZ|CharName2:...
+    // Wire format from OWS: `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`
     let mut updated = 0u32;
     let mut failed = 0u32;
     for entry in body.serialized_player_location_data.split('|') {
@@ -166,7 +166,7 @@ async fn add_or_update_custom_data(
 struct UpdateStatsDto {
     #[serde(alias = "charName", alias = "CharName")]
     character_name: String,
-    // C# sends individual stat fields — we accept as JSON
+    // C# OWS posts each stat as a top-level field; flatten captures them as a JSON map.
     #[serde(flatten)]
     stats: serde_json::Value,
 }
@@ -212,8 +212,6 @@ async fn player_logout(
         }
     }
 }
-
-// ─── Character Statuses ──────────────────────────────────────
 
 async fn get_character_statuses(
     State(hs): State<HandlerState>,

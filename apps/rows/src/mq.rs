@@ -8,7 +8,6 @@ use tracing::{error, info, warn};
 
 use crate::service::OWSService;
 
-/// RabbitMQ producer for OWS instance lifecycle messages.
 pub struct MqProducer {
     channel: Channel,
 }
@@ -20,10 +19,9 @@ pub struct SpinUpMessage {
     pub zone_instance_id: i32,
     pub map_name: String,
     pub port: i32,
-    /// Procedural world seed — 0 means handcrafted (no PCG).
+    /// `0` = handcrafted map (no PCG).
     #[serde(default)]
     pub seed: i64,
-    /// Biome hint for the procedural generator.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub biome: Option<String>,
 }
@@ -108,7 +106,7 @@ impl MqProducer {
     }
 }
 
-/// Try to connect producer; return None if RabbitMQ is unavailable (non-fatal).
+/// Non-fatal: returns `None` and logs when RabbitMQ is unreachable.
 pub async fn try_connect(url: &str) -> Option<MqProducer> {
     match MqProducer::connect(url).await {
         Ok(p) => Some(p),
@@ -119,12 +117,7 @@ pub async fn try_connect(url: &str) -> Option<MqProducer> {
     }
 }
 
-// ──────────────────────────────────────────────
-// Consumer — listens for spin-up/shutdown messages
-// ──────────────────────────────────────────────
-
-/// Spawn a background RabbitMQ consumer that listens for instance lifecycle messages.
-/// Runs as a tokio task — non-blocking, non-fatal if MQ is unavailable.
+/// Non-fatal: bails (with a log) when MQ is unreachable.
 pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService>) {
     let conn = match Connection::connect(url, ConnectionProperties::default()).await {
         Ok(c) => c,
@@ -142,7 +135,6 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
         }
     };
 
-    // Declare queues and bind to exchanges
     let spinup_queue = format!("rows.spinup.{world_server_id}");
     let shutdown_queue = format!("rows.shutdown.{world_server_id}");
 
@@ -189,7 +181,6 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
         }
     }
 
-    // Spin-up consumer
     let svc_spinup = svc.clone();
     let spinup_consumer = channel
         .basic_consume(
@@ -205,7 +196,6 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
         info!(world_server_id, "RabbitMQ spin-up consumer started");
     }
 
-    // Shutdown consumer
     let shutdown_consumer = channel
         .basic_consume(
             shutdown_queue.as_str().into(),
@@ -248,7 +238,6 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             "Processing spin-up message"
         );
 
-        // Allocate via pipeline (Agones if available)
         let guid = svc.state().config.customer_guid;
         if let Some(ref agones) = svc.state().agones {
             use crate::agones::AllocationPipeline;
@@ -277,7 +266,6 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                 Err(e) => {
                     error!(error = %e, zone = msg.zone_instance_id, "MQ spin-up: pipeline failed");
 
-                    // DLQ after 3 attempts
                     if delivery.delivery_tag > 2 {
                         warn!(
                             zone = msg.zone_instance_id,
@@ -319,7 +307,6 @@ async fn consume_shut_down(mut consumer: Consumer, svc: Arc<OWSService>) {
 
         info!(zone = msg.zone_instance_id, "Processing shutdown message");
 
-        // Deallocate via Agones if tracked
         if let Some((_, gs_name)) = svc.state().zone_servers.remove(&msg.zone_instance_id) {
             if let Some(ref agones) = svc.state().agones {
                 if let Err(e) = agones.deallocate(&gs_name).await {

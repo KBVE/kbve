@@ -1,6 +1,3 @@
-//! System API endpoints — fleet status, health, players, instance log, deployment info.
-//! All endpoints require X-CustomerGUID header (existing auth pattern).
-
 use crate::middleware::require_customer_guid;
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::get};
 use serde::Serialize;
@@ -8,8 +5,6 @@ use std::time::Instant;
 use utoipa::ToSchema;
 
 use super::HandlerState;
-
-// ─── Routes ──────────────────────────────────────────────────
 
 pub fn system_routes(hs: HandlerState) -> Router {
     Router::new()
@@ -33,8 +28,6 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .layer(middleware::from_fn(require_customer_guid))
         .with_state(hs)
 }
-
-// ─── Fleet Status ────────────────────────────────────────────
 
 #[utoipa::path(
     get,
@@ -60,8 +53,6 @@ pub async fn fleet_status(State(hs): State<HandlerState>) -> Json<serde_json::Va
     }
 }
 
-// ─── Aggregated Health ───────────────────────────────────────
-
 #[derive(Serialize, ToSchema)]
 struct HealthCheck {
     ok: bool,
@@ -82,15 +73,12 @@ struct HealthCheck {
     )
 )]
 pub async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_json::Value> {
-    // Postgres
     let pg_start = Instant::now();
     let pg_ok = sqlx::query("SELECT 1").execute(&hs.app.db).await.is_ok();
     let pg_latency = pg_start.elapsed().as_millis() as u64;
 
-    // RabbitMQ
     let mq_ok = hs.app.mq.is_some();
 
-    // Agones — check circuit breaker state + fleet connectivity
     let (agones_ok, agones_err, circuit_state) = match &hs.app.agones {
         Some(agones) => {
             let cb_state = if agones.is_circuit_open() {
@@ -158,8 +146,6 @@ pub async fn aggregated_health(State(hs): State<HandlerState>) -> Json<serde_jso
     }))
 }
 
-// ─── Active Players ──────────────────────────────────────────
-
 #[utoipa::path(
     get,
     path = "/api/System/ActivePlayers",
@@ -214,14 +200,9 @@ pub async fn active_players(
     }))
 }
 
-// ─── Instance Lifecycle Log ──────────────────────────────────
-
-/// In-memory ring buffer for instance events.
-/// Stored in AppState — events pushed from agones/pipeline.rs.
 use std::collections::VecDeque;
 use std::sync::Mutex;
 
-/// A single instance lifecycle event.
 #[derive(Clone, Serialize, ToSchema)]
 pub struct InstanceEvent {
     pub timestamp: chrono::DateTime<chrono::Utc>,
@@ -232,7 +213,6 @@ pub struct InstanceEvent {
     pub trigger: String,
 }
 
-/// Ring buffer for instance events (max 200 entries).
 pub struct InstanceEventLog {
     events: Mutex<VecDeque<InstanceEvent>>,
 }
@@ -288,8 +268,6 @@ pub async fn instance_log(
     }))
 }
 
-// ─── Deployment Info ─────────────────────────────────────────
-
 #[utoipa::path(
     get,
     path = "/api/System/DeploymentInfo",
@@ -321,11 +299,6 @@ pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json:
     }))
 }
 
-// ─── Restart GameServer ─────────────────────────────────────
-
-/// Restart a specific GameServer by zone_instance_id.
-/// Flow: send MQ shutdown → delete Agones GameServer → watcher auto-cleans DB.
-/// Agones auto-replaces with a fresh pod from the fleet.
 #[utoipa::path(
     post,
     path = "/api/System/RestartGameServer",
@@ -359,20 +332,17 @@ pub async fn restart_game_server(
 
     let customer_guid = hs.app.config.customer_guid;
 
-    // Find the GameServer name from tracking
     let gs_name = hs
         .app
         .zone_servers
         .get(&zone_instance_id)
         .map(|e| e.value().clone());
 
-    // Send MQ shutdown notification (if available)
     if let Some(ref mq) = hs.app.mq {
         let msg = crate::mq::ShutDownMessage {
             customer_guid: customer_guid.to_string(),
             zone_instance_id,
         };
-        // Find world_server_id from DB for the routing key
         let repo = crate::repo::InstanceRepo(&hs.app.db);
         if let Ok(Some(info)) = repo
             .get_zone_instance_info(customer_guid, zone_instance_id)
@@ -384,7 +354,6 @@ pub async fn restart_game_server(
         }
     }
 
-    // Delete the Agones GameServer — Agones fleet auto-replaces it
     if let (Some(ref agones), Some(ref gs)) = (&hs.app.agones, &gs_name) {
         match agones.deallocate(gs).await {
             Ok(_) => {
@@ -400,7 +369,6 @@ pub async fn restart_game_server(
         }
     }
 
-    // Log the event
     hs.app.instance_log.push(InstanceEvent {
         timestamp: chrono::Utc::now(),
         event: "restart".into(),
@@ -410,17 +378,12 @@ pub async fn restart_game_server(
         trigger: "api".into(),
     });
 
-    // DB cleanup happens automatically via the GameServer watcher
     Json(serde_json::json!({
         "success": true,
         "message": "GameServer restart initiated. Watcher will clean DB. Fleet will auto-replace."
     }))
 }
 
-// ─── Restart Fleet ──────────────────────────────────────────
-
-/// Restart the entire fleet — scale to 0, clean all DB entries, scale back up.
-/// Use with caution — disconnects all players.
 #[utoipa::path(
     post,
     path = "/api/System/RestartFleet",
@@ -442,7 +405,6 @@ pub async fn restart_fleet(
     let customer_guid = hs.app.config.customer_guid;
     let desired_replicas = body.get("replicas").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
 
-    // Step 1: Scale fleet to 0 (kills all pods including Allocated)
     if let Some(ref agones) = hs.app.agones {
         tracing::info!("RestartFleet: scaling to 0");
         if let Err(e) = agones.scale_fleet(0).await {
@@ -452,11 +414,9 @@ pub async fn restart_fleet(
             }));
         }
 
-        // Wait for pods to terminate
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     }
 
-    // Step 2: Clean all zone instance DB entries
     let repo = crate::repo::InstanceRepo(&hs.app.db);
     if let Err(e) = repo.delete_all_map_instances(customer_guid).await {
         return Json(serde_json::json!({
@@ -468,11 +428,9 @@ pub async fn restart_fleet(
         tracing::warn!(error = %e, "Failed to deactivate world servers");
     }
 
-    // Step 3: Clear tracking maps
     hs.app.zone_servers.clear();
     hs.app.zone_spinup_locks.clear();
 
-    // Step 4: Scale fleet back up
     if let Some(ref agones) = hs.app.agones {
         tracing::info!(replicas = desired_replicas, "RestartFleet: scaling back up");
         if let Err(e) = agones.scale_fleet(desired_replicas).await {
@@ -483,7 +441,6 @@ pub async fn restart_fleet(
         }
     }
 
-    // Log the event
     hs.app.instance_log.push(InstanceEvent {
         timestamp: chrono::Utc::now(),
         event: "fleet_restart".into(),
@@ -499,11 +456,6 @@ pub async fn restart_fleet(
     }))
 }
 
-// ─── Verify Deployment ──────────────────────────────────────
-
-/// Post-deployment verification — checks that the fleet is healthy after restart.
-/// Polls Agones for Ready servers, verifies count matches desired, checks DB is clean.
-/// Returns a detailed report with per-check pass/fail status.
 #[utoipa::path(
     post,
     path = "/api/System/VerifyDeployment",
@@ -536,7 +488,6 @@ pub async fn verify_deployment(
     let mut checks: Vec<serde_json::Value> = Vec::new();
     let start = std::time::Instant::now();
 
-    // Check 1: Agones fleet status — poll until Ready count matches
     let mut fleet_ok = false;
     let mut ready_count = 0i32;
     let mut allocated_count = 0i32;
@@ -593,7 +544,6 @@ pub async fn verify_deployment(
         "game_servers": gs_details,
     }));
 
-    // Check 2: DB state — no stale mapinstances or active worldservers
     let repo = crate::repo::InstanceRepo(&hs.app.db);
     let db_clean = match repo.count_active_instances(customer_guid).await {
         Ok(count) => {
@@ -615,7 +565,6 @@ pub async fn verify_deployment(
         }
     };
 
-    // Check 3: ROWS health — postgres, rabbitmq, agones all reachable
     let pg_ok = !hs.app.db.is_closed();
     let mq_ok = hs.app.mq.is_some();
     let agones_ok = hs.app.agones.is_some();
@@ -628,14 +577,11 @@ pub async fn verify_deployment(
         "agones": agones_ok,
     }));
 
-    // Check 4: Allocation test — try allocating and immediately releasing
-    // Only run if fleet is ready and DB is clean
     let mut alloc_ok = false;
     if fleet_ok && db_clean {
         if let Some(ref agones) = hs.app.agones {
             match agones.allocate("__verify__", 0).await {
                 Ok(alloc) => {
-                    // Immediately deallocate the test server
                     let gs_name = alloc.game_server_name.clone();
                     if let Err(e) = agones.deallocate(&gs_name).await {
                         tracing::warn!(error = %e, gs = %gs_name, "Failed to deallocate test server");
@@ -670,7 +616,6 @@ pub async fn verify_deployment(
 
     let all_pass = fleet_ok && db_clean && pg_ok && agones_ok && alloc_ok;
 
-    // Log the verification event
     hs.app.instance_log.push(InstanceEvent {
         timestamp: chrono::Utc::now(),
         event: if all_pass {

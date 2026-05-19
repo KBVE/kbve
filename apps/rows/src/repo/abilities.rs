@@ -3,7 +3,6 @@ use crate::error::RowsError;
 use crate::models::*;
 use uuid::Uuid;
 
-/// Abilities repository — character abilities and ability bars.
 pub struct AbilitiesRepo<'a>(pub &'a DbPool);
 
 impl<'a> AbilitiesRepo<'a> {

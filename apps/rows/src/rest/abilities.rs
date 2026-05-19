@@ -154,6 +154,5 @@ async fn get_ability_bars_and_abilities(
 }
 
 async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {
-    // TODO: return all abilities for the customer
     Json(Vec::new())
 }

@@ -1,5 +1,3 @@
-//! GameServer deallocation (graceful shutdown + K8s resource deletion).
-
 use super::client::AgonesClient;
 use super::error::AgonesError;
 use std::time::{Duration, Instant};
@@ -9,8 +7,7 @@ const MAX_RETRIES: u32 = 3;
 const INITIAL_BACKOFF_MS: u64 = 200;
 
 impl AgonesClient {
-    /// Deallocate a GameServer by deleting the K8s resource.
-    /// Retries on transient errors.
+    /// Retries transient K8s errors with exponential backoff up to `MAX_RETRIES`.
     #[tracing::instrument(skip(self))]
     pub async fn deallocate(&self, game_server_name: &str) -> Result<(), AgonesError> {
         self.check_circuit()?;
@@ -54,7 +51,6 @@ impl AgonesClient {
         }))
     }
 
-    /// Single deallocation attempt — deletes the GameServer K8s resource.
     async fn try_deallocate(&self, game_server_name: &str) -> Result<(), AgonesError> {
         let url = format!(
             "/apis/agones.dev/v1/namespaces/{}/gameservers/{}",
