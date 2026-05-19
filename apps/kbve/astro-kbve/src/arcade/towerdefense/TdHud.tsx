@@ -18,6 +18,7 @@ import {
 	inventoryAtom,
 	inventoryOpenAtom,
 	livesAtom,
+	enemyHoverAtom,
 	pendingItemTargetAtom,
 	nextWavePreviewAtom,
 	restartSignalAtom,
@@ -452,6 +453,53 @@ function InventoryPanel() {
 	);
 }
 
+function EnemyTooltip() {
+	const info = useStore(enemyHoverAtom);
+	if (!info) return null;
+	const hpPct = info.maxHp > 0 ? (info.hp / info.maxHp) * 100 : 0;
+	const armorPct = info.maxArmor > 0 ? (info.armor / info.maxArmor) * 100 : 0;
+	const speedPct =
+		info.baseSpeed > 0 ? (info.speed / info.baseSpeed) * 100 : 0;
+	const status = info.dead ? 'DEAD' : info.immobile ? 'IMMOBILE' : 'ACTIVE';
+	const style = {
+		left: `${info.screenX + 16}px`,
+		top: `${info.screenY + 16}px`,
+	} as CSSProperties;
+	return (
+		<div className="td-tooltip" style={style}>
+			<div className="td-tooltip-head">
+				<span className="td-tooltip-name">{info.typeName}</span>
+				<span className="td-tooltip-eid">eid {info.eid}</span>
+			</div>
+			<div className="td-tooltip-row">
+				<span>HP</span>
+				<span>
+					{info.hp.toFixed(1)} / {info.maxHp.toFixed(0)} (
+					{hpPct.toFixed(1)}%)
+				</span>
+			</div>
+			<div className="td-tooltip-row">
+				<span>Armor</span>
+				<span>
+					{info.armor.toFixed(1)} / {info.maxArmor.toFixed(0)} (
+					{armorPct.toFixed(0)}%)
+				</span>
+			</div>
+			<div className="td-tooltip-row">
+				<span>Speed</span>
+				<span>
+					{info.speed.toFixed(1)} / {info.baseSpeed.toFixed(0)} (
+					{speedPct.toFixed(0)}%)
+				</span>
+			</div>
+			<div
+				className={`td-tooltip-status td-tooltip-status-${status.toLowerCase()}`}>
+				{status}
+			</div>
+		</div>
+	);
+}
+
 function PendingTargetBanner() {
 	const pending = useStore(pendingItemTargetAtom);
 	if (!pending) return null;
@@ -596,6 +644,7 @@ export default function TdHud() {
 			<PaletteBar />
 			<PendingTargetBanner />
 			<InventoryPanel />
+			<EnemyTooltip />
 			<CardModal />
 			<GameOverOverlay />
 		</div>

@@ -49,6 +49,7 @@ export {
 	type AuraKind,
 } from './aura';
 export { Movement, MovementTag, initMovement } from './movement';
+export { DeadTag, ImmobileTag } from './lifecycle';
 export {
 	BuildingTag,
 	TowerTag,

@@ -3,7 +3,9 @@ import {
 	addComponent,
 	addEntity,
 	createWorld,
+	hasComponent,
 	query,
+	removeComponent,
 	removeEntity,
 	SideMap,
 	type World,
@@ -64,6 +66,8 @@ import {
 	DAMAGEABLE_KIND,
 	Damageable,
 	DamageableTag,
+	DeadTag,
+	ImmobileTag,
 	hasStatus,
 	initAura,
 	initDamageable,
@@ -80,6 +84,7 @@ import {
 	DroneTag,
 	EnemyStats,
 	EnemyTag,
+	ENEMY_TYPE_INDEX,
 	enemyTypeIndexFromId,
 	GeneratorTag,
 	Position,
@@ -117,6 +122,7 @@ import {
 	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
+	enemyHoverAtom,
 	freeTowersAtom,
 	gameOverAtom,
 	goldAtom,
@@ -1922,6 +1928,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			Damageable.hp[targetEid] -= reduced;
 		}
 		if (Damageable.hp[targetEid] <= 0) {
+			if (!hasComponent(this.world, targetEid, DeadTag)) {
+				addComponent(this.world, targetEid, DeadTag);
+			}
 			const kind = Damageable.kind[targetEid];
 			if (kind === DAMAGEABLE_KIND.enemy) {
 				this.killEnemy(targetEid, true);
@@ -2449,7 +2458,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			: 1;
 		const next = baseSpeed * wounded * slow;
 		Movement.speed[eid] = next;
-		Movement.frozen[eid] = next <= 0 ? 1 : 0;
+		const frozen = next <= 0;
+		Movement.frozen[eid] = frozen ? 1 : 0;
+		const hasImmobile = hasComponent(this.world, eid, ImmobileTag);
+		if (frozen && !hasImmobile) {
+			addComponent(this.world, eid, ImmobileTag);
+		} else if (!frozen && hasImmobile) {
+			removeComponent(this.world, eid, ImmobileTag);
+		}
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
@@ -3082,6 +3098,63 @@ export class TowerDefenseScene extends Phaser.Scene {
 		for (const deid of deathRow) this.killDrone(deid);
 	}
 
+	private updateEnemyHover(): void {
+		const pointer = this.input.activePointer;
+		const px = pointer.worldX;
+		const py = pointer.worldY;
+		if (
+			py < HUD_HEIGHT ||
+			py > BASE_HEIGHT - PALETTE_HEIGHT ||
+			pointer.isDown
+		) {
+			if (enemyHoverAtom.get() !== null) enemyHoverAtom.set(null);
+			return;
+		}
+		let bestEid = -1;
+		let bestDist2 = TILE * TILE * 0.5;
+		for (const eid of this.frameEnemyEids) {
+			if (!this.enemyVisuals.has(eid)) continue;
+			const dx = Position.x[eid] - px;
+			const dy = Position.y[eid] - py;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestDist2) {
+				bestDist2 = d2;
+				bestEid = eid;
+			}
+		}
+		if (bestEid < 0) {
+			if (enemyHoverAtom.get() !== null) enemyHoverAtom.set(null);
+			return;
+		}
+		const typeIndex = EnemyStats.typeIndex[bestEid];
+		const typeName = ENEMY_TYPE_INDEX[typeIndex] ?? 'unknown';
+		const speed = Movement.speed[bestEid];
+		const baseSpeed = Movement.baseSpeed[bestEid];
+		const hp = Damageable.hp[bestEid];
+		const maxHp = Damageable.maxHp[bestEid];
+		const armor = Damageable.armor[bestEid];
+		const maxArmor = Damageable.maxArmor[bestEid];
+		const immobile = baseSpeed > 0 && speed <= 0;
+		const dead = hp <= 0;
+		const cam = this.cameras.main;
+		const screenX = (px - cam.worldView.x) * cam.zoom;
+		const screenY = (py - cam.worldView.y) * cam.zoom;
+		enemyHoverAtom.set({
+			eid: bestEid,
+			hp,
+			maxHp,
+			armor,
+			maxArmor,
+			speed,
+			baseSpeed,
+			immobile,
+			dead,
+			typeName,
+			screenX,
+			screenY,
+		});
+	}
+
 	private deathSystem(): void {
 		for (const eid of query(this.world, [DamageableTag])) {
 			if (Damageable.hp[eid] > 0) continue;
@@ -3305,6 +3378,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 		this.tickAuraEmitters(nowMs);
 		this.deathSystem();
+		this.updateEnemyHover();
 		this.drainRemoveEntityQueue();
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;

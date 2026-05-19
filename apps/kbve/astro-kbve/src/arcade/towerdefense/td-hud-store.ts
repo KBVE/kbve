@@ -78,6 +78,22 @@ export const useItemSignalAtom = atom<{ id: ItemId | null; n: number }>({
 });
 export const pendingItemTargetAtom = atom<ItemId | null>(null);
 
+export interface EnemyHoverInfo {
+	eid: number;
+	hp: number;
+	maxHp: number;
+	armor: number;
+	maxArmor: number;
+	speed: number;
+	baseSpeed: number;
+	immobile: boolean;
+	dead: boolean;
+	typeName: string;
+	screenX: number;
+	screenY: number;
+}
+export const enemyHoverAtom = atom<EnemyHoverInfo | null>(null);
+
 export function resetHudStore(): void {
 	goldAtom.set(0);
 	livesAtom.set(0);
@@ -109,4 +125,5 @@ export function resetHudStore(): void {
 	inventoryOpenAtom.set(false);
 	useItemSignalAtom.set({ id: null, n: useItemSignalAtom.get().n });
 	pendingItemTargetAtom.set(null);
+	enemyHoverAtom.set(null);
 }

@@ -755,6 +755,79 @@ import TdHud from './TdHud';
 		border-color: rgba(255, 255, 255, 0.35);
 	}
 
+	.td-tooltip {
+		position: absolute;
+		min-width: 180px;
+		padding: 8px 10px;
+		background: rgba(8, 10, 14, 0.94);
+		border: 1px solid rgba(255, 255, 255, 0.18);
+		border-left: 3px solid #fc8181;
+		border-radius: 8px;
+		font-family: ui-monospace, monospace;
+		font-size: 10px;
+		color: #e2e8f0;
+		pointer-events: none;
+		z-index: 12;
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+	}
+
+	.td-tooltip-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 4px;
+	}
+
+	.td-tooltip-name {
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		color: #fc8181;
+	}
+
+	.td-tooltip-eid {
+		font-size: 9px;
+		color: #94a3b8;
+	}
+
+	.td-tooltip-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 1px 0;
+	}
+
+	.td-tooltip-row span:first-child {
+		color: #94a3b8;
+	}
+
+	.td-tooltip-status {
+		margin-top: 6px;
+		text-align: center;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.18em;
+		padding: 3px 0;
+		border-radius: 4px;
+	}
+
+	.td-tooltip-status-active {
+		background: rgba(72, 187, 120, 0.18);
+		color: #68d391;
+	}
+
+	.td-tooltip-status-immobile {
+		background: rgba(246, 173, 85, 0.18);
+		color: #f6ad55;
+	}
+
+	.td-tooltip-status-dead {
+		background: rgba(252, 129, 129, 0.2);
+		color: #fc8181;
+	}
+
 	.td-palette {
 		position: absolute;
 		left: 8px;
