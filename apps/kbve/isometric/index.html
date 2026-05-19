@@ -62,6 +62,35 @@
                 document.body.style.pointerEvents = 'none';
                 var c = document.getElementById('bevy-canvas');
                 if (c) c.style.pointerEvents = 'none';
+
+                // Tauri webview eats pointer/keyboard events before tao can
+                // forward them. Re-publish DOM events to Rust commands so the
+                // native Bevy app sees them. Capture phase so we beat any
+                // React handlers (those re-arm pointer-events: auto on their
+                // own children).
+                var ti = window.__TAURI_INTERNALS__;
+                var invoke = (ti && ti.invoke) || (window.__TAURI__ && window.__TAURI__.invoke);
+                if (invoke) {
+                    var dpr = window.devicePixelRatio || 1;
+                    window.addEventListener('pointermove', function (e) {
+                        invoke('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
+                    }, true);
+                    window.addEventListener('pointerdown', function (e) {
+                        invoke('forward_pointer_button', { button: e.button, pressed: true });
+                    }, true);
+                    window.addEventListener('pointerup', function (e) {
+                        invoke('forward_pointer_button', { button: e.button, pressed: false });
+                    }, true);
+                    window.addEventListener('wheel', function (e) {
+                        invoke('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
+                    }, { capture: true, passive: true });
+                    window.addEventListener('keydown', function (e) {
+                        invoke('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
+                    }, true);
+                    window.addEventListener('keyup', function (e) {
+                        invoke('forward_key', { code: e.code, pressed: false, repeat: false });
+                    }, true);
+                }
             } else {
                 // WASM browser build keeps the canvas focused so winit's web
                 // backend receives keyboard events.

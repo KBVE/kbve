@@ -43,6 +43,10 @@ fn main() {
             builder.invoke_handler(tauri::generate_handler![
                 isometric_game::commands::dispatch_action,
                 isometric_game::commands::greet,
+                isometric_game::commands::forward_pointer_move,
+                isometric_game::commands::forward_pointer_button,
+                isometric_game::commands::forward_wheel,
+                isometric_game::commands::forward_key,
             ])
         })
         .with_post_render_setup(|app| {

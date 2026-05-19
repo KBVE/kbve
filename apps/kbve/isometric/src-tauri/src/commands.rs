@@ -92,6 +92,46 @@ pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }
 
+// ── Native input forwarders ──────────────────────────────────────────
+// JS captures pointer/key/wheel on `window` (capture phase) and invokes
+// these commands. Each pushes a typed event onto the static buffer
+// drained by `game::native_input::drain_native_input` once per frame.
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_move(x: f64, y: f64) {
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerMove { x, y },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_button(button: u8, pressed: bool) {
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerButton { button, pressed },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_wheel(dx: f64, dy: f64) {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Wheel {
+        dx,
+        dy,
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_key(code: String, pressed: bool, repeat: bool) {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Key {
+        code,
+        pressed,
+        repeat,
+    });
+}
+
 // ---------------------------------------------------------------------------
 // WASM: wasm-bindgen exports (returns JSON strings for JS consumption)
 // ---------------------------------------------------------------------------
