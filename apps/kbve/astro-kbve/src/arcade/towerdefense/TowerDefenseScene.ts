@@ -212,7 +212,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private projectileDeathRow: number[] = [];
 	private burnPatchVisuals = new SideMap<BurnPatchVisual>();
 	private burnPatchDeathRow: number[] = [];
-	private deathQueue: number[] = [];
 	private arcPool: Phaser.GameObjects.Arc[] = [];
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
@@ -293,7 +292,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.projectileDeathRow = [];
 		this.burnPatchVisuals = new SideMap<BurnPatchVisual>();
 		this.burnPatchDeathRow = [];
-		this.deathQueue = [];
 		this.arcPool = [];
 		this.rectPool = [];
 		this.graphicsPool = [];
@@ -1920,22 +1918,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			} else if (kind === DAMAGEABLE_KIND.soldier) {
 				this.killSoldier(targetEid);
 			} else if (kind === DAMAGEABLE_KIND.building) {
-				BuildingState.destroyed[targetEid] = 1;
-				BuildingState.online[targetEid] = 0;
-				this.deathQueue.push(targetEid);
+				const b = this.buildingByEid.get(targetEid);
+				if (b) this.destroyBuilding(b);
 			}
 		}
-	}
-
-	private flushDeaths(): void {
-		if (this.deathQueue.length === 0) return;
-		for (let i = 0; i < this.deathQueue.length; i++) {
-			const eid = this.deathQueue[i];
-			if (Damageable.kind[eid] !== DAMAGEABLE_KIND.building) continue;
-			const b = this.buildingByEid.get(eid);
-			if (b) this.destroyBuilding(b);
-		}
-		this.deathQueue.length = 0;
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
@@ -3266,7 +3252,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
 		this.updateSoldiers(dt, nowMs);
-		this.flushDeaths();
 
 		this.tickAuraEmitters(nowMs);
 
