@@ -44,7 +44,7 @@ COPY packages/data/proto/ packages/data/proto/
 COPY apps/rows/build.rs apps/rows/build.rs
 
 # Cook deps from recipe — this layer is cached until Cargo.toml/Cargo.lock change
-COPY --from=planner /src/recipe.json recipe.json
+COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
     cargo chef cook --release --recipe-path recipe.json -p rows
