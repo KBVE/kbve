@@ -131,8 +131,6 @@ fn populate_recipes(
     mut list_q: Query<(Entity, Option<&Children>), With<CraftingList>>,
     mut populated: Local<bool>,
 ) {
-    // Lazy one-shot fill the first time the panel is opened — recipes are
-    // baked at build time so there's no need to rebuild every frame.
     if !state.open || *populated {
         return;
     }

@@ -177,8 +177,6 @@ fn dispatch_hotbar_keys(
         if !keys.just_pressed(*key) {
             continue;
         }
-        // Only fire when the slot holds a consumable — server still validates,
-        // but pre-filtering keeps the network quiet for non-usable items.
         let Some(stack) = inventory.items.get(idx) else {
             continue;
         };

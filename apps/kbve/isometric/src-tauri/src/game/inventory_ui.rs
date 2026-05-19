@@ -17,18 +17,10 @@ const TOTAL_SLOTS: usize = GRID_COLS * GRID_ROWS;
 const SLOT_SIZE: f32 = 44.0;
 const SLOT_GAP: f32 = 2.0;
 
-// ---------------------------------------------------------------------------
-// Colors
-// ---------------------------------------------------------------------------
-
 const INVENTORY_BG: Color = Color::srgba(0.10, 0.08, 0.05, 0.95);
 const SLOT_BG: Color = Color::srgba(0.15, 0.10, 0.04, 1.0);
 const SLOT_BORDER: Color = Color::srgba(0.24, 0.17, 0.08, 1.0);
 const GOLD_TEXT: Color = Color::srgba(0.78, 0.66, 0.20, 1.0);
-
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
 
 #[derive(Component)]
 struct InventoryRoot;
@@ -68,10 +60,6 @@ struct InventoryUiState {
     open: bool,
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct InventoryUiPlugin;
 
 impl Plugin for InventoryUiPlugin {
@@ -84,10 +72,6 @@ impl Plugin for InventoryUiPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Item display helpers
-// ---------------------------------------------------------------------------
 
 /// Map display name to emoji icon.
 fn slot_icon(stack: &bevy_inventory::ItemStack<ItemKind>) -> String {
@@ -103,10 +87,6 @@ fn slot_short_name(stack: &bevy_inventory::ItemStack<ItemKind>) -> String {
     let name = stack.kind.item().map(|i| i.name.as_str()).unwrap_or("???");
     name.chars().take(3).collect()
 }
-
-// ---------------------------------------------------------------------------
-// Spawn UI
-// ---------------------------------------------------------------------------
 
 fn spawn_inventory_ui(mut commands: Commands) {
     commands
@@ -125,7 +105,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
             InventoryRoot,
         ))
         .with_children(|root| {
-            // Toggle button
             root.spawn((
                 Node {
                     width: Val::Px(50.0),
@@ -149,7 +128,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                 ToggleBtnLabel,
             ));
 
-            // Grid container (hidden by default)
             root.spawn((
                 Node {
                     flex_direction: FlexDirection::Column,
@@ -163,7 +141,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                 InventoryGrid,
             ))
             .with_children(|grid_container| {
-                // Title
                 grid_container.spawn((
                     Text::new("Inventory"),
                     TextFont {
@@ -178,7 +155,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                     },
                 ));
 
-                // 4x4 grid
                 grid_container
                     .spawn(Node {
                         display: Display::Grid,
@@ -204,7 +180,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                 InventorySlot { index: i },
                             ))
                             .with_children(|slot| {
-                                // Icon
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
@@ -214,7 +189,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                     TextColor(ui_color::TEXT_PRIMARY),
                                     SlotIcon { index: i },
                                 ));
-                                // Short name
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
@@ -224,7 +198,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                     TextColor(ui_color::TEXT_SECONDARY),
                                     SlotName { index: i },
                                 ));
-                                // Quantity
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
@@ -240,10 +213,6 @@ fn spawn_inventory_ui(mut commands: Commands) {
             });
         });
 }
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 fn toggle_inventory(
     keys: Res<ButtonInput<KeyCode>>,
@@ -269,7 +238,6 @@ fn toggle_inventory(
         return;
     }
 
-    // Don't open if another overlay is active (unless it's inventory itself)
     if !state.open && overlay.is_open() && *overlay != UiOverlay::Inventory {
         return;
     }
