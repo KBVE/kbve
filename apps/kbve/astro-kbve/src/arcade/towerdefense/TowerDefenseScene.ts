@@ -67,6 +67,9 @@ import {
 	hasStatus,
 	initAura,
 	initDamageable,
+	initMovement,
+	Movement,
+	MovementTag,
 	resistForType,
 	STATUS_KIND,
 	statusExpiresAt,
@@ -212,7 +215,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private projectileDeathRow: number[] = [];
 	private burnPatchVisuals = new SideMap<BurnPatchVisual>();
 	private burnPatchDeathRow: number[] = [];
-	private deathQueue: number[] = [];
+	private removeEntityQueue: number[] = [];
 	private arcPool: Phaser.GameObjects.Arc[] = [];
 	private rectPool: Phaser.GameObjects.Rectangle[] = [];
 	private graphicsPool: Phaser.GameObjects.Graphics[] = [];
@@ -293,7 +296,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.projectileDeathRow = [];
 		this.burnPatchVisuals = new SideMap<BurnPatchVisual>();
 		this.burnPatchDeathRow = [];
-		this.deathQueue = [];
+		this.removeEntityQueue = [];
 		this.arcPool = [];
 		this.rectPool = [];
 		this.graphicsPool = [];
@@ -1789,6 +1792,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
+		hpBar.setVisible(false);
+		hpBarBg.setVisible(false);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, EnemyTag);
@@ -1806,6 +1811,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			DAMAGEABLE_KIND.enemy,
 		);
 		EnemyStats.baseSpeed[eid] = speed;
+		addComponent(this.world, eid, MovementTag);
+		addComponent(this.world, eid, Movement);
+		initMovement(eid, speed);
 		EnemyStats.pathIndex[eid] = 1;
 		EnemyStats.segmentT[eid] = 0;
 		clearStatus(eid, STATUS_KIND.slow);
@@ -1914,47 +1922,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			Damageable.hp[targetEid] -= reduced;
 		}
 		if (Damageable.hp[targetEid] <= 0) {
-			this.deathQueue.push(targetEid);
-			this.hideDyingVisual(targetEid);
-		}
-	}
-
-	private hideDyingVisual(eid: number): void {
-		const kind = Damageable.kind[eid];
-		if (kind === DAMAGEABLE_KIND.enemy) {
-			const v = this.enemyVisuals.get(eid);
-			if (v) {
-				v.sprite.setVisible(false);
-				v.hpBar.setVisible(false);
-				v.hpBarBg.setVisible(false);
-				v.statusRing.setVisible(false);
-			}
-		} else if (kind === DAMAGEABLE_KIND.soldier) {
-			const v = this.soldierVisuals.get(eid);
-			if (v) {
-				v.sprite.setVisible(false);
-				v.hpBar.setVisible(false);
-				v.hpBarBg.setVisible(false);
-			}
-		}
-	}
-
-	private flushDeaths(): void {
-		if (this.deathQueue.length === 0) return;
-		for (let i = 0; i < this.deathQueue.length; i++) {
-			const eid = this.deathQueue[i];
-			if (Damageable.hp[eid] > 0) continue;
-			const kind = Damageable.kind[eid];
+			const kind = Damageable.kind[targetEid];
 			if (kind === DAMAGEABLE_KIND.enemy) {
-				this.killEnemy(eid, true);
-			} else if (kind === DAMAGEABLE_KIND.building) {
-				const b = this.buildingByEid.get(eid);
-				if (b) this.destroyBuilding(b);
+				this.killEnemy(targetEid, true);
 			} else if (kind === DAMAGEABLE_KIND.soldier) {
-				this.killSoldier(eid);
+				this.killSoldier(targetEid);
+			} else if (kind === DAMAGEABLE_KIND.building) {
+				const b = this.buildingByEid.get(targetEid);
+				if (b) this.destroyBuilding(b);
 			}
 		}
-		this.deathQueue.length = 0;
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
@@ -2005,7 +1982,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		for (const deid of droneKills) this.killDrone(deid);
 		this.buildingByEid.delete(b.id);
-		removeEntity(this.world, b.id);
+		this.removeEntityQueue.push(b.id);
 		if (this.upgradeTarget === b) this.closeUpgradePanel();
 		if (this.hoverRangeOwner === b) this.clearHoverRange();
 	}
@@ -2019,7 +1996,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (stationEid >= 0 && RepairState.activeDroneEid[stationEid] === eid) {
 			RepairState.activeDroneEid[stationEid] = -1;
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private updateArmouries(nowMs: number): void {
@@ -2261,12 +2238,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				EnemyStats.targetKind[enemyEid] = ATTACK_TARGET_KIND.none;
 			}
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private updateSoldiers(dt: number, nowMs: number): void {
 		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
+			if (Damageable.hp[seid] <= 0) {
+				this.killSoldier(seid);
+				continue;
+			}
 			let target = SoldierStats.targetEnemyEid[seid];
 			if (target === 0 || !this.enemyVisuals.has(target)) {
 				target = this.findEnemyForSoldier(seid);
@@ -2366,6 +2347,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemies(dt: number, nowMs: number): void {
 		for (const eid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eid)) continue;
+			const hpCheck = Damageable.hp[eid];
+			const maxHpCheck = Damageable.maxHp[eid];
+			if (
+				hpCheck <= 0 ||
+				!Number.isFinite(hpCheck) ||
+				(maxHpCheck > 0 && hpCheck <= maxHpCheck * 0.05)
+			) {
+				this.killEnemy(eid, true);
+				continue;
+			}
 			if (hasStatus(eid, STATUS_KIND.burn, nowMs)) {
 				const dps = statusMagnitude(eid, STATUS_KIND.burn);
 				if (dps > 0) {
@@ -2424,39 +2415,41 @@ export class TowerDefenseScene extends Phaser.Scene {
 							EnemyStats.attackDamage[eid],
 						);
 					}
-					const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
-					const baseSpeed = EnemyStats.baseSpeed[eid];
-					const wounded = this.woundedFactor(eid);
+					this.recomputeEnemyMovement(eid, nowMs);
 					const speed =
-						(slowed
-							? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-							: baseSpeed) *
-						GAME_CONFIG.enemyAttackSpeedFactor *
-						wounded;
+						Movement.speed[eid] *
+						GAME_CONFIG.enemyAttackSpeedFactor;
 					if (speed > 0) this.moveAlongPath(eid, speed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
 				}
 			}
 
-			const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
-			const baseSpeed = EnemyStats.baseSpeed[eid];
-			const wounded = this.woundedFactor(eid);
-			const speed =
-				(slowed
-					? baseSpeed * statusMagnitude(eid, STATUS_KIND.slow)
-					: baseSpeed) * wounded;
+			this.recomputeEnemyMovement(eid, nowMs);
+			const speed = Movement.speed[eid];
 			this.moveAlongPath(eid, speed, dt);
 			this.updateEnemyVisuals(eid, nowMs);
 		}
 	}
 
-	private woundedFactor(eid: number): number {
+	private recomputeEnemyMovement(eid: number, nowMs: number): void {
+		const baseSpeed = Movement.baseSpeed[eid];
 		const maxHp = Damageable.maxHp[eid];
-		if (maxHp <= 0) return 1;
-		const hpRatio = Damageable.hp[eid] / maxHp;
-		if (hpRatio >= 0.5) return 1;
-		return Math.max(0.4, hpRatio + 0.4);
+		const hp = Damageable.hp[eid];
+		let wounded = 1;
+		if (hp <= 0 || !Number.isFinite(hp) || !Number.isFinite(maxHp)) {
+			wounded = 0;
+		} else if (maxHp > 0) {
+			const hpRatio = hp / maxHp;
+			if (hpRatio <= 0.3) wounded = 0;
+			else if (hpRatio < 0.5) wounded = ((hpRatio - 0.3) / 0.2) * 0.85;
+		}
+		const slow = hasStatus(eid, STATUS_KIND.slow, nowMs)
+			? statusMagnitude(eid, STATUS_KIND.slow)
+			: 1;
+		const next = baseSpeed * wounded * slow;
+		Movement.speed[eid] = next;
+		Movement.frozen[eid] = next <= 0 ? 1 : 0;
 	}
 
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
@@ -2876,7 +2869,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const eid = this.projectileDeathRow[i];
 			const v = this.projectileVisuals.delete(eid);
 			if (v) this.releaseProjectileSprite(v.sprite);
-			removeEntity(this.world, eid);
+			this.removeEntityQueue.push(eid);
 		}
 	}
 
@@ -2997,7 +2990,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const eid = this.burnPatchDeathRow[i];
 			const v = this.burnPatchVisuals.delete(eid);
 			if (v) this.releaseArc(v.sprite);
-			removeEntity(this.world, eid);
+			this.removeEntityQueue.push(eid);
 		}
 	}
 
@@ -3087,6 +3080,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 		}
 		for (const deid of deathRow) this.killDrone(deid);
+	}
+
+	private deathSystem(): void {
+		for (const eid of query(this.world, [DamageableTag])) {
+			if (Damageable.hp[eid] > 0) continue;
+			const kind = Damageable.kind[eid];
+			if (kind === DAMAGEABLE_KIND.enemy) {
+				if (this.enemyVisuals.has(eid)) this.killEnemy(eid, false);
+			} else if (kind === DAMAGEABLE_KIND.soldier) {
+				if (this.soldierVisuals.has(eid)) this.killSoldier(eid);
+			} else if (kind === DAMAGEABLE_KIND.building) {
+				if (BuildingState.destroyed[eid]) continue;
+				const b = this.buildingByEid.get(eid);
+				if (b) this.destroyBuilding(b);
+			}
+		}
+	}
+
+	private drainRemoveEntityQueue(): void {
+		if (this.removeEntityQueue.length === 0) return;
+		for (let i = 0; i < this.removeEntityQueue.length; i++) {
+			removeEntity(this.world, this.removeEntityQueue[i]);
+		}
+		this.removeEntityQueue.length = 0;
 	}
 
 	private tickAuraEmitters(nowMs: number): void {
@@ -3198,7 +3215,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 					this.bountyBonusMultiplier,
 			);
 		}
-		removeEntity(this.world, eid);
+		this.removeEntityQueue.push(eid);
 	}
 
 	private endGame(win: boolean): void {
@@ -3285,9 +3302,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
 		this.updateSoldiers(dt, nowMs);
-		this.flushDeaths();
 
 		this.tickAuraEmitters(nowMs);
+		this.deathSystem();
+		this.drainRemoveEntityQueue();
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;
 		if (this.powerRefreshAccumulatorMs >= 100) {

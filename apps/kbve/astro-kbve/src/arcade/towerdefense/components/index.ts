@@ -48,6 +48,7 @@ export {
 	initAura,
 	type AuraKind,
 } from './aura';
+export { Movement, MovementTag, initMovement } from './movement';
 export {
 	BuildingTag,
 	TowerTag,
