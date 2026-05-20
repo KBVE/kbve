@@ -45,6 +45,8 @@ fn main() {
                 isometric_game::commands::greet,
                 isometric_game::commands::forward_pointer_move,
                 isometric_game::commands::forward_pointer_button,
+                isometric_game::commands::forward_pointer_enter,
+                isometric_game::commands::forward_pointer_leave,
                 isometric_game::commands::forward_wheel,
                 isometric_game::commands::forward_key,
             ])

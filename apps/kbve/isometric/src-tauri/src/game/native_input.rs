@@ -18,7 +18,7 @@ use bevy::input::keyboard::{Key, KeyCode, KeyboardInput};
 use bevy::input::mouse::{MouseButton, MouseButtonInput, MouseScrollUnit, MouseWheel};
 use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy::window::{CursorMoved, PrimaryWindow, Window, WindowEvent};
+use bevy::window::{CursorEntered, CursorLeft, CursorMoved, PrimaryWindow, Window, WindowEvent};
 
 #[derive(Clone, Debug)]
 pub enum NativeInputEvent {
@@ -30,6 +30,11 @@ pub enum NativeInputEvent {
         button: u8,
         pressed: bool,
     },
+    PointerEntered {
+        x: f64,
+        y: f64,
+    },
+    PointerLeft,
     Wheel {
         dx: f64,
         dy: f64,
@@ -64,6 +69,8 @@ impl Plugin for NativeInputPlugin {
 fn drain_native_input(
     mut window_q: Query<(Entity, &mut Window), With<PrimaryWindow>>,
     mut cursor_writer: MessageWriter<CursorMoved>,
+    mut entered_writer: MessageWriter<CursorEntered>,
+    mut left_writer: MessageWriter<CursorLeft>,
     mut button_writer: MessageWriter<MouseButtonInput>,
     mut wheel_writer: MessageWriter<MouseWheel>,
     mut key_writer: MessageWriter<KeyboardInput>,
@@ -116,6 +123,30 @@ fn drain_native_input(
                         "[native-input] drain first PointerButton btn={button} pressed={pressed}"
                     );
                 }
+            }
+            NativeInputEvent::PointerEntered { x, y } => {
+                window.set_physical_cursor_position(Some(DVec2::new(x, y)));
+                let logical = Vec2::new(x as f32, y as f32) / window.scale_factor();
+                let entered = CursorEntered {
+                    window: window_entity,
+                };
+                entered_writer.write(entered.clone());
+                window_event_writer.write(WindowEvent::CursorEntered(entered));
+                let cm = CursorMoved {
+                    window: window_entity,
+                    position: logical,
+                    delta: None,
+                };
+                cursor_writer.write(cm.clone());
+                window_event_writer.write(WindowEvent::CursorMoved(cm));
+            }
+            NativeInputEvent::PointerLeft => {
+                window.set_physical_cursor_position(None);
+                let left = CursorLeft {
+                    window: window_entity,
+                };
+                left_writer.write(left.clone());
+                window_event_writer.write(WindowEvent::CursorLeft(left));
             }
             NativeInputEvent::Wheel { dx, dy } => {
                 let mw = MouseWheel {

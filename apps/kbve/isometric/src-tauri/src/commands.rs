@@ -120,6 +120,20 @@ pub fn forward_pointer_button(button: u8, pressed: bool) {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn forward_pointer_enter(x: f64, y: f64) {
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerEntered { x, y },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_leave() {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::PointerLeft);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn forward_wheel(dx: f64, dy: f64) {
     crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Wheel {
         dx,

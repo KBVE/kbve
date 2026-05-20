@@ -119,6 +119,16 @@
                 window.addEventListener('pointermove', function (e) {
                     call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
                 }, true);
+                window.addEventListener('pointerover', function (e) {
+                    if (e.target === document.documentElement || e.target === document.body) {
+                        call('forward_pointer_enter', { x: e.clientX * dpr, y: e.clientY * dpr });
+                    }
+                }, true);
+                window.addEventListener('pointerout', function (e) {
+                    if (!e.relatedTarget) {
+                        call('forward_pointer_leave', {});
+                    }
+                }, true);
                 window.addEventListener('pointerdown', function (e) {
                     console.log('[native-input] pointerdown fired button=', e.button);
                     call('forward_pointer_button', { button: e.button, pressed: true });
