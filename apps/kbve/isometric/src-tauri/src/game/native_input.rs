@@ -56,7 +56,6 @@ pub struct NativeInputPlugin;
 
 impl Plugin for NativeInputPlugin {
     fn build(&self, app: &mut App) {
-        // No state gate — title screen needs clicks too.
         app.add_systems(Update, drain_native_input);
     }
 }
@@ -171,7 +170,6 @@ fn map_mouse_button(b: u8) -> Option<MouseButton> {
 /// new bindings land. Anything unmapped is silently dropped.
 fn map_key_code(code: &str) -> Option<KeyCode> {
     Some(match code {
-        // Letters
         "KeyA" => KeyCode::KeyA,
         "KeyB" => KeyCode::KeyB,
         "KeyC" => KeyCode::KeyC,
@@ -198,7 +196,6 @@ fn map_key_code(code: &str) -> Option<KeyCode> {
         "KeyX" => KeyCode::KeyX,
         "KeyY" => KeyCode::KeyY,
         "KeyZ" => KeyCode::KeyZ,
-        // Digits
         "Digit0" => KeyCode::Digit0,
         "Digit1" => KeyCode::Digit1,
         "Digit2" => KeyCode::Digit2,
@@ -209,7 +206,6 @@ fn map_key_code(code: &str) -> Option<KeyCode> {
         "Digit7" => KeyCode::Digit7,
         "Digit8" => KeyCode::Digit8,
         "Digit9" => KeyCode::Digit9,
-        // Arrows + space + escape + enter + modifiers
         "ArrowUp" => KeyCode::ArrowUp,
         "ArrowDown" => KeyCode::ArrowDown,
         "ArrowLeft" => KeyCode::ArrowLeft,

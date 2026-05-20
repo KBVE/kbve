@@ -214,7 +214,10 @@ mod desktop {
             let world = app.world_mut();
             let mut query = world.query::<&mut bevy::window::Window>();
             for mut window in query.iter_mut(world) {
-                window.resolution.set(size.width as f32, size.height as f32);
+                let scale = window.resolution.scale_factor();
+                window
+                    .resolution
+                    .set(size.width as f32 / scale, size.height as f32 / scale);
             }
         }
     }

@@ -38,7 +38,7 @@ use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 /// Default WebSocket URL — only set for native (desktop) dev builds.
 /// On WASM the URL MUST come from JS via `request_go_online()`.
 #[cfg(not(target_arch = "wasm32"))]
-const DEFAULT_WS_URL: &str = "wss://127.0.0.1:5000";
+const DEFAULT_WS_URL: &str = "wss://kbve.com/ws";
 
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);

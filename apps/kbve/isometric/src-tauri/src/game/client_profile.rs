@@ -143,21 +143,25 @@ impl ClientProfile {
         }
     }
 
-    /// Desktop always gets full capabilities.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn from_local_storage() -> Self {
+        let api_base =
+            std::env::var("KBVE_API_BASE").unwrap_or_else(|_| "https://kbve.com".to_owned());
+        let ws_url =
+            std::env::var("KBVE_WS_URL").unwrap_or_else(|_| "wss://kbve.com/ws".to_owned());
+        let wt_url = std::env::var("KBVE_WT_URL").unwrap_or_default();
         Self {
             secure_context: true,
             has_webgpu: true,
-            has_webtransport: true,
+            has_webtransport: false,
             has_shared_array_buffer: true,
             has_offscreen_canvas: true,
             hardware_concurrency: std::thread::available_parallelism()
                 .map(|n| n.get() as u32)
                 .unwrap_or(4),
-            api_base: "https://127.0.0.1:3080".to_owned(),
-            ws_url: "wss://127.0.0.1:5000".to_owned(),
-            wt_url: "https://127.0.0.1:5001".to_owned(),
+            api_base,
+            ws_url,
+            wt_url,
         }
     }
 
