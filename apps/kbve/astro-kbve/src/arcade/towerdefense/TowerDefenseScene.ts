@@ -226,6 +226,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameRepairEids: number[] = [];
 	private frameConsumerEids: number[] = [];
 	private buildingByEid = new SideMap<Building>();
+	private buildingAmbience = new SideMap<{
+		sprites: Phaser.GameObjects.GameObject[];
+		tweens: Phaser.Tweens.Tween[];
+	}>();
 	private droneVisuals = new SideMap<DroneVisual>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
 	private projectileVisuals = new SideMap<ProjectileVisual>();
@@ -312,6 +316,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameRepairEids = [];
 		this.frameConsumerEids = [];
 		this.buildingByEid = new SideMap<Building>();
+		this.buildingAmbience = new SideMap();
 		this.droneVisuals = new SideMap<DroneVisual>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
 		this.projectileVisuals = new SideMap<ProjectileVisual>();
@@ -1613,6 +1618,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 
 		this.buildingByEid.set(eid, building);
+		this.addBuildingAmbience(building);
 		if (building.kind === 'armoury') {
 			for (let i = 0; i < GAME_CONFIG.archerInitialCount; i++) {
 				this.spawnArcher(building);
@@ -1967,6 +1973,178 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private addBuildingAmbience(b: Building): void {
+		const sprites: Phaser.GameObjects.GameObject[] = [];
+		const tweens: Phaser.Tweens.Tween[] = [];
+		const id = b.spec.id;
+		const x = b.x;
+		const y = b.y;
+		if (id === 'diesel') {
+			for (let i = 0; i < 2; i++) {
+				const puff = this.add
+					.circle(
+						x - TILE * 0.05 + i * TILE * 0.1,
+						y - TILE * 0.35,
+						TILE * 0.08,
+						0x4a5568,
+						0.55,
+					)
+					.setDepth(b.sprite.depth + 1);
+				sprites.push(puff);
+				tweens.push(
+					this.tweens.add({
+						targets: puff,
+						y: y - TILE * 0.85,
+						scale: 1.6,
+						alpha: 0,
+						duration: 1400,
+						delay: i * 700,
+						repeat: -1,
+						ease: 'Sine.easeOut',
+						onRepeat: () => {
+							puff.setPosition(
+								x - TILE * 0.05 + i * TILE * 0.1,
+								y - TILE * 0.35,
+							);
+							puff.setScale(1);
+							puff.setAlpha(0.55);
+						},
+					}),
+				);
+			}
+		} else if (id === 'nuclear') {
+			const halo = this.add
+				.circle(x, y, TILE * 0.55, 0x9ae6b4, 0.18)
+				.setStrokeStyle(2, 0x9ae6b4, 0.6)
+				.setDepth(b.sprite.depth - 1);
+			sprites.push(halo);
+			tweens.push(
+				this.tweens.add({
+					targets: halo,
+					scale: 1.18,
+					alpha: 0.42,
+					duration: 1100,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Sine.easeInOut',
+				}),
+			);
+		} else if (id === 'solar') {
+			const glint = this.add
+				.rectangle(x, y - TILE * 0.1, TILE * 0.55, 3, 0xfff5b1, 0.55)
+				.setDepth(b.sprite.depth + 1);
+			sprites.push(glint);
+			tweens.push(
+				this.tweens.add({
+					targets: glint,
+					alpha: 0.05,
+					duration: 1600,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Sine.easeInOut',
+				}),
+			);
+		} else if (id === 'battery') {
+			const spark = this.add
+				.circle(x, y - TILE * 0.05, TILE * 0.06, 0xf6e05e, 0.85)
+				.setDepth(b.sprite.depth + 1);
+			sprites.push(spark);
+			tweens.push(
+				this.tweens.add({
+					targets: spark,
+					alpha: 0.15,
+					duration: 320,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Cubic.easeInOut',
+				}),
+			);
+		} else if (id === 'repair') {
+			const ring = this.add
+				.circle(x, y, TILE * 0.45, 0x68d391, 0.0)
+				.setStrokeStyle(2, 0x68d391, 0.65)
+				.setDepth(b.sprite.depth - 1);
+			sprites.push(ring);
+			tweens.push(
+				this.tweens.add({
+					targets: ring,
+					scale: 1.5,
+					alpha: 0,
+					duration: 1600,
+					repeat: -1,
+					ease: 'Sine.easeOut',
+					onRepeat: () => {
+						ring.setScale(1);
+						ring.setAlpha(0.5);
+					},
+				}),
+			);
+		} else if (id === 'armoury') {
+			const banner = this.add
+				.rectangle(
+					x + TILE * 0.32,
+					y - TILE * 0.05,
+					3,
+					TILE * 0.35,
+					0xf6ad55,
+					0.85,
+				)
+				.setDepth(b.sprite.depth + 1);
+			sprites.push(banner);
+			tweens.push(
+				this.tweens.add({
+					targets: banner,
+					scaleY: 0.7,
+					duration: 900,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Sine.easeInOut',
+				}),
+			);
+		} else if (id === 'fire') {
+			const flame = this.add
+				.circle(x, y - TILE * 0.35, TILE * 0.08, 0xff7a45, 0.85)
+				.setDepth(b.sprite.depth + 1);
+			sprites.push(flame);
+			tweens.push(
+				this.tweens.add({
+					targets: flame,
+					scale: 1.4,
+					alpha: 0.45,
+					duration: 380,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Sine.easeInOut',
+				}),
+			);
+		} else if (id === 'ice') {
+			const sparkle = this.add
+				.circle(x, y - TILE * 0.3, 2, 0xffffff, 0.9)
+				.setDepth(b.sprite.depth + 1);
+			sprites.push(sparkle);
+			tweens.push(
+				this.tweens.add({
+					targets: sparkle,
+					alpha: 0.1,
+					duration: 700,
+					yoyo: true,
+					repeat: -1,
+					ease: 'Sine.easeInOut',
+				}),
+			);
+		}
+		if (sprites.length > 0) {
+			this.buildingAmbience.set(b.id, { sprites, tweens });
+		}
+	}
+
+	private clearBuildingAmbience(eid: number): void {
+		const amb = this.buildingAmbience.delete(eid);
+		if (!amb) return;
+		for (const t of amb.tweens) t.remove();
+		for (const s of amb.sprites) s.destroy();
+	}
+
 	private addDamageable(
 		eid: number,
 		hp: number,
@@ -1997,6 +2175,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		Health.hp[b.id] = 0;
+		this.clearBuildingAmbience(b.id);
 		b.sprite.destroy();
 		b.hpBar.destroy();
 		b.hpBarBg.destroy();
