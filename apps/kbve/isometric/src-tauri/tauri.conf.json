@@ -16,7 +16,9 @@
 				"height": 768,
 				"transparent": true,
 				"devtools": true,
-				"decorations": false
+				"decorations": true,
+				"titleBarStyle": "Overlay",
+				"hiddenTitle": true
 			}
 		],
 		"security": {

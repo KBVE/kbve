@@ -17,6 +17,7 @@
 //! └─────────────────────────────────────┘
 //! ```
 
+use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
@@ -50,6 +51,10 @@ struct PlayOfflineBtn;
 /// "Settings" button.
 #[derive(Component)]
 struct SettingsBtn;
+
+/// "Exit" button.
+#[derive(Component)]
+struct ExitBtn;
 
 /// OAuth sign-in buttons — provider identifier stored on the component so
 /// one handler can dispatch them.
@@ -277,6 +282,18 @@ fn spawn_title_screen(mut commands: Commands) {
                     },
                     SettingsBtn,
                 );
+                ui::spawn_button(
+                    col,
+                    "Exit",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Danger,
+                        ..default()
+                    },
+                    ExitBtn,
+                );
             });
 
             // ── Version / footer ──
@@ -360,6 +377,7 @@ fn update_auth_label(
 fn handle_title_buttons(
     mut next_phase: ResMut<NextState<GamePhase>>,
     mut play_mode: ResMut<PlayMode>,
+    mut exit_writer: MessageWriter<AppExit>,
     online_q: Query<&Interaction, (Changed<Interaction>, With<PlayOnlineBtn>)>,
     offline_q: Query<
         &Interaction,
@@ -376,6 +394,16 @@ fn handle_title_buttons(
             With<SettingsBtn>,
             Without<PlayOnlineBtn>,
             Without<PlayOfflineBtn>,
+        ),
+    >,
+    exit_q: Query<
+        &Interaction,
+        (
+            Changed<Interaction>,
+            With<ExitBtn>,
+            Without<PlayOnlineBtn>,
+            Without<PlayOfflineBtn>,
+            Without<SettingsBtn>,
         ),
     >,
 ) {
@@ -402,6 +430,14 @@ fn handle_title_buttons(
     for interaction in &settings_q {
         if *interaction == Interaction::Pressed {
             info!("[title] Settings pressed — not yet implemented");
+        }
+    }
+
+    // Exit — quit the app
+    for interaction in &exit_q {
+        if *interaction == Interaction::Pressed {
+            info!("[title] Exit pressed — requesting AppExit");
+            exit_writer.write(AppExit::Success);
         }
     }
 }

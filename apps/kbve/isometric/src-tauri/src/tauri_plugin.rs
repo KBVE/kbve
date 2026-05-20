@@ -210,14 +210,12 @@ mod desktop {
     /// raw pointer/key stream. Native input forwarding lives in
     /// `crate::commands::forward_pointer_event` etc., which JS captures off
     /// the webview's DOM and invokes via tauri::generate_handler!.
-    fn handle_window_event(event: &tauri::WindowEvent, app: &mut App) {
-        if let tauri::WindowEvent::Resized(size) = event {
-            let world = app.world_mut();
-            let mut query = world.query::<&mut bevy::window::Window>();
-            for mut window in query.iter_mut(world) {
-                window.resolution.set(size.width as f32, size.height as f32);
-            }
-        }
+    fn handle_window_event(_event: &tauri::WindowEvent, _app: &mut App) {
+        // JS `forward_viewport` (fired on `window.resize`) is the authoritative
+        // source for the Bevy Window's logical dimensions. Tauri's Resized
+        // event reports raw NSView/winit units that disagree with what JS sees
+        // on macOS, so writing them back here causes a brief but visible
+        // cursor↔button misalignment after every resize.
     }
 }
 
