@@ -87,9 +87,7 @@ mod desktop {
         if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
             if let Ok((entity, mut window)) = windows.single_mut() {
                 if let Some(size) = inner {
-                    window
-                        .resolution
-                        .set(size.width as f32 / scale, size.height as f32 / scale);
+                    window.resolution.set(size.width as f32, size.height as f32);
                     window.resolution.set_scale_factor(scale);
                 }
                 commands.entity(entity).insert(raw_handle);
@@ -217,10 +215,7 @@ mod desktop {
             let world = app.world_mut();
             let mut query = world.query::<&mut bevy::window::Window>();
             for mut window in query.iter_mut(world) {
-                let scale = window.resolution.scale_factor();
-                window
-                    .resolution
-                    .set(size.width as f32 / scale, size.height as f32 / scale);
+                window.resolution.set(size.width as f32, size.height as f32);
             }
         }
     }

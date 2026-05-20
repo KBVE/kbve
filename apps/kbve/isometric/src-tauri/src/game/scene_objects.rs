@@ -5,6 +5,7 @@ use bevy::window::PrimaryWindow;
 use serde::{Deserialize, Serialize};
 
 use super::camera::IsometricCamera;
+use super::phase::GamePhase;
 use super::player::Player;
 use super::tilemap::TileCoord;
 use super::virtual_joystick::VirtualJoystickState;
@@ -244,15 +245,21 @@ impl Plugin for SceneObjectsPlugin {
                 update_hover_highlight.run_if(any_with_component::<Hovered>),
                 draw_hover_outline.run_if(any_with_component::<HoverOutline>),
                 update_hovered_snapshot,
-                detect_click_selection,
+                detect_click_selection.run_if(in_state(GamePhase::Playing)),
             ),
         );
 
         // Tile-based hover detection via DashMap lookup
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_systems(Update, raycast_hover_detection_desktop);
+        app.add_systems(
+            Update,
+            raycast_hover_detection_desktop.run_if(in_state(GamePhase::Playing)),
+        );
         #[cfg(target_arch = "wasm32")]
-        app.add_systems(Update, raycast_hover_detection_wasm);
+        app.add_systems(
+            Update,
+            raycast_hover_detection_wasm.run_if(in_state(GamePhase::Playing)),
+        );
     }
 }
 

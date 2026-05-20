@@ -20,6 +20,7 @@
 use bevy::prelude::*;
 
 use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
+use super::ui_button::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
 // ---------------------------------------------------------------------------
@@ -50,13 +51,6 @@ struct PlayOfflineBtn;
 #[derive(Component)]
 struct SettingsBtn;
 
-/// Tracks whether a button is primary or secondary for hover/press styling.
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
-enum ButtonKind {
-    Primary,
-    Secondary,
-}
-
 // ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
@@ -71,7 +65,6 @@ impl Plugin for TitleScreenPlugin {
             (
                 update_transport_label,
                 update_auth_label,
-                button_visuals,
                 handle_title_buttons,
             )
                 .run_if(in_state(GamePhase::Title)),
@@ -183,9 +176,42 @@ fn spawn_title_screen(mut commands: Commands) {
                 ..default()
             })
             .with_children(|col| {
-                spawn_button(col, "Play Online", PlayOnlineBtn, true);
-                spawn_button(col, "Play Offline", PlayOfflineBtn, false);
-                spawn_button(col, "Settings", SettingsBtn, false);
+                ui_button::spawn(
+                    col,
+                    "Play Online",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Primary,
+                        ..default()
+                    },
+                    PlayOnlineBtn,
+                );
+                ui_button::spawn(
+                    col,
+                    "Play Offline",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Secondary,
+                        ..default()
+                    },
+                    PlayOfflineBtn,
+                );
+                ui_button::spawn(
+                    col,
+                    "Settings",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Secondary,
+                        ..default()
+                    },
+                    SettingsBtn,
+                );
             });
 
             // ── Version / footer ──
@@ -202,49 +228,6 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
             ));
         });
-}
-
-/// Helper: spawn a styled button with a text label.
-fn spawn_button(
-    parent: &mut ChildSpawnerCommands,
-    label: &str,
-    marker: impl Component,
-    primary: bool,
-) {
-    let kind = if primary {
-        ButtonKind::Primary
-    } else {
-        ButtonKind::Secondary
-    };
-    let bg = if primary {
-        ui_color::BTN_PRIMARY
-    } else {
-        ui_color::BTN_SECONDARY
-    };
-
-    parent
-        .spawn((
-            Node {
-                width: Val::Px(BTN_WIDTH),
-                height: Val::Px(BTN_HEIGHT),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border_radius: BorderRadius::all(Val::Px(6.0)),
-                ..default()
-            },
-            BackgroundColor(bg),
-            Interaction::default(),
-            kind,
-            marker,
-        ))
-        .with_child((
-            Text::new(label.to_string()),
-            TextFont {
-                font_size: BTN_FONT_SIZE,
-                ..default()
-            },
-            TextColor(ui_color::BTN_TEXT),
-        ));
 }
 
 // ---------------------------------------------------------------------------
@@ -302,25 +285,6 @@ fn update_auth_label(
                 color.0 = ui_color::TEXT_SECONDARY;
             }
         }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Button visuals (hover / press feedback)
-// ---------------------------------------------------------------------------
-
-fn button_visuals(
-    mut query: Query<(&Interaction, &ButtonKind, &mut BackgroundColor), Changed<Interaction>>,
-) {
-    for (interaction, kind, mut bg) in &mut query {
-        *bg = match (interaction, kind) {
-            (Interaction::Pressed, ButtonKind::Primary) => ui_color::BTN_PRIMARY_PRESSED.into(),
-            (Interaction::Pressed, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_PRESSED.into(),
-            (Interaction::Hovered, ButtonKind::Primary) => ui_color::BTN_PRIMARY_HOVER.into(),
-            (Interaction::Hovered, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_HOVER.into(),
-            (Interaction::None, ButtonKind::Primary) => ui_color::BTN_PRIMARY.into(),
-            (Interaction::None, ButtonKind::Secondary) => ui_color::BTN_SECONDARY.into(),
-        };
     }
 }
 

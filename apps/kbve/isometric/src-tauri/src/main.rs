@@ -53,6 +53,7 @@ fn main() {
                     isometric_game::commands::forward_pointer_leave,
                     isometric_game::commands::forward_wheel,
                     isometric_game::commands::forward_key,
+                    isometric_game::commands::forward_viewport,
                     isometric_game::commands::open_oauth_url,
                 ])
                 .setup(|app| {

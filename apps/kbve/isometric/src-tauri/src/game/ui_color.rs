@@ -47,20 +47,20 @@ pub const TEXT_ERROR: Color = Color::srgba(0.95, 0.3, 0.3, 1.0);
 /// Primary button background (call-to-action).
 pub const BTN_PRIMARY: Color = Color::srgba(0.2, 0.55, 0.95, 1.0);
 
-/// Primary button hovered.
-pub const BTN_PRIMARY_HOVER: Color = Color::srgba(0.25, 0.6, 1.0, 1.0);
+/// Primary button hovered (visibly lighter for clear feedback).
+pub const BTN_PRIMARY_HOVER: Color = Color::srgba(0.45, 0.78, 1.0, 1.0);
 
-/// Primary button pressed.
-pub const BTN_PRIMARY_PRESSED: Color = Color::srgba(0.15, 0.45, 0.8, 1.0);
+/// Primary button pressed (visibly darker).
+pub const BTN_PRIMARY_PRESSED: Color = Color::srgba(0.1, 0.35, 0.7, 1.0);
 
 /// Secondary / outline button background.
-pub const BTN_SECONDARY: Color = Color::srgba(0.15, 0.16, 0.2, 0.8);
+pub const BTN_SECONDARY: Color = Color::srgba(0.15, 0.16, 0.2, 0.85);
 
-/// Secondary button hovered.
-pub const BTN_SECONDARY_HOVER: Color = Color::srgba(0.2, 0.22, 0.28, 0.9);
+/// Secondary button hovered (visibly lighter).
+pub const BTN_SECONDARY_HOVER: Color = Color::srgba(0.35, 0.38, 0.46, 0.95);
 
 /// Secondary button pressed.
-pub const BTN_SECONDARY_PRESSED: Color = Color::srgba(0.12, 0.13, 0.16, 0.9);
+pub const BTN_SECONDARY_PRESSED: Color = Color::srgba(0.08, 0.09, 0.12, 0.95);
 
 /// Button text color.
 pub const BTN_TEXT: Color = Color::srgba(0.92, 0.94, 0.96, 1.0);

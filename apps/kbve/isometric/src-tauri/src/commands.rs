@@ -143,6 +143,16 @@ pub fn forward_wheel(dx: f64, dy: f64) {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn forward_viewport(css_w: f64, css_h: f64, dpr: f64) {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Viewport {
+        css_w,
+        css_h,
+        dpr,
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn forward_key(code: String, pressed: bool, repeat: bool) {
     if !repeat {
         eprintln!("[native-input] key code={code} pressed={pressed}");

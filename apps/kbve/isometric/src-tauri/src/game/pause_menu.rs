@@ -4,7 +4,9 @@
 //! (General, Audio, Video, Controls) and a Resume button.
 //! Blocks player input while open via the `UiOverlay` resource.
 
+use bevy::picking::Pickable;
 use bevy::prelude::*;
+use bevy::ui::FocusPolicy;
 
 use super::phase::GamePhase;
 use super::ui_color;
@@ -195,6 +197,7 @@ fn spawn_pause_menu(mut commands: Commands) {
                                             Color::NONE
                                         }),
                                         Interaction::default(),
+                                        FocusPolicy::Block,
                                         CategoryBtn { category: cat },
                                     ))
                                     .with_child((
@@ -208,6 +211,8 @@ fn spawn_pause_menu(mut commands: Commands) {
                                         } else {
                                             ui_color::TEXT_SECONDARY
                                         }),
+                                        FocusPolicy::Pass,
+                                        Pickable::IGNORE,
                                     ));
                             }
                         });
@@ -264,6 +269,7 @@ fn spawn_pause_menu(mut commands: Commands) {
                                 },
                                 BackgroundColor(ui_color::BTN_PRIMARY),
                                 Interaction::default(),
+                                FocusPolicy::Block,
                                 ResumeBtn,
                             ))
                             .with_child((
@@ -273,6 +279,8 @@ fn spawn_pause_menu(mut commands: Commands) {
                                     ..default()
                                 },
                                 TextColor(ui_color::BTN_TEXT),
+                                FocusPolicy::Pass,
+                                Pickable::IGNORE,
                             ));
                     });
             });

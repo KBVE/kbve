@@ -44,6 +44,16 @@ pub enum NativeInputEvent {
         pressed: bool,
         repeat: bool,
     },
+    /// JS-reported viewport size. innerWidth/Height are CSS pixels (logical);
+    /// dpr is devicePixelRatio. This is the authoritative source for the
+    /// Bevy Window's resolution — Tauri's inner_size() on macOS returns
+    /// NSView bounds in points which doesn't match the actual webview viewport
+    /// after user resizes the window.
+    Viewport {
+        css_w: f64,
+        css_h: f64,
+        dpr: f64,
+    },
 }
 
 static INPUT_BUFFER: LazyLock<Mutex<Vec<NativeInputEvent>>> =
@@ -157,6 +167,18 @@ fn drain_native_input(
                 };
                 wheel_writer.write(mw.clone());
                 window_event_writer.write(WindowEvent::MouseWheel(mw));
+            }
+            NativeInputEvent::Viewport { css_w, css_h, dpr } => {
+                let scale = dpr as f32;
+                window.resolution.set_scale_factor(scale);
+                window.resolution.set(css_w as f32, css_h as f32);
+                static FIRST_VP: std::sync::atomic::AtomicBool =
+                    std::sync::atomic::AtomicBool::new(true);
+                if FIRST_VP.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                    eprintln!(
+                        "[native-input] drain first Viewport css=({css_w},{css_h}) dpr={dpr}"
+                    );
+                }
             }
             NativeInputEvent::Key {
                 code,
