@@ -39,9 +39,11 @@ import {
 	type EnemyTypeId,
 	type GeneratorSpec,
 	type RepairSpec,
+	type CastleSpec,
 	type RepairUpgradeKind,
 	type TowerSpec,
 	type UpgradeKind,
+	type VillageSpec,
 } from './config';
 import {
 	ArmouryState,
@@ -104,9 +106,14 @@ import {
 	SOLDIER_KIND,
 	SoldierStats,
 	SoldierTag,
+	CastleState,
+	CastleTag,
+	StunDroneStats,
+	StunDroneTag,
 	TowerState,
 	TowerTag,
 	TowerUpgradeStats,
+	VillageTag,
 	type BurnPatchVisual,
 	type DroneVisual,
 	type EnemyVisual,
@@ -185,9 +192,11 @@ import type {
 	BaseBuilding,
 	BatteryBuilding,
 	Building,
+	CastleBuilding,
 	GeneratorBuilding,
 	RepairBuilding,
 	TowerBuilding,
+	VillageBuilding,
 } from './types';
 
 const HUD_HEIGHT = TILE * HUD_ROWS_TOP;
@@ -224,6 +233,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameTowerEids: number[] = [];
 	private frameArmouryEids: number[] = [];
 	private frameRepairEids: number[] = [];
+	private frameVillageEids: number[] = [];
+	private frameCastleEids: number[] = [];
 	private frameConsumerEids: number[] = [];
 	private archerTargetClaims = new Set<number>();
 	private buildingByEid = new SideMap<Building>();
@@ -232,6 +243,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		tweens: Phaser.Tweens.Tween[];
 	}>();
 	private droneVisuals = new SideMap<DroneVisual>();
+	private stunDroneVisuals = new SideMap<Phaser.GameObjects.Arc>();
 	private soldierVisuals = new SideMap<SoldierVisual>();
 	private projectileVisuals = new SideMap<ProjectileVisual>();
 	private projectileSpritePool: Phaser.GameObjects.Arc[] = [];
@@ -316,10 +328,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameTowerEids = [];
 		this.frameArmouryEids = [];
 		this.frameRepairEids = [];
+		this.frameVillageEids = [];
+		this.frameCastleEids = [];
 		this.frameConsumerEids = [];
 		this.buildingByEid = new SideMap<Building>();
 		this.buildingAmbience = new SideMap();
 		this.droneVisuals = new SideMap<DroneVisual>();
+		this.stunDroneVisuals = new SideMap<Phaser.GameObjects.Arc>();
 		this.soldierVisuals = new SideMap<SoldierVisual>();
 		this.projectileVisuals = new SideMap<ProjectileVisual>();
 		this.projectileSpritePool = [];
@@ -678,6 +693,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			color = b.spec.color;
 		} else if (b.kind === 'armoury') {
 			radius = b.spec.soldierRoamRange;
+			color = b.spec.color;
+		} else if (b.kind === 'castle') {
+			radius = b.spec.droneRange;
 			color = b.spec.color;
 		} else {
 			this.clearHoverRange();
@@ -1236,6 +1254,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'generator') return `${b.spec.name} Generator`;
 		if (b.kind === 'battery') return `${b.spec.name}`;
 		if (b.kind === 'armoury') return `${b.spec.name}`;
+		if (b.kind === 'village') return `${b.spec.name}`;
+		if (b.kind === 'castle') return `${b.spec.name}`;
 		return `${b.spec.name} Station`;
 	}
 
@@ -1257,6 +1277,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'armoury') {
 			const rate = (b.spec.spawnIntervalMs / 1000).toFixed(1);
 			return `LOAD -${b.spec.power}⚡ · 1 SOLDIER / ${rate}s · HP ${hpText}`;
+		}
+		if (b.kind === 'village') {
+			return `LOAD -${b.spec.power}⚡ · +${b.spec.goldPerWave}g/WAVE · HP ${hpText}`;
+		}
+		if (b.kind === 'castle') {
+			const ur = (b.spec.unitSpawnIntervalMs / 1000).toFixed(1);
+			const dr = (b.spec.droneSpawnIntervalMs / 1000).toFixed(1);
+			return `LOAD -${b.spec.power}⚡ · UNIT/${ur}s · DRONE/${dr}s · HP ${hpText}`;
 		}
 		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${hpText}`;
 	}
@@ -1615,6 +1643,40 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 			};
 			building = b;
+		} else if (spec.kind === 'village') {
+			addComponent(this.world, eid, VillageTag);
+			const powerIndicator = this.add.circle(
+				x + TILE * 0.3,
+				y - TILE * 0.3,
+				4,
+				0x9ae6b4,
+			);
+			const b: VillageBuilding = {
+				...base,
+				kind: 'village',
+				spec: spec as VillageSpec,
+				powerIndicator,
+			};
+			building = b;
+		} else if (spec.kind === 'castle') {
+			addComponent(this.world, eid, CastleTag);
+			CastleState.nextUnitSpawnAtMs[eid] =
+				this.simNow + (spec as CastleSpec).unitSpawnIntervalMs;
+			CastleState.nextDroneSpawnAtMs[eid] =
+				this.simNow + (spec as CastleSpec).droneSpawnIntervalMs;
+			const powerIndicator = this.add.circle(
+				x + TILE * 0.3,
+				y - TILE * 0.3,
+				4,
+				0x9ae6b4,
+			);
+			const b: CastleBuilding = {
+				...base,
+				kind: 'castle',
+				spec: spec as CastleSpec,
+				powerIndicator,
+			};
+			building = b;
 		} else {
 			throw new Error(
 				`unknown build kind: ${(spec as { kind: string }).kind}`,
@@ -1657,6 +1719,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (BuildingState.destroyed[eid]) continue;
 			this.frameRepairEids.push(eid);
 		}
+		this.frameVillageEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, VillageTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameVillageEids.push(eid);
+		}
+		this.frameCastleEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, CastleTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameCastleEids.push(eid);
+		}
 		this.frameConsumerEids.length = 0;
 		for (let i = 0; i < this.frameTowerEids.length; i++)
 			this.frameConsumerEids.push(this.frameTowerEids[i]);
@@ -1664,6 +1736,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.frameConsumerEids.push(this.frameRepairEids[i]);
 		for (let i = 0; i < this.frameArmouryEids.length; i++)
 			this.frameConsumerEids.push(this.frameArmouryEids[i]);
+		for (let i = 0; i < this.frameVillageEids.length; i++)
+			this.frameConsumerEids.push(this.frameVillageEids[i]);
+		for (let i = 0; i < this.frameCastleEids.length; i++)
+			this.frameConsumerEids.push(this.frameCastleEids[i]);
 	}
 
 	private recomputePower(dt: number): void {
@@ -1709,7 +1785,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (
 				b.kind === 'tower' ||
 				b.kind === 'repair' ||
-				b.kind === 'armoury'
+				b.kind === 'armoury' ||
+				b.kind === 'village' ||
+				b.kind === 'castle'
 			) {
 				const online = BuildingState.online[eid] === 1;
 				b.sprite.setAlpha(online ? 1 : 0.45);
@@ -1726,6 +1804,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private startNextWave(): void {
 		this.wave += 1;
 		this.sweepExpiredAllies();
+		this.collectVillageIncome();
 		const count = Math.floor(
 			GAME_CONFIG.enemiesPerWave +
 				(this.wave - 1) * GAME_CONFIG.enemiesPerWaveScale,
@@ -2185,7 +2264,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		b.hpBarBg.destroy();
 		b.armorBar.destroy();
 		b.armorBarBg.destroy();
-		if (b.kind === 'tower' || b.kind === 'repair' || b.kind === 'armoury') {
+		if (
+			b.kind === 'tower' ||
+			b.kind === 'repair' ||
+			b.kind === 'armoury' ||
+			b.kind === 'village' ||
+			b.kind === 'castle'
+		) {
 			b.powerIndicator.destroy();
 		}
 		if (b.kind === 'tower' && b.fixedTargetMarker) {
@@ -2324,7 +2409,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		this.attachSoldierIdleAnim(eid, visual);
+		this.soldierVisuals.set(eid, visual);
 	}
 
 	private consumeInventoryItem(id: ItemId): void {
@@ -2394,6 +2481,199 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private collectVillageIncome(): void {
+		let total = 0;
+		for (const eid of query(this.world, [VillageTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid) as
+				| VillageBuilding
+				| undefined;
+			if (!b) continue;
+			total += b.spec.goldPerWave;
+		}
+		if (total > 0) {
+			this.gold += total;
+			goldAtom.set(this.gold);
+		}
+	}
+
+	private updateCastles(nowMs: number): void {
+		for (let i = 0; i < this.frameCastleEids.length; i++) {
+			const eid = this.frameCastleEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'castle') continue;
+			if (nowMs >= CastleState.nextUnitSpawnAtMs[eid]) {
+				const owned = this.countSoldiersOwnedBy(eid);
+				if (owned < b.spec.maxUnits) {
+					this.spawnCastleSoldier(b);
+				}
+				CastleState.nextUnitSpawnAtMs[eid] =
+					nowMs + b.spec.unitSpawnIntervalMs;
+			}
+			if (nowMs >= CastleState.nextDroneSpawnAtMs[eid]) {
+				const target = this.findWeakestEnemyInRange(
+					b.x,
+					b.y,
+					b.spec.droneRange,
+				);
+				if (target >= 0) {
+					this.spawnStunDrone(b, target);
+				}
+				CastleState.nextDroneSpawnAtMs[eid] =
+					nowMs + b.spec.droneSpawnIntervalMs;
+			}
+		}
+	}
+
+	private spawnCastleSoldier(castle: CastleBuilding): void {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, SoldierTag);
+		addComponent(this.world, eid, SoldierStats);
+		Position.x[eid] = castle.x;
+		Position.y[eid] = castle.y;
+		this.addDamageable(eid, castle.spec.unitHp, 0, 0);
+		SoldierStats.speed[eid] = castle.spec.unitSpeed;
+		SoldierStats.attackDamage[eid] = castle.spec.unitDamage;
+		SoldierStats.attackRateMs[eid] = castle.spec.unitAttackRateMs;
+		SoldierStats.attackRange[eid] = castle.spec.unitAttackRange;
+		SoldierStats.lastAttackAtMs[eid] = 0;
+		SoldierStats.targetEnemyEid[eid] = 0;
+		SoldierStats.armouryEid[eid] = castle.id;
+		SoldierStats.expiresAtWave[eid] = -1;
+		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
+		const sprite = this.acquireRect(
+			castle.x,
+			castle.y,
+			TILE * 0.32,
+			TILE * 0.32,
+			castle.spec.unitColor,
+		);
+		sprite.setStrokeStyle(1, 0xffffff, 0.8);
+		const barWidth = TILE * 0.5;
+		const hpBarBg = this.acquireRect(
+			castle.x,
+			castle.y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBarBg,
+		);
+		const hpBar = this.acquireRect(
+			castle.x - barWidth / 2,
+			castle.y - TILE * 0.32,
+			barWidth,
+			3,
+			COLORS.enemyHpBar,
+		);
+		hpBar.setOrigin(0, 0.5);
+		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		this.attachSoldierIdleAnim(eid, visual);
+		this.soldierVisuals.set(eid, visual);
+	}
+
+	private findWeakestEnemyInRange(
+		x: number,
+		y: number,
+		range: number,
+	): number {
+		let best = -1;
+		let bestHp = Infinity;
+		const r2 = range * range;
+		for (const eeid of this.frameEnemyEids) {
+			if (!this.enemyVisuals.has(eeid)) continue;
+			const ex = Position.x[eeid];
+			const ey = Position.y[eeid];
+			const dx = ex - x;
+			const dy = ey - y;
+			if (dx * dx + dy * dy > r2) continue;
+			const hp = Health.hp[eeid];
+			if (hp < bestHp) {
+				bestHp = hp;
+				best = eeid;
+			}
+		}
+		return best;
+	}
+
+	private spawnStunDrone(castle: CastleBuilding, targetEid: number): void {
+		const eid = addEntity(this.world);
+		addComponent(this.world, eid, Position);
+		addComponent(this.world, eid, StunDroneTag);
+		addComponent(this.world, eid, StunDroneStats);
+		Position.x[eid] = castle.x;
+		Position.y[eid] = castle.y;
+		StunDroneStats.speed[eid] = castle.spec.droneSpeed;
+		StunDroneStats.targetEid[eid] = targetEid;
+		StunDroneStats.ownerEid[eid] = castle.id;
+		StunDroneStats.stunMs[eid] = castle.spec.droneStunMs;
+		StunDroneStats.damage[eid] = castle.spec.droneDamage;
+		const sprite = this.add
+			.circle(castle.x, castle.y, 4, castle.spec.droneColor)
+			.setStrokeStyle(1, 0xffffff, 0.9);
+		this.stunDroneVisuals.set(eid, sprite);
+	}
+
+	private updateStunDrones(dt: number, nowMs: number): void {
+		for (const eid of query(this.world, [StunDroneTag])) {
+			const visual = this.stunDroneVisuals.get(eid);
+			if (!visual) continue;
+			const targetEid = StunDroneStats.targetEid[eid];
+			const alive =
+				targetEid > 0 &&
+				this.enemyVisuals.has(targetEid) &&
+				Health.hp[targetEid] > 0;
+			if (!alive) {
+				const newTarget = this.findWeakestEnemyInRange(
+					Position.x[eid],
+					Position.y[eid],
+					400,
+				);
+				if (newTarget < 0) {
+					this.killStunDrone(eid);
+					continue;
+				}
+				StunDroneStats.targetEid[eid] = newTarget;
+			}
+			const target = StunDroneStats.targetEid[eid];
+			const tx = Position.x[target];
+			const ty = Position.y[target];
+			const dx = tx - Position.x[eid];
+			const dy = ty - Position.y[eid];
+			const dist = Math.hypot(dx, dy);
+			if (dist < 10) {
+				applyStatus(
+					target,
+					STATUS_KIND.stun,
+					nowMs + StunDroneStats.stunMs[eid],
+					1,
+					StunDroneStats.stunMs[eid],
+				);
+				this.applyDamage(
+					target,
+					StunDroneStats.damage[eid],
+					DAMAGE_TYPE.energy,
+					0,
+				);
+				this.killStunDrone(eid);
+				continue;
+			}
+			const step = StunDroneStats.speed[eid] * dt;
+			const ratio = Math.min(1, step / dist);
+			Position.x[eid] += dx * ratio;
+			Position.y[eid] += dy * ratio;
+			visual.setPosition(Position.x[eid], Position.y[eid]);
+		}
+	}
+
+	private killStunDrone(eid: number): void {
+		const visual = this.stunDroneVisuals.delete(eid);
+		if (visual) visual.destroy();
+		this.removeEntityQueue.push(eid);
+	}
+
 	private sweepExpiredAllies(): void {
 		const wave = this.wave;
 		for (const seid of query(this.world, [SoldierTag])) {
@@ -2459,7 +2739,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		this.attachSoldierIdleAnim(eid, visual);
+		this.soldierVisuals.set(eid, visual);
 	}
 
 	private spawnArcher(armoury: ArmouryBuilding): void {
@@ -2508,7 +2790,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		this.soldierVisuals.set(eid, { sprite, hpBar, hpBarBg });
+		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		this.attachSoldierIdleAnim(eid, visual);
+		this.soldierVisuals.set(eid, visual);
+	}
+
+	private attachSoldierIdleAnim(eid: number, visual: SoldierVisual): void {
+		visual.idleTween = this.tweens.add({
+			targets: visual.sprite,
+			scaleX: 1.12,
+			scaleY: 1.12,
+			duration: 520 + (eid % 4) * 90,
+			yoyo: true,
+			repeat: -1,
+			ease: 'Sine.easeInOut',
+		});
 	}
 
 	private fireArcherShot(
@@ -2613,6 +2909,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killSoldier(eid: number): void {
 		const v = this.soldierVisuals.delete(eid);
 		if (!v) return;
+		if (v.idleTween) {
+			v.idleTween.remove();
+			v.idleTween = undefined;
+		}
+		v.sprite.setScale(1, 1);
 		this.releaseRect(v.sprite);
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
@@ -2778,6 +3079,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 
+			if (hasStatus(eid, STATUS_KIND.stun, nowMs)) {
+				this.updateEnemyVisuals(eid, nowMs);
+				continue;
+			}
+
 			if (EnemyStats.canAttack[eid] === 1) {
 				let targetEid = EnemyStats.targetEid[eid];
 				let targetKind = EnemyStats.targetKind[eid];
@@ -2924,7 +3230,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
 		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
-		const anyStatus = slowed || burning;
+		const stunned = hasStatus(eid, STATUS_KIND.stun, nowMs);
+		const anyStatus = slowed || burning || stunned;
 		if (!anyStatus && !v.statusVisible) return;
 		v.statusRing.clear();
 		if (anyStatus) {
@@ -2961,6 +3268,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 					x,
 					y,
 					v.ringRadius + (slowed ? 4 : 0),
+				);
+			}
+			if (stunned) {
+				v.statusRing.lineStyle(2, 0xf6e05e, 0.95);
+				v.statusRing.strokeCircle(
+					x,
+					y,
+					v.ringRadius + (slowed ? 8 : burning ? 4 : 0),
 				);
 			}
 		} else {
@@ -3104,7 +3419,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				.setSize(w, h)
 				.setFillStyle(color, alpha)
 				.setOrigin(0.5);
-			pooled.setActive(true).setVisible(true).setAlpha(1);
+			pooled.setActive(true).setVisible(true).setAlpha(1).setScale(1);
 			return pooled;
 		}
 		return this.add.rectangle(x, y, w, h, color, alpha);
@@ -3842,6 +4157,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.updateProjectiles(dt, nowMs);
 		this.updateRepair(dt);
 		this.updateArmouries(nowMs);
+		this.updateCastles(nowMs);
+		this.updateStunDrones(dt, nowMs);
 		this.updateSoldiers(dt, nowMs);
 
 		this.tickAuraEmitters(nowMs);

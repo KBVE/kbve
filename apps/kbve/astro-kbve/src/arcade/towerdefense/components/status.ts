@@ -3,10 +3,11 @@ import { MAX_ENTITIES } from './shared';
 export const STATUS_KIND = {
 	slow: 0,
 	burn: 1,
+	stun: 2,
 } as const;
 export type StatusKind = (typeof STATUS_KIND)[keyof typeof STATUS_KIND];
 
-const STATUS_KIND_COUNT = 2;
+const STATUS_KIND_COUNT = 3;
 
 function makeKindTable(): Float32Array[] {
 	const tables: Float32Array[] = new Array(STATUS_KIND_COUNT);

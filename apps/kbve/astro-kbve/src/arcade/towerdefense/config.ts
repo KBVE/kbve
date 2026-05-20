@@ -99,7 +99,9 @@ export type BuildKind =
 	| 'generator'
 	| 'battery'
 	| 'repair'
-	| 'armoury';
+	| 'armoury'
+	| 'village'
+	| 'castle';
 
 export interface BuildSpecBase {
 	id: BuildId;
@@ -160,6 +162,31 @@ export interface RepairSpec extends BuildSpecBase {
 	repairRange: number;
 }
 
+export interface VillageSpec extends BuildSpecBase {
+	kind: 'village';
+	power: number;
+	goldPerWave: number;
+}
+
+export interface CastleSpec extends BuildSpecBase {
+	kind: 'castle';
+	power: number;
+	unitSpawnIntervalMs: number;
+	maxUnits: number;
+	unitHp: number;
+	unitDamage: number;
+	unitAttackRateMs: number;
+	unitAttackRange: number;
+	unitSpeed: number;
+	unitColor: number;
+	droneSpawnIntervalMs: number;
+	droneRange: number;
+	droneSpeed: number;
+	droneStunMs: number;
+	droneDamage: number;
+	droneColor: number;
+}
+
 export interface ArmourySpec extends BuildSpecBase {
 	kind: 'armoury';
 	power: number;
@@ -179,14 +206,25 @@ export type BuildSpec =
 	| GeneratorSpec
 	| BatterySpec
 	| RepairSpec
-	| ArmourySpec;
+	| ArmourySpec
+	| VillageSpec
+	| CastleSpec;
 
 export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
 export type ArmouryId = 'armoury';
-export type BuildId = TowerId | GeneratorId | BatteryId | RepairId | ArmouryId;
+export type VillageId = 'village';
+export type CastleId = 'castle';
+export type BuildId =
+	| TowerId
+	| GeneratorId
+	| BatteryId
+	| RepairId
+	| ArmouryId
+	| VillageId
+	| CastleId;
 
 export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 	basic: {
@@ -404,6 +442,47 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 	},
 };
 
+export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
+	castle: {
+		id: 'castle',
+		name: 'Castle',
+		kind: 'castle',
+		cost: 1000,
+		maxHp: 1400,
+		defense: 12,
+		power: 10,
+		unitSpawnIntervalMs: 5000,
+		maxUnits: 6,
+		unitHp: 50,
+		unitDamage: 6,
+		unitAttackRateMs: 750,
+		unitAttackRange: 60,
+		unitSpeed: 95,
+		unitColor: 0xf6e05e,
+		droneSpawnIntervalMs: 4000,
+		droneRange: 280,
+		droneSpeed: 240,
+		droneStunMs: 900,
+		droneDamage: 4,
+		droneColor: 0xfff5b1,
+		color: 0xa8a29e,
+	},
+};
+
+export const VILLAGE_CATALOG: Record<VillageId, VillageSpec> = {
+	village: {
+		id: 'village',
+		name: 'Village',
+		kind: 'village',
+		cost: 50,
+		maxHp: 380,
+		defense: 4,
+		power: 2,
+		goldPerWave: 10,
+		color: 0xecc94b,
+	},
+};
+
 export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 	armoury: {
 		id: 'armoury',
@@ -439,6 +518,8 @@ export const PALETTE_ORDER: BuildId[] = [
 	'battery',
 	'repair',
 	'armoury',
+	'village',
+	'castle',
 ];
 
 export type UpgradeKind = 'radar' | 'attack' | 'speed' | 'armor';
@@ -632,7 +713,9 @@ export function specFor(id: BuildId): BuildSpec {
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];
 	if (id in BATTERY_CATALOG) return BATTERY_CATALOG[id as BatteryId];
 	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
-	return ARMOURY_CATALOG[id as ArmouryId];
+	if (id in ARMOURY_CATALOG) return ARMOURY_CATALOG[id as ArmouryId];
+	if (id in VILLAGE_CATALOG) return VILLAGE_CATALOG[id as VillageId];
+	return CASTLE_CATALOG[id as CastleId];
 }
 
 export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';

@@ -342,7 +342,9 @@ function PaletteBar() {
 						? `+${spec.power}⚡`
 						: spec.kind === 'tower' ||
 							  spec.kind === 'repair' ||
-							  spec.kind === 'armoury'
+							  spec.kind === 'armoury' ||
+							  spec.kind === 'village' ||
+							  spec.kind === 'castle'
 							? `−${spec.power}⚡`
 							: spec.kind === 'battery'
 								? `🔋${spec.capacity}`
