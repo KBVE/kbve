@@ -101,7 +101,8 @@ export type BuildKind =
 	| 'repair'
 	| 'armoury'
 	| 'village'
-	| 'castle';
+	| 'castle'
+	| 'nexus';
 
 export interface BuildSpecBase {
 	id: BuildId;
@@ -168,6 +169,10 @@ export interface VillageSpec extends BuildSpecBase {
 	goldPerWave: number;
 }
 
+export interface NexusSpec extends BuildSpecBase {
+	kind: 'nexus';
+}
+
 export interface CastleSpec extends BuildSpecBase {
 	kind: 'castle';
 	power: number;
@@ -208,7 +213,8 @@ export type BuildSpec =
 	| RepairSpec
 	| ArmourySpec
 	| VillageSpec
-	| CastleSpec;
+	| CastleSpec
+	| NexusSpec;
 
 export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
@@ -217,6 +223,7 @@ export type RepairId = 'repair';
 export type ArmouryId = 'armoury';
 export type VillageId = 'village';
 export type CastleId = 'castle';
+export type NexusId = 'nexus';
 export type BuildId =
 	| TowerId
 	| GeneratorId
@@ -224,7 +231,8 @@ export type BuildId =
 	| RepairId
 	| ArmouryId
 	| VillageId
-	| CastleId;
+	| CastleId
+	| NexusId;
 
 export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 	basic: {
@@ -439,6 +447,18 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 		repairAmount: 29,
 		repairRange: 280,
 		color: 0x68d391,
+	},
+};
+
+export const NEXUS_CATALOG: Record<NexusId, NexusSpec> = {
+	nexus: {
+		id: 'nexus',
+		name: 'Nexus',
+		kind: 'nexus',
+		cost: 0,
+		maxHp: 2000,
+		defense: 8,
+		color: 0x4fd1c5,
 	},
 };
 
@@ -715,7 +735,8 @@ export function specFor(id: BuildId): BuildSpec {
 	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
 	if (id in ARMOURY_CATALOG) return ARMOURY_CATALOG[id as ArmouryId];
 	if (id in VILLAGE_CATALOG) return VILLAGE_CATALOG[id as VillageId];
-	return CASTLE_CATALOG[id as CastleId];
+	if (id in CASTLE_CATALOG) return CASTLE_CATALOG[id as CastleId];
+	return NEXUS_CATALOG[id as NexusId];
 }
 
 export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';

@@ -4,6 +4,7 @@ import type {
 	BatterySpec,
 	CastleSpec,
 	GeneratorSpec,
+	NexusSpec,
 	RepairSpec,
 	TowerSpec,
 	VillageSpec,
@@ -66,6 +67,11 @@ export interface CastleBuilding extends BaseBuilding {
 	powerIndicator: Phaser.GameObjects.Arc;
 }
 
+export interface NexusBuilding extends BaseBuilding {
+	kind: 'nexus';
+	spec: NexusSpec;
+}
+
 export type Building =
 	| TowerBuilding
 	| GeneratorBuilding
@@ -73,4 +79,5 @@ export type Building =
 	| RepairBuilding
 	| ArmouryBuilding
 	| VillageBuilding
-	| CastleBuilding;
+	| CastleBuilding
+	| NexusBuilding;

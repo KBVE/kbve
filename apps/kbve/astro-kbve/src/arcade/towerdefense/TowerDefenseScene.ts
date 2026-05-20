@@ -40,6 +40,7 @@ import {
 	type GeneratorSpec,
 	type RepairSpec,
 	type CastleSpec,
+	type NexusSpec,
 	type RepairUpgradeKind,
 	type TowerSpec,
 	type UpgradeKind,
@@ -108,6 +109,7 @@ import {
 	SoldierTag,
 	CastleState,
 	CastleTag,
+	NexusTag,
 	StunDroneStats,
 	StunDroneTag,
 	TowerState,
@@ -194,6 +196,7 @@ import type {
 	Building,
 	CastleBuilding,
 	GeneratorBuilding,
+	NexusBuilding,
 	RepairBuilding,
 	TowerBuilding,
 	VillageBuilding,
@@ -266,8 +269,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private cardPickedThisInterval = false;
 	private cardPicksRemaining = 1;
 
-	private gold = GAME_CONFIG.startingGold;
-	private lives = GAME_CONFIG.startingLives;
+	private gold: number = GAME_CONFIG.startingGold;
+	private lives: number = GAME_CONFIG.startingLives;
+	private nexusEid = -1;
 	private wave = 0;
 	private enemiesToSpawn = 0;
 	private spawnAccumulatorMs = 0;
@@ -356,6 +360,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.lastUseItemN = useItemSignalAtom.get().n;
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
+		this.nexusEid = -1;
 		this.wave = 0;
 		this.enemiesToSpawn = 0;
 		this.spawnAccumulatorMs = 0;
@@ -400,6 +405,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.drawPath();
 		this.subscribeHudSignals();
 		this.buildPlacementPreview();
+		this.placeNexus();
 		this.placeStarterKit();
 		this.recomputePower(0);
 		this.refreshHud();
@@ -563,6 +569,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 			.setVisible(false);
 	}
 
+	private placeNexus(): void {
+		const wp = this.path.waypoints;
+		const last = wp[wp.length - 2] ?? wp[wp.length - 1];
+		const col = Math.floor(last.x / TILE);
+		const row = Math.floor(last.y / TILE);
+		const cx = col * TILE + TILE / 2;
+		const cy = row * TILE + TILE / 2;
+		const nexus = this.spawnBuilding('nexus', col, row, cx, cy);
+		this.nexusEid = nexus.id;
+	}
+
 	private placeStarterKit(): void {
 		const items = planStarterKit(this.path.cells, this.path.startRow);
 		for (const item of items) {
@@ -573,6 +590,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private refreshHud(): void {
+		if (this.nexusEid >= 0 && !BuildingState.destroyed[this.nexusEid]) {
+			this.lives = Math.max(0, Math.ceil(Health.hp[this.nexusEid]));
+		}
 		goldAtom.set(this.gold);
 		livesAtom.set(this.lives);
 		waveAtom.set(this.wave);
@@ -883,6 +903,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private openBuildingPanel(b: Building): void {
+		if (b.kind === 'nexus') return;
 		this.closeUpgradePanel();
 		this.upgradeTarget = b;
 		this.placementPreview.setVisible(false);
@@ -1256,6 +1277,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'armoury') return `${b.spec.name}`;
 		if (b.kind === 'village') return `${b.spec.name}`;
 		if (b.kind === 'castle') return `${b.spec.name}`;
+		if (b.kind === 'nexus') return `${b.spec.name}`;
 		return `${b.spec.name} Station`;
 	}
 
@@ -1285,6 +1307,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const ur = (b.spec.unitSpawnIntervalMs / 1000).toFixed(1);
 			const dr = (b.spec.droneSpawnIntervalMs / 1000).toFixed(1);
 			return `LOAD -${b.spec.power}⚡ · UNIT/${ur}s · DRONE/${dr}s · HP ${hpText}`;
+		}
+		if (b.kind === 'nexus') {
+			return `NEXUS · HP ${hpText}`;
 		}
 		return `LOAD -${b.spec.power}⚡ · HEALS ${repairAmount(b)} · RNG ${repairRange(b).toFixed(0)} · HP ${hpText}`;
 	}
@@ -1511,7 +1536,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.row[eid] = row;
 		BuildingState.specIndex[eid] = buildIndexFromId(spec.id);
 		BuildingState.kindIndex[eid] = BUILDING_KIND[spec.kind];
-		BuildingState.power[eid] = spec.kind === 'battery' ? 0 : spec.power;
+		BuildingState.power[eid] =
+			spec.kind === 'battery' || spec.kind === 'nexus' ? 0 : spec.power;
 		const base: BaseBuilding = {
 			id: eid,
 			col,
@@ -1658,6 +1684,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 			};
 			building = b;
+		} else if (spec.kind === 'nexus') {
+			addComponent(this.world, eid, NexusTag);
+			const b: NexusBuilding = {
+				...base,
+				kind: 'nexus',
+				spec: spec as NexusSpec,
+			};
+			building = b;
 		} else if (spec.kind === 'castle') {
 			addComponent(this.world, eid, CastleTag);
 			CastleState.nextUnitSpawnAtMs[eid] =
@@ -1764,7 +1798,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (!b) continue;
 			const hp = Health.hp[eid];
 			const maxHp = Health.maxHp[eid];
-			if (hp < maxHp) {
+			if (hp < maxHp || b.kind === 'nexus') {
 				b.hpBar.setVisible(true);
 				b.hpBarBg.setVisible(true);
 				b.hpBar.displayWidth = (hp / maxHp) * TILE * 0.7;
@@ -2258,6 +2292,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		Health.hp[b.id] = 0;
+		if (b.kind === 'nexus' && !this.isGameOver) {
+			this.lives = 0;
+			this.endGame(false);
+		}
 		this.clearBuildingAmbience(b.id);
 		b.sprite.destroy();
 		b.hpBar.destroy();
@@ -3189,15 +3227,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private pinEnemyToNexus(eid: number): void {
+		const nexus = this.nexusEid;
+		if (nexus < 0 || BuildingState.destroyed[nexus]) {
+			this.killEnemy(eid, false);
+			return;
+		}
+		Position.x[eid] = Position.x[nexus];
+		Position.y[eid] = Position.y[nexus];
+		const lastSegIdx = this.path.segments.length - 1;
+		EnemyStats.pathIndex[eid] = lastSegIdx + 1;
+		EnemyStats.segmentT[eid] = 1;
+		EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.building;
+		EnemyStats.targetEid[eid] = nexus;
+		Movement.speed[eid] = 0;
+		Movement.frozen[eid] = 1;
+	}
+
 	private moveAlongPath(eid: number, speed: number, dt: number): void {
 		let segIdx = EnemyStats.pathIndex[eid] - 1;
 		let remaining = speed * dt;
 		while (remaining > 0) {
 			const seg = this.path.segments[segIdx];
 			if (!seg) {
-				this.killEnemy(eid, false);
-				this.lives -= 1;
-				if (this.lives <= 0) this.endGame(false);
+				this.pinEnemyToNexus(eid);
 				return;
 			}
 			const tDelta = remaining * seg.invLen;
@@ -4206,7 +4259,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.gold += 150 + this.wave;
 				break;
 			case 'bonus_lives':
-				this.lives += 5;
+				if (
+					this.nexusEid >= 0 &&
+					!BuildingState.destroyed[this.nexusEid]
+				) {
+					Health.hp[this.nexusEid] = Math.min(
+						Health.maxHp[this.nexusEid],
+						Health.hp[this.nexusEid] + 200,
+					);
+				}
 				break;
 			case 'free_basic_tower':
 				this.freeBasicTowers += 1;

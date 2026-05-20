@@ -66,6 +66,7 @@ export {
 	ArmouryTag,
 	VillageTag,
 	CastleTag,
+	NexusTag,
 	StunDroneTag,
 	BUILDING_KIND,
 	BUILDING_TYPE_INDEX,
