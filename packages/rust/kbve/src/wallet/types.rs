@@ -363,3 +363,73 @@ pub struct FirecrackerSettleResult {
     pub debited_amount: i64,
     pub released_amount: i64,
 }
+
+pg_text_enum! {
+    /// `wallet.firecracker_deployment.destroy_reason`
+    FirecrackerDestroyReason {
+        User         => "user",
+        IdleSweep    => "idle_sweep",
+        Crash        => "crash",
+        PodShutdown  => "pod_shutdown",
+        Admin        => "admin",
+    }
+}
+
+pg_text_enum! {
+    /// `wallet.firecracker_deployment.visibility`
+    FirecrackerDeploymentVisibility {
+        Staff  => "staff",
+        Public => "public",
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerDeploymentRow {
+    pub id: i64,
+    pub vm_id: String,
+    pub account_id: Uuid,
+    pub rootfs: String,
+    pub entrypoint: String,
+    pub http_port: i32,
+    pub visibility: FirecrackerDeploymentVisibility,
+    pub vcpu_count: i16,
+    pub mem_size_mib: i32,
+    pub idle_ttl_secs: i32,
+    pub spec: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub destroyed_at: Option<DateTime<Utc>>,
+    pub destroy_reason: Option<FirecrackerDestroyReason>,
+    pub settled_ledger_id: Option<i64>,
+    pub credits_spent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerRecordDeploymentRequest {
+    pub vm_id: String,
+    pub account_id: Uuid,
+    pub rootfs: String,
+    pub entrypoint: String,
+    pub http_port: i32,
+    pub visibility: FirecrackerDeploymentVisibility,
+    pub vcpu_count: i16,
+    pub mem_size_mib: i32,
+    pub idle_ttl_secs: i32,
+    pub spec: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerMarkDestroyedRequest {
+    pub vm_id: String,
+    pub destroy_reason: FirecrackerDestroyReason,
+    pub settled_ledger_id: Option<i64>,
+    pub credits_spent: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FirecrackerDeploymentStats {
+    pub total_deployments: i64,
+    pub live_deployments: i64,
+    pub total_credits_spent: i64,
+    pub earliest_deployment_at: Option<DateTime<Utc>>,
+    pub latest_deployment_at: Option<DateTime<Utc>>,
+}
