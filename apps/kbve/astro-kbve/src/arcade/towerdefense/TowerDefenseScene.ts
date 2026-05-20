@@ -172,7 +172,9 @@ import {
 	buildingTextureKey,
 	ensureBuildingTextures,
 	ensureEnemyTextures,
+	ensureUnitTextures,
 	enemyTextureKey,
+	unitTextureKey,
 } from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
@@ -399,6 +401,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	create(): void {
 		ensureBuildingTextures(this);
 		ensureEnemyTextures(this);
+		ensureUnitTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.drawGrass();
@@ -2456,14 +2459,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.unitKind[eid] = asArcher
 			? SOLDIER_KIND.archer
 			: SOLDIER_KIND.melee;
-		const sprite = this.acquireRect(
-			x,
-			y,
-			TILE * (asArcher ? 0.28 : 0.3),
-			TILE * (asArcher ? 0.28 : 0.3),
-			asArcher ? GAME_CONFIG.archerColor : GAME_CONFIG.allyColor,
-		);
-		sprite.setStrokeStyle(1, 0xffffff, 0.7);
+		const sprite = this.add
+			.image(
+				x,
+				y,
+				unitTextureKey(asArcher ? 'ally_archer' : 'ally_melee'),
+			)
+			.setOrigin(0.5)
+			.setDisplaySize(TILE * 0.55, TILE * 0.55);
 		const barWidth = TILE * 0.5;
 		const hpBarBg = this.acquireRect(
 			x,
@@ -2617,14 +2620,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = castle.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const sprite = this.acquireRect(
-			castle.x,
-			castle.y,
-			TILE * 0.32,
-			TILE * 0.32,
-			castle.spec.unitColor,
-		);
-		sprite.setStrokeStyle(1, 0xffffff, 0.8);
+		const sprite = this.add
+			.image(castle.x, castle.y, unitTextureKey('castle_melee'))
+			.setOrigin(0.5)
+			.setDisplaySize(TILE * 0.6, TILE * 0.6);
 		const barWidth = TILE * 0.5;
 		const hpBarBg = this.acquireRect(
 			castle.x,
@@ -2787,14 +2786,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = armoury.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const sprite = this.acquireRect(
-			armoury.x,
-			armoury.y,
-			TILE * 0.3,
-			TILE * 0.3,
-			armoury.spec.soldierColor,
-		);
-		sprite.setStrokeStyle(1, 0xffffff, 0.6);
+		const sprite = this.add
+			.image(armoury.x, armoury.y, unitTextureKey('soldier_melee'))
+			.setOrigin(0.5)
+			.setDisplaySize(TILE * 0.55, TILE * 0.55);
 		const barWidth = TILE * 0.5;
 		const hpBarBg = this.acquireRect(
 			armoury.x,
@@ -2838,14 +2833,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = armoury.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.archer;
-		const sprite = this.acquireRect(
-			armoury.x,
-			armoury.y,
-			TILE * 0.28,
-			TILE * 0.28,
-			GAME_CONFIG.archerColor,
-		);
-		sprite.setStrokeStyle(1, 0xffffff, 0.8);
+		const sprite = this.add
+			.image(armoury.x, armoury.y, unitTextureKey('soldier_archer'))
+			.setOrigin(0.5)
+			.setDisplaySize(TILE * 0.55, TILE * 0.55);
 		const barWidth = TILE * 0.5;
 		const hpBarBg = this.acquireRect(
 			armoury.x,
@@ -2868,10 +2859,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private attachSoldierIdleAnim(eid: number, visual: SoldierVisual): void {
+		const baseX = visual.sprite.scaleX;
+		const baseY = visual.sprite.scaleY;
 		visual.idleTween = this.tweens.add({
 			targets: visual.sprite,
-			scaleX: 1.12,
-			scaleY: 1.12,
+			scaleX: baseX * 1.12,
+			scaleY: baseY * 1.12,
 			duration: 520 + (eid % 4) * 90,
 			yoyo: true,
 			repeat: -1,
@@ -3000,8 +2993,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			v.idleTween.remove();
 			v.idleTween = undefined;
 		}
-		v.sprite.setScale(1, 1);
-		this.releaseRect(v.sprite);
+		v.sprite.destroy();
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
 		for (const enemyEid of query(this.world, [EnemyTag])) {
