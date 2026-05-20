@@ -76,6 +76,37 @@ function probeClientProfile() {
 async function bootstrap() {
 	const profile = probeClientProfile();
 
+	// Native Tauri build runs Bevy as a real Rust binary via wgpu and the
+	// webview's raw window handle — DO NOT load the WASM game on top of it,
+	// or two Bevy instances fight for input/render and wasm-bindgen
+	// closures get invoked recursively (visible as "closure invoked
+	// recursively or after being dropped" panics in the webview console).
+	const isTauri = !!(
+		(
+			window as typeof window & {
+				__TAURI_INTERNALS__?: unknown;
+				__TAURI__?: unknown;
+			}
+		).__TAURI_INTERNALS__ ||
+		(window as typeof window & { __TAURI__?: unknown }).__TAURI__
+	);
+	if (isTauri) {
+		setLoadingProgress('Native build — mounting UI', 80);
+		const root = document.getElementById('root');
+		if (root) {
+			ReactDOM.createRoot(root).render(
+				<React.StrictMode>
+					<GameUIProvider>
+						<App />
+					</GameUIProvider>
+				</React.StrictMode>,
+			);
+		}
+		setLoadingProgress('Ready', 100);
+		hideLoadingScreen();
+		return;
+	}
+
 	// Verify WebGPU is available before loading the WASM game
 	if (!profile.has_webgpu) {
 		const root = document.getElementById('root');
