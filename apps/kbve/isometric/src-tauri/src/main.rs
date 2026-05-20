@@ -31,9 +31,8 @@ fn main() {
             ..default()
         },
         bevy::state::app::StatesPlugin,
-        bevy::picking::PickingPlugin,
-        bevy::picking::InteractionPlugin,
     ));
+    app.add_plugins(bevy::picking::DefaultPickingPlugins);
 
     #[cfg(any(unix, windows))]
     app.add_plugins(bevy::app::TerminalCtrlCHandlerPlugin);
