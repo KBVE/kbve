@@ -2462,7 +2462,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private useEmergencyCallAllies(): void {
 		const path = this.path;
-		const spawn = path.waypoints[0] ?? {
+		const wp = path.waypoints;
+		const spawn = wp[wp.length - 1] ?? {
 			x: BASE_WIDTH / 2,
 			y: BASE_HEIGHT / 2,
 		};
@@ -2874,27 +2875,42 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private findEnemyForArcher(seid: number, nowMs: number): number {
 		const sx = Position.x[seid];
 		const sy = Position.y[seid];
-		let bestUnclaimed = -1;
-		let bestUnclaimedD2 = Infinity;
-		let bestAny = -1;
-		let bestAnyD2 = Infinity;
+		const range = SoldierStats.attackRange[seid];
+		const r2 = range * range * 1.4;
+		let bestFresh = -1;
+		let bestFreshD2 = Infinity;
+		let bestStale = -1;
+		let bestStaleExpiry = Infinity;
+		let bestFallback = -1;
+		let bestFallbackD2 = Infinity;
 		for (const eeid of this.frameEnemyEids) {
 			if (!this.enemyVisuals.has(eeid)) continue;
 			const dx = Position.x[eeid] - sx;
 			const dy = Position.y[eeid] - sy;
 			const d2 = dx * dx + dy * dy;
-			if (d2 < bestAnyD2) {
-				bestAnyD2 = d2;
-				bestAny = eeid;
+			if (d2 < bestFallbackD2) {
+				bestFallbackD2 = d2;
+				bestFallback = eeid;
 			}
-			if (this.archerTargetClaims.has(eeid)) continue;
-			if (hasStatus(eeid, STATUS_KIND.slow, nowMs)) continue;
-			if (d2 < bestUnclaimedD2) {
-				bestUnclaimedD2 = d2;
-				bestUnclaimed = eeid;
+			if (d2 > r2) continue;
+			const slowed = hasStatus(eeid, STATUS_KIND.slow, nowMs);
+			const claimed = this.archerTargetClaims.has(eeid);
+			if (!slowed && !claimed) {
+				if (d2 < bestFreshD2) {
+					bestFreshD2 = d2;
+					bestFresh = eeid;
+				}
+			} else if (slowed && !claimed) {
+				const exp = statusExpiresAt(eeid, STATUS_KIND.slow);
+				if (exp < bestStaleExpiry) {
+					bestStaleExpiry = exp;
+					bestStale = eeid;
+				}
 			}
 		}
-		return bestUnclaimed >= 0 ? bestUnclaimed : bestAny;
+		if (bestFresh >= 0) return bestFresh;
+		if (bestStale >= 0) return bestStale;
+		return bestFallback;
 	}
 
 	private damageSoldier(eid: number, dmg: number): void {

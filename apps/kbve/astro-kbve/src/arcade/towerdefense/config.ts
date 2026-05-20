@@ -41,7 +41,7 @@ export const GAME_CONFIG = {
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
 	allyArcherRatio: 0.35,
-	archerInitialCount: 3,
+	archerInitialCount: 5,
 	archerHpMultiplier: 0.8,
 	archerDamage: 6,
 	archerSpeed: 90,
