@@ -77,13 +77,21 @@ mod desktop {
     /// so Bevy's render pipeline can create a wgpu surface for it.
     fn create_window_handle(
         mut commands: Commands,
-        windows: Query<Entity, With<bevy::window::PrimaryWindow>>,
+        mut windows: Query<(Entity, &mut bevy::window::Window), With<bevy::window::PrimaryWindow>>,
         tauri_handle: NonSend<tauri::AppHandle>,
     ) {
         let tauri_window = tauri_handle.get_webview_window("main").unwrap();
+        let inner = tauri_window.inner_size().ok();
+        let scale = tauri_window.scale_factor().ok().unwrap_or(1.0) as f32;
         let window_wrapper = WindowWrapper::new(tauri_window);
         if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
-            if let Ok(entity) = windows.single() {
+            if let Ok((entity, mut window)) = windows.single_mut() {
+                if let Some(size) = inner {
+                    window
+                        .resolution
+                        .set(size.width as f32 / scale, size.height as f32 / scale);
+                    window.resolution.set_scale_factor(scale);
+                }
                 commands.entity(entity).insert(raw_handle);
             }
         }
