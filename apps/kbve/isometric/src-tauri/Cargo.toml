@@ -50,6 +50,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "zstd_rust",
     "bevy_picking",
     "mesh_picking",
+    "ui_picking",
     "bevy_gizmos",
     "default_font",
 ] }
