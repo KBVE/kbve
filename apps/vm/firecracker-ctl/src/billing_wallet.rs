@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use axum::http::HeaderMap;
 use kbve::wallet::{
-    FirecrackerPlaceHoldRequest, FirecrackerSettleRequest, WalletClient, WalletError,
+    FirecrackerDeploymentVisibility, FirecrackerDestroyReason, FirecrackerMarkDestroyedRequest,
+    FirecrackerPlaceHoldRequest, FirecrackerRecordDeploymentRequest, FirecrackerSettleRequest,
+    FirecrackerSettleResult, WalletClient, WalletError,
 };
 use uuid::Uuid;
 
@@ -87,10 +89,14 @@ pub async fn place_hold(
     }
 }
 
-pub async fn settle(ctx: Option<&BillingContext>, vm_id: &str, accumulated_credits: u64) {
+pub async fn settle(
+    ctx: Option<&BillingContext>,
+    vm_id: &str,
+    accumulated_credits: u64,
+) -> Option<FirecrackerSettleResult> {
     let ctx = match ctx {
         Some(c) if c.enabled => c,
-        _ => return,
+        _ => return None,
     };
     let final_amount = accumulated_credits.min(i64::MAX as u64) as i64;
     let key = settle_idempotency_key(vm_id);
@@ -113,10 +119,89 @@ pub async fn settle(ctx: Option<&BillingContext>, vm_id: &str, accumulated_credi
                 r.released_amount,
                 r.ledger_id,
             );
+            Some(r)
         }
         Err(e) => {
             tracing::warn!("fc-billing: settle failed for vm_id={vm_id}: {e}");
+            None
         }
+    }
+}
+
+/// Append the `/fc/deploy` event to the wallet journal. Independent of
+/// FC_BILLING_ENABLED — the journal is an audit surface for every persistent
+/// endpoint that has an associated account, even when meter holds are off.
+/// Skipped silently when no WalletClient is configured or no account header
+/// was supplied.
+#[allow(clippy::too_many_arguments)]
+pub async fn record_deployment(
+    ctx: Option<&BillingContext>,
+    account_id: Option<Uuid>,
+    vm_id: &str,
+    rootfs: &str,
+    entrypoint: &str,
+    http_port: u16,
+    visibility: FirecrackerDeploymentVisibility,
+    vcpu_count: u8,
+    mem_size_mib: u16,
+    idle_ttl_secs: u32,
+    spec: serde_json::Value,
+) {
+    let (ctx, account_id) = match (ctx, account_id) {
+        (Some(c), Some(a)) => (c, a),
+        _ => return,
+    };
+    let req = FirecrackerRecordDeploymentRequest {
+        vm_id: vm_id.to_string(),
+        account_id,
+        rootfs: rootfs.to_string(),
+        entrypoint: entrypoint.to_string(),
+        http_port: http_port as i32,
+        visibility,
+        vcpu_count: vcpu_count as i16,
+        mem_size_mib: mem_size_mib as i32,
+        idle_ttl_secs: idle_ttl_secs as i32,
+        spec,
+    };
+    match ctx.wallet.firecracker_record_deployment(req).await {
+        Ok(r) => tracing::info!("fc-journal: recorded vm_id={vm_id} id={}", r.id),
+        Err(e) => tracing::warn!("fc-journal: record failed for vm_id={vm_id}: {e}"),
+    }
+}
+
+/// Close out the journal row at teardown. Pulls settled_ledger_id and
+/// credits_spent from the settle result (when present + actually debited),
+/// otherwise stores NULL for both — covers crash, admin, and pod_shutdown
+/// paths where no ledger entry exists.
+pub async fn mark_destroyed(
+    ctx: Option<&BillingContext>,
+    has_account: bool,
+    vm_id: &str,
+    destroy_reason: FirecrackerDestroyReason,
+    settle: Option<&FirecrackerSettleResult>,
+) {
+    let ctx = match (ctx, has_account) {
+        (Some(c), true) => c,
+        _ => return,
+    };
+    let (settled_ledger_id, credits_spent) = match settle {
+        Some(r) if r.ledger_id.is_some() => (r.ledger_id, Some(r.debited_amount)),
+        _ => (None, None),
+    };
+    let req = FirecrackerMarkDestroyedRequest {
+        vm_id: vm_id.to_string(),
+        destroy_reason,
+        settled_ledger_id,
+        credits_spent,
+    };
+    match ctx.wallet.firecracker_mark_destroyed(req).await {
+        Ok(r) => tracing::info!(
+            "fc-journal: destroyed vm_id={vm_id} id={} reason={:?} credits={:?}",
+            r.id,
+            r.destroy_reason,
+            r.credits_spent,
+        ),
+        Err(e) => tracing::warn!("fc-journal: mark_destroyed failed for vm_id={vm_id}: {e}"),
     }
 }
 
