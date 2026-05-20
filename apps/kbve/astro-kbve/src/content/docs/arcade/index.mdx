@@ -31,7 +31,7 @@ import { Adsense } from '@/components/astropad';
 	title="KBVE Arcade"
 	tagline="Browser games we built ourselves — blackjack, Klondike with monsters, a WebGL action-RPG demo, an isometric WebGPU prototype, and an endless runner. Plus a Ruffle integration in the oven for Flash classics."
 	stats={[
-		{ value: '5', label: 'Live games' },
+		{ value: '6', label: 'Live games' },
 		{ value: 'WASM', label: 'Phaser · Bevy · R3F' },
 		{ value: 'Free', label: 'Enjoy the run!' },
 	]}
@@ -89,6 +89,15 @@ anywhere else.
 		status="live"
 		gradient="linear-gradient(135deg, #f59e0b 0%, #b91c1c 100%)"
 		icon="➤"
+	/>
+	<ArcadeGameCard
+		title="Tower Defense"
+		href="/arcade/towerdefense/"
+		description="Procedurally-generated map, ECS sim with armor + status effects, repair drones, archers, card rewards between waves, and a Call for Ally Nation item. Hold the line through 20+ waves, then 5-card rewards kick in."
+		tags={['Tower Defense', 'Strategy', 'Phaser', 'ECS']}
+		status="live"
+		gradient="linear-gradient(135deg, #b45309 0%, #166534 100%)"
+		icon="✛"
 	/>
 </ArcadeGameGrid>
 

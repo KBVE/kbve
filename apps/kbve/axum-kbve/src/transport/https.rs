@@ -71,6 +71,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/tags/", "/forum/tags"),
     ("/t", "/forum/tags"),
     ("/t/", "/forum/tags"),
+    ("/arcade/towerdefence", "/arcade/towerdefense/"),
+    ("/arcade/towerdefence/", "/arcade/towerdefense/"),
     // Askama SSG source pages ship HTML in dist/ but are not public
     // URLs — live versions are served by axum routes that interpolate
     // placeholders. Funnel to canonical so crawlers don't index them.
