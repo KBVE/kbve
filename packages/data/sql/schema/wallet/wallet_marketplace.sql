@@ -314,18 +314,23 @@ GRANT EXECUTE ON FUNCTION wallet.treasury_account_id() TO service_role;
 -- service_buy_now / service_cancel_listing / service_settle_listing /
 -- service_expire_listings / refund_active_bid / distribute_settlement
 -- live in the dbmate migration 20260515054304_wallet_marketplace_rpcs.
+-- service_create_listing_with_item + the inventory hook overrides for
+-- settle / cancel / expire live in 20260520114243_wallet_inventory_listing_wire
+-- and 20260520124536_wallet_listing_settle_inventory respectively.
 -- This mirror documents only signatures + grants for review surface.
 
--- Signatures (see migration for bodies):
+-- Signatures (see migrations for bodies):
 --   wallet.service_create_listing(UUID, JSONB, currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID)
---                                                            → BIGINT (listing.id)
---   wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID)      → BIGINT (bid.id)
---   wallet.service_buy_now(BIGINT, UUID, UUID)                → BIGINT (bid.id)
---   wallet.service_cancel_listing(BIGINT, UUID, TEXT, UUID)   → VOID
---   wallet.service_settle_listing(BIGINT, BIGINT)             → VOID
---   wallet.service_expire_listings()                          → BIGINT (rows touched)
---   wallet.refund_active_bid(BIGINT, bid_status, TEXT)        → BIGINT (refunded bid id or NULL)
---   wallet.distribute_settlement(BIGINT, UUID, BIGINT)        → (BIGINT fee, BIGINT net)
+--                                                                 → BIGINT (listing.id) [legacy; dropped in 6.1c]
+--   wallet.service_create_listing_with_item(UUID, UUID, BIGINT, currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID)
+--                                                                 → BIGINT (listing.id) [Phase 6.1a authoritative]
+--   wallet.service_place_bid(BIGINT, UUID, BIGINT, UUID)           → BIGINT (bid.id)
+--   wallet.service_buy_now(BIGINT, UUID, UUID)                     → BIGINT (bid.id)
+--   wallet.service_cancel_listing(BIGINT, UUID, TEXT)              → VOID (6.1a: also unlocks inventory item)
+--   wallet.service_settle_listing(BIGINT, BIGINT, TEXT)            → VOID (6.1a: also transfers inventory item to buyer)
+--   wallet.service_expire_listings(INTEGER)                        → TABLE(total, settled, expired) (6.1a: also unlocks no-bid items)
+--   wallet.refund_active_bid(BIGINT, bid_status, TEXT)             → BIGINT (refunded bid id or NULL)
+--   wallet.distribute_settlement(BIGINT, UUID, BIGINT, BIGINT)     → (BIGINT fee, BIGINT net, ...)
 
 -- pg_cron schedule (registered when extension is present):
 --   jobname:  marketplace-expire-listings
