@@ -3,24 +3,6 @@ import { authBridge } from '@/components/auth';
 import { initSupa, getSupa } from '@/lib/supa';
 import { cn } from '@/lib/utils';
 
-const DESKTOP_REDIRECT_KEY = 'kbve_desktop_redirect';
-
-function consumeDesktopRedirect(): string | null {
-	try {
-		const raw = sessionStorage.getItem(DESKTOP_REDIRECT_KEY);
-		if (!raw) return null;
-		sessionStorage.removeItem(DESKTOP_REDIRECT_KEY);
-		return raw;
-	} catch {
-		return null;
-	}
-}
-
-function buildDesktopCallbackUrl(redirect: string, token: string): string {
-	const sep = redirect.includes('?') ? '&' : '?';
-	return `${redirect}${sep}access_token=${encodeURIComponent(token)}`;
-}
-
 export default function ReactAuthCallback() {
 	const [message, setMessage] = useState('Completing sign-in...');
 	const [subMessage, setSubMessage] = useState('Please wait');
@@ -41,18 +23,6 @@ export default function ReactAuthCallback() {
 				]);
 
 				if (session) {
-					const desktopRedirect = consumeDesktopRedirect();
-					if (desktopRedirect && session.access_token) {
-						setMessage('Returning to the game...');
-						setSubMessage('You can close this tab once it loads.');
-						const url = buildDesktopCallbackUrl(
-							desktopRedirect,
-							session.access_token,
-						);
-						window.location.replace(url);
-						return;
-					}
-
 					// Initialize the SharedWorker so it picks up the session
 					await initSupa();
 					const supa = getSupa();

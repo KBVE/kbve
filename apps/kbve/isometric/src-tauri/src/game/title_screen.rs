@@ -454,7 +454,7 @@ fn handle_oauth_buttons(
         }
         let redirect = crate::auth::build_redirect_url();
         let url = format!(
-            "https://kbve.com/auth/desktop?provider={provider}&redirect={}",
+            "https://supabase.kbve.com/auth/v1/authorize?provider={provider}&redirect_to={}",
             urlencoding::encode(&redirect),
         );
         info!("[title] OAuth sign-in pressed: provider={provider} url={url}");
