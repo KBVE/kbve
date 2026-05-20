@@ -83,13 +83,13 @@ impl Plugin for TitleScreenPlugin {
 // Constants
 // ---------------------------------------------------------------------------
 
-const TITLE_FONT_SIZE: f32 = 48.0;
-const SUBTITLE_FONT_SIZE: f32 = 16.0;
-const BTN_FONT_SIZE: f32 = 20.0;
-const BADGE_FONT_SIZE: f32 = 14.0;
-const BTN_WIDTH: f32 = 260.0;
-const BTN_HEIGHT: f32 = 50.0;
-const BTN_GAP: f32 = 14.0;
+const TITLE_FONT_SIZE: f32 = 32.0;
+const SUBTITLE_FONT_SIZE: f32 = 13.0;
+const BTN_FONT_SIZE: f32 = 16.0;
+const BADGE_FONT_SIZE: f32 = 12.0;
+const BTN_WIDTH: f32 = 220.0;
+const BTN_HEIGHT: f32 = 40.0;
+const BTN_GAP: f32 = 10.0;
 
 // ---------------------------------------------------------------------------
 // Spawn
@@ -138,7 +138,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
                 Node {
-                    margin: UiRect::bottom(Val::Px(32.0)),
+                    margin: UiRect::bottom(Val::Px(16.0)),
                     ..default()
                 },
             ));
@@ -148,7 +148,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
                 row_gap: Val::Px(6.0),
-                margin: UiRect::bottom(Val::Px(32.0)),
+                margin: UiRect::bottom(Val::Px(16.0)),
                 ..default()
             })
             .with_children(|badges| {
@@ -197,7 +197,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
                 Node {
-                    margin: UiRect::top(Val::Px(40.0)),
+                    margin: UiRect::top(Val::Px(20.0)),
                     ..default()
                 },
             ));
