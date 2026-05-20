@@ -7,3 +7,5 @@ resources:
     - memes-externalsecret.yaml
     - memes-deployment.yaml
     - httproute.yaml
+    - memes-cert.yaml
+    - memes-refgrant.yaml

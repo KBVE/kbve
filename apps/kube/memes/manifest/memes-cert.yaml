@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: memes-cert
+    namespace: memes
+spec:
+    secretName: memes-tls
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+    dnsNames:
+        - meme.sh
+        - www.meme.sh
+    privateKey:
+        algorithm: ECDSA
+        size: 256
+    duration: 2160h
+    renewBefore: 720h
