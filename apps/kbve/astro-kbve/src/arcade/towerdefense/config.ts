@@ -52,6 +52,11 @@ export const GAME_CONFIG = {
 	archerSlowFactor: 0.55,
 	archerColor: 0x63b3ed,
 	archerProjectileColor: 0xbee3f8,
+	chargedShotCooldownMs: 30000,
+	chargedShotBatteryCost: 5,
+	chargedShotDamageMul: 2.5,
+	chargedShotSplashMul: 1.5,
+	chargedProjectileColor: 0xfff5b1,
 } as const;
 
 export const COLORS = {

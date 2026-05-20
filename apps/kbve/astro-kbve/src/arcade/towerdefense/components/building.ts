@@ -59,6 +59,7 @@ export const TowerState = {
 	hasFixedTarget: new Uint8Array(MAX_ENTITIES),
 	fixedTargetX: new Float32Array(MAX_ENTITIES),
 	fixedTargetY: new Float32Array(MAX_ENTITIES),
+	chargedReadyAtMs: new Float32Array(MAX_ENTITIES),
 };
 
 export const TowerUpgradeStats = {

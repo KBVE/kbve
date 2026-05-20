@@ -1504,6 +1504,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			TowerState.hasFixedTarget[eid] = 0;
 			TowerState.fixedTargetX[eid] = 0;
 			TowerState.fixedTargetY[eid] = 0;
+			TowerState.chargedReadyAtMs[eid] =
+				this.simNow + GAME_CONFIG.chargedShotCooldownMs;
 			TowerUpgradeStats.radar[eid] = 0;
 			TowerUpgradeStats.attack[eid] = 0;
 			TowerUpgradeStats.speed[eid] = 0;
@@ -3193,12 +3195,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 		enemyId: number | null,
 	): void {
 		const spec = t.spec;
-		const radius = spec.arcHeight > 0 ? 6 : 4;
+		const supportsCharged = spec.id === 'bomb' || spec.id === 'artillery';
+		let isCharged = false;
+		if (
+			supportsCharged &&
+			this.simNow >= TowerState.chargedReadyAtMs[t.id] &&
+			this.consumeBatteryCharge(GAME_CONFIG.chargedShotBatteryCost)
+		) {
+			isCharged = true;
+			TowerState.chargedReadyAtMs[t.id] =
+				this.simNow + GAME_CONFIG.chargedShotCooldownMs;
+		}
+		const radius = (spec.arcHeight > 0 ? 6 : 4) * (isCharged ? 1.6 : 1);
 		const sprite = this.acquireProjectileSprite(
 			t.x,
 			t.y,
 			radius,
-			spec.projectileColor,
+			isCharged
+				? GAME_CONFIG.chargedProjectileColor
+				: spec.projectileColor,
 		);
 		const totalDist = Math.hypot(targetX - t.x, targetY - t.y);
 		const eid = addEntity(this.world);
@@ -3218,15 +3233,43 @@ export class TowerDefenseScene extends Phaser.Scene {
 		ProjectileStats.homing[eid] = spec.homing ? 1 : 0;
 		ProjectileStats.enemyEid[eid] =
 			spec.homing && enemyId !== null ? enemyId : -1;
-		ProjectileStats.damage[eid] = towerDamage(t);
+		const baseDmg = towerDamage(t);
+		ProjectileStats.damage[eid] = isCharged
+			? baseDmg * GAME_CONFIG.chargedShotDamageMul
+			: baseDmg;
 		ProjectileStats.burnDps[eid] = towerBurnDps(t);
 		ProjectileStats.burnMs[eid] = spec.burnMs;
 		ProjectileStats.burnRadius[eid] = spec.burnRadius;
-		ProjectileStats.splashRadius[eid] = spec.splashRadius;
+		ProjectileStats.splashRadius[eid] = isCharged
+			? spec.splashRadius * GAME_CONFIG.chargedShotSplashMul
+			: spec.splashRadius;
 		ProjectileStats.slowMs[eid] = spec.slowMs;
 		ProjectileStats.slowFactor[eid] = spec.slowFactor;
 		ProjectileStats.damageType[eid] = spec.damageType;
 		this.projectileVisuals.set(eid, { sprite });
+	}
+
+	private consumeBatteryCharge(amount: number): boolean {
+		let total = 0;
+		for (let i = 0; i < this.frameBatteryEids.length; i++) {
+			const beid = this.frameBatteryEids[i];
+			if (BuildingState.destroyed[beid]) continue;
+			total += BatteryState.charge[beid];
+			if (total >= amount) break;
+		}
+		if (total < amount) return false;
+		let remaining = amount;
+		for (let i = 0; i < this.frameBatteryEids.length; i++) {
+			if (remaining <= 0) break;
+			const beid = this.frameBatteryEids[i];
+			if (BuildingState.destroyed[beid]) continue;
+			const charge = BatteryState.charge[beid];
+			if (charge <= 0) continue;
+			const take = charge < remaining ? charge : remaining;
+			BatteryState.charge[beid] = charge - take;
+			remaining -= take;
+		}
+		return true;
 	}
 
 	private isEnemyAlive(eid: number | null): eid is number {
