@@ -26,18 +26,25 @@ export default defineConfig(async () => ({
 		tailwindcss(),
 		wasm(),
 		topLevelAwait(),
-		compression({
-			include: /\.wasm$/i,
-			exclude: /\.wgsl$/i,
-			algorithm: 'brotliCompress',
-			deleteOriginalAssets: false,
-		}),
-		compression({
-			include: /\.wasm$/i,
-			exclude: /\.wgsl$/i,
-			algorithm: 'gzip',
-			deleteOriginalAssets: /\.wasm$/i,
-		}),
+		// Tauri's webview can't decompress brotli/gzip transparently like nginx
+		// does in the browser deploy. Skip compression entirely for the Tauri
+		// build so the .wasm + .js + .css originals stay on disk.
+		...(process.env.BUILD_TARGET === 'tauri'
+			? []
+			: [
+					compression({
+						include: /\.wasm$/i,
+						exclude: /\.wgsl$/i,
+						algorithm: 'brotliCompress',
+						deleteOriginalAssets: false,
+					}),
+					compression({
+						include: /\.wasm$/i,
+						exclude: /\.wgsl$/i,
+						algorithm: 'gzip',
+						deleteOriginalAssets: /\.wasm$/i,
+					}),
+				]),
 	],
 	base: process.env.BUILD_TARGET === 'tauri' ? './' : '/isometric/',
 	clearScreen: false,
