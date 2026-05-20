@@ -20,8 +20,6 @@ use bevy::math::DVec2;
 use bevy::prelude::*;
 use bevy::window::{CursorMoved, PrimaryWindow, Window, WindowEvent};
 
-use super::phase::GamePhase;
-
 #[derive(Clone, Debug)]
 pub enum NativeInputEvent {
     PointerMove {
@@ -58,10 +56,8 @@ pub struct NativeInputPlugin;
 
 impl Plugin for NativeInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            drain_native_input.run_if(in_state(GamePhase::Playing)),
-        );
+        // No state gate — title screen needs clicks too.
+        app.add_systems(Update, drain_native_input);
     }
 }
 
