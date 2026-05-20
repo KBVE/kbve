@@ -82,7 +82,7 @@ async fn handle_ws(mut socket: WebSocket, svc: Arc<OWSService>) {
         let msg = match msg {
             Ok(Message::Text(text)) => text,
             Ok(Message::Close(_)) => break,
-            Ok(_) => continue, // ignore binary/ping/pong
+            Ok(_) => continue,
             Err(e) => {
                 warn!(error = %e, "WebSocket receive error");
                 break;

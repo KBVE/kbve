@@ -13,7 +13,10 @@
             }
             html,
             body {
-                background: #1a1a26;
+                /* Transparent so the underlying wgpu surface (Bevy render in
+                 * Tauri's native webview) shows through. The browser/WASM
+                 * path covers this with the bevy-canvas element anyway. */
+                background: transparent;
                 overflow: hidden;
                 width: 100%;
                 height: 100%;
@@ -51,17 +54,112 @@
         <script src="bug-report-shim.js"></script>
         <script src="safari-shim.js"></script>
         <script>
-            // Auto-focus the Bevy canvas so keyboard events reach winit.
-            // Re-focus after any click on the page (React buttons steal focus).
-            document.addEventListener('pointerup', function() {
-                var c = document.getElementById('bevy-canvas');
-                if (c && document.activeElement !== c) c.focus();
-            });
-            // Focus on first keydown if canvas isn't focused
-            document.addEventListener('keydown', function() {
-                var c = document.getElementById('bevy-canvas');
-                if (c && document.activeElement !== c) c.focus();
-            });
+            // Native Tauri build renders Bevy directly to the webview's wgpu
+            // surface (no canvas attachment). The bevy-canvas element + body
+            // would otherwise eat clicks before tao forwards them to Bevy.
+            // Detect Tauri and make the DOM click-through; React UI children
+            // opt back in via pointer-events: auto when needed.
+            var isTauri = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
+            console.log('[native-input] script booted; isTauri=', isTauri, '__TAURI_INTERNALS__=', !!window.__TAURI_INTERNALS__);
+            if (isTauri) {
+                document.documentElement.style.pointerEvents = 'none';
+                document.body.style.pointerEvents = 'none';
+                var canvas = document.getElementById('bevy-canvas');
+                if (canvas) canvas.style.pointerEvents = 'none';
+
+                var dpr = window.devicePixelRatio || 1;
+                console.log('[native-input] __TAURI__=', window.__TAURI__,
+                    'core=', window.__TAURI__ && window.__TAURI__.core,
+                    'INTERNALS keys=', window.__TAURI_INTERNALS__ ? Object.keys(window.__TAURI_INTERNALS__) : null);
+
+                var invokeRef = null;
+                var firstSuccess = false;
+                var loggedErr = false;
+                var call = function (cmd, args) {
+                    if (!invokeRef) {
+                        // Tauri 2 preferred path: window.__TAURI__.core.invoke
+                        // (exposed when withGlobalTauri: true).
+                        invokeRef = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
+                            || (window.__TAURI__ && window.__TAURI__.invoke)
+                            || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
+                        if (!invokeRef) {
+                            if (!loggedErr) {
+                                console.error('[native-input] no invoke fn — TAURI=', window.__TAURI__,
+                                    'INTERNALS=', window.__TAURI_INTERNALS__);
+                                loggedErr = true;
+                            }
+                            return;
+                        }
+                        console.log('[native-input] invokeRef resolved as', invokeRef.name || 'anonymous');
+                    }
+                    try {
+                        var p = invokeRef(cmd, args);
+                        if (p && p.then) {
+                            p.then(function () {
+                                if (!firstSuccess) {
+                                    console.log('[native-input] first invoke succeeded:', cmd);
+                                    firstSuccess = true;
+                                }
+                            }).catch(function (err) {
+                                if (!loggedErr) {
+                                    console.error('[native-input] invoke failed', cmd, err);
+                                    loggedErr = true;
+                                }
+                            });
+                        } else if (!firstSuccess) {
+                            console.log('[native-input] invoke returned non-promise:', cmd, p);
+                            firstSuccess = true;
+                        }
+                    } catch (err) {
+                        if (!loggedErr) {
+                            console.error('[native-input] invoke threw', cmd, err);
+                            loggedErr = true;
+                        }
+                    }
+                };
+
+                window.addEventListener('pointermove', function (e) {
+                    call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
+                }, true);
+                window.addEventListener('pointerover', function (e) {
+                    if (e.target === document.documentElement || e.target === document.body) {
+                        call('forward_pointer_enter', { x: e.clientX * dpr, y: e.clientY * dpr });
+                    }
+                }, true);
+                window.addEventListener('pointerout', function (e) {
+                    if (!e.relatedTarget) {
+                        call('forward_pointer_leave', {});
+                    }
+                }, true);
+                window.addEventListener('pointerdown', function (e) {
+                    console.log('[native-input] pointerdown fired button=', e.button);
+                    call('forward_pointer_button', { button: e.button, pressed: true });
+                }, true);
+                window.addEventListener('pointerup', function (e) {
+                    call('forward_pointer_button', { button: e.button, pressed: false });
+                }, true);
+                window.addEventListener('wheel', function (e) {
+                    call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
+                }, { capture: true, passive: true });
+                window.addEventListener('keydown', function (e) {
+                    call('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
+                }, true);
+                window.addEventListener('keyup', function (e) {
+                    call('forward_key', { code: e.code, pressed: false, repeat: false });
+                }, true);
+                console.log('[native-input] forwarder armed (listeners attached)');
+            } else {
+                // WASM browser build keeps the canvas focused so winit's web
+                // backend receives keyboard events.
+                document.addEventListener('pointerup', function() {
+                    var c = document.getElementById('bevy-canvas');
+                    if (c && document.activeElement !== c) c.focus();
+                });
+                document.addEventListener('keydown', function() {
+                    var c = document.getElementById('bevy-canvas');
+                    if (c && document.activeElement !== c) c.focus();
+                });
+            }
         </script>
     </body>
 </html>

@@ -36,7 +36,6 @@ fn dispatch_deploy_key(
         return;
     }
 
-    // Find the first deployable in inventory.
     let candidate = inventory.items.iter().enumerate().find(|(_, stack)| {
         stack
             .kind

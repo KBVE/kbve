@@ -1,12 +1,8 @@
-//! Agones client — K8s API access with circuit breaker.
-
 use kube::Client;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
-/// Circuit breaker opens after this many consecutive failures.
-/// Override: AGONES_circuit_breaker_threshold() env var.
 fn circuit_breaker_threshold() -> u32 {
     std::env::var("AGONES_circuit_breaker_threshold()")
         .ok()
@@ -14,8 +10,6 @@ fn circuit_breaker_threshold() -> u32 {
         .unwrap_or(5)
 }
 
-/// Seconds to wait before allowing a retry after circuit opens.
-/// Override: AGONES_circuit_breaker_reset_secs() env var.
 fn circuit_breaker_reset_secs() -> u64 {
     std::env::var("AGONES_circuit_breaker_reset_secs()")
         .ok()
@@ -23,8 +17,6 @@ fn circuit_breaker_reset_secs() -> u64 {
         .unwrap_or(30)
 }
 
-/// Timeout for individual K8s API calls (seconds).
-/// Override: AGONES_API_TIMEOUT_SECS env var.
 pub(crate) fn api_timeout() -> Duration {
     let secs = std::env::var("AGONES_API_TIMEOUT_SECS")
         .ok()
@@ -33,7 +25,6 @@ pub(crate) fn api_timeout() -> Duration {
     Duration::from_secs(secs)
 }
 
-/// Agones GameServer manager via kube-rs.
 pub struct AgonesClient {
     pub(crate) client: Client,
     pub(crate) namespace: String,
@@ -43,8 +34,7 @@ pub struct AgonesClient {
 }
 
 impl AgonesClient {
-    /// Try to initialize an in-cluster Kubernetes client for Agones.
-    /// Returns None if not running inside a K8s pod (non-fatal).
+    /// Returns `None` outside a K8s pod (no in-cluster kubeconfig) so callers can run locally.
     #[tracing::instrument(skip_all, fields(namespace, fleet))]
     pub async fn try_new(namespace: &str, fleet: &str) -> Option<Self> {
         match Client::try_default().await {
@@ -65,7 +55,6 @@ impl AgonesClient {
         }
     }
 
-    /// Check if the circuit breaker allows an operation.
     pub(crate) fn check_circuit(&self) -> Result<(), super::AgonesError> {
         let failures = self.consecutive_failures.load(Ordering::Relaxed);
         if failures >= circuit_breaker_threshold() {
@@ -84,13 +73,11 @@ impl AgonesClient {
         Ok(())
     }
 
-    /// Record a successful operation — resets the circuit breaker.
     pub(crate) fn record_success(&self) {
         self.consecutive_failures.store(0, Ordering::Relaxed);
         *self.circuit_opened_at.lock().unwrap() = None;
     }
 
-    /// Record a failed operation — may trip the circuit breaker.
     pub(crate) fn record_failure(&self) {
         let prev = self.consecutive_failures.fetch_add(1, Ordering::Relaxed);
         if prev + 1 >= circuit_breaker_threshold() {
@@ -106,17 +93,14 @@ impl AgonesClient {
         }
     }
 
-    /// Get the namespace this client operates in.
     pub fn namespace(&self) -> &str {
         &self.namespace
     }
 
-    /// Get the fleet this client targets.
     pub fn fleet(&self) -> &str {
         &self.fleet
     }
 
-    /// Check if the circuit breaker is currently open.
     pub fn is_circuit_open(&self) -> bool {
         let failures = self.consecutive_failures.load(Ordering::Relaxed);
         if failures >= circuit_breaker_threshold() {
@@ -128,13 +112,12 @@ impl AgonesClient {
         false
     }
 
-    /// Get the current consecutive failure count.
     pub fn consecutive_failure_count(&self) -> u32 {
         self.consecutive_failures.load(Ordering::Relaxed)
     }
 
-    /// Scale the fleet to a given number of replicas.
-    /// Uses JSON Merge Patch on the fleet spec (not the scale subresource).
+    /// Patches the fleet spec directly (JSON Merge Patch) instead of the `/scale` subresource;
+    /// the latter has been flaky against Agones CRDs.
     pub async fn scale_fleet(&self, replicas: i32) -> Result<(), super::AgonesError> {
         let url = format!(
             "/apis/agones.dev/v1/namespaces/{}/fleets/{}",

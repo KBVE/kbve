@@ -6,7 +6,6 @@ use tracing::{info, warn};
 pub type DbPool = PgPool;
 
 pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
-    // Auto-detect format: postgres:// URL or Npgsql semicolon-delimited
     let opts =
         if database_url.starts_with("postgres://") || database_url.starts_with("postgresql://") {
             info!("Parsing DATABASE_URL as postgres:// URL");
@@ -21,7 +20,6 @@ pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
             );
         };
 
-    // Set search_path for OWS schema resolution
     let opts = opts.options([("search_path", "ows,extensions,public")]);
     info!("Database search_path set to: ows,extensions,public");
 
@@ -40,18 +38,7 @@ pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
     Ok(pool)
 }
 
-/// Parse an Npgsql/ADO.NET connection string into PgConnectOptions.
-///
-/// Format: `Host=host;Port=5432;Database=db;Username=user;Password=pass;...`
-///
-/// Supported keys (case-insensitive):
-///   Host, Server → hostname
-///   Port → port
-///   Database → database
-///   Username, User ID, User → username
-///   Password → password
-///   SSL Mode, SslMode → ssl mode
-///   Search Path → search_path (applied via options)
+/// Parse an Npgsql/ADO.NET connection string (`Host=...;Port=...;Database=...;...`).
 fn parse_npgsql(conn_str: &str) -> anyhow::Result<PgConnectOptions> {
     let mut opts = PgConnectOptions::new();
 
@@ -92,15 +79,12 @@ fn parse_npgsql(conn_str: &str) -> anyhow::Result<PgConnectOptions> {
                 _ => warn!(ssl_mode = value, "Unknown SSL mode, using default"),
             },
             "search path" => {
-                // Will be overridden by our explicit options() call, but log it
                 info!(
                     search_path = value,
                     "Npgsql search_path found (overridden by ROWS)"
                 );
             }
-            _ => {
-                // Skip unknown keys (Pooling, Timeout, CommandTimeout, etc.)
-            }
+            _ => {}
         }
     }
 

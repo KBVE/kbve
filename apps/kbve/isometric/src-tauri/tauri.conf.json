@@ -4,8 +4,6 @@
 	"version": "0.1.0",
 	"identifier": "com.kbve.isometric",
 	"build": {
-		"beforeDevCommand": "pnpm dev",
-		"devUrl": "http://localhost:1420",
 		"beforeBuildCommand": "pnpm build",
 		"frontendDist": "../dist"
 	},
@@ -15,12 +13,16 @@
 				"label": "main",
 				"title": "KBVE Isometric",
 				"width": 1024,
-				"height": 768
+				"height": 768,
+				"transparent": true,
+				"devtools": true
 			}
 		],
 		"security": {
 			"csp": null
-		}
+		},
+		"macOSPrivateApi": true,
+		"withGlobalTauri": true
 	},
 	"bundle": {
 		"active": true,

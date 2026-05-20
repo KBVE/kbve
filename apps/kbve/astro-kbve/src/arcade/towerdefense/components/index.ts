@@ -1,15 +1,16 @@
 export { Position, MAX_ENTITIES } from './shared';
+export { Health, HealthTag, initHealth } from './health';
+export { Armor, ArmorTag, initArmor } from './armor';
+export { Defense, DefenseTag, initDefense } from './defense';
 export {
-	Damageable,
-	DAMAGEABLE_KIND,
-	DamageableTag,
+	Resistance,
+	ResistanceTag,
 	DAMAGE_TYPE,
 	DAMAGE_FLAG,
 	resistForType,
-	initDamageable,
-	type DamageableKind,
+	initResistance,
 	type DamageType,
-} from './damageable';
+} from './resistance';
 export {
 	EnemyTag,
 	EnemyStats,
@@ -18,7 +19,13 @@ export {
 	enemyTypeIndexFromId,
 	type EnemyVisual,
 } from './enemy';
-export { SoldierTag, SoldierStats, type SoldierVisual } from './soldier';
+export {
+	SoldierTag,
+	SoldierStats,
+	SOLDIER_KIND,
+	type SoldierKind,
+	type SoldierVisual,
+} from './soldier';
 export { DroneTag, DroneState, DroneStats, type DroneVisual } from './drone';
 export {
 	ProjectileTag,
@@ -49,6 +56,7 @@ export {
 	type AuraKind,
 } from './aura';
 export { Movement, MovementTag, initMovement } from './movement';
+export { DeadTag, ImmobileTag } from './lifecycle';
 export {
 	BuildingTag,
 	TowerTag,

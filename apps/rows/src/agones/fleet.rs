@@ -1,12 +1,9 @@
-//! Fleet status queries — list GameServers and aggregate fleet state.
-
 use super::client::AgonesClient;
 use super::error::AgonesError;
 use serde::Serialize;
 use tracing::info;
 use utoipa::ToSchema;
 
-/// Summary of a single GameServer in the fleet.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct GameServerInfo {
     pub name: String,
@@ -16,7 +13,6 @@ pub struct GameServerInfo {
     pub age_seconds: i64,
 }
 
-/// Aggregated fleet status.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct FleetStatus {
     pub fleet_name: String,
@@ -29,7 +25,6 @@ pub struct FleetStatus {
 }
 
 impl AgonesClient {
-    /// Query all GameServers in the fleet and aggregate status counts.
     #[tracing::instrument(skip(self))]
     pub async fn fleet_status(&self) -> Result<FleetStatus, AgonesError> {
         let url = format!(

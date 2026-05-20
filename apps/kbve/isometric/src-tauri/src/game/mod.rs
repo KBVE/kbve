@@ -16,6 +16,8 @@ pub mod interaction_ui;
 pub mod inventory;
 pub mod inventory_ui;
 pub mod mushrooms;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native_input;
 pub mod net;
 pub mod object_registry;
 pub mod orb_hud;
@@ -113,6 +115,17 @@ fn detect_perf_tier() -> PerfTier {
     }
 }
 
+/// Adds NativeInputPlugin on desktop builds; no-op on WASM (canvas + winit
+/// web backend already covers input there).
+struct NativeInputCfgPlugin;
+
+impl Plugin for NativeInputCfgPlugin {
+    fn build(&self, _app: &mut bevy::app::App) {
+        #[cfg(not(target_arch = "wasm32"))]
+        _app.add_plugins(native_input::NativeInputPlugin);
+    }
+}
+
 struct PerfTierPlugin;
 
 impl Plugin for PerfTierPlugin {
@@ -154,6 +167,7 @@ impl PluginGroup for GamePluginGroup {
             .add(PlayerPlugin)
             .add(ObjectRegistryPlugin)
             .add(InputBridgePlugin)
+            .add(NativeInputCfgPlugin)
             .add(SceneObjectsPlugin)
             .add(TreesPlugin)
             .add(WaterPlugin)

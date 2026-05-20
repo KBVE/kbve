@@ -38,7 +38,7 @@ use bevy_kbve_net::npcdb::creature::CapturedCreatures;
 /// Default WebSocket URL — only set for native (desktop) dev builds.
 /// On WASM the URL MUST come from JS via `request_go_online()`.
 #[cfg(not(target_arch = "wasm32"))]
-const DEFAULT_WS_URL: &str = "wss://127.0.0.1:5000";
+const DEFAULT_WS_URL: &str = "wss://kbve.com/ws";
 
 /// Tick rate matching the server (20 Hz).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -113,8 +113,6 @@ impl Default for GameServerAddr {
                 }
                 #[cfg(target_arch = "wasm32")]
                 {
-                    // On WASM, endpoints come from ClientProfile (localStorage).
-                    // Return empty — poll_go_online_request will read from profile.
                     String::new()
                 }
             });
@@ -210,8 +208,6 @@ impl Plugin for NetPlugin {
     fn build(&self, app: &mut App) {
         info!("[net] NetPlugin::build — registering lightyear client plugins");
 
-        // Read browser capabilities probed by JS (localStorage).
-        // Must be inserted before any system that checks transport support.
         let profile = super::client_profile::ClientProfile::from_local_storage();
         info!(
             "[net] ClientProfile: secure={} wt={} sab={} cores={} api={} ws={} wt_url={}",
@@ -225,15 +221,12 @@ impl Plugin for NetPlugin {
         );
         app.insert_resource(profile);
 
-        // Lightyear client transport + replication machinery
         app.add_plugins(ClientPlugins {
             tick_duration: TICK_DURATION,
         });
 
-        // Shared protocol: replicated components, inputs, channels
         app.add_plugins(ProtocolPlugin);
 
-        // Store resolved server address
         app.init_resource::<GameServerAddr>();
         app.init_resource::<PendingAuth>();
         app.init_resource::<MyPlayerId>();
@@ -241,51 +234,35 @@ impl Plugin for NetPlugin {
         app.init_resource::<CapturedCreatures>();
         app.init_resource::<PendingTokenFetch>();
 
-        // Watch for go-online requests from JS / poll async token results
         app.add_systems(Update, poll_go_online_request);
         app.add_systems(Update, poll_token_fetch_result);
 
-        // Send auth message once connected
         app.add_systems(Update, send_auth_on_connect.after(poll_go_online_request));
 
-        // Receive auth response from server
         app.add_systems(Update, receive_auth_response.after(send_auth_on_connect));
 
-        // Send local player position to server (throttled to FixedUpdate = tick rate)
         app.add_systems(FixedUpdate, send_position_updates);
 
-        // Spawn visuals for remote players when their replicated entities arrive.
-        // Must run after receive_auth_response so we know our own player ID and
-        // don't accidentally spawn a ghost visual for ourselves.
         app.add_systems(
             Update,
             spawn_remote_player_visuals.after(receive_auth_response),
         );
 
-        // Update remote player transforms from replicated Position each frame
         app.add_systems(
             PostUpdate,
             update_remote_transforms.run_if(any_with_component::<RemotePlayer>),
         );
 
-        // Sync replicated PlayerVitals from our own player entity into local PlayerState
         app.add_systems(Update, sync_vitals_to_local_state);
 
-        // Receive ObjectRemoved / ObjectRespawned messages from server
         app.add_systems(Update, receive_object_removed);
         app.add_systems(Update, receive_object_respawned);
 
-        // Server-authoritative inventory: full snapshot on join + per-slot deltas
         app.add_systems(Update, receive_inventory_sync);
         app.add_systems(Update, receive_inventory_update);
 
-        // Server-authoritative skill XP — mirror server-side grants into the
-        // local SkillProfile so the level-up toast + skill UI stay in sync.
         app.add_systems(Update, receive_skill_xp_grant);
 
-        // Equipment / crafting / consumables / deployables — full client
-        // pipeline: outgoing dispatch (UI Event → network) + incoming receive
-        // (network → local state + toast).
         app.init_resource::<LocalPlayerEquipment>();
         app.init_resource::<LocalDeployedItems>();
         app.add_message::<EquipRequestEvent>();
@@ -308,14 +285,11 @@ impl Plugin for NetPlugin {
             ),
         );
 
-        // Receive time sync from server
         app.add_systems(Update, receive_time_sync);
 
-        // Receive creature capture broadcasts from server
         app.add_systems(Update, receive_creature_captured);
         app.add_systems(Update, receive_creature_captured_batch);
 
-        // Username display systems
         app.add_systems(
             Update,
             update_player_name_labels.run_if(any_with_component::<PlayerNameLabel>),
@@ -327,27 +301,21 @@ impl Plugin for NetPlugin {
         app.add_systems(Update, poll_set_username_request);
         app.add_systems(Update, receive_set_username_response);
 
-        // Immediately hide any replicated entity with PlayerId — prevents
-        // ghost flicker before spawn_remote_player_visuals decides visibility.
         app.add_observer(hide_new_replicated_player);
 
-        // Forward fall damage / collect / capture events to server via observers
         app.add_observer(forward_fall_damage_to_server);
         app.add_observer(forward_collect_to_server);
         app.add_observer(forward_creature_capture_to_server);
 
-        // --- Debug observers for connection lifecycle ---
         app.add_observer(on_connecting);
         app.add_observer(on_connected);
         app.add_observer(on_disconnected);
         app.add_observer(on_linking);
         app.add_observer(on_unlinked);
 
-        // WASM: use hostname URL for WebTransport (cert validation needs hostname, not IP)
         #[cfg(target_arch = "wasm32")]
         app.add_observer(bevy_kbve_net::client::wasm_wt_hostname_link);
 
-        // WASM: custom WebSocket transport systems (bypasses aeronet's broken send_loop)
         #[cfg(target_arch = "wasm32")]
         {
             use bevy_kbve_net::wasm_ws;
@@ -362,20 +330,8 @@ impl Plugin for NetPlugin {
             app.add_systems(Update, wasm_ws::wasm_ws_lifecycle);
         }
 
-        // Safety net: abort if the handshake doesn't complete within HANDSHAKE_TIMEOUT_SECS
         app.add_systems(Update, check_handshake_timeout);
 
-        // Periodic connection-state heartbeat + PostUpdate netcode diagnostic
-        // disabled for now — too noisy. Re-enable by uncommenting:
-        // app.add_systems(Update, debug_connection_heartbeat);
-        // app.add_systems(
-        //     PostUpdate,
-        //     debug_post_netcode_send
-        //         .after(lightyear::prelude::ConnectionSystems::Send)
-        //         .before(lightyear::prelude::LinkSystems::Send),
-        // );
-
-        // Deferred cleanup of disconnected client entities (one frame delay)
         app.add_systems(Last, cleanup_pending_despawn);
 
         info!("[net] NetPlugin::build — all systems registered");
@@ -402,7 +358,6 @@ fn on_unlinked(
     let entity = trigger.entity;
     warn!("[net][link] UNLINKED — entity {entity:?} transport failed or closed");
 
-    // Only attempt fallback if we never reached Connected and a WsFallback is present.
     if was_connected_q.get(entity).is_err() && fallback_q.get(entity).is_ok() {
         warn!("[net] WebTransport failed — marking entity for WS transport swap");
         super::telemetry::report_warn("WebTransport failed, falling back to WebSocket");
@@ -439,7 +394,6 @@ fn on_connecting(trigger: On<Add, Connecting>, mut commands: Commands, time: Res
 fn on_connected(trigger: On<Add, Connected>, mut commands: Commands) {
     let entity = trigger.entity;
     commands.entity(entity).insert(WasConnected);
-    // Connection succeeded — no need for WS fallback
     commands
         .entity(entity)
         .remove::<(WsFallback, TransportSwapPending)>();
@@ -479,16 +433,11 @@ fn on_disconnected(
 ) {
     let entity = trigger.entity;
 
-    // NetcodeClient spawns with Disconnected as a required component.
-    // Only run cleanup if a connection was actually attempted (Connecting was reached).
     if attempted_q.get(entity).is_err() {
         info!("[net][lifecycle] DISCONNECTED (initial state) — entity {entity:?}, ignoring");
         return;
     }
 
-    // ── WT → WS fallback ───────────────────────────────────────────
-    // If on_unlinked marked this entity for a WS fallback, despawn the
-    // failed WT entity and spawn a fresh WS connection with a new entity.
     if let Ok(fallback) = swap_q.get(entity) {
         let ws_url = fallback.ws_url.clone();
         let token_bytes = fallback.token_bytes;
@@ -502,11 +451,9 @@ fn on_disconnected(
         return;
     }
 
-    // ── Normal disconnect cleanup ────────────────────────────────────
     warn!("[net][lifecycle] DISCONNECTED — entity {entity:?} lost connection");
     super::telemetry::report_warn(&format!("client disconnected entity={entity:?}"));
 
-    // Reset connection state
     IS_CONNECTED.store(false, Ordering::Release);
     my_player_id.0 = None;
     pending_auth.jwt = None;
@@ -514,10 +461,6 @@ fn on_disconnected(
     server_time.active = false;
     captured_creatures.clear();
 
-    // Despawn all remote player visuals.
-    // Use try_despawn — lightyear may already despawn replicated entities
-    // when the connection drops, so the entity could be gone by the time
-    // our deferred commands execute.
     let mut count = 0u32;
     for remote_entity in &remote_players {
         commands.entity(remote_entity).try_despawn();
@@ -527,21 +470,14 @@ fn on_disconnected(
         info!("[net] despawned {count} remote player entities after disconnect");
     }
 
-    // Despawn our own replicated entity so it doesn't block categorisation
-    // of the new replicated entity on reconnect.
     for own_entity in &own_replicated {
         commands.entity(own_entity).try_despawn();
         info!("[net] despawned own replicated entity {own_entity:?} after disconnect");
     }
 
-    // Mark the disconnected Client entity for deferred despawn (next frame).
-    // Despawning it immediately inside this observer causes panics because
-    // lightyear's deferred commands (PeerAddr insert, etc.) still target it.
     commands.entity(entity).insert(PendingDespawn);
     info!("[net] marked disconnected client entity {entity:?} for deferred despawn");
 
-    // If the player chose "Play Online", return to the title screen on disconnect
-    // so they can retry or switch to offline mode.
     if *play_mode == super::phase::PlayMode::Online {
         info!("[net] online mode — returning to title screen after disconnect");
         next_phase.set(super::phase::GamePhase::Title);
@@ -622,7 +558,6 @@ fn debug_connection_heartbeat(
         );
     }
 
-    // Log link buffer states to diagnose packet flow
     for (entity, link, is_linked, is_linking) in &link_q {
         let send_len = link.send.len();
         let recv_len = link.recv.len();
@@ -693,13 +628,11 @@ fn poll_go_online_request(
         return;
     }
 
-    // Grab the JWT before connecting
     let jwt = AUTH_JWT.lock().ok().and_then(|mut g| g.take());
     let has_jwt = jwt.is_some();
     pending_auth.jwt = jwt.clone();
     pending_auth.sent = false;
 
-    // Re-resolve address: check JS override first, then resource, then ClientProfile.
     let resolved_ws = SERVER_URL_OVERRIDE
         .lock()
         .ok()
@@ -709,7 +642,6 @@ fn poll_go_online_request(
             if a.is_empty() { None } else { Some(a.clone()) }
         })
         .unwrap_or_else(|| {
-            // Fallback: read from ClientProfile (JS-resolved endpoints).
             if !profile.ws_url.is_empty() {
                 return profile.ws_url.clone();
             }
@@ -728,7 +660,6 @@ fn poll_go_online_request(
         profile.preferred_transport()
     );
 
-    // --- Pre-flight validation (reads ClientProfile, no JS interop) ---
     if resolved_ws.is_empty() {
         warn!("[net] no server URL configured — cannot connect");
         super::telemetry::report_error("go-online failed: no server URL configured");
@@ -741,7 +672,6 @@ fn poll_go_online_request(
         ));
         return;
     }
-    // Browsers block insecure WebSockets from a secure page (mixed content).
     if resolved_ws.starts_with("ws://") && profile.would_block_insecure_ws() {
         warn!("[net] mixed content blocked: page is HTTPS but server URL is ws:// — use wss://");
         super::telemetry::report_error(
@@ -750,14 +680,10 @@ fn poll_go_online_request(
         return;
     }
 
-    // --- Desktop path: generate token locally or fetch from remote ---
     #[cfg(not(target_arch = "wasm32"))]
     {
         use bevy_kbve_net::net_config;
 
-        // Determine if this is a remote server (hostname, not IP:port).
-        // Remote servers require fetching the ConnectToken from the API
-        // so the embedded addresses match the production topology.
         let stripped = resolved_ws
             .trim_start_matches("ws://")
             .trim_start_matches("wss://");
@@ -768,7 +694,6 @@ fn poll_go_online_request(
                 && stripped.parse::<std::net::SocketAddr>().is_err());
 
         if is_remote {
-            // Fetch token from the server's API endpoint
             let api_base = resolved_ws
                 .replace("ws://", "http://")
                 .replace("wss://", "https://")
@@ -776,8 +701,6 @@ fn poll_go_online_request(
                 .to_string();
             let token_url = format!("{api_base}/api/v1/auth/game-token");
             let jwt_body = jwt.clone().unwrap_or_default();
-            // Force websocket transport for now — WebTransport (QUIC) needs
-            // additional work for production routing through Cilium/Cloudflare.
             let transport_hint = "websocket";
 
             info!("[net] desktop: fetching token from {token_url} (remote server)");
@@ -807,9 +730,6 @@ fn poll_go_online_request(
                         "[net] desktop: token received — ws={server_url} wt={server_wt_url} cert_type={cert_type}"
                     );
 
-                    // Build transport based on the hint we sent.
-                    // The server may return both WS and WT URLs, but we pick
-                    // exactly the transport we asked for.
                     let transport = if transport_hint == "webtransport" && !server_wt_url.is_empty()
                     {
                         ClientTransport::WebTransport {
@@ -834,7 +754,6 @@ fn poll_go_online_request(
                 }
                 Err(e) => {
                     warn!("[net] desktop: token fetch failed: {e} — falling back to local token");
-                    // Fall through to local token generation
                 }
             }
         }
@@ -843,16 +762,12 @@ fn poll_go_online_request(
         let protocol_id = net_config::KBVE_PROTOCOL_ID;
         let client_id = rand::random::<u64>().max(1);
 
-        // Parse the WS address for the token (needs a SocketAddr for local servers)
         let socket_addr: std::net::SocketAddr = stripped
             .parse()
             .unwrap_or_else(|_| "127.0.0.1:5000".parse().unwrap());
 
         let user_data = match &jwt {
-            Some(j) if !j.is_empty() => {
-                // In desktop dev mode, pack a placeholder user_data
-                net_config::pack_user_data("desktop-dev-user")
-            }
+            Some(j) if !j.is_empty() => net_config::pack_user_data("desktop-dev-user"),
             _ => [0u8; 256],
         };
 
@@ -872,13 +787,11 @@ fn poll_go_online_request(
         let token_bytes =
             net_config::base64_to_token_bytes(&token_b64).expect("base64_to_token_bytes failed");
 
-        // Check for local WebTransport cert digest
         let cert_digest_path = std::env::var("GAME_WT_DIGEST")
             .unwrap_or_else(|_| "apps/kbve/isometric/certificates/digest.txt".to_string());
         let (wt_url, cert_digest) = match std::fs::read_to_string(&cert_digest_path) {
             Ok(digest) => {
                 let digest = digest.trim().to_owned();
-                // Derive WT address from WS address (port + 1)
                 let wt_port = socket_addr.port() + 1;
                 let wt_addr = format!("https://{}:{wt_port}", socket_addr.ip());
                 (wt_addr, digest)
@@ -903,7 +816,6 @@ fn poll_go_online_request(
         connect_to_server(&mut commands, &transport, &token_bytes);
     }
 
-    // --- WASM path: fetch token from auth endpoint ---
     #[cfg(target_arch = "wasm32")]
     {
         pending_token.in_flight = true;
@@ -912,7 +824,6 @@ fn poll_go_online_request(
         let ws_url = resolved_ws.clone();
         let prefers_wt = profile.has_webtransport;
 
-        // API base comes from ClientProfile — resolved once by JS at page load.
         let api_base = profile.api_base.clone();
 
         wasm_bindgen_futures::spawn_local(async move {
@@ -936,9 +847,6 @@ fn poll_go_online_request(
                 Err(e) => {
                     log::error!("[net] WASM token fetch failed: {e}");
                     crate::game::telemetry::report_error(&format!("token fetch failed: {e}"));
-                    // Reset in_flight so user can retry
-                    // (PendingTokenFetch is a Bevy resource, can't access from async;
-                    //  poll_token_fetch_result handles the reset when it sees no result)
                 }
             }
         });
@@ -964,14 +872,8 @@ fn poll_token_fetch_result(
 
     pending_token.in_flight = false;
 
-    // Use the server URL directly — WebSocket connections are NOT subject
-    // to COEP restrictions, so cross-origin WS to a different port works.
-    // The Vite proxy approach caused Netcode handshake failures due to
-    // frame buffering/rewriting by http-proxy.
     let ws_url = result.server_url.clone();
 
-    // Use the server's WT URL if the browser supports WebTransport.
-    // The token endpoint returns the correct production hostname.
     let wt_url = if !result.server_wt_url.is_empty() && profile.has_webtransport {
         result.server_wt_url.clone()
     } else {
@@ -1019,7 +921,6 @@ fn has_webtransport_support() -> bool {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn has_webtransport_support() -> bool {
-    // Desktop: WebTransport is handled natively by lightyear, always supported
     true
 }
 
@@ -1163,7 +1064,6 @@ fn receive_auth_response(
                     msg.user_id, msg.player_id, msg.server_time
                 );
 
-                // Step 4: echo server_time back to complete the 4-step handshake
                 ack_sender.send::<GameChannel>(AuthAck {
                     server_time: msg.server_time,
                 });
@@ -1172,16 +1072,12 @@ fn receive_auth_response(
                     msg.server_time
                 );
 
-                // Don't transition to Playing yet — wait for first TimeSyncMessage
-                // so the world has correct time-of-day before the player sees it.
                 if **phase == super::phase::GamePhase::Connecting {
                     info!("[net] auth complete — waiting for first time sync before Playing");
                 }
             } else {
                 warn!("[net] AUTH FAILED from entity {entity:?} — triggering Disconnect to reset");
                 super::telemetry::report_error("server auth failed — disconnecting");
-                // Trigger a graceful disconnect so on_disconnected cleans up
-                // and the user can retry (e.g. after refreshing their JWT).
                 commands.trigger(Disconnect { entity });
             }
         }
@@ -1194,7 +1090,6 @@ fn send_position_updates(
     player_query: Query<&Transform, With<Player>>,
     mut sender_query: Query<&mut MessageSender<PositionUpdate>, With<Connected>>,
 ) {
-    // Only send if we're authenticated
     if my_player_id.0.is_none() {
         return;
     }
@@ -1236,16 +1131,12 @@ fn spawn_remote_player_visuals(
         (Without<RemotePlayer>, Without<OwnReplicatedPlayer>),
     >,
 ) {
-    // Don't process anything until we know who we are.
     let Some(my_id) = my_player_id.0 else {
         return;
     };
 
     for (entity, player_id, color, maybe_pos) in &query {
         if player_id.0 == my_id {
-            // This is our own replicated entity — mark it and strip anything
-            // that could render (collider/rigidbody from server replication,
-            // plus hide visibility). We keep PlayerId/PlayerVitals for syncing.
             info!(
                 "marking own replicated entity {entity:?} (player_id={})",
                 my_id
@@ -1259,7 +1150,6 @@ fn spawn_remote_player_visuals(
             continue;
         }
 
-        // Remote player — spawn a visible mesh.
         let initial_pos = maybe_pos.map(|p| p.0).unwrap_or(Vec3::new(2.0, 2.0, 2.0));
         info!(
             "spawning remote player visual for player_id={} entity={entity:?} at {initial_pos}",
@@ -1346,15 +1236,12 @@ fn forward_collect_to_server(
     }
 }
 
-// Re-export the shared CreatureCaptureEvent so game code can trigger captures
-// without depending on bevy_npc directly.
 pub use bevy_kbve_net::npcdb::creature::CreatureCaptureEvent;
 
 /// Map a `ProtoNpcId` to the protocol's `CreatureKind` for wire messages.
 /// This is the bridge between the game-agnostic `ProtoNpcId` and the
 /// hardcoded protocol enum (to be removed when protocol migrates to ProtoNpcId).
 fn npc_id_to_creature_kind(npc_id: ProtoNpcId) -> Option<CreatureKind> {
-    // Compare against known NPC ref hashes
     let firefly_id = ProtoNpcId::from_ref("meadow-firefly");
     let butterfly_id = ProtoNpcId::from_ref("woodland-butterfly");
     let frog_id = ProtoNpcId::from_ref("green-toad");
@@ -1436,9 +1323,6 @@ fn receive_object_removed(
 
             let is_mine = my_player_id.0 == Some(msg.collector_id) && msg.collector_id != 0;
 
-            // Loot grant + toast moved to receive_inventory_update. Skill XP
-            // moved to receive_skill_xp_grant. This branch just records the
-            // confirmation log so we keep the same trace shape.
             if is_mine && !msg.item_ref.is_empty() && msg.quantity > 0 {
                 info!(
                     "[net] server confirmed loot: {} x{} at ({tx},{tz})",
@@ -1446,15 +1330,10 @@ fn receive_object_removed(
                 );
             }
 
-            // Start removal animation for entities not already animating.
-            // If we started a local animation (via action button), the
-            // Without<ChoppingTree/MiningRock/CollectingForageable> filter
-            // skips it automatically.
             for (obj_entity, coord) in &tile_entities {
                 if coord.tx == tx && coord.tz == tz {
                     info!("[net] animating removal at ({tx},{tz}) — {:?}", msg.kind);
 
-                    // Strip physics + interactability so it can't be clicked again
                     commands.entity(obj_entity).remove::<(
                         avian3d::prelude::RigidBody,
                         avian3d::prelude::Collider,
@@ -1462,9 +1341,11 @@ fn receive_object_removed(
                         super::scene_objects::HoverOutline,
                     )>();
 
-                    // Insert animation — loot_dropped=true since loot is handled above
                     match msg.kind {
                         bevy_kbve_net::WorldObjectKind::Tree => {
+                            commands
+                                .entity(obj_entity)
+                                .remove::<super::trees::TreeWindSway>();
                             let angle = (tx as f32 * 1.618 + tz as f32 * 2.71)
                                 % (2.0 * std::f32::consts::PI);
                             let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
@@ -1518,9 +1399,6 @@ fn receive_inventory_sync(
 ) {
     for (_entity, mut receiver) in &mut query {
         for msg in receiver.receive() {
-            // Only apply sync if it targets us. player_id=0 means "no auth yet" —
-            // we still accept it because the server may push the sync before our
-            // own player_id is observed via AuthResponse.
             if msg.player_id != 0 && my_player_id.0 != Some(msg.player_id) {
                 continue;
             }
@@ -1570,7 +1448,6 @@ fn receive_inventory_update(
 
             let kind = ItemKind::from_ref(&msg.slot.item_ref);
 
-            // Compute positive delta vs. current local state for toast text.
             let prev_qty = inventory
                 .items
                 .get(idx)
@@ -1638,12 +1515,6 @@ fn receive_object_respawned(
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Equipment / Crafting / Consumables / Deployables — client mirror state +
-// dispatch events. The events let UI code (buttons, hotkeys, panels) trigger
-// server requests without having to touch lightyear MessageSender directly.
-// ---------------------------------------------------------------------------
 
 /// Local mirror of the server-side equipment slot map (proto EquipSlot i32 →
 /// itemdb ref). Authoritative copy lives on the server; this resource is
@@ -1846,8 +1717,6 @@ fn receive_item_deployed(
             deployed
                 .entries
                 .insert((msg.tile.tx, msg.tile.tz), (msg.owner_id, msg.item_ref));
-            // Visual spawn of the deployed entity is a UI surface that will
-            // land in a follow-up: today we only mirror the wire state.
         }
     }
 }
@@ -1881,8 +1750,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
         return;
     }
 
-    // Safety: on WASM release builds, block localhost game-server connections
-    // UNLESS the page itself is served from localhost (local dev via quick script).
     #[cfg(target_arch = "wasm32")]
     {
         let is_local_target =
@@ -1926,7 +1793,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 .trim_start_matches("https://")
                 .trim_start_matches("http://");
 
-            // Resolve to SocketAddr — on WASM use dummy since we connect via hostname
             let server_addr: std::net::SocketAddr =
                 if addr_str.parse::<std::net::SocketAddr>().is_ok() {
                     addr_str.parse().unwrap()
@@ -1942,8 +1808,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                     }
                     #[cfg(target_arch = "wasm32")]
                     {
-                        // WASM: can't DNS resolve. Use dummy — our wasm_wt_hostname_link
-                        // observer uses WtHostnameUrl for the real connection.
                         let port = addr_str
                             .rsplit(':')
                             .next()
@@ -1973,7 +1837,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 ReplicationReceiver::default(),
             ));
 
-            // WASM: store hostname URL for our LinkStart observer
             #[cfg(target_arch = "wasm32")]
             {
                 let full_url = if url.starts_with("https://") {
@@ -2005,7 +1868,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
         ClientTransport::WebSocket { url } => {
             info!("[net] connect_to_server — using WebSocket: {url}");
 
-            // WASM: use our custom WasmWsSocket (bypasses aeronet's broken send_loop)
             #[cfg(target_arch = "wasm32")]
             {
                 match bevy_kbve_net::wasm_ws::open_wasm_ws(&url) {
@@ -2019,8 +1881,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                             ))
                             .id();
 
-                        // Insert Linking — our wasm_ws_lifecycle system will
-                        // upgrade to Linked when on_open fires
                         commands
                             .entity(client_entity)
                             .insert(lightyear::prelude::Linking);
@@ -2037,7 +1897,6 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 }
             }
 
-            // Native: use aeronet's WebSocketClientIo (works fine with tokio)
             #[cfg(not(target_arch = "wasm32"))]
             {
                 use lightyear::websocket::prelude::client::*;
@@ -2134,7 +1993,6 @@ fn receive_time_sync(
                 );
                 server_time.active = true;
 
-                // Now that we have the world time, transition to Playing
                 if **phase == super::phase::GamePhase::Connecting {
                     info!("[net] time sync received — transitioning Connecting → Playing");
                     next_phase.set(super::phase::GamePhase::Playing);

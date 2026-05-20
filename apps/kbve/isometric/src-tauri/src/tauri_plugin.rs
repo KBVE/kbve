@@ -12,14 +12,15 @@ mod desktop {
     use std::time::{Duration, Instant};
     use tauri::{Manager, RunEvent};
 
-    use crate::game::pixelate::PixelatePlugin;
     use crate::renderer::CustomRendererPlugin;
 
     type BuilderFn =
         Box<dyn FnOnce(tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> + Send>;
+    type PostRenderFn = Box<dyn FnOnce(&mut App) + Send>;
 
     pub struct TauriPlugin {
         builder_fn: Mutex<Option<BuilderFn>>,
+        post_render_fn: Mutex<Option<PostRenderFn>>,
     }
 
     impl TauriPlugin {
@@ -29,7 +30,19 @@ mod desktop {
         {
             Self {
                 builder_fn: Mutex::new(Some(Box::new(builder_fn))),
+                post_render_fn: Mutex::new(None),
             }
+        }
+
+        /// Register a closure that adds render-dependent plugins (materials,
+        /// shaders, pixelate, game plugins that allocate Shader handles) once
+        /// Tauri's webview surface exists and RenderPlugin has been installed.
+        pub fn with_post_render_setup<F>(self, f: F) -> Self
+        where
+            F: FnOnce(&mut App) + Send + 'static,
+        {
+            *self.post_render_fn.lock().unwrap() = Some(Box::new(f));
+            self
         }
     }
 
@@ -49,24 +62,36 @@ mod desktop {
 
             app.insert_non_send_resource(tauri_app.handle().clone());
             app.insert_non_send_resource(TauriAppResource(Some(tauri_app)));
+            if let Some(post_render) = self.post_render_fn.lock().unwrap().take() {
+                app.insert_non_send_resource(PostRenderSetup(Some(post_render)));
+            }
             app.add_systems(Startup, create_window_handle);
             app.set_runner(run_tauri_app);
         }
     }
 
     struct TauriAppResource(Option<tauri::App>);
+    struct PostRenderSetup(Option<PostRenderFn>);
 
     /// Attaches the Tauri webview's raw window handle to the Bevy Window entity
     /// so Bevy's render pipeline can create a wgpu surface for it.
     fn create_window_handle(
         mut commands: Commands,
-        windows: Query<Entity, With<bevy::window::PrimaryWindow>>,
+        mut windows: Query<(Entity, &mut bevy::window::Window), With<bevy::window::PrimaryWindow>>,
         tauri_handle: NonSend<tauri::AppHandle>,
     ) {
         let tauri_window = tauri_handle.get_webview_window("main").unwrap();
+        let inner = tauri_window.inner_size().ok();
+        let scale = tauri_window.scale_factor().ok().unwrap_or(1.0) as f32;
         let window_wrapper = WindowWrapper::new(tauri_window);
         if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
-            if let Ok(entity) = windows.single() {
+            if let Ok((entity, mut window)) = windows.single_mut() {
+                if let Some(size) = inner {
+                    window
+                        .resolution
+                        .set(size.width as f32 / scale, size.height as f32 / scale);
+                    window.resolution.set_scale_factor(scale);
+                }
                 commands.entity(entity).insert(raw_handle);
             }
         }
@@ -158,19 +183,22 @@ mod desktop {
             bevy::light::LightPlugin,
             bevy::core_pipeline::CorePipelinePlugin,
             bevy::sprite::SpritePlugin,
+            bevy::sprite_render::SpriteRenderPlugin,
             bevy::text::TextPlugin,
             bevy::ui::UiPlugin,
+            bevy::ui_render::UiRenderPlugin,
             bevy::pbr::PbrPlugin::default(),
             bevy::gizmos::GizmoPlugin,
         ));
 
-        // Game plugin with render dependency (FullscreenMaterialPlugin needs RenderApp)
-        app.add_plugins(PixelatePlugin);
+        let post_render = app
+            .world_mut()
+            .remove_non_send_resource::<PostRenderSetup>()
+            .and_then(|mut h| h.0.take());
+        if let Some(setup) = post_render {
+            setup(app);
+        }
 
-        // Debug render for avian3d physics
-        app.add_plugins(avian3d::prelude::PhysicsDebugPlugin::default());
-
-        // Wait for all plugins to finish async initialization
         while app.plugins_state() != PluginsState::Ready {
             bevy::tasks::tick_global_task_pools_on_main_thread();
         }
@@ -178,13 +206,21 @@ mod desktop {
         app.cleanup();
     }
 
-    /// Forward Tauri window events to Bevy.
+    /// Forward Tauri window-level events. Mouse + keyboard are NOT visible
+    /// here — Tauri's WindowEvent enum only exposes high-level lifecycle
+    /// events (resize, focus, scale change) because the webview consumes the
+    /// raw pointer/key stream. Native input forwarding lives in
+    /// `crate::commands::forward_pointer_event` etc., which JS captures off
+    /// the webview's DOM and invokes via tauri::generate_handler!.
     fn handle_window_event(event: &tauri::WindowEvent, app: &mut App) {
         if let tauri::WindowEvent::Resized(size) = event {
             let world = app.world_mut();
             let mut query = world.query::<&mut bevy::window::Window>();
             for mut window in query.iter_mut(world) {
-                window.resolution.set(size.width as f32, size.height as f32);
+                let scale = window.resolution.scale_factor();
+                window
+                    .resolution
+                    .set(size.width as f32 / scale, size.height as f32 / scale);
             }
         }
     }

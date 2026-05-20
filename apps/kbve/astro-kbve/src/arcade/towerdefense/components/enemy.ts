@@ -43,5 +43,6 @@ export interface EnemyVisual {
 	hpBar: Phaser.GameObjects.Rectangle;
 	hpBarBg: Phaser.GameObjects.Rectangle;
 	ringRadius: number;
+	barWidth: number;
 	statusVisible: boolean;
 }

@@ -5,8 +5,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-05-15T00:00:00Z'
-        kbve.sh/config-version: 'v6-mc-multiline'
+        kbve.sh/last-updated: '2026-05-19T00:00:00Z'
+        kbve.sh/config-version: 'v7-lua-inline-hooks'
 data:
     vector.yml: |
         api:
@@ -366,15 +366,14 @@ data:
             inputs:
               - alertmanager_webhook
             hooks:
-              process: process_alert_batch
-            source: |-
-              function process_alert_batch(event, emit)
-                local alerts = event.log.alerts
-                if type(alerts) ~= "table" then return end
-                for _, a in ipairs(alerts) do
-                  emit({ log = { alert = a } })
+              process: |
+                function(event, emit)
+                  local alerts = event.log.alerts
+                  if type(alerts) ~= "table" then return end
+                  for _, a in ipairs(alerts) do
+                    emit({ log = { alert = a } })
+                  end
                 end
-              end
 
           alertmanager_flatten:
             type: remap

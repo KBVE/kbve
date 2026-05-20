@@ -86,7 +86,7 @@ log = "0.4"
 
 # --- Desktop-only dependencies ---
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
 wgpu = "27"
 pollster = "0.4"

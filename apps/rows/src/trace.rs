@@ -2,11 +2,7 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use tracing::info_span;
 use uuid::Uuid;
 
-/// Middleware that creates a per-request span with a unique request ID.
-/// Vector/ClickHouse can correlate all log lines from the same request.
-///
-/// Zero-copy: method is Display'd into the span (no clone), path is
-/// borrowed from the request URI (no String allocation).
+/// Per-request span keyed by a fresh request_id so Vector/ClickHouse can correlate log lines.
 pub async fn request_trace(req: Request, next: Next) -> Response {
     let request_id = Uuid::new_v4();
     let method = req.method().as_str();
@@ -17,8 +13,6 @@ pub async fn request_trace(req: Request, next: Next) -> Response {
         .and_then(|v| v.to_str().ok())
         .unwrap_or("-");
 
-    // info_span! captures the &str references before req is moved.
-    // Fields are recorded eagerly, so no allocation after this point.
     let span = info_span!(
         "request",
         id = %request_id,

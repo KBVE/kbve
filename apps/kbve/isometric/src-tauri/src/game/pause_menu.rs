@@ -9,10 +9,6 @@ use bevy::prelude::*;
 use super::phase::GamePhase;
 use super::ui_color;
 
-// ---------------------------------------------------------------------------
-// Shared overlay exclusivity resource
-// ---------------------------------------------------------------------------
-
 /// Tracks which UI overlay is currently active during gameplay.
 /// Only one overlay can be open at a time. Input bridge and player
 /// systems can check this to block game input while overlays are open.
@@ -34,10 +30,6 @@ impl UiOverlay {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Settings category
-// ---------------------------------------------------------------------------
-
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 enum SettingsCategory {
     #[default]
@@ -53,10 +45,6 @@ const CATEGORIES: &[(SettingsCategory, &str)] = &[
     (SettingsCategory::Video, "Video"),
     (SettingsCategory::Controls, "Controls"),
 ];
-
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
 
 #[derive(Component)]
 struct PauseMenuRoot;
@@ -81,10 +69,6 @@ struct PauseMenuState {
     category: SettingsCategory,
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct PauseMenuPlugin;
 
 impl Plugin for PauseMenuPlugin {
@@ -103,10 +87,6 @@ impl Plugin for PauseMenuPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Content text for each category
-// ---------------------------------------------------------------------------
 
 fn category_text(cat: SettingsCategory) -> &'static str {
     match cat {
@@ -128,14 +108,9 @@ fn category_title(cat: SettingsCategory) -> &'static str {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Spawn (hidden overlay)
-// ---------------------------------------------------------------------------
-
 fn spawn_pause_menu(mut commands: Commands) {
     commands
         .spawn((
-            // Full-screen backdrop
             Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -151,7 +126,6 @@ fn spawn_pause_menu(mut commands: Commands) {
             PauseMenuRoot,
         ))
         .with_children(|root| {
-            // Central panel
             root.spawn((
                 Node {
                     width: Val::Px(480.0),
@@ -164,7 +138,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                 PauseMenuPanel,
             ))
             .with_children(|panel| {
-                // Header
                 panel
                     .spawn((
                         Node {
@@ -187,7 +160,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                         ));
                     });
 
-                // Body: sidebar + content
                 panel
                     .spawn(Node {
                         width: Val::Percent(100.0),
@@ -196,7 +168,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                         ..default()
                     })
                     .with_children(|body| {
-                        // Sidebar
                         body.spawn((
                             Node {
                                 width: Val::Px(120.0),
@@ -241,7 +212,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                             }
                         });
 
-                        // Content area
                         body.spawn((
                             Node {
                                 flex_grow: 1.0,
@@ -253,7 +223,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                             BackgroundColor(Color::srgba(0.05, 0.05, 0.08, 0.5)),
                         ))
                         .with_children(|content| {
-                            // Title
                             content.spawn((
                                 Text::new(category_title(SettingsCategory::General)),
                                 TextFont {
@@ -263,7 +232,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                                 TextColor(ui_color::TEXT_PRIMARY),
                                 CategoryContent,
                             ));
-                            // Body text
                             content.spawn((
                                 Text::new(category_text(SettingsCategory::General)),
                                 TextFont {
@@ -276,7 +244,6 @@ fn spawn_pause_menu(mut commands: Commands) {
                         });
                     });
 
-                // Footer with Resume button
                 panel
                     .spawn(Node {
                         width: Val::Percent(100.0),
@@ -312,10 +279,6 @@ fn spawn_pause_menu(mut commands: Commands) {
         });
 }
 
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
-
 fn toggle_pause_menu(
     keys: Res<ButtonInput<KeyCode>>,
     mut overlay: ResMut<UiOverlay>,
@@ -327,21 +290,18 @@ fn toggle_pause_menu(
 
     match *overlay {
         UiOverlay::PauseMenu => {
-            // Close
             *overlay = UiOverlay::None;
             for mut vis in &mut menu_q {
                 *vis = Visibility::Hidden;
             }
         }
         UiOverlay::None => {
-            // Open
             *overlay = UiOverlay::PauseMenu;
             for mut vis in &mut menu_q {
                 *vis = Visibility::Visible;
             }
         }
         _ => {
-            // Another overlay is open — close it first (Escape as universal close)
             *overlay = UiOverlay::None;
             for mut vis in &mut menu_q {
                 *vis = Visibility::Hidden;
@@ -366,7 +326,6 @@ fn handle_category_buttons(
         }
         state.category = clicked.category;
 
-        // Update button highlights
         for (btn, mut bg, children) in &mut all_btns {
             let is_active = btn.category == state.category;
             *bg = if is_active {
@@ -385,7 +344,6 @@ fn handle_category_buttons(
             }
         }
 
-        // Update content text
         let mut iter = content_q.iter_mut();
         if let Some(mut title) = iter.next() {
             **title = category_title(state.category).to_string();

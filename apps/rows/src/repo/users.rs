@@ -4,15 +4,12 @@ use crate::models::*;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use uuid::Uuid;
 
-/// Users repository — login, register, session management.
-/// All methods take `&self` (borrow the pool, no Clone).
 pub struct UsersRepo<'a>(pub &'a DbPool);
 
 impl<'a> UsersRepo<'a> {
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
-        // Verify password SQL-side using pgcrypto crypt() — compatible with existing
-        // bcrypt hashes created by OWS C# (crypt(password, gen_salt('bf'))).
-        // Falls back to app-side argon2 for migrated passwords.
+        // pgcrypto's `crypt()` accepts the legacy OWS C# bcrypt hashes; argon2 fallback below
+        // covers anything already migrated by the auto-rehash path.
         let row: Option<(Uuid, Uuid)> = sqlx::query_as(
             "SELECT c.customerguid, u.userguid
              FROM users u
@@ -25,10 +22,9 @@ impl<'a> UsersRepo<'a> {
         .fetch_optional(self.0)
         .await?;
 
-        // If pgcrypto bcrypt didn't match, try app-side argon2
         let (customer_guid, user_guid) = match row {
             Some(r) => {
-                // Auto re-hash to argon2 (Option B migration) — fire-and-forget
+                // Fire-and-forget rehash so the next login uses argon2 (Option B migration).
                 let pool = self.0.clone();
                 let pw = password.to_string();
                 let email_owned = email.to_string();
@@ -50,7 +46,6 @@ impl<'a> UsersRepo<'a> {
                 r
             }
             None => {
-                // Fallback: fetch hash and try argon2
                 let fallback: Option<(Uuid, Uuid, String)> = sqlx::query_as(
                     "SELECT c.customerguid, u.userguid, u.passwordhash
                      FROM users u
@@ -89,7 +84,6 @@ impl<'a> UsersRepo<'a> {
             }
         };
 
-        // Delete old sessions for this user, then create new
         sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
             .bind(user_guid)
             .execute(self.0)
@@ -299,11 +293,8 @@ impl<'a> UsersRepo<'a> {
         Ok(groups)
     }
 
-    // ─── External Auth (Supabase OAuth bridge) ────────────────
-
-    /// Find an existing OWS user by email, or create a new one.
-    /// Used by external_login to bridge Supabase OAuth → OWS user.
-    /// The password is set to a random argon2 hash (user authenticates via OAuth, not password).
+    /// OAuth-bridge upsert: the user authenticates via Supabase, so the OWS row gets a random
+    /// argon2 hash purely to satisfy the NOT NULL constraint on `passwordhash`.
     pub async fn find_or_create_by_email(
         &self,
         customer_guid: Uuid,
@@ -311,7 +302,6 @@ impl<'a> UsersRepo<'a> {
         first_name: &str,
         last_name: &str,
     ) -> Result<Uuid, RowsError> {
-        // Try to find existing user
         let existing: Option<(Uuid,)> =
             sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND email = $2")
                 .bind(customer_guid)
@@ -323,13 +313,11 @@ impl<'a> UsersRepo<'a> {
             return Ok(user_guid);
         }
 
-        // Create new user with a random password hash (OAuth users don't use passwords)
         use argon2::{
             Argon2, PasswordHasher,
             password_hash::{SaltString, rand_core::OsRng},
         };
         let salt = SaltString::generate(&mut OsRng);
-        // Random password — OAuth users never use it, but the column is NOT NULL
         let random_pw = Uuid::new_v4().to_string();
         let password_hash = Argon2::default()
             .hash_password(random_pw.as_bytes(), &salt)
@@ -354,13 +342,11 @@ impl<'a> UsersRepo<'a> {
         Ok(user_guid)
     }
 
-    /// Create a new session for a user (used by external_login after find-or-create).
     pub async fn create_session(
         &self,
         customer_guid: Uuid,
         user_guid: Uuid,
     ) -> Result<Uuid, RowsError> {
-        // Delete old sessions for this user
         sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
             .bind(user_guid)
             .execute(self.0)
@@ -379,8 +365,6 @@ impl<'a> UsersRepo<'a> {
 
         Ok(session_guid)
     }
-
-    // ─── Management (Admin) ──────────────────────────────────
 
     pub async fn list_users(&self, customer_guid: Uuid) -> Result<Vec<UserInfo>, RowsError> {
         let users = sqlx::query_as::<_, UserInfo>(

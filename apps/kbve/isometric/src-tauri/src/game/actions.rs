@@ -15,8 +15,6 @@ use super::scene_objects::{
 };
 use super::tilemap::TileCoord;
 
-// ── Action dispatch buffer ──────────────────────────────────────────────
-
 #[derive(Clone, Debug)]
 pub struct ActionRequest {
     pub entity_id: u64,
@@ -61,8 +59,6 @@ fn drain_actions() -> Vec<ActionRequest> {
     }
 }
 
-// ── Camera axes for billboarding ────────────────────────────────────────
-
 const CAMERA_OFFSET: Vec3 = Vec3::new(15.0, 20.0, 15.0);
 
 fn billboard_rotation() -> Quat {
@@ -73,8 +69,6 @@ fn billboard_rotation() -> Quat {
 }
 
 static BILLBOARD_ROT: std::sync::LazyLock<Quat> = std::sync::LazyLock::new(billboard_rotation);
-
-// ── Smoke material ──────────────────────────────────────────────────────
 
 #[derive(ShaderType, Clone, Copy)]
 pub struct SmokeUniforms {
@@ -121,8 +115,6 @@ impl Material for SmokeMaterial {
     }
 }
 
-// ── Components ──────────────────────────────────────────────────────────
-
 #[derive(Component)]
 pub struct ChoppingTree {
     pub timer: Timer,
@@ -158,8 +150,6 @@ struct SmokeParticle {
     material_handle: Handle<SmokeMaterial>,
 }
 
-// ── Plugin ──────────────────────────────────────────────────────────────
-
 pub struct ActionsPlugin;
 
 impl Plugin for ActionsPlugin {
@@ -178,8 +168,6 @@ impl Plugin for ActionsPlugin {
     }
 }
 
-// ── Systems ─────────────────────────────────────────────────────────────
-
 fn process_action_buffer(
     mut commands: Commands,
     rock_query: Query<&RockKind>,
@@ -191,8 +179,6 @@ fn process_action_buffer(
     for req in actions {
         let entity = Entity::from_bits(req.entity_id);
 
-        // Notify the server via CollectEvent so the net layer sends CollectRequest.
-        // Must happen before get_entity() borrows commands mutably.
         let collect_kind = match req.action.as_str() {
             "chop_tree" => Some(InteractableKind::Tree),
             "mine_rock" => Some(InteractableKind::Rock),
@@ -223,6 +209,7 @@ fn process_action_buffer(
                 ec.remove::<Collider>();
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();
+                ec.remove::<super::trees::TreeWindSway>();
 
                 ec.insert(ChoppingTree {
                     timer: Timer::from_seconds(1.0, TimerMode::Once),
@@ -233,7 +220,6 @@ fn process_action_buffer(
                 });
             }
             "mine_rock" => {
-                // Read RockKind before removing components
                 let loot_item = rock_query
                     .get(entity)
                     .map(item_from_rock_kind)
@@ -307,7 +293,6 @@ fn animate_tree_chop(
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
 ) {
     for (entity, mut transform, mut chop) in &mut query {
-        // Capture original rotation on first frame
         if chop.timer.elapsed_secs() == 0.0 {
             chop.original_rotation = transform.rotation;
         }
@@ -315,15 +300,12 @@ fn animate_tree_chop(
         chop.timer.tick(time.delta());
         let t = chop.timer.fraction();
 
-        // Ease-in fall rotation (0° → 90° around the fall axis)
         let fall_angle = t * t * (PI / 2.0);
         transform.rotation =
             Quat::from_axis_angle(chop.fall_axis, fall_angle) * chop.original_rotation;
 
-        // Slight downward drift as it falls
         transform.translation.y -= time.delta_secs() * t * 2.0;
 
-        // Spawn smoke at 60% through the fall
         if t > 0.6 && !chop.smoke_spawned {
             chop.smoke_spawned = true;
             let base_pos = transform.translation;
@@ -336,7 +318,6 @@ fn animate_tree_chop(
             );
         }
 
-        // Drop loot near the end
         if t > 0.9 && !chop.loot_dropped {
             chop.loot_dropped = true;
             commands.trigger(LootEvent {
@@ -345,7 +326,6 @@ fn animate_tree_chop(
             });
         }
 
-        // Despawn tree after animation completes
         if chop.timer.fraction() >= 1.0 {
             commands.entity(entity).despawn();
         }
@@ -360,7 +340,6 @@ fn animate_rock_mine(
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
 ) {
     for (entity, mut transform, mut mining) in &mut query {
-        // Capture original state on first frame
         if mining.timer.elapsed_secs() == 0.0 {
             mining.original_translation = transform.translation;
             mining.original_scale = transform.scale;
@@ -369,7 +348,6 @@ fn animate_rock_mine(
         mining.timer.tick(time.delta());
         let t = mining.timer.fraction();
 
-        // Phase 1 (0–0.6): rapid shake — oscillating offset
         if t < 0.6 {
             let shake_t = t / 0.6;
             let intensity = 0.06 * (1.0 + shake_t * 2.0); // builds up
@@ -379,18 +357,15 @@ fn animate_rock_mine(
             transform.translation = mining.original_translation + Vec3::new(shake_x, 0.0, shake_z);
         }
 
-        // Phase 2 (0.5–1.0): crumble — shrink into ground
         if t > 0.5 {
             let crumble_t = ((t - 0.5) / 0.5).min(1.0);
             let ease = crumble_t * crumble_t; // ease-in
             let s = 1.0 - ease * 0.9; // scale down to 10%
             transform.scale = mining.original_scale * s;
-            // Sink into ground
             transform.translation.y =
                 mining.original_translation.y - ease * mining.original_scale.y * 0.5;
         }
 
-        // Spawn smoke at 50%
         if t > 0.5 && !mining.smoke_spawned {
             mining.smoke_spawned = true;
             spawn_smoke_burst(
@@ -402,7 +377,6 @@ fn animate_rock_mine(
             );
         }
 
-        // Drop loot near the end
         if t > 0.9 && !mining.loot_dropped {
             mining.loot_dropped = true;
             commands.trigger(LootEvent {
@@ -411,7 +385,6 @@ fn animate_rock_mine(
             });
         }
 
-        // Despawn after animation
         if mining.timer.fraction() >= 1.0 {
             commands.entity(entity).despawn();
         }
@@ -426,7 +399,6 @@ fn animate_forageable_collect(
     mut smoke_materials: ResMut<Assets<SmokeMaterial>>,
 ) {
     for (entity, mut transform, mut collect) in &mut query {
-        // Capture original scale on first frame
         if collect.timer.elapsed_secs() == 0.0 {
             collect.original_scale = transform.scale;
         }
@@ -434,19 +406,16 @@ fn animate_forageable_collect(
         collect.timer.tick(time.delta());
         let t = collect.timer.fraction();
 
-        // Quick shrink + slight upward float
         let s = 1.0 - t * t; // ease-in shrink to 0
         transform.scale = collect.original_scale * s;
         transform.translation.y += time.delta_secs() * 0.5;
 
-        // Drop loot at 50%
         if t > 0.5 && !collect.loot_dropped {
             collect.loot_dropped = true;
             commands.trigger(LootEvent {
                 kind: collect.loot_item,
                 quantity: 1,
             });
-            // Small poof (2 particles)
             spawn_smoke_burst(
                 &mut commands,
                 &mut meshes,
@@ -518,11 +487,9 @@ fn animate_smoke_particles(
         particle.timer.tick(time.delta());
         let t = particle.timer.fraction();
 
-        // Move outward and upward, decelerating
         let speed = 1.0 - t * 0.7;
         transform.translation += particle.velocity * dt * speed;
 
-        // Scale up then slightly shrink
         let scale_curve = if t < 0.4 {
             0.5 + t * 2.5 // 0.5 → 1.5
         } else {
@@ -530,7 +497,6 @@ fn animate_smoke_particles(
         };
         transform.scale = Vec3::splat(scale_curve);
 
-        // Update material progress for shader fade
         if let Some(mat) = smoke_materials.get_mut(&particle.material_handle) {
             mat.uniforms.progress = t;
         }

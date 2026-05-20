@@ -92,6 +92,68 @@ pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }
 
+// ── Native input forwarders ──────────────────────────────────────────
+// JS captures pointer/key/wheel on `window` (capture phase) and invokes
+// these commands. Each pushes a typed event onto the static buffer
+// drained by `game::native_input::drain_native_input` once per frame.
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_move(x: f64, y: f64) {
+    static FIRST: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+    if FIRST.swap(false, std::sync::atomic::Ordering::Relaxed) {
+        eprintln!("[native-input] first pointer move received x={x} y={y}");
+    }
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerMove { x, y },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_button(button: u8, pressed: bool) {
+    eprintln!("[native-input] pointer button={button} pressed={pressed}");
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerButton { button, pressed },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_enter(x: f64, y: f64) {
+    crate::game::native_input::push_event(
+        crate::game::native_input::NativeInputEvent::PointerEntered { x, y },
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_pointer_leave() {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::PointerLeft);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_wheel(dx: f64, dy: f64) {
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Wheel {
+        dx,
+        dy,
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn forward_key(code: String, pressed: bool, repeat: bool) {
+    if !repeat {
+        eprintln!("[native-input] key code={code} pressed={pressed}");
+    }
+    crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Key {
+        code,
+        pressed,
+        repeat,
+    });
+}
+
 // ---------------------------------------------------------------------------
 // WASM: wasm-bindgen exports (returns JSON strings for JS consumption)
 // ---------------------------------------------------------------------------
