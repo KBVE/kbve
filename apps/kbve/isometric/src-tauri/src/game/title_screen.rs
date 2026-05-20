@@ -20,7 +20,7 @@
 use bevy::prelude::*;
 
 use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
-use super::ui_button::{self, ButtonKind, UiButtonConfig};
+use super::ui::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
 // ---------------------------------------------------------------------------
@@ -51,6 +51,11 @@ struct PlayOfflineBtn;
 #[derive(Component)]
 struct SettingsBtn;
 
+/// OAuth sign-in buttons — provider identifier stored on the component so
+/// one handler can dispatch them.
+#[derive(Component, Clone)]
+struct OAuthBtn(&'static str);
+
 // ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
@@ -66,6 +71,7 @@ impl Plugin for TitleScreenPlugin {
                 update_transport_label,
                 update_auth_label,
                 handle_title_buttons,
+                handle_oauth_buttons,
             )
                 .run_if(in_state(GamePhase::Title)),
         );
@@ -176,7 +182,66 @@ fn spawn_title_screen(mut commands: Commands) {
                 ..default()
             })
             .with_children(|col| {
-                ui_button::spawn(
+                // OAuth sign-in row (Sign in with GitHub / Discord / Twitch)
+                col.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(BTN_GAP),
+                    margin: UiRect::bottom(Val::Px(8.0)),
+                    ..default()
+                })
+                .with_children(|row| {
+                    ui::spawn_button(
+                        row,
+                        "GitHub",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("github"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Discord",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("discord"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Twitch",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("twitch"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Steam",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("steam"),
+                    );
+                });
+
+                ui::spawn_button(
                     col,
                     "Play Online",
                     UiButtonConfig {
@@ -188,7 +253,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     },
                     PlayOnlineBtn,
                 );
-                ui_button::spawn(
+                ui::spawn_button(
                     col,
                     "Play Offline",
                     UiButtonConfig {
@@ -200,7 +265,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     },
                     PlayOfflineBtn,
                 );
-                ui_button::spawn(
+                ui::spawn_button(
                     col,
                     "Settings",
                     UiButtonConfig {
@@ -337,6 +402,37 @@ fn handle_title_buttons(
     for interaction in &settings_q {
         if *interaction == Interaction::Pressed {
             info!("[title] Settings pressed — not yet implemented");
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn handle_oauth_buttons(
+    handle: NonSend<tauri::AppHandle>,
+    btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>,
+) {
+    use tauri_plugin_opener::OpenerExt;
+    for (interaction, OAuthBtn(provider)) in &btn_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        let redirect = crate::auth::build_redirect_url();
+        let url = format!(
+            "https://kbve.com/auth/desktop?provider={provider}&redirect={}",
+            urlencoding::encode(&redirect),
+        );
+        info!("[title] OAuth sign-in pressed: provider={provider} url={url}");
+        if let Err(e) = handle.opener().open_url(url, None::<&str>) {
+            error!("[title] failed to open OAuth url: {e}");
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn handle_oauth_buttons(btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>) {
+    for (interaction, OAuthBtn(provider)) in &btn_q {
+        if *interaction == Interaction::Pressed {
+            info!("[title] OAuth sign-in pressed (wasm): provider={provider}");
         }
     }
 }

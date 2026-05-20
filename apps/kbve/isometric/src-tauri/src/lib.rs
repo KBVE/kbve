@@ -40,6 +40,8 @@ mod wasm_math_shims {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod auth;
 pub mod commands;
 pub mod game;
 

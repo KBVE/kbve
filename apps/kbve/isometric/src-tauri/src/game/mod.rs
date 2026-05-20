@@ -36,7 +36,7 @@ pub mod tilemap;
 pub mod title_screen;
 pub mod toast;
 pub mod trees;
-pub mod ui_button;
+pub mod ui;
 pub mod ui_color;
 pub mod virtual_joystick;
 pub mod water;
@@ -194,6 +194,6 @@ impl PluginGroup for GamePluginGroup {
             .add(skills::SkillsPlugin)
             .add(PauseMenuPlugin)
             .add(PersistPlugin)
-            .add(ui_button::UiButtonPlugin)
+            .add(ui::UiLibraryPlugin)
     }
 }

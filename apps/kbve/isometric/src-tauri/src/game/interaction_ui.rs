@@ -14,7 +14,7 @@ use super::phase::GamePhase;
 use super::player::Player;
 use super::scene_objects::InteractableKind;
 use super::toast::Toast;
-use super::ui_button::{self, ButtonKind, UiButtonConfig};
+use super::ui::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
 /// Max XZ distance before the panel auto-closes.
@@ -250,7 +250,7 @@ fn spawn_interaction_panel(mut commands: Commands) {
                 InteractionDesc,
             ));
 
-            ui_button::spawn_with_label_marker(
+            ui::button::spawn_with_label_marker(
                 panel,
                 "Action",
                 UiButtonConfig {

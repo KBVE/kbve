@@ -6,6 +6,10 @@ fn main() {
     use isometric_game::game::GamePluginGroup;
     use isometric_game::tauri_plugin::TauriPlugin;
 
+    // Bind localhost OAuth callback listener before anything else so the port
+    // is ready when title_screen builds redirect URLs.
+    isometric_game::auth::init_local_listener();
+
     let mut app = App::new();
     app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
 
@@ -43,6 +47,7 @@ fn main() {
         TauriPlugin::new(|builder| {
             use tauri::Manager;
             builder
+                .plugin(tauri_plugin_opener::init())
                 .plugin(tauri_plugin_deep_link::init())
                 .invoke_handler(tauri::generate_handler![
                     isometric_game::commands::dispatch_action,

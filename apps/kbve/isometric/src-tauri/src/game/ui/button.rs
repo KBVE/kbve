@@ -2,12 +2,14 @@ use bevy::picking::Pickable;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 
-use super::ui_color;
+use crate::game::ui_color;
 
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
 pub enum ButtonKind {
     Primary,
     Secondary,
+    Ghost,
+    Danger,
 }
 
 impl ButtonKind {
@@ -15,6 +17,8 @@ impl ButtonKind {
         match self {
             ButtonKind::Primary => ui_color::BTN_PRIMARY,
             ButtonKind::Secondary => ui_color::BTN_SECONDARY,
+            ButtonKind::Ghost => Color::NONE,
+            ButtonKind::Danger => Color::srgba(0.7, 0.2, 0.2, 1.0),
         }
     }
 
@@ -22,6 +26,8 @@ impl ButtonKind {
         match self {
             ButtonKind::Primary => ui_color::BTN_PRIMARY_HOVER,
             ButtonKind::Secondary => ui_color::BTN_SECONDARY_HOVER,
+            ButtonKind::Ghost => Color::srgba(1.0, 1.0, 1.0, 0.08),
+            ButtonKind::Danger => Color::srgba(0.85, 0.3, 0.3, 1.0),
         }
     }
 
@@ -29,6 +35,8 @@ impl ButtonKind {
         match self {
             ButtonKind::Primary => ui_color::BTN_PRIMARY_PRESSED,
             ButtonKind::Secondary => ui_color::BTN_SECONDARY_PRESSED,
+            ButtonKind::Ghost => Color::srgba(1.0, 1.0, 1.0, 0.15),
+            ButtonKind::Danger => Color::srgba(0.55, 0.15, 0.15, 1.0),
         }
     }
 }
@@ -100,9 +108,9 @@ pub fn spawn_with_label_marker(
         .id()
 }
 
-pub struct UiButtonPlugin;
+pub struct ButtonPlugin;
 
-impl Plugin for UiButtonPlugin {
+impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, update_visuals);
     }
