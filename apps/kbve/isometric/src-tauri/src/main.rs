@@ -31,6 +31,8 @@ fn main() {
             ..default()
         },
         bevy::state::app::StatesPlugin,
+        bevy::picking::PickingPlugin,
+        bevy::picking::InteractionPlugin,
     ));
 
     #[cfg(any(unix, windows))]
