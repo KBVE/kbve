@@ -125,11 +125,25 @@ async function bootstrap() {
 
 	// Load and initialize Bevy WASM — starts the game loop (non-blocking)
 	// Tower-http serves pre-compressed .wasm.br/.wasm.gz transparently via Content-Encoding
-	const { default: init } = await import('../wasm-pkg/isometric_game.js');
+	const wasmModule = await import('../wasm-pkg/isometric_game.js');
+	const { default: init } = wasmModule;
 
 	setLoadingProgress('Initializing WebGPU...', 60);
 
 	const wasm = await init();
+
+	// Hand the Supabase access token (set by the arcade page's authBridge
+	// probe) to Bevy so the title screen flips straight to "Signed in as X"
+	// and the netcode handshake starts without a Play Online click.
+	const initialJwt = (window as Window & { __KBVE_INITIAL_JWT__?: string })
+		.__KBVE_INITIAL_JWT__;
+	if (initialJwt && typeof wasmModule.set_signed_in === 'function') {
+		try {
+			wasmModule.set_signed_in(initialJwt);
+		} catch (err) {
+			console.warn('[auth] set_signed_in threw', err);
+		}
+	}
 
 	// Spawn web workers for WASM pthreads (chunk computation, etc.)
 	// Only when SharedArrayBuffer is available (cross-origin isolated).

@@ -95,8 +95,11 @@ impl Plugin for PhasePlugin {
         );
 
         // Drain OAuth listener / deep-link sign-ins into PreFlight so the
-        // title screen badge flips to "Signed in as X" immediately.
-        #[cfg(not(target_arch = "wasm32"))]
+        // title screen badge flips to "Signed in as X" immediately. Native
+        // populates this via the localhost listener / deep-link handler;
+        // WASM populates it via the `set_signed_in` wasm-bindgen export
+        // that the Astro arcade page calls after reading the Supabase
+        // session.
         app.add_systems(Update, drain_pending_signin);
     }
 }
@@ -161,9 +164,8 @@ fn tick_connect_timeout(
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn drain_pending_signin(mut preflight: ResMut<PreFlight>) {
-    let Some(result) = crate::auth::take_pending_signin() else {
+    let Some(result) = crate::auth_common::take_pending_signin() else {
         return;
     };
     preflight.jwt_valid = Some(true);

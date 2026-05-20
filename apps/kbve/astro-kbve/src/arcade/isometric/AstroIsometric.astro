@@ -37,6 +37,26 @@
 	<div id="root" style="display: none;"></div>
 	<link rel="stylesheet" crossorigin href="/isometric/assets/index.css" />
 	<script is:inline src="/isometric/safari-shim.js"></script>
+	<script>
+		import { authBridge } from '@/components/auth';
+
+		// Stash the Supabase access token on `window` BEFORE the WASM module
+		// boots so main.tsx can hand it to `set_signed_in` immediately after
+		// init — gives the user a transparent sign-in on the arcade page
+		// instead of needing to click a provider button inside the game.
+		authBridge
+			.getSession()
+			.then((session) => {
+				if (session?.access_token) {
+					(
+						window as Window & { __KBVE_INITIAL_JWT__?: string }
+					).__KBVE_INITIAL_JWT__ = session.access_token;
+				}
+			})
+			.catch(() => {
+				// Anonymous play is fine — the WASM build can still run as guest.
+			});
+	</script>
 	<script is:inline>
 		(function () {
 			// Downscale droid workers to free threads for WASM pthreads

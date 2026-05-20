@@ -1,55 +1,14 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use base64::Engine;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::sync::{Mutex, OnceLock};
+use std::sync::OnceLock;
 use std::thread;
 use std::time::Duration;
 
+use crate::auth_common::record_signin;
+
 static AUTH_LISTENER_PORT: OnceLock<u16> = OnceLock::new();
-
-/// Latest sign-in observed by the OAuth listener / deep-link handler.
-/// Bevy's title screen polls this to update PreFlight (jwt_valid + username)
-/// the moment a token lands, without waiting for the server-side AuthResponse.
-static PENDING_SIGNIN: Mutex<Option<SignInResult>> = Mutex::new(None);
-
-#[derive(Clone)]
-pub struct SignInResult {
-    pub username: Option<String>,
-}
-
-pub fn take_pending_signin() -> Option<SignInResult> {
-    PENDING_SIGNIN.lock().ok().and_then(|mut g| g.take())
-}
-
-fn record_signin(jwt: &str) {
-    let username = parse_kbve_username(jwt);
-    if let Ok(mut g) = PENDING_SIGNIN.lock() {
-        *g = Some(SignInResult { username });
-    }
-}
-
-fn parse_kbve_username(jwt: &str) -> Option<String> {
-    let payload_b64 = jwt.split('.').nth(1)?;
-    let payload_bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .decode(payload_b64)
-        .ok()
-        .or_else(|| {
-            base64::engine::general_purpose::STANDARD_NO_PAD
-                .decode(payload_b64)
-                .ok()
-        })?;
-    let payload: serde_json::Value = serde_json::from_slice(&payload_bytes).ok()?;
-    if let Some(v) = payload.get("kbve_username").and_then(|v| v.as_str()) {
-        return Some(v.to_string());
-    }
-    payload
-        .get("user_metadata")
-        .and_then(|m| m.get("kbve_username").or_else(|| m.get("user_name")))
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string())
-}
 
 pub fn init_local_listener() {
     if AUTH_LISTENER_PORT.get().is_some() {

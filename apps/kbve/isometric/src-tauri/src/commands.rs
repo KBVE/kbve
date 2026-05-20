@@ -238,6 +238,22 @@ pub fn go_online(server_addr: &str, jwt: &str) {
     crate::game::net::request_go_online(server_addr, jwt);
 }
 
+/// Browser-side sign-in path: Astro arcade page reads the Supabase session
+/// from IndexedDB via `authBridge` and calls this after the WASM module
+/// boots. Mirrors the native localhost-listener flow — records the
+/// username for the title-screen badge AND kicks off `request_go_online`
+/// so the netcode handshake fires immediately, no Play Online click
+/// needed.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn set_signed_in(jwt: &str) {
+    if jwt.is_empty() {
+        return;
+    }
+    crate::auth_common::record_signin(jwt);
+    crate::game::net::request_go_online("", jwt);
+}
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn set_username(username: &str) {
