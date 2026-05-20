@@ -1156,8 +1156,7 @@ BEGIN
 
     IF inventory.is_2fa_required_for_listing(v_seller)
        AND v_aal IS DISTINCT FROM 'aal2' THEN
-        RAISE EXCEPTION 'mfa_required for listing on account %', v_seller
-            USING ERRCODE = 'INV30';
+        RAISE EXCEPTION 'mfa_required for listing' USING ERRCODE = 'INV30';
     END IF;
 
     SELECT high_value_khash_threshold INTO v_threshold
@@ -1172,8 +1171,8 @@ BEGIN
         );
         IF v_max_price >= v_threshold
            AND v_aal IS DISTINCT FROM 'aal2' THEN
-            RAISE EXCEPTION 'mfa_required for high-value listing (price=%, threshold=%) on account %',
-                v_max_price, v_threshold, v_seller USING ERRCODE = 'INV30';
+            RAISE EXCEPTION 'mfa_required for high-value listing'
+                USING ERRCODE = 'INV30';
         END IF;
     END IF;
 

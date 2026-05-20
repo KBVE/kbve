@@ -30,6 +30,26 @@
 -- migration 20260520114244_wallet_listing_settle_inventory.sql.
 -- ============================================================================
 
+-- Preflight: fail fast if the 6.0 inventory hooks + JWT helpers the
+-- new wallet RPCs depend on are missing. Without these, the
+-- migration would technically succeed and only fail at runtime.
+DO $$
+BEGIN
+    IF to_regprocedure('inventory.service_listing_lock(uuid, uuid, bigint)') IS NULL THEN
+        RAISE EXCEPTION 'missing inventory.service_listing_lock(uuid, uuid, bigint) — apply 6.0 foundation first';
+    END IF;
+    IF to_regprocedure('inventory.caller_jwt_aal()') IS NULL THEN
+        RAISE EXCEPTION 'missing inventory.caller_jwt_aal() — apply 6.0 foundation first';
+    END IF;
+    IF to_regprocedure('inventory.is_2fa_required_for_listing(uuid)') IS NULL THEN
+        RAISE EXCEPTION 'missing inventory.is_2fa_required_for_listing(uuid) — apply 6.0 foundation first';
+    END IF;
+    IF to_regprocedure('private.proxy_market_caller_account()') IS NULL THEN
+        RAISE EXCEPTION 'missing private.proxy_market_caller_account() — wallet marketplace proxies migration must be applied first';
+    END IF;
+END
+$$;
+
 -- ---------------------------------------------------------------------------
 -- 1. inventory.service_split_for_listing
 --    Atomically: src.qty -= p_qty, INSERT new row in 'listing_escrow'
@@ -86,9 +106,27 @@ BEGIN
             p_qty, v_src.qty USING ERRCODE = 'INV13';
     END IF;
 
-    UPDATE inventory.item
-       SET qty = qty - p_qty, updated_at = now()
-     WHERE id = p_src_item_id;
+    -- Status-guarded UPDATE. Row is already locked FOR UPDATE above,
+    -- so the WHERE-recheck + RETURNING is purely defensive against
+    -- future refactors that might weaken the lock chain. If the
+    -- preconditions changed between the lock and the update, the
+    -- RETURNING is empty and we raise.
+    DECLARE
+        v_updated_src_id UUID;
+    BEGIN
+        UPDATE inventory.item
+           SET qty = qty - p_qty, updated_at = now()
+         WHERE id = p_src_item_id
+           AND owner_account = p_seller_account
+           AND state = 'held'
+           AND is_stackable
+           AND qty > p_qty
+        RETURNING id INTO v_updated_src_id;
+        IF v_updated_src_id IS NULL THEN
+            RAISE EXCEPTION 'split source % invariant violated between lock and update', p_src_item_id
+                USING ERRCODE = 'INV12';
+        END IF;
+    END;
 
     -- Preserve v_src.nbt rather than hardcoding '{}'::jsonb. Today the
     -- is_stackable CHECK above guarantees v_src.nbt = '{}', so the two
@@ -167,10 +205,11 @@ $$;
 -- listing MUST flow through the inventory ledger via the
 -- *_with_item path. The preflight above guarantees no active bids,
 -- so no ledger work is needed; this is pure schema hygiene.
-DO $$
-DECLARE
-    v_cancelled_count INT;
-BEGIN
+--
+-- One audit row PER cancelled listing so reconciliation can replay
+-- the exact set of legacy ids without a snapshot. CTE pipes the
+-- RETURNING set into the audit_log INSERT.
+WITH cancelled AS (
     UPDATE wallet.listing
        SET status              = 'cancelled',
            settled_at          = COALESCE(settled_at, now()),
@@ -178,23 +217,20 @@ BEGIN
            current_bid_account = NULL,
            current_bid_id      = NULL
      WHERE status = 'active'
-       AND item_id IS NULL;
-    GET DIAGNOSTICS v_cancelled_count = ROW_COUNT;
-
-    IF v_cancelled_count > 0 THEN
-        INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
-        VALUES (
-            'marketplace.legacy_cleanup',
-            'migration',
-            '20260520114243_wallet_inventory_listing_wire',
-            jsonb_build_object(
-                'cancelled_listings', v_cancelled_count,
-                'reason',             'pre-inventory-ledger active listings cleared'
-            )
-        );
-    END IF;
-END
-$$;
+       AND item_id IS NULL
+    RETURNING id, seller_account
+)
+INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
+SELECT
+    'marketplace.legacy_cleanup',
+    'listing',
+    id::TEXT,
+    jsonb_build_object(
+        'seller_account', seller_account,
+        'migration',      '20260520114243_wallet_inventory_listing_wire',
+        'reason',         'pre-inventory-ledger active listing cleared'
+    )
+FROM cancelled;
 
 -- VALID CHECK: every active listing MUST now carry item_id. Legacy
 -- service_create_listing(UUID, JSONB, ...) callers fail loudly on
@@ -249,6 +285,10 @@ DECLARE
     v_currency    wallet.currency_kind := COALESCE(p_currency, 'khash'::wallet.currency_kind);
     v_now         TIMESTAMPTZ := transaction_timestamp();
     v_existing_id BIGINT;
+    v_existing_item_id     UUID;
+    v_existing_buy_now     BIGINT;
+    v_existing_min_bid     BIGINT;
+    v_existing_expires_at  TIMESTAMPTZ;
     v_listing_id  BIGINT;
     v_listing_qty BIGINT;
     v_listed_id   UUID;
@@ -281,16 +321,35 @@ BEGIN
     IF p_expires_at IS NULL OR p_expires_at <= v_now THEN
         RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
     END IF;
+    -- Upfront max-duration check. Table-level listing_max_duration_chk
+    -- enforces the same cap via created_at + 30d, but raising here
+    -- surfaces a clean 22023 instead of a raw check_violation.
+    IF p_expires_at > v_now + interval '30 days' THEN
+        RAISE EXCEPTION 'expires_at exceeds 30-day maximum listing duration'
+            USING ERRCODE = '22023';
+    END IF;
     IF p_qty IS NOT NULL AND p_qty <= 0 THEN
         RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
     END IF;
 
-    -- Replay shortcut.
-    SELECT id INTO v_existing_id
+    -- Replay with payload validation. Reusing the same idempotency_key
+    -- against different parameters (different price / expiry) is a
+    -- caller bug; surface as P1012 instead of silently aliasing the
+    -- original row. wallet_listing_seller_idempotency_uq serializes
+    -- concurrent same-key inserts at the table level.
+    SELECT id, item_id, buy_now_price, min_bid, expires_at
+      INTO v_existing_id, v_existing_item_id, v_existing_buy_now,
+           v_existing_min_bid, v_existing_expires_at
       FROM wallet.listing
      WHERE seller_account = p_seller_account
        AND idempotency_key = p_idempotency_key;
     IF v_existing_id IS NOT NULL THEN
+        IF v_existing_buy_now    IS DISTINCT FROM p_buy_now_price
+           OR v_existing_min_bid IS DISTINCT FROM p_min_bid
+           OR v_existing_expires_at IS DISTINCT FROM p_expires_at THEN
+            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing %',
+                p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+        END IF;
         RETURN v_existing_id;
     END IF;
 
@@ -358,8 +417,11 @@ BEGIN
     IF NOT v_was_split THEN
         PERFORM inventory.service_listing_lock(p_seller_account, v_listed_id, v_listing_id);
     ELSE
+        -- COALESCE in case a future schema relaxation makes
+        -- source_ref nullable; today the column is NOT NULL DEFAULT
+        -- '{}'::jsonb so the COALESCE is defensive.
         UPDATE inventory.item
-           SET source_ref = source_ref
+           SET source_ref = COALESCE(source_ref, '{}'::jsonb)
                             || jsonb_build_object(
                                    'listing_id',         v_listing_id,
                                    'listing_created_at', v_now
@@ -501,6 +563,12 @@ BEGIN
 END;
 $$;
 
+-- Restate the privilege contract explicitly. CREATE OR REPLACE
+-- preserves grants/owner, but for a security-definer public RPC the
+-- intent should be visible in this migration.
+ALTER FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
     'DEPRECATED. Phase 6.1a stubbed this proxy to raise P1011 so axum/Astro see a clean migration error during the 6.1b cutover. Dropped entirely in Phase 6.1c.';
 

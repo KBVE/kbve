@@ -1037,9 +1037,24 @@ BEGIN
             p_qty, v_src.qty USING ERRCODE = 'INV13';
     END IF;
 
-    UPDATE inventory.item
-       SET qty = qty - p_qty, updated_at = now()
-     WHERE id = p_src_item_id;
+    -- Status-guarded UPDATE. Row already locked FOR UPDATE above;
+    -- WHERE-recheck + RETURNING is defensive.
+    DECLARE
+        v_updated_src_id UUID;
+    BEGIN
+        UPDATE inventory.item
+           SET qty = qty - p_qty, updated_at = now()
+         WHERE id = p_src_item_id
+           AND owner_account = p_seller_account
+           AND state = 'held'
+           AND is_stackable
+           AND qty > p_qty
+        RETURNING id INTO v_updated_src_id;
+        IF v_updated_src_id IS NULL THEN
+            RAISE EXCEPTION 'split source % invariant violated between lock and update', p_src_item_id
+                USING ERRCODE = 'INV12';
+        END IF;
+    END;
 
     INSERT INTO inventory.item (
         owner_account, kind, ref, qty, nbt, state, source, source_ref
