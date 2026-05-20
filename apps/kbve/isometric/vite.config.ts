@@ -39,7 +39,7 @@ export default defineConfig(async () => ({
 			deleteOriginalAssets: /\.wasm$/i,
 		}),
 	],
-	base: '/isometric/',
+	base: process.env.BUILD_TARGET === 'tauri' ? './' : '/isometric/',
 	clearScreen: false,
 	build: {
 		rollupOptions: {
