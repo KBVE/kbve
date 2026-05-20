@@ -40,6 +40,12 @@ CREATE TYPE wallet.bid_status AS ENUM (
 CREATE TABLE wallet.listing (
     id                  BIGSERIAL PRIMARY KEY,
     seller_account      UUID NOT NULL REFERENCES wallet.account(id) ON DELETE NO ACTION,
+    -- Phase 6.1a: authoritative pointer at the inventory.item row that
+    -- is escrowed in this listing. Active listings MUST set item_id;
+    -- legacy non-active rows are grandfathered (CHECK is NOT VALID).
+    -- item_ref JSONB below stays for back-compat with browse APIs that
+    -- haven't migrated yet.
+    item_id             UUID REFERENCES inventory.item(id) ON DELETE NO ACTION,
     item_ref            JSONB NOT NULL,
     item_instance_id    TEXT GENERATED ALWAYS AS (item_ref->>'instance_id') STORED,
     currency            wallet.currency_kind NOT NULL DEFAULT 'khash',
@@ -105,6 +111,14 @@ CREATE TABLE wallet.listing (
     ),
     CONSTRAINT listing_max_duration_chk CHECK (
         expires_at <= created_at + interval '30 days'
+    ),
+    -- Active listings MUST reference an inventory.item. Hard cut: the
+    -- 6.1a migration cancelled all pre-existing active listings (none
+    -- had item_id), so this CHECK lands as plain VALID. Legacy
+    -- service_create_listing(UUID, JSONB, ...) callers fail loudly on
+    -- INSERT until they migrate to service_create_listing_with_item.
+    CONSTRAINT wallet_listing_active_item_id_chk CHECK (
+        status <> 'active' OR item_id IS NOT NULL
     )
 );
 
@@ -131,6 +145,11 @@ CREATE INDEX wallet_listing_current_bidder_idx
     WHERE current_bid_account IS NOT NULL;
 CREATE INDEX wallet_listing_status_created_idx
     ON wallet.listing (status, created_at DESC, id DESC);
+
+-- Phase 6.1a: at most one active listing per inventory.item.
+CREATE UNIQUE INDEX wallet_listing_active_item_uq
+    ON wallet.listing (item_id)
+    WHERE status = 'active' AND item_id IS NOT NULL;
 CREATE UNIQUE INDEX wallet_listing_active_item_instance_uq
     ON wallet.listing (item_instance_id)
     WHERE status = 'active' AND item_instance_id IS NOT NULL;

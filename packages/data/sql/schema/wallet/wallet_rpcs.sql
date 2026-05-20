@@ -965,5 +965,228 @@ ALTER FUNCTION wallet.service_user_balance(uuid) OWNER TO service_role;
 COMMENT ON FUNCTION wallet.service_user_balance(uuid) IS
 'Service-role read of the current wallet balance for a Supabase user. Returns the row from wallet.balance for the user-kind account, or no rows if the user has no wallet yet or (corruption case) the account row exists without a matching balance row. STABLE because the function only reads tables. The wallet_account_user_uq partial unique index makes LIMIT 1 unnecessary — duplicates surface as multiple rows so corruption is visible.';
 
+-- ============================================================================
+-- Phase 6.1a: inventory-aware listing creator
+--
+-- wallet.service_create_listing_with_item — successor to the legacy
+-- service_create_listing(UUID, JSONB, ...). Takes an inventory.item id
+-- + optional partial-stack qty. When qty is NULL or = src.qty the
+-- source row is locked whole via inventory.service_listing_lock;
+-- otherwise inventory.service_split_for_listing splits a stackable
+-- source into a new listing_escrow row. Stores both item_id and a
+-- back-compat item_ref JSONB so browse APIs that haven't migrated to
+-- read item_id keep working.
+--
+-- public.proxy_market_create_listing_with_item — authenticated wrapper.
+-- Enforces inventory.is_2fa_required_for_listing aal2 gate +
+-- high_value_khash_threshold check. Mirrors the existing legacy proxy
+-- shape; axum + Astro adapt to call this in Phase 6.1b.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION wallet.service_create_listing_with_item(
+    p_seller_account  UUID,
+    p_src_item_id     UUID,
+    p_qty             BIGINT,
+    p_currency        wallet.currency_kind,
+    p_buy_now_price   BIGINT,
+    p_min_bid         BIGINT,
+    p_expires_at      TIMESTAMPTZ,
+    p_idempotency_key UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+    v_src         inventory.item%ROWTYPE;
+    v_currency    wallet.currency_kind := COALESCE(p_currency, 'khash'::wallet.currency_kind);
+    v_now         TIMESTAMPTZ := transaction_timestamp();
+    v_existing_id BIGINT;
+    v_listing_id  BIGINT;
+    v_listing_qty BIGINT;
+    v_listed_id   UUID;
+    v_was_split   BOOLEAN := false;
+    v_item_ref    JSONB;
+BEGIN
+    IF p_seller_account IS NULL OR p_src_item_id IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'seller_account, src_item_id, idempotency_key are required'
+            USING ERRCODE = '22004';
+    END IF;
+
+    PERFORM wallet.assert_user_account(p_seller_account);
+
+    IF v_currency <> 'khash'::wallet.currency_kind THEN
+        RAISE EXCEPTION 'marketplace v1 only supports khash' USING ERRCODE = 'P1010';
+    END IF;
+    IF p_buy_now_price IS NULL AND p_min_bid IS NULL THEN
+        RAISE EXCEPTION 'listing requires buy_now_price or min_bid' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NOT NULL AND p_buy_now_price <= 0 THEN
+        RAISE EXCEPTION 'buy_now_price must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_min_bid IS NOT NULL AND p_min_bid <= 0 THEN
+        RAISE EXCEPTION 'min_bid must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NOT NULL AND p_min_bid IS NOT NULL
+       AND p_min_bid > p_buy_now_price THEN
+        RAISE EXCEPTION 'min_bid cannot exceed buy_now_price' USING ERRCODE = '22023';
+    END IF;
+    IF p_expires_at IS NULL OR p_expires_at <= v_now THEN
+        RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
+    END IF;
+    IF p_qty IS NOT NULL AND p_qty <= 0 THEN
+        RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
+    END IF;
+
+    SELECT id INTO v_existing_id
+      FROM wallet.listing
+     WHERE seller_account = p_seller_account
+       AND idempotency_key = p_idempotency_key;
+    IF v_existing_id IS NOT NULL THEN
+        RETURN v_existing_id;
+    END IF;
+
+    SELECT * INTO v_src FROM inventory.item WHERE id = p_src_item_id FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'item % not found', p_src_item_id USING ERRCODE = 'INV10';
+    END IF;
+    IF v_src.owner_account <> p_seller_account THEN
+        RAISE EXCEPTION 'item % not owned by seller', p_src_item_id USING ERRCODE = 'INV11';
+    END IF;
+    IF v_src.state <> 'held' THEN
+        RAISE EXCEPTION 'item % not in held state (state=%)',
+            p_src_item_id, v_src.state USING ERRCODE = 'INV12';
+    END IF;
+
+    IF p_qty IS NULL OR p_qty = v_src.qty THEN
+        v_listing_qty := v_src.qty;
+        v_listed_id   := v_src.id;
+    ELSIF p_qty < v_src.qty THEN
+        IF NOT v_src.is_stackable THEN
+            RAISE EXCEPTION 'item % is instanced; partial listing not supported',
+                p_src_item_id USING ERRCODE = 'INV15';
+        END IF;
+        v_listed_id := inventory.service_split_for_listing(
+            p_seller_account, p_src_item_id, p_qty
+        );
+        v_listing_qty := p_qty;
+        v_was_split := true;
+    ELSE
+        RAISE EXCEPTION 'qty % exceeds source qty %', p_qty, v_src.qty
+            USING ERRCODE = 'INV13';
+    END IF;
+
+    v_item_ref := jsonb_build_object(
+        'kind',        v_src.kind,
+        'id',          v_src.ref,
+        'qty',         v_listing_qty,
+        'instance_id', v_listed_id::text,
+        'nbt',         v_src.nbt
+    );
+
+    INSERT INTO wallet.listing (
+        seller_account, item_id, item_ref, currency,
+        buy_now_price, min_bid, expires_at, idempotency_key
+    ) VALUES (
+        p_seller_account, v_listed_id, v_item_ref, v_currency,
+        p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
+    ) RETURNING id INTO v_listing_id;
+
+    IF NOT v_was_split THEN
+        PERFORM inventory.service_listing_lock(p_seller_account, v_listed_id, v_listing_id);
+    END IF;
+
+    INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
+    VALUES (
+        'marketplace.listing_create', 'listing', v_listing_id::TEXT,
+        jsonb_build_object(
+            'seller_account', p_seller_account,
+            'src_item_id',    p_src_item_id,
+            'item_id',        v_listed_id,
+            'qty',            v_listing_qty,
+            'was_split',      v_was_split,
+            'buy_now_price',  p_buy_now_price,
+            'min_bid',        p_min_bid,
+            'expires_at',     p_expires_at
+        )
+    );
+
+    RETURN v_listing_id;
+END;
+$$;
+
+ALTER FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_market_create_listing_with_item(
+    p_src_item_id     UUID,
+    p_qty             BIGINT,
+    p_buy_now_price   BIGINT,
+    p_min_bid         BIGINT,
+    p_expires_at      TIMESTAMPTZ,
+    p_idempotency_key UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+    v_seller    UUID := private.proxy_market_caller_account();
+    v_aal       TEXT := inventory.caller_jwt_aal();
+    v_threshold BIGINT;
+    v_max_price BIGINT;
+BEGIN
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key is required' USING ERRCODE = '22004';
+    END IF;
+    IF p_src_item_id IS NULL THEN
+        RAISE EXCEPTION 'src_item_id is required' USING ERRCODE = '22004';
+    END IF;
+    IF p_buy_now_price IS NULL AND p_min_bid IS NULL THEN
+        RAISE EXCEPTION 'listing requires buy_now_price or min_bid' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NOT NULL AND p_buy_now_price <= 0 THEN
+        RAISE EXCEPTION 'buy_now_price must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_min_bid IS NOT NULL AND p_min_bid <= 0 THEN
+        RAISE EXCEPTION 'min_bid must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
+        RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
+    END IF;
+
+    IF inventory.is_2fa_required_for_listing(v_seller)
+       AND v_aal IS DISTINCT FROM 'aal2' THEN
+        RAISE EXCEPTION 'mfa_required for listing on account %', v_seller
+            USING ERRCODE = 'INV30';
+    END IF;
+
+    SELECT high_value_khash_threshold INTO v_threshold
+      FROM inventory.account_security
+     WHERE account = v_seller;
+    v_threshold := COALESCE(v_threshold, 0);
+
+    IF v_threshold > 0 THEN
+        v_max_price := GREATEST(
+            COALESCE(p_buy_now_price, 0),
+            COALESCE(p_min_bid, 0)
+        );
+        IF v_max_price >= v_threshold
+           AND v_aal IS DISTINCT FROM 'aal2' THEN
+            RAISE EXCEPTION 'mfa_required for high-value listing (price=%, threshold=%) on account %',
+                v_max_price, v_threshold, v_seller USING ERRCODE = 'INV30';
+        END IF;
+    END IF;
+
+    RETURN wallet.service_create_listing_with_item(
+        v_seller, p_src_item_id, p_qty, 'khash'::wallet.currency_kind,
+        p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
+    );
+END;
+$$;
+
+ALTER FUNCTION public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO authenticated, service_role;
+
 -- PostgREST schema cache refresh after the public.* surface lands.
 NOTIFY pgrst, 'reload schema';
