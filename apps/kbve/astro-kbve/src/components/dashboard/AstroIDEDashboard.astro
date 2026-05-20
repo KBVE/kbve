@@ -2,7 +2,7 @@
 import ReactVMAuth from './ReactVMAuth';
 import ReactCodeIDE from './ReactCodeIDE';
 import ReactDeployPanel from './ReactDeployPanel';
-import ReactDeploymentHistory from './ReactDeploymentHistory';
+import AstroDeploymentHistory from './AstroDeploymentHistory.astro';
 ---
 
 <section
@@ -14,7 +14,7 @@ import ReactDeploymentHistory from './ReactDeploymentHistory';
 			<div class="not-content ide-dashboard">
 				<ReactCodeIDE client:only="react" />
 				<ReactDeployPanel client:only="react" />
-				<ReactDeploymentHistory client:only="react" />
+				<AstroDeploymentHistory />
 			</div>
 		</ReactVMAuth>
 	</div>
