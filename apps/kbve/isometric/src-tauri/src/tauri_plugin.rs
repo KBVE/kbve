@@ -143,6 +143,19 @@ mod desktop {
 
             app.borrow_mut().update();
 
+            // Forward Bevy AppExit messages (e.g. title/pause Exit buttons)
+            // to the Tauri runtime so the OS window actually closes.
+            {
+                let mut app_ref = app.borrow_mut();
+                let world = app_ref.world_mut();
+                let messages = world.resource::<bevy::ecs::message::Messages<AppExit>>();
+                let mut reader = messages.get_cursor();
+                if reader.read(messages).next().is_some() {
+                    tauri_app.handle().exit(0);
+                    break;
+                }
+            }
+
             frame_count += 1;
             if last_fps_update.elapsed() >= Duration::from_secs(1) {
                 AVERAGE_FRAME_RATE.store(frame_count, Ordering::Relaxed);

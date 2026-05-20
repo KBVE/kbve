@@ -2107,6 +2107,7 @@ fn receive_set_username_response(
                     "[net] username set successfully: '{}' (from entity {entity:?})",
                     msg.username
                 );
+                crate::auth_common::record_username(msg.username.clone());
             } else {
                 warn!(
                     "[net] set-username failed: '{}' (from entity {entity:?})",

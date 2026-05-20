@@ -166,6 +166,18 @@ pub fn forward_key(code: String, pressed: bool, repeat: bool) {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn get_signin_state() -> crate::auth_common::SignInResult {
+    crate::auth_common::current_signin_snapshot()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn set_username(username: String) {
+    crate::game::net::request_set_username(&username);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     let redirect = crate::auth::build_redirect_url();
@@ -258,6 +270,13 @@ pub fn set_signed_in(jwt: &str) {
 #[wasm_bindgen]
 pub fn set_username(username: &str) {
     crate::game::net::request_set_username(username);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_signin_state_json() -> String {
+    let state = crate::auth_common::current_signin_snapshot();
+    serde_json::to_string(&state).unwrap_or_default()
 }
 
 #[cfg(target_arch = "wasm32")]

@@ -1,6 +1,7 @@
 import { HUD } from './components/HUD';
 import { FPSCounter } from './components/FPSCounter';
 import { ObjectLabel } from './components/ObjectLabel';
+import { UsernameModal } from './components/UsernameModal';
 import { useObjectSelection } from './hooks/useObjectSelection';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
 			<FPSCounter />
 			<HUD />
 			<ObjectLabel />
+			<UsernameModal />
 		</div>
 	);
 }
