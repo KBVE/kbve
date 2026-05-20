@@ -18,7 +18,7 @@ use bevy::input::keyboard::{Key, KeyCode, KeyboardInput};
 use bevy::input::mouse::{MouseButton, MouseButtonInput, MouseScrollUnit, MouseWheel};
 use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy::window::{CursorMoved, PrimaryWindow, Window};
+use bevy::window::{CursorMoved, PrimaryWindow, Window, WindowEvent};
 
 use super::phase::GamePhase;
 
@@ -72,6 +72,7 @@ fn drain_native_input(
     mut button_writer: MessageWriter<MouseButtonInput>,
     mut wheel_writer: MessageWriter<MouseWheel>,
     mut key_writer: MessageWriter<KeyboardInput>,
+    mut window_event_writer: MessageWriter<WindowEvent>,
 ) {
     let Ok((window_entity, mut window)) = window_q.single_mut() else {
         return;
@@ -80,24 +81,31 @@ fn drain_native_input(
     if events.is_empty() {
         return;
     }
+    static FIRST_BTN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+    static FIRST_MOVE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
     for ev in events {
         match ev {
             NativeInputEvent::PointerMove { x, y } => {
-                // Bevy's picking + hover systems read Window.physical_cursor_
-                // position(), not the CursorMoved event. Sync both so picking
-                // works.
                 window.set_physical_cursor_position(Some(DVec2::new(x, y)));
-                cursor_writer.write(CursorMoved {
+                let logical = Vec2::new(x as f32, y as f32) / window.scale_factor();
+                let cm = CursorMoved {
                     window: window_entity,
-                    position: Vec2::new(x as f32, y as f32) / window.scale_factor(),
+                    position: logical,
                     delta: None,
-                });
+                };
+                cursor_writer.write(cm.clone());
+                window_event_writer.write(WindowEvent::CursorMoved(cm));
+                if FIRST_MOVE.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                    eprintln!(
+                        "[native-input] drain first PointerMove physical=({x},{y}) logical={logical:?}"
+                    );
+                }
             }
             NativeInputEvent::PointerButton { button, pressed } => {
                 let Some(bevy_button) = map_mouse_button(button) else {
                     continue;
                 };
-                button_writer.write(MouseButtonInput {
+                let mbi = MouseButtonInput {
                     button: bevy_button,
                     state: if pressed {
                         ButtonState::Pressed
@@ -105,15 +113,24 @@ fn drain_native_input(
                         ButtonState::Released
                     },
                     window: window_entity,
-                });
+                };
+                button_writer.write(mbi.clone());
+                window_event_writer.write(WindowEvent::MouseButtonInput(mbi));
+                if FIRST_BTN.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                    eprintln!(
+                        "[native-input] drain first PointerButton btn={button} pressed={pressed}"
+                    );
+                }
             }
             NativeInputEvent::Wheel { dx, dy } => {
-                wheel_writer.write(MouseWheel {
+                let mw = MouseWheel {
                     unit: MouseScrollUnit::Pixel,
                     x: dx as f32,
                     y: dy as f32,
                     window: window_entity,
-                });
+                };
+                wheel_writer.write(mw.clone());
+                window_event_writer.write(WindowEvent::MouseWheel(mw));
             }
             NativeInputEvent::Key {
                 code,
@@ -123,7 +140,7 @@ fn drain_native_input(
                 let Some(key_code) = map_key_code(&code) else {
                     continue;
                 };
-                key_writer.write(KeyboardInput {
+                let ki = KeyboardInput {
                     key_code,
                     logical_key: Key::Unidentified(bevy::input::keyboard::NativeKey::Unidentified),
                     state: if pressed {
@@ -134,7 +151,9 @@ fn drain_native_input(
                     repeat,
                     window: window_entity,
                     text: None,
-                });
+                };
+                key_writer.write(ki.clone());
+                window_event_writer.write(WindowEvent::KeyboardInput(ki));
             }
         }
     }
