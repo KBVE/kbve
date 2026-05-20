@@ -1,0 +1,75 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: vector-pipeline
+    namespace: vector
+    labels:
+        release: monitoring
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: vector.daemonset
+          rules:
+              - alert: VectorDaemonSetUnavailable
+                annotations:
+                    summary: 'Vector DaemonSet `supabase-vector` has no Ready pods'
+                    description: |
+                        The `supabase-vector` DaemonSet in the `vector` namespace
+                        reports 0 ready pods. Log ingestion to
+                        `observability.logs_distributed` is stopped — the
+                        ClickHouse dashboard and downstream alert poll will both
+                        go silent within minutes.
+
+                        Check `kubectl -n vector get pods` for the failing pod
+                        and `kubectl -n vector logs <pod>` for a Lua/VRL config
+                        parse error or a sink connection failure.
+                expr: |
+                    kube_daemonset_status_number_ready{namespace="vector", daemonset="supabase-vector"} == 0
+                for: 5m
+                labels:
+                    severity: critical
+                    service: vector
+
+              - alert: VectorDaemonSetMissingNodes
+                annotations:
+                    summary: 'Vector DaemonSet `supabase-vector` is short {{ $value }} pod(s)'
+                    description: |
+                        `supabase-vector` should run one pod per schedulable
+                        node, but has fewer ready pods than the desired number.
+                        Some nodes are not shipping logs into ClickHouse.
+                expr: |
+                    kube_daemonset_status_desired_number_scheduled{namespace="vector", daemonset="supabase-vector"}
+                      - kube_daemonset_status_number_ready{namespace="vector", daemonset="supabase-vector"} > 0
+                for: 15m
+                labels:
+                    severity: warning
+                    service: vector
+
+        - name: vector.alerts_poll
+          rules:
+              - alert: AlertsPollCronJobStale
+                annotations:
+                    summary: '`alerts-poll` has not had a successful run in >15m'
+                    description: |
+                        The `alerts-poll` CronJob in the `vector` namespace
+                        has not had a successful run for over 15 minutes (or
+                        never has). The Alerts dashboard (Alertmanager →
+                        ClickHouse poll) will stop showing fresh firing
+                        alerts. Check
+                        `kubectl -n vector get jobs --sort-by=.metadata.creationTimestamp`
+                        and inspect the latest pod's stderr for the
+                        ClickHouse response body.
+                expr: |
+                    (
+                      time() - max(kube_cronjob_status_last_successful_time{namespace="vector", cronjob="alerts-poll"}) > 900
+                    )
+                    or on() (
+                      absent(kube_cronjob_status_last_successful_time{namespace="vector", cronjob="alerts-poll"}) == 1
+                      and on() (count(kube_cronjob_info{namespace="vector", cronjob="alerts-poll"}) > 0)
+                    )
+                for: 5m
+                labels:
+                    severity: warning
+                    service: vector

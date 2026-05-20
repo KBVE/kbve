@@ -45,7 +45,11 @@ data:
             print("Nothing to insert.")
             sys.exit(0)
 
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
+        now_iso = (
+            datetime.datetime.now(datetime.timezone.utc)
+            .isoformat(timespec="milliseconds")
+            .replace("+00:00", "Z")
+        )
         lines = []
         for a in alerts:
             labels = a.get("labels", {}) or {}
@@ -66,7 +70,7 @@ data:
                 "labels": json.dumps(labels, sort_keys=True),
                 "annotations": json.dumps(anno, sort_keys=True),
                 "fingerprint": fp,
-                "starts_at": a.get("activeAt") or now_iso,
+                "starts_at": (a.get("activeAt") or now_iso).replace("+00:00", "Z"),
                 "ends_at": None,
                 "generator_url": anno.get("runbook_url", ""),
                 "source": SOURCE_LABEL,
@@ -77,6 +81,7 @@ data:
         q = urllib.parse.urlencode({
             "user": CH_USER,
             "password": CH_PASSWORD,
+            "date_time_input_format": "best_effort",
             "query": "INSERT INTO observability.alerts_distributed FORMAT JSONEachRow",
         })
         insert_url = f"{CH_ENDPOINT}/?{q}"
@@ -88,7 +93,11 @@ data:
                     print(f"ERROR: ClickHouse insert returned {r.status}", file=sys.stderr)
                     sys.exit(1)
         except urllib.error.HTTPError as e:
-            print(f"ERROR: ClickHouse insert failed: {e.code} {e.reason}", file=sys.stderr)
+            try:
+                detail = e.read().decode("utf-8", errors="replace")[:500]
+            except Exception:
+                detail = ""
+            print(f"ERROR: ClickHouse insert failed: {e.code} {e.reason} :: {detail}", file=sys.stderr)
             sys.exit(1)
         except (urllib.error.URLError, TimeoutError) as e:
             print(f"ERROR: ClickHouse unreachable: {e}", file=sys.stderr)
