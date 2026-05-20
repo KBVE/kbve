@@ -57,62 +57,65 @@
             // would otherwise eat clicks before tao forwards them to Bevy.
             // Detect Tauri and make the DOM click-through; React UI children
             // opt back in via pointer-events: auto when needed.
-            if (window.__TAURI_INTERNALS__ || window.__TAURI__) {
+            var isTauri = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
+            console.log('[native-input] script booted; isTauri=', isTauri, '__TAURI_INTERNALS__=', !!window.__TAURI_INTERNALS__);
+            if (isTauri) {
                 document.documentElement.style.pointerEvents = 'none';
                 document.body.style.pointerEvents = 'none';
-                var c = document.getElementById('bevy-canvas');
-                if (c) c.style.pointerEvents = 'none';
+                var canvas = document.getElementById('bevy-canvas');
+                if (canvas) canvas.style.pointerEvents = 'none';
 
-                // Tauri webview eats pointer/keyboard events before tao can
-                // forward them. Re-publish DOM events to Rust commands so the
-                // native Bevy app sees them. Capture phase so we beat any
-                // React handlers (those re-arm pointer-events: auto on their
-                // own children).
-                var ti = window.__TAURI_INTERNALS__;
-                var rawInvoke = (ti && ti.invoke) || (window.__TAURI__ && window.__TAURI__.invoke);
-                if (rawInvoke) {
-                    var logged = false;
-                    var call = function (cmd, args) {
-                        try {
-                            var p = rawInvoke(cmd, args);
-                            if (p && p.catch) {
-                                p.catch(function (err) {
-                                    if (!logged) {
-                                        console.error('[native-input] invoke failed', cmd, err);
-                                        logged = true;
-                                    }
-                                });
-                            }
-                        } catch (err) {
-                            if (!logged) {
-                                console.error('[native-input] invoke threw', cmd, err);
-                                logged = true;
-                            }
+                var dpr = window.devicePixelRatio || 1;
+                var invokeRef = null;
+                var dropped = 0;
+                var loggedErr = false;
+                var call = function (cmd, args) {
+                    if (!invokeRef) {
+                        invokeRef = (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke)
+                            || (window.__TAURI__ && window.__TAURI__.invoke);
+                        if (!invokeRef) {
+                            dropped++;
+                            return;
                         }
-                    };
-                    var dpr = window.devicePixelRatio || 1;
-                    window.addEventListener('pointermove', function (e) {
-                        call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
-                    }, true);
-                    window.addEventListener('pointerdown', function (e) {
-                        call('forward_pointer_button', { button: e.button, pressed: true });
-                    }, true);
-                    window.addEventListener('pointerup', function (e) {
-                        call('forward_pointer_button', { button: e.button, pressed: false });
-                    }, true);
-                    window.addEventListener('wheel', function (e) {
-                        call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
-                    }, { capture: true, passive: true });
-                    window.addEventListener('keydown', function (e) {
-                        call('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
-                    }, true);
-                    window.addEventListener('keyup', function (e) {
-                        call('forward_key', { code: e.code, pressed: false, repeat: false });
-                    }, true);
-                    console.log('[native-input] forwarder armed');
-                } else {
-                    console.warn('[native-input] no tauri invoke available; input wont reach Bevy');
-                }
+                    }
+                    try {
+                        var p = invokeRef(cmd, args);
+                        if (p && p.catch) {
+                            p.catch(function (err) {
+                                if (!loggedErr) {
+                                    console.error('[native-input] invoke failed', cmd, err);
+                                    loggedErr = true;
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        if (!loggedErr) {
+                            console.error('[native-input] invoke threw', cmd, err);
+                            loggedErr = true;
+                        }
+                    }
+                };
+
+                window.addEventListener('pointermove', function (e) {
+                    call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });
+                }, true);
+                window.addEventListener('pointerdown', function (e) {
+                    console.log('[native-input] pointerdown fired button=', e.button);
+                    call('forward_pointer_button', { button: e.button, pressed: true });
+                }, true);
+                window.addEventListener('pointerup', function (e) {
+                    call('forward_pointer_button', { button: e.button, pressed: false });
+                }, true);
+                window.addEventListener('wheel', function (e) {
+                    call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
+                }, { capture: true, passive: true });
+                window.addEventListener('keydown', function (e) {
+                    call('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
+                }, true);
+                window.addEventListener('keyup', function (e) {
+                    call('forward_key', { code: e.code, pressed: false, repeat: false });
+                }, true);
+                console.log('[native-input] forwarder armed (listeners attached)');
             } else {
                 // WASM browser build keeps the canvas focused so winit's web
                 // backend receives keyboard events.
