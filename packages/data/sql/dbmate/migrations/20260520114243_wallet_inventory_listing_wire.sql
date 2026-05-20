@@ -197,6 +197,28 @@ BEGIN
         RAISE EXCEPTION
             'legacy active listings with active bids exist; reconcile escrow manually before re-running 20260520114243';
     END IF;
+
+    -- Catch corrupted current_bid_id pointers (listing claims a
+    -- current bid but no matching active wallet.bid row exists).
+    -- The cleanup below would silently null these out; surface them
+    -- as a hard failure so they get manual review first.
+    IF EXISTS (
+        SELECT 1
+          FROM wallet.listing l
+         WHERE l.status = 'active'
+           AND l.item_id IS NULL
+           AND l.current_bid_id IS NOT NULL
+           AND NOT EXISTS (
+               SELECT 1
+                 FROM wallet.bid b
+                WHERE b.id = l.current_bid_id
+                  AND b.listing_id = l.id
+                  AND b.status = 'active'
+           )
+    ) THEN
+        RAISE EXCEPTION
+            'legacy active listings with stale current_bid_id pointers exist; manual reconciliation required';
+    END IF;
 END
 $$;
 
@@ -213,6 +235,7 @@ WITH cancelled AS (
     UPDATE wallet.listing
        SET status              = 'cancelled',
            settled_at          = COALESCE(settled_at, now()),
+           buyer_account       = NULL,
            current_bid         = NULL,
            current_bid_account = NULL,
            current_bid_id      = NULL
@@ -289,6 +312,7 @@ DECLARE
     v_existing_buy_now     BIGINT;
     v_existing_min_bid     BIGINT;
     v_existing_expires_at  TIMESTAMPTZ;
+    v_existing_qty         BIGINT;
     v_listing_id  BIGINT;
     v_listing_qty BIGINT;
     v_listed_id   UUID;
@@ -332,22 +356,47 @@ BEGIN
         RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
     END IF;
 
-    -- Replay with payload validation. Reusing the same idempotency_key
-    -- against different parameters (different price / expiry) is a
-    -- caller bug; surface as P1012 instead of silently aliasing the
-    -- original row. wallet_listing_seller_idempotency_uq serializes
+    -- Replay with full payload validation. Reusing the same
+    -- idempotency_key against different parameters is a caller bug;
+    -- surface as P1012 instead of silently aliasing the original row.
+    -- wallet_listing_seller_idempotency_uq (lives in the original
+    -- 20260514113538_wallet_marketplace_schema migration) serializes
     -- concurrent same-key inserts at the table level.
-    SELECT id, item_id, buy_now_price, min_bid, expires_at
+    --
+    -- Source-item check: the listing's item_id is either p_src_item_id
+    -- itself (whole-row path) or a split-derived row whose source_ref
+    -- ->>'split_from' points back at p_src_item_id (partial path).
+    -- Both replay variants must resolve to the originally requested
+    -- source.
+    SELECT l.id, l.item_id, l.buy_now_price, l.min_bid, l.expires_at,
+           COALESCE((l.item_ref ->> 'qty')::BIGINT, 0)
       INTO v_existing_id, v_existing_item_id, v_existing_buy_now,
-           v_existing_min_bid, v_existing_expires_at
-      FROM wallet.listing
-     WHERE seller_account = p_seller_account
-       AND idempotency_key = p_idempotency_key;
+           v_existing_min_bid, v_existing_expires_at, v_existing_qty
+      FROM wallet.listing l
+     WHERE l.seller_account = p_seller_account
+       AND l.idempotency_key = p_idempotency_key;
     IF v_existing_id IS NOT NULL THEN
         IF v_existing_buy_now    IS DISTINCT FROM p_buy_now_price
            OR v_existing_min_bid IS DISTINCT FROM p_min_bid
            OR v_existing_expires_at IS DISTINCT FROM p_expires_at THEN
-            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing %',
+            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (price/expiry differs)',
+                p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+        END IF;
+        -- Source-item identity. Direct match for whole-row OR
+        -- source_ref split_from match for partial.
+        IF v_existing_item_id IS DISTINCT FROM p_src_item_id
+           AND NOT EXISTS (
+               SELECT 1 FROM inventory.item
+                WHERE id = v_existing_item_id
+                  AND source_ref ->> 'split_from' = p_src_item_id::text
+           ) THEN
+            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (src_item_id differs)',
+                p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+        END IF;
+        -- Qty check. NULL p_qty (whole-row request) must match the
+        -- listed item's full qty as recorded in item_ref.
+        IF p_qty IS NOT NULL AND v_existing_qty IS DISTINCT FROM p_qty THEN
+            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (qty differs)',
                 p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
         END IF;
         RETURN v_existing_id;
@@ -497,6 +546,12 @@ BEGIN
     IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
         RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
     END IF;
+    -- Mirror the service-side 30-day cap so the proxy boundary
+    -- surfaces a clean error before any service work runs.
+    IF p_expires_at > statement_timestamp() + interval '30 days' THEN
+        RAISE EXCEPTION 'expires_at exceeds 30-day maximum listing duration'
+            USING ERRCODE = '22023';
+    END IF;
 
     -- 2FA gate: if the account opted into require_2fa_for_listing,
     -- the JWT must carry aal=aal2. Don't leak the account UUID into
@@ -603,5 +658,50 @@ ALTER TABLE wallet.listing DROP CONSTRAINT IF EXISTS wallet_listing_active_item_
 ALTER TABLE wallet.listing DROP COLUMN IF EXISTS item_id;
 
 DROP FUNCTION IF EXISTS inventory.service_split_for_listing(UUID, UUID, BIGINT);
+
+-- Restore the pre-6.1a legacy proxy body so rollback leaves the
+-- original public listing path functional rather than stuck at the
+-- P1011 stub. Body lifted from 20260516015242_wallet_marketplace_proxies.sql.
+CREATE OR REPLACE FUNCTION public.proxy_market_create_listing(
+    p_item_ref        JSONB,
+    p_buy_now_price   BIGINT,
+    p_min_bid         BIGINT,
+    p_expires_at      TIMESTAMPTZ,
+    p_idempotency_key UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_seller UUID := private.proxy_market_caller_account();
+BEGIN
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key is required' USING ERRCODE = '22004';
+    END IF;
+    IF p_item_ref IS NULL OR jsonb_typeof(p_item_ref) <> 'object' THEN
+        RAISE EXCEPTION 'item_ref must be a JSON object' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NULL AND p_min_bid IS NULL THEN
+        RAISE EXCEPTION 'listing requires buy_now_price or min_bid' USING ERRCODE = '22023';
+    END IF;
+    IF p_buy_now_price IS NOT NULL AND p_buy_now_price <= 0 THEN
+        RAISE EXCEPTION 'buy_now_price must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_min_bid IS NOT NULL AND p_min_bid <= 0 THEN
+        RAISE EXCEPTION 'min_bid must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
+        RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
+    END IF;
+    RETURN wallet.service_create_listing(
+        v_seller, p_item_ref, 'khash'::wallet.currency_kind,
+        p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
+    );
+END;
+$$;
+ALTER FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
+    'PUBLIC marketplace proxy. Authenticated create-listing wrapper. Resolves auth.uid() → seller wallet account, then calls wallet.service_create_listing with currency=khash.';
 
 NOTIFY pgrst, 'reload schema';

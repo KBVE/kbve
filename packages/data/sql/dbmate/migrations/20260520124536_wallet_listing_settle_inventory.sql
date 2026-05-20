@@ -134,6 +134,15 @@ BEGIN
             USING ERRCODE = 'P1009';
     END IF;
 
+    -- Defensive: bidding already refuses seller self-bids, but settle
+    -- is the final authority. A corrupted bid row pointing at the
+    -- seller would otherwise transfer the item to the seller's own
+    -- inventory with no money movement.
+    IF v_bidder = v_seller THEN
+        RAISE EXCEPTION 'seller cannot settle listing % to self', p_listing_id
+            USING ERRCODE = 'P1013';
+    END IF;
+
     DECLARE
         v_updated_bid_id BIGINT;
     BEGIN
@@ -245,20 +254,35 @@ BEGIN
     IF v_listing_row.status <> 'active' THEN
         IF v_listing_row.status = 'cancelled' THEN
             -- Idempotent re-cancel. If a prior call cancelled the
-            -- listing but failed to release the inventory row (e.g.
-            -- pre-6.1a bug, partial migration), try the unlock again.
-            -- inventory.service_listing_unlock is idempotent against
-            -- already-held rows (raises INV21 if state isn't
-            -- listing_escrow); catch that so repair stays a no-op.
+            -- listing but failed to release the inventory row, try
+            -- the unlock again ONLY when the item is provably in a
+            -- safe repair state: state='listing_escrow' OR ('held'
+            -- already owned by this seller). Any other state means
+            -- the item was transferred, consumed, or is mid-transit
+            -- — repair must surface that loudly, not swallow it.
             IF v_listing_row.item_id IS NOT NULL THEN
+                DECLARE
+                    v_item_state inventory.item_state;
+                    v_item_owner UUID;
                 BEGIN
-                    PERFORM inventory.service_listing_unlock(
-                        p_seller_account, v_listing_row.item_id, p_listing_id,
-                        COALESCE(p_reason, 'listing_cancelled_repair')
-                    );
-                EXCEPTION WHEN SQLSTATE 'INV21' THEN
-                    -- Already unlocked. Repair was a no-op; that's fine.
-                    NULL;
+                    SELECT state, owner_account
+                      INTO v_item_state, v_item_owner
+                      FROM inventory.item
+                     WHERE id = v_listing_row.item_id;
+                    IF v_item_state = 'listing_escrow' THEN
+                        PERFORM inventory.service_listing_unlock(
+                            p_seller_account, v_listing_row.item_id, p_listing_id,
+                            COALESCE(p_reason, 'listing_cancelled_repair')
+                        );
+                    ELSIF v_item_state = 'held' AND v_item_owner = p_seller_account THEN
+                        -- Already released to seller. Repair no-op.
+                        NULL;
+                    ELSE
+                        RAISE EXCEPTION
+                            'cancel repair refused: item % in unsafe state (state=%, owner=%)',
+                            v_listing_row.item_id, v_item_state, v_item_owner
+                            USING ERRCODE = 'P1002';
+                    END IF;
                 END;
             END IF;
             RETURN;
@@ -573,6 +597,12 @@ BEGIN
         p_reason);
 END;
 $$;
+-- Restate privilege contract on rollback for consistency. CREATE OR
+-- REPLACE preserves grants but the explicit ALTER + REVOKE + GRANT
+-- below makes the security-definer posture visible in the down path.
+ALTER FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) TO service_role;
 
 CREATE OR REPLACE FUNCTION wallet.service_cancel_listing(
     p_listing_id      BIGINT,
@@ -620,6 +650,9 @@ BEGIN
         COALESCE(p_reason, 'seller cancelled listing'));
 END;
 $$;
+ALTER FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) TO service_role;
 
 CREATE OR REPLACE FUNCTION wallet.service_expire_listings(
     p_limit INTEGER DEFAULT 100
@@ -675,5 +708,8 @@ BEGIN
     RETURN NEXT;
 END;
 $$;
+ALTER FUNCTION wallet.service_expire_listings(INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_expire_listings(INTEGER) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO service_role;
 
 NOTIFY pgrst, 'reload schema';
