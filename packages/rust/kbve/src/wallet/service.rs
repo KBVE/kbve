@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use diesel::QueryableByName;
 use diesel::sql_query;
-use diesel::sql_types::{BigInt, Bool, Jsonb, Nullable, Text, Timestamptz};
+use diesel::sql_types::{BigInt, Bool, Integer, Jsonb, Nullable, SmallInt, Text, Timestamptz};
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -133,6 +133,41 @@ impl WalletClient {
     ) -> Result<FirecrackerHoldRow> {
         let mut conn = self.write().await?;
         firecracker_update_watermark_async(&mut conn, vm_id, watermark).await
+    }
+
+    pub async fn firecracker_record_deployment(
+        &self,
+        req: FirecrackerRecordDeploymentRequest,
+    ) -> Result<FirecrackerDeploymentRow> {
+        let mut conn = self.write().await?;
+        firecracker_record_deployment_async(&mut conn, req).await
+    }
+
+    pub async fn firecracker_mark_destroyed(
+        &self,
+        req: FirecrackerMarkDestroyedRequest,
+    ) -> Result<FirecrackerDeploymentRow> {
+        let mut conn = self.write().await?;
+        firecracker_mark_destroyed_async(&mut conn, req).await
+    }
+
+    pub async fn firecracker_my_deployments(
+        &self,
+        account_id: Uuid,
+        limit: i32,
+        offset: i32,
+        live_only: bool,
+    ) -> Result<Vec<FirecrackerDeploymentRow>> {
+        let mut conn = self.read().await?;
+        firecracker_my_deployments_async(&mut conn, account_id, limit, offset, live_only).await
+    }
+
+    pub async fn firecracker_deployment_stats(
+        &self,
+        account_id: Uuid,
+    ) -> Result<FirecrackerDeploymentStats> {
+        let mut conn = self.read().await?;
+        firecracker_deployment_stats_async(&mut conn, account_id).await
     }
 }
 
@@ -380,4 +415,182 @@ async fn firecracker_update_watermark_async(
     .await
     .map_err(WalletError::from_diesel)?;
     Ok(row.into())
+}
+
+#[derive(QueryableByName)]
+struct FirecrackerDeploymentRowDb {
+    #[diesel(sql_type = BigInt)]
+    id: i64,
+    #[diesel(sql_type = Text)]
+    vm_id: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    account_id: Uuid,
+    #[diesel(sql_type = Text)]
+    rootfs: String,
+    #[diesel(sql_type = Text)]
+    entrypoint: String,
+    #[diesel(sql_type = Integer)]
+    http_port: i32,
+    #[diesel(sql_type = Text)]
+    visibility: String,
+    #[diesel(sql_type = SmallInt)]
+    vcpu_count: i16,
+    #[diesel(sql_type = Integer)]
+    mem_size_mib: i32,
+    #[diesel(sql_type = Integer)]
+    idle_ttl_secs: i32,
+    #[diesel(sql_type = Jsonb)]
+    spec: serde_json::Value,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+    #[diesel(sql_type = Nullable<Timestamptz>)]
+    destroyed_at: Option<DateTime<Utc>>,
+    #[diesel(sql_type = Nullable<Text>)]
+    destroy_reason: Option<String>,
+    #[diesel(sql_type = Nullable<BigInt>)]
+    settled_ledger_id: Option<i64>,
+    #[diesel(sql_type = Nullable<BigInt>)]
+    credits_spent: Option<i64>,
+}
+
+impl TryFrom<FirecrackerDeploymentRowDb> for FirecrackerDeploymentRow {
+    type Error = WalletError;
+
+    fn try_from(r: FirecrackerDeploymentRowDb) -> Result<Self> {
+        let visibility =
+            FirecrackerDeploymentVisibility::from_pg(&r.visibility).ok_or_else(|| {
+                WalletError::InvalidArgument(format!("unknown visibility: {}", r.visibility))
+            })?;
+        let destroy_reason = match r.destroy_reason {
+            Some(reason) => Some(FirecrackerDestroyReason::from_pg(&reason).ok_or_else(|| {
+                WalletError::InvalidArgument(format!("unknown destroy_reason: {reason}"))
+            })?),
+            None => None,
+        };
+        Ok(Self {
+            id: r.id,
+            vm_id: r.vm_id,
+            account_id: r.account_id,
+            rootfs: r.rootfs,
+            entrypoint: r.entrypoint,
+            http_port: r.http_port,
+            visibility,
+            vcpu_count: r.vcpu_count,
+            mem_size_mib: r.mem_size_mib,
+            idle_ttl_secs: r.idle_ttl_secs,
+            spec: r.spec,
+            created_at: r.created_at,
+            destroyed_at: r.destroyed_at,
+            destroy_reason,
+            settled_ledger_id: r.settled_ledger_id,
+            credits_spent: r.credits_spent,
+        })
+    }
+}
+
+const FC_DEPLOYMENT_COLUMNS: &str = "id, vm_id, account_id, rootfs, entrypoint, http_port, \
+    visibility, vcpu_count, mem_size_mib, idle_ttl_secs, spec, created_at, destroyed_at, \
+    destroy_reason, settled_ledger_id, credits_spent";
+
+async fn firecracker_record_deployment_async(
+    conn: &mut AsyncPgConnection,
+    req: FirecrackerRecordDeploymentRequest,
+) -> Result<FirecrackerDeploymentRow> {
+    let sql = format!(
+        "SELECT {cols} \
+         FROM (SELECT wallet.firecracker_record_deployment(\
+                $1, $2, $3, $4, $5, $6, $7::smallint, $8, $9, $10) AS d) s, \
+              LATERAL (SELECT (s.d).*) t",
+        cols = FC_DEPLOYMENT_COLUMNS
+    );
+    let row: FirecrackerDeploymentRowDb = sql_query(sql)
+        .bind::<Text, _>(req.vm_id)
+        .bind::<diesel::sql_types::Uuid, _>(req.account_id)
+        .bind::<Text, _>(req.rootfs)
+        .bind::<Text, _>(req.entrypoint)
+        .bind::<Integer, _>(req.http_port)
+        .bind::<Text, _>(req.visibility.as_pg())
+        .bind::<SmallInt, _>(req.vcpu_count)
+        .bind::<Integer, _>(req.mem_size_mib)
+        .bind::<Integer, _>(req.idle_ttl_secs)
+        .bind::<Jsonb, _>(req.spec)
+        .get_result(conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+    row.try_into()
+}
+
+async fn firecracker_mark_destroyed_async(
+    conn: &mut AsyncPgConnection,
+    req: FirecrackerMarkDestroyedRequest,
+) -> Result<FirecrackerDeploymentRow> {
+    let sql = format!(
+        "SELECT {cols} \
+         FROM (SELECT wallet.firecracker_mark_destroyed($1, $2, $3, $4) AS d) s, \
+              LATERAL (SELECT (s.d).*) t",
+        cols = FC_DEPLOYMENT_COLUMNS
+    );
+    let row: FirecrackerDeploymentRowDb = sql_query(sql)
+        .bind::<Text, _>(req.vm_id)
+        .bind::<Text, _>(req.destroy_reason.as_pg())
+        .bind::<Nullable<BigInt>, _>(req.settled_ledger_id)
+        .bind::<Nullable<BigInt>, _>(req.credits_spent)
+        .get_result(conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+    row.try_into()
+}
+
+async fn firecracker_my_deployments_async(
+    conn: &mut AsyncPgConnection,
+    account_id: Uuid,
+    limit: i32,
+    offset: i32,
+    live_only: bool,
+) -> Result<Vec<FirecrackerDeploymentRow>> {
+    let rows: Vec<FirecrackerDeploymentRowDb> =
+        sql_query("SELECT * FROM wallet.firecracker_my_deployments($1, $2, $3, $4)")
+            .bind::<diesel::sql_types::Uuid, _>(account_id)
+            .bind::<Integer, _>(limit)
+            .bind::<Integer, _>(offset)
+            .bind::<Bool, _>(live_only)
+            .get_results(conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+    rows.into_iter()
+        .map(FirecrackerDeploymentRow::try_from)
+        .collect()
+}
+
+#[derive(QueryableByName)]
+struct FirecrackerDeploymentStatsDb {
+    #[diesel(sql_type = BigInt)]
+    total_deployments: i64,
+    #[diesel(sql_type = BigInt)]
+    live_deployments: i64,
+    #[diesel(sql_type = BigInt)]
+    total_credits_spent: i64,
+    #[diesel(sql_type = Nullable<Timestamptz>)]
+    earliest_deployment_at: Option<DateTime<Utc>>,
+    #[diesel(sql_type = Nullable<Timestamptz>)]
+    latest_deployment_at: Option<DateTime<Utc>>,
+}
+
+async fn firecracker_deployment_stats_async(
+    conn: &mut AsyncPgConnection,
+    account_id: Uuid,
+) -> Result<FirecrackerDeploymentStats> {
+    let row: FirecrackerDeploymentStatsDb =
+        sql_query("SELECT * FROM wallet.firecracker_deployment_stats($1)")
+            .bind::<diesel::sql_types::Uuid, _>(account_id)
+            .get_result(conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+    Ok(FirecrackerDeploymentStats {
+        total_deployments: row.total_deployments,
+        live_deployments: row.live_deployments,
+        total_credits_spent: row.total_credits_spent,
+        earliest_deployment_at: row.earliest_deployment_at,
+        latest_deployment_at: row.latest_deployment_at,
+    })
 }

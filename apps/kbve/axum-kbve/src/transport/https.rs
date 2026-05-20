@@ -567,6 +567,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_net_proxy_handler),
         )
         .route(
+            "/dashboard/firecracker/deployments",
+            axum::routing::get(super::proxy::firecracker_deployments_handler),
+        )
+        .route(
+            "/dashboard/firecracker/stats",
+            axum::routing::get(super::proxy::firecracker_deployment_stats_handler),
+        )
+        .route(
             "/api/v1/fc/{*rest}",
             any(super::proxy::firecracker_fc_alias_handler),
         )

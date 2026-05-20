@@ -1268,6 +1268,29 @@ async fn fc_deploy(
         info.pid,
     );
 
+    let journal_visibility = match req.visibility {
+        EndpointVisibility::Staff => kbve::wallet::FirecrackerDeploymentVisibility::Staff,
+        EndpointVisibility::Public => kbve::wallet::FirecrackerDeploymentVisibility::Public,
+    };
+    let journal_spec = serde_json::json!({
+        "health_path": req.health_path,
+        "http_config": req.http_config,
+    });
+    billing_wallet::record_deployment(
+        state.billing.as_deref(),
+        billing_account_id,
+        &req.name,
+        &req.rootfs,
+        &req.entrypoint,
+        req.http_port,
+        journal_visibility,
+        req.vcpu_count,
+        req.mem_size_mib,
+        req.idle_ttl_secs,
+        journal_spec,
+    )
+    .await;
+
     tokio::spawn(health_prober_task(persistent.clone(), req.name.clone()));
 
     (
@@ -1674,10 +1697,20 @@ async fn fc_destroy(
     }
     persistent.pool.release(&endpoint.allocation);
 
-    if endpoint.billing_account_id.is_some() {
+    let settle = if endpoint.billing_account_id.is_some() {
         let accumulated = endpoint.metrics.accumulated_credits.load(Ordering::Relaxed);
-        billing_wallet::settle(state.billing.as_deref(), &endpoint.name, accumulated).await;
-    }
+        billing_wallet::settle(state.billing.as_deref(), &endpoint.name, accumulated).await
+    } else {
+        None
+    };
+    billing_wallet::mark_destroyed(
+        state.billing.as_deref(),
+        endpoint.billing_account_id.is_some(),
+        &endpoint.name,
+        kbve::wallet::FirecrackerDestroyReason::User,
+        settle.as_ref(),
+    )
+    .await;
 
     tracing::info!(
         "fc_destroy: removed endpoint {name} (pid={:?})",
@@ -1753,10 +1786,20 @@ async fn idle_sweeper_task(
                 );
             }
             persistent.pool.release(&endpoint.allocation);
-            if endpoint.billing_account_id.is_some() {
+            let settle = if endpoint.billing_account_id.is_some() {
                 let accumulated = endpoint.metrics.accumulated_credits.load(Ordering::Relaxed);
-                billing_wallet::settle(billing.as_deref(), &endpoint.name, accumulated).await;
-            }
+                billing_wallet::settle(billing.as_deref(), &endpoint.name, accumulated).await
+            } else {
+                None
+            };
+            billing_wallet::mark_destroyed(
+                billing.as_deref(),
+                endpoint.billing_account_id.is_some(),
+                &endpoint.name,
+                kbve::wallet::FirecrackerDestroyReason::IdleSweep,
+                settle.as_ref(),
+            )
+            .await;
             tracing::info!(
                 "idle_sweeper: tore down idle endpoint {name} (ttl={}s)",
                 endpoint.idle_ttl_secs
@@ -2545,7 +2588,7 @@ async fn run_vm_lifecycle(
     if billing_account_id.is_some() {
         let duration_secs = start.elapsed().as_secs();
         let accumulated = billing::meter_tick(req.vcpu_count, req.mem_size_mib, duration_secs, 0);
-        billing_wallet::settle(billing.as_deref(), &vm_id, accumulated).await;
+        let _ = billing_wallet::settle(billing.as_deref(), &vm_id, accumulated).await;
     }
 }
 
