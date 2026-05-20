@@ -262,6 +262,14 @@ export function useObjectSelection() {
 	const objectPosRef = useRef<Position | null>(null);
 
 	useEffect(() => {
+		const isTauri = !!(
+			(window as typeof window & { __TAURI_INTERNALS__?: unknown })
+				.__TAURI_INTERNALS__ ||
+			(window as typeof window & { __TAURI__?: unknown }).__TAURI__
+		);
+		if (isTauri) {
+			return;
+		}
 		// Poll for new object selections
 		const selectionInterval = setInterval(() => {
 			if (modalOpenRef.current) return;
