@@ -154,6 +154,43 @@ pub fn forward_key(code: String, pressed: bool, repeat: bool) {
     });
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let url = format!(
+        "https://kbve.com/auth/desktop?provider={}&redirect=kbve://auth/callback",
+        provider
+    );
+    eprintln!("[auth] opening OAuth url for provider={provider}: {url}");
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn handle_deep_link(_app: &tauri::AppHandle, url: &str) {
+    eprintln!("[auth] deep link received: {url}");
+    let Some(token) = parse_access_token(url) else {
+        eprintln!("[auth] no access_token in deep link payload — ignoring");
+        return;
+    };
+    eprintln!("[auth] access_token received (len={})", token.len());
+    crate::game::net::request_go_online("", &token);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn parse_access_token(url: &str) -> Option<String> {
+    let (_, payload) = url.split_once('#').or_else(|| url.split_once('?'))?;
+    for pair in payload.split('&') {
+        let (k, v) = pair.split_once('=')?;
+        if k == "access_token" {
+            return urlencoding::decode(v).ok().map(|s| s.into_owned());
+        }
+    }
+    None
+}
+
 // ---------------------------------------------------------------------------
 // WASM: wasm-bindgen exports (returns JSON strings for JS consumption)
 // ---------------------------------------------------------------------------

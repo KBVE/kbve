@@ -42,16 +42,31 @@ fn main() {
 
     app.add_plugins(
         TauriPlugin::new(|builder| {
-            builder.invoke_handler(tauri::generate_handler![
-                isometric_game::commands::dispatch_action,
-                isometric_game::commands::greet,
-                isometric_game::commands::forward_pointer_move,
-                isometric_game::commands::forward_pointer_button,
-                isometric_game::commands::forward_pointer_enter,
-                isometric_game::commands::forward_pointer_leave,
-                isometric_game::commands::forward_wheel,
-                isometric_game::commands::forward_key,
-            ])
+            use tauri::Manager;
+            builder
+                .plugin(tauri_plugin_deep_link::init())
+                .invoke_handler(tauri::generate_handler![
+                    isometric_game::commands::dispatch_action,
+                    isometric_game::commands::greet,
+                    isometric_game::commands::forward_pointer_move,
+                    isometric_game::commands::forward_pointer_button,
+                    isometric_game::commands::forward_pointer_enter,
+                    isometric_game::commands::forward_pointer_leave,
+                    isometric_game::commands::forward_wheel,
+                    isometric_game::commands::forward_key,
+                    isometric_game::commands::open_oauth_url,
+                ])
+                .setup(|app| {
+                    use tauri_plugin_deep_link::DeepLinkExt;
+                    let handle = app.handle().clone();
+                    app.deep_link().on_open_url(move |event| {
+                        let urls = event.urls();
+                        for url in urls {
+                            isometric_game::commands::handle_deep_link(&handle, url.as_str());
+                        }
+                    });
+                    Ok(())
+                })
         })
         .with_post_render_setup(|app| {
             app.add_plugins(PhysicsPlugins::default());
