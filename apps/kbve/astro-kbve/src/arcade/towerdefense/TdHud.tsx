@@ -18,6 +18,7 @@ import {
 	inventoryAtom,
 	inventoryOpenAtom,
 	livesAtom,
+	nexusMaxHpAtom,
 	enemyHoverAtom,
 	gameStateAtom,
 	gameStatsAtom,
@@ -149,14 +150,16 @@ function GoldChip() {
 
 function LivesChip() {
 	const v = useStore(livesAtom);
-	const tone = v <= 5 ? 'danger' : 'default';
+	const max = useStore(nexusMaxHpAtom);
+	const pct = max > 0 ? Math.round((v / max) * 100) : 0;
+	const tone = pct <= 25 ? 'danger' : pct <= 60 ? 'gold' : 'good';
 	return (
 		<Chip
 			icon="heart"
-			label="Lives"
-			value={v}
+			label="Nexus"
+			value={max > 0 ? `${v}/${max} (${pct}%)` : `${v}`}
 			tone={tone}
-			title="Lost when an enemy reaches the path end. Hit zero = game over."
+			title="Nexus HP. Enemies who reach the end attack it. Nexus destroyed = game over."
 		/>
 	);
 }

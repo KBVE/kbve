@@ -456,8 +456,8 @@ export const NEXUS_CATALOG: Record<NexusId, NexusSpec> = {
 		name: 'Nexus',
 		kind: 'nexus',
 		cost: 0,
-		maxHp: 2000,
-		defense: 8,
+		maxHp: 5000,
+		defense: 18,
 		color: 0x4fd1c5,
 	},
 };

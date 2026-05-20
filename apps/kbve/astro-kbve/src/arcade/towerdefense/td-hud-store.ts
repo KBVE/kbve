@@ -5,6 +5,7 @@ import type { ItemId, ItemInstance } from './items';
 
 export const goldAtom = atom(0);
 export const livesAtom = atom(0);
+export const nexusMaxHpAtom = atom(0);
 export const waveAtom = atom(0);
 export const enemiesLeftAtom = atom(0);
 export const supplyAtom = atom(0);
@@ -114,6 +115,7 @@ export const playRequestSignalAtom = atom(0);
 export function resetHudStore(): void {
 	goldAtom.set(0);
 	livesAtom.set(0);
+	nexusMaxHpAtom.set(0);
 	waveAtom.set(0);
 	enemiesLeftAtom.set(0);
 	supplyAtom.set(0);

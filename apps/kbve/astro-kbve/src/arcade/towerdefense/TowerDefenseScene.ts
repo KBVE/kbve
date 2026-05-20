@@ -150,6 +150,7 @@ import {
 	inventoryAtom,
 	inventoryOpenAtom,
 	livesAtom,
+	nexusMaxHpAtom,
 	pendingItemTargetAtom,
 	loadBestWave,
 	nextWavePreviewAtom,
@@ -578,6 +579,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const cy = row * TILE + TILE / 2;
 		const nexus = this.spawnBuilding('nexus', col, row, cx, cy);
 		this.nexusEid = nexus.id;
+		nexusMaxHpAtom.set(Health.maxHp[nexus.id]);
 	}
 
 	private placeStarterKit(): void {
@@ -2283,8 +2285,39 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private damageBuilding(b: Building, dmg: number): void {
+		const hpBefore = Health.hp[b.id];
 		this.applyDamage(b.id, dmg, DAMAGE_TYPE.kinetic, DAMAGE_FLAG.none);
-		if (Health.hp[b.id] > 0) this.flashSprite(b.sprite, 0xffffff);
+		const taken = Math.max(0, hpBefore - Health.hp[b.id]);
+		if (Health.hp[b.id] > 0) {
+			if (b.kind === 'nexus') this.showNexusDamageFx(b, taken);
+			else this.flashSprite(b.sprite, 0xffffff);
+		}
+	}
+
+	private showNexusDamageFx(b: Building, taken: number): void {
+		this.flashSprite(b.sprite, 0xfc8181);
+		const intensity = Math.min(0.012, 0.002 + taken * 0.0008);
+		this.cameras.main.shake(120, intensity);
+		if (taken <= 0) return;
+		const text = this.add
+			.text(b.x, b.y - TILE * 0.6, `-${Math.ceil(taken)}`, {
+				fontFamily: 'monospace',
+				fontSize: '18px',
+				color: '#fc8181',
+				fontStyle: 'bold',
+				stroke: '#000000',
+				strokeThickness: 3,
+			})
+			.setOrigin(0.5)
+			.setDepth(150);
+		this.tweens.add({
+			targets: text,
+			y: b.y - TILE * 1.4,
+			alpha: 0,
+			duration: 700,
+			ease: 'Cubic.easeOut',
+			onComplete: () => text.destroy(),
+		});
 	}
 
 	private destroyBuilding(b: Building): void {
