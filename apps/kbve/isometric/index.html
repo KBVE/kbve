@@ -66,27 +66,47 @@
                 if (canvas) canvas.style.pointerEvents = 'none';
 
                 var dpr = window.devicePixelRatio || 1;
+                console.log('[native-input] __TAURI__=', window.__TAURI__,
+                    'core=', window.__TAURI__ && window.__TAURI__.core,
+                    'INTERNALS keys=', window.__TAURI_INTERNALS__ ? Object.keys(window.__TAURI_INTERNALS__) : null);
+
                 var invokeRef = null;
-                var dropped = 0;
+                var firstSuccess = false;
                 var loggedErr = false;
                 var call = function (cmd, args) {
                     if (!invokeRef) {
-                        invokeRef = (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke)
-                            || (window.__TAURI__ && window.__TAURI__.invoke);
+                        // Tauri 2 preferred path: window.__TAURI__.core.invoke
+                        // (exposed when withGlobalTauri: true).
+                        invokeRef = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
+                            || (window.__TAURI__ && window.__TAURI__.invoke)
+                            || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
                         if (!invokeRef) {
-                            dropped++;
+                            if (!loggedErr) {
+                                console.error('[native-input] no invoke fn — TAURI=', window.__TAURI__,
+                                    'INTERNALS=', window.__TAURI_INTERNALS__);
+                                loggedErr = true;
+                            }
                             return;
                         }
+                        console.log('[native-input] invokeRef resolved as', invokeRef.name || 'anonymous');
                     }
                     try {
                         var p = invokeRef(cmd, args);
-                        if (p && p.catch) {
-                            p.catch(function (err) {
+                        if (p && p.then) {
+                            p.then(function () {
+                                if (!firstSuccess) {
+                                    console.log('[native-input] first invoke succeeded:', cmd);
+                                    firstSuccess = true;
+                                }
+                            }).catch(function (err) {
                                 if (!loggedErr) {
                                     console.error('[native-input] invoke failed', cmd, err);
                                     loggedErr = true;
                                 }
                             });
+                        } else if (!firstSuccess) {
+                            console.log('[native-input] invoke returned non-promise:', cmd, p);
+                            firstSuccess = true;
                         }
                     } catch (err) {
                         if (!loggedErr) {
