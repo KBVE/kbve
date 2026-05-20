@@ -183,11 +183,6 @@ mod desktop {
             bevy::gizmos::GizmoPlugin,
         ));
 
-        app.add_plugins(avian3d::prelude::PhysicsDebugPlugin::default());
-
-        // Caller-supplied game plugins. Must run after RenderPlugin so
-        // anything they install (MaterialPlugin etc) can allocate Shader
-        // asset handles.
         let post_render = app
             .world_mut()
             .remove_non_send_resource::<PostRenderSetup>()
