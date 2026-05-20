@@ -28,8 +28,44 @@
 -- Legacy listings with item_id IS NULL skip the inventory hook entirely.
 -- ============================================================================
 
+-- Preflight: fail fast if the inventory hooks this migration depends on
+-- are missing. Belt-and-suspenders against running on a database where
+-- the 6.0 foundation never landed.
+DO $$
+BEGIN
+    IF to_regprocedure('inventory.service_listing_settle(uuid, uuid, bigint, uuid)') IS NULL THEN
+        RAISE EXCEPTION 'missing inventory.service_listing_settle(uuid, uuid, bigint, uuid) — apply 6.0 foundation first';
+    END IF;
+    IF to_regprocedure('inventory.service_listing_unlock(uuid, uuid, bigint, text)') IS NULL THEN
+        RAISE EXCEPTION 'missing inventory.service_listing_unlock(uuid, uuid, bigint, text) — apply 6.0 foundation first';
+    END IF;
+END
+$$;
+
+-- One won bid per listing — enforced at the table level so future code
+-- paths cannot accidentally create two winning bids for one listing.
+-- Procedural EXISTS check inside service_settle_listing stays as a
+-- second line of defense with a clean P1002 error code.
+CREATE UNIQUE INDEX IF NOT EXISTS wallet_bid_one_won_per_listing_uq
+    ON wallet.bid (listing_id)
+    WHERE status = 'won';
+
 -- ---------------------------------------------------------------------------
 -- wallet.service_settle_listing — settle + transfer item to buyer
+--
+-- Sequence (one transaction, rolls back together):
+--   1. lock listing FOR UPDATE
+--   2. lock winning bid FOR UPDATE
+--   3. flip bid status to 'won'
+--   4. distribute_settlement (seller credit + treasury fee)
+--   5. inventory.service_listing_settle transfers escrowed item to buyer
+--   6. flip listing status to 'sold' (status-guarded UPDATE)
+--   7. audit_log
+--
+-- Inventory hook fires BEFORE the listing flips to 'sold' so the
+-- domain sequence reads "active escrow → transfer → sold" rather than
+-- "sold → then transfer". Mostly hygiene; one transaction so a
+-- failure anywhere rolls everything back.
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION wallet.service_settle_listing(
@@ -76,7 +112,7 @@ BEGIN
 
     IF v_listing_row.current_bid_id IS NULL THEN
         RAISE EXCEPTION 'no active bid to settle for listing %', p_listing_id
-            USING ERRCODE = '23503';
+            USING ERRCODE = 'P1009';
     END IF;
     IF p_winning_bid_id IS NOT NULL
        AND p_winning_bid_id <> v_listing_row.current_bid_id THEN
@@ -95,7 +131,7 @@ BEGIN
 
     IF v_bid_id IS NULL THEN
         RAISE EXCEPTION 'no active bid to settle for listing %', p_listing_id
-            USING ERRCODE = '23503';
+            USING ERRCODE = 'P1009';
     END IF;
 
     DECLARE
@@ -116,21 +152,36 @@ BEGIN
       INTO v_fee, v_net, v_seller_ledger_id, v_fee_ledger_id
       FROM wallet.distribute_settlement(p_listing_id, v_seller, v_amount, v_bid_id) d;
 
-    UPDATE wallet.listing
-       SET status = 'sold',
-           settled_at = v_now,
-           buyer_account = v_bidder,
-           current_bid = NULL,
-           current_bid_account = NULL,
-           current_bid_id = NULL
-     WHERE id = p_listing_id;
-
-    -- Phase 6.1a: hand the escrowed inventory row to the buyer.
+    -- Phase 6.1a: hand the escrowed inventory row to the buyer BEFORE
+    -- the listing flips to 'sold' so the domain sequence stays
+    -- "active escrow → transfer → sold".
     IF v_listing_row.item_id IS NOT NULL THEN
         v_buyer_item_id := inventory.service_listing_settle(
             v_seller, v_listing_row.item_id, p_listing_id, v_bidder
         );
     END IF;
+
+    -- Status-guarded final flip. RETURNING asserts the row was still
+    -- 'active'; concurrent settle on the same listing would have
+    -- failed the FOR UPDATE chain above, so this is defensive.
+    DECLARE
+        v_updated_listing_id BIGINT;
+    BEGIN
+        UPDATE wallet.listing
+           SET status = 'sold',
+               settled_at = v_now,
+               buyer_account = v_bidder,
+               current_bid = NULL,
+               current_bid_account = NULL,
+               current_bid_id = NULL
+         WHERE id = p_listing_id
+           AND status = 'active'
+        RETURNING id INTO v_updated_listing_id;
+        IF v_updated_listing_id IS NULL THEN
+            RAISE EXCEPTION 'listing % no longer active at final settle update', p_listing_id
+                USING ERRCODE = 'P1002';
+        END IF;
+    END;
 
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata, reason)
     VALUES (
@@ -153,8 +204,11 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_settle_listing(BIGINT, BIGINT, TEXT) IS
-    'INTERNAL marketplace helper. Invoked by place_bid, buy_now, and expire_listings. Self-locks the listing row. Validates listing status=active+currency=khash+no won bid+matching current_bid_id, flips winning bid to won, distributes funds, and (Phase 6.1a) calls inventory.service_listing_settle to transfer the escrowed item to the buyer when listing.item_id IS NOT NULL.';
+    'INTERNAL marketplace helper. Invoked by place_bid, buy_now, and expire_listings. Self-locks the listing row. Validates listing status=active+currency=khash+no won bid+matching current_bid_id, flips winning bid to won, distributes funds, calls inventory.service_listing_settle to transfer the escrowed item to the buyer (Phase 6.1a; only when listing.item_id IS NOT NULL), then flips listing to sold under a status-guarded update.';
 
 -- ---------------------------------------------------------------------------
 -- wallet.service_cancel_listing — refund + release item to seller
@@ -190,6 +244,23 @@ BEGIN
     END IF;
     IF v_listing_row.status <> 'active' THEN
         IF v_listing_row.status = 'cancelled' THEN
+            -- Idempotent re-cancel. If a prior call cancelled the
+            -- listing but failed to release the inventory row (e.g.
+            -- pre-6.1a bug, partial migration), try the unlock again.
+            -- inventory.service_listing_unlock is idempotent against
+            -- already-held rows (raises INV21 if state isn't
+            -- listing_escrow); catch that so repair stays a no-op.
+            IF v_listing_row.item_id IS NOT NULL THEN
+                BEGIN
+                    PERFORM inventory.service_listing_unlock(
+                        p_seller_account, v_listing_row.item_id, p_listing_id,
+                        COALESCE(p_reason, 'listing_cancelled_repair')
+                    );
+                EXCEPTION WHEN SQLSTATE 'INV21' THEN
+                    -- Already unlocked. Repair was a no-op; that's fine.
+                    NULL;
+                END;
+            END IF;
             RETURN;
         END IF;
         RAISE EXCEPTION 'listing % not active (status=%)',
@@ -204,21 +275,36 @@ BEGIN
         p_listing_id, 'refunded', COALESCE(p_reason, 'seller cancelled listing')
     );
 
-    UPDATE wallet.listing
-       SET status = 'cancelled',
-           settled_at = v_now,
-           current_bid = NULL,
-           current_bid_account = NULL,
-           current_bid_id = NULL
-     WHERE id = p_listing_id;
-
-    -- Phase 6.1a: release the escrowed inventory row back to seller.
+    -- Phase 6.1a: release the escrowed inventory row back to seller
+    -- BEFORE the listing flips to 'cancelled' so the domain sequence
+    -- stays "active escrow → release → cancelled".
     IF v_listing_row.item_id IS NOT NULL THEN
         PERFORM inventory.service_listing_unlock(
             p_seller_account, v_listing_row.item_id, p_listing_id,
             COALESCE(p_reason, 'listing_cancelled')
         );
     END IF;
+
+    -- Status-guarded UPDATE. buyer_account explicitly cleared (cancel
+    -- can never leave a buyer association).
+    DECLARE
+        v_updated_listing_id BIGINT;
+    BEGIN
+        UPDATE wallet.listing
+           SET status = 'cancelled',
+               settled_at = v_now,
+               buyer_account = NULL,
+               current_bid = NULL,
+               current_bid_account = NULL,
+               current_bid_id = NULL
+         WHERE id = p_listing_id
+           AND status = 'active'
+        RETURNING id INTO v_updated_listing_id;
+        IF v_updated_listing_id IS NULL THEN
+            RAISE EXCEPTION 'listing % no longer active at final cancel update', p_listing_id
+                USING ERRCODE = 'P1002';
+        END IF;
+    END;
 
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata, reason)
     VALUES (
@@ -233,8 +319,11 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) IS
-    'SERVICE marketplace RPC. Seller-driven cancel. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled. Phase 6.1a: also calls inventory.service_listing_unlock when listing.item_id IS NOT NULL.';
+    'SERVICE marketplace RPC. Seller-driven cancel. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled — re-cancel attempts an inventory unlock repair when item_id IS NOT NULL (no-op if already unlocked, INV21 swallowed). Phase 6.1a: calls inventory.service_listing_unlock when listing.item_id IS NOT NULL.';
 
 -- ---------------------------------------------------------------------------
 -- wallet.service_expire_listings — sweep + release items on no-bid expiry
@@ -254,11 +343,19 @@ DECLARE
     v_total           BIGINT := 0;
     v_settled         BIGINT := 0;
     v_expired         BIGINT := 0;
+    -- p_limit caps TRANSACTION SIZE, not just perf. Each settled
+    -- listing touches bids, ledger, balance, inventory.item +
+    -- inventory.transition, plus audit_log. Defaults to 100 to keep
+    -- one cron tick well under typical statement_timeout.
     v_limit           INTEGER := LEAST(GREATEST(COALESCE(p_limit, 100), 1), 1000);
 BEGIN
     PERFORM set_config('lock_timeout', '2s', true);
     PERFORM set_config('statement_timeout', '30s', true);
 
+    -- Singleton sweeper: pg_try_advisory_xact_lock serializes parallel
+    -- cron runs. The FOR UPDATE SKIP LOCKED in the cursor below is
+    -- therefore DEFENSIVE-ONLY against any non-cron caller that holds
+    -- a listing row lock (place_bid, buy_now, cancel, settle).
     IF NOT pg_try_advisory_xact_lock(
         hashtextextended('wallet.service_expire_listings', 0)
     ) THEN
@@ -286,46 +383,44 @@ BEGIN
             );
             v_settled := v_settled + 1;
         ELSE
-            UPDATE wallet.listing
-               SET status = 'expired',
-                   settled_at = v_now,
-                   current_bid = NULL,
-                   current_bid_account = NULL,
-                   current_bid_id = NULL
-             WHERE id = v_listing_id;
-
+            -- Inventory unlock BEFORE the status flip — "active escrow
+            -- → release → expired" sequence. buyer_account also
+            -- cleared defensively (no-bid expiry has no buyer).
             IF v_item_id IS NOT NULL THEN
                 PERFORM inventory.service_listing_unlock(
                     v_seller, v_item_id, v_listing_id, 'listing_expired_no_bids'
                 );
             END IF;
 
+            DECLARE
+                v_updated_listing_id BIGINT;
+            BEGIN
+                UPDATE wallet.listing
+                   SET status = 'expired',
+                       settled_at = v_now,
+                       buyer_account = NULL,
+                       current_bid = NULL,
+                       current_bid_account = NULL,
+                       current_bid_id = NULL
+                 WHERE id = v_listing_id
+                   AND status = 'active'
+                RETURNING id INTO v_updated_listing_id;
+                IF v_updated_listing_id IS NULL THEN
+                    RAISE EXCEPTION 'listing % no longer active at expire update', v_listing_id
+                        USING ERRCODE = 'P1002';
+                END IF;
+            END;
+
             v_expired := v_expired + 1;
         END IF;
         v_total := v_total + 1;
     END LOOP;
 
-    DECLARE
-        v_skipped_non_khash BIGINT;
-    BEGIN
-        SELECT COUNT(*) INTO v_skipped_non_khash
-          FROM wallet.listing
-         WHERE status = 'active'
-           AND currency <> 'khash'::wallet.currency_kind
-           AND expires_at <= v_now;
-
-        IF v_skipped_non_khash > 0 THEN
-            INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
-            VALUES (
-                'marketplace.expire_sweep_unsupported_currency',
-                'listing', 'batch',
-                jsonb_build_object(
-                    'skipped_non_khash', v_skipped_non_khash,
-                    'cutoff_at', v_now
-                )
-            );
-        END IF;
-    END;
+    -- Per-sweep unsupported-currency count + audit insert removed
+    -- (Phase 6.1a). v1 is khash-only; non-khash actives would only
+    -- exist via direct DB edit and would spam audit_log on every
+    -- cron tick. Use an offline operational view if observability
+    -- becomes necessary again.
 
     IF v_total > 0 THEN
         INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
@@ -348,8 +443,11 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION wallet.service_expire_listings(INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION wallet.service_expire_listings(INTEGER) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION wallet.service_expire_listings(INTEGER) TO service_role;
 COMMENT ON FUNCTION wallet.service_expire_listings(INTEGER) IS
-    'SERVICE marketplace RPC. pg_cron-driven sweep of active KHASH listings past expires_at. Bid-bearing rows settle through service_settle_listing (inventory hand-off included). No-bid rows flip to expired and (Phase 6.1a) call inventory.service_listing_unlock to release the item back to the seller. Bounded to p_limit (default 100, clamped [1, 1000]).';
+    'SERVICE marketplace RPC. pg_cron-driven sweep of active KHASH listings past expires_at. Bid-bearing rows settle through service_settle_listing (inventory hand-off included). No-bid rows flip to expired and (Phase 6.1a) call inventory.service_listing_unlock to release the item back to the seller. Bounded to p_limit (default 100, clamped [1, 1000]) — p_limit caps TRANSACTION SIZE not just perf, because each settled listing touches bids + ledger + balance + inventory.item + audit_log.';
 
 NOTIFY pgrst, 'reload schema';
 
@@ -358,7 +456,23 @@ NOTIFY pgrst, 'reload schema';
 -- Revert the three functions to their pre-6.1a behaviour (no inventory
 -- hooks). Inline so dbmate rollback leaves a working market layer even
 -- if the foundation migration also rolls back.
+--
+-- ⚠ OPERATIONAL WARNING ⚠
+-- Rolling back this migration RE-INTRODUCES the stuck-escrow bug: any
+-- listing that settles, cancels, or expires under the reverted bodies
+-- will NOT release its inventory.item from listing_escrow. Before
+-- running migrate:down in production:
+--   1. Pause all marketplace writes (axum + cron).
+--   2. Drain or repair any wallet.listing rows where status='active'
+--      AND item_id IS NOT NULL — either cancel them through the
+--      6.1a-version of service_cancel_listing or apply the
+--      foundation rollback alongside.
+--   3. Or roll back the foundation migration 20260520114243 in the
+--      same window so wallet.listing.item_id is gone entirely.
+-- This down path is meant for dev / test, not live triage.
 -- ============================================================================
+
+DROP INDEX IF EXISTS wallet.wallet_bid_one_won_per_listing_uq;
 
 CREATE OR REPLACE FUNCTION wallet.service_settle_listing(
     p_listing_id     BIGINT,
