@@ -186,7 +186,6 @@ mod desktop {
             bevy::sprite_render::SpriteRenderPlugin,
             bevy::text::TextPlugin,
             bevy::ui::UiPlugin,
-            bevy::ui::picking_backend::UiPickingPlugin,
             bevy::ui_render::UiRenderPlugin,
             bevy::pbr::PbrPlugin::default(),
             bevy::gizmos::GizmoPlugin,
