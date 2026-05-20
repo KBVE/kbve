@@ -25,8 +25,8 @@ export const CARD_POOL: CardOption[] = [
 	},
 	{
 		id: 'bonus_lives',
-		name: 'Bonus Lives',
-		description: '+5 lives',
+		name: 'Nexus Surge',
+		description: 'Heal nexus +5% max HP (overheal allowed)',
 		color: 0xfc8181,
 	},
 	{

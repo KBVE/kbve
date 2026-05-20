@@ -4296,10 +4296,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 					this.nexusEid >= 0 &&
 					!BuildingState.destroyed[this.nexusEid]
 				) {
-					Health.hp[this.nexusEid] = Math.min(
-						Health.maxHp[this.nexusEid],
-						Health.hp[this.nexusEid] + 200,
-					);
+					Health.hp[this.nexusEid] +=
+						Health.maxHp[this.nexusEid] * 0.05;
 				}
 				break;
 			case 'free_basic_tower':
