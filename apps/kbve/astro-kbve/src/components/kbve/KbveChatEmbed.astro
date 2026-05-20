@@ -1,0 +1,61 @@
+---
+interface Props {
+	channel?: string;
+	height?: string;
+	theme?: 'dark' | 'light' | 'auto';
+}
+
+const { channel = '#general', height = '70vh', theme = 'auto' } = Astro.props;
+---
+
+<div class="kbve-chat-embed-wrapper not-content">
+	<div
+		id="kbve-chat-embed"
+		data-channel={channel}
+		data-ws="wss://chat.kbve.com/ws"
+		data-height={height}
+		data-theme={theme === 'auto' ? undefined : theme}>
+	</div>
+	<p class="kbve-chat-embed-wrapper__hint">
+		Powered by <a
+			href="https://chat.kbve.com"
+			target="_blank"
+			rel="noopener noreferrer">
+			chat.kbve.com
+		</a>. Same identity, same channels.
+	</p>
+</div>
+
+<script is:inline src="https://chat.kbve.com/embed/chat.js" defer></script>
+
+<style>
+	.kbve-chat-embed-wrapper {
+		margin: 1.5rem auto;
+		max-width: 1100px;
+	}
+
+	.kbve-chat-embed-wrapper #kbve-chat-embed {
+		border-radius: 14px;
+		overflow: hidden;
+		box-shadow:
+			0 24px 64px -20px
+				color-mix(in srgb, var(--sl-color-accent) 30%, transparent),
+			0 0 0 1px var(--sl-color-border);
+	}
+
+	.kbve-chat-embed-wrapper__hint {
+		text-align: center;
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3);
+		margin-top: 0.75rem;
+	}
+
+	.kbve-chat-embed-wrapper__hint a {
+		color: var(--sl-color-text-accent);
+		text-decoration: none;
+	}
+
+	.kbve-chat-embed-wrapper__hint a:hover {
+		text-decoration: underline;
+	}
+</style>
