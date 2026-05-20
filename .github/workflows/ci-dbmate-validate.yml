@@ -49,6 +49,15 @@ jobs:
 
         env:
             DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=dbmate,public
+            # Opt into destructive-rollback guards so the "Roll back the
+            # most recent migration" step can exercise migrate:down even
+            # when the head migration is one that refuses unguarded
+            # rollbacks (inventory schema, marketplace listing wire).
+            # Prod URLs never set these GUCs, so a stray rollback against
+            # prod still aborts before any drop.
+            PGOPTIONS: >-
+                -c app.allow_destructive_inventory_down=true
+                -c app.allow_marketplace_unsafe_down=on
 
         steps:
             - name: Checkout
