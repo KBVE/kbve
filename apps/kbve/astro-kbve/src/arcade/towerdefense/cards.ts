@@ -1,5 +1,6 @@
 export type CardId =
 	| 'bonus_gold'
+	| 'bonus_lives'
 	| 'free_basic_tower'
 	| 'soldier_squad'
 	| 'field_repair'
@@ -21,6 +22,12 @@ export const CARD_POOL: CardOption[] = [
 		name: 'Bonus Gold',
 		description: '+150 gold plus wave bonus (+1 per wave)',
 		color: 0xfbd38d,
+	},
+	{
+		id: 'bonus_lives',
+		name: 'Bonus Lives',
+		description: '+5 lives',
+		color: 0xfc8181,
 	},
 	{
 		id: 'free_basic_tower',

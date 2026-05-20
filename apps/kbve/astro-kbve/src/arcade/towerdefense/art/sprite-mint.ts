@@ -98,7 +98,14 @@ const BUILD_CATALOG_COLORS: Record<BuildId, number> = (() => {
 	return out as Record<BuildId, number>;
 })();
 
-const TOWER_IDS: TowerId[] = ['basic', 'bomb', 'ice', 'fire', 'artillery'];
+const TOWER_IDS: TowerId[] = [
+	'basic',
+	'wall',
+	'bomb',
+	'ice',
+	'fire',
+	'artillery',
+];
 
 export function ensureBuildingTextures(scene: Phaser.Scene): void {
 	for (const idRaw in BUILDING_GRIDS) {

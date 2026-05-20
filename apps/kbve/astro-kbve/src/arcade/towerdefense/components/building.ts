@@ -20,6 +20,7 @@ export type BuildingKindIndex =
 
 const BUILD_ID_LIST: BuildId[] = [
 	'basic',
+	'wall',
 	'bomb',
 	'ice',
 	'fire',

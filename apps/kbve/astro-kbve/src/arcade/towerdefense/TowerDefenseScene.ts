@@ -225,6 +225,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameArmouryEids: number[] = [];
 	private frameRepairEids: number[] = [];
 	private frameConsumerEids: number[] = [];
+	private archerTargetClaims = new Set<number>();
 	private buildingByEid = new SideMap<Building>();
 	private buildingAmbience = new SideMap<{
 		sprites: Phaser.GameObjects.GameObject[];
@@ -251,6 +252,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private lastCardSkipN = 0;
 	private lastUseItemN = 0;
 	private cardPickedThisInterval = false;
+	private cardPicksRemaining = 1;
 
 	private gold = GAME_CONFIG.startingGold;
 	private lives = GAME_CONFIG.startingLives;
@@ -2264,6 +2266,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		x: number,
 		y: number,
 		expiresAtWave: number,
+		asArcher: boolean = false,
 	): void {
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -2271,23 +2274,36 @@ export class TowerDefenseScene extends Phaser.Scene {
 		addComponent(this.world, eid, SoldierStats);
 		Position.x[eid] = x;
 		Position.y[eid] = y;
-		const hp = GAME_CONFIG.allyHp;
+		const hp = asArcher
+			? Math.floor(GAME_CONFIG.allyHp * GAME_CONFIG.archerHpMultiplier)
+			: GAME_CONFIG.allyHp;
 		this.addDamageable(eid, hp, 0, 0);
-		SoldierStats.speed[eid] = GAME_CONFIG.allySpeed;
-		SoldierStats.attackDamage[eid] = GAME_CONFIG.allyDamage;
-		SoldierStats.attackRateMs[eid] = GAME_CONFIG.allyAttackRateMs;
-		SoldierStats.attackRange[eid] = GAME_CONFIG.allyAttackRange;
+		SoldierStats.speed[eid] = asArcher
+			? GAME_CONFIG.archerSpeed
+			: GAME_CONFIG.allySpeed;
+		SoldierStats.attackDamage[eid] = asArcher
+			? GAME_CONFIG.archerDamage
+			: GAME_CONFIG.allyDamage;
+		SoldierStats.attackRateMs[eid] = asArcher
+			? GAME_CONFIG.archerAttackRateMs
+			: GAME_CONFIG.allyAttackRateMs;
+		SoldierStats.attackRange[eid] = asArcher
+			? GAME_CONFIG.allyAttackRange *
+				GAME_CONFIG.archerAttackRangeMultiplier
+			: GAME_CONFIG.allyAttackRange;
 		SoldierStats.lastAttackAtMs[eid] = 0;
 		SoldierStats.targetEnemyEid[eid] = 0;
 		SoldierStats.armouryEid[eid] = -1;
 		SoldierStats.expiresAtWave[eid] = expiresAtWave;
-		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
+		SoldierStats.unitKind[eid] = asArcher
+			? SOLDIER_KIND.archer
+			: SOLDIER_KIND.melee;
 		const sprite = this.acquireRect(
 			x,
 			y,
-			TILE * 0.3,
-			TILE * 0.3,
-			GAME_CONFIG.allyColor,
+			TILE * (asArcher ? 0.28 : 0.3),
+			TILE * (asArcher ? 0.28 : 0.3),
+			asArcher ? GAME_CONFIG.archerColor : GAME_CONFIG.allyColor,
 		);
 		sprite.setStrokeStyle(1, 0xffffff, 0.7);
 		const barWidth = TILE * 0.5;
@@ -2357,21 +2373,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private useEmergencyCallAllies(): void {
 		const path = this.path;
-		let cx = BASE_WIDTH / 2;
-		let cy = BASE_HEIGHT / 2;
-		const mid = path.waypoints[Math.floor(path.waypoints.length / 2)];
-		if (mid) {
-			cx = mid.x;
-			cy = mid.y;
-		}
+		const spawn = path.waypoints[0] ?? {
+			x: BASE_WIDTH / 2,
+			y: BASE_HEIGHT / 2,
+		};
+		const cx = spawn.x;
+		const cy = spawn.y;
 		const expires = this.wave + GAME_CONFIG.allyLifespanWaves;
 		const count = GAME_CONFIG.allyCallCount;
+		const archerQuota = Math.floor(count * GAME_CONFIG.allyArcherRatio);
 		for (let i = 0; i < count; i++) {
 			const angle = (i / count) * Math.PI * 2;
 			const radius = TILE * 0.6 + (i % 3) * 6;
 			const sx = cx + Math.cos(angle) * radius;
 			const sy = cy + Math.sin(angle) * radius;
-			this.spawnAllySoldier(sx, sy, expires);
+			const asArcher = i < archerQuota;
+			this.spawnAllySoldier(sx, sy, expires, asArcher);
 		}
 	}
 
@@ -2556,6 +2573,32 @@ export class TowerDefenseScene extends Phaser.Scene {
 		return best;
 	}
 
+	private findEnemyForArcher(seid: number, nowMs: number): number {
+		const sx = Position.x[seid];
+		const sy = Position.y[seid];
+		let bestUnclaimed = -1;
+		let bestUnclaimedD2 = Infinity;
+		let bestAny = -1;
+		let bestAnyD2 = Infinity;
+		for (const eeid of this.frameEnemyEids) {
+			if (!this.enemyVisuals.has(eeid)) continue;
+			const dx = Position.x[eeid] - sx;
+			const dy = Position.y[eeid] - sy;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestAnyD2) {
+				bestAnyD2 = d2;
+				bestAny = eeid;
+			}
+			if (this.archerTargetClaims.has(eeid)) continue;
+			if (hasStatus(eeid, STATUS_KIND.slow, nowMs)) continue;
+			if (d2 < bestUnclaimedD2) {
+				bestUnclaimedD2 = d2;
+				bestUnclaimed = eeid;
+			}
+		}
+		return bestUnclaimed >= 0 ? bestUnclaimed : bestAny;
+	}
+
 	private damageSoldier(eid: number, dmg: number): void {
 		if (!this.soldierVisuals.has(eid)) return;
 		this.applyDamage(eid, dmg, DAMAGE_TYPE.kinetic, DAMAGE_FLAG.none);
@@ -2584,6 +2627,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private updateSoldiers(dt: number, nowMs: number): void {
+		this.archerTargetClaims.clear();
 		for (const seid of this.frameSoldierEids) {
 			if (!this.soldierVisuals.has(seid)) continue;
 			if (Health.hp[seid] <= 0) {
@@ -2592,8 +2636,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 			let target = SoldierStats.targetEnemyEid[seid];
 			if (target === 0 || !this.enemyVisuals.has(target)) {
-				target = this.findEnemyForSoldier(seid);
+				target =
+					SoldierStats.unitKind[seid] === SOLDIER_KIND.archer
+						? this.findEnemyForArcher(seid, nowMs)
+						: this.findEnemyForSoldier(seid);
 				SoldierStats.targetEnemyEid[seid] = target >= 0 ? target : 0;
+			}
+			if (
+				SoldierStats.unitKind[seid] === SOLDIER_KIND.archer &&
+				SoldierStats.targetEnemyEid[seid] !== 0
+			) {
+				this.archerTargetClaims.add(SoldierStats.targetEnemyEid[seid]);
 			}
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
 				const hp = Health.hp[seid];
@@ -3766,6 +3819,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.awaitingCardPick = true;
 		this.bountyBonusMultiplier = 1;
 		const cards = pickCardsForWave(this.wave);
+		this.cardPicksRemaining = this.wave >= 20 ? 2 : 1;
 		cardWaveAtom.set(this.wave);
 		cardOptionsAtom.set(cards);
 	}
@@ -3774,6 +3828,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		switch (card.id) {
 			case 'bonus_gold':
 				this.gold += 150 + this.wave;
+				break;
+			case 'bonus_lives':
+				this.lives += 5;
 				break;
 			case 'free_basic_tower':
 				this.freeBasicTowers += 1;
@@ -3802,6 +3859,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 					createItem('emergency_call_allies'),
 				]);
 				break;
+		}
+		this.cardPicksRemaining -= 1;
+		const remainingOpts = (cardOptionsAtom.get() ?? []).filter(
+			(c) => c.id !== card.id,
+		);
+		if (this.cardPicksRemaining > 0 && remainingOpts.length > 0) {
+			cardOptionsAtom.set(remainingOpts);
+			return;
 		}
 		this.closeCardPanel();
 		this.cardPickedThisInterval = true;

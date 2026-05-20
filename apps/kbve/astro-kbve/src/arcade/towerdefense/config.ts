@@ -40,6 +40,7 @@ export const GAME_CONFIG = {
 	allyAttackRange: 60,
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
+	allyArcherRatio: 0.35,
 	archerInitialCount: 3,
 	archerHpMultiplier: 0.8,
 	archerDamage: 6,
@@ -175,7 +176,7 @@ export type BuildSpec =
 	| RepairSpec
 	| ArmourySpec;
 
-export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery';
+export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
@@ -308,6 +309,31 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		arcHeight: 110,
 		avoidSlowed: false,
 	},
+	wall: {
+		id: 'wall',
+		name: 'Wall',
+		kind: 'tower',
+		cost: 80,
+		maxHp: 720,
+		defense: 12,
+		power: 0,
+		range: 90,
+		damage: 5,
+		damageType: TOWER_DAMAGE_TYPE.kinetic,
+		fireRateMs: 1500,
+		projectileSpeed: 380,
+		color: 0x718096,
+		projectileColor: 0xcbd5e0,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+	},
 };
 
 export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
@@ -397,6 +423,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 
 export const PALETTE_ORDER: BuildId[] = [
 	'basic',
+	'wall',
 	'bomb',
 	'ice',
 	'fire',
