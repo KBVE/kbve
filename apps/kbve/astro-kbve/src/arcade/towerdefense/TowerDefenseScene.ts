@@ -1767,7 +1767,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (hp < maxHp) {
 				b.hpBar.setVisible(true);
 				b.hpBarBg.setVisible(true);
-				b.hpBar.width = (hp / maxHp) * TILE * 0.7;
+				b.hpBar.displayWidth = (hp / maxHp) * TILE * 0.7;
 			} else {
 				b.hpBar.setVisible(false);
 				b.hpBarBg.setVisible(false);
@@ -1777,7 +1777,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (maxArmor > 0 && armor < maxArmor) {
 				b.armorBar.setVisible(true);
 				b.armorBarBg.setVisible(true);
-				b.armorBar.width = (armor / maxArmor) * TILE * 0.7;
+				b.armorBar.displayWidth = (armor / maxArmor) * TILE * 0.7;
 			} else {
 				b.armorBar.setVisible(false);
 				b.armorBarBg.setVisible(false);
@@ -3062,7 +3062,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			v.hpBar.setVisible(true);
 			v.hpBarBg.setPosition(x, y - TILE * 0.32);
 			v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
-			v.hpBar.width = (hp / maxHp) * barWidth;
+			v.hpBar.displayWidth = (hp / maxHp) * barWidth;
 		} else {
 			v.hpBarBg.setVisible(false);
 			v.hpBar.setVisible(false);
@@ -3232,7 +3232,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			v.hpBarBg.setPosition(x, y - TILE * 0.5);
 			v.hpBar.setPosition(x - v.barWidth / 2, y - TILE * 0.5);
 			const ratio = maxHpEnemy > 0 ? hpEnemy / maxHpEnemy : 0;
-			v.hpBar.width = Math.max(0, ratio) * v.barWidth;
+			v.hpBar.displayWidth = Math.max(0, ratio) * v.barWidth;
 			const hpColor =
 				ratio > 0.6
 					? COLORS.enemyHpBar
