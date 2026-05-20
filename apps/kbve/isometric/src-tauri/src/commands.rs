@@ -100,6 +100,10 @@ pub fn greet(name: &str) -> String {
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
 pub fn forward_pointer_move(x: f64, y: f64) {
+    static FIRST: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+    if FIRST.swap(false, std::sync::atomic::Ordering::Relaxed) {
+        eprintln!("[native-input] first pointer move received x={x} y={y}");
+    }
     crate::game::native_input::push_event(
         crate::game::native_input::NativeInputEvent::PointerMove { x, y },
     );
@@ -108,6 +112,7 @@ pub fn forward_pointer_move(x: f64, y: f64) {
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
 pub fn forward_pointer_button(button: u8, pressed: bool) {
+    eprintln!("[native-input] pointer button={button} pressed={pressed}");
     crate::game::native_input::push_event(
         crate::game::native_input::NativeInputEvent::PointerButton { button, pressed },
     );
@@ -125,6 +130,9 @@ pub fn forward_wheel(dx: f64, dy: f64) {
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
 pub fn forward_key(code: String, pressed: bool, repeat: bool) {
+    if !repeat {
+        eprintln!("[native-input] key code={code} pressed={pressed}");
+    }
     crate::game::native_input::push_event(crate::game::native_input::NativeInputEvent::Key {
         code,
         pressed,
