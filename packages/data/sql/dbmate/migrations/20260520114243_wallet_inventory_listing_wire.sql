@@ -90,11 +90,15 @@ BEGIN
        SET qty = qty - p_qty, updated_at = now()
      WHERE id = p_src_item_id;
 
+    -- Preserve v_src.nbt rather than hardcoding '{}'::jsonb. Today the
+    -- is_stackable CHECK above guarantees v_src.nbt = '{}', so the two
+    -- are equivalent — but mirroring the source row keeps this RPC
+    -- correct if the stackable invariant is ever loosened.
     INSERT INTO inventory.item (
         owner_account, kind, ref, qty, nbt, state, source, source_ref
     ) VALUES (
         v_src.owner_account, v_src.kind, v_src.ref, p_qty,
-        '{}'::jsonb, 'listing_escrow', v_src.source,
+        v_src.nbt, 'listing_escrow', v_src.source,
         jsonb_build_object(
             'split_from',        v_src.id::text,
             'parent_source_ref', v_src.source_ref
@@ -136,30 +140,37 @@ ALTER TABLE wallet.listing
     ADD COLUMN item_id UUID
         REFERENCES inventory.item(id) ON DELETE NO ACTION;
 
+-- Hard preflight: refuse the cleanup if any pre-existing active legacy
+-- listing has an active bid. Active bids mean real escrowed khash —
+-- silently flipping bid status to 'refunded' without a ledger reversal
+-- would strand the bidder's khash. The 6.1a foundation deliberately
+-- skips ledger work; if a real bid exists, the migration aborts and
+-- requires manual reconciliation before re-running.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM wallet.listing l
+          JOIN wallet.bid     b ON b.listing_id = l.id
+         WHERE l.status = 'active'
+           AND l.item_id IS NULL
+           AND b.status = 'active'
+    ) THEN
+        RAISE EXCEPTION
+            'legacy active listings with active bids exist; reconcile escrow manually before re-running 20260520114243';
+    END IF;
+END
+$$;
+
 -- Hard cut. Cancel every pre-existing ACTIVE listing — none of them
 -- have item_id (column was just added), and going forward every
 -- listing MUST flow through the inventory ledger via the
--- *_with_item path. Production has no listings yet; this handles
--- dev / test fixtures so the CHECK below can be plain VALID.
+-- *_with_item path. The preflight above guarantees no active bids,
+-- so no ledger work is needed; this is pure schema hygiene.
 DO $$
 DECLARE
     v_cancelled_count INT;
-    v_refunded_count  INT;
 BEGIN
-    -- Refund any active bids on the about-to-be-cancelled listings.
-    -- No ledger work here — legacy market never went live so there
-    -- shouldn't be real escrowed khash. If there is, the audit_log
-    -- row makes it visible for manual reconciliation.
-    UPDATE wallet.bid
-       SET status     = 'refunded',
-           settled_at = COALESCE(settled_at, now())
-     WHERE listing_id IN (
-         SELECT id FROM wallet.listing
-          WHERE status = 'active' AND item_id IS NULL
-     )
-       AND status = 'active';
-    GET DIAGNOSTICS v_refunded_count = ROW_COUNT;
-
     UPDATE wallet.listing
        SET status              = 'cancelled',
            settled_at          = COALESCE(settled_at, now()),
@@ -170,7 +181,7 @@ BEGIN
        AND item_id IS NULL;
     GET DIAGNOSTICS v_cancelled_count = ROW_COUNT;
 
-    IF v_cancelled_count > 0 OR v_refunded_count > 0 THEN
+    IF v_cancelled_count > 0 THEN
         INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
         VALUES (
             'marketplace.legacy_cleanup',
@@ -178,7 +189,6 @@ BEGIN
             '20260520114243_wallet_inventory_listing_wire',
             jsonb_build_object(
                 'cancelled_listings', v_cancelled_count,
-                'refunded_bids',      v_refunded_count,
                 'reason',             'pre-inventory-ledger active listings cleared'
             )
         );
@@ -198,6 +208,17 @@ ALTER TABLE wallet.listing
 CREATE UNIQUE INDEX wallet_listing_active_item_uq
     ON wallet.listing (item_id)
     WHERE status = 'active' AND item_id IS NOT NULL;
+
+-- Expiry sweep support. service_expire_listings scans
+-- (status='active' AND currency='khash' AND expires_at <= now())
+-- ORDER BY expires_at, id. The existing wallet_listing_active_expires_idx
+-- covers status='active' on expires_at, but a tighter partial index
+-- with the id tiebreaker + currency predicate keeps the sweep cheap
+-- as marketplace volume grows.
+CREATE INDEX IF NOT EXISTS wallet_listing_active_khash_expiry_idx
+    ON wallet.listing (expires_at, id)
+    WHERE status = 'active'
+      AND currency = 'khash'::wallet.currency_kind;
 
 COMMENT ON COLUMN wallet.listing.item_id IS
     'inventory.item.id of the listed row. NULL only allowed on legacy non-active listings; new active listings MUST reference an inventory.item. Active-listing uniqueness ensures one open listing per item.';
@@ -330,9 +351,21 @@ BEGIN
     ) RETURNING id INTO v_listing_id;
 
     -- Whole-row path needs the explicit lock RPC. The split path
-    -- already flipped the new row to listing_escrow.
+    -- already flipped the new row to listing_escrow; backfill the
+    -- listing_id into source_ref so reconciliation tooling can
+    -- traverse split-row escrow → owning listing without a separate
+    -- join through wallet.listing.item_id.
     IF NOT v_was_split THEN
         PERFORM inventory.service_listing_lock(p_seller_account, v_listed_id, v_listing_id);
+    ELSE
+        UPDATE inventory.item
+           SET source_ref = source_ref
+                            || jsonb_build_object(
+                                   'listing_id',         v_listing_id,
+                                   'listing_created_at', v_now
+                               ),
+               updated_at  = now()
+         WHERE id = v_listed_id;
     END IF;
 
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata)
@@ -404,11 +437,12 @@ BEGIN
     END IF;
 
     -- 2FA gate: if the account opted into require_2fa_for_listing,
-    -- the JWT must carry aal=aal2.
+    -- the JWT must carry aal=aal2. Don't leak the account UUID into
+    -- the error message — caller already knows it's theirs, and the
+    -- audit_log row carries the details for support.
     IF inventory.is_2fa_required_for_listing(v_seller)
        AND v_aal IS DISTINCT FROM 'aal2' THEN
-        RAISE EXCEPTION 'mfa_required for listing on account %', v_seller
-            USING ERRCODE = 'INV30';
+        RAISE EXCEPTION 'mfa_required for listing' USING ERRCODE = 'INV30';
     END IF;
 
     -- High-value gate. Compare max(buy_now_price, min_bid) against
@@ -425,8 +459,8 @@ BEGIN
         );
         IF v_max_price >= v_threshold
            AND v_aal IS DISTINCT FROM 'aal2' THEN
-            RAISE EXCEPTION 'mfa_required for high-value listing (price=%, threshold=%) on account %',
-                v_max_price, v_threshold, v_seller USING ERRCODE = 'INV30';
+            RAISE EXCEPTION 'mfa_required for high-value listing'
+                USING ERRCODE = 'INV30';
         END IF;
     END IF;
 
@@ -442,13 +476,60 @@ GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BI
 COMMENT ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
     'PUBLIC marketplace proxy. Authenticated wrapper for wallet.service_create_listing_with_item. Enforces inventory.is_2fa_required_for_listing aal2 gate and the high_value_khash_threshold gate. p_qty NULL = list whole row; p_qty < src.qty = split-and-list.';
 
+-- ---------------------------------------------------------------------------
+-- Legacy proxy_market_create_listing(JSONB, ...) deprecation
+--   The legacy proxy from migration 20260516015242 still exists for
+--   axum / Astro compile-time. With the new wallet_listing_active_item_id_chk
+--   in place, the legacy INSERT would fail with a raw check_violation.
+--   Replace the legacy proxy body with a clean P1011 error so callers
+--   see "use the *_with_item path" instead of a constraint trip.
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.proxy_market_create_listing(
+    p_item_ref        JSONB,
+    p_buy_now_price   BIGINT,
+    p_min_bid         BIGINT,
+    p_expires_at      TIMESTAMPTZ,
+    p_idempotency_key UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+    RAISE EXCEPTION 'legacy listing RPC disabled; use proxy_market_create_listing_with_item'
+        USING ERRCODE = 'P1011';
+END;
+$$;
+
+COMMENT ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
+    'DEPRECATED. Phase 6.1a stubbed this proxy to raise P1011 so axum/Astro see a clean migration error during the 6.1b cutover. Dropped entirely in Phase 6.1c.';
+
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
+-- ============================================================================
+-- ⚠ OPERATIONAL WARNING ⚠
+-- Rolling back this migration RE-INTRODUCES the stuck-escrow + legacy
+-- listing path, removes wallet.listing.item_id, and resurrects the
+-- raw check_violation behaviour of the legacy proxy. Hard-gated on
+-- the GUC app.allow_marketplace_unsafe_down='on' so a stray dbmate
+-- rollback against prod aborts before touching anything. Local test
+-- harness opts in via PGOPTIONS — see test-migration.sh.
+-- ============================================================================
+DO $$
+BEGIN
+    IF current_setting('app.allow_marketplace_unsafe_down', true)
+       IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION
+            'refusing destructive marketplace rollback: set app.allow_marketplace_unsafe_down=on to proceed';
+    END IF;
+END
+$$;
 
 DROP FUNCTION IF EXISTS public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID);
 DROP FUNCTION IF EXISTS wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID);
 
+DROP INDEX IF EXISTS wallet.wallet_listing_active_khash_expiry_idx;
 DROP INDEX IF EXISTS wallet.wallet_listing_active_item_uq;
 ALTER TABLE wallet.listing DROP CONSTRAINT IF EXISTS wallet_listing_active_item_id_chk;
 ALTER TABLE wallet.listing DROP COLUMN IF EXISTS item_id;

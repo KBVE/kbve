@@ -469,8 +469,19 @@ NOTIFY pgrst, 'reload schema';
 --      foundation rollback alongside.
 --   3. Or roll back the foundation migration 20260520114243 in the
 --      same window so wallet.listing.item_id is gone entirely.
--- This down path is meant for dev / test, not live triage.
+-- This down path is meant for dev / test, not live triage. Hard-gated
+-- on app.allow_marketplace_unsafe_down='on' to mirror the foundation
+-- migration's guard.
 -- ============================================================================
+DO $$
+BEGIN
+    IF current_setting('app.allow_marketplace_unsafe_down', true)
+       IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION
+            'refusing destructive marketplace rollback: set app.allow_marketplace_unsafe_down=on to proceed';
+    END IF;
+END
+$$;
 
 DROP INDEX IF EXISTS wallet.wallet_bid_one_won_per_listing_uq;
 

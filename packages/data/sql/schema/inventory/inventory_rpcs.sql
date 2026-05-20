@@ -1045,7 +1045,7 @@ BEGIN
         owner_account, kind, ref, qty, nbt, state, source, source_ref
     ) VALUES (
         v_src.owner_account, v_src.kind, v_src.ref, p_qty,
-        '{}'::jsonb, 'listing_escrow', v_src.source,
+        v_src.nbt, 'listing_escrow', v_src.source,
         jsonb_build_object(
             'split_from',        v_src.id::text,
             'parent_source_ref', v_src.source_ref
