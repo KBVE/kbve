@@ -236,6 +236,29 @@ BEGIN
         RAISE EXCEPTION
             'legacy active listings with stale current_bid_id pointers exist; manual reconciliation required';
     END IF;
+
+    -- Catch denormalized cache drift: current_bid_id points at an
+    -- active bid row, but the cached current_bid / current_bid_account
+    -- disagree with that bid's amount / bidder. Settle in the new
+    -- code path refuses this drift; surface it before the cleanup
+    -- below clears the cache and deletes the evidence.
+    IF EXISTS (
+        SELECT 1
+          FROM wallet.listing l
+          JOIN wallet.bid b
+            ON b.id = l.current_bid_id
+           AND b.listing_id = l.id
+           AND b.status = 'active'
+         WHERE l.status = 'active'
+           AND l.item_id IS NULL
+           AND (
+                l.current_bid IS DISTINCT FROM b.amount
+                OR l.current_bid_account IS DISTINCT FROM b.bidder_account
+           )
+    ) THEN
+        RAISE EXCEPTION
+            'legacy active listings with current_bid cache mismatch exist; manual reconciliation required';
+    END IF;
 END
 $$;
 
@@ -280,6 +303,26 @@ FROM cancelled;
 ALTER TABLE wallet.listing
     ADD CONSTRAINT wallet_listing_active_item_id_chk
         CHECK (status <> 'active' OR item_id IS NOT NULL);
+
+-- Defensive: duplicate-detection preflight before the unique index
+-- build. Impossible on first deploy (item_id was just added), but
+-- protects re-applications against dev/staging drift and surfaces a
+-- clean error instead of a raw unique_violation during CREATE INDEX.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM wallet.listing
+         WHERE status = 'active'
+           AND item_id IS NOT NULL
+         GROUP BY item_id
+        HAVING count(*) > 1
+    ) THEN
+        RAISE EXCEPTION
+            'duplicate active item-backed listings exist; manual reconciliation required before creating wallet_listing_active_item_uq';
+    END IF;
+END
+$$;
 
 CREATE UNIQUE INDEX wallet_listing_active_item_uq
     ON wallet.listing (item_id)

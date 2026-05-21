@@ -667,6 +667,7 @@ BEGIN
     );
     UPDATE wallet.listing
        SET status = 'cancelled', settled_at = v_now,
+           buyer_account = NULL,
            current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
      WHERE id = p_listing_id;
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata, reason)
@@ -717,6 +718,7 @@ BEGIN
         ELSE
             UPDATE wallet.listing
                SET status = 'expired', settled_at = v_now,
+                   buyer_account = NULL,
                    current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
              WHERE id = v_listing_id;
             v_expired := v_expired + 1;
