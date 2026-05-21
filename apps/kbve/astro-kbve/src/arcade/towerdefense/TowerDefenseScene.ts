@@ -173,6 +173,13 @@ import {
 	createPowerIndicator,
 	disposeBuildingAmbience,
 } from './buildings';
+import {
+	findAttackTargetFor,
+	findEnemyForArcher,
+	findEnemyForSoldier,
+	findWeakestEnemyInRange,
+	type TargetingCtx,
+} from './combat';
 import { FloatingTextPool } from './effects';
 import {
 	computeEnemyStats,
@@ -180,7 +187,14 @@ import {
 	type EnemyVisualDeps,
 } from './enemies';
 import { drawGrass, drawGridLines, drawPath } from './environment';
-import { createUnitVisual, type UnitVisualDeps } from './units';
+import {
+	spawnAllySoldier as spawnAllySoldierExt,
+	spawnArmouryArcher,
+	spawnArmourySoldier,
+	spawnCastleUnit,
+	type SpawnUnitDeps,
+	type UnitVisualDeps,
+} from './units';
 import { createItem, type ItemId } from './items';
 import { generatePath, type GeneratedPath } from './path-generator';
 import {
@@ -193,8 +207,6 @@ import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
 import {
 	armouryMaxSoldiers,
-	armourySoldierDamage,
-	armourySoldierHp,
 	armourySpawnIntervalMs,
 	repairAmount,
 	repairCooldownMs,
@@ -294,6 +306,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.acquireRect(x, y, w, h, color, alpha),
 	};
 	private floatingText = new FloatingTextPool(this);
+	private targetingCtx: TargetingCtx = Object.defineProperties(
+		{
+			enemyAlive: (eid: number) => this.enemyVisuals.has(eid),
+			soldierAlive: (eid: number) => this.soldierVisuals.has(eid),
+		} as TargetingCtx,
+		{
+			frameBuildingEids: {
+				get: () => this.frameBuildingEids,
+				enumerable: true,
+			},
+			frameSoldierEids: {
+				get: () => this.frameSoldierEids,
+				enumerable: true,
+			},
+			frameEnemyEids: {
+				get: () => this.frameEnemyEids,
+				enumerable: true,
+			},
+			archerTargetClaims: {
+				get: () => this.archerTargetClaims,
+				enumerable: true,
+			},
+		},
+	);
 	private enemyVisualDeps: EnemyVisualDeps = {
 		scene: this,
 		acquireImage: (x, y, key) => this.acquireImage(x, y, key),
@@ -301,6 +337,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 		acquireRect: (x, y, w, h, color, alpha) =>
 			this.acquireRect(x, y, w, h, color, alpha),
 	};
+	private spawnUnitDeps: SpawnUnitDeps = Object.defineProperties(
+		{
+			scene: this,
+			unitVisuals: this.unitVisualDeps,
+			soldierVisuals: this.soldierVisuals,
+			addDamageable: (
+				eid: number,
+				hp: number,
+				armor: number,
+				defense: number,
+			) => this.addDamageable(eid, hp, armor, defense),
+		} as unknown as SpawnUnitDeps,
+		{
+			world: { get: () => this.world, enumerable: true },
+		},
+	);
 	private wave = 0;
 	private enemiesToSpawn = 0;
 	private spawnAccumulatorMs = 0;
@@ -1860,38 +1912,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private findAttackTargetFor(eid: number): boolean {
-		const range = EnemyStats.attackRange[eid];
-		if (range <= 0) return false;
-		const ex = Position.x[eid];
-		const ey = Position.y[eid];
-		let bestEid = -1;
-		let bestKind: number = ATTACK_TARGET_KIND.none;
-		let bestDist2 = range * range;
-		for (const beid of this.frameBuildingEids) {
-			if (BuildingState.destroyed[beid]) continue;
-			const dx = Position.x[beid] - ex;
-			const dy = Position.y[beid] - ey;
-			const d2 = dx * dx + dy * dy;
-			if (d2 <= bestDist2) {
-				bestDist2 = d2;
-				bestEid = beid;
-				bestKind = ATTACK_TARGET_KIND.building;
-			}
-		}
-		for (const seid of this.frameSoldierEids) {
-			if (!this.soldierVisuals.has(seid)) continue;
-			const dx = Position.x[seid] - ex;
-			const dy = Position.y[seid] - ey;
-			const d2 = dx * dx + dy * dy;
-			if (d2 <= bestDist2) {
-				bestDist2 = d2;
-				bestEid = seid;
-				bestKind = ATTACK_TARGET_KIND.soldier;
-			}
-		}
-		EnemyStats.targetEid[eid] = bestEid;
-		EnemyStats.targetKind[eid] = bestKind;
-		return bestKind !== ATTACK_TARGET_KIND.none;
+		return findAttackTargetFor(this.targetingCtx, eid);
 	}
 
 	private targetAlive(targetEid: number, targetKind: number): boolean {
@@ -2118,44 +2139,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		expiresAtWave: number,
 		asArcher: boolean = false,
 	): void {
-		const eid = addEntity(this.world);
-		addComponent(this.world, eid, Position);
-		addComponent(this.world, eid, SoldierTag);
-		addComponent(this.world, eid, SoldierStats);
-		Position.x[eid] = x;
-		Position.y[eid] = y;
-		const hp = asArcher
-			? Math.floor(GAME_CONFIG.allyHp * GAME_CONFIG.archerHpMultiplier)
-			: GAME_CONFIG.allyHp;
-		this.addDamageable(eid, hp, 0, 0);
-		SoldierStats.speed[eid] = asArcher
-			? GAME_CONFIG.archerSpeed
-			: GAME_CONFIG.allySpeed;
-		SoldierStats.attackDamage[eid] = asArcher
-			? GAME_CONFIG.archerDamage
-			: GAME_CONFIG.allyDamage;
-		SoldierStats.attackRateMs[eid] = asArcher
-			? GAME_CONFIG.archerAttackRateMs
-			: GAME_CONFIG.allyAttackRateMs;
-		SoldierStats.attackRange[eid] = asArcher
-			? GAME_CONFIG.allyAttackRange *
-				GAME_CONFIG.archerAttackRangeMultiplier
-			: GAME_CONFIG.allyAttackRange;
-		SoldierStats.lastAttackAtMs[eid] = 0;
-		SoldierStats.targetEnemyEid[eid] = 0;
-		SoldierStats.armouryEid[eid] = -1;
-		SoldierStats.expiresAtWave[eid] = expiresAtWave;
-		SoldierStats.unitKind[eid] = asArcher
-			? SOLDIER_KIND.archer
-			: SOLDIER_KIND.melee;
-		const visual = createUnitVisual(this.unitVisualDeps, {
-			x,
-			y,
-			variant: asArcher ? 'ally_archer' : 'ally_melee',
-			displaySize: TILE * 0.55,
-		});
-		this.attachSoldierIdleAnim(eid, visual);
-		this.soldierVisuals.set(eid, visual);
+		spawnAllySoldierExt(this.spawnUnitDeps, x, y, expiresAtWave, asArcher);
 	}
 
 	private consumeInventoryItem(id: ItemId): void {
@@ -2274,30 +2258,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private spawnCastleSoldier(castle: CastleBuilding): void {
-		const eid = addEntity(this.world);
-		addComponent(this.world, eid, Position);
-		addComponent(this.world, eid, SoldierTag);
-		addComponent(this.world, eid, SoldierStats);
-		Position.x[eid] = castle.x;
-		Position.y[eid] = castle.y;
-		this.addDamageable(eid, castle.spec.unitHp, 0, 0);
-		SoldierStats.speed[eid] = castle.spec.unitSpeed;
-		SoldierStats.attackDamage[eid] = castle.spec.unitDamage;
-		SoldierStats.attackRateMs[eid] = castle.spec.unitAttackRateMs;
-		SoldierStats.attackRange[eid] = castle.spec.unitAttackRange;
-		SoldierStats.lastAttackAtMs[eid] = 0;
-		SoldierStats.targetEnemyEid[eid] = 0;
-		SoldierStats.armouryEid[eid] = castle.id;
-		SoldierStats.expiresAtWave[eid] = -1;
-		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const visual = createUnitVisual(this.unitVisualDeps, {
-			x: castle.x,
-			y: castle.y,
-			variant: 'castle_melee',
-			displaySize: TILE * 0.6,
-		});
-		this.attachSoldierIdleAnim(eid, visual);
-		this.soldierVisuals.set(eid, visual);
+		spawnCastleUnit(this.spawnUnitDeps, castle);
 	}
 
 	private findWeakestEnemyInRange(
@@ -2305,23 +2266,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		y: number,
 		range: number,
 	): number {
-		let best = -1;
-		let bestHp = Infinity;
-		const r2 = range * range;
-		for (const eeid of this.frameEnemyEids) {
-			if (!this.enemyVisuals.has(eeid)) continue;
-			const ex = Position.x[eeid];
-			const ey = Position.y[eeid];
-			const dx = ex - x;
-			const dy = ey - y;
-			if (dx * dx + dy * dy > r2) continue;
-			const hp = Health.hp[eeid];
-			if (hp < bestHp) {
-				bestHp = hp;
-				best = eeid;
-			}
-		}
-		return best;
+		return findWeakestEnemyInRange(this.targetingCtx, x, y, range);
 	}
 
 	private spawnStunDrone(castle: CastleBuilding, targetEid: number): void {
@@ -2425,77 +2370,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private spawnSoldier(armoury: ArmouryBuilding): void {
-		const eid = addEntity(this.world);
-		addComponent(this.world, eid, Position);
-		addComponent(this.world, eid, SoldierTag);
-		addComponent(this.world, eid, SoldierStats);
-		Position.x[eid] = armoury.x;
-		Position.y[eid] = armoury.y;
-		const hp = armourySoldierHp(armoury);
-		this.addDamageable(eid, hp, 0, 0);
-		SoldierStats.speed[eid] = armoury.spec.soldierSpeed;
-		SoldierStats.attackDamage[eid] = armourySoldierDamage(armoury);
-		SoldierStats.attackRateMs[eid] = armoury.spec.soldierAttackRateMs;
-		SoldierStats.attackRange[eid] = armoury.spec.soldierAttackRange;
-		SoldierStats.lastAttackAtMs[eid] = 0;
-		SoldierStats.targetEnemyEid[eid] = 0;
-		SoldierStats.armouryEid[eid] = armoury.id;
-		SoldierStats.expiresAtWave[eid] = -1;
-		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const visual = createUnitVisual(this.unitVisualDeps, {
-			x: armoury.x,
-			y: armoury.y,
-			variant: 'soldier_melee',
-			displaySize: TILE * 0.55,
-		});
-		this.attachSoldierIdleAnim(eid, visual);
-		this.soldierVisuals.set(eid, visual);
+		spawnArmourySoldier(this.spawnUnitDeps, armoury);
 	}
 
 	private spawnArcher(armoury: ArmouryBuilding): void {
-		const eid = addEntity(this.world);
-		addComponent(this.world, eid, Position);
-		addComponent(this.world, eid, SoldierTag);
-		addComponent(this.world, eid, SoldierStats);
-		Position.x[eid] = armoury.x;
-		Position.y[eid] = armoury.y;
-		const hp = Math.floor(
-			armourySoldierHp(armoury) * GAME_CONFIG.archerHpMultiplier,
-		);
-		this.addDamageable(eid, hp, 0, 0);
-		SoldierStats.speed[eid] = GAME_CONFIG.archerSpeed;
-		SoldierStats.attackDamage[eid] = GAME_CONFIG.archerDamage;
-		SoldierStats.attackRateMs[eid] = GAME_CONFIG.archerAttackRateMs;
-		SoldierStats.attackRange[eid] =
-			armoury.spec.soldierAttackRange *
-			GAME_CONFIG.archerAttackRangeMultiplier;
-		SoldierStats.lastAttackAtMs[eid] = 0;
-		SoldierStats.targetEnemyEid[eid] = 0;
-		SoldierStats.armouryEid[eid] = armoury.id;
-		SoldierStats.expiresAtWave[eid] = -1;
-		SoldierStats.unitKind[eid] = SOLDIER_KIND.archer;
-		const visual = createUnitVisual(this.unitVisualDeps, {
-			x: armoury.x,
-			y: armoury.y,
-			variant: 'soldier_archer',
-			displaySize: TILE * 0.55,
-		});
-		this.attachSoldierIdleAnim(eid, visual);
-		this.soldierVisuals.set(eid, visual);
-	}
-
-	private attachSoldierIdleAnim(eid: number, visual: SoldierVisual): void {
-		const baseX = visual.sprite.scaleX;
-		const baseY = visual.sprite.scaleY;
-		visual.idleTween = this.tweens.add({
-			targets: visual.sprite,
-			scaleX: baseX * 1.12,
-			scaleY: baseY * 1.12,
-			duration: 520 + (eid % 4) * 90,
-			yoyo: true,
-			repeat: -1,
-			ease: 'Sine.easeInOut',
-		});
+		spawnArmouryArcher(this.spawnUnitDeps, armoury);
 	}
 
 	private fireArcherShot(
@@ -2547,62 +2426,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private findEnemyForSoldier(seid: number): number {
-		const sx = Position.x[seid];
-		const sy = Position.y[seid];
-		let best = -1;
-		let bestDist2 = Infinity;
-		for (const eeid of this.frameEnemyEids) {
-			if (!this.enemyVisuals.has(eeid)) continue;
-			const dx = Position.x[eeid] - sx;
-			const dy = Position.y[eeid] - sy;
-			const d2 = dx * dx + dy * dy;
-			if (d2 < bestDist2) {
-				bestDist2 = d2;
-				best = eeid;
-			}
-		}
-		return best;
+		return findEnemyForSoldier(this.targetingCtx, seid);
 	}
 
 	private findEnemyForArcher(seid: number, nowMs: number): number {
-		const sx = Position.x[seid];
-		const sy = Position.y[seid];
-		const range = SoldierStats.attackRange[seid];
-		const r2 = range * range * 1.4;
-		let bestFresh = -1;
-		let bestFreshD2 = Infinity;
-		let bestStale = -1;
-		let bestStaleExpiry = Infinity;
-		let bestFallback = -1;
-		let bestFallbackD2 = Infinity;
-		for (const eeid of this.frameEnemyEids) {
-			if (!this.enemyVisuals.has(eeid)) continue;
-			const dx = Position.x[eeid] - sx;
-			const dy = Position.y[eeid] - sy;
-			const d2 = dx * dx + dy * dy;
-			if (d2 < bestFallbackD2) {
-				bestFallbackD2 = d2;
-				bestFallback = eeid;
-			}
-			if (d2 > r2) continue;
-			const slowed = hasStatus(eeid, STATUS_KIND.slow, nowMs);
-			const claimed = this.archerTargetClaims.has(eeid);
-			if (!slowed && !claimed) {
-				if (d2 < bestFreshD2) {
-					bestFreshD2 = d2;
-					bestFresh = eeid;
-				}
-			} else if (slowed && !claimed) {
-				const exp = statusExpiresAt(eeid, STATUS_KIND.slow);
-				if (exp < bestStaleExpiry) {
-					bestStaleExpiry = exp;
-					bestStale = eeid;
-				}
-			}
-		}
-		if (bestFresh >= 0) return bestFresh;
-		if (bestStale >= 0) return bestStale;
-		return bestFallback;
+		return findEnemyForArcher(this.targetingCtx, seid, nowMs);
 	}
 
 	private damageSoldier(eid: number, dmg: number): void {
