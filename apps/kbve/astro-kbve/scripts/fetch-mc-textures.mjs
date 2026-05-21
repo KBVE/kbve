@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';
+import { resolveBaseRef } from './mc-texture-aliases.mjs';
 
 const MC_ASSET_VERSION = '1.21.5';
 const BASE = `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/${MC_ASSET_VERSION}/assets/minecraft/textures`;
@@ -63,28 +64,74 @@ async function fetchOne(kind, ref) {
 	return { ref, kind, status: 'fetched' };
 }
 
+async function tryRefAcrossKinds(ref) {
+	const item = await fetchOne('item', ref);
+	if (item.status !== 'missing') return item;
+	const block = await fetchOne('block', ref);
+	return block;
+}
+
 async function main() {
 	const refs = await collectItemRefs();
 	console.log(`Discovered ${refs.size} refs from MDX frontmatter`);
 
 	let fetched = 0;
 	let skipped = 0;
+	let aliased = 0;
 	let missing = 0;
 	for (const ref of refs) {
-		const item = await fetchOne('item', ref);
-		if (item.status === 'fetched') fetched++;
-		else if (item.status === 'skip') skipped++;
-		if (item.status === 'missing') {
-			const block = await fetchOne('block', ref);
-			if (block.status === 'fetched') fetched++;
-			else if (block.status === 'skip') skipped++;
-			else if (block.status === 'missing') {
-				console.warn(`  ⚠ no texture for ${ref} (item/ + block/ both 404)`);
-				missing++;
+		const direct = await tryRefAcrossKinds(ref);
+		if (direct.status === 'fetched') {
+			fetched++;
+			continue;
+		}
+		if (direct.status === 'skip') {
+			skipped++;
+			continue;
+		}
+		// direct is 'missing' — chase the derived → base mapping. Some
+		// refs need >1 hop (waxed_exposed_cut_copper_slab → strip waxed →
+		// exposed_cut_copper_slab → strip slab → exposed_cut_copper).
+		const chain = [];
+		const seen = new Set([ref]);
+		let cursor = ref;
+		while (true) {
+			const next = resolveBaseRef(cursor);
+			if (!next || next === cursor || seen.has(next)) break;
+			chain.push(next);
+			seen.add(next);
+			cursor = next;
+			if (chain.length >= 4) break;
+		}
+		if (chain.length === 0) {
+			console.warn(`  ⚠ no texture for ${ref} (item/ + block/ both 404, no alias)`);
+			missing++;
+			continue;
+		}
+		let resolved = null;
+		for (const alias of chain) {
+			const res = await tryRefAcrossKinds(alias);
+			if (res.status === 'fetched' || res.status === 'skip') {
+				resolved = { alias, res };
+				break;
 			}
 		}
+		if (resolved) {
+			if (resolved.res.status === 'fetched') {
+				fetched++;
+				console.log(`  ↳ ${ref} → ${resolved.alias} (${resolved.res.kind}/)`);
+			} else {
+				skipped++;
+			}
+			aliased++;
+		} else {
+			console.warn(`  ⚠ no texture for ${ref} → ${chain.join(' → ')} (chain 404)`);
+			missing++;
+		}
 	}
-	console.log(`✨ fetched: ${fetched}  skipped: ${skipped}  missing: ${missing}`);
+	console.log(
+		`✨ fetched: ${fetched}  skipped: ${skipped}  aliased: ${aliased}  missing: ${missing}`,
+	);
 }
 
 main().catch((err) => {
