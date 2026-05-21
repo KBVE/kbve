@@ -166,6 +166,7 @@ import {
 	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
+import { drawGrass, drawGridLines, drawPath } from './environment';
 import { createItem, type ItemId } from './items';
 import { generatePath, type GeneratedPath } from './path-generator';
 import {
@@ -404,9 +405,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		ensureUnitTextures(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
-		this.drawGrass();
-		this.drawGridLines();
-		this.drawPath();
+		drawGrass(this);
+		drawGridLines(this);
+		drawPath(this, this.path);
 		this.subscribeHudSignals();
 		this.buildPlacementPreview();
 		this.placeNexus();
@@ -453,82 +454,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 
 		this.interWaveDelayMs = GAME_CONFIG.waveDelayMs;
-	}
-
-	private drawGrass(): void {
-		this.add
-			.rectangle(
-				BASE_WIDTH / 2,
-				BASE_HEIGHT / 2,
-				BASE_WIDTH,
-				BASE_HEIGHT,
-				COLORS.grass,
-			)
-			.setOrigin(0.5);
-		const tufts = this.add.graphics();
-		const tuftColors = [0x2f6b45, 0x1f4a32, 0x3b8755];
-		let seed = 0x1f3a52;
-		const rng = () => {
-			seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-			return ((seed >>> 0) % 10000) / 10000;
-		};
-		const count = Math.floor((BASE_WIDTH * BASE_HEIGHT) / 900);
-		for (let i = 0; i < count; i++) {
-			const gx = rng() * BASE_WIDTH;
-			const gy = rng() * BASE_HEIGHT;
-			const color = tuftColors[i % tuftColors.length];
-			const r = 1 + rng() * 1.5;
-			tufts.fillStyle(color, 0.55);
-			tufts.fillCircle(gx, gy, r);
-		}
-	}
-
-	private drawGridLines(): void {
-		const g = this.add.graphics();
-		g.lineStyle(1, COLORS.gridLine, 0.5);
-		for (let c = 1; c < COLS; c++) {
-			g.lineBetween(c * TILE, 0, c * TILE, BASE_HEIGHT);
-		}
-		for (let r = 1; r < ROWS; r++) {
-			g.lineBetween(0, r * TILE, BASE_WIDTH, r * TILE);
-		}
-	}
-
-	private drawPath(): void {
-		const w = this.path.waypoints;
-		const shadow = this.add.graphics();
-		shadow.lineStyle(TILE + 2, 0x0d1f15, 0.35);
-		shadow.beginPath();
-		shadow.moveTo(w[0].x, w[0].y + 2);
-		for (let i = 1; i < w.length; i++) shadow.lineTo(w[i].x, w[i].y + 2);
-		shadow.strokePath();
-		const fill = this.add.graphics();
-		fill.lineStyle(TILE - 2, COLORS.pathFill, 1);
-		fill.beginPath();
-		fill.moveTo(w[0].x, w[0].y);
-		for (let i = 1; i < w.length; i++) fill.lineTo(w[i].x, w[i].y);
-		fill.strokePath();
-		const inner = this.add.graphics();
-		inner.lineStyle(TILE * 0.55, 0x394b62, 1);
-		inner.beginPath();
-		inner.moveTo(w[0].x, w[0].y);
-		for (let i = 1; i < w.length; i++) inner.lineTo(w[i].x, w[i].y);
-		inner.strokePath();
-		const markers = this.add.graphics();
-		markers.fillStyle(0x6b7e94, 0.7);
-		for (let i = 0; i < w.length - 1; i++) {
-			const a = w[i];
-			const b = w[i + 1];
-			const dx = b.x - a.x;
-			const dy = b.y - a.y;
-			const len = Math.hypot(dx, dy);
-			if (len < TILE) continue;
-			const steps = Math.floor(len / (TILE * 0.6));
-			for (let s = 1; s < steps; s++) {
-				const t = s / steps;
-				markers.fillCircle(a.x + dx * t, a.y + dy * t, 1.6);
-			}
-		}
 	}
 
 	private canSkipWave(): boolean {
