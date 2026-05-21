@@ -318,7 +318,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 	};
 	private projectileSpawnDeps: ProjectileSpawnDeps = Object.defineProperties(
 		{
-			projectileVisuals: this.projectileVisuals,
 			acquireProjectileSprite: (
 				x: number,
 				y: number,
@@ -331,6 +330,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		{
 			world: { get: () => this.world, enumerable: true },
 			simNow: { get: () => this.simNow, enumerable: true },
+			projectileVisuals: {
+				get: () => this.projectileVisuals,
+				enumerable: true,
+			},
 		},
 	);
 	private projectileStepCtx: ProjectileStepCtx = {
@@ -375,7 +378,6 @@ export class TowerDefenseScene extends Phaser.Scene {
 		{
 			scene: this,
 			unitVisuals: this.unitVisualDeps,
-			soldierVisuals: this.soldierVisuals,
 			addDamageable: (
 				eid: number,
 				hp: number,
@@ -385,6 +387,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} as unknown as SpawnUnitDeps,
 		{
 			world: { get: () => this.world, enumerable: true },
+			soldierVisuals: {
+				get: () => this.soldierVisuals,
+				enumerable: true,
+			},
 		},
 	);
 	private wave = 0;
