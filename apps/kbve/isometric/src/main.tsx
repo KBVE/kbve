@@ -132,11 +132,17 @@ async function bootstrap() {
 
 	const wasm = await init();
 
-	// Hand the Supabase access token (set by the arcade page's authBridge
-	// probe) to Bevy so the title screen flips straight to "Signed in as X"
-	// and the netcode handshake starts without a Play Online click.
-	const initialJwt = (window as Window & { __KBVE_INITIAL_JWT__?: string })
-		.__KBVE_INITIAL_JWT__;
+	// Hand the Supabase access token (resolved by the arcade page's
+	// authBridge probe) to Bevy so the title screen flips straight to
+	// "Signed in as X" and the netcode handshake starts without a Play
+	// Online click. Awaiting the probe avoids a race where WASM finishes
+	// init before the IndexedDB-backed session is read.
+	const probe = (
+		window as Window & {
+			__KBVE_SESSION_PROBE__?: Promise<string | null>;
+		}
+	).__KBVE_SESSION_PROBE__;
+	const initialJwt = probe ? await probe : null;
 	if (initialJwt && typeof wasmModule.set_signed_in === 'function') {
 		try {
 			wasmModule.set_signed_in(initialJwt);
