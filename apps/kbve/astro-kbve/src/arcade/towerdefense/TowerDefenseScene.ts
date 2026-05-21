@@ -2432,13 +2432,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const expires = this.wave + GAME_CONFIG.allyLifespanWaves;
 		const count = GAME_CONFIG.allyCallCount;
 		const archerQuota = Math.floor(count * GAME_CONFIG.allyArcherRatio);
-		for (let i = 0; i < count; i++) {
-			const angle = (i / count) * Math.PI * 2;
-			const radius = TILE * 0.6 + (i % 3) * 6;
-			const sx = cx + Math.cos(angle) * radius;
-			const sy = cy + Math.sin(angle) * radius;
-			const asArcher = i < archerQuota;
-			this.spawnAllySoldier(sx, sy, expires, asArcher);
+		const ringSizes = [1, 6, 12, 18];
+		let placed = 0;
+		let ring = 0;
+		while (placed < count) {
+			const slots = ringSizes[ring] ?? Math.max(6, ring * 6);
+			const ringRadius = ring === 0 ? 0 : TILE * (0.55 + ring * 0.7);
+			const fill = Math.min(slots, count - placed);
+			for (let k = 0; k < fill; k++) {
+				const angle = (k / Math.max(1, slots)) * Math.PI * 2;
+				const sx = cx + Math.cos(angle) * ringRadius;
+				const sy = cy + Math.sin(angle) * ringRadius;
+				const i = placed + k;
+				const asArcher = i < archerQuota;
+				this.spawnAllySoldier(sx, sy, expires, asArcher);
+			}
+			placed += fill;
+			ring += 1;
 		}
 	}
 
@@ -2809,6 +2819,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 						}
 					}
 				}
+				this.applySoldierSeparation(seid, dt);
 				this.syncSoldierVisuals(seid);
 				continue;
 			}
@@ -2848,8 +2859,47 @@ export class TowerDefenseScene extends Phaser.Scene {
 					Position.y[seid] += (dy / dist) * step;
 				}
 			}
+			this.applySoldierSeparation(seid, dt);
 			this.syncSoldierVisuals(seid);
 		}
+	}
+
+	private applySoldierSeparation(seid: number, dt: number): void {
+		const minSep = TILE * 0.35;
+		const minSepSq = minSep * minSep;
+		const push = TILE * 0.9;
+		let ax = 0;
+		let ay = 0;
+		let neighbors = 0;
+		const sx = Position.x[seid];
+		const sy = Position.y[seid];
+		this.soldierSpatial.forEachInRange(
+			sx,
+			sy,
+			minSep,
+			(id) => id !== seid && this.soldierVisuals.has(id),
+			(other) => {
+				const dx = sx - Position.x[other];
+				const dy = sy - Position.y[other];
+				const d2 = dx * dx + dy * dy;
+				if (d2 <= 0.0001) {
+					ax += ((seid % 7) - 3) * 0.05;
+					ay += ((seid % 5) - 2) * 0.05;
+					neighbors += 1;
+					return;
+				}
+				if (d2 > minSepSq) return;
+				const dist = Math.sqrt(d2);
+				const overlap = (minSep - dist) / minSep;
+				ax += (dx / dist) * overlap;
+				ay += (dy / dist) * overlap;
+				neighbors += 1;
+			},
+		);
+		if (neighbors === 0) return;
+		const step = push * dt;
+		Position.x[seid] += ax * step;
+		Position.y[seid] += ay * step;
 	}
 
 	private syncSoldierVisuals(seid: number): void {
