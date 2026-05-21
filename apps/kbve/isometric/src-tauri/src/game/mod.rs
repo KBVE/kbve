@@ -28,6 +28,7 @@ pub mod pixelate;
 pub mod player;
 pub mod rocks;
 pub mod scene_objects;
+pub mod settings;
 pub mod skills;
 pub mod state;
 pub mod telemetry;
@@ -194,6 +195,7 @@ impl PluginGroup for GamePluginGroup {
             .add(skills::SkillsPlugin)
             .add(PauseMenuPlugin)
             .add(PersistPlugin)
+            .add(settings::SettingsPlugin)
             .add(ui::UiLibraryPlugin)
     }
 }
