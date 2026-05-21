@@ -309,6 +309,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameGeneratorEids: number[] = [];
 	private frameBatteryEids: number[] = [];
 	private frameTowerEids: number[] = [];
+	private frameWallEids: number[] = [];
 	private frameArmouryEids: number[] = [];
 	private frameRepairEids: number[] = [];
 	private frameVillageEids: number[] = [];
@@ -649,6 +650,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameGeneratorEids = [];
 		this.frameBatteryEids = [];
 		this.frameTowerEids = [];
+		this.frameWallEids = [];
 		this.frameArmouryEids = [];
 		this.frameRepairEids = [];
 		this.frameVillageEids = [];
@@ -1927,9 +1929,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.frameBatteryEids.push(eid);
 		}
 		this.frameTowerEids.length = 0;
+		this.frameWallEids.length = 0;
 		for (const eid of query(this.world, [BuildingTag, TowerTag])) {
 			if (BuildingState.destroyed[eid]) continue;
 			this.frameTowerEids.push(eid);
+			const b = this.buildingByEid.get(eid);
+			if (b && b.kind === 'tower' && b.spec.id === 'wall') {
+				this.frameWallEids.push(eid);
+			}
 		}
 		this.frameArmouryEids.length = 0;
 		for (const eid of query(this.world, [BuildingTag, ArmouryTag])) {
@@ -2495,6 +2502,36 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 	}
 
+	private findNearestWallCover(
+		seid: number,
+	): { x: number; y: number; eid: number } | null {
+		const sx = Position.x[seid];
+		const sy = Position.y[seid];
+		let best = -1;
+		let bestD2 = Infinity;
+		for (let i = 0; i < this.frameWallEids.length; i++) {
+			const eid = this.frameWallEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const dx = Position.x[eid] - sx;
+			const dy = Position.y[eid] - sy;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestD2) {
+				bestD2 = d2;
+				best = eid;
+			}
+		}
+		if (best < 0) return null;
+		const wx = Position.x[best];
+		const wy = Position.y[best];
+		const jitterX = ((seid % 3) - 1) * TILE * 0.25;
+		const jitterY = (((seid >> 1) % 3) - 1) * TILE * 0.25;
+		return {
+			x: wx + TILE * 0.85 + jitterX,
+			y: wy + jitterY,
+			eid: best,
+		};
+	}
+
 	private findNearestArmoury(x: number, y: number): ArmouryBuilding | null {
 		let best: ArmouryBuilding | null = null;
 		let bestD2 = Infinity;
@@ -2725,33 +2762,50 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (SoldierStats.targetEnemyEid[seid] === 0) {
 				const hp = Health.hp[seid];
 				const maxHp = Health.maxHp[seid];
-				if (hp < maxHp) {
+				const wounded = hp < maxHp * 0.95;
+				let destX = 0;
+				let destY = 0;
+				let haveDest = false;
+				let canHeal = false;
+				if (wounded) {
 					const armoury = this.findNearestArmoury(
 						Position.x[seid],
 						Position.y[seid],
 					);
 					if (armoury) {
-						const ax = armoury.x;
-						const ay = armoury.y;
-						const dx = ax - Position.x[seid];
-						const dy = ay - Position.y[seid];
-						const dist = Math.sqrt(dx * dx + dy * dy);
-						const healRange =
-							TILE * GAME_CONFIG.soldierHealRangeRatio;
-						if (dist <= healRange) {
-							Health.hp[seid] = Math.min(
-								maxHp,
-								hp + GAME_CONFIG.soldierHealPerSec * dt,
-							);
+						destX = armoury.x;
+						destY = armoury.y;
+						haveDest = true;
+						canHeal = true;
+					}
+				}
+				if (!haveDest) {
+					const cover = this.findNearestWallCover(seid);
+					if (cover) {
+						destX = cover.x;
+						destY = cover.y;
+						haveDest = true;
+					}
+				}
+				if (haveDest) {
+					const dx = destX - Position.x[seid];
+					const dy = destY - Position.y[seid];
+					const dist = Math.sqrt(dx * dx + dy * dy);
+					const healRange = TILE * GAME_CONFIG.soldierHealRangeRatio;
+					const arrived = dist <= healRange;
+					if (arrived && canHeal) {
+						Health.hp[seid] = Math.min(
+							maxHp,
+							hp + GAME_CONFIG.soldierHealPerSec * dt,
+						);
+					} else if (!arrived) {
+						const step = SoldierStats.speed[seid] * dt;
+						if (step >= dist) {
+							Position.x[seid] = destX;
+							Position.y[seid] = destY;
 						} else {
-							const step = SoldierStats.speed[seid] * dt;
-							if (step >= dist) {
-								Position.x[seid] = ax;
-								Position.y[seid] = ay;
-							} else {
-								Position.x[seid] += (dx / dist) * step;
-								Position.y[seid] += (dy / dist) * step;
-							}
+							Position.x[seid] += (dx / dist) * step;
+							Position.y[seid] += (dy / dist) * step;
 						}
 					}
 				}
