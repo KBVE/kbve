@@ -166,6 +166,13 @@ import {
 	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
+import { createBuildingAmbience, disposeBuildingAmbience } from './buildings';
+import { FloatingTextPool } from './effects';
+import {
+	computeEnemyStats,
+	createEnemyVisual,
+	type EnemyVisualDeps,
+} from './enemies';
 import { drawGrass, drawGridLines, drawPath } from './environment';
 import { createUnitVisual, type UnitVisualDeps } from './units';
 import { createItem, type ItemId } from './items';
@@ -175,7 +182,6 @@ import {
 	ensureBuildingTextures,
 	ensureEnemyTextures,
 	ensureUnitTextures,
-	enemyTextureKey,
 } from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
@@ -281,6 +287,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		acquireRect: (x, y, w, h, color, alpha) =>
 			this.acquireRect(x, y, w, h, color, alpha),
 	};
+	private floatingText = new FloatingTextPool(this);
+	private enemyVisualDeps: EnemyVisualDeps = {
+		scene: this,
+		acquireImage: (x, y, key) => this.acquireImage(x, y, key),
+		acquireGraphics: () => this.acquireGraphics(),
+		acquireRect: (x, y, w, h, color, alpha) =>
+			this.acquireRect(x, y, w, h, color, alpha),
+	};
 	private wave = 0;
 	private enemiesToSpawn = 0;
 	private spawnAccumulatorMs = 0;
@@ -370,6 +384,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.gold = GAME_CONFIG.startingGold;
 		this.lives = GAME_CONFIG.startingLives;
 		this.nexusEid = -1;
+		this.floatingText = new FloatingTextPool(this);
 		this.wave = 0;
 		this.enemiesToSpawn = 0;
 		this.spawnAccumulatorMs = 0;
@@ -1885,84 +1900,37 @@ export class TowerDefenseScene extends Phaser.Scene {
 			typeId = rollEnemyType(this.wave);
 		}
 		const type = ENEMY_CATALOG[typeId];
-		const baseHp = Math.floor(
-			GAME_CONFIG.enemyBaseHp *
-				Math.pow(GAME_CONFIG.enemyHpScale, this.wave - 1),
-		);
-		const hp = Math.floor(baseHp * type.hpMultiplier);
-		const baseSpeed = GAME_CONFIG.enemyBaseSpeed + (this.wave - 1) * 4;
-		const speed = baseSpeed * type.speedMultiplier;
-		const attackDamage = type.canAttack
-			? type.attackDamage +
-				(this.wave - 1) * GAME_CONFIG.enemyAttackDamageScale
-			: 0;
-		const radius = TILE * type.sizeRadius;
-		const sprite = this.acquireImage(
+		const stats = computeEnemyStats(this.wave, type);
+		const visual = createEnemyVisual(
+			this.enemyVisualDeps,
+			type,
 			start.x,
 			start.y,
-			enemyTextureKey(type.id),
+			stats.radius,
 		);
-		sprite.setScale((radius * 2) / 24);
-		const statusRing = this.acquireGraphics();
-		statusRing.setVisible(false);
-		const ringRadius = radius + 4;
-		const barWidth = Math.min(
-			TILE * 1.2,
-			Math.max(TILE * 0.4, TILE * type.sizeRadius * 2),
-		);
-		const hpBarBg = this.acquireRect(
-			start.x,
-			start.y - TILE * 0.5,
-			barWidth,
-			4,
-			COLORS.enemyHpBarBg,
-		);
-		const hpBar = this.acquireRect(
-			start.x - barWidth / 2,
-			start.y - TILE * 0.5,
-			barWidth,
-			4,
-			COLORS.enemyHpBar,
-		);
-		hpBar.setOrigin(0, 0.5);
-		hpBar.setVisible(false);
-		hpBarBg.setVisible(false);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, EnemyTag);
 		addComponent(this.world, eid, EnemyStats);
 		Position.x[eid] = start.x;
 		Position.y[eid] = start.y;
-		const enemyArmor = Math.floor(hp * GAME_CONFIG.armorEnemyRatio);
-		this.addDamageable(eid, hp, enemyArmor, type.defense);
-		EnemyStats.baseSpeed[eid] = speed;
+		this.addDamageable(eid, stats.hp, stats.armor, type.defense);
+		EnemyStats.baseSpeed[eid] = stats.speed;
 		addComponent(this.world, eid, MovementTag);
 		addComponent(this.world, eid, Movement);
-		initMovement(eid, speed);
+		initMovement(eid, stats.speed);
 		EnemyStats.pathIndex[eid] = 1;
 		EnemyStats.segmentT[eid] = 0;
 		clearStatus(eid, STATUS_KIND.slow);
 		clearStatus(eid, STATUS_KIND.burn);
-		EnemyStats.attackDamage[eid] = attackDamage;
+		EnemyStats.attackDamage[eid] = stats.attackDamage;
 		EnemyStats.attackRateMs[eid] = type.attackRateMs;
 		EnemyStats.attackRange[eid] = type.attackRange;
 		EnemyStats.lastAttackAtMs[eid] = 0;
 		EnemyStats.canAttack[eid] = type.canAttack ? 1 : 0;
 		EnemyStats.bountyMultiplier[eid] = type.bountyMultiplier;
 		EnemyStats.typeIndex[eid] = enemyTypeIndexFromId(type.id);
-		this.enemyVisuals.set(eid, {
-			sprite,
-			statusRing,
-			hpBar,
-			hpBarBg,
-			ringRadius,
-			barWidth,
-			statusVisible: false,
-			lastX: Position.x[eid],
-			lastY: Position.y[eid],
-			walkPhase: 0,
-			facing: 1,
-		});
+		this.enemyVisuals.set(eid, visual);
 		EnemyStats.targetEid[eid] = -1;
 		EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
 	}
@@ -2067,170 +2035,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private addBuildingAmbience(b: Building): void {
-		const sprites: Phaser.GameObjects.GameObject[] = [];
-		const tweens: Phaser.Tweens.Tween[] = [];
-		const id = b.spec.id;
-		const x = b.x;
-		const y = b.y;
-		if (id === 'diesel') {
-			for (let i = 0; i < 3; i++) {
-				const startX = x - TILE * 0.05 + (i - 1) * TILE * 0.12;
-				const startY = y - TILE * 0.4;
-				const puff = this.add
-					.circle(startX, startY, TILE * 0.14, 0x1a202c, 0.92)
-					.setStrokeStyle(1, 0x4a5568, 0.5)
-					.setDepth(b.sprite.depth + 1);
-				sprites.push(puff);
-				tweens.push(
-					this.tweens.add({
-						targets: puff,
-						y: y - TILE * 1.3,
-						x: startX + (i - 1) * TILE * 0.18,
-						scale: 2.2,
-						alpha: 0,
-						duration: 1800,
-						delay: i * 520,
-						repeat: -1,
-						ease: 'Sine.easeOut',
-						onRepeat: () => {
-							puff.setPosition(startX, startY);
-							puff.setScale(1);
-							puff.setAlpha(0.92);
-						},
-					}),
-				);
-			}
-		} else if (id === 'nuclear') {
-			const halo = this.add
-				.circle(x, y, TILE * 0.55, 0x9ae6b4, 0.18)
-				.setStrokeStyle(2, 0x9ae6b4, 0.6)
-				.setDepth(b.sprite.depth - 1);
-			sprites.push(halo);
-			tweens.push(
-				this.tweens.add({
-					targets: halo,
-					scale: 1.18,
-					alpha: 0.42,
-					duration: 1100,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Sine.easeInOut',
-				}),
-			);
-		} else if (id === 'solar') {
-			const glint = this.add
-				.rectangle(x, y - TILE * 0.1, TILE * 0.55, 3, 0xfff5b1, 0.55)
-				.setDepth(b.sprite.depth + 1);
-			sprites.push(glint);
-			tweens.push(
-				this.tweens.add({
-					targets: glint,
-					alpha: 0.05,
-					duration: 1600,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Sine.easeInOut',
-				}),
-			);
-		} else if (id === 'battery') {
-			const spark = this.add
-				.circle(x, y - TILE * 0.05, TILE * 0.06, 0xf6e05e, 0.85)
-				.setDepth(b.sprite.depth + 1);
-			sprites.push(spark);
-			tweens.push(
-				this.tweens.add({
-					targets: spark,
-					alpha: 0.15,
-					duration: 320,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Cubic.easeInOut',
-				}),
-			);
-		} else if (id === 'repair') {
-			const ring = this.add
-				.circle(x, y, TILE * 0.45, 0x68d391, 0.0)
-				.setStrokeStyle(2, 0x68d391, 0.65)
-				.setDepth(b.sprite.depth - 1);
-			sprites.push(ring);
-			tweens.push(
-				this.tweens.add({
-					targets: ring,
-					scale: 1.5,
-					alpha: 0,
-					duration: 1600,
-					repeat: -1,
-					ease: 'Sine.easeOut',
-					onRepeat: () => {
-						ring.setScale(1);
-						ring.setAlpha(0.5);
-					},
-				}),
-			);
-		} else if (id === 'armoury') {
-			const banner = this.add
-				.rectangle(
-					x + TILE * 0.32,
-					y - TILE * 0.05,
-					3,
-					TILE * 0.35,
-					0xf6ad55,
-					0.85,
-				)
-				.setDepth(b.sprite.depth + 1);
-			sprites.push(banner);
-			tweens.push(
-				this.tweens.add({
-					targets: banner,
-					scaleY: 0.7,
-					duration: 900,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Sine.easeInOut',
-				}),
-			);
-		} else if (id === 'fire') {
-			const flame = this.add
-				.circle(x, y - TILE * 0.35, TILE * 0.08, 0xff7a45, 0.85)
-				.setDepth(b.sprite.depth + 1);
-			sprites.push(flame);
-			tweens.push(
-				this.tweens.add({
-					targets: flame,
-					scale: 1.4,
-					alpha: 0.45,
-					duration: 380,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Sine.easeInOut',
-				}),
-			);
-		} else if (id === 'ice') {
-			const sparkle = this.add
-				.circle(x, y - TILE * 0.3, 2, 0xffffff, 0.9)
-				.setDepth(b.sprite.depth + 1);
-			sprites.push(sparkle);
-			tweens.push(
-				this.tweens.add({
-					targets: sparkle,
-					alpha: 0.1,
-					duration: 700,
-					yoyo: true,
-					repeat: -1,
-					ease: 'Sine.easeInOut',
-				}),
-			);
-		}
-		if (sprites.length > 0) {
-			this.buildingAmbience.set(b.id, { sprites, tweens });
-		}
+		const amb = createBuildingAmbience(this, b);
+		if (amb) this.buildingAmbience.set(b.id, amb);
 	}
 
 	private clearBuildingAmbience(eid: number): void {
 		const amb = this.buildingAmbience.delete(eid);
-		if (!amb) return;
-		for (const t of amb.tweens) t.remove();
-		for (const s of amb.sprites) s.destroy();
+		if (amb) disposeBuildingAmbience(amb);
 	}
 
 	private addDamageable(
@@ -2268,24 +2079,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const intensity = Math.min(0.012, 0.002 + taken * 0.0008);
 		this.cameras.main.shake(120, intensity);
 		if (taken <= 0) return;
-		const text = this.add
-			.text(b.x, b.y - TILE * 0.6, `-${Math.ceil(taken)}`, {
-				fontFamily: 'monospace',
-				fontSize: '18px',
-				color: '#fc8181',
-				fontStyle: 'bold',
-				stroke: '#000000',
-				strokeThickness: 3,
-			})
-			.setOrigin(0.5)
-			.setDepth(150);
-		this.tweens.add({
-			targets: text,
-			y: b.y - TILE * 1.4,
-			alpha: 0,
-			duration: 700,
-			ease: 'Cubic.easeOut',
-			onComplete: () => text.destroy(),
+		this.floatingText.spawn({
+			x: b.x,
+			y: b.y - TILE * 0.6,
+			text: `-${Math.ceil(taken)}`,
+			color: '#fc8181',
+			rise: TILE * 0.8,
 		});
 	}
 
