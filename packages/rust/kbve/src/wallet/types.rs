@@ -286,10 +286,12 @@ pub struct MarketMyBidRow {
     pub refund_ledger_id: Option<i64>,
 }
 
-/// Write-side request payload for `proxy_market_create_listing`.
+/// Write-side payload for `proxy_market_create_listing_with_item`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MarketCreateListingRequest {
-    pub item_ref: serde_json::Value,
+    pub src_item_id: Uuid,
+    #[serde(default)]
+    pub qty: Option<i64>,
     pub buy_now_price: Option<i64>,
     pub min_bid: Option<i64>,
     pub expires_at: DateTime<Utc>,

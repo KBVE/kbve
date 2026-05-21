@@ -1,21 +1,6 @@
 import { useState } from 'react';
 import { useSession } from '@kbve/astro';
 import { createListing, MarketApiError } from './api';
-import { EnchantEditor } from './EnchantEditor';
-import type { Enchant } from './enchants';
-import { MCItemPicker } from './MCItemPicker';
-import { RareiconItemPicker } from './RareiconItemPicker';
-
-const BROWSE_LINKS: Record<string, { label: string; href: string }> = {
-	mc_item: { label: 'Browse Minecraft items →', href: '/mc/items/' },
-	rareicon_item: { label: 'Browse Rareicon items →', href: '/itemdb/' },
-};
-
-const KIND_OPTIONS = [
-	{ value: 'mc_item', label: 'Minecraft item' },
-	{ value: 'rareicon_item', label: 'Rareicon item' },
-	{ value: 'generic', label: 'Other' },
-];
 
 function defaultExpiry(): string {
 	const d = new Date(Date.now() + 1000 * 60 * 60 * 24);
@@ -23,15 +8,16 @@ function defaultExpiry(): string {
 	return d.toISOString().slice(0, 16);
 }
 
+const UUID_RE =
+	/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 export function MarketCreateForm() {
 	const { ready, authenticated } = useSession();
-	const [kind, setKind] = useState('mc_item');
-	const [itemId, setItemId] = useState('');
-	const [instanceId, setInstanceId] = useState('');
+	const [srcItemId, setSrcItemId] = useState('');
+	const [qty, setQty] = useState('');
 	const [buyNow, setBuyNow] = useState('');
 	const [minBid, setMinBid] = useState('');
 	const [expires, setExpires] = useState(defaultExpiry());
-	const [enchants, setEnchants] = useState<Enchant[]>([]);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<number | null>(null);
@@ -49,8 +35,9 @@ export function MarketCreateForm() {
 		e.preventDefault();
 		setError(null);
 		setSuccess(null);
-		if (!itemId.trim()) {
-			setError('item id is required');
+		const id = srcItemId.trim();
+		if (!UUID_RE.test(id)) {
+			setError('inventory item id must be a UUID');
 			return;
 		}
 		const bn = buyNow.trim() ? Number(buyNow) : null;
@@ -67,30 +54,31 @@ export function MarketCreateForm() {
 			setError('min bid must be a positive integer');
 			return;
 		}
-		const expiryIso = new Date(expires).toISOString();
-		const item_ref: Record<string, unknown> = { kind, id: itemId.trim() };
-		if (instanceId.trim()) item_ref.instance_id = instanceId.trim();
-		if (kind === 'mc_item' && enchants.length > 0) {
-			item_ref.enchants = enchants.map((e) => ({
-				id: e.id,
-				level: e.level,
-			}));
+		let qtyParsed: number | null = null;
+		if (qty.trim()) {
+			const n = Number(qty);
+			if (!Number.isFinite(n) || n <= 0 || n !== Math.floor(n)) {
+				setError('qty must be a positive integer');
+				return;
+			}
+			qtyParsed = n;
 		}
+		const expiryIso = new Date(expires).toISOString();
 		setBusy(true);
 		try {
 			const res = await createListing({
-				item_ref,
+				src_item_id: id,
+				qty: qtyParsed,
 				buy_now_price: bn !== null ? Math.floor(bn) : null,
 				min_bid: mb !== null ? Math.floor(mb) : null,
 				expires_at: expiryIso,
 				idempotency_key: crypto.randomUUID(),
 			});
 			setSuccess(res.id);
-			setItemId('');
-			setInstanceId('');
+			setSrcItemId('');
+			setQty('');
 			setBuyNow('');
 			setMinBid('');
-			setEnchants([]);
 		} catch (err) {
 			setError(
 				err instanceof MarketApiError ? err.message : 'create failed',
@@ -103,66 +91,42 @@ export function MarketCreateForm() {
 	return (
 		<form className="kbve-market__form" onSubmit={onSubmit}>
 			<div className="kbve-market__form-row">
-				<label>
-					Kind
-					<select
-						value={kind}
-						onChange={(e) => setKind(e.target.value)}
-						className="kbve-market__input">
-						{KIND_OPTIONS.map((k) => (
-							<option key={k.value} value={k.value}>
-								{k.label}
-							</option>
-						))}
-					</select>
-				</label>
-				<label>
-					Item ID
-					{kind === 'mc_item' && (
-						<MCItemPicker
-							value={itemId}
-							onChange={setItemId}
-							disabled={busy}
-						/>
-					)}
-					{kind === 'rareicon_item' && (
-						<RareiconItemPicker
-							value={itemId}
-							onChange={setItemId}
-							disabled={busy}
-						/>
-					)}
-					{kind !== 'mc_item' && kind !== 'rareicon_item' && (
-						<input
-							type="text"
-							required
-							placeholder="custom_ref"
-							value={itemId}
-							onChange={(e) => setItemId(e.target.value)}
-							className="kbve-market__input"
-						/>
-					)}
-					{BROWSE_LINKS[kind] && (
-						<a
-							className="kbve-market__hint"
-							href={BROWSE_LINKS[kind].href}
-							target="_blank"
-							rel="noopener">
-							{BROWSE_LINKS[kind].label}
-						</a>
-					)}
+				<label className="kbve-market__form-label--wide">
+					Inventory Item ID
+					<input
+						type="text"
+						required
+						placeholder="uuid from your KBVE inventory"
+						value={srcItemId}
+						onChange={(e) => setSrcItemId(e.target.value)}
+						className="kbve-market__input"
+						spellCheck={false}
+						autoComplete="off"
+					/>
+					<span className="kbve-market__hint">
+						UUID of the item row in your KBVE inventory. The item
+						must be in <code>held</code> state and owned by you.
+						Item picker comes in Phase 6.2 — for now, copy the id
+						from <code>/profile/inventory/</code>.
+					</span>
 				</label>
 			</div>
 			<div className="kbve-market__form-row">
-				<label className="kbve-market__form-label--wide">
-					Instance ID (optional)
+				<label>
+					Qty (optional)
 					<input
-						type="text"
-						placeholder="uuid for unique instances"
-						value={instanceId}
-						onChange={(e) => setInstanceId(e.target.value)}
+						type="number"
+						min={1}
+						step={1}
+						placeholder="leave blank for whole row"
+						value={qty}
+						onChange={(e) => setQty(e.target.value)}
 						className="kbve-market__input"
 					/>
+					<span className="kbve-market__hint">
+						Partial-stack listing. Blank = list the whole row. Only
+						allowed for stackable items.
+					</span>
 				</label>
 			</div>
 			<div className="kbve-market__form-row">
@@ -201,13 +165,6 @@ export function MarketCreateForm() {
 					/>
 				</label>
 			</div>
-			{kind === 'mc_item' && (
-				<EnchantEditor
-					value={enchants}
-					onChange={setEnchants}
-					disabled={busy}
-				/>
-			)}
 			<div className="kbve-market__form-actions">
 				<button
 					type="submit"
@@ -216,7 +173,9 @@ export function MarketCreateForm() {
 					{busy ? 'Listing…' : 'Create Listing'}
 				</button>
 				<span className="kbve-market__hint">
-					1% KBVE Treasury fee applies on sale.
+					1% KBVE Treasury fee applies on sale. Listing duration
+					capped at 30 days. 2FA may be required if you opted into the
+					high-value listing gate.
 				</span>
 			</div>
 			{error && (

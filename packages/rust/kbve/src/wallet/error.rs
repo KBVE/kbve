@@ -46,6 +46,9 @@ pub enum WalletError {
     #[error("feature not implemented: {0}")]
     Unimplemented(String),
 
+    #[error("mfa required for this transition")]
+    MfaRequired,
+
     #[error("pool error: {0}")]
     Pool(String),
 
@@ -114,7 +117,10 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     if m.contains("insufficient funds") {
         return Some(WalletError::InsufficientFunds);
     }
-    if m.contains("idempotency_key reused") {
+    if m.contains("idempotency_key reused")
+        || m.contains("replay parameter mismatch")
+        || m.contains("current bid cache mismatch")
+    {
         return Some(WalletError::ReplayMismatch);
     }
     if m.contains("overflow") || m.contains("would overflow") {
@@ -123,8 +129,18 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     if m.contains("not authenticated") || m.contains("not_authenticated") {
         return Some(WalletError::NotAuthenticated);
     }
-    if m.contains("service_role required") {
+    if m.contains("mfa_required") || m.contains("mfa required") {
+        return Some(WalletError::MfaRequired);
+    }
+    if m.contains("service_role required")
+        || m.contains("not owned by seller")
+        || m.contains("cannot settle listing")
+        || m.contains("does not own listing")
+    {
         return Some(WalletError::NotAuthorized);
+    }
+    if m.contains("legacy listing rpc disabled") {
+        return Some(WalletError::Unimplemented(msg.to_string()));
     }
     if m.contains("coupon expired") {
         return Some(WalletError::CouponExpired);
