@@ -465,6 +465,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 				COLORS.grass,
 			)
 			.setOrigin(0.5);
+		const tufts = this.add.graphics();
+		const tuftColors = [0x2f6b45, 0x1f4a32, 0x3b8755];
+		let seed = 0x1f3a52;
+		const rng = () => {
+			seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+			return ((seed >>> 0) % 10000) / 10000;
+		};
+		const count = Math.floor((BASE_WIDTH * BASE_HEIGHT) / 900);
+		for (let i = 0; i < count; i++) {
+			const gx = rng() * BASE_WIDTH;
+			const gy = rng() * BASE_HEIGHT;
+			const color = tuftColors[i % tuftColors.length];
+			const r = 1 + rng() * 1.5;
+			tufts.fillStyle(color, 0.55);
+			tufts.fillCircle(gx, gy, r);
+		}
 	}
 
 	private drawGridLines(): void {
@@ -480,18 +496,39 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private drawPath(): void {
 		const w = this.path.waypoints;
+		const shadow = this.add.graphics();
+		shadow.lineStyle(TILE + 2, 0x0d1f15, 0.35);
+		shadow.beginPath();
+		shadow.moveTo(w[0].x, w[0].y + 2);
+		for (let i = 1; i < w.length; i++) shadow.lineTo(w[i].x, w[i].y + 2);
+		shadow.strokePath();
 		const fill = this.add.graphics();
 		fill.lineStyle(TILE - 2, COLORS.pathFill, 1);
 		fill.beginPath();
 		fill.moveTo(w[0].x, w[0].y);
 		for (let i = 1; i < w.length; i++) fill.lineTo(w[i].x, w[i].y);
 		fill.strokePath();
-		const border = this.add.graphics();
-		border.lineStyle(2, COLORS.pathBorder, 0.8);
-		border.beginPath();
-		border.moveTo(w[0].x, w[0].y);
-		for (let i = 1; i < w.length; i++) border.lineTo(w[i].x, w[i].y);
-		border.strokePath();
+		const inner = this.add.graphics();
+		inner.lineStyle(TILE * 0.55, 0x394b62, 1);
+		inner.beginPath();
+		inner.moveTo(w[0].x, w[0].y);
+		for (let i = 1; i < w.length; i++) inner.lineTo(w[i].x, w[i].y);
+		inner.strokePath();
+		const markers = this.add.graphics();
+		markers.fillStyle(0x6b7e94, 0.7);
+		for (let i = 0; i < w.length - 1; i++) {
+			const a = w[i];
+			const b = w[i + 1];
+			const dx = b.x - a.x;
+			const dy = b.y - a.y;
+			const len = Math.hypot(dx, dy);
+			if (len < TILE) continue;
+			const steps = Math.floor(len / (TILE * 0.6));
+			for (let s = 1; s < steps; s++) {
+				const t = s / steps;
+				markers.fillCircle(a.x + dx * t, a.y + dy * t, 1.6);
+			}
+		}
 	}
 
 	private canSkipWave(): boolean {
@@ -1991,6 +2028,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			ringRadius,
 			barWidth,
 			statusVisible: false,
+			lastX: Position.x[eid],
+			lastY: Position.y[eid],
+			walkPhase: 0,
+			facing: 1,
 		});
 		EnemyStats.targetEid[eid] = -1;
 		EnemyStats.targetKind[eid] = ATTACK_TARGET_KIND.none;
@@ -2102,34 +2143,29 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const x = b.x;
 		const y = b.y;
 		if (id === 'diesel') {
-			for (let i = 0; i < 2; i++) {
+			for (let i = 0; i < 3; i++) {
+				const startX = x - TILE * 0.05 + (i - 1) * TILE * 0.12;
+				const startY = y - TILE * 0.4;
 				const puff = this.add
-					.circle(
-						x - TILE * 0.05 + i * TILE * 0.1,
-						y - TILE * 0.35,
-						TILE * 0.08,
-						0x4a5568,
-						0.55,
-					)
+					.circle(startX, startY, TILE * 0.14, 0x1a202c, 0.92)
+					.setStrokeStyle(1, 0x4a5568, 0.5)
 					.setDepth(b.sprite.depth + 1);
 				sprites.push(puff);
 				tweens.push(
 					this.tweens.add({
 						targets: puff,
-						y: y - TILE * 0.85,
-						scale: 1.6,
+						y: y - TILE * 1.3,
+						x: startX + (i - 1) * TILE * 0.18,
+						scale: 2.2,
 						alpha: 0,
-						duration: 1400,
-						delay: i * 700,
+						duration: 1800,
+						delay: i * 520,
 						repeat: -1,
 						ease: 'Sine.easeOut',
 						onRepeat: () => {
-							puff.setPosition(
-								x - TILE * 0.05 + i * TILE * 0.1,
-								y - TILE * 0.35,
-							);
+							puff.setPosition(startX, startY);
 							puff.setScale(1);
-							puff.setAlpha(0.55);
+							puff.setAlpha(0.92);
 						},
 					}),
 				);
@@ -3156,19 +3192,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const dy = y - v.lastY;
 		const movedSq = dx * dx + dy * dy;
 		const moving = movedSq > 0.0025;
+		let facingDx = dx;
+		const targetEid = SoldierStats.targetEnemyEid[seid];
+		if (targetEid > 0 && this.enemyVisuals.has(targetEid)) {
+			facingDx = Position.x[targetEid] - x;
+		}
+		if (Math.abs(facingDx) > 0.05) {
+			const desired = facingDx < 0 ? -1 : 1;
+			if (desired !== v.facing) {
+				v.facing = desired;
+				v.sprite.setFlipX(desired < 0);
+			}
+		}
+		const nowMs = this.simNow;
 		if (moving) {
 			v.walkPhase += Math.sqrt(movedSq) * 0.18;
 			const bob = Math.sin(v.walkPhase) * 1.6;
 			v.sprite.setPosition(x, y + bob);
-			if (Math.abs(dx) > 0.05) {
-				const desired = dx < 0 ? -1 : 1;
-				if (desired !== v.facing) {
-					v.facing = desired;
-					v.sprite.setFlipX(desired < 0);
-				}
-			}
 		} else {
-			v.sprite.setPosition(x, y);
+			const idleBob = Math.sin(nowMs * 0.004 + seid * 0.7) * 0.6;
+			v.sprite.setPosition(x, y + idleBob);
 		}
 		v.lastX = x;
 		v.lastY = y;
@@ -3356,7 +3399,34 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (!v) return;
 		const x = Position.x[eid];
 		const y = Position.y[eid];
-		v.sprite.setPosition(x, y);
+		const dx = x - v.lastX;
+		const dy = y - v.lastY;
+		const movedSq = dx * dx + dy * dy;
+		const moving = movedSq > 0.0025;
+		let aggroDx = 0;
+		const tk = EnemyStats.targetKind[eid];
+		if (tk !== ATTACK_TARGET_KIND.none) {
+			const tEid = EnemyStats.targetEid[eid];
+			if (tEid >= 0) aggroDx = Position.x[tEid] - x;
+		}
+		const facingDx = Math.abs(aggroDx) > 0.5 ? aggroDx : dx;
+		if (Math.abs(facingDx) > 0.05) {
+			const desired = facingDx < 0 ? -1 : 1;
+			if (desired !== v.facing) {
+				v.facing = desired;
+				v.sprite.setFlipX(desired < 0);
+			}
+		}
+		if (moving) {
+			v.walkPhase += Math.sqrt(movedSq) * 0.18;
+			const bob = Math.sin(v.walkPhase) * 1.6;
+			v.sprite.setPosition(x, y + bob);
+		} else {
+			const idleBob = Math.sin(nowMs * 0.004 + eid * 0.7) * 0.6;
+			v.sprite.setPosition(x, y + idleBob);
+		}
+		v.lastX = x;
+		v.lastY = y;
 		const hpEnemy = Health.hp[eid];
 		const maxHpEnemy = Health.maxHp[eid];
 		if (hpEnemy < maxHpEnemy) {

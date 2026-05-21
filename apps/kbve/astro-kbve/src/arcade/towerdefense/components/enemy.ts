@@ -45,4 +45,8 @@ export interface EnemyVisual {
 	ringRadius: number;
 	barWidth: number;
 	statusVisible: boolean;
+	lastX: number;
+	lastY: number;
+	walkPhase: number;
+	facing: number;
 }
