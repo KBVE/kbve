@@ -16,6 +16,7 @@
 //! - **Playing**: title screen despawns, HUD + input active.
 
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 /// Top-level game phase — drives what UI is visible and which systems run.
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -51,7 +52,7 @@ pub struct PreFlight {
 }
 
 /// Which transport the client expects to use.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum TransportKind {
     #[default]
     Unknown,

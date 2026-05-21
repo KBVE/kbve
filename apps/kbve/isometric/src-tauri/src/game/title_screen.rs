@@ -378,6 +378,7 @@ fn handle_title_buttons(
     mut next_phase: ResMut<NextState<GamePhase>>,
     mut play_mode: ResMut<PlayMode>,
     mut exit_writer: MessageWriter<AppExit>,
+    mut settings_state: ResMut<super::settings::SettingsModalState>,
     online_q: Query<&Interaction, (Changed<Interaction>, With<PlayOnlineBtn>)>,
     offline_q: Query<
         &Interaction,
@@ -426,10 +427,11 @@ fn handle_title_buttons(
         }
     }
 
-    // Settings — TODO: open settings panel
+    // Settings — open the settings modal overlay.
     for interaction in &settings_q {
         if *interaction == Interaction::Pressed {
-            info!("[title] Settings pressed — not yet implemented");
+            info!("[title] Settings pressed — opening modal");
+            settings_state.open = true;
         }
     }
 
