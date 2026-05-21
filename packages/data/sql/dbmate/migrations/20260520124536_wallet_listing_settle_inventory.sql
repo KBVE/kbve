@@ -608,10 +608,20 @@ BEGIN
     SELECT d.fee, d.net, d.seller_ledger_id, d.fee_ledger_id
       INTO v_fee, v_net, v_seller_ledger_id, v_fee_ledger_id
       FROM wallet.distribute_settlement(p_listing_id, v_seller, v_amount, v_bid_id) d;
-    UPDATE wallet.listing
-       SET status = 'sold', settled_at = v_now, buyer_account = v_bidder,
-           current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
-     WHERE id = p_listing_id;
+    DECLARE
+        v_updated_listing_id BIGINT;
+    BEGIN
+        UPDATE wallet.listing
+           SET status = 'sold', settled_at = v_now, buyer_account = v_bidder,
+               current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
+         WHERE id = p_listing_id
+           AND status = 'active'
+        RETURNING id INTO v_updated_listing_id;
+        IF v_updated_listing_id IS NULL THEN
+            RAISE EXCEPTION 'listing % no longer active at rollback settle update', p_listing_id
+                USING ERRCODE = 'P1002';
+        END IF;
+    END;
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata, reason)
     VALUES ('marketplace.listing_settle', 'listing', p_listing_id::TEXT,
         jsonb_build_object('winning_bid_id', v_bid_id, 'buyer_account', v_bidder,
@@ -665,11 +675,21 @@ BEGIN
     v_refund_id := wallet.refund_active_bid(
         p_listing_id, 'refunded', COALESCE(p_reason, 'seller cancelled listing')
     );
-    UPDATE wallet.listing
-       SET status = 'cancelled', settled_at = v_now,
-           buyer_account = NULL,
-           current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
-     WHERE id = p_listing_id;
+    DECLARE
+        v_updated_listing_id BIGINT;
+    BEGIN
+        UPDATE wallet.listing
+           SET status = 'cancelled', settled_at = v_now,
+               buyer_account = NULL,
+               current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
+         WHERE id = p_listing_id
+           AND status = 'active'
+        RETURNING id INTO v_updated_listing_id;
+        IF v_updated_listing_id IS NULL THEN
+            RAISE EXCEPTION 'listing % no longer active at rollback cancel update', p_listing_id
+                USING ERRCODE = 'P1002';
+        END IF;
+    END;
     INSERT INTO wallet.audit_log (action, target_type, target_id, metadata, reason)
     VALUES ('marketplace.listing_cancel', 'listing', p_listing_id::TEXT,
         jsonb_build_object('seller_account', p_seller_account, 'refunded_bid_id', v_refund_id),
@@ -716,11 +736,21 @@ BEGIN
             );
             v_settled := v_settled + 1;
         ELSE
-            UPDATE wallet.listing
-               SET status = 'expired', settled_at = v_now,
-                   buyer_account = NULL,
-                   current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
-             WHERE id = v_listing_id;
+            DECLARE
+                v_updated_listing_id BIGINT;
+            BEGIN
+                UPDATE wallet.listing
+                   SET status = 'expired', settled_at = v_now,
+                       buyer_account = NULL,
+                       current_bid = NULL, current_bid_account = NULL, current_bid_id = NULL
+                 WHERE id = v_listing_id
+                   AND status = 'active'
+                RETURNING id INTO v_updated_listing_id;
+                IF v_updated_listing_id IS NULL THEN
+                    RAISE EXCEPTION 'listing % no longer active at rollback expire update', v_listing_id
+                        USING ERRCODE = 'P1002';
+                END IF;
+            END;
             v_expired := v_expired + 1;
         END IF;
         v_total := v_total + 1;

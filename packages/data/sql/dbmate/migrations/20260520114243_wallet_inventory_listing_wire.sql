@@ -47,6 +47,40 @@
 --   transactional migration block.
 -- ============================================================================
 
+-- Enum preflight: each label the new RPCs hardcode must already
+-- exist on its parent type. Protects against partial dev/staging
+-- rebuilds where an earlier migration's enum drifted.
+DO $$
+DECLARE
+    v_label TEXT;
+BEGIN
+    FOR v_label IN
+        SELECT req.label FROM (VALUES
+            ('inventory.item_state:held'),
+            ('inventory.item_state:listing_escrow'),
+            ('wallet.listing_status:active'),
+            ('wallet.listing_status:sold'),
+            ('wallet.listing_status:cancelled'),
+            ('wallet.listing_status:expired'),
+            ('wallet.bid_status:active'),
+            ('wallet.bid_status:won'),
+            ('wallet.currency_kind:khash')
+        ) AS req(label)
+         WHERE NOT EXISTS (
+            SELECT 1
+              FROM pg_type t
+              JOIN pg_namespace n ON n.oid = t.typnamespace
+              JOIN pg_enum e ON e.enumtypid = t.oid
+             WHERE n.nspname = split_part(split_part(req.label, ':', 1), '.', 1)
+               AND t.typname = split_part(split_part(req.label, ':', 1), '.', 2)
+               AND e.enumlabel = split_part(req.label, ':', 2)
+         )
+    LOOP
+        RAISE EXCEPTION 'enum preflight: missing required label %', v_label;
+    END LOOP;
+END
+$$;
+
 -- Preflight: fail fast if the 6.0 inventory hooks + JWT helpers the
 -- new wallet RPCs depend on are missing. Without these, the
 -- migration would technically succeed and only fail at runtime.
