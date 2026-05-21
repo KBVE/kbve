@@ -20,18 +20,56 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # HTTPS listener — Cloudflare terminates public TLS on the edge.
-        # This listener handles origin TLS for Full/Strict SSL modes.
-        # chuckrpg.com and api.chuckrpg.com certs are issued by cert-manager
-        # in the chuckrpg namespace; Cloudflare proxies handle the public edge.
-        # game.chuckrpg.com uses Agones UDP (not HTTPS) — no cert needed here.
-        - name: https
+        # HTTPS listeners — one per cert/hostname so Envoy can route TLS
+        # by SNI to the matching certificate. Cilium gateway does NOT
+        # perform SNI-based selection across multiple certificateRefs on
+        # a single listener (it uses only the first ref), so each cert
+        # gets its own listener with an explicit hostname filter.
+        # Cloudflare terminates public TLS at the edge; origin certs must
+        # match the SNI CF sends for Full/Strict SSL modes.
+        - name: https-kbve
           protocol: HTTPS
           port: 443
+          hostname: '*.kbve.com'
           tls:
               mode: Terminate
               certificateRefs:
                   - name: kbve-wt-tls
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-kbve-root
+          protocol: HTTPS
+          port: 443
+          hostname: kbve.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - name: kbve-wt-tls
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-memes
+          protocol: HTTPS
+          port: 443
+          hostname: meme.sh
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: memes-tls
+                    namespace: memes
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-memes-www
+          protocol: HTTPS
+          port: 443
+          hostname: www.meme.sh
+          tls:
+              mode: Terminate
+              certificateRefs:
                   - kind: Secret
                     group: ''
                     name: memes-tls
