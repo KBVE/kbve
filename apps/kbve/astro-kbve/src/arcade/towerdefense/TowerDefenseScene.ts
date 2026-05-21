@@ -87,8 +87,6 @@ import {
 	Resistance,
 	ResistanceTag,
 	STATUS_KIND,
-	statusExpiresAt,
-	statusExtra,
 	statusMagnitude,
 	DroneStats,
 	DroneState,
@@ -185,6 +183,7 @@ import { FloatingTextPool } from './effects';
 import {
 	computeEnemyStats,
 	createEnemyVisual,
+	syncEnemyVisual,
 	type EnemyVisualDeps,
 } from './enemies';
 import { drawGrass, drawGridLines, drawPath } from './environment';
@@ -193,6 +192,7 @@ import {
 	spawnArmouryArcher,
 	spawnArmourySoldier,
 	spawnCastleUnit,
+	syncSoldierVisual,
 	type SpawnUnitDeps,
 	type UnitVisualDeps,
 } from './units';
@@ -309,6 +309,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.acquireRect(x, y, w, h, color, alpha),
 	};
 	private floatingText = new FloatingTextPool(this);
+	private soldierSyncCtx = {
+		enemyAlive: (eid: number) => this.enemyVisuals.has(eid),
+	};
 	private targetingCtx: TargetingCtx = Object.defineProperties(
 		{
 			enemyAlive: (eid: number) => this.enemyVisuals.has(eid),
@@ -2544,48 +2547,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private syncSoldierVisuals(seid: number): void {
 		const v = this.soldierVisuals.get(seid);
 		if (!v) return;
-		const x = Position.x[seid];
-		const y = Position.y[seid];
-		const dx = x - v.lastX;
-		const dy = y - v.lastY;
-		const movedSq = dx * dx + dy * dy;
-		const moving = movedSq > 0.0025;
-		let facingDx = dx;
-		const targetEid = SoldierStats.targetEnemyEid[seid];
-		if (targetEid > 0 && this.enemyVisuals.has(targetEid)) {
-			facingDx = Position.x[targetEid] - x;
-		}
-		if (Math.abs(facingDx) > 0.05) {
-			const desired = facingDx < 0 ? -1 : 1;
-			if (desired !== v.facing) {
-				v.facing = desired;
-				v.sprite.setFlipX(desired < 0);
-			}
-		}
-		const nowMs = this.simNow;
-		if (moving) {
-			v.walkPhase += Math.sqrt(movedSq) * 0.18;
-			const bob = Math.sin(v.walkPhase) * 1.6;
-			v.sprite.setPosition(x, y + bob);
-		} else {
-			const idleBob = Math.sin(nowMs * 0.004 + seid * 0.7) * 0.6;
-			v.sprite.setPosition(x, y + idleBob);
-		}
-		v.lastX = x;
-		v.lastY = y;
-		const hp = Health.hp[seid];
-		const maxHp = Health.maxHp[seid];
-		if (hp < maxHp) {
-			const barWidth = TILE * 0.5;
-			v.hpBarBg.setVisible(true);
-			v.hpBar.setVisible(true);
-			v.hpBarBg.setPosition(x, y - TILE * 0.32);
-			v.hpBar.setPosition(x - barWidth / 2, y - TILE * 0.32);
-			v.hpBar.displayWidth = (hp / maxHp) * barWidth;
-		} else {
-			v.hpBarBg.setVisible(false);
-			v.hpBar.setVisible(false);
-		}
+		syncSoldierVisual(this.soldierSyncCtx, v, seid, this.simNow);
 	}
 
 	private updateEnemies(dt: number, nowMs: number): void {
@@ -2755,110 +2717,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateEnemyVisuals(eid: number, nowMs: number): void {
 		const v = this.enemyVisuals.get(eid);
 		if (!v) return;
-		const x = Position.x[eid];
-		const y = Position.y[eid];
-		const dx = x - v.lastX;
-		const dy = y - v.lastY;
-		const movedSq = dx * dx + dy * dy;
-		const moving = movedSq > 0.0025;
-		let aggroDx = 0;
-		const tk = EnemyStats.targetKind[eid];
-		if (tk !== ATTACK_TARGET_KIND.none) {
-			const tEid = EnemyStats.targetEid[eid];
-			if (tEid >= 0) aggroDx = Position.x[tEid] - x;
-		}
-		const facingDx = Math.abs(aggroDx) > 0.5 ? aggroDx : dx;
-		if (Math.abs(facingDx) > 0.05) {
-			const desired = facingDx < 0 ? -1 : 1;
-			if (desired !== v.facing) {
-				v.facing = desired;
-				v.sprite.setFlipX(desired < 0);
-			}
-		}
-		if (moving) {
-			v.walkPhase += Math.sqrt(movedSq) * 0.18;
-			const bob = Math.sin(v.walkPhase) * 1.6;
-			v.sprite.setPosition(x, y + bob);
-		} else {
-			const idleBob = Math.sin(nowMs * 0.004 + eid * 0.7) * 0.6;
-			v.sprite.setPosition(x, y + idleBob);
-		}
-		v.lastX = x;
-		v.lastY = y;
-		const hpEnemy = Health.hp[eid];
-		const maxHpEnemy = Health.maxHp[eid];
-		if (hpEnemy < maxHpEnemy) {
-			v.hpBarBg.setVisible(true);
-			v.hpBar.setVisible(true);
-			v.hpBarBg.setPosition(x, y - TILE * 0.5);
-			v.hpBar.setPosition(x - v.barWidth / 2, y - TILE * 0.5);
-			const ratio = maxHpEnemy > 0 ? hpEnemy / maxHpEnemy : 0;
-			v.hpBar.displayWidth = Math.max(0, ratio) * v.barWidth;
-			const hpColor =
-				ratio > 0.6
-					? COLORS.enemyHpBar
-					: ratio > 0.3
-						? 0xf6ad55
-						: 0xfc8181;
-			v.hpBar.setFillStyle(hpColor);
-		} else {
-			v.hpBarBg.setVisible(false);
-			v.hpBar.setVisible(false);
-		}
-		const slowed = hasStatus(eid, STATUS_KIND.slow, nowMs);
-		const burning = hasStatus(eid, STATUS_KIND.burn, nowMs);
-		const stunned = hasStatus(eid, STATUS_KIND.stun, nowMs);
-		const anyStatus = slowed || burning || stunned;
-		if (!anyStatus && !v.statusVisible) return;
-		v.statusRing.clear();
-		if (anyStatus) {
-			v.statusRing.setVisible(true);
-			v.statusVisible = true;
-			if (slowed) {
-				const dur = statusExtra(eid, STATUS_KIND.slow);
-				const slowRatio =
-					dur > 0
-						? Math.max(
-								0,
-								Math.min(
-									1,
-									(statusExpiresAt(eid, STATUS_KIND.slow) -
-										nowMs) /
-										dur,
-								),
-							)
-						: 0;
-				v.statusRing.lineStyle(3, COLORS.statusSlow, 0.85);
-				v.statusRing.beginPath();
-				v.statusRing.arc(
-					x,
-					y,
-					v.ringRadius,
-					-Math.PI / 2,
-					-Math.PI / 2 + Math.PI * 2 * slowRatio,
-				);
-				v.statusRing.strokePath();
-			}
-			if (burning) {
-				v.statusRing.lineStyle(2, COLORS.statusBurn, 0.8);
-				v.statusRing.strokeCircle(
-					x,
-					y,
-					v.ringRadius + (slowed ? 4 : 0),
-				);
-			}
-			if (stunned) {
-				v.statusRing.lineStyle(2, 0xf6e05e, 0.95);
-				v.statusRing.strokeCircle(
-					x,
-					y,
-					v.ringRadius + (slowed ? 8 : burning ? 4 : 0),
-				);
-			}
-		} else {
-			v.statusRing.setVisible(false);
-			v.statusVisible = false;
-		}
+		syncEnemyVisual(v, eid, nowMs);
 	}
 
 	private updateTowers(nowMs: number): void {
