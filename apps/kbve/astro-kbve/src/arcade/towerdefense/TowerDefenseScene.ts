@@ -167,6 +167,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { drawGrass, drawGridLines, drawPath } from './environment';
+import { createUnitVisual, type UnitVisualDeps } from './units';
 import { createItem, type ItemId } from './items';
 import { generatePath, type GeneratedPath } from './path-generator';
 import {
@@ -175,7 +176,6 @@ import {
 	ensureEnemyTextures,
 	ensureUnitTextures,
 	enemyTextureKey,
-	unitTextureKey,
 } from './art/sprite-mint';
 import { computeAndApplyPower } from './systems';
 import { planStarterKit } from './starter-kit';
@@ -276,6 +276,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private gold: number = GAME_CONFIG.startingGold;
 	private lives: number = GAME_CONFIG.startingLives;
 	private nexusEid = -1;
+	private unitVisualDeps: UnitVisualDeps = {
+		scene: this,
+		acquireRect: (x, y, w, h, color, alpha) =>
+			this.acquireRect(x, y, w, h, color, alpha),
+	};
 	private wave = 0;
 	private enemiesToSpawn = 0;
 	private spawnAccumulatorMs = 0;
@@ -2420,31 +2425,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.unitKind[eid] = asArcher
 			? SOLDIER_KIND.archer
 			: SOLDIER_KIND.melee;
-		const sprite = this.add
-			.image(
-				x,
-				y,
-				unitTextureKey(asArcher ? 'ally_archer' : 'ally_melee'),
-			)
-			.setOrigin(0.5)
-			.setDisplaySize(TILE * 0.55, TILE * 0.55);
-		const barWidth = TILE * 0.5;
-		const hpBarBg = this.acquireRect(
+		const visual = createUnitVisual(this.unitVisualDeps, {
 			x,
-			y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBarBg,
-		);
-		const hpBar = this.acquireRect(
-			x - barWidth / 2,
-			y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBar,
-		);
-		hpBar.setOrigin(0, 0.5);
-		const visual = this.makeSoldierVisual(x, y, sprite, hpBar, hpBarBg);
+			y,
+			variant: asArcher ? 'ally_archer' : 'ally_melee',
+			displaySize: TILE * 0.55,
+		});
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2581,33 +2567,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = castle.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const sprite = this.add
-			.image(castle.x, castle.y, unitTextureKey('castle_melee'))
-			.setOrigin(0.5)
-			.setDisplaySize(TILE * 0.6, TILE * 0.6);
-		const barWidth = TILE * 0.5;
-		const hpBarBg = this.acquireRect(
-			castle.x,
-			castle.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBarBg,
-		);
-		const hpBar = this.acquireRect(
-			castle.x - barWidth / 2,
-			castle.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBar,
-		);
-		hpBar.setOrigin(0, 0.5);
-		const visual = this.makeSoldierVisual(
-			castle.x,
-			castle.y,
-			sprite,
-			hpBar,
-			hpBarBg,
-		);
+		const visual = createUnitVisual(this.unitVisualDeps, {
+			x: castle.x,
+			y: castle.y,
+			variant: 'castle_melee',
+			displaySize: TILE * 0.6,
+		});
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2680,8 +2645,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const ty = Position.y[target];
 			const dx = tx - Position.x[eid];
 			const dy = ty - Position.y[eid];
-			const dist = Math.hypot(dx, dy);
-			if (dist < 10) {
+			const distSq = dx * dx + dy * dy;
+			if (distSq < 100) {
 				applyStatus(
 					target,
 					STATUS_KIND.stun,
@@ -2698,8 +2663,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.killStunDrone(eid);
 				continue;
 			}
+			const dist = Math.sqrt(distSq);
 			const step = StunDroneStats.speed[eid] * dt;
-			const ratio = Math.min(1, step / dist);
+			const ratio = step >= dist ? 1 : step / dist;
 			Position.x[eid] += dx * ratio;
 			Position.y[eid] += dy * ratio;
 			visual.setPosition(Position.x[eid], Position.y[eid]);
@@ -2753,33 +2719,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = armoury.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.melee;
-		const sprite = this.add
-			.image(armoury.x, armoury.y, unitTextureKey('soldier_melee'))
-			.setOrigin(0.5)
-			.setDisplaySize(TILE * 0.55, TILE * 0.55);
-		const barWidth = TILE * 0.5;
-		const hpBarBg = this.acquireRect(
-			armoury.x,
-			armoury.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBarBg,
-		);
-		const hpBar = this.acquireRect(
-			armoury.x - barWidth / 2,
-			armoury.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBar,
-		);
-		hpBar.setOrigin(0, 0.5);
-		const visual = this.makeSoldierVisual(
-			armoury.x,
-			armoury.y,
-			sprite,
-			hpBar,
-			hpBarBg,
-		);
+		const visual = createUnitVisual(this.unitVisualDeps, {
+			x: armoury.x,
+			y: armoury.y,
+			variant: 'soldier_melee',
+			displaySize: TILE * 0.55,
+		});
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2806,53 +2751,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 		SoldierStats.armouryEid[eid] = armoury.id;
 		SoldierStats.expiresAtWave[eid] = -1;
 		SoldierStats.unitKind[eid] = SOLDIER_KIND.archer;
-		const sprite = this.add
-			.image(armoury.x, armoury.y, unitTextureKey('soldier_archer'))
-			.setOrigin(0.5)
-			.setDisplaySize(TILE * 0.55, TILE * 0.55);
-		const barWidth = TILE * 0.5;
-		const hpBarBg = this.acquireRect(
-			armoury.x,
-			armoury.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBarBg,
-		);
-		const hpBar = this.acquireRect(
-			armoury.x - barWidth / 2,
-			armoury.y - TILE * 0.32,
-			barWidth,
-			3,
-			COLORS.enemyHpBar,
-		);
-		hpBar.setOrigin(0, 0.5);
-		const visual = this.makeSoldierVisual(
-			armoury.x,
-			armoury.y,
-			sprite,
-			hpBar,
-			hpBarBg,
-		);
+		const visual = createUnitVisual(this.unitVisualDeps, {
+			x: armoury.x,
+			y: armoury.y,
+			variant: 'soldier_archer',
+			displaySize: TILE * 0.55,
+		});
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
-	}
-
-	private makeSoldierVisual(
-		x: number,
-		y: number,
-		sprite: Phaser.GameObjects.Image,
-		hpBar: Phaser.GameObjects.Rectangle,
-		hpBarBg: Phaser.GameObjects.Rectangle,
-	): SoldierVisual {
-		return {
-			sprite,
-			hpBar,
-			hpBarBg,
-			lastX: x,
-			lastY: y,
-			walkPhase: 0,
-			facing: 1,
-		};
 	}
 
 	private attachSoldierIdleAnim(eid: number, visual: SoldierVisual): void {
@@ -2884,7 +2790,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 			3,
 			GAME_CONFIG.archerProjectileColor,
 		);
-		const dist = Math.hypot(tx - sx, ty - sy);
+		const adx = tx - sx;
+		const ady = ty - sy;
+		const dist = Math.sqrt(adx * adx + ady * ady);
 		const speed = GAME_CONFIG.archerProjectileSpeed;
 		const duration = Math.max(80, (dist / speed) * 1000);
 		this.tweens.add({
@@ -3674,7 +3582,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 				? GAME_CONFIG.chargedProjectileColor
 				: spec.projectileColor,
 		);
-		const totalDist = Math.hypot(targetX - t.x, targetY - t.y);
+		const pdx = targetX - t.x;
+		const pdy = targetY - t.y;
+		const totalDist = Math.sqrt(pdx * pdx + pdy * pdy);
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
 		addComponent(this.world, eid, ProjectileTag);
