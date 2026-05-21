@@ -212,7 +212,7 @@ impl SupabaseClient {
             .ok_or_else(|| "auth disabled (no supabase env)".to_string())?;
         let params = json!({ "p_user_id": user_id });
         let resp = client
-            .rpc_schema("service_user_balance", params, "wallet")
+            .rpc("proxy_service_user_balance", params)
             .await
             .map_err(|e| format!("supa: {e}"))?;
         if !resp.status().is_success() {
