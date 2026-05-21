@@ -166,7 +166,13 @@ import {
 	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
-import { createBuildingAmbience, disposeBuildingAmbience } from './buildings';
+import {
+	createBuildingAmbience,
+	createBuildingBaseVisual,
+	createChargeBar,
+	createPowerIndicator,
+	disposeBuildingAmbience,
+} from './buildings';
 import { FloatingTextPool } from './effects';
 import {
 	computeEnemyStats,
@@ -1465,48 +1471,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		y: number,
 	): Building {
 		const spec = specFor(id);
-		const sprite = this.add.image(x, y, buildingTextureKey(id));
-		sprite.setOrigin(0.5);
-		const hpBarBg = this.add
-			.rectangle(
-				x,
-				y - TILE * 0.55,
-				TILE * 0.7,
-				4,
-				COLORS.buildingHpBarBg,
-			)
-			.setOrigin(0.5)
-			.setVisible(false);
-		const hpBar = this.add
-			.rectangle(
-				x - (TILE * 0.7) / 2,
-				y - TILE * 0.55,
-				TILE * 0.7,
-				4,
-				COLORS.buildingHpBar,
-			)
-			.setOrigin(0, 0.5)
-			.setVisible(false);
-		const armorBarBg = this.add
-			.rectangle(
-				x,
-				y - TILE * 0.55 - 5,
-				TILE * 0.7,
-				3,
-				COLORS.buildingHpBarBg,
-			)
-			.setOrigin(0.5)
-			.setVisible(false);
-		const armorBar = this.add
-			.rectangle(
-				x - (TILE * 0.7) / 2,
-				y - TILE * 0.55 - 5,
-				TILE * 0.7,
-				3,
-				0x63b3ed,
-			)
-			.setOrigin(0, 0.5)
-			.setVisible(false);
+		const { sprite, hpBar, hpBarBg, armorBar, armorBarBg } =
+			createBuildingBaseVisual(this, id, x, y);
 
 		const eid = addEntity(this.world);
 		addComponent(this.world, eid, Position);
@@ -1551,12 +1517,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			TowerUpgradeStats.attack[eid] = 0;
 			TowerUpgradeStats.speed[eid] = 0;
 			TowerUpgradeStats.armor[eid] = 0;
-			const powerIndicator = this.add.circle(
-				x + TILE * 0.3,
-				y - TILE * 0.3,
-				4,
-				0x9ae6b4,
-			);
+			const powerIndicator = createPowerIndicator(this, x, y);
 			const upgradePips = this.add.graphics();
 			const b: TowerBuilding = {
 				...base,
@@ -1581,24 +1542,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const bspec = spec as BatterySpec;
 			BatteryState.charge[eid] = 0;
 			BatteryState.capacity[eid] = bspec.capacity;
-			const chargeBarBg = this.add
-				.rectangle(
-					x,
-					y + TILE * 0.5,
-					TILE * 0.7,
-					3,
-					COLORS.buildingHpBarBg,
-				)
-				.setOrigin(0.5);
-			const chargeBar = this.add
-				.rectangle(
-					x - (TILE * 0.7) / 2,
-					y + TILE * 0.5,
-					TILE * 0.7,
-					3,
-					0xf6e05e,
-				)
-				.setOrigin(0, 0.5);
+			const { chargeBar, chargeBarBg } = createChargeBar(this, x, y);
 			const b: BatteryBuilding = {
 				...base,
 				kind: 'battery',
@@ -1623,12 +1567,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				GAME_CONFIG.passiveRepairArmor,
 				GAME_CONFIG.passiveRepairIntervalMs,
 			);
-			const powerIndicator = this.add.circle(
-				x + TILE * 0.3,
-				y - TILE * 0.3,
-				4,
-				0x9ae6b4,
-			);
+			const powerIndicator = createPowerIndicator(this, x, y);
 			const b: RepairBuilding = {
 				...base,
 				kind: 'repair',
@@ -1643,12 +1582,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			ArmouryUpgradeStats.damage[eid] = 0;
 			ArmouryUpgradeStats.vigor[eid] = 0;
 			ArmouryUpgradeStats.tempo[eid] = 0;
-			const powerIndicator = this.add.circle(
-				x + TILE * 0.3,
-				y - TILE * 0.3,
-				4,
-				0x9ae6b4,
-			);
+			const powerIndicator = createPowerIndicator(this, x, y);
 			const b: ArmouryBuilding = {
 				...base,
 				kind: 'armoury',
@@ -1658,12 +1592,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			building = b;
 		} else if (spec.kind === 'village') {
 			addComponent(this.world, eid, VillageTag);
-			const powerIndicator = this.add.circle(
-				x + TILE * 0.3,
-				y - TILE * 0.3,
-				4,
-				0x9ae6b4,
-			);
+			const powerIndicator = createPowerIndicator(this, x, y);
 			const b: VillageBuilding = {
 				...base,
 				kind: 'village',
@@ -1685,12 +1614,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.simNow + (spec as CastleSpec).unitSpawnIntervalMs;
 			CastleState.nextDroneSpawnAtMs[eid] =
 				this.simNow + (spec as CastleSpec).droneSpawnIntervalMs;
-			const powerIndicator = this.add.circle(
-				x + TILE * 0.3,
-				y - TILE * 0.3,
-				4,
-				0x9ae6b4,
-			);
+			const powerIndicator = createPowerIndicator(this, x, y);
 			const b: CastleBuilding = {
 				...base,
 				kind: 'castle',
