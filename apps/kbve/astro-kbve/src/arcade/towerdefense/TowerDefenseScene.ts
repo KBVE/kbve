@@ -165,6 +165,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import {
+	consumeBatteryCharge,
 	createBuildingAmbience,
 	createBuildingBaseVisual,
 	createChargeBar,
@@ -177,6 +178,10 @@ import {
 	findEnemyForArcher,
 	findEnemyForSoldier,
 	findWeakestEnemyInRange,
+	spawnTowerProjectile,
+	stepProjectile,
+	type ProjectileSpawnDeps,
+	type ProjectileStepCtx,
 	type TargetingCtx,
 } from './combat';
 import { FloatingTextPool } from './effects';
@@ -212,7 +217,6 @@ import {
 	repairAmount,
 	repairCooldownMs,
 	repairRange,
-	towerBurnDps,
 	towerDamage,
 	towerFireRateMs,
 	towerMaxHp,
@@ -311,6 +315,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private floatingText = new FloatingTextPool(this);
 	private soldierSyncCtx = {
 		enemyAlive: (eid: number) => this.enemyVisuals.has(eid),
+	};
+	private projectileSpawnDeps: ProjectileSpawnDeps = Object.defineProperties(
+		{
+			projectileVisuals: this.projectileVisuals,
+			acquireProjectileSprite: (
+				x: number,
+				y: number,
+				radius: number,
+				color: number,
+			) => this.acquireProjectileSprite(x, y, radius, color),
+			consumeBatteryCharge: (amount: number) =>
+				this.consumeBatteryCharge(amount),
+		} as unknown as ProjectileSpawnDeps,
+		{
+			world: { get: () => this.world, enumerable: true },
+			simNow: { get: () => this.simNow, enumerable: true },
+		},
+	);
+	private projectileStepCtx: ProjectileStepCtx = {
+		enemyAlive: (eid: number) => this.enemyVisuals.has(eid),
+		getVisual: (eid: number) => this.projectileVisuals.get(eid),
+		onHit: (eid, nowMs, hitX, hitY) =>
+			this.applyProjectileHit(eid, nowMs, hitX, hitY),
+		onDead: (eid) => this.projectileDeathRow.push(eid),
 	};
 	private targetingCtx: TargetingCtx = Object.defineProperties(
 		{
@@ -2945,84 +2973,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		targetY: number,
 		enemyId: number | null,
 	): void {
-		const spec = t.spec;
-		const supportsCharged = spec.id === 'bomb' || spec.id === 'artillery';
-		let isCharged = false;
-		if (
-			supportsCharged &&
-			this.simNow >= TowerState.chargedReadyAtMs[t.id] &&
-			this.consumeBatteryCharge(GAME_CONFIG.chargedShotBatteryCost)
-		) {
-			isCharged = true;
-			TowerState.chargedReadyAtMs[t.id] =
-				this.simNow + GAME_CONFIG.chargedShotCooldownMs;
-		}
-		const radius = (spec.arcHeight > 0 ? 6 : 4) * (isCharged ? 1.6 : 1);
-		const sprite = this.acquireProjectileSprite(
-			t.x,
-			t.y,
-			radius,
-			isCharged
-				? GAME_CONFIG.chargedProjectileColor
-				: spec.projectileColor,
+		spawnTowerProjectile(
+			this.projectileSpawnDeps,
+			t,
+			targetX,
+			targetY,
+			enemyId,
 		);
-		const pdx = targetX - t.x;
-		const pdy = targetY - t.y;
-		const totalDist = Math.sqrt(pdx * pdx + pdy * pdy);
-		const eid = addEntity(this.world);
-		addComponent(this.world, eid, Position);
-		addComponent(this.world, eid, ProjectileTag);
-		addComponent(this.world, eid, ProjectileStats);
-		Position.x[eid] = t.x;
-		Position.y[eid] = t.y;
-		ProjectileStats.startX[eid] = t.x;
-		ProjectileStats.startY[eid] = t.y;
-		ProjectileStats.targetX[eid] = targetX;
-		ProjectileStats.targetY[eid] = targetY;
-		ProjectileStats.traveled[eid] = 0;
-		ProjectileStats.totalDist[eid] = totalDist;
-		ProjectileStats.speed[eid] = spec.projectileSpeed;
-		ProjectileStats.arcHeight[eid] = spec.arcHeight;
-		ProjectileStats.homing[eid] = spec.homing ? 1 : 0;
-		ProjectileStats.enemyEid[eid] =
-			spec.homing && enemyId !== null ? enemyId : -1;
-		const baseDmg = towerDamage(t);
-		ProjectileStats.damage[eid] = isCharged
-			? baseDmg * GAME_CONFIG.chargedShotDamageMul
-			: baseDmg;
-		ProjectileStats.burnDps[eid] = towerBurnDps(t);
-		ProjectileStats.burnMs[eid] = spec.burnMs;
-		ProjectileStats.burnRadius[eid] = spec.burnRadius;
-		ProjectileStats.splashRadius[eid] = isCharged
-			? spec.splashRadius * GAME_CONFIG.chargedShotSplashMul
-			: spec.splashRadius;
-		ProjectileStats.slowMs[eid] = spec.slowMs;
-		ProjectileStats.slowFactor[eid] = spec.slowFactor;
-		ProjectileStats.damageType[eid] = spec.damageType;
-		this.projectileVisuals.set(eid, { sprite });
 	}
 
 	private consumeBatteryCharge(amount: number): boolean {
-		let total = 0;
-		for (let i = 0; i < this.frameBatteryEids.length; i++) {
-			const beid = this.frameBatteryEids[i];
-			if (BuildingState.destroyed[beid]) continue;
-			total += BatteryState.charge[beid];
-			if (total >= amount) break;
-		}
-		if (total < amount) return false;
-		let remaining = amount;
-		for (let i = 0; i < this.frameBatteryEids.length; i++) {
-			if (remaining <= 0) break;
-			const beid = this.frameBatteryEids[i];
-			if (BuildingState.destroyed[beid]) continue;
-			const charge = BatteryState.charge[beid];
-			if (charge <= 0) continue;
-			const take = charge < remaining ? charge : remaining;
-			BatteryState.charge[beid] = charge - take;
-			remaining -= take;
-		}
-		return true;
+		return consumeBatteryCharge(this.frameBatteryEids, amount);
 	}
 
 	private isEnemyAlive(eid: number | null): eid is number {
@@ -3032,55 +2993,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private updateProjectiles(dt: number, nowMs: number): void {
 		this.projectileDeathRow.length = 0;
 		for (const eid of query(this.world, [ProjectileTag, Position])) {
-			const v = this.projectileVisuals.get(eid);
-			if (!v) {
-				this.projectileDeathRow.push(eid);
-				continue;
-			}
-			const speed = ProjectileStats.speed[eid];
-			if (ProjectileStats.homing[eid] === 1) {
-				const targetEid = ProjectileStats.enemyEid[eid];
-				if (this.isEnemyAlive(targetEid)) {
-					ProjectileStats.targetX[eid] = Position.x[targetEid];
-					ProjectileStats.targetY[eid] = Position.y[targetEid];
-				}
-				const px = Position.x[eid];
-				const py = Position.y[eid];
-				const dx = ProjectileStats.targetX[eid] - px;
-				const dy = ProjectileStats.targetY[eid] - py;
-				const dist = Math.sqrt(dx * dx + dy * dy);
-				const step = speed * dt;
-				if (step >= dist) {
-					this.applyProjectileHit(eid, nowMs, px, py);
-					this.projectileDeathRow.push(eid);
-				} else {
-					Position.x[eid] = px + (dx / dist) * step;
-					Position.y[eid] = py + (dy / dist) * step;
-					v.sprite.setPosition(Position.x[eid], Position.y[eid]);
-				}
-			} else {
-				ProjectileStats.traveled[eid] += speed * dt;
-				const total = ProjectileStats.totalDist[eid];
-				const tt =
-					total > 0
-						? Math.min(1, ProjectileStats.traveled[eid] / total)
-						: 1;
-				const sx = ProjectileStats.startX[eid];
-				const sy = ProjectileStats.startY[eid];
-				const tx = ProjectileStats.targetX[eid];
-				const ty = ProjectileStats.targetY[eid];
-				const baseX = sx + (tx - sx) * tt;
-				const baseY = sy + (ty - sy) * tt;
-				const arcOffset =
-					-Math.sin(Math.PI * tt) * ProjectileStats.arcHeight[eid];
-				Position.x[eid] = baseX;
-				Position.y[eid] = baseY + arcOffset;
-				v.sprite.setPosition(Position.x[eid], Position.y[eid]);
-				if (tt >= 1) {
-					this.applyProjectileHit(eid, nowMs, tx, ty);
-					this.projectileDeathRow.push(eid);
-				}
-			}
+			stepProjectile(this.projectileStepCtx, eid, dt, nowMs);
 		}
 		for (let i = 0; i < this.projectileDeathRow.length; i++) {
 			const eid = this.projectileDeathRow[i];

@@ -9,3 +9,4 @@ export {
 	createPowerIndicator,
 	type BuildingBaseVisual,
 } from './visual';
+export { consumeBatteryCharge } from './battery';
