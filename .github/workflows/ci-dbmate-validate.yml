@@ -58,6 +58,7 @@ jobs:
             PGOPTIONS: >-
                 -c app.allow_destructive_inventory_down=true
                 -c app.allow_marketplace_unsafe_down=on
+                -c app.allow_legacy_marketplace_proxy_restore=on
 
         steps:
             - name: Checkout

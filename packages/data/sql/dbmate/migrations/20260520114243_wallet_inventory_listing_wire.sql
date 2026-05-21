@@ -782,6 +782,24 @@ ALTER TABLE wallet.listing DROP COLUMN IF EXISTS item_id;
 
 DROP FUNCTION IF EXISTS inventory.service_split_for_listing(UUID, UUID, BIGINT);
 
+-- Belt-and-suspenders: restoring the legacy JSONB listing proxy
+-- reopens the non-inventory-backed listing path on the PostgREST
+-- surface. Even though the outer app.allow_marketplace_unsafe_down
+-- gate must already be 'on' to reach here, the legacy proxy
+-- restoration carries its own GUC so an operator running a partial
+-- rollback (e.g. dropping only the sibling) doesn't accidentally
+-- resurrect public JSONB-only listing creation. Dev/test sets both
+-- via PGOPTIONS — see test-migration.sh.
+DO $$
+BEGIN
+    IF current_setting('app.allow_legacy_marketplace_proxy_restore', true)
+       IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION
+            'refusing to restore legacy JSONB marketplace proxy: set app.allow_legacy_marketplace_proxy_restore=on to proceed (the P1011 stub stays in place)';
+    END IF;
+END
+$$;
+
 -- Restore the pre-6.1a legacy proxy body so rollback leaves the
 -- original public listing path functional rather than stuck at the
 -- P1011 stub. Body lifted from 20260516015242_wallet_marketplace_proxies.sql.
