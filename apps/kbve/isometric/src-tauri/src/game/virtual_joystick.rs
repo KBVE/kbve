@@ -72,7 +72,18 @@ const ACTION_MARGIN: f32 = 28.0;
 /// Gap between stacked action buttons.
 const ACTION_GAP: f32 = 14.0;
 /// Dead zone — ignore knob movement below this fraction of MAX_TRAVEL.
-const DEAD_ZONE: f32 = 0.1;
+/// Slightly larger than 10% so thumb jitter near rest doesn't drift the
+/// player while the finger is still grounded.
+const DEAD_ZONE: f32 = 0.18;
+/// Multiplier on the touch-start capture radius. The visible base is
+/// `BASE_SIZE/2`; tolerate finger taps up to `CAPTURE_RADIUS_MULT` * that
+/// before falling back to ignore. Tuned for fat-thumb mobile play.
+const CAPTURE_RADIUS_MULT: f32 = 1.5;
+/// Touch-start in the left half of the screen re-anchors the base to the
+/// touch position (floating joystick) instead of requiring the user to
+/// grab the resting circle. Right-side touches go through to action
+/// buttons untouched.
+const FLOATING_BASE_MAX_X_FRACTION: f32 = 0.5;
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -202,10 +213,20 @@ fn spawn_joystick_ui(mut commands: Commands) {
 // ---------------------------------------------------------------------------
 
 fn handle_action_buttons(
-    jump_query: Query<&Interaction, With<JumpButton>>,
-    action_query: Query<&Interaction, (With<ActionButton>, Without<JumpButton>)>,
+    jump_query: Query<&Interaction, (With<JumpButton>, Changed<Interaction>)>,
+    action_query: Query<
+        &Interaction,
+        (
+            With<ActionButton>,
+            Without<JumpButton>,
+            Changed<Interaction>,
+        ),
+    >,
     mut joystick_state: ResMut<VirtualJoystickState>,
 ) {
+    // Edge-trigger: only fire on the press transition, not every frame the
+    // button stays held. Prevents a single tap from registering as a
+    // jump/action storm in the player + combat systems.
     if let Ok(interaction) = jump_query.single() {
         if *interaction == Interaction::Pressed {
             joystick_state.jump_requested = true;
@@ -222,6 +243,7 @@ fn handle_action_buttons(
 // Input handling
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::too_many_arguments)]
 fn handle_joystick_input(
     mouse_button: Res<ButtonInput<MouseButton>>,
     touches: Res<Touches>,
@@ -229,13 +251,14 @@ fn handle_joystick_input(
     mut drag: ResMut<JoystickDrag>,
     mut joystick_state: ResMut<VirtualJoystickState>,
     base_query: Query<&Interaction, With<JoystickBase>>,
+    mut base_node_q: Query<&mut Node, (With<JoystickBase>, Without<JoystickKnob>)>,
     mut knob_query: Query<&mut Node, (With<JoystickKnob>, Without<JoystickBase>)>,
 ) {
     let Ok(window) = windows.single() else {
         return;
     };
 
-    let base_center = Vec2::new(
+    let resting_center = Vec2::new(
         MARGIN + BASE_SIZE / 2.0,
         window.height() - MARGIN - BASE_SIZE / 2.0,
     );
@@ -256,20 +279,45 @@ fn handle_joystick_input(
             return;
         }
         // Touch released — end drag
-        reset_joystick(&mut drag, &mut joystick_state, &mut knob_query);
+        reset_joystick(
+            &mut drag,
+            &mut joystick_state,
+            &mut knob_query,
+            &mut base_node_q,
+            resting_center,
+            window.height(),
+        );
     }
 
-    // Check for new touch starting on the joystick base area
+    // Check for new touch on the left half of the screen. A touch landing
+    // anywhere left of `FLOATING_BASE_MAX_X_FRACTION * width` re-anchors the
+    // base to that position (floating joystick); touches outside the
+    // capture-radius extension are ignored so right-side action taps still
+    // pass through to JMP/ACT buttons unaffected.
+    let capture_radius = (BASE_SIZE / 2.0) * CAPTURE_RADIUS_MULT;
+    let floating_max_x = window.width() * FLOATING_BASE_MAX_X_FRACTION;
     for touch in touches.iter_just_pressed() {
         let pos = touch.position();
-        if (pos - base_center).length() <= BASE_SIZE / 2.0 {
-            drag.active = true;
-            drag.touch_id = Some(touch.id());
-            drag.center = base_center;
-            joystick_state.pointer_captured = true;
-            update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
-            return;
+        let near_resting = (pos - resting_center).length() <= capture_radius;
+        let inside_left_half = pos.x <= floating_max_x;
+        if !near_resting && !inside_left_half {
+            continue;
         }
+        // Snap base center under the finger (clamped so the visual ring
+        // never escapes the screen). When the touch was already on the
+        // resting base, this is a no-op so the joystick stays put.
+        let snapped_center = if near_resting {
+            resting_center
+        } else {
+            clamp_base_center(pos, window.width(), window.height())
+        };
+        move_base_node(&mut base_node_q, snapped_center, window.height());
+        drag.active = true;
+        drag.touch_id = Some(touch.id());
+        drag.center = snapped_center;
+        joystick_state.pointer_captured = true;
+        update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
+        return;
     }
 
     // ---- Mouse fallback (desktop) ----
@@ -285,18 +333,48 @@ fn handle_joystick_input(
     if base_interaction == Interaction::Pressed && !drag.active && drag.touch_id.is_none() {
         drag.active = true;
         drag.touch_id = None;
-        drag.center = base_center;
+        drag.center = resting_center;
     }
 
     if drag.active && drag.touch_id.is_none() {
         if !mouse_button.pressed(MouseButton::Left) {
-            reset_joystick(&mut drag, &mut joystick_state, &mut knob_query);
+            reset_joystick(
+                &mut drag,
+                &mut joystick_state,
+                &mut knob_query,
+                &mut base_node_q,
+                resting_center,
+                window.height(),
+            );
             return;
         }
         if let Some(pos) = window.cursor_position() {
             update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
         }
     }
+}
+
+/// Keep the floating base fully on-screen — never let it escape past the
+/// window edges. Touch positions are in logical pixels (window space) with
+/// origin at the top-left.
+fn clamp_base_center(pos: Vec2, w: f32, h: f32) -> Vec2 {
+    let half = BASE_SIZE / 2.0;
+    Vec2::new(pos.x.clamp(half, w - half), pos.y.clamp(half, h - half))
+}
+
+fn move_base_node(
+    base_node_q: &mut Query<&mut Node, (With<JoystickBase>, Without<JoystickKnob>)>,
+    center: Vec2,
+    window_height: f32,
+) {
+    let Ok(mut base) = base_node_q.single_mut() else {
+        return;
+    };
+    base.left = Val::Px(center.x - BASE_SIZE / 2.0);
+    // Node uses `bottom` from the bottom-left of the screen; convert the
+    // y (top-down) of the touch center into bottom-anchored space.
+    base.bottom = Val::Px(window_height - center.y - BASE_SIZE / 2.0);
+    base.top = Val::Auto;
 }
 
 fn update_joystick(
@@ -345,6 +423,9 @@ fn reset_joystick(
     drag: &mut JoystickDrag,
     joystick_state: &mut VirtualJoystickState,
     knob_query: &mut Query<&mut Node, (With<JoystickKnob>, Without<JoystickBase>)>,
+    base_node_q: &mut Query<&mut Node, (With<JoystickBase>, Without<JoystickKnob>)>,
+    resting_center: Vec2,
+    window_height: f32,
 ) {
     drag.active = false;
     drag.touch_id = None;
@@ -356,4 +437,9 @@ fn reset_joystick(
         knob_node.left = Val::Auto;
         knob_node.top = Val::Auto;
     }
+
+    // Snap the floating base back to its resting position (bottom-left
+    // corner) so the next touch doesn't start from wherever the previous
+    // drag ended.
+    move_base_node(base_node_q, resting_center, window_height);
 }
