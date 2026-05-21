@@ -142,6 +142,23 @@ BEGIN
         RAISE EXCEPTION 'seller cannot settle listing % to self', p_listing_id
             USING ERRCODE = 'P1013';
     END IF;
+    -- Bidder must be a real user account. Place_bid already enforces
+    -- this; revalidating at settle defends against a corrupted bid row
+    -- pointing at a non-user account (treasury, escrow, system).
+    PERFORM wallet.assert_user_account(v_bidder);
+    -- Denormalized cache consistency. listing.(current_bid,
+    -- current_bid_account, current_bid_id) must agree with the active
+    -- bid row we just locked. A drift here means a previous code path
+    -- updated one side but not the other; refuse to settle on stale
+    -- cache.
+    IF v_listing_row.current_bid IS DISTINCT FROM v_amount
+       OR v_listing_row.current_bid_account IS DISTINCT FROM v_bidder THEN
+        RAISE EXCEPTION 'listing % current bid cache mismatch (cache=%/%, bid=%/%)',
+            p_listing_id,
+            v_listing_row.current_bid, v_listing_row.current_bid_account,
+            v_amount, v_bidder
+            USING ERRCODE = 'P1002';
+    END IF;
 
     DECLARE
         v_updated_bid_id BIGINT;
@@ -347,7 +364,7 @@ ALTER FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) OWNER TO servic
 REVOKE ALL ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT  EXECUTE ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) TO service_role;
 COMMENT ON FUNCTION wallet.service_cancel_listing(BIGINT, UUID, TEXT) IS
-    'SERVICE marketplace RPC. Seller-driven cancel. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled — re-cancel attempts an inventory unlock repair when item_id IS NOT NULL (no-op if already unlocked, INV21 swallowed). Phase 6.1a: calls inventory.service_listing_unlock when listing.item_id IS NOT NULL.';
+    'SERVICE marketplace RPC. Seller-driven cancel. Refunds the active bid (if any) and flips status to cancelled. Idempotent on already-cancelled — re-cancel attempts an inventory unlock repair when item_id IS NOT NULL. Repair branch inspects the item state explicitly: listing_escrow triggers a real unlock, held+owned-by-seller is a no-op, anything else raises P1002. No blind error-swallowing. Phase 6.1a: calls inventory.service_listing_unlock when listing.item_id IS NOT NULL.';
 
 -- ---------------------------------------------------------------------------
 -- wallet.service_expire_listings — sweep + release items on no-bid expiry
@@ -380,6 +397,14 @@ BEGIN
     -- cron runs. The FOR UPDATE SKIP LOCKED in the cursor below is
     -- therefore DEFENSIVE-ONLY against any non-cron caller that holds
     -- a listing row lock (place_bid, buy_now, cancel, settle).
+    --
+    -- BATCH-ABORT SEMANTICS: this whole sweep runs in one transaction.
+    -- A single corrupted listing/item that raises inside the LOOP
+    -- aborts the entire batch and rolls back every prior settle/expire
+    -- in this run. That's intentional — money movement is involved,
+    -- so we'd rather fail the batch loudly than silently skip rows.
+    -- Per-listing isolation lands in Phase 6.5 as
+    -- service_expire_one_listing called from an external cron loop.
     IF NOT pg_try_advisory_xact_lock(
         hashtextextended('wallet.service_expire_listings', 0)
     ) THEN

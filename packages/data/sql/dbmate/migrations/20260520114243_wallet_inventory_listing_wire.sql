@@ -28,6 +28,23 @@
 --
 -- Settle / cancel / expire / buy_now hooks land in the sibling
 -- migration 20260520114244_wallet_listing_settle_inventory.sql.
+--
+-- LOCK-ORDER INVARIANT (cross-schema):
+--   wallet marketplace functions lock wallet.listing FIRST, then call
+--   inventory.service_listing_* which locks inventory.item second.
+--   inventory.service_listing_* MUST NOT lock wallet.listing in any
+--   path — that would invert the order and create a deadlock surface.
+--   Any future reconciliation tooling that wants to traverse
+--   inventory → listing MUST read wallet.listing without acquiring a
+--   row lock (no FOR UPDATE / FOR SHARE).
+--
+-- OPERATIONAL NOTE (DDL locking):
+--   This migration builds non-CONCURRENT indexes + adds an ALTER
+--   COLUMN + CHECK inside dbmate's single transaction. Tables are
+--   empty at first deploy so locking is moot, but if a future
+--   re-application happens against a populated marketplace, run
+--   during a write pause — CONCURRENTLY isn't available in a
+--   transactional migration block.
 -- ============================================================================
 
 -- Preflight: fail fast if the 6.0 inventory hooks + JWT helpers the
@@ -382,22 +399,32 @@ BEGIN
             RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (price/expiry differs)',
                 p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
         END IF;
-        -- Source-item identity. Direct match for whole-row OR
-        -- source_ref split_from match for partial.
-        IF v_existing_item_id IS DISTINCT FROM p_src_item_id
-           AND NOT EXISTS (
-               SELECT 1 FROM inventory.item
-                WHERE id = v_existing_item_id
-                  AND source_ref ->> 'split_from' = p_src_item_id::text
-           ) THEN
-            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (src_item_id differs)',
-                p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
-        END IF;
-        -- Qty check. NULL p_qty (whole-row request) must match the
-        -- listed item's full qty as recorded in item_ref.
-        IF p_qty IS NOT NULL AND v_existing_qty IS DISTINCT FROM p_qty THEN
-            RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (qty differs)',
-                p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+        -- Qty + source-item identity check.
+        -- NULL p_qty means "list the whole src row" — replay must point
+        -- at the exact source (split-derived rows DON'T satisfy NULL
+        -- replay because the original wasn't whole-row).
+        -- Non-NULL p_qty (partial split) accepts either direct
+        -- src_item_id OR a split-derived row tracing back via
+        -- source_ref->>'split_from'.
+        IF p_qty IS NULL THEN
+            IF v_existing_item_id IS DISTINCT FROM p_src_item_id THEN
+                RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (whole-row replay against split listing)',
+                    p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+            END IF;
+        ELSE
+            IF v_existing_item_id IS DISTINCT FROM p_src_item_id
+               AND NOT EXISTS (
+                   SELECT 1 FROM inventory.item
+                    WHERE id = v_existing_item_id
+                      AND source_ref ->> 'split_from' = p_src_item_id::text
+               ) THEN
+                RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (src_item_id differs)',
+                    p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+            END IF;
+            IF v_existing_qty IS DISTINCT FROM p_qty THEN
+                RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (qty differs)',
+                    p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
+            END IF;
         END IF;
         RETURN v_existing_id;
     END IF;
@@ -645,6 +672,25 @@ BEGIN
        IS DISTINCT FROM 'on' THEN
         RAISE EXCEPTION
             'refusing destructive marketplace rollback: set app.allow_marketplace_unsafe_down=on to proceed';
+    END IF;
+END
+$$;
+
+-- Hard data guard: never drop item_id while active item-backed
+-- listings still exist. Dropping the column would orphan the
+-- inventory escrow rows without releasing them. The GUC above
+-- gates the rollback; this preflight covers the case where the
+-- operator opts in but data isn't ready.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM wallet.listing
+         WHERE status = 'active' AND item_id IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION
+            'refusing to drop wallet.listing.item_id: % active item-backed listings still exist; cancel or settle them before rolling back',
+            (SELECT count(*) FROM wallet.listing
+              WHERE status = 'active' AND item_id IS NOT NULL);
     END IF;
 END
 $$;
