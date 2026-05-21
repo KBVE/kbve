@@ -174,6 +174,7 @@ import {
 	disposeBuildingAmbience,
 } from './buildings';
 import {
+	EnemySpatialGrid,
 	findAttackTargetFor,
 	findEnemyForArcher,
 	findEnemyForSoldier,
@@ -254,9 +255,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameSoldierEids: Iterable<number> = [];
 	private frameBuildingEids: Iterable<number> = [];
 	private static readonly ENEMY_GRID_CELL = 80;
-	private static readonly ENEMY_GRID_COLS = Math.ceil(BASE_WIDTH / 80);
-	private static readonly ENEMY_GRID_ROWS = Math.ceil(BASE_HEIGHT / 80);
-	private enemyGrid: number[][] = [];
+	private enemySpatial: EnemySpatialGrid = new EnemySpatialGrid({
+		cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+		worldWidth: BASE_WIDTH,
+		worldHeight: BASE_HEIGHT,
+	});
 	private leadEnemyEid = -1;
 	private leadPathIndex = -1;
 	private frameGeneratorEids: number[] = [];
@@ -401,11 +404,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameEnemyEids = [];
 		this.frameSoldierEids = [];
 		this.frameBuildingEids = [];
-		const gridCells =
-			TowerDefenseScene.ENEMY_GRID_COLS *
-			TowerDefenseScene.ENEMY_GRID_ROWS;
-		this.enemyGrid = new Array(gridCells);
-		for (let i = 0; i < gridCells; i++) this.enemyGrid[i] = [];
+		this.enemySpatial = new EnemySpatialGrid({
+			cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+			worldWidth: BASE_WIDTH,
+			worldHeight: BASE_HEIGHT,
+		});
 		this.leadEnemyEid = -1;
 		this.leadPathIndex = -1;
 		this.frameGeneratorEids = [];
@@ -787,25 +790,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private rebuildEnemyGrid(): void {
-		const cell = TowerDefenseScene.ENEMY_GRID_CELL;
-		const cols = TowerDefenseScene.ENEMY_GRID_COLS;
-		const rows = TowerDefenseScene.ENEMY_GRID_ROWS;
-		for (let i = 0; i < this.enemyGrid.length; i++) {
-			this.enemyGrid[i].length = 0;
-		}
+		const eids = this.frameEnemyEids as unknown as ArrayLike<number>;
+		const alive = (eid: number) => this.enemyVisuals.has(eid);
+		this.enemySpatial.rebuild(eids, alive);
 		let leadEid = -1;
 		let leadProgress = -1;
-		for (const eid of this.frameEnemyEids) {
-			if (!this.enemyVisuals.has(eid)) continue;
-			const x = Position.x[eid];
-			const y = Position.y[eid];
-			let col = Math.floor(x / cell);
-			let row = Math.floor(y / cell);
-			if (col < 0) col = 0;
-			else if (col >= cols) col = cols - 1;
-			if (row < 0) row = 0;
-			else if (row >= rows) row = rows - 1;
-			this.enemyGrid[row * cols + col].push(eid);
+		for (let i = 0; i < eids.length; i++) {
+			const eid = eids[i];
+			if (!alive(eid)) continue;
 			const prog = EnemyStats.pathIndex[eid];
 			if (prog > leadProgress) {
 				leadProgress = prog;
@@ -822,31 +814,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 		range: number,
 		fn: (eid: number) => void,
 	): void {
-		const cell = TowerDefenseScene.ENEMY_GRID_CELL;
-		const cols = TowerDefenseScene.ENEMY_GRID_COLS;
-		const rows = TowerDefenseScene.ENEMY_GRID_ROWS;
-		let minCol = Math.floor((cx - range) / cell);
-		let maxCol = Math.floor((cx + range) / cell);
-		let minRow = Math.floor((cy - range) / cell);
-		let maxRow = Math.floor((cy + range) / cell);
-		if (minCol < 0) minCol = 0;
-		if (minRow < 0) minRow = 0;
-		if (maxCol >= cols) maxCol = cols - 1;
-		if (maxRow >= rows) maxRow = rows - 1;
-		const rangeSq = range * range;
-		for (let r = minRow; r <= maxRow; r++) {
-			for (let c = minCol; c <= maxCol; c++) {
-				const bucket = this.enemyGrid[r * cols + c];
-				for (let i = 0; i < bucket.length; i++) {
-					const eid = bucket[i];
-					if (!this.enemyVisuals.has(eid)) continue;
-					const dx = Position.x[eid] - cx;
-					const dy = Position.y[eid] - cy;
-					if (dx * dx + dy * dy > rangeSq) continue;
-					fn(eid);
-				}
-			}
-		}
+		this.enemySpatial.forEachInRange(
+			cx,
+			cy,
+			range,
+			(eid) => this.enemyVisuals.has(eid),
+			fn,
+		);
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
