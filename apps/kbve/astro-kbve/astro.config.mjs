@@ -196,24 +196,9 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Guides',
-					collapsed: true,
-					items: [{ autogenerate: { directory: 'guides' } }],
-				},
-				{
-					label: 'Applications',
-					collapsed: true,
-					items: [{ autogenerate: { directory: 'application' } }],
-				},
-				{
 					label: 'Project',
 					collapsed: true,
 					items: [{ autogenerate: { directory: 'project' } }],
-				},
-				{
-					label: 'Minecraft',
-					collapsed: true,
-					items: [{ autogenerate: { directory: 'mc' } }],
 				},
 				{
 					label: 'Marketplace',
@@ -225,18 +210,30 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Overview', link: '/gaming/' },
+						{
+							label: 'Minecraft',
+							collapsed: true,
+							items: [{ autogenerate: { directory: 'mc' } }],
+						},
+						
 						{ label: 'BitCraft', link: '/gaming/bitcraft/' },
 						{ label: 'League of Legends', link: '/gaming/lol/' },
 						{ label: 'RimWorld', link: '/gaming/rimworld/' },
 						{ label: 'Titanfall', link: '/gaming/titanfall/' },
 						{ label: 'World of Warcraft', link: '/gaming/wow/' },
 						{ label: 'OSRS', link: '/osrs/' },
+						
 					],
 				},
 				{
 					label: 'Arcade',
 					collapsed: true,
 					items: [{ autogenerate: { directory: 'arcade' } }],
+				},
+				{
+					label: 'Applications',
+					collapsed: true,
+					items: [{ autogenerate: { directory: 'application' } }],
 				},
 				{
 					label: 'Assets',
@@ -286,17 +283,23 @@ export default defineConfig({
 				{
 					label: 'Blog',
 					collapsed: true,
-					items: [{ autogenerate: { directory: 'blog' } }],
-				},
-				{
+					items: [{ autogenerate: { directory: 'blog' } }, 
+						{
 					label: 'Journal',
 					collapsed: true,
 					items: [{ autogenerate: { directory: 'journal' } }],
+				}
+					],
 				},
 				{
 					label: 'Recipe',
 					collapsed: true,
 					items: [{ autogenerate: { directory: 'recipe' } }],
+				},
+				{
+					label: 'Guides',
+					collapsed: true,
+					items: [{ autogenerate: { directory: 'guides' } }],
 				},
 				{
 					label: 'Legal',

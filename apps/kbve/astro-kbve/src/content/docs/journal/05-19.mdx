@@ -1,7 +1,7 @@
 ---
 title: 'May: 19'
 category: Daily
-date: 2025-05-19 12:00:00
+date: 2026-05-19 12:00:00
 client: Self
 unsplash: 1715997894621-e8eebc4e9278
 img: https://images.unsplash.com/photo-1715997894621-e8eebc4e9278?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -14,6 +14,17 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
+
+## 2026
+
+### Isometric
+
+-   10:00PM
+
+    Back at the isometric and bevy flow, taking a quick break again from unity.
+    My goal now will be to get the cross platform gameplay out of the way before preparing for a steam release.
+    If we can get the rareicon demo out before the end of this month, then we can take all of june and july to prepare for the isometric release.
+    This then gives us some time to also prepare for the chuck release, if everything goes as planned, we can have three solid demos out before the end of the year.
 
 ## 2025
 
@@ -71,7 +82,7 @@ The VNC adventure still continues and this time we are going to switch over to k
 I really wanted to make my own based upon the vnc format but kasm is growing so fast and it provides almost everything that I need, it just makes sense to build ontop of it.
 
 We did a couple moch images earlier this morning but I am ready to build it all again.
-Furthermore, I think we should update the notes from just `rustdesk` to something more along the realm of either `vnc` or `RDP`. 
+Furthermore, I think we should update the notes from just `rustdesk` to something more along the realm of either `vnc` or `RDP`.
 Creating a new application document to keep track of everything would make sense and it should be a habit that I need to practice more often.
 
 ```Dockerfile
@@ -116,7 +127,7 @@ EXPOSE 3000 8086
 
 ```
 
-I am going to keep a backup of the older dockerfile in this journal entry, so that I can reference it back again in the future. 
+I am going to keep a backup of the older dockerfile in this journal entry, so that I can reference it back again in the future.
 
 I really wish I did not have to go on multiple quests to just get these small errors resolved.
 This makes me really hate Ubuntu, Python and their whole eco-system, way too many random configurations and not enough easy fallbacks.
@@ -124,13 +135,13 @@ This makes me really hate Ubuntu, Python and their whole eco-system, way too man
 **Docker**
 
 When deploying the Dockerfile , we can pass the shim using `docker run -it --shm-size=256m` , the `--shm-size` flag.
-To run the application, we will use: 
+To run the application, we will use:
 
-```shell 
+```shell
 docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
 ```
 
-This will open the two ports that we need and set the shm-size to 2G. 
+This will open the two ports that we need and set the shm-size to 2G.
 
 Hmm, so we have two options:
 

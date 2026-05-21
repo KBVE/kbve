@@ -72,17 +72,24 @@ jobs:
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends gettext-base
 
-            - name: Build migrations ConfigMap (replace existing)
+            - name: Build migrations ConfigMap (gzipped tarball)
               run: |
-                  # delete-then-create avoids the
-                  # `kubectl.kubernetes.io/last-applied-configuration`
-                  # annotation that `kubectl apply` would inline (the
-                  # migrations dump pushes it over the 262144 byte
-                  # annotation limit).
+                  # Pack the migrations dir as a single gzip tarball
+                  # before pushing into the ConfigMap. Raw files hit
+                  # the 1 MiB ConfigMap cap once the tree grows past
+                  # ~50 migrations; gzip drops 1.1 MiB of SQL to ~200
+                  # KiB. The dbmate-runner Job's busybox initContainer
+                  # extracts the tarball at startup. See follow-up
+                  # issue #11250 for an OCI-image delivery that
+                  # removes the cap entirely.
+                  tar -czf migrations.tar.gz \
+                      -C packages/data/sql/dbmate \
+                      migrations/
+                  ls -lh migrations.tar.gz
                   kubectl -n kilobase delete configmap dbmate-migrations \
                     --ignore-not-found
                   kubectl -n kilobase create configmap dbmate-migrations \
-                    --from-file=packages/data/sql/dbmate/migrations/
+                    --from-file=migrations.tar.gz=migrations.tar.gz
 
             - name: Render + run a status Job
               env:

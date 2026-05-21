@@ -23,9 +23,13 @@ import {
 	ArcadeGameGrid,
 	ArcadeTooltipController,
 } from '@/components/arcade';
-import { Adsense } from '@/components/astropad';
+
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+
 
 <ArcadeTooltipController client:only="react" />
+
+<div class="">
 
 <ArcadeHero
 	title="KBVE Arcade"
@@ -101,6 +105,9 @@ anywhere else.
 	/>
 </ArcadeGameGrid>
 
+
+<DeferredAdsense />
+
 ## Coming soon
 
 We're working on a **[Ruffle](https://ruffle.rs/)** integration so the
@@ -156,7 +163,6 @@ actually open the game's page — the rest of the site stays light.
 	near-instant.
 </Aside>
 
-<Adsense />
 
 ## Controls cheatsheet
 
@@ -176,4 +182,6 @@ A few common patterns across the arcade:
 	browser/device. We move fast on player feedback.
 </Aside>
 
-<Adsense />
+<DeferredAdsense />
+
+</div>

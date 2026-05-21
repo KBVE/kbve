@@ -5,7 +5,6 @@ description: |
 sidebar:
     label: Tower Defense
     order: 8
-template: splash
 editUrl: false
 lastUpdated: false
 next: false
@@ -18,5 +17,12 @@ tags:
 ---
 
 import AstroTowerDefense from '@/arcade/towerdefense/AstroTowerDefense.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+
+<div class="kbve-dashboard-page relative min-h-screen w-full bg-transparent">
+
 
 <AstroTowerDefense />
+
+<DeferredAdsense />
+</div>
