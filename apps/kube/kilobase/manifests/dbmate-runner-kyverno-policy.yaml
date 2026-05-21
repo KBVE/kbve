@@ -70,6 +70,19 @@ spec:
                                         capabilities:
                                             drop:
                                                 - 'ALL'
+                              # initContainers (added when migrations
+                              # ship as a gzipped tarball — the untar
+                              # step extracts into an emptyDir) must
+                              # match the same hardening contract.
+                              =(initContainers):
+                                  - name: '*'
+                                    securityContext:
+                                        runAsNonRoot: true
+                                        readOnlyRootFilesystem: true
+                                        allowPrivilegeEscalation: false
+                                        capabilities:
+                                            drop:
+                                                - 'ALL'
         - name: kilobase-job-volume-allowlist
           match:
               any:
@@ -89,17 +102,21 @@ spec:
                                   operator: Exists
           validate:
               message: >-
-                  Job volumes must reference only `dbmate-migrations`
-                  (ConfigMap) or `dbmate-creds` (Secret). hostPath /
-                  emptyDir / arbitrary PVC mounts are blocked.
+                  Job volumes must use only the dbmate-runner contract:
+                  `migrations-cm` (ConfigMap dbmate-migrations, gzip
+                  tarball), `dbmate-creds` (Secret), or `migrations-work`
+                  (emptyDir untar scratch). hostPath / PVC / arbitrary
+                  mounts blocked. Source kinds are pinned to the Job
+                  template; container hardening (readOnlyRootFilesystem +
+                  drop ALL caps) prevents lateral abuse of an emptyDir.
               foreach:
                   - list: 'request.object.spec.template.spec.volumes'
                     deny:
                         conditions:
                             all:
-                                - key: "{{ element.configMap.name || element.secret.secretName || '_' }}"
+                                - key: '{{ element.name }}'
                                   operator: NotIn
                                   value:
-                                      - 'dbmate-migrations'
+                                      - 'migrations-cm'
+                                      - 'migrations-work'
                                       - 'dbmate-creds'
-                                      - '_'
