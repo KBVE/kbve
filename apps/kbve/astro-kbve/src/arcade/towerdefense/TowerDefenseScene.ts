@@ -172,7 +172,7 @@ import {
 	disposeBuildingAmbience,
 } from './buildings';
 import {
-	EnemySpatialGrid,
+	SpatialGrid,
 	findAttackTargetFor,
 	findEnemyForArcher,
 	findEnemyForSoldier,
@@ -217,7 +217,9 @@ import {
 	type AuraTickDeps,
 } from './auras';
 import {
+	DebugOverlay,
 	updateEnemyHover as updateEnemyHoverExt,
+	type DebugOverlayDeps,
 	type HoverInfoDeps,
 } from './ui';
 import {
@@ -287,7 +289,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameSoldierEids: Iterable<number> = [];
 	private frameBuildingEids: Iterable<number> = [];
 	private static readonly ENEMY_GRID_CELL = 80;
-	private enemySpatial: EnemySpatialGrid = new EnemySpatialGrid({
+	private enemySpatial: SpatialGrid = new SpatialGrid({
+		cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+		worldWidth: BASE_WIDTH,
+		worldHeight: BASE_HEIGHT,
+	});
+	private soldierSpatial: SpatialGrid = new SpatialGrid({
+		cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+		worldWidth: BASE_WIDTH,
+		worldHeight: BASE_HEIGHT,
+	});
+	private buildingSpatial: SpatialGrid = new SpatialGrid({
 		cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
 		worldWidth: BASE_WIDTH,
 		worldHeight: BASE_HEIGHT,
@@ -529,6 +541,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				get: () => this.archerTargetClaims,
 				enumerable: true,
 			},
+			soldierGrid: {
+				get: () => this.soldierSpatial,
+				enumerable: true,
+			},
+			buildingGrid: {
+				get: () => this.buildingSpatial,
+				enumerable: true,
+			},
 		},
 	);
 	private enemyVisualDeps: EnemyVisualDeps = {
@@ -573,6 +593,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private lastRestartSignal = 0;
 	private simNow = 0;
 	private speedFactor = 1;
+	private isPaused = false;
+	private speedFactorBeforePause = 1;
+	private debugOverlay: DebugOverlay | null = null;
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -593,6 +616,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		batteryCapacity: 0,
 	};
 	private powerRefreshAccumulatorMs = 0;
+	private burnTickAccumulatorMs = 0;
 
 	constructor() {
 		super({ key: 'TowerDefenseScene' });
@@ -605,7 +629,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameEnemyEids = [];
 		this.frameSoldierEids = [];
 		this.frameBuildingEids = [];
-		this.enemySpatial = new EnemySpatialGrid({
+		this.enemySpatial = new SpatialGrid({
+			cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+			worldWidth: BASE_WIDTH,
+			worldHeight: BASE_HEIGHT,
+		});
+		this.soldierSpatial = new SpatialGrid({
+			cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
+			worldWidth: BASE_WIDTH,
+			worldHeight: BASE_HEIGHT,
+		});
+		this.buildingSpatial = new SpatialGrid({
 			cellSize: TowerDefenseScene.ENEMY_GRID_CELL,
 			worldWidth: BASE_WIDTH,
 			worldHeight: BASE_HEIGHT,
@@ -667,6 +701,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			batteryCapacity: 0,
 		};
 		this.powerRefreshAccumulatorMs = 0;
+		this.burnTickAccumulatorMs = 0;
 		this.hudUnsubs = [];
 		this.lastSkipSignal = skipSignalAtom.get();
 		this.lastRestartSignal = restartSignalAtom.get();
@@ -680,6 +715,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		ensureBuildingTextures(this);
 		ensureEnemyTextures(this);
 		ensureUnitTextures(this);
+		this.debugOverlay = new DebugOverlay(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		drawGrass(this);
@@ -701,6 +737,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 				if (this.isGameOver) this.scene.restart();
 			});
 			kb.on('keydown-N', () => this.scene.restart());
+			kb.on('keydown-P', () => this.togglePause());
+			kb.on('keydown-SPACE', () => this.togglePause());
+			kb.on('keydown-F1', () => this.debugOverlay?.toggle());
 			kb.on('keydown-ESC', () => {
 				if (pendingItemTargetAtom.get()) this.cancelPendingItem();
 				else if (this.targetingTower) this.cancelTargeting();
@@ -747,7 +786,22 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const skipUnsub = skipSignalAtom.subscribe((v) => {
 			if (v === this.lastSkipSignal) return;
 			this.lastSkipSignal = v;
-			if (this.canSkipWave()) this.interWaveDelayMs = 0;
+			if (!this.canSkipWave()) return;
+			const remainingMs = this.interWaveDelayMs;
+			const bonus = Math.floor(remainingMs / 250);
+			if (bonus > 0) {
+				this.gold += bonus;
+				this.statGoldEarned += bonus;
+				this.floatingText.spawn({
+					x: BASE_WIDTH / 2,
+					y: BASE_HEIGHT * 0.35,
+					text: `+${bonus}g`,
+					color: '#fbd38d',
+					rise: 60,
+					fontSize: '24px',
+				});
+			}
+			this.interWaveDelayMs = 0;
 		});
 		const restartUnsub = restartSignalAtom.subscribe((v) => {
 			if (v === this.lastRestartSignal) return;
@@ -2995,6 +3049,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 		targetY: number,
 		enemyId: number | null,
 	): void {
+		if (t.spec.chainJumps && enemyId !== null) {
+			this.fireChainLightning(t, enemyId);
+			return;
+		}
 		spawnTowerProjectile(
 			this.projectileSpawnDeps,
 			t,
@@ -3002,6 +3060,58 @@ export class TowerDefenseScene extends Phaser.Scene {
 			targetY,
 			enemyId,
 		);
+	}
+
+	private fireChainLightning(t: TowerBuilding, primaryEid: number): void {
+		const jumps = t.spec.chainJumps ?? 0;
+		const falloff = t.spec.chainFalloff ?? 0.7;
+		const damage = towerDamage(t);
+		const range = towerRange(t);
+		const visited = new Set<number>();
+		let prevX = t.x;
+		let prevY = t.y;
+		let cur = primaryEid;
+		let dmg = damage;
+		for (let jump = 0; jump <= jumps; jump++) {
+			if (!this.enemyVisuals.has(cur)) break;
+			visited.add(cur);
+			const tx = Position.x[cur];
+			const ty = Position.y[cur];
+			const line = this.acquireLine(
+				prevX,
+				prevY,
+				tx,
+				ty,
+				t.spec.projectileColor,
+				1,
+				2,
+			);
+			this.tweens.add({
+				targets: line,
+				alpha: 0,
+				duration: 220,
+				onComplete: () => this.releaseLine(line),
+			});
+			this.applyDamage(cur, dmg, t.spec.damageType, DAMAGE_FLAG.none);
+			prevX = tx;
+			prevY = ty;
+			dmg *= falloff;
+			if (jump >= jumps) break;
+			let next = -1;
+			let bestD2 = range * range;
+			this.forEachEnemyInRange(prevX, prevY, range, (eid) => {
+				if (visited.has(eid)) return;
+				const dx = Position.x[eid] - prevX;
+				const dy = Position.y[eid] - prevY;
+				const d2 = dx * dx + dy * dy;
+				if (d2 < bestD2) {
+					bestD2 = d2;
+					next = eid;
+				}
+			});
+			if (next < 0) break;
+			cur = next;
+		}
 	}
 
 	private consumeBatteryCharge(amount: number): boolean {
@@ -3099,6 +3209,30 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private updateRepair(dt: number): void {
 		updateRepairExt(this.repairDeps, dt);
+	}
+
+	private renderDebugOverlay(): void {
+		if (!this.debugOverlay || !this.debugOverlay.isOn()) return;
+		const deps: DebugOverlayDeps = {
+			scene: this,
+			frameEnemyEids: this.frameEnemyEids as unknown as ArrayLike<number>,
+			frameTowerEids: this.frameTowerEids,
+			frameBuildingEids: this
+				.frameBuildingEids as unknown as ArrayLike<number>,
+		};
+		this.debugOverlay.render(deps);
+	}
+
+	private togglePause(): void {
+		if (this.isGameOver) return;
+		if (this.isPaused) {
+			this.isPaused = false;
+			speedFactorAtom.set(this.speedFactorBeforePause || 1);
+		} else {
+			this.isPaused = true;
+			this.speedFactorBeforePause = this.speedFactor || 1;
+			speedFactorAtom.set(0);
+		}
 	}
 
 	private updateEnemyHover(): void {
@@ -3246,8 +3380,20 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameBuildingEids = query(this.world, [BuildingTag, Position]);
 		this.rebuildBuildingFrameCaches();
 		this.rebuildEnemyGrid();
+		this.soldierSpatial.rebuild(
+			this.frameSoldierEids as unknown as ArrayLike<number>,
+			(eid) => this.soldierVisuals.has(eid),
+		);
+		this.buildingSpatial.rebuild(
+			this.frameBuildingEids as unknown as ArrayLike<number>,
+			(eid) => !BuildingState.destroyed[eid],
+		);
 
-		this.updateBurnPatches(dt, nowMs);
+		this.burnTickAccumulatorMs += scaledDeltaMs;
+		if (this.burnTickAccumulatorMs >= 100) {
+			this.updateBurnPatches(this.burnTickAccumulatorMs / 1000, nowMs);
+			this.burnTickAccumulatorMs = 0;
+		}
 		this.updateEnemies(dt, nowMs);
 		this.updateTowers(nowMs);
 		this.syncTowerFireFrames(nowMs);
@@ -3261,6 +3407,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.tickAuraEmitters(nowMs);
 		this.deathSystem();
 		this.updateEnemyHover();
+		this.renderDebugOverlay();
 		this.drainRemoveEntityQueue();
 
 		this.powerRefreshAccumulatorMs += scaledDeltaMs;

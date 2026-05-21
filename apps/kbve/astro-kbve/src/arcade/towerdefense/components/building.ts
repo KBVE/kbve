@@ -32,6 +32,7 @@ const BUILD_ID_LIST: BuildId[] = [
 	'ice',
 	'fire',
 	'artillery',
+	'lightning',
 	'solar',
 	'diesel',
 	'nuclear',

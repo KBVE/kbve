@@ -142,6 +142,8 @@ export interface TowerSpec extends BuildSpecBase {
 	homing: boolean;
 	arcHeight: number;
 	avoidSlowed: boolean;
+	chainJumps?: number;
+	chainFalloff?: number;
 }
 
 export interface GeneratorSpec extends BuildSpecBase {
@@ -216,7 +218,14 @@ export type BuildSpec =
 	| CastleSpec
 	| NexusSpec;
 
-export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
+export type TowerId =
+	| 'basic'
+	| 'bomb'
+	| 'ice'
+	| 'fire'
+	| 'artillery'
+	| 'wall'
+	| 'lightning';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
@@ -385,6 +394,33 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		arcHeight: 0,
 		avoidSlowed: false,
 	},
+	lightning: {
+		id: 'lightning',
+		name: 'Lightning',
+		kind: 'tower',
+		cost: 220,
+		maxHp: 320,
+		defense: 4,
+		power: 3,
+		range: 160,
+		damage: 22,
+		damageType: TOWER_DAMAGE_TYPE.energy,
+		fireRateMs: 900,
+		projectileSpeed: 9999,
+		color: 0xd6bcfa,
+		projectileColor: 0xe9d8fd,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+		chainJumps: 3,
+		chainFalloff: 0.7,
+	},
 };
 
 export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
@@ -532,6 +568,7 @@ export const PALETTE_ORDER: BuildId[] = [
 	'ice',
 	'fire',
 	'artillery',
+	'lightning',
 	'solar',
 	'diesel',
 	'nuclear',
@@ -739,7 +776,7 @@ export function specFor(id: BuildId): BuildSpec {
 	return NEXUS_CATALOG[id as NexusId];
 }
 
-export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';
+export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss' | 'flying';
 
 export interface EnemyType {
 	id: EnemyTypeId;
@@ -754,6 +791,7 @@ export interface EnemyType {
 	canAttack: boolean;
 	sizeRadius: number;
 	bountyMultiplier: number;
+	flying?: boolean;
 }
 
 export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
@@ -813,13 +851,30 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		sizeRadius: 0.55,
 		bountyMultiplier: 10,
 	},
+	flying: {
+		id: 'flying',
+		name: 'Drone',
+		color: 0xb794f4,
+		hpMultiplier: 0.5,
+		speedMultiplier: 1.2,
+		attackDamage: 3,
+		attackRateMs: 600,
+		attackRange: 30,
+		defense: 0,
+		canAttack: true,
+		sizeRadius: 0.28,
+		bountyMultiplier: 1.2,
+		flying: true,
+	},
 };
 
 export function rollEnemyType(wave: number): EnemyTypeId {
 	const bruteChance = Math.min(0.4, (wave - 1) * 0.07);
 	const scoutChance = wave >= 2 ? Math.min(0.25, (wave - 1) * 0.05) : 0;
+	const flyingChance = wave >= 4 ? Math.min(0.2, (wave - 3) * 0.04) : 0;
 	const roll = Math.random();
 	if (roll < bruteChance) return 'brute';
 	if (roll < bruteChance + scoutChance) return 'scout';
+	if (roll < bruteChance + scoutChance + flyingChance) return 'flying';
 	return 'runner';
 }
