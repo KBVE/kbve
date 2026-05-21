@@ -332,6 +332,13 @@ enum ProfileRequest {
         user_id: String,
         username: String,
     },
+    /// Short-circuit path used when the JWT already carries `kbve_username`.
+    /// Bypasses the profile DB lookup and lets the bridge echo a
+    /// `ProfileResponse::Username` straight back to Bevy.
+    SetUsernameLocal {
+        player_entity: Entity,
+        username: String,
+    },
 }
 
 /// Responses sent from the async bridge task back to Bevy systems.
@@ -646,7 +653,9 @@ async fn profile_bridge_task(
                 player_entity,
                 user_id,
             } => {
-                let username = if let Some(svc) = profile_service {
+                let username = if let Some(cached) = lookup_username_cached(&user_id) {
+                    cached
+                } else if let Some(svc) = profile_service {
                     match svc.get_profile_by_user_id(&user_id).await {
                         Ok(Some(profile)) => {
                             if profile.username.is_empty() {
@@ -666,6 +675,8 @@ async fn profile_bridge_task(
                 } else {
                     String::new()
                 };
+
+                store_username_cache(&user_id, &username);
 
                 let _ = tx.send(ProfileResponse::Username {
                     player_entity,
@@ -691,6 +702,10 @@ async fn profile_bridge_task(
                     )
                 };
 
+                if success {
+                    store_username_cache(&user_id, &canonical);
+                }
+
                 let _ = tx.send(ProfileResponse::SetUsernameResult {
                     client_entity,
                     player_entity,
@@ -699,9 +714,52 @@ async fn profile_bridge_task(
                     error,
                 });
             }
+            ProfileRequest::SetUsernameLocal {
+                player_entity,
+                username,
+            } => {
+                let _ = tx.send(ProfileResponse::Username {
+                    player_entity,
+                    username,
+                });
+            }
         }
     }
     tracing::info!("[profile_bridge] bridge task exiting");
+}
+
+/// Short-TTL in-memory cache for username lookups. Auth handshake spamming
+/// the DB on every reconnect is wasteful when the same JWT validates many
+/// times within seconds; 60s is short enough that `set_username` updates
+/// surface quickly while still cutting hot-path DB load.
+const USERNAME_CACHE_TTL_SECS: u64 = 60;
+
+static USERNAME_CACHE: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<String, (String, std::time::Instant)>>,
+> = std::sync::LazyLock::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+
+fn lookup_username_cached(user_id: &str) -> Option<String> {
+    let now = std::time::Instant::now();
+    let mut guard = USERNAME_CACHE.lock().ok()?;
+    if let Some((value, inserted)) = guard.get(user_id).cloned() {
+        if now.duration_since(inserted).as_secs() < USERNAME_CACHE_TTL_SECS {
+            return Some(value);
+        }
+        guard.remove(user_id);
+    }
+    None
+}
+
+fn store_username_cache(user_id: &str, username: &str) {
+    if user_id.is_empty() {
+        return;
+    }
+    if let Ok(mut guard) = USERNAME_CACHE.lock() {
+        guard.insert(
+            user_id.to_string(),
+            (username.to_string(), std::time::Instant::now()),
+        );
+    }
 }
 
 fn run_bevy_app(
@@ -746,6 +804,7 @@ fn run_bevy_app(
     app.insert_resource(JwtSecret(jwt_secret));
     app.init_resource::<AuthenticatedClients>();
     app.init_resource::<ClientPlayerMap>();
+    app.init_resource::<SetUsernameLastAttempt>();
     app.init_resource::<CollectedObjects>();
     app.init_resource::<PlayerInventories>();
     app.init_resource::<PlayerEquipment>();
@@ -846,6 +905,10 @@ fn run_bevy_app(
     app.add_systems(Update, process_auth_messages);
     // Verify AuthAck echo (step 4 of handshake)
     app.add_systems(Update, verify_auth_ack);
+    // Disconnect clients that never complete the handshake (PendingAuth /
+    // PendingAck) within `AUTH_HANDSHAKE_TIMEOUT_SECS` so half-open
+    // connections can't accumulate.
+    app.add_systems(Update, disconnect_stalled_auth);
 
     // Receive position updates from clients and apply to their player entities
     app.add_systems(Update, process_position_updates);
@@ -1498,14 +1561,19 @@ fn process_auth_messages(
         With<PendingAuth>,
     >,
 ) {
+    let allow_anon = std::env::var("KBVE_ALLOW_ANON_AUTH")
+        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE"))
+        .unwrap_or(false);
+
     for (entity, mut receiver, mut sender) in &mut query {
         for msg in receiver.receive() {
             let server_time = game_time_challenge(&day);
 
             // --- Guest path: empty JWT → anonymous session ---
             if msg.jwt.is_empty() || msg.jwt.trim().is_empty() {
-                let guest_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
-                let guest_user_id = format!("guest_{guest_idx}");
+                // ULID gives globally-unique guest ids that survive restarts,
+                // so two concurrent guest sessions can't collide on player_id.
+                let guest_user_id = format!("guest_{}", uuid::Uuid::new_v4().simple());
                 tracing::info!(
                     "client {entity:?} connecting as guest: {guest_user_id} (challenge={server_time})"
                 );
@@ -1528,10 +1596,21 @@ fn process_auth_messages(
 
             // --- JWT path: validate with Supabase secret ---
             if jwt_secret.0.is_empty() {
-                let anon_idx = PLAYER_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
-                let anon_user_id = format!("anon_{anon_idx}");
+                if !allow_anon {
+                    tracing::error!(
+                        "[gameserver] rejecting {entity:?} — SUPABASE_JWT_SECRET unset and KBVE_ALLOW_ANON_AUTH not enabled"
+                    );
+                    sender.send::<GameChannel>(AuthResponse {
+                        success: false,
+                        user_id: String::new(),
+                        player_id: 0,
+                        server_time: 0,
+                    });
+                    continue;
+                }
+                let anon_user_id = format!("anon_{}", uuid::Uuid::new_v4().simple());
                 tracing::warn!(
-                    "SUPABASE_JWT_SECRET not set — accepting {entity:?} as {anon_user_id} (challenge={server_time})"
+                    "SUPABASE_JWT_SECRET not set and KBVE_ALLOW_ANON_AUTH=1 — accepting {entity:?} as {anon_user_id} (challenge={server_time})"
                 );
                 let player_id = user_id_to_player_id(&anon_user_id);
                 let player_entity = spawn_player(&mut commands, player_id, entity, ws_server.0);
@@ -1558,8 +1637,9 @@ fn process_auth_messages(
             match crate::auth::validate_token(&msg.jwt, &jwt_secret.0) {
                 Ok(token_data) => {
                     let user_id = token_data.claims.sub.clone();
+                    let jwt_username = token_data.claims.kbve_username.clone();
                     tracing::info!(
-                        "client {entity:?} authenticated as user {user_id} (challenge={server_time})"
+                        "client {entity:?} authenticated as user {user_id} (challenge={server_time}, jwt_username={jwt_username:?})"
                     );
                     let player_id = user_id_to_player_id(&user_id);
                     let player_entity = spawn_player(&mut commands, player_id, entity, ws_server.0);
@@ -1576,10 +1656,20 @@ fn process_auth_messages(
                     authenticated.0.insert(entity, user_id.clone());
                     client_player_map.0.insert(entity, player_entity);
 
-                    let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
-                        player_entity,
-                        user_id,
-                    });
+                    // If the JWT already carries the canonical username
+                    // (GoTrue Custom Access Token hook), skip the profile
+                    // DB roundtrip and propagate it straight to PlayerName.
+                    if let Some(name) = jwt_username.filter(|n| !n.is_empty()) {
+                        let _ = profile_tx.0.send(ProfileRequest::SetUsernameLocal {
+                            player_entity,
+                            username: name,
+                        });
+                    } else {
+                        let _ = profile_tx.0.send(ProfileRequest::LookupUsername {
+                            player_entity,
+                            user_id,
+                        });
+                    }
                 }
                 Err(e) => {
                     let jwt_preview = if msg.jwt.len() > 20 {
@@ -2774,13 +2864,24 @@ fn process_profile_responses(
     }
 }
 
+/// Minimum seconds between successive `SetUsernameRequest`s from the same
+/// client. Prevents a misbehaving client from spamming the profile service
+/// with rename attempts.
+const SET_USERNAME_COOLDOWN_SECS: f32 = 60.0;
+
+#[derive(Resource, Default)]
+struct SetUsernameLastAttempt(std::collections::HashMap<Entity, f32>);
+
 /// Process SetUsernameRequest messages from clients.
 fn process_set_username_requests(
+    time: Res<Time>,
     client_player_map: Res<ClientPlayerMap>,
     authenticated: Res<AuthenticatedClients>,
     profile_tx: Res<ProfileBridgeTx>,
+    mut last_attempt: ResMut<SetUsernameLastAttempt>,
     mut receivers: Query<(Entity, &mut MessageReceiver<SetUsernameRequest>), Without<PendingAuth>>,
 ) {
+    let now = time.elapsed_secs();
     for (client_entity, mut receiver) in &mut receivers {
         for msg in receiver.receive() {
             let Some(&player_entity) = client_player_map.0.get(&client_entity) else {
@@ -2789,6 +2890,17 @@ fn process_set_username_requests(
             let Some(user_id) = authenticated.0.get(&client_entity) else {
                 continue;
             };
+
+            if let Some(&prev) = last_attempt.0.get(&client_entity) {
+                if now - prev < SET_USERNAME_COOLDOWN_SECS {
+                    tracing::warn!(
+                        "[gameserver] dropping set-username from {client_entity:?} — cooldown ({:.1}s remaining)",
+                        SET_USERNAME_COOLDOWN_SECS - (now - prev)
+                    );
+                    continue;
+                }
+            }
+            last_attempt.0.insert(client_entity, now);
 
             tracing::info!(
                 "[gameserver] set-username request from {client_entity:?}: '{}'",
@@ -2801,6 +2913,28 @@ fn process_set_username_requests(
                 user_id: user_id.clone(),
                 username: msg.username,
             });
+        }
+    }
+}
+
+/// How long a client is allowed to stay in `PendingAuth` or `PendingAck`
+/// before the server gives up and closes the connection.
+const AUTH_HANDSHAKE_TIMEOUT_SECS: f32 = 15.0;
+
+fn disconnect_stalled_auth(
+    mut commands: Commands,
+    time: Res<Time>,
+    pending_auth: Query<(Entity, &ConnectedAt), With<PendingAuth>>,
+    pending_ack: Query<(Entity, &ConnectedAt), With<PendingAck>>,
+) {
+    let now = time.elapsed_secs();
+    for (entity, connected_at) in pending_auth.iter().chain(pending_ack.iter()) {
+        if now - connected_at.0 > AUTH_HANDSHAKE_TIMEOUT_SECS {
+            tracing::warn!(
+                "[gameserver] dropping {entity:?} — handshake exceeded {:.1}s",
+                AUTH_HANDSHAKE_TIMEOUT_SECS
+            );
+            commands.entity(entity).despawn();
         }
     }
 }
