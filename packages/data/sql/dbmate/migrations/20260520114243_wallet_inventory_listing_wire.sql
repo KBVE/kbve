@@ -1,55 +1,5 @@
 -- migrate:up
--- ============================================================================
--- WALLET ↔ INVENTORY LISTING WIRE — foundation (Phase 6.1a)
---
--- Lands:
---   1. inventory.service_split_for_listing — split a HELD stackable row
---      directly into a NEW listing_escrow row + a smaller held source.
---      Combines "split + lock" so the partial-unique invariant on
---      held-stackable rows is never violated (the new row leaves the
---      partial index immediately because it's in listing_escrow).
---   2. wallet.listing.item_id column + active-uniqueness + CHECK so
---      active listings MUST reference an inventory.item row. Existing
---      legacy non-active rows keep working because the CHECK only
---      fires for status='active'.
---   3. wallet.service_create_listing_with_item — new authoritative
---      listing creator that takes (p_item_id, p_qty). When p_qty is
---      NULL or equals the source row qty, the whole row is locked via
---      inventory.service_listing_lock. Otherwise it splits via
---      inventory.service_split_for_listing.
---   4. public.proxy_market_create_listing_with_item — authenticated
---      wrapper. Enforces inventory.is_2fa_required_for_listing aal2
---      gate + the high_value_khash_threshold gate.
---
--- The legacy wallet.service_create_listing(UUID, JSONB, ...) +
--- proxy_market_create_listing(JSONB, ...) STAY in place. axum + Astro
--- migrate to the *_with_item variants in Phase 6.1b. The legacy
--- functions get dropped in 6.1c once all callers move over.
---
--- Settle / cancel / expire / buy_now hooks land in the sibling
--- migration 20260520114244_wallet_listing_settle_inventory.sql.
---
--- LOCK-ORDER INVARIANT (cross-schema):
---   wallet marketplace functions lock wallet.listing FIRST, then call
---   inventory.service_listing_* which locks inventory.item second.
---   inventory.service_listing_* MUST NOT lock wallet.listing in any
---   path — that would invert the order and create a deadlock surface.
---   Any future reconciliation tooling that wants to traverse
---   inventory → listing MUST read wallet.listing without acquiring a
---   row lock (no FOR UPDATE / FOR SHARE).
---
--- OPERATIONAL NOTE (DDL locking):
---   This migration builds non-CONCURRENT indexes + adds an ALTER
---   COLUMN + CHECK inside dbmate's single transaction. Tables are
---   empty at first deploy so locking is moot, but if a future
---   re-application happens against a populated marketplace, run
---   during a write pause — CONCURRENTLY isn't available in a
---   transactional migration block.
--- ============================================================================
 
--- Enum preflight: each label the new RPCs hardcode must already
--- exist on its parent type. Protects against partial dev/staging
--- rebuilds where an earlier migration's enum drifted.
 DO $$
 DECLARE
     v_label TEXT;
@@ -81,9 +31,6 @@ BEGIN
 END
 $$;
 
--- Preflight: fail fast if the 6.0 inventory hooks + JWT helpers the
--- new wallet RPCs depend on are missing. Without these, the
--- migration would technically succeed and only fail at runtime.
 DO $$
 BEGIN
     IF to_regprocedure('inventory.service_listing_lock(uuid, uuid, bigint)') IS NULL THEN
@@ -100,19 +47,6 @@ BEGIN
     END IF;
 END
 $$;
-
--- ---------------------------------------------------------------------------
--- 1. inventory.service_split_for_listing
---    Atomically: src.qty -= p_qty, INSERT new row in 'listing_escrow'
---    with the same kind/ref/source as src. src stays 'held' and
---    inside the partial unique index; the new row sits in
---    listing_escrow so it never collides with the held-stackable
---    invariant. Caller (wallet) then INSERTs wallet.listing with
---    item_id = returned new id.
---
---    p_qty MUST be strictly less than src.qty — a whole-row "split"
---    is a no-op the caller should handle via service_listing_lock.
--- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION inventory.service_split_for_listing(
     p_seller_account UUID,
@@ -157,11 +91,6 @@ BEGIN
             p_qty, v_src.qty USING ERRCODE = 'INV13';
     END IF;
 
-    -- Status-guarded UPDATE. Row is already locked FOR UPDATE above,
-    -- so the WHERE-recheck + RETURNING is purely defensive against
-    -- future refactors that might weaken the lock chain. If the
-    -- preconditions changed between the lock and the update, the
-    -- RETURNING is empty and we raise.
     DECLARE
         v_updated_src_id UUID;
     BEGIN
@@ -179,10 +108,6 @@ BEGIN
         END IF;
     END;
 
-    -- Preserve v_src.nbt rather than hardcoding '{}'::jsonb. Today the
-    -- is_stackable CHECK above guarantees v_src.nbt = '{}', so the two
-    -- are equivalent — but mirroring the source row keeps this RPC
-    -- correct if the stackable invariant is ever loosened.
     INSERT INTO inventory.item (
         owner_account, kind, ref, qty, nbt, state, source, source_ref
     ) VALUES (
@@ -195,9 +120,6 @@ BEGIN
     )
     RETURNING id INTO v_new_id;
 
-    -- New row was minted directly into listing_escrow via a "virtual"
-    -- transit_in -> listing_escrow transition. Carries split metadata
-    -- so the audit stream can reconcile both halves.
     INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
     VALUES (v_new_id, 'transit_in', 'listing_escrow', 'wallet',
             'split_for_listing',
@@ -219,22 +141,10 @@ GRANT  EXECUTE ON FUNCTION inventory.service_split_for_listing(UUID, UUID, BIGIN
 COMMENT ON FUNCTION inventory.service_split_for_listing(UUID, UUID, BIGINT) IS
     'Atomic split-for-listing helper. Splits a HELD stackable row, producing a new row directly in listing_escrow state (never held). Used by wallet.service_create_listing_with_item when a partial-stack listing is requested. Returns the new row id, which the caller must INSERT into wallet.listing.item_id. Refuses instanced rows and refuses whole-row splits (caller should service_listing_lock the source directly in that case).';
 
--- ---------------------------------------------------------------------------
--- 2. wallet.listing.item_id column + active-uniqueness + CHECK
---    Active listings MUST carry item_id. Legacy non-active rows keep
---    item_id NULL.
--- ---------------------------------------------------------------------------
-
 ALTER TABLE wallet.listing
     ADD COLUMN item_id UUID
         REFERENCES inventory.item(id) ON DELETE NO ACTION;
 
--- Hard preflight: refuse the cleanup if any pre-existing active legacy
--- listing has an active bid. Active bids mean real escrowed khash —
--- silently flipping bid status to 'refunded' without a ledger reversal
--- would strand the bidder's khash. The 6.1a foundation deliberately
--- skips ledger work; if a real bid exists, the migration aborts and
--- requires manual reconciliation before re-running.
 DO $$
 BEGIN
     IF EXISTS (
@@ -249,10 +159,6 @@ BEGIN
             'legacy active listings with active bids exist; reconcile escrow manually before re-running 20260520114243';
     END IF;
 
-    -- Catch corrupted current_bid_id pointers (listing claims a
-    -- current bid but no matching active wallet.bid row exists).
-    -- The cleanup below would silently null these out; surface them
-    -- as a hard failure so they get manual review first.
     IF EXISTS (
         SELECT 1
           FROM wallet.listing l
@@ -271,11 +177,6 @@ BEGIN
             'legacy active listings with stale current_bid_id pointers exist; manual reconciliation required';
     END IF;
 
-    -- Catch denormalized cache drift: current_bid_id points at an
-    -- active bid row, but the cached current_bid / current_bid_account
-    -- disagree with that bid's amount / bidder. Settle in the new
-    -- code path refuses this drift; surface it before the cleanup
-    -- below clears the cache and deletes the evidence.
     IF EXISTS (
         SELECT 1
           FROM wallet.listing l
@@ -296,15 +197,6 @@ BEGIN
 END
 $$;
 
--- Hard cut. Cancel every pre-existing ACTIVE listing — none of them
--- have item_id (column was just added), and going forward every
--- listing MUST flow through the inventory ledger via the
--- *_with_item path. The preflight above guarantees no active bids,
--- so no ledger work is needed; this is pure schema hygiene.
---
--- One audit row PER cancelled listing so reconciliation can replay
--- the exact set of legacy ids without a snapshot. CTE pipes the
--- RETURNING set into the audit_log INSERT.
 WITH cancelled AS (
     UPDATE wallet.listing
        SET status              = 'cancelled',
@@ -329,19 +221,10 @@ SELECT
     )
 FROM cancelled;
 
--- VALID CHECK: every active listing MUST now carry item_id. Legacy
--- service_create_listing(UUID, JSONB, ...) callers fail loudly on
--- INSERT — that's intentional and forces the 6.1b axum/Astro switch
--- to the *_with_item variants. Pre-existing non-active rows
--- (cancelled / expired / sold) keep item_id NULL untouched.
 ALTER TABLE wallet.listing
     ADD CONSTRAINT wallet_listing_active_item_id_chk
         CHECK (status <> 'active' OR item_id IS NOT NULL);
 
--- Defensive: duplicate-detection preflight before the unique index
--- build. Impossible on first deploy (item_id was just added), but
--- protects re-applications against dev/staging drift and surfaces a
--- clean error instead of a raw unique_violation during CREATE INDEX.
 DO $$
 BEGIN
     IF EXISTS (
@@ -362,12 +245,6 @@ CREATE UNIQUE INDEX wallet_listing_active_item_uq
     ON wallet.listing (item_id)
     WHERE status = 'active' AND item_id IS NOT NULL;
 
--- Expiry sweep support. service_expire_listings scans
--- (status='active' AND currency='khash' AND expires_at <= now())
--- ORDER BY expires_at, id. The existing wallet_listing_active_expires_idx
--- covers status='active' on expires_at, but a tighter partial index
--- with the id tiebreaker + currency predicate keeps the sweep cheap
--- as marketplace volume grows.
 CREATE INDEX IF NOT EXISTS wallet_listing_active_khash_expiry_idx
     ON wallet.listing (expires_at, id)
     WHERE status = 'active'
@@ -375,14 +252,6 @@ CREATE INDEX IF NOT EXISTS wallet_listing_active_khash_expiry_idx
 
 COMMENT ON COLUMN wallet.listing.item_id IS
     'inventory.item.id of the listed row. NULL only allowed on legacy non-active listings; new active listings MUST reference an inventory.item. Active-listing uniqueness ensures one open listing per item.';
-
--- ---------------------------------------------------------------------------
--- 3. wallet.service_create_listing_with_item
---    New authoritative listing creator. Takes (p_src_item_id, p_qty).
---    p_qty NULL or = src.qty: lock the whole source row.
---    p_qty < src.qty:        split via service_split_for_listing.
---    Stores back-compat item_ref JSONB derived from the inventory row.
--- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION wallet.service_create_listing_with_item(
     p_seller_account  UUID,
@@ -439,9 +308,6 @@ BEGIN
     IF p_expires_at IS NULL OR p_expires_at <= v_now THEN
         RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
     END IF;
-    -- Upfront max-duration check. Table-level listing_max_duration_chk
-    -- enforces the same cap via created_at + 30d, but raising here
-    -- surfaces a clean 22023 instead of a raw check_violation.
     IF p_expires_at > v_now + interval '30 days' THEN
         RAISE EXCEPTION 'expires_at exceeds 30-day maximum listing duration'
             USING ERRCODE = '22023';
@@ -450,18 +316,6 @@ BEGIN
         RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
     END IF;
 
-    -- Replay with full payload validation. Reusing the same
-    -- idempotency_key against different parameters is a caller bug;
-    -- surface as P1012 instead of silently aliasing the original row.
-    -- wallet_listing_seller_idempotency_uq (lives in the original
-    -- 20260514113538_wallet_marketplace_schema migration) serializes
-    -- concurrent same-key inserts at the table level.
-    --
-    -- Source-item check: the listing's item_id is either p_src_item_id
-    -- itself (whole-row path) or a split-derived row whose source_ref
-    -- ->>'split_from' points back at p_src_item_id (partial path).
-    -- Both replay variants must resolve to the originally requested
-    -- source.
     SELECT l.id, l.item_id, l.buy_now_price, l.min_bid, l.expires_at,
            COALESCE((l.item_ref ->> 'qty')::BIGINT, 0)
       INTO v_existing_id, v_existing_item_id, v_existing_buy_now,
@@ -476,13 +330,6 @@ BEGIN
             RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (price/expiry differs)',
                 p_idempotency_key, v_existing_id USING ERRCODE = 'P1012';
         END IF;
-        -- Qty + source-item identity check.
-        -- NULL p_qty means "list the whole src row" — replay must point
-        -- at the exact source (split-derived rows DON'T satisfy NULL
-        -- replay because the original wasn't whole-row).
-        -- Non-NULL p_qty (partial split) accepts either direct
-        -- src_item_id OR a split-derived row tracing back via
-        -- source_ref->>'split_from'.
         IF p_qty IS NULL THEN
             IF v_existing_item_id IS DISTINCT FROM p_src_item_id THEN
                 RAISE EXCEPTION 'idempotency_key % replay parameter mismatch on listing % (whole-row replay against split listing)',
@@ -506,9 +353,6 @@ BEGIN
         RETURN v_existing_id;
     END IF;
 
-    -- Lock + validate the source row. We hold the row lock through
-    -- both the optional split and the listing INSERT so a concurrent
-    -- caller can't race the same source.
     SELECT * INTO v_src
       FROM inventory.item
      WHERE id = p_src_item_id
@@ -524,9 +368,6 @@ BEGIN
             p_src_item_id, v_src.state USING ERRCODE = 'INV12';
     END IF;
 
-    -- Decide whole-row vs split. NULL qty or qty matching source =
-    -- whole row. Otherwise must split (and src must be stackable +
-    -- have strictly more qty than requested).
     IF p_qty IS NULL OR p_qty = v_src.qty THEN
         v_listing_qty := v_src.qty;
         v_listed_id   := v_src.id;
@@ -545,7 +386,6 @@ BEGIN
             USING ERRCODE = 'INV13';
     END IF;
 
-    -- Back-compat item_ref derived from the listed row.
     v_item_ref := jsonb_build_object(
         'kind',        v_src.kind,
         'id',          v_src.ref,
@@ -562,17 +402,9 @@ BEGIN
         p_buy_now_price, p_min_bid, p_expires_at, p_idempotency_key
     ) RETURNING id INTO v_listing_id;
 
-    -- Whole-row path needs the explicit lock RPC. The split path
-    -- already flipped the new row to listing_escrow; backfill the
-    -- listing_id into source_ref so reconciliation tooling can
-    -- traverse split-row escrow → owning listing without a separate
-    -- join through wallet.listing.item_id.
     IF NOT v_was_split THEN
         PERFORM inventory.service_listing_lock(p_seller_account, v_listed_id, v_listing_id);
     ELSE
-        -- COALESCE in case a future schema relaxation makes
-        -- source_ref nullable; today the column is NOT NULL DEFAULT
-        -- '{}'::jsonb so the COALESCE is defensive.
         UPDATE inventory.item
            SET source_ref = COALESCE(source_ref, '{}'::jsonb)
                             || jsonb_build_object(
@@ -607,13 +439,6 @@ REVOKE ALL ON FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGIN
 GRANT  EXECUTE ON FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO service_role;
 COMMENT ON FUNCTION wallet.service_create_listing_with_item(UUID, UUID, BIGINT, wallet.currency_kind, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
     'SERVICE marketplace RPC. New authoritative listing creator. Takes (src_item_id, qty); qty NULL or = src.qty locks the whole row, qty < src.qty splits via inventory.service_split_for_listing. Successor to service_create_listing(UUID, JSONB, ...); legacy variant stays for axum/Astro back-compat until Phase 6.1c.';
-
--- ---------------------------------------------------------------------------
--- 4. public.proxy_market_create_listing_with_item
---    Authenticated wrapper. Enforces inventory.is_2fa_required_for_listing
---    aal2 gate + the high_value_khash_threshold check before calling
---    the wallet service.
--- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.proxy_market_create_listing_with_item(
     p_src_item_id     UUID,
@@ -650,24 +475,16 @@ BEGIN
     IF p_expires_at IS NULL OR p_expires_at <= statement_timestamp() THEN
         RAISE EXCEPTION 'expires_at must be in the future' USING ERRCODE = '22023';
     END IF;
-    -- Mirror the service-side 30-day cap so the proxy boundary
-    -- surfaces a clean error before any service work runs.
     IF p_expires_at > statement_timestamp() + interval '30 days' THEN
         RAISE EXCEPTION 'expires_at exceeds 30-day maximum listing duration'
             USING ERRCODE = '22023';
     END IF;
 
-    -- 2FA gate: if the account opted into require_2fa_for_listing,
-    -- the JWT must carry aal=aal2. Don't leak the account UUID into
-    -- the error message — caller already knows it's theirs, and the
-    -- audit_log row carries the details for support.
     IF inventory.is_2fa_required_for_listing(v_seller)
        AND v_aal IS DISTINCT FROM 'aal2' THEN
         RAISE EXCEPTION 'mfa_required for listing' USING ERRCODE = 'INV30';
     END IF;
 
-    -- High-value gate. Compare max(buy_now_price, min_bid) against
-    -- the configured threshold. threshold = 0 means "not configured".
     SELECT high_value_khash_threshold INTO v_threshold
       FROM inventory.account_security
      WHERE account = v_seller;
@@ -697,15 +514,6 @@ GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BI
 COMMENT ON FUNCTION public.proxy_market_create_listing_with_item(UUID, BIGINT, BIGINT, BIGINT, TIMESTAMPTZ, UUID) IS
     'PUBLIC marketplace proxy. Authenticated wrapper for wallet.service_create_listing_with_item. Enforces inventory.is_2fa_required_for_listing aal2 gate and the high_value_khash_threshold gate. p_qty NULL = list whole row; p_qty < src.qty = split-and-list.';
 
--- ---------------------------------------------------------------------------
--- Legacy proxy_market_create_listing(JSONB, ...) deprecation
---   The legacy proxy from migration 20260516015242 still exists for
---   axum / Astro compile-time. With the new wallet_listing_active_item_id_chk
---   in place, the legacy INSERT would fail with a raw check_violation.
---   Replace the legacy proxy body with a clean P1011 error so callers
---   see "use the *_with_item path" instead of a constraint trip.
--- ---------------------------------------------------------------------------
-
 CREATE OR REPLACE FUNCTION public.proxy_market_create_listing(
     p_item_ref        JSONB,
     p_buy_now_price   BIGINT,
@@ -722,9 +530,6 @@ BEGIN
 END;
 $$;
 
--- Restate the privilege contract explicitly. CREATE OR REPLACE
--- preserves grants/owner, but for a security-definer public RPC the
--- intent should be visible in this migration.
 ALTER FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) OWNER TO service_role;
 REVOKE ALL ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) FROM PUBLIC, anon;
 GRANT  EXECUTE ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TIMESTAMPTZ, UUID) TO authenticated, service_role;
@@ -734,15 +539,6 @@ COMMENT ON FUNCTION public.proxy_market_create_listing(JSONB, BIGINT, BIGINT, TI
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
--- ============================================================================
--- ⚠ OPERATIONAL WARNING ⚠
--- Rolling back this migration RE-INTRODUCES the stuck-escrow + legacy
--- listing path, removes wallet.listing.item_id, and resurrects the
--- raw check_violation behaviour of the legacy proxy. Hard-gated on
--- the GUC app.allow_marketplace_unsafe_down='on' so a stray dbmate
--- rollback against prod aborts before touching anything. Local test
--- harness opts in via PGOPTIONS — see test-migration.sh.
--- ============================================================================
 DO $$
 BEGIN
     IF current_setting('app.allow_marketplace_unsafe_down', true)
@@ -753,11 +549,6 @@ BEGIN
 END
 $$;
 
--- Hard data guard: never drop item_id while active item-backed
--- listings still exist. Dropping the column would orphan the
--- inventory escrow rows without releasing them. The GUC above
--- gates the rollback; this preflight covers the case where the
--- operator opts in but data isn't ready.
 DO $$
 BEGIN
     IF EXISTS (
@@ -782,14 +573,6 @@ ALTER TABLE wallet.listing DROP COLUMN IF EXISTS item_id;
 
 DROP FUNCTION IF EXISTS inventory.service_split_for_listing(UUID, UUID, BIGINT);
 
--- Belt-and-suspenders: restoring the legacy JSONB listing proxy
--- reopens the non-inventory-backed listing path on the PostgREST
--- surface. Even though the outer app.allow_marketplace_unsafe_down
--- gate must already be 'on' to reach here, the legacy proxy
--- restoration carries its own GUC so an operator running a partial
--- rollback (e.g. dropping only the sibling) doesn't accidentally
--- resurrect public JSONB-only listing creation. Dev/test sets both
--- via PGOPTIONS — see test-migration.sh.
 DO $$
 BEGIN
     IF current_setting('app.allow_legacy_marketplace_proxy_restore', true)
@@ -800,9 +583,6 @@ BEGIN
 END
 $$;
 
--- Restore the pre-6.1a legacy proxy body so rollback leaves the
--- original public listing path functional rather than stuck at the
--- P1011 stub. Body lifted from 20260516015242_wallet_marketplace_proxies.sql.
 CREATE OR REPLACE FUNCTION public.proxy_market_create_listing(
     p_item_ref        JSONB,
     p_buy_now_price   BIGINT,
