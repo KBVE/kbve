@@ -24,6 +24,27 @@ import { Adsense } from '@/components/astropad';
     A full 100 across the board for it would be amazing, and I think that I could get away with it, if we can do some smart moves ahead of time.
     Deferrals for the javascript and freeing up the main thread will be our first goal, but I am positive that the adsense will definitely hurt us in the long term.
 
+### Deferral Scripts
+
+-   01:29PM
+
+    The next move for today will be to focus on getting some of the deferral scripts that we need to implement.
+    This is a core improvement in terms of speed but also helping with the main thread issues we been facing when running some games.
+
+### Tower Defense
+
+-   02:40PM
+
+    Major refactor of the tower defense arcade is next, I am thinking of modularizing all of the code.
+    This way we can maybe come up with a creative way for the agents to add more units, cards and concepts into the game?
+    There was this idea of having special wave battles after each 10 turns, then there is the other idea of having multiplayer.
+    If we can get a solid pipeline setup, I might be able to quickly build a small multiplayer server that only uses about 50mb of ram, and offset the CPU usage.
+    We could even go further and integrate it with the Discord SDK too, since we are not really using any shared workers, allowing us to play the game via discord.
+
+
+###
+
+
 ## 2025
 
 ### NVDIA Drop
