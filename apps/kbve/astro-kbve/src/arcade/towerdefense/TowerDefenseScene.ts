@@ -59,7 +59,6 @@ import {
 	buildIndexFromId,
 	BurnPatchStats,
 	BurnPatchTag,
-	applyStatus,
 	AURA_KIND,
 	AuraEmitter,
 	AuraEmitterTag,
@@ -87,6 +86,7 @@ import {
 	Resistance,
 	ResistanceTag,
 	STATUS_KIND,
+	stackSlow,
 	statusMagnitude,
 	DroneStats,
 	DroneTag,
@@ -1890,6 +1890,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				this.simNow + (spec as CastleSpec).unitSpawnIntervalMs;
 			CastleState.nextDroneSpawnAtMs[eid] =
 				this.simNow + (spec as CastleSpec).droneSpawnIntervalMs;
+			CastleState.nextFireAtMs[eid] = this.simNow;
 			const powerIndicator = createPowerIndicator(this, x, y);
 			const b: CastleBuilding = {
 				...base,
@@ -2478,7 +2479,87 @@ export class TowerDefenseScene extends Phaser.Scene {
 				CastleState.nextDroneSpawnAtMs[eid] =
 					nowMs + b.spec.droneSpawnIntervalMs;
 			}
+			if (nowMs >= CastleState.nextFireAtMs[eid]) {
+				const target = this.findNearestEnemyInRange(
+					b.x,
+					b.y,
+					b.spec.fireRange,
+				);
+				if (target >= 0) {
+					this.fireCastleArrow(b, target);
+					CastleState.nextFireAtMs[eid] = nowMs + b.spec.fireRateMs;
+				} else {
+					CastleState.nextFireAtMs[eid] = nowMs + 200;
+				}
+			}
 		}
+	}
+
+	private findNearestArmoury(x: number, y: number): ArmouryBuilding | null {
+		let best: ArmouryBuilding | null = null;
+		let bestD2 = Infinity;
+		for (let i = 0; i < this.frameArmouryEids.length; i++) {
+			const eid = this.frameArmouryEids[i];
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b || b.kind !== 'armoury') continue;
+			const dx = b.x - x;
+			const dy = b.y - y;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestD2) {
+				bestD2 = d2;
+				best = b;
+			}
+		}
+		return best;
+	}
+
+	private findNearestEnemyInRange(
+		x: number,
+		y: number,
+		range: number,
+	): number {
+		let best = -1;
+		let bestD2 = range * range;
+		this.forEachEnemyInRange(x, y, range, (eid) => {
+			const dx = Position.x[eid] - x;
+			const dy = Position.y[eid] - y;
+			const d2 = dx * dx + dy * dy;
+			if (d2 < bestD2) {
+				bestD2 = d2;
+				best = eid;
+			}
+		});
+		return best;
+	}
+
+	private fireCastleArrow(castle: CastleBuilding, targetEid: number): void {
+		const sx = castle.x;
+		const sy = castle.y;
+		const tx = Position.x[targetEid];
+		const ty = Position.y[targetEid];
+		const sprite = this.acquireArc(sx, sy, 3, castle.spec.fireColor);
+		const dx = tx - sx;
+		const dy = ty - sy;
+		const dist = Math.sqrt(dx * dx + dy * dy);
+		const duration = Math.max(80, (dist / 360) * 1000);
+		this.tweens.add({
+			targets: sprite,
+			x: tx,
+			y: ty,
+			duration,
+			onComplete: () => {
+				if (this.enemyVisuals.has(targetEid)) {
+					this.applyDamage(
+						targetEid,
+						castle.spec.fireDamage,
+						DAMAGE_TYPE.kinetic,
+						DAMAGE_FLAG.none,
+					);
+				}
+				this.releaseArc(sprite);
+			},
+		});
 	}
 
 	private spawnCastleSoldier(castle: CastleBuilding): void {
@@ -2566,12 +2647,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 						DAMAGE_FLAG.none,
 					);
 					if (this.enemyVisuals.has(targetEid)) {
-						applyStatus(
+						stackSlow(
 							targetEid,
-							STATUS_KIND.slow,
 							this.simNow + GAME_CONFIG.archerSlowMs,
 							GAME_CONFIG.archerSlowFactor,
 							GAME_CONFIG.archerSlowMs,
+							0.15,
 						);
 					}
 				}
@@ -2645,16 +2726,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 				const hp = Health.hp[seid];
 				const maxHp = Health.maxHp[seid];
 				if (hp < maxHp) {
-					const armouryEid = SoldierStats.armouryEid[seid];
-					const armoury =
-						armouryEid >= 0
-							? this.buildingByEid.get(armouryEid)
-							: undefined;
-					if (
-						armoury &&
-						armoury.kind === 'armoury' &&
-						!BuildingState.destroyed[armouryEid]
-					) {
+					const armoury = this.findNearestArmoury(
+						Position.x[seid],
+						Position.y[seid],
+					);
+					if (armoury) {
 						const ax = armoury.x;
 						const ay = armoury.y;
 						const dx = ax - Position.x[seid];
@@ -2951,18 +3027,28 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (t.spec.arcHeight > 0 && !t.spec.avoidSlowed) {
 			return this.leadEnemyEid >= 0 ? this.leadEnemyEid : null;
 		}
-		let best = -1;
-		let bestProgress = -1;
+		let bestFresh = -1;
+		let bestFreshProgress = -1;
+		let bestStale = -1;
+		let bestStaleProgress = -1;
 		const skipSlowed = t.spec.avoidSlowed;
 		this.forEachEnemyInRange(t.x, t.y, range, (eid) => {
-			if (skipSlowed && hasStatus(eid, STATUS_KIND.slow, nowMs)) return;
 			const prog = EnemyStats.pathIndex[eid];
-			if (prog > bestProgress) {
-				bestProgress = prog;
-				best = eid;
+			if (skipSlowed && hasStatus(eid, STATUS_KIND.slow, nowMs)) {
+				if (prog > bestStaleProgress) {
+					bestStaleProgress = prog;
+					bestStale = eid;
+				}
+				return;
+			}
+			if (prog > bestFreshProgress) {
+				bestFreshProgress = prog;
+				bestFresh = eid;
 			}
 		});
-		return best >= 0 ? best : null;
+		if (bestFresh >= 0) return bestFresh;
+		if (bestStale >= 0) return bestStale;
+		return null;
 	}
 
 	private acquireProjectileSprite(
@@ -3171,12 +3257,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			}
 			const slowMs = ProjectileStats.slowMs[eid];
 			if (this.isEnemyAlive(targetEid) && slowMs > 0) {
-				applyStatus(
+				stackSlow(
 					targetEid,
-					STATUS_KIND.slow,
 					nowMs + slowMs,
 					ProjectileStats.slowFactor[eid],
 					slowMs,
+					0.15,
 				);
 			}
 		}

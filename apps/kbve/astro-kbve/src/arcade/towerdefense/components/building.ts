@@ -103,6 +103,7 @@ export const ArmouryState = {
 export const CastleState = {
 	nextUnitSpawnAtMs: new Float32Array(MAX_ENTITIES),
 	nextDroneSpawnAtMs: new Float32Array(MAX_ENTITIES),
+	nextFireAtMs: new Float32Array(MAX_ENTITIES),
 };
 
 export const StunDroneStats = {

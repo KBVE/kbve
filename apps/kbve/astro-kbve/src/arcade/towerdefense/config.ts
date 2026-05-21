@@ -37,7 +37,7 @@ export const GAME_CONFIG = {
 	allyHp: 65,
 	allyDamage: 5,
 	allySpeed: 110,
-	allyAttackRange: 60,
+	allyAttackRange: 75,
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
 	allyArcherRatio: 0.35,
@@ -192,6 +192,10 @@ export interface CastleSpec extends BuildSpecBase {
 	droneStunMs: number;
 	droneDamage: number;
 	droneColor: number;
+	fireDamage: number;
+	fireRateMs: number;
+	fireRange: number;
+	fireColor: number;
 }
 
 export interface ArmourySpec extends BuildSpecBase {
@@ -374,8 +378,8 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		name: 'Wall',
 		kind: 'tower',
 		cost: 80,
-		maxHp: 720,
-		defense: 24,
+		maxHp: 1400,
+		defense: 40,
 		power: 0,
 		range: 90,
 		damage: 5,
@@ -512,7 +516,7 @@ export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
 		unitHp: 50,
 		unitDamage: 6,
 		unitAttackRateMs: 750,
-		unitAttackRange: 60,
+		unitAttackRange: 80,
 		unitSpeed: 95,
 		unitColor: 0xf6e05e,
 		droneSpawnIntervalMs: 4000,
@@ -521,6 +525,10 @@ export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
 		droneStunMs: 900,
 		droneDamage: 4,
 		droneColor: 0xfff5b1,
+		fireDamage: 18,
+		fireRateMs: 650,
+		fireRange: 220,
+		fireColor: 0xfff5b1,
 		color: 0xa8a29e,
 	},
 };
@@ -553,7 +561,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		soldierHp: 30,
 		soldierDamage: 3,
 		soldierAttackRateMs: 800,
-		soldierAttackRange: 55,
+		soldierAttackRange: 75,
 		soldierSpeed: 90,
 		color: 0xb794f4,
 		soldierColor: 0xd6bcfa,

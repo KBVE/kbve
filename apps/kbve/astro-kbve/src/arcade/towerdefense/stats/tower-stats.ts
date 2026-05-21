@@ -35,3 +35,12 @@ export function towerMaxHp(t: TowerBuilding): number {
 			(1 + TowerUpgradeStats.armor[t.id] * UPGRADE_DEFS.armor.perLevel),
 	);
 }
+
+export function towerSplashRadius(t: TowerBuilding): number {
+	const base = t.spec.splashRadius;
+	if (base <= 0) return 0;
+	if (t.spec.id === 'artillery') {
+		return base * (1 + TowerUpgradeStats.radar[t.id] * 0.3);
+	}
+	return base;
+}

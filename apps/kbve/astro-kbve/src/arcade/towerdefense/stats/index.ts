@@ -4,6 +4,7 @@ export {
 	towerFireRateMs,
 	towerMaxHp,
 	towerRange,
+	towerSplashRadius,
 } from './tower-stats';
 export {
 	armouryMaxSoldiers,

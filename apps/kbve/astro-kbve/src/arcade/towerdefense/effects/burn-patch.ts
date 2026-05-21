@@ -2,12 +2,10 @@ import type Phaser from 'phaser';
 import { addComponent, addEntity, query, type World } from 'bitecs';
 import type { SideMap } from '@kbve/laser';
 import {
-	applyStatus,
 	BurnPatchStats,
 	BurnPatchTag,
 	Position,
-	STATUS_KIND,
-	statusMagnitude,
+	stackBurn,
 	type BurnPatchVisual,
 } from '../components';
 import { COLORS } from '../config';
@@ -88,12 +86,11 @@ export function updateBurnPatches(deps: BurnPatchDeps, nowMs: number): void {
 		const radius = BurnPatchStats.radius[eid];
 		const dps = BurnPatchStats.dps[eid];
 		deps.forEachEnemyInRange(x, y, radius, (enemyEid) => {
-			const currentDps = statusMagnitude(enemyEid, STATUS_KIND.burn);
-			applyStatus(
+			stackBurn(
 				enemyEid,
-				STATUS_KIND.burn,
 				nowMs + TICK_BURN_REFRESH_MS,
-				currentDps > dps ? currentDps : dps,
+				dps * 0.5,
+				dps * 4,
 			);
 		});
 		if (v) {
