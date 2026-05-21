@@ -122,6 +122,11 @@ pub struct Claims {
     pub phone: Option<String>,
     pub app_metadata: Option<serde_json::Value>,
     pub user_metadata: Option<serde_json::Value>,
+    /// Canonical KBVE username injected by the GoTrue Custom Access Token
+    /// hook. Lets the gameserver skip a profile DB roundtrip on every auth
+    /// when the JWT already carries it.
+    #[serde(default)]
+    pub kbve_username: Option<String>,
 }
 
 #[allow(dead_code)]
@@ -170,7 +175,20 @@ pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>
 
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = true;
-    validation.set_issuer::<String>(&[]);
+
+    // Pin the expected issuer when `SUPABASE_JWT_ISSUER` is set so a token
+    // from a different GoTrue instance can't authenticate against this
+    // gameserver. Defaults to no constraint to keep dev/test working when
+    // the env var isn't wired.
+    if let Ok(issuer) = std::env::var("SUPABASE_JWT_ISSUER") {
+        if !issuer.trim().is_empty() {
+            validation.set_issuer(&[issuer]);
+        } else {
+            validation.set_issuer::<String>(&[]);
+        }
+    } else {
+        validation.set_issuer::<String>(&[]);
+    }
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {
         jsonwebtoken::errors::ErrorKind::ExpiredSignature => AuthError::TokenExpired,
