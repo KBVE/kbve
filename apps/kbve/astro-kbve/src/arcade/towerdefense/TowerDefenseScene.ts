@@ -2483,7 +2483,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		const visual = this.makeSoldierVisual(x, y, sprite, hpBar, hpBarBg);
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2640,7 +2640,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		const visual = this.makeSoldierVisual(
+			castle.x,
+			castle.y,
+			sprite,
+			hpBar,
+			hpBarBg,
+		);
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2806,7 +2812,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		const visual = this.makeSoldierVisual(
+			armoury.x,
+			armoury.y,
+			sprite,
+			hpBar,
+			hpBarBg,
+		);
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
 	}
@@ -2853,9 +2865,33 @@ export class TowerDefenseScene extends Phaser.Scene {
 			COLORS.enemyHpBar,
 		);
 		hpBar.setOrigin(0, 0.5);
-		const visual: SoldierVisual = { sprite, hpBar, hpBarBg };
+		const visual = this.makeSoldierVisual(
+			armoury.x,
+			armoury.y,
+			sprite,
+			hpBar,
+			hpBarBg,
+		);
 		this.attachSoldierIdleAnim(eid, visual);
 		this.soldierVisuals.set(eid, visual);
+	}
+
+	private makeSoldierVisual(
+		x: number,
+		y: number,
+		sprite: Phaser.GameObjects.Image,
+		hpBar: Phaser.GameObjects.Rectangle,
+		hpBarBg: Phaser.GameObjects.Rectangle,
+	): SoldierVisual {
+		return {
+			sprite,
+			hpBar,
+			hpBarBg,
+			lastX: x,
+			lastY: y,
+			walkPhase: 0,
+			facing: 1,
+		};
 	}
 
 	private attachSoldierIdleAnim(eid: number, visual: SoldierVisual): void {
@@ -3116,7 +3152,26 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (!v) return;
 		const x = Position.x[seid];
 		const y = Position.y[seid];
-		v.sprite.setPosition(x, y);
+		const dx = x - v.lastX;
+		const dy = y - v.lastY;
+		const movedSq = dx * dx + dy * dy;
+		const moving = movedSq > 0.0025;
+		if (moving) {
+			v.walkPhase += Math.sqrt(movedSq) * 0.18;
+			const bob = Math.sin(v.walkPhase) * 1.6;
+			v.sprite.setPosition(x, y + bob);
+			if (Math.abs(dx) > 0.05) {
+				const desired = dx < 0 ? -1 : 1;
+				if (desired !== v.facing) {
+					v.facing = desired;
+					v.sprite.setFlipX(desired < 0);
+				}
+			}
+		} else {
+			v.sprite.setPosition(x, y);
+		}
+		v.lastX = x;
+		v.lastY = y;
 		const hp = Health.hp[seid];
 		const maxHp = Health.maxHp[seid];
 		if (hp < maxHp) {

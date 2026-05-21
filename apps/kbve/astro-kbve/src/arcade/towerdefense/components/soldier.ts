@@ -24,6 +24,10 @@ export const SoldierStats = {
 export interface SoldierVisual {
 	idleTween?: Phaser.Tweens.Tween;
 	yBase?: number;
+	lastX: number;
+	lastY: number;
+	walkPhase: number;
+	facing: number;
 	sprite: Phaser.GameObjects.Image;
 	hpBar: Phaser.GameObjects.Rectangle;
 	hpBarBg: Phaser.GameObjects.Rectangle;
