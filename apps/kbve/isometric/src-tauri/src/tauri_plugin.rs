@@ -87,9 +87,7 @@ mod desktop {
         if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
             if let Ok((entity, mut window)) = windows.single_mut() {
                 if let Some(size) = inner {
-                    window
-                        .resolution
-                        .set(size.width as f32 / scale, size.height as f32 / scale);
+                    window.resolution.set(size.width as f32, size.height as f32);
                     window.resolution.set_scale_factor(scale);
                 }
                 commands.entity(entity).insert(raw_handle);
@@ -144,6 +142,19 @@ mod desktop {
             }
 
             app.borrow_mut().update();
+
+            // Forward Bevy AppExit messages (e.g. title/pause Exit buttons)
+            // to the Tauri runtime so the OS window actually closes.
+            {
+                let mut app_ref = app.borrow_mut();
+                let world = app_ref.world_mut();
+                let messages = world.resource::<bevy::ecs::message::Messages<AppExit>>();
+                let mut reader = messages.get_cursor();
+                if reader.read(messages).next().is_some() {
+                    tauri_app.handle().exit(0);
+                    break;
+                }
+            }
 
             frame_count += 1;
             if last_fps_update.elapsed() >= Duration::from_secs(1) {
@@ -212,17 +223,12 @@ mod desktop {
     /// raw pointer/key stream. Native input forwarding lives in
     /// `crate::commands::forward_pointer_event` etc., which JS captures off
     /// the webview's DOM and invokes via tauri::generate_handler!.
-    fn handle_window_event(event: &tauri::WindowEvent, app: &mut App) {
-        if let tauri::WindowEvent::Resized(size) = event {
-            let world = app.world_mut();
-            let mut query = world.query::<&mut bevy::window::Window>();
-            for mut window in query.iter_mut(world) {
-                let scale = window.resolution.scale_factor();
-                window
-                    .resolution
-                    .set(size.width as f32 / scale, size.height as f32 / scale);
-            }
-        }
+    fn handle_window_event(_event: &tauri::WindowEvent, _app: &mut App) {
+        // JS `forward_viewport` (fired on `window.resize`) is the authoritative
+        // source for the Bevy Window's logical dimensions. Tauri's Resized
+        // event reports raw NSView/winit units that disagree with what JS sees
+        // on macOS, so writing them back here causes a brief but visible
+        // cursor↔button misalignment after every resize.
     }
 }
 

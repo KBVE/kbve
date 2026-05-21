@@ -17,9 +17,11 @@
 //! └─────────────────────────────────────┘
 //! ```
 
+use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
+use super::ui::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
 // ---------------------------------------------------------------------------
@@ -50,12 +52,14 @@ struct PlayOfflineBtn;
 #[derive(Component)]
 struct SettingsBtn;
 
-/// Tracks whether a button is primary or secondary for hover/press styling.
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
-enum ButtonKind {
-    Primary,
-    Secondary,
-}
+/// "Exit" button.
+#[derive(Component)]
+struct ExitBtn;
+
+/// OAuth sign-in buttons — provider identifier stored on the component so
+/// one handler can dispatch them.
+#[derive(Component, Clone)]
+struct OAuthBtn(&'static str);
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -71,8 +75,8 @@ impl Plugin for TitleScreenPlugin {
             (
                 update_transport_label,
                 update_auth_label,
-                button_visuals,
                 handle_title_buttons,
+                handle_oauth_buttons,
             )
                 .run_if(in_state(GamePhase::Title)),
         );
@@ -83,13 +87,13 @@ impl Plugin for TitleScreenPlugin {
 // Constants
 // ---------------------------------------------------------------------------
 
-const TITLE_FONT_SIZE: f32 = 48.0;
-const SUBTITLE_FONT_SIZE: f32 = 16.0;
-const BTN_FONT_SIZE: f32 = 20.0;
-const BADGE_FONT_SIZE: f32 = 14.0;
-const BTN_WIDTH: f32 = 260.0;
-const BTN_HEIGHT: f32 = 50.0;
-const BTN_GAP: f32 = 14.0;
+const TITLE_FONT_SIZE: f32 = 32.0;
+const SUBTITLE_FONT_SIZE: f32 = 13.0;
+const BTN_FONT_SIZE: f32 = 16.0;
+const BADGE_FONT_SIZE: f32 = 12.0;
+const BTN_WIDTH: f32 = 220.0;
+const BTN_HEIGHT: f32 = 40.0;
+const BTN_GAP: f32 = 10.0;
 
 // ---------------------------------------------------------------------------
 // Spawn
@@ -138,7 +142,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
                 Node {
-                    margin: UiRect::bottom(Val::Px(32.0)),
+                    margin: UiRect::bottom(Val::Px(16.0)),
                     ..default()
                 },
             ));
@@ -148,7 +152,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
                 row_gap: Val::Px(6.0),
-                margin: UiRect::bottom(Val::Px(32.0)),
+                margin: UiRect::bottom(Val::Px(16.0)),
                 ..default()
             })
             .with_children(|badges| {
@@ -183,9 +187,113 @@ fn spawn_title_screen(mut commands: Commands) {
                 ..default()
             })
             .with_children(|col| {
-                spawn_button(col, "Play Online", PlayOnlineBtn, true);
-                spawn_button(col, "Play Offline", PlayOfflineBtn, false);
-                spawn_button(col, "Settings", SettingsBtn, false);
+                // OAuth sign-in row (Sign in with GitHub / Discord / Twitch)
+                col.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(BTN_GAP),
+                    margin: UiRect::bottom(Val::Px(8.0)),
+                    ..default()
+                })
+                .with_children(|row| {
+                    ui::spawn_button(
+                        row,
+                        "GitHub",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("github"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Discord",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("discord"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Twitch",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("twitch"),
+                    );
+                    ui::spawn_button(
+                        row,
+                        "Steam",
+                        UiButtonConfig {
+                            width: Val::Px(95.0),
+                            height: Val::Px(BTN_HEIGHT),
+                            font_size: BTN_FONT_SIZE,
+                            kind: ButtonKind::Secondary,
+                            ..default()
+                        },
+                        OAuthBtn("steam"),
+                    );
+                });
+
+                ui::spawn_button(
+                    col,
+                    "Play Online",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Primary,
+                        ..default()
+                    },
+                    PlayOnlineBtn,
+                );
+                ui::spawn_button(
+                    col,
+                    "Play Offline",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Secondary,
+                        ..default()
+                    },
+                    PlayOfflineBtn,
+                );
+                ui::spawn_button(
+                    col,
+                    "Settings",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Secondary,
+                        ..default()
+                    },
+                    SettingsBtn,
+                );
+                ui::spawn_button(
+                    col,
+                    "Exit",
+                    UiButtonConfig {
+                        width: Val::Px(BTN_WIDTH),
+                        height: Val::Px(BTN_HEIGHT),
+                        font_size: BTN_FONT_SIZE,
+                        kind: ButtonKind::Danger,
+                        ..default()
+                    },
+                    ExitBtn,
+                );
             });
 
             // ── Version / footer ──
@@ -197,54 +305,11 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
                 Node {
-                    margin: UiRect::top(Val::Px(40.0)),
+                    margin: UiRect::top(Val::Px(20.0)),
                     ..default()
                 },
             ));
         });
-}
-
-/// Helper: spawn a styled button with a text label.
-fn spawn_button(
-    parent: &mut ChildSpawnerCommands,
-    label: &str,
-    marker: impl Component,
-    primary: bool,
-) {
-    let kind = if primary {
-        ButtonKind::Primary
-    } else {
-        ButtonKind::Secondary
-    };
-    let bg = if primary {
-        ui_color::BTN_PRIMARY
-    } else {
-        ui_color::BTN_SECONDARY
-    };
-
-    parent
-        .spawn((
-            Node {
-                width: Val::Px(BTN_WIDTH),
-                height: Val::Px(BTN_HEIGHT),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border_radius: BorderRadius::all(Val::Px(6.0)),
-                ..default()
-            },
-            BackgroundColor(bg),
-            Interaction::default(),
-            kind,
-            marker,
-        ))
-        .with_child((
-            Text::new(label.to_string()),
-            TextFont {
-                font_size: BTN_FONT_SIZE,
-                ..default()
-            },
-            TextColor(ui_color::BTN_TEXT),
-        ));
 }
 
 // ---------------------------------------------------------------------------
@@ -306,31 +371,13 @@ fn update_auth_label(
 }
 
 // ---------------------------------------------------------------------------
-// Button visuals (hover / press feedback)
-// ---------------------------------------------------------------------------
-
-fn button_visuals(
-    mut query: Query<(&Interaction, &ButtonKind, &mut BackgroundColor), Changed<Interaction>>,
-) {
-    for (interaction, kind, mut bg) in &mut query {
-        *bg = match (interaction, kind) {
-            (Interaction::Pressed, ButtonKind::Primary) => ui_color::BTN_PRIMARY_PRESSED.into(),
-            (Interaction::Pressed, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_PRESSED.into(),
-            (Interaction::Hovered, ButtonKind::Primary) => ui_color::BTN_PRIMARY_HOVER.into(),
-            (Interaction::Hovered, ButtonKind::Secondary) => ui_color::BTN_SECONDARY_HOVER.into(),
-            (Interaction::None, ButtonKind::Primary) => ui_color::BTN_PRIMARY.into(),
-            (Interaction::None, ButtonKind::Secondary) => ui_color::BTN_SECONDARY.into(),
-        };
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Button interactions
 // ---------------------------------------------------------------------------
 
 fn handle_title_buttons(
     mut next_phase: ResMut<NextState<GamePhase>>,
     mut play_mode: ResMut<PlayMode>,
+    mut exit_writer: MessageWriter<AppExit>,
     online_q: Query<&Interaction, (Changed<Interaction>, With<PlayOnlineBtn>)>,
     offline_q: Query<
         &Interaction,
@@ -347,6 +394,16 @@ fn handle_title_buttons(
             With<SettingsBtn>,
             Without<PlayOnlineBtn>,
             Without<PlayOfflineBtn>,
+        ),
+    >,
+    exit_q: Query<
+        &Interaction,
+        (
+            Changed<Interaction>,
+            With<ExitBtn>,
+            Without<PlayOnlineBtn>,
+            Without<PlayOfflineBtn>,
+            Without<SettingsBtn>,
         ),
     >,
 ) {
@@ -373,6 +430,45 @@ fn handle_title_buttons(
     for interaction in &settings_q {
         if *interaction == Interaction::Pressed {
             info!("[title] Settings pressed — not yet implemented");
+        }
+    }
+
+    // Exit — quit the app
+    for interaction in &exit_q {
+        if *interaction == Interaction::Pressed {
+            info!("[title] Exit pressed — requesting AppExit");
+            exit_writer.write(AppExit::Success);
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn handle_oauth_buttons(
+    handle: NonSend<tauri::AppHandle>,
+    btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>,
+) {
+    use tauri_plugin_opener::OpenerExt;
+    for (interaction, OAuthBtn(provider)) in &btn_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        let redirect = crate::auth::build_redirect_url();
+        let url = format!(
+            "https://supabase.kbve.com/auth/v1/authorize?provider={provider}&redirect_to={}",
+            urlencoding::encode(&redirect),
+        );
+        info!("[title] OAuth sign-in pressed: provider={provider} url={url}");
+        if let Err(e) = handle.opener().open_url(url, None::<&str>) {
+            error!("[title] failed to open OAuth url: {e}");
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn handle_oauth_buttons(btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>) {
+    for (interaction, OAuthBtn(provider)) in &btn_q {
+        if *interaction == Interaction::Pressed {
+            info!("[title] OAuth sign-in pressed (wasm): provider={provider}");
         }
     }
 }

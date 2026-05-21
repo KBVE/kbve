@@ -89,6 +89,8 @@ log = "0.4"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
+tauri-plugin-deep-link = "2"
+urlencoding = "2"
 wgpu = "27"
 pollster = "0.4"
 ureq = { version = "3", features = ["json"] }

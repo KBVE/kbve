@@ -52,6 +52,21 @@
         <script src="bug-report-shim.js"></script>
         <script src="safari-shim.js"></script>
         <script>
+            // Tauri macOS bug: WKWebView treats desktop clicks as touch with
+            // ~500ms delay, causing the click to register at the previous
+            // pointer position. Block touch listeners before they're attached.
+            // Ref: https://github.com/orgs/tauri-apps/discussions/11957
+            (function () {
+                if (!/Mac|Macintosh/i.test(navigator.userAgent)) return;
+                var origAdd = EventTarget.prototype.addEventListener;
+                EventTarget.prototype.addEventListener = function (type, listener, options) {
+                    if (type === 'touchstart' || type === 'touchend' || type === 'touchmove') return;
+                    if (type === 'click' && options && options.capture === true && options.once === true) return;
+                    return origAdd.call(this, type, listener, options);
+                };
+            })();
+        </script>
+        <script>
             // Native Tauri build renders Bevy directly to the webview's wgpu
             // surface (no canvas attachment). The bevy-canvas element + body
             // would otherwise eat clicks before tao forwards them to Bevy.
@@ -115,6 +130,16 @@
                         }
                     }
                 };
+
+                var reportViewport = function () {
+                    call('forward_viewport', {
+                        cssW: window.innerWidth,
+                        cssH: window.innerHeight,
+                        dpr: window.devicePixelRatio || 1,
+                    });
+                };
+                reportViewport();
+                window.addEventListener('resize', reportViewport, true);
 
                 window.addEventListener('pointermove', function (e) {
                     call('forward_pointer_move', { x: e.clientX * dpr, y: e.clientY * dpr });

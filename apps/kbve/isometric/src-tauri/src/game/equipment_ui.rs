@@ -132,6 +132,7 @@ fn spawn_equipment_panel(mut commands: Commands) {
                             },
                             BackgroundColor(SLOT_BG),
                             Interaction::default(),
+                            bevy::ui::FocusPolicy::Block,
                             EquipmentSlot { equip_slot: *slot },
                         ))
                         .with_children(|slot_node| {
@@ -142,6 +143,8 @@ fn spawn_equipment_panel(mut commands: Commands) {
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_PRIMARY),
+                                bevy::ui::FocusPolicy::Pass,
+                                bevy::picking::Pickable::IGNORE,
                                 EquipmentSlotIcon { equip_slot: *slot },
                             ));
                             slot_node.spawn((
@@ -151,6 +154,8 @@ fn spawn_equipment_panel(mut commands: Commands) {
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_SECONDARY),
+                                bevy::ui::FocusPolicy::Pass,
+                                bevy::picking::Pickable::IGNORE,
                                 EquipmentSlotLabel { equip_slot: *slot },
                             ));
                         });

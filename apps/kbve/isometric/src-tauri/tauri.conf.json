@@ -15,7 +15,10 @@
 				"width": 1024,
 				"height": 768,
 				"transparent": true,
-				"devtools": true
+				"devtools": true,
+				"decorations": true,
+				"titleBarStyle": "Overlay",
+				"hiddenTitle": true
 			}
 		],
 		"security": {
@@ -34,5 +37,12 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		]
+	},
+	"plugins": {
+		"deep-link": {
+			"desktop": {
+				"schemes": ["kbve"]
+			}
+		}
 	}
 }

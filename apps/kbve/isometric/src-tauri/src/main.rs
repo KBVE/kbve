@@ -6,6 +6,10 @@ fn main() {
     use isometric_game::game::GamePluginGroup;
     use isometric_game::tauri_plugin::TauriPlugin;
 
+    // Bind localhost OAuth callback listener before anything else so the port
+    // is ready when title_screen builds redirect URLs.
+    isometric_game::auth::init_local_listener();
+
     let mut app = App::new();
     app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
 
@@ -31,9 +35,8 @@ fn main() {
             ..default()
         },
         bevy::state::app::StatesPlugin,
-        bevy::picking::PickingPlugin,
-        bevy::picking::InteractionPlugin,
     ));
+    app.add_plugins(bevy::picking::DefaultPickingPlugins);
 
     #[cfg(any(unix, windows))]
     app.add_plugins(bevy::app::TerminalCtrlCHandlerPlugin);
@@ -42,16 +45,35 @@ fn main() {
 
     app.add_plugins(
         TauriPlugin::new(|builder| {
-            builder.invoke_handler(tauri::generate_handler![
-                isometric_game::commands::dispatch_action,
-                isometric_game::commands::greet,
-                isometric_game::commands::forward_pointer_move,
-                isometric_game::commands::forward_pointer_button,
-                isometric_game::commands::forward_pointer_enter,
-                isometric_game::commands::forward_pointer_leave,
-                isometric_game::commands::forward_wheel,
-                isometric_game::commands::forward_key,
-            ])
+            use tauri::Manager;
+            builder
+                .plugin(tauri_plugin_opener::init())
+                .plugin(tauri_plugin_deep_link::init())
+                .invoke_handler(tauri::generate_handler![
+                    isometric_game::commands::dispatch_action,
+                    isometric_game::commands::greet,
+                    isometric_game::commands::forward_pointer_move,
+                    isometric_game::commands::forward_pointer_button,
+                    isometric_game::commands::forward_pointer_enter,
+                    isometric_game::commands::forward_pointer_leave,
+                    isometric_game::commands::forward_wheel,
+                    isometric_game::commands::forward_key,
+                    isometric_game::commands::forward_viewport,
+                    isometric_game::commands::open_oauth_url,
+                    isometric_game::commands::get_signin_state,
+                    isometric_game::commands::set_username,
+                ])
+                .setup(|app| {
+                    use tauri_plugin_deep_link::DeepLinkExt;
+                    let handle = app.handle().clone();
+                    app.deep_link().on_open_url(move |event| {
+                        let urls = event.urls();
+                        for url in urls {
+                            isometric_game::commands::handle_deep_link(&handle, url.as_str());
+                        }
+                    });
+                    Ok(())
+                })
         })
         .with_post_render_setup(|app| {
             app.add_plugins(PhysicsPlugins::default());

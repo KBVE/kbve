@@ -14,6 +14,7 @@ use super::phase::GamePhase;
 use super::player::Player;
 use super::scene_objects::InteractableKind;
 use super::toast::Toast;
+use super::ui::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
 /// Max XZ distance before the panel auto-closes.
@@ -249,30 +250,19 @@ fn spawn_interaction_panel(mut commands: Commands) {
                 InteractionDesc,
             ));
 
-            // Action button
-            panel
-                .spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(36.0),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        border_radius: BorderRadius::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                    BackgroundColor(ui_color::BTN_PRIMARY),
-                    Interaction::default(),
-                    InteractionBtn,
-                ))
-                .with_child((
-                    Text::new("Action"),
-                    TextFont {
-                        font_size: 14.0,
-                        ..default()
-                    },
-                    TextColor(ui_color::BTN_TEXT),
-                    InteractionBtnLabel,
-                ));
+            ui::button::spawn_with_label_marker(
+                panel,
+                "Action",
+                UiButtonConfig {
+                    width: Val::Percent(100.0),
+                    height: Val::Px(36.0),
+                    font_size: 14.0,
+                    border_radius: 4.0,
+                    kind: ButtonKind::Primary,
+                },
+                InteractionBtn,
+                InteractionBtnLabel,
+            );
         });
 }
 

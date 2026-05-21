@@ -988,4 +988,103 @@ ALTER FUNCTION public.proxy_inventory_set_security_policy(BOOLEAN, BOOLEAN, BIGI
 REVOKE ALL ON FUNCTION public.proxy_inventory_set_security_policy(BOOLEAN, BOOLEAN, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT  EXECUTE ON FUNCTION public.proxy_inventory_set_security_policy(BOOLEAN, BOOLEAN, BIGINT) TO authenticated, service_role;
 
+-- ============================================================================
+-- service_split_for_listing (Phase 6.1a)
+--   Atomic split: HELD stackable → smaller HELD source + new
+--   listing_escrow row. Used by wallet.service_create_listing_with_item
+--   when listing a partial stack. New row leaves the held-stackable
+--   partial unique index immediately (state = 'listing_escrow'),
+--   preserving the (owner, kind, ref) one-row invariant for held rows.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION inventory.service_split_for_listing(
+    p_seller_account UUID,
+    p_src_item_id    UUID,
+    p_qty            BIGINT
+) RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_src    inventory.item%ROWTYPE;
+    v_new_id UUID;
+BEGIN
+    IF p_seller_account IS NULL OR p_src_item_id IS NULL THEN
+        RAISE EXCEPTION 'seller_account, src_item_id are required' USING ERRCODE = '22004';
+    END IF;
+    IF p_qty IS NULL OR p_qty <= 0 THEN
+        RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
+    END IF;
+
+    SELECT * INTO v_src FROM inventory.item WHERE id = p_src_item_id FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'item % not found', p_src_item_id USING ERRCODE = 'INV10';
+    END IF;
+    IF v_src.owner_account <> p_seller_account THEN
+        RAISE EXCEPTION 'item % not owned by seller', p_src_item_id USING ERRCODE = 'INV11';
+    END IF;
+    IF v_src.state <> 'held' THEN
+        RAISE EXCEPTION 'item % not in held state (state=%)',
+            p_src_item_id, v_src.state USING ERRCODE = 'INV12';
+    END IF;
+    IF NOT v_src.is_stackable THEN
+        RAISE EXCEPTION 'item % is instanced; cannot split', p_src_item_id
+            USING ERRCODE = 'INV15';
+    END IF;
+    IF v_src.qty <= p_qty THEN
+        RAISE EXCEPTION 'split qty % must be strictly less than source qty %',
+            p_qty, v_src.qty USING ERRCODE = 'INV13';
+    END IF;
+
+    -- Status-guarded UPDATE. Row already locked FOR UPDATE above;
+    -- WHERE-recheck + RETURNING is defensive.
+    DECLARE
+        v_updated_src_id UUID;
+    BEGIN
+        UPDATE inventory.item
+           SET qty = qty - p_qty, updated_at = now()
+         WHERE id = p_src_item_id
+           AND owner_account = p_seller_account
+           AND state = 'held'
+           AND is_stackable
+           AND qty > p_qty
+        RETURNING id INTO v_updated_src_id;
+        IF v_updated_src_id IS NULL THEN
+            RAISE EXCEPTION 'split source % invariant violated between lock and update', p_src_item_id
+                USING ERRCODE = 'INV12';
+        END IF;
+    END;
+
+    INSERT INTO inventory.item (
+        owner_account, kind, ref, qty, nbt, state, source, source_ref
+    ) VALUES (
+        v_src.owner_account, v_src.kind, v_src.ref, p_qty,
+        v_src.nbt, 'listing_escrow', v_src.source,
+        jsonb_build_object(
+            'split_from',        v_src.id::text,
+            'parent_source_ref', v_src.source_ref
+        )
+    )
+    RETURNING id INTO v_new_id;
+
+    INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+    VALUES (v_new_id, 'transit_in', 'listing_escrow', 'wallet',
+            'split_for_listing',
+            jsonb_build_object(
+                'split_from',       v_src.id::text,
+                'seller_account',   p_seller_account,
+                'qty',              p_qty,
+                'previous_src_qty', v_src.qty,
+                'new_src_qty',      v_src.qty - p_qty
+            ));
+
+    RETURN v_new_id;
+END;
+$$;
+
+ALTER FUNCTION inventory.service_split_for_listing(UUID, UUID, BIGINT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION inventory.service_split_for_listing(UUID, UUID, BIGINT) FROM PUBLIC, anon, authenticated;
+GRANT  EXECUTE ON FUNCTION inventory.service_split_for_listing(UUID, UUID, BIGINT) TO service_role;
+
 NOTIFY pgrst, 'reload schema';

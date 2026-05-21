@@ -40,7 +40,8 @@ export const GAME_CONFIG = {
 	allyAttackRange: 60,
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
-	archerInitialCount: 3,
+	allyArcherRatio: 0.35,
+	archerInitialCount: 5,
 	archerHpMultiplier: 0.8,
 	archerDamage: 6,
 	archerSpeed: 90,
@@ -51,6 +52,11 @@ export const GAME_CONFIG = {
 	archerSlowFactor: 0.55,
 	archerColor: 0x63b3ed,
 	archerProjectileColor: 0xbee3f8,
+	chargedShotCooldownMs: 30000,
+	chargedShotBatteryCost: 5,
+	chargedShotDamageMul: 2.5,
+	chargedShotSplashMul: 1.5,
+	chargedProjectileColor: 0xfff5b1,
 } as const;
 
 export const COLORS = {
@@ -93,7 +99,10 @@ export type BuildKind =
 	| 'generator'
 	| 'battery'
 	| 'repair'
-	| 'armoury';
+	| 'armoury'
+	| 'village'
+	| 'castle'
+	| 'nexus';
 
 export interface BuildSpecBase {
 	id: BuildId;
@@ -154,6 +163,35 @@ export interface RepairSpec extends BuildSpecBase {
 	repairRange: number;
 }
 
+export interface VillageSpec extends BuildSpecBase {
+	kind: 'village';
+	power: number;
+	goldPerWave: number;
+}
+
+export interface NexusSpec extends BuildSpecBase {
+	kind: 'nexus';
+}
+
+export interface CastleSpec extends BuildSpecBase {
+	kind: 'castle';
+	power: number;
+	unitSpawnIntervalMs: number;
+	maxUnits: number;
+	unitHp: number;
+	unitDamage: number;
+	unitAttackRateMs: number;
+	unitAttackRange: number;
+	unitSpeed: number;
+	unitColor: number;
+	droneSpawnIntervalMs: number;
+	droneRange: number;
+	droneSpeed: number;
+	droneStunMs: number;
+	droneDamage: number;
+	droneColor: number;
+}
+
 export interface ArmourySpec extends BuildSpecBase {
 	kind: 'armoury';
 	power: number;
@@ -173,14 +211,28 @@ export type BuildSpec =
 	| GeneratorSpec
 	| BatterySpec
 	| RepairSpec
-	| ArmourySpec;
+	| ArmourySpec
+	| VillageSpec
+	| CastleSpec
+	| NexusSpec;
 
-export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery';
+export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
 export type ArmouryId = 'armoury';
-export type BuildId = TowerId | GeneratorId | BatteryId | RepairId | ArmouryId;
+export type VillageId = 'village';
+export type CastleId = 'castle';
+export type NexusId = 'nexus';
+export type BuildId =
+	| TowerId
+	| GeneratorId
+	| BatteryId
+	| RepairId
+	| ArmouryId
+	| VillageId
+	| CastleId
+	| NexusId;
 
 export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 	basic: {
@@ -308,6 +360,31 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		arcHeight: 110,
 		avoidSlowed: false,
 	},
+	wall: {
+		id: 'wall',
+		name: 'Wall',
+		kind: 'tower',
+		cost: 80,
+		maxHp: 720,
+		defense: 12,
+		power: 0,
+		range: 90,
+		damage: 5,
+		damageType: TOWER_DAMAGE_TYPE.kinetic,
+		fireRateMs: 1500,
+		projectileSpeed: 380,
+		color: 0x718096,
+		projectileColor: 0xcbd5e0,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+	},
 };
 
 export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
@@ -373,6 +450,59 @@ export const REPAIR_CATALOG: Record<RepairId, RepairSpec> = {
 	},
 };
 
+export const NEXUS_CATALOG: Record<NexusId, NexusSpec> = {
+	nexus: {
+		id: 'nexus',
+		name: 'Nexus',
+		kind: 'nexus',
+		cost: 0,
+		maxHp: 5000,
+		defense: 18,
+		color: 0x4fd1c5,
+	},
+};
+
+export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
+	castle: {
+		id: 'castle',
+		name: 'Castle',
+		kind: 'castle',
+		cost: 1000,
+		maxHp: 1400,
+		defense: 12,
+		power: 10,
+		unitSpawnIntervalMs: 5000,
+		maxUnits: 6,
+		unitHp: 50,
+		unitDamage: 6,
+		unitAttackRateMs: 750,
+		unitAttackRange: 60,
+		unitSpeed: 95,
+		unitColor: 0xf6e05e,
+		droneSpawnIntervalMs: 4000,
+		droneRange: 280,
+		droneSpeed: 240,
+		droneStunMs: 900,
+		droneDamage: 4,
+		droneColor: 0xfff5b1,
+		color: 0xa8a29e,
+	},
+};
+
+export const VILLAGE_CATALOG: Record<VillageId, VillageSpec> = {
+	village: {
+		id: 'village',
+		name: 'Village',
+		kind: 'village',
+		cost: 50,
+		maxHp: 380,
+		defense: 4,
+		power: 2,
+		goldPerWave: 10,
+		color: 0xecc94b,
+	},
+};
+
 export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 	armoury: {
 		id: 'armoury',
@@ -397,6 +527,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 
 export const PALETTE_ORDER: BuildId[] = [
 	'basic',
+	'wall',
 	'bomb',
 	'ice',
 	'fire',
@@ -407,6 +538,8 @@ export const PALETTE_ORDER: BuildId[] = [
 	'battery',
 	'repair',
 	'armoury',
+	'village',
+	'castle',
 ];
 
 export type UpgradeKind = 'radar' | 'attack' | 'speed' | 'armor';
@@ -600,7 +733,10 @@ export function specFor(id: BuildId): BuildSpec {
 	if (id in GENERATOR_CATALOG) return GENERATOR_CATALOG[id as GeneratorId];
 	if (id in BATTERY_CATALOG) return BATTERY_CATALOG[id as BatteryId];
 	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
-	return ARMOURY_CATALOG[id as ArmouryId];
+	if (id in ARMOURY_CATALOG) return ARMOURY_CATALOG[id as ArmouryId];
+	if (id in VILLAGE_CATALOG) return VILLAGE_CATALOG[id as VillageId];
+	if (id in CASTLE_CATALOG) return CASTLE_CATALOG[id as CastleId];
+	return NEXUS_CATALOG[id as NexusId];
 }
 
 export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';

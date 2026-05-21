@@ -2,9 +2,12 @@ import type Phaser from 'phaser';
 import type {
 	ArmourySpec,
 	BatterySpec,
+	CastleSpec,
 	GeneratorSpec,
+	NexusSpec,
 	RepairSpec,
 	TowerSpec,
+	VillageSpec,
 } from './config';
 
 export interface BaseBuilding {
@@ -52,9 +55,29 @@ export interface ArmouryBuilding extends BaseBuilding {
 	powerIndicator: Phaser.GameObjects.Arc;
 }
 
+export interface VillageBuilding extends BaseBuilding {
+	kind: 'village';
+	spec: VillageSpec;
+	powerIndicator: Phaser.GameObjects.Arc;
+}
+
+export interface CastleBuilding extends BaseBuilding {
+	kind: 'castle';
+	spec: CastleSpec;
+	powerIndicator: Phaser.GameObjects.Arc;
+}
+
+export interface NexusBuilding extends BaseBuilding {
+	kind: 'nexus';
+	spec: NexusSpec;
+}
+
 export type Building =
 	| TowerBuilding
 	| GeneratorBuilding
 	| BatteryBuilding
 	| RepairBuilding
-	| ArmouryBuilding;
+	| ArmouryBuilding
+	| VillageBuilding
+	| CastleBuilding
+	| NexusBuilding;

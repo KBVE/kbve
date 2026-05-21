@@ -7,6 +7,10 @@ export const GeneratorTag: Record<string, never> = {};
 export const BatteryTag: Record<string, never> = {};
 export const RepairTag: Record<string, never> = {};
 export const ArmouryTag: Record<string, never> = {};
+export const VillageTag: Record<string, never> = {};
+export const CastleTag: Record<string, never> = {};
+export const NexusTag: Record<string, never> = {};
+export const StunDroneTag: Record<string, never> = {};
 
 export const BUILDING_KIND = {
 	tower: 0,
@@ -14,12 +18,16 @@ export const BUILDING_KIND = {
 	battery: 2,
 	repair: 3,
 	armoury: 4,
+	village: 5,
+	castle: 6,
+	nexus: 7,
 } as const;
 export type BuildingKindIndex =
 	(typeof BUILDING_KIND)[keyof typeof BUILDING_KIND];
 
 const BUILD_ID_LIST: BuildId[] = [
 	'basic',
+	'wall',
 	'bomb',
 	'ice',
 	'fire',
@@ -30,6 +38,9 @@ const BUILD_ID_LIST: BuildId[] = [
 	'battery',
 	'repair',
 	'armoury',
+	'village',
+	'castle',
+	'nexus',
 ];
 export const BUILDING_TYPE_INDEX: Record<BuildId, number> = (() => {
 	const out: Record<string, number> = {};
@@ -58,6 +69,7 @@ export const TowerState = {
 	hasFixedTarget: new Uint8Array(MAX_ENTITIES),
 	fixedTargetX: new Float32Array(MAX_ENTITIES),
 	fixedTargetY: new Float32Array(MAX_ENTITIES),
+	chargedReadyAtMs: new Float32Array(MAX_ENTITIES),
 };
 
 export const TowerUpgradeStats = {
@@ -85,6 +97,19 @@ export const RepairUpgradeStats = {
 
 export const ArmouryState = {
 	nextSpawnAtMs: new Float32Array(MAX_ENTITIES),
+};
+
+export const CastleState = {
+	nextUnitSpawnAtMs: new Float32Array(MAX_ENTITIES),
+	nextDroneSpawnAtMs: new Float32Array(MAX_ENTITIES),
+};
+
+export const StunDroneStats = {
+	speed: new Float32Array(MAX_ENTITIES),
+	targetEid: new Int32Array(MAX_ENTITIES),
+	ownerEid: new Int32Array(MAX_ENTITIES),
+	stunMs: new Float32Array(MAX_ENTITIES),
+	damage: new Float32Array(MAX_ENTITIES),
 };
 
 export const ArmouryUpgradeStats = {

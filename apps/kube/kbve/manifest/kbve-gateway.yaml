@@ -32,6 +32,10 @@ spec:
               mode: Terminate
               certificateRefs:
                   - name: kbve-wt-tls
+                  - kind: Secret
+                    group: ''
+                    name: memes-tls
+                    namespace: memes
           allowedRoutes:
               namespaces:
                   from: All

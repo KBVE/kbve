@@ -37,6 +37,22 @@
 	<div id="root" style="display: none;"></div>
 	<link rel="stylesheet" crossorigin href="/isometric/assets/index.css" />
 	<script is:inline src="/isometric/safari-shim.js"></script>
+	<script>
+		import { authBridge } from '@/components/auth';
+
+		// Expose a Promise<string|null> on `window` so `main.tsx` can `await`
+		// the Supabase session probe BEFORE calling `set_signed_in` — the
+		// `<script>` block below kicks off WASM loading synchronously, so
+		// without a promise the session resolution would race the import.
+		(
+			window as Window & {
+				__KBVE_SESSION_PROBE__?: Promise<string | null>;
+			}
+		).__KBVE_SESSION_PROBE__ = authBridge
+			.getSession()
+			.then((session) => session?.access_token ?? null)
+			.catch(() => null);
+	</script>
 	<script is:inline>
 		(function () {
 			// Downscale droid workers to free threads for WASM pthreads

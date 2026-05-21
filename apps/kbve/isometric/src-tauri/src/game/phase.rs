@@ -93,6 +93,14 @@ impl Plugin for PhasePlugin {
             Update,
             tick_connect_timeout.run_if(in_state(GamePhase::Connecting)),
         );
+
+        // Drain OAuth listener / deep-link sign-ins into PreFlight so the
+        // title screen badge flips to "Signed in as X" immediately. Native
+        // populates this via the localhost listener / deep-link handler;
+        // WASM populates it via the `set_signed_in` wasm-bindgen export
+        // that the Astro arcade page calls after reading the Supabase
+        // session.
+        app.add_systems(Update, drain_pending_signin);
     }
 }
 
@@ -154,6 +162,20 @@ fn tick_connect_timeout(
         super::telemetry::report_error("connection timed out — returning to title screen");
         next_phase.set(GamePhase::Title);
     }
+}
+
+fn drain_pending_signin(mut preflight: ResMut<PreFlight>) {
+    let Some(result) = crate::auth_common::take_pending_signin() else {
+        return;
+    };
+    preflight.jwt_valid = Some(true);
+    if result.username.is_some() {
+        preflight.username = result.username;
+    }
+    info!(
+        "[phase] sign-in observed — jwt_valid=Some(true) username={:?}",
+        preflight.username
+    );
 }
 
 /// One-shot system: detect WebTransport browser support.

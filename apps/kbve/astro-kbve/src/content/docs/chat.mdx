@@ -1,6 +1,6 @@
 ---
 title: Chat
-description: Connect with the KBVE community through our IRC chat interface.
+description: Real-time IRC chat for the KBVE community, embedded live.
 template: splash
 sidebar:
   label: Chat
@@ -10,17 +10,13 @@ lastUpdated: false
 tableOfContents: false
 ---
 
-# Community Chat
+import KbveChatEmbed from '../../components/kbve/KbveChatEmbed.astro';
 
-Join the conversation in our IRC chat room.
+<KbveChatEmbed channel="#general" height="70vh" />
 
-## About
+## Tips
 
-Connect with the KBVE community in real-time through our web-based IRC interface. Share ideas, get help, and collaborate with other members.
-
-## Quick Tips
-
-- Be respectful and follow community guidelines
+- Sign in (top right of the chat) to send messages — read-only mode without auth
 - Use `/help` to see available commands
 - Messages are public and visible to all users
-- Stay on topic and keep conversations constructive
+- Need the full experience? Open [chat.kbve.com](https://chat.kbve.com/chat/)

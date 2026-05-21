@@ -71,6 +71,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/tags/", "/forum/tags"),
     ("/t", "/forum/tags"),
     ("/t/", "/forum/tags"),
+    ("/arcade/towerdefence", "/arcade/towerdefense/"),
+    ("/arcade/towerdefence/", "/arcade/towerdefense/"),
     // Askama SSG source pages ship HTML in dist/ but are not public
     // URLs — live versions are served by axum routes that interpolate
     // placeholders. Funnel to canonical so crawlers don't index them.
@@ -563,6 +565,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/firecracker-net/proxy",
             any(super::proxy::firecracker_net_proxy_handler),
+        )
+        .route(
+            "/dashboard/firecracker/deployments",
+            axum::routing::get(super::proxy::firecracker_deployments_handler),
+        )
+        .route(
+            "/dashboard/firecracker/stats",
+            axum::routing::get(super::proxy::firecracker_deployment_stats_handler),
         )
         .route(
             "/api/v1/fc/{*rest}",

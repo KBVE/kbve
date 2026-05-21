@@ -46,16 +46,18 @@ spec:
                                   cert-manager.io/http01-ingress-path-type: 'Prefix'
 
             # --- Solver 4: MEME.SH domains ---
+            # Migrated to Cilium Gateway HTTPRoute solver post-Phase-2 cutover.
+            # meme.sh CNAME -> gateway.kbve.com (.71); nginx no longer serves it.
             - selector:
                   dnsZones:
                       - meme.sh
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 5: CRYPTOTHRONE.COM domains ---
             - selector:

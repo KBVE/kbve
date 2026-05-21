@@ -13,9 +13,31 @@ import {
 import { derivePalette, type BuildingPalette } from './palette';
 import { BUILDING_GRIDS, GRID_PIXEL_SIZE } from './grids';
 import { ENEMY_GRIDS, ENEMY_PIXEL_SIZE } from './enemy-grids';
+import { UNIT_GRIDS, UNIT_PIXEL_SIZE, type UnitKindId } from './unit-grids';
 
 const BUILDING_PREFIX = 'td_building_';
 const ENEMY_PREFIX = 'td_enemy_';
+const UNIT_PREFIX = 'td_unit_';
+
+export type UnitVariantId =
+	| 'soldier_melee'
+	| 'soldier_archer'
+	| 'ally_melee'
+	| 'ally_archer'
+	| 'castle_melee';
+
+interface UnitVariantDef {
+	kind: UnitKindId;
+	color: number;
+}
+
+const UNIT_VARIANTS: Record<UnitVariantId, UnitVariantDef> = {
+	soldier_melee: { kind: 'melee', color: 0xd6bcfa },
+	soldier_archer: { kind: 'archer', color: 0x63b3ed },
+	ally_melee: { kind: 'melee', color: 0xfbd38d },
+	ally_archer: { kind: 'archer', color: 0x90cdf4 },
+	castle_melee: { kind: 'melee', color: 0xf6e05e },
+};
 
 export type BuildingVariant = 'idle' | 'fire';
 
@@ -28,6 +50,10 @@ export function buildingTextureKey(
 
 export function enemyTextureKey(id: EnemyTypeId): string {
 	return `${ENEMY_PREFIX}${id}`;
+}
+
+export function unitTextureKey(id: UnitVariantId): string {
+	return `${UNIT_PREFIX}${id}`;
 }
 
 function paletteFor(ch: string, p: BuildingPalette): string | null {
@@ -98,7 +124,14 @@ const BUILD_CATALOG_COLORS: Record<BuildId, number> = (() => {
 	return out as Record<BuildId, number>;
 })();
 
-const TOWER_IDS: TowerId[] = ['basic', 'bomb', 'ice', 'fire', 'artillery'];
+const TOWER_IDS: TowerId[] = [
+	'basic',
+	'wall',
+	'bomb',
+	'ice',
+	'fire',
+	'artillery',
+];
 
 export function ensureBuildingTextures(scene: Phaser.Scene): void {
 	for (const idRaw in BUILDING_GRIDS) {
@@ -121,6 +154,21 @@ export function ensureBuildingTextures(scene: Phaser.Scene): void {
 			recoilGrid(BUILDING_GRIDS[id]),
 			palette,
 			GRID_PIXEL_SIZE,
+		);
+	}
+}
+
+export function ensureUnitTextures(scene: Phaser.Scene): void {
+	for (const idRaw in UNIT_VARIANTS) {
+		const id = idRaw as UnitVariantId;
+		const def = UNIT_VARIANTS[id];
+		const palette = derivePalette(def.color);
+		mintTexture(
+			scene,
+			unitTextureKey(id),
+			UNIT_GRIDS[def.kind],
+			palette,
+			UNIT_PIXEL_SIZE,
 		);
 	}
 }

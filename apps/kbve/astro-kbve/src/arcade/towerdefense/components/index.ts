@@ -64,6 +64,10 @@ export {
 	BatteryTag,
 	RepairTag,
 	ArmouryTag,
+	VillageTag,
+	CastleTag,
+	NexusTag,
+	StunDroneTag,
 	BUILDING_KIND,
 	BUILDING_TYPE_INDEX,
 	buildIdFromIndex,
@@ -76,5 +80,7 @@ export {
 	RepairUpgradeStats,
 	ArmouryState,
 	ArmouryUpgradeStats,
+	CastleState,
+	StunDroneStats,
 	type BuildingKindIndex,
 } from './building';

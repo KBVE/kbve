@@ -116,6 +116,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
                 },
                 BackgroundColor(ui_color::PANEL),
                 Interaction::default(),
+                bevy::ui::FocusPolicy::Block,
                 InventoryToggleBtn,
             ))
             .with_child((
@@ -125,6 +126,8 @@ fn spawn_inventory_ui(mut commands: Commands) {
                     ..default()
                 },
                 TextColor(GOLD_TEXT),
+                bevy::ui::FocusPolicy::Pass,
+                bevy::picking::Pickable::IGNORE,
                 ToggleBtnLabel,
             ));
 

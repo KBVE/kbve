@@ -226,6 +226,7 @@ fn populate_recipes(
                     },
                     BackgroundColor(ui_color::PANEL),
                     Interaction::default(),
+                    bevy::ui::FocusPolicy::Block,
                     CraftButton {
                         item_ref: item.r#ref.clone(),
                         recipe_index: 0,
@@ -238,6 +239,8 @@ fn populate_recipes(
                         ..default()
                     },
                     TextColor(GOLD_TEXT),
+                    bevy::ui::FocusPolicy::Pass,
+                    bevy::picking::Pickable::IGNORE,
                 ));
             });
         }

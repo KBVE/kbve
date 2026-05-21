@@ -18,7 +18,9 @@ use bevy::input::keyboard::{Key, KeyCode, KeyboardInput};
 use bevy::input::mouse::{MouseButton, MouseButtonInput, MouseScrollUnit, MouseWheel};
 use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy::window::{CursorEntered, CursorLeft, CursorMoved, PrimaryWindow, Window, WindowEvent};
+use bevy::window::{
+    CursorEntered, CursorLeft, CursorMoved, PrimaryWindow, Window, WindowEvent, WindowResized,
+};
 
 #[derive(Clone, Debug)]
 pub enum NativeInputEvent {
@@ -43,6 +45,16 @@ pub enum NativeInputEvent {
         code: String,
         pressed: bool,
         repeat: bool,
+    },
+    /// JS-reported viewport size. innerWidth/Height are CSS pixels (logical);
+    /// dpr is devicePixelRatio. This is the authoritative source for the
+    /// Bevy Window's resolution — Tauri's inner_size() on macOS returns
+    /// NSView bounds in points which doesn't match the actual webview viewport
+    /// after user resizes the window.
+    Viewport {
+        css_w: f64,
+        css_h: f64,
+        dpr: f64,
     },
 }
 
@@ -75,6 +87,7 @@ fn drain_native_input(
     mut wheel_writer: MessageWriter<MouseWheel>,
     mut key_writer: MessageWriter<KeyboardInput>,
     mut window_event_writer: MessageWriter<WindowEvent>,
+    mut resize_writer: MessageWriter<WindowResized>,
 ) {
     let Ok((window_entity, mut window)) = window_q.single_mut() else {
         return;
@@ -157,6 +170,29 @@ fn drain_native_input(
                 };
                 wheel_writer.write(mw.clone());
                 window_event_writer.write(WindowEvent::MouseWheel(mw));
+            }
+            NativeInputEvent::Viewport { css_w, css_h, dpr } => {
+                let scale = dpr as f32;
+                let prev_w = window.resolution.width();
+                let prev_h = window.resolution.height();
+                window.resolution.set_scale_factor(scale);
+                window.resolution.set(css_w as f32, css_h as f32);
+                if (prev_w - css_w as f32).abs() > 0.5 || (prev_h - css_h as f32).abs() > 0.5 {
+                    let resized = WindowResized {
+                        window: window_entity,
+                        width: css_w as f32,
+                        height: css_h as f32,
+                    };
+                    resize_writer.write(resized.clone());
+                    window_event_writer.write(WindowEvent::WindowResized(resized));
+                }
+                static FIRST_VP: std::sync::atomic::AtomicBool =
+                    std::sync::atomic::AtomicBool::new(true);
+                if FIRST_VP.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                    eprintln!(
+                        "[native-input] drain first Viewport css=({css_w},{css_h}) dpr={dpr}"
+                    );
+                }
             }
             NativeInputEvent::Key {
                 code,

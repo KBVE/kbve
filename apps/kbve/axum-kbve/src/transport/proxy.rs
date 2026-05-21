@@ -1681,8 +1681,147 @@ pub async fn firecracker_fc_alias_handler(
     }
 }
 
-/// Staff-tier `/fc/{name}/[*path]` → ctl-net `/proxy/{name}/[*path]`.
-/// Gated at DASHBOARD_MANAGE because the persistent ecosystem has VPN egress.
+pub async fn firecracker_deployments_handler(
+    headers: HeaderMap,
+    axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
+) -> Response {
+    let query: Option<String> = params
+        .get("access_token")
+        .map(|t| format!("access_token={t}"));
+    let token = match require_dashboard_manage_with_query(
+        &headers,
+        query.as_deref(),
+        "Firecracker-Deployments",
+    )
+    .await
+    {
+        Ok(t) => t,
+        Err(resp) => return resp,
+    };
+
+    let account_id = match resolve_account_for_token(&token).await {
+        Some(a) => a,
+        None => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": "could not resolve wallet account for user"})),
+            )
+                .into_response();
+        }
+    };
+
+    let limit = params
+        .get("limit")
+        .and_then(|v| v.parse::<i32>().ok())
+        .unwrap_or(50)
+        .clamp(1, 200);
+    let offset = params
+        .get("offset")
+        .and_then(|v| v.parse::<i32>().ok())
+        .unwrap_or(0)
+        .max(0);
+    let live_only = params
+        .get("live_only")
+        .map(|v| matches!(v.as_str(), "1" | "true" | "yes"))
+        .unwrap_or(false);
+
+    let wallet = match crate::db::get_wallet_client() {
+        Some(w) => w,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "wallet not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    match wallet
+        .firecracker_my_deployments(account_id, limit, offset, live_only)
+        .await
+    {
+        Ok(rows) => (
+            StatusCode::OK,
+            axum::Json(json!({
+                "account_id": account_id,
+                "limit": limit,
+                "offset": offset,
+                "live_only": live_only,
+                "deployments": rows,
+            })),
+        )
+            .into_response(),
+        Err(e) => {
+            warn!(%account_id, "fc-journal: my_deployments query failed: {e}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": "deployment history query failed"})),
+            )
+                .into_response()
+        }
+    }
+}
+
+pub async fn firecracker_deployment_stats_handler(
+    headers: HeaderMap,
+    axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
+) -> Response {
+    let query: Option<String> = params
+        .get("access_token")
+        .map(|t| format!("access_token={t}"));
+    let token = match require_dashboard_manage_with_query(
+        &headers,
+        query.as_deref(),
+        "Firecracker-Deployment-Stats",
+    )
+    .await
+    {
+        Ok(t) => t,
+        Err(resp) => return resp,
+    };
+
+    let account_id = match resolve_account_for_token(&token).await {
+        Some(a) => a,
+        None => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": "could not resolve wallet account for user"})),
+            )
+                .into_response();
+        }
+    };
+
+    let wallet = match crate::db::get_wallet_client() {
+        Some(w) => w,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "wallet not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    match wallet.firecracker_deployment_stats(account_id).await {
+        Ok(stats) => (
+            StatusCode::OK,
+            axum::Json(json!({
+                "account_id": account_id,
+                "stats": stats,
+            })),
+        )
+            .into_response(),
+        Err(e) => {
+            warn!(%account_id, "fc-journal: deployment_stats query failed: {e}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": "deployment stats query failed"})),
+            )
+                .into_response()
+        }
+    }
+}
+
 pub async fn firecracker_fc_handler(
     axum::extract::Path(params): axum::extract::Path<Vec<(String, String)>>,
     req: Request<Body>,

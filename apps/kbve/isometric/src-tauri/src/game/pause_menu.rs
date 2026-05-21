@@ -4,7 +4,9 @@
 //! (General, Audio, Video, Controls) and a Resume button.
 //! Blocks player input while open via the `UiOverlay` resource.
 
+use bevy::picking::Pickable;
 use bevy::prelude::*;
+use bevy::ui::FocusPolicy;
 
 use super::phase::GamePhase;
 use super::ui_color;
@@ -63,6 +65,9 @@ struct CategoryContent;
 #[derive(Component)]
 struct ResumeBtn;
 
+#[derive(Component)]
+struct ExitBtn;
+
 /// Resource tracking active category.
 #[derive(Resource, Default)]
 struct PauseMenuState {
@@ -82,6 +87,7 @@ impl Plugin for PauseMenuPlugin {
                 toggle_pause_menu,
                 handle_category_buttons,
                 handle_resume_button,
+                handle_exit_button,
             )
                 .run_if(in_state(GamePhase::Playing)),
         );
@@ -195,6 +201,7 @@ fn spawn_pause_menu(mut commands: Commands) {
                                             Color::NONE
                                         }),
                                         Interaction::default(),
+                                        FocusPolicy::Block,
                                         CategoryBtn { category: cat },
                                     ))
                                     .with_child((
@@ -208,6 +215,8 @@ fn spawn_pause_menu(mut commands: Commands) {
                                         } else {
                                             ui_color::TEXT_SECONDARY
                                         }),
+                                        FocusPolicy::Pass,
+                                        Pickable::IGNORE,
                                     ));
                             }
                         });
@@ -248,7 +257,8 @@ fn spawn_pause_menu(mut commands: Commands) {
                     .spawn(Node {
                         width: Val::Percent(100.0),
                         padding: UiRect::axes(Val::Px(14.0), Val::Px(10.0)),
-                        justify_content: JustifyContent::FlexEnd,
+                        justify_content: JustifyContent::SpaceBetween,
+                        column_gap: Val::Px(8.0),
                         ..default()
                     })
                     .with_children(|footer| {
@@ -262,8 +272,34 @@ fn spawn_pause_menu(mut commands: Commands) {
                                     border_radius: BorderRadius::all(Val::Px(4.0)),
                                     ..default()
                                 },
+                                BackgroundColor(Color::srgba(0.7, 0.2, 0.2, 1.0)),
+                                Interaction::default(),
+                                FocusPolicy::Block,
+                                ExitBtn,
+                            ))
+                            .with_child((
+                                Text::new("Exit"),
+                                TextFont {
+                                    font_size: 12.0,
+                                    ..default()
+                                },
+                                TextColor(ui_color::BTN_TEXT),
+                                FocusPolicy::Pass,
+                                Pickable::IGNORE,
+                            ));
+                        footer
+                            .spawn((
+                                Node {
+                                    width: Val::Px(90.0),
+                                    height: Val::Px(32.0),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    border_radius: BorderRadius::all(Val::Px(4.0)),
+                                    ..default()
+                                },
                                 BackgroundColor(ui_color::BTN_PRIMARY),
                                 Interaction::default(),
+                                FocusPolicy::Block,
                                 ResumeBtn,
                             ))
                             .with_child((
@@ -273,6 +309,8 @@ fn spawn_pause_menu(mut commands: Commands) {
                                     ..default()
                                 },
                                 TextColor(ui_color::BTN_TEXT),
+                                FocusPolicy::Pass,
+                                Pickable::IGNORE,
                             ));
                     });
             });
@@ -365,6 +403,18 @@ fn handle_resume_button(
             for mut vis in &mut menu_q {
                 *vis = Visibility::Hidden;
             }
+        }
+    }
+}
+
+fn handle_exit_button(
+    mut exit_writer: MessageWriter<bevy::app::AppExit>,
+    btn_q: Query<&Interaction, (Changed<Interaction>, With<ExitBtn>)>,
+) {
+    for interaction in &btn_q {
+        if *interaction == Interaction::Pressed {
+            info!("[pause] Exit pressed — requesting AppExit");
+            exit_writer.write(bevy::app::AppExit::Success);
         }
     }
 }
