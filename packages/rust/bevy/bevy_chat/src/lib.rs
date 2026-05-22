@@ -36,7 +36,7 @@
 mod config;
 mod message;
 
-pub use config::IrcConfig;
+pub use config::{IrcConfig, IrcTransport};
 pub use message::{ChatMessage, MessageKind};
 
 // ── Platform-specific transport ───────────────────────────────────────

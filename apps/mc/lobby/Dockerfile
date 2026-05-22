@@ -109,6 +109,14 @@ ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+Disable
 # section is still present at /config/paper-global.yml on first boot.
 COPY apps/mc/lobby/config/ /config/
 
+# AdvancedPortals ships with enableProxySupport: false by default, which
+# silently breaks every portal that uses a `bungee: - <server>` arg —
+# the portal triggers but the proxy-side server switch never fires.
+# Seed the patched copy directly into /plugins/AdvancedPortals/ so first
+# boot copies it in instead of generating the default.
+COPY apps/mc/lobby/config/plugins/AdvancedPortals/config.yaml \
+    /plugins/AdvancedPortals/config.yaml
+
 # Source-built kbve-mc-uplink plugin — forwards death/advancement events
 # to the Velocity-side discord relay over the kbve:relay-events channel.
 COPY --from=plugin-builder /build/build/libs/kbve-mc-uplink-*.jar \
