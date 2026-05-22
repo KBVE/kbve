@@ -3130,12 +3130,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				);
 			}
 
+			let stunned = false;
 			if (hasStatus(eid, STATUS_KIND.stun, nowMs)) {
-				this.updateEnemyVisuals(eid, nowMs);
-				continue;
-			}
-
-			if (EnemyStats.canAttack[eid] === 1) {
+				stunned = true;
+			} else if (EnemyStats.canAttack[eid] === 1) {
 				let targetEid = EnemyStats.targetEid[eid];
 				let targetKind = EnemyStats.targetKind[eid];
 				if (
@@ -3151,14 +3149,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 						targetKind = EnemyStats.targetKind[eid];
 					}
 				} else {
-					const tx =
-						targetKind === ATTACK_TARGET_KIND.building
-							? Position.x[targetEid]
-							: Position.x[targetEid];
-					const ty =
-						targetKind === ATTACK_TARGET_KIND.building
-							? Position.y[targetEid]
-							: Position.y[targetEid];
+					const tx = Position.x[targetEid];
+					const ty = Position.y[targetEid];
 					const dx = tx - Position.x[eid];
 					const dy = ty - Position.y[eid];
 					const range = EnemyStats.attackRange[eid];
@@ -3181,18 +3173,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 						);
 					}
 					this.recomputeEnemyMovement(eid, nowMs);
-					const speed =
+					const attackSpeed =
 						Movement.speed[eid] *
 						GAME_CONFIG.enemyAttackSpeedFactor;
-					if (speed > 0) this.moveAlongPath(eid, speed, dt);
+					if (attackSpeed > 0)
+						this.moveAlongPath(eid, attackSpeed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
 				}
 			}
 
-			this.recomputeEnemyMovement(eid, nowMs);
-			const speed = Movement.speed[eid];
-			this.moveAlongPath(eid, speed, dt);
+			if (!stunned) {
+				this.recomputeEnemyMovement(eid, nowMs);
+				const speed = Movement.speed[eid];
+				this.moveAlongPath(eid, speed, dt);
+			}
 			this.updateEnemyVisuals(eid, nowMs);
 		}
 	}
