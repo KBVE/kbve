@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-05-21T09:16:37.523Z",
+	"generated_at": "2026-05-22T09:14:26.298Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 242
+		"total_items": 255
 	},
 	"summary": {
-		"Theory": 22,
+		"Theory": 26,
 		"AI": 1,
 		"Todo": 10,
-		"Backlog": 7,
-		"Error": 10,
+		"Backlog": 8,
+		"Error": 9,
 		"Support": 0,
 		"Staging": 3,
 		"Review": 1,
-		"Done": 182
+		"Done": 191
 	},
 	"columns": {
 		"Theory": [
@@ -384,6 +384,62 @@
 				"matrix": null,
 				"date": "2026-05-17",
 				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11244,
+				"title": "[BEVY][ISOMETRIC] Refactor remaining menus to ui component library",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11244",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11246,
+				"title": "[BEVY][ISOMETRIC] In-game chat overlay (incoming + outgoing)",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11246",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11247,
+				"title": "[BEVY][ISOMETRIC] Toast styling pass — color accents + animations",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11247",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11262,
+				"title": "feat(discordsh): /gh claim — Discord user self-assigns issue + KBVE profile link",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11262",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
 			}
 		],
 		"AI": [
@@ -697,6 +753,21 @@
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11250,
+				"title": "feat(ci-dbmate-deploy): bake migrations into OCI image for cap-free deploys",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11250",
+				"assignees": [],
+				"labels": [
+					"enhancement",
+					"backlog"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
 			}
 		],
 		"Error": [
@@ -859,20 +930,6 @@
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 11233,
-				"title": "[MC] OPAC tryToClaim reflective sweep only persists one chunk row (~26 of 676)",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/11233",
-				"assignees": [],
-				"labels": [
-					"bug"
-				],
-				"matrix": null,
-				"date": "2026-05-20",
-				"milestone": null
 			}
 		],
 		"Support": [],
@@ -929,10 +986,10 @@
 		"Review": [
 			{
 				"type": "PULL_REQUEST",
-				"number": 11238,
-				"title": "Release: 3 chores → Main",
+				"number": 11273,
+				"title": "Release: 1 commit → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/11238",
+				"url": "https://github.com/KBVE/kbve/pull/11273",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -946,20 +1003,6 @@
 		"Done": [
 			{
 				"type": "ISSUE",
-				"number": 8189,
-				"title": "[BEVY] NPC Creatures — Performance Audit",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/8189",
-				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
-				"matrix": null,
-				"date": "2026-03-17",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 10329,
 				"title": "[CICD] [Github] Custom Arc Runner Image",
 				"state": "CLOSED",
@@ -971,80 +1014,6 @@
 				],
 				"matrix": null,
 				"date": "2026-04-29",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10539,
-				"title": "Release: 1 feature, 1 fix, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10539",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10546,
-				"title": "Release: 1 feature, 2 fixes → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10546",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10550,
-				"title": "Release: 3 features, 5 fixes, 1 doc, 1 CI → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10550",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10562,
-				"title": "chore(dashboard): daily sync — 2026-05-07",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10562",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 10563,
-				"title": "Release: 20 features, 5 fixes, 1 doc, 1 CI, 1 perf, 6 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/10563",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -3605,6 +3574,20 @@
 				"milestone": null
 			},
 			{
+				"type": "ISSUE",
+				"number": 11233,
+				"title": "[MC] OPAC tryToClaim reflective sweep only persists one chunk row (~26 of 676)",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/11233",
+				"assignees": [],
+				"labels": [
+					"bug"
+				],
+				"matrix": null,
+				"date": "2026-05-20",
+				"milestone": null
+			},
+			{
 				"type": "PULL_REQUEST",
 				"number": 11237,
 				"title": "Atomic: rows v0.1.24 post-publish sync",
@@ -3614,6 +3597,21 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11238,
+				"title": "Release: 1 feature, 1 fix, 2 docs, 8 refactors, 7 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11238",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
 				],
 				"matrix": null,
 				"date": null,
@@ -3643,6 +3641,194 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11241,
+				"title": "chore(dashboard): daily sync — 2026-05-21",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11241",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11245,
+				"title": "[BEVY][ISOMETRIC] Title screen Settings panel (audio, render, transport override)",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/11245",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11248,
+				"title": "[BEVY][ISOMETRIC] Minimap overlay (player + nearby creatures + tile dots)",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/11248",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11249,
+				"title": "[BEVY][ISOMETRIC] Inventory slot click → use / equip / drop flow",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/11249",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-05-21",
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11255,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11255",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11256,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11256",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11258,
+				"title": "Atomic: axum-kbve v1.0.167 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11258",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11259,
+				"title": "Release: 9 features, 2 fixes, 1 refactor, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11259",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11266,
+				"title": "Release: 2 features, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11266",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11267,
+				"title": "Atomic: mc v1.0.57 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11267",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11269,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11269",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11270,
+				"title": "Atomic: axum-kbve v1.0.168 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11270",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11272,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11272",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
 				],
 				"matrix": null,
 				"date": null,
