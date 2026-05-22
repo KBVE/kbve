@@ -94,6 +94,8 @@ urlencoding = "2"
 wgpu = "27"
 pollster = "0.4"
 ureq = { version = "3", features = ["json"] }
+# Required for the dedicated runtime that hosts the chat IRC-WS connection.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
 # --- Linux-only Bevy features (x11/wayland) ---
 [target.'cfg(target_os = "linux")'.dependencies.bevy]

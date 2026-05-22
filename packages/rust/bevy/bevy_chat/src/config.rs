@@ -1,5 +1,20 @@
 use serde::{Deserialize, Serialize};
 
+/// How the native client reaches the IRC server.
+///
+/// - `Tcp` (default): raw TCP, optionally TLS, used by the Discord bot and
+///   the lightyear server which both run inside our network.
+/// - `WebSocket`: tokio-tungstenite WebSocket transport, used by the
+///   isometric game's desktop build to share the same `wss://chat.kbve.com`
+///   endpoint as the WASM browser client.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum IrcTransport {
+    #[default]
+    Tcp,
+    WebSocket,
+}
+
 /// Configuration for connecting to an IRC server.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IrcConfig {
@@ -17,6 +32,11 @@ pub struct IrcConfig {
     pub password: Option<String>,
     /// Reconnect delay in seconds after disconnect (0 = no reconnect).
     pub reconnect_delay_secs: u64,
+    /// Transport mode. Defaults to TCP for backward compatibility with the
+    /// existing IRC-over-TCP consumers; the isometric desktop client sets
+    /// this to `WebSocket` to talk to `wss://chat.kbve.com`.
+    #[serde(default)]
+    pub transport: IrcTransport,
 }
 
 impl Default for IrcConfig {
@@ -29,6 +49,7 @@ impl Default for IrcConfig {
             channels: vec!["#global".to_owned()],
             password: None,
             reconnect_delay_secs: 5,
+            transport: IrcTransport::Tcp,
         }
     }
 }
@@ -75,6 +96,7 @@ impl IrcConfig {
             channels,
             password,
             reconnect_delay_secs,
+            transport: IrcTransport::Tcp,
         }
     }
 }
