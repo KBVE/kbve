@@ -12,6 +12,12 @@ static PENDING_SIGNIN: Mutex<Option<SignInResult>> = Mutex::new(None);
 /// `get_signin_state` (Tauri) to decide whether to prompt for a username.
 static CURRENT_SIGNIN: Mutex<Option<SignInResult>> = Mutex::new(None);
 
+/// Persistent copy of the latest Supabase access token observed by either
+/// the localhost OAuth listener or the `set_signed_in` wasm-bindgen
+/// export. Read by `game::chat` to authenticate against the IRC gateway
+/// (`wss://chat.kbve.com`) using the JWT as the `PASS` line.
+static CURRENT_JWT: Mutex<Option<String>> = Mutex::new(None);
+
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct SignInResult {
     pub jwt_valid: bool,
@@ -41,6 +47,13 @@ pub fn record_signin(jwt: &str) {
     if let Ok(mut g) = CURRENT_SIGNIN.lock() {
         *g = Some(result);
     }
+    if let Ok(mut g) = CURRENT_JWT.lock() {
+        *g = Some(jwt.to_string());
+    }
+}
+
+pub fn current_jwt() -> Option<String> {
+    CURRENT_JWT.lock().ok().and_then(|g| g.clone())
 }
 
 pub fn record_username(username: String) {
