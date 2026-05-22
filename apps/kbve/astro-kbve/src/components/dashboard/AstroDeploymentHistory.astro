@@ -31,11 +31,59 @@ import ReactDeploymentError from './ReactDeploymentError';
 		<ReactDeploymentControls client:only="react" />
 	</header>
 
-	<ReactDeploymentStats client:only="react" />
+	<div class="deploy-history-stats-area">
+		<div
+			class="deploy-history-stats deploy-history-stats-skeleton"
+			aria-hidden="true">
+			<div class="stat">
+				<div class="stat-label">Total</div>
+				<div class="stat-value">—</div>
+			</div>
+			<div class="stat">
+				<div class="stat-label">Live</div>
+				<div class="stat-value">—</div>
+			</div>
+			<div class="stat">
+				<div class="stat-label">Credits spent</div>
+				<div class="stat-value">—</div>
+			</div>
+			<div class="stat">
+				<div class="stat-label">Latest</div>
+				<div class="stat-value small">—</div>
+			</div>
+		</div>
+		<ReactDeploymentStats client:only="react" />
+	</div>
 
 	<ReactDeploymentError client:only="react" />
 
-	<ReactDeploymentRows client:only="react" />
+	<div class="deploy-history-rows-area">
+		<div
+			class="deploy-history-table-wrap deploy-history-rows-skeleton"
+			aria-hidden="true">
+			<table class="deploy-history-table">
+				<thead>
+					<tr>
+						<th>VM</th>
+						<th>Rootfs</th>
+						<th>Port</th>
+						<th>Visibility</th>
+						<th>Resources</th>
+						<th>Created</th>
+						<th>Destroyed</th>
+						<th>Status</th>
+						<th>Credits</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td colSpan="9" class="empty">Loading deployments…</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<ReactDeploymentRows client:only="react" />
+	</div>
 </section>
 
 <style is:global>
@@ -69,6 +117,7 @@ import ReactDeploymentError from './ReactDeploymentError';
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
+		min-height: 2rem;
 	}
 	.deploy-history-filter {
 		display: inline-flex;
@@ -95,10 +144,26 @@ import ReactDeploymentError from './ReactDeploymentError';
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
+	.deploy-history-stats-area {
+		display: contents;
+	}
+	.deploy-history-rows-area {
+		display: contents;
+		min-height: 6rem;
+	}
+	.deploy-history-stats-area:has(astro-island .deploy-history-stats)
+		.deploy-history-stats-skeleton {
+		display: none;
+	}
+	.deploy-history-rows-area:has(astro-island .deploy-history-table-wrap)
+		.deploy-history-rows-skeleton {
+		display: none;
+	}
 	.deploy-history-stats {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 		gap: 0.5rem;
+		min-height: 4.5rem;
 	}
 	.deploy-history-stats .stat {
 		padding: 0.6rem 0.75rem;
@@ -115,7 +180,9 @@ import ReactDeploymentError from './ReactDeploymentError';
 	.deploy-history-stats .stat-value {
 		font-size: 1.15rem;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-variant-numeric: tabular-nums;
 		margin-top: 0.15rem;
+		min-height: 1.4rem;
 	}
 	.deploy-history-stats .stat-value.small {
 		font-size: 0.78rem;
@@ -130,6 +197,9 @@ import ReactDeploymentError from './ReactDeploymentError';
 	}
 	.deploy-history-table-wrap {
 		overflow-x: auto;
+		min-height: 5rem;
+		content-visibility: auto;
+		contain-intrinsic-size: 0 12rem;
 	}
 	.deploy-history-table {
 		width: 100%;

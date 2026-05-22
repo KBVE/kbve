@@ -43,7 +43,22 @@ import AstroDeploymentHistory from './AstroDeploymentHistory.astro';
 	.ide-dashboard {
 		display: flex;
 		flex-direction: column;
+		gap: 1rem;
 		color: var(--sl-color-text, #e6edf3);
 		min-height: 60vh;
+	}
+
+	.ide-dashboard > astro-island:nth-of-type(1) {
+		min-height: 28rem;
+		contain: layout;
+	}
+	.ide-dashboard > astro-island:nth-of-type(2) {
+		min-height: 14rem;
+		contain: layout;
+	}
+
+	.ide-dashboard > section[aria-label='Firecracker deployment history'] {
+		content-visibility: auto;
+		contain-intrinsic-size: 0 18rem;
 	}
 </style>
