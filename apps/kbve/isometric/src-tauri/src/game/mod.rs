@@ -15,6 +15,7 @@ pub mod input_bridge;
 pub mod interaction_ui;
 pub mod inventory;
 pub mod inventory_ui;
+pub mod minimap;
 pub mod mushrooms;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native_input;
@@ -196,6 +197,7 @@ impl PluginGroup for GamePluginGroup {
             .add(PauseMenuPlugin)
             .add(PersistPlugin)
             .add(settings::SettingsPlugin)
+            .add(minimap::MinimapPlugin)
             .add(ui::UiLibraryPlugin)
     }
 }
