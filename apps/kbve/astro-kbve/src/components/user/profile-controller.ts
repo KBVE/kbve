@@ -427,46 +427,72 @@ export async function bootProfile() {
 		}
 	}
 
-	// Init with timeout — never hang forever
-	try {
-		await Promise.race([
-			initSupa(),
-			new Promise<never>((_, reject) =>
-				setTimeout(
-					() => reject(new Error('Supabase init timed out')),
-					INIT_TIMEOUT_MS,
-				),
-			),
-		]);
-	} catch {
-		if (!painted) switchState('unauth');
-		return;
+	// Main-thread first: if localStorage already has a valid session,
+	// hand it directly to handleSession() and bypass the SharedWorker
+	// initSupa() round-trip entirely. SharedWorker can be slow or
+	// unresponsive (esp. on mobile / cold tab) and was the source of
+	// 12s profile-load timeouts. The worker is now a background nicety
+	// for cross-tab auth events, not a hard dependency for boot.
+	const storageSession = readSupabaseSessionFromStorage();
+	const haveStorageSession = !!(
+		storageSession?.user?.id && storageSession.access_token
+	);
+	if (haveStorageSession) {
+		await handleSession(storageSession as any, 'init');
 	}
 
-	const supa = getSupa();
+	// If neither the fast paint nor a localStorage session painted,
+	// flip to unauth immediately so the user doesn't stare at the
+	// loading spinner while the background SharedWorker path warms up.
+	if (!painted && !haveStorageSession) {
+		switchState('unauth');
+	}
 
-	// Background sync: refresh profile + staff caches on auth events,
-	// tab focus / visibility, and a 15-min fallback timer. Updates the
-	// persistent atoms plus the BroadcastChannel bus so other tabs and
-	// surfaces stay in sync without ever blocking the UI.
-	installProfileSync({
-		apiBase: window.location.origin,
-		supabaseUrl: SUPABASE_URL,
-		supabaseAnonKey: SUPABASE_ANON_KEY,
-		subscribeAuth: (handler) =>
-			supa.on('auth', (msg: unknown) => handler(msg as never)),
-	});
+	// Background: kick off SharedWorker init without blocking the UI.
+	// Once ready, subscribe to cross-tab auth events. If init fails or
+	// hangs we don't care — the main-thread fetch already painted.
+	void (async () => {
+		try {
+			await Promise.race([
+				initSupa(),
+				new Promise<never>((_, reject) =>
+					setTimeout(
+						() => reject(new Error('Supabase init timed out')),
+						INIT_TIMEOUT_MS,
+					),
+				),
+			]);
+		} catch {
+			return;
+		}
 
-	// Get current session
-	const s = await supa.getSession().catch(() => null);
-	const session = s?.session ?? null;
+		const supa = getSupa();
 
-	// Handle current state — refresh whatever the fast paint already showed.
-	await handleSession(session, 'init');
+		// Background sync: refresh profile + staff caches on auth events,
+		// tab focus / visibility, and a 15-min fallback timer. Updates the
+		// persistent atoms plus the BroadcastChannel bus so other tabs and
+		// surfaces stay in sync without ever blocking the UI.
+		installProfileSync({
+			apiBase: window.location.origin,
+			supabaseUrl: SUPABASE_URL,
+			supabaseAnonKey: SUPABASE_ANON_KEY,
+			subscribeAuth: (handler) =>
+				supa.on('auth', (msg: unknown) => handler(msg as never)),
+		});
 
-	// Listen for auth changes (sign-in / sign-out from other tabs or navbar)
-	supa.on('auth', async (msg: any) => {
-		const newSession = msg.session ?? null;
-		await handleSession(newSession, 'auth-event');
-	});
+		// If we never got a localStorage session above, ask the gateway
+		// for one as a fallback — covers fresh sign-ins that arrived
+		// after page load.
+		if (!haveStorageSession) {
+			const s = await supa.getSession().catch(() => null);
+			const session = s?.session ?? null;
+			if (session) await handleSession(session, 'init');
+		}
+
+		// Listen for cross-tab sign-in / sign-out.
+		supa.on('auth', async (msg: any) => {
+			const newSession = msg.session ?? null;
+			await handleSession(newSession, 'auth-event');
+		});
+	})();
 }
