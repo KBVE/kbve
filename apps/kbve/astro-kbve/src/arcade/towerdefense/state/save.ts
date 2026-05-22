@@ -34,6 +34,7 @@ export interface SaveSnapshot {
 	gold: number;
 	freeBasicTowers: number;
 	bountyBonusMultiplier: number;
+	seed?: number;
 	stats: {
 		goldEarned: number;
 		enemiesKilled: number;

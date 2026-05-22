@@ -154,6 +154,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { SfxPlayer } from './audio';
+import { mulberry32, randomSeed, type Rand } from './random';
 import {
 	clearSnapshot,
 	loadSnapshot,
@@ -607,6 +608,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private hotkeyOverlay: HotkeyOverlay | null = null;
 	private pauseOverlay: PauseOverlay | null = null;
 	private sfx: SfxPlayer = new SfxPlayer();
+	private currentSeed: number = randomSeed();
+	private rand: Rand = mulberry32(this.currentSeed);
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -719,6 +722,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.lastRestartSignal = restartSignalAtom.get();
 		this.simNow = 0;
 		this.speedFactor = 1;
+		this.currentSeed = randomSeed();
+		this.rand = mulberry32(this.currentSeed);
 		resetHudStore();
 		bestWaveAtom.set(loadBestWave());
 	}
@@ -730,7 +735,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.debugOverlay = new DebugOverlay(this);
 		this.hotkeyOverlay = new HotkeyOverlay(this);
 		this.pauseOverlay = new PauseOverlay(this);
-		this.path = generatePath();
+		const snapPreview = loadSnapshot();
+		if (snapPreview?.seed !== undefined) {
+			this.currentSeed = snapPreview.seed;
+			this.rand = mulberry32(this.currentSeed);
+		}
+		this.path = generatePath(this.rand);
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		drawGrass(this);
 		drawGridLines(this);
@@ -1026,6 +1036,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			gold: this.gold,
 			freeBasicTowers: this.freeBasicTowers,
 			bountyBonusMultiplier: this.bountyBonusMultiplier,
+			seed: this.currentSeed,
 			stats: {
 				goldEarned: this.statGoldEarned,
 				enemiesKilled: this.statEnemiesKilled,
@@ -2277,7 +2288,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			});
 			this.cameras.main.shake(220, 0.005);
 		} else {
-			typeId = rollEnemyType(this.wave);
+			typeId = rollEnemyType(this.wave, this.rand);
 		}
 		const type = ENEMY_CATALOG[typeId];
 		const stats = computeEnemyStats(this.wave, type);

@@ -940,13 +940,16 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 	},
 };
 
-export function rollEnemyType(wave: number): EnemyTypeId {
+export function rollEnemyType(
+	wave: number,
+	rand: () => number = Math.random,
+): EnemyTypeId {
 	const bruteChance = Math.min(0.35, (wave - 1) * 0.06);
 	const scoutChance = wave >= 2 ? Math.min(0.22, (wave - 1) * 0.045) : 0;
 	const flyingChance = wave >= 4 ? Math.min(0.18, (wave - 3) * 0.035) : 0;
 	const shieldedChance = wave >= 6 ? Math.min(0.16, (wave - 5) * 0.03) : 0;
 	const regenChance = wave >= 8 ? Math.min(0.14, (wave - 7) * 0.028) : 0;
-	const roll = Math.random();
+	const roll = rand();
 	let acc = bruteChance;
 	if (roll < acc) return 'brute';
 	acc += scoutChance;
