@@ -163,6 +163,14 @@ import {
 	useItemSignalAtom,
 	waveAtom,
 } from './td-hud-store';
+import { SfxPlayer } from './audio';
+import {
+	clearSnapshot,
+	loadSnapshot,
+	saveSnapshot,
+	type SaveSnapshot,
+	type SavedBuilding,
+} from './state';
 import {
 	consumeBatteryCharge,
 	createBuildingAmbience,
@@ -609,6 +617,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private debugOverlay: DebugOverlay | null = null;
 	private hotkeyOverlay: HotkeyOverlay | null = null;
 	private pauseOverlay: PauseOverlay | null = null;
+	private sfx: SfxPlayer = new SfxPlayer();
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -740,7 +749,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.subscribeHudSignals();
 		this.buildPlacementPreview();
 		this.placeNexus();
-		this.placeStarterKit();
+		const snap = loadSnapshot();
+		if (snap) {
+			this.restoreFromSnapshot(snap);
+		} else {
+			this.placeStarterKit();
+		}
 		this.recomputePower(0);
 		this.refreshHud();
 
@@ -752,7 +766,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-R', () => {
 				if (this.isGameOver) this.scene.restart();
 			});
-			kb.on('keydown-N', () => this.scene.restart());
+			kb.on('keydown-N', (e: KeyboardEvent) => {
+				if (e.shiftKey) clearSnapshot();
+				this.scene.restart();
+			});
 			kb.on('keydown-P', () => this.togglePause());
 			kb.on('keydown-SPACE', () => this.togglePause());
 			kb.on('keydown-F1', () => this.debugOverlay?.toggle());
@@ -761,6 +778,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-F5', (e: KeyboardEvent) => {
 				e.preventDefault?.();
 				this.scene.restart();
+			});
+			kb.on('keydown-M', () => {
+				const muted = this.sfx.toggleMute();
+				this.floatingText.spawn({
+					x: BASE_WIDTH / 2,
+					y: BASE_HEIGHT * 0.35,
+					text: muted ? 'AUDIO OFF' : 'AUDIO ON',
+					color: '#a0aec0',
+					rise: 40,
+				});
 			});
 			kb.on('keydown-ESC', () => {
 				if (pendingItemTargetAtom.get()) this.cancelPendingItem();
@@ -907,6 +934,106 @@ export class TowerDefenseScene extends Phaser.Scene {
 			const cy = item.row * TILE + TILE / 2;
 			this.spawnBuilding(item.id, item.col, item.row, cx, cy);
 		}
+	}
+
+	private restoreFromSnapshot(snap: SaveSnapshot): void {
+		this.gold = snap.gold;
+		this.wave = snap.wave;
+		this.freeBasicTowers = snap.freeBasicTowers ?? 0;
+		this.bountyBonusMultiplier = snap.bountyBonusMultiplier ?? 1;
+		this.statGoldEarned = snap.stats.goldEarned;
+		this.statEnemiesKilled = snap.stats.enemiesKilled;
+		this.statBossesKilled = snap.stats.bossesKilled;
+		this.statBuildingsBuilt = snap.stats.buildingsBuilt;
+		for (const b of snap.buildings) {
+			if (b.id === 'nexus') continue;
+			const cx = b.col * TILE + TILE / 2;
+			const cy = b.row * TILE + TILE / 2;
+			const built = this.spawnBuilding(b.id, b.col, b.row, cx, cy);
+			const eid = built.id;
+			if (b.towerUpgrades && built.kind === 'tower') {
+				TowerUpgradeStats.radar[eid] = b.towerUpgrades.radar ?? 0;
+				TowerUpgradeStats.attack[eid] = b.towerUpgrades.attack ?? 0;
+				TowerUpgradeStats.speed[eid] = b.towerUpgrades.speed ?? 0;
+				TowerUpgradeStats.armor[eid] = b.towerUpgrades.armor ?? 0;
+				Health.maxHp[eid] = towerMaxHp(built);
+				this.redrawUpgradePips(built);
+			}
+			if (b.armouryUpgrades && built.kind === 'armoury') {
+				ArmouryUpgradeStats.capacity[eid] =
+					b.armouryUpgrades.capacity ?? 0;
+				ArmouryUpgradeStats.damage[eid] = b.armouryUpgrades.damage ?? 0;
+				ArmouryUpgradeStats.vigor[eid] = b.armouryUpgrades.vigor ?? 0;
+				ArmouryUpgradeStats.tempo[eid] = b.armouryUpgrades.tempo ?? 0;
+			}
+			if (b.repairUpgrades && built.kind === 'repair') {
+				RepairUpgradeStats.reach[eid] = b.repairUpgrades.reach ?? 0;
+				RepairUpgradeStats.yield[eid] = b.repairUpgrades.yield ?? 0;
+				RepairUpgradeStats.tempo[eid] = b.repairUpgrades.tempo ?? 0;
+			}
+			Health.hp[eid] = Math.min(Health.maxHp[eid], b.hp);
+			Armor.armor[eid] = Math.min(Armor.maxArmor[eid], b.armor);
+			if (b.batteryCharge !== undefined && built.kind === 'battery') {
+				BatteryState.charge[eid] = Math.min(
+					BatteryState.capacity[eid],
+					b.batteryCharge,
+				);
+			}
+		}
+	}
+
+	private captureSnapshot(): SaveSnapshot {
+		const buildings: SavedBuilding[] = [];
+		for (const eid of this.frameBuildingEids) {
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b) continue;
+			const entry: SavedBuilding = {
+				id: b.spec.id,
+				col: BuildingState.col[eid],
+				row: BuildingState.row[eid],
+				hp: Health.hp[eid],
+				armor: Armor.armor[eid],
+			};
+			if (b.kind === 'tower') {
+				entry.towerUpgrades = {
+					radar: TowerUpgradeStats.radar[eid],
+					attack: TowerUpgradeStats.attack[eid],
+					speed: TowerUpgradeStats.speed[eid],
+					armor: TowerUpgradeStats.armor[eid],
+				};
+			} else if (b.kind === 'armoury') {
+				entry.armouryUpgrades = {
+					capacity: ArmouryUpgradeStats.capacity[eid],
+					damage: ArmouryUpgradeStats.damage[eid],
+					vigor: ArmouryUpgradeStats.vigor[eid],
+					tempo: ArmouryUpgradeStats.tempo[eid],
+				};
+			} else if (b.kind === 'repair') {
+				entry.repairUpgrades = {
+					reach: RepairUpgradeStats.reach[eid],
+					yield: RepairUpgradeStats.yield[eid],
+					tempo: RepairUpgradeStats.tempo[eid],
+				};
+			} else if (b.kind === 'battery') {
+				entry.batteryCharge = BatteryState.charge[eid];
+			}
+			buildings.push(entry);
+		}
+		return {
+			v: 1,
+			wave: this.wave,
+			gold: this.gold,
+			freeBasicTowers: this.freeBasicTowers,
+			bountyBonusMultiplier: this.bountyBonusMultiplier,
+			stats: {
+				goldEarned: this.statGoldEarned,
+				enemiesKilled: this.statEnemiesKilled,
+				bossesKilled: this.statBossesKilled,
+				buildingsBuilt: this.statBuildingsBuilt,
+			},
+			buildings,
+		};
 	}
 
 	private refreshHud(): void {
@@ -1175,6 +1302,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.gold -= spec.cost;
 		}
 		this.spawnBuilding(selectedBuildAtom.get(), col, row, cx, cy);
+		this.sfx.play('place_building');
 		this.statBuildingsBuilt += 1;
 		this.recomputePower(0);
 		this.refreshHud();
@@ -2052,6 +2180,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private startNextWave(): void {
 		this.wave += 1;
+		this.sfx.play('wave_start');
+		saveSnapshot(this.captureSnapshot());
 		this.sweepExpiredAllies();
 		this.collectVillageIncome();
 		const count = Math.floor(
@@ -2294,6 +2424,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private showNexusDamageFx(b: Building, taken: number): void {
 		this.flashSprite(b.sprite, 0xfc8181);
+		this.sfx.play('nexus_hit', 60);
 		const intensity = Math.min(0.012, 0.002 + taken * 0.0008);
 		this.cameras.main.shake(120, intensity);
 		if (taken <= 0) return;
@@ -2311,6 +2442,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		Health.hp[b.id] = 0;
+		this.sfx.play('demolish', 80);
 		spawnParticleBurst(
 			this.particleDeps,
 			b.x,
@@ -3302,6 +3434,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		targetY: number,
 		enemyId: number | null,
 	): void {
+		this.sfx.play('tower_fire', 50);
 		if (t.spec.chainJumps && enemyId !== null) {
 			this.fireChainLightning(t, enemyId);
 			return;
@@ -3526,6 +3659,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
+		this.sfx.play('enemy_die', 40);
 		const ex = Position.x[eid];
 		const ey = Position.y[eid];
 		this.releaseImage(v.sprite);
@@ -3561,6 +3695,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private endGame(win: boolean): void {
 		this.isGameOver = true;
+		this.sfx.play('game_over');
+		clearSnapshot();
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
 		const previousBest = loadBestWave();
@@ -3696,6 +3832,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private applyCardPick(card: CardOption): void {
+		this.sfx.play('card_pick');
 		switch (card.id) {
 			case 'bonus_gold':
 				this.gold += 150 + this.wave;
