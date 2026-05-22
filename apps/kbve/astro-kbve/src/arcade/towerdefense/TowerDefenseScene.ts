@@ -57,8 +57,6 @@ import {
 	BuildingState,
 	BuildingTag,
 	buildIndexFromId,
-	BurnPatchStats,
-	BurnPatchTag,
 	AURA_KIND,
 	AuraEmitter,
 	AuraEmitterTag,
@@ -107,8 +105,6 @@ import {
 	CastleState,
 	CastleTag,
 	NexusTag,
-	StunDroneStats,
-	StunDroneTag,
 	TowerState,
 	TowerTag,
 	TowerUpgradeStats,
@@ -119,12 +115,7 @@ import {
 	type ProjectileVisual,
 	type SoldierVisual,
 } from './components';
-import {
-	CARD_POOL,
-	pickCardsForWave,
-	type CardId,
-	type CardOption,
-} from './cards';
+import { pickCardsForWave, type CardOption } from './cards';
 import {
 	batteryCapacityAtom,
 	batteryChargeAtom,
@@ -137,7 +128,6 @@ import {
 	cardWaveAtom,
 	demandAtom,
 	enemiesLeftAtom,
-	enemyHoverAtom,
 	freeTowersAtom,
 	gameOverAtom,
 	gameStateAtom,
@@ -257,7 +247,6 @@ import {
 	armouryMaxSoldiers,
 	armourySpawnIntervalMs,
 	repairAmount,
-	repairCooldownMs,
 	repairRange,
 	towerDamage,
 	towerFireRateMs,
@@ -752,6 +741,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const snap = loadSnapshot();
 		if (snap) {
 			this.restoreFromSnapshot(snap);
+			this.time.delayedCall(220, () => {
+				this.floatingText.spawn({
+					x: BASE_WIDTH / 2,
+					y: BASE_HEIGHT * 0.3,
+					text: `RESUMED · WAVE ${snap.wave}`,
+					color: '#9ae6b4',
+					rise: 50,
+					fontSize: '22px',
+					duration: 1200,
+				});
+			});
 		} else {
 			this.placeStarterKit();
 		}
