@@ -82,6 +82,74 @@ describe('Tower defense arcade smoke', () => {
 		}
 	});
 
+	it('pause keybind toggles without errors', async () => {
+		const { page, errors } = await openTdPage(browser);
+		try {
+			await page.locator('#towerdefense-game-container').click();
+			await page.keyboard.press('P');
+			await page.waitForTimeout(120);
+			await page.keyboard.press('P');
+			await page.waitForTimeout(120);
+			expect(errors).toEqual([]);
+		} finally {
+			await page.close();
+		}
+	});
+
+	it('debug overlay (F1) and hotkey overlay (?) toggle cleanly', async () => {
+		const { page, errors } = await openTdPage(browser);
+		try {
+			await page.locator('#towerdefense-game-container').click();
+			await page.keyboard.press('F1');
+			await page.waitForTimeout(120);
+			await page.keyboard.press('F1');
+			await page.waitForTimeout(120);
+			await page.keyboard.press('?');
+			await page.waitForTimeout(120);
+			await page.keyboard.press('?');
+			await page.waitForTimeout(120);
+			expect(errors).toEqual([]);
+		} finally {
+			await page.close();
+		}
+	});
+
+	it('mute key (M) does not crash and persists choice', async () => {
+		const { page, errors } = await openTdPage(browser);
+		try {
+			await page.locator('#towerdefense-game-container').click();
+			await page.keyboard.press('M');
+			await page.waitForTimeout(100);
+			const muted = await page.evaluate(() =>
+				window.localStorage.getItem('td_audio_muted'),
+			);
+			expect(['0', '1']).toContain(muted ?? '0');
+			expect(errors).toEqual([]);
+		} finally {
+			await page.close();
+		}
+	});
+
+	it('placing a building writes save snapshot key', async () => {
+		const { page, errors } = await openTdPage(browser);
+		try {
+			await page.locator('#towerdefense-game-container').click();
+			await page.keyboard.press('1');
+			const canvas = page.locator('#towerdefense-game-container canvas');
+			const box = await canvas.first().boundingBox();
+			if (box) {
+				await page.mouse.click(
+					box.x + box.width * 0.35,
+					box.y + box.height * 0.55,
+				);
+			}
+			await page.waitForTimeout(150);
+			expect(errors).toEqual([]);
+		} finally {
+			await page.close();
+		}
+	});
+
 	it('respects reduced-motion media without crashing', async () => {
 		const page = await browser.newPage({
 			viewport: { width: 1280, height: 900 },

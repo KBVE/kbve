@@ -767,6 +767,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else {
 			this.placeStarterKit();
 		}
+		this.time.delayedCall(360, () => {
+			this.floatingText.spawn({
+				x: BASE_WIDTH / 2,
+				y: BASE_HEIGHT * 0.42,
+				text: `SEED ${this.currentSeed}`,
+				color: '#a0aec0',
+				rise: 40,
+				fontSize: '14px',
+				duration: 1400,
+			});
+		});
 		this.recomputePower(0);
 		this.refreshHud();
 
@@ -1815,6 +1826,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private redrawUpgradePips(t: TowerBuilding): void {
 		t.upgradePips.clear();
+		const tier = TowerUpgradeStats.tier[t.id];
+		if (tier > 0) {
+			const starY = t.y - TILE * 0.55;
+			const starSize = 3;
+			const startX = t.x - tier * (starSize + 1.5);
+			t.upgradePips.fillStyle(0xf6e05e, 0.95);
+			for (let i = 0; i < tier; i++) {
+				const sx = startX + i * (starSize * 2 + 2);
+				t.upgradePips.fillCircle(sx, starY, starSize);
+			}
+		}
 		const anyUpgraded = UPGRADE_ORDER.some(
 			(k) => TowerUpgradeStats[k][t.id] > 0,
 		);
