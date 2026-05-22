@@ -76,8 +76,19 @@ spec:
                       # 5.5.17 is the latest Velocity release; 5.5.x versions
                       # share a stable plugin-messaging wire format so the
                       # 4-patch gap to Fabric 5.5.21 is safe.
+                      # The Advanced-Portals-Spigot-2.7.1.jar is a universal
+                      # bundle — same JAR exposes a Paper plugin entrypoint on
+                      # the lobby AND a Velocity plugin entrypoint here
+                      # (velocity-plugin.json declares
+                      # AdvancedPortalsVelocityPlugin). Without the proxy-side
+                      # half installed, the lobby's portal trigger fires but
+                      # the cross-server switch silently no-ops because nothing
+                      # on Velocity is listening on the AdvancedPortals plugin
+                      # channel. Project axTqSWQA / version AXKMcS6i pins to
+                      # 2.7.1 to stay in lockstep with the Modrinth slug
+                      # `advanced-portals` pulled by the lobby image.
                       - name: PLUGINS
-                        value: 'https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar'
+                        value: 'https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar,https://cdn.modrinth.com/data/axTqSWQA/versions/AXKMcS6i/Advanced-Portals-Spigot-2.7.1.jar'
                       # Matches the LuckPerms env vars on the Fabric fleet pod.
                       # EnvironmentVariableConfigAdapter overrides the on-disk
                       # luckperms.conf without touching the PVC.
