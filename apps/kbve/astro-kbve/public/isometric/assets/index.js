@@ -9296,8 +9296,6 @@ function __wbg_get_imports(memory) {
     return handleError(function(n, a) {
       getObject(n).randomFillSync(takeObject(a));
     }, arguments);
-  }, __wbg_random_5bb86cae65a45bf6: function() {
-    return Math.random();
   }, __wbg_readBuffer_e559a3da4aa9e434: function(n, a) {
     getObject(n).readBuffer(a >>> 0);
   }, __wbg_readPixels_41a371053c299080: function() {

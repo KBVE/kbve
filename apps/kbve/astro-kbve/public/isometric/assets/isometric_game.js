@@ -2340,10 +2340,6 @@ function __wbg_get_imports(memory) {
         __wbg_randomFillSync_6c25eac9869eb53c: function() { return handleError(function (arg0, arg1) {
             getObject(arg0).randomFillSync(takeObject(arg1));
         }, arguments); },
-        __wbg_random_5bb86cae65a45bf6: function() {
-            const ret = Math.random();
-            return ret;
-        },
         __wbg_readBuffer_e559a3da4aa9e434: function(arg0, arg1) {
             getObject(arg0).readBuffer(arg1 >>> 0);
         },
