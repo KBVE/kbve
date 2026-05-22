@@ -5,3 +5,4 @@ export {
 	updateBurnPatches,
 	type BurnPatchDeps,
 } from './burn-patch';
+export { spawnParticleBurst, type ParticleBurstDeps } from './particles';

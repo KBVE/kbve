@@ -132,6 +132,7 @@ const TOWER_IDS: TowerId[] = [
 	'fire',
 	'artillery',
 	'lightning',
+	'sniper',
 ];
 
 export function ensureBuildingTextures(scene: Phaser.Scene): void {

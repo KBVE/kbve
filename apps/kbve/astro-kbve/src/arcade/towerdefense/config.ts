@@ -229,7 +229,8 @@ export type TowerId =
 	| 'fire'
 	| 'artillery'
 	| 'wall'
-	| 'lightning';
+	| 'lightning'
+	| 'sniper';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
@@ -425,6 +426,31 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		chainJumps: 3,
 		chainFalloff: 0.7,
 	},
+	sniper: {
+		id: 'sniper',
+		name: 'Sniper',
+		kind: 'tower',
+		cost: 300,
+		maxHp: 280,
+		defense: 4,
+		power: 3,
+		range: 320,
+		damage: 90,
+		damageType: TOWER_DAMAGE_TYPE.kinetic,
+		fireRateMs: 2200,
+		projectileSpeed: 1200,
+		color: 0x2d3748,
+		projectileColor: 0xf6e05e,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+	},
 };
 
 export const GENERATOR_CATALOG: Record<GeneratorId, GeneratorSpec> = {
@@ -577,6 +603,7 @@ export const PALETTE_ORDER: BuildId[] = [
 	'fire',
 	'artillery',
 	'lightning',
+	'sniper',
 	'solar',
 	'diesel',
 	'nuclear',
@@ -784,7 +811,14 @@ export function specFor(id: BuildId): BuildSpec {
 	return NEXUS_CATALOG[id as NexusId];
 }
 
-export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss' | 'flying';
+export type EnemyTypeId =
+	| 'runner'
+	| 'brute'
+	| 'scout'
+	| 'boss'
+	| 'flying'
+	| 'shielded'
+	| 'regen';
 
 export interface EnemyType {
 	id: EnemyTypeId;
@@ -800,6 +834,7 @@ export interface EnemyType {
 	sizeRadius: number;
 	bountyMultiplier: number;
 	flying?: boolean;
+	regenPerSec?: number;
 }
 
 export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
@@ -874,15 +909,53 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		bountyMultiplier: 1.2,
 		flying: true,
 	},
+	shielded: {
+		id: 'shielded',
+		name: 'Shielded',
+		color: 0x4fd1c5,
+		hpMultiplier: 1.6,
+		speedMultiplier: 0.85,
+		attackDamage: 5,
+		attackRateMs: 850,
+		attackRange: 60,
+		defense: 18,
+		canAttack: true,
+		sizeRadius: 0.34,
+		bountyMultiplier: 1.6,
+	},
+	regen: {
+		id: 'regen',
+		name: 'Regen',
+		color: 0x68d391,
+		hpMultiplier: 1.3,
+		speedMultiplier: 0.9,
+		attackDamage: 4,
+		attackRateMs: 800,
+		attackRange: 55,
+		defense: 6,
+		canAttack: true,
+		sizeRadius: 0.32,
+		bountyMultiplier: 1.4,
+		regenPerSec: 18,
+	},
 };
 
 export function rollEnemyType(wave: number): EnemyTypeId {
-	const bruteChance = Math.min(0.4, (wave - 1) * 0.07);
-	const scoutChance = wave >= 2 ? Math.min(0.25, (wave - 1) * 0.05) : 0;
-	const flyingChance = wave >= 4 ? Math.min(0.2, (wave - 3) * 0.04) : 0;
+	const bruteChance = Math.min(0.35, (wave - 1) * 0.06);
+	const scoutChance = wave >= 2 ? Math.min(0.22, (wave - 1) * 0.045) : 0;
+	const flyingChance = wave >= 4 ? Math.min(0.18, (wave - 3) * 0.035) : 0;
+	const shieldedChance = wave >= 6 ? Math.min(0.16, (wave - 5) * 0.03) : 0;
+	const regenChance = wave >= 8 ? Math.min(0.14, (wave - 7) * 0.028) : 0;
 	const roll = Math.random();
-	if (roll < bruteChance) return 'brute';
-	if (roll < bruteChance + scoutChance) return 'scout';
-	if (roll < bruteChance + scoutChance + flyingChance) return 'flying';
+	let acc = bruteChance;
+	if (roll < acc) return 'brute';
+	acc += scoutChance;
+	if (roll < acc) return 'scout';
+	acc += flyingChance;
+	if (roll < acc) return 'flying';
+	acc += shieldedChance;
+	if (roll < acc) return 'shielded';
+	acc += regenChance;
+	if (roll < acc) return 'regen';
 	return 'runner';
 }

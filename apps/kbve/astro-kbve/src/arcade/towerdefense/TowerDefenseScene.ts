@@ -186,9 +186,11 @@ import {
 import {
 	FloatingTextPool,
 	spawnBurnPatch as spawnBurnPatchExt,
+	spawnParticleBurst,
 	spawnSplashFlash as spawnSplashFlashExt,
 	updateBurnPatches as updateBurnPatchesExt,
 	type BurnPatchDeps,
+	type ParticleBurstDeps,
 } from './effects';
 import {
 	computeEnemyStats,
@@ -218,6 +220,8 @@ import {
 } from './auras';
 import {
 	DebugOverlay,
+	HotkeyOverlay,
+	PauseOverlay,
 	updateEnemyHover as updateEnemyHoverExt,
 	type DebugOverlayDeps,
 	type HoverInfoDeps,
@@ -425,6 +429,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			},
 		},
 	);
+	private particleDeps: ParticleBurstDeps = {
+		scene: this,
+		acquireArc: (x, y, radius, color, alpha) =>
+			this.acquireArc(x, y, radius, color, alpha),
+		releaseArc: (sprite) => this.releaseArc(sprite),
+	};
 	private burnDeps: BurnPatchDeps = Object.defineProperties(
 		{
 			acquireArc: (
@@ -597,6 +607,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private isPaused = false;
 	private speedFactorBeforePause = 1;
 	private debugOverlay: DebugOverlay | null = null;
+	private hotkeyOverlay: HotkeyOverlay | null = null;
+	private pauseOverlay: PauseOverlay | null = null;
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -718,6 +730,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		ensureEnemyTextures(this);
 		ensureUnitTextures(this);
 		this.debugOverlay = new DebugOverlay(this);
+		this.hotkeyOverlay = new HotkeyOverlay(this);
+		this.pauseOverlay = new PauseOverlay(this);
 		this.path = generatePath();
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		drawGrass(this);
@@ -742,6 +756,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-P', () => this.togglePause());
 			kb.on('keydown-SPACE', () => this.togglePause());
 			kb.on('keydown-F1', () => this.debugOverlay?.toggle());
+			kb.on('keydown-QUESTION_MARK', () => this.hotkeyOverlay?.toggle());
+			kb.on('keydown-FORWARD_SLASH', () => this.hotkeyOverlay?.toggle());
+			kb.on('keydown-F5', (e: KeyboardEvent) => {
+				e.preventDefault?.();
+				this.scene.restart();
+			});
 			kb.on('keydown-ESC', () => {
 				if (pendingItemTargetAtom.get()) this.cancelPendingItem();
 				else if (this.targetingTower) this.cancelTargeting();
@@ -2064,14 +2084,25 @@ export class TowerDefenseScene extends Phaser.Scene {
 			})
 			.setOrigin(0.5)
 			.setDepth(140)
-			.setAlpha(0);
+			.setAlpha(0)
+			.setScale(1.4);
 		this.tweens.add({
 			targets: splash,
 			alpha: 1,
-			duration: 220,
-			yoyo: true,
-			hold: 700,
-			onComplete: () => splash.destroy(),
+			scale: 1,
+			duration: 280,
+			ease: 'Back.easeOut',
+			onComplete: () => {
+				this.tweens.add({
+					targets: splash,
+					alpha: 0,
+					y: splash.y - 30,
+					duration: 600,
+					delay: 600,
+					ease: 'Cubic.easeIn',
+					onComplete: () => splash.destroy(),
+				});
+			},
 		});
 	}
 
@@ -2104,6 +2135,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (this.pendingBosses > 0) {
 			this.pendingBosses -= 1;
 			typeId = 'boss';
+			this.floatingText.spawn({
+				x: BASE_WIDTH / 2,
+				y: BASE_HEIGHT * 0.35,
+				text: 'BOSS INCOMING',
+				color: '#ffd700',
+				fontSize: '28px',
+				rise: 40,
+				duration: 1400,
+			});
+			this.cameras.main.shake(220, 0.005);
 		} else {
 			typeId = rollEnemyType(this.wave);
 		}
@@ -2270,6 +2311,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		Health.hp[b.id] = 0;
+		spawnParticleBurst(
+			this.particleDeps,
+			b.x,
+			b.y,
+			b.spec.color,
+			10,
+			TILE * 0.9,
+			520,
+		);
+		this.cameras.main.shake(180, 0.006);
 		if (b.kind === 'nexus' && !this.isGameOver) {
 			this.lives = 0;
 			this.endGame(false);
@@ -2934,6 +2985,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 				}
 			}
 
+			const typeIdx = EnemyStats.typeIndex[eid];
+			const enemyType = ENEMY_CATALOG[ENEMY_TYPE_INDEX[typeIdx]];
+			if (
+				enemyType?.regenPerSec &&
+				!hasStatus(eid, STATUS_KIND.burn, nowMs)
+			) {
+				Health.hp[eid] = Math.min(
+					Health.maxHp[eid],
+					Health.hp[eid] + enemyType.regenPerSec * dt,
+				);
+			}
+
 			if (hasStatus(eid, STATUS_KIND.stun, nowMs)) {
 				this.updateEnemyVisuals(eid, nowMs);
 				continue;
@@ -3423,6 +3486,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.speedFactorBeforePause = this.speedFactor || 1;
 			speedFactorAtom.set(0);
 		}
+		this.pauseOverlay?.setPaused(this.isPaused);
 	}
 
 	private updateEnemyHover(): void {
@@ -3462,10 +3526,23 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private killEnemy(eid: number, reward: boolean): void {
 		const v = this.enemyVisuals.delete(eid);
 		if (!v) return;
+		const ex = Position.x[eid];
+		const ey = Position.y[eid];
 		this.releaseImage(v.sprite);
 		this.releaseGraphics(v.statusRing);
 		this.releaseRect(v.hpBar);
 		this.releaseRect(v.hpBarBg);
+		const isBoss =
+			EnemyStats.typeIndex[eid] === enemyTypeIndexFromId('boss');
+		spawnParticleBurst(
+			this.particleDeps,
+			ex,
+			ey,
+			isBoss ? 0xffd700 : 0xfc8181,
+			isBoss ? 12 : 6,
+			isBoss ? 40 : 24,
+			isBoss ? 520 : 380,
+		);
 		if (reward) {
 			const award = Math.round(
 				GAME_CONFIG.goldPerKill *

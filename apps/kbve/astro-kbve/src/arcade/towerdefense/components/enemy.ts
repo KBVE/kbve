@@ -31,6 +31,8 @@ export const ENEMY_TYPE_INDEX: EnemyTypeId[] = [
 	'brute',
 	'boss',
 	'flying',
+	'shielded',
+	'regen',
 ];
 
 export function enemyTypeIndexFromId(id: EnemyTypeId): number {
