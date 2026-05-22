@@ -13,6 +13,7 @@ export interface SavedBuilding {
 		attack?: number;
 		speed?: number;
 		armor?: number;
+		tier?: number;
 	};
 	armouryUpgrades?: {
 		capacity?: number;

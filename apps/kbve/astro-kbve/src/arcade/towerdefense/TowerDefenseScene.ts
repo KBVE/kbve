@@ -253,6 +253,8 @@ import {
 	towerFireRateMs,
 	towerMaxHp,
 	towerRange,
+	towerTier,
+	towerTierCost,
 } from './stats';
 import type {
 	ArmouryBuilding,
@@ -783,6 +785,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-P', () => this.togglePause());
 			kb.on('keydown-SPACE', () => this.togglePause());
 			kb.on('keydown-F1', () => this.debugOverlay?.toggle());
+			kb.on('keydown-T', () => this.promoteSelectedTower());
 			kb.on('keydown-QUESTION_MARK', () => this.hotkeyOverlay?.toggle());
 			kb.on('keydown-FORWARD_SLASH', () => this.hotkeyOverlay?.toggle());
 			kb.on('keydown-F5', (e: KeyboardEvent) => {
@@ -966,6 +969,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				TowerUpgradeStats.attack[eid] = b.towerUpgrades.attack ?? 0;
 				TowerUpgradeStats.speed[eid] = b.towerUpgrades.speed ?? 0;
 				TowerUpgradeStats.armor[eid] = b.towerUpgrades.armor ?? 0;
+				TowerUpgradeStats.tier[eid] = b.towerUpgrades.tier ?? 0;
 				Health.maxHp[eid] = towerMaxHp(built);
 				this.redrawUpgradePips(built);
 			}
@@ -1011,6 +1015,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 					attack: TowerUpgradeStats.attack[eid],
 					speed: TowerUpgradeStats.speed[eid],
 					armor: TowerUpgradeStats.armor[eid],
+					tier: TowerUpgradeStats.tier[eid],
 				};
 			} else if (b.kind === 'armoury') {
 				entry.armouryUpgrades = {
@@ -1955,6 +1960,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			TowerUpgradeStats.attack[eid] = 0;
 			TowerUpgradeStats.speed[eid] = 0;
 			TowerUpgradeStats.armor[eid] = 0;
+			TowerUpgradeStats.tier[eid] = 0;
 			const powerIndicator = createPowerIndicator(this, x, y);
 			const upgradePips = this.add.graphics();
 			const b: TowerBuilding = {
@@ -3614,6 +3620,49 @@ export class TowerDefenseScene extends Phaser.Scene {
 				.frameBuildingEids as unknown as ArrayLike<number>,
 		};
 		this.debugOverlay.render(deps);
+	}
+
+	private promoteSelectedTower(): void {
+		const target = this.upgradeTarget;
+		if (!target || target.kind !== 'tower') return;
+		const tier = towerTier(target);
+		if (tier >= 2) {
+			this.floatingText.spawn({
+				x: target.x,
+				y: target.y - TILE * 0.6,
+				text: 'MAX TIER',
+				color: '#a0aec0',
+				rise: 40,
+			});
+			return;
+		}
+		const cost = towerTierCost(target);
+		if (this.gold < cost) {
+			this.floatingText.spawn({
+				x: target.x,
+				y: target.y - TILE * 0.6,
+				text: `NEED ${cost}g`,
+				color: '#fc8181',
+				rise: 40,
+			});
+			return;
+		}
+		this.gold -= cost;
+		const prevMaxHp = towerMaxHp(target);
+		TowerUpgradeStats.tier[target.id] = tier + 1;
+		const newMaxHp = towerMaxHp(target);
+		Health.maxHp[target.id] = newMaxHp;
+		const delta = newMaxHp - prevMaxHp;
+		Health.hp[target.id] = Math.min(newMaxHp, Health.hp[target.id] + delta);
+		this.redrawUpgradePips(target);
+		this.sfx.play('place_building');
+		this.floatingText.spawn({
+			x: target.x,
+			y: target.y - TILE * 0.6,
+			text: `TIER ${tier + 2}`,
+			color: '#f6e05e',
+			rise: 50,
+		});
 	}
 
 	private togglePause(): void {

@@ -79,6 +79,7 @@ export const TowerUpgradeStats = {
 	attack: new Uint8Array(MAX_ENTITIES),
 	speed: new Uint8Array(MAX_ENTITIES),
 	armor: new Uint8Array(MAX_ENTITIES),
+	tier: new Uint8Array(MAX_ENTITIES),
 };
 
 export const BatteryState = {
