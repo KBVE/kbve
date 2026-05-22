@@ -1224,6 +1224,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+		if (this.isPaused) return;
 
 		if (pendingItemTargetAtom.get()) {
 			if (pointer.worldY < HUD_HEIGHT) {

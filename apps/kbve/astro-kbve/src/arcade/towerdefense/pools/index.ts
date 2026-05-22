@@ -1,9 +1,14 @@
 import type Phaser from 'phaser';
 
+const DEFAULT_CAP = 256;
+
 export class ArcPool {
 	private pool: Phaser.GameObjects.Arc[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(
 		x: number,
@@ -26,6 +31,10 @@ export class ArcPool {
 	}
 
 	release(sprite: Phaser.GameObjects.Arc): void {
+		if (this.pool.length >= this.cap) {
+			sprite.destroy();
+			return;
+		}
 		sprite
 			.setActive(false)
 			.setVisible(false)
@@ -38,7 +47,10 @@ export class ArcPool {
 export class ProjectileSpritePool {
 	private pool: Phaser.GameObjects.Arc[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(
 		x: number,
@@ -59,6 +71,10 @@ export class ProjectileSpritePool {
 	}
 
 	release(sprite: Phaser.GameObjects.Arc): void {
+		if (this.pool.length >= this.cap) {
+			sprite.destroy();
+			return;
+		}
 		sprite.setActive(false);
 		sprite.setVisible(false);
 		this.pool.push(sprite);
@@ -68,7 +84,10 @@ export class ProjectileSpritePool {
 export class RectPool {
 	private pool: Phaser.GameObjects.Rectangle[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(
 		x: number,
@@ -92,6 +111,10 @@ export class RectPool {
 	}
 
 	release(rect: Phaser.GameObjects.Rectangle): void {
+		if (this.pool.length >= this.cap) {
+			rect.destroy();
+			return;
+		}
 		rect.setActive(false)
 			.setVisible(false)
 			.setStrokeStyle()
@@ -103,7 +126,10 @@ export class RectPool {
 export class GraphicsPool {
 	private pool: Phaser.GameObjects.Graphics[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(): Phaser.GameObjects.Graphics {
 		const pooled = this.pool.pop();
@@ -116,6 +142,10 @@ export class GraphicsPool {
 	}
 
 	release(g: Phaser.GameObjects.Graphics): void {
+		if (this.pool.length >= this.cap) {
+			g.destroy();
+			return;
+		}
 		g.clear();
 		g.setActive(false).setVisible(false);
 		this.pool.push(g);
@@ -125,7 +155,10 @@ export class GraphicsPool {
 export class LinePool {
 	private pool: Phaser.GameObjects.Line[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(
 		x1: number,
@@ -154,6 +187,10 @@ export class LinePool {
 	}
 
 	release(line: Phaser.GameObjects.Line): void {
+		if (this.pool.length >= this.cap) {
+			line.destroy();
+			return;
+		}
 		line.setActive(false).setVisible(false);
 		this.pool.push(line);
 	}
@@ -162,7 +199,10 @@ export class LinePool {
 export class ImagePool {
 	private pool: Phaser.GameObjects.Image[] = [];
 
-	constructor(private scene: Phaser.Scene) {}
+	constructor(
+		private scene: Phaser.Scene,
+		private cap = DEFAULT_CAP,
+	) {}
 
 	acquire(x: number, y: number, key: string): Phaser.GameObjects.Image {
 		const pooled = this.pool.pop();
@@ -175,6 +215,10 @@ export class ImagePool {
 	}
 
 	release(img: Phaser.GameObjects.Image): void {
+		if (this.pool.length >= this.cap) {
+			img.destroy();
+			return;
+		}
 		img.clearTint();
 		img.setActive(false)
 			.setVisible(false)
