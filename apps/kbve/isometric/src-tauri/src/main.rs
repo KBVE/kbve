@@ -62,6 +62,7 @@ fn main() {
                     isometric_game::commands::open_oauth_url,
                     isometric_game::commands::get_signin_state,
                     isometric_game::commands::set_username,
+                    isometric_game::commands::send_chat,
                 ])
                 .setup(|app| {
                     use tauri_plugin_deep_link::DeepLinkExt;

@@ -3,6 +3,7 @@ pub mod camera;
 pub mod campfire;
 pub mod candle;
 pub mod chat;
+pub mod chat_ui;
 pub mod client_profile;
 pub mod crafting_ui;
 pub mod creatures;
@@ -187,6 +188,7 @@ impl PluginGroup for GamePluginGroup {
             .add(PixelatePlugin)
             .add(toast::ToastPlugin)
             .add(chat::GameChatPlugin)
+            .add(chat_ui::ChatUiPlugin)
             .add(InteractionUiPlugin)
             .add(InventoryUiPlugin)
             .add(EquipmentUiPlugin)
