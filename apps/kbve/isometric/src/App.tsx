@@ -1,3 +1,4 @@
+import { ChatInput } from './components/ChatInput';
 import { HUD } from './components/HUD';
 import { FPSCounter } from './components/FPSCounter';
 import { ObjectLabel } from './components/ObjectLabel';
@@ -13,6 +14,7 @@ function App() {
 			<HUD />
 			<ObjectLabel />
 			<UsernameModal />
+			<ChatInput />
 		</div>
 	);
 }

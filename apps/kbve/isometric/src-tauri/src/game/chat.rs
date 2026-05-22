@@ -8,10 +8,36 @@
 //! cross-platform world events.
 
 use bevy::prelude::*;
-use bevy_chat::{ChatPlugin, IncomingChatEvent, IrcConfig, IrcTransport, MessageKind};
+use bevy_chat::{ChatMessage, ChatPlugin, IncomingChatEvent, IrcConfig, IrcTransport, MessageKind};
 use crossbeam_channel::{Receiver, Sender, unbounded};
+use std::sync::OnceLock;
 
 use super::toast::Toast;
+
+/// Default channel new messages from the React input box land on.
+pub const DEFAULT_SEND_CHANNEL: &str = "#global";
+
+/// Outbox sender exposed for the `send_chat` Tauri command + wasm-bindgen
+/// export. Set once when the chat plugin builds; readers must tolerate a
+/// `None` value before that happens.
+static OUTBOX_TX: OnceLock<Sender<ChatMessage>> = OnceLock::new();
+
+/// Build and queue a `ChatMessage` from raw user input. Returns `false` if
+/// chat hasn't initialized yet or the user is not signed in (no nick).
+pub fn queue_outgoing_chat(text: &str) -> bool {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return false;
+    }
+    let Some(tx) = OUTBOX_TX.get() else {
+        return false;
+    };
+    let nick = crate::auth_common::current_signin_snapshot()
+        .username
+        .unwrap_or_else(|| "guest".to_owned());
+    let msg = ChatMessage::chat(&nick, "isometric", DEFAULT_SEND_CHANNEL, trimmed);
+    tx.send(msg).is_ok()
+}
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -57,6 +83,7 @@ impl Plugin for GameChatPlugin {
             outbox_rx,
         });
         app.init_resource::<ChatSession>();
+        let _ = OUTBOX_TX.set(outbox_tx);
 
         // Connect chat lazily: wait for the user to sign in (PreFlight
         // observes `kbve_username` + JWT), then dial `wss://chat.kbve.com`
@@ -97,7 +124,12 @@ fn connect_chat_on_signin(mut session: ResMut<ChatSession>, channels: Res<ChatBr
     session.connected = true;
     session.nick = Some(nick.clone());
     info!("[chat] sign-in observed; dialing chat.kbve.com as {nick}");
-    spawn_chat_connection(&channels, nick, jwt);
+    spawn_chat_connection(
+        channels.inbox_tx.clone(),
+        channels.outbox_rx.clone(),
+        nick,
+        jwt,
+    );
 }
 
 /// Stores the inbox sender (called by the IRC client when messages arrive)
@@ -127,7 +159,12 @@ fn chat_config(nick: String, jwt: String) -> IrcConfig {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: String) {
+fn spawn_chat_connection(
+    inbox_tx: Sender<ChatMessage>,
+    outbox_rx: Receiver<ChatMessage>,
+    nick: String,
+    jwt: String,
+) {
     use bevy_chat::ChatClient;
     use wasm_bindgen::JsCast;
 
@@ -142,11 +179,19 @@ fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: Strin
         return;
     }
 
-    let inbox_tx = channels.inbox_tx.clone();
+    // Inbound: drain WASM client buffer into ECS crossbeam inbox each tick.
+    // Outbound: pull queued ChatMessages and ship via the WebSocket. Both
+    // run inside the same setInterval so we don't leak two timers.
     let client_for_poll = client.clone();
     let closure = wasm_bindgen::prelude::Closure::wrap(Box::new(move || {
         for msg in client_for_poll.drain_incoming() {
             let _ = inbox_tx.send(msg);
+        }
+        while let Ok(out) = outbox_rx.try_recv() {
+            if let Err(e) = client_for_poll.send(&out) {
+                warn!("[chat] outbound send failed: {e}");
+                break;
+            }
         }
     }) as Box<dyn FnMut()>);
     if let Some(window) = web_sys::window() {
@@ -160,12 +205,16 @@ fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: Strin
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: String) {
+fn spawn_chat_connection(
+    inbox_tx: Sender<ChatMessage>,
+    outbox_rx: Receiver<ChatMessage>,
+    nick: String,
+    jwt: String,
+) {
     use bevy_chat::ChatClient;
 
     let config = chat_config(nick, jwt);
     let host = config.host.clone();
-    let inbox_tx = channels.inbox_tx.clone();
     info!(
         "[chat] connecting to IRC gateway at {} (nick={})",
         host, config.nick
@@ -173,9 +222,9 @@ fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: Strin
 
     // Bevy runs sync — drive the async connect on a dedicated tokio
     // runtime spawned on a worker thread. The runtime lives for the
-    // process lifetime; broadcast receiver shuffles each `ChatMessage`
-    // into the crossbeam inbox so `ChatPlugin::receive_inbox` can read
-    // it on the main ECS thread.
+    // process lifetime; one task forwards incoming messages into the
+    // crossbeam inbox, another drains the outbox channel and pushes each
+    // queued ChatMessage onto the WebSocket.
     std::thread::Builder::new()
         .name("chat-irc-ws".to_string())
         .spawn(move || {
@@ -197,6 +246,31 @@ fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: Strin
                     return;
                 }
                 info!("[chat] native IRC-WS bridge active");
+
+                // Outbound: spawn a task that pulls from the crossbeam
+                // outbox in a blocking loop on a tokio blocking thread,
+                // forwarding each message via the async send. Using
+                // spawn_blocking keeps the synchronous Receiver::recv
+                // call off the async executor.
+                let client_send = client.clone();
+                tokio::spawn(async move {
+                    loop {
+                        let outbox = outbox_rx.clone();
+                        let next = tokio::task::spawn_blocking(move || outbox.recv())
+                            .await
+                            .ok()
+                            .and_then(|r| r.ok());
+                        let Some(msg) = next else {
+                            break;
+                        };
+                        if let Err(e) = client_send.send(&msg).await {
+                            warn!("[chat] outbound send failed: {e}");
+                            break;
+                        }
+                    }
+                    warn!("[chat] native outbound pump ended");
+                });
+
                 while let Ok(msg) = subscriber.recv().await {
                     if inbox_tx.send(msg).is_err() {
                         break;
@@ -211,9 +285,6 @@ fn spawn_chat_connection(channels: &ChatBridgeChannels, nick: String, jwt: Strin
 // ---------------------------------------------------------------------------
 // Event bridge: IncomingChatEvent → Toast
 // ---------------------------------------------------------------------------
-
-#[allow(unused_imports)]
-use bevy_chat::ChatMessage;
 
 fn world_events_to_toasts(mut events: MessageReader<IncomingChatEvent>, mut commands: Commands) {
     for IncomingChatEvent(msg) in events.read() {
