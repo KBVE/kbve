@@ -333,12 +333,35 @@ async fn null_currency_raises_null_argument() {
     let _ = account;
 }
 
-fn fresh_item_ref() -> serde_json::Value {
-    serde_json::json!({
-        "kind": "test_item",
-        "id": Uuid::new_v4().to_string(),
-        "instance_id": Uuid::new_v4().to_string(),
-    })
+/// Service-role insert of a held stackable inventory.item row.
+async fn fresh_inventory_item(account: Uuid) -> Uuid {
+    fresh_inventory_item_with_qty(account, 1).await
+}
+
+/// `fresh_inventory_item` with configurable qty for split-path tests.
+async fn fresh_inventory_item_with_qty(account: Uuid, qty: i64) -> Uuid {
+    let mut conn = admin_conn()
+        .await
+        .expect("inventory item helper needs admin conn");
+    #[derive(QueryableByName)]
+    struct R {
+        #[diesel(sql_type = diesel::sql_types::Uuid)]
+        id: Uuid,
+    }
+    let kind = format!("test_kind_{}", Uuid::new_v4());
+    let r: R = sql_query(
+        "INSERT INTO inventory.item (owner_account, kind, ref, qty, nbt, state, source, source_ref)
+         VALUES ($1, $2, $3, $4, '{}'::jsonb, 'held', 'wallet_test', '{}'::jsonb)
+         RETURNING id",
+    )
+    .bind::<diesel::sql_types::Uuid, _>(account)
+    .bind::<diesel::sql_types::Text, _>(kind.clone())
+    .bind::<diesel::sql_types::Text, _>(kind)
+    .bind::<diesel::sql_types::BigInt, _>(qty)
+    .get_result(&mut conn)
+    .await
+    .expect("insert inventory.item");
+    r.id
 }
 
 async fn credit_khash(client: &WalletClient, account: Uuid, amount: i64) {
@@ -355,10 +378,12 @@ async fn market_create_listing_replay_returns_same_id() {
         eprintln!("SKIP: WALLET_TEST_DATABASE_URL unset");
         return;
     };
-    let (user, _account) = fixture_account().await.expect("fixture");
+    let (user, account) = fixture_account().await.expect("fixture");
+    let item_id = fresh_inventory_item(account).await;
     let key = Uuid::new_v4();
     let req = MarketCreateListingRequest {
-        item_ref: fresh_item_ref(),
+        src_item_id: item_id,
+        qty: None,
         buy_now_price: Some(500),
         min_bid: Some(100),
         expires_at: Utc::now() + Duration::hours(2),
@@ -381,9 +406,11 @@ async fn market_my_listings_and_browse_include_new_listing() {
     let Some(client) = client().await else {
         return;
     };
-    let (user, _account) = fixture_account().await.expect("fixture");
+    let (user, account) = fixture_account().await.expect("fixture");
+    let item_id = fresh_inventory_item(account).await;
     let req = MarketCreateListingRequest {
-        item_ref: fresh_item_ref(),
+        src_item_id: item_id,
+        qty: None,
         buy_now_price: Some(750),
         min_bid: Some(50),
         expires_at: Utc::now() + Duration::hours(2),
@@ -427,22 +454,78 @@ async fn market_my_listings_and_browse_include_new_listing() {
 
 #[tokio::test]
 #[serial]
+async fn market_create_listing_partial_split_qty() {
+    let Some(client) = client().await else {
+        return;
+    };
+    let (user, account) = fixture_account().await.expect("fixture");
+    let item_id = fresh_inventory_item_with_qty(account, 64).await;
+
+    let req = MarketCreateListingRequest {
+        src_item_id: item_id,
+        qty: Some(16),
+        buy_now_price: Some(500),
+        min_bid: None,
+        expires_at: Utc::now() + Duration::hours(2),
+        idempotency_key: Uuid::new_v4(),
+    };
+    let listing_id = client
+        .market_create_listing(user, req)
+        .await
+        .expect("partial-split create");
+
+    let detail = client
+        .market_listing_detail(listing_id)
+        .await
+        .expect("detail");
+    assert!(matches!(detail.listing_status, ListingStatus::Active));
+
+    let mut conn = admin_conn().await.expect("admin");
+    #[derive(QueryableByName)]
+    struct Q {
+        #[diesel(sql_type = diesel::sql_types::BigInt)]
+        qty: i64,
+    }
+    let src: Q = sql_query("SELECT qty FROM inventory.item WHERE id = $1")
+        .bind::<diesel::sql_types::Uuid, _>(item_id)
+        .get_result(&mut conn)
+        .await
+        .expect("src qty");
+    assert_eq!(src.qty, 48, "source qty must drop to 48 after splitting 16");
+    let escrow: Q = sql_query(
+        "SELECT qty FROM inventory.item
+          WHERE owner_account = $1
+            AND state = 'listing_escrow'
+            AND source_ref ->> 'split_from' = $2::text",
+    )
+    .bind::<diesel::sql_types::Uuid, _>(account)
+    .bind::<diesel::sql_types::Uuid, _>(item_id)
+    .get_result(&mut conn)
+    .await
+    .expect("escrow row");
+    assert_eq!(escrow.qty, 16, "listed escrow row must hold 16");
+}
+
+#[tokio::test]
+#[serial]
 async fn market_place_bid_outbid_refunds_previous_bidder() {
     let Some(client) = client().await else {
         return;
     };
-    let (seller, _) = fixture_account().await.expect("seller");
+    let (seller, seller_account) = fixture_account().await.expect("seller");
     let (bidder_a, account_a) = fixture_account().await.expect("bidder a");
     let (bidder_b, account_b) = fixture_account().await.expect("bidder b");
 
     credit_khash(&client, account_a, 5_000).await;
     credit_khash(&client, account_b, 5_000).await;
 
+    let item_id = fresh_inventory_item(seller_account).await;
     let listing_id = client
         .market_create_listing(
             seller,
             MarketCreateListingRequest {
-                item_ref: fresh_item_ref(),
+                src_item_id: item_id,
+                qty: None,
                 buy_now_price: Some(10_000),
                 min_bid: Some(100),
                 expires_at: Utc::now() + Duration::hours(2),
@@ -509,11 +592,13 @@ async fn market_buy_now_pays_seller_minus_fee() {
     let (buyer, buyer_account) = fixture_account().await.expect("buyer");
     credit_khash(&client, buyer_account, 10_000).await;
 
+    let item_id = fresh_inventory_item(seller_account).await;
     let listing_id = client
         .market_create_listing(
             seller,
             MarketCreateListingRequest {
-                item_ref: fresh_item_ref(),
+                src_item_id: item_id,
+                qty: None,
                 buy_now_price: Some(1_000),
                 min_bid: Some(50),
                 expires_at: Utc::now() + Duration::hours(2),
@@ -554,15 +639,17 @@ async fn market_cancel_listing_refunds_active_bidder() {
     let Some(client) = client().await else {
         return;
     };
-    let (seller, _) = fixture_account().await.expect("seller");
+    let (seller, seller_account) = fixture_account().await.expect("seller");
     let (bidder, bidder_account) = fixture_account().await.expect("bidder");
     credit_khash(&client, bidder_account, 5_000).await;
 
+    let item_id = fresh_inventory_item(seller_account).await;
     let listing_id = client
         .market_create_listing(
             seller,
             MarketCreateListingRequest {
-                item_ref: fresh_item_ref(),
+                src_item_id: item_id,
+                qty: None,
                 buy_now_price: Some(10_000),
                 min_bid: Some(100),
                 expires_at: Utc::now() + Duration::hours(2),

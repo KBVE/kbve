@@ -110,9 +110,11 @@ pub(crate) struct BidsQuery {
 
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct CreateListingBody {
-    /// Free-form JSON ref to the listed item. Schema is enforced by the
-    /// inventory layer, not the wallet.
-    pub item_ref: serde_json::Value,
+    /// inventory.item id the seller owns in `held` state.
+    pub src_item_id: Uuid,
+    /// None / src.qty = whole row; smaller = split.
+    #[serde(default)]
+    pub qty: Option<i64>,
     pub buy_now_price: Option<i64>,
     pub min_bid: Option<i64>,
     pub expires_at: DateTime<Utc>,
@@ -367,12 +369,25 @@ pub(crate) async fn create_listing(
         Ok(id) => id,
         Err(resp) => return resp,
     };
+    if let Some(q) = body.qty {
+        if q <= 0 {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": "invalid_argument",
+                    "message": "qty must be a positive integer",
+                })),
+            )
+                .into_response();
+        }
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
     };
     let req = MarketCreateListingRequest {
-        item_ref: body.item_ref,
+        src_item_id: body.src_item_id,
+        qty: body.qty,
         buy_now_price: body.buy_now_price,
         min_bid: body.min_bid,
         expires_at: body.expires_at,

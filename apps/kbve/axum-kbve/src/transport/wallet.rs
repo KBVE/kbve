@@ -377,6 +377,7 @@ pub(crate) fn wallet_error_response(err: WalletError) -> Response {
         WalletError::CouponNotRedeemable(_) => (StatusCode::FORBIDDEN, "coupon_not_redeemable"),
         WalletError::CouponExpired => (StatusCode::FORBIDDEN, "coupon_expired"),
         WalletError::Unimplemented(_) => (StatusCode::NOT_IMPLEMENTED, "unimplemented"),
+        WalletError::MfaRequired => (StatusCode::FORBIDDEN, "mfa_required"),
         WalletError::Pool(_) | WalletError::Db(_) => {
             tracing::error!(error = %err, "wallet upstream failure");
             (StatusCode::INTERNAL_SERVER_ERROR, "internal")

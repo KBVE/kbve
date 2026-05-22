@@ -380,9 +380,10 @@ impl WalletClient {
             .transaction::<i64, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
                 let row: ScalarBigInt = sql_query(
-                    "SELECT public.proxy_market_create_listing($1, $2, $3, $4, $5) AS value",
+                    "SELECT public.proxy_market_create_listing_with_item($1, $2, $3, $4, $5, $6) AS value",
                 )
-                .bind::<Jsonb, _>(req.item_ref)
+                .bind::<diesel::sql_types::Uuid, _>(req.src_item_id)
+                .bind::<Nullable<BigInt>, _>(req.qty)
                 .bind::<Nullable<BigInt>, _>(req.buy_now_price)
                 .bind::<Nullable<BigInt>, _>(req.min_bid)
                 .bind::<Timestamptz, _>(req.expires_at)

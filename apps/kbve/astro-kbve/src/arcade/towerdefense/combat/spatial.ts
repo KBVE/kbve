@@ -6,7 +6,7 @@ export interface SpatialGridConfig {
 	worldHeight: number;
 }
 
-export class EnemySpatialGrid {
+export class SpatialGrid {
 	private readonly cellSize: number;
 	private readonly cols: number;
 	private readonly rows: number;

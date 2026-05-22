@@ -156,7 +156,8 @@ export function myBids(
 }
 
 export function createListing(body: {
-	item_ref: Record<string, unknown>;
+	src_item_id: string;
+	qty: number | null;
 	buy_now_price: number | null;
 	min_bid: number | null;
 	expires_at: string;

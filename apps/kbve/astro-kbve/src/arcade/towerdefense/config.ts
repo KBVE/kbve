@@ -37,7 +37,7 @@ export const GAME_CONFIG = {
 	allyHp: 65,
 	allyDamage: 5,
 	allySpeed: 110,
-	allyAttackRange: 60,
+	allyAttackRange: 75,
 	allyAttackRateMs: 700,
 	allyColor: 0xfbd38d,
 	allyArcherRatio: 0.35,
@@ -142,6 +142,8 @@ export interface TowerSpec extends BuildSpecBase {
 	homing: boolean;
 	arcHeight: number;
 	avoidSlowed: boolean;
+	chainJumps?: number;
+	chainFalloff?: number;
 }
 
 export interface GeneratorSpec extends BuildSpecBase {
@@ -190,6 +192,10 @@ export interface CastleSpec extends BuildSpecBase {
 	droneStunMs: number;
 	droneDamage: number;
 	droneColor: number;
+	fireDamage: number;
+	fireRateMs: number;
+	fireRange: number;
+	fireColor: number;
 }
 
 export interface ArmourySpec extends BuildSpecBase {
@@ -216,7 +222,15 @@ export type BuildSpec =
 	| CastleSpec
 	| NexusSpec;
 
-export type TowerId = 'basic' | 'bomb' | 'ice' | 'fire' | 'artillery' | 'wall';
+export type TowerId =
+	| 'basic'
+	| 'bomb'
+	| 'ice'
+	| 'fire'
+	| 'artillery'
+	| 'wall'
+	| 'lightning'
+	| 'sniper';
 export type GeneratorId = 'solar' | 'diesel' | 'nuclear';
 export type BatteryId = 'battery';
 export type RepairId = 'repair';
@@ -365,8 +379,8 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		name: 'Wall',
 		kind: 'tower',
 		cost: 80,
-		maxHp: 720,
-		defense: 24,
+		maxHp: 1400,
+		defense: 40,
 		power: 0,
 		range: 90,
 		damage: 5,
@@ -375,6 +389,58 @@ export const TOWER_CATALOG: Record<TowerId, TowerSpec> = {
 		projectileSpeed: 380,
 		color: 0x718096,
 		projectileColor: 0xcbd5e0,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+	},
+	lightning: {
+		id: 'lightning',
+		name: 'Lightning',
+		kind: 'tower',
+		cost: 220,
+		maxHp: 320,
+		defense: 4,
+		power: 3,
+		range: 160,
+		damage: 22,
+		damageType: TOWER_DAMAGE_TYPE.energy,
+		fireRateMs: 900,
+		projectileSpeed: 9999,
+		color: 0xd6bcfa,
+		projectileColor: 0xe9d8fd,
+		splashRadius: 0,
+		slowMs: 0,
+		slowFactor: 1,
+		burnDps: 0,
+		burnMs: 0,
+		burnRadius: 0,
+		homing: true,
+		arcHeight: 0,
+		avoidSlowed: false,
+		chainJumps: 3,
+		chainFalloff: 0.7,
+	},
+	sniper: {
+		id: 'sniper',
+		name: 'Sniper',
+		kind: 'tower',
+		cost: 300,
+		maxHp: 280,
+		defense: 4,
+		power: 3,
+		range: 320,
+		damage: 90,
+		damageType: TOWER_DAMAGE_TYPE.kinetic,
+		fireRateMs: 2200,
+		projectileSpeed: 1200,
+		color: 0x2d3748,
+		projectileColor: 0xf6e05e,
 		splashRadius: 0,
 		slowMs: 0,
 		slowFactor: 1,
@@ -476,7 +542,7 @@ export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
 		unitHp: 50,
 		unitDamage: 6,
 		unitAttackRateMs: 750,
-		unitAttackRange: 60,
+		unitAttackRange: 80,
 		unitSpeed: 95,
 		unitColor: 0xf6e05e,
 		droneSpawnIntervalMs: 4000,
@@ -485,6 +551,10 @@ export const CASTLE_CATALOG: Record<CastleId, CastleSpec> = {
 		droneStunMs: 900,
 		droneDamage: 4,
 		droneColor: 0xfff5b1,
+		fireDamage: 18,
+		fireRateMs: 650,
+		fireRange: 220,
+		fireColor: 0xfff5b1,
 		color: 0xa8a29e,
 	},
 };
@@ -517,7 +587,7 @@ export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 		soldierHp: 30,
 		soldierDamage: 3,
 		soldierAttackRateMs: 800,
-		soldierAttackRange: 55,
+		soldierAttackRange: 75,
 		soldierSpeed: 90,
 		color: 0xb794f4,
 		soldierColor: 0xd6bcfa,
@@ -532,6 +602,8 @@ export const PALETTE_ORDER: BuildId[] = [
 	'ice',
 	'fire',
 	'artillery',
+	'lightning',
+	'sniper',
 	'solar',
 	'diesel',
 	'nuclear',
@@ -739,7 +811,14 @@ export function specFor(id: BuildId): BuildSpec {
 	return NEXUS_CATALOG[id as NexusId];
 }
 
-export type EnemyTypeId = 'runner' | 'brute' | 'scout' | 'boss';
+export type EnemyTypeId =
+	| 'runner'
+	| 'brute'
+	| 'scout'
+	| 'boss'
+	| 'flying'
+	| 'shielded'
+	| 'regen';
 
 export interface EnemyType {
 	id: EnemyTypeId;
@@ -754,6 +833,8 @@ export interface EnemyType {
 	canAttack: boolean;
 	sizeRadius: number;
 	bountyMultiplier: number;
+	flying?: boolean;
+	regenPerSec?: number;
 }
 
 export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
@@ -813,13 +894,68 @@ export const ENEMY_CATALOG: Record<EnemyTypeId, EnemyType> = {
 		sizeRadius: 0.55,
 		bountyMultiplier: 10,
 	},
+	flying: {
+		id: 'flying',
+		name: 'Drone',
+		color: 0xb794f4,
+		hpMultiplier: 0.5,
+		speedMultiplier: 1.2,
+		attackDamage: 3,
+		attackRateMs: 600,
+		attackRange: 30,
+		defense: 0,
+		canAttack: true,
+		sizeRadius: 0.28,
+		bountyMultiplier: 1.2,
+		flying: true,
+	},
+	shielded: {
+		id: 'shielded',
+		name: 'Shielded',
+		color: 0x4fd1c5,
+		hpMultiplier: 1.6,
+		speedMultiplier: 0.85,
+		attackDamage: 5,
+		attackRateMs: 850,
+		attackRange: 60,
+		defense: 18,
+		canAttack: true,
+		sizeRadius: 0.34,
+		bountyMultiplier: 1.6,
+	},
+	regen: {
+		id: 'regen',
+		name: 'Regen',
+		color: 0x68d391,
+		hpMultiplier: 1.3,
+		speedMultiplier: 0.9,
+		attackDamage: 4,
+		attackRateMs: 800,
+		attackRange: 55,
+		defense: 6,
+		canAttack: true,
+		sizeRadius: 0.32,
+		bountyMultiplier: 1.4,
+		regenPerSec: 18,
+	},
 };
 
 export function rollEnemyType(wave: number): EnemyTypeId {
-	const bruteChance = Math.min(0.4, (wave - 1) * 0.07);
-	const scoutChance = wave >= 2 ? Math.min(0.25, (wave - 1) * 0.05) : 0;
+	const bruteChance = Math.min(0.35, (wave - 1) * 0.06);
+	const scoutChance = wave >= 2 ? Math.min(0.22, (wave - 1) * 0.045) : 0;
+	const flyingChance = wave >= 4 ? Math.min(0.18, (wave - 3) * 0.035) : 0;
+	const shieldedChance = wave >= 6 ? Math.min(0.16, (wave - 5) * 0.03) : 0;
+	const regenChance = wave >= 8 ? Math.min(0.14, (wave - 7) * 0.028) : 0;
 	const roll = Math.random();
-	if (roll < bruteChance) return 'brute';
-	if (roll < bruteChance + scoutChance) return 'scout';
+	let acc = bruteChance;
+	if (roll < acc) return 'brute';
+	acc += scoutChance;
+	if (roll < acc) return 'scout';
+	acc += flyingChance;
+	if (roll < acc) return 'flying';
+	acc += shieldedChance;
+	if (roll < acc) return 'shielded';
+	acc += regenChance;
+	if (roll < acc) return 'regen';
 	return 'runner';
 }

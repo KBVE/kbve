@@ -43,7 +43,7 @@ public final class SpawnAutoClaim {
         }
         Object claims;
         Method getMethod;
-        Method tryToClaimMethod;
+        Method claimMethod;
         try {
             Class<?> apiClass = Class.forName("xaero.pac.common.server.api.OpenPACServerAPI");
             Object api = apiClass.getMethod("get", MinecraftServer.class).invoke(null, server);
@@ -51,20 +51,18 @@ public final class SpawnAutoClaim {
             Class<?> claimsCls = claims.getClass();
 
             getMethod = findMethod(claimsCls, "get", Identifier.class, int.class, int.class);
-            tryToClaimMethod = findMethod(
+            claimMethod = findMethod(
                     claimsCls,
-                    "tryToClaim",
+                    "claim",
                     Identifier.class,
                     UUID.class,
                     int.class,
                     int.class,
                     int.class,
-                    int.class,
-                    int.class,
                     boolean.class);
-            if (getMethod == null || tryToClaimMethod == null) {
-                LOGGER.warn("[spawn-autoclaim] OPAC API signature mismatch — get={} tryToClaim={}",
-                        getMethod, tryToClaimMethod);
+            if (getMethod == null || claimMethod == null) {
+                LOGGER.warn("[spawn-autoclaim] OPAC API signature mismatch — get={} claim={}",
+                        getMethod, claimMethod);
                 return;
             }
         } catch (Throwable t) {
@@ -85,8 +83,8 @@ public final class SpawnAutoClaim {
                             skipped++;
                             continue;
                         }
-                        tryToClaimMethod.invoke(
-                                claims, dimId, SERVER_CLAIM_UUID, cx, cz, cx, cz, 0, true);
+                        claimMethod.invoke(
+                                claims, dimId, SERVER_CLAIM_UUID, -1, cx, cz, false);
                         claimed++;
                     } catch (Throwable t) {
                         failed++;

@@ -45,6 +45,8 @@ export {
 	statusMagnitude,
 	statusExtra,
 	statusExpiresAt,
+	stackBurn,
+	stackSlow,
 	clearStatus,
 	type StatusKind,
 } from './status';

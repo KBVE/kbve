@@ -9,7 +9,7 @@ import {
 	type ProjectileVisual,
 } from '../components';
 import { GAME_CONFIG } from '../config';
-import { towerBurnDps, towerDamage } from '../stats';
+import { towerBurnDps, towerDamage, towerSplashRadius } from '../stats';
 import type { TowerBuilding } from '../types';
 
 export interface ProjectileSpawnDeps {
@@ -78,9 +78,10 @@ export function spawnTowerProjectile(
 	ProjectileStats.burnDps[eid] = towerBurnDps(t);
 	ProjectileStats.burnMs[eid] = spec.burnMs;
 	ProjectileStats.burnRadius[eid] = spec.burnRadius;
+	const baseSplash = towerSplashRadius(t);
 	ProjectileStats.splashRadius[eid] = isCharged
-		? spec.splashRadius * GAME_CONFIG.chargedShotSplashMul
-		: spec.splashRadius;
+		? baseSplash * GAME_CONFIG.chargedShotSplashMul
+		: baseSplash;
 	ProjectileStats.slowMs[eid] = spec.slowMs;
 	ProjectileStats.slowFactor[eid] = spec.slowFactor;
 	ProjectileStats.damageType[eid] = spec.damageType;

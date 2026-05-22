@@ -32,6 +32,8 @@ const BUILD_ID_LIST: BuildId[] = [
 	'ice',
 	'fire',
 	'artillery',
+	'lightning',
+	'sniper',
 	'solar',
 	'diesel',
 	'nuclear',
@@ -102,6 +104,7 @@ export const ArmouryState = {
 export const CastleState = {
 	nextUnitSpawnAtMs: new Float32Array(MAX_ENTITIES),
 	nextDroneSpawnAtMs: new Float32Array(MAX_ENTITIES),
+	nextFireAtMs: new Float32Array(MAX_ENTITIES),
 };
 
 export const StunDroneStats = {

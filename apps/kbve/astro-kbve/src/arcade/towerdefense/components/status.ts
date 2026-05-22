@@ -52,6 +52,39 @@ export function statusExpiresAt(eid: number, kind: number): number {
 	return StatusState.expiresAtMs[kind][eid];
 }
 
+export function stackBurn(
+	eid: number,
+	expiresAtMs: number,
+	addDps: number,
+	maxDps: number,
+): void {
+	const expires = StatusState.expiresAtMs[STATUS_KIND.burn];
+	const mag = StatusState.magnitude[STATUS_KIND.burn];
+	const active = expires[eid] > 0 && expires[eid] >= expiresAtMs - 1000;
+	const base = active ? mag[eid] : 0;
+	const next = Math.min(maxDps, base + addDps);
+	if (expires[eid] < expiresAtMs) expires[eid] = expiresAtMs;
+	mag[eid] = next;
+}
+
+export function stackSlow(
+	eid: number,
+	expiresAtMs: number,
+	factor: number,
+	durationMs: number,
+	minFactor: number,
+): void {
+	const expires = StatusState.expiresAtMs[STATUS_KIND.slow];
+	const mag = StatusState.magnitude[STATUS_KIND.slow];
+	const extra = StatusState.extra[STATUS_KIND.slow];
+	const active = expires[eid] > 0 && expires[eid] >= expiresAtMs - 1000;
+	const base = active && mag[eid] > 0 ? mag[eid] : 1;
+	const compounded = Math.max(minFactor, base * factor);
+	if (expires[eid] < expiresAtMs) expires[eid] = expiresAtMs;
+	mag[eid] = compounded;
+	extra[eid] = durationMs;
+}
+
 export function clearStatus(eid: number, kind: number): void {
 	StatusState.expiresAtMs[kind][eid] = 0;
 	StatusState.magnitude[kind][eid] = 0;

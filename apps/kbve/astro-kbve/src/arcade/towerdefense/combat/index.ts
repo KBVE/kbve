@@ -5,7 +5,7 @@ export {
 	findWeakestEnemyInRange,
 	type TargetingCtx,
 } from './targeting';
-export { EnemySpatialGrid, type SpatialGridConfig } from './spatial';
+export { SpatialGrid, type SpatialGridConfig } from './spatial';
 export {
 	spawnTowerProjectile,
 	type ProjectileSpawnDeps,

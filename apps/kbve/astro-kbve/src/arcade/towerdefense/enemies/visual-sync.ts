@@ -11,6 +11,26 @@ import {
 } from '../components';
 import { COLORS, TILE } from '../config';
 
+function lerpHpColor(ratio: number): number {
+	const t = Math.max(0, Math.min(1, ratio));
+	let r: number;
+	let g: number;
+	let b: number;
+	if (t > 0.5) {
+		const k = (t - 0.5) * 2;
+		r = Math.round(246 + (72 - 246) * k);
+		g = Math.round(173 + (187 - 173) * k);
+		b = Math.round(85 + (120 - 85) * k);
+	} else {
+		const k = t * 2;
+		r = Math.round(252 + (246 - 252) * k);
+		g = Math.round(129 + (173 - 129) * k);
+		b = Math.round(129 + (85 - 129) * k);
+	}
+	return (r << 16) | (g << 8) | b;
+}
+void COLORS;
+
 const SLOW_COLOR = COLORS.statusSlow;
 const BURN_COLOR = COLORS.statusBurn;
 const STUN_COLOR = 0xf6e05e;
@@ -63,9 +83,7 @@ function applyHpBar(v: EnemyVisual, eid: number, x: number, y: number): void {
 		v.hpBar.setPosition(x - v.barWidth / 2, y - HP_BAR_Y_OFFSET);
 		const ratio = maxHp > 0 ? hp / maxHp : 0;
 		v.hpBar.displayWidth = Math.max(0, ratio) * v.barWidth;
-		const hpColor =
-			ratio > 0.6 ? COLORS.enemyHpBar : ratio > 0.3 ? 0xf6ad55 : 0xfc8181;
-		v.hpBar.setFillStyle(hpColor);
+		v.hpBar.setFillStyle(lerpHpColor(ratio));
 	} else {
 		v.hpBarBg.setVisible(false);
 		v.hpBar.setVisible(false);

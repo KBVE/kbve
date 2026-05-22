@@ -1,6 +1,7 @@
 import {
 	ATTACK_TARGET_KIND,
 	BuildingState,
+	ENEMY_TYPE_INDEX,
 	EnemyStats,
 	Health,
 	hasStatus,
@@ -9,6 +10,14 @@ import {
 	STATUS_KIND,
 	statusExpiresAt,
 } from '../components';
+import { ENEMY_CATALOG } from '../config';
+import type { SpatialGrid } from './spatial';
+
+function isEnemyFlying(eid: number): boolean {
+	const idx = EnemyStats.typeIndex[eid];
+	const id = ENEMY_TYPE_INDEX[idx];
+	return id ? Boolean(ENEMY_CATALOG[id].flying) : false;
+}
 
 export type EidList = ArrayLike<number>;
 
@@ -19,6 +28,8 @@ export interface TargetingCtx {
 	enemyAlive: (eid: number) => boolean;
 	soldierAlive: (eid: number) => boolean;
 	archerTargetClaims: Set<number>;
+	soldierGrid?: SpatialGrid;
+	buildingGrid?: SpatialGrid;
 }
 
 export function findAttackTargetFor(ctx: TargetingCtx, eid: number): boolean {
@@ -29,30 +40,74 @@ export function findAttackTargetFor(ctx: TargetingCtx, eid: number): boolean {
 	let bestEid = -1;
 	let bestKind: number = ATTACK_TARGET_KIND.none;
 	let bestDist2 = range * range;
-	const buildings = ctx.frameBuildingEids;
-	for (let i = 0; i < buildings.length; i++) {
-		const beid = buildings[i];
-		if (BuildingState.destroyed[beid]) continue;
-		const dx = Position.x[beid] - ex;
-		const dy = Position.y[beid] - ey;
-		const d2 = dx * dx + dy * dy;
-		if (d2 <= bestDist2) {
-			bestDist2 = d2;
-			bestEid = beid;
-			bestKind = ATTACK_TARGET_KIND.building;
+	const flying = isEnemyFlying(eid);
+	if (ctx.buildingGrid) {
+		ctx.buildingGrid.forEachInRange(
+			ex,
+			ey,
+			range,
+			(beid) => !BuildingState.destroyed[beid],
+			(beid) => {
+				const dx = Position.x[beid] - ex;
+				const dy = Position.y[beid] - ey;
+				const d2 = dx * dx + dy * dy;
+				if (d2 <= bestDist2) {
+					bestDist2 = d2;
+					bestEid = beid;
+					bestKind = ATTACK_TARGET_KIND.building;
+				}
+			},
+		);
+	} else {
+		const buildings = ctx.frameBuildingEids;
+		for (let i = 0; i < buildings.length; i++) {
+			const beid = buildings[i];
+			if (BuildingState.destroyed[beid]) continue;
+			const dx = Position.x[beid] - ex;
+			const dy = Position.y[beid] - ey;
+			const d2 = dx * dx + dy * dy;
+			if (d2 <= bestDist2) {
+				bestDist2 = d2;
+				bestEid = beid;
+				bestKind = ATTACK_TARGET_KIND.building;
+			}
 		}
 	}
-	const soldiers = ctx.frameSoldierEids;
-	for (let i = 0; i < soldiers.length; i++) {
-		const seid = soldiers[i];
-		if (!ctx.soldierAlive(seid)) continue;
-		const dx = Position.x[seid] - ex;
-		const dy = Position.y[seid] - ey;
-		const d2 = dx * dx + dy * dy;
-		if (d2 <= bestDist2) {
-			bestDist2 = d2;
-			bestEid = seid;
-			bestKind = ATTACK_TARGET_KIND.soldier;
+	if (flying) {
+		EnemyStats.targetEid[eid] = bestEid;
+		EnemyStats.targetKind[eid] = bestKind;
+		return bestKind !== ATTACK_TARGET_KIND.none;
+	}
+	if (ctx.soldierGrid) {
+		ctx.soldierGrid.forEachInRange(
+			ex,
+			ey,
+			range,
+			ctx.soldierAlive,
+			(seid) => {
+				const dx = Position.x[seid] - ex;
+				const dy = Position.y[seid] - ey;
+				const d2 = dx * dx + dy * dy;
+				if (d2 <= bestDist2) {
+					bestDist2 = d2;
+					bestEid = seid;
+					bestKind = ATTACK_TARGET_KIND.soldier;
+				}
+			},
+		);
+	} else {
+		const soldiers = ctx.frameSoldierEids;
+		for (let i = 0; i < soldiers.length; i++) {
+			const seid = soldiers[i];
+			if (!ctx.soldierAlive(seid)) continue;
+			const dx = Position.x[seid] - ex;
+			const dy = Position.y[seid] - ey;
+			const d2 = dx * dx + dy * dy;
+			if (d2 <= bestDist2) {
+				bestDist2 = d2;
+				bestEid = seid;
+				bestKind = ATTACK_TARGET_KIND.soldier;
+			}
 		}
 	}
 	EnemyStats.targetEid[eid] = bestEid;
@@ -69,6 +124,7 @@ export function findEnemyForSoldier(ctx: TargetingCtx, seid: number): number {
 	for (let i = 0; i < enemies.length; i++) {
 		const eeid = enemies[i];
 		if (!ctx.enemyAlive(eeid)) continue;
+		if (isEnemyFlying(eeid)) continue;
 		const dx = Position.x[eeid] - sx;
 		const dy = Position.y[eeid] - sy;
 		const d2 = dx * dx + dy * dy;
