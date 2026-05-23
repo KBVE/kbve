@@ -12838,6 +12838,7 @@ dependencies = [
  "bitflags 2.11.0",
  "crossbeam-channel",
  "dashmap 6.1.0",
+ "futures-util",
  "godot",
  "http 1.4.0",
  "infer",
