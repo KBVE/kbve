@@ -70,16 +70,19 @@ impl INode for MusicManager {
 
             {
                 let base = self.base_mut();
-                let mut active_player = base.get_node_as::<AudioStreamPlayer>(active_name.arg());
+                let mut active_player =
+                    base.get_node_as::<AudioStreamPlayer>(&NodePath::from(&active_name));
                 active_player.set_volume_db(active_vol);
 
-                let mut idle_player = base.get_node_as::<AudioStreamPlayer>(idle_name.arg());
+                let mut idle_player =
+                    base.get_node_as::<AudioStreamPlayer>(&NodePath::from(&idle_name));
                 idle_player.set_volume_db(idle_vol);
             }
 
             if t >= 1.0 {
                 let base = self.base_mut();
-                let mut active_player = base.get_node_as::<AudioStreamPlayer>(active_name.arg());
+                let mut active_player =
+                    base.get_node_as::<AudioStreamPlayer>(&NodePath::from(&active_name));
                 active_player.stop();
                 true
             } else {
@@ -325,7 +328,7 @@ impl MusicManager {
 
         {
             let base = self.base_mut();
-            let idle_player = base.get_node_as::<AudioStreamPlayer>(idle_name.arg());
+            let idle_player = base.get_node_as::<AudioStreamPlayer>(&NodePath::from(&idle_name));
             if idle_player.is_instance_valid() {
                 let mut idle_player = idle_player;
                 idle_player.set_stream(&audio_stream);
