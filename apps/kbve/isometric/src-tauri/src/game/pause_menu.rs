@@ -24,6 +24,7 @@ pub enum UiOverlay {
     Equipment,
     Crafting,
     Deploy,
+    Chat,
 }
 
 impl UiOverlay {

@@ -13,6 +13,7 @@ export interface SavedBuilding {
 		attack?: number;
 		speed?: number;
 		armor?: number;
+		tier?: number;
 	};
 	armouryUpgrades?: {
 		capacity?: number;
@@ -34,6 +35,7 @@ export interface SaveSnapshot {
 	gold: number;
 	freeBasicTowers: number;
 	bountyBonusMultiplier: number;
+	seed?: number;
 	stats: {
 		goldEarned: number;
 		enemiesKilled: number;

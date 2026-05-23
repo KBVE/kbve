@@ -154,6 +154,7 @@ import {
 	waveAtom,
 } from './td-hud-store';
 import { SfxPlayer } from './audio';
+import { mulberry32, randomSeed, type Rand } from './random';
 import {
 	clearSnapshot,
 	loadSnapshot,
@@ -252,6 +253,8 @@ import {
 	towerFireRateMs,
 	towerMaxHp,
 	towerRange,
+	towerTier,
+	towerTierCost,
 } from './stats';
 import type {
 	ArmouryBuilding,
@@ -607,6 +610,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private hotkeyOverlay: HotkeyOverlay | null = null;
 	private pauseOverlay: PauseOverlay | null = null;
 	private sfx: SfxPlayer = new SfxPlayer();
+	private currentSeed: number = randomSeed();
+	private rand: Rand = mulberry32(this.currentSeed);
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
@@ -719,6 +724,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.lastRestartSignal = restartSignalAtom.get();
 		this.simNow = 0;
 		this.speedFactor = 1;
+		this.currentSeed = randomSeed();
+		this.rand = mulberry32(this.currentSeed);
 		resetHudStore();
 		bestWaveAtom.set(loadBestWave());
 	}
@@ -730,7 +737,12 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.debugOverlay = new DebugOverlay(this);
 		this.hotkeyOverlay = new HotkeyOverlay(this);
 		this.pauseOverlay = new PauseOverlay(this);
-		this.path = generatePath();
+		const snapPreview = loadSnapshot();
+		if (snapPreview?.seed !== undefined) {
+			this.currentSeed = snapPreview.seed;
+			this.rand = mulberry32(this.currentSeed);
+		}
+		this.path = generatePath(this.rand);
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		drawGrass(this);
 		drawGridLines(this);
@@ -755,6 +767,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else {
 			this.placeStarterKit();
 		}
+		this.time.delayedCall(360, () => {
+			this.floatingText.spawn({
+				x: BASE_WIDTH / 2,
+				y: BASE_HEIGHT * 0.42,
+				text: `SEED ${this.currentSeed}`,
+				color: '#a0aec0',
+				rise: 40,
+				fontSize: '14px',
+				duration: 1400,
+			});
+		});
 		this.recomputePower(0);
 		this.refreshHud();
 
@@ -773,6 +796,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			kb.on('keydown-P', () => this.togglePause());
 			kb.on('keydown-SPACE', () => this.togglePause());
 			kb.on('keydown-F1', () => this.debugOverlay?.toggle());
+			kb.on('keydown-T', () => this.promoteSelectedTower());
 			kb.on('keydown-QUESTION_MARK', () => this.hotkeyOverlay?.toggle());
 			kb.on('keydown-FORWARD_SLASH', () => this.hotkeyOverlay?.toggle());
 			kb.on('keydown-F5', (e: KeyboardEvent) => {
@@ -956,6 +980,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				TowerUpgradeStats.attack[eid] = b.towerUpgrades.attack ?? 0;
 				TowerUpgradeStats.speed[eid] = b.towerUpgrades.speed ?? 0;
 				TowerUpgradeStats.armor[eid] = b.towerUpgrades.armor ?? 0;
+				TowerUpgradeStats.tier[eid] = b.towerUpgrades.tier ?? 0;
 				Health.maxHp[eid] = towerMaxHp(built);
 				this.redrawUpgradePips(built);
 			}
@@ -1001,6 +1026,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 					attack: TowerUpgradeStats.attack[eid],
 					speed: TowerUpgradeStats.speed[eid],
 					armor: TowerUpgradeStats.armor[eid],
+					tier: TowerUpgradeStats.tier[eid],
 				};
 			} else if (b.kind === 'armoury') {
 				entry.armouryUpgrades = {
@@ -1026,6 +1052,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			gold: this.gold,
 			freeBasicTowers: this.freeBasicTowers,
 			bountyBonusMultiplier: this.bountyBonusMultiplier,
+			seed: this.currentSeed,
 			stats: {
 				goldEarned: this.statGoldEarned,
 				enemiesKilled: this.statEnemiesKilled,
@@ -1224,6 +1251,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (this.isGameOver) return;
+		if (this.isPaused) return;
 
 		if (pendingItemTargetAtom.get()) {
 			if (pointer.worldY < HUD_HEIGHT) {
@@ -1798,6 +1826,17 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private redrawUpgradePips(t: TowerBuilding): void {
 		t.upgradePips.clear();
+		const tier = TowerUpgradeStats.tier[t.id];
+		if (tier > 0) {
+			const starY = t.y - TILE * 0.55;
+			const starSize = 3;
+			const startX = t.x - tier * (starSize + 1.5);
+			t.upgradePips.fillStyle(0xf6e05e, 0.95);
+			for (let i = 0; i < tier; i++) {
+				const sx = startX + i * (starSize * 2 + 2);
+				t.upgradePips.fillCircle(sx, starY, starSize);
+			}
+		}
 		const anyUpgraded = UPGRADE_ORDER.some(
 			(k) => TowerUpgradeStats[k][t.id] > 0,
 		);
@@ -1943,6 +1982,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			TowerUpgradeStats.attack[eid] = 0;
 			TowerUpgradeStats.speed[eid] = 0;
 			TowerUpgradeStats.armor[eid] = 0;
+			TowerUpgradeStats.tier[eid] = 0;
 			const powerIndicator = createPowerIndicator(this, x, y);
 			const upgradePips = this.add.graphics();
 			const b: TowerBuilding = {
@@ -2276,7 +2316,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			});
 			this.cameras.main.shake(220, 0.005);
 		} else {
-			typeId = rollEnemyType(this.wave);
+			typeId = rollEnemyType(this.wave, this.rand);
 		}
 		const type = ENEMY_CATALOG[typeId];
 		const stats = computeEnemyStats(this.wave, type);
@@ -3129,12 +3169,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 				);
 			}
 
+			let stunned = false;
 			if (hasStatus(eid, STATUS_KIND.stun, nowMs)) {
-				this.updateEnemyVisuals(eid, nowMs);
-				continue;
-			}
-
-			if (EnemyStats.canAttack[eid] === 1) {
+				stunned = true;
+			} else if (EnemyStats.canAttack[eid] === 1) {
 				let targetEid = EnemyStats.targetEid[eid];
 				let targetKind = EnemyStats.targetKind[eid];
 				if (
@@ -3150,14 +3188,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 						targetKind = EnemyStats.targetKind[eid];
 					}
 				} else {
-					const tx =
-						targetKind === ATTACK_TARGET_KIND.building
-							? Position.x[targetEid]
-							: Position.x[targetEid];
-					const ty =
-						targetKind === ATTACK_TARGET_KIND.building
-							? Position.y[targetEid]
-							: Position.y[targetEid];
+					const tx = Position.x[targetEid];
+					const ty = Position.y[targetEid];
 					const dx = tx - Position.x[eid];
 					const dy = ty - Position.y[eid];
 					const range = EnemyStats.attackRange[eid];
@@ -3180,18 +3212,21 @@ export class TowerDefenseScene extends Phaser.Scene {
 						);
 					}
 					this.recomputeEnemyMovement(eid, nowMs);
-					const speed =
+					const attackSpeed =
 						Movement.speed[eid] *
 						GAME_CONFIG.enemyAttackSpeedFactor;
-					if (speed > 0) this.moveAlongPath(eid, speed, dt);
+					if (attackSpeed > 0)
+						this.moveAlongPath(eid, attackSpeed, dt);
 					this.updateEnemyVisuals(eid, nowMs);
 					continue;
 				}
 			}
 
-			this.recomputeEnemyMovement(eid, nowMs);
-			const speed = Movement.speed[eid];
-			this.moveAlongPath(eid, speed, dt);
+			if (!stunned) {
+				this.recomputeEnemyMovement(eid, nowMs);
+				const speed = Movement.speed[eid];
+				this.moveAlongPath(eid, speed, dt);
+			}
 			this.updateEnemyVisuals(eid, nowMs);
 		}
 	}
@@ -3607,6 +3642,49 @@ export class TowerDefenseScene extends Phaser.Scene {
 				.frameBuildingEids as unknown as ArrayLike<number>,
 		};
 		this.debugOverlay.render(deps);
+	}
+
+	private promoteSelectedTower(): void {
+		const target = this.upgradeTarget;
+		if (!target || target.kind !== 'tower') return;
+		const tier = towerTier(target);
+		if (tier >= 2) {
+			this.floatingText.spawn({
+				x: target.x,
+				y: target.y - TILE * 0.6,
+				text: 'MAX TIER',
+				color: '#a0aec0',
+				rise: 40,
+			});
+			return;
+		}
+		const cost = towerTierCost(target);
+		if (this.gold < cost) {
+			this.floatingText.spawn({
+				x: target.x,
+				y: target.y - TILE * 0.6,
+				text: `NEED ${cost}g`,
+				color: '#fc8181',
+				rise: 40,
+			});
+			return;
+		}
+		this.gold -= cost;
+		const prevMaxHp = towerMaxHp(target);
+		TowerUpgradeStats.tier[target.id] = tier + 1;
+		const newMaxHp = towerMaxHp(target);
+		Health.maxHp[target.id] = newMaxHp;
+		const delta = newMaxHp - prevMaxHp;
+		Health.hp[target.id] = Math.min(newMaxHp, Health.hp[target.id] + delta);
+		this.redrawUpgradePips(target);
+		this.sfx.play('place_building');
+		this.floatingText.spawn({
+			x: target.x,
+			y: target.y - TILE * 0.6,
+			text: `TIER ${tier + 2}`,
+			color: '#f6e05e',
+			rise: 50,
+		});
 	}
 
 	private togglePause(): void {

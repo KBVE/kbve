@@ -11,7 +11,7 @@ import {
 } from '../components';
 import { COLORS, TILE } from '../config';
 
-function lerpHpColor(ratio: number): number {
+export function lerpHpColor(ratio: number): number {
 	const t = Math.max(0, Math.min(1, ratio));
 	let r: number;
 	let g: number;

@@ -11,6 +11,7 @@ const HOTKEY_LINES = [
 	'R    Restart on game over',
 	'P / SPACE  Pause',
 	'M    Toggle audio',
+	'T    Promote selected tower',
 	'F1   Debug overlay',
 	'F5   Reroll map',
 	'?    Toggle this panel',

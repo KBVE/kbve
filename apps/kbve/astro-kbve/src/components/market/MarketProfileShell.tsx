@@ -169,6 +169,77 @@ export function MarketProfileShell() {
 		};
 	}, [bids, bidRefs]);
 
+	const activeListings = useMemo(
+		() => listings.filter((r) => r.listing_status === 'active'),
+		[listings],
+	);
+	const closedListings = useMemo(
+		() => listings.filter((r) => r.listing_status !== 'active'),
+		[listings],
+	);
+
+	const renderListingCard = (r: MyListing, closed: boolean = false) => {
+		const meta = readItemRefMeta(r.item_ref);
+		return (
+			<a
+				key={r.listing_id}
+				href={`/market/listing/?id=${r.listing_id}`}
+				className={
+					'kbve-market__card kbve-market__card--tiled' +
+					(closed ? ' kbve-market__card--closed' : '')
+				}>
+				<div className="kbve-market__card-thumb">
+					{meta.kind === 'mc_item' && meta.id ? (
+						<MCTextureImage ref={meta.id} size={40} />
+					) : (
+						<ItemThumb itemRef={r.item_ref} />
+					)}
+				</div>
+				<div className="kbve-market__card-body">
+					<div className="kbve-market__card-head">
+						<span className="kbve-market__card-item">
+							{itemRefLabel(r.item_ref)}
+							<EnchantList itemRef={r.item_ref} compact />
+						</span>
+						<span
+							className={`kbve-market__badge kbve-market__badge--${r.listing_status}`}>
+							{r.listing_status}
+						</span>
+					</div>
+					<div className="kbve-market__card-prices">
+						{r.buy_now_price !== null && (
+							<span className="kbve-market__price">
+								<span className="kbve-market__price-label">
+									Buy Now
+								</span>
+								<span className="kbve-market__price-value">
+									{formatKhash(r.buy_now_price)}
+								</span>
+							</span>
+						)}
+						{r.current_bid !== null && (
+							<span className="kbve-market__price">
+								<span className="kbve-market__price-label">
+									Bid
+								</span>
+								<span className="kbve-market__price-value">
+									{formatKhash(r.current_bid)}
+								</span>
+							</span>
+						)}
+						<span className="kbve-market__card-expiry">
+							{r.listing_status === 'active'
+								? formatExpiry(r.expires_at)
+								: r.settled_at
+									? formatRelative(r.settled_at)
+									: '—'}
+						</span>
+					</div>
+				</div>
+			</a>
+		);
+	};
+
 	const watchedDisplay = useMemo(
 		() =>
 			watchEntries.map((e) => {
@@ -199,7 +270,7 @@ export function MarketProfileShell() {
 					aria-selected={tab === 'listings'}
 					className={`kbve-market__tab${tab === 'listings' ? ' kbve-market__tab--active' : ''}`}
 					onClick={() => setTab('listings')}>
-					Listings ({listings.length})
+					Listings ({activeListings.length})
 				</button>
 				<button
 					type="button"
@@ -234,79 +305,26 @@ export function MarketProfileShell() {
 
 			{tab === 'listings' && (
 				<div className="kbve-market__list">
-					{listings.length === 0 && !loading && (
+					{activeListings.length === 0 && !loading && (
 						<div className="kbve-market__status">
-							No listings yet. <a href="/market/">Create one →</a>
+							No active listings.{' '}
+							<a href="/market/">Create one →</a>
 						</div>
 					)}
-					{listings.map((r) => {
-						const meta = readItemRefMeta(r.item_ref);
-						return (
-							<a
-								key={r.listing_id}
-								href={`/market/listing/?id=${r.listing_id}`}
-								className="kbve-market__card kbve-market__card--tiled">
-								<div className="kbve-market__card-thumb">
-									{meta.kind === 'mc_item' && meta.id ? (
-										<MCTextureImage
-											ref={meta.id}
-											size={40}
-										/>
-									) : (
-										<ItemThumb itemRef={r.item_ref} />
-									)}
-								</div>
-								<div className="kbve-market__card-body">
-									<div className="kbve-market__card-head">
-										<span className="kbve-market__card-item">
-											{itemRefLabel(r.item_ref)}
-											<EnchantList
-												itemRef={r.item_ref}
-												compact
-											/>
-										</span>
-										<span
-											className={`kbve-market__badge kbve-market__badge--${r.listing_status}`}>
-											{r.listing_status}
-										</span>
-									</div>
-									<div className="kbve-market__card-prices">
-										{r.buy_now_price !== null && (
-											<span className="kbve-market__price">
-												<span className="kbve-market__price-label">
-													Buy Now
-												</span>
-												<span className="kbve-market__price-value">
-													{formatKhash(
-														r.buy_now_price,
-													)}
-												</span>
-											</span>
-										)}
-										{r.current_bid !== null && (
-											<span className="kbve-market__price">
-												<span className="kbve-market__price-label">
-													Bid
-												</span>
-												<span className="kbve-market__price-value">
-													{formatKhash(r.current_bid)}
-												</span>
-											</span>
-										)}
-										<span className="kbve-market__card-expiry">
-											{r.listing_status === 'active'
-												? formatExpiry(r.expires_at)
-												: r.settled_at
-													? formatRelative(
-															r.settled_at,
-														)
-													: '—'}
-										</span>
-									</div>
-								</div>
-							</a>
-						);
-					})}
+					{activeListings.map((r) => renderListingCard(r))}
+
+					{closedListings.length > 0 && (
+						<details className="kbve-market__history">
+							<summary>
+								Past listings ({closedListings.length})
+							</summary>
+							<div className="kbve-market__list kbve-market__list--closed">
+								{closedListings.map((r) =>
+									renderListingCard(r, true),
+								)}
+							</div>
+						</details>
+					)}
 				</div>
 			)}
 

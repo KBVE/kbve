@@ -178,6 +178,12 @@ pub fn set_username(username: String) {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn send_chat(text: String) -> bool {
+    crate::game::chat::queue_outgoing_chat(&text)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     let redirect = crate::auth::build_redirect_url();
@@ -270,6 +276,12 @@ pub fn set_signed_in(jwt: &str) {
 #[wasm_bindgen]
 pub fn set_username(username: &str) {
     crate::game::net::request_set_username(username);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn send_chat(text: &str) -> bool {
+    crate::game::chat::queue_outgoing_chat(text)
 }
 
 #[cfg(target_arch = "wasm32")]

@@ -60,20 +60,20 @@ const cellCenterY = (r: number) => r * TILE + TILE / 2;
 const minRow = HUD_ROWS_TOP + 1;
 const maxRow = ROWS - HUD_ROWS_BOTTOM - 2;
 
-function randInt(lo: number, hi: number): number {
-	return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+function randInt(rand: () => number, lo: number, hi: number): number {
+	return Math.floor(rand() * (hi - lo + 1)) + lo;
 }
 
-export function generatePath(): GeneratedPath {
+export function generatePath(rand: () => number = Math.random): GeneratedPath {
 	for (let attempt = 0; attempt < 40; attempt++) {
-		const result = tryGenerate();
+		const result = tryGenerate(rand);
 		if (result) return result;
 	}
 	return fallbackPath();
 }
 
-function tryGenerate(): GeneratedPath | null {
-	const startRow = randInt(minRow, maxRow);
+function tryGenerate(rand: () => number): GeneratedPath | null {
+	const startRow = randInt(rand, minRow, maxRow);
 	let col = 0;
 	let row = startRow;
 	const cells = new Set<string>();
@@ -102,7 +102,7 @@ function tryGenerate(): GeneratedPath | null {
 
 		if (choices.length === 0) return null;
 		const total = choices.reduce((s, c) => s + c.weight, 0);
-		let pick = Math.random() * total;
+		let pick = rand() * total;
 		let chosen = choices[0];
 		for (const ch of choices) {
 			pick -= ch.weight;
