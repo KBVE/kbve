@@ -8,6 +8,7 @@ export const BatteryTag: Record<string, never> = {};
 export const RepairTag: Record<string, never> = {};
 export const ArmouryTag: Record<string, never> = {};
 export const VillageTag: Record<string, never> = {};
+export const TownTag: Record<string, never> = {};
 export const CastleTag: Record<string, never> = {};
 export const NexusTag: Record<string, never> = {};
 export const StunDroneTag: Record<string, never> = {};
@@ -21,6 +22,7 @@ export const BUILDING_KIND = {
 	village: 5,
 	castle: 6,
 	nexus: 7,
+	town: 8,
 } as const;
 export type BuildingKindIndex =
 	(typeof BUILDING_KIND)[keyof typeof BUILDING_KIND];
@@ -41,6 +43,7 @@ const BUILD_ID_LIST: BuildId[] = [
 	'repair',
 	'armoury',
 	'village',
+	'town',
 	'castle',
 	'nexus',
 ];

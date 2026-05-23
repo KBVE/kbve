@@ -44,6 +44,7 @@ import {
 	type RepairUpgradeKind,
 	type TowerSpec,
 	type UpgradeKind,
+	type TownSpec,
 	type VillageSpec,
 } from './config';
 import {
@@ -108,6 +109,7 @@ import {
 	TowerState,
 	TowerTag,
 	TowerUpgradeStats,
+	TownTag,
 	VillageTag,
 	type BurnPatchVisual,
 	type DroneVisual,
@@ -266,6 +268,7 @@ import type {
 	NexusBuilding,
 	RepairBuilding,
 	TowerBuilding,
+	TownBuilding,
 	VillageBuilding,
 } from './types';
 
@@ -317,6 +320,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private frameArmouryEids: number[] = [];
 	private frameRepairEids: number[] = [];
 	private frameVillageEids: number[] = [];
+	private frameTownEids: number[] = [];
 	private frameCastleEids: number[] = [];
 	private frameConsumerEids: number[] = [];
 	private archerTargetClaims = new Set<number>();
@@ -615,6 +619,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
+	private placementCoverage!: Phaser.GameObjects.Graphics;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
 
@@ -669,6 +674,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.frameArmouryEids = [];
 		this.frameRepairEids = [];
 		this.frameVillageEids = [];
+		this.frameTownEids = [];
 		this.frameCastleEids = [];
 		this.frameConsumerEids = [];
 		this.buildingByEid = new SideMap<Building>();
@@ -930,6 +936,10 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	private buildPlacementPreview(): void {
+		this.placementCoverage = this.add
+			.graphics()
+			.setDepth(1)
+			.setVisible(false);
 		this.placementRange = this.add
 			.circle(0, 0, 0, 0xffffff, 0.12)
 			.setStrokeStyle(1, 0xffffff, 0.5)
@@ -937,6 +947,38 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.placementPreview = this.add
 			.rectangle(0, 0, TILE * 0.8, TILE * 0.8, COLORS.previewValid, 0.6)
 			.setVisible(false);
+	}
+
+	private rangeOfBuilding(b: Building): number {
+		if (b.kind === 'tower') return towerRange(b);
+		if (b.kind === 'repair') return repairRange(b);
+		if (b.kind === 'armoury') return b.spec.soldierRoamRange;
+		if (b.kind === 'castle') return b.spec.droneRange;
+		return 0;
+	}
+
+	private redrawPlacementCoverage(): void {
+		const g = this.placementCoverage;
+		g.clear();
+		g.setVisible(true);
+		for (const eid of query(this.world, [BuildingTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			const b = this.buildingByEid.get(eid);
+			if (!b) continue;
+			const r = this.rangeOfBuilding(b);
+			if (r <= 0) continue;
+			const color = b.spec.color;
+			g.lineStyle(1, color, 0.35);
+			g.fillStyle(color, 0.05);
+			g.fillCircle(b.x, b.y, r);
+			g.strokeCircle(b.x, b.y, r);
+		}
+	}
+
+	private clearPlacementCoverage(): void {
+		if (!this.placementCoverage) return;
+		this.placementCoverage.clear();
+		this.placementCoverage.setVisible(false);
 	}
 
 	private placeNexus(): void {
@@ -1127,6 +1169,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (this.targetingTower) {
 			this.placementPreview.setVisible(false);
 			this.placementRange.setVisible(false);
+			this.clearPlacementCoverage();
 			if (this.targetingHint) {
 				this.targetingHint.setPosition(
 					pointer.worldX + 12,
@@ -1141,6 +1184,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		) {
 			this.placementPreview.setVisible(false);
 			this.placementRange.setVisible(false);
+			this.clearPlacementCoverage();
 			this.clearHoverRange();
 			return;
 		}
@@ -1156,6 +1200,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			.setPosition(cx, cy)
 			.setFillStyle(ok ? spec.color : COLORS.previewInvalid, 0.6)
 			.setVisible(true);
+		this.redrawPlacementCoverage();
 		if (spec.kind === 'tower') {
 			this.placementRange
 				.setPosition(cx, cy)
@@ -1329,11 +1374,80 @@ export class TowerDefenseScene extends Phaser.Scene {
 		} else {
 			this.gold -= spec.cost;
 		}
-		this.spawnBuilding(selectedBuildAtom.get(), col, row, cx, cy);
+		const placed = this.spawnBuilding(
+			selectedBuildAtom.get(),
+			col,
+			row,
+			cx,
+			cy,
+		);
 		this.sfx.play('place_building');
 		this.statBuildingsBuilt += 1;
+		if (placed.kind === 'village') {
+			this.tryMergeVillagesAt(col, row);
+		}
 		this.recomputePower(0);
 		this.refreshHud();
+	}
+
+	private tryMergeVillagesAt(col: number, row: number): void {
+		const trios: Array<Array<{ col: number; row: number }>> = [
+			[
+				{ col: col - 2, row },
+				{ col: col - 1, row },
+				{ col, row },
+			],
+			[
+				{ col: col - 1, row },
+				{ col, row },
+				{ col: col + 1, row },
+			],
+			[
+				{ col, row },
+				{ col: col + 1, row },
+				{ col: col + 2, row },
+			],
+			[
+				{ col, row: row - 2 },
+				{ col, row: row - 1 },
+				{ col, row },
+			],
+			[
+				{ col, row: row - 1 },
+				{ col, row },
+				{ col, row: row + 1 },
+			],
+			[
+				{ col, row },
+				{ col, row: row + 1 },
+				{ col, row: row + 2 },
+			],
+		];
+		for (const trio of trios) {
+			const buildings = trio.map((p) =>
+				this.findBuildingAt(p.col, p.row),
+			);
+			if (!buildings.every((b) => b && b.kind === 'village')) continue;
+			const villages = buildings as VillageBuilding[];
+			const mid = villages[1];
+			const midCol = mid.col;
+			const midRow = mid.row;
+			const midX = mid.x;
+			const midY = mid.y;
+			for (const v of villages) this.destroyBuilding(v, true);
+			this.spawnBuilding('town', midCol, midRow, midX, midY);
+			this.sfx.play('place_building');
+			spawnParticleBurst(
+				this.particleDeps,
+				midX,
+				midY,
+				0xf6ad55,
+				24,
+				TILE * 1.4,
+				620,
+			);
+			return;
+		}
 	}
 
 	private findBuildingAt(col: number, row: number): Building | null {
@@ -1355,6 +1469,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.upgradeTarget = b;
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
+		this.clearPlacementCoverage();
 
 		if (b.kind === 'tower') {
 			this.upgradeRangeIndicator = this.add
@@ -1723,6 +1838,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		if (b.kind === 'battery') return `${b.spec.name}`;
 		if (b.kind === 'armoury') return `${b.spec.name}`;
 		if (b.kind === 'village') return `${b.spec.name}`;
+		if (b.kind === 'town') return `${b.spec.name}`;
 		if (b.kind === 'castle') return `${b.spec.name}`;
 		if (b.kind === 'nexus') return `${b.spec.name}`;
 		return `${b.spec.name} Station`;
@@ -1749,6 +1865,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		if (b.kind === 'village') {
 			return `LOAD -${b.spec.power}⚡ · +${b.spec.goldPerWave}g/WAVE · HP ${hpText}`;
+		}
+		if (b.kind === 'town') {
+			const gold =
+				b.spec.goldPerWaveBase + b.spec.goldPerWavePerWave * this.wave;
+			return `LOAD -${b.spec.power}⚡ · +${gold}g/WAVE · HP ${hpText}`;
 		}
 		if (b.kind === 'castle') {
 			const ur = (b.spec.unitSpawnIntervalMs / 1000).toFixed(1);
@@ -2066,6 +2187,16 @@ export class TowerDefenseScene extends Phaser.Scene {
 				powerIndicator,
 			};
 			building = b;
+		} else if (spec.kind === 'town') {
+			addComponent(this.world, eid, TownTag);
+			const powerIndicator = createPowerIndicator(this, x, y);
+			const b: TownBuilding = {
+				...base,
+				kind: 'town',
+				spec: spec as TownSpec,
+				powerIndicator,
+			};
+			building = b;
 		} else if (spec.kind === 'nexus') {
 			addComponent(this.world, eid, NexusTag);
 			const b: NexusBuilding = {
@@ -2141,6 +2272,11 @@ export class TowerDefenseScene extends Phaser.Scene {
 			if (BuildingState.destroyed[eid]) continue;
 			this.frameVillageEids.push(eid);
 		}
+		this.frameTownEids.length = 0;
+		for (const eid of query(this.world, [BuildingTag, TownTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			this.frameTownEids.push(eid);
+		}
 		this.frameCastleEids.length = 0;
 		for (const eid of query(this.world, [BuildingTag, CastleTag])) {
 			if (BuildingState.destroyed[eid]) continue;
@@ -2155,6 +2291,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 			this.frameConsumerEids.push(this.frameArmouryEids[i]);
 		for (let i = 0; i < this.frameVillageEids.length; i++)
 			this.frameConsumerEids.push(this.frameVillageEids[i]);
+		for (let i = 0; i < this.frameTownEids.length; i++)
+			this.frameConsumerEids.push(this.frameTownEids[i]);
 		for (let i = 0; i < this.frameCastleEids.length; i++)
 			this.frameConsumerEids.push(this.frameCastleEids[i]);
 	}
@@ -2204,6 +2342,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				b.kind === 'repair' ||
 				b.kind === 'armoury' ||
 				b.kind === 'village' ||
+				b.kind === 'town' ||
 				b.kind === 'castle'
 			) {
 				const online = BuildingState.online[eid] === 1;
@@ -2477,22 +2616,24 @@ export class TowerDefenseScene extends Phaser.Scene {
 		});
 	}
 
-	private destroyBuilding(b: Building): void {
+	private destroyBuilding(b: Building, silent = false): void {
 		if (BuildingState.destroyed[b.id]) return;
 		BuildingState.destroyed[b.id] = 1;
 		BuildingState.online[b.id] = 0;
 		Health.hp[b.id] = 0;
-		this.sfx.play('demolish', 80);
-		spawnParticleBurst(
-			this.particleDeps,
-			b.x,
-			b.y,
-			b.spec.color,
-			10,
-			TILE * 0.9,
-			520,
-		);
-		this.cameras.main.shake(180, 0.006);
+		if (!silent) {
+			this.sfx.play('demolish', 80);
+			spawnParticleBurst(
+				this.particleDeps,
+				b.x,
+				b.y,
+				b.spec.color,
+				10,
+				TILE * 0.9,
+				520,
+			);
+			this.cameras.main.shake(180, 0.006);
+		}
 		if (b.kind === 'nexus' && !this.isGameOver) {
 			this.lives = 0;
 			this.endGame(false);
@@ -2508,6 +2649,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			b.kind === 'repair' ||
 			b.kind === 'armoury' ||
 			b.kind === 'village' ||
+			b.kind === 'town' ||
 			b.kind === 'castle'
 		) {
 			b.powerIndicator.destroy();
@@ -2685,6 +2827,14 @@ export class TowerDefenseScene extends Phaser.Scene {
 				| undefined;
 			if (!b) continue;
 			total += b.spec.goldPerWave;
+		}
+		for (const eid of query(this.world, [TownTag])) {
+			if (BuildingState.destroyed[eid]) continue;
+			if (!BuildingState.online[eid]) continue;
+			const b = this.buildingByEid.get(eid) as TownBuilding | undefined;
+			if (!b) continue;
+			total +=
+				b.spec.goldPerWaveBase + b.spec.goldPerWavePerWave * this.wave;
 		}
 		if (total > 0) {
 			this.gold += total;
@@ -3777,6 +3927,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		clearSnapshot();
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
+		this.clearPlacementCoverage();
 		const previousBest = loadBestWave();
 		const newRecord = this.wave > previousBest;
 		if (newRecord) {
