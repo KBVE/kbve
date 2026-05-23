@@ -1,5 +1,7 @@
 -- migrate:up
 
+CREATE SCHEMA IF NOT EXISTS tracker;
+
 CREATE OR REPLACE FUNCTION tracker.find_claim_identity_by_discord_id(
     p_discord_id TEXT
 )
