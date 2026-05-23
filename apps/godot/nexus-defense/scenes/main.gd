@@ -5,5 +5,13 @@ extends Node2D
 
 func _ready() -> void:
 	title_label.text = "Nexus Defense"
-	status_label.text = "Bootstrap OK · Godot %s · gecs loaded" % Engine.get_version_info()["string"]
-	print("[nexus-defense] main scene ready")
+	var ping := NdPing.new()
+	var msg: String = ping.pong()
+	var sum: int = ping.add(2, 3)
+	ping.queue_free()
+	status_label.text = "Godot %s · gecs + nd-native · %s · 2+3=%d" % [
+		Engine.get_version_info()["string"],
+		msg,
+		sum,
+	]
+	print("[nexus-defense] main scene ready — nd-native pong: %s" % msg)
