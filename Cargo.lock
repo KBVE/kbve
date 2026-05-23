@@ -12834,6 +12834,7 @@ name = "q"
 version = "0.1.1"
 dependencies = [
  "axum 0.7.9",
+ "bevy",
  "bincode",
  "bitflags 2.11.0",
  "crossbeam-channel",

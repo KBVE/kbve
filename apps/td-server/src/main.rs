@@ -1,12 +1,15 @@
 //! Nexus Defense game server entry point.
 //!
-//! Hosts the axum WS router from `q::net::server`. The bevy/rapier2d
-//! authoritative sim + Agones lifecycle land in follow-up commits per the
-//! phase plan in KBVE/kbve#11294.
+//! Boots the bevy headless sim, wires its snapshot broadcast into the axum
+//! WS router (`q::net::server`), and serves both from the same tokio
+//! runtime. Agones lifecycle + JWT verify land in follow-up commits per
+//! the phase plan in KBVE/kbve#11294.
 
 use std::net::SocketAddr;
 
+use q::nexus_defense_server::{SNAPSHOT_BROADCAST_CAPACITY, build_app, run_sim_loop};
 use tokio::net::TcpListener;
+use tokio::sync::broadcast;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -21,13 +24,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|_| "0.0.0.0:7878".into())
         .parse()?;
 
-    let app = q::net::server::router();
-    tracing::info!(%addr, "td-server listening");
+    let seed: u64 = std::env::var("TD_SERVER_SEED")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0xC0FFEE);
+
+    // Broadcast bus: bevy sim -> every WS session.
+    let (snap_tx, _) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+
+    // Bevy headless app — runs on a dedicated blocking thread so the App
+    // (which holds non-Send schedule state) never crosses task boundaries.
+    let sim_tx = snap_tx.clone();
+    let sim_handle = tokio::task::spawn_blocking(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+            .expect("sim runtime");
+        let app = build_app(sim_tx, seed);
+        rt.block_on(run_sim_loop(app));
+    });
+
+    let state = q::net::server::ServerState::new(snap_tx, seed);
+    let router = q::net::server::router(state);
+
+    tracing::info!(%addr, %seed, "td-server listening");
 
     let listener = TcpListener::bind(addr).await?;
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    let serve = axum::serve(listener, router).with_graceful_shutdown(shutdown_signal());
+
+    if let Err(e) = serve.await {
+        tracing::error!("serve error: {e}");
+    }
+
+    // The sim task lives on a current-thread runtime inside spawn_blocking;
+    // letting main return drops the JoinHandle and the process exits.
+    drop(sim_handle);
     Ok(())
 }
 
