@@ -101,6 +101,7 @@ export type BuildKind =
 	| 'repair'
 	| 'armoury'
 	| 'village'
+	| 'town'
 	| 'castle'
 	| 'nexus';
 
@@ -171,6 +172,13 @@ export interface VillageSpec extends BuildSpecBase {
 	goldPerWave: number;
 }
 
+export interface TownSpec extends BuildSpecBase {
+	kind: 'town';
+	power: number;
+	goldPerWaveBase: number;
+	goldPerWavePerWave: number;
+}
+
 export interface NexusSpec extends BuildSpecBase {
 	kind: 'nexus';
 }
@@ -219,6 +227,7 @@ export type BuildSpec =
 	| RepairSpec
 	| ArmourySpec
 	| VillageSpec
+	| TownSpec
 	| CastleSpec
 	| NexusSpec;
 
@@ -236,6 +245,7 @@ export type BatteryId = 'battery';
 export type RepairId = 'repair';
 export type ArmouryId = 'armoury';
 export type VillageId = 'village';
+export type TownId = 'town';
 export type CastleId = 'castle';
 export type NexusId = 'nexus';
 export type BuildId =
@@ -245,6 +255,7 @@ export type BuildId =
 	| RepairId
 	| ArmouryId
 	| VillageId
+	| TownId
 	| CastleId
 	| NexusId;
 
@@ -573,6 +584,21 @@ export const VILLAGE_CATALOG: Record<VillageId, VillageSpec> = {
 	},
 };
 
+export const TOWN_CATALOG: Record<TownId, TownSpec> = {
+	town: {
+		id: 'town',
+		name: 'Town',
+		kind: 'town',
+		cost: 0,
+		maxHp: 720,
+		defense: 8,
+		power: 6,
+		goldPerWaveBase: 50,
+		goldPerWavePerWave: 1,
+		color: 0xf6ad55,
+	},
+};
+
 export const ARMOURY_CATALOG: Record<ArmouryId, ArmourySpec> = {
 	armoury: {
 		id: 'armoury',
@@ -807,6 +833,7 @@ export function specFor(id: BuildId): BuildSpec {
 	if (id in REPAIR_CATALOG) return REPAIR_CATALOG[id as RepairId];
 	if (id in ARMOURY_CATALOG) return ARMOURY_CATALOG[id as ArmouryId];
 	if (id in VILLAGE_CATALOG) return VILLAGE_CATALOG[id as VillageId];
+	if (id in TOWN_CATALOG) return TOWN_CATALOG[id as TownId];
 	if (id in CASTLE_CATALOG) return CASTLE_CATALOG[id as CastleId];
 	return NEXUS_CATALOG[id as NexusId];
 }
