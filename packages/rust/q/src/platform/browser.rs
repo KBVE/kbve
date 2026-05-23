@@ -164,7 +164,7 @@ impl GodotBrowser {
             let rect = {
                 let viewport_size = self
                     .base()
-                    .get_tree()
+                    .get_tree_or_null()
                     .and_then(|tree| tree.get_root())
                     .map(|viewport| viewport.get_size())
                     .unwrap_or(Vector2i::new(800, 600));

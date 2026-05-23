@@ -37,18 +37,18 @@ struct Q;
 #[gdextension]
 unsafe impl ExtensionLibrary for Q {
     #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
-    fn on_level_init(level: InitLevel) {
+    fn on_stage_init(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
-        if level == InitLevel::Scene {
+        if stage == godot::init::InitStage::Scene {
             let mut engine = godot::classes::Engine::singleton();
             engine.register_singleton(RuntimeManager::SINGLETON, &RuntimeManager::new_alloc());
         }
     }
 
     #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
-    fn on_level_deinit(level: InitLevel) {
+    fn on_stage_deinit(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
-        if level == InitLevel::Scene {
+        if stage == godot::init::InitStage::Scene {
             let mut engine = godot::classes::Engine::singleton();
             if let Some(singleton) = engine.get_singleton(RuntimeManager::SINGLETON) {
                 engine.unregister_singleton(RuntimeManager::SINGLETON);
@@ -61,12 +61,6 @@ unsafe impl ExtensionLibrary for Q {
             }
         }
     }
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-    fn on_level_init(_level: InitLevel) {}
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-    fn on_level_deinit(_level: InitLevel) {}
 }
 
 // -----------------------------------------------------------------------------
