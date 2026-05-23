@@ -214,6 +214,7 @@ jobs:
             project: ${{ needs.config.outputs.e2e_name }}
             runner: ${{ needs.config.outputs.runner }}
             image: ${{ needs.config.outputs.image }}
+            install_playwright: false
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
 
