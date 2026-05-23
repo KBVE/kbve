@@ -73,7 +73,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Run NX Command
               shell: bash

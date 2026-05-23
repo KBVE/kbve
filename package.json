@@ -221,8 +221,8 @@
 		"includedScripts": []
 	},
 	"scripts": {
-		"postinstall": "pnpm exec playwright install chromium",
-		"prepare": "husky"
+		"prepare": "husky",
+		"setup:e2e": "pnpm exec playwright install chromium"
 	},
 	"pnpm": {
 		"minimumReleaseAge": 720,

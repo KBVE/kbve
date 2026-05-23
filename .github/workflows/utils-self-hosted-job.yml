@@ -186,7 +186,7 @@ jobs:
 
             - name: Install pnpm Dependencies
               if: inputs.setup_node
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Setup Nx Cache
               if: inputs.setup_node
