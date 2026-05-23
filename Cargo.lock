@@ -12841,6 +12841,7 @@ dependencies = [
  "godot",
  "http 1.4.0",
  "infer",
+ "jsonwebtoken 9.3.1",
  "objc2 0.6.4",
  "postcard",
  "rapier2d",
