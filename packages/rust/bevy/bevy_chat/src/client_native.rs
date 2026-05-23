@@ -145,7 +145,7 @@ impl ChatClient {
         // frame so the IRC gateway sees one complete command per frame.
         tokio::spawn(async move {
             while let Some(line) = out_rx.recv().await {
-                if sink.send(WsMessage::Text(line.into())).await.is_err() {
+                if sink.send(WsMessage::Text(line)).await.is_err() {
                     break;
                 }
             }

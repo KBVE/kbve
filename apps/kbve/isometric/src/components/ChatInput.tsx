@@ -46,7 +46,8 @@ export function ChatInput() {
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
-			// Ignore keystrokes while already typing into another input.
+			// Ignore keystrokes while typing into the chat input itself
+			// (and forward Escape so the user can close it).
 			const target = e.target as HTMLElement | null;
 			if (target && target.tagName === 'INPUT') {
 				if (target === inputRef.current && e.key === 'Escape') {
@@ -55,9 +56,15 @@ export function ChatInput() {
 				}
 				return;
 			}
-			if (e.key === 'T' || e.key === 't') {
+			// `KeyboardEvent.code` is layout-independent ("KeyT") so the
+			// hotkey works on AZERTY / Dvorak. `key` is the layout-aware
+			// fallback for older browsers.
+			const isOpenChat =
+				e.code === 'KeyT' || e.key === 'T' || e.key === 't';
+			if (isOpenChat && !open) {
 				if (!e.metaKey && !e.ctrlKey && !e.altKey) {
 					e.preventDefault();
+					e.stopPropagation();
 					setOpen(true);
 				}
 			} else if (e.key === 'Escape' && open) {
@@ -65,8 +72,15 @@ export function ChatInput() {
 				setValue('');
 			}
 		};
+		// Both the standard bubble phase listener and the capture phase
+		// listener so we win over both Bevy's keyboard pickup and any
+		// inline window-level forwarders attached earlier in capture.
 		window.addEventListener('keydown', onKeyDown, true);
-		return () => window.removeEventListener('keydown', onKeyDown, true);
+		window.addEventListener('keydown', onKeyDown, false);
+		return () => {
+			window.removeEventListener('keydown', onKeyDown, true);
+			window.removeEventListener('keydown', onKeyDown, false);
+		};
 	}, [open]);
 
 	useEffect(() => {
