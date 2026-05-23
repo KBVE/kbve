@@ -19,11 +19,14 @@
 ARG ACTIONS_RUNNER_VERSION=2.334.0
 ARG KUBECTL_VERSION=1.31.0
 ARG DBMATE_VERSION=2.28.0
+ARG NODE_VERSION=24.16.0
+ARG PNPM_VERSION=10.33.0
+ARG PLAYWRIGHT_VERSION=1.59.1
 
 FROM --platform=linux/amd64 ghcr.io/actions/actions-runner:${ACTIONS_RUNNER_VERSION} AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/kbve/kbve"
-LABEL org.opencontainers.image.description="KBVE arc-runner-set image — actions-runner + git-lfs/unzip/jq/xz/gh + kubectl/dbmate/envsubst/postgresql-client."
+LABEL org.opencontainers.image.description="KBVE arc-runner-set image — actions-runner + git-lfs/unzip/jq/xz/gh + kubectl/dbmate/envsubst/postgresql-client + node/pnpm/playwright-chromium."
 LABEL org.opencontainers.image.licenses="MIT"
 
 USER root
@@ -90,5 +93,39 @@ RUN set -eux; \
     psql --version >/dev/null; \
     envsubst --version >/dev/null; \
     protoc --version >/dev/null
+
+# node + pnpm + playwright chromium
+#
+# Baked at image-build time so per-job `pnpm exec playwright install` is a
+# no-op cache hit at PLAYWRIGHT_BROWSERS_PATH. Avoids the libuv-threadpool
+# deadlock observed on arc-runner-set when playwright extracts chromium's
+# libwidevinecdm.so onto the pod's overlayfs at runtime.
+#
+# Keep NODE_VERSION/PNPM_VERSION/PLAYWRIGHT_VERSION in lockstep with
+# package.json + .github/workflows/* (actions/setup-node, pnpm/action-setup,
+# @playwright/test). Mismatch falls back to per-job install and re-opens
+# the deadlock.
+ARG NODE_VERSION
+ARG PNPM_VERSION
+ARG PLAYWRIGHT_VERSION
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+RUN set -eux; \
+    curl -fsSL -o /tmp/node.tar.xz \
+        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"; \
+    curl -fsSL -o /tmp/node.shasums \
+        "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt"; \
+    grep "node-v${NODE_VERSION}-linux-x64.tar.xz" /tmp/node.shasums | sha256sum -c -; \
+    tar -xJf /tmp/node.tar.xz -C /opt; \
+    ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/node" /usr/local/bin/node; \
+    ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/npm" /usr/local/bin/npm; \
+    ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/npx" /usr/local/bin/npx; \
+    rm /tmp/node.tar.xz /tmp/node.shasums; \
+    npm install -g "pnpm@${PNPM_VERSION}"; \
+    mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}"; \
+    npx --yes "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium; \
+    chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}"; \
+    node --version >/dev/null; \
+    pnpm --version >/dev/null; \
+    test -d "${PLAYWRIGHT_BROWSERS_PATH}/chromium-"*/chrome-linux*
 
 USER runner
