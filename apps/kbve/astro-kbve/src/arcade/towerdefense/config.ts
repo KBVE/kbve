@@ -592,7 +592,7 @@ export const TOWN_CATALOG: Record<TownId, TownSpec> = {
 		cost: 0,
 		maxHp: 720,
 		defense: 8,
-		power: 2,
+		power: 6,
 		goldPerWaveBase: 50,
 		goldPerWavePerWave: 1,
 		color: 0xf6ad55,
