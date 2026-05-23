@@ -3,7 +3,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.157",
+			"version": "1.0.169",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -24,7 +24,8 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/arc-runner",
 			"deployment_yamls": [
-				"apps/kube/github/runners/manifests/values-kbve.yaml"
+				"apps/kube/github/runners/manifests/values-kbve.yaml",
+				"apps/kube/github/runners/manifests/values.yaml"
 			],
 			"has_test": false
 		},
@@ -124,7 +125,7 @@
 		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
-			"version": "0.1.36",
+			"version": "0.1.41",
 			"version_toml": "apps/vm/firecracker-ctl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
 			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
@@ -208,7 +209,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.16",
+			"version": "0.1.18",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -245,7 +246,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.50",
+			"version": "1.0.57",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -265,7 +266,7 @@
 		{
 			"key": "mc_lobby",
 			"app_name": "mc-lobby",
-			"version": "1.0.7",
+			"version": "1.0.9",
 			"version_toml": "apps/mc/lobby/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
 			"source_path": "apps/mc/lobby",
@@ -278,7 +279,7 @@
 		{
 			"key": "mc_velocity",
 			"app_name": "mc-velocity",
-			"version": "1.1.8",
+			"version": "1.1.9",
 			"version_toml": "apps/mc/velocity/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
 			"source_path": "apps/mc/velocity",
@@ -319,7 +320,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.23",
+			"version": "0.1.24",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
