@@ -9,9 +9,9 @@ func _ready() -> void:
 	var msg: String = ping.pong()
 	var sum: int = ping.add(2, 3)
 	ping.queue_free()
-	status_label.text = "Godot %s · gecs + nd-native · %s · 2+3=%d" % [
+	status_label.text = "Godot %s · gecs + q · %s · 2+3=%d" % [
 		Engine.get_version_info()["string"],
 		msg,
 		sum,
 	]
-	print("[nexus-defense] main scene ready — nd-native pong: %s" % msg)
+	print("[nexus-defense] main scene ready — q::nexus_defense pong: %s" % msg)

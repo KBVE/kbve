@@ -18,7 +18,7 @@ impl INode for NdPing {
 impl NdPing {
     #[func]
     fn pong(&self) -> GString {
-        GString::from("nd-native online")
+        GString::from("q::nexus_defense online")
     }
 
     #[func]
