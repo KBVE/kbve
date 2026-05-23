@@ -141,6 +141,10 @@ vitest.config.*.timestamp*
 **/bin/Debug/
 **/bin/Release/
 **/obj/
+# Godot gdext native binaries live under bin/debug/ + bin/release/ (lowercase);
+# macOS is case-insensitive so the .NET rules above would swallow them.
+!apps/godot/**/addons/**/bin/
+!apps/godot/**/addons/**/bin/**
 /artifacts/
 *.user
 *.suo
