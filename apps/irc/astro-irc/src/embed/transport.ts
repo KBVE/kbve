@@ -172,6 +172,32 @@ export async function connect(
 	}
 }
 
+export async function reconnectWithToken(token: string): Promise<void> {
+	if (!token || !state.url) return;
+	state.manualClose = true;
+	try {
+		state.ws?.close(1000, 'upgrade-auth');
+	} catch {
+		/* ignore */
+	}
+	state.ws = null;
+	state.manualClose = false;
+	state.reconnectAttempts = 0;
+	state.token = token;
+	$canSend.set(true);
+	$connectionStatus.set('connecting');
+	$error.set('');
+	try {
+		await openSocket();
+	} catch {
+		/* onclose handles reconnect */
+	}
+}
+
+export function getDefaultChannel(): string {
+	return state.defaultChannel;
+}
+
 export function disconnect(): void {
 	state.manualClose = true;
 	if (state.reconnectTimer !== null) {
