@@ -2,10 +2,14 @@ import Phaser from 'phaser';
 import {
 	ARMOURY_CATALOG,
 	BATTERY_CATALOG,
+	CASTLE_CATALOG,
 	ENEMY_CATALOG,
 	GENERATOR_CATALOG,
+	NEXUS_CATALOG,
 	REPAIR_CATALOG,
 	TOWER_CATALOG,
+	TOWN_CATALOG,
+	VILLAGE_CATALOG,
 	type BuildId,
 	type EnemyTypeId,
 	type TowerId,
@@ -121,6 +125,14 @@ const BUILD_CATALOG_COLORS: Record<BuildId, number> = (() => {
 		out[id] = REPAIR_CATALOG[id as keyof typeof REPAIR_CATALOG].color;
 	for (const id in ARMOURY_CATALOG)
 		out[id] = ARMOURY_CATALOG[id as keyof typeof ARMOURY_CATALOG].color;
+	for (const id in VILLAGE_CATALOG)
+		out[id] = VILLAGE_CATALOG[id as keyof typeof VILLAGE_CATALOG].color;
+	for (const id in TOWN_CATALOG)
+		out[id] = TOWN_CATALOG[id as keyof typeof TOWN_CATALOG].color;
+	for (const id in CASTLE_CATALOG)
+		out[id] = CASTLE_CATALOG[id as keyof typeof CASTLE_CATALOG].color;
+	for (const id in NEXUS_CATALOG)
+		out[id] = NEXUS_CATALOG[id as keyof typeof NEXUS_CATALOG].color;
 	return out as Record<BuildId, number>;
 })();
 

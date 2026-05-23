@@ -7,6 +7,7 @@ import type {
 	NexusSpec,
 	RepairSpec,
 	TowerSpec,
+	TownSpec,
 	VillageSpec,
 } from './config';
 
@@ -61,6 +62,12 @@ export interface VillageBuilding extends BaseBuilding {
 	powerIndicator: Phaser.GameObjects.Arc;
 }
 
+export interface TownBuilding extends BaseBuilding {
+	kind: 'town';
+	spec: TownSpec;
+	powerIndicator: Phaser.GameObjects.Arc;
+}
+
 export interface CastleBuilding extends BaseBuilding {
 	kind: 'castle';
 	spec: CastleSpec;
@@ -79,5 +86,6 @@ export type Building =
 	| RepairBuilding
 	| ArmouryBuilding
 	| VillageBuilding
+	| TownBuilding
 	| CastleBuilding
 	| NexusBuilding;

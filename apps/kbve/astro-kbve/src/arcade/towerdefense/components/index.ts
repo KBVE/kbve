@@ -67,6 +67,7 @@ export {
 	RepairTag,
 	ArmouryTag,
 	VillageTag,
+	TownTag,
 	CastleTag,
 	NexusTag,
 	StunDroneTag,
