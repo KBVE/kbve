@@ -31,7 +31,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gecs/plugin.cfg")
+enabled=PackedStringArray("res://addons/gecs/plugin.cfg", "res://addons/gdUnit4/plugin.cfg")
 
 [input]
 

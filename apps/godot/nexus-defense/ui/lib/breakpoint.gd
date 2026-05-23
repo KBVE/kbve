@@ -15,14 +15,17 @@ func _ready() -> void:
 
 func _recompute() -> void:
 	var w: float = get_viewport().get_visible_rect().size.x
-	var k := Klass.DESKTOP
-	if w <= MOBILE_MAX:
-		k = Klass.MOBILE
-	elif w <= TABLET_MAX:
-		k = Klass.TABLET
+	var k := classify(w)
 	if k != current:
 		current = k
 		changed.emit(k)
+
+static func classify(width: float) -> int:
+	if width <= MOBILE_MAX:
+		return Klass.MOBILE
+	if width <= TABLET_MAX:
+		return Klass.TABLET
+	return Klass.DESKTOP
 
 func name_of(k: int = -1) -> String:
 	if k == -1:
