@@ -114,13 +114,16 @@ export function unmount(el: HTMLElement | string): void {
 
 // ---------------------------------------------------------------------------
 // Auto-discover: scan the page on script load for elements tagged with
-//   <div id="kbve-chat" data-channel="..." data-ws="..." data-theme="..." />
-// and mount them. Hosts that prefer programmatic control can ignore this
+//   <div data-kbve-chat data-channel="..." data-ws="..." data-theme="..." />
+// or any id beginning with "kbve-chat" (kbve-chat, kbve-chat-home,
+// kbve-chat-embed, ...). The id prefix is forgiving because host pages
+// often need multiple mounts on the same page and bare `id="kbve-chat"`
+// can't repeat. Hosts that prefer programmatic control can ignore this
 // and call window.KbveChat.mount({...}) themselves.
 // ---------------------------------------------------------------------------
 function autoMount(): void {
 	const targets = document.querySelectorAll<HTMLElement>(
-		'[data-kbve-chat], #kbve-chat',
+		'[data-kbve-chat], [id^="kbve-chat"]',
 	);
 	for (const el of Array.from(targets)) {
 		if (instances.has(el)) continue;

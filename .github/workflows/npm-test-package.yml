@@ -46,7 +46,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud

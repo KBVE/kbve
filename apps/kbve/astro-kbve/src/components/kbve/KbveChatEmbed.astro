@@ -11,6 +11,7 @@ const { channel = '#general', height = '70vh', theme = 'auto' } = Astro.props;
 <div class="kbve-chat-embed-wrapper not-content">
 	<div
 		id="kbve-chat-embed"
+		data-kbve-chat
 		data-channel={channel}
 		data-ws="wss://chat.kbve.com/ws"
 		data-height={height}

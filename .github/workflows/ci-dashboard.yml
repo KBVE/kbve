@@ -89,7 +89,7 @@ jobs:
                   run_install: false
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Setup Python
               uses: actions/setup-python@v6
@@ -323,7 +323,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Setup Nx Cache
               uses: actions/cache@v5
@@ -1052,7 +1052,7 @@ jobs:
                   run_install: false
 
             - name: Install dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Regenerate all proto schemas
               run: npx tsx packages/data/codegen/gen-all.mjs

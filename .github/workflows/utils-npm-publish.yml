@@ -64,7 +64,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Sync version from source to package.json
               if: ${{ inputs.version_source != '' && inputs.version_target != '' }}

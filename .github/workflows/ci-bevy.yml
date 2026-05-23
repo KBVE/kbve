@@ -136,7 +136,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install project-local npm dependencies
               working-directory: apps/kbve/isometric
