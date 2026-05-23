@@ -44,10 +44,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         rt.block_on(run_sim_loop(app));
     });
 
-    let state = q::net::server::ServerState::new(snap_tx, seed);
+    let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
+        .unwrap_or_default()
+        .into_bytes();
+    let auth_mode = if jwt_secret.is_empty() {
+        "dev-accept (SUPABASE_JWT_SECRET unset)"
+    } else {
+        "supabase HS256"
+    };
+
+    let state = q::net::server::ServerState::new(snap_tx, seed, jwt_secret);
     let router = q::net::server::router(state);
 
-    tracing::info!(%addr, %seed, "td-server listening");
+    tracing::info!(%addr, %seed, auth = %auth_mode, "td-server listening");
 
     let listener = TcpListener::bind(addr).await?;
     let serve = axum::serve(listener, router).with_graceful_shutdown(shutdown_signal());

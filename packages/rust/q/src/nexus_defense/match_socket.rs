@@ -11,7 +11,7 @@ use godot::classes::INode;
 use godot::prelude::*;
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::proto::{self, ServerEvent};
+use crate::proto::{self, ClientMessage, ServerEvent};
 use crate::threads::runtime::RuntimeManager;
 
 enum Outbound {
@@ -133,16 +133,22 @@ impl MatchSocket {
     #[signal]
     fn decode_error(detail: GString);
 
-    /// Open a connection to the given `ws://host:port/ws` URL.
+    /// Open a connection and send the JoinMatch handshake.
     /// Returns immediately; the actual connect happens on the tokio runtime.
+    /// `jwt` is a Supabase access token; `kbve_username` is sent for logging.
     #[func]
-    fn connect_to(&mut self, url: GString) {
+    fn connect_to(&mut self, url: GString, jwt: GString, kbve_username: GString) {
         if self.inbound_rx.is_some() {
             godot_warn!("[MatchSocket] connect_to called while already connected");
             return;
         }
 
         let url_str = url.to_string();
+        let join = proto::JoinMatch {
+            protocol: proto::PROTOCOL_VERSION,
+            jwt: jwt.to_string(),
+            kbve_username: kbve_username.to_string(),
+        };
         let (inbound_tx, inbound_rx) = unbounded::<Inbound>();
         let (outbound_tx, outbound_rx) = unbounded::<Outbound>();
         self.inbound_rx = Some(inbound_rx);
@@ -160,7 +166,7 @@ impl MatchSocket {
         let runtime = runtime_gd.bind();
 
         runtime.spawn(async move {
-            run_socket(url_str, inbound_tx, outbound_rx).await;
+            run_socket(url_str, join, inbound_tx, outbound_rx).await;
         });
     }
 
@@ -170,13 +176,13 @@ impl MatchSocket {
             Some(t) => t.clone(),
             None => return,
         };
-        let frame = proto::ClientFrame {
+        let msg = ClientMessage::Frame(proto::ClientFrame {
             client_tick: client_tick as u32,
             inputs: vec![proto::Input::Heartbeat {
                 client_tick: client_tick as u32,
             }],
-        };
-        match proto::encode(&frame) {
+        });
+        match proto::encode(&msg) {
             Ok(buf) => {
                 let _ = tx.send(Outbound::Send(buf));
             }
@@ -200,7 +206,12 @@ impl MatchSocket {
     }
 }
 
-async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
+async fn run_socket(
+    url: String,
+    join: proto::JoinMatch,
+    tx: Sender<Inbound>,
+    rx: Receiver<Outbound>,
+) {
     let (ws_stream, _) = match tokio_tungstenite::connect_async(&url).await {
         Ok(s) => s,
         Err(e) => {
@@ -213,6 +224,26 @@ async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
     let _ = tx.send(Inbound::Connected);
 
     let (mut writer, mut reader) = ws_stream.split();
+
+    // Send the JoinMatch handshake immediately. Server holds Welcome until it
+    // verifies the JWT.
+    let join_msg = ClientMessage::JoinMatch(join);
+    match proto::encode(&join_msg) {
+        Ok(buf) => {
+            if writer.send(Message::Binary(buf)).await.is_err() {
+                let _ = tx.send(Inbound::Disconnected {
+                    reason: "join send failed".into(),
+                });
+                return;
+            }
+        }
+        Err(e) => {
+            let _ = tx.send(Inbound::Disconnected {
+                reason: format!("join encode failed: {e}"),
+            });
+            return;
+        }
+    }
 
     // Outbound pump — pull from crossbeam channel, push onto the ws.
     let writer_tx = tx.clone();

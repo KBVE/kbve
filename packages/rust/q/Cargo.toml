@@ -46,9 +46,19 @@ net-server = ["server", "proto-server", "dep:axum", "dep:tokio-tungstenite", "de
 # Bevy ECS app for server flavors. Server-only — clients use their host engine.
 bevy-server = ["server", "dep:bevy"]
 
+# Supabase JWT verification — used by the server flavor to admit players.
+supabase-auth = ["server", "dep:jsonwebtoken"]
+
 # Game bundles — convenience rollups consumed by build pipelines / sync scripts.
 nexus-defense = ["client", "proto-client", "rapier2d-client", "net-client"]
-nexus-defense-server = ["server", "proto-server", "rapier2d-server", "net-server", "bevy-server"]
+nexus-defense-server = [
+    "server",
+    "proto-server",
+    "rapier2d-server",
+    "net-server",
+    "bevy-server",
+    "supabase-auth",
+]
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -78,6 +88,9 @@ bevy = { version = "0.18", optional = true, default-features = false, features =
 tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
 axum = { version = "0.7", optional = true, default-features = false, features = ["ws", "json"] }
 futures-util = { version = "0.3", optional = true, default-features = false, features = ["sink", "std"] }
+
+# Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
+jsonwebtoken = { version = "9.3", optional = true, default-features = false }
 
 # -----------------------------------------------------------------------------
 # Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).

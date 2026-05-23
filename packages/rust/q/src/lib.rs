@@ -75,6 +75,9 @@ pub mod rapier;
 #[cfg(any(feature = "net-client", feature = "net-server"))]
 pub mod net;
 
+#[cfg(feature = "supabase-auth")]
+pub mod auth;
+
 #[cfg(feature = "nexus-defense")]
 pub mod nexus_defense;
 

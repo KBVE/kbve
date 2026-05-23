@@ -1,6 +1,11 @@
 extends Node2D
 
 const SERVER_URL := "ws://127.0.0.1:7878/ws"
+# Dev placeholder — swapped for a live Supabase access token from the auth UI
+# once that lands. Server runs in dev-accept mode when SUPABASE_JWT_SECRET is
+# unset and admits any non-empty username.
+const DEV_JWT := "dev"
+const DEV_USERNAME := "h0lybyte"
 
 var _wave: int = 1
 var _lives: int = 20
@@ -29,8 +34,8 @@ func _ready() -> void:
 		socket.connect("snapshot", _on_snapshot)
 		socket.connect("disconnected", _on_disconnected)
 		socket.connect("decode_error", _on_decode_error)
-		_log("dialing %s" % SERVER_URL)
-		socket.call("connect_to", SERVER_URL)
+		_log("dialing %s as %s" % [SERVER_URL, DEV_USERNAME])
+		socket.call("connect_to", SERVER_URL, DEV_JWT, DEV_USERNAME)
 	else:
 		_log("MatchSocket class unavailable — running offline")
 
