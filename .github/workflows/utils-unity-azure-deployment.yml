@@ -110,7 +110,7 @@ jobs:
                       Library-${{ inputs.project_path }}-
 
             - name: Build with Unity
-              uses: game-ci/unity-builder@v4
+              uses: game-ci/unity-builder@v5
               env:
                   UNITY_LICENSE: ${{ secrets.unity_license }}
                   UNITY_EMAIL: ${{ secrets.unity_email }}
