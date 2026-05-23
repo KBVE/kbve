@@ -39,12 +39,16 @@ rapier2d-client = ["client", "dep:rapier2d"]
 rapier2d-server = ["server", "dep:rapier2d"]
 
 # Networking — WS client for the Godot extension, axum for the server.
-net-client = ["client", "dep:tokio-tungstenite", "dep:futures-util"]
-net-server = ["server", "dep:axum", "dep:tokio-tungstenite"]
+# Both sides require proto-* for wire framing.
+net-client = ["client", "proto-client", "dep:tokio-tungstenite", "dep:futures-util"]
+net-server = ["server", "proto-server", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
+
+# Bevy ECS app for server flavors. Server-only — clients use their host engine.
+bevy-server = ["server", "dep:bevy"]
 
 # Game bundles — convenience rollups consumed by build pipelines / sync scripts.
 nexus-defense = ["client", "proto-client", "rapier2d-client", "net-client"]
-nexus-defense-server = ["server", "proto-server", "rapier2d-server", "net-server"]
+nexus-defense-server = ["server", "proto-server", "rapier2d-server", "net-server", "bevy-server"]
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -66,6 +70,9 @@ bincode = { version = "2.0", optional = true, features = ["serde"] }
 
 # Physics
 rapier2d = { version = "0.22", optional = true }
+
+# Bevy ECS — headless server. No render, no winit; we drive App::update from a tokio task.
+bevy = { version = "0.18", optional = true, default-features = false, features = ["bevy_state"] }
 
 # Networking
 tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
