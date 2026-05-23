@@ -77,8 +77,21 @@ func _on_welcome(slot: int, seed: int) -> void:
 	_log("welcome: slot=%d seed=0x%x" % [slot, seed])
 	Ui.toast("Welcome — slot %d" % slot, 2.0, "info")
 
-func _on_snapshot(tick: int) -> void:
-	_log("snapshot tick=%d" % tick)
+var _last_snapshot_log_tick: int = -1
+
+func _on_snapshot(tick: int, wave: int, enemy_count: int, gold: int, lives: int) -> void:
+	# Throttle log spam — only print once per second (10 snapshots) and on wave change.
+	var wave_changed: bool = wave != _wave
+	if wave_changed:
+		_wave = wave
+		Ui.open("wave_banner", {"title": "Wave %d" % wave, "subtitle": "%d enemies inbound" % enemy_count})
+	_lives = lives
+	_gold = gold
+	_enemies = enemy_count
+	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed:
+		_last_snapshot_log_tick = tick
+		_log("snapshot tick=%d wave=%d enemies=%d gold=%d lives=%d" % [tick, wave, enemy_count, gold, lives])
 
 func _on_disconnected(reason: String) -> void:
 	_log("disconnected: %s" % reason)
