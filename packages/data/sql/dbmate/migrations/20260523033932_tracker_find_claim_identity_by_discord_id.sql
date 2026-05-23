@@ -2,6 +2,9 @@
 
 CREATE SCHEMA IF NOT EXISTS tracker;
 
+REVOKE ALL ON SCHEMA tracker FROM PUBLIC, anon, authenticated;
+GRANT USAGE ON SCHEMA tracker TO service_role;
+
 CREATE OR REPLACE FUNCTION tracker.find_claim_identity_by_discord_id(
     p_discord_id TEXT
 )
@@ -31,8 +34,11 @@ BEGIN
     FROM auth.identities d
     LEFT JOIN LATERAL (
         SELECT
-            (gi.identity_data->>'user_name')::TEXT AS github_login,
-            gi.provider_id::TEXT                   AS github_id
+            COALESCE(
+                gi.identity_data->>'user_name',
+                gi.identity_data->>'preferred_username'
+            )::TEXT                 AS github_login,
+            gi.provider_id::TEXT    AS github_id
         FROM auth.identities gi
         WHERE gi.user_id = d.user_id
           AND gi.provider = 'github'
@@ -57,7 +63,7 @@ GRANT EXECUTE ON FUNCTION tracker.find_claim_identity_by_discord_id(TEXT)
 TO service_role;
 
 COMMENT ON FUNCTION tracker.find_claim_identity_by_discord_id(TEXT) IS
-'Resolves a Discord snowflake to KBVE user_id + (optional) linked GitHub login/id + (optional) profile.username in one round-trip. Empty result = no auth.identities row for the snowflake (or invalid input shape). NULL github_login = KBVE account exists but no GitHub identity linked. NULL kbve_username = no profile.username row yet. LATERAL join on github keeps results stable when a user has multiple github links (picks latest). Input is validated against ^[0-9]{15,25}$ to reject probes for non-snowflake provider_ids. SECURITY DEFINER with empty search_path; every reference is schema-qualified. Used by discordsh /gh claim.';
+'Resolves a Discord snowflake to KBVE user_id + (optional) linked GitHub login/id + (optional) profile.username in one round-trip. Empty result = no auth.identities row for the snowflake (or invalid input shape). NULL github_login = KBVE account exists but no GitHub identity linked. NULL kbve_username = no profile.username row yet. LATERAL join on github keeps results stable when a user has multiple github links (picks latest by created_at). github_login extracted via COALESCE(user_name, preferred_username) since the claim name differs across GitHub OAuth scopes. Input is gated by ^[0-9]{15,25}$ in WHERE so non-snowflake probes short-circuit to empty result. SECURITY DEFINER with empty search_path; every reference schema-qualified. Used by discordsh /gh claim.';
 
 NOTIFY pgrst, 'reload schema';
 
