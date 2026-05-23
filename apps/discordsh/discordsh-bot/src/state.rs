@@ -7,7 +7,7 @@ use poise::serenity_prelude as serenity;
 use tokio::sync::{Notify, RwLock};
 
 use bevy_db::NativeStore;
-use kbve::{FontDb, MemberCache};
+use kbve::{FontDb, GithubStore, MemberCache};
 
 use bevy_chat::ChatClient;
 
@@ -95,6 +95,10 @@ pub struct AppState {
 
     /// Cached GitHub labels and issues for reduced API calls.
     pub github_cache: GitHubCache,
+
+    /// L2 read-through cache backed by Supabase `gh.issue`. `is_enabled()` is
+    /// false when `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` are missing.
+    pub github_store: Arc<GithubStore>,
 
     /// Optional IRC client for cross-platform chat and world events.
     /// `None` if IRC is unavailable or not configured.
@@ -231,6 +235,7 @@ impl AppState {
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
+            github_store: Arc::new(GithubStore::from_env()),
             irc,
             relay,
             local_db,
