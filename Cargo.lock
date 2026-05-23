@@ -1598,7 +1598,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.168"
+version = "1.0.169"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -12838,6 +12838,7 @@ dependencies = [
  "bitflags 2.11.0",
  "crossbeam-channel",
  "dashmap 6.1.0",
+ "futures-util",
  "godot",
  "http 1.4.0",
  "infer",
@@ -16152,6 +16153,17 @@ dependencies = [
  "futures-io",
  "p12-keystore",
  "rustls-connector",
+]
+
+[[package]]
+name = "td-server"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "q",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
