@@ -1,0 +1,27 @@
+[package]
+name = "nd-native"
+version = "0.1.0"
+edition = "2021"
+resolver = "2"
+
+[lib]
+name = "nd_native"
+crate-type = ["cdylib"]
+
+[features]
+default = []
+debug_logs = []
+
+[dependencies]
+godot = { version = "0.5.3", features = [
+    "experimental-wasm",
+    "experimental-threads",
+] }
+crossbeam-channel = "0.5"
+parking_lot = "0.12"
+once_cell = "1.21"
+bincode = { version = "2.0", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }

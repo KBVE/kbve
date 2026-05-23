@@ -1,0 +1,10 @@
+.godot/
+.import/
+export_presets.cfg
+*.translation
+
+# nd-native build outputs — built locally via packages/rust/nd-native/sync.sh
+addons/nd_native/bin/**/*.dylib
+addons/nd_native/bin/**/*.so
+addons/nd_native/bin/**/*.dll
+addons/nd_native/bin/**/*.wasm
