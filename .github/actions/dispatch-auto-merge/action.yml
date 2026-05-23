@@ -1,0 +1,69 @@
+name: Dispatch auto-merge
+description: Trigger ci-auto-merge-bot-prs.yml via REST dispatch with PR number validation, retries, and run-creation check.
+
+inputs:
+    pr_number:
+        description: PR number to dispatch auto-merge for
+        required: true
+    workflow_file:
+        description: Auto-merge workflow filename
+        required: false
+        default: ci-auto-merge-bot-prs.yml
+    ref:
+        description: Ref to dispatch the workflow against
+        required: false
+        default: main
+    github_token:
+        description: Token with actions write permission on the target repo
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Dispatch
+          shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.github_token }}
+              PR_NUM: ${{ inputs.pr_number }}
+              WF: ${{ inputs.workflow_file }}
+              REF: ${{ inputs.ref }}
+              REPO: ${{ github.repository }}
+          run: |
+              set -uo pipefail
+
+              if ! [[ "$PR_NUM" =~ ^[0-9]+$ ]]; then
+                  echo "::error::Invalid pr_number '$PR_NUM' (must be digits)"
+                  exit 1
+              fi
+
+              dispatched=false
+              for attempt in 1 2 3; do
+                  if gh api \
+                      --method POST \
+                      "repos/${REPO}/actions/workflows/${WF}/dispatches" \
+                      -f "ref=${REF}" \
+                      -f "inputs[pr_number]=${PR_NUM}"; then
+                      dispatched=true
+                      echo "Dispatched ${WF} for PR #${PR_NUM} on attempt ${attempt}"
+                      break
+                  fi
+                  echo "::warning::Dispatch attempt ${attempt} failed for PR #${PR_NUM}"
+                  sleep $((attempt * 5))
+              done
+
+              if [[ "$dispatched" != "true" ]]; then
+                  echo "::error::Failed to dispatch ${WF} for PR #${PR_NUM} after 3 attempts"
+                  exit 1
+              fi
+
+              # Eventually-consistent run list; warn (not fail) if nothing shows.
+              for _ in 1 2 3; do
+                  sleep 5
+                  count=$(gh api "repos/${REPO}/actions/workflows/${WF}/runs?event=workflow_dispatch&per_page=5" \
+                      --jq "[.workflow_runs[] | select(.created_at > (now - 60 | todate))] | length")
+                  if [[ "${count:-0}" -ge 1 ]]; then
+                      echo "Confirmed ${WF} run scheduled (${count} recent dispatch run(s))"
+                      exit 0
+                  fi
+              done
+              echo "::warning::Dispatch succeeded but no recent run visible yet — auto-merge may still fire async"

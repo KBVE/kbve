@@ -152,6 +152,7 @@ jobs:
                   npx nx run astro-kbve:sync:ci-manifest
 
             - name: Create PR
+              id: pr
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |
@@ -190,5 +191,12 @@ jobs:
                     --label "auto-pr")
 
                   PR_NUM=$(echo "$PR_URL" | grep -o '[0-9]*$')
-                  echo "Created PR #${PR_NUM}, dispatching auto-merge..."
-                  gh workflow run ci-auto-merge-bot-prs.yml --field pr_number="${PR_NUM}" --repo ${{ github.repository }} || true
+                  echo "Created PR #${PR_NUM}"
+                  echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+
+            - name: Dispatch auto-merge
+              if: steps.pr.outputs.pr_number != ''
+              uses: ./.github/actions/dispatch-auto-merge
+              with:
+                  pr_number: ${{ steps.pr.outputs.pr_number }}
+                  github_token: ${{ github.token }}
