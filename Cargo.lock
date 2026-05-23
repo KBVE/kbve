@@ -1317,7 +1317,7 @@ dependencies = [
  "disqualified",
  "glam_matrix_extras",
  "itertools 0.13.0",
- "nalgebra",
+ "nalgebra 0.34.2",
  "parry3d",
  "parry3d-f64",
  "serde",
@@ -1368,11 +1368,14 @@ checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
  "axum-core 0.4.5",
+ "base64 0.22.1",
  "bytes",
  "futures-util",
  "http 1.4.0",
  "http-body 1.0.1",
  "http-body-util",
+ "hyper 1.9.0",
+ "hyper-util",
  "itoa",
  "matchit 0.7.3",
  "memchr",
@@ -1381,7 +1384,12 @@ dependencies = [
  "pin-project-lite",
  "rustversion",
  "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "sha1",
  "sync_wrapper 1.0.2",
+ "tokio",
+ "tokio-tungstenite 0.24.0",
  "tower 0.5.3",
  "tower-layer",
  "tower-service",
@@ -3476,6 +3484,12 @@ dependencies = [
 
 [[package]]
 name = "bit-vec"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
+
+[[package]]
+name = "bit-vec"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
@@ -4216,6 +4230,15 @@ dependencies = [
  "der",
  "spki",
  "x509-cert",
+]
+
+[[package]]
+name = "cobs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fa961b519f0b462e3a3b4a34b64d119eeaca1d59af726fe450bbba07a9fc0a1"
+dependencies = [
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -5766,6 +5789,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ef6b89e5b37196644d8796de5268852ff179b44e96276cf4290264843743bb7"
 
 [[package]]
+name = "embedded-io"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef1a6892d9eef45c8fa6b9e0086428a2cca8491aca8f787c534a3d6d0bcb3ced"
+
+[[package]]
+name = "embedded-io"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
+
+[[package]]
 name = "ena"
 version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6610,12 +6645,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5383f33a2772746bbc83e5b0480862dd1eedfd0518b976f37f3db11c81e71a6a"
 
 [[package]]
-name = "gdextension-api"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58ad9a3d877c77834a2d1d92842ebd56928f61bd52e0fac4f04fc8b3731b0437"
-
-[[package]]
 name = "gdk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7262,18 +7291,8 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5599d03afd17a511e11d0bf9e06c88d4095a9120f10cf00a74f50b300f53413e"
 dependencies = [
- "godot-core 0.4.5",
- "godot-macros 0.4.5",
-]
-
-[[package]]
-name = "godot"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71af3920bb1d3e14eb2e71644b140d26035fe3edc6b662db4575c439778b7ee7"
-dependencies = [
- "godot-core 0.5.3",
- "godot-macros 0.5.3",
+ "godot-core",
+ "godot-macros",
 ]
 
 [[package]]
@@ -7282,16 +7301,7 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f38b6e65306c05e3c3f0131ee8dbf7394691e53268d72019007ec20687f2280f"
 dependencies = [
- "gdextension-api 0.3.3",
-]
-
-[[package]]
-name = "godot-bindings"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9347553a03444bbdc1e802f35ea58b7b52c01ece19b081d327c87991db5fd46"
-dependencies = [
- "gdextension-api 0.5.0",
+ "gdextension-api",
 ]
 
 [[package]]
@@ -7301,36 +7311,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "738efef92fdcf1d92f0ed5a29c6f3cdce58e64029d08928c20e08771e1239c16"
 
 [[package]]
-name = "godot-cell"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdee833f1fe0bc3208062ede0626f552559dfdcc824ff5e6208aa922a0f509d1"
-
-[[package]]
 name = "godot-codegen"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b9a59f603f354c54d83fb74071209203d0ebe396b2419acc731c90ebf94680"
 dependencies = [
- "godot-bindings 0.4.5",
+ "godot-bindings",
  "heck 0.5.0",
  "nanoserde",
  "proc-macro2",
  "quote",
  "regex",
-]
-
-[[package]]
-name = "godot-codegen"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fac542f1dd9bdaeb7d537fa5ba499fb6d89b29e484061959930c45b509818af"
-dependencies = [
- "godot-bindings 0.5.3",
- "heck 0.5.0",
- "nanoserde",
- "proc-macro2",
- "quote",
 ]
 
 [[package]]
@@ -7340,23 +7331,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "989e80dfb58d2048ae0dca60bec32129dc1f96510f904b992ad170d84e950c33"
 dependencies = [
  "glam 0.30.10",
- "godot-bindings 0.4.5",
- "godot-cell 0.4.5",
- "godot-codegen 0.4.5",
- "godot-ffi 0.4.5",
-]
-
-[[package]]
-name = "godot-core"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d92e2c8b7f1fe46b59c8ecec5ed1156e7ad973e30c9133444b009462f8b09e06"
-dependencies = [
- "glam 0.32.1",
- "godot-bindings 0.5.3",
- "godot-cell 0.5.3",
- "godot-codegen 0.5.3",
- "godot-ffi 0.5.3",
+ "godot-bindings",
+ "godot-cell",
+ "godot-codegen",
+ "godot-ffi",
 ]
 
 [[package]]
@@ -7365,20 +7343,9 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6237b26c52c5baa6566705a73cd8804ea4ef83a666540939dd5a4e068c242666"
 dependencies = [
- "godot-bindings 0.4.5",
- "godot-codegen 0.4.5",
- "godot-macros 0.4.5",
- "libc",
-]
-
-[[package]]
-name = "godot-ffi"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0b34c2008795f645977bec2ebbc30a73b4f53ca2de54a0a93ff2cc2dffd10c9"
-dependencies = [
- "godot-bindings 0.5.3",
- "godot-codegen 0.5.3",
+ "godot-bindings",
+ "godot-codegen",
+ "godot-macros",
  "libc",
 ]
 
@@ -7388,19 +7355,7 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d696b67ba99ff7d75e07546b04c3a711651d2c9e5851c9225dea3b64f8bb5af6"
 dependencies = [
- "godot-bindings 0.4.5",
- "proc-macro2",
- "quote",
- "venial",
-]
-
-[[package]]
-name = "godot-macros"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1799cc35d0db5760a74f8f97de7d620e74542b76d5d41f38ea301fa2cb69882f"
-dependencies = [
- "godot-bindings 0.5.3",
+ "godot-bindings",
  "proc-macro2",
  "quote",
  "venial",
@@ -10504,6 +10459,22 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
+version = "0.33.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d43ddcacf343185dfd6de2ee786d9e8b1c2301622afab66b6c73baf9882abfd"
+dependencies = [
+ "approx",
+ "matrixmultiply",
+ "nalgebra-macros 0.2.2",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "simba",
+ "typenum",
+]
+
+[[package]]
+name = "nalgebra"
 version = "0.34.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df76ea0ff5c7e6b88689085804d6132ded0ddb9de5ca5b8aeb9eeadc0508a70a"
@@ -10528,13 +10499,24 @@ dependencies = [
  "glam 0.31.1",
  "glam 0.32.1",
  "matrixmultiply",
- "nalgebra-macros",
+ "nalgebra-macros 0.3.0",
  "num-complex",
  "num-rational",
  "num-traits",
  "serde",
  "simba",
  "typenum",
+]
+
+[[package]]
+name = "nalgebra-macros"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -10562,19 +10544,6 @@ name = "nanoserde-derive"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a846cbc04412cf509efcd8f3694b114fc700a035fb5a37f21517f9fb019f1ebc"
-
-[[package]]
-name = "nd-native"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossbeam-channel",
- "godot 0.5.3",
- "once_cell",
- "parking_lot",
- "serde",
- "tokio",
-]
 
 [[package]]
 name = "ndk"
@@ -11414,6 +11383,15 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
+version = "4.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "ordered-float"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e"
@@ -11577,6 +11555,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "parry2d"
+version = "0.17.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87edd53b1639e011e4765eecfceb0fa2c486da696dcdcfbc9a38bfc3574fb7e0"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.11.0",
+ "downcast-rs 1.2.1",
+ "either",
+ "ena",
+ "log",
+ "nalgebra 0.33.3",
+ "num-derive",
+ "num-traits",
+ "ordered-float 4.6.0",
+ "rustc-hash 2.1.2",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "parry3d"
 version = "0.25.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11591,7 +11594,7 @@ dependencies = [
  "foldhash 0.2.0",
  "hashbrown 0.16.1",
  "log",
- "nalgebra",
+ "nalgebra 0.34.2",
  "num-derive",
  "num-traits",
  "ordered-float 5.3.0",
@@ -11621,7 +11624,7 @@ dependencies = [
  "foldhash 0.2.0",
  "hashbrown 0.16.1",
  "log",
- "nalgebra",
+ "nalgebra 0.34.2",
  "num-derive",
  "num-traits",
  "ordered-float 5.3.0",
@@ -12369,6 +12372,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "postcard"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6764c3b5dd454e283a30e6dfe78e9b31096d9e32036b5d1eaac7a6119ccb9a24"
+dependencies = [
+ "cobs",
+ "embedded-io 0.4.0",
+ "embedded-io 0.6.1",
+ "serde",
+]
+
+[[package]]
 name = "postgres"
 version = "0.19.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12818,17 +12833,22 @@ checksum = "b5a041e753da8b807c9255f28de81879c78c876392ff2469cde94799b2896b9d"
 name = "q"
 version = "0.1.1"
 dependencies = [
+ "axum 0.7.9",
+ "bincode",
  "bitflags 2.11.0",
  "crossbeam-channel",
  "dashmap 6.1.0",
- "godot 0.4.5",
+ "godot",
  "http 1.4.0",
  "infer",
  "objc2 0.6.4",
+ "postcard",
+ "rapier2d",
  "raw-window-handle",
  "serde",
  "serde_json",
  "tokio",
+ "tokio-tungstenite 0.24.0",
  "windows 0.62.2",
  "wry",
 ]
@@ -13165,6 +13185,29 @@ name = "rangemap"
 version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "973443cf09a9c8656b574a866ab68dfa19f0867d0340648c7d2f6a71b8a8ea68"
+
+[[package]]
+name = "rapier2d"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "643116992c25c96a07e1aae7d59fba207f01979dc9a107c42bcd4c4b83ef78b2"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec 0.7.0",
+ "bitflags 2.11.0",
+ "crossbeam",
+ "downcast-rs 1.2.1",
+ "log",
+ "nalgebra 0.33.3",
+ "num-derive",
+ "num-traits",
+ "ordered-float 4.6.0",
+ "parry2d",
+ "rustc-hash 2.1.2",
+ "simba",
+ "thiserror 1.0.69",
+]
 
 [[package]]
 name = "raw-cpuid"

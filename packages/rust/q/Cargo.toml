@@ -4,7 +4,7 @@ authors = ["kbve", "h0lybyte"]
 version = "0.1.1"
 edition = "2024"
 license = "MIT"
-description = "Q is a Rust GDExtension crate for Godot, offering a Game Manager, Music Manager, Bevy ECS, and Tokio-powered multi-threading. It simplifies and enhances game development with efficient tools and scalable performance."
+description = "Q is a Rust crate powering KBVE games. Default build is a Godot GDExtension (cdylib) with a tokio-backed game manager. Feature flags expose a parallel server flavor (bevy + axum + rapier2d) and per-game bundles."
 homepage = "https://kbve.com/application/rust/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/q"
 readme = "README.md"
@@ -15,27 +15,76 @@ exclude = [
 ]
 
 [lib]
-crate-type = ["cdylib"]
+# cdylib for the Godot GDExtension flavor; rlib so server crates can pull q in as a library.
+crate-type = ["cdylib", "rlib"]
 
+# -----------------------------------------------------------------------------
+# Features
+# -----------------------------------------------------------------------------
+[features]
+# Keep existing q consumers (Rareicon etc.) compiling unchanged.
+default = ["client"]
+
+# Side selection — `client` and `server` are mutually exclusive (enforced by compile_error! in lib.rs).
+client = ["dep:godot", "dep:dashmap", "dep:crossbeam-channel", "dep:bitflags", "dep:tokio"]
+server = ["dep:tokio"]
+
+# Protocol (postcard wire format + bincode for snapshot framing).
+proto-shared = ["dep:postcard", "dep:bincode"]
+proto-client = ["client", "proto-shared"]
+proto-server = ["server", "proto-shared"]
+
+# Physics — rapier2d for spatial queries (client) and authoritative sim step (server).
+rapier2d-client = ["client", "dep:rapier2d"]
+rapier2d-server = ["server", "dep:rapier2d"]
+
+# Networking — WS client for the Godot extension, axum for the server.
+net-client = ["client", "dep:tokio-tungstenite"]
+net-server = ["server", "dep:axum", "dep:tokio-tungstenite"]
+
+# Game bundles — convenience rollups consumed by build pipelines / sync scripts.
+nexus-defense = ["client", "proto-client", "rapier2d-client", "net-client"]
+nexus-defense-server = ["server", "proto-server", "rapier2d-server", "net-server"]
+
+# -----------------------------------------------------------------------------
+# Dependencies
+# -----------------------------------------------------------------------------
 [dependencies]
-godot = { version = "0.4.5", features = ["experimental-wasm", "experimental-threads"] }
-dashmap = "6.1.0"
-crossbeam-channel = "0.5.15"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bitflags = { version = "2.9.0", features = ["serde"] }
 
+# Client / shared infra (gated by features)
+godot = { version = "0.4.5", optional = true, features = ["experimental-wasm", "experimental-threads"] }
+dashmap = { version = "6.1.0", optional = true }
+crossbeam-channel = { version = "0.5.15", optional = true }
+bitflags = { version = "2.9.0", optional = true, features = ["serde"] }
+tokio = { version = "1.49", optional = true, features = ["rt-multi-thread", "macros", "sync", "time"] }
 
-[target."cfg(target_os = \"macos\")".dependencies]
+# Protocol
+postcard = { version = "1.0", optional = true, default-features = false, features = ["use-std"] }
+bincode = { version = "2.0", optional = true, features = ["serde"] }
+
+# Physics
+rapier2d = { version = "0.22", optional = true }
+
+# Networking
+tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
+axum = { version = "0.7", optional = true, default-features = false, features = ["ws", "json"] }
+
+# -----------------------------------------------------------------------------
+# Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).
+# Pulled in only by the `client` flavor's platform module (which is itself cfg-gated
+# at the source level), so server-only builds on those OSes get them as link bloat
+# we'll trim with an explicit `no-desktop` feature if it ever matters.
+# -----------------------------------------------------------------------------
+[target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
 objc2 = "0.6.3"
 wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
-tokio = { version = "1.49", features = ["full", "rt-multi-thread"] }
 
-
-[target."cfg(target_os = \"windows\")".dependencies]
+[target."cfg(all(target_os = \"windows\", not(target_family = \"wasm\")))".dependencies]
 windows = { version = "0.62.2", features = [
     "Data_Xml_Dom",
     "Win32_Security",
@@ -46,17 +95,16 @@ wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
-tokio = { version = "1.49", features = ["full", "rt-multi-thread"] }
 
-
-[target."cfg(target_os = \"linux\")".dependencies]
+[target."cfg(all(target_os = \"linux\", not(target_family = \"wasm\")))".dependencies]
 wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
-tokio = { version = "1.49", features = ["full", "rt-multi-thread"] }
 
-
+# -----------------------------------------------------------------------------
+# Profiles
+# -----------------------------------------------------------------------------
 [profile.release]
 opt-level = 'z'
 lto = "fat"

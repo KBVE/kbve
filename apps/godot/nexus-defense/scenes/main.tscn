@@ -1,18 +1,20 @@
-[gd_scene load_steps=2 format=3 uid="uid://b0nexusdefensemain"]
+[gd_scene format=3 uid="uid://p47lgpwexkxp"]
 
-[ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://dht64g6ugdvb1" path="res://scenes/main.gd" id="1_main"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1433128508]
 script = ExtResource("1_main")
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1922253551]
 
-[node name="Background" type="ColorRect" parent="UI"]
+[node name="Background" type="ColorRect" parent="UI" unique_id=716727939]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.105882, 0.125490, 0.172549, 1)
+color = Color(0.105882, 0.12549, 0.172549, 1)
 
-[node name="Title" type="Label" parent="UI"]
+[node name="Title" type="Label" parent="UI" unique_id=1272313858]
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.4
 anchor_right = 0.5
@@ -22,11 +24,12 @@ offset_top = -32.0
 offset_right = 240.0
 offset_bottom = 32.0
 theme_override_font_sizes/font_size = 56
+text = "Nexus Defense"
 horizontal_alignment = 1
 vertical_alignment = 1
-text = "Nexus Defense"
 
-[node name="Status" type="Label" parent="UI"]
+[node name="Status" type="Label" parent="UI" unique_id=1829364366]
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.55
 anchor_right = 0.5
@@ -36,6 +39,6 @@ offset_top = -16.0
 offset_right = 360.0
 offset_bottom = 16.0
 theme_override_font_sizes/font_size = 18
+text = "loading…"
 horizontal_alignment = 1
 vertical_alignment = 1
-text = "loading…"
