@@ -21,10 +21,11 @@ describe('MC lobby plugin load', () => {
 		expect(response).toMatch(/AdvancedPortals/);
 	});
 
-	it('reports EssentialsX + EssentialsXSpawn in /plugins', async () => {
+	it('reports Essentials + EssentialsSpawn + EssentialsAntiBuild in /plugins', async () => {
 		const response = await rcon.command('plugins');
-		expect(response).toMatch(/EssentialsX(?!\w)/);
-		expect(response).toMatch(/EssentialsXSpawn/);
+		expect(response).toMatch(/Essentials(?!\w)/);
+		expect(response).toMatch(/EssentialsSpawn/);
+		expect(response).toMatch(/EssentialsAntiBuild/);
 	});
 
 	it('reports LuckPerms in /plugins', async () => {
