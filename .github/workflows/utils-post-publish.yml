@@ -363,8 +363,10 @@ jobs:
                   echo "pushed=true" >> "$GITHUB_OUTPUT"
                   echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
-            # ── PR creation (GITHUB_TOKEN — author becomes github-actions[bot]) ──
-            - name: Create PR and trigger auto-merge
+            # GITHUB_TOKEN here — PR author must be github-actions[bot] for the
+            # auto-merge author gate.
+            - name: Create PR
+              id: pr
               if: steps.push.outputs.pushed == 'true'
               env:
                   GITHUB_TOKEN: ${{ github.token }}
@@ -394,4 +396,11 @@ jobs:
 
                   PR_NUM=$(gh pr view "$BRANCH" --json number --jq '.number')
                   echo "Created PR #${PR_NUM}"
-                  gh workflow run ci-auto-merge-bot-prs.yml --field pr_number="${PR_NUM}" --repo ${{ github.repository }} || true
+                  echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+
+            - name: Dispatch auto-merge
+              if: steps.pr.outputs.pr_number != ''
+              uses: ./.github/actions/dispatch-auto-merge
+              with:
+                  pr_number: ${{ steps.pr.outputs.pr_number }}
+                  github_token: ${{ github.token }}
