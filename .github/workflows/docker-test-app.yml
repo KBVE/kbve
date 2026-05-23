@@ -117,7 +117,10 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              timeout-minutes: 10
+              env:
+                  UV_THREADPOOL_SIZE: '16'
+              run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Setup Python + uv
               uses: astral-sh/setup-uv@v7
@@ -126,6 +129,9 @@ jobs:
 
             - name: Install Playwright Browsers
               if: ${{ inputs.install_playwright }}
+              timeout-minutes: 15
+              env:
+                  UV_THREADPOOL_SIZE: '16'
               run: pnpm exec playwright install --with-deps chromium
 
             # VALKEY_PASSWORD is injected into the runner container's

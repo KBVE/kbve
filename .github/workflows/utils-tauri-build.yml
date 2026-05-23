@@ -146,7 +146,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install project-local npm dependencies
               working-directory: ${{ inputs.project_path }}
@@ -248,7 +248,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install project-local npm dependencies
               working-directory: ${{ inputs.project_path }}
@@ -346,7 +346,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install project-local npm dependencies
               working-directory: ${{ inputs.project_path }}
@@ -435,7 +435,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install project-local npm dependencies
               working-directory: ${{ inputs.project_path }}
