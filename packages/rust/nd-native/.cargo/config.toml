@@ -1,0 +1,14 @@
+[target.wasm32-unknown-emscripten]
+rustflags = [
+    "-C", "link-args=-pthread",
+    "-C", "link-args=-sUSE_PTHREADS=1",
+    "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+    "-C", "link-args=-sSHARED_MEMORY=1",
+    "-C", "link-args=-sPTHREAD_POOL_SIZE=64",
+    "-C", "link-args=-sPTHREAD_POOL_SIZE_STRICT=2",
+    "-C", "link-args=-sSIDE_MODULE=2",
+    "-C", "link-args=-sEXPORT_ALL=1",
+    "-C", "link-args=-sERROR_ON_UNDEFINED_SYMBOLS=0",
+    "-Zlink-native-libraries=no",
+    "-Cllvm-args=-enable-emscripten-cxx-exceptions=0",
+]
