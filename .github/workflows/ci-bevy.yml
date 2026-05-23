@@ -68,10 +68,40 @@ jobs:
                   fetch-depth: 0
 
             - name: Setup Rust nightly (wasm32 + rust-src for -Z build-std atomics)
-              uses: dtolnay/rust-toolchain@nightly
-              with:
-                  targets: wasm32-unknown-unknown
-                  components: rust-src
+              # `dtolnay/rust-toolchain@nightly` fails fast when
+              # `static.rust-lang.org` is mid-rollout and the channel
+              # manifest checksum mismatches (rustup #3390). Wrap the
+              # install in a retry loop so transient release-server
+              # hiccups don't permanently break the build (#11291).
+              run: |
+                  set -euo pipefail
+                  if ! command -v rustup >/dev/null; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 \
+                          --retry-connrefused --location --silent \
+                          --show-error --fail https://sh.rustup.rs \
+                          | sh -s -- --default-toolchain none -y
+                      echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+                      export PATH="$HOME/.cargo/bin:$PATH"
+                  fi
+                  attempt=1
+                  max_attempts=5
+                  while (( attempt <= max_attempts )); do
+                      if rustup toolchain install nightly \
+                          --target wasm32-unknown-unknown \
+                          --component rust-src \
+                          --profile minimal \
+                          --allow-downgrade \
+                          --no-self-update; then
+                          break
+                      fi
+                      if (( attempt == max_attempts )); then
+                          echo "rustup install failed after ${max_attempts} attempts" >&2
+                          exit 1
+                      fi
+                      sleep $(( attempt * 15 ))
+                      attempt=$(( attempt + 1 ))
+                  done
+                  rustup default nightly
 
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
