@@ -21,10 +21,23 @@ enum Outbound {
 
 enum Inbound {
     Connected,
-    Welcome { slot: u8, seed: u64 },
-    Snapshot { tick: u32 },
-    Disconnected { reason: String },
-    DecodeError { detail: String },
+    Welcome {
+        slot: u8,
+        seed: u64,
+    },
+    Snapshot {
+        tick: u32,
+        wave: u16,
+        enemy_count: u32,
+        gold: i32,
+        lives: i32,
+    },
+    Disconnected {
+        reason: String,
+    },
+    DecodeError {
+        detail: String,
+    },
 }
 
 #[derive(GodotClass)]
@@ -66,9 +79,23 @@ impl INode for MatchSocket {
                         &[(slot as i64).to_variant(), (seed as i64).to_variant()],
                     );
                 }
-                Inbound::Snapshot { tick } => {
-                    self.base_mut()
-                        .emit_signal(&StringName::from("snapshot"), &[(tick as i64).to_variant()]);
+                Inbound::Snapshot {
+                    tick,
+                    wave,
+                    enemy_count,
+                    gold,
+                    lives,
+                } => {
+                    self.base_mut().emit_signal(
+                        &StringName::from("snapshot"),
+                        &[
+                            (tick as i64).to_variant(),
+                            (wave as i64).to_variant(),
+                            (enemy_count as i64).to_variant(),
+                            (gold as i64).to_variant(),
+                            (lives as i64).to_variant(),
+                        ],
+                    );
                 }
                 Inbound::Disconnected { reason } => {
                     self.connected = false;
@@ -94,10 +121,11 @@ impl MatchSocket {
     #[signal]
     fn welcome(slot: i64, seed: i64);
 
-    /// Snapshot landed; consumer can pull additional detail from a buffer
-    /// later. For now only the tick is plumbed through.
+    /// Snapshot landed — summary surface for the HUD. Per-entity detail can
+    /// be pulled from a future ring buffer; for now we plumb the headline
+    /// numbers so GDScript can render a wave/enemies/gold display.
     #[signal]
-    fn snapshot(tick: i64);
+    fn snapshot(tick: i64, wave: i64, enemy_count: i64, gold: i64, lives: i64);
 
     #[signal]
     fn disconnected(reason: GString);
@@ -231,7 +259,18 @@ async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
                     });
                 }
                 Ok(ServerEvent::Snapshot(snap)) => {
-                    let _ = tx.send(Inbound::Snapshot { tick: snap.tick });
+                    let field = snap.fields.first();
+                    let enemy_count = field.map(|f| f.enemies.len() as u32).unwrap_or(0);
+                    let wave = field.map(|f| f.wave).unwrap_or(0);
+                    let gold = field.map(|f| f.gold).unwrap_or(0);
+                    let lives = field.map(|f| f.lives).unwrap_or(0);
+                    let _ = tx.send(Inbound::Snapshot {
+                        tick: snap.tick,
+                        wave,
+                        enemy_count,
+                        gold,
+                        lives,
+                    });
                 }
                 Ok(ServerEvent::Reject { reason }) => {
                     let _ = tx.send(Inbound::Disconnected { reason });
