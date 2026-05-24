@@ -5558,6 +5558,84 @@
           ]
         }
       },
+      "nexus-defense": {
+        "name": "nexus-defense",
+        "type": "app",
+        "data": {
+          "root": "apps/godot/nexus-defense",
+          "name": "nexus-defense",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/godot/nexus-defense",
+          "projectType": "application",
+          "tags": [
+            "godot",
+            "game",
+            "nexus-defense"
+          ],
+          "targets": {
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "bash apps/godot/nexus-defense/scripts/test.sh"
+              },
+              "inputs": [
+                "{projectRoot}/scenes/**/*",
+                "{projectRoot}/ui/**/*",
+                "{projectRoot}/ecs/**/*",
+                "{projectRoot}/tests/ui/**/*",
+                "{projectRoot}/tests/components/**/*",
+                "{projectRoot}/tests/helpers/**/*",
+                "{projectRoot}/project.godot",
+                "{projectRoot}/scripts/test.sh"
+              ],
+              "configurations": {},
+              "parallelism": true,
+              "cache": true
+            },
+            "test-e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
+              },
+              "inputs": [
+                "{projectRoot}/scenes/**/*",
+                "{projectRoot}/ui/**/*",
+                "{projectRoot}/ecs/**/*",
+                "{projectRoot}/tests/**/*",
+                "{projectRoot}/project.godot",
+                "{projectRoot}/scripts/test-e2e.sh",
+                "{workspaceRoot}/apps/td-server/**/*",
+                "{workspaceRoot}/packages/rust/q/src/proto/**/*",
+                "{workspaceRoot}/packages/rust/q/src/net/**/*",
+                "{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
+              ],
+              "configurations": {},
+              "parallelism": true
+            },
+            "test-ci": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "bash apps/godot/nexus-defense/scripts/test.sh",
+                  "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-server": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build --release -p td-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "uniti": {
         "name": "uniti",
         "type": "lib",
@@ -11893,10 +11971,9 @@
               "options": {
                 "commands": [
                   "docker rm -f mc-velocity-e2e 2>/dev/null || true",
-                  "docker run -d --name mc-velocity-e2e -p 25578:25577 -e TYPE=VELOCITY -e MEMORY=512M kbve/mc-velocity:latest",
+                  "docker run -d --name mc-velocity-e2e -p 25578:25577 -e TYPE=VELOCITY -e MEMORY=512M -e PLUGINS='https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar' kbve/mc-velocity:latest",
                   "echo 'Waiting for Velocity to come up...' && for i in $(seq 1 300); do if docker logs mc-velocity-e2e 2>&1 | grep -q 'Done ('; then echo 'Velocity ready after '\"$i\"'s'; break; fi; if [ $i -eq 300 ]; then echo 'Velocity did not start in 300s'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
-                  "docker logs mc-velocity-e2e 2>&1 | grep -q 'KBVE Velocity Commands' || { echo 'kbve-velocity-commands plugin did not load'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit 1; }",
-                  "VELOCITY_HOST=127.0.0.1 VELOCITY_PORT=25578 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-velocity-e2e 2>&1 | tail -50; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit $EC"
+                  "VELOCITY_HOST=127.0.0.1 VELOCITY_PORT=25578 VELOCITY_CONTAINER=mc-velocity-e2e npx vitest run; EC=$?; echo '--- container logs ---'; docker logs mc-velocity-e2e 2>&1 | tail -80; docker rm -f mc-velocity-e2e 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
                 "cwd": "apps/mc/velocity"
@@ -13601,6 +13678,7 @@
           "type": "implicit"
         }
       ],
+      "nexus-defense": [],
       "uniti": [],
       "aria2-proxy-e2e": [
         {
