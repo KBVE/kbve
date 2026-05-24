@@ -26,9 +26,9 @@ use crate::astro::askama::{
 use crate::auth::{extract_request_token, get_jwt_cache};
 use crate::db::{
     CommentRow, DiscordClient, FeedQuery, FeedRow, SpaceRow, ThreadRow, UserProfile,
-    get_discord_client, get_forum_service, get_mc_service, get_osrs_cache, get_profile_cache,
-    get_profile_service, get_rentearth_service, get_role_names, get_twitch_client,
-    validate_username,
+    extract_texture_hash, get_discord_client, get_forum_service, get_mc_service, get_osrs_cache,
+    get_profile_cache, get_profile_service, get_rentearth_service, get_role_names,
+    get_twitch_client, validate_username,
 };
 use askama::Template;
 
@@ -287,6 +287,10 @@ fn router(state: AppState) -> Router {
             post(crate::telemetry::report_handler),
         )
         .route("/api/v1/mc/players", get(mc_players_handler))
+        .route(
+            "/api/v1/mc/players/by-uuid/{uuid}",
+            get(mc_player_by_uuid_handler),
+        )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
@@ -1492,6 +1496,76 @@ pub(crate) async fn mc_players_handler() -> impl IntoResponse {
             "public, max-age=10, stale-while-revalidate=10",
         )],
         Json(json!(players)),
+    )
+        .into_response()
+}
+
+/// MC player skin lookup by UUID — returns skin_url + texture hash for the
+/// supplied Mojang UUID. Falls back to a live Mojang sessionserver query
+/// when the player isn't currently online in the RCON cache.
+#[utoipa::path(
+    get,
+    path = "/api/v1/mc/players/by-uuid/{uuid}",
+    tag = "mc",
+    params(
+        ("uuid" = String, Path, description = "Mojang UUID (dashed or undashed, 32-36 chars)")
+    ),
+    responses(
+        (status = 200, description = "Skin URL + texture hash for the player", body = serde_json::Value),
+        (status = 400, description = "Invalid UUID format"),
+        (status = 404, description = "Mojang has no skin for this UUID"),
+        (status = 503, description = "MC service not configured")
+    ),
+)]
+pub(crate) async fn mc_player_by_uuid_handler(Path(uuid): Path<String>) -> impl IntoResponse {
+    let normalized: String = uuid
+        .chars()
+        .filter(|c| c.is_ascii_hexdigit())
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
+    if normalized.len() != 32 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "Invalid UUID format" })),
+        )
+            .into_response();
+    }
+
+    let svc = match get_mc_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "error": "MC player service not configured" })),
+            )
+                .into_response();
+        }
+    };
+
+    let skin_url = match svc.resolve_skin_by_uuid(&normalized).await {
+        Some(u) => u,
+        None => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({ "error": "No skin for UUID", "uuid": normalized })),
+            )
+                .into_response();
+        }
+    };
+
+    let hash = extract_texture_hash(&skin_url);
+
+    (
+        StatusCode::OK,
+        [(
+            header::CACHE_CONTROL,
+            "public, max-age=300, stale-while-revalidate=600",
+        )],
+        Json(json!({
+            "uuid": normalized,
+            "skin_url": skin_url,
+            "hash": hash,
+        })),
     )
         .into_response()
 }

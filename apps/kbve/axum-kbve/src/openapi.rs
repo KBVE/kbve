@@ -88,6 +88,7 @@ impl Modify for SecurityAddon {
         crate::transport::https::osrs_api_handler,
         // mc
         crate::transport::https::mc_players_handler,
+        crate::transport::https::mc_player_by_uuid_handler,
         crate::transport::https::mc_texture_handler,
         // forum
         crate::transport::https::api_me,
