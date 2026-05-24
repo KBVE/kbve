@@ -93,6 +93,7 @@ pub struct UndeliveredEvent {
     pub created_at: String,
     #[serde(default)]
     pub delivery_attempts: i32,
+    pub claim_token: uuid::Uuid,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -327,9 +328,16 @@ impl GithubStore {
         Ok(rows)
     }
 
-    pub async fn mark_event_delivered(&self, id: i64) -> Result<bool, GithubStoreError> {
+    pub async fn mark_event_delivered(
+        &self,
+        id: i64,
+        claim_token: uuid::Uuid,
+    ) -> Result<bool, GithubStoreError> {
         let resp_text = self
-            .call_event_state_raw("mark_event_delivered", serde_json::json!({ "p_id": id }))
+            .call_event_state_raw(
+                "mark_event_delivered",
+                serde_json::json!({ "p_id": id, "p_claim_token": claim_token }),
+            )
             .await?;
         parse_bool_body(&resp_text)
     }
@@ -337,6 +345,7 @@ impl GithubStore {
     pub async fn mark_event_failed(
         &self,
         id: i64,
+        claim_token: uuid::Uuid,
         error: &str,
         max_attempts: u32,
     ) -> Result<DeliveryState, GithubStoreError> {
@@ -345,6 +354,7 @@ impl GithubStore {
                 "mark_event_failed",
                 serde_json::json!({
                     "p_id": id,
+                    "p_claim_token": claim_token,
                     "p_error": error,
                     "p_max_attempts": max_attempts,
                 }),

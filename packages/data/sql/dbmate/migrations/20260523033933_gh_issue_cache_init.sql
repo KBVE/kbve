@@ -50,7 +50,13 @@ CREATE TABLE IF NOT EXISTS gh.issue (
             AND discord_channel_id IS NOT NULL
             AND discord_thread_id  IS NOT NULL
         )
-    )
+    ),
+    CONSTRAINT gh_issue_updated_after_created_chk
+        CHECK (github_updated_at >= github_created_at),
+    CONSTRAINT gh_issue_closed_after_created_chk
+        CHECK (closed_at IS NULL OR closed_at >= github_created_at),
+    CONSTRAINT gh_issue_open_has_no_closed_at_chk
+        CHECK (state <> 'open' OR closed_at IS NULL)
 );
 
 CREATE INDEX IF NOT EXISTS gh_issue_open_by_repo_updated_idx
@@ -76,6 +82,7 @@ CREATE TABLE IF NOT EXISTS gh.issue_event (
     delivery_state       SMALLINT    NOT NULL DEFAULT 0,
     delivered_at         TIMESTAMPTZ,
     claimed_at           TIMESTAMPTZ,
+    claim_token          UUID,
     delivery_attempts    INT         NOT NULL DEFAULT 0,
     last_error           TEXT,
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -90,7 +97,13 @@ CREATE TABLE IF NOT EXISTS gh.issue_event (
     CONSTRAINT gh_issue_event_state_chk
         CHECK (delivery_state IN (0, 1, 2, 3)),
     CONSTRAINT gh_issue_event_payload_object_chk
-        CHECK (jsonb_typeof(payload) = 'object')
+        CHECK (jsonb_typeof(payload) = 'object'),
+    CONSTRAINT gh_issue_event_claimed_after_created_chk
+        CHECK (claimed_at IS NULL OR claimed_at >= created_at),
+    CONSTRAINT gh_issue_event_delivered_after_created_chk
+        CHECK (delivered_at IS NULL OR delivered_at >= created_at),
+    CONSTRAINT gh_issue_event_claim_token_when_claimed_chk
+        CHECK (delivery_state <> 1 OR claim_token IS NOT NULL)
 );
 
 COMMENT ON COLUMN gh.issue_event.delivery_state IS
@@ -103,6 +116,10 @@ CREATE INDEX IF NOT EXISTS gh_issue_event_pending_claim_idx
 CREATE INDEX IF NOT EXISTS gh_issue_event_expired_claim_idx
     ON gh.issue_event (claimed_at, created_at, id)
     WHERE delivery_state = 1;
+
+CREATE INDEX IF NOT EXISTS gh_issue_event_dead_letter_idx
+    ON gh.issue_event (updated_at DESC, id DESC)
+    WHERE delivery_state = 3;
 
 CREATE INDEX IF NOT EXISTS gh_issue_event_lookup_idx
     ON gh.issue_event (owner, repo, number, created_at DESC);
@@ -345,7 +362,8 @@ RETURNS TABLE (
     actor             TEXT,
     payload           JSONB,
     created_at        TIMESTAMPTZ,
-    delivery_attempts INT
+    delivery_attempts INT,
+    claim_token       UUID
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -372,13 +390,14 @@ BEGIN
     UPDATE gh.issue_event e
         SET delivery_state    = 1,
             claimed_at        = now(),
+            claim_token       = gen_random_uuid(),
             delivery_attempts = e.delivery_attempts + 1,
             updated_at        = now()
         FROM claimable c
         WHERE e.id = c.id
         RETURNING
             e.id, e.owner, e.repo, e.number, e.event_type, e.actor,
-            e.payload, e.created_at, e.delivery_attempts;
+            e.payload, e.created_at, e.delivery_attempts, e.claim_token;
 END;
 $$;
 
@@ -386,7 +405,10 @@ ALTER FUNCTION gh.claim_undelivered_events(INT, INT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION gh.claim_undelivered_events(INT, INT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION gh.claim_undelivered_events(INT, INT) TO service_role;
 
-CREATE OR REPLACE FUNCTION gh.mark_event_delivered(p_id BIGINT)
+CREATE OR REPLACE FUNCTION gh.mark_event_delivered(
+    p_id          BIGINT,
+    p_claim_token UUID
+)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -399,22 +421,25 @@ BEGIN
         SET delivery_state = 2,
             delivered_at   = now(),
             claimed_at     = NULL,
+            claim_token    = NULL,
             last_error     = NULL,
             updated_at     = now()
         WHERE id = p_id
-          AND delivery_state = 1;
+          AND delivery_state = 1
+          AND claim_token = p_claim_token;
 
     GET DIAGNOSTICS v_rows = ROW_COUNT;
     RETURN v_rows > 0;
 END;
 $$;
 
-ALTER FUNCTION gh.mark_event_delivered(BIGINT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION gh.mark_event_delivered(BIGINT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION gh.mark_event_delivered(BIGINT) TO service_role;
+ALTER FUNCTION gh.mark_event_delivered(BIGINT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION gh.mark_event_delivered(BIGINT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION gh.mark_event_delivered(BIGINT, UUID) TO service_role;
 
 CREATE OR REPLACE FUNCTION gh.mark_event_failed(
     p_id           BIGINT,
+    p_claim_token  UUID,
     p_error        TEXT,
     p_max_attempts INT DEFAULT 25
 )
@@ -432,19 +457,51 @@ BEGIN
                                 ELSE 0
                              END,
             claimed_at     = NULL,
+            claim_token    = NULL,
             last_error     = LEFT(COALESCE(p_error, ''), 2000),
             updated_at     = now()
         WHERE id = p_id
           AND delivery_state = 1
+          AND claim_token = p_claim_token
         RETURNING delivery_state INTO v_new_state;
 
     RETURN v_new_state;
 END;
 $$;
 
-ALTER FUNCTION gh.mark_event_failed(BIGINT, TEXT, INT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION gh.mark_event_failed(BIGINT, TEXT, INT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION gh.mark_event_failed(BIGINT, TEXT, INT) TO service_role;
+ALTER FUNCTION gh.mark_event_failed(BIGINT, UUID, TEXT, INT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION gh.mark_event_failed(BIGINT, UUID, TEXT, INT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION gh.mark_event_failed(BIGINT, UUID, TEXT, INT) TO service_role;
+
+CREATE OR REPLACE FUNCTION gh.event_queue_stats()
+RETURNS TABLE (
+    pending           BIGINT,
+    claimed           BIGINT,
+    delivered         BIGINT,
+    dead_letter       BIGINT,
+    oldest_pending_at TIMESTAMPTZ,
+    oldest_claimed_at TIMESTAMPTZ
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 1
+COST 50
+AS $$
+    SELECT
+        count(*) FILTER (WHERE delivery_state = 0) AS pending,
+        count(*) FILTER (WHERE delivery_state = 1) AS claimed,
+        count(*) FILTER (WHERE delivery_state = 2) AS delivered,
+        count(*) FILTER (WHERE delivery_state = 3) AS dead_letter,
+        min(created_at) FILTER (WHERE delivery_state = 0) AS oldest_pending_at,
+        min(claimed_at) FILTER (WHERE delivery_state = 1) AS oldest_claimed_at
+    FROM gh.issue_event;
+$$;
+
+ALTER FUNCTION gh.event_queue_stats() OWNER TO service_role;
+REVOKE ALL ON FUNCTION gh.event_queue_stats() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION gh.event_queue_stats() TO service_role;
 
 ALTER SCHEMA gh OWNER TO service_role;
 ALTER TABLE gh.issue OWNER TO service_role;
@@ -464,18 +521,21 @@ COMMENT ON FUNCTION gh.upsert_issue(
 COMMENT ON FUNCTION gh.set_discord_thread(TEXT, TEXT, INT, BIGINT, BIGINT, BIGINT) IS
 'Idempotent for the same thread_id; refuses to remap an issue already linked to a different thread (raises unique_violation). Locks the row FOR UPDATE.';
 COMMENT ON FUNCTION gh.claim_undelivered_events(INT, INT) IS
-'Lease-based claim. Returns events that are either unclaimed or whose claim has expired (claimed_at < now() - p_lease_secs). Sets claimed_at, increments delivery_attempts. Does NOT mark delivered — caller must invoke mark_event_delivered after the Discord side succeeds, or mark_event_failed on failure so the lease releases for retry.';
-COMMENT ON FUNCTION gh.mark_event_delivered(BIGINT) IS
-'Transitions delivery_state 0/1 → 2 once the bot reflects the event in the matching thread. Idempotent: returns false on rows already in state ≥ 2.';
-COMMENT ON FUNCTION gh.mark_event_failed(BIGINT, TEXT, INT) IS
-'Release the lease + record last_error. Caller must be in state=1 (claimed); rows already terminal (2/3) or never claimed (0) return NULL. Because delivery_attempts is incremented at claim time, a failure on the N-th claimed attempt dead-letters when delivery_attempts >= p_max_attempts at that point — i.e. p_max_attempts=1 dead-letters on the first failure, =25 on the 25th. Otherwise transitions 1 → 0 so the event becomes claimable again. last_error truncated to 2000 chars.';
+'Lease-based claim. Returns events that are either unclaimed (state=0) or whose claim has expired (state=1 AND claimed_at < now() - p_lease_secs). Sets state=1, claimed_at=now(), generates a fresh claim_token (UUID), increments delivery_attempts. Does NOT mark delivered — caller must invoke mark_event_delivered with the returned claim_token after Discord succeeds, or mark_event_failed on failure. claim_token is required by the finalizers so a stalled worker cannot finalize a row that another worker has since reclaimed.';
+COMMENT ON FUNCTION gh.mark_event_delivered(BIGINT, UUID) IS
+'Transitions delivery_state 1 → 2 once the bot reflects the event in the matching thread. Requires p_claim_token match the current claim_token on the row, so a stalled worker that finishes after lease expiry + reclaim by another worker is rejected. Returns false on rows not currently claimed by this worker (state != 1 or token mismatch).';
+COMMENT ON FUNCTION gh.mark_event_failed(BIGINT, UUID, TEXT, INT) IS
+'Release the lease + record last_error. Caller must be in state=1 with a matching claim_token; rows already terminal (2/3), never claimed (0), or claimed by a different worker return NULL. Because delivery_attempts is incremented at claim time, a failure on the N-th claimed attempt dead-letters when delivery_attempts >= p_max_attempts at that point — i.e. p_max_attempts=1 dead-letters on the first failure, =25 on the 25th. Otherwise transitions 1 → 0 so the event becomes claimable again. last_error truncated to 2000 chars.';
+COMMENT ON FUNCTION gh.event_queue_stats() IS
+'Operational counter snapshot per delivery_state plus oldest pending and oldest still-claimed timestamps. Use to surface stuck workers, growing backlogs, or accumulating dead-letters. Cheap full-table aggregate, fine to poll at minute granularity.';
 
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
 
-DROP FUNCTION IF EXISTS gh.mark_event_failed(BIGINT, TEXT, INT);
-DROP FUNCTION IF EXISTS gh.mark_event_delivered(BIGINT);
+DROP FUNCTION IF EXISTS gh.event_queue_stats();
+DROP FUNCTION IF EXISTS gh.mark_event_failed(BIGINT, UUID, TEXT, INT);
+DROP FUNCTION IF EXISTS gh.mark_event_delivered(BIGINT, UUID);
 DROP FUNCTION IF EXISTS gh.claim_undelivered_events(INT, INT);
 DROP FUNCTION IF EXISTS gh.list_open_issues(TEXT, TEXT, INT);
 DROP FUNCTION IF EXISTS gh.get_issue(TEXT, TEXT, INT);
