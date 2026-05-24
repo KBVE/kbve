@@ -1,11 +1,14 @@
 extends Node2D
 
 const SERVER_URL := "ws://127.0.0.1:7878/ws"
-# Dev placeholder — swapped for a live Supabase access token from the auth UI
-# once that lands. Server runs in dev-accept mode when SUPABASE_JWT_SECRET is
-# unset and admits any non-empty username.
+# When the OS env vars below are unset, we fall back to dev-accept mode:
+# the server admits any non-empty username when SUPABASE_JWT_SECRET is also
+# unset. Setting them runs a real GoTrue sign-in against supabase.kbve.com.
 const DEV_JWT := "dev"
 const DEV_USERNAME := "h0lybyte"
+const ENV_EMAIL := "ND_SUPABASE_EMAIL"
+const ENV_PASSWORD := "ND_SUPABASE_PASSWORD"
+const ENV_USERNAME := "ND_SUPABASE_USERNAME"
 
 var _wave: int = 1
 var _lives: int = 20
@@ -24,9 +27,11 @@ func _ready() -> void:
 			ping.call("queue_free")
 	print("[nexus-defense] main scene ready — q::nexus_defense pong: %s" % msg)
 
-	Ui.open("boot", {"title": "Nexus Defense", "subtitle": "Dialing %s…" % SERVER_URL})
+	Ui.open("boot", {"title": "Nexus Defense", "subtitle": "Authenticating…"})
 
-	if ClassDB.class_exists("MatchSocket"):
+	if not ClassDB.class_exists("MatchSocket"):
+		_log("MatchSocket class unavailable — running offline")
+	else:
 		socket = ClassDB.instantiate("MatchSocket")
 		add_child(socket)
 		socket.connect("connected", _on_connected)
@@ -34,10 +39,7 @@ func _ready() -> void:
 		socket.connect("snapshot", _on_snapshot)
 		socket.connect("disconnected", _on_disconnected)
 		socket.connect("decode_error", _on_decode_error)
-		_log("dialing %s as %s" % [SERVER_URL, DEV_USERNAME])
-		socket.call("connect_to", SERVER_URL, DEV_JWT, DEV_USERNAME)
-	else:
-		_log("MatchSocket class unavailable — running offline")
+		await _begin_session()
 
 	await get_tree().create_timer(0.6).timeout
 	Ui.close("boot")
@@ -108,3 +110,34 @@ func _on_decode_error(detail: String) -> void:
 
 func _log(line: String) -> void:
 	print("[nexus-defense] %s" % line)
+
+func _begin_session() -> void:
+	var email: String = OS.get_environment(ENV_EMAIL)
+	var password: String = OS.get_environment(ENV_PASSWORD)
+	var hint: String = OS.get_environment(ENV_USERNAME)
+	if email.is_empty() or password.is_empty():
+		_log("no %s/%s set — using dev-accept JWT" % [ENV_EMAIL, ENV_PASSWORD])
+		_dial(DEV_JWT, DEV_USERNAME)
+		return
+	_log("signing in to %s as %s" % [Supabase.SUPABASE_URL, email])
+	Supabase.sign_in_succeeded.connect(_on_supabase_signed_in, CONNECT_ONE_SHOT)
+	Supabase.sign_in_failed.connect(_on_supabase_failed, CONNECT_ONE_SHOT)
+	Supabase.sign_in_with_password(email, password, hint)
+
+func _on_supabase_signed_in(access_token: String, kbve_username: String) -> void:
+	var resolved: String = kbve_username
+	if resolved.is_empty():
+		resolved = OS.get_environment(ENV_USERNAME)
+	if resolved.is_empty():
+		resolved = "guest"
+	_log("supabase sign-in ok — kbve_username=%s" % resolved)
+	_dial(access_token, resolved)
+
+func _on_supabase_failed(reason: String) -> void:
+	_log("supabase sign-in failed: %s — falling back to dev JWT" % reason)
+	Ui.toast("Supabase sign-in failed: %s" % reason, 3.0, "warn")
+	_dial(DEV_JWT, DEV_USERNAME)
+
+func _dial(jwt: String, kbve_username: String) -> void:
+	_log("dialing %s as %s" % [SERVER_URL, kbve_username])
+	socket.call("connect_to", SERVER_URL, jwt, kbve_username)
