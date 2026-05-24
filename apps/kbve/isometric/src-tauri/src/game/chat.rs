@@ -10,17 +10,56 @@
 use bevy::prelude::*;
 use bevy_chat::{ChatMessage, ChatPlugin, IncomingChatEvent, IrcConfig, IrcTransport, MessageKind};
 use crossbeam_channel::{Receiver, Sender, unbounded};
-use std::sync::OnceLock;
+use serde::Serialize;
+use std::collections::VecDeque;
+use std::sync::{Mutex, OnceLock};
 
 use super::toast::Toast;
 
 /// Default channel new messages from the React input box land on.
-pub const DEFAULT_SEND_CHANNEL: &str = "#global";
+/// Must match the Discord bot's `RELAY_IRC_CHANNEL` (and the chat.kbve.com
+/// web embed default) so all three audiences fan out through the same Ergo
+/// channel.
+pub const DEFAULT_SEND_CHANNEL: &str = "#general";
 
 /// Outbox sender exposed for the `send_chat` Tauri command + wasm-bindgen
 /// export. Set once when the chat plugin builds; readers must tolerate a
 /// `None` value before that happens.
 static OUTBOX_TX: OnceLock<Sender<ChatMessage>> = OnceLock::new();
+
+const SNAPSHOT_LOG_CAP: usize = 60;
+
+/// Thread-safe snapshot of recent #general chat lines exposed to React via the
+/// `get_chat_log` Tauri command. Mirrors the Bevy-side ChatLog used by the
+/// in-game overlay but lives outside the ECS so the React panel can read it
+/// at any phase (title screen included).
+static SNAPSHOT_LOG: Mutex<VecDeque<ChatLogEntry>> = Mutex::new(VecDeque::new());
+
+#[derive(Clone, Serialize)]
+pub struct ChatLogEntry {
+    pub sender: String,
+    pub content: String,
+    pub channel: String,
+    pub kind: String,
+    pub ts_unix: u64,
+}
+
+fn push_snapshot(entry: ChatLogEntry) {
+    let Ok(mut log) = SNAPSHOT_LOG.lock() else {
+        return;
+    };
+    log.push_back(entry);
+    while log.len() > SNAPSHOT_LOG_CAP {
+        log.pop_front();
+    }
+}
+
+pub fn snapshot_log() -> Vec<ChatLogEntry> {
+    SNAPSHOT_LOG
+        .lock()
+        .map(|l| l.iter().cloned().collect())
+        .unwrap_or_default()
+}
 
 /// Build and queue a `ChatMessage` from raw user input. Returns `false` if
 /// chat hasn't initialized yet or the user is not signed in (no nick).
@@ -36,7 +75,20 @@ pub fn queue_outgoing_chat(text: &str) -> bool {
         .username
         .unwrap_or_else(|| "guest".to_owned());
     let msg = ChatMessage::chat(&nick, "isometric", DEFAULT_SEND_CHANNEL, trimmed);
-    tx.send(msg).is_ok()
+    let sent = tx.send(msg.clone()).is_ok();
+    if sent {
+        push_snapshot(ChatLogEntry {
+            sender: msg.sender,
+            content: msg.content,
+            channel: msg.channel,
+            kind: format!("{:?}", msg.kind),
+            ts_unix: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0),
+        });
+    }
+    sent
 }
 
 // ---------------------------------------------------------------------------
@@ -45,13 +97,15 @@ pub fn queue_outgoing_chat(text: &str) -> bool {
 
 /// Default IRC gateway URL for browser clients.
 /// In WASM mode this is the public chat.kbve.com WebSocket endpoint.
-const DEFAULT_WS_URL: &str = "wss://chat.kbve.com";
+const DEFAULT_WS_URL: &str = "wss://chat.kbve.com/ws";
 
 /// Default IRC host for native (desktop) clients.
 const DEFAULT_NATIVE_HOST: &str = "irc.kbve.com";
 
-/// Channels every isometric client auto-joins.
-const DEFAULT_CHANNELS: &[&str] = &["#global", "#world-events"];
+/// Channels every isometric client auto-joins. `#general` is the shared
+/// fan-out (game ↔ Discord ↔ chat.kbve.com web); `#world-events` is game-
+/// internal for toast events.
+const DEFAULT_CHANNELS: &[&str] = &["#general", "#world-events"];
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -92,6 +146,30 @@ impl Plugin for GameChatPlugin {
 
         // Bridge incoming world events to toast notifications
         app.add_systems(Update, world_events_to_toasts);
+        // Mirror chat-channel messages into the React-visible snapshot.
+        app.add_systems(Update, snapshot_incoming);
+    }
+}
+
+fn snapshot_incoming(mut events: MessageReader<IncomingChatEvent>) {
+    for IncomingChatEvent(msg) in events.read() {
+        info!(
+            "[chat] incoming sender={} channel={} content={}",
+            msg.sender, msg.channel, msg.content
+        );
+        if msg.channel == "#world-events" {
+            continue;
+        }
+        push_snapshot(ChatLogEntry {
+            sender: msg.sender.clone(),
+            content: msg.content.clone(),
+            channel: msg.channel.clone(),
+            kind: format!("{:?}", msg.kind),
+            ts_unix: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0),
+        });
     }
 }
 
@@ -146,15 +224,21 @@ struct ChatBridgeChannels {
 // ---------------------------------------------------------------------------
 
 fn chat_config(nick: String, jwt: String) -> IrcConfig {
+    // chat.kbve.com gateway authenticates the WS upgrade itself, not the IRC
+    // PASS line — it reads `Authorization: Bearer <jwt>` or the `?token=`
+    // query param. Bake the token into the URL since bevy_chat doesn't
+    // forward custom upgrade headers.
+    let url = format!("{}?token={}", DEFAULT_WS_URL, jwt);
     IrcConfig {
-        host: DEFAULT_WS_URL.to_owned(),
+        host: url,
         port: 443,
         tls: true,
         nick,
         channels: DEFAULT_CHANNELS.iter().map(|s| s.to_string()).collect(),
-        password: Some(jwt),
+        password: None,
         reconnect_delay_secs: 5,
         transport: IrcTransport::WebSocket,
+        skip_registration: true,
     }
 }
 

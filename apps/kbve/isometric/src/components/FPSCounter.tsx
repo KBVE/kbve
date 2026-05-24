@@ -1,23 +1,74 @@
 import { useEffect, useState } from 'react';
-import { get_fps } from '../../wasm-pkg/isometric_game.js';
+import { invoke } from '@tauri-apps/api/core';
+
+function detectTauri(): boolean {
+	return !!(
+		(window as typeof window & { __TAURI_INTERNALS__?: unknown })
+			.__TAURI_INTERNALS__ ||
+		(window as typeof window & { __TAURI__?: unknown }).__TAURI__
+	);
+}
 
 export function FPSCounter() {
-	const [fps, setFps] = useState(0);
+	const [fps, setFps] = useState<number | null>(null);
+	const [err, setErr] = useState<string | null>(null);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
+		const isTauri = detectTauri();
+		let cancelled = false;
+
+		const tick = async () => {
+			if (cancelled) return;
 			try {
-				setFps(get_fps());
-			} catch {
-				// WASM not ready yet
+				if (isTauri) {
+					const v = await invoke<number>('get_fps');
+					if (!cancelled) {
+						setFps(v);
+						setErr(null);
+					}
+				} else {
+					const mod =
+						await import('../../wasm-pkg/isometric_game.js');
+					const fn = (mod as unknown as { get_fps?: () => number })
+						.get_fps;
+					if (typeof fn === 'function' && !cancelled) {
+						setFps(fn());
+						setErr(null);
+					}
+				}
+			} catch (e) {
+				if (!cancelled) {
+					setErr(String(e));
+					console.warn('[fps] tick failed', e);
+				}
 			}
-		}, 1000);
-		return () => clearInterval(interval);
+		};
+
+		void tick();
+		const interval = setInterval(() => void tick(), 1000);
+		return () => {
+			cancelled = true;
+			clearInterval(interval);
+		};
 	}, []);
 
 	return (
-		<div className="absolute top-12 left-4 md:top-14 md:left-6 px-2 py-1 md:px-3 md:py-1.5 bg-panel border border-panel-border text-[7px] md:text-[10px] text-text-muted pointer-events-auto">
-			{fps} FPS
+		<div
+			style={{
+				position: 'fixed',
+				top: 40,
+				left: 8,
+				zIndex: 9998,
+				padding: '4px 8px',
+				background: 'rgba(0, 0, 0, 0.75)',
+				border: '1px solid #4ade80',
+				borderRadius: 4,
+				color: '#4ade80',
+				fontSize: 12,
+				fontFamily: 'monospace',
+				pointerEvents: 'auto',
+			}}>
+			{err ? `FPS ERR: ${err.slice(0, 40)}` : `${fps ?? '—'} FPS`}
 		</div>
 	);
 }

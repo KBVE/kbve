@@ -10,8 +10,16 @@ fn main() {
     // is ready when title_screen builds redirect URLs.
     isometric_game::auth::init_local_listener();
 
+    // Restore any prior sign-in from disk so the game boots straight into the
+    // authenticated flow when the JWT is still valid.
+    isometric_game::auth_common::restore_persisted_session();
+
     let mut app = App::new();
-    app.insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.15)));
+    // Alpha-clear so the wgpu CAMetalLayer doesn't paint background pixels
+    // over the DOM behind it. Combined with the `setOpaque:false` call in
+    // `tauri_plugin::create_window_handle`, this lets React UI composite on
+    // top of the Bevy render.
+    app.insert_resource(ClearColor(Color::srgba(0.0, 0.0, 0.0, 0.0)));
 
     app.add_plugins((
         bevy::app::PanicHandlerPlugin,
@@ -25,6 +33,8 @@ fn main() {
         bevy::window::WindowPlugin {
             primary_window: Some(bevy::window::Window {
                 title: "KBVE Isometric".to_string(),
+                transparent: true,
+                composite_alpha_mode: bevy::window::CompositeAlphaMode::PostMultiplied,
                 ..default()
             }),
             ..default()
@@ -63,6 +73,8 @@ fn main() {
                     isometric_game::commands::get_signin_state,
                     isometric_game::commands::set_username,
                     isometric_game::commands::send_chat,
+                    isometric_game::commands::get_chat_log,
+                    isometric_game::commands::get_fps,
                 ])
                 .setup(|app| {
                     use tauri_plugin_deep_link::DeepLinkExt;

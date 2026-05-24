@@ -11,6 +11,54 @@ function setLoadingProgress(status: string, percent: number) {
 	if (bar) bar.style.width = percent + '%';
 }
 
+/**
+ * macOS WKWebView defers composition on transparent + click-through documents
+ * (html/body with `pointer-events: none`). React mounts but paint stays stale
+ * until devtools opens or the window resizes. Force a layout/resize on every
+ * animation frame for the first ~600ms, then drop to a 500ms interval so
+ * later UI state changes (chat panel opening, FPS counter updates) still get
+ * composited.
+ */
+function kickPaint() {
+	const force = () => {
+		document.documentElement.getBoundingClientRect();
+		window.dispatchEvent(new Event('resize'));
+	};
+	let kicks = 0;
+	const rafTick = () => {
+		force();
+		if (++kicks < 36) requestAnimationFrame(rafTick);
+	};
+	requestAnimationFrame(rafTick);
+	setInterval(force, 500);
+
+	// macOS WKWebView only reconfigures its compositor surface on real OS
+	// window-size changes (opening devtools triggers this naturally). Multi-
+	// stage nudge with a perceptible delta and a real delay so AppKit treats
+	// it as a true resize event, not a coalesced no-op.
+	(async () => {
+		try {
+			const winApi = await import('@tauri-apps/api/window');
+			const w = winApi.getCurrentWindow();
+			const size = await w.innerSize();
+			const PhysicalSize = winApi.PhysicalSize;
+			console.log('[paint] window-nudge starting; size=', size);
+			await w.setSize(
+				new PhysicalSize(size.width + 20, size.height + 20),
+			);
+			await new Promise((r) => setTimeout(r, 250));
+			await w.setSize(new PhysicalSize(size.width, size.height));
+			await new Promise((r) => setTimeout(r, 100));
+			await w.setSize(new PhysicalSize(size.width + 1, size.height));
+			await new Promise((r) => setTimeout(r, 100));
+			await w.setSize(new PhysicalSize(size.width, size.height));
+			console.log('[paint] window-nudge complete');
+		} catch (err) {
+			console.warn('[paint] window-nudge failed', err);
+		}
+	})();
+}
+
 function hideLoadingScreen() {
 	const el = document.getElementById('game-loading');
 	if (el) {
@@ -101,6 +149,7 @@ async function bootstrap() {
 					</GameUIProvider>
 				</React.StrictMode>,
 			);
+			kickPaint();
 		}
 		setLoadingProgress('Ready', 100);
 		hideLoadingScreen();

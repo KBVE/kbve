@@ -184,6 +184,12 @@ pub fn send_chat(text: String) -> bool {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn get_chat_log() -> Vec<crate::game::chat::ChatLogEntry> {
+    crate::game::chat::snapshot_log()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     let redirect = crate::auth::build_redirect_url();
