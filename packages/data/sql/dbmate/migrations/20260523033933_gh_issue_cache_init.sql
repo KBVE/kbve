@@ -466,6 +466,7 @@ BEGIN
                              END,
             claimed_at     = NULL,
             claim_token    = NULL,
+            delivered_at   = NULL,
             last_error     = LEFT(COALESCE(p_error, ''), 2000),
             updated_at     = now()
         WHERE id = p_id
@@ -521,7 +522,7 @@ COMMENT ON SCHEMA gh IS
 COMMENT ON TABLE gh.issue IS
 'Mirror of the latest GitHub issue/PR state for allowlisted repos. discord_thread_id is set once the bot creates a forum thread for the issue. Unique partial index on discord_thread_id prevents one thread mapping to multiple issues.';
 COMMENT ON TABLE gh.issue_event IS
-'Event queue for upstream GitHub events (opened/closed/labeled/assigned/commented). Row facts (owner/repo/number/event_type/payload/...) are immutable after insert; delivery_state + claimed_at + delivered_at + delivery_attempts + last_error mutate as the worker processes the event. Lease-based: claim_undelivered_events transitions 0→1 + bumps attempts; mark_event_delivered transitions 1→2 on Discord success; mark_event_failed transitions 1→0 (retryable) or 1→3 (dead_letter after p_max_attempts).';
+'Event queue for upstream GitHub events (opened/closed/labeled/assigned/commented). Row facts (owner/repo/number/event_type/payload/...) are treated as immutable by the RPC surface after insert — no trigger enforces this, but no role outside service_role can reach the table and the RPCs never update those columns. delivery_state + claimed_at + delivered_at + delivery_attempts + last_error + claim_token mutate as the worker processes the event. Lease-based: claim_undelivered_events transitions 0→1 + bumps attempts; mark_event_delivered transitions 1→2 on Discord success; mark_event_failed transitions 1→0 (retryable) or 1→3 (dead_letter after p_max_attempts).';
 COMMENT ON FUNCTION gh.upsert_issue(
     TEXT, TEXT, INT, TEXT, TEXT, TEXT, JSONB, JSONB, TEXT, TEXT, BOOLEAN, TEXT,
     TIMESTAMPTZ, TIMESTAMPTZ, TIMESTAMPTZ
