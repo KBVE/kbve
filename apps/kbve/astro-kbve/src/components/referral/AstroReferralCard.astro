@@ -11,11 +11,100 @@
 		<div>
 			<h2 class="kbve-referral-card__title">Referral targets</h2>
 			<p class="kbve-referral-card__lede">
-				Manage the destinations <code>/referral/@&lt;you&gt;/</code> sends
-				visitors to. The default target loads when someone hits the bare handle.
+				Manage the destinations
+				<code
+					class="kbve-referral-card__handle"
+					data-kbve-referral-handle
+					title="Template: /referral/@<your-username>/">
+					/referral/@…/
+				</code>
+				sends visitors to. The default target loads when someone hits the
+				bare handle.
 			</p>
 		</div>
 	</header>
+
+	<section
+		class="kbve-referral-card__snippets"
+		data-kbve-referral-snippets
+		hidden>
+		<header class="kbve-referral-card__snippets-head">
+			<h3>Share your link</h3>
+			<p>Drop one of these into a page, README, post, or chat.</p>
+		</header>
+		<ul class="kbve-referral-card__snippet-list" role="list">
+			<li class="kbve-referral-card__snippet" data-snippet="url">
+				<div class="kbve-referral-card__snippet-meta">
+					<span class="kbve-referral-card__snippet-label">URL</span>
+					<button
+						type="button"
+						data-kbve-referral-copy="url"
+						title="Copy URL to clipboard">
+						Copy
+					</button>
+				</div>
+				<pre><code data-kbve-referral-fill="url">https://kbve.com/referral/@…/</code></pre>
+			</li>
+			<li class="kbve-referral-card__snippet" data-snippet="markdown">
+				<div class="kbve-referral-card__snippet-meta">
+					<span class="kbve-referral-card__snippet-label">
+						Markdown
+					</span>
+					<button
+						type="button"
+						data-kbve-referral-copy="markdown"
+						title="Copy Markdown snippet">
+						Copy
+					</button>
+				</div>
+				<pre><code data-kbve-referral-fill="markdown">[Join via @…](https://kbve.com/referral/@…/)</code></pre>
+			</li>
+			<li class="kbve-referral-card__snippet" data-snippet="html">
+				<div class="kbve-referral-card__snippet-meta">
+					<span class="kbve-referral-card__snippet-label">HTML</span>
+					<button
+						type="button"
+						data-kbve-referral-copy="html"
+						title="Copy HTML anchor">
+						Copy
+					</button>
+				</div>
+				<pre><code data-kbve-referral-fill="html">&lt;a href="https://kbve.com/referral/@…/"&gt;Join via @…&lt;/a&gt;</code></pre>
+			</li>
+			<li class="kbve-referral-card__snippet" data-snippet="bbcode">
+				<div class="kbve-referral-card__snippet-meta">
+					<span class="kbve-referral-card__snippet-label">
+						BBCode
+					</span>
+					<button
+						type="button"
+						data-kbve-referral-copy="bbcode"
+						title="Copy BBCode snippet">
+						Copy
+					</button>
+				</div>
+				<pre><code data-kbve-referral-fill="bbcode">[url=https://kbve.com/referral/@…/]Join via @…[/url]</code></pre>
+			</li>
+			<li class="kbve-referral-card__snippet" data-snippet="discord">
+				<div class="kbve-referral-card__snippet-meta">
+					<span class="kbve-referral-card__snippet-label">
+						Discord
+					</span>
+					<button
+						type="button"
+						data-kbve-referral-copy="discord"
+						title="Copy Discord-friendly link line">
+						Copy
+					</button>
+				</div>
+				<pre><code data-kbve-referral-fill="discord">Join me on KBVE → &lt;https://kbve.com/referral/@…/&gt;</code></pre>
+			</li>
+		</ul>
+		<output
+			class="kbve-referral-card__copy-status"
+			data-kbve-referral-copy-status>
+		</output>
+	</section>
 
 	<dl class="kbve-referral-card__stats" data-kbve-referral-stats hidden>
 		<div>
@@ -67,11 +156,104 @@
 
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
+	import { fetchAndCacheProfile, getProfileFromCache } from '@kbve/droid';
 
 	const shell = document.querySelector<HTMLElement>(
 		'[data-kbve-referral-shell]',
 	);
 	if (shell) {
+		const handleEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-referral-handle]',
+		);
+		const snippetsEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-referral-snippets]',
+		);
+		const copyStatusEl = shell.querySelector<HTMLOutputElement>(
+			'[data-kbve-referral-copy-status]',
+		);
+
+		const SNIPPET_TEMPLATES: Record<string, (u: string) => string> = {
+			url: (u) => `https://kbve.com/referral/@${u}/`,
+			markdown: (u) =>
+				`[Join via @${u}](https://kbve.com/referral/@${u}/)`,
+			html: (u) =>
+				`<a href="https://kbve.com/referral/@${u}/">Join via @${u}</a>`,
+			bbcode: (u) =>
+				`[url=https://kbve.com/referral/@${u}/]Join via @${u}[/url]`,
+			discord: (u) =>
+				`Join me on KBVE → <https://kbve.com/referral/@${u}/>`,
+		};
+
+		const populateSnippets = (username: string) => {
+			if (!snippetsEl) return;
+			snippetsEl.removeAttribute('hidden');
+			snippetsEl.dataset.kbveReferralUsername = username;
+			if (handleEl) {
+				handleEl.textContent = `/referral/@${username}/`;
+			}
+			for (const node of snippetsEl.querySelectorAll<HTMLElement>(
+				'[data-kbve-referral-fill]',
+			)) {
+				const kind = node.dataset.kbveReferralFill || '';
+				const tmpl = SNIPPET_TEMPLATES[kind];
+				if (tmpl) node.textContent = tmpl(username);
+			}
+		};
+
+		const renderText = (kind: string): string | null => {
+			const username = snippetsEl?.dataset.kbveReferralUsername || '';
+			if (!username) return null;
+			const tmpl = SNIPPET_TEMPLATES[kind];
+			return tmpl ? tmpl(username) : null;
+		};
+
+		const flashCopyStatus = (msg: string, kind: 'ok' | 'error') => {
+			if (!copyStatusEl) return;
+			copyStatusEl.textContent = msg;
+			copyStatusEl.dataset.kind = kind;
+			window.setTimeout(() => {
+				if (copyStatusEl.textContent === msg) {
+					copyStatusEl.textContent = '';
+					delete copyStatusEl.dataset.kind;
+				}
+			}, 1800);
+		};
+
+		snippetsEl?.addEventListener('click', async (ev) => {
+			const btn = ev.target;
+			if (!(btn instanceof HTMLButtonElement)) return;
+			const kind = btn.dataset.kbveReferralCopy;
+			if (!kind) return;
+			const text = renderText(kind);
+			if (!text) {
+				flashCopyStatus('No username set yet.', 'error');
+				return;
+			}
+			try {
+				await navigator.clipboard.writeText(text);
+				flashCopyStatus(`Copied ${kind}.`, 'ok');
+			} catch {
+				flashCopyStatus('Copy failed.', 'error');
+			}
+		});
+
+		const loadUsername = async (
+			userId: string,
+			token: string,
+		): Promise<string | null> => {
+			const cached = getProfileFromCache(userId);
+			if (cached?.username) return cached.username;
+			try {
+				const fresh = await fetchAndCacheProfile({
+					token,
+					apiBase: window.location.origin,
+				});
+				return fresh?.username ?? null;
+			} catch {
+				return null;
+			}
+		};
+
 		const statsEl = shell.querySelector<HTMLElement>(
 			'[data-kbve-referral-stats]',
 		);
@@ -276,11 +458,17 @@
 			const supa = getSupa();
 			const sessionResult = await supa.getSession().catch(() => null);
 			const token = sessionResult?.session?.access_token;
+			const userId = sessionResult?.session?.user?.id;
 			if (!token) {
 				setState('signed-out');
 				return;
 			}
 			await refresh(token);
+
+			if (userId) {
+				const username = await loadUsername(userId, token);
+				if (username) populateSnippets(username);
+			}
 
 			listEl?.addEventListener('click', async (ev) => {
 				const target = ev.target;
@@ -380,6 +568,100 @@
 		background: rgba(255, 255, 255, 0.08);
 		border-radius: 4px;
 	}
+	.kbve-referral-card__handle {
+		cursor: help;
+		border-bottom: 1px dotted rgba(255, 255, 255, 0.4);
+	}
+
+	.kbve-referral-card__snippets {
+		display: grid;
+		gap: 0.65rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		padding-top: 1rem;
+	}
+	.kbve-referral-card__snippets-head h3 {
+		margin: 0;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.55);
+		font-weight: 600;
+	}
+	.kbve-referral-card__snippets-head p {
+		margin: 0.2rem 0 0;
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+	.kbve-referral-card__snippet-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.55rem;
+	}
+	.kbve-referral-card__snippet {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 10px;
+		padding: 0.6rem 0.75rem;
+		display: grid;
+		gap: 0.35rem;
+	}
+	.kbve-referral-card__snippet-meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.kbve-referral-card__snippet-label {
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.55);
+		font-weight: 700;
+	}
+	.kbve-referral-card__snippet button {
+		padding: 0.2rem 0.65rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 6px;
+		color: rgba(255, 255, 255, 0.85);
+		font-size: 0.7rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.kbve-referral-card__snippet button:hover:not(:disabled) {
+		border-color: rgba(139, 92, 246, 0.5);
+	}
+	.kbve-referral-card__snippet pre {
+		margin: 0;
+		padding: 0.5rem 0.65rem;
+		background: rgba(0, 0, 0, 0.35);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		border-radius: 8px;
+		overflow-x: auto;
+	}
+	.kbve-referral-card__snippet pre code {
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		font-size: 0.78rem;
+		color: rgba(255, 255, 255, 0.92);
+		background: transparent;
+		padding: 0;
+		border-radius: 0;
+		white-space: pre;
+	}
+	.kbve-referral-card__copy-status {
+		font-size: 0.75rem;
+		min-height: 1em;
+		color: rgba(255, 255, 255, 0.5);
+	}
+	.kbve-referral-card__copy-status[data-kind='ok'] {
+		color: #34d399;
+	}
+	.kbve-referral-card__copy-status[data-kind='error'] {
+		color: #f87171;
+	}
 
 	.kbve-referral-card__stats {
 		display: grid;
@@ -415,7 +697,9 @@
 	.kbve-referral-card[data-kbve-referral-state='signed-out']
 		.kbve-referral-card__list,
 	.kbve-referral-card[data-kbve-referral-state='signed-out']
-		.kbve-referral-card__add {
+		.kbve-referral-card__add,
+	.kbve-referral-card[data-kbve-referral-state='signed-out']
+		.kbve-referral-card__snippets {
 		display: none;
 	}
 	.kbve-referral-card[data-kbve-referral-state='ready']
