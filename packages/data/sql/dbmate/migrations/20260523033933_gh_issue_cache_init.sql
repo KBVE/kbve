@@ -29,7 +29,28 @@ CREATE TABLE IF NOT EXISTS gh.issue (
     CONSTRAINT gh_issue_owner_shape_chk  CHECK (owner ~ '^[A-Za-z0-9_.-]{1,100}$'),
     CONSTRAINT gh_issue_repo_shape_chk   CHECK (repo  ~ '^[A-Za-z0-9_.-]{1,100}$'),
     CONSTRAINT gh_issue_number_pos_chk   CHECK (number > 0),
-    CONSTRAINT gh_issue_state_chk        CHECK (state IN ('open', 'closed'))
+    CONSTRAINT gh_issue_state_chk        CHECK (state IN ('open', 'closed')),
+    CONSTRAINT gh_issue_labels_array_chk    CHECK (jsonb_typeof(labels)    = 'array'),
+    CONSTRAINT gh_issue_assignees_array_chk CHECK (jsonb_typeof(assignees) = 'array'),
+    CONSTRAINT gh_issue_discord_guild_pos_chk
+        CHECK (discord_guild_id   IS NULL OR discord_guild_id   > 0),
+    CONSTRAINT gh_issue_discord_channel_pos_chk
+        CHECK (discord_channel_id IS NULL OR discord_channel_id > 0),
+    CONSTRAINT gh_issue_discord_thread_pos_chk
+        CHECK (discord_thread_id  IS NULL OR discord_thread_id  > 0),
+    CONSTRAINT gh_issue_discord_mapping_all_or_none_chk CHECK (
+        (
+            discord_guild_id   IS NULL
+            AND discord_channel_id IS NULL
+            AND discord_thread_id  IS NULL
+        )
+        OR
+        (
+            discord_guild_id   IS NOT NULL
+            AND discord_channel_id IS NOT NULL
+            AND discord_thread_id  IS NOT NULL
+        )
+    )
 );
 
 CREATE INDEX IF NOT EXISTS gh_issue_open_by_repo_updated_idx
@@ -67,15 +88,21 @@ CREATE TABLE IF NOT EXISTS gh.issue_event (
     CONSTRAINT gh_issue_event_attempts_chk
         CHECK (delivery_attempts >= 0),
     CONSTRAINT gh_issue_event_state_chk
-        CHECK (delivery_state IN (0, 1, 2, 3))
+        CHECK (delivery_state IN (0, 1, 2, 3)),
+    CONSTRAINT gh_issue_event_payload_object_chk
+        CHECK (jsonb_typeof(payload) = 'object')
 );
 
 COMMENT ON COLUMN gh.issue_event.delivery_state IS
 '0=pending (claimable), 1=claimed (in-flight, lease expires at claimed_at + p_lease_secs), 2=delivered (terminal success), 3=dead_letter (terminal failure, retries exhausted).';
 
-CREATE INDEX IF NOT EXISTS gh_issue_event_claimable_idx
-    ON gh.issue_event (created_at, claimed_at)
-    WHERE delivery_state < 2;
+CREATE INDEX IF NOT EXISTS gh_issue_event_pending_claim_idx
+    ON gh.issue_event (created_at, id)
+    WHERE delivery_state = 0;
+
+CREATE INDEX IF NOT EXISTS gh_issue_event_expired_claim_idx
+    ON gh.issue_event (claimed_at, created_at, id)
+    WHERE delivery_state = 1;
 
 CREATE INDEX IF NOT EXISTS gh_issue_event_lookup_idx
     ON gh.issue_event (owner, repo, number, created_at DESC);
@@ -143,8 +170,9 @@ BEGIN
                                      THEN EXCLUDED.is_pull_request ELSE gh.issue.is_pull_request END,
             closed_at         = CASE WHEN EXCLUDED.github_updated_at >= gh.issue.github_updated_at
                                      THEN EXCLUDED.closed_at ELSE gh.issue.closed_at END,
-            github_node_id    = COALESCE(EXCLUDED.github_node_id, gh.issue.github_node_id),
-            github_created_at = EXCLUDED.github_created_at,
+            github_node_id    = CASE WHEN EXCLUDED.github_updated_at >= gh.issue.github_updated_at
+                                     THEN COALESCE(EXCLUDED.github_node_id, gh.issue.github_node_id)
+                                     ELSE gh.issue.github_node_id END,
             github_updated_at = GREATEST(gh.issue.github_updated_at, EXCLUDED.github_updated_at),
             synced_at         = now()
     RETURNING * INTO v_row;
@@ -290,6 +318,8 @@ LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
+ROWS 100
+COST 50
 AS $$
     SELECT *
     FROM gh.issue
@@ -320,6 +350,8 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
+ROWS 50
+COST 100
 AS $$
 DECLARE
     v_lease INTERVAL := make_interval(secs => GREATEST(p_lease_secs, 30));
@@ -370,7 +402,7 @@ BEGIN
             last_error     = NULL,
             updated_at     = now()
         WHERE id = p_id
-          AND delivery_state < 2;
+          AND delivery_state = 1;
 
     GET DIAGNOSTICS v_rows = ROW_COUNT;
     RETURN v_rows > 0;
@@ -403,7 +435,7 @@ BEGIN
             last_error     = LEFT(COALESCE(p_error, ''), 2000),
             updated_at     = now()
         WHERE id = p_id
-          AND delivery_state < 2
+          AND delivery_state = 1
         RETURNING delivery_state INTO v_new_state;
 
     RETURN v_new_state;
@@ -418,9 +450,6 @@ ALTER SCHEMA gh OWNER TO service_role;
 ALTER TABLE gh.issue OWNER TO service_role;
 ALTER TABLE gh.issue_event OWNER TO service_role;
 ALTER SEQUENCE gh.issue_event_id_seq OWNER TO service_role;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA gh
-    GRANT EXECUTE ON FUNCTIONS TO service_role;
 
 COMMENT ON SCHEMA gh IS
 'L2 cache for GitHub issue/PR metadata + append-only event queue feeding the discordsh thread sync. Mirror-only, RPC-only surface (no direct table grants), owned by service_role.';
@@ -439,7 +468,7 @@ COMMENT ON FUNCTION gh.claim_undelivered_events(INT, INT) IS
 COMMENT ON FUNCTION gh.mark_event_delivered(BIGINT) IS
 'Transitions delivery_state 0/1 → 2 once the bot reflects the event in the matching thread. Idempotent: returns false on rows already in state ≥ 2.';
 COMMENT ON FUNCTION gh.mark_event_failed(BIGINT, TEXT, INT) IS
-'Release the lease + record last_error. Transitions state 1 → 0 (retryable) when delivery_attempts < p_max_attempts, otherwise 1 → 3 (dead_letter). Returns the new delivery_state (NULL if the row was already terminal). last_error truncated to 2000 chars.';
+'Release the lease + record last_error. Caller must be in state=1 (claimed); rows already terminal (2/3) or never claimed (0) return NULL. Because delivery_attempts is incremented at claim time, a failure on the N-th claimed attempt dead-letters when delivery_attempts >= p_max_attempts at that point — i.e. p_max_attempts=1 dead-letters on the first failure, =25 on the 25th. Otherwise transitions 1 → 0 so the event becomes claimable again. last_error truncated to 2000 chars.';
 
 NOTIFY pgrst, 'reload schema';
 
