@@ -12,11 +12,6 @@ describe('MC velocity proxy plugins', () => {
 		expect(logs).toMatch(/LuckPerms v\d/);
 	});
 
-	it('loads AdvancedPortals proxy plugin', () => {
-		const logs = dockerLogs();
-		expect(logs).toMatch(/advancedportals|AdvancedPortals/);
-	});
-
 	it('logs no plugin discovery errors', () => {
 		const logs = dockerLogs();
 		expect(logs).not.toMatch(

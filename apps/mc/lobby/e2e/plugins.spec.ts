@@ -16,11 +16,6 @@ describe('MC lobby plugin load', () => {
 		rcon?.disconnect();
 	});
 
-	it('reports AdvancedPortals in /plugins', async () => {
-		const response = await rcon.command('plugins');
-		expect(response).toMatch(/AdvancedPortals/);
-	});
-
 	it('reports Essentials + EssentialsSpawn + EssentialsAntiBuild in /plugins', async () => {
 		const response = await rcon.command('plugins');
 		expect(response).toMatch(/Essentials(?!\w)/);
@@ -38,11 +33,15 @@ describe('MC lobby plugin load', () => {
 		expect(response).toMatch(/kbve-mc-uplink|uplink/i);
 	});
 
-	it('baked AdvancedPortals config enables proxy support', () => {
-		const config = dockerExec(
-			'cat /data/plugins/AdvancedPortals/config.yaml',
-		);
-		expect(config).toMatch(/enableProxySupport:\s*true/);
+	it('kbve-mc-uplink loaded its portal config', () => {
+		const logs = dockerLogs();
+		expect(logs).toMatch(/kbve-mc-uplink portals: .+→.+/);
+	});
+
+	it('portals.yml gets saved to plugin data folder on first boot', () => {
+		const yaml = dockerExec('cat /data/plugins/kbve-mc-uplink/portals.yml');
+		expect(yaml).toMatch(/portals:/);
+		expect(yaml).toMatch(/target:/);
 	});
 
 	it('logs no plugin load failures', () => {
