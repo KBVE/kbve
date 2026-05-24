@@ -22,8 +22,60 @@ import {
 	type ChatMessage,
 	type ConnectionStatus,
 } from './state';
-import { joinChannel, partChannel, sendChat } from './transport';
+import {
+	joinChannel,
+	partChannel,
+	reconnectWithToken,
+	sendChat,
+} from './transport';
+import { readSharedTokenCookie } from './auth';
 import { formatTime, nickColor, nickInitial } from './format';
+
+const SIGNIN_URL = 'https://chat.kbve.com/auth/';
+
+function isKbveOrigin(): boolean {
+	if (typeof location === 'undefined') return false;
+	return (
+		location.hostname === 'kbve.com' ||
+		location.hostname.endsWith('.kbve.com')
+	);
+}
+
+function startSignInPopup(onToken: (token: string) => void): void {
+	const popup = window.open(
+		SIGNIN_URL,
+		'kbve_chat_signin',
+		'width=520,height=720,menubar=no,toolbar=no,location=no',
+	);
+	if (!popup) {
+		window.location.href = SIGNIN_URL;
+		return;
+	}
+	const start = Date.now();
+	const interval = window.setInterval(() => {
+		const elapsed = Date.now() - start;
+		if (elapsed > 5 * 60 * 1000) {
+			window.clearInterval(interval);
+			return;
+		}
+		const token = readSharedTokenCookie();
+		if (token) {
+			window.clearInterval(interval);
+			try {
+				popup.close();
+			} catch {
+				/* ignore */
+			}
+			onToken(token);
+			return;
+		}
+		if (popup.closed) {
+			window.clearInterval(interval);
+			const finalToken = readSharedTokenCookie();
+			if (finalToken) onToken(finalToken);
+		}
+	}, 1200);
+}
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
 	connected: 'Online',
@@ -229,15 +281,25 @@ const Composer: React.FC = () => {
 	);
 
 	if (!canSend) {
+		const onKbve = isKbveOrigin();
+		const handleSignIn = () => {
+			if (!onKbve) {
+				window.open(SIGNIN_URL, '_blank', 'noopener');
+				return;
+			}
+			startSignInPopup((token) => {
+				void reconnectWithToken(token);
+			});
+		};
 		return (
 			<div className="readonly-notice">
 				Read-only mode.{' '}
-				<a
-					href="https://chat.kbve.com/auth"
-					target="_blank"
-					rel="noopener noreferrer">
-					Sign in at chat.kbve.com →
-				</a>
+				<button
+					type="button"
+					onClick={handleSignIn}
+					className="signin-link">
+					{onKbve ? 'Sign in →' : 'Sign in at chat.kbve.com →'}
+				</button>
 			</div>
 		);
 	}

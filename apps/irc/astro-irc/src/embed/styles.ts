@@ -392,12 +392,19 @@ export const EMBED_CSS = `
   color: var(--kbc-text-dim);
   text-align: center;
 }
-.readonly-notice a {
+.readonly-notice a,
+.readonly-notice .signin-link {
   color: var(--kbc-accent);
   text-decoration: none;
   font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
 }
-.readonly-notice a:hover { text-decoration: underline; }
+.readonly-notice a:hover,
+.readonly-notice .signin-link:hover { text-decoration: underline; }
 
 .users {
   flex: 0 0 140px;

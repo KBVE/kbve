@@ -1,12 +1,8 @@
 import { $avatarUrl } from './state';
 
-// Cross-domain shared-token cookie reader.
-// Mirrors @kbve/astro's getSharedToken so the embed bundle can read the
-// same cookie set by chat.kbve.com / kbve.com after auth, without pulling
-// the full @kbve/astro barrel (which drags in React/DroidProvider).
-const SHARED_TOKEN_COOKIE = 'kbve_session';
+const SHARED_TOKEN_COOKIE = 'kbve_auth_token';
 
-function readSharedTokenCookie(): string {
+export function readSharedTokenCookie(): string {
 	if (typeof document === 'undefined') return '';
 	const target = `${SHARED_TOKEN_COOKIE}=`;
 	const parts = document.cookie.split(';');
@@ -37,12 +33,6 @@ function decodeJwtAvatar(token: string): string | null {
 	}
 }
 
-/**
- * Resolve the JWT to use for WS auth. Resolution order:
- *   1. Explicit `opts.token` passed by the host page (takes priority)
- *   2. Shared cookie on *.kbve.com origins (`kbve_session`)
- *   3. Empty string → embed runs in anonymous read-only mode
- */
 export function resolveToken(explicit?: string): string {
 	if (explicit && explicit.length > 0) {
 		hydrateAvatarFromToken(explicit);
