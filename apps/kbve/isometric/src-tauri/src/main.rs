@@ -74,6 +74,7 @@ fn main() {
                     isometric_game::commands::set_username,
                     isometric_game::commands::send_chat,
                     isometric_game::commands::get_chat_log,
+                    isometric_game::commands::get_ui_chrome,
                     isometric_game::commands::get_fps,
                 ])
                 .setup(|app| {

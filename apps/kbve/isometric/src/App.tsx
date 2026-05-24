@@ -1,4 +1,5 @@
 import { ChatInput } from './components/ChatInput';
+import { DragBar } from './components/DragBar';
 import { HUD } from './components/HUD';
 import { ObjectLabel } from './components/ObjectLabel';
 import { UsernameModal } from './components/UsernameModal';
@@ -11,6 +12,7 @@ function App() {
 		<div
 			className="fixed inset-0 font-game text-text rpg-text-shadow"
 			style={{ pointerEvents: 'none' }}>
+			<DragBar />
 			<HUD />
 			<ObjectLabel />
 			<UsernameModal />

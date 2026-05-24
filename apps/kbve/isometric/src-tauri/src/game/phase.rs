@@ -28,6 +28,11 @@ pub enum GamePhase {
     Playing,
 }
 
+/// Atomic snapshot of the current `GamePhase`. React polls this via
+/// `commands::get_ui_chrome` to decide whether to render the window-drag
+/// handle (title or settings open). 0=Title, 1=Connecting, 2=Playing.
+pub static PHASE_SNAPSHOT: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+
 /// Tracks whether the player chose to play online or offline.
 /// Used to decide whether to return to the title screen on disconnect.
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -78,6 +83,11 @@ impl Plugin for PhasePlugin {
         app.init_state::<GamePhase>();
         app.init_resource::<PreFlight>();
         app.init_resource::<PlayMode>();
+
+        // Snapshot the current phase into a static atomic so the React UI
+        // (drag-bar visibility) can read it via a Tauri command without
+        // owning a Bevy world reference.
+        app.add_systems(Update, snapshot_phase);
 
         // One-shot transport probe: runs once during Title when transport is still Unknown
         app.add_systems(
@@ -207,4 +217,13 @@ fn probe_transport(mut preflight: ResMut<PreFlight>) {
             info!("[phase] WASM — WebTransport NOT supported, will use WebSocket");
         }
     }
+}
+
+fn snapshot_phase(phase: Res<State<GamePhase>>) {
+    let v: u8 = match *phase.get() {
+        GamePhase::Title => 0,
+        GamePhase::Connecting => 1,
+        GamePhase::Playing => 2,
+    };
+    PHASE_SNAPSHOT.store(v, std::sync::atomic::Ordering::Relaxed);
 }
