@@ -168,11 +168,36 @@ function populateProfile(profile: ApiProfile, session: any) {
 	// Connected providers
 	const providersEl = el(IDs.profileProviders);
 	if (providersEl && profile.connected_providers) {
+		const providerMeta = (name: string) => {
+			const key = name.toLowerCase();
+			const linked = profile[key] as
+				| { username?: string; avatar_url?: string }
+				| undefined;
+			return {
+				key,
+				avatar: linked?.avatar_url,
+				handle: linked?.username,
+			};
+		};
+		const escapeAttr = (s: string) =>
+			s
+				.replace(/&/g, '&amp;')
+				.replace(/"/g, '&quot;')
+				.replace(/</g, '&lt;');
+		const escapeText = (s: string) =>
+			s
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;');
 		providersEl.innerHTML = profile.connected_providers
-			.map(
-				(p) =>
-					`<span class="profile-provider-badge" style="text-transform:capitalize">${p}</span>`,
-			)
+			.map((p) => {
+				const { key, avatar, handle } = providerMeta(p);
+				const img = avatar
+					? `<img class="profile-provider-avatar" src="${escapeAttr(avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
+					: '';
+				const label = handle ? `${p} · ${handle}` : p;
+				return `<span class="profile-provider-badge profile-provider-${key}">${img}<span class="profile-provider-label" style="text-transform:capitalize">${escapeText(label)}</span></span>`;
+			})
 			.join('');
 	}
 
