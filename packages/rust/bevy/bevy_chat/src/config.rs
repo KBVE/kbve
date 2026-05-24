@@ -37,6 +37,12 @@ pub struct IrcConfig {
     /// this to `WebSocket` to talk to `wss://chat.kbve.com`.
     #[serde(default)]
     pub transport: IrcTransport,
+    /// If true, the client skips sending `PASS`/`NICK`/`USER` after connect
+    /// and only sends `JOIN` for configured channels. Used by the
+    /// `wss://chat.kbve.com` gateway which pre-registers the user with Ergo
+    /// from the JWT-authenticated identity carried in the WS upgrade query.
+    #[serde(default)]
+    pub skip_registration: bool,
 }
 
 impl Default for IrcConfig {
@@ -50,6 +56,7 @@ impl Default for IrcConfig {
             password: None,
             reconnect_delay_secs: 5,
             transport: IrcTransport::Tcp,
+            skip_registration: false,
         }
     }
 }
@@ -97,6 +104,7 @@ impl IrcConfig {
             password,
             reconnect_delay_secs,
             transport: IrcTransport::Tcp,
+            skip_registration: false,
         }
     }
 }

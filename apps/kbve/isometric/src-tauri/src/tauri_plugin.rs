@@ -83,6 +83,12 @@ mod desktop {
         let tauri_window = tauri_handle.get_webview_window("main").unwrap();
         let inner = tauri_window.inner_size().ok();
         let scale = tauri_window.scale_factor().ok().unwrap_or(1.0) as f32;
+
+        #[cfg(target_os = "macos")]
+        unsafe {
+            make_metal_layer_transparent(&tauri_window);
+        }
+
         let window_wrapper = WindowWrapper::new(tauri_window);
         if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
             if let Ok((entity, mut window)) = windows.single_mut() {
@@ -92,6 +98,40 @@ mod desktop {
                 }
                 commands.entity(entity).insert(raw_handle);
             }
+        }
+    }
+
+    /// Make the NSWindow's CAMetalLayer non-opaque so the DOM (React UI)
+    /// behind the wgpu surface composites through to the screen. Without
+    /// this, Bevy's render layer paints every pixel opaque and hides every
+    /// HTML element until Web Inspector forces a compositor re-order.
+    #[cfg(target_os = "macos")]
+    unsafe fn make_metal_layer_transparent(window: &tauri::WebviewWindow) {
+        use objc2::msg_send;
+        use objc2::runtime::AnyObject;
+
+        let raw_ns_window = match window.ns_window() {
+            Ok(ptr) => ptr,
+            Err(_) => return,
+        };
+        if raw_ns_window.is_null() {
+            return;
+        }
+        let ns_window: *mut AnyObject = raw_ns_window.cast();
+        unsafe {
+            let _: () = msg_send![ns_window, setOpaque: false];
+            let _: () = msg_send![ns_window, setBackgroundColor: std::ptr::null::<AnyObject>()];
+
+            let content_view: *mut AnyObject = msg_send![ns_window, contentView];
+            if content_view.is_null() {
+                return;
+            }
+            let _: () = msg_send![content_view, setWantsLayer: true];
+            let layer: *mut AnyObject = msg_send![content_view, layer];
+            if layer.is_null() {
+                return;
+            }
+            let _: () = msg_send![layer, setOpaque: false];
         }
     }
 
@@ -159,6 +199,7 @@ mod desktop {
             frame_count += 1;
             if last_fps_update.elapsed() >= Duration::from_secs(1) {
                 AVERAGE_FRAME_RATE.store(frame_count, Ordering::Relaxed);
+                eprintln!("[fps] store {frame_count}");
                 frame_count = 0;
                 last_fps_update = Instant::now();
             }

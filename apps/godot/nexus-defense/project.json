@@ -1,0 +1,59 @@
+{
+	"name": "nexus-defense",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/godot/nexus-defense",
+	"projectType": "application",
+	"tags": ["godot", "game", "nexus-defense"],
+	"targets": {
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "bash apps/godot/nexus-defense/scripts/test.sh"
+			},
+			"inputs": [
+				"{projectRoot}/scenes/**/*",
+				"{projectRoot}/ui/**/*",
+				"{projectRoot}/ecs/**/*",
+				"{projectRoot}/tests/ui/**/*",
+				"{projectRoot}/tests/components/**/*",
+				"{projectRoot}/tests/helpers/**/*",
+				"{projectRoot}/project.godot",
+				"{projectRoot}/scripts/test.sh"
+			]
+		},
+		"test-e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
+			},
+			"inputs": [
+				"{projectRoot}/scenes/**/*",
+				"{projectRoot}/ui/**/*",
+				"{projectRoot}/ecs/**/*",
+				"{projectRoot}/tests/**/*",
+				"{projectRoot}/project.godot",
+				"{projectRoot}/scripts/test-e2e.sh",
+				"{workspaceRoot}/apps/td-server/**/*",
+				"{workspaceRoot}/packages/rust/q/src/proto/**/*",
+				"{workspaceRoot}/packages/rust/q/src/net/**/*",
+				"{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
+			]
+		},
+		"test-ci": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"bash apps/godot/nexus-defense/scripts/test.sh",
+					"bash apps/godot/nexus-defense/scripts/test-e2e.sh"
+				],
+				"parallel": false
+			}
+		},
+		"build-server": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p td-server"
+			}
+		}
+	}
+}

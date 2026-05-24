@@ -11,7 +11,7 @@ use godot::classes::INode;
 use godot::prelude::*;
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::proto::{self, ServerEvent};
+use crate::proto::{self, ClientMessage, ServerEvent};
 use crate::threads::runtime::RuntimeManager;
 
 enum Outbound {
@@ -21,10 +21,23 @@ enum Outbound {
 
 enum Inbound {
     Connected,
-    Welcome { slot: u8, seed: u64 },
-    Snapshot { tick: u32 },
-    Disconnected { reason: String },
-    DecodeError { detail: String },
+    Welcome {
+        slot: u8,
+        seed: u64,
+    },
+    Snapshot {
+        tick: u32,
+        wave: u16,
+        enemy_count: u32,
+        gold: i32,
+        lives: i32,
+    },
+    Disconnected {
+        reason: String,
+    },
+    DecodeError {
+        detail: String,
+    },
 }
 
 #[derive(GodotClass)]
@@ -66,9 +79,23 @@ impl INode for MatchSocket {
                         &[(slot as i64).to_variant(), (seed as i64).to_variant()],
                     );
                 }
-                Inbound::Snapshot { tick } => {
-                    self.base_mut()
-                        .emit_signal(&StringName::from("snapshot"), &[(tick as i64).to_variant()]);
+                Inbound::Snapshot {
+                    tick,
+                    wave,
+                    enemy_count,
+                    gold,
+                    lives,
+                } => {
+                    self.base_mut().emit_signal(
+                        &StringName::from("snapshot"),
+                        &[
+                            (tick as i64).to_variant(),
+                            (wave as i64).to_variant(),
+                            (enemy_count as i64).to_variant(),
+                            (gold as i64).to_variant(),
+                            (lives as i64).to_variant(),
+                        ],
+                    );
                 }
                 Inbound::Disconnected { reason } => {
                     self.connected = false;
@@ -94,10 +121,11 @@ impl MatchSocket {
     #[signal]
     fn welcome(slot: i64, seed: i64);
 
-    /// Snapshot landed; consumer can pull additional detail from a buffer
-    /// later. For now only the tick is plumbed through.
+    /// Snapshot landed — summary surface for the HUD. Per-entity detail can
+    /// be pulled from a future ring buffer; for now we plumb the headline
+    /// numbers so GDScript can render a wave/enemies/gold display.
     #[signal]
-    fn snapshot(tick: i64);
+    fn snapshot(tick: i64, wave: i64, enemy_count: i64, gold: i64, lives: i64);
 
     #[signal]
     fn disconnected(reason: GString);
@@ -105,16 +133,22 @@ impl MatchSocket {
     #[signal]
     fn decode_error(detail: GString);
 
-    /// Open a connection to the given `ws://host:port/ws` URL.
+    /// Open a connection and send the JoinMatch handshake.
     /// Returns immediately; the actual connect happens on the tokio runtime.
+    /// `jwt` is a Supabase access token; `kbve_username` is sent for logging.
     #[func]
-    fn connect_to(&mut self, url: GString) {
+    fn connect_to(&mut self, url: GString, jwt: GString, kbve_username: GString) {
         if self.inbound_rx.is_some() {
             godot_warn!("[MatchSocket] connect_to called while already connected");
             return;
         }
 
         let url_str = url.to_string();
+        let join = proto::JoinMatch {
+            protocol: proto::PROTOCOL_VERSION,
+            jwt: jwt.to_string(),
+            kbve_username: kbve_username.to_string(),
+        };
         let (inbound_tx, inbound_rx) = unbounded::<Inbound>();
         let (outbound_tx, outbound_rx) = unbounded::<Outbound>();
         self.inbound_rx = Some(inbound_rx);
@@ -132,7 +166,7 @@ impl MatchSocket {
         let runtime = runtime_gd.bind();
 
         runtime.spawn(async move {
-            run_socket(url_str, inbound_tx, outbound_rx).await;
+            run_socket(url_str, join, inbound_tx, outbound_rx).await;
         });
     }
 
@@ -142,13 +176,13 @@ impl MatchSocket {
             Some(t) => t.clone(),
             None => return,
         };
-        let frame = proto::ClientFrame {
+        let msg = ClientMessage::Frame(proto::ClientFrame {
             client_tick: client_tick as u32,
             inputs: vec![proto::Input::Heartbeat {
                 client_tick: client_tick as u32,
             }],
-        };
-        match proto::encode(&frame) {
+        });
+        match proto::encode(&msg) {
             Ok(buf) => {
                 let _ = tx.send(Outbound::Send(buf));
             }
@@ -172,7 +206,12 @@ impl MatchSocket {
     }
 }
 
-async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
+async fn run_socket(
+    url: String,
+    join: proto::JoinMatch,
+    tx: Sender<Inbound>,
+    rx: Receiver<Outbound>,
+) {
     let (ws_stream, _) = match tokio_tungstenite::connect_async(&url).await {
         Ok(s) => s,
         Err(e) => {
@@ -185,6 +224,26 @@ async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
     let _ = tx.send(Inbound::Connected);
 
     let (mut writer, mut reader) = ws_stream.split();
+
+    // Send the JoinMatch handshake immediately. Server holds Welcome until it
+    // verifies the JWT.
+    let join_msg = ClientMessage::JoinMatch(join);
+    match proto::encode(&join_msg) {
+        Ok(buf) => {
+            if writer.send(Message::Binary(buf)).await.is_err() {
+                let _ = tx.send(Inbound::Disconnected {
+                    reason: "join send failed".into(),
+                });
+                return;
+            }
+        }
+        Err(e) => {
+            let _ = tx.send(Inbound::Disconnected {
+                reason: format!("join encode failed: {e}"),
+            });
+            return;
+        }
+    }
 
     // Outbound pump — pull from crossbeam channel, push onto the ws.
     let writer_tx = tx.clone();
@@ -231,7 +290,18 @@ async fn run_socket(url: String, tx: Sender<Inbound>, rx: Receiver<Outbound>) {
                     });
                 }
                 Ok(ServerEvent::Snapshot(snap)) => {
-                    let _ = tx.send(Inbound::Snapshot { tick: snap.tick });
+                    let field = snap.fields.first();
+                    let enemy_count = field.map(|f| f.enemies.len() as u32).unwrap_or(0);
+                    let wave = field.map(|f| f.wave).unwrap_or(0);
+                    let gold = field.map(|f| f.gold).unwrap_or(0);
+                    let lives = field.map(|f| f.lives).unwrap_or(0);
+                    let _ = tx.send(Inbound::Snapshot {
+                        tick: snap.tick,
+                        wave,
+                        enemy_count,
+                        gold,
+                        lives,
+                    });
                 }
                 Ok(ServerEvent::Reject { reason }) => {
                     let _ = tx.send(Inbound::Disconnected { reason });

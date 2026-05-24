@@ -1,0 +1,7 @@
+portals:
+    survival:
+        world: world
+        min: [5, -57, -1]
+        max: [5, -54, 1]
+        trigger_block: NETHER_PORTAL
+        target: mc

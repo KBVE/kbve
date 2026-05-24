@@ -2,6 +2,83 @@
 import MarketAccountSummary from './MarketAccountSummary';
 ---
 
-<div class="not-content">
+<div class="not-content kbve-market-summary-shell">
 	<MarketAccountSummary client:only="react" />
 </div>
+
+<style is:global>
+	.kbve-market-summary {
+		margin-top: 1rem;
+		padding: 1.25rem;
+		border-radius: 16px;
+		background: linear-gradient(
+			145deg,
+			rgba(30, 41, 59, 0.9) 0%,
+			rgba(15, 23, 42, 0.95) 100%
+		);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.9);
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+	}
+	.kbve-market-summary__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.85rem;
+	}
+	.kbve-market-summary__head h2 {
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		margin: 0;
+		color: rgba(255, 255, 255, 0.9);
+	}
+	.kbve-market-summary__link {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: rgb(103, 232, 249);
+		text-decoration: none;
+	}
+	.kbve-market-summary__link:hover {
+		text-decoration: underline;
+	}
+	.kbve-market-summary__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+		margin: 0;
+	}
+	.kbve-market-summary__grid > div {
+		padding: 0.85rem 1rem;
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+	.kbve-market-summary__grid dt {
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.55);
+		margin: 0;
+	}
+	.kbve-market-summary__grid dd {
+		margin: 0.25rem 0 0;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: rgba(255, 255, 255, 0.95);
+	}
+	.kbve-market-summary__error {
+		margin-top: 0.75rem;
+		font-size: 0.8rem;
+		color: rgb(248, 113, 113);
+	}
+	@media (min-width: 640px) {
+		.kbve-market-summary__grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+</style>

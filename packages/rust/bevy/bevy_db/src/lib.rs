@@ -88,8 +88,25 @@ mod plugin {
                     .join(&self.db_name)
                     .with_extension("redb");
 
-                let store =
-                    backend::BackendStore::open(path).expect("failed to open bevy_db database");
+                // Prior process may have panic-aborted with the redb lock byte
+                // still set in the file header. Recover by moving the stuck
+                // file aside and retrying with a fresh database.
+                let store = match backend::BackendStore::open(path.clone()) {
+                    Ok(s) => s,
+                    Err(first_err) => {
+                        let suffix = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_secs())
+                            .unwrap_or(0);
+                        let stuck = path.with_extension(format!("redb.stuck-{suffix}"));
+                        let _ = std::fs::rename(&path, &stuck);
+                        backend::BackendStore::open(path).unwrap_or_else(|e| {
+                            panic!(
+                                "failed to open bevy_db database after stuck-file recovery (first={first_err}, retry={e})"
+                            )
+                        })
+                    }
+                };
                 app.insert_resource(Db::new(store));
             }
 

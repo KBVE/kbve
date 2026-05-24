@@ -19,6 +19,9 @@ config/icon="res://icon.svg"
 [autoload]
 
 ECS="*uid://dfqwl5njvdnmq"
+Bp="*res://ui/lib/breakpoint.gd"
+Ui="*res://ui/lib/ui_manager.gd"
+Supabase="*res://net/supabase_client.gd"
 
 [display]
 
@@ -29,7 +32,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gecs/plugin.cfg")
+enabled=PackedStringArray("res://addons/gecs/plugin.cfg", "res://addons/gdUnit4/plugin.cfg")
 
 [input]
 

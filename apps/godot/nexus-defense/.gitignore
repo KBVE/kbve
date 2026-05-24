@@ -2,3 +2,6 @@
 .import/
 export_presets.cfg
 *.translation
+
+# GdUnit4 test reports
+reports/

@@ -184,6 +184,32 @@ pub fn send_chat(text: String) -> bool {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
+pub fn get_chat_log() -> Vec<crate::game::chat::ChatLogEntry> {
+    crate::game::chat::snapshot_log()
+}
+
+#[derive(serde::Serialize, Clone)]
+pub struct UiChromeState {
+    /// 0=Title, 1=Connecting, 2=Playing
+    pub phase: u8,
+    pub settings_open: bool,
+    /// True when any in-game UI overlay (PauseMenu/Inventory/etc.) is open.
+    pub overlay_open: bool,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
+pub fn get_ui_chrome() -> UiChromeState {
+    use std::sync::atomic::Ordering;
+    UiChromeState {
+        phase: crate::game::phase::PHASE_SNAPSHOT.load(Ordering::Relaxed),
+        settings_open: crate::game::settings::SETTINGS_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+        overlay_open: crate::game::pause_menu::OVERLAY_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tauri::command]
 pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     let redirect = crate::auth::build_redirect_url();
@@ -282,6 +308,24 @@ pub fn set_username(username: &str) {
 #[wasm_bindgen]
 pub fn send_chat(text: &str) -> bool {
     crate::game::chat::queue_outgoing_chat(text)
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_chat_log_json() -> String {
+    serde_json::to_string(&crate::game::chat::snapshot_log()).unwrap_or_else(|_| "[]".to_owned())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn get_ui_chrome_json() -> String {
+    use std::sync::atomic::Ordering;
+    let chrome = UiChromeState {
+        phase: crate::game::phase::PHASE_SNAPSHOT.load(Ordering::Relaxed),
+        settings_open: crate::game::settings::SETTINGS_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+        overlay_open: crate::game::pause_menu::OVERLAY_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+    };
+    serde_json::to_string(&chrome).unwrap_or_else(|_| "{}".to_owned())
 }
 
 #[cfg(target_arch = "wasm32")]

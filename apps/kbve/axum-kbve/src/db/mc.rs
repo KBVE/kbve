@@ -230,6 +230,21 @@ impl McService {
             })
     }
 
+    /// Resolve a Minecraft UUID to its current skin_url, scanning the
+    /// online-player cache first and falling back to Mojang sessionserver.
+    /// Returns None when Mojang has no profile or the player has no skin.
+    pub async fn resolve_skin_by_uuid(&self, uuid: &str) -> Option<String> {
+        let target = uuid.replace('-', "").to_lowercase();
+
+        for entry in self.players.iter() {
+            if entry.uuid.eq_ignore_ascii_case(&target) && !entry.is_expired() {
+                return entry.skin_url.clone();
+            }
+        }
+
+        self.fetch_skin_url(&target).await
+    }
+
     /// Proxy-fetch a skin texture PNG from textures.minecraft.net.
     /// `hash` must be a 60-64 character hex string (validated by caller).
     /// Caches bytes in the player's DashMap entry for subsequent requests.
@@ -613,6 +628,17 @@ fn parse_list_response(response: &str) -> anyhow::Result<(Vec<String>, usize)> {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Extract the 60-64 char hex texture hash from a textures.minecraft.net URL.
+pub fn extract_texture_hash(skin_url: &str) -> Option<String> {
+    let trimmed = skin_url.trim_end_matches('/');
+    let tail = trimmed.rsplit('/').next()?;
+    if (60..=64).contains(&tail.len()) && tail.chars().all(|c| c.is_ascii_hexdigit()) {
+        Some(tail.to_string())
+    } else {
+        None
+    }
+}
 
 /// Extract skin URL from Mojang session profile response.
 /// The `properties` array contains a base64-encoded JSON with texture URLs.

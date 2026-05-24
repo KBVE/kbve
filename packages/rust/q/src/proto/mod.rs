@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Bump on any breaking wire change. Server rejects mismatched clients.
-pub const PROTOCOL_VERSION: u32 = 1;
+pub const PROTOCOL_VERSION: u32 = 2;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;
@@ -55,11 +55,23 @@ pub enum EnemyKind {
 
 /// First message client sends after WS upgrade. Server validates protocol +
 /// JWT then admits the player into a slot.
+///
+/// `jwt` is a Supabase GoTrue access token issued by supabase.kbve.com. The
+/// `kbve_username` field is informational only; the server trusts the claim
+/// inside the JWT (injected by the Custom Access Token hook), not the field.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JoinMatch {
     pub protocol: u32,
-    pub match_token: String,
+    pub jwt: String,
     pub kbve_username: String,
+}
+
+/// Top-level client-to-server envelope. The first frame on every connection
+/// must be `JoinMatch`; subsequent frames are `Frame`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ClientMessage {
+    JoinMatch(JoinMatch),
+    Frame(ClientFrame),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -211,7 +223,7 @@ mod tests {
 
     #[test]
     fn input_round_trips() {
-        let frame = ClientFrame {
+        let msg = ClientMessage::Frame(ClientFrame {
             client_tick: 42,
             inputs: vec![
                 Input::PlaceBuilding {
@@ -221,11 +233,34 @@ mod tests {
                 },
                 Input::SkipWave,
             ],
-        };
-        let mut buf = encode(&frame).expect("encode");
-        let back: ClientFrame = decode(&mut buf).expect("decode");
-        assert_eq!(back.client_tick, 42);
-        assert_eq!(back.inputs.len(), 2);
+        });
+        let mut buf = encode(&msg).expect("encode");
+        let back: ClientMessage = decode(&mut buf).expect("decode");
+        match back {
+            ClientMessage::Frame(frame) => {
+                assert_eq!(frame.client_tick, 42);
+                assert_eq!(frame.inputs.len(), 2);
+            }
+            _ => panic!("wrong variant"),
+        }
+    }
+
+    #[test]
+    fn join_match_round_trips() {
+        let msg = ClientMessage::JoinMatch(JoinMatch {
+            protocol: PROTOCOL_VERSION,
+            jwt: "header.payload.signature".into(),
+            kbve_username: "h0lybyte".into(),
+        });
+        let mut buf = encode(&msg).expect("encode");
+        let back: ClientMessage = decode(&mut buf).expect("decode");
+        match back {
+            ClientMessage::JoinMatch(jm) => {
+                assert_eq!(jm.protocol, PROTOCOL_VERSION);
+                assert_eq!(jm.kbve_username, "h0lybyte");
+            }
+            _ => panic!("wrong variant"),
+        }
     }
 
     #[test]

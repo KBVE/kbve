@@ -39,12 +39,26 @@ rapier2d-client = ["client", "dep:rapier2d"]
 rapier2d-server = ["server", "dep:rapier2d"]
 
 # Networking — WS client for the Godot extension, axum for the server.
-net-client = ["client", "dep:tokio-tungstenite", "dep:futures-util"]
-net-server = ["server", "dep:axum", "dep:tokio-tungstenite"]
+# Both sides require proto-* for wire framing.
+net-client = ["client", "proto-client", "dep:tokio-tungstenite", "dep:futures-util"]
+net-server = ["server", "proto-server", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
+
+# Bevy ECS app for server flavors. Server-only — clients use their host engine.
+bevy-server = ["server", "dep:bevy"]
+
+# Supabase JWT verification — used by the server flavor to admit players.
+supabase-auth = ["server", "dep:jsonwebtoken"]
 
 # Game bundles — convenience rollups consumed by build pipelines / sync scripts.
 nexus-defense = ["client", "proto-client", "rapier2d-client", "net-client"]
-nexus-defense-server = ["server", "proto-server", "rapier2d-server", "net-server"]
+nexus-defense-server = [
+    "server",
+    "proto-server",
+    "rapier2d-server",
+    "net-server",
+    "bevy-server",
+    "supabase-auth",
+]
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -54,7 +68,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Client / shared infra (gated by features)
-godot = { version = "0.4.5", optional = true, features = ["experimental-wasm", "experimental-threads"] }
+godot = { version = "0.5.3", optional = true, features = ["experimental-wasm", "experimental-threads"] }
 dashmap = { version = "6.1.0", optional = true }
 crossbeam-channel = { version = "0.5.15", optional = true }
 bitflags = { version = "2.9.0", optional = true, features = ["serde"] }
@@ -67,10 +81,16 @@ bincode = { version = "2.0", optional = true, features = ["serde"] }
 # Physics
 rapier2d = { version = "0.22", optional = true }
 
+# Bevy ECS — headless server. No render, no winit; we drive App::update from a tokio task.
+bevy = { version = "0.18", optional = true, default-features = false, features = ["bevy_state"] }
+
 # Networking
 tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
 axum = { version = "0.7", optional = true, default-features = false, features = ["ws", "json"] }
 futures-util = { version = "0.3", optional = true, default-features = false, features = ["sink", "std"] }
+
+# Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
+jsonwebtoken = { version = "9.3", optional = true, default-features = false }
 
 # -----------------------------------------------------------------------------
 # Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).

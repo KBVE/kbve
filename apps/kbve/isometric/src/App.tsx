@@ -1,6 +1,6 @@
 import { ChatInput } from './components/ChatInput';
+import { DragBar } from './components/DragBar';
 import { HUD } from './components/HUD';
-import { FPSCounter } from './components/FPSCounter';
 import { ObjectLabel } from './components/ObjectLabel';
 import { UsernameModal } from './components/UsernameModal';
 import { useObjectSelection } from './hooks/useObjectSelection';
@@ -9,8 +9,10 @@ function App() {
 	useObjectSelection();
 
 	return (
-		<div className="fixed inset-0 pointer-events-none font-game text-text rpg-text-shadow">
-			<FPSCounter />
+		<div
+			className="fixed inset-0 font-game text-text rpg-text-shadow"
+			style={{ pointerEvents: 'none' }}>
+			<DragBar />
 			<HUD />
 			<ObjectLabel />
 			<UsernameModal />

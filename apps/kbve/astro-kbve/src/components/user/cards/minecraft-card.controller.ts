@@ -12,8 +12,10 @@ import {
 } from '@/components/mc/mc-auth/mcAuthService';
 
 const CACHE_KEY = 'cache:profile:mc';
+const HEAD_CACHE_KEY = 'cache:profile:mc-head';
 const CACHE_TTL_MS = 5 * 60 * 1000;
-const CRAFATAR = 'https://crafatar.com/avatars';
+const HEAD_CACHE_TTL_MS = 60 * 60 * 1000;
+const HEAD_SIZE = 128;
 
 interface CachedMc {
 	user_id: string;
@@ -21,9 +23,91 @@ interface CachedMc {
 	link: LinkStatus | null;
 }
 
+interface CachedHead {
+	uuid: string;
+	cached_at: number;
+	data_url: string;
+}
+
 function dashUuid(uuid: string): string {
 	if (uuid.length !== 32) return uuid;
 	return `${uuid.slice(0, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}-${uuid.slice(16, 20)}-${uuid.slice(20)}`;
+}
+
+function getCachedHead(uuid: string): string | null {
+	try {
+		const raw = localStorage.getItem(HEAD_CACHE_KEY);
+		if (!raw) return null;
+		const cached: CachedHead = JSON.parse(raw);
+		if (cached.uuid !== uuid) return null;
+		if (Date.now() - cached.cached_at > HEAD_CACHE_TTL_MS) return null;
+		return cached.data_url;
+	} catch {
+		return null;
+	}
+}
+
+function setCachedHead(uuid: string, data_url: string) {
+	try {
+		localStorage.setItem(
+			HEAD_CACHE_KEY,
+			JSON.stringify({ uuid, cached_at: Date.now(), data_url }),
+		);
+	} catch {
+		/* best effort */
+	}
+}
+
+async function fetchHeadFromKbve(uuid: string): Promise<string | null> {
+	const clean = uuid.replace(/-/g, '').toLowerCase();
+	if (clean.length !== 32) return null;
+
+	const cached = getCachedHead(clean);
+	if (cached) return cached;
+
+	const lookup = await fetch(`/api/v1/mc/players/by-uuid/${clean}`).catch(
+		() => null,
+	);
+	if (!lookup || !lookup.ok) return null;
+	const body = (await lookup.json().catch(() => null)) as {
+		hash?: string;
+	} | null;
+	const hash = body?.hash;
+	if (!hash) return null;
+
+	const tex = await fetch(`/api/v1/mc/textures/${hash}`).catch(() => null);
+	if (!tex || !tex.ok) return null;
+	const blob = await tex.blob().catch(() => null);
+	if (!blob) return null;
+
+	const img = await new Promise<HTMLImageElement | null>((resolve) => {
+		const url = URL.createObjectURL(blob);
+		const i = new Image();
+		i.onload = () => {
+			URL.revokeObjectURL(url);
+			resolve(i);
+		};
+		i.onerror = () => {
+			URL.revokeObjectURL(url);
+			resolve(null);
+		};
+		i.src = url;
+	});
+	if (!img) return null;
+
+	const canvas = document.createElement('canvas');
+	canvas.width = HEAD_SIZE;
+	canvas.height = HEAD_SIZE;
+	const ctx = canvas.getContext('2d');
+	if (!ctx) return null;
+	ctx.imageSmoothingEnabled = false;
+
+	ctx.drawImage(img, 8, 8, 8, 8, 0, 0, HEAD_SIZE, HEAD_SIZE);
+	ctx.drawImage(img, 40, 8, 8, 8, 0, 0, HEAD_SIZE, HEAD_SIZE);
+
+	const data_url = canvas.toDataURL('image/png');
+	setCachedHead(clean, data_url);
+	return data_url;
 }
 
 function el(id: string): HTMLElement | null {
@@ -97,6 +181,7 @@ function setCached(userId: string, link: LinkStatus | null) {
 export function clearMinecraftCardCache() {
 	try {
 		localStorage.removeItem(CACHE_KEY);
+		localStorage.removeItem(HEAD_CACHE_KEY);
 	} catch {
 		/* best effort */
 	}
@@ -107,8 +192,15 @@ function populateLinked(link: LinkStatus) {
 
 	const avatar = el('profile-mc-avatar') as HTMLImageElement | null;
 	if (avatar) {
-		avatar.src = `${CRAFATAR}/${dashed}?size=128&overlay=true`;
+		avatar.removeAttribute('src');
 		avatar.alt = `Minecraft head for ${link.mc_uuid}`;
+		fetchHeadFromKbve(link.mc_uuid)
+			.then((dataUrl) => {
+				if (dataUrl) avatar.src = dataUrl;
+			})
+			.catch(() => {
+				/* best effort — keep skeleton background */
+			});
 	}
 
 	const username = el('profile-mc-username');

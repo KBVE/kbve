@@ -157,56 +157,109 @@ impl ChatClient {
             *w = Some(Writer::Ws(out_tx));
         }
 
-        if let Some(ref pass) = self.config.password {
-            self.send_raw(&format!("PASS {}", pass)).await?;
+        if !self.config.skip_registration {
+            if let Some(ref pass) = self.config.password {
+                self.send_raw(&format!("PASS {}", pass)).await?;
+            }
+            self.send_raw(&format!("NICK {}", self.config.nick)).await?;
+            self.send_raw(&format!(
+                "USER {} 0 * :bevy_chat ws client",
+                self.config.nick
+            ))
+            .await?;
         }
-        self.send_raw(&format!("NICK {}", self.config.nick)).await?;
-        self.send_raw(&format!(
-            "USER {} 0 * :bevy_chat ws client",
-            self.config.nick
-        ))
-        .await?;
 
         for channel in &self.config.channels {
             self.send_raw(&format!("JOIN {}", channel)).await?;
         }
 
         tracing::info!(
-            "IRC registered as {} on {} channels (websocket)",
+            "IRC {} {} on {} channels (websocket)",
+            if self.config.skip_registration {
+                "joined as gateway-registered user"
+            } else {
+                "registered as"
+            },
             self.config.nick,
             self.config.channels.len()
         );
+
+        // Periodic IRC PING so idle WS connections don't get reset by the
+        // gateway or upstream Ergo after ~60-120s of silence.
+        let writer_keepalive = self.writer.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(45));
+            interval.tick().await; // skip the immediate first tick
+            loop {
+                interval.tick().await;
+                let Some(Writer::Ws(ref out)) = *writer_keepalive.lock().await else {
+                    break;
+                };
+                if out.send("PING :keepalive\r\n".to_owned()).is_err() {
+                    break;
+                }
+            }
+            tracing::warn!("IRC-WS keepalive task ended");
+        });
 
         let tx = self.tx.clone();
         let nick = self.config.nick.clone();
         let writer_clone = self.writer.clone();
         tokio::spawn(async move {
-            // The gateway may chunk multiple IRC lines into a single text
-            // frame; buffer until we see a newline before parsing.
-            let mut leftover = String::new();
+            tracing::info!("[ws-in] read loop started");
             while let Some(item) = stream.next().await {
                 let payload = match item {
-                    Ok(WsMessage::Text(t)) => t.to_string(),
-                    Ok(WsMessage::Binary(b)) => match String::from_utf8(b.to_vec()) {
-                        Ok(s) => s,
-                        Err(_) => continue,
-                    },
-                    Ok(WsMessage::Close(_)) => break,
+                    Ok(WsMessage::Text(t)) => {
+                        tracing::info!("[ws-in] frame text len={}", t.len());
+                        t.to_string()
+                    }
+                    Ok(WsMessage::Binary(b)) => {
+                        tracing::info!("[ws-in] frame binary len={}", b.len());
+                        match String::from_utf8(b.to_vec()) {
+                            Ok(s) => s,
+                            Err(_) => continue,
+                        }
+                    }
+                    Ok(WsMessage::Ping(_)) => {
+                        tracing::info!("[ws-in] frame ping");
+                        continue;
+                    }
+                    Ok(WsMessage::Pong(_)) => {
+                        tracing::info!("[ws-in] frame pong");
+                        continue;
+                    }
+                    Ok(WsMessage::Close(c)) => {
+                        tracing::warn!("[ws-in] close frame: {:?}", c);
+                        break;
+                    }
                     Ok(_) => continue,
                     Err(e) => {
                         tracing::warn!("IRC-WS read error: {e}");
                         break;
                     }
                 };
-                leftover.push_str(&payload);
-                while let Some(idx) = leftover.find('\n') {
-                    let mut line: String = leftover.drain(..=idx).collect();
-                    if line.ends_with('\n') {
-                        line.pop();
-                    }
-                    if line.ends_with('\r') {
-                        line.pop();
-                    }
+                // The chat.kbve.com gateway delivers each IRC line as its
+                // own WebSocket text frame WITHOUT a trailing CRLF, but raw
+                // IRC TCP and some other gateways include `\r\n` (and may
+                // batch multiple lines per frame). Split on `\n` if present;
+                // otherwise treat the whole frame as a single IRC line.
+                let trimmed = payload
+                    .trim_end_matches('\n')
+                    .trim_end_matches('\r')
+                    .to_string();
+                let lines: Vec<String> = if trimmed.is_empty() {
+                    Vec::new()
+                } else if trimmed.contains('\n') {
+                    trimmed
+                        .split('\n')
+                        .map(|s| s.trim_end_matches('\r').to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                } else {
+                    vec![trimmed]
+                };
+                for line in &lines {
+                    tracing::info!("[ws-in] <= {line}");
                     if line.starts_with("PING") {
                         let pong = line.replacen("PING", "PONG", 1);
                         if let Some(Writer::Ws(ref out)) = *writer_clone.lock().await {
@@ -214,7 +267,13 @@ impl ChatClient {
                         }
                         continue;
                     }
-                    if let Some(privmsg) = parse_privmsg(&line, &nick) {
+                    if let Some(privmsg) = parse_privmsg(line, &nick) {
+                        tracing::info!(
+                            "[ws-in] parsed PRIVMSG sender={} channel={} content={}",
+                            privmsg.sender,
+                            privmsg.channel,
+                            privmsg.content
+                        );
                         let _ = tx.send(privmsg);
                     }
                 }

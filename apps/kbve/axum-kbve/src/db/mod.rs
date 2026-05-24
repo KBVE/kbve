@@ -33,7 +33,7 @@ pub use forum::{
     CommentRow, FeedQuery, FeedRow, SpaceRow, TagRow, ThreadRow, get_forum_service,
     init_forum_service,
 };
-pub use mc::{get_mc_service, init_mc_service};
+pub use mc::{extract_texture_hash, get_mc_service, init_mc_service};
 pub use osrs::{get_osrs_cache, init_osrs_cache};
 pub use profile::{
     DiscordInfo, GithubInfo, TwitchInfo, UserProfile, UserProvider, get_profile_service,

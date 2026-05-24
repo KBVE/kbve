@@ -33,6 +33,11 @@ impl UiOverlay {
     }
 }
 
+/// Atomic mirror of `UiOverlay::is_open()` so the React DragBar can react to
+/// pause/inventory/etc. overlays opening without owning a Bevy world ref.
+pub static OVERLAY_OPEN_SNAPSHOT: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 enum SettingsCategory {
     #[default]
@@ -92,6 +97,7 @@ impl Plugin for PauseMenuPlugin {
             )
                 .run_if(in_state(GamePhase::Playing)),
         );
+        app.add_systems(Update, snapshot_overlay_open);
     }
 }
 
@@ -418,4 +424,8 @@ fn handle_exit_button(
             exit_writer.write(bevy::app::AppExit::Success);
         }
     }
+}
+
+fn snapshot_overlay_open(overlay: Res<UiOverlay>) {
+    OVERLAY_OPEN_SNAPSHOT.store(overlay.is_open(), std::sync::atomic::Ordering::Relaxed);
 }

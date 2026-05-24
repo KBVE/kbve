@@ -5,6 +5,8 @@
 	"identifier": "com.kbve.isometric",
 	"build": {
 		"beforeBuildCommand": "pnpm build",
+		"beforeDevCommand": "BUILD_TARGET=tauri pnpm dev",
+		"devUrl": "https://localhost:1420",
 		"frontendDist": "../dist"
 	},
 	"app": {

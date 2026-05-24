@@ -41,7 +41,7 @@ impl GUIManagerExt for Gd<CanvasLayer> {
     }
 
     fn with_windowflag(&mut self, flag: WindowFlags, flag_boolean: bool) {
-        if let Some(root) = self.get_tree().and_then(|tree| tree.get_root()) {
+        if let Some(root) = self.get_tree_or_null().and_then(|tree| tree.get_root()) {
             if let Ok(mut root_window) = root.try_cast::<Window>() {
                 godot_print!(
                     "[Godot] Modifying window flag: {:?}, setting to: {}",

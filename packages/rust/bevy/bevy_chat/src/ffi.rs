@@ -140,6 +140,8 @@ pub unsafe extern "C" fn kbve_chat_connect(
         password,
         channels,
         reconnect_delay_secs: 5,
+        transport: crate::config::IrcTransport::Tcp,
+        skip_registration: false,
     };
 
     let rt = match tokio::runtime::Builder::new_multi_thread()

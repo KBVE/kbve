@@ -20,6 +20,13 @@ class KbveMcUplinkPlugin : JavaPlugin() {
         server.messenger.registerOutgoingPluginChannel(this, RelayWire.CHANNEL)
         server.messenger.registerIncomingPluginChannel(this, RelayWire.CHANNEL, ExecListener(this))
         server.pluginManager.registerEvents(EventListener(this), this)
+
+        val regions = Portals.load(this)
+        if (regions.isNotEmpty()) {
+            server.messenger.registerOutgoingPluginChannel(this, Portals.BUNGEE_CHANNEL)
+            server.pluginManager.registerEvents(PortalListener(this, regions), this)
+            logger.info("kbve-mc-uplink portals: ${regions.joinToString { "${it.name}→${it.targetServer}" }}")
+        }
         logger.info("kbve-mc-uplink ${pluginMeta.version} ready (channel=${RelayWire.CHANNEL})")
     }
 

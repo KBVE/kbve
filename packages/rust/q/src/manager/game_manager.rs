@@ -182,7 +182,7 @@ impl GameManager {
     #[func]
     fn pause_game(&mut self) {
         self.base_mut().emit_signal("game_paused", &[]);
-        if let Some(mut scene_tree) = self.base().get_tree() {
+        if let Some(mut scene_tree) = self.base().get_tree_or_null() {
             scene_tree.set_pause(true);
         }
         debug_print!("[GameManager] Game Paused.");
@@ -191,7 +191,7 @@ impl GameManager {
     #[func]
     fn resume_game(&mut self) {
         self.base_mut().emit_signal("game_resumed", &[]);
-        if let Some(mut scene_tree) = self.base().get_tree() {
+        if let Some(mut scene_tree) = self.base().get_tree_or_null() {
             scene_tree.set_pause(false);
         }
         debug_print!("[GameManager] Game Resumed.");
@@ -202,7 +202,7 @@ impl GameManager {
         self.base_mut().emit_signal("game_exited", &[]);
         debug_print!("[GameManager] Exiting Game...");
 
-        if let Some(mut scene_tree) = self.base().get_tree() {
+        if let Some(mut scene_tree) = self.base().get_tree_or_null() {
             scene_tree.quit();
         }
     }

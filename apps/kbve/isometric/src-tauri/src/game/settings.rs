@@ -44,6 +44,11 @@ pub struct SettingsModalState {
     pub open: bool,
 }
 
+/// Atomic snapshot of `SettingsModalState.open` so the React DragBar can
+/// poll without a Bevy world reference.
+pub static SETTINGS_OPEN_SNAPSHOT: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Component)]
 struct SettingsModalRoot;
 
@@ -89,6 +94,7 @@ impl Plugin for SettingsPlugin {
                 toggle_settings_modal,
                 handle_settings_actions,
                 update_settings_readouts,
+                snapshot_settings_open,
             ),
         );
     }
@@ -507,4 +513,8 @@ pub fn open_settings(world: &mut World) {
     } else {
         let _ = GamePhase::Title;
     }
+}
+
+fn snapshot_settings_open(state: Res<SettingsModalState>) {
+    SETTINGS_OPEN_SNAPSHOT.store(state.open, std::sync::atomic::Ordering::Relaxed);
 }
