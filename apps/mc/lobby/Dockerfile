@@ -76,18 +76,21 @@ ENV CFG_VELOCITY_SECRET="kbve-velocity-forwarding-secret-change-me"
 #                        players. Grief-proof the lobby by default.
 #   worldedit          — admin building tool, same version line as the
 #                        Fabric backend so commands are consistent.
-#   advancedportals    — physical portal regions that fire proxy commands
-#                        (e.g. /server mc) on player entry. Lets us put
-#                        decorative portals in the lobby that teleport
-#                        players to other backends. Requires one-time
-#                        in-game `/portal create` setup after first boot.
+#
+# Portal handling lives in the source-built kbve-mc-uplink plugin below —
+# it loads portals.yml at boot and sends BungeeCord `Connect` plugin-
+# messages on entry, which Velocity translates natively via
+# bungee-plugin-message-channel = true. AdvancedPortals was replaced
+# because the dual-jar (Spigot + Velocity) arrangement and the
+# enableProxySupport default-off were both silent footguns.
+#
 # EssentialsX + AntiBuild are pinned to v2.21.2 (Modrinth IDs Oa9ZDzZq +
 # gjXSrVNQ) because the project tops out at MC 1.21.8 on Modrinth, but
 # the Bukkit BlockBreak/BlockPlace/PlayerInteract APIs they hook are
 # stable across the 1.21.x line and the plugins enable cleanly on Paper
 # 1.21.11 (verified by smoke test). Drop the pins once upstream tags
 # 1.21.11 builds.
-ENV MODRINTH_PROJECTS=luckperms,essentialsx:Oa9ZDzZq,essentialsx-spawn:RVbLg2Am,essentialsx-antibuild:gjXSrVNQ,worldedit,advanced-portals
+ENV MODRINTH_PROJECTS=luckperms,essentialsx:Oa9ZDzZq,essentialsx-spawn:RVbLg2Am,essentialsx-antibuild:gjXSrVNQ,worldedit
 ENV LUCKPERMS_MESSAGING_SERVICE=pluginmsg
 ENV LUCKPERMS_STORAGE_METHOD=h2
 
@@ -109,15 +112,10 @@ ENV JVM_XX_OPTS="-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+Disable
 # section is still present at /config/paper-global.yml on first boot.
 COPY apps/mc/lobby/config/ /config/
 
-# AdvancedPortals ships with enableProxySupport: false by default, which
-# silently breaks every portal that uses a `bungee: - <server>` arg —
-# the portal triggers but the proxy-side server switch never fires.
-# Seed the patched copy directly into /plugins/AdvancedPortals/ so first
-# boot copies it in instead of generating the default.
-COPY apps/mc/lobby/config/plugins/AdvancedPortals/config.yaml \
-    /plugins/AdvancedPortals/config.yaml
-
 # Source-built kbve-mc-uplink plugin — forwards death/advancement events
-# to the Velocity-side discord relay over the kbve:relay-events channel.
+# to the Velocity-side discord relay over the kbve:relay-events channel
+# AND owns lobby→backend portals via the BungeeCord plugin-message
+# channel (portals.yml is bundled inside the jar; saveResource copies
+# it to /data/plugins/kbve-mc-uplink/portals.yml on first boot).
 COPY --from=plugin-builder /build/build/libs/kbve-mc-uplink-*.jar \
     /plugins/kbve-mc-uplink.jar

@@ -1,9 +1,10 @@
 name: kbve-mc-uplink
 main: com.kbve.mcuplink.KbveMcUplinkPlugin
-version: '1.1.0'
+version: '1.2.0'
 api-version: '1.21'
 authors: [kbve]
 description: |
-  Forwards Paper gameplay events (death, advancement) to the Velocity-side
-  kbve-discord-relay over the kbve:relay-events plugin-messaging channel.
-  Backend stays Discord-blind — no token, no webhook URL, no internet.
+    Forwards Paper gameplay events (death, advancement) to the Velocity-side
+    kbve-discord-relay over the kbve:relay-events plugin-messaging channel,
+    and routes lobby portals to Velocity backends via the legacy BungeeCord
+    plugin-message channel.
