@@ -138,10 +138,10 @@ export function ChatInput() {
 		<div
 			style={{
 				position: 'fixed',
-				left: 16,
-				bottom: 180,
-				width: 340,
-				height: 240,
+				left: 12,
+				top: 48,
+				width: 320,
+				height: 220,
 				zIndex: 9999,
 				pointerEvents: 'auto',
 				background: 'rgba(10, 10, 16, 0.86)',

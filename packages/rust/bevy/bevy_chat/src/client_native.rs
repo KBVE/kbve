@@ -207,9 +207,6 @@ impl ChatClient {
         let writer_clone = self.writer.clone();
         tokio::spawn(async move {
             tracing::info!("[ws-in] read loop started");
-            // The gateway may chunk multiple IRC lines into a single text
-            // frame; buffer until we see a newline before parsing.
-            let mut leftover = String::new();
             while let Some(item) = stream.next().await {
                 let payload = match item {
                     Ok(WsMessage::Text(t)) => {
@@ -241,16 +238,28 @@ impl ChatClient {
                         break;
                     }
                 };
-                leftover.push_str(&payload);
-                while let Some(idx) = leftover.find('\n') {
-                    let mut line: String = leftover.drain(..=idx).collect();
-                    if line.ends_with('\n') {
-                        line.pop();
-                    }
-                    if line.ends_with('\r') {
-                        line.pop();
-                    }
-                    tracing::info!(target: "bevy_chat::ws_in", "<= {line}");
+                // The chat.kbve.com gateway delivers each IRC line as its
+                // own WebSocket text frame WITHOUT a trailing CRLF, but raw
+                // IRC TCP and some other gateways include `\r\n` (and may
+                // batch multiple lines per frame). Split on `\n` if present;
+                // otherwise treat the whole frame as a single IRC line.
+                let trimmed = payload
+                    .trim_end_matches('\n')
+                    .trim_end_matches('\r')
+                    .to_string();
+                let lines: Vec<String> = if trimmed.is_empty() {
+                    Vec::new()
+                } else if trimmed.contains('\n') {
+                    trimmed
+                        .split('\n')
+                        .map(|s| s.trim_end_matches('\r').to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                } else {
+                    vec![trimmed]
+                };
+                for line in &lines {
+                    tracing::info!("[ws-in] <= {line}");
                     if line.starts_with("PING") {
                         let pong = line.replacen("PING", "PONG", 1);
                         if let Some(Writer::Ws(ref out)) = *writer_clone.lock().await {
@@ -258,7 +267,7 @@ impl ChatClient {
                         }
                         continue;
                     }
-                    if let Some(privmsg) = parse_privmsg(&line, &nick) {
+                    if let Some(privmsg) = parse_privmsg(line, &nick) {
                         tracing::info!(
                             "[ws-in] parsed PRIVMSG sender={} channel={} content={}",
                             privmsg.sender,
