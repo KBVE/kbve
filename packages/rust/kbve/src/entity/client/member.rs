@@ -28,6 +28,27 @@ pub struct UserProfile {
     pub last_sign_in: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct ClaimIdentity {
+    pub user_id: String,
+    #[serde(default)]
+    pub github_login: Option<String>,
+    #[serde(default)]
+    pub github_id: Option<String>,
+    #[serde(default)]
+    pub kbve_username: Option<String>,
+}
+
+impl ClaimIdentity {
+    pub fn has_github(&self) -> bool {
+        self.github_login.as_deref().is_some_and(|s| !s.is_empty())
+    }
+
+    pub fn kbve_username(&self) -> Option<&str> {
+        self.kbve_username.as_deref().filter(|s| !s.is_empty())
+    }
+}
+
 /// Whether a Discord user is a linked Member or an unlinked Guest.
 #[derive(Debug, Clone)]
 pub enum MemberStatus {
@@ -68,6 +89,11 @@ struct CachedEntry {
     expires_at: Instant,
 }
 
+struct CachedClaimEntry {
+    identity: Option<ClaimIdentity>,
+    expires_at: Instant,
+}
+
 /// Thread-safe LRU cache for Discord user membership lookups.
 ///
 /// Each entry has a TTL; expired entries trigger a re-lookup.
@@ -76,6 +102,7 @@ struct CachedEntry {
 pub struct MemberCache {
     client: Option<SupabaseClient>,
     cache: Mutex<LruCache<u64, CachedEntry>>,
+    claim_cache: Mutex<LruCache<u64, CachedClaimEntry>>,
     ttl: Duration,
 }
 
@@ -90,6 +117,7 @@ impl MemberCache {
         Self {
             client,
             cache: Mutex::new(LruCache::new(cap)),
+            claim_cache: Mutex::new(LruCache::new(cap)),
             ttl,
         }
     }
@@ -150,6 +178,91 @@ impl MemberCache {
     pub fn invalidate(&self, discord_id: u64) {
         let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
         cache.pop(&discord_id);
+        let mut claim = self.claim_cache.lock().unwrap_or_else(|e| e.into_inner());
+        claim.pop(&discord_id);
+    }
+
+    pub async fn lookup_claim_identity(&self, discord_id: u64) -> Option<ClaimIdentity> {
+        {
+            let mut cache = self.claim_cache.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(entry) = cache.get(&discord_id) {
+                if Instant::now() < entry.expires_at {
+                    return entry.identity.clone();
+                }
+            }
+        }
+
+        match self.fetch_claim_identity_from_supabase(discord_id).await {
+            Ok(identity) => {
+                let mut cache = self.claim_cache.lock().unwrap_or_else(|e| e.into_inner());
+                cache.put(
+                    discord_id,
+                    CachedClaimEntry {
+                        identity: identity.clone(),
+                        expires_at: Instant::now() + self.ttl,
+                    },
+                );
+                identity
+            }
+            Err(()) => None,
+        }
+    }
+
+    async fn fetch_claim_identity_from_supabase(
+        &self,
+        discord_id: u64,
+    ) -> Result<Option<ClaimIdentity>, ()> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(());
+        };
+
+        let params = serde_json::json!({
+            "p_discord_id": discord_id.to_string()
+        });
+
+        let resp = client
+            .rpc_schema("find_claim_identity_by_discord_id", params, "tracker")
+            .await
+            .map_err(|e| {
+                warn!(discord_id, error = %e, "Claim identity lookup failed");
+            })?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            warn!(discord_id, %status, %body, "Claim identity lookup HTTP error");
+            return Err(());
+        }
+
+        let text = resp.text().await.map_err(|e| {
+            warn!(discord_id, error = %e, "Failed to read claim identity response");
+        })?;
+
+        if let Ok(identity) = serde_json::from_str::<ClaimIdentity>(&text) {
+            info!(
+                discord_id,
+                user_id = %identity.user_id,
+                github_login = ?identity.github_login,
+                "Claim identity resolved"
+            );
+            return Ok(Some(identity));
+        }
+
+        if let Ok(mut rows) = serde_json::from_str::<Vec<ClaimIdentity>>(&text) {
+            if let Some(identity) = rows.pop() {
+                info!(
+                    discord_id,
+                    user_id = %identity.user_id,
+                    github_login = ?identity.github_login,
+                    "Claim identity resolved"
+                );
+                return Ok(Some(identity));
+            }
+            return Ok(None);
+        }
+
+        warn!(discord_id, body = %text, "Unparseable claim identity response");
+        Err(())
     }
 
     async fn fetch_from_supabase(&self, discord_id: u64) -> MemberStatus {
@@ -267,6 +380,43 @@ mod tests {
         };
         let status = MemberStatus::Member(profile);
         assert_eq!(status.display_name(), Some("TestUser"));
+    }
+
+    #[test]
+    fn claim_identity_lookup_none_without_client() {
+        let cache = MemberCache::new(None, 16, Duration::from_secs(60));
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let id = rt.block_on(cache.lookup_claim_identity(12345));
+        assert!(id.is_none());
+    }
+
+    #[test]
+    fn claim_identity_helpers() {
+        let with_github = ClaimIdentity {
+            user_id: "uuid".into(),
+            github_login: Some("h0lybyte".into()),
+            github_id: Some("12345".into()),
+            kbve_username: Some("h0lybyte".into()),
+        };
+        assert!(with_github.has_github());
+        assert_eq!(with_github.kbve_username(), Some("h0lybyte"));
+
+        let no_github = ClaimIdentity {
+            user_id: "uuid".into(),
+            github_login: None,
+            github_id: None,
+            kbve_username: Some("ghost".into()),
+        };
+        assert!(!no_github.has_github());
+        assert_eq!(no_github.kbve_username(), Some("ghost"));
+
+        let empty_username = ClaimIdentity {
+            user_id: "uuid".into(),
+            github_login: Some("dev".into()),
+            github_id: Some("1".into()),
+            kbve_username: Some(String::new()),
+        };
+        assert_eq!(empty_username.kbve_username(), None);
     }
 
     #[test]
