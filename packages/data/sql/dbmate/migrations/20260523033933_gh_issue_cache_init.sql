@@ -103,7 +103,15 @@ CREATE TABLE IF NOT EXISTS gh.issue_event (
     CONSTRAINT gh_issue_event_delivered_after_created_chk
         CHECK (delivered_at IS NULL OR delivered_at >= created_at),
     CONSTRAINT gh_issue_event_claim_token_when_claimed_chk
-        CHECK (delivery_state <> 1 OR claim_token IS NOT NULL)
+        CHECK (delivery_state <> 1 OR claim_token IS NOT NULL),
+    CONSTRAINT gh_issue_event_claim_token_only_when_claimed_chk
+        CHECK (delivery_state = 1 OR claim_token IS NULL),
+    CONSTRAINT gh_issue_event_claimed_at_when_claimed_chk
+        CHECK (delivery_state <> 1 OR claimed_at IS NOT NULL),
+    CONSTRAINT gh_issue_event_claimed_at_only_when_claimed_chk
+        CHECK (delivery_state = 1 OR claimed_at IS NULL),
+    CONSTRAINT gh_issue_event_delivered_at_when_delivered_chk
+        CHECK (delivery_state <> 2 OR delivered_at IS NOT NULL)
 );
 
 COMMENT ON COLUMN gh.issue_event.delivery_state IS
