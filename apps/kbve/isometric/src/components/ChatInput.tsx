@@ -22,6 +22,17 @@ function detectTauri(): boolean {
 	);
 }
 
+async function loadWasmModule(): Promise<Record<string, unknown> | null> {
+	try {
+		return (await import('../../wasm-pkg/isometric_game.js')) as Record<
+			string,
+			unknown
+		>;
+	} catch {
+		return null;
+	}
+}
+
 async function sendChat(text: string): Promise<boolean> {
 	if (!text.trim()) return false;
 	if (detectTauri()) {
@@ -32,11 +43,11 @@ async function sendChat(text: string): Promise<boolean> {
 			return false;
 		}
 	}
+	const mod = await loadWasmModule();
+	if (!mod) return false;
+	const fn = mod.send_chat as ((s: string) => boolean) | undefined;
+	if (typeof fn !== 'function') return false;
 	try {
-		const mod = await import('../../wasm-pkg/isometric_game.js');
-		const fn = (mod as unknown as { send_chat?: (s: string) => boolean })
-			.send_chat;
-		if (typeof fn !== 'function') return false;
 		return fn(text);
 	} catch (err) {
 		console.warn('[chat] send_chat (wasm) threw', err);
@@ -45,18 +56,40 @@ async function sendChat(text: string): Promise<boolean> {
 }
 
 async function fetchLog(): Promise<ChatLogEntry[]> {
-	if (!detectTauri()) return [];
+	if (detectTauri()) {
+		try {
+			return await invoke<ChatLogEntry[]>('get_chat_log');
+		} catch {
+			return [];
+		}
+	}
+	const mod = await loadWasmModule();
+	if (!mod) return [];
+	const fn = mod.get_chat_log_json as (() => string) | undefined;
+	if (typeof fn !== 'function') return [];
 	try {
-		return await invoke<ChatLogEntry[]>('get_chat_log');
+		const json = fn();
+		return json ? (JSON.parse(json) as ChatLogEntry[]) : [];
 	} catch {
 		return [];
 	}
 }
 
 async function fetchSignin(): Promise<SignInState | null> {
-	if (!detectTauri()) return null;
+	if (detectTauri()) {
+		try {
+			return await invoke<SignInState>('get_signin_state');
+		} catch {
+			return null;
+		}
+	}
+	const mod = await loadWasmModule();
+	if (!mod) return null;
+	const fn = mod.get_signin_state_json as (() => string) | undefined;
+	if (typeof fn !== 'function') return null;
 	try {
-		return await invoke<SignInState>('get_signin_state');
+		const json = fn();
+		return json ? (JSON.parse(json) as SignInState) : null;
 	} catch {
 		return null;
 	}
@@ -66,6 +99,7 @@ export function ChatInput() {
 	const [signedIn, setSignedIn] = useState(false);
 	const [username, setUsername] = useState<string | null>(null);
 	const [log, setLog] = useState<ChatLogEntry[]>([]);
+	const [open, setOpen] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const logRef = useRef<HTMLDivElement>(null);
 
@@ -90,9 +124,10 @@ export function ChatInput() {
 	}, []);
 
 	useEffect(() => {
+		if (!open) return;
 		const el = logRef.current;
 		if (el) el.scrollTop = el.scrollHeight;
-	}, [log]);
+	}, [log, open]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
@@ -103,22 +138,43 @@ export function ChatInput() {
 				tag === 'TEXTAREA' ||
 				tag === 'SELECT' ||
 				target?.isContentEditable === true;
-			if (inEditable) return;
-			const isFocus =
+
+			if (inEditable) {
+				if (target === inputRef.current && e.key === 'Escape') {
+					e.preventDefault();
+					if (inputRef.current) inputRef.current.value = '';
+					setOpen(false);
+				}
+				return;
+			}
+
+			const isOpenChat =
 				e.code === 'KeyT' ||
 				e.code === 'Slash' ||
 				e.key === 'T' ||
 				e.key === 't' ||
 				e.key === '/';
-			if (isFocus && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			if (isOpenChat && !e.metaKey && !e.ctrlKey && !e.altKey) {
 				e.preventDefault();
 				e.stopPropagation();
-				inputRef.current?.focus();
+				setOpen((prev) => !prev);
+			} else if (e.key === 'Escape' && open) {
+				setOpen(false);
 			}
 		};
 		window.addEventListener('keydown', onKeyDown, true);
 		return () => window.removeEventListener('keydown', onKeyDown, true);
-	}, []);
+	}, [open]);
+
+	useEffect(() => {
+		if (!open) return;
+		const el = inputRef.current;
+		if (!el) return;
+		const focus = () => el.focus();
+		focus();
+		const raf = requestAnimationFrame(focus);
+		return () => cancelAnimationFrame(raf);
+	}, [open]);
 
 	const submit = useCallback(async () => {
 		const el = inputRef.current;
@@ -128,11 +184,10 @@ export function ChatInput() {
 		if (!ok) console.warn('[chat] send failed (not connected or rejected)');
 		if (el) {
 			el.value = '';
-			el.blur();
 		}
 	}, []);
 
-	if (!signedIn) return null;
+	if (!signedIn || !open) return null;
 
 	return (
 		<div
@@ -140,8 +195,8 @@ export function ChatInput() {
 				position: 'fixed',
 				left: 12,
 				top: 48,
-				width: 320,
-				height: 220,
+				width: 'min(340px, calc(100vw - 24px))',
+				height: 'min(260px, calc(100vh - 96px))',
 				zIndex: 9999,
 				pointerEvents: 'auto',
 				background: 'rgba(10, 10, 16, 0.86)',
@@ -162,9 +217,28 @@ export function ChatInput() {
 					color: '#a89878',
 					display: 'flex',
 					justifyContent: 'space-between',
+					alignItems: 'center',
+					gap: 8,
 				}}>
 				<span>#general</span>
-				<span>{username ?? ''}</span>
+				<span style={{ flex: 1, textAlign: 'right' }}>
+					{username ?? ''}
+				</span>
+				<button
+					type="button"
+					onClick={() => setOpen(false)}
+					style={{
+						background: 'transparent',
+						border: 'none',
+						color: '#a89878',
+						cursor: 'pointer',
+						fontSize: 14,
+						lineHeight: 1,
+						padding: '0 2px',
+					}}
+					title="Close (Esc)">
+					×
+				</button>
 			</div>
 			<div
 				ref={logRef}
@@ -206,7 +280,7 @@ export function ChatInput() {
 							void submit();
 						}
 					}}
-					placeholder="Press T to focus — Enter to send"
+					placeholder="Enter to send — Esc to close"
 					style={{
 						width: '100%',
 						background: 'rgba(0, 0, 0, 0.4)',

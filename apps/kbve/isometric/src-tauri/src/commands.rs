@@ -292,6 +292,12 @@ pub fn send_chat(text: &str) -> bool {
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
+pub fn get_chat_log_json() -> String {
+    serde_json::to_string(&crate::game::chat::snapshot_log()).unwrap_or_else(|_| "[]".to_owned())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 pub fn get_signin_state_json() -> String {
     let state = crate::auth_common::current_signin_snapshot();
     serde_json::to_string(&state).unwrap_or_default()
