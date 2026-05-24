@@ -115,27 +115,30 @@ func _begin_session() -> void:
 	var email: String = OS.get_environment(ENV_EMAIL)
 	var password: String = OS.get_environment(ENV_PASSWORD)
 	var hint: String = OS.get_environment(ENV_USERNAME)
-	if email.is_empty() or password.is_empty():
-		_log("no %s/%s set — using dev-accept JWT" % [ENV_EMAIL, ENV_PASSWORD])
+	if email.is_empty() and password.is_empty() and not _has_cached_session():
+		_log("no %s/%s set and no cached session — using dev-accept JWT" % [ENV_EMAIL, ENV_PASSWORD])
 		_dial(DEV_JWT, DEV_USERNAME)
 		return
-	_log("signing in to %s as %s" % [Supabase.SUPABASE_URL, email])
-	Supabase.sign_in_succeeded.connect(_on_supabase_signed_in, CONNECT_ONE_SHOT)
-	Supabase.sign_in_failed.connect(_on_supabase_failed, CONNECT_ONE_SHOT)
-	Supabase.sign_in_with_password(email, password, hint)
+	_log("supabase session bootstrap (cached -> refresh -> sign_in chain)")
+	Supabase.session_ready.connect(_on_supabase_ready, CONNECT_ONE_SHOT)
+	Supabase.session_failed.connect(_on_supabase_failed, CONNECT_ONE_SHOT)
+	Supabase.resume_or_sign_in(email, password, hint)
 
-func _on_supabase_signed_in(access_token: String, kbve_username: String) -> void:
+func _has_cached_session() -> bool:
+	return FileAccess.file_exists(Supabase._session_path())
+
+func _on_supabase_ready(access_token: String, kbve_username: String) -> void:
 	var resolved: String = kbve_username
 	if resolved.is_empty():
 		resolved = OS.get_environment(ENV_USERNAME)
 	if resolved.is_empty():
 		resolved = "guest"
-	_log("supabase sign-in ok — kbve_username=%s" % resolved)
+	_log("supabase session ready — kbve_username=%s" % resolved)
 	_dial(access_token, resolved)
 
 func _on_supabase_failed(reason: String) -> void:
-	_log("supabase sign-in failed: %s — falling back to dev JWT" % reason)
-	Ui.toast("Supabase sign-in failed: %s" % reason, 3.0, "warn")
+	_log("supabase session failed: %s — falling back to dev JWT" % reason)
+	Ui.toast("Supabase auth failed: %s" % reason, 3.0, "warn")
 	_dial(DEV_JWT, DEV_USERNAME)
 
 func _dial(jwt: String, kbve_username: String) -> void:
