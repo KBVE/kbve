@@ -110,16 +110,15 @@ ARG PNPM_VERSION
 ARG PLAYWRIGHT_VERSION
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN set -eux; \
-    curl -fsSL -o /tmp/node.tar.xz \
-        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"; \
-    curl -fsSL -o /tmp/node.shasums \
-        "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt"; \
-    grep "node-v${NODE_VERSION}-linux-x64.tar.xz" /tmp/node.shasums | sha256sum -c -; \
-    tar -xJf /tmp/node.tar.xz -C /opt; \
+    cd /tmp; \
+    curl -fsSL -O "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"; \
+    curl -fsSL -O "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt"; \
+    grep "node-v${NODE_VERSION}-linux-x64.tar.xz" SHASUMS256.txt | sha256sum -c -; \
+    tar -xJf "node-v${NODE_VERSION}-linux-x64.tar.xz" -C /opt; \
     ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/node" /usr/local/bin/node; \
     ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/npm" /usr/local/bin/npm; \
     ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/npx" /usr/local/bin/npx; \
-    rm /tmp/node.tar.xz /tmp/node.shasums; \
+    rm "node-v${NODE_VERSION}-linux-x64.tar.xz" SHASUMS256.txt; \
     npm install -g "pnpm@${PNPM_VERSION}"; \
     mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}"; \
     npx --yes "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium; \
