@@ -91,6 +91,8 @@ pub struct UndeliveredEvent {
     pub actor: Option<String>,
     pub payload: serde_json::Value,
     pub created_at: String,
+    #[serde(default)]
+    pub delivery_attempts: i32,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -297,12 +299,16 @@ impl GithubStore {
     pub async fn claim_undelivered(
         &self,
         limit: u32,
+        lease_secs: u32,
     ) -> Result<Vec<UndeliveredEvent>, GithubStoreError> {
         let Some(client) = self.client.as_ref() else {
             return Err(GithubStoreError::NotConfigured);
         };
 
-        let params = serde_json::json!({ "p_limit": limit });
+        let params = serde_json::json!({
+            "p_limit": limit,
+            "p_lease_secs": lease_secs,
+        });
         let resp = client
             .rpc_schema("claim_undelivered_events", params, SCHEMA)
             .await?;
@@ -319,6 +325,47 @@ impl GithubStore {
             info!(count = rows.len(), "claimed undelivered gh events");
         }
         Ok(rows)
+    }
+
+    pub async fn mark_event_delivered(&self, id: i64) -> Result<bool, GithubStoreError> {
+        self.call_event_state("mark_event_delivered", serde_json::json!({ "p_id": id }))
+            .await
+    }
+
+    pub async fn mark_event_failed(&self, id: i64, error: &str) -> Result<bool, GithubStoreError> {
+        self.call_event_state(
+            "mark_event_failed",
+            serde_json::json!({ "p_id": id, "p_error": error }),
+        )
+        .await
+    }
+
+    async fn call_event_state(
+        &self,
+        rpc: &str,
+        params: serde_json::Value,
+    ) -> Result<bool, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let resp = client.rpc_schema(rpc, params, SCHEMA).await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, rpc, "gh event-state RPC HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        let trimmed = text.trim();
+        if trimmed == "true" {
+            Ok(true)
+        } else if trimmed == "false" {
+            Ok(false)
+        } else {
+            serde_json::from_str::<bool>(trimmed).map_err(GithubStoreError::Decode)
+        }
     }
 }
 
