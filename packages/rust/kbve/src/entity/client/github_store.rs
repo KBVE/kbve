@@ -328,23 +328,36 @@ impl GithubStore {
     }
 
     pub async fn mark_event_delivered(&self, id: i64) -> Result<bool, GithubStoreError> {
-        self.call_event_state("mark_event_delivered", serde_json::json!({ "p_id": id }))
-            .await
+        let resp_text = self
+            .call_event_state_raw("mark_event_delivered", serde_json::json!({ "p_id": id }))
+            .await?;
+        parse_bool_body(&resp_text)
     }
 
-    pub async fn mark_event_failed(&self, id: i64, error: &str) -> Result<bool, GithubStoreError> {
-        self.call_event_state(
-            "mark_event_failed",
-            serde_json::json!({ "p_id": id, "p_error": error }),
-        )
-        .await
+    pub async fn mark_event_failed(
+        &self,
+        id: i64,
+        error: &str,
+        max_attempts: u32,
+    ) -> Result<DeliveryState, GithubStoreError> {
+        let resp_text = self
+            .call_event_state_raw(
+                "mark_event_failed",
+                serde_json::json!({
+                    "p_id": id,
+                    "p_error": error,
+                    "p_max_attempts": max_attempts,
+                }),
+            )
+            .await?;
+        parse_delivery_state_body(&resp_text)
     }
 
-    async fn call_event_state(
+    async fn call_event_state_raw(
         &self,
         rpc: &str,
         params: serde_json::Value,
-    ) -> Result<bool, GithubStoreError> {
+    ) -> Result<String, GithubStoreError> {
         let Some(client) = self.client.as_ref() else {
             return Err(GithubStoreError::NotConfigured);
         };
@@ -358,15 +371,52 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        let trimmed = text.trim();
-        if trimmed == "true" {
-            Ok(true)
-        } else if trimmed == "false" {
-            Ok(false)
-        } else {
-            serde_json::from_str::<bool>(trimmed).map_err(GithubStoreError::Decode)
+        Ok(text)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeliveryState {
+    Pending,
+    Claimed,
+    Delivered,
+    DeadLetter,
+}
+
+impl DeliveryState {
+    pub fn from_smallint(v: i16) -> Option<Self> {
+        match v {
+            0 => Some(Self::Pending),
+            1 => Some(Self::Claimed),
+            2 => Some(Self::Delivered),
+            3 => Some(Self::DeadLetter),
+            _ => None,
         }
     }
+
+    pub fn is_terminal(self) -> bool {
+        matches!(self, Self::Delivered | Self::DeadLetter)
+    }
+}
+
+fn parse_bool_body(text: &str) -> Result<bool, GithubStoreError> {
+    let trimmed = text.trim();
+    if trimmed == "true" {
+        Ok(true)
+    } else if trimmed == "false" {
+        Ok(false)
+    } else {
+        serde_json::from_str::<bool>(trimmed).map_err(GithubStoreError::Decode)
+    }
+}
+
+fn parse_delivery_state_body(text: &str) -> Result<DeliveryState, GithubStoreError> {
+    let trimmed = text.trim();
+    let n: i16 = serde_json::from_str(trimmed)?;
+    DeliveryState::from_smallint(n).ok_or_else(|| GithubStoreError::Http {
+        status: reqwest::StatusCode::BAD_GATEWAY,
+        body: format!("unexpected delivery_state value: {n}"),
+    })
 }
 
 fn parse_optional_row<T>(text: &str) -> Result<Option<T>, GithubStoreError>
@@ -442,6 +492,42 @@ mod tests {
         assert!(none.is_none());
         let none: Option<CachedIssue> = parse_optional_row("null").unwrap();
         assert!(none.is_none());
+    }
+
+    #[test]
+    fn delivery_state_round_trip() {
+        for (n, st) in [
+            (0, DeliveryState::Pending),
+            (1, DeliveryState::Claimed),
+            (2, DeliveryState::Delivered),
+            (3, DeliveryState::DeadLetter),
+        ] {
+            assert_eq!(DeliveryState::from_smallint(n), Some(st));
+        }
+        assert_eq!(DeliveryState::from_smallint(99), None);
+        assert!(!DeliveryState::Pending.is_terminal());
+        assert!(!DeliveryState::Claimed.is_terminal());
+        assert!(DeliveryState::Delivered.is_terminal());
+        assert!(DeliveryState::DeadLetter.is_terminal());
+    }
+
+    #[test]
+    fn parse_delivery_state_body_accepts_smallint() {
+        assert_eq!(
+            parse_delivery_state_body("0").unwrap(),
+            DeliveryState::Pending
+        );
+        assert_eq!(
+            parse_delivery_state_body(" 3 ").unwrap(),
+            DeliveryState::DeadLetter
+        );
+        assert!(parse_delivery_state_body("99").is_err());
+    }
+
+    #[test]
+    fn parse_bool_body_accepts_true_false() {
+        assert!(parse_bool_body("true").unwrap());
+        assert!(!parse_bool_body("false").unwrap());
     }
 
     #[test]
