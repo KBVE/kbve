@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 interface UiChromeState {
 	phase: number;
 	settings_open: boolean;
+	overlay_open: boolean;
 }
 
 function detectTauri(): boolean {
@@ -55,7 +57,10 @@ export function DragBar() {
 			const chrome = await fetchChrome();
 			if (cancelled) return;
 			setVisible(
-				!!chrome && (chrome.phase === 0 || chrome.settings_open),
+				!!chrome &&
+					(chrome.phase === 0 ||
+						chrome.settings_open ||
+						chrome.overlay_open),
 			);
 		};
 		void poll();
@@ -68,9 +73,30 @@ export function DragBar() {
 
 	if (!isTauri || !visible) return null;
 
+	const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (e.button !== 0) return;
+		e.preventDefault();
+		e.stopPropagation();
+		// Fire synchronously so AppKit still has the active mousedown when
+		// the IPC reaches the Tauri backend. Awaiting an import first lets
+		// the OS gesture complete before startDragging executes.
+		getCurrentWindow()
+			.startDragging()
+			.catch((err) => console.warn('[drag] startDragging failed', err));
+	};
+
+	const onDoubleClick = () => {
+		const w = getCurrentWindow();
+		w.isMaximized()
+			.then((max) => (max ? w.unmaximize() : w.maximize()))
+			.catch((err) => console.warn('[drag] maximize toggle failed', err));
+	};
+
 	return (
 		<div
 			data-tauri-drag-region
+			onPointerDown={onPointerDown}
+			onDoubleClick={onDoubleClick}
 			style={{
 				position: 'fixed',
 				top: 0,

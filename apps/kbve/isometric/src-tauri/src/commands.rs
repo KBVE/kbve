@@ -193,6 +193,8 @@ pub struct UiChromeState {
     /// 0=Title, 1=Connecting, 2=Playing
     pub phase: u8,
     pub settings_open: bool,
+    /// True when any in-game UI overlay (PauseMenu/Inventory/etc.) is open.
+    pub overlay_open: bool,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -202,6 +204,7 @@ pub fn get_ui_chrome() -> UiChromeState {
     UiChromeState {
         phase: crate::game::phase::PHASE_SNAPSHOT.load(Ordering::Relaxed),
         settings_open: crate::game::settings::SETTINGS_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+        overlay_open: crate::game::pause_menu::OVERLAY_OPEN_SNAPSHOT.load(Ordering::Relaxed),
     }
 }
 
@@ -320,6 +323,7 @@ pub fn get_ui_chrome_json() -> String {
     let chrome = UiChromeState {
         phase: crate::game::phase::PHASE_SNAPSHOT.load(Ordering::Relaxed),
         settings_open: crate::game::settings::SETTINGS_OPEN_SNAPSHOT.load(Ordering::Relaxed),
+        overlay_open: crate::game::pause_menu::OVERLAY_OPEN_SNAPSHOT.load(Ordering::Relaxed),
     };
     serde_json::to_string(&chrome).unwrap_or_else(|_| "{}".to_owned())
 }
