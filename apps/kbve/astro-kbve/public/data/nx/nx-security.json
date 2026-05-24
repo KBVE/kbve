@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-21T09:20:50Z",
+  "generated_at": "2026-05-24T09:02:28Z",
   "summary": {
     "critical": 0,
-    "high": 27,
-    "medium": 52,
+    "high": 25,
+    "medium": 48,
     "low": 6,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 70,
+      "total": 64,
       "severities": {
         "critical": 0,
-        "high": 27,
-        "medium": 37,
+        "high": 25,
+        "medium": 33,
         "low": 6,
         "info": 0
       },
@@ -45,13 +45,6 @@
           "severity": "medium",
           "package": "lodash",
           "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
-        },
-        {
-          "id": "1112496",
-          "title": "Undici has an unbounded decompression chain in HTTP responses on Node.js Fetch API via Content-Encoding leads to resource exhaustion",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-g9mf-h72j-4rw9"
         },
         {
           "id": "1112704",
@@ -152,13 +145,6 @@
           "url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96"
         },
         {
-          "id": "1114301",
-          "title": "file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header",
-          "severity": "medium",
-          "package": "file-type",
-          "url": "https://github.com/advisories/GHSA-5v7r-6r5c-r473"
-        },
-        {
           "id": "1114302",
           "title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
           "severity": "high",
@@ -171,41 +157,6 @@
           "severity": "high",
           "package": "flatted",
           "url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f"
-        },
-        {
-          "id": "1114594",
-          "title": "Undici has an HTTP Request/Response Smuggling issue",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-2mjp-6q6p-2qxm"
-        },
-        {
-          "id": "1114638",
-          "title": "Undici has Unbounded Memory Consumption in WebSocket permessage-deflate Decompression",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-vrm6-8vpv-qv8q"
-        },
-        {
-          "id": "1114640",
-          "title": "Undici has Unhandled Exception in WebSocket Client Due to Invalid server_max_window_bits Validation",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-v9p9-hfj2-hcw8"
-        },
-        {
-          "id": "1114642",
-          "title": "Undici has CRLF Injection in undici via `upgrade` option",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-4992-7rv2-5pvq"
-        },
-        {
-          "id": "1114679",
-          "title": "yauzl contains an off-by-one error",
-          "severity": "medium",
-          "package": "yauzl",
-          "url": "https://github.com/advisories/GHSA-gmq8-994r-jv83"
         },
         {
           "id": "1115357",
@@ -290,13 +241,6 @@
           "severity": "medium",
           "package": "yaml",
           "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115723",
-          "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
-          "severity": "medium",
-          "package": "serialize-javascript",
-          "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
         },
         {
           "id": "1115806",
@@ -446,13 +390,6 @@
           "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
         },
         {
-          "id": "1117637",
-          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-          "severity": "medium",
-          "package": "uuid",
-          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
-        },
-        {
           "id": "1117870",
           "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
           "severity": "high",
@@ -507,6 +444,27 @@
           "severity": "medium",
           "package": "ws",
           "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
+        },
+        {
+          "id": "1119440",
+          "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+          "severity": "medium",
+          "package": "serialize-javascript",
+          "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
+        },
+        {
+          "id": "1119441",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "medium",
+          "package": "uuid",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+        },
+        {
+          "id": "1119502",
+          "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
+          "severity": "medium",
+          "package": "qs",
+          "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
         }
       ]
     },
