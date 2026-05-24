@@ -64,21 +64,34 @@ pub fn build_alerts_firing_sql(params: &AlertsFiringParams) -> String {
     let minutes = clamped_minutes(params.minutes);
     format!(
         "SELECT \
-            argMax(timestamp, timestamp) AS timestamp, \
-            argMax(status, timestamp) AS status, \
-            argMax(alertname, timestamp) AS alertname, \
-            argMax(severity, timestamp) AS severity, \
-            argMax(namespace, timestamp) AS namespace, \
-            argMax(pod, timestamp) AS pod, \
-            argMax(service, timestamp) AS service, \
-            argMax(summary, timestamp) AS summary, \
-            argMax(starts_at, timestamp) AS starts_at, \
+            last_seen AS timestamp, \
+            last_status AS status, \
+            last_alertname AS alertname, \
+            last_severity AS severity, \
+            last_namespace AS namespace, \
+            last_pod AS pod, \
+            last_service AS service, \
+            last_summary AS summary, \
+            last_starts_at AS starts_at, \
             fingerprint \
-         FROM alerts_distributed \
-         WHERE timestamp > now() - INTERVAL {minutes} MINUTE \
-         GROUP BY fingerprint \
-         HAVING status = 'firing' \
-         ORDER BY starts_at DESC"
+         FROM ( \
+            SELECT \
+                fingerprint, \
+                argMax(timestamp, timestamp) AS last_seen, \
+                argMax(status, timestamp) AS last_status, \
+                argMax(alertname, timestamp) AS last_alertname, \
+                argMax(severity, timestamp) AS last_severity, \
+                argMax(namespace, timestamp) AS last_namespace, \
+                argMax(pod, timestamp) AS last_pod, \
+                argMax(service, timestamp) AS last_service, \
+                argMax(summary, timestamp) AS last_summary, \
+                argMax(starts_at, timestamp) AS last_starts_at \
+             FROM alerts_distributed \
+             WHERE timestamp > now() - INTERVAL {minutes} MINUTE \
+             GROUP BY fingerprint \
+         ) \
+         WHERE last_status = 'firing' \
+         ORDER BY last_starts_at DESC"
     )
 }
 
@@ -196,9 +209,12 @@ mod tests {
     #[test]
     fn firing_sql_uses_argmax_dedupe() {
         let sql = build_alerts_firing_sql(&AlertsFiringParams { minutes: Some(60) });
-        assert!(sql.contains("argMax(status, timestamp)"));
+        assert!(sql.contains("INTERVAL 60 MINUTE"));
+        assert!(sql.contains("argMax(status, timestamp) AS last_status"));
         assert!(sql.contains("GROUP BY fingerprint"));
-        assert!(sql.contains("HAVING status = 'firing'"));
+        assert!(sql.contains("WHERE last_status = 'firing'"));
+        assert!(sql.contains("ORDER BY last_starts_at DESC"));
+        assert!(sql.contains("last_seen AS timestamp"));
     }
 
     #[test]
