@@ -7,10 +7,20 @@ const Tokens := preload("res://ui/lib/tokens.gd")
 @export var fill_color: Color = Color(0.13, 0.16, 0.22)
 @export var border_color: Color = Color(0.22, 0.26, 0.34)
 @export var path_color: Color = Color(0.32, 0.78, 0.95, 0.35)
+@export var path_border_color: Color = Color(0.45, 0.88, 1.0, 0.55)
+@export var nexus_color: Color = Color(0.34, 0.85, 0.45, 1.0)
+@export var spawn_color: Color = Color(0.95, 0.55, 0.32, 1.0)
 @export var hover_color: Color = Color(0.32, 0.78, 0.95, 0.55)
 @export var hover_invalid_color: Color = Color(0.95, 0.42, 0.46, 0.55)
-@export var path_axials: Array[Vector2i] = []
+@export var path_axials: Array[Vector2i] = [
+	Vector2i(-6, 0), Vector2i(-5, 0), Vector2i(-4, 0), Vector2i(-3, 0),
+	Vector2i(-2, 0), Vector2i(-1, 0), Vector2i(0, 0), Vector2i(1, 0),
+	Vector2i(2, 0), Vector2i(3, 0), Vector2i(4, 0), Vector2i(5, 0),
+	Vector2i(6, 0),
+]
 @export var occupied_axials: Array[Vector2i] = []
+@export var nexus_axial: Vector2i = Vector2i(6, 0)
+@export var spawn_axial: Vector2i = Vector2i(-6, 0)
 
 var hover_axial: Variant = null
 var hover_valid: bool = true
@@ -86,14 +96,35 @@ func _draw() -> void:
 		var center: Vector2 = axial_to_pixel(axial.x, axial.y)
 		var pts: PackedVector2Array = _hex_corners(center)
 		var fill: Color = fill_color
-		if path_set.has(axial):
+		var is_path: bool = path_set.has(axial)
+		if is_path:
 			fill = path_color
 		if hover_key != null and axial == hover_key:
 			fill = hover_color if hover_valid else hover_invalid_color
 		draw_colored_polygon(pts, fill)
 		var closed_pts: PackedVector2Array = PackedVector2Array(pts)
 		closed_pts.append(pts[0])
-		draw_polyline(closed_pts, border_color, 1.5, true)
+		var outline: Color = path_border_color if is_path else border_color
+		draw_polyline(closed_pts, outline, 1.5, true)
+	if path_axials.size() >= 2:
+		var line: PackedVector2Array = PackedVector2Array()
+		for v in path_axials:
+			line.append(axial_to_pixel(v.x, v.y))
+		draw_polyline(line, Color(path_border_color.r, path_border_color.g, path_border_color.b, 0.6), 3.0, true)
+	_draw_endpoint(spawn_axial, spawn_color, "SPAWN")
+	_draw_endpoint(nexus_axial, nexus_color, "NEXUS")
+
+func _draw_endpoint(axial: Vector2i, col: Color, label: String) -> void:
+	if not contains_axial(axial):
+		return
+	var center: Vector2 = axial_to_pixel(axial.x, axial.y)
+	draw_circle(center, edge_length * 0.45, Color(col.r, col.g, col.b, 0.25))
+	draw_arc(center, edge_length * 0.45, 0.0, TAU, 48, col, 2.5, true)
+	var font: Font = ThemeDB.fallback_font
+	if font:
+		var size: int = 11
+		var text_w: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		draw_string(font, center + Vector2(-text_w * 0.5, -edge_length * 0.55), label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 
 func set_path(axials: Array[Vector2i]) -> void:
 	path_axials = axials

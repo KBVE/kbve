@@ -20,11 +20,18 @@ signal tower_selected(tower_id: String)
 signal tower_canceled()
 
 func _build() -> void:
-	set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_PASS
+
+	var dock := VBoxContainer.new()
+	dock.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dock.alignment = BoxContainer.ALIGNMENT_END
+	dock.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(dock)
 
 	_root_margin = make_margin(safe_margin(), 0, safe_margin(), safe_margin())
-	_root_margin.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	add_child(_root_margin)
+	_root_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dock.add_child(_root_margin)
 
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = "PanelContainerHud"

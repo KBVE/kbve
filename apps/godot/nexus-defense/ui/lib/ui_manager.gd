@@ -65,7 +65,13 @@ func open(panel_name: String, data: Variant = null) -> Control:
 	inst.theme = theme_ref
 	_layers[entry["layer"]].add_child(inst)
 	_fit_panel_to_viewport(inst)
-	get_viewport().size_changed.connect(_fit_panel_to_viewport.bind(inst))
+	var vp: Viewport = get_viewport()
+	var fit_cb: Callable = func() -> void: _fit_panel_to_viewport(inst)
+	vp.size_changed.connect(fit_cb)
+	inst.tree_exiting.connect(func() -> void:
+		if vp and vp.size_changed.is_connected(fit_cb):
+			vp.size_changed.disconnect(fit_cb)
+	)
 	_live[panel_name] = inst
 	inst.tree_exiting.connect(_on_panel_exit.bind(panel_name))
 	if data != null and inst.has_method("apply"):
