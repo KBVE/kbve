@@ -55,14 +55,6 @@ public class AiCreatureManager {
      */
     private static final String AI_MARKER_TAG = "kbve_ai_creature";
 
-    private static final int SPAWN_PROTECT_BUFFER = 64;
-    private static final int SPAWN_PROTECT_MIN_X = -200 - SPAWN_PROTECT_BUFFER;
-    private static final int SPAWN_PROTECT_MIN_Y = -200 - SPAWN_PROTECT_BUFFER;
-    private static final int SPAWN_PROTECT_MIN_Z = -200 - SPAWN_PROTECT_BUFFER;
-    private static final int SPAWN_PROTECT_MAX_X = 200 + SPAWN_PROTECT_BUFFER;
-    private static final int SPAWN_PROTECT_MAX_Y = 200 + SPAWN_PROTECT_BUFFER;
-    private static final int SPAWN_PROTECT_MAX_Z = 200 + SPAWN_PROTECT_BUFFER;
-
     /** Tracked creatures keyed by Minecraft entity ID. */
     private final ConcurrentHashMap<Integer, CreatureSlot> creatures = new ConcurrentHashMap<>();
 
@@ -137,6 +129,33 @@ public class AiCreatureManager {
     }
 
     /**
+     * Despawn tracked, unowned AI creatures that wandered into the
+     * server-claim cube after spawning legitimately outside it. Spawn-time
+     * rejection in {@link #spawnNear} only fires when the picked surface
+     * is inside the claim; a hostile spawned at the edge can still walk in.
+     * Pets ({@code ownerEntityId != 0}) are exempt because they have to
+     * follow their owner across the claim boundary.
+     */
+    private void sweepCreaturesInsideSpawnProtection(ServerWorld world) {
+        int removed = 0;
+        var it = creatures.entrySet().iterator();
+        while (it.hasNext()) {
+            var entry = it.next();
+            var slot = entry.getValue();
+            if (slot.ownerEntityId != 0) continue;
+            var entity = world.getEntityById(entry.getKey());
+            if (!(entity instanceof MobEntity mob) || !mob.isAlive()) continue;
+            if (!SpawnRegion.containsBlock(mob.getBlockPos())) continue;
+            entity.discard();
+            it.remove();
+            removed++;
+        }
+        if (removed > 0) {
+            LOGGER.info("[AI] Culled {} AI creature(s) that drifted into spawn claim", removed);
+        }
+    }
+
+    /**
      * Build an observation for each tracked creature and submit it to Rust.
      * Called at throttled intervals by {@link NpcTickHandler}, not every tick.
      */
@@ -147,6 +166,7 @@ public class AiCreatureManager {
         // Run the orphan sweep first so any stale creatures from a previous
         // session are gone before we submit observations for the current set.
         sweepOrphanedAiCreatures(overworld);
+        sweepCreaturesInsideSpawnProtection(overworld);
 
         long currentTick = overworld.getTime();
 
@@ -348,15 +368,7 @@ public class AiCreatureManager {
     }
 
     private static boolean isInsideSpawnProtection(BlockPos pos) {
-        int x = pos.getX();
-        int y = pos.getY();
-        int z = pos.getZ();
-        return x >= SPAWN_PROTECT_MIN_X
-                && x <= SPAWN_PROTECT_MAX_X
-                && y >= SPAWN_PROTECT_MIN_Y
-                && y <= SPAWN_PROTECT_MAX_Y
-                && z >= SPAWN_PROTECT_MIN_Z
-                && z <= SPAWN_PROTECT_MAX_Z;
+        return SpawnRegion.containsBlock(pos);
     }
 
     private boolean hasCreatureOwnedBy(CreatureKind kind, int ownerEntityId) {
