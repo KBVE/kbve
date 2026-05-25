@@ -158,6 +158,23 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		status: 'active',
 		tags: ['docker', 'gaming'],
 	},
+	{
+		key: 'nd_server',
+		name: 'ND Server',
+		pipeline: 'docker',
+		app_name: 'nd-server',
+		test_framework: 'rust',
+		description:
+			'Nexus Defense authoritative game server (axum + bevy/rapier2d sim)',
+		source_path: 'apps/godot/nexus-defense/server',
+		version_toml: 'apps/godot/nexus-defense/server/version.toml',
+		runner: 'arc-runner-set',
+		image: 'kbve/nd-server',
+		author: 'h0lybyte',
+		license: 'MIT',
+		status: 'beta',
+		tags: ['docker', 'game-server', 'nexus-defense'],
+	},
 
 	{
 		key: 'chisel_ubuntu_axum',

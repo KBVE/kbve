@@ -28,4 +28,5 @@ target
 # Large / irrelevant app directories not needed by any Dockerfile
 apps/irc/ergo
 apps/godot
+!apps/godot/nexus-defense/server
 apps/unity

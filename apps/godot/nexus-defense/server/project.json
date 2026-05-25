@@ -1,0 +1,62 @@
+{
+	"name": "nd-server",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/godot/nexus-defense/server/src",
+	"tags": ["rust", "game-server", "nexus-defense"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p nd-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/debug/nd-server"]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p nd-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/release/nd-server"]
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p nd-server"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p nd-server"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p nd-server --all-targets -- -D warnings"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile .",
+						"VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+					]
+				},
+				"ci": {
+					"commands": [
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/nd-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+						"VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+					]
+				}
+			}
+		}
+	}
+}

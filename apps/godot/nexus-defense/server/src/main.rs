@@ -16,7 +16,7 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,td_server=debug".into()),
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,nd_server=debug".into()),
         )
         .init();
 
@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let router = q::net::server::router(state);
 
-    tracing::info!(%addr, %seed, auth = %auth_mode, "td-server listening");
+    tracing::info!(%addr, %seed, auth = %auth_mode, "nd-server listening");
 
     let listener = TcpListener::bind(addr).await?;
     let serve = axum::serve(listener, router).with_graceful_shutdown(shutdown_signal());

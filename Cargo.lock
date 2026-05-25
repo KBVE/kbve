@@ -10549,6 +10549,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a846cbc04412cf509efcd8f3694b114fc700a035fb5a37f21517f9fb019f1ebc"
 
 [[package]]
+name = "nd-server"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "q",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "ndk"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16239,17 +16250,6 @@ dependencies = [
  "futures-io",
  "p12-keystore",
  "rustls-connector",
-]
-
-[[package]]
-name = "td-server"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "q",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

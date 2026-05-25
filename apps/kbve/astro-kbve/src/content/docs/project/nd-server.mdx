@@ -1,0 +1,82 @@
+---
+title: TD Server
+description: |
+    Nexus Defense authoritative game server — axum + tokio + bevy/rapier2d sim, hosted from a chiseled Ubuntu runtime.
+sidebar:
+    label: TD Server
+    order: 57
+tags:
+    - docker
+    - rust
+    - game-server
+    - nexus-defense
+key: nd_server
+pipeline: docker
+app_name: nd-server
+version: "0.0.1"
+source_path: apps/godot/nexus-defense/server
+version_toml: apps/godot/nexus-defense/server/version.toml
+version_target: apps/godot/nexus-defense/server/Cargo.toml
+runner: arc-runner-set
+image: kbve/nd-server
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+---
+
+## Overview
+
+`nd-server` is the authoritative match host for **Nexus Defense**. It pairs an `axum` WebSocket router with the `q::nexus_defense_server` bevy/rapier2d simulation pulled from the shared `q` crate, so the wire schema, physics step, and gameplay logic stay in lockstep with the godot client at `apps/godot/nexus-defense/`.
+
+### Responsibilities
+
+- Terminate the `/ws` WebSocket upgrade and verify the inbound JWT against the Supabase JWT secret (dev-accept fallback when unset).
+- Drive the bevy/rapier2d sim tick on a tokio multi-thread runtime.
+- Fan out per-slot `FieldDelta` snapshots so each connected player sees their own wave, gold, lives, and building list.
+- Apply `ClientFrame` input (currently `PlaceBuilding`) into the sim, gated by the server's own validity checks.
+
+### Layout
+
+```
+apps/godot/nexus-defense/server/
+├── Cargo.toml         # package manifest (path-deps to ../../../../packages/rust/q)
+├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache)
+├── project.json       # nx build / run / container targets
+├── version.toml       # ci-publish version sentinel
+└── src/main.rs        # tokio entry + graceful shutdown
+```
+
+## Build
+
+Local build via nx:
+
+```bash
+nx run nd-server:build-release
+```
+
+Or directly through cargo (the package name stays `nd-server` regardless of the on-disk path):
+
+```bash
+cargo build --release -p nd-server
+```
+
+The release binary lands at `dist/target/release/nd-server` per the workspace target dir convention. The godot e2e fixture at `apps/godot/nexus-defense/tests/helpers/nd_server_fixture.gd` picks it up from there automatically.
+
+## Container
+
+```bash
+nx run nd-server:container
+```
+
+Drops a `kbve/nd-server:latest` + version tag locally. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/nd-server:buildcache`).
+
+The runtime image uses the same `ghcr.io/kbve/chisel-ubuntu-axum:24.04.3` chisel base as `axum-kbve`, so the running surface is the same kernel-friendly minimal Ubuntu with jemalloc pre-staged. Default listen is `0.0.0.0:7878` (override via `TD_SERVER_ADDR`).
+
+## Wire schema
+
+All message types live under `packages/rust/q/src/proto`. The client reads the same crate (with the `nexus-defense` feature) so adding a new event variant or input requires editing one file and rebuilding both sides — no spritesheet, manifest, or stub regen step in between.
+
+## Status
+
+Alpha. Currently driven entirely by smoke runs against the godot client. Kube deployment (Agones lifecycle + per-match Pod scale-out) follows once the first image lands on `ghcr.io/kbve/nd-server`.

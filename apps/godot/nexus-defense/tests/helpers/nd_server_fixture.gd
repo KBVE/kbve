@@ -1,4 +1,4 @@
-class_name TdServerFixture
+class_name NdServerFixture
 extends RefCounted
 
 var pid: int = -1
@@ -11,12 +11,12 @@ static func find_binary() -> String:
 	if explicit != "" and FileAccess.file_exists(explicit):
 		return explicit
 	var candidates := [
-		"../../../dist/target/release/td-server",
-		"../../../dist/target/debug/td-server",
-		"../../../target/release/td-server",
-		"../../../target/debug/td-server",
-		"../../target/release/td-server",
-		"../../target/debug/td-server",
+		"../../../dist/target/release/nd-server",
+		"../../../dist/target/debug/nd-server",
+		"../../../target/release/nd-server",
+		"../../../target/debug/nd-server",
+		"../../target/release/nd-server",
+		"../../target/debug/nd-server",
 	]
 	var project_dir := ProjectSettings.globalize_path("res://")
 	for rel in candidates:
