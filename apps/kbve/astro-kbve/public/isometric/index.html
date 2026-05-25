@@ -20,6 +20,8 @@
                 overflow: hidden;
                 width: 100%;
                 height: 100%;
+                user-select: none;
+                -webkit-user-select: none;
             }
             #bevy-canvas {
                 position: fixed;
@@ -41,7 +43,21 @@
                 width: 100%;
                 height: 100%;
                 z-index: 1;
-                pointer-events: none;
+                /* Force a compositor layer so WKWebView paints the React
+                 * overlay on top of the wgpu surface from the first frame
+                 * instead of deferring until devtools opens. */
+                transform: translateZ(0);
+                will-change: transform, opacity;
+                isolation: isolate;
+                /* WKWebView only schedules DOM composition when something
+                 * is animating or interactive. A no-op infinite animation
+                 * keeps the compositor layer "live" from boot so React UI
+                 * is visible without the inspect-element workaround. */
+                animation: _wkwebview_keepalive 60s linear infinite;
+            }
+            @keyframes _wkwebview_keepalive {
+                0% { opacity: 0.99999; }
+                100% { opacity: 1; }
             }
             /* pointer-events managed per-component via Tailwind pointer-events-auto */
         </style>
@@ -77,8 +93,13 @@
             var isTauri = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
             console.log('[native-input] script booted; isTauri=', isTauri, '__TAURI_INTERNALS__=', !!window.__TAURI_INTERNALS__);
             if (isTauri) {
-                document.documentElement.style.pointerEvents = 'none';
-                document.body.style.pointerEvents = 'none';
+                // NOTE: Do NOT set `pointer-events: none` on html/body.
+                // WKWebView treats non-interactive documents as paint-skip
+                // candidates and defers DOM composition until devtools opens.
+                // The capture-phase window listeners below forward every
+                // pointer/key event to Bevy regardless of pointer-events, so
+                // the click-through behaviour is preserved without breaking
+                // composition. Only the bevy-canvas itself needs to opt out.
                 var canvas = document.getElementById('bevy-canvas');
                 if (canvas) canvas.style.pointerEvents = 'none';
 
@@ -156,20 +177,50 @@
                         call('forward_pointer_leave', {});
                     }
                 }, true);
+                var isDragRegion = function (e) {
+                    var t = e.target;
+                    while (t && t !== document.body) {
+                        if (t.hasAttribute && t.hasAttribute('data-tauri-drag-region')) {
+                            return true;
+                        }
+                        t = t.parentNode;
+                    }
+                    return false;
+                };
                 window.addEventListener('pointerdown', function (e) {
+                    if (isDragRegion(e)) return;
                     console.log('[native-input] pointerdown fired button=', e.button);
                     call('forward_pointer_button', { button: e.button, pressed: true });
                 }, true);
                 window.addEventListener('pointerup', function (e) {
+                    if (isDragRegion(e)) return;
                     call('forward_pointer_button', { button: e.button, pressed: false });
                 }, true);
                 window.addEventListener('wheel', function (e) {
                     call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
                 }, { capture: true, passive: true });
+                // Skip forwarding when focus is on a text input — the
+                // React chat UI (and any other future input widget) needs
+                // raw key strokes for editing without Bevy also reacting
+                // to them as gameplay hotkeys (e.g. typing `i` while in
+                // chat opening the inventory).
+                var keyTargetIsEditable = function (e) {
+                    var t = e.target;
+                    if (!t || !t.tagName) return false;
+                    var tag = t.tagName;
+                    return (
+                        tag === 'INPUT' ||
+                        tag === 'TEXTAREA' ||
+                        tag === 'SELECT' ||
+                        (t.isContentEditable === true)
+                    );
+                };
                 window.addEventListener('keydown', function (e) {
+                    if (keyTargetIsEditable(e)) return;
                     call('forward_key', { code: e.code, pressed: true, repeat: e.repeat });
                 }, true);
                 window.addEventListener('keyup', function (e) {
+                    if (keyTargetIsEditable(e)) return;
                     call('forward_key', { code: e.code, pressed: false, repeat: false });
                 }, true);
                 console.log('[native-input] forwarder armed (listeners attached)');
