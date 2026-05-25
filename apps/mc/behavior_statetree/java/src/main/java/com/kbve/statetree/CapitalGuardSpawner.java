@@ -45,12 +45,11 @@ public final class CapitalGuardSpawner {
         if (deficit == 0) return;
 
         Random rand = new Random();
-        BlockPos spawn = overworld.getSpawnPos();
         int spawned = 0;
         for (int i = 0; i < deficit; i++) {
             int ox = rand.nextInt(ANCHOR_RADIUS * 2 + 1) - ANCHOR_RADIUS;
             int oz = rand.nextInt(ANCHOR_RADIUS * 2 + 1) - ANCHOR_RADIUS;
-            BlockPos anchor = spawn.add(ox, 0, oz);
+            BlockPos anchor = new BlockPos(ox, 0, oz);
             if (!SpawnRegion.containsBlock(anchor)) continue;
             if (manager.spawnAtAnchor(overworld, CreatureKinds.CAPITAL_GUARD, anchor)) {
                 spawned++;
