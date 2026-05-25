@@ -1,10 +1,114 @@
 ---
-import MarketAccountSummary from './MarketAccountSummary';
+
 ---
 
-<div class="not-content kbve-market-summary-shell">
-	<MarketAccountSummary client:only="react" />
-</div>
+<section
+	class="kbve-market-summary not-content"
+	data-kbve-market-shell
+	data-kbve-market-state="loading"
+	aria-label="Marketplace summary">
+	<header class="kbve-market-summary__head">
+		<h2>Marketplace</h2>
+		<a class="kbve-market-summary__link" href="/profile/market/">Open →</a>
+	</header>
+	<dl class="kbve-market-summary__grid">
+		<div>
+			<dt>Active listings</dt>
+			<dd data-kbve-market-stat="active-listings">—</dd>
+		</div>
+		<div>
+			<dt>Sold</dt>
+			<dd data-kbve-market-stat="sold-listings">—</dd>
+		</div>
+		<div>
+			<dt>Active bids</dt>
+			<dd data-kbve-market-stat="active-bids">—</dd>
+		</div>
+		<div>
+			<dt>Won</dt>
+			<dd data-kbve-market-stat="won-bids">—</dd>
+		</div>
+	</dl>
+	<div class="kbve-market-summary__error" data-kbve-market-error hidden></div>
+</section>
+
+<script>
+	import { myBids, myListings, MarketApiError } from './api';
+	import { initSupa, getSupa } from '@/lib/supa';
+
+	const shell = document.querySelector<HTMLElement>(
+		'[data-kbve-market-shell]',
+	);
+	if (shell) {
+		const errorEl = shell.querySelector<HTMLElement>(
+			'[data-kbve-market-error]',
+		);
+		const setStat = (key: string, value: number | string) => {
+			const el = shell.querySelector<HTMLElement>(
+				`[data-kbve-market-stat="${key}"]`,
+			);
+			if (el) el.textContent = String(value);
+		};
+		const setError = (msg: string | null) => {
+			if (!errorEl) return;
+			if (msg) {
+				errorEl.textContent = msg;
+				errorEl.removeAttribute('hidden');
+			} else {
+				errorEl.setAttribute('hidden', '');
+				errorEl.textContent = '';
+			}
+		};
+
+		(async () => {
+			try {
+				await initSupa();
+			} catch {
+				shell.dataset.kbveMarketState = 'signed-out';
+				return;
+			}
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const token = sessionResult?.session?.access_token;
+			if (!token) {
+				shell.dataset.kbveMarketState = 'signed-out';
+				return;
+			}
+
+			try {
+				const [ls, bs] = await Promise.all([
+					myListings({ limit: 100 }),
+					myBids({ limit: 100 }),
+				]);
+				setStat(
+					'active-listings',
+					ls.filter((l) => l.listing_status === 'active').length,
+				);
+				setStat(
+					'sold-listings',
+					ls.filter((l) => l.listing_status === 'sold').length,
+				);
+				setStat(
+					'active-bids',
+					bs.filter((b) => b.bid_status === 'active').length,
+				);
+				setStat(
+					'won-bids',
+					bs.filter((b) => b.bid_status === 'won').length,
+				);
+				setError(null);
+				shell.dataset.kbveMarketState = 'ready';
+			} catch (e) {
+				setError(
+					e instanceof MarketApiError
+						? e.message
+						: 'market summary failed',
+				);
+				shell.dataset.kbveMarketState = 'error';
+			}
+		})();
+	}
+</script>
 
 <style is:global>
 	.kbve-market-summary {
@@ -19,6 +123,10 @@ import MarketAccountSummary from './MarketAccountSummary';
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		color: rgba(255, 255, 255, 0.9);
 		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+		min-height: 188px;
+	}
+	.kbve-market-summary[data-kbve-market-state='signed-out'] {
+		display: none;
 	}
 	.kbve-market-summary__head {
 		display: flex;
