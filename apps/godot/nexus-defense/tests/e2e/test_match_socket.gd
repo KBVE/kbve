@@ -32,7 +32,7 @@ func test_fixture_starts_and_client_connects() -> void:
 	var monitor: Variant = monitor_signals(_socket, false)
 	_socket.call("connect_to", _fixture.addr, "dev", "tester")
 	await assert_signal(monitor).wait_until(5000).is_emitted("connected")
-	assert_bool(bool(_socket.call("is_connected"))).is_true()
+	assert_bool(bool(_socket.call("is_ws_connected"))).is_true()
 
 func test_send_heartbeat_does_not_disconnect() -> void:
 	if not _require_match_socket_and_binary():
@@ -46,7 +46,7 @@ func test_send_heartbeat_does_not_disconnect() -> void:
 	await assert_signal(monitor).wait_until(5000).is_emitted("connected")
 	_socket.call("send_heartbeat", 42)
 	await get_tree().create_timer(0.5).timeout
-	assert_bool(bool(_socket.call("is_connected"))).is_true()
+	assert_bool(bool(_socket.call("is_ws_connected"))).is_true()
 
 func test_disconnects_cleanly_when_socket_freed() -> void:
 	if not _require_match_socket_and_binary():
