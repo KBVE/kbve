@@ -13,6 +13,7 @@ const WaveBanner := preload("res://ui/components/wave_banner.gd")
 const PauseModal := preload("res://ui/components/pause_modal.gd")
 const BootScreen := preload("res://ui/components/boot_screen.gd")
 const Toast := preload("res://ui/components/toast.gd")
+const MainMenu := preload("res://ui/components/main_menu.gd")
 
 signal opened(panel_name: String)
 signal closed(panel_name: String)
@@ -45,6 +46,7 @@ func _register_defaults() -> void:
 	register("wave_banner", WaveBanner, LAYER_HUD)
 	register("pause", PauseModal, LAYER_MODAL)
 	register("boot", BootScreen, LAYER_MODAL)
+	register("main_menu", MainMenu, LAYER_MODAL)
 
 func register(panel_name: String, script: Script, layer_idx: int = LAYER_PANEL) -> void:
 	_registry[panel_name] = {"script": script, "layer": layer_idx}
@@ -62,6 +64,8 @@ func open(panel_name: String, data: Variant = null) -> Control:
 	var inst: Control = entry["script"].new()
 	inst.theme = theme_ref
 	_layers[entry["layer"]].add_child(inst)
+	_fit_panel_to_viewport(inst)
+	get_viewport().size_changed.connect(_fit_panel_to_viewport.bind(inst))
 	_live[panel_name] = inst
 	inst.tree_exiting.connect(_on_panel_exit.bind(panel_name))
 	if data != null and inst.has_method("apply"):
@@ -107,6 +111,13 @@ func _reflow_toasts() -> void:
 		var t: Control = _toast_stack[i]
 		if is_instance_valid(t) and t.has_method("position_in_stack"):
 			t.position_in_stack(i)
+
+func _fit_panel_to_viewport(inst: Control) -> void:
+	if not is_instance_valid(inst):
+		return
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	inst.size = vp_size
+	inst.position = Vector2.ZERO
 
 func _on_panel_exit(panel_name: String) -> void:
 	if _live.get(panel_name) and not is_instance_valid(_live[panel_name]):

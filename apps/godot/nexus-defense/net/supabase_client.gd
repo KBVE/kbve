@@ -86,6 +86,21 @@ func clear_session() -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 
+func has_cached_session() -> bool:
+	var cached: Dictionary = _load_session()
+	if cached.is_empty():
+		return false
+	var refresh: String = String(cached.get("refresh_token", ""))
+	if not refresh.is_empty():
+		return true
+	var now: int = int(Time.get_unix_time_from_system())
+	var exp: int = int(cached.get("expires_at", 0))
+	return exp - ACCESS_EXP_SKEW_SEC > now
+
+func cached_username() -> String:
+	var cached: Dictionary = _load_session()
+	return String(cached.get("kbve_username", ""))
+
 # -----------------------------------------------------------------------------
 # Internals
 # -----------------------------------------------------------------------------
