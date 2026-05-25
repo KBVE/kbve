@@ -8,7 +8,7 @@ const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const PUBLIC_ROUTES = new Set(["health"]);
+const PUBLIC_ROUTES = new Set(["health", "gh-webhook"]);
 const STAFF_ROUTES = new Set(["argo"]);
 
 const SB_ACCESS_TOKEN_COOKIE = "sb-access-token";
