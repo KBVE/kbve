@@ -137,6 +137,13 @@ func _on_cancel() -> void:
 	tower_canceled.emit()
 	panel_event.emit("tower_canceled", null)
 
+func clear_selection() -> void:
+	if selected_id == "":
+		return
+	if _buttons.has(selected_id):
+		_buttons[selected_id]["button"].button_pressed = false
+	selected_id = ""
+
 func _on_breakpoint(_klass: int) -> void:
 	if _root_margin:
 		_root_margin.add_theme_constant_override("margin_left", safe_margin())
