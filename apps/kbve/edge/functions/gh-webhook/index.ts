@@ -13,6 +13,8 @@ const ALLOWED_EVENTS = new Set([
 ]);
 
 const ALLOWED_REPOS = parseAllowlist(Deno.env.get("GH_WEBHOOK_ALLOWED_REPOS"));
+const SNOWFLAKE_RE = /^[0-9]{17,20}$/;
+const VAULT_WEBHOOK_SERVICE = "github_webhook";
 
 interface GithubLabel {
   name?: string;
@@ -145,18 +147,46 @@ serve(async (req) => {
   const sizeErr = enforceBodySizeLimit(req);
   if (sizeErr) return sizeErr;
 
+  const url = new URL(req.url);
+  const segments = url.pathname.split("/").filter((s) => s.length > 0);
+  const guildId = segments[segments.length - 1] ?? "";
+  if (!SNOWFLAKE_RE.test(guildId)) {
+    return jsonResponse(
+      {
+        error:
+          "missing guild_id path segment. Use /functions/v1/gh-webhook/<discord_guild_snowflake>",
+      },
+      400,
+    );
+  }
+
   const githubEvent = req.headers.get("x-github-event") ?? "";
   const deliveryId = req.headers.get("x-github-delivery") ?? null;
   const signature = req.headers.get("x-hub-signature-256");
 
   if (!ALLOWED_EVENTS.has(githubEvent)) {
-    return jsonResponse({ ok: true, skipped: githubEvent }, 200);
+    return jsonResponse({ ok: true, skipped: githubEvent, guild: guildId }, 200);
   }
 
-  const secret = Deno.env.get("GITHUB_WEBHOOK_SECRET");
-  if (!secret) {
-    console.error("gh-webhook: GITHUB_WEBHOOK_SECRET not configured");
-    return jsonResponse({ error: "Server not configured" }, 500);
+  const sb = createServiceClient();
+
+  const { data: secret, error: secretErr } = await sb.rpc(
+    "bot_get_guild_token",
+    { p_server_id: guildId, p_service: VAULT_WEBHOOK_SERVICE },
+  );
+  if (secretErr) {
+    console.error(
+      "gh-webhook: vault lookup failed",
+      { guild: guildId, error: secretErr.message },
+    );
+    return jsonResponse({ error: "Failed to resolve webhook secret" }, 500);
+  }
+  if (!secret || typeof secret !== "string") {
+    console.warn(
+      "gh-webhook: no webhook secret registered for guild",
+      { guild: guildId },
+    );
+    return jsonResponse({ error: "webhook not configured for guild" }, 404);
   }
 
   const rawBody = await req.text();
@@ -165,12 +195,13 @@ serve(async (req) => {
     console.warn("gh-webhook: signature verification failed", {
       delivery: deliveryId,
       event: githubEvent,
+      guild: guildId,
     });
     return jsonResponse({ error: "invalid signature" }, 401);
   }
 
   if (githubEvent === "ping") {
-    return jsonResponse({ ok: true, pong: true }, 200);
+    return jsonResponse({ ok: true, pong: true, guild: guildId }, 200);
   }
 
   let payload: GithubPayload;
@@ -182,20 +213,21 @@ serve(async (req) => {
 
   const repoInfo = repoFromPayload(payload);
   if (!repoInfo) {
-    return jsonResponse({ ok: true, skipped: "no repo in payload" }, 200);
+    return jsonResponse({ ok: true, skipped: "no repo in payload", guild: guildId }, 200);
   }
 
   const fullName = `${repoInfo.owner}/${repoInfo.repo}`.toLowerCase();
   if (ALLOWED_REPOS.size > 0 && !ALLOWED_REPOS.has(fullName)) {
-    return jsonResponse({ ok: true, skipped: `repo not allowlisted: ${fullName}` }, 200);
+    return jsonResponse(
+      { ok: true, skipped: `repo not allowlisted: ${fullName}`, guild: guildId },
+      200,
+    );
   }
 
   const issue = issueFromPayload(payload);
   if (!issue) {
-    return jsonResponse({ ok: true, skipped: "no issue in payload" }, 200);
+    return jsonResponse({ ok: true, skipped: "no issue in payload", guild: guildId }, 200);
   }
-
-  const sb = createServiceClient();
 
   const labels = (issue.labels ?? []).map((l) => ({
     name: l.name,
@@ -250,6 +282,7 @@ serve(async (req) => {
       action: payload.action,
       delivery: deliveryId,
       issue: `${fullName}#${issue.number}`,
+      guild: guildId,
     },
     200,
   );
