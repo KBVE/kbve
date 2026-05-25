@@ -94,7 +94,7 @@ export function ReactWalletBadge() {
 
 	return (
 		<a
-			href="/profile/account/"
+			href="/dashboard/account/"
 			style={{ ...styles.badge, textDecoration: 'none' }}
 			aria-label={`Wallet: ${balance.khash} KHash, ${balance.credits} Credits`}
 			title="Open wallet">
