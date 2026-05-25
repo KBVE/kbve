@@ -15,10 +15,14 @@ import {
 interface BackfillRequest {
   owner: string;
   repo: string;
+  guild_id?: string;
   state?: "open" | "closed" | "all";
   per_page?: number;
   max_pages?: number;
 }
+
+const SNOWFLAKE_RE = /^[0-9]{17,20}$/;
+const VAULT_GITHUB_SERVICE = "github";
 
 interface GitHubIssueResp {
   number: number;
@@ -114,13 +118,35 @@ serve(async (req) => {
   const perPage = Math.min(Math.max(body.per_page ?? DEFAULT_PER_PAGE, 1), 100);
   const maxPages = Math.min(Math.max(body.max_pages ?? DEFAULT_MAX_PAGES, 1), 50);
 
-  const githubToken = Deno.env.get("GITHUB_TOKEN") ?? Deno.env.get("GITHUB_TOKEN_PAT");
-  if (!githubToken) {
-    console.error("gh-backfill: GITHUB_TOKEN not configured");
-    return jsonResponse({ error: "Server not configured" }, 500);
+  const guildId = (body.guild_id ?? Deno.env.get("GH_BACKFILL_DEFAULT_GUILD_ID") ?? "").trim();
+  if (!SNOWFLAKE_RE.test(guildId)) {
+    return jsonResponse(
+      {
+        error:
+          "guild_id is required and must be a Discord snowflake (17–20 digits). Pass in body or set GH_BACKFILL_DEFAULT_GUILD_ID on the edge deployment.",
+      },
+      400,
+    );
   }
 
   const sb = createServiceClient();
+
+  const { data: githubToken, error: tokenErr } = await sb.rpc(
+    "bot_get_guild_token",
+    { p_server_id: guildId, p_service: VAULT_GITHUB_SERVICE },
+  );
+  if (tokenErr) {
+    console.error("gh-backfill: vault lookup failed:", tokenErr.message);
+    return jsonResponse({ error: "Failed to resolve GitHub token from vault" }, 500);
+  }
+  if (!githubToken || typeof githubToken !== "string") {
+    return jsonResponse(
+      {
+        error: `No GitHub PAT found in vault for guild ${guildId} (service=${VAULT_GITHUB_SERVICE}).`,
+      },
+      404,
+    );
+  }
 
   let upserted = 0;
   let page = 1;
