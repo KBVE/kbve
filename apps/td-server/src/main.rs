@@ -34,18 +34,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Input mailbox: WS sessions -> bevy sim.
     let (input_tx, input_rx) = mpsc::unbounded_channel::<q::net::server::SlotInput>();
 
-    // Bevy headless app — runs on a dedicated blocking thread so the App
-    // (which holds non-Send schedule state) never crosses task boundaries.
-    let sim_tx = snap_tx.clone();
-    let sim_handle = tokio::task::spawn_blocking(move || {
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_time()
-            .build()
-            .expect("sim runtime");
-        let app = build_app(sim_tx, input_rx, seed);
-        rt.block_on(run_sim_loop(app));
-    });
-
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
         .unwrap_or_default()
         .into_bytes();
@@ -55,7 +43,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "supabase HS256"
     };
 
-    let state = q::net::server::ServerState::new(snap_tx, input_tx, seed, jwt_secret);
+    // Build ServerState first so the sim + WS layer share the same roster.
+    let state = q::net::server::ServerState::new(snap_tx.clone(), input_tx, seed, jwt_secret);
+    let roster = state.roster.clone();
+
+    // Bevy headless app — runs on a dedicated blocking thread so the App
+    // (which holds non-Send schedule state) never crosses task boundaries.
+    let sim_handle = tokio::task::spawn_blocking(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+            .expect("sim runtime");
+        let app = build_app(snap_tx, input_rx, roster, seed);
+        rt.block_on(run_sim_loop(app));
+    });
+
     let router = q::net::server::router(state);
 
     tracing::info!(%addr, %seed, auth = %auth_mode, "td-server listening");
