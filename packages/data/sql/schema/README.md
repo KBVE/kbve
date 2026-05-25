@@ -8,6 +8,7 @@ Hand-authored reference DDL grouped by Postgres schema. This tree is the **revie
 | ---------------------------- | --------------- | -------------------------------------------------------------------------------------------------- |
 | [`discordsh/`](./discordsh/) | `discordsh`     | Discord game-data service (servers, votes, dungeon profiles, guild vault).                         |
 | [`forum/`](./forum/)         | `forum`         | KBVE forum core (spaces, threads, engagement, moderation, RPCs).                                   |
+| [`gh/`](./gh/)               | `gh`            | L2 cache for GitHub issue/PR metadata + lease-based event queue feeding the discordsh thread sync. |
 | [`inventory/`](./inventory/) | `inventory`     | KBVE-owned ledger of items (canonical bank-style), bridge coordinator + receipt, 2FA gate.         |
 | [`mc/`](./mc/)               | `mc`            | Minecraft server (auth, characters, containers, players, skills, transfers).                       |
 | [`meme/`](./meme/)           | `meme`          | Meme social platform (cards, engagement, moderation, social, RPCs).                                |
