@@ -92,7 +92,7 @@ const {
 	}
 </style>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
 	(() => {
 		const reduceMotion =
 			typeof window !== 'undefined' &&
@@ -168,10 +168,10 @@ const {
 			});
 		}
 
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', init);
-		} else {
-			init();
-		}
+		// `data-astro-rerun` on the script tag ensures this IIFE runs on
+		// every nav swap under ClientRouter, not just the initial hard
+		// load. At swap time the DOM is fully present, so no readyState
+		// check is needed.
+		init();
 	})();
 </script>
