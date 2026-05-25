@@ -69,6 +69,10 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
                 creatureManager, metrics);
     }
 
+    public AiCreatureManager getCreatureManager() {
+        return creatureManager;
+    }
+
     /** Inject the ship manager (called once during mod init). */
     public void setShipManager(com.kbve.statetree.ship.ShipManager manager) {
         this.shipManager = manager;
