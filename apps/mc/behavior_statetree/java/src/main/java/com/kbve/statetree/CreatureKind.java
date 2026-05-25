@@ -35,6 +35,27 @@ public interface CreatureKind {
     String tag();
 
     /**
+     * Whether this kind should be observed and ticked by the Rust ECS.
+     * Defaults to true. Kinds whose behavior runs entirely on vanilla
+     * AI (e.g. capital guards using IronGolem auto-aggro) can return
+     * false to skip the per-tick observation marshaling.
+     */
+    default boolean submitsObservations() {
+        return true;
+    }
+
+    /**
+     * Whether the claim-drift cull sweep in {@link AiCreatureManager} may
+     * despawn this kind if it ends up inside the spawn-protection cube.
+     * Defaults to true (hostile spawns that drift in get culled). Kinds
+     * that are meant to live inside the claim (capital guards) return
+     * false.
+     */
+    default boolean cullableInsideClaim() {
+        return true;
+    }
+
+    /**
      * Build and configure a ready-to-spawn mob at {@code pos}. Return
      * {@code null} if this kind can't spawn right now (e.g. an owned
      * creature whose owner vanished between the command and the actuator
