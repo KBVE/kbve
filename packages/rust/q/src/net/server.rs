@@ -312,6 +312,14 @@ async fn send_reject(socket: &mut WebSocket, reason: &str) {
     if let Ok(buf) = proto::encode(&evt) {
         let _ = socket.send(Message::Binary(buf)).await;
     }
+    // Issue a clean WS Close so the client tears down without surfacing a
+    // protocol-error disconnect on top of the Reject payload.
+    let _ = socket
+        .send(Message::Close(Some(axum::extract::ws::CloseFrame {
+            code: 1000,
+            reason: reason.to_string().into(),
+        })))
+        .await;
 }
 
 /// Patches Snapshot frames so every connected slot shows up in `players[]`.
