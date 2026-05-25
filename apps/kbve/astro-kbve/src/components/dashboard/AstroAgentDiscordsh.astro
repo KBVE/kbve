@@ -1,0 +1,73 @@
+---
+import ReactAgentDiscordsh from './ReactAgentDiscordsh';
+---
+
+<section
+	id="agent-discordsh-wrapper"
+	class="agent-discordsh-wrapper kbve-dashboard-page"
+	aria-label="Discordsh agent — token management for owned Discord guilds">
+	<div class="dashboard-content">
+		<header class="agent-header not-content">
+			<h1 class="agent-title">discordsh</h1>
+			<p class="agent-lede">
+				Manage tokens for guilds you own. Each row in <code>
+					vault.secrets
+				</code>
+				is keyed by your Discord guild ID. Token values stay server-side —
+				the dashboard only renders metadata (service, description, active
+				flag, timestamps).
+			</p>
+		</header>
+
+		<ReactAgentDiscordsh client:only="react" />
+	</div>
+</section>
+
+<style>
+	.agent-discordsh-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100%;
+	}
+
+	.dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.agent-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.agent-title {
+		font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+		font-weight: 700;
+		margin: 0 0 0.4rem;
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		color: var(--sl-color-white, #fff);
+	}
+
+	.agent-lede {
+		font-size: 0.95rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2, #c2c5cc);
+		margin: 0;
+		max-width: 64ch;
+	}
+
+	.agent-lede code {
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		background: rgba(255, 255, 255, 0.06);
+		padding: 0.05rem 0.35rem;
+		border-radius: 4px;
+		font-size: 0.85em;
+	}
+</style>

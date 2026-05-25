@@ -188,7 +188,14 @@ export default defineConfig({
 						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'Profile', link: '/dashboard/profile/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'Account', link: '/dashboard/account/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Agents', link: '/dashboard/agents/', attrs: { 'data-auth-visibility': 'auth' } },
+						{
+							label: 'Agents',
+							collapsed: true,
+							items: [
+								{ label: 'Overview', link: '/dashboard/agents/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'discordsh', link: '/dashboard/agents/discordsh/', attrs: { 'data-auth-visibility': 'auth' } },
+							],
+						},
 						{ label: 'Marketplace', link: '/dashboard/market/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'API', link: '/dashboard/api/' },
 						{ label: 'Kanban', link: '/dashboard/kanban/', attrs: { 'data-auth-visibility': 'auth' } },
