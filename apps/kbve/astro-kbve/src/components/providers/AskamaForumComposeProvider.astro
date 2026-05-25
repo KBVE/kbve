@@ -27,7 +27,8 @@ const spaces = await getForumSpaces();
 			<h1 class="compose-card__title">{`{{ compose_title }}`}</h1>
 			<p class="compose-card__lede">
 				Markdown is supported. Be civil. New threads need a username —
-				set one from your <a href="/profile">profile</a> if you haven't yet.
+				set one from your <a href="/dashboard/profile/">profile</a> if you
+				haven't yet.
 			</p>
 		</header>
 
@@ -46,7 +47,7 @@ const spaces = await getForumSpaces();
 				<a
 					id="compose-gate-signin"
 					class="compose-gate__btn compose-gate__btn--primary"
-					href="/profile">
+					href="/dashboard/profile/">
 					Sign in
 				</a>
 				<a class="compose-gate__btn" href="/forum/">Back to forum</a>
@@ -205,7 +206,7 @@ const spaces = await getForumSpaces();
 				} else {
 					signin.textContent =
 						mode === 'anon' ? 'Sign in' : 'Set username';
-					signin.href = '/profile';
+					signin.href = '/dashboard/profile/';
 				}
 			}
 		};
