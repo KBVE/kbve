@@ -1,0 +1,282 @@
+---
+interface BotIntegration {
+	key: string;
+	name: string;
+	tagline: string;
+	description: string;
+	docs_url: string;
+	manage_url: string | null;
+	services: string[];
+	status: 'available' | 'coming_soon';
+}
+
+const BOTS: BotIntegration[] = [
+	{
+		key: 'discordsh',
+		name: 'discordsh',
+		tagline:
+			'Discord gateway bot — slash commands, GitHub bridge, dungeon game.',
+		description:
+			'Embed dungeon, /gh claim self-assign, /github board reads, GitHub issue → Discord forum thread sync (Phase 2). Per-guild PAT + webhook secret resolved from Supabase Vault.',
+		docs_url: '/project/discordsh-bot/',
+		manage_url: '/dashboard/agents/discordsh/',
+		services: ['github', 'github_webhook', 'github_repos'],
+		status: 'available',
+	},
+	{
+		key: 'irc_gateway',
+		name: 'irc-gateway',
+		tagline: 'JWT-authenticated IRC bridge for chat services.',
+		description:
+			'Bridges KBVE chat traffic to IRC backends. Per-guild routing not yet wired through the agents surface.',
+		docs_url: '/project/irc-gateway/',
+		manage_url: null,
+		services: ['irc'],
+		status: 'coming_soon',
+	},
+];
+
+const statusLabel = (s: BotIntegration['status']) =>
+	s === 'available' ? 'Available' : 'Coming soon';
+---
+
+<section
+	id="agents-dashboard-wrapper"
+	class="agents-dashboard-wrapper kbve-dashboard-page"
+	aria-label="Agents — KBVE bot integration catalog">
+	<div class="dashboard-content">
+		<header class="agents-header not-content">
+			<h1 class="agents-title">Agents</h1>
+			<p class="agents-lede">
+				Self-service registration for KBVE bot integrations. Each bot
+				reads its per-guild secrets (PATs, webhook HMACs, repo
+				allowlists) from Supabase Vault, scoped by your Discord guild
+				ID. Pick a bot to manage its tokens for guilds you own.
+			</p>
+		</header>
+
+		<div class="not-content agents-grid">
+			{
+				BOTS.map((bot) => (
+					<article
+						class={`agent-card agent-card--${bot.status}`}
+						data-agent={bot.key}>
+						<div class="agent-card__head">
+							<h2 class="agent-card__name">{bot.name}</h2>
+							<span
+								class={`agent-card__status agent-card__status--${bot.status}`}>
+								{statusLabel(bot.status)}
+							</span>
+						</div>
+						<p class="agent-card__tagline">{bot.tagline}</p>
+						<p class="agent-card__description">{bot.description}</p>
+
+						<div class="agent-card__services">
+							{bot.services.map((svc) => (
+								<code class="agent-card__service">{svc}</code>
+							))}
+						</div>
+
+						<div class="agent-card__actions">
+							<a
+								class="agent-card__cta agent-card__cta--secondary"
+								href={bot.docs_url}>
+								Docs
+							</a>
+							{bot.manage_url ? (
+								<a
+									class="agent-card__cta agent-card__cta--primary"
+									href={bot.manage_url}>
+									Manage
+								</a>
+							) : (
+								<span
+									class="agent-card__cta agent-card__cta--disabled"
+									aria-disabled="true">
+									Manage
+								</span>
+							)}
+						</div>
+					</article>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.agents-dashboard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100%;
+	}
+
+	.dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.agents-header {
+		margin-bottom: 2rem;
+	}
+
+	.agents-title {
+		font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+		font-weight: 700;
+		margin: 0 0 0.5rem;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.agents-lede {
+		font-size: 0.95rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2, #c2c5cc);
+		margin: 0;
+		max-width: 56ch;
+	}
+
+	.agents-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.25rem;
+	}
+
+	@media (min-width: 720px) {
+		.agents-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	.agent-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1.25rem;
+		border-radius: 12px;
+		border: 1px solid var(--sl-color-gray-5, #2d2f36);
+		background: var(--sl-color-bg-nav, rgba(255, 255, 255, 0.02));
+		transition:
+			border-color 0.15s ease,
+			transform 0.15s ease;
+	}
+
+	.agent-card:hover {
+		border-color: var(--sl-color-accent, #58a6ff);
+	}
+
+	.agent-card--coming_soon {
+		opacity: 0.7;
+	}
+
+	.agent-card__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.agent-card__name {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 600;
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+	}
+
+	.agent-card__status {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		padding: 0.2rem 0.55rem;
+		border-radius: 999px;
+		letter-spacing: 0.04em;
+	}
+
+	.agent-card__status--available {
+		background: rgba(34, 197, 94, 0.15);
+		color: #4ade80;
+	}
+
+	.agent-card__status--coming_soon {
+		background: rgba(148, 163, 184, 0.15);
+		color: #94a3b8;
+	}
+
+	.agent-card__tagline {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--sl-color-gray-2, #c2c5cc);
+		line-height: 1.45;
+	}
+
+	.agent-card__description {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3, #9ca0aa);
+		line-height: 1.55;
+	}
+
+	.agent-card__services {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.agent-card__service {
+		font-size: 0.75rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 6px;
+		background: rgba(88, 166, 255, 0.12);
+		color: #58a6ff;
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+	}
+
+	.agent-card__actions {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: auto;
+		padding-top: 0.5rem;
+	}
+
+	.agent-card__cta {
+		font-size: 0.85rem;
+		font-weight: 500;
+		padding: 0.45rem 0.9rem;
+		border-radius: 8px;
+		text-decoration: none;
+		transition: background 0.15s ease;
+	}
+
+	.agent-card__cta--primary {
+		background: var(--sl-color-accent, #58a6ff);
+		color: var(--sl-color-text-invert, #0d1117);
+	}
+
+	.agent-card__cta--primary:hover {
+		background: var(--sl-color-accent-high, #79b8ff);
+	}
+
+	.agent-card__cta--secondary {
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--sl-color-white, #fff);
+		border: 1px solid var(--sl-color-gray-5, #2d2f36);
+	}
+
+	.agent-card__cta--secondary:hover {
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	.agent-card__cta--disabled {
+		background: rgba(255, 255, 255, 0.03);
+		color: var(--sl-color-gray-4, #6b7280);
+		border: 1px solid var(--sl-color-gray-5, #2d2f36);
+		cursor: not-allowed;
+	}
+</style>
