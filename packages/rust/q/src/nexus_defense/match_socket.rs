@@ -315,6 +315,9 @@ async fn run_socket(
     });
 
     // Inbound pump — drain ws messages, decode postcard, push to channel.
+    // Track the slot Welcome assigned so we can pick the matching FieldDelta
+    // out of every Snapshot (server emits one per active player).
+    let mut own_slot: Option<u8> = None;
     while let Some(frame) = reader.next().await {
         match frame {
             Ok(Message::Binary(mut bytes)) => match proto::decode::<ServerEvent>(&mut bytes) {
@@ -323,13 +326,16 @@ async fn run_socket(
                     your_slot,
                     seed,
                 }) => {
+                    own_slot = Some(your_slot.0);
                     let _ = tx.send(Inbound::Welcome {
                         slot: your_slot.0,
                         seed,
                     });
                 }
                 Ok(ServerEvent::Snapshot(snap)) => {
-                    let field = snap.fields.first();
+                    let field = own_slot
+                        .and_then(|s| snap.fields.iter().find(|f| f.owner.0 == s))
+                        .or_else(|| snap.fields.first());
                     let enemy_count = field.map(|f| f.enemies.len() as u32).unwrap_or(0);
                     let building_count = field.map(|f| f.buildings.len() as u32).unwrap_or(0);
                     let wave = field.map(|f| f.wave).unwrap_or(0);

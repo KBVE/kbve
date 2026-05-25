@@ -9,8 +9,14 @@
 //! the axum WS layer feeds; snapshots flow out via a
 //! `tokio::sync::broadcast::Sender<ServerEvent>` so each WS connection can
 //! subscribe a `Receiver`.
+//!
+//! Each `Snapshot` carries one `FieldDelta` per active roster slot. Enemies
+//! and buildings are owned by a `PlayerSlot` and partitioned into the
+//! matching field on the way out — every player gets their own wave + their
+//! own placements, which is the parallel-race default per the design tracker.
 
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
 use bevy::app::App;
@@ -22,6 +28,7 @@ use bevy::prelude::{
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
+use crate::net::server::Roster;
 use crate::proto::{self, Input, ServerEvent};
 
 /// Server sim tick rate. 20 Hz matches the design budget in #11294.
@@ -40,7 +47,6 @@ pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 /// Map dimensions used by the placeholder spawner.
 const PLAYFIELD_WIDTH: f32 = 800.0;
 const SPAWN_X: f32 = 0.0;
-const SPAWN_Y: f32 = 240.0;
 const ENEMY_SPEED: f32 = 60.0;
 const ENEMY_HP: f32 = 50.0;
 const ENEMIES_PER_WAVE: u32 = 10;
@@ -48,6 +54,9 @@ const ENEMIES_PER_WAVE: u32 = 10;
 const SPAWN_INTERVAL_TICKS: u32 = 10;
 /// Ticks between waves (5 s at 20 Hz).
 const WAVE_INTERVAL_TICKS: u32 = SIM_TICK_HZ * 5;
+/// Vertical stripe assigned to each slot — slot 0 at y=120, slot 1 at y=280, etc.
+const SLOT_STRIPE_BASE: f32 = 120.0;
+const SLOT_STRIPE_HEIGHT: f32 = 160.0;
 
 const BUILDING_HP: f32 = 200.0;
 
@@ -67,15 +76,26 @@ pub struct SimSeed(pub u64);
 
 /// Mailbox of authenticated inputs (slot + payload) waiting to be applied to
 /// the bevy world. The WS handler is the sole producer; `drain_inputs` is the
-/// sole consumer. `Mutex` is only here so bevy can hold the !Send Receiver
-/// inside a `Resource` — we never have actual contention.
+/// sole consumer.
 #[derive(Resource)]
 pub struct InputQueue {
     pub rx: Mutex<mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>>,
 }
 
+/// Shared roster handle from `q::net::server::ServerState`. The sim reads it
+/// each tick to drive per-player wave spawns + snapshot framing.
+#[derive(Resource, Clone)]
+pub struct RosterHandle(pub Arc<RwLock<Roster>>);
+
+/// Per-slot wave bookkeeping. One row per active slot; the sim drops rows
+/// when a slot vacates (handled in `spawn_wave_enemies`).
 #[derive(Resource, Default)]
 pub struct WaveState {
+    pub slots: HashMap<u8, SlotWave>,
+}
+
+#[derive(Default)]
+pub struct SlotWave {
     pub wave: u16,
     pub spawned_in_wave: u32,
     pub next_spawn_tick: u32,
@@ -97,6 +117,7 @@ pub struct Health {
 #[derive(Component)]
 pub struct EnemyTag {
     pub kind: proto::EnemyKind,
+    pub owner: proto::PlayerSlot,
 }
 
 #[derive(Component)]
@@ -107,11 +128,12 @@ pub struct BuildingTag {
     pub row: i32,
 }
 
-/// Build a headless bevy `App` wired to broadcast snapshots over `tx` and
-/// accept inputs from `input_rx`.
+/// Build a headless bevy `App` wired to broadcast snapshots over `tx`,
+/// accept inputs from `input_rx`, and read the shared roster from `roster`.
 pub fn build_app(
     tx: broadcast::Sender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
+    roster: Arc<RwLock<Roster>>,
     seed: u64,
 ) -> App {
     let mut app = App::new();
@@ -121,6 +143,7 @@ pub fn build_app(
         .insert_resource(InputQueue {
             rx: Mutex::new(input_rx),
         })
+        .insert_resource(RosterHandle(roster))
         .insert_resource(WaveState::default())
         .add_systems(
             Update,
@@ -184,40 +207,62 @@ fn apply_input(slot: proto::PlayerSlot, input: Input, commands: &mut Commands) {
     }
 }
 
-fn spawn_wave_enemies(clock: Res<SimClock>, mut wave: ResMut<WaveState>, mut commands: Commands) {
-    if clock.tick >= wave.next_wave_tick && wave.spawned_in_wave >= ENEMIES_PER_WAVE {
-        wave.wave = wave.wave.wrapping_add(1);
-        wave.spawned_in_wave = 0;
-        wave.next_spawn_tick = clock.tick;
-        wave.next_wave_tick = clock.tick + WAVE_INTERVAL_TICKS;
-    }
-
-    if wave.spawned_in_wave >= ENEMIES_PER_WAVE {
-        return;
-    }
-    if clock.tick < wave.next_spawn_tick {
-        return;
-    }
-
-    let kind = match wave.spawned_in_wave % 4 {
-        0 => proto::EnemyKind::Runner,
-        1 => proto::EnemyKind::Scout,
-        2 => proto::EnemyKind::Brute,
-        _ => proto::EnemyKind::Shielded,
+fn spawn_wave_enemies(
+    clock: Res<SimClock>,
+    roster: Res<RosterHandle>,
+    mut wave: ResMut<WaveState>,
+    mut commands: Commands,
+) {
+    let active = match roster.0.read() {
+        Ok(r) => r.active_slots(),
+        Err(p) => p.into_inner().active_slots(),
     };
+    if active.is_empty() {
+        return;
+    }
 
-    commands.spawn((
-        EnemyTag { kind },
-        Position(SPAWN_X, SPAWN_Y + (wave.spawned_in_wave as f32 * 4.0)),
-        Velocity(ENEMY_SPEED, 0.0),
-        Health {
-            hp: ENEMY_HP,
-            max_hp: ENEMY_HP,
-        },
-    ));
+    // Drop bookkeeping for slots that vacated.
+    let active_set: std::collections::HashSet<u8> = active.iter().map(|s| s.0).collect();
+    wave.slots.retain(|k, _| active_set.contains(k));
 
-    wave.spawned_in_wave += 1;
-    wave.next_spawn_tick = clock.tick + SPAWN_INTERVAL_TICKS;
+    for slot in active {
+        let entry = wave.slots.entry(slot.0).or_default();
+
+        if clock.tick >= entry.next_wave_tick && entry.spawned_in_wave >= ENEMIES_PER_WAVE {
+            entry.wave = entry.wave.wrapping_add(1);
+            entry.spawned_in_wave = 0;
+            entry.next_spawn_tick = clock.tick;
+            entry.next_wave_tick = clock.tick + WAVE_INTERVAL_TICKS;
+        }
+
+        if entry.spawned_in_wave >= ENEMIES_PER_WAVE {
+            continue;
+        }
+        if clock.tick < entry.next_spawn_tick {
+            continue;
+        }
+
+        let kind = match entry.spawned_in_wave % 4 {
+            0 => proto::EnemyKind::Runner,
+            1 => proto::EnemyKind::Scout,
+            2 => proto::EnemyKind::Brute,
+            _ => proto::EnemyKind::Shielded,
+        };
+
+        let stripe_y = SLOT_STRIPE_BASE + (slot.0 as f32) * SLOT_STRIPE_HEIGHT;
+        commands.spawn((
+            EnemyTag { kind, owner: slot },
+            Position(SPAWN_X, stripe_y + (entry.spawned_in_wave as f32 * 4.0)),
+            Velocity(ENEMY_SPEED, 0.0),
+            Health {
+                hp: ENEMY_HP,
+                max_hp: ENEMY_HP,
+            },
+        ));
+
+        entry.spawned_in_wave += 1;
+        entry.next_spawn_tick = clock.tick + SPAWN_INTERVAL_TICKS;
+    }
 }
 
 fn move_enemies(mut q: Query<(&Velocity, &mut Position)>) {
@@ -239,6 +284,7 @@ fn emit_snapshot(
     clock: Res<SimClock>,
     wave: Res<WaveState>,
     bcast: Res<SnapshotBroadcast>,
+    roster: Res<RosterHandle>,
     enemies: Query<(Entity, &EnemyTag, &Position, &Health)>,
     buildings: Query<(Entity, &BuildingTag, &Health)>,
 ) {
@@ -246,49 +292,66 @@ fn emit_snapshot(
         return;
     }
 
-    let mut enemy_deltas = Vec::with_capacity(enemies.iter().len());
-    for (entity, tag, pos, hp) in enemies.iter() {
-        enemy_deltas.push(proto::EnemyDelta {
-            eid: proto::EntityId(entity.index_u32()),
-            kind: tag.kind,
-            pos: proto::Vec2 { x: pos.0, y: pos.1 },
-            hp: hp.hp,
-            max_hp: hp.max_hp,
-            status_bits: 0,
-            destroyed: false,
-        });
-    }
-
-    let mut building_deltas = Vec::with_capacity(buildings.iter().len());
-    for (entity, tag, hp) in buildings.iter() {
-        building_deltas.push(proto::BuildingDelta {
-            eid: proto::EntityId(entity.index_u32()),
-            kind: tag.kind,
-            col: tag.col,
-            row: tag.row,
-            hp: hp.hp,
-            max_hp: hp.max_hp,
-            online: true,
-            destroyed: false,
-        });
-    }
-
-    let field = proto::FieldDelta {
-        owner: proto::PlayerSlot(0),
-        buildings: building_deltas,
-        enemies: enemy_deltas,
-        projectiles: Vec::new(),
-        gold: 150,
-        lives: 20,
-        wave: wave.wave,
+    let active = match roster.0.read() {
+        Ok(r) => r.active_slots(),
+        Err(p) => p.into_inner().active_slots(),
     };
+
+    // Bin entities by owner slot so the per-field loop is one pass.
+    let mut enemy_bins: HashMap<u8, Vec<proto::EnemyDelta>> = HashMap::new();
+    for (entity, tag, pos, hp) in enemies.iter() {
+        enemy_bins
+            .entry(tag.owner.0)
+            .or_default()
+            .push(proto::EnemyDelta {
+                eid: proto::EntityId(entity.index_u32()),
+                kind: tag.kind,
+                pos: proto::Vec2 { x: pos.0, y: pos.1 },
+                hp: hp.hp,
+                max_hp: hp.max_hp,
+                status_bits: 0,
+                destroyed: false,
+            });
+    }
+    let mut building_bins: HashMap<u8, Vec<proto::BuildingDelta>> = HashMap::new();
+    for (entity, tag, hp) in buildings.iter() {
+        building_bins
+            .entry(tag.owner.0)
+            .or_default()
+            .push(proto::BuildingDelta {
+                eid: proto::EntityId(entity.index_u32()),
+                kind: tag.kind,
+                col: tag.col,
+                row: tag.row,
+                hp: hp.hp,
+                max_hp: hp.max_hp,
+                online: true,
+                destroyed: false,
+            });
+    }
+
+    let fields: Vec<proto::FieldDelta> = active
+        .iter()
+        .map(|slot| {
+            let slot_wave = wave.slots.get(&slot.0).map(|w| w.wave).unwrap_or(0);
+            proto::FieldDelta {
+                owner: *slot,
+                buildings: building_bins.remove(&slot.0).unwrap_or_default(),
+                enemies: enemy_bins.remove(&slot.0).unwrap_or_default(),
+                projectiles: Vec::new(),
+                gold: 150,
+                lives: 20,
+                wave: slot_wave,
+            }
+        })
+        .collect();
 
     let snap = proto::Snapshot {
         tick: clock.tick,
         server_time_ms: clock.elapsed_ms,
         input_ack: 0,
         players: Vec::new(),
-        fields: vec![field],
+        fields,
         keyframe: clock.tick % (SIM_TICK_HZ * 5) == 0,
     };
     let _ = bcast.tx.send(ServerEvent::Snapshot(snap));

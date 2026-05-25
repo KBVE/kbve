@@ -73,6 +73,16 @@ impl Roster {
             })
             .collect()
     }
+
+    /// Enumerate every claimed slot. Used by the sim to size per-player
+    /// fields (`Snapshot.fields[]`) and per-player wave spawners.
+    pub fn active_slots(&self) -> Vec<proto::PlayerSlot> {
+        self.slots
+            .iter()
+            .enumerate()
+            .filter_map(|(i, s)| s.as_ref().map(|_| proto::PlayerSlot(i as u8)))
+            .collect()
+    }
 }
 
 #[derive(Clone)]
