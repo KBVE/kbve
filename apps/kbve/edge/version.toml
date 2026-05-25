@@ -55,3 +55,13 @@ description = "OWS admin operations (unstuck, maintenance, status)"
 name = "irc"
 label = "IRC"
 description = "IRC admin operations (channels, messages, server status)"
+
+[[functions]]
+name = "gh-webhook"
+label = "GH Webhook"
+description = "GitHub webhook ingest — HMAC-verifies deliveries and upserts gh.issue + gh.issue_event"
+
+[[functions]]
+name = "gh-backfill"
+label = "GH Backfill"
+description = "One-time paginated REST walk that populates gh.issue for an allowlisted repo"
