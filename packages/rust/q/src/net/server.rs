@@ -13,11 +13,15 @@ use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use axum::routing::get;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc};
 
 #[cfg(feature = "supabase-auth")]
 use crate::auth;
-use crate::proto::{self, ClientMessage, ServerEvent};
+use crate::proto::{self, ClientMessage, Input, ServerEvent};
+
+/// One input as it crosses from a WS session into the bevy sim. Slot is the
+/// authenticated source; trust this, never the wire.
+pub type SlotInput = (proto::PlayerSlot, Input);
 
 /// Match-wide roster of admitted players, indexed by slot.
 /// Holds `MAX_PLAYERS` slots; `None` = free.
@@ -76,6 +80,9 @@ pub struct ServerState {
     /// Broadcast bus shared with the bevy sim. WS sessions subscribe a
     /// receiver per connection.
     pub broadcast: Option<broadcast::Sender<ServerEvent>>,
+    /// Inputs from authenticated WS sessions → sim. None = no sim wired,
+    /// inputs are silently dropped (smoke/test path).
+    pub input_tx: Option<mpsc::UnboundedSender<SlotInput>>,
     /// Seed echoed back to clients in the Welcome frame.
     pub seed: u64,
     /// Supabase JWT secret. Empty = dev-accept mode (any token admitted).
@@ -85,9 +92,15 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    pub fn new(broadcast: broadcast::Sender<ServerEvent>, seed: u64, jwt_secret: Vec<u8>) -> Self {
+    pub fn new(
+        broadcast: broadcast::Sender<ServerEvent>,
+        input_tx: mpsc::UnboundedSender<SlotInput>,
+        seed: u64,
+        jwt_secret: Vec<u8>,
+    ) -> Self {
         Self {
             broadcast: Some(broadcast),
+            input_tx: Some(input_tx),
             seed,
             jwt_secret,
             roster: Arc::new(RwLock::new(Roster::new(proto::MAX_PLAYERS))),
@@ -97,6 +110,7 @@ impl ServerState {
     pub fn empty() -> Self {
         Self {
             broadcast: None,
+            input_tx: None,
             seed: 0,
             jwt_secret: Vec::new(),
             roster: Arc::new(RwLock::new(Roster::new(proto::MAX_PLAYERS))),
@@ -167,7 +181,14 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 match msg {
                     Message::Binary(bytes) => {
                         let mut buf = bytes;
-                        let _ = proto::decode::<ClientMessage>(&mut buf);
+                        if let Ok(ClientMessage::Frame(frame)) =
+                            proto::decode::<ClientMessage>(&mut buf)
+                            && let Some(tx) = state.input_tx.as_ref()
+                        {
+                            for input in frame.inputs {
+                                let _ = tx.send((slot, input));
+                            }
+                        }
                     }
                     Message::Close(_) => break,
                     _ => {}

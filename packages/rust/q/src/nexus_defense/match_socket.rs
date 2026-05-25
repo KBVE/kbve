@@ -29,6 +29,7 @@ enum Inbound {
         tick: u32,
         wave: u16,
         enemy_count: u32,
+        building_count: u32,
         gold: i32,
         lives: i32,
     },
@@ -83,6 +84,7 @@ impl INode for MatchSocket {
                     tick,
                     wave,
                     enemy_count,
+                    building_count,
                     gold,
                     lives,
                 } => {
@@ -92,6 +94,7 @@ impl INode for MatchSocket {
                             (tick as i64).to_variant(),
                             (wave as i64).to_variant(),
                             (enemy_count as i64).to_variant(),
+                            (building_count as i64).to_variant(),
                             (gold as i64).to_variant(),
                             (lives as i64).to_variant(),
                         ],
@@ -125,7 +128,7 @@ impl MatchSocket {
     /// be pulled from a future ring buffer; for now we plumb the headline
     /// numbers so GDScript can render a wave/enemies/gold display.
     #[signal]
-    fn snapshot(tick: i64, wave: i64, enemy_count: i64, gold: i64, lives: i64);
+    fn snapshot(tick: i64, wave: i64, enemy_count: i64, building_count: i64, gold: i64, lives: i64);
 
     #[signal]
     fn disconnected(reason: GString);
@@ -172,21 +175,57 @@ impl MatchSocket {
 
     #[func]
     fn send_heartbeat(&mut self, client_tick: i64) {
+        self.send_frame(
+            client_tick,
+            vec![proto::Input::Heartbeat {
+                client_tick: client_tick as u32,
+            }],
+        );
+    }
+
+    /// Queue a single `PlaceBuilding` input for the next client frame.
+    /// `kind_idx` matches `proto::BuildKind` discriminants (Tower=0, …, Nexus=8).
+    #[func]
+    fn send_place_building(&mut self, client_tick: i64, col: i64, row: i64, kind_idx: i64) {
+        let kind = match kind_idx {
+            0 => proto::BuildKind::Tower,
+            1 => proto::BuildKind::Generator,
+            2 => proto::BuildKind::Battery,
+            3 => proto::BuildKind::Repair,
+            4 => proto::BuildKind::Armoury,
+            5 => proto::BuildKind::Village,
+            6 => proto::BuildKind::Town,
+            7 => proto::BuildKind::Castle,
+            8 => proto::BuildKind::Nexus,
+            _ => {
+                godot_warn!("[MatchSocket] unknown BuildKind index {kind_idx}");
+                return;
+            }
+        };
+        self.send_frame(
+            client_tick,
+            vec![proto::Input::PlaceBuilding {
+                col: col as i32,
+                row: row as i32,
+                kind,
+            }],
+        );
+    }
+
+    fn send_frame(&mut self, client_tick: i64, inputs: Vec<proto::Input>) {
         let tx = match &self.outbound_tx {
             Some(t) => t.clone(),
             None => return,
         };
         let msg = ClientMessage::Frame(proto::ClientFrame {
             client_tick: client_tick as u32,
-            inputs: vec![proto::Input::Heartbeat {
-                client_tick: client_tick as u32,
-            }],
+            inputs,
         });
         match proto::encode(&msg) {
             Ok(buf) => {
                 let _ = tx.send(Outbound::Send(buf));
             }
-            Err(e) => godot_warn!("[MatchSocket] encode heartbeat failed: {e}"),
+            Err(e) => godot_warn!("[MatchSocket] encode frame failed: {e}"),
         }
     }
 
@@ -201,7 +240,7 @@ impl MatchSocket {
     }
 
     #[func]
-    fn is_connected(&self) -> bool {
+    fn is_ws_connected(&self) -> bool {
         self.connected
     }
 }
@@ -292,6 +331,7 @@ async fn run_socket(
                 Ok(ServerEvent::Snapshot(snap)) => {
                     let field = snap.fields.first();
                     let enemy_count = field.map(|f| f.enemies.len() as u32).unwrap_or(0);
+                    let building_count = field.map(|f| f.buildings.len() as u32).unwrap_or(0);
                     let wave = field.map(|f| f.wave).unwrap_or(0);
                     let gold = field.map(|f| f.gold).unwrap_or(0);
                     let lives = field.map(|f| f.lives).unwrap_or(0);
@@ -299,6 +339,7 @@ async fn run_socket(
                         tick: snap.tick,
                         wave,
                         enemy_count,
+                        building_count,
                         gold,
                         lives,
                     });

@@ -9,7 +9,7 @@ use std::net::SocketAddr;
 
 use q::nexus_defense_server::{SNAPSHOT_BROADCAST_CAPACITY, build_app, run_sim_loop};
 use tokio::net::TcpListener;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -31,6 +31,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Broadcast bus: bevy sim -> every WS session.
     let (snap_tx, _) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+    // Input mailbox: WS sessions -> bevy sim.
+    let (input_tx, input_rx) = mpsc::unbounded_channel::<q::net::server::SlotInput>();
 
     // Bevy headless app — runs on a dedicated blocking thread so the App
     // (which holds non-Send schedule state) never crosses task boundaries.
@@ -40,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .enable_time()
             .build()
             .expect("sim runtime");
-        let app = build_app(sim_tx, seed);
+        let app = build_app(sim_tx, input_rx, seed);
         rt.block_on(run_sim_loop(app));
     });
 
@@ -53,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "supabase HS256"
     };
 
-    let state = q::net::server::ServerState::new(snap_tx, seed, jwt_secret);
+    let state = q::net::server::ServerState::new(snap_tx, input_tx, seed, jwt_secret);
     let router = q::net::server::router(state);
 
     tracing::info!(%addr, %seed, auth = %auth_mode, "td-server listening");

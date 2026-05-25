@@ -20,10 +20,10 @@ public final class SpawnAutoClaim {
     private static final String OPAC_MOD_ID = "openpartiesandclaims";
     private static final UUID SERVER_CLAIM_UUID = new UUID(0L, 0L);
 
-    private static final int FROM_CHUNK_X = -13;
-    private static final int FROM_CHUNK_Z = -13;
-    private static final int TO_CHUNK_X = 12;
-    private static final int TO_CHUNK_Z = 12;
+    private static final int FROM_CHUNK_X = SpawnRegion.FROM_CHUNK_X;
+    private static final int FROM_CHUNK_Z = SpawnRegion.FROM_CHUNK_Z;
+    private static final int TO_CHUNK_X = SpawnRegion.TO_CHUNK_X;
+    private static final int TO_CHUNK_Z = SpawnRegion.TO_CHUNK_Z;
 
     private static final RegistryKey<World>[] DIMENSIONS = arr(World.OVERWORLD);
 

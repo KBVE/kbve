@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-05-24T08:58:07.861Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-05-25T09:29:10.096Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **175** items
+    **153** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 9
     "Staging" : 3
     "Review" : 1
-    "Done" : 175
+    "Done" : 153
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 14
     "Blocked (Error+Support)" : 9
-    "Done" : 175
+    "Done" : 153
     "Planning (Theory+AI+Backlog)" : 36
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>175</strong>"]
+    Done["Done<br/><strong>153</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 170
+    "Pull Request" : 148
     "Issue" : 64
 ```
 
@@ -124,9 +124,9 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 170 |
-| atomic | 72 |
-| dev→main | 71 |
+| auto-pr | 148 |
+| dev→main | 63 |
+| atomic | 61 |
 | enhancement | 38 |
 | 0 | 19 |
 | 1 | 12 |
@@ -230,45 +230,15 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#11321](https://github.com/KBVE/kbve/pull/11321) | Release: 10 features, 3 fixes, 1 CI, 1 test, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#11342](https://github.com/KBVE/kbve/pull/11342) | Release: 3 features, 1 fix, 1 doc, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (175)
+### Done (153)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#10329](https://github.com/KBVE/kbve/issues/10329) | [CICD] [Github] Custom Arc Runner Image | — | — | enhancement, update |
 | [#10601](https://github.com/KBVE/kbve/issues/10601) | [DISCORDSH] - [BEVY] - Crate Integration State | — | — | enhancement, rust |
-| [#10719](https://github.com/KBVE/kbve/pull/10719) | Release: 7 features, 6 fixes, 2 docs, 1 refactor, 5 chores → Main | — | — | auto-pr, dev→main |
-| [#10735](https://github.com/KBVE/kbve/pull/10735) | Release: 5 features, 6 fixes, 1 refactor, 1 test, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#10736](https://github.com/KBVE/kbve/pull/10736) | Atomic: firecracker-python-net v0.1.2 post-publish sync | — | — | auto-pr, atomic |
-| [#10737](https://github.com/KBVE/kbve/pull/10737) | chore(q): update version.toml to 0.1.1 | — | — | auto-pr |
-| [#10741](https://github.com/KBVE/kbve/pull/10741) | Atomic: axum-kbve v1.0.141 post-publish sync | — | — | auto-pr, atomic |
-| [#10743](https://github.com/KBVE/kbve/pull/10743) | Release: 1 feature, 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#10746](https://github.com/KBVE/kbve/pull/10746) | chore(bevy_pathfinder): update version.toml to 0.1.1 | — | — | auto-pr |
-| [#10747](https://github.com/KBVE/kbve/pull/10747) | chore(bevy_tasker): update version.toml to 0.1.1 | — | — | auto-pr |
-| [#10748](https://github.com/KBVE/kbve/pull/10748) | Release: 1 fix, 1 doc, 1 build, 1 refactor, 5 chores → Main | — | — | auto-pr, dev→main |
-| [#10751](https://github.com/KBVE/kbve/pull/10751) | Atomic: irc gateway jwt aud fix | — | — | auto-pr, atomic |
-| [#10752](https://github.com/KBVE/kbve/pull/10752) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#10755](https://github.com/KBVE/kbve/pull/10755) | Atomic: axum-kbve v1.0.142 post-publish sync | — | — | auto-pr, atomic |
-| [#10756](https://github.com/KBVE/kbve/pull/10756) | deploy(isometric): update WASM build | — | — | auto-pr |
-| [#10757](https://github.com/KBVE/kbve/pull/10757) | Release: 5 features, 2 fixes, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#10758](https://github.com/KBVE/kbve/pull/10758) | Atomic: irc-gateway v0.1.13 post-publish sync | — | — | auto-pr, atomic |
-| [#10760](https://github.com/KBVE/kbve/pull/10760) | chore(dashboard): daily sync — 2026-05-10 | — | — | auto-pr |
-| [#10763](https://github.com/KBVE/kbve/pull/10763) | Atomic: firecracker-ctl v0.1.29 post-publish sync | — | — | auto-pr, atomic |
-| [#10764](https://github.com/KBVE/kbve/pull/10764) | Release: 1 feature, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#10765](https://github.com/KBVE/kbve/pull/10765) | Atomic: discordsh-bot v0.1.13 post-publish sync | — | — | auto-pr, atomic |
-| [#10767](https://github.com/KBVE/kbve/pull/10767) | Atomic: axum-kbve v1.0.143 post-publish sync | — | — | auto-pr, atomic |
-| [#10768](https://github.com/KBVE/kbve/pull/10768) | Atomic: irc-gateway v0.1.14 post-publish sync | — | — | auto-pr, atomic |
-| [#10769](https://github.com/KBVE/kbve/pull/10769) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#10773](https://github.com/KBVE/kbve/pull/10773) | Atomic: firecracker-ctl v0.1.30 post-publish sync | — | — | auto-pr, atomic |
-| [#10775](https://github.com/KBVE/kbve/pull/10775) | Release: 1 feature, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#10778](https://github.com/KBVE/kbve/pull/10778) | Atomic: axum-kbve v1.0.144 post-publish sync | — | — | auto-pr, atomic |
-| [#10780](https://github.com/KBVE/kbve/pull/10780) | Release: 2 features, 3 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#10781](https://github.com/KBVE/kbve/pull/10781) | Atomic: irc gateway jwt aud fix | — | — | auto-pr, atomic |
-| [#10785](https://github.com/KBVE/kbve/pull/10785) | Atomic: firecracker-ctl v0.1.31 post-publish sync | — | — | auto-pr, atomic |
 | [#10786](https://github.com/KBVE/kbve/pull/10786) | Release: 5 features, 2 fixes, 1 doc, 8 chores → Main | — | — | auto-pr, dev→main |
-| [#10787](https://github.com/KBVE/kbve/pull/10787) | Atomic: mc v1.0.45 post-publish sync | — | — | auto-pr, atomic |
-| [#10789](https://github.com/KBVE/kbve/pull/10789) | Atomic: axum-kbve v1.0.145 post-publish sync | — | — | auto-pr, atomic |
 | [#10796](https://github.com/KBVE/kbve/pull/10796) | Release: 1 feature, 1 fix, 1 doc, 6 chores → Main | — | — | auto-pr, dev→main |
 | [#10797](https://github.com/KBVE/kbve/pull/10797) | Atomic: mc v1.0.46 post-publish sync | — | — | auto-pr, atomic |
 | [#10798](https://github.com/KBVE/kbve/pull/10798) | Atomic: irc-gateway v0.1.15 post-publish sync | — | — | auto-pr, atomic |
@@ -411,6 +381,14 @@ pie showData
 | [#11308](https://github.com/KBVE/kbve/pull/11308) | Release: 1 feature, 2 CI, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#11315](https://github.com/KBVE/kbve/pull/11315) | Release: 2 features, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#11317](https://github.com/KBVE/kbve/pull/11317) | Atomic: axum-kbve v1.0.169 post-publish sync | — | — | auto-pr, atomic |
+| [#11321](https://github.com/KBVE/kbve/pull/11321) | Release: 15 features, 5 fixes, 1 CI, 1 test, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#11333](https://github.com/KBVE/kbve/pull/11333) | chore(dashboard): daily sync — 2026-05-24 | — | — | auto-pr |
+| [#11336](https://github.com/KBVE/kbve/pull/11336) | Atomic: mc-velocity v1.1.10 post-publish sync | — | — | auto-pr, atomic |
+| [#11337](https://github.com/KBVE/kbve/pull/11337) | Atomic: mc-lobby v1.0.10 post-publish sync | — | — | auto-pr, atomic |
+| [#11338](https://github.com/KBVE/kbve/pull/11338) | Release: 4 chores → Main | — | — | auto-pr, dev→main |
+| [#11339](https://github.com/KBVE/kbve/pull/11339) | Atomic: mc v1.0.58 post-publish sync | — | — | auto-pr, atomic |
+| [#11340](https://github.com/KBVE/kbve/pull/11340) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#11341](https://github.com/KBVE/kbve/pull/11341) | Atomic: axum-kbve v1.0.170 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

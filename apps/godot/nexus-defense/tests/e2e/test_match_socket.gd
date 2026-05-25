@@ -30,7 +30,7 @@ func test_fixture_starts_and_client_connects() -> void:
 	_socket = ClassDB.instantiate("MatchSocket")
 	add_child(_socket)
 	var monitor: Variant = monitor_signals(_socket, false)
-	_socket.call("connect_to", _fixture.addr)
+	_socket.call("connect_to", _fixture.addr, "dev", "tester")
 	await assert_signal(monitor).wait_until(5000).is_emitted("connected")
 	assert_bool(bool(_socket.call("is_connected"))).is_true()
 
@@ -42,7 +42,7 @@ func test_send_heartbeat_does_not_disconnect() -> void:
 	_socket = ClassDB.instantiate("MatchSocket")
 	add_child(_socket)
 	var monitor: Variant = monitor_signals(_socket, false)
-	_socket.call("connect_to", _fixture.addr)
+	_socket.call("connect_to", _fixture.addr, "dev", "tester")
 	await assert_signal(monitor).wait_until(5000).is_emitted("connected")
 	_socket.call("send_heartbeat", 42)
 	await get_tree().create_timer(0.5).timeout
@@ -56,7 +56,7 @@ func test_disconnects_cleanly_when_socket_freed() -> void:
 	_socket = ClassDB.instantiate("MatchSocket")
 	add_child(_socket)
 	var monitor: Variant = monitor_signals(_socket, false)
-	_socket.call("connect_to", _fixture.addr)
+	_socket.call("connect_to", _fixture.addr, "dev", "tester")
 	await assert_signal(monitor).wait_until(5000).is_emitted("connected")
 	_socket.queue_free()
 	_socket = null
