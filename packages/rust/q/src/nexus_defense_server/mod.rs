@@ -60,6 +60,32 @@ const SLOT_STRIPE_HEIGHT: f32 = 160.0;
 
 const BUILDING_HP: f32 = 200.0;
 
+/// Starting resources at match boot.
+const STARTING_GOLD: i32 = 150;
+const STARTING_LIVES: i32 = 20;
+
+/// Hard cap on inputs accepted per slot per sim tick. Anything past this is
+/// dropped silently; abusive clients can't stall the sim or flood entity
+/// spawns. 8 / tick = 160 inputs / sec at SIM_TICK_HZ=20 — well above any
+/// realistic human cadence.
+const INPUT_BUDGET_PER_TICK: u32 = 8;
+
+/// Cost lookup matching the catalog in the legacy phaser TD config. Wire-
+/// faithful for the placeholder buildings the sim spawns right now; real
+/// per-tier costs land alongside the upgrade/tier systems.
+fn build_cost(kind: proto::BuildKind) -> i32 {
+    match kind {
+        proto::BuildKind::Tower => 60,
+        proto::BuildKind::Generator => 50,
+        proto::BuildKind::Battery => 80,
+        proto::BuildKind::Repair => 90,
+        proto::BuildKind::Armoury => 120,
+        proto::BuildKind::Village => 70,
+        // Town/Castle/Nexus aren't placeable via the build bar in v1.
+        proto::BuildKind::Town | proto::BuildKind::Castle | proto::BuildKind::Nexus => 0,
+    }
+}
+
 #[derive(Resource, Default)]
 pub struct SimClock {
     pub tick: u32,
@@ -87,19 +113,55 @@ pub struct InputQueue {
 #[derive(Resource, Clone)]
 pub struct RosterHandle(pub Arc<RwLock<Roster>>);
 
-/// Per-slot wave bookkeeping. One row per active slot; the sim drops rows
-/// when a slot vacates (handled in `spawn_wave_enemies`).
-#[derive(Resource, Default)]
-pub struct WaveState {
-    pub slots: HashMap<u8, SlotWave>,
-}
-
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct SlotWave {
     pub wave: u16,
     pub spawned_in_wave: u32,
     pub next_spawn_tick: u32,
     pub next_wave_tick: u32,
+}
+
+/// Stack-allocated per-slot wave bookkeeping. `None` = slot vacant.
+#[derive(Resource)]
+pub struct WaveState {
+    pub slots: [Option<SlotWave>; proto::MAX_PLAYERS],
+}
+
+impl Default for WaveState {
+    fn default() -> Self {
+        Self {
+            slots: [None; proto::MAX_PLAYERS],
+        }
+    }
+}
+
+/// Per-slot resources (gold + lives + accumulated kills). Slot index is
+/// authoritative; clients never see anyone else's economy beyond what we
+/// stamp into the snapshot.
+#[derive(Default, Clone, Copy)]
+pub struct PlayerEconomyEntry {
+    pub gold: i32,
+    pub lives: i32,
+    pub kills: u32,
+}
+
+#[derive(Resource)]
+pub struct PlayerEconomy {
+    pub slots: [Option<PlayerEconomyEntry>; proto::MAX_PLAYERS],
+}
+
+impl Default for PlayerEconomy {
+    fn default() -> Self {
+        Self {
+            slots: [None; proto::MAX_PLAYERS],
+        }
+    }
+}
+
+/// Per-tick input counter, reset by `drain_inputs` each tick.
+#[derive(Resource, Default)]
+pub struct InputBudget {
+    pub consumed: [u32; proto::MAX_PLAYERS],
 }
 
 #[derive(Component)]
@@ -145,10 +207,13 @@ pub fn build_app(
         })
         .insert_resource(RosterHandle(roster))
         .insert_resource(WaveState::default())
+        .insert_resource(PlayerEconomy::default())
+        .insert_resource(InputBudget::default())
         .add_systems(
             Update,
             (
                 tick_sim,
+                sync_per_slot_state,
                 drain_inputs,
                 spawn_wave_enemies,
                 move_enemies,
@@ -160,27 +225,99 @@ pub fn build_app(
     app
 }
 
-fn tick_sim(mut clock: ResMut<SimClock>) {
+fn tick_sim(mut clock: ResMut<SimClock>, mut budget: ResMut<InputBudget>) {
     clock.tick = clock.tick.wrapping_add(1);
     clock.elapsed_ms = clock.elapsed_ms.wrapping_add(1000 / SIM_TICK_HZ);
+    // Reset every slot's per-tick input budget.
+    for c in budget.consumed.iter_mut() {
+        *c = 0;
+    }
 }
 
-fn drain_inputs(queue: Res<InputQueue>, mut commands: Commands) {
+/// Materialize per-slot state for slots that just joined; tear down state
+/// for slots that vacated. One system covers WaveState + PlayerEconomy so
+/// they always agree on which slots are alive.
+fn sync_per_slot_state(
+    roster: Res<RosterHandle>,
+    mut wave: ResMut<WaveState>,
+    mut economy: ResMut<PlayerEconomy>,
+) {
+    let active = match roster.0.read() {
+        Ok(r) => r.active_slots(),
+        Err(p) => p.into_inner().active_slots(),
+    };
+    let mut active_mask = [false; proto::MAX_PLAYERS];
+    for slot in &active {
+        let idx = slot.0 as usize;
+        if idx >= proto::MAX_PLAYERS {
+            continue;
+        }
+        active_mask[idx] = true;
+        if wave.slots[idx].is_none() {
+            wave.slots[idx] = Some(SlotWave::default());
+        }
+        if economy.slots[idx].is_none() {
+            economy.slots[idx] = Some(PlayerEconomyEntry {
+                gold: STARTING_GOLD,
+                lives: STARTING_LIVES,
+                kills: 0,
+            });
+        }
+    }
+    for idx in 0..proto::MAX_PLAYERS {
+        if !active_mask[idx] {
+            wave.slots[idx] = None;
+            economy.slots[idx] = None;
+        }
+    }
+}
+
+fn drain_inputs(
+    queue: Res<InputQueue>,
+    mut budget: ResMut<InputBudget>,
+    mut economy: ResMut<PlayerEconomy>,
+    mut commands: Commands,
+) {
     let mut guard = match queue.rx.lock() {
         Ok(g) => g,
         Err(p) => p.into_inner(),
     };
     while let Ok((slot, input)) = guard.try_recv() {
-        apply_input(slot, input, &mut commands);
+        let idx = slot.0 as usize;
+        if idx >= proto::MAX_PLAYERS {
+            continue;
+        }
+        if budget.consumed[idx] >= INPUT_BUDGET_PER_TICK {
+            // Drop — slot already spent its budget this tick.
+            continue;
+        }
+        budget.consumed[idx] += 1;
+        apply_input(slot, input, &mut economy, &mut commands);
     }
 }
 
-fn apply_input(slot: proto::PlayerSlot, input: Input, commands: &mut Commands) {
+fn apply_input(
+    slot: proto::PlayerSlot,
+    input: Input,
+    economy: &mut PlayerEconomy,
+    commands: &mut Commands,
+) {
+    let idx = slot.0 as usize;
     match input {
         Input::PlaceBuilding { col, row, kind } => {
+            let cost = build_cost(kind);
+            // Reject silently if the slot has no economy entry (vacated mid-flight)
+            // or insufficient gold.
+            let Some(entry) = economy.slots.get_mut(idx).and_then(|s| s.as_mut()) else {
+                return;
+            };
+            if cost <= 0 || entry.gold < cost {
+                return;
+            }
+            entry.gold -= cost;
             // Treat (col, row) as a 32-pixel grid; centre the entity in the
-            // cell. Real placement validation (cost, collisions, paths) lands
-            // alongside the economy + path-gen systems.
+            // cell. Real collision / path validation lands alongside the
+            // path-gen system.
             let x = (col as f32) * 32.0 + 16.0;
             let y = (row as f32) * 32.0 + 16.0;
             commands.spawn((
@@ -207,26 +344,12 @@ fn apply_input(slot: proto::PlayerSlot, input: Input, commands: &mut Commands) {
     }
 }
 
-fn spawn_wave_enemies(
-    clock: Res<SimClock>,
-    roster: Res<RosterHandle>,
-    mut wave: ResMut<WaveState>,
-    mut commands: Commands,
-) {
-    let active = match roster.0.read() {
-        Ok(r) => r.active_slots(),
-        Err(p) => p.into_inner().active_slots(),
-    };
-    if active.is_empty() {
-        return;
-    }
-
-    // Drop bookkeeping for slots that vacated.
-    let active_set: std::collections::HashSet<u8> = active.iter().map(|s| s.0).collect();
-    wave.slots.retain(|k, _| active_set.contains(k));
-
-    for slot in active {
-        let entry = wave.slots.entry(slot.0).or_default();
+fn spawn_wave_enemies(clock: Res<SimClock>, mut wave: ResMut<WaveState>, mut commands: Commands) {
+    for idx in 0..proto::MAX_PLAYERS {
+        let Some(entry) = wave.slots[idx].as_mut() else {
+            continue;
+        };
+        let slot = proto::PlayerSlot(idx as u8);
 
         if clock.tick >= entry.next_wave_tick && entry.spawned_in_wave >= ENEMIES_PER_WAVE {
             entry.wave = entry.wave.wrapping_add(1);
@@ -249,7 +372,7 @@ fn spawn_wave_enemies(
             _ => proto::EnemyKind::Shielded,
         };
 
-        let stripe_y = SLOT_STRIPE_BASE + (slot.0 as f32) * SLOT_STRIPE_HEIGHT;
+        let stripe_y = SLOT_STRIPE_BASE + (idx as f32) * SLOT_STRIPE_HEIGHT;
         commands.spawn((
             EnemyTag { kind, owner: slot },
             Position(SPAWN_X, stripe_y + (entry.spawned_in_wave as f32 * 4.0)),
@@ -283,6 +406,7 @@ fn despawn_offscreen(mut commands: Commands, q: Query<(Entity, &Position), Witho
 fn emit_snapshot(
     clock: Res<SimClock>,
     wave: Res<WaveState>,
+    economy: Res<PlayerEconomy>,
     bcast: Res<SnapshotBroadcast>,
     roster: Res<RosterHandle>,
     enemies: Query<(Entity, &EnemyTag, &Position, &Health)>,
@@ -333,14 +457,30 @@ fn emit_snapshot(
     let fields: Vec<proto::FieldDelta> = active
         .iter()
         .map(|slot| {
-            let slot_wave = wave.slots.get(&slot.0).map(|w| w.wave).unwrap_or(0);
+            let idx = slot.0 as usize;
+            let slot_wave = wave
+                .slots
+                .get(idx)
+                .and_then(|w| w.as_ref())
+                .map(|w| w.wave)
+                .unwrap_or(0);
+            let econ = economy
+                .slots
+                .get(idx)
+                .and_then(|s| s.as_ref())
+                .copied()
+                .unwrap_or(PlayerEconomyEntry {
+                    gold: STARTING_GOLD,
+                    lives: STARTING_LIVES,
+                    kills: 0,
+                });
             proto::FieldDelta {
                 owner: *slot,
                 buildings: building_bins.remove(&slot.0).unwrap_or_default(),
                 enemies: enemy_bins.remove(&slot.0).unwrap_or_default(),
                 projectiles: Vec::new(),
-                gold: 150,
-                lives: 20,
+                gold: econ.gold,
+                lives: econ.lives,
                 wave: slot_wave,
             }
         })
