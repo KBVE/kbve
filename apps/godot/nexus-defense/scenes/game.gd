@@ -101,8 +101,38 @@ func _try_place(screen_pos: Vector2) -> void:
 	var occupied: Array[Vector2i] = (_hex_map.occupied_axials as Array[Vector2i]).duplicate()
 	occupied.append(axial)
 	_hex_map.set_occupied(occupied)
+	_send_place_building(axial.x, axial.y, _tower_kind_idx(_selected_tower))
 	Ui.toast("Placed %s at (%d,%d)" % [_selected_tower, axial.x, axial.y], 1.6, "ok")
 	_cancel_placement()
+
+func _send_place_building(col: int, row: int, kind_idx: int) -> void:
+	if socket == null or not socket.call("is_ws_connected"):
+		return
+	socket.call("send_place_building", _last_snapshot_tick, col, row, kind_idx)
+	_log("sent PlaceBuilding col=%d row=%d kind_idx=%d" % [col, row, kind_idx])
+
+func _tower_kind_idx(tower_id: String) -> int:
+	# Mirrors proto::BuildKind discriminants. Default to Tower until the
+	# build_bar IDs gain explicit kind metadata.
+	match tower_id:
+		"basic", "bomb", "ice", "fire", "artillery", "lightning", "sniper":
+			return 0  # Tower
+		"solar", "diesel", "nuclear":
+			return 1  # Generator
+		"battery":
+			return 2  # Battery
+		"repair":
+			return 3  # Repair
+		"armoury":
+			return 4  # Armoury
+		"village":
+			return 5  # Village
+		"town":
+			return 6  # Town
+		"castle":
+			return 7  # Castle
+		_:
+			return 0
 
 func _cancel_placement() -> void:
 	_selected_tower = ""
@@ -148,9 +178,21 @@ func _on_connected() -> void:
 func _on_welcome(slot: int, seed: int) -> void:
 	_log("welcome: slot=%d seed=0x%x" % [slot, seed])
 	Ui.toast("Welcome — slot %d" % slot, 2.0, "info")
+	# Smoke: when ND_AUTO_PLACE is set, fire a PlaceBuilding 0.8 s after
+	# Welcome so headless runs can exercise the input pump without a real
+	# click. Disabled by default for normal gameplay.
+	if OS.get_environment("ND_AUTO_PLACE") != "":
+		await get_tree().create_timer(0.8).timeout
+		_send_place_building(0, 0, 0)
 
-func _on_snapshot(tick: int, wave: int, enemy_count: int, gold: int, lives: int) -> void:
+var _last_snapshot_tick: int = 0
+var _last_building_count: int = 0
+
+func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, gold: int, lives: int) -> void:
+	_last_snapshot_tick = tick
 	var wave_changed: bool = wave != _wave
+	var building_changed: bool = building_count != _last_building_count
+	_last_building_count = building_count
 	if wave_changed:
 		_wave = wave
 		Ui.open("wave_banner", {"title": "Wave %d" % wave, "subtitle": "%d enemies inbound" % enemy_count})
@@ -158,9 +200,9 @@ func _on_snapshot(tick: int, wave: int, enemy_count: int, gold: int, lives: int)
 	_gold = gold
 	_enemies = enemy_count
 	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
-	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed:
+	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed or building_changed:
 		_last_snapshot_log_tick = tick
-		_log("snapshot tick=%d wave=%d enemies=%d gold=%d lives=%d" % [tick, wave, enemy_count, gold, lives])
+		_log("snapshot tick=%d wave=%d enemies=%d buildings=%d gold=%d lives=%d" % [tick, wave, enemy_count, building_count, gold, lives])
 
 func _on_disconnected(reason: String) -> void:
 	_log("disconnected: %s" % reason)
