@@ -3,13 +3,14 @@
 		{
 			"key": "agones_factorio",
 			"app_name": "agones-factorio",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "apps/agones/factorio/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
 			"source_path": "apps/agones/factorio",
 			"runner": "ubuntu-latest",
 			"image": "kbve/agones-factorio",
-			"has_test": false
+			"e2e_name": "agones-factorio",
+			"has_test": true
 		},
 		{
 			"key": "astro_kbve",
@@ -317,7 +318,7 @@
 		{
 			"key": "nd_server",
 			"app_name": "nd-server",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "apps/godot/nexus-defense/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/nd-server.mdx",
 			"version_target": "apps/godot/nexus-defense/server/Cargo.toml",
