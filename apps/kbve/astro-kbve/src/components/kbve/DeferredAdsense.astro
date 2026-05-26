@@ -51,8 +51,8 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 	is:inline
 	async
 	src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}`}
-	crossorigin="anonymous">
-</script>
+	crossorigin="anonymous"
+></script>
 
 <DeferredSection
 	id={id}
@@ -86,7 +86,7 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 	</aside>
 </DeferredSection>
 
-<script is:inline define:vars={{ sectionId: id }}>
+<script is:inline define:vars={{ sectionId: id }} data-astro-rerun>
 	(function () {
 		let mo = null;
 		const fire = () => {
@@ -130,10 +130,10 @@ const AD_CLIENT = 'ca-pub-3698214103602019';
 		document.addEventListener('astro:before-swap', cleanup, { once: true });
 		window.addEventListener('pagehide', cleanup, { once: true });
 
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', fire, { once: true });
-		} else {
-			fire();
-		}
+		// `data-astro-rerun` re-runs this IIFE on every nav swap, so by
+		// the time we get here the DOM is fully parsed. `fire()` is
+		// idempotent (no-op when section already loaded) so safe to
+		// call directly without a readystate gate.
+		fire();
 	})();
 </script>
