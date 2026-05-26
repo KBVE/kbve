@@ -13,12 +13,14 @@ tags:
 key: agones_factorio
 pipeline: docker
 app_name: agones-factorio
-version: "0.0.1"
+version: "0.0.2"
 source_path: apps/agones/factorio
 version_toml: apps/agones/factorio/version.toml
 runner: ubuntu-latest
 image: kbve/agones-factorio
-has_test: false
+has_test: true
+e2e_name: agones-factorio
+test_framework: typescript
 author: h0lybyte
 license: KBVE
 status: active

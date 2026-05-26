@@ -34,6 +34,30 @@
 					]
 				}
 			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["agones-factorio"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f agones-factorio-e2e 2>/dev/null || true",
+					"docker run -d --name agones-factorio-e2e -p 34197:34197/udp -p 27015:27015/tcp -e FACTORIO_RCON_PASSWORD=e2e-test kbve/agones-factorio:latest",
+					"echo 'Waiting for Factorio to come up...' && for i in $(seq 1 240); do if docker logs agones-factorio-e2e 2>&1 | grep -q 'Hosting game'; then echo 'Factorio ready after '\"$i\"'s'; break; fi; if [ $i -eq 240 ]; then echo 'Factorio did not start in 240s'; docker logs agones-factorio-e2e 2>&1 | tail -120; docker rm -f agones-factorio-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"FACTORIO_HOST=127.0.0.1 FACTORIO_UDP=34197 FACTORIO_RCON=27015 FACTORIO_RCON_PASSWORD=e2e-test FACTORIO_CONTAINER=agones-factorio-e2e npx vitest run; EC=$?; echo '--- container logs ---'; docker logs agones-factorio-e2e 2>&1 | tail -120; docker rm -f agones-factorio-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/agones/factorio"
+			},
+			"configurations": {
+				"ci": {}
+			}
 		}
 	},
 	"tags": ["scope:agones"]
