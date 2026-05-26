@@ -1,0 +1,76 @@
+---
+title: Agones Factorio
+description: |
+    Agones-managed Factorio dedicated server. Custom OCI image that layers our KBVE scenario + an Agones lifecycle shim (Ready/Health + SIGTERM-driven save flush) on top of the official factoriotools/factorio rootless base.
+sidebar:
+    label: Agones Factorio
+    order: 460
+tags:
+    - agones
+    - factorio
+    - gameserver
+    - docker
+key: agones_factorio
+pipeline: docker
+app_name: agones-factorio
+version: "0.0.1"
+source_path: apps/agones/factorio
+version_toml: apps/agones/factorio/version.toml
+runner: ubuntu-latest
+image: kbve/agones-factorio
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+KBVE-baked Factorio dedicated-server image, designed to run as an Agones `GameServer` on the production Kubernetes cluster (issue #11138).
+
+The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
+
+- **Lifecycle shim** — `shim/agones-shim.sh` execs the Factorio binary, copies bakeable defaults into `/factorio/config/` only when a ConfigMap mount hasn't already provided the file, drives `Ready()` + a periodic `Health()` heartbeat when `AGONES_SDK_HTTP` is set, and traps `SIGTERM` so Agones-initiated shutdowns get a clean autosave.
+- **KBVE scenario** — `scenarios/kbve/` is our own Lua scenario, redmew-inspired but written fresh so we can grow the soft-mod layer in-tree (join/leave broadcasts, donor perks, chat commands).
+- **RCON + console-log plumbing** — when `FACTORIO_RCON_PASSWORD` is set the shim opens RCON bound to `127.0.0.1:27015` (loopback-only by default) and passes `--console-log` so the planned chat-relay sidecar can stream `[CHAT]/[JOIN]/[LEAVE]/[COMMAND]` markers off a shared `emptyDir` volume.
+- **Rootless** — UID 845 `factorio`, so the eventual `GameServer` PodSpec can require `runAsNonRoot: true` without a SecurityContext fight.
+
+## Phasing
+
+| Phase | Scope |
+|---|---|
+| 0 | Custom image + scenario + lifecycle shim (this entry) |
+| 1 | `apps/kube/agones/factorio/` GameServer/Fleet + UDP exposure |
+| 2 | ConfigMap-driven `server-settings.json` + ExternalSecret for matchmaking token and RCON password |
+| 3 | Chat-relay sidecar (`apps/agones/factorio/relay/`, Rust) — log tail + RCON + IRC client; IRC → existing Discord bridge |
+| 4 | PVC + save-rotation CronJob + public download URL |
+| 5 | Observability — log shipping + RCON metrics + UPS / player-count alerts |
+
+## Container
+
+`kbve/agones-factorio` (local) / `ghcr.io/kbve/agones-factorio` (production), built via the standard nx container target:
+
+```bash
+./kbve.sh -nx agones-factorio:container
+```
+
+## Runtime knobs
+
+| Env | Default | Notes |
+|---|---|---|
+| `FACTORIO_SCENARIO` | `kbve` | Scenario directory under `/factorio/scenarios/` |
+| `FACTORIO_PORT` | `34197` | UDP listen port |
+| `FACTORIO_CONFIG_DIR` | `/factorio/config` | Mount a ConfigMap here in Phase 2 |
+| `FACTORIO_CONSOLE_LOG` | `/shared/log/console.log` | Tailable by the Phase 3 relay sidecar |
+| `FACTORIO_RCON_PORT` | `27015` | TCP, loopback-only by default |
+| `FACTORIO_RCON_BIND` | `127.0.0.1` | RCON listen address |
+| `FACTORIO_RCON_PASSWORD` | _(unset)_ | When unset, RCON is not opened |
+| `AGONES_SDK_HTTP` | _(unset)_ | When unset, SDK calls are skipped — local `docker run` works without Agones |
+| `AGONES_READY_DELAY` | `30` | Seconds before `Ready()` |
+| `AGONES_HEALTH_INTERVAL` | `5` | `Health()` cadence |
+
+## References
+
+- Issue #11138 — original planning ticket
+- factoriotools/factorio — upstream image (rootless variant)
+- Agones `GameServer` CRD — https://agones.dev/site/docs/reference/gameserver/
