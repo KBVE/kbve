@@ -10550,7 +10550,7 @@ checksum = "a846cbc04412cf509efcd8f3694b114fc700a035fb5a37f21517f9fb019f1ebc"
 
 [[package]]
 name = "nd-server"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "axum 0.7.9",
  "q",

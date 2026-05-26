@@ -1,6 +1,6 @@
 [package]
 name = "nd-server"
-version = "0.1.0"
+version = "0.0.2"
 edition = "2024"
 license = "MIT"
 description = "Nexus Defense game server — axum + tokio host for the bevy/rapier2d authoritative sim (KBVE/kbve#11294)."
