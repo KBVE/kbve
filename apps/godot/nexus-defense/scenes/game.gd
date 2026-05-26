@@ -7,6 +7,11 @@ const ENV_EMAIL := "ND_SUPABASE_EMAIL"
 const ENV_PASSWORD := "ND_SUPABASE_PASSWORD"
 const ENV_USERNAME := "ND_SUPABASE_USERNAME"
 
+const TowerSprite := preload("res://ui/components/tower_sprite.gd")
+const EnemySprite := preload("res://ui/components/enemy_sprite.gd")
+const ENEMY_MARCH_DURATION := 8.0
+const ENEMY_SPAWN_STAGGER := 0.35
+
 var _wave: int = 1
 var _lives: int = 20
 var _gold: int = 150
@@ -55,6 +60,7 @@ func _ready() -> void:
 
 	Ui.open("wave_banner", {"title": "Wave %d" % _wave, "subtitle": "%d enemies inbound" % _enemies})
 	Ui.toast("Godot %s · gecs + q · %s" % [Engine.get_version_info()["string"], msg], 3.0, "info")
+	_spawn_wave_enemies(_enemies)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
@@ -102,8 +108,43 @@ func _try_place(screen_pos: Vector2) -> void:
 	occupied.append(axial)
 	_hex_map.set_occupied(occupied)
 	_send_place_building(axial.x, axial.y, _tower_kind_idx(_selected_tower))
+	_spawn_tower_sprite(_selected_tower, axial)
 	Ui.toast("Placed %s at (%d,%d)" % [_selected_tower, axial.x, axial.y], 1.6, "ok")
 	_cancel_placement()
+
+func _spawn_tower_sprite(tower_id: String, axial: Vector2i) -> void:
+	if _hex_map == null:
+		return
+	var sprite: Node2D = TowerSprite.new()
+	sprite.apply_id(tower_id)
+	sprite.position = _hex_map.axial_to_pixel(axial.x, axial.y)
+	_hex_map.add_child(sprite)
+
+func _path_points() -> PackedVector2Array:
+	var pts: PackedVector2Array = PackedVector2Array()
+	if _hex_map == null:
+		return pts
+	for v in _hex_map.path_axials:
+		var axial: Vector2i = v
+		pts.append(_hex_map.axial_to_pixel(axial.x, axial.y))
+	return pts
+
+func _spawn_wave_enemies(count: int) -> void:
+	if _hex_map == null or count <= 0:
+		return
+	var pts: PackedVector2Array = _path_points()
+	if pts.size() < 2:
+		return
+	for i in count:
+		var enemy: Node2D = EnemySprite.new()
+		_hex_map.add_child(enemy)
+		_start_enemy_after(enemy, pts, float(i) * ENEMY_SPAWN_STAGGER)
+
+func _start_enemy_after(enemy: Node2D, pts: PackedVector2Array, delay: float) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay).timeout
+	if is_instance_valid(enemy):
+		enemy.call("start", pts, ENEMY_MARCH_DURATION)
 
 func _send_place_building(col: int, row: int, kind_idx: int) -> void:
 	if socket == null or not socket.call("is_ws_connected"):
@@ -152,6 +193,7 @@ func _advance_wave() -> void:
 		bar.apply({"gold": _gold})
 	Ui.open("wave_banner", {"title": "Wave %d" % _wave, "subtitle": "%d enemies inbound" % _enemies})
 	Ui.toast("+50 gold reward", 1.6, "ok")
+	_spawn_wave_enemies(_enemies)
 
 func _return_to_menu() -> void:
 	for panel_name in ["hud_top", "build_bar", "wave_banner", "pause"]:
@@ -196,6 +238,7 @@ func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, g
 	if wave_changed:
 		_wave = wave
 		Ui.open("wave_banner", {"title": "Wave %d" % wave, "subtitle": "%d enemies inbound" % enemy_count})
+		_spawn_wave_enemies(enemy_count)
 	_lives = lives
 	_gold = gold
 	_enemies = enemy_count

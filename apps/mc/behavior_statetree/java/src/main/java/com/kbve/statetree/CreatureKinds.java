@@ -17,6 +17,7 @@ public final class CreatureKinds {
     public static final CreatureKind SKELETON_HORSEMAN = new HorsemanSkeletonKind();
     public static final CreatureKind PET_DOG = new PetDogCreatureKind();
     public static final CreatureKind PET_PARROT = new PetParrotCreatureKind();
+    public static final CreatureKind CAPITAL_GUARD = new CapitalGuardKind();
 
     private CreatureKinds() {}
 }

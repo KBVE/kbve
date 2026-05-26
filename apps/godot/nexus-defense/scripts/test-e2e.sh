@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run the GdUnit4 e2e suite for nexus-defense.
 #
-# Builds td-server in release mode if its binary isn't already on disk
+# Builds nd-server in release mode if its binary isn't already on disk
 # (override with TD_SERVER_BIN=/path/to/binary to skip), then runs the
 # e2e suite against the live server fixture.
 set -euo pipefail
@@ -18,8 +18,8 @@ fi
 
 if [[ -z "${TD_SERVER_BIN:-}" ]]; then
   for candidate in \
-    "$REPO_ROOT/dist/target/release/td-server" \
-    "$REPO_ROOT/target/release/td-server"; do
+    "$REPO_ROOT/dist/target/release/nd-server" \
+    "$REPO_ROOT/target/release/nd-server"; do
     if [[ -x "$candidate" ]]; then
       export TD_SERVER_BIN="$candidate"
       break
@@ -28,11 +28,11 @@ if [[ -z "${TD_SERVER_BIN:-}" ]]; then
 fi
 
 if [[ -z "${TD_SERVER_BIN:-}" ]]; then
-  echo "[test-e2e] building td-server (release)…"
-  (cd "$REPO_ROOT" && cargo build --release -p td-server)
+  echo "[test-e2e] building nd-server (release)…"
+  (cd "$REPO_ROOT" && cargo build --release -p nd-server)
   for candidate in \
-    "$REPO_ROOT/dist/target/release/td-server" \
-    "$REPO_ROOT/target/release/td-server"; do
+    "$REPO_ROOT/dist/target/release/nd-server" \
+    "$REPO_ROOT/target/release/nd-server"; do
     if [[ -x "$candidate" ]]; then
       export TD_SERVER_BIN="$candidate"
       break
@@ -41,7 +41,7 @@ if [[ -z "${TD_SERVER_BIN:-}" ]]; then
 fi
 
 if [[ ! -x "${TD_SERVER_BIN:-}" ]]; then
-  echo "[test-e2e] td-server binary still missing after build attempt" >&2
+  echo "[test-e2e] nd-server binary still missing after build attempt" >&2
   exit 1
 fi
 

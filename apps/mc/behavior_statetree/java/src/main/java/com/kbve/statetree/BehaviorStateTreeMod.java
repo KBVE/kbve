@@ -87,6 +87,11 @@ public class BehaviorStateTreeMod implements ModInitializer {
         tickHandler.setShipManager(shipManager);
         ServerTickEvents.END_SERVER_TICK.register(tickHandler);
 
+        // Capital Guards: top up the IronGolem garrison inside the spawn
+        // claim on every boot. Vanilla AI handles patrol + aggro; this
+        // mod only owns the population count.
+        CapitalGuardSpawner.register(tickHandler.getCreatureManager());
+
         // Shutdown runtime on server stop
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             LOGGER.info("[{}] Shutting down NPC AI runtime", MOD_ID);

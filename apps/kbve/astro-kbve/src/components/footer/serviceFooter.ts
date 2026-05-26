@@ -54,7 +54,11 @@ class FooterService {
 		if (isAuthenticated) {
 			this.quickLinksStore.set([
 				{ href: '/dashboard/', label: 'Dashboard', prefetch: true },
-				{ href: '/profile/', label: 'Profile', prefetch: true },
+				{
+					href: '/dashboard/profile/',
+					label: 'Profile',
+					prefetch: true,
+				},
 				{ href: '/project/', label: 'My Projects', prefetch: true },
 				{ href: '/settings/', label: 'Settings', prefetch: true },
 				{ href: '/logout/', label: 'Logout', prefetch: false },

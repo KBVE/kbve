@@ -1,16 +1,16 @@
 [package]
-name = "td-server"
+name = "nd-server"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
 description = "Nexus Defense game server — axum + tokio host for the bevy/rapier2d authoritative sim (KBVE/kbve#11294)."
 
 [[bin]]
-name = "td-server"
+name = "nd-server"
 path = "src/main.rs"
 
 [dependencies]
-q = { path = "../../packages/rust/q", default-features = false, features = ["nexus-defense-server"] }
+q = { path = "../../../../packages/rust/q", default-features = false, features = ["nexus-defense-server"] }
 axum = { version = "0.7", default-features = false, features = ["ws", "json", "http1", "tokio"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
 tracing = "0.1"

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-05-25T09:29:10.096Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-05-26T09:20:01.171Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **27** items
+    **28** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **153** items
+    **145** items
   </Card>
 </CardGrid>
 
@@ -55,14 +55,14 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 27
+    "Theory" : 28
     "AI" : 1
     "Todo" : 10
     "Backlog" : 8
     "Error" : 9
     "Staging" : 3
     "Review" : 1
-    "Done" : 153
+    "Done" : 145
 ```
 
 ```mermaid
@@ -70,8 +70,8 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 14
     "Blocked (Error+Support)" : 9
-    "Done" : 153
-    "Planning (Theory+AI+Backlog)" : 36
+    "Done" : 145
+    "Planning (Theory+AI+Backlog)" : 37
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>27</strong>"]
+    Theory["Theory<br/><strong>28</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>153</strong>"]
+    Done["Done<br/><strong>145</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 148
-    "Issue" : 64
+    "Pull Request" : 140
+    "Issue" : 65
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 148 |
-| dev→main | 63 |
-| atomic | 61 |
-| enhancement | 38 |
+| auto-pr | 140 |
+| dev→main | 58 |
+| atomic | 58 |
+| enhancement | 39 |
 | 0 | 19 |
 | 1 | 12 |
 | bug | 11 |
@@ -138,7 +138,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (27)
+### Theory (28)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -169,6 +169,7 @@ pie showData
 | [#11247](https://github.com/KBVE/kbve/issues/11247) | [BEVY][ISOMETRIC] Toast styling pass — color accents + animations | — | — | enhancement |
 | [#11262](https://github.com/KBVE/kbve/issues/11262) | feat(discordsh): /gh claim — Discord user self-assigns issue + KBVE profile link | — | — | enhancement |
 | [#11294](https://github.com/KBVE/kbve/issues/11294) | feat(td-online): multiplayer tower defense — bevy+rapier2d sim, agones game serv | — | — | enhancement |
+| [#11362](https://github.com/KBVE/kbve/issues/11362) | feat(astro-kbve,guild-vault): /dashboard/agents — multi-tenant bot management su | — | — | enhancement |
 
 ### AI (1)
 
@@ -230,27 +231,14 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#11342](https://github.com/KBVE/kbve/pull/11342) | Release: 3 features, 1 fix, 1 doc, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#11356](https://github.com/KBVE/kbve/pull/11356) | Release: 9 features, 1 fix, 2 refactors, 4 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (153)
+### Done (145)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#10329](https://github.com/KBVE/kbve/issues/10329) | [CICD] [Github] Custom Arc Runner Image | — | — | enhancement, update |
 | [#10601](https://github.com/KBVE/kbve/issues/10601) | [DISCORDSH] - [BEVY] - Crate Integration State | — | — | enhancement, rust |
-| [#10786](https://github.com/KBVE/kbve/pull/10786) | Release: 5 features, 2 fixes, 1 doc, 8 chores → Main | — | — | auto-pr, dev→main |
-| [#10796](https://github.com/KBVE/kbve/pull/10796) | Release: 1 feature, 1 fix, 1 doc, 6 chores → Main | — | — | auto-pr, dev→main |
-| [#10797](https://github.com/KBVE/kbve/pull/10797) | Atomic: mc v1.0.46 post-publish sync | — | — | auto-pr, atomic |
-| [#10798](https://github.com/KBVE/kbve/pull/10798) | Atomic: irc-gateway v0.1.15 post-publish sync | — | — | auto-pr, atomic |
-| [#10800](https://github.com/KBVE/kbve/pull/10800) | Atomic: axum-kbve v1.0.146 post-publish sync | — | — | auto-pr, atomic |
-| [#10804](https://github.com/KBVE/kbve/pull/10804) | Release: 1 feature, 4 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#10806](https://github.com/KBVE/kbve/pull/10806) | Atomic: axum-kbve v1.0.147 post-publish sync | — | — | auto-pr, atomic |
-| [#10817](https://github.com/KBVE/kbve/pull/10817) | Atomic: firecracker-python-net v0.1.3 post-publish sync | — | — | auto-pr, atomic |
-| [#10818](https://github.com/KBVE/kbve/pull/10818) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#10821](https://github.com/KBVE/kbve/pull/10821) | Release: 1 feature, 2 fixes, 1 build → Main | — | — | auto-pr, dev→main |
-| [#10824](https://github.com/KBVE/kbve/pull/10824) | chore(dashboard): daily sync — 2026-05-11 | — | — | auto-pr |
-| [#10825](https://github.com/KBVE/kbve/pull/10825) | Release: 6 features, 3 fixes, 2 docs, 1 test, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#10838](https://github.com/KBVE/kbve/pull/10838) | Atomic: axum-kbve v1.0.148 post-publish sync | — | — | auto-pr, atomic |
 | [#10839](https://github.com/KBVE/kbve/pull/10839) | Release: 7 features, 2 fixes, 1 refactor, 6 chores → Main | — | — | auto-pr, dev→main |
 | [#10852](https://github.com/KBVE/kbve/pull/10852) | Atomic: discordsh-bot v0.1.14 post-publish sync | — | — | auto-pr, atomic |
 | [#10853](https://github.com/KBVE/kbve/pull/10853) | Release: 2 fixes, 1 build, 4 chores → Main | — | — | auto-pr, dev→main |
@@ -389,6 +377,11 @@ pie showData
 | [#11339](https://github.com/KBVE/kbve/pull/11339) | Atomic: mc v1.0.58 post-publish sync | — | — | auto-pr, atomic |
 | [#11340](https://github.com/KBVE/kbve/pull/11340) | deploy(isometric): update WASM build | — | — | auto-pr |
 | [#11341](https://github.com/KBVE/kbve/pull/11341) | Atomic: axum-kbve v1.0.170 post-publish sync | — | — | auto-pr, atomic |
+| [#11342](https://github.com/KBVE/kbve/pull/11342) | Release: 5 features, 2 fixes, 1 doc, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#11352](https://github.com/KBVE/kbve/pull/11352) | chore(dashboard): daily sync — 2026-05-25 | — | — | auto-pr |
+| [#11355](https://github.com/KBVE/kbve/pull/11355) | Atomic: edge v0.1.32 post-publish sync | — | — | auto-pr, atomic |
+| [#11357](https://github.com/KBVE/kbve/pull/11357) | Atomic: discordsh-bot v0.1.15 post-publish sync | — | — | auto-pr, atomic |
+| [#11358](https://github.com/KBVE/kbve/pull/11358) | Atomic: irc-gateway v0.1.19 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

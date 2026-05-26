@@ -57,13 +57,19 @@ const initial = optionMap[defaultId] ?? options[0];
 		</div>
 	</div>
 
-	<script is:inline define:vars={{ options, defaultId, onChoice }}>
-		document.addEventListener('DOMContentLoaded', () => {
+	<script
+		is:inline
+		define:vars={{ options, defaultId, onChoice }}
+		data-astro-rerun
+	>
+		(() => {
 			const imageBox = document.getElementById('vn-image');
 			const messageBox = document.getElementById('vn-message');
 			const choiceBox = document.getElementById('vn-choices');
 			const titleBox = document.getElementById('vn-title');
 			const descBox = document.getElementById('vn-desc');
+			if (!imageBox || !messageBox || !choiceBox || !titleBox || !descBox)
+				return;
 
 			const optionMap = Object.fromEntries(
 				options.map((opt) => [opt.id, opt]),
@@ -128,6 +134,6 @@ const initial = optionMap[defaultId] ?? options[0];
 			};
 
 			renderNode(currentId);
-		});
+		})();
 	</script>
 </section>

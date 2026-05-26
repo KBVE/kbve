@@ -1,9 +1,20 @@
 {
 	"docker": [
 		{
+			"key": "agones_factorio",
+			"app_name": "agones-factorio",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/factorio/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
+			"source_path": "apps/agones/factorio",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-factorio",
+			"has_test": false
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.170",
+			"version": "1.0.171",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -111,7 +122,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.32",
+			"version": "0.1.33",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -209,7 +220,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.18",
+			"version": "0.1.19",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -302,6 +313,18 @@
 			"e2e_name": "memes",
 			"deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml",
 			"has_test": true
+		},
+		{
+			"key": "nd_server",
+			"app_name": "nd-server",
+			"version": "0.0.1",
+			"version_toml": "apps/godot/nexus-defense/server/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/nd-server.mdx",
+			"version_target": "apps/godot/nexus-defense/server/Cargo.toml",
+			"source_path": "apps/godot/nexus-defense/server",
+			"runner": "arc-runner-set",
+			"image": "kbve/nd-server",
+			"has_test": false
 		},
 		{
 			"key": "rareicon",
@@ -695,7 +718,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 25,
+		"docker": 27,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -705,6 +728,6 @@
 		"godot": 0,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 64
+		"total": 66
 	}
 }

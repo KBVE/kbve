@@ -1,0 +1,21 @@
+{
+	"difficulty_settings": {
+		"recipe_difficulty": 0,
+		"technology_difficulty": 0,
+		"technology_price_multiplier": 1,
+		"research_queue_setting": "after-victory"
+	},
+	"pollution": {
+		"enabled": true
+	},
+	"enemy_evolution": {
+		"enabled": true
+	},
+	"enemy_expansion": {
+		"enabled": true
+	},
+	"unit_group": {},
+	"steering": {},
+	"path_finder": {},
+	"max_failed_behavior_count": 3
+}

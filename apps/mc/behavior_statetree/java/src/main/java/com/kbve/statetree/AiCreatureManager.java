@@ -55,8 +55,19 @@ public class AiCreatureManager {
      */
     private static final String AI_MARKER_TAG = "kbve_ai_creature";
 
+    /**
+     * World-tick of first time a tracked cullable mob was observed inside
+     * the spawn claim. Used to grant a grace window for capital guards to
+     * engage the drifter before the cull sweep kicks in. Cleared when the
+     * mob leaves the claim or is despawned.
+     */
+    private static final long CLAIM_CULL_GRACE_TICKS = 600L;
+
     /** Tracked creatures keyed by Minecraft entity ID. */
     private final ConcurrentHashMap<Integer, CreatureSlot> creatures = new ConcurrentHashMap<>();
+
+    /** When each tracked entity first drifted into the claim (world ticks). */
+    private final ConcurrentHashMap<Integer, Long> firstSeenInClaim = new ConcurrentHashMap<>();
 
     // -----------------------------------------------------------------------
     // Per-creature bookkeeping slot
@@ -137,16 +148,29 @@ public class AiCreatureManager {
      * follow their owner across the claim boundary.
      */
     private void sweepCreaturesInsideSpawnProtection(ServerWorld world) {
+        long now = world.getTime();
         int removed = 0;
         var it = creatures.entrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();
+            int entityId = entry.getKey();
             var slot = entry.getValue();
             if (slot.ownerEntityId != 0) continue;
-            var entity = world.getEntityById(entry.getKey());
-            if (!(entity instanceof MobEntity mob) || !mob.isAlive()) continue;
-            if (!SpawnRegion.containsBlock(mob.getBlockPos())) continue;
+            if (!slot.kind.cullableInsideClaim()) continue;
+            var entity = world.getEntityById(entityId);
+            if (!(entity instanceof MobEntity mob) || !mob.isAlive()) {
+                firstSeenInClaim.remove(entityId);
+                continue;
+            }
+            if (!SpawnRegion.containsBlock(mob.getBlockPos())) {
+                firstSeenInClaim.remove(entityId);
+                continue;
+            }
+            Long firstTick = firstSeenInClaim.putIfAbsent(entityId, now);
+            long enteredAt = firstTick != null ? firstTick : now;
+            if (now - enteredAt < CLAIM_CULL_GRACE_TICKS) continue;
             entity.discard();
+            firstSeenInClaim.remove(entityId);
             it.remove();
             removed++;
         }
@@ -172,6 +196,7 @@ public class AiCreatureManager {
 
         for (var entry : creatures.entrySet()) {
             var slot = entry.getValue();
+            if (!slot.kind.submitsObservations()) continue;
             var entity = overworld.getEntityById(entry.getKey());
             if (!(entity instanceof MobEntity mob) || !mob.isAlive()) continue;
 
@@ -301,6 +326,70 @@ public class AiCreatureManager {
             entity.discard();
         }
         creatures.remove(entityId);
+    }
+
+    /**
+     * Spawn one instance of {@code kind} at an absolute world surface near
+     * {@code anchor}. Bypasses the spawn-protection rejection — used by the
+     * Capital Guard boot spawner to place guards inside the claim. The
+     * caller is responsible for choosing a sane anchor and for limiting how
+     * many of {@code kind} are alive at any time.
+     *
+     * @return true if a creature was spawned
+     */
+    public boolean spawnAtAnchor(ServerWorld world, CreatureKind kind, BlockPos anchor) {
+        BlockPos surface = world.getTopPosition(
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                anchor
+        );
+        MobEntity mob = kind.create(world, surface, null);
+        if (mob == null) return false;
+
+        mob.addCommandTag(AI_MARKER_TAG);
+
+        if (!world.spawnEntity(mob)) {
+            return false;
+        }
+
+        creatures.put(mob.getId(), new CreatureSlot(kind, 0));
+        LOGGER.info("[AI] Spawned {} at [{}, {}, {}] (id={}) at-anchor",
+                kind.tag(),
+                surface.getX(), surface.getY(), surface.getZ(),
+                mob.getId());
+        return true;
+    }
+
+    /**
+     * Re-claim persisted entities matching {@code commandTag} back into the
+     * tracking map under {@code kind}. Used at server start so creatures
+     * with {@code setPersistent(true)} (capital guards) survive restarts —
+     * without this, the next {@link #sweepOrphanedAiCreatures} would
+     * discard them as orphans because the in-memory map starts empty.
+     *
+     * @return number of entities re-claimed
+     */
+    public int reclaimPersistedKind(ServerWorld world, CreatureKind kind, String commandTag) {
+        int reclaimed = 0;
+        for (Entity entity : world.iterateEntities()) {
+            if (!(entity instanceof MobEntity)) continue;
+            if (!entity.isAlive()) continue;
+            if (!entity.getCommandTags().contains(commandTag)) continue;
+            if (creatures.containsKey(entity.getId())) continue;
+            creatures.put(entity.getId(), new CreatureSlot(kind, 0));
+            reclaimed++;
+        }
+        return reclaimed;
+    }
+
+    /** Count tracked, alive creatures of a given kind. */
+    public int aliveCount(ServerWorld world, CreatureKind kind) {
+        int n = 0;
+        for (var entry : creatures.entrySet()) {
+            if (entry.getValue().kind != kind) continue;
+            var entity = world.getEntityById(entry.getKey());
+            if (entity != null && entity.isAlive()) n++;
+        }
+        return n;
     }
 
     // -----------------------------------------------------------------------

@@ -5307,7 +5307,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
@@ -8394,7 +8394,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.18"
+version = "0.1.19"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -10547,6 +10547,17 @@ name = "nanoserde-derive"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a846cbc04412cf509efcd8f3694b114fc700a035fb5a37f21517f9fb019f1ebc"
+
+[[package]]
+name = "nd-server"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "q",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "ndk"
@@ -16239,17 +16250,6 @@ dependencies = [
  "futures-io",
  "p12-keystore",
  "rustls-connector",
-]
-
-[[package]]
-name = "td-server"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "q",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

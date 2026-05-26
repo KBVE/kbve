@@ -783,14 +783,8 @@ const sectionNames = [
 		});
 	}
 
-	// Init on load + Astro page transitions
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initKanbanSections, {
-			once: true,
-		});
-	} else {
-		initKanbanSections();
-	}
+	// `astro:page-load` fires on both initial hard load and every
+	// ClientRouter swap, so no separate DOMContentLoaded path needed.
 	document.addEventListener('astro:page-load', initKanbanSections);
 </script>
 

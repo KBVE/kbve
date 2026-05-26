@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2026-05-21T03:54:21Z"
+        rollout-restart: "2026-05-25T10:32:56Z"
       labels:
         app: irc-gateway
-        version: "0.1.18"
+        version: "0.1.19"
     spec:
       containers:
       - name: irc-gateway
-        image: ghcr.io/kbve/irc-gateway:0.1.18
+        image: ghcr.io/kbve/irc-gateway:0.1.19
         imagePullPolicy: Always
         ports:
         - containerPort: 4321

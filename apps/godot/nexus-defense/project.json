@@ -33,7 +33,7 @@
 				"{projectRoot}/tests/**/*",
 				"{projectRoot}/project.godot",
 				"{projectRoot}/scripts/test-e2e.sh",
-				"{workspaceRoot}/apps/td-server/**/*",
+				"{projectRoot}/server/**/*",
 				"{workspaceRoot}/packages/rust/q/src/proto/**/*",
 				"{workspaceRoot}/packages/rust/q/src/net/**/*",
 				"{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
@@ -52,7 +52,7 @@
 		"build-server": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "cargo build --release -p td-server"
+				"command": "cargo build --release -p nd-server"
 			}
 		}
 	}

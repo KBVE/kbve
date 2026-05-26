@@ -91,18 +91,23 @@ impl ChatClient {
         ws.set_onmessage(Some(onmessage.as_ref().unchecked_ref()));
         onmessage.forget(); // Leak closure (lives for WebSocket lifetime)
 
-        // Set up onopen handler — send registration + join channels
+        // Set up onopen handler — send registration + join channels. Skip
+        // PASS/NICK/USER when the gateway already pre-registered us from a
+        // JWT-authenticated WS upgrade (chat.kbve.com).
         let nick_reg = self.config.nick.clone();
         let channels = self.config.channels.clone();
         let password = self.config.password.clone();
+        let skip_registration = self.config.skip_registration;
         let ws_reg = ws.clone();
         let onopen = Closure::<dyn FnMut()>::new(move || {
             tracing::info!("IRC-WS connected, registering as {}", nick_reg);
-            if let Some(ref pass) = password {
-                let _ = ws_reg.send_with_str(&format!("PASS {}\r\n", pass));
+            if !skip_registration {
+                if let Some(ref pass) = password {
+                    let _ = ws_reg.send_with_str(&format!("PASS {}\r\n", pass));
+                }
+                let _ = ws_reg.send_with_str(&format!("NICK {}\r\n", nick_reg));
+                let _ = ws_reg.send_with_str(&format!("USER {} 0 * :bevy_chat wasm\r\n", nick_reg));
             }
-            let _ = ws_reg.send_with_str(&format!("NICK {}\r\n", nick_reg));
-            let _ = ws_reg.send_with_str(&format!("USER {} 0 * :bevy_chat wasm\r\n", nick_reg));
             for ch in &channels {
                 let _ = ws_reg.send_with_str(&format!("JOIN {}\r\n", ch));
             }
