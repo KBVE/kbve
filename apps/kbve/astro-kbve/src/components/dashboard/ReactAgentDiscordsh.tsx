@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	Loader2,
@@ -7,6 +7,9 @@ import {
 	AlertTriangle,
 	Users,
 	KeyRound,
+	Plus,
+	Trash2,
+	Power,
 } from 'lucide-react';
 import {
 	agentsService,
@@ -14,6 +17,7 @@ import {
 	type DiscordGuild,
 } from './agentsService';
 import { styles } from './dashboard-ui';
+import { AddTokenModal, DeleteTokenModal } from './ReactAgentTokenModals';
 
 const DISCORD_CDN = 'https://cdn.discordapp.com';
 
@@ -355,6 +359,18 @@ function TokenList({
 	error,
 	onRefresh,
 }: TokenListProps) {
+	const [addOpen, setAddOpen] = useState(false);
+	const [pendingDelete, setPendingDelete] = useState<AgentTokenRow | null>(
+		null,
+	);
+	const [togglingId, setTogglingId] = useState<string | null>(null);
+
+	async function handleToggle(t: AgentTokenRow) {
+		setTogglingId(t.token_id);
+		await agentsService.toggleToken(t.token_id, !t.is_active);
+		setTogglingId(null);
+	}
+
 	return (
 		<section style={styles.sectionBorder}>
 			<header
@@ -379,10 +395,30 @@ function TokenList({
 				</span>
 				<button
 					type="button"
+					onClick={() => setAddOpen(true)}
+					style={{
+						marginLeft: 'auto',
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: '0.35rem',
+						padding: '0.3rem 0.7rem',
+						borderRadius: 6,
+						border: 'none',
+						background: '#58a6ff',
+						color: '#0d1117',
+						cursor: 'pointer',
+						fontSize: '0.8rem',
+						fontWeight: 600,
+					}}
+					aria-label="Add token">
+					<Plus size={14} />
+					Add token
+				</button>
+				<button
+					type="button"
 					onClick={onRefresh}
 					disabled={loading}
 					style={{
-						marginLeft: 'auto',
 						display: 'inline-flex',
 						alignItems: 'center',
 						gap: '0.35rem',
@@ -467,6 +503,13 @@ function TokenList({
 									<th style={{ padding: '0.4rem 0.5rem' }}>
 										Created
 									</th>
+									<th
+										style={{
+											padding: '0.4rem 0.5rem',
+											textAlign: 'right',
+										}}>
+										Actions
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -535,6 +578,93 @@ function TokenList({
 												}}>
 												{formatDate(t.created_at)}
 											</td>
+											<td
+												style={{
+													padding: '0.5rem',
+													textAlign: 'right',
+													whiteSpace: 'nowrap',
+												}}>
+												<button
+													type="button"
+													onClick={() =>
+														handleToggle(t)
+													}
+													disabled={
+														togglingId ===
+														t.token_id
+													}
+													aria-label={
+														t.is_active
+															? 'Disable token'
+															: 'Enable token'
+													}
+													title={
+														t.is_active
+															? 'Disable token'
+															: 'Enable token'
+													}
+													style={{
+														display: 'inline-flex',
+														alignItems: 'center',
+														gap: '0.25rem',
+														padding:
+															'0.25rem 0.5rem',
+														borderRadius: 6,
+														border: '1px solid var(--sl-color-gray-5, #2d2f36)',
+														background:
+															'transparent',
+														color: t.is_active
+															? '#fbbf24'
+															: '#4ade80',
+														cursor:
+															togglingId ===
+															t.token_id
+																? 'wait'
+																: 'pointer',
+														fontSize: '0.75rem',
+														marginRight: '0.35rem',
+													}}>
+													{togglingId ===
+													t.token_id ? (
+														<Loader2
+															size={12}
+															style={{
+																animation:
+																	'spin 1s linear infinite',
+															}}
+														/>
+													) : (
+														<Power size={12} />
+													)}
+													{t.is_active
+														? 'Disable'
+														: 'Enable'}
+												</button>
+												<button
+													type="button"
+													onClick={() =>
+														setPendingDelete(t)
+													}
+													aria-label="Delete token"
+													title="Delete token"
+													style={{
+														display: 'inline-flex',
+														alignItems: 'center',
+														gap: '0.25rem',
+														padding:
+															'0.25rem 0.5rem',
+														borderRadius: 6,
+														border: '1px solid rgba(239,68,68,0.4)',
+														background:
+															'transparent',
+														color: '#f87171',
+														cursor: 'pointer',
+														fontSize: '0.75rem',
+													}}>
+													<Trash2 size={12} />
+													Delete
+												</button>
+											</td>
 										</tr>
 									);
 								})}
@@ -548,10 +678,19 @@ function TokenList({
 						fontSize: '0.78rem',
 						color: 'var(--sl-color-gray-3, #9ca0aa)',
 					}}>
-					Token values are never returned by the dashboard. Add /
-					rotate / delete operations will land in the P2 update.
+					Token values are written to Supabase Vault encrypted and
+					never returned by the dashboard. Use Disable to
+					soft-deactivate a token without removing it.
 				</p>
 			</div>
+
+			{addOpen && <AddTokenModal onClose={() => setAddOpen(false)} />}
+			{pendingDelete && (
+				<DeleteTokenModal
+					token={pendingDelete}
+					onClose={() => setPendingDelete(null)}
+				/>
+			)}
 		</section>
 	);
 }

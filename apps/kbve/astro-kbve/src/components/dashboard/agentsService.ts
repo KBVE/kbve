@@ -187,6 +187,142 @@ class AgentsService {
 		if (guildId) await this.loadTokens(guildId);
 	}
 
+	public async addToken(input: {
+		tokenName: string;
+		service: string;
+		tokenValue: string;
+		description?: string | null;
+	}): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
+		const guildId = this.$selectedGuildId.get();
+		const accessToken = this.$accessToken.get();
+		const providerToken = this.$providerToken.get();
+		if (!guildId || !accessToken || !providerToken) {
+			return { ok: false, error: 'No guild selected or session missing' };
+		}
+
+		const resp = await this.callGuildVault(
+			'tokens.set_token',
+			accessToken,
+			{
+				server_id: guildId,
+				provider_token: providerToken,
+				token_name: input.tokenName,
+				service: input.service,
+				token_value: input.tokenValue,
+				description: input.description ?? null,
+			},
+		);
+
+		if (!resp.ok) return { ok: false, error: resp.error };
+		const tokenId =
+			(resp.body as { token_id?: string } | null)?.token_id ?? '';
+		await this.refreshSelectedGuild();
+		addToast({
+			id: `token-add-${Date.now()}`,
+			message: `Token "${input.tokenName}" registered.`,
+			severity: 'success',
+			duration: 3500,
+		});
+		return { ok: true, tokenId };
+	}
+
+	public async deleteToken(
+		tokenId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const guildId = this.$selectedGuildId.get();
+		const accessToken = this.$accessToken.get();
+		const providerToken = this.$providerToken.get();
+		if (!guildId || !accessToken || !providerToken) {
+			return { ok: false, error: 'No guild selected or session missing' };
+		}
+
+		const resp = await this.callGuildVault(
+			'tokens.delete_token',
+			accessToken,
+			{
+				server_id: guildId,
+				provider_token: providerToken,
+				token_id: tokenId,
+			},
+		);
+
+		if (!resp.ok) return { ok: false, error: resp.error };
+		await this.refreshSelectedGuild();
+		addToast({
+			id: `token-del-${Date.now()}`,
+			message: 'Token deleted.',
+			severity: 'success',
+			duration: 3500,
+		});
+		return { ok: true };
+	}
+
+	public async toggleToken(
+		tokenId: string,
+		isActive: boolean,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const guildId = this.$selectedGuildId.get();
+		const accessToken = this.$accessToken.get();
+		const providerToken = this.$providerToken.get();
+		if (!guildId || !accessToken || !providerToken) {
+			return { ok: false, error: 'No guild selected or session missing' };
+		}
+
+		const resp = await this.callGuildVault(
+			'tokens.toggle_token',
+			accessToken,
+			{
+				server_id: guildId,
+				provider_token: providerToken,
+				token_id: tokenId,
+				is_active: isActive,
+			},
+		);
+
+		if (!resp.ok) return { ok: false, error: resp.error };
+		await this.refreshSelectedGuild();
+		return { ok: true };
+	}
+
+	private async callGuildVault(
+		command: string,
+		accessToken: string,
+		extra: Record<string, unknown>,
+	): Promise<{ ok: true; body: unknown } | { ok: false; error: string }> {
+		try {
+			const resp = await fetch(GUILD_VAULT_URL, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify({ command, ...extra }),
+			});
+			const text = await resp.text();
+			let body: unknown;
+			try {
+				body = JSON.parse(text);
+			} catch {
+				return {
+					ok: false,
+					error: `HTTP ${resp.status}: ${text.slice(0, 200)}`,
+				};
+			}
+			if (!resp.ok) {
+				const errMsg =
+					(body as { error?: string } | null)?.error ??
+					`HTTP ${resp.status}`;
+				return { ok: false, error: errMsg };
+			}
+			return { ok: true, body };
+		} catch (e) {
+			return {
+				ok: false,
+				error: e instanceof Error ? e.message : 'Network error',
+			};
+		}
+	}
+
 	public async signInWithDiscord(): Promise<void> {
 		try {
 			const { authBridge } = await import('@/components/auth/AuthBridge');
