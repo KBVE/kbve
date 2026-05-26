@@ -1985,6 +1985,113 @@
           ]
         }
       },
+      "nd-server": {
+        "name": "nd-server",
+        "type": "app",
+        "data": {
+          "root": "apps/godot/nexus-defense/server",
+          "name": "nd-server",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/godot/nexus-defense/server/src",
+          "tags": [
+            "rust",
+            "game-server",
+            "nexus-defense"
+          ],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build -p nd-server"
+              },
+              "outputs": [
+                "{workspaceRoot}/dist/target/debug/nd-server"
+              ],
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "build-release": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build --release -p nd-server"
+              },
+              "outputs": [
+                "{workspaceRoot}/dist/target/release/nd-server"
+              ],
+              "configurations": {},
+              "parallelism": true
+            },
+            "run": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo run -p nd-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo test -p nd-server"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo clippy -p nd-server --all-targets -- -D warnings"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile .",
+                    "VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+                  ]
+                },
+                "ci": {
+                  "commands": [
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/nd-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+                    "VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "notification-bot": {
         "name": "notification-bot",
         "type": "app",
@@ -5604,7 +5711,7 @@
                 "{projectRoot}/tests/**/*",
                 "{projectRoot}/project.godot",
                 "{projectRoot}/scripts/test-e2e.sh",
-                "{workspaceRoot}/apps/td-server/**/*",
+                "{projectRoot}/server/**/*",
                 "{workspaceRoot}/packages/rust/q/src/proto/**/*",
                 "{workspaceRoot}/packages/rust/q/src/net/**/*",
                 "{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
@@ -5627,7 +5734,7 @@
             "build-server": {
               "executor": "nx:run-commands",
               "options": {
-                "command": "cargo build --release -p td-server"
+                "command": "cargo build --release -p nd-server"
               },
               "configurations": {},
               "parallelism": true
@@ -13552,6 +13659,7 @@
           "type": "implicit"
         }
       ],
+      "nd-server": [],
       "notification-bot": [],
       "steamcmd-ubuntu": [],
       "arc-runner-e2e": [
