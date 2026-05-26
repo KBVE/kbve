@@ -181,7 +181,7 @@ jobs:
                   # gh api --paginate emits one JSON array per page back-to-back,
                   # which json.load() cannot parse ("Extra data" at start of page 2).
                   # Slurp pages with `jq -s` and concatenate before writing.
-                  if ! gh api repos/${{ github.repository }}/code-scanning/alerts --paginate 2>/dev/null \
+                  if ! gh api repos/KBVE/kbve/code-scanning/alerts --paginate 2>/dev/null \
                        | jq -s 'add // [] | map(select(.state == "open"))' \
                        > /tmp/codeql-alerts.json; then
                     echo '[]' > /tmp/codeql-alerts.json
@@ -198,7 +198,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   set -euo pipefail
-                  if ! gh api repos/${{ github.repository }}/dependabot/alerts --paginate 2>/dev/null \
+                  if ! gh api repos/KBVE/kbve/dependabot/alerts --paginate 2>/dev/null \
                        | jq -s 'add // [] | map(select(.state == "open"))' \
                        > /tmp/dependabot-alerts.json; then
                     echo '[]' > /tmp/dependabot-alerts.json
