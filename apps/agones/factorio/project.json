@@ -1,0 +1,40 @@
+{
+	"name": "agones-factorio",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/factorio",
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/factorio/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-factorio:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/agones-factorio:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/agones-factorio:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/agones-factorio:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:agones"]
+}
