@@ -282,8 +282,8 @@ fn sync_per_slot_state(
             over.fired[idx] = false;
         }
     }
-    for idx in 0..proto::MAX_PLAYERS {
-        if !active_mask[idx] {
+    for (idx, &is_active) in active_mask.iter().enumerate().take(proto::MAX_PLAYERS) {
+        if !is_active {
             wave.slots[idx] = None;
             economy.slots[idx] = None;
             over.fired[idx] = false;
@@ -553,6 +553,7 @@ fn check_game_over(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn emit_snapshot(
     clock: Res<SimClock>,
     wave: Res<WaveState>,
@@ -563,7 +564,7 @@ fn emit_snapshot(
     buildings: Query<(Entity, &BuildingTag, &Health)>,
     projectiles: Query<(Entity, &Position, &Velocity, &ProjectileTag)>,
 ) {
-    if clock.tick % SNAPSHOT_EVERY_N_TICKS != 0 {
+    if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
         return;
     }
 
@@ -654,7 +655,7 @@ fn emit_snapshot(
         input_ack: 0,
         players: Vec::new(),
         fields,
-        keyframe: clock.tick % (SIM_TICK_HZ * 5) == 0,
+        keyframe: clock.tick.is_multiple_of(SIM_TICK_HZ * 5),
     };
     let _ = bcast.tx.send(ServerEvent::Snapshot(snap));
 }
