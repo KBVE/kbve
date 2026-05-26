@@ -1,38 +1,29 @@
 ---
-import ReactAgentDiscordsh from './ReactAgentDiscordsh';
+import ReactAgentGithubWizard from './ReactAgentGithubWizard';
 ---
 
 <section
-	id="agent-discordsh-wrapper"
-	class="agent-discordsh-wrapper kbve-dashboard-page"
-	aria-label="Discordsh agent — token management for owned Discord guilds">
+	id="agent-github-wizard-wrapper"
+	class="agent-github-wizard-wrapper kbve-dashboard-page"
+	aria-label="discordsh GitHub wizard — provision webhook secret, PAT, and smoke-backfill">
 	<div class="dashboard-content">
 		<header class="agent-header not-content">
-			<h1 class="agent-title">discordsh</h1>
+			<h1 class="agent-title">discordsh · GitHub</h1>
 			<p class="agent-lede">
-				Manage tokens for guilds you own. Each row in <code>
-					vault.secrets
-				</code>
-				is keyed by your Discord guild ID. Token values stay server-side —
-				the dashboard only renders metadata (service, description, active
-				flag, timestamps).
-			</p>
-			<p class="agent-lede" style="margin-top: 0.75rem;">
-				New to discordsh + GitHub? Run the
-				<a href="/dashboard/agents/discordsh/github/">
-					guided GitHub setup wizard
-				</a>
-				— it generates the HMAC webhook secret, validates your PAT, and smoke-tests
-				the backfill in one flow.
+				Four-step wizard that walks a guild owner through provisioning
+				the Vault rows discordsh needs for GitHub integration: an HMAC
+				webhook secret (<code>github_webhook:&lt;guild&gt;</code>) and a
+				PAT (<code>github:&lt;guild&gt;</code>). Step 4 smoke-tests the
+				full webhook + backfill path.
 			</p>
 		</header>
 
-		<ReactAgentDiscordsh client:only="react" />
+		<ReactAgentGithubWizard client:only="react" />
 	</div>
 </section>
 
 <style>
-	.agent-discordsh-wrapper {
+	.agent-github-wizard-wrapper {
 		background: transparent;
 		min-height: 100vh;
 		position: relative;
