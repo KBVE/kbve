@@ -1,0 +1,61 @@
+---
+id: "01KQ2WOYBMSI3R6MWOUO39Q8P5"
+ref: "nd-tower-basic"
+drafted: false
+name: "Nexus Defense — Basic Tower"
+title: "Nexus Defense — Basic Tower"
+description: "Starter defensive tower for Nexus Defense matches. Single-target arrow turret with modest range and damage; placed on the player's hex grid at match start."
+type: "building"
+sub_kind: "nd_tower_basic"
+interactable: false
+destructible: true
+blocks_movement: true
+blocks_placement: true
+max_health: 200
+footprint_width: 1
+footprint_height: 1
+footprint_shape: "rectangular"
+construction_time_secs: 0
+spawns_fully_built: true
+requires_in_territory: false
+cost_source: "owner_inventory"
+build_costs:
+  - resource_type: "gold"
+    amount: 60
+ranged_attack:
+  cooldown_secs: 0.4
+  range: 140
+  shots_per_volley: 1
+  ammo_per_volley_cost: 0
+  damage_per_shot: 18
+  spread_half_angle_rad: 0
+  projectile_speed: 320
+  projectile_lifetime: 1.875
+  projectile_ref: "nd-projectile-arrow"
+  ammo_capacity: 0
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Nexus Defense — Basic Tower
+
+The default defensive piece for Nexus Defense. Single-target arrow turret, modest range, modest damage. Two of these spawn on every player's grid at match start (placement defined by the active zone in `q::nexus_defense_server::zone`).
+
+<MapDBPanel data={frontmatter} />
+
+## Game Role
+
+- **Starter unit** — pre-placed by the server during the Prepare phase. No build cost paid on spawn; the `build_costs` block above documents the cost when the player places one mid-match from the build bar.
+- **Auto-targeting** — fires at the closest hostile inside `range` whenever `cooldown_secs` elapses since the last shot.
+- **Single-shot ballistic** — emits one projectile per volley travelling at `projectile_speed` units/s, expires after `projectile_lifetime` seconds.
+
+## Tuning surface
+
+The server pulls all combat numbers from this file at boot via `MapDb::from_bytes` + `get_object_def_by_ref("nd-tower-basic")`. Adjusting the YAML and re-running `nx run astro-kbve:sync:mapdb` retunes the live build without recompiling the Rust binary.
+
+- `max_health` → `BuildingTag` HP / max_HP
+- `ranged_attack.range` → target acquisition radius
+- `ranged_attack.cooldown_secs` → ticks between shots (rounded against `SIM_TICK_HZ`)
+- `ranged_attack.damage_per_shot` → projectile damage
+- `ranged_attack.projectile_speed` → projectile velocity
+- `ranged_attack.projectile_lifetime` × `projectile_speed` → max range before self-despawn

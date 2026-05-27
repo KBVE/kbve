@@ -19,7 +19,7 @@ use bevy::ecs::system::Commands;
 use bevy::prelude::{
     Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
-use bevy_mapdb::map;
+use bevy_mapdb::{MapDb, map};
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
@@ -105,8 +105,6 @@ const fn ticks_to_ms(ticks: u32) -> u32 {
 const SLOT_STRIPE_BASE: f32 = 120.0;
 const SLOT_STRIPE_HEIGHT: f32 = 160.0;
 
-const BUILDING_HP: f32 = 200.0;
-
 /// Starting resources at match boot.
 const STARTING_GOLD: i32 = 150;
 const STARTING_LIVES: i32 = 20;
@@ -115,16 +113,14 @@ const STARTING_LIVES: i32 = 20;
 const INPUT_BUDGET_PER_TICK: u32 = 8;
 
 // --- Combat tuning -------------------------------------------------------
-const TOWER_RANGE: f32 = 140.0;
-const TOWER_RANGE_SQ: f32 = TOWER_RANGE * TOWER_RANGE;
-const TOWER_DAMAGE: f32 = 18.0;
-/// Ticks between shots — 0.4 s.
-const TOWER_FIRE_INTERVAL_TICKS: u32 = 8;
-const PROJECTILE_SPEED: f32 = 320.0;
+// Per-tower combat numbers (HP, range, damage, fire cooldown, projectile
+// speed + lifetime) now live in `WorldObjectDef.ranged_attack` + `max_health`
+// in `apps/kbve/astro-kbve/src/content/docs/mapdb/nd-tower-basic.mdx` and
+// are resolved at boot into `ZoneLayout::starter_stats`. Adjust the MDX +
+// run `nx run astro-kbve:sync:mapdb` to retune the live build.
+
 const PROJECTILE_HIT_RADIUS: f32 = 12.0;
 const PROJECTILE_HIT_RADIUS_SQ: f32 = PROJECTILE_HIT_RADIUS * PROJECTILE_HIT_RADIUS;
-/// Distance a projectile can travel before self-despawn.
-const PROJECTILE_MAX_RANGE: f32 = 600.0;
 /// Gold awarded per enemy kill (uniform for v1; tier scaling later).
 const ENEMY_BOUNTY: i32 = 8;
 
@@ -268,31 +264,55 @@ pub struct ProjectileTag {
 }
 
 /// Server-side wrapper around the mapdb [`map::Zone`] currently driving
-/// the match. Constructed once at boot from [`zone::default_zone`]; the
-/// follow-up MDX/codegen integration will swap the constructor for a
-/// runtime lookup against the shared mapdb registry.
+/// the match plus the resolved combat stats for placeable buildings.
+///
+/// Zone primitives still live in [`zone::default_zone`] (until the MDX
+/// authoring path lands), but tower / building tuning is data-driven —
+/// the constructor walks `MAPDB_BINPB` for the relevant `WorldObjectDef`
+/// and caches the resolved [`zone::BuildingStats`] so per-tick systems
+/// never touch proto.
 #[derive(Resource, Clone)]
-pub struct ZoneLayout(pub map::Zone);
+pub struct ZoneLayout {
+    pub zone: map::Zone,
+    pub starter_stats: zone::BuildingStats,
+}
 
 impl Default for ZoneLayout {
     fn default() -> Self {
-        Self(zone::default_zone())
+        let db = MapDb::from_bytes(zone::MAPDB_BINPB).unwrap_or_default();
+        Self::from_mapdb(&db)
     }
 }
 
 impl ZoneLayout {
+    pub fn from_mapdb(db: &MapDb) -> Self {
+        let starter_stats = db
+            .get_object_def_by_ref(zone::STARTER_TOWER_REF)
+            .map(zone::building_stats_from_def)
+            .unwrap_or(zone::BuildingStats::FALLBACK_TOWER);
+        Self {
+            zone: zone::default_zone(),
+            starter_stats,
+        }
+    }
+
     pub fn enemies_per_wave(&self) -> u32 {
-        zone::read_int_extension(&self.0, zone::EXT_ENEMIES_PER_WAVE)
+        zone::read_int_extension(&self.zone, zone::EXT_ENEMIES_PER_WAVE)
             .filter(|v| *v > 0)
             .map(|v| v as u32)
             .unwrap_or(ENEMIES_PER_WAVE)
     }
 
     pub fn prepare_ticks(&self) -> u32 {
-        zone::read_int_extension(&self.0, zone::EXT_PREPARE_SECONDS)
+        zone::read_int_extension(&self.zone, zone::EXT_PREPARE_SECONDS)
             .filter(|v| *v > 0)
             .map(|v| (v as u32).saturating_mul(SIM_TICK_HZ))
             .unwrap_or(PREPARE_PHASE_TICKS)
+    }
+
+    pub fn tower_fire_interval_ticks(&self) -> u32 {
+        let ticks = (self.starter_stats.fire_interval_secs * SIM_TICK_HZ as f32).round() as i64;
+        ticks.clamp(1, i64::from(u32::MAX)) as u32
     }
 }
 
@@ -384,7 +404,7 @@ fn sync_per_slot_state(
         if let Some(entry) = wave.slots[idx].as_mut()
             && !entry.starter_spawned
         {
-            spawn_starter_buildings(*slot, &zone_layout.0, &mut commands, clock.tick);
+            spawn_starter_buildings(*slot, &zone_layout, &mut commands, clock.tick);
             entry.starter_spawned = true;
         }
     }
@@ -399,11 +419,11 @@ fn sync_per_slot_state(
 
 fn spawn_starter_buildings(
     slot: proto::PlayerSlot,
-    zone: &map::Zone,
+    layout: &ZoneLayout,
     commands: &mut Commands,
     tick: u32,
 ) {
-    for placement in &zone.objects {
+    for placement in &layout.zone.objects {
         let Some(grid_pos) = placement.grid_pos.as_ref() else {
             continue;
         };
@@ -421,8 +441,8 @@ fn spawn_starter_buildings(
             },
             Position(x, y),
             Health {
-                hp: BUILDING_HP,
-                max_hp: BUILDING_HP,
+                hp: layout.starter_stats.max_hp,
+                max_hp: layout.starter_stats.max_hp,
             },
         ));
         if building_is_offensive(kind) {
@@ -435,6 +455,7 @@ fn spawn_starter_buildings(
 
 fn drain_inputs(
     queue: Res<InputQueue>,
+    zone_layout: Res<ZoneLayout>,
     mut budget: ResMut<InputBudget>,
     mut economy: ResMut<PlayerEconomy>,
     clock: Res<SimClock>,
@@ -444,6 +465,7 @@ fn drain_inputs(
         Ok(g) => g,
         Err(p) => p.into_inner(),
     };
+    let starter_stats = zone_layout.starter_stats;
     while let Ok((slot, input)) = guard.try_recv() {
         let idx = slot.0 as usize;
         if idx >= proto::MAX_PLAYERS {
@@ -453,13 +475,21 @@ fn drain_inputs(
             continue;
         }
         budget.consumed[idx] += 1;
-        apply_input(slot, input, &mut economy, clock.tick, &mut commands);
+        apply_input(
+            slot,
+            input,
+            &starter_stats,
+            &mut economy,
+            clock.tick,
+            &mut commands,
+        );
     }
 }
 
 fn apply_input(
     slot: proto::PlayerSlot,
     input: Input,
+    stats: &zone::BuildingStats,
     economy: &mut PlayerEconomy,
     tick: u32,
     commands: &mut Commands,
@@ -486,8 +516,8 @@ fn apply_input(
                 },
                 Position(x, y),
                 Health {
-                    hp: BUILDING_HP,
-                    max_hp: BUILDING_HP,
+                    hp: stats.max_hp,
+                    max_hp: stats.max_hp,
                 },
             ));
             if building_is_offensive(kind) {
@@ -566,15 +596,20 @@ fn move_enemies(mut q: Query<(&Velocity, &mut Position), With<EnemyTag>>) {
 
 fn tower_fire(
     clock: Res<SimClock>,
+    zone_layout: Res<ZoneLayout>,
     mut towers: Query<(&BuildingTag, &Position, &mut TowerStats)>,
     enemies: Query<(Entity, &EnemyTag, &Position)>,
     mut commands: Commands,
 ) {
+    let stats_def = zone_layout.starter_stats;
+    let fire_interval = zone_layout.tower_fire_interval_ticks();
+    let range_sq = stats_def.range * stats_def.range;
+    let max_projectile_range = stats_def.max_range();
     for (tag, tower_pos, mut stats) in towers.iter_mut() {
         if !building_is_offensive(tag.kind) {
             continue;
         }
-        if clock.tick.wrapping_sub(stats.last_fire_tick) < TOWER_FIRE_INTERVAL_TICKS {
+        if clock.tick.wrapping_sub(stats.last_fire_tick) < fire_interval {
             continue;
         }
 
@@ -587,7 +622,7 @@ fn tower_fire(
             let dx = e_pos.0 - tower_pos.0;
             let dy = e_pos.1 - tower_pos.1;
             let dist_sq = dx * dx + dy * dy;
-            if dist_sq > TOWER_RANGE_SQ {
+            if dist_sq > range_sq {
                 continue;
             }
             if best.map(|(_, b, _, _)| dist_sq < b).unwrap_or(true) {
@@ -599,14 +634,14 @@ fn tower_fire(
         };
 
         let dist = dist_sq.sqrt().max(0.001);
-        let vx = dx / dist * PROJECTILE_SPEED;
-        let vy = dy / dist * PROJECTILE_SPEED;
+        let vx = dx / dist * stats_def.projectile_speed;
+        let vy = dy / dist * stats_def.projectile_speed;
 
         commands.spawn((
             ProjectileTag {
                 owner: tag.owner,
-                damage: TOWER_DAMAGE,
-                remaining_range: PROJECTILE_MAX_RANGE,
+                damage: stats_def.damage_per_shot,
+                remaining_range: max_projectile_range,
             },
             Position(tower_pos.0, tower_pos.1),
             Velocity(vx, vy),
