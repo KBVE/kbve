@@ -15,4 +15,11 @@ describe('agones-factorio boot smoke', () => {
 		const logs = dockerLogs();
 		expect(logs).toMatch(/scenarios\/kbve|scenario.*kbve/i);
 	});
+
+	it('opens the UDP game socket on the expected port', () => {
+		const logs = dockerLogs();
+		expect(logs).toMatch(
+			/Opening socket at .*:34197|Hosting game at .*:34197/,
+		);
+	});
 });
