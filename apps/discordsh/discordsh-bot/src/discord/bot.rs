@@ -184,6 +184,8 @@ async fn event_handler(
 
             super::relay::spawn_irc_forwarder(data.app.clone(), ctx.http.clone());
 
+            super::gh_sync::spawn_gh_sync_worker(data.app.clone(), ctx.http.clone());
+
             // Record shard in tracker (best-effort)
             if let Some(ref tracker) = data.app.tracker {
                 let instance_id = std::env::var("HOSTNAME")
