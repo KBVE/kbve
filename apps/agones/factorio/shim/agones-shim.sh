@@ -25,7 +25,7 @@ done
 
 RCON_ARGS=""
 if [ -n "$FACTORIO_RCON_PASSWORD" ]; then
-    RCON_ARGS="--rcon-port ${FACTORIO_RCON_PORT} --rcon-bind ${FACTORIO_RCON_BIND}:${FACTORIO_RCON_PORT} --rcon-password ${FACTORIO_RCON_PASSWORD}"
+    RCON_ARGS="--rcon-bind ${FACTORIO_RCON_BIND}:${FACTORIO_RCON_PORT} --rcon-password ${FACTORIO_RCON_PASSWORD}"
 fi
 
 sdk_post() {
