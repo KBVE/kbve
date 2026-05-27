@@ -30,6 +30,7 @@
 mod proto;
 mod registry;
 
+pub use proto::map;
 pub use proto::map::*;
 pub use registry::{MapDb, ProtoMapId};
 
