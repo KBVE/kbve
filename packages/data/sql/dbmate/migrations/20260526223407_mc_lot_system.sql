@@ -68,8 +68,10 @@ SET search_path = ''
 AS $$
     -- pgcrypto lives in the extensions schema on Supabase/kilobase; the
     -- mc_pgcrypto_qualify migration already established this convention
-    -- and granted USAGE on extensions to service_role.
-    SELECT substr(encode(extensions.digest(p_key::text || ':' || p_tag, 'md5'), 'hex'), 1, 32)::uuid;
+    -- and granted USAGE on extensions to service_role. SHA-256 truncated
+    -- to 128 bits gives a UUID-sized digest with no realistic collision
+    -- surface even though the use is non-adversarial.
+    SELECT substr(encode(extensions.digest(p_key::text || ':' || p_tag, 'sha256'), 'hex'), 1, 32)::uuid;
 $$;
 
 ALTER FUNCTION mc._derive_idem_key(UUID, TEXT) OWNER TO postgres;
@@ -97,6 +99,8 @@ CREATE TABLE mc.schematic (
     CONSTRAINT mc_schematic_dims_chk   CHECK (dims_x > 0 AND dims_y > 0 AND dims_z > 0),
     CONSTRAINT mc_schematic_dims_y_chk CHECK (dims_y <= 384),
     CONSTRAINT mc_schematic_price_chk  CHECK (price_credits >= 0 AND price_khash >= 0),
+    CONSTRAINT mc_schematic_id_chk
+        CHECK (schematic_id ~ '^[A-Za-z0-9:_/-]{3,128}$'),
     CONSTRAINT mc_schematic_category_chk
         CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
     -- Reject path-traversal + force schematics into the mod jar's
@@ -148,6 +152,7 @@ CREATE TABLE mc.lot (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
+    CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
     CONSTRAINT mc_lot_state_chk      CHECK (state BETWEEN 0 AND 4),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
@@ -157,6 +162,13 @@ CREATE TABLE mc.lot (
     CONSTRAINT mc_lot_z_range_chk    CHECK (NOT isempty(chunk_z_range)
                                              AND lower_inc(chunk_z_range)
                                              AND NOT upper_inc(chunk_z_range)),
+    -- Explicit finite-bounds guard so the generated chunk_area columns
+    -- and the GIST EXCLUDE never see unbounded ranges. Belt-and-suspenders
+    -- with the isempty + bound-inclusion checks above.
+    CONSTRAINT mc_lot_x_range_finite_chk
+        CHECK (lower(chunk_x_range) IS NOT NULL AND upper(chunk_x_range) IS NOT NULL),
+    CONSTRAINT mc_lot_z_range_finite_chk
+        CHECK (lower(chunk_z_range) IS NOT NULL AND upper(chunk_z_range) IS NOT NULL),
     -- Vanilla dim ids look like 'minecraft:overworld' or
     -- 'kbve:survival_ext'. Enforce the namespaced format to keep typos and
     -- arbitrary text from sneaking into the world column.
@@ -171,7 +183,7 @@ CREATE TABLE mc.lot (
         OR state <> 2
     ),
 
-    EXCLUDE USING gist (
+    CONSTRAINT mc_lot_no_overlap_excl EXCLUDE USING gist (
         world WITH =,
         chunk_x_range WITH &&,
         chunk_z_range WITH &&
@@ -187,19 +199,26 @@ CREATE INDEX idx_mc_lot_world_chunk_order
 -- skip irrelevant rows entirely.
 CREATE INDEX idx_mc_lot_world_state_chunk_order
     ON mc.lot (world, state, lower(chunk_x_range), lower(chunk_z_range));
+-- proxy_list_lots(p_only_mine = true) filters by owner first then sorts
+-- by world/chunk. This partial index covers that path so "my lots" never
+-- falls back to a sort.
+CREATE INDEX idx_mc_lot_owner_world_chunk_order
+    ON mc.lot (owner_user_id, world, lower(chunk_x_range), lower(chunk_z_range))
+    WHERE owner_user_id IS NOT NULL;
 
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot FORCE ROW LEVEL SECURITY;
 
 -- Trigger touches updated_at only when something other than updated_at
 -- itself changed; cuts write amplification on no-op UPDATEs.
+-- clock_timestamp() captures real statement time even in long transactions.
 CREATE OR REPLACE FUNCTION mc.trg_lot_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF NEW IS DISTINCT FROM OLD THEN
-        NEW.updated_at := NOW();
+        NEW.updated_at := clock_timestamp();
     END IF;
     RETURN NEW;
 END;
@@ -284,9 +303,15 @@ CREATE TABLE mc.lot_build_log (
             OR (action_kind = 1)),
     CONSTRAINT mc_lot_build_log_apply_error_len_chk
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
+    CONSTRAINT mc_lot_build_log_claimed_by_len_chk
+        CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
+    -- Claimed state must carry full worker identity; non-claimed states
+    -- must not.
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
-        CHECK ((apply_state = 3 AND claimed_at IS NOT NULL)
-            OR (apply_state <> 3)),
+        CHECK (
+            (apply_state = 3 AND claimed_at IS NOT NULL AND claimed_by IS NOT NULL)
+            OR (apply_state <> 3 AND claimed_at IS NULL AND claimed_by IS NULL)
+        ),
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
@@ -460,25 +485,42 @@ RETURNS TABLE (
     schematic_id    TEXT,
     queued_at       TIMESTAMPTZ
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 ROWS 32
 AS $$
-    UPDATE mc.lot_build_log b
-       SET apply_state = 3,
-           claimed_at  = clock_timestamp(),
-           claimed_by  = p_worker_id
-     WHERE b.build_id IN (
-        SELECT inner_b.build_id
-          FROM mc.lot_build_log inner_b
-         WHERE inner_b.apply_state = 0
-         ORDER BY inner_b.queued_at
-         FOR UPDATE SKIP LOCKED
-         LIMIT GREATEST(1, LEAST(p_limit, 256))
-     )
-    RETURNING b.build_id, b.lot_id, b.actor_user_id,
-              b.action_kind, b.schematic_id, b.queued_at;
+BEGIN
+    IF p_worker_id IS NULL OR btrim(p_worker_id) = '' THEN
+        RAISE EXCEPTION 'worker_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF length(p_worker_id) > 128 THEN
+        RAISE EXCEPTION 'worker_id too long (max 128)' USING ERRCODE = '22001';
+    END IF;
+
+    -- UPDATE ... RETURNING has no ordering guarantee. Wrap in a CTE and
+    -- sort the final SELECT so workers process the batch in queued order.
+    RETURN QUERY
+    WITH claimed AS (
+        UPDATE mc.lot_build_log b
+           SET apply_state = 3,
+               claimed_at  = clock_timestamp(),
+               claimed_by  = p_worker_id
+         WHERE b.build_id IN (
+            SELECT inner_b.build_id
+              FROM mc.lot_build_log inner_b
+             WHERE inner_b.apply_state = 0
+             ORDER BY inner_b.queued_at
+             FOR UPDATE SKIP LOCKED
+             LIMIT GREATEST(1, LEAST(p_limit, 256))
+         )
+        RETURNING b.build_id, b.lot_id, b.actor_user_id,
+                  b.action_kind, b.schematic_id, b.queued_at
+    )
+    SELECT *
+      FROM claimed
+     ORDER BY queued_at, build_id;
+END;
 $$;
 
 ALTER FUNCTION mc.service_claim_pending_builds(TEXT, INTEGER) OWNER TO postgres;
@@ -522,7 +564,10 @@ GRANT EXECUTE ON FUNCTION mc.service_requeue_stale_claims(INTEGER)
 -- ===========================================================================
 -- mc.service_mark_build_applied — MC mod ACK on success
 -- ===========================================================================
-CREATE OR REPLACE FUNCTION mc.service_mark_build_applied(p_build_id TEXT)
+CREATE OR REPLACE FUNCTION mc.service_mark_build_applied(
+    p_build_id  TEXT,
+    p_worker_id TEXT
+)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -535,13 +580,20 @@ DECLARE
     v_schematic_id  TEXT;
     v_rowcount      INTEGER;
 BEGIN
+    IF p_worker_id IS NULL OR btrim(p_worker_id) = '' THEN
+        RAISE EXCEPTION 'worker_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+
+    -- Only the worker that holds the claim may ACK it. Prevents a stale
+    -- or wrong worker from finalizing another worker's job.
     UPDATE mc.lot_build_log
        SET apply_state = 1,
            applied_at = clock_timestamp(),
            claimed_at = NULL,
            claimed_by = NULL
      WHERE build_id = p_build_id
-       AND apply_state IN (0, 3)
+       AND apply_state = 3
+       AND claimed_by = p_worker_id
     RETURNING lot_id, action_kind, schematic_id
         INTO v_lot_id, v_action_kind, v_schematic_id;
 
@@ -577,10 +629,10 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION mc.service_mark_build_applied(TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.service_mark_build_applied(TEXT)
+ALTER FUNCTION mc.service_mark_build_applied(TEXT, TEXT) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_mark_build_applied(TEXT, TEXT)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.service_mark_build_applied(TEXT)
+GRANT EXECUTE ON FUNCTION mc.service_mark_build_applied(TEXT, TEXT)
     TO service_role;
 
 
@@ -588,8 +640,9 @@ GRANT EXECUTE ON FUNCTION mc.service_mark_build_applied(TEXT)
 -- mc.service_mark_build_failed — MC mod ACK on failure
 -- ===========================================================================
 CREATE OR REPLACE FUNCTION mc.service_mark_build_failed(
-    p_build_id TEXT,
-    p_error TEXT
+    p_build_id  TEXT,
+    p_worker_id TEXT,
+    p_error     TEXT
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -598,8 +651,13 @@ SET search_path = ''
 COST 100
 AS $$
 DECLARE
-    v_lot_id TEXT;
+    v_lot_id   TEXT;
+    v_rowcount INTEGER;
 BEGIN
+    IF p_worker_id IS NULL OR btrim(p_worker_id) = '' THEN
+        RAISE EXCEPTION 'worker_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+
     UPDATE mc.lot_build_log
        SET apply_state = 2,
            apply_error = left(p_error, 2048),
@@ -607,7 +665,8 @@ BEGIN
            claimed_at = NULL,
            claimed_by = NULL
      WHERE build_id = p_build_id
-       AND apply_state IN (0, 3)
+       AND apply_state = 3
+       AND claimed_by = p_worker_id
     RETURNING lot_id INTO v_lot_id;
 
     IF NOT FOUND THEN
@@ -618,15 +677,20 @@ BEGIN
        SET state = CASE WHEN current_schematic_id IS NULL THEN 1 ELSE 2 END
      WHERE lot_id = v_lot_id
        AND state IN (3, 4);
+    GET DIAGNOSTICS v_rowcount = ROW_COUNT;
+    IF v_rowcount <> 1 THEN
+        RAISE EXCEPTION 'lot % not in active build/demolish state at failure ACK time', v_lot_id
+            USING ERRCODE = '22023';
+    END IF;
 
     RETURN TRUE;
 END;
 $$;
 
-ALTER FUNCTION mc.service_mark_build_failed(TEXT, TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.service_mark_build_failed(TEXT, TEXT)
+ALTER FUNCTION mc.service_mark_build_failed(TEXT, TEXT, TEXT) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_mark_build_failed(TEXT, TEXT, TEXT)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.service_mark_build_failed(TEXT, TEXT)
+GRANT EXECUTE ON FUNCTION mc.service_mark_build_failed(TEXT, TEXT, TEXT)
     TO service_role;
 
 
@@ -656,6 +720,13 @@ DECLARE
     v_khash_ledger_id      BIGINT;
     v_purchase_id          TEXT;
 BEGIN
+    -- Serialize concurrent retries on the same idempotency_key. Without
+    -- the lock two identical requests can both miss the existing-key
+    -- check, then one inserts cleanly and the other tries the lot-state
+    -- path and surfaces a confusing "lot not vacant" error instead of
+    -- collapsing to the original purchase row.
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+
     -- Idempotent replay: existing key must match the original parameters,
     -- otherwise the caller is reusing a key for a different request.
     SELECT purchase_id, lot_id, buyer_user_id
@@ -778,6 +849,10 @@ DECLARE
     v_khash_ledger_id      BIGINT;
     v_build_id             TEXT;
 BEGIN
+    -- Serialize concurrent retries on the same idempotency_key. See the
+    -- matching note in service_purchase_lot.
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+
     SELECT build_id, lot_id, schematic_id, actor_user_id
       INTO v_existing_build_id, v_existing_lot, v_existing_schematic, v_existing_actor
       FROM mc.lot_build_log
@@ -928,6 +1003,8 @@ DECLARE
     v_lot_state            SMALLINT;
     v_build_id             TEXT;
 BEGIN
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+
     SELECT build_id, lot_id, actor_user_id, action_kind
       INTO v_existing_build_id, v_existing_lot, v_existing_actor, v_existing_action
       FROM mc.lot_build_log
@@ -1288,10 +1365,107 @@ REVOKE ALL ON FUNCTION public.proxy_queue_demolish_lot(TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_queue_demolish_lot(TEXT) TO authenticated, service_role;
 
 
+-- ===========================================================================
+-- PUBLIC WORKER WRAPPERS — service_role only, for MC mod through PostgREST
+-- ===========================================================================
+-- The MC mod authenticates with the Supabase service-role JWT and reaches
+-- the DB through PostgREST. PostgREST only sees the public schema, so the
+-- mc.service_* worker RPCs need a public-side bridge. authenticated callers
+-- are excluded so dashboard clients can't drive the worker queue.
+
+CREATE OR REPLACE FUNCTION public.proxy_service_claim_pending_builds(
+    p_worker_id TEXT,
+    p_limit INTEGER DEFAULT 32
+)
+RETURNS TABLE (
+    build_id        TEXT,
+    lot_id          TEXT,
+    actor_user_id   UUID,
+    action_kind     SMALLINT,
+    schematic_id    TEXT,
+    queued_at       TIMESTAMPTZ
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+ROWS 32
+AS $$
+    SELECT * FROM mc.service_claim_pending_builds(p_worker_id, p_limit);
+$$;
+
+ALTER FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_applied(
+    p_build_id  TEXT,
+    p_worker_id TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT mc.service_mark_build_applied(p_build_id, p_worker_id);
+$$;
+
+ALTER FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_failed(
+    p_build_id  TEXT,
+    p_worker_id TEXT,
+    p_error     TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT mc.service_mark_build_failed(p_build_id, p_worker_id, p_error);
+$$;
+
+ALTER FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_requeue_stale_claims(
+    p_older_than_seconds INTEGER DEFAULT 300
+)
+RETURNS INTEGER
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT mc.service_requeue_stale_claims(p_older_than_seconds);
+$$;
+
+ALTER FUNCTION public.proxy_service_requeue_stale_claims(INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
+    TO service_role;
+
+
 NOTIFY pgrst, 'reload schema';
 
 
 -- migrate:down
+
+DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER);
+DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_service_claim_pending_builds(TEXT, INTEGER);
 
 DROP FUNCTION IF EXISTS public.proxy_queue_demolish_lot(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_queue_build_on_lot(TEXT, TEXT);
@@ -1308,8 +1482,8 @@ DROP FUNCTION IF EXISTS mc.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INT
 DROP FUNCTION IF EXISTS mc.service_queue_demolish_lot(TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_queue_build_on_lot(TEXT, TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_purchase_lot(TEXT, UUID, UUID);
-DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT);
-DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT);
+DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS mc.service_claim_pending_builds(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_list_schematics(TEXT, BOOLEAN);

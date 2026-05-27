@@ -65,6 +65,8 @@ CREATE TABLE IF NOT EXISTS mc.schematic (
     CONSTRAINT mc_schematic_dims_chk   CHECK (dims_x > 0 AND dims_y > 0 AND dims_z > 0),
     CONSTRAINT mc_schematic_dims_y_chk CHECK (dims_y <= 384),
     CONSTRAINT mc_schematic_price_chk  CHECK (price_credits >= 0 AND price_khash >= 0),
+    CONSTRAINT mc_schematic_id_chk
+        CHECK (schematic_id ~ '^[A-Za-z0-9:_/-]{3,128}$'),
     CONSTRAINT mc_schematic_category_chk
         CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
     CONSTRAINT mc_schematic_resource_path_chk
@@ -100,6 +102,7 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
+    CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
     CONSTRAINT mc_lot_state_chk      CHECK (state BETWEEN 0 AND 4),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
@@ -109,6 +112,10 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     CONSTRAINT mc_lot_z_range_chk    CHECK (NOT isempty(chunk_z_range)
                                              AND lower_inc(chunk_z_range)
                                              AND NOT upper_inc(chunk_z_range)),
+    CONSTRAINT mc_lot_x_range_finite_chk
+        CHECK (lower(chunk_x_range) IS NOT NULL AND upper(chunk_x_range) IS NOT NULL),
+    CONSTRAINT mc_lot_z_range_finite_chk
+        CHECK (lower(chunk_z_range) IS NOT NULL AND upper(chunk_z_range) IS NOT NULL),
     CONSTRAINT mc_lot_world_chk
         CHECK (world ~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$'),
     CONSTRAINT mc_lot_owner_state_chk CHECK (
@@ -120,7 +127,7 @@ CREATE TABLE IF NOT EXISTS mc.lot (
         OR state <> 2
     ),
 
-    EXCLUDE USING gist (
+    CONSTRAINT mc_lot_no_overlap_excl EXCLUDE USING gist (
         world WITH =,
         chunk_x_range WITH &&,
         chunk_z_range WITH &&
@@ -133,6 +140,9 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_order
     ON mc.lot (world, lower(chunk_x_range), lower(chunk_z_range));
 CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_order
     ON mc.lot (world, state, lower(chunk_x_range), lower(chunk_z_range));
+CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_world_chunk_order
+    ON mc.lot (owner_user_id, world, lower(chunk_x_range), lower(chunk_z_range))
+    WHERE owner_user_id IS NOT NULL;
 
 
 -- ========== TABLE: mc.lot_purchase ==========
@@ -188,9 +198,13 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
             OR (action_kind = 1)),
     CONSTRAINT mc_lot_build_log_apply_error_len_chk
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
+    CONSTRAINT mc_lot_build_log_claimed_by_len_chk
+        CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
-        CHECK ((apply_state = 3 AND claimed_at IS NOT NULL)
-            OR (apply_state <> 3)),
+        CHECK (
+            (apply_state = 3 AND claimed_at IS NOT NULL AND claimed_by IS NOT NULL)
+            OR (apply_state <> 3 AND claimed_at IS NULL AND claimed_by IS NULL)
+        ),
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
