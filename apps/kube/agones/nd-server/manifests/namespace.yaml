@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: nexus-defense
+    labels:
+        app.kubernetes.io/part-of: nexus-defense
+        # Cilium hubble/observability tagging — keeps the netflow board grouped.
+        kbve.com/stack: agones
