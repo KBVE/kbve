@@ -12,8 +12,16 @@ REPO_ROOT="$(cd "$PROJECT_DIR/../../.." && pwd)"
 
 GODOT_BIN="${GODOT_BIN:-godot}"
 if ! command -v "$GODOT_BIN" >/dev/null 2>&1; then
-  echo "godot binary not found on PATH; set GODOT_BIN=/path/to/godot" >&2
-  exit 127
+  # Same soft-skip policy as scripts/test.sh — CI runners don't ship
+  # godot. Set ND_REQUIRE_GODOT=1 to fail-fast locally.
+  if [[ "${ND_REQUIRE_GODOT:-0}" == "1" ]]; then
+    echo "godot binary not found on PATH; set GODOT_BIN=/path/to/godot" >&2
+    echo "(ND_REQUIRE_GODOT=1 set — refusing to soft-skip)" >&2
+    exit 127
+  fi
+  echo "::warning::godot binary not found on PATH — skipping nexus-defense:test-e2e" >&2
+  echo "[skip] Install godot or set GODOT_BIN to run the e2e suite locally." >&2
+  exit 0
 fi
 
 if [[ -z "${TD_SERVER_BIN:-}" ]]; then
