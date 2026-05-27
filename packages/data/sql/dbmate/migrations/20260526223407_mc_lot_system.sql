@@ -339,6 +339,9 @@ ALTER TABLE mc.lot_build_log FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_build_log IS
     'Append-only audit of build/demolish events and concurrent work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed.';
+COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
+COMMENT ON COLUMN mc.lot_build_log.apply_state IS
+    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
 
 
 -- ===========================================================================
@@ -517,7 +520,8 @@ BEGIN
              WHERE inner_b.apply_state = 0
              ORDER BY inner_b.queued_at, inner_b.build_id
              FOR UPDATE SKIP LOCKED
-             LIMIT GREATEST(1, LEAST(p_limit, 256))
+             -- 0 is a legitimate value (dry-poll / disabled worker).
+             LIMIT GREATEST(0, LEAST(p_limit, 256))
          )
         RETURNING b.build_id, b.lot_id, b.actor_user_id,
                   b.action_kind, b.schematic_id, b.queued_at
@@ -737,6 +741,19 @@ DECLARE
     v_khash_ledger_id      BIGINT;
     v_purchase_id          TEXT;
 BEGIN
+    -- service_role callers can hit this directly; mirror the cheap
+    -- public-wrapper guards inline so a bad arg surfaces a clear error
+    -- before the advisory lock or the lot-row FOR UPDATE.
+    IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
+        RAISE EXCEPTION 'lot_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id cannot be null' USING ERRCODE = '22004';
+    END IF;
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
+    END IF;
+
     -- Serialize concurrent retries on the same idempotency_key. Without
     -- the lock two identical requests can both miss the existing-key
     -- check, then one inserts cleanly and the other tries the lot-state
@@ -866,6 +883,19 @@ DECLARE
     v_khash_ledger_id      BIGINT;
     v_build_id             TEXT;
 BEGIN
+    IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
+        RAISE EXCEPTION 'lot_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_schematic_id IS NULL OR btrim(p_schematic_id) = '' THEN
+        RAISE EXCEPTION 'schematic_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id cannot be null' USING ERRCODE = '22004';
+    END IF;
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
+    END IF;
+
     -- Serialize concurrent retries on the same idempotency_key. See the
     -- matching note in service_purchase_lot.
     PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
@@ -1020,6 +1050,16 @@ DECLARE
     v_lot_state            SMALLINT;
     v_build_id             TEXT;
 BEGIN
+    IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
+        RAISE EXCEPTION 'lot_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id cannot be null' USING ERRCODE = '22004';
+    END IF;
+    IF p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
+    END IF;
+
     PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
 
     SELECT build_id, lot_id, actor_user_id, action_kind
@@ -1177,31 +1217,9 @@ REVOKE ALL ON FUNCTION mc.proxy_list_schematics(TEXT)
 GRANT EXECUTE ON FUNCTION mc.proxy_list_schematics(TEXT) TO service_role;
 
 
-CREATE OR REPLACE FUNCTION mc.proxy_purchase_lot(p_lot_id TEXT)
-RETURNS TEXT
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-COST 100
-AS $$
-DECLARE
-    v_uid UUID := auth.uid();
-BEGIN
-    IF v_uid IS NULL THEN
-        RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
-    END IF;
-    RETURN mc.service_purchase_lot(p_lot_id, v_uid, gen_random_uuid());
-END;
-$$;
-
-ALTER FUNCTION mc.proxy_purchase_lot(TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.proxy_purchase_lot(TEXT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.proxy_purchase_lot(TEXT) TO service_role;
-
-
-CREATE OR REPLACE FUNCTION mc.proxy_queue_build_on_lot(
+CREATE OR REPLACE FUNCTION mc.proxy_purchase_lot(
     p_lot_id TEXT,
-    p_schematic_id TEXT
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
 )
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -1215,17 +1233,20 @@ BEGIN
     IF v_uid IS NULL THEN
         RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
     END IF;
-    RETURN mc.service_queue_build_on_lot(p_lot_id, p_schematic_id, v_uid, gen_random_uuid());
+    RETURN mc.service_purchase_lot(p_lot_id, v_uid, p_idempotency_key);
 END;
 $$;
 
-ALTER FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT)
-    FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT) TO service_role;
+ALTER FUNCTION mc.proxy_purchase_lot(TEXT, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.proxy_purchase_lot(TEXT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.proxy_purchase_lot(TEXT, UUID) TO service_role;
 
 
-CREATE OR REPLACE FUNCTION mc.proxy_queue_demolish_lot(p_lot_id TEXT)
+CREATE OR REPLACE FUNCTION mc.proxy_queue_build_on_lot(
+    p_lot_id TEXT,
+    p_schematic_id TEXT,
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
+)
 RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1238,14 +1259,40 @@ BEGIN
     IF v_uid IS NULL THEN
         RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
     END IF;
-    RETURN mc.service_queue_demolish_lot(p_lot_id, v_uid, gen_random_uuid());
+    RETURN mc.service_queue_build_on_lot(p_lot_id, p_schematic_id, v_uid, p_idempotency_key);
 END;
 $$;
 
-ALTER FUNCTION mc.proxy_queue_demolish_lot(TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.proxy_queue_demolish_lot(TEXT)
+ALTER FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT, UUID)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.proxy_queue_demolish_lot(TEXT) TO service_role;
+GRANT EXECUTE ON FUNCTION mc.proxy_queue_build_on_lot(TEXT, TEXT, UUID) TO service_role;
+
+
+CREATE OR REPLACE FUNCTION mc.proxy_queue_demolish_lot(
+    p_lot_id TEXT,
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+COST 100
+AS $$
+DECLARE
+    v_uid UUID := auth.uid();
+BEGIN
+    IF v_uid IS NULL THEN
+        RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
+    END IF;
+    RETURN mc.service_queue_demolish_lot(p_lot_id, v_uid, p_idempotency_key);
+END;
+$$;
+
+ALTER FUNCTION mc.proxy_queue_demolish_lot(TEXT, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.proxy_queue_demolish_lot(TEXT, UUID)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.proxy_queue_demolish_lot(TEXT, UUID) TO service_role;
 
 
 -- ===========================================================================
@@ -1316,7 +1363,13 @@ REVOKE ALL ON FUNCTION public.proxy_list_schematics(TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_list_schematics(TEXT) TO authenticated, service_role;
 
 
-CREATE OR REPLACE FUNCTION public.proxy_purchase_lot(p_lot_id TEXT)
+-- p_idempotency_key is optional. Clients that retry on network failure
+-- should pass a stable key so the repeat call collapses to the original
+-- purchase row instead of racing into a "lot not vacant" error.
+CREATE OR REPLACE FUNCTION public.proxy_purchase_lot(
+    p_lot_id TEXT,
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
+)
 RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1327,18 +1380,19 @@ BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
         RAISE EXCEPTION 'lot_id cannot be empty' USING ERRCODE = '22004';
     END IF;
-    RETURN mc.proxy_purchase_lot(p_lot_id);
+    RETURN mc.proxy_purchase_lot(p_lot_id, p_idempotency_key);
 END;
 $$;
 
-ALTER FUNCTION public.proxy_purchase_lot(TEXT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_purchase_lot(TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.proxy_purchase_lot(TEXT) TO authenticated, service_role;
+ALTER FUNCTION public.proxy_purchase_lot(TEXT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_purchase_lot(TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_purchase_lot(TEXT, UUID) TO authenticated, service_role;
 
 
 CREATE OR REPLACE FUNCTION public.proxy_queue_build_on_lot(
     p_lot_id TEXT,
-    p_schematic_id TEXT
+    p_schematic_id TEXT,
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
 )
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -1353,16 +1407,19 @@ BEGIN
     IF p_schematic_id IS NULL OR btrim(p_schematic_id) = '' THEN
         RAISE EXCEPTION 'schematic_id cannot be empty' USING ERRCODE = '22004';
     END IF;
-    RETURN mc.proxy_queue_build_on_lot(p_lot_id, p_schematic_id);
+    RETURN mc.proxy_queue_build_on_lot(p_lot_id, p_schematic_id, p_idempotency_key);
 END;
 $$;
 
-ALTER FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT) TO authenticated, service_role;
+ALTER FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT, UUID) TO authenticated, service_role;
 
 
-CREATE OR REPLACE FUNCTION public.proxy_queue_demolish_lot(p_lot_id TEXT)
+CREATE OR REPLACE FUNCTION public.proxy_queue_demolish_lot(
+    p_lot_id TEXT,
+    p_idempotency_key UUID DEFAULT gen_random_uuid()
+)
 RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1373,13 +1430,13 @@ BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
         RAISE EXCEPTION 'lot_id cannot be empty' USING ERRCODE = '22004';
     END IF;
-    RETURN mc.proxy_queue_demolish_lot(p_lot_id);
+    RETURN mc.proxy_queue_demolish_lot(p_lot_id, p_idempotency_key);
 END;
 $$;
 
-ALTER FUNCTION public.proxy_queue_demolish_lot(TEXT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_queue_demolish_lot(TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.proxy_queue_demolish_lot(TEXT) TO authenticated, service_role;
+ALTER FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) TO authenticated, service_role;
 
 
 -- ===========================================================================
@@ -1427,6 +1484,7 @@ RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
+COST 100
 AS $$
     SELECT mc.service_mark_build_applied(p_build_id, p_worker_id);
 $$;
@@ -1449,6 +1507,7 @@ RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
+COST 100
 AS $$
     SELECT mc.service_mark_build_failed(p_build_id, p_worker_id, p_error);
 $$;
@@ -1469,6 +1528,7 @@ RETURNS INTEGER
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
+COST 100
 AS $$
     SELECT mc.service_requeue_stale_claims(p_older_than_seconds);
 $$;
@@ -1499,15 +1559,24 @@ DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT)
 DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_service_claim_pending_builds(TEXT, INTEGER);
 
+-- Pre-idempotency-key signatures (covered for dev DBs that briefly held
+-- the older single-arg shapes).
 DROP FUNCTION IF EXISTS public.proxy_queue_demolish_lot(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_queue_build_on_lot(TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_purchase_lot(TEXT);
-DROP FUNCTION IF EXISTS public.proxy_list_schematics(TEXT);
-DROP FUNCTION IF EXISTS public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER);
-
 DROP FUNCTION IF EXISTS mc.proxy_queue_demolish_lot(TEXT);
 DROP FUNCTION IF EXISTS mc.proxy_queue_build_on_lot(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.proxy_purchase_lot(TEXT);
+
+DROP FUNCTION IF EXISTS public.proxy_queue_demolish_lot(TEXT, UUID);
+DROP FUNCTION IF EXISTS public.proxy_queue_build_on_lot(TEXT, TEXT, UUID);
+DROP FUNCTION IF EXISTS public.proxy_purchase_lot(TEXT, UUID);
+DROP FUNCTION IF EXISTS public.proxy_list_schematics(TEXT);
+DROP FUNCTION IF EXISTS public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER);
+
+DROP FUNCTION IF EXISTS mc.proxy_queue_demolish_lot(TEXT, UUID);
+DROP FUNCTION IF EXISTS mc.proxy_queue_build_on_lot(TEXT, TEXT, UUID);
+DROP FUNCTION IF EXISTS mc.proxy_purchase_lot(TEXT, UUID);
 DROP FUNCTION IF EXISTS mc.proxy_list_schematics(TEXT);
 DROP FUNCTION IF EXISTS mc.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER);
 

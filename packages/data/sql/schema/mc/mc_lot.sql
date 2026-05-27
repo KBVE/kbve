@@ -223,6 +223,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_build_log_one_active_per_lot
     ON mc.lot_build_log (lot_id) WHERE apply_state IN (0, 3);
 
 
+COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
+COMMENT ON COLUMN mc.lot_build_log.apply_state IS
+    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
+
+
 -- RPC bodies live in the migration file (20260526223407_mc_lot_system.sql).
 -- This file documents the table layer; the functions are deployed via the
 -- migration since they reference wallet.service_debit and auth.uid().
