@@ -1,7 +1,10 @@
 ---
-interface BotIntegration {
+type CardKind = 'bot' | 'provider';
+
+interface AgentCard {
 	key: string;
 	name: string;
+	kind: CardKind;
 	tagline: string;
 	description: string;
 	docs_url: string;
@@ -10,22 +13,37 @@ interface BotIntegration {
 	status: 'available' | 'coming_soon';
 }
 
-const BOTS: BotIntegration[] = [
+const CARDS: AgentCard[] = [
+	{
+		key: 'github',
+		name: 'GitHub',
+		kind: 'provider',
+		tagline:
+			'Per-guild GitHub integration — webhook HMAC, PAT, repo allowlist (future).',
+		description:
+			'Provider page. Stores github_webhook:<guild> + github:<guild> (PAT) rows in Supabase Vault. Any agent consuming GitHub credentials (discordsh today, future bots later) reads the same rows. Run the guided wizard to provision everything end-to-end + smoke-test the webhook + backfill path.',
+		docs_url: '/project/discordsh-bot/',
+		manage_url: '/dashboard/agents/github/',
+		services: ['github', 'github_webhook', 'github_repos'],
+		status: 'available',
+	},
 	{
 		key: 'discordsh',
 		name: 'discordsh',
+		kind: 'bot',
 		tagline:
 			'Discord gateway bot — slash commands, GitHub bridge, dungeon game.',
 		description:
-			'Embed dungeon, /gh claim self-assign, /github board reads, GitHub issue → Discord forum thread sync (Phase 2). Per-guild PAT + webhook secret resolved from Supabase Vault.',
+			'Embed dungeon, /gh claim self-assign, /github board reads, GitHub issue → Discord forum thread sync (Phase 2). Reads its per-guild GitHub PAT + webhook secret from the rows you provision under the GitHub provider page.',
 		docs_url: '/project/discordsh-bot/',
 		manage_url: '/dashboard/agents/discordsh/',
-		services: ['github', 'github_webhook', 'github_repos'],
+		services: ['github', 'github_webhook'],
 		status: 'available',
 	},
 	{
 		key: 'irc_gateway',
 		name: 'irc-gateway',
+		kind: 'bot',
 		tagline: 'JWT-authenticated IRC bridge for chat services.',
 		description:
 			'Bridges KBVE chat traffic to IRC backends. Per-guild routing not yet wired through the agents surface.',
@@ -36,8 +54,12 @@ const BOTS: BotIntegration[] = [
 	},
 ];
 
-const statusLabel = (s: BotIntegration['status']) =>
+const BOTS = CARDS;
+
+const statusLabel = (s: AgentCard['status']) =>
 	s === 'available' ? 'Available' : 'Coming soon';
+
+const kindLabel = (k: CardKind) => (k === 'provider' ? 'Provider' : 'Bot');
 ---
 
 <section
@@ -63,10 +85,16 @@ const statusLabel = (s: BotIntegration['status']) =>
 						data-agent={bot.key}>
 						<div class="agent-card__head">
 							<h2 class="agent-card__name">{bot.name}</h2>
-							<span
-								class={`agent-card__status agent-card__status--${bot.status}`}>
-								{statusLabel(bot.status)}
-							</span>
+							<div class="agent-card__badges">
+								<span
+									class={`agent-card__kind agent-card__kind--${bot.kind}`}>
+									{kindLabel(bot.kind)}
+								</span>
+								<span
+									class={`agent-card__status agent-card__status--${bot.status}`}>
+									{statusLabel(bot.status)}
+								</span>
+							</div>
 						</div>
 						<p class="agent-card__tagline">{bot.tagline}</p>
 						<p class="agent-card__description">{bot.description}</p>
@@ -190,11 +218,18 @@ const statusLabel = (s: BotIntegration['status']) =>
 		font-family: var(--sl-font-mono, ui-monospace, monospace);
 	}
 
-	.agent-card__status {
-		font-size: 0.75rem;
+	.agent-card__badges {
+		display: flex;
+		gap: 0.35rem;
+		align-items: center;
+	}
+
+	.agent-card__status,
+	.agent-card__kind {
+		font-size: 0.7rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		padding: 0.2rem 0.55rem;
+		padding: 0.2rem 0.5rem;
 		border-radius: 999px;
 		letter-spacing: 0.04em;
 	}
@@ -207,6 +242,16 @@ const statusLabel = (s: BotIntegration['status']) =>
 	.agent-card__status--coming_soon {
 		background: rgba(148, 163, 184, 0.15);
 		color: #94a3b8;
+	}
+
+	.agent-card__kind--provider {
+		background: rgba(168, 139, 250, 0.15);
+		color: #a78bfa;
+	}
+
+	.agent-card__kind--bot {
+		background: rgba(88, 166, 255, 0.15);
+		color: #58a6ff;
 	}
 
 	.agent-card__tagline {

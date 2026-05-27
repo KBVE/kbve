@@ -5,7 +5,6 @@ import {
 	LogIn,
 	RefreshCw,
 	AlertTriangle,
-	Users,
 	KeyRound,
 	Plus,
 	Trash2,
@@ -18,23 +17,7 @@ import {
 } from './agentsService';
 import { styles } from './dashboard-ui';
 import { AddTokenModal, DeleteTokenModal } from './ReactAgentTokenModals';
-
-const DISCORD_CDN = 'https://cdn.discordapp.com';
-
-function guildIconUrl(guild: DiscordGuild): string | null {
-	if (!guild.icon) return null;
-	return `${DISCORD_CDN}/icons/${guild.id}/${guild.icon}.png?size=64`;
-}
-
-function initials(name: string): string {
-	return name
-		.split(/\s+/)
-		.map((s) => s[0])
-		.filter(Boolean)
-		.slice(0, 2)
-		.join('')
-		.toUpperCase();
-}
+import ReactAgentGuildPicker from './ReactAgentGuildPicker';
 
 function formatDate(iso: string): string {
 	try {
@@ -57,8 +40,6 @@ function maskService(svc: string): { label: string; color: string } {
 export default function ReactAgentDiscordsh() {
 	const authState = useStore(agentsService.$authState);
 	const guilds = useStore(agentsService.$guilds);
-	const guildsLoading = useStore(agentsService.$guildsLoading);
-	const guildsError = useStore(agentsService.$guildsError);
 	const selectedGuildId = useStore(agentsService.$selectedGuildId);
 	const tokens = useStore(agentsService.$tokens);
 	const tokensLoading = useStore(agentsService.$tokensLoading);
@@ -169,13 +150,20 @@ export default function ReactAgentDiscordsh() {
 		<div
 			className="not-content"
 			style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-			<GuildPicker
-				guilds={guilds}
-				loading={guildsLoading}
-				error={guildsError}
-				selectedGuildId={selectedGuildId}
-				onSelect={(id) => agentsService.selectGuild(id)}
-			/>
+			<ReactAgentGuildPicker />
+
+			{guilds.length > 1 && selectedGuild && (
+				<p
+					style={{
+						margin: 0,
+						fontSize: '0.78rem',
+						color: 'var(--sl-color-gray-3, #9ca0aa)',
+					}}>
+					This guild is shared across the agents surface — visit{' '}
+					<a href="/dashboard/agents/github/">GitHub</a> to configure
+					the webhook + PAT for the same guild.
+				</p>
+			)}
 
 			{selectedGuild ? (
 				<TokenList
@@ -189,158 +177,6 @@ export default function ReactAgentDiscordsh() {
 				<EmptyGuildPrompt guildCount={guilds.length} />
 			)}
 		</div>
-	);
-}
-
-interface GuildPickerProps {
-	guilds: DiscordGuild[];
-	loading: boolean;
-	error: string | null;
-	selectedGuildId: string | null;
-	onSelect: (id: string) => void;
-}
-
-function GuildPicker({
-	guilds,
-	loading,
-	error,
-	selectedGuildId,
-	onSelect,
-}: GuildPickerProps) {
-	return (
-		<section style={styles.sectionBorder}>
-			<header
-				style={{
-					padding: '0.85rem 1rem',
-					borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-				}}>
-				<Users size={18} color="#58a6ff" />
-				<strong>Discord guilds you own</strong>
-				{loading && (
-					<Loader2
-						size={14}
-						style={{
-							animation: 'spin 1s linear infinite',
-							marginLeft: '0.5rem',
-						}}
-					/>
-				)}
-			</header>
-
-			<div style={{ padding: '0.85rem 1rem' }}>
-				{error && (
-					<p
-						style={{
-							color: '#f87171',
-							fontSize: '0.85rem',
-							margin: 0,
-						}}>
-						{error}
-					</p>
-				)}
-				{!error && !loading && guilds.length === 0 && (
-					<p
-						style={{
-							color: 'var(--sl-color-gray-3, #9ca0aa)',
-							fontSize: '0.9rem',
-							margin: 0,
-						}}>
-						You don't own any Discord guilds. Only guild owners can
-						manage bot integration tokens.
-					</p>
-				)}
-				{guilds.length > 0 && (
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns:
-								'repeat(auto-fill, minmax(220px, 1fr))',
-							gap: '0.6rem',
-						}}>
-						{guilds.map((g) => {
-							const iconUrl = guildIconUrl(g);
-							const active = selectedGuildId === g.id;
-							return (
-								<button
-									key={g.id}
-									type="button"
-									onClick={() => onSelect(g.id)}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: '0.65rem',
-										padding: '0.6rem 0.75rem',
-										borderRadius: 10,
-										border: `1px solid ${active ? '#58a6ff' : 'var(--sl-color-gray-5, #2d2f36)'}`,
-										background: active
-											? 'rgba(88,166,255,0.08)'
-											: 'transparent',
-										color: 'var(--sl-color-white, #fff)',
-										cursor: 'pointer',
-										textAlign: 'left',
-										transition:
-											'border-color 0.15s ease, background 0.15s ease',
-									}}>
-									{iconUrl ? (
-										<img
-											src={iconUrl}
-											alt=""
-											width={36}
-											height={36}
-											style={{
-												borderRadius: 8,
-												flexShrink: 0,
-											}}
-										/>
-									) : (
-										<div
-											aria-hidden
-											style={{
-												width: 36,
-												height: 36,
-												borderRadius: 8,
-												background: '#374151',
-												color: '#e5e7eb',
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												fontWeight: 700,
-												fontSize: '0.8rem',
-												flexShrink: 0,
-											}}>
-											{initials(g.name)}
-										</div>
-									)}
-									<div style={{ minWidth: 0 }}>
-										<div
-											style={{
-												fontWeight: 600,
-												overflow: 'hidden',
-												textOverflow: 'ellipsis',
-												whiteSpace: 'nowrap',
-											}}>
-											{g.name}
-										</div>
-										<div
-											style={{
-												fontSize: '0.7rem',
-												color: 'var(--sl-color-gray-3, #9ca0aa)',
-												fontFamily:
-													'var(--sl-font-mono, ui-monospace, monospace)',
-											}}>
-											{g.id}
-										</div>
-									</div>
-								</button>
-							);
-						})}
-					</div>
-				)}
-			</div>
-		</section>
 	);
 }
 
