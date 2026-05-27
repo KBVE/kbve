@@ -19,11 +19,13 @@ import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 			</p>
 			<p class="agent-lede" style="margin-top: 0.75rem;">
 				New to discordsh + GitHub? Run the
-				<a href="/dashboard/agents/discordsh/github/">
-					guided GitHub setup wizard
-				</a>
+				<a href="/dashboard/agents/github/">GitHub provider wizard</a>
 				— it generates the HMAC webhook secret, validates your PAT, and smoke-tests
-				the backfill in one flow.
+				the backfill end-to-end. The rows it provisions (<code>
+					github_webhook:&lt;guild&gt;
+				</code> +{' '}
+				<code>github:&lt;guild&gt;</code>) are shared across any agent
+				that consumes GitHub credentials.
 			</p>
 		</header>
 

@@ -19,6 +19,7 @@ import {
 	type DiscordGuild,
 } from './agentsService';
 import { styles } from './dashboard-ui';
+import ReactAgentGuildPicker from './ReactAgentGuildPicker';
 
 const GITHUB_OWNER_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}$/;
 const GITHUB_REPO_RE = /^[A-Za-z0-9._-]{1,100}$/;
@@ -103,25 +104,39 @@ export default function ReactAgentGithubWizard() {
 
 	if (!selectedGuild) {
 		return (
-			<section style={styles.sectionBorder}>
-				<div style={{ padding: '1rem' }}>
-					<p
-						style={{
-							margin: 0,
-							color: 'var(--sl-color-gray-3, #9ca0aa)',
-						}}>
-						Pick a guild on the{' '}
-						<a href="/dashboard/agents/discordsh/">
-							discordsh page
-						</a>{' '}
-						first. The wizard provisions Vault rows for that guild.
-					</p>
-				</div>
-			</section>
+			<div
+				className="not-content"
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '1rem',
+				}}>
+				<ReactAgentGuildPicker title="Pick a guild to configure GitHub for" />
+				<p
+					style={{
+						margin: 0,
+						fontSize: '0.85rem',
+						color: 'var(--sl-color-gray-3, #9ca0aa)',
+					}}>
+					The wizard provisions Vault rows scoped to the picked guild
+					(<code>github_pat:&lt;guild&gt;</code> +{' '}
+					<code>github_webhook:&lt;guild&gt;</code>). The selection is
+					shared with{' '}
+					<a href="/dashboard/agents/discordsh/">discordsh</a> and any
+					other agent that consumes GitHub credentials.
+				</p>
+			</div>
 		);
 	}
 
-	return <WizardBody guild={selectedGuild} tokens={tokens} />;
+	return (
+		<div
+			className="not-content"
+			style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+			<ReactAgentGuildPicker title="Configuring GitHub for" />
+			<WizardBody guild={selectedGuild} tokens={tokens} />
+		</div>
+	);
 }
 
 interface WizardBodyProps {
