@@ -48,6 +48,27 @@ function isValidSegment(s: unknown): s is string {
   return typeof s === "string" && REPO_RE.test(s);
 }
 
+async function loadRepoAllowlist(
+  // deno-lint-ignore no-explicit-any
+  sb: any,
+  guildId: string,
+): Promise<Set<string>> {
+  try {
+    const { data, error } = await sb.rpc("bot_get_guild_token", {
+      p_server_id: guildId,
+      p_service: "github_repos",
+    });
+    if (error || typeof data !== "string") return new Set();
+    const parsed = JSON.parse(data) as { repos?: unknown };
+    const list = Array.isArray(parsed.repos)
+      ? parsed.repos.filter((x): x is string => typeof x === "string")
+      : [];
+    return new Set(list.map((r) => r.trim().toLowerCase()));
+  } catch {
+    return new Set();
+  }
+}
+
 async function fetchPage(
   token: string,
   owner: string,
@@ -146,6 +167,21 @@ serve(async (req) => {
       },
       404,
     );
+  }
+
+  const allowlist = await loadRepoAllowlist(sb, guildId);
+  if (allowlist.size > 0) {
+    const requested = `${body.owner}/${body.repo}`.toLowerCase();
+    if (!allowlist.has(requested)) {
+      return jsonResponse(
+        {
+          error:
+            `Repo '${requested}' is not in this guild's allowlist. Add it under /dashboard/agents/github/.`,
+          allowlist: Array.from(allowlist),
+        },
+        403,
+      );
+    }
   }
 
   let upserted = 0;

@@ -23,6 +23,13 @@ import { safeRpcError } from "../_shared/validators.ts";
 
 type Handler = (req: GuildVaultRequest) => Promise<Response>;
 
+// Services whose decrypted value is non-secret config that the agents
+// dashboard needs to render. Everything not on this list stays bot-only.
+const PEEKABLE_SERVICES = new Set([
+	"github_repos",
+	"discordsh_config",
+]);
+
 const handlers: Record<string, Handler> = {
   async set_token({ userId, body }) {
     const {
@@ -223,6 +230,49 @@ const handlers: Record<string, Handler> = {
       row.success ? 200 : 400,
     );
   },
+	async peek_token({ userId, body }) {
+		const { server_id, service, provider_token } = body;
+
+		const ptErr = validateProviderToken(provider_token);
+		if (ptErr) return ptErr;
+
+		const sidErr = validateSnowflake(server_id, "server_id");
+		if (sidErr) return sidErr;
+
+		const svcErr = validateService(service);
+		if (svcErr) return svcErr;
+
+		if (!PEEKABLE_SERVICES.has(service as string)) {
+			return jsonResponse(
+				{
+					error:
+						`service '${service}' is not peekable. Only non-secret config rows are readable through the dashboard.`,
+				},
+				403,
+			);
+		}
+
+		const ownerErr = await verifyGuildOwnership(
+			userId,
+			server_id as string,
+			provider_token as string,
+		);
+		if (ownerErr) return ownerErr;
+
+		const supabase = createServiceClient();
+		const { data, error } = await supabase.rpc("bot_get_guild_token", {
+			p_server_id: server_id as string,
+			p_service: service as string,
+		});
+
+		if (error) {
+			invalidateOwnershipCache(userId, server_id as string);
+			return safeRpcError(error, "guild_vault_rpc");
+		}
+
+		const value = typeof data === "string" ? data : null;
+		return jsonResponse({ success: true, value });
+	},
 };
 
 export const TOKEN_ACTIONS = Object.keys(handlers);

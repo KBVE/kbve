@@ -70,6 +70,36 @@ function parseAllowlist(raw: string | undefined): Set<string> {
   );
 }
 
+async function resolveAllowlist(
+  // deno-lint-ignore no-explicit-any
+  sb: any,
+  guildId: string,
+): Promise<Set<string>> {
+  try {
+    const { data, error } = await sb.rpc("bot_get_guild_token", {
+      p_server_id: guildId,
+      p_service: "github_repos",
+    });
+    if (error) {
+      console.warn(
+        "gh-webhook: github_repos lookup failed; falling back to env",
+        error.message,
+      );
+      return ALLOWED_REPOS;
+    }
+    if (typeof data !== "string") return ALLOWED_REPOS;
+    const parsed = JSON.parse(data) as { repos?: unknown };
+    const list = Array.isArray(parsed.repos)
+      ? parsed.repos.filter((x): x is string => typeof x === "string")
+      : [];
+    if (list.length === 0) return ALLOWED_REPOS;
+    return new Set(list.map((r) => r.trim().toLowerCase()));
+  } catch (e) {
+    console.warn("gh-webhook: parse error on github_repos; env fallback", e);
+    return ALLOWED_REPOS;
+  }
+}
+
 async function verifySignature(
   secret: string,
   signatureHeader: string | null,
@@ -217,7 +247,8 @@ serve(async (req) => {
   }
 
   const fullName = `${repoInfo.owner}/${repoInfo.repo}`.toLowerCase();
-  if (ALLOWED_REPOS.size > 0 && !ALLOWED_REPOS.has(fullName)) {
+  const allowlist = await resolveAllowlist(sb, guildId);
+  if (allowlist.size > 0 && !allowlist.has(fullName)) {
     return jsonResponse(
       { ok: true, skipped: `repo not allowlisted: ${fullName}`, guild: guildId },
       200,

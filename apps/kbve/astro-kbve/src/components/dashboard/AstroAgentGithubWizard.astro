@@ -1,5 +1,6 @@
 ---
 import ReactAgentGithubWizard from './ReactAgentGithubWizard';
+import ReactAgentRepoAllowlist from './ReactAgentRepoAllowlist';
 ---
 
 <section
@@ -37,7 +38,10 @@ import ReactAgentGithubWizard from './ReactAgentGithubWizard';
 			</div>
 		</header>
 
-		<ReactAgentGithubWizard client:only="react" />
+		<div class="agent-stack">
+			<ReactAgentRepoAllowlist client:only="react" />
+			<ReactAgentGithubWizard client:only="react" />
+		</div>
 	</div>
 </section>
 
@@ -131,5 +135,11 @@ import ReactAgentGithubWizard from './ReactAgentGithubWizard';
 		background: rgba(148, 163, 184, 0.12);
 		color: #94a3b8;
 		border-color: rgba(148, 163, 184, 0.25);
+	}
+
+	.agent-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 </style>
