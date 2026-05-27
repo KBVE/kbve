@@ -7,11 +7,11 @@ import {
 	ExternalLink,
 	Eye,
 	EyeOff,
-	Github,
 	Loader2,
 	LogIn,
 	PlayCircle,
 	Shuffle,
+	Webhook,
 } from 'lucide-react';
 import {
 	agentsService,
@@ -118,12 +118,12 @@ export default function ReactAgentGithubWizard() {
 						fontSize: '0.85rem',
 						color: 'var(--sl-color-gray-3, #9ca0aa)',
 					}}>
-					The wizard provisions Vault rows scoped to the picked guild
-					(<code>github_pat:&lt;guild&gt;</code> +{' '}
-					<code>github_webhook:&lt;guild&gt;</code>). The selection is
-					shared with{' '}
-					<a href="/dashboard/agents/discordsh/">discordsh</a> and any
-					other agent that consumes GitHub credentials.
+					The wizard provisions per-guild Vault rows (
+					<code>github_pat:&lt;guild&gt;</code> +{' '}
+					<code>github_webhook:&lt;guild&gt;</code>) that any KBVE
+					agent (discordsh today, future PR-review / CI / chatops bots
+					later) can consume. Guild selection is shared across the
+					whole agents surface.
 				</p>
 			</div>
 		);
@@ -168,11 +168,9 @@ function WizardBody({ guild, tokens }: WizardBodyProps) {
 					borderRadius: 12,
 					background: 'rgba(88,166,255,0.06)',
 				}}>
-				<Github size={20} color="#58a6ff" />
+				<Webhook size={20} color="#58a6ff" />
 				<div>
-					<div style={{ fontWeight: 600 }}>
-						discordsh · GitHub setup
-					</div>
+					<div style={{ fontWeight: 600 }}>GitHub provider setup</div>
 					<div
 						style={{
 							fontSize: '0.78rem',
@@ -264,9 +262,9 @@ function Step1Webhook({
 						{WEBHOOK_SERVICE}:{guild.id}
 					</code>{' '}
 					(token <code>{existing!.token_name}</code>). To rotate,
-					delete the existing row from{' '}
-					<a href="/dashboard/agents/discordsh/">discordsh page</a>{' '}
-					and run this wizard again.
+					delete the existing row from the per-guild{' '}
+					<a href="/dashboard/agents/discordsh/">token list</a> and
+					run this wizard again.
 				</p>
 			) : (
 				<>
