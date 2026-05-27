@@ -42,6 +42,7 @@ members = [
 	'apps/mc/behavior_statetree',
 	'apps/mc/mc_auth',
 	'packages/rust/bevy/uniti',
+	'apps/agones/factorio/relay',
 ]
 
 exclude = [

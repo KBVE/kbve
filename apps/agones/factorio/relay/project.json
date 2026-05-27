@@ -1,0 +1,62 @@
+{
+	"name": "agones-factorio-relay",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/factorio/relay/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-factorio-relay"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-factorio-relay"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-factorio-relay"
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/factorio/relay/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-factorio-relay:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/agones-factorio-relay:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:agones"]
+}
