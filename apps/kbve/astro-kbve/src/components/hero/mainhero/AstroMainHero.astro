@@ -293,14 +293,11 @@ const verticalAlignmentClasses = {
 </style>
 
 <script>
-	/**
-	 * Client-side script
-	 * Handles preloading and optimizations
-	 */
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// Preload background images for better performance
-	const heroWrapper = document.querySelector('.astro-main-hero-wrapper');
-	if (heroWrapper) {
+	onMount(() => {
+		const heroWrapper = document.querySelector('.astro-main-hero-wrapper');
+		if (!heroWrapper) return;
 		const skeleton = heroWrapper.querySelector(
 			'[data-x-kbve="main-hero-skeleton"]',
 		) as HTMLElement;
@@ -314,11 +311,10 @@ const verticalAlignmentClasses = {
 				}
 			}
 		}
-	}
 
-	// Log hero load time (development only)
-	if (import.meta.env.DEV) {
-		console.log('[MainHero] Component initialized');
-		performance.mark('main-hero-loaded');
-	}
+		if (import.meta.env.DEV) {
+			console.log('[MainHero] Component initialized');
+			performance.mark('main-hero-loaded');
+		}
+	});
 </script>

@@ -132,184 +132,193 @@ const spaces = await getForumSpaces();
 
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// prettier-plugin-astro keeps reformatting <textarea ... /> into
-	// <textarea>...\n  </textarea>, leaving leading whitespace as the
-	// initial value. Force-clear on load.
-	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
-		'.compose-form__field textarea',
-	)) {
-		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
-			t.value = '';
-			t.defaultValue = '';
-		}
-	}
-
-	const form = document.getElementById(
-		'compose-form',
-	) as HTMLFormElement | null;
-	const status = document.getElementById(
-		'compose-status',
-	) as HTMLOutputElement | null;
-
-	// Apply the askama-rendered default-space to the <select> on
-	// load. The option list is server-pre-rendered; we only set the
-	// active value here.
-	const spaceSelect = form?.querySelector<HTMLSelectElement>(
-		'select[name="space_slug"]',
-	);
-	const defaultSpace = spaceSelect?.dataset.defaultSpace?.trim();
-	if (spaceSelect && defaultSpace) {
-		const match = Array.from(spaceSelect.options).find(
-			(o) => o.value === defaultSpace,
-		);
-		if (match) spaceSelect.value = defaultSpace;
-	}
-
-	// Eligibility gate: hide the form for anon visitors and for
-	// signed-in users without a username. The submit RPC enforces
-	// the same rules server-side, but failing client-side avoids
-	// the "fill out a long body, hit post, get rejected" flow.
-	(async () => {
-		const gate = document.getElementById('compose-gate');
-		const gateLede = gate?.querySelector<HTMLElement>(
-			'.compose-gate__lede',
-		);
-		const signin = document.getElementById(
-			'compose-gate-signin',
-		) as HTMLAnchorElement | null;
-		if (!gate || !form) return;
-
-		const showGate = (mode: 'anon' | 'no-username' | 'init-error') => {
-			form.hidden = true;
-			gate.hidden = false;
-			if (gateLede) {
-				gateLede.textContent =
-					mode === 'anon'
-						? (gateLede.dataset.anonText ?? '')
-						: mode === 'no-username'
-							? (gateLede.dataset.noUsernameText ?? '')
-							: (gateLede.dataset.initErrorText ?? '');
+	onMount(() => {
+		// prettier-plugin-astro keeps reformatting <textarea ... /> into
+		// <textarea>...\n  </textarea>, leaving leading whitespace as the
+		// initial value. Force-clear on load.
+		for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+			'.compose-form__field textarea',
+		)) {
+			if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+				t.value = '';
+				t.defaultValue = '';
 			}
-			if (signin) {
-				if (mode === 'init-error') {
-					signin.textContent = 'Refresh page';
-					signin.href = location.pathname + location.search;
-					signin.addEventListener(
-						'click',
-						(ev) => {
-							ev.preventDefault();
-							location.reload();
-						},
-						{ once: true },
-					);
-				} else {
-					signin.textContent =
-						mode === 'anon' ? 'Sign in' : 'Set username';
-					signin.href = '/dashboard/profile/';
+		}
+
+		const form = document.getElementById(
+			'compose-form',
+		) as HTMLFormElement | null;
+		if (!form) return;
+		const status = document.getElementById(
+			'compose-status',
+		) as HTMLOutputElement | null;
+
+		// Apply the askama-rendered default-space to the <select> on
+		// load. The option list is server-pre-rendered; we only set the
+		// active value here.
+		const spaceSelect = form?.querySelector<HTMLSelectElement>(
+			'select[name="space_slug"]',
+		);
+		const defaultSpace = spaceSelect?.dataset.defaultSpace?.trim();
+		if (spaceSelect && defaultSpace) {
+			const match = Array.from(spaceSelect.options).find(
+				(o) => o.value === defaultSpace,
+			);
+			if (match) spaceSelect.value = defaultSpace;
+		}
+
+		// Eligibility gate: hide the form for anon visitors and for
+		// signed-in users without a username. The submit RPC enforces
+		// the same rules server-side, but failing client-side avoids
+		// the "fill out a long body, hit post, get rejected" flow.
+		(async () => {
+			const gate = document.getElementById('compose-gate');
+			const gateLede = gate?.querySelector<HTMLElement>(
+				'.compose-gate__lede',
+			);
+			const signin = document.getElementById(
+				'compose-gate-signin',
+			) as HTMLAnchorElement | null;
+			if (!gate || !form) return;
+
+			const showGate = (mode: 'anon' | 'no-username' | 'init-error') => {
+				form.hidden = true;
+				gate.hidden = false;
+				if (gateLede) {
+					gateLede.textContent =
+						mode === 'anon'
+							? (gateLede.dataset.anonText ?? '')
+							: mode === 'no-username'
+								? (gateLede.dataset.noUsernameText ?? '')
+								: (gateLede.dataset.initErrorText ?? '');
 				}
-			}
-		};
-
-		try {
-			await initSupa();
-		} catch {
-			showGate('init-error');
-			return;
-		}
-		const supa = getSupa();
-		const sessionResult = await supa.getSession().catch(() => null);
-		const session = sessionResult?.session ?? null;
-		if (!session?.access_token) {
-			showGate('anon');
-			return;
-		}
-
-		try {
-			const res = await fetch('/api/v1/me', {
-				headers: { Authorization: `Bearer ${session.access_token}` },
-			});
-			if (!res.ok) throw new Error(`me ${res.status}`);
-			const data = (await res.json()) as { username?: string | null };
-			if (!data.username) {
-				showGate('no-username');
-				return;
-			}
-		} catch (err) {
-			console.warn('compose: /api/v1/me probe failed', err);
-		}
-	})();
-
-	function setStatus(kind: 'idle' | 'busy' | 'error' | 'ok', msg = '') {
-		if (!status) return;
-		status.dataset.kind = kind;
-		status.textContent = msg;
-	}
-
-	form?.addEventListener('submit', async (ev) => {
-		ev.preventDefault();
-		setStatus('busy', 'Posting…');
-
-		try {
-			await initSupa();
-		} catch {
-			setStatus(
-				'error',
-				'Could not initialize auth. Reload and try again.',
-			);
-			return;
-		}
-		const supa = getSupa();
-		// SupabaseGateway returns `{ session, ... }` — unwrap before
-		// reaching for access_token.
-		const sessionResult = await supa.getSession().catch(() => null);
-		const session = sessionResult?.session ?? null;
-		if (!session?.access_token) {
-			setStatus('error', 'Sign in first to post a thread.');
-			return;
-		}
-
-		const fd = new FormData(form);
-		const payload = {
-			space_slug: String(fd.get('space_slug') || '').trim(),
-			thread_type: String(fd.get('thread_type') || 'discussion'),
-			title: String(fd.get('title') || '').trim(),
-			body: String(fd.get('body') || ''),
-		};
-
-		try {
-			const res = await fetch('/api/v1/forum/threads', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session.access_token}`,
-				},
-				body: JSON.stringify(payload),
-			});
-
-			if (!res.ok) {
-				const body = await res.text().catch(() => '');
-				setStatus('error', `${res.status}: ${body || res.statusText}`);
-				return;
-			}
-
-			const data = (await res.json()) as {
-				thread_id?: string;
-				slug?: string;
+				if (signin) {
+					if (mode === 'init-error') {
+						signin.textContent = 'Refresh page';
+						signin.href = location.pathname + location.search;
+						signin.addEventListener(
+							'click',
+							(ev) => {
+								ev.preventDefault();
+								location.reload();
+							},
+							{ once: true },
+						);
+					} else {
+						signin.textContent =
+							mode === 'anon' ? 'Sign in' : 'Set username';
+						signin.href = '/dashboard/profile/';
+					}
+				}
 			};
-			const target = data.slug || data.thread_id;
-			if (!target) {
-				setStatus('error', 'Posted but no id returned.');
+
+			try {
+				await initSupa();
+			} catch {
+				showGate('init-error');
 				return;
 			}
-			setStatus('ok', 'Posted! Redirecting…');
-			window.location.assign(`/forum/t/${target}`);
-		} catch (err) {
-			setStatus(
-				'error',
-				err instanceof Error ? err.message : 'Network error',
-			);
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) {
+				showGate('anon');
+				return;
+			}
+
+			try {
+				const res = await fetch('/api/v1/me', {
+					headers: {
+						Authorization: `Bearer ${session.access_token}`,
+					},
+				});
+				if (!res.ok) throw new Error(`me ${res.status}`);
+				const data = (await res.json()) as { username?: string | null };
+				if (!data.username) {
+					showGate('no-username');
+					return;
+				}
+			} catch (err) {
+				console.warn('compose: /api/v1/me probe failed', err);
+			}
+		})();
+
+		function setStatus(kind: 'idle' | 'busy' | 'error' | 'ok', msg = '') {
+			if (!status) return;
+			status.dataset.kind = kind;
+			status.textContent = msg;
 		}
+
+		form?.addEventListener('submit', async (ev) => {
+			ev.preventDefault();
+			setStatus('busy', 'Posting…');
+
+			try {
+				await initSupa();
+			} catch {
+				setStatus(
+					'error',
+					'Could not initialize auth. Reload and try again.',
+				);
+				return;
+			}
+			const supa = getSupa();
+			// SupabaseGateway returns `{ session, ... }` — unwrap before
+			// reaching for access_token.
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) {
+				setStatus('error', 'Sign in first to post a thread.');
+				return;
+			}
+
+			const fd = new FormData(form);
+			const payload = {
+				space_slug: String(fd.get('space_slug') || '').trim(),
+				thread_type: String(fd.get('thread_type') || 'discussion'),
+				title: String(fd.get('title') || '').trim(),
+				body: String(fd.get('body') || ''),
+			};
+
+			try {
+				const res = await fetch('/api/v1/forum/threads', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session.access_token}`,
+					},
+					body: JSON.stringify(payload),
+				});
+
+				if (!res.ok) {
+					const body = await res.text().catch(() => '');
+					setStatus(
+						'error',
+						`${res.status}: ${body || res.statusText}`,
+					);
+					return;
+				}
+
+				const data = (await res.json()) as {
+					thread_id?: string;
+					slug?: string;
+				};
+				const target = data.slug || data.thread_id;
+				if (!target) {
+					setStatus('error', 'Posted but no id returned.');
+					return;
+				}
+				setStatus('ok', 'Posted! Redirecting…');
+				window.location.assign(`/forum/t/${target}`);
+			} catch (err) {
+				setStatus(
+					'error',
+					err instanceof Error ? err.message : 'Network error',
+				);
+			}
+		});
 	});
 </script>
 

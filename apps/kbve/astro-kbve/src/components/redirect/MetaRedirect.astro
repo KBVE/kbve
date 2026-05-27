@@ -13,7 +13,7 @@ const url = new URL(to, Astro.url).toString();
 		<meta charset="UTF-8" />
 		<title>Redirecting…</title>
 		<meta http-equiv="refresh" content="0; url={url}" />
-		<script is:inline define:vars={{ url }}>
+		<script is:inline define:vars={{ url }} data-astro-rerun>
 			window.location.replace(url);
 		</script>
 	</head>

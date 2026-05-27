@@ -288,14 +288,11 @@ const alignmentClasses = {
 </style>
 
 <script>
-	/**
-	 * Client-side script
-	 * Handles preloading and optimizations
-	 */
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// Preload background images for better performance
-	const heroWrapper = document.querySelector('.astro-sub-hero-wrapper');
-	if (heroWrapper) {
+	onMount(() => {
+		const heroWrapper = document.querySelector('.astro-sub-hero-wrapper');
+		if (!heroWrapper) return;
 		const skeleton = heroWrapper.querySelector(
 			'[data-x-kbve="sub-hero-skeleton"]',
 		) as HTMLElement;
@@ -309,11 +306,10 @@ const alignmentClasses = {
 				}
 			}
 		}
-	}
 
-	// Log sub hero load time (development only)
-	if (import.meta.env.DEV) {
-		console.log('[SubHero] Component initialized');
-		performance.mark('sub-hero-loaded');
-	}
+		if (import.meta.env.DEV) {
+			console.log('[SubHero] Component initialized');
+			performance.mark('sub-hero-loaded');
+		}
+	});
 </script>
