@@ -13,26 +13,26 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-24T09:02:28Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-27T09:20:50Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**25** critical/high severity findings across the monorepo.
+**46** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="0 Critical" icon="warning">
+  <Card title="2 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="25 High" icon="error">
+  <Card title="44 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="48 Medium" icon="information">
+  <Card title="63 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="6 Low" icon="approve-check-circle">
+  <Card title="32 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-05-24T09:02:28Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **64** advisories
+    **65** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -50,7 +50,7 @@ Last generated: **2026-05-24T09:02:28Z** — updated daily by `ci-dashboard`.
     **0** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
-    **0** alerts
+    **61** alerts
   </Card>
   <Card title="Dependabot" icon="github">
     **0** alerts
@@ -62,9 +62,10 @@ Last generated: **2026-05-24T09:02:28Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "High" : 25
-    "Medium" : 48
-    "Low" : 6
+    "Critical" : 2
+    "High" : 44
+    "Medium" : 63
+    "Low" : 32
 ```
 
 ### Findings by Ecosystem
@@ -72,8 +73,9 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 64
+    "npm" : 65
     "Cargo" : 43
+    "CodeQL" : 61
 ```
 
 <Tabs>
@@ -81,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 0 | 25 | 33 | 6 | 64 |
+| **npm** | 0 | 26 | 33 | 6 | 65 |
 | **Cargo** | 0 | 0 | 15 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
-| **CodeQL** | 0 | 0 | 0 | 0 | 0 |
+| **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 0 | 25 | 48 | 6 | 107 |
+| **Total** | 2 | 44 | 63 | 32 | 169 |
 
   </TabItem>
   <TabItem label="npm">
@@ -118,6 +120,7 @@ pie showData
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
+| High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -217,9 +220,69 @@ No python advisories found.
   </TabItem>
   <TabItem label="CodeQL">
 
-:::tip[All Clear]
-No open CodeQL alerts.
-:::
+| Severity | Rule | Path | Link |
+|----------|------|------|------|
+| Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/erust/src/supabase/integration.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/278) |
+| Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/erust/src/supabase/integration.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/277) |
+| High | `rust/cleartext-transmission` | `apps/kbve/axum-kbve/src/db/twitch.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/438) |
+| High | `rust/cleartext-transmission` | `apps/kbve/axum-kbve/src/db/twitch.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/437) |
+| High | `rust/cleartext-transmission` | `apps/kbve/axum-kbve/src/db/discord.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/436) |
+| High | `rust/cleartext-transmission` | `apps/kbve/axum-kbve/src/db/discord.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/435) |
+| High | `rust/cleartext-transmission` | `apps/kbve/axum-kbve/src/db/mc.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/434) |
+| High | `rust/non-https-url` | `packages/rust/kbve/src/sys/system_diagnostics.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/264) |
+| High | `rust/insecure-cookie` | `...ust/kbve/src/entity/response/header_response.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/263) |
+| High | `rust/insecure-cookie` | `packages/rust/kbve/src/authentication.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/262) |
+| High | `rust/insecure-cookie` | `packages/rust/kbve/src/authentication.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/261) |
+| High | `rust/cleartext-logging` | `apps/mc/plugins/kbve-mc-plugin/src/lib.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/256) |
+| High | `js/tainted-format-string` | `apps/kbve/astro-kbve/src/workers/supabase.db.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/218) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/43) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/42) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/41) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/40) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/39) |
+| High | `py/uninitialized-local-variable` | `...n_bot/api/discord/embed/discord_status_embed.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/38) |
+| High | `js/xss-through-dom` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/11) |
+| Medium | `js/trivial-conditional` | `...tion-unobtrusive/jquery.validate.unobtrusive.js` | [Details](https://github.com/KBVE/kbve/security/code-scanning/491) |
+| Medium | `js/useless-assignment-to-local` | `apps/kbve/edge/functions/meme/index.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/482) |
+| Medium | `js/useless-assignment-to-local` | `...kbve/src/components/realtime/Realtime.worker.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/228) |
+| Medium | `js/client-side-request-forgery` | `...ve/astro-kbve/src/workers/supabase.websocket.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/227) |
+| Medium | `js/log-injection` | `.../kbve/astro-kbve/src/workers/supabase.shared.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/226) |
+| Medium | `js/log-injection` | `...ve/astro-kbve/src/workers/supabase.websocket.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/225) |
+| Medium | `js/missing-origin-check` | `apps/kbve/astro-kbve/src/workers/supabase.db.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/223) |
+| Medium | `js/missing-origin-check` | `apps/kbve/astro-kbve/src/workers/test-worker.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/222) |
+| Medium | `js/missing-origin-check` | `...ve/astro-kbve/src/workers/supabase.db.simple.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/221) |
+| Medium | `js/missing-origin-check` | `...kbve/src/components/realtime/Realtime.worker.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/220) |
+| Medium | `js/useless-assignment-to-local` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/102) |
+| Medium | `js/useless-assignment-to-local` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/101) |
+| Medium | `js/missing-origin-check` | `...npm/droid/src/lib/workers/supabase-db-worker.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/60) |
+| Medium | `py/exit-from-finally` | `apps/pydesk/pydesk/main.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/59) |
+| Medium | `py/stack-trace-exposure` | `apps/pydesk/pydesk/main.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/7) |
+| Low | `js/unused-local-variable` | `packages/data/codegen/generate-proto-registry.mjs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/488) |
+| Low | `js/unused-local-variable` | `...-memes/src/components/feed/ReactMemeContent.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/485) |
+| Low | `py/import-and-import-from` | `packages/python/fudster/fudster/cli.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/483) |
+| Low | `rust/unused-variable` | `...e/isometric/src-tauri/src/game/scene_objects.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/440) |
+| Low | `rust/unused-variable` | `...e/isometric/src-tauri/src/game/scene_objects.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/439) |
+| Low | `js/unused-local-variable` | `...e/templates/askama/profile_not_found/index.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/251) |
+| Low | `js/syntax-error` | `...ta/scripts/unity/WebGLTemplates/KBVE/index.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/250) |
+| Low | `js/unused-local-variable` | `...o-kbve/src/components/user/ReactUserProfile.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/248) |
+| Low | `js/unused-local-variable` | `...e/src/components/realtime/ReactSupaRealtime.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/241) |
+| Low | `js/unused-local-variable` | `...e/src/components/realtime/ReactSupaRealtime.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/240) |
+| Low | `js/unused-local-variable` | `...e/src/components/realtime/ReactSupaRealtime.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/239) |
+| Low | `js/unused-local-variable` | `...e/src/components/realtime/ReactSupaRealtime.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/238) |
+| Low | `js/unused-local-variable` | `.../astro-kbve/src/components/jay/ReactJayYuki.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/237) |
+| Low | `js/unused-local-variable` | `.../src/components/discord/ReactDiscordProfile.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/236) |
+| Low | `rust/unused-variable` | `packages/rust/q/src/manager/gui_manager.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/124) |
+| Low | `js/unused-local-variable` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/93) |
+| Low | `js/unused-local-variable` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/92) |
+| Low | `js/unused-local-variable` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/91) |
+| Low | `js/unused-local-variable` | `apps/pydesk/templates/home.html` | [Details](https://github.com/KBVE/kbve/security/code-scanning/90) |
+| Low | `js/unused-local-variable` | `...astro-irc/src/components/chat/ReactChatRoom.tsx` | [Details](https://github.com/KBVE/kbve/security/code-scanning/88) |
+| Low | `js/unused-local-variable` | `.github/deprecated/github-a-localtunnel/index.js` | [Details](https://github.com/KBVE/kbve/security/code-scanning/74) |
+| Low | `py/empty-except` | `...on-bot/notification_bot/utils/health_monitor.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/58) |
+| Low | `py/unused-import` | `packages/python/kbve/kbve/proto/kbve_pb2_grpc.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/49) |
+| Low | `py/mixed-returns` | `...on-bot/notification_bot/api/supabase/tracker.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/48) |
+| Low | `py/mixed-returns` | `...notification_bot/api/discord/discord_service.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/47) |
+| Low | `py/unused-global-variable` | `packages/python/kbve/kbve/proto/kbve_pb2.py` | [Details](https://github.com/KBVE/kbve/security/code-scanning/37) |
 
   </TabItem>
   <TabItem label="Dependabot">

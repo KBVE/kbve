@@ -193,6 +193,7 @@ export default defineConfig({
 							collapsed: true,
 							items: [
 								{ label: 'Overview', link: '/dashboard/agents/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'GitHub', link: '/dashboard/agents/github/', attrs: { 'data-auth-visibility': 'auth' } },
 								{ label: 'discordsh', link: '/dashboard/agents/discordsh/', attrs: { 'data-auth-visibility': 'auth' } },
 							],
 						},

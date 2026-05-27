@@ -1,0 +1,72 @@
+---
+import ReactAgentGithubWizard from './ReactAgentGithubWizard';
+---
+
+<section
+	id="agent-github-wizard-wrapper"
+	class="agent-github-wizard-wrapper kbve-dashboard-page"
+	aria-label="discordsh GitHub wizard — provision webhook secret, PAT, and smoke-backfill">
+	<div class="dashboard-content">
+		<header class="agent-header not-content">
+			<h1 class="agent-title">discordsh · GitHub</h1>
+			<p class="agent-lede">
+				Four-step wizard that walks a guild owner through provisioning
+				the Vault rows discordsh needs for GitHub integration: an HMAC
+				webhook secret (<code>github_webhook:&lt;guild&gt;</code>) and a
+				PAT (<code>github:&lt;guild&gt;</code>). Step 4 smoke-tests the
+				full webhook + backfill path.
+			</p>
+		</header>
+
+		<ReactAgentGithubWizard client:only="react" />
+	</div>
+</section>
+
+<style>
+	.agent-github-wizard-wrapper {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		width: 100%;
+	}
+
+	.dashboard-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-content {
+			padding: 2rem 1.5rem;
+		}
+	}
+
+	.agent-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.agent-title {
+		font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+		font-weight: 700;
+		margin: 0 0 0.4rem;
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		color: var(--sl-color-white, #fff);
+	}
+
+	.agent-lede {
+		font-size: 0.95rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2, #c2c5cc);
+		margin: 0;
+		max-width: 64ch;
+	}
+
+	.agent-lede code {
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		background: rgba(255, 255, 255, 0.06);
+		padding: 0.05rem 0.35rem;
+		border-radius: 4px;
+		font-size: 0.85em;
+	}
+</style>

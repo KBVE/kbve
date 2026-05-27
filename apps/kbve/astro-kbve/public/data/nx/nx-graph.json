@@ -8053,6 +8053,152 @@
           "implicitDependencies": []
         }
       },
+      "agones-factorio": {
+        "name": "agones-factorio",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/factorio",
+          "metadata": {},
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/agones/factorio",
+                "command": "tsc --noEmit -p tsconfig.e2e.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.e2e.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects agones-factorio --includeDependentProjects -- pnpm exec nx build-deps agones-factorio"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/agones/factorio/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/agones-factorio:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/agones-factorio:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/agones-factorio:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/agones-factorio:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "agones-factorio"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f agones-factorio-e2e 2>/dev/null || true",
+                  "docker run -d --name agones-factorio-e2e -p 34197:34197/udp -p 27015:27015/tcp -e FACTORIO_RCON_PASSWORD=e2e-test -e FACTORIO_RCON_BIND=0.0.0.0 kbve/agones-factorio:latest",
+                  "echo 'Waiting for Factorio to come up...' && for i in $(seq 1 240); do if docker logs agones-factorio-e2e 2>&1 | grep -q 'Hosting game'; then echo 'Factorio ready after '\"$i\"'s'; break; fi; if [ $i -eq 240 ]; then echo 'Factorio did not start in 240s'; docker logs agones-factorio-e2e 2>&1 | tail -120; docker rm -f agones-factorio-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "FACTORIO_HOST=127.0.0.1 FACTORIO_UDP=34197 FACTORIO_RCON=27015 FACTORIO_RCON_PASSWORD=e2e-test FACTORIO_CONTAINER=agones-factorio-e2e npx vitest run; EC=$?; echo '--- container logs ---'; docker logs agones-factorio-e2e 2>&1 | tail -120; docker rm -f agones-factorio-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/agones/factorio"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "agones-factorio",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/agones/factorio",
+          "tags": [
+            "scope:agones"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "astro-kbve": {
         "name": "astro-kbve",
         "type": "app",
@@ -13884,6 +14030,7 @@
         }
       ],
       "axum-memes": [],
+      "agones-factorio": [],
       "astro-kbve": [
         {
           "source": "astro-kbve",

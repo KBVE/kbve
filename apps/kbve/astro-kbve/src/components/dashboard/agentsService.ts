@@ -323,6 +323,144 @@ class AgentsService {
 		}
 	}
 
+	public hasService(service: string): AgentTokenRow | null {
+		const tokens = this.$tokens.get();
+		return (
+			tokens.find((t) => t.service === service && t.is_active) ??
+			tokens.find((t) => t.service === service) ??
+			null
+		);
+	}
+
+	public webhookUrlFor(guildId: string): string {
+		return `${SUPABASE_URL}/functions/v1/gh-webhook/${guildId}`;
+	}
+
+	public async validateGithubPat(
+		pat: string,
+	): Promise<
+		| { ok: true; login: string; scopes: string[]; tokenType: string }
+		| { ok: false; error: string }
+	> {
+		try {
+			const resp = await fetch('https://api.github.com/user', {
+				headers: {
+					Authorization: `Bearer ${pat}`,
+					Accept: 'application/vnd.github+json',
+					'X-GitHub-Api-Version': '2022-11-28',
+				},
+			});
+			if (resp.status === 401) {
+				return { ok: false, error: 'GitHub rejected the token (401).' };
+			}
+			if (!resp.ok) {
+				return {
+					ok: false,
+					error: `GitHub /user returned ${resp.status}.`,
+				};
+			}
+			const user = (await resp.json()) as { login?: string };
+			if (!user.login) {
+				return { ok: false, error: 'GitHub response missing login.' };
+			}
+			const scopesHeader = resp.headers.get('x-oauth-scopes') ?? '';
+			const tokenTypeHeader =
+				resp.headers.get('x-github-authentication-token-type') ??
+				resp.headers.get('x-github-token-type') ??
+				'unknown';
+			const scopes = scopesHeader
+				.split(',')
+				.map((s) => s.trim())
+				.filter(Boolean);
+			return {
+				ok: true,
+				login: user.login,
+				scopes,
+				tokenType: tokenTypeHeader,
+			};
+		} catch (e) {
+			return {
+				ok: false,
+				error: e instanceof Error ? e.message : 'Network error',
+			};
+		}
+	}
+
+	public async runBackfill(input: {
+		owner: string;
+		repo: string;
+		state?: 'open' | 'closed' | 'all';
+		maxPages?: number;
+		perPage?: number;
+	}): Promise<
+		| {
+				ok: true;
+				upserted: number;
+				pages: number;
+				rateLimitRemaining: number | null;
+		  }
+		| { ok: false; error: string }
+	> {
+		const accessToken = this.$accessToken.get();
+		const guildId = this.$selectedGuildId.get();
+		if (!accessToken || !guildId) {
+			return { ok: false, error: 'No guild selected or session missing' };
+		}
+
+		try {
+			const resp = await fetch(
+				`${SUPABASE_URL}/functions/v1/gh-backfill`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({
+						owner: input.owner,
+						repo: input.repo,
+						guild_id: guildId,
+						state: input.state ?? 'open',
+						max_pages: input.maxPages ?? 1,
+						per_page: input.perPage ?? 30,
+					}),
+				},
+			);
+			const text = await resp.text();
+			let body: unknown;
+			try {
+				body = JSON.parse(text);
+			} catch {
+				return {
+					ok: false,
+					error: `HTTP ${resp.status}: ${text.slice(0, 200)}`,
+				};
+			}
+			if (!resp.ok) {
+				const errMsg =
+					(body as { error?: string } | null)?.error ??
+					`HTTP ${resp.status}`;
+				return { ok: false, error: errMsg };
+			}
+			const b = body as {
+				upserted?: number;
+				pages_walked?: number;
+				rate_limit_remaining?: number | null;
+			};
+			return {
+				ok: true,
+				upserted: b.upserted ?? 0,
+				pages: b.pages_walked ?? 0,
+				rateLimitRemaining: b.rate_limit_remaining ?? null,
+			};
+		} catch (e) {
+			return {
+				ok: false,
+				error: e instanceof Error ? e.message : 'Network error',
+			};
+		}
+	}
+
 	public async signInWithDiscord(): Promise<void> {
 		try {
 			const { authBridge } = await import('@/components/auth/AuthBridge');
