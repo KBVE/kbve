@@ -157,11 +157,13 @@
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
 	import { fetchAndCacheProfile, getProfileFromCache } from '@kbve/droid';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	const shell = document.querySelector<HTMLElement>(
-		'[data-kbve-referral-shell]',
-	);
-	if (shell) {
+	onMount(() => {
+		const shell = document.querySelector<HTMLElement>(
+			'[data-kbve-referral-shell]',
+		);
+		if (!shell) return;
 		const handleEl = shell.querySelector<HTMLElement>(
 			'[data-kbve-referral-handle]',
 		);
@@ -532,7 +534,7 @@
 				}
 			});
 		})();
-	}
+	});
 </script>
 
 <style>

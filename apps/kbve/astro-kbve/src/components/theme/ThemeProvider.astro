@@ -4,19 +4,27 @@ import DefaultThemeProvider from '@astrojs/starlight/components/ThemeProvider.as
 
 <DefaultThemeProvider />
 
-{/* Right sidebar state — inlined to prevent flash of expanded panel */}
+{
+	/* Right sidebar state — inlined to prevent flash of expanded panel.
+    Re-applies on every ClientRouter swap via `astro:after-swap` so the
+    flash doesn't return on SPA navigation. */
+}
 <script is:inline>
 	(function () {
-		try {
-			var d = document.documentElement;
-			var l = localStorage;
-			d.setAttribute(
-				'data-right-sidebar-collapsed',
-				l.getItem('sl-right-sidebar-collapsed') !== 'false'
-					? 'true'
-					: 'false',
-			);
-		} catch (e) {}
+		var apply = function () {
+			try {
+				var d = document.documentElement;
+				var l = localStorage;
+				d.setAttribute(
+					'data-right-sidebar-collapsed',
+					l.getItem('sl-right-sidebar-collapsed') !== 'false'
+						? 'true'
+						: 'false',
+				);
+			} catch (e) {}
+		};
+		apply();
+		document.addEventListener('astro:after-swap', apply);
 	})();
 </script>
 

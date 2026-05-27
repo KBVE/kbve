@@ -272,14 +272,14 @@ import KbveSearchPalette from './KbveSearchPalette.tsx';
 </style>
 
 <script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
 	const isMac =
 		typeof navigator !== 'undefined' &&
 		/Mac|iPhone|iPad/.test(navigator.platform);
-	document
-		.querySelectorAll<HTMLElement>('[data-kbve-search-keycap]')
-		.forEach((el) => {
-			el.textContent = isMac ? '⌘K' : 'Ctrl+K';
-		});
+
+	// Event-delegated click — `document` survives router swaps so this
+	// listener attaches once at module init and keeps working forever.
 	document.addEventListener('click', (e) => {
 		const btn = (e.target as HTMLElement | null)?.closest?.(
 			'[data-kbve-search-trigger]',
@@ -288,5 +288,15 @@ import KbveSearchPalette from './KbveSearchPalette.tsx';
 			e.preventDefault();
 			window.dispatchEvent(new CustomEvent('kbve:search:open'));
 		}
+	});
+
+	// Keycap text writes into per-page DOM nodes, so re-run on every
+	// swap to update the freshly mounted markup.
+	onMount(() => {
+		document
+			.querySelectorAll<HTMLElement>('[data-kbve-search-keycap]')
+			.forEach((el) => {
+				el.textContent = isMac ? '⌘K' : 'Ctrl+K';
+			});
 	});
 </script>
