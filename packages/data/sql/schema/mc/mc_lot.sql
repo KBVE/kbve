@@ -42,7 +42,8 @@
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- pgcrypto is installed under the `extensions` schema by mc_schema_init.
+-- mc._derive_idem_key calls extensions.digest directly.
 
 
 -- ========== TABLE: mc.schematic ==========

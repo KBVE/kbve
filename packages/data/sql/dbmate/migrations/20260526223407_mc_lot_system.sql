@@ -35,7 +35,9 @@
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- pgcrypto is already installed via the earlier mc_schema_init migration
+-- under the `extensions` schema; mc._derive_idem_key calls extensions.digest
+-- directly.
 
 -- Re-affirm schema + grants so this migration is independently runnable
 -- against a fresh database. mc was already created in mc_schema_init but
@@ -64,7 +66,10 @@ IMMUTABLE
 PARALLEL SAFE
 SET search_path = ''
 AS $$
-    SELECT substr(encode(public.digest(p_key::text || ':' || p_tag, 'md5'), 'hex'), 1, 32)::uuid;
+    -- pgcrypto lives in the extensions schema on Supabase/kilobase; the
+    -- mc_pgcrypto_qualify migration already established this convention
+    -- and granted USAGE on extensions to service_role.
+    SELECT substr(encode(extensions.digest(p_key::text || ':' || p_tag, 'md5'), 'hex'), 1, 32)::uuid;
 $$;
 
 ALTER FUNCTION mc._derive_idem_key(UUID, TEXT) OWNER TO postgres;
