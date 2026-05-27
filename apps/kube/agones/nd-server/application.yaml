@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-nd-server
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: nexus-defense
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/agones/nd-server/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: nexus-defense
+    ignoreDifferences:
+        # FleetAutoscaler manages replica count — ArgoCD should not fight it.
+        - group: agones.dev
+          kind: Fleet
+          jsonPointers:
+              - /spec/replicas
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true

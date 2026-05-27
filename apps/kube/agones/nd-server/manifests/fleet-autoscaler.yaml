@@ -1,0 +1,24 @@
+# Buffer-1 autoscaler — keep one warm `Ready` GameServer at all times so the
+# next Allocator request lands instantly. Scales to 0 between matches once
+# the buffer drains. Cap at 20 while we figure out match throughput; bump
+# alongside the cluster c8 capacity plan if real load shows up.
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: nd-server-autoscaler
+    namespace: nexus-defense
+    labels:
+        app: nd-server
+        app.kubernetes.io/part-of: nexus-defense
+spec:
+    fleetName: nd-server
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 0
+            maxReplicas: 20
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30
