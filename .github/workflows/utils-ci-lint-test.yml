@@ -121,6 +121,44 @@ jobs:
                   mkdir -p ~/.pgrx
                   printf '[configs]\npg17 = "/usr/lib/postgresql/17/bin/pg_config"\n' > ~/.pgrx/config.toml
 
+            # Godot 4.6.3 for nexus-defense:test / :test-e2e.
+            #
+            # Cached under /opt/godot so cold installs (~30 s, downloads
+            # the ~80 MB linux release zip from godotengine/godot-builds)
+            # only happen on the first run per cache key. Subsequent runs
+            # are a no-op restore. scripts/test{,-e2e}.sh both honour the
+            # GODOT_BIN env var the final step exports, so no script
+            # change is needed for CI to start using the cached binary.
+            #
+            # When godot ships a new patch, bump GODOT_VERSION below and
+            # cache key flips automatically.
+            - name: Cache Godot 4.6.3 (Linux x86_64)
+              id: godot-cache
+              uses: actions/cache@v5
+              with:
+                  path: /opt/godot
+                  key: godot-${{ runner.os }}-4.6.3-stable
+
+            - name: Install Godot 4.6.3
+              if: steps.godot-cache.outputs.cache-hit != 'true'
+              env:
+                  GODOT_VERSION: 4.6.3-stable
+                  GODOT_BUILD: Godot_v4.6.3-stable_linux.x86_64
+              run: |
+                  set -euo pipefail
+                  curl -fsSL --retry 3 -o /tmp/godot.zip \
+                    "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${GODOT_BUILD}.zip"
+                  sudo mkdir -p /opt/godot
+                  sudo unzip -q /tmp/godot.zip -d /opt/godot
+                  sudo mv "/opt/godot/${GODOT_BUILD}" /opt/godot/godot
+                  sudo chmod +x /opt/godot/godot
+                  rm /tmp/godot.zip
+
+            - name: Expose GODOT_BIN
+              run: |
+                  echo "GODOT_BIN=/opt/godot/godot" >> "$GITHUB_ENV"
+                  /opt/godot/godot --version
+
             # Force a fresh nx project graph before affected lint/test runs.
             # Without this, the @nx/dependency-checks ESLint rule has a known
             # race when a dep + its first import land in back-to-back PRs:
