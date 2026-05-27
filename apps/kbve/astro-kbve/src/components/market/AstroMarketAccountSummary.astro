@@ -37,11 +37,14 @@
 <script>
 	import { myBids, myListings, MarketApiError } from './api';
 	import { initSupa, getSupa } from '@/lib/supa';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	const shell = document.querySelector<HTMLElement>(
-		'[data-kbve-market-shell]',
-	);
-	if (shell) {
+	onMount(() => {
+		const shell = document.querySelector<HTMLElement>(
+			'[data-kbve-market-shell]',
+		);
+		if (!shell) return;
+
 		const errorEl = shell.querySelector<HTMLElement>(
 			'[data-kbve-market-error]',
 		);
@@ -62,18 +65,20 @@
 			}
 		};
 
+		let cancelled = false;
 		(async () => {
 			try {
 				await initSupa();
 			} catch {
-				shell.dataset.kbveMarketState = 'signed-out';
+				if (!cancelled) shell.dataset.kbveMarketState = 'signed-out';
 				return;
 			}
+			if (cancelled) return;
 			const supa = getSupa();
 			const sessionResult = await supa.getSession().catch(() => null);
 			const token = sessionResult?.session?.access_token;
 			if (!token) {
-				shell.dataset.kbveMarketState = 'signed-out';
+				if (!cancelled) shell.dataset.kbveMarketState = 'signed-out';
 				return;
 			}
 
@@ -82,6 +87,7 @@
 					myListings({ limit: 100 }),
 					myBids({ limit: 100 }),
 				]);
+				if (cancelled) return;
 				setStat(
 					'active-listings',
 					ls.filter((l) => l.listing_status === 'active').length,
@@ -101,6 +107,7 @@
 				setError(null);
 				shell.dataset.kbveMarketState = 'ready';
 			} catch (e) {
+				if (cancelled) return;
 				setError(
 					e instanceof MarketApiError
 						? e.message
@@ -109,7 +116,11 @@
 				shell.dataset.kbveMarketState = 'error';
 			}
 		})();
-	}
+
+		return () => {
+			cancelled = true;
+		};
+	});
 </script>
 
 <style is:global>
