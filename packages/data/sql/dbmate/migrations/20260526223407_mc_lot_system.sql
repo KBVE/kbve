@@ -34,10 +34,14 @@
 -- route through the proxies. Pattern matches mc_public_proxies.sql.
 -- ============================================================================
 
+-- btree_gist supplies the gist_text_ops opclass needed by the
+-- (world WITH =) leg of the EXCLUDE constraint on mc.lot. Left in the
+-- default schema (rather than `extensions`) because EXCLUDE opclass
+-- resolution uses the live search_path at CREATE TABLE time, and pinning
+-- the extension to `extensions` would force every consumer to extend its
+-- search_path. pgcrypto sits in extensions because it's only called via
+-- explicit extensions.digest(...) — different concern.
 CREATE EXTENSION IF NOT EXISTS btree_gist;
--- pgcrypto is already installed via the earlier mc_schema_init migration
--- under the `extensions` schema; mc._derive_idem_key calls extensions.digest
--- directly.
 
 -- Re-affirm schema + grants so this migration is independently runnable
 -- against a fresh database. mc was already created in mc_schema_init but
@@ -63,6 +67,7 @@ CREATE OR REPLACE FUNCTION mc._derive_idem_key(p_key UUID, p_tag TEXT)
 RETURNS UUID
 LANGUAGE sql
 IMMUTABLE
+STRICT
 PARALLEL SAFE
 SET search_path = ''
 AS $$
@@ -510,7 +515,7 @@ BEGIN
             SELECT inner_b.build_id
               FROM mc.lot_build_log inner_b
              WHERE inner_b.apply_state = 0
-             ORDER BY inner_b.queued_at
+             ORDER BY inner_b.queued_at, inner_b.build_id
              FOR UPDATE SKIP LOCKED
              LIMIT GREATEST(1, LEAST(p_limit, 256))
          )
@@ -580,8 +585,14 @@ DECLARE
     v_schematic_id  TEXT;
     v_rowcount      INTEGER;
 BEGIN
+    IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
+        RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
     IF p_worker_id IS NULL OR btrim(p_worker_id) = '' THEN
         RAISE EXCEPTION 'worker_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF length(p_worker_id) > 128 THEN
+        RAISE EXCEPTION 'worker_id too long (max 128)' USING ERRCODE = '22001';
     END IF;
 
     -- Only the worker that holds the claim may ACK it. Prevents a stale
@@ -654,8 +665,14 @@ DECLARE
     v_lot_id   TEXT;
     v_rowcount INTEGER;
 BEGIN
+    IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
+        RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
     IF p_worker_id IS NULL OR btrim(p_worker_id) = '' THEN
         RAISE EXCEPTION 'worker_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF length(p_worker_id) > 128 THEN
+        RAISE EXCEPTION 'worker_id too long (max 128)' USING ERRCODE = '22001';
     END IF;
 
     UPDATE mc.lot_build_log
@@ -1398,6 +1415,8 @@ REVOKE ALL ON FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER)
     TO service_role;
+COMMENT ON FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER) IS
+    'Service-role-only PostgREST bridge for MC worker job claiming. Returns up to p_limit queued build/demolish jobs and marks them apply_state=3 (claimed) atomically via SKIP LOCKED.';
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_applied(
@@ -1417,6 +1436,8 @@ REVOKE ALL ON FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT)
     TO service_role;
+COMMENT ON FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT) IS
+    'Service-role-only PostgREST bridge for MC worker success ACK. Only the worker that holds the claim (claimed_by match) may finalize the job.';
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_failed(
@@ -1437,6 +1458,8 @@ REVOKE ALL ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT)
     TO service_role;
+COMMENT ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT) IS
+    'Service-role-only PostgREST bridge for MC worker failure ACK. Same claim-binding as the success path; apply_error is capped at 2048 chars.';
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_requeue_stale_claims(
@@ -1455,12 +1478,21 @@ REVOKE ALL ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
     TO service_role;
+COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER) IS
+    'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Returns the count of jobs requeued.';
 
 
 NOTIFY pgrst, 'reload schema';
 
 
 -- migrate:down
+
+-- Compatibility drops for any earlier in-flight signature on a dev DB
+-- where the first published migration shipped without p_worker_id.
+DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT);
+DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT);
+DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT);
 
 DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT);

@@ -41,9 +41,12 @@
 -- credits and khash legs each have their own wallet idempotency slot.
 -- ============================================================
 
+-- btree_gist supplies the gist_text_ops opclass needed by the EXCLUDE
+-- constraint on mc.lot. Left in the default schema; EXCLUDE opclass
+-- lookup runs at CREATE TABLE time and uses live search_path.
+-- pgcrypto sits in `extensions` (mc_schema_init); mc._derive_idem_key
+-- calls extensions.digest explicitly.
 CREATE EXTENSION IF NOT EXISTS btree_gist;
--- pgcrypto is installed under the `extensions` schema by mc_schema_init.
--- mc._derive_idem_key calls extensions.digest directly.
 
 
 -- ========== TABLE: mc.schematic ==========
