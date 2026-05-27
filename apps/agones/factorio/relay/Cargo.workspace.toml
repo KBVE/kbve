@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/agones/factorio/relay",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

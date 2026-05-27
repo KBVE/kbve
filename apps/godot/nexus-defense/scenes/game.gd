@@ -229,23 +229,48 @@ func _on_welcome(slot: int, seed: int) -> void:
 
 var _last_snapshot_tick: int = 0
 var _last_building_count: int = 0
+var _last_phase: int = -1
+var _last_kills: int = 0
 
-func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, gold: int, lives: int) -> void:
+const PHASE_PREPARE := 0
+const PHASE_WAVE := 1
+const PHASE_INTERMISSION := 2
+const PHASE_GAMEOVER := 3
+
+func _phase_name(phase: int) -> String:
+	match phase:
+		PHASE_PREPARE: return "Prepare"
+		PHASE_WAVE: return "Wave"
+		PHASE_INTERMISSION: return "Intermission"
+		PHASE_GAMEOVER: return "Game Over"
+		_: return "Unknown"
+
+func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, gold: int, lives: int, phase: int, phase_remaining_ms: int, kills: int) -> void:
 	_last_snapshot_tick = tick
 	var wave_changed: bool = wave != _wave
 	var building_changed: bool = building_count != _last_building_count
+	var phase_changed: bool = phase != _last_phase
 	_last_building_count = building_count
-	if wave_changed:
+	if wave_changed and phase == PHASE_WAVE:
 		_wave = wave
 		Ui.open("wave_banner", {"title": "Wave %d" % wave, "subtitle": "%d enemies inbound" % enemy_count})
 		_spawn_wave_enemies(enemy_count)
+	elif phase_changed and phase == PHASE_PREPARE:
+		var secs := int(ceil(float(phase_remaining_ms) / 1000.0))
+		Ui.open("wave_banner", {"title": "Prepare", "subtitle": "Wave %d in %ds" % [max(wave, 1), secs]})
+	elif phase_changed and phase == PHASE_GAMEOVER:
+		Ui.open("wave_banner", {"title": "Game Over", "subtitle": "Survived %d wave(s)" % wave})
+	if kills > _last_kills:
+		_last_kills = kills
+	_last_phase = phase
+	_wave = wave
 	_lives = lives
 	_gold = gold
 	_enemies = enemy_count
 	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
-	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed or building_changed:
+	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed or building_changed or phase_changed:
 		_last_snapshot_log_tick = tick
-		_log("snapshot tick=%d wave=%d enemies=%d buildings=%d gold=%d lives=%d" % [tick, wave, enemy_count, building_count, gold, lives])
+		_log("snapshot tick=%d phase=%s wave=%d enemies=%d buildings=%d gold=%d lives=%d kills=%d remaining_ms=%d" % [tick, _phase_name(phase), wave, enemy_count, building_count, gold, lives, kills, phase_remaining_ms])
 
 func _on_disconnected(reason: String) -> void:
 	_log("disconnected: %s" % reason)

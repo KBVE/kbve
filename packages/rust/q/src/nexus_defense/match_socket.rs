@@ -32,6 +32,9 @@ enum Inbound {
         building_count: u32,
         gold: i32,
         lives: i32,
+        phase: u8,
+        phase_remaining_ms: u32,
+        kills: u32,
     },
     Disconnected {
         reason: String,
@@ -87,6 +90,9 @@ impl INode for MatchSocket {
                     building_count,
                     gold,
                     lives,
+                    phase,
+                    phase_remaining_ms,
+                    kills,
                 } => {
                     self.base_mut().emit_signal(
                         &StringName::from("snapshot"),
@@ -97,6 +103,9 @@ impl INode for MatchSocket {
                             (building_count as i64).to_variant(),
                             (gold as i64).to_variant(),
                             (lives as i64).to_variant(),
+                            (phase as i64).to_variant(),
+                            (phase_remaining_ms as i64).to_variant(),
+                            (kills as i64).to_variant(),
                         ],
                     );
                 }
@@ -128,7 +137,17 @@ impl MatchSocket {
     /// be pulled from a future ring buffer; for now we plumb the headline
     /// numbers so GDScript can render a wave/enemies/gold display.
     #[signal]
-    fn snapshot(tick: i64, wave: i64, enemy_count: i64, building_count: i64, gold: i64, lives: i64);
+    fn snapshot(
+        tick: i64,
+        wave: i64,
+        enemy_count: i64,
+        building_count: i64,
+        gold: i64,
+        lives: i64,
+        phase: i64,
+        phase_remaining_ms: i64,
+        kills: i64,
+    );
 
     #[signal]
     fn disconnected(reason: GString);
@@ -341,6 +360,9 @@ async fn run_socket(
                     let wave = field.map(|f| f.wave).unwrap_or(0);
                     let gold = field.map(|f| f.gold).unwrap_or(0);
                     let lives = field.map(|f| f.lives).unwrap_or(0);
+                    let phase = field.map(|f| f.phase as u8).unwrap_or(0);
+                    let phase_remaining_ms = field.map(|f| f.phase_remaining_ms).unwrap_or(0);
+                    let kills = field.map(|f| f.kills).unwrap_or(0);
                     let _ = tx.send(Inbound::Snapshot {
                         tick: snap.tick,
                         wave,
@@ -348,6 +370,9 @@ async fn run_socket(
                         building_count,
                         gold,
                         lives,
+                        phase,
+                        phase_remaining_ms,
+                        kills,
                     });
                 }
                 Ok(ServerEvent::Reject { reason }) => {

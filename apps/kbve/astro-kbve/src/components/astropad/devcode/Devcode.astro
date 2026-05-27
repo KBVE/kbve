@@ -36,7 +36,7 @@ const uniqueId = `devcode-${Math.random().toString(36).substring(2, 11)}`;
 	</div>
 </div>
 
-<script is:inline define:vars={{ uniqueId }}>
+<script is:inline define:vars={{ uniqueId }} data-astro-rerun>
 	const container = document.getElementById(uniqueId);
 	if (container) {
 		const btn = container.querySelector('.copy-btn');

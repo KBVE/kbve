@@ -171,11 +171,17 @@ import AstroWalletCard from '@/components/wallet/AstroWalletCard.astro';
 
 <script>
 	import { bootProfile } from './profile-controller';
-	bootProfile();
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// Tiny script: stamp the current year in the footer.
-	const yearEl = document.getElementById('profile-footer-year');
-	if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+	onMount(() => {
+		// bootProfile() guards itself against double-init through the
+		// supabase init OnceCell + persistent profile cache, so calling
+		// it on every ClientRouter swap is cheap (cache-hit fast-paint).
+		bootProfile();
+
+		const yearEl = document.getElementById('profile-footer-year');
+		if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+	});
 </script>
 
 <style>

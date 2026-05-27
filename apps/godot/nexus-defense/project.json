@@ -5,7 +5,7 @@
 	"projectType": "application",
 	"tags": ["godot", "game", "nexus-defense"],
 	"targets": {
-		"test": {
+		"test-godot": {
 			"executor": "nx:run-commands",
 			"options": {
 				"command": "bash apps/godot/nexus-defense/scripts/test.sh"

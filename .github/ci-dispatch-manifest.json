@@ -13,9 +13,20 @@
 			"has_test": true
 		},
 		{
+			"key": "agones_factorio_relay",
+			"app_name": "agones-factorio-relay",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/factorio/relay/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
+			"source_path": "apps/agones/factorio/relay",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-factorio-relay",
+			"has_test": false
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.171",
+			"version": "1.0.172",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -109,7 +120,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.15",
+			"version": "0.1.16",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -123,7 +134,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.33",
+			"version": "0.1.34",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -221,7 +232,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.19",
+			"version": "0.1.20",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -715,20 +726,36 @@
 			}
 		}
 	],
-	"godot": [],
+	"godot": [
+		{
+			"key": "nexus_defense",
+			"app_name": "nexus-defense",
+			"engine": {
+				"version": "4.4-stable",
+				"project_path": "apps/godot/nexus-defense",
+				"build_targets": [],
+				"dotnet_enabled": false
+			},
+			"source_path": "apps/godot/nexus-defense",
+			"version": "0.0.1",
+			"version_toml": "apps/godot/nexus-defense/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/nexus-defense.mdx",
+			"has_test": true
+		}
+	],
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 27,
+		"docker": 28,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
 		"unreal": 6,
 		"ue5_server": 2,
 		"unity": 1,
-		"godot": 0,
+		"godot": 1,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 66
+		"total": 68
 	}
 }

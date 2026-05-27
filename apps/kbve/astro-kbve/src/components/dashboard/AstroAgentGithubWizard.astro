@@ -1,24 +1,47 @@
 ---
 import ReactAgentGithubWizard from './ReactAgentGithubWizard';
+import ReactAgentRepoAllowlist from './ReactAgentRepoAllowlist';
 ---
 
 <section
 	id="agent-github-wizard-wrapper"
 	class="agent-github-wizard-wrapper kbve-dashboard-page"
-	aria-label="discordsh GitHub wizard — provision webhook secret, PAT, and smoke-backfill">
+	aria-label="GitHub provider — webhook secret, PAT, repo allowlist (future), smoke-backfill">
 	<div class="dashboard-content">
 		<header class="agent-header not-content">
-			<h1 class="agent-title">discordsh · GitHub</h1>
+			<h1 class="agent-title">GitHub</h1>
 			<p class="agent-lede">
-				Four-step wizard that walks a guild owner through provisioning
-				the Vault rows discordsh needs for GitHub integration: an HMAC
-				webhook secret (<code>github_webhook:&lt;guild&gt;</code>) and a
-				PAT (<code>github:&lt;guild&gt;</code>). Step 4 smoke-tests the
-				full webhook + backfill path.
+				Per-guild GitHub integration. The four-step wizard provisions
+				the Vault rows that any KBVE agent consumes when it needs to
+				read or write against GitHub: an HMAC webhook secret (<code>
+					github_webhook:&lt;guild&gt;
+				</code>) and a PAT (<code>github:&lt;guild&gt;</code>). Step 4
+				smoke-tests the full webhook + backfill path so you know
+				downstream agents can use the credentials.
 			</p>
+
+			<div
+				class="agent-consumers"
+				aria-label="Agents that consume these rows">
+				<span class="agent-consumers__label">Used by:</span>
+				<a
+					class="agent-consumers__chip agent-consumers__chip--available"
+					href="/dashboard/agents/discordsh/">
+					discordsh
+				</a>
+				<span class="agent-consumers__chip agent-consumers__chip--soon">
+					pr-review (future)
+				</span>
+				<span class="agent-consumers__chip agent-consumers__chip--soon">
+					ci-bot (future)
+				</span>
+			</div>
 		</header>
 
-		<ReactAgentGithubWizard client:only="react" />
+		<div class="agent-stack">
+			<ReactAgentRepoAllowlist client:only="react" />
+			<ReactAgentGithubWizard client:only="react" />
+		</div>
 	</div>
 </section>
 
@@ -68,5 +91,55 @@ import ReactAgentGithubWizard from './ReactAgentGithubWizard';
 		padding: 0.05rem 0.35rem;
 		border-radius: 4px;
 		font-size: 0.85em;
+	}
+
+	.agent-consumers {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 0.85rem;
+	}
+
+	.agent-consumers__label {
+		font-size: 0.78rem;
+		color: var(--sl-color-gray-3, #9ca0aa);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		font-weight: 600;
+		margin-right: 0.2rem;
+	}
+
+	.agent-consumers__chip {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.78rem;
+		padding: 0.18rem 0.6rem;
+		border-radius: 999px;
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		border: 1px solid transparent;
+		text-decoration: none;
+	}
+
+	.agent-consumers__chip--available {
+		background: rgba(74, 222, 128, 0.12);
+		color: #4ade80;
+		border-color: rgba(74, 222, 128, 0.3);
+	}
+
+	.agent-consumers__chip--available:hover {
+		background: rgba(74, 222, 128, 0.2);
+	}
+
+	.agent-consumers__chip--soon {
+		background: rgba(148, 163, 184, 0.12);
+		color: #94a3b8;
+		border-color: rgba(148, 163, 184, 0.25);
+	}
+
+	.agent-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 </style>

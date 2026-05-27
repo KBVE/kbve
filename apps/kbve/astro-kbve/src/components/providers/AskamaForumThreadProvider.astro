@@ -315,417 +315,431 @@
 <script>
 	import { initSupa, getSupa } from '@/lib/supa';
 	import { addToast } from '@kbve/droid';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
 
-	// prettier-plugin-astro keeps reformatting <textarea ... /> back
-	// into <textarea>...\n  </textarea>, which means the textarea's
-	// initial value is leading whitespace and the cursor opens
-	// indented. Force-clear every textarea on load.
-	for (const t of document.querySelectorAll<HTMLTextAreaElement>(
-		'.thread-compose__textarea, .forum-mod-dialog__textarea',
-	)) {
-		if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
-			t.value = '';
-			t.defaultValue = '';
+	onMount(() => {
+		// prettier-plugin-astro keeps reformatting <textarea ... /> back
+		// into <textarea>...\n  </textarea>, which means the textarea's
+		// initial value is leading whitespace and the cursor opens
+		// indented. Force-clear every textarea on load.
+		for (const t of document.querySelectorAll<HTMLTextAreaElement>(
+			'.thread-compose__textarea, .forum-mod-dialog__textarea',
+		)) {
+			if (!t.defaultValue || /^\s+$/.test(t.defaultValue)) {
+				t.value = '';
+				t.defaultValue = '';
+			}
 		}
-	}
 
-	// Initial-letter fallback for the author avatar slot. The askama
-	// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
-	// When the URL is non-empty we swap the letter for an `<img>`; otherwise
-	// the first character renders inside the rounded square.
-	for (const el of document.querySelectorAll<HTMLElement>(
-		'.thread-card__author-avatar',
-	)) {
-		const url = el.dataset.avatar?.trim();
-		const letter = el.dataset.letter?.trim().charAt(0).toUpperCase() || '?';
-		if (url) {
-			const img = document.createElement('img');
-			img.src = url;
-			img.alt = '';
-			img.width = 32;
-			img.height = 32;
-			el.appendChild(img);
-		} else {
-			el.textContent = letter;
+		// Initial-letter fallback for the author avatar slot. The askama
+		// template emits `data-avatar="<url-or-empty>"` and `data-letter="<username>"`.
+		// When the URL is non-empty we swap the letter for an `<img>`; otherwise
+		// the first character renders inside the rounded square.
+		for (const el of document.querySelectorAll<HTMLElement>(
+			'.thread-card__author-avatar',
+		)) {
+			const url = el.dataset.avatar?.trim();
+			const letter =
+				el.dataset.letter?.trim().charAt(0).toUpperCase() || '?';
+			if (url) {
+				const img = document.createElement('img');
+				img.src = url;
+				img.alt = '';
+				img.width = 32;
+				img.height = 32;
+				el.appendChild(img);
+			} else {
+				el.textContent = letter;
+			}
 		}
-	}
 
-	// Swap the Thread Actions hint based on auth state. The buttons
-	// stay disabled until bookmark/subscribe/report endpoints land —
-	// this just stops telling signed-in users to sign in.
-	(async () => {
-		const hint = document.querySelector<HTMLElement>(
-			'[data-thread-actions-hint]',
-		);
-		if (!hint) return;
-		try {
-			await initSupa();
-		} catch {
-			return;
-		}
-		const supa = getSupa();
-		const sessionResult = await supa.getSession().catch(() => null);
-		const isAuthed = !!sessionResult?.session?.access_token;
-		const next = isAuthed ? hint.dataset.authText : hint.dataset.anonText;
-		if (next) hint.textContent = next;
-	})();
-
-	// Comment compose: submit via fetch with the local Supabase access
-	// token. axum's POST /api/v1/forum/t/{slug}/comments runs the
-	// service_create_comment RPC and returns the new comment id.
-	const composeForm = document.getElementById(
-		'thread-compose-form',
-	) as HTMLFormElement | null;
-	const composeStatus = document.getElementById(
-		'thread-compose-status',
-	) as HTMLOutputElement | null;
-
-	function setComposeStatus(
-		kind: 'idle' | 'busy' | 'error' | 'ok',
-		msg = '',
-	) {
-		if (!composeStatus) return;
-		composeStatus.dataset.kind = kind;
-		composeStatus.textContent = msg;
-	}
-
-	composeForm?.addEventListener('submit', async (ev) => {
-		ev.preventDefault();
-		setComposeStatus('busy', 'Posting…');
-
-		try {
-			await initSupa();
-		} catch {
-			setComposeStatus(
-				'error',
-				'Could not initialize auth. Reload and try again.',
+		// Swap the Thread Actions hint based on auth state. The buttons
+		// stay disabled until bookmark/subscribe/report endpoints land —
+		// this just stops telling signed-in users to sign in.
+		(async () => {
+			const hint = document.querySelector<HTMLElement>(
+				'[data-thread-actions-hint]',
 			);
-			return;
-		}
-		const supa = getSupa();
-		// SupabaseGateway returns `{ session, ... }` — unwrap before
-		// reaching for access_token. Without this we read undefined and
-		// every signed-in user sees "Sign in first to comment."
-		const sessionResult = await supa.getSession().catch(() => null);
-		const session = sessionResult?.session ?? null;
-		if (!session?.access_token) {
-			setComposeStatus('error', 'Sign in first to comment.');
-			return;
+			if (!hint) return;
+			try {
+				await initSupa();
+			} catch {
+				return;
+			}
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const isAuthed = !!sessionResult?.session?.access_token;
+			const next = isAuthed
+				? hint.dataset.authText
+				: hint.dataset.anonText;
+			if (next) hint.textContent = next;
+		})();
+
+		// Comment compose: submit via fetch with the local Supabase access
+		// token. axum's POST /api/v1/forum/t/{slug}/comments runs the
+		// service_create_comment RPC and returns the new comment id.
+		const composeForm = document.getElementById(
+			'thread-compose-form',
+		) as HTMLFormElement | null;
+		const composeStatus = document.getElementById(
+			'thread-compose-status',
+		) as HTMLOutputElement | null;
+
+		function setComposeStatus(
+			kind: 'idle' | 'busy' | 'error' | 'ok',
+			msg = '',
+		) {
+			if (!composeStatus) return;
+			composeStatus.dataset.kind = kind;
+			composeStatus.textContent = msg;
 		}
 
-		const slug = composeForm.dataset.threadSlug || '';
-		const fd = new FormData(composeForm);
-		const payload = { body: String(fd.get('body') || '') };
+		composeForm?.addEventListener('submit', async (ev) => {
+			ev.preventDefault();
+			setComposeStatus('busy', 'Posting…');
 
-		try {
-			const res = await fetch(`/api/v1/forum/t/${slug}/comments`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session.access_token}`,
-				},
-				body: JSON.stringify(payload),
-			});
-			if (!res.ok) {
-				const body = await res.text().catch(() => '');
+			try {
+				await initSupa();
+			} catch {
 				setComposeStatus(
 					'error',
-					`${res.status}: ${body || res.statusText}`,
+					'Could not initialize auth. Reload and try again.',
 				);
 				return;
 			}
-			setComposeStatus('ok', 'Posted! Reloading…');
-			window.location.reload();
-		} catch (err) {
-			setComposeStatus(
-				'error',
-				err instanceof Error ? err.message : 'Network error',
-			);
-		}
-	});
-
-	// ── Comment row actions: edit-own / mod-edit / mod-remove ─────
-	(async () => {
-		const rows = Array.from(
-			document.querySelectorAll<HTMLElement>(
-				'.forum-comment[data-comment-id]',
-			),
-		);
-		if (rows.length === 0) return;
-
-		try {
-			await initSupa();
-		} catch {
-			return;
-		}
-		const supa = getSupa();
-		const sessionResult = await supa.getSession().catch(() => null);
-		const session = sessionResult?.session ?? null;
-		if (!session?.access_token) return;
-
-		const myId = String(session.user?.id ?? '');
-		let isStaff = false;
-		try {
-			const res = await fetch('/api/v1/me/staff', {
-				headers: { Authorization: `Bearer ${session.access_token}` },
-			});
-			if (res.ok) {
-				const data = (await res.json()) as { is_staff?: boolean };
-				isStaff = !!data.is_staff;
-			}
-		} catch {
-			/* swallow — we just hide the mod buttons */
-		}
-
-		for (const row of rows) {
-			const authorId = row.dataset.authorId || '';
-			const menuEl = row.querySelector<HTMLDetailsElement>(
-				'.forum-comment__menu',
-			);
-			if (!menuEl) continue;
-
-			const isOwn = myId && authorId === myId;
-			const editOwnBtn = menuEl.querySelector<HTMLButtonElement>(
-				'[data-action="edit-own"]',
-			);
-			const modEditBtn = menuEl.querySelector<HTMLButtonElement>(
-				'[data-action="mod-edit"]',
-			);
-			const modRemoveBtn = menuEl.querySelector<HTMLButtonElement>(
-				'[data-action="mod-remove"]',
-			);
-
-			if (editOwnBtn) editOwnBtn.hidden = !isOwn;
-			if (modEditBtn) modEditBtn.hidden = !isStaff;
-			if (modRemoveBtn) modRemoveBtn.hidden = !isStaff;
-
-			if (isOwn || isStaff) menuEl.hidden = false;
-		}
-
-		// One <dialog> shared by all rows; mode + currentBody are passed
-		// per-open. Using HTMLDialogElement keeps focus trapping + ESC
-		// cancel free, no library required. Submission is gated on the
-		// dialog's `close` event, so the form's `method="dialog"` natively
-		// closes with returnValue="confirm" on submit.
-		type ModMode = 'edit-own' | 'mod-edit' | 'mod-remove';
-		type ModResult = { body?: string; reason?: string } | null;
-
-		const modDialog = document.getElementById(
-			'forum-mod-dialog',
-		) as HTMLDialogElement | null;
-		const modDialogTitle =
-			modDialog?.querySelector<HTMLElement>('.forum-mod-dialog__title') ??
-			null;
-		const modDialogWarn =
-			modDialog?.querySelector<HTMLElement>(
-				'.forum-mod-dialog__warning',
-			) ?? null;
-		const modBodyField =
-			modDialog?.querySelector<HTMLElement>('[data-field="body"]') ??
-			null;
-		const modReasonField =
-			modDialog?.querySelector<HTMLElement>('[data-field="reason"]') ??
-			null;
-		const modBodyInput =
-			modDialog?.querySelector<HTMLTextAreaElement>(
-				'textarea[name="body"]',
-			) ?? null;
-		const modReasonInput =
-			modDialog?.querySelector<HTMLTextAreaElement>(
-				'textarea[name="reason"]',
-			) ?? null;
-		const modPrimaryBtn =
-			modDialog?.querySelector<HTMLButtonElement>(
-				'.forum-mod-dialog__btn--primary',
-			) ?? null;
-		const modCancelBtns = modDialog
-			? modDialog.querySelectorAll<HTMLButtonElement>(
-					'[data-action="cancel"]',
-				)
-			: null;
-
-		let pendingResolve: ((r: ModResult) => void) | null = null;
-		let pendingMode: ModMode | null = null;
-
-		modCancelBtns?.forEach((btn) =>
-			btn.addEventListener('click', () => modDialog?.close('cancel')),
-		);
-
-		modDialog?.addEventListener('close', () => {
-			if (!pendingResolve) return;
-			const action = modDialog.returnValue;
-			const mode = pendingMode;
-			const showBody = mode !== 'mod-remove';
-			const showReason = mode !== 'edit-own';
-			const resolver = pendingResolve;
-			pendingResolve = null;
-			pendingMode = null;
-			if (action !== 'confirm') {
-				resolver(null);
-				return;
-			}
-			resolver({
-				body: showBody ? (modBodyInput?.value ?? '') : undefined,
-				reason: showReason ? (modReasonInput?.value ?? '') : undefined,
-			});
-		});
-
-		function openModDialog(
-			mode: ModMode,
-			currentBody: string,
-		): Promise<ModResult> {
-			if (!modDialog) return Promise.resolve(null);
-			const isRemove = mode === 'mod-remove';
-			const isModEdit = mode === 'mod-edit';
-			pendingMode = mode;
-			if (modDialogTitle) {
-				modDialogTitle.textContent = isRemove
-					? 'Remove comment'
-					: isModEdit
-						? 'Mod-edit comment'
-						: 'Edit your comment';
-			}
-			if (modDialogWarn) {
-				if (isRemove) {
-					modDialogWarn.textContent =
-						"This decrements the thread's comment count and cannot be undone.";
-					modDialogWarn.hidden = false;
-				} else {
-					modDialogWarn.hidden = true;
-					modDialogWarn.textContent = '';
-				}
-			}
-			if (modBodyField) modBodyField.hidden = isRemove;
-			if (modReasonField) modReasonField.hidden = mode === 'edit-own';
-			if (modBodyInput) {
-				modBodyInput.value = isRemove ? '' : currentBody;
-				modBodyInput.required = !isRemove;
-			}
-			if (modReasonInput) modReasonInput.value = '';
-			if (modPrimaryBtn) {
-				modPrimaryBtn.textContent = isRemove ? 'Remove' : 'Save';
-				modPrimaryBtn.classList.toggle(
-					'forum-mod-dialog__btn--danger',
-					isRemove,
-				);
-			}
-			modDialog.showModal();
-			(isRemove ? modReasonInput : modBodyInput)?.focus();
-			return new Promise((resolve) => {
-				pendingResolve = resolve;
-			});
-		}
-
-		document.addEventListener('click', async (ev) => {
-			const target = ev.target as HTMLElement | null;
-			if (!target) return;
-			const btn = target.closest<HTMLButtonElement>(
-				'.forum-comment__action',
-			);
-			if (!btn) return;
-
-			const row = btn.closest<HTMLElement>(
-				'.forum-comment[data-comment-id]',
-			);
-			if (!row) return;
-			const commentId = row.dataset.commentId || '';
-			const action = btn.dataset.action as ModMode | undefined;
-			if (!commentId || !action) return;
-
-			ev.preventDefault();
-
-			// Close the kebab menu so the dialog has visual focus.
-			const menuEl = row.querySelector<HTMLDetailsElement>(
-				'.forum-comment__menu',
-			);
-			if (menuEl) menuEl.open = false;
-
-			const supa2 = getSupa();
-			const sr = await supa2.getSession().catch(() => null);
-			const sess = sr?.session ?? null;
-			if (!sess?.access_token) {
-				addToast({
-					id: `forum-mod-auth-${Date.now()}`,
-					message: 'Sign in first to moderate or edit.',
-					severity: 'warning',
-					duration: 4000,
-				});
+			const supa = getSupa();
+			// SupabaseGateway returns `{ session, ... }` — unwrap before
+			// reaching for access_token. Without this we read undefined and
+			// every signed-in user sees "Sign in first to comment."
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) {
+				setComposeStatus('error', 'Sign in first to comment.');
 				return;
 			}
 
-			const rawTpl = row.querySelector<HTMLTemplateElement>(
-				'.forum-comment__raw',
-			);
-			const currentBody = rawTpl?.innerHTML?.trim() ?? '';
+			const slug = composeForm.dataset.threadSlug || '';
+			const fd = new FormData(composeForm);
+			const payload = { body: String(fd.get('body') || '') };
 
-			const result = await openModDialog(action, currentBody);
-			if (!result) return;
-
-			let url = '';
-			let method = 'PATCH';
-			let body: Record<string, string> | null = null;
-
-			if (action === 'edit-own') {
-				const next = (result.body ?? '').trim();
-				if (!next || next === currentBody) return;
-				url = `/api/v1/forum/c/${commentId}`;
-				body = { body: next };
-			} else if (action === 'mod-edit') {
-				const next = (result.body ?? '').trim();
-				if (!next || next === currentBody) return;
-				url = `/api/v1/forum/c/${commentId}/moderate`;
-				body = { body: next, reason: result.reason ?? '' };
-			} else if (action === 'mod-remove') {
-				url = `/api/v1/forum/c/${commentId}`;
-				method = 'DELETE';
-				body = { body: '', reason: result.reason ?? '' };
-			} else {
-				return;
-			}
-
-			btn.disabled = true;
 			try {
-				const res = await fetch(url, {
-					method,
+				const res = await fetch(`/api/v1/forum/t/${slug}/comments`, {
+					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						Authorization: `Bearer ${sess.access_token}`,
+						Authorization: `Bearer ${session.access_token}`,
 					},
-					body: JSON.stringify(body),
+					body: JSON.stringify(payload),
 				});
 				if (!res.ok) {
-					const text = await res.text().catch(() => '');
+					const body = await res.text().catch(() => '');
+					setComposeStatus(
+						'error',
+						`${res.status}: ${body || res.statusText}`,
+					);
+					return;
+				}
+				setComposeStatus('ok', 'Posted! Reloading…');
+				window.location.reload();
+			} catch (err) {
+				setComposeStatus(
+					'error',
+					err instanceof Error ? err.message : 'Network error',
+				);
+			}
+		});
+
+		// ── Comment row actions: edit-own / mod-edit / mod-remove ─────
+		(async () => {
+			const rows = Array.from(
+				document.querySelectorAll<HTMLElement>(
+					'.forum-comment[data-comment-id]',
+				),
+			);
+			if (rows.length === 0) return;
+
+			try {
+				await initSupa();
+			} catch {
+				return;
+			}
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) return;
+
+			const myId = String(session.user?.id ?? '');
+			let isStaff = false;
+			try {
+				const res = await fetch('/api/v1/me/staff', {
+					headers: {
+						Authorization: `Bearer ${session.access_token}`,
+					},
+				});
+				if (res.ok) {
+					const data = (await res.json()) as { is_staff?: boolean };
+					isStaff = !!data.is_staff;
+				}
+			} catch {
+				/* swallow — we just hide the mod buttons */
+			}
+
+			for (const row of rows) {
+				const authorId = row.dataset.authorId || '';
+				const menuEl = row.querySelector<HTMLDetailsElement>(
+					'.forum-comment__menu',
+				);
+				if (!menuEl) continue;
+
+				const isOwn = myId && authorId === myId;
+				const editOwnBtn = menuEl.querySelector<HTMLButtonElement>(
+					'[data-action="edit-own"]',
+				);
+				const modEditBtn = menuEl.querySelector<HTMLButtonElement>(
+					'[data-action="mod-edit"]',
+				);
+				const modRemoveBtn = menuEl.querySelector<HTMLButtonElement>(
+					'[data-action="mod-remove"]',
+				);
+
+				if (editOwnBtn) editOwnBtn.hidden = !isOwn;
+				if (modEditBtn) modEditBtn.hidden = !isStaff;
+				if (modRemoveBtn) modRemoveBtn.hidden = !isStaff;
+
+				if (isOwn || isStaff) menuEl.hidden = false;
+			}
+
+			// One <dialog> shared by all rows; mode + currentBody are passed
+			// per-open. Using HTMLDialogElement keeps focus trapping + ESC
+			// cancel free, no library required. Submission is gated on the
+			// dialog's `close` event, so the form's `method="dialog"` natively
+			// closes with returnValue="confirm" on submit.
+			type ModMode = 'edit-own' | 'mod-edit' | 'mod-remove';
+			type ModResult = { body?: string; reason?: string } | null;
+
+			const modDialog = document.getElementById(
+				'forum-mod-dialog',
+			) as HTMLDialogElement | null;
+			const modDialogTitle =
+				modDialog?.querySelector<HTMLElement>(
+					'.forum-mod-dialog__title',
+				) ?? null;
+			const modDialogWarn =
+				modDialog?.querySelector<HTMLElement>(
+					'.forum-mod-dialog__warning',
+				) ?? null;
+			const modBodyField =
+				modDialog?.querySelector<HTMLElement>('[data-field="body"]') ??
+				null;
+			const modReasonField =
+				modDialog?.querySelector<HTMLElement>(
+					'[data-field="reason"]',
+				) ?? null;
+			const modBodyInput =
+				modDialog?.querySelector<HTMLTextAreaElement>(
+					'textarea[name="body"]',
+				) ?? null;
+			const modReasonInput =
+				modDialog?.querySelector<HTMLTextAreaElement>(
+					'textarea[name="reason"]',
+				) ?? null;
+			const modPrimaryBtn =
+				modDialog?.querySelector<HTMLButtonElement>(
+					'.forum-mod-dialog__btn--primary',
+				) ?? null;
+			const modCancelBtns = modDialog
+				? modDialog.querySelectorAll<HTMLButtonElement>(
+						'[data-action="cancel"]',
+					)
+				: null;
+
+			let pendingResolve: ((r: ModResult) => void) | null = null;
+			let pendingMode: ModMode | null = null;
+
+			modCancelBtns?.forEach((btn) =>
+				btn.addEventListener('click', () => modDialog?.close('cancel')),
+			);
+
+			modDialog?.addEventListener('close', () => {
+				if (!pendingResolve) return;
+				const action = modDialog.returnValue;
+				const mode = pendingMode;
+				const showBody = mode !== 'mod-remove';
+				const showReason = mode !== 'edit-own';
+				const resolver = pendingResolve;
+				pendingResolve = null;
+				pendingMode = null;
+				if (action !== 'confirm') {
+					resolver(null);
+					return;
+				}
+				resolver({
+					body: showBody ? (modBodyInput?.value ?? '') : undefined,
+					reason: showReason
+						? (modReasonInput?.value ?? '')
+						: undefined,
+				});
+			});
+
+			function openModDialog(
+				mode: ModMode,
+				currentBody: string,
+			): Promise<ModResult> {
+				if (!modDialog) return Promise.resolve(null);
+				const isRemove = mode === 'mod-remove';
+				const isModEdit = mode === 'mod-edit';
+				pendingMode = mode;
+				if (modDialogTitle) {
+					modDialogTitle.textContent = isRemove
+						? 'Remove comment'
+						: isModEdit
+							? 'Mod-edit comment'
+							: 'Edit your comment';
+				}
+				if (modDialogWarn) {
+					if (isRemove) {
+						modDialogWarn.textContent =
+							"This decrements the thread's comment count and cannot be undone.";
+						modDialogWarn.hidden = false;
+					} else {
+						modDialogWarn.hidden = true;
+						modDialogWarn.textContent = '';
+					}
+				}
+				if (modBodyField) modBodyField.hidden = isRemove;
+				if (modReasonField) modReasonField.hidden = mode === 'edit-own';
+				if (modBodyInput) {
+					modBodyInput.value = isRemove ? '' : currentBody;
+					modBodyInput.required = !isRemove;
+				}
+				if (modReasonInput) modReasonInput.value = '';
+				if (modPrimaryBtn) {
+					modPrimaryBtn.textContent = isRemove ? 'Remove' : 'Save';
+					modPrimaryBtn.classList.toggle(
+						'forum-mod-dialog__btn--danger',
+						isRemove,
+					);
+				}
+				modDialog.showModal();
+				(isRemove ? modReasonInput : modBodyInput)?.focus();
+				return new Promise((resolve) => {
+					pendingResolve = resolve;
+				});
+			}
+
+			document.addEventListener('click', async (ev) => {
+				const target = ev.target as HTMLElement | null;
+				if (!target) return;
+				const btn = target.closest<HTMLButtonElement>(
+					'.forum-comment__action',
+				);
+				if (!btn) return;
+
+				const row = btn.closest<HTMLElement>(
+					'.forum-comment[data-comment-id]',
+				);
+				if (!row) return;
+				const commentId = row.dataset.commentId || '';
+				const action = btn.dataset.action as ModMode | undefined;
+				if (!commentId || !action) return;
+
+				ev.preventDefault();
+
+				// Close the kebab menu so the dialog has visual focus.
+				const menuEl = row.querySelector<HTMLDetailsElement>(
+					'.forum-comment__menu',
+				);
+				if (menuEl) menuEl.open = false;
+
+				const supa2 = getSupa();
+				const sr = await supa2.getSession().catch(() => null);
+				const sess = sr?.session ?? null;
+				if (!sess?.access_token) {
 					addToast({
-						id: `forum-mod-err-${Date.now()}`,
-						message: `${res.status}: ${text || res.statusText}`,
+						id: `forum-mod-auth-${Date.now()}`,
+						message: 'Sign in first to moderate or edit.',
+						severity: 'warning',
+						duration: 4000,
+					});
+					return;
+				}
+
+				const rawTpl = row.querySelector<HTMLTemplateElement>(
+					'.forum-comment__raw',
+				);
+				const currentBody = rawTpl?.innerHTML?.trim() ?? '';
+
+				const result = await openModDialog(action, currentBody);
+				if (!result) return;
+
+				let url = '';
+				let method = 'PATCH';
+				let body: Record<string, string> | null = null;
+
+				if (action === 'edit-own') {
+					const next = (result.body ?? '').trim();
+					if (!next || next === currentBody) return;
+					url = `/api/v1/forum/c/${commentId}`;
+					body = { body: next };
+				} else if (action === 'mod-edit') {
+					const next = (result.body ?? '').trim();
+					if (!next || next === currentBody) return;
+					url = `/api/v1/forum/c/${commentId}/moderate`;
+					body = { body: next, reason: result.reason ?? '' };
+				} else if (action === 'mod-remove') {
+					url = `/api/v1/forum/c/${commentId}`;
+					method = 'DELETE';
+					body = { body: '', reason: result.reason ?? '' };
+				} else {
+					return;
+				}
+
+				btn.disabled = true;
+				try {
+					const res = await fetch(url, {
+						method,
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${sess.access_token}`,
+						},
+						body: JSON.stringify(body),
+					});
+					if (!res.ok) {
+						const text = await res.text().catch(() => '');
+						addToast({
+							id: `forum-mod-err-${Date.now()}`,
+							message: `${res.status}: ${text || res.statusText}`,
+							severity: 'error',
+							duration: 6000,
+						});
+						btn.disabled = false;
+						return;
+					}
+					addToast({
+						id: `forum-mod-ok-${Date.now()}`,
+						message:
+							action === 'mod-remove'
+								? 'Comment removed.'
+								: 'Comment updated.',
+						severity: 'success',
+						duration: 3000,
+					});
+					window.location.reload();
+				} catch (err) {
+					addToast({
+						id: `forum-mod-net-${Date.now()}`,
+						message:
+							err instanceof Error
+								? err.message
+								: 'Network error',
 						severity: 'error',
 						duration: 6000,
 					});
 					btn.disabled = false;
-					return;
 				}
-				addToast({
-					id: `forum-mod-ok-${Date.now()}`,
-					message:
-						action === 'mod-remove'
-							? 'Comment removed.'
-							: 'Comment updated.',
-					severity: 'success',
-					duration: 3000,
-				});
-				window.location.reload();
-			} catch (err) {
-				addToast({
-					id: `forum-mod-net-${Date.now()}`,
-					message:
-						err instanceof Error ? err.message : 'Network error',
-					severity: 'error',
-					duration: 6000,
-				});
-				btn.disabled = false;
-			}
-		});
-	})();
+			});
+		})();
+	});
 </script>
 
 <style>

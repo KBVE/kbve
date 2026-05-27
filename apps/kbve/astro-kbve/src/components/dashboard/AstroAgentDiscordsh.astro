@@ -1,5 +1,6 @@
 ---
 import ReactAgentDiscordsh from './ReactAgentDiscordsh';
+import ReactAgentBotConfig from './ReactAgentBotConfig';
 ---
 
 <section
@@ -8,7 +9,7 @@ import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 	aria-label="Discordsh agent — token management for owned Discord guilds">
 	<div class="dashboard-content">
 		<header class="agent-header not-content">
-			<h1 class="agent-title">discordsh</h1>
+			<h1 class="agent-title">DiscordSH</h1>
 			<p class="agent-lede">
 				Manage tokens for guilds you own. Each row in <code>
 					vault.secrets
@@ -29,7 +30,10 @@ import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 			</p>
 		</header>
 
-		<ReactAgentDiscordsh client:only="react" />
+		<div class="agent-stack">
+			<ReactAgentBotConfig client:only="react" />
+			<ReactAgentDiscordsh client:only="react" />
+		</div>
 	</div>
 </section>
 
@@ -79,5 +83,11 @@ import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 		padding: 0.05rem 0.35rem;
 		border-radius: 4px;
 		font-size: 0.85em;
+	}
+
+	.agent-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 </style>

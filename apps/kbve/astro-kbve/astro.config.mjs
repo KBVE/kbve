@@ -27,6 +27,8 @@ export default defineConfig({
 		'/profile/account/': '/dashboard/account/',
 		'/profile/market': '/dashboard/market/',
 		'/profile/market/': '/dashboard/market/',
+		'/dashboard/rows': '/dashboard/gameops/rows/',
+		'/dashboard/rows/': '/dashboard/gameops/rows/',
 	},
 	markdown: {
 		rehypePlugins: [rehypeLinkAttrs],
@@ -194,7 +196,7 @@ export default defineConfig({
 							items: [
 								{ label: 'Overview', link: '/dashboard/agents/', attrs: { 'data-auth-visibility': 'auth' } },
 								{ label: 'GitHub', link: '/dashboard/agents/github/', attrs: { 'data-auth-visibility': 'auth' } },
-								{ label: 'discordsh', link: '/dashboard/agents/discordsh/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'DiscordSH', link: '/dashboard/agents/discordsh/', attrs: { 'data-auth-visibility': 'auth' } },
 							],
 						},
 						{ label: 'Marketplace', link: '/dashboard/market/', attrs: { 'data-auth-visibility': 'auth' } },
@@ -210,7 +212,16 @@ export default defineConfig({
 						{ label: 'Grafana', link: '/dashboard/grafana/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Virtual Machines', link: '/dashboard/vm/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'IDE', link: '/dashboard/ide/', attrs: { 'data-auth-visibility': 'staff' } },
-						{ label: 'ROWS (Game Ops)', link: '/dashboard/rows/', attrs: { 'data-auth-visibility': 'staff' } },
+						{
+							label: 'GameOps',
+							collapsed: true,
+							items: [
+								{ label: 'Overview', link: '/dashboard/gameops/', attrs: { 'data-auth-visibility': 'staff' } },
+								{ label: 'ROWS', link: '/dashboard/gameops/rows/', attrs: { 'data-auth-visibility': 'staff' } },
+								{ label: 'Factorio', link: '/dashboard/gameops/factorio/', attrs: { 'data-auth-visibility': 'staff' } },
+								{ label: 'Minecraft', link: '/dashboard/gameops/mc/', attrs: { 'data-auth-visibility': 'staff' } },
+							],
+						},
 					],
 				},
 				{

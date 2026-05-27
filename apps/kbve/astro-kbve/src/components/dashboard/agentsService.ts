@@ -16,6 +16,17 @@ export interface DiscordGuild {
 	permissions: string;
 }
 
+export interface DiscordshConfig {
+	default_repo?: string;
+	claim_channel_id?: string;
+	forum_channel_id?: string;
+	noticeboard_channel_id?: string;
+	taskboard_channel_id?: string;
+	max_assignees?: number;
+	mirror_pr_events?: boolean;
+	active?: boolean;
+}
+
 export interface AgentTokenRow {
 	token_id: string;
 	token_name: string;
@@ -58,9 +69,17 @@ class AgentsService {
 
 			this.$accessToken.set(session.access_token as string);
 
-			const providerToken =
+			const sessionProviderToken =
 				(session as { provider_token?: string | null } | null)
 					?.provider_token ?? null;
+
+			let providerToken: string | null = sessionProviderToken;
+			if (!providerToken) {
+				const { authBridge } =
+					await import('@/components/auth/AuthBridge');
+				providerToken = authBridge.getDiscordProviderToken();
+			}
+
 			if (!providerToken) {
 				this.$authState.set('discord_reauth_required');
 				return;
@@ -90,6 +109,13 @@ class AgentsService {
 			if (resp.status === 401) {
 				this.$authState.set('discord_reauth_required');
 				this.$providerToken.set(null);
+				try {
+					const { authBridge } =
+						await import('@/components/auth/AuthBridge');
+					authBridge.clearDiscordProviderToken();
+				} catch {
+					// non-fatal
+				}
 				this.$guildsError.set(
 					'Discord session expired. Re-sign-in required.',
 				);
@@ -254,6 +280,118 @@ class AgentsService {
 			severity: 'success',
 			duration: 3500,
 		});
+		return { ok: true };
+	}
+
+	public async peekToken(
+		service: string,
+	): Promise<
+		{ ok: true; value: string | null } | { ok: false; error: string }
+	> {
+		const guildId = this.$selectedGuildId.get();
+		const accessToken = this.$accessToken.get();
+		const providerToken = this.$providerToken.get();
+		if (!guildId || !accessToken || !providerToken) {
+			return { ok: false, error: 'No guild selected or session missing' };
+		}
+
+		const resp = await this.callGuildVault(
+			'tokens.peek_token',
+			accessToken,
+			{
+				server_id: guildId,
+				provider_token: providerToken,
+				service,
+			},
+		);
+
+		if (!resp.ok) return { ok: false, error: resp.error };
+		const value =
+			(resp.body as { value?: string | null } | null)?.value ?? null;
+		return { ok: true, value };
+	}
+
+	public async getRepoAllowlist(): Promise<
+		| {
+				ok: true;
+				repos: string[];
+				raw: string | null;
+		  }
+		| { ok: false; error: string }
+	> {
+		const r = await this.peekToken('github_repos');
+		if (!r.ok) return { ok: false, error: r.error };
+		if (!r.value) return { ok: true, repos: [], raw: null };
+		try {
+			const parsed = JSON.parse(r.value) as { repos?: unknown };
+			const repos = Array.isArray(parsed.repos)
+				? parsed.repos.filter((x): x is string => typeof x === 'string')
+				: [];
+			return { ok: true, repos, raw: r.value };
+		} catch {
+			return { ok: true, repos: [], raw: r.value };
+		}
+	}
+
+	public async setRepoAllowlist(
+		repos: string[],
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const tokens = this.$tokens.get();
+		const existing = tokens.find((t) => t.service === 'github_repos');
+		const value = JSON.stringify({ repos });
+
+		if (existing) {
+			const r = await this.deleteToken(existing.token_id);
+			if (!r.ok) return { ok: false, error: r.error };
+		}
+		const r = await this.addToken({
+			tokenName: 'github-repos',
+			service: 'github_repos',
+			tokenValue: value,
+			description:
+				'Per-guild repo allowlist consumed by gh-webhook and gh-backfill',
+		});
+		if (!r.ok) return { ok: false, error: r.error };
+		return { ok: true };
+	}
+
+	public async getBotConfig(): Promise<
+		| {
+				ok: true;
+				config: DiscordshConfig;
+		  }
+		| { ok: false; error: string }
+	> {
+		const r = await this.peekToken('discordsh_config');
+		if (!r.ok) return { ok: false, error: r.error };
+		if (!r.value) return { ok: true, config: {} };
+		try {
+			const parsed = JSON.parse(r.value) as Record<string, unknown>;
+			return { ok: true, config: parsed as DiscordshConfig };
+		} catch {
+			return { ok: true, config: {} };
+		}
+	}
+
+	public async setBotConfig(
+		config: DiscordshConfig,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const tokens = this.$tokens.get();
+		const existing = tokens.find((t) => t.service === 'discordsh_config');
+		const value = JSON.stringify(config);
+
+		if (existing) {
+			const r = await this.deleteToken(existing.token_id);
+			if (!r.ok) return { ok: false, error: r.error };
+		}
+		const r = await this.addToken({
+			tokenName: 'discordsh-config',
+			service: 'discordsh_config',
+			tokenValue: value,
+			description:
+				'Per-guild DiscordSH bot config (channels, defaults, toggles)',
+		});
+		if (!r.ok) return { ok: false, error: r.error };
 		return { ok: true };
 	}
 

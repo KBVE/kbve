@@ -85,10 +85,19 @@ const configJson = JSON.stringify(configuration);
 </style>
 
 <script is:inline src={SCALAR_CDN}></script>
-<script is:inline define:vars={{ configJson }}>
+<script is:inline define:vars={{ configJson }} data-astro-rerun>
 	(function () {
+		// Skip when the host mount node isn't on the swap target (router
+		// can re-fire this script on any page; only run where the
+		// Scalar mount exists).
+		if (!document.getElementById('scalar-app')) return;
 		var cfg = JSON.parse(configJson);
 		window.__scalarBaseConfig = cfg;
+		if (!window.Scalar) return;
+		// Tear down any previous instance bound to the now-removed DOM.
+		try {
+			window.__scalarRef?.destroy?.();
+		} catch (e) {}
 		window.__scalarRef = window.Scalar.createApiReference(
 			'#scalar-app',
 			cfg,

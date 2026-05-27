@@ -9,20 +9,25 @@
 </aside>
 
 <script>
-	const fallback = document.querySelector('[data-account-signin]');
-	const wallet = document.querySelector('[data-kbve-wallet-shell]');
-	if (fallback && wallet) {
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const fallback = document.querySelector('[data-account-signin]');
+		const wallet = document.querySelector('[data-kbve-wallet-shell]');
+		if (!fallback || !wallet) return;
 		const sync = () => {
 			if (!wallet.hasAttribute('hidden')) {
 				fallback.setAttribute('hidden', '');
 			}
 		};
 		sync();
-		new MutationObserver(sync).observe(wallet, {
+		const mo = new MutationObserver(sync);
+		mo.observe(wallet, {
 			attributes: true,
 			attributeFilter: ['hidden'],
 		});
-	}
+		return () => mo.disconnect();
+	});
 </script>
 
 <style>
