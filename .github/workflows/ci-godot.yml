@@ -165,7 +165,7 @@ jobs:
                   godot --headless --export-release "${{ matrix.preset }}" \
                         "build/${{ steps.san.outputs.name }}/${{ inputs.app_name }}"
             - name: Upload artefact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
                   path: ${{ inputs.project_path }}/build/${{ steps.san.outputs.name }}
