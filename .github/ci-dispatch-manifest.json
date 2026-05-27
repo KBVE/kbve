@@ -715,7 +715,23 @@
 			}
 		}
 	],
-	"godot": [],
+	"godot": [
+		{
+			"key": "nexus_defense",
+			"app_name": "nexus-defense",
+			"engine": {
+				"version": "4.4-stable",
+				"project_path": "apps/godot/nexus-defense",
+				"build_targets": [],
+				"dotnet_enabled": false
+			},
+			"source_path": "apps/godot/nexus-defense",
+			"version": "0.0.1",
+			"version_toml": "apps/godot/nexus-defense/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/nexus-defense.mdx",
+			"has_test": true
+		}
+	],
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
@@ -726,9 +742,9 @@
 		"unreal": 6,
 		"ue5_server": 2,
 		"unity": 1,
-		"godot": 0,
+		"godot": 1,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 66
+		"total": 67
 	}
 }
