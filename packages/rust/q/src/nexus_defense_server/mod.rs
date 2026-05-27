@@ -48,6 +48,39 @@ const ENEMIES_PER_WAVE: u32 = 10;
 const SPAWN_INTERVAL_TICKS: u32 = 10;
 /// Ticks between waves (5 s at 20 Hz).
 const WAVE_INTERVAL_TICKS: u32 = SIM_TICK_HZ * 5;
+const PREPARE_PHASE_TICKS: u32 = SIM_TICK_HZ * 6;
+
+const STARTER_BUILDING_AXIALS: &[(i32, i32, proto::BuildKind)] = &[
+    (-4, 0, proto::BuildKind::Tower),
+    (4, 0, proto::BuildKind::Tower),
+];
+
+/// Map current SlotWave state + lives to (phase, phase_remaining_ms).
+/// Wave-active when enemies are still being spawned this wave;
+/// Intermission while waiting for the next wave to start; Prepare for
+/// the very first window before the match opens; GameOver once lives
+/// hit zero.
+fn derive_phase(slot_wave: Option<SlotWave>, lives: i32, tick: u32) -> (proto::MatchPhase, u32) {
+    if lives <= 0 {
+        return (proto::MatchPhase::GameOver, 0);
+    }
+    let Some(entry) = slot_wave else {
+        return (proto::MatchPhase::Prepare, 0);
+    };
+    if tick < entry.prepare_until_tick {
+        let remaining = entry.prepare_until_tick.saturating_sub(tick);
+        return (proto::MatchPhase::Prepare, ticks_to_ms(remaining));
+    }
+    if entry.spawned_in_wave < ENEMIES_PER_WAVE {
+        return (proto::MatchPhase::Wave, 0);
+    }
+    let remaining = entry.next_wave_tick.saturating_sub(tick);
+    (proto::MatchPhase::Intermission, ticks_to_ms(remaining))
+}
+
+const fn ticks_to_ms(ticks: u32) -> u32 {
+    ticks.saturating_mul(1000) / SIM_TICK_HZ
+}
 /// Vertical stripe assigned to each slot — slot 0 at y=120, slot 1 at y=280, etc.
 const SLOT_STRIPE_BASE: f32 = 120.0;
 const SLOT_STRIPE_HEIGHT: f32 = 160.0;
@@ -122,6 +155,13 @@ pub struct SlotWave {
     pub spawned_in_wave: u32,
     pub next_spawn_tick: u32,
     pub next_wave_tick: u32,
+    /// Tick at which the Prepare phase ends and the very first wave is
+    /// allowed to spawn. 0 means the slot has not been initialised yet
+    /// and sync_per_slot_state will seed it on the next tick.
+    pub prepare_until_tick: u32,
+    /// Set true once a slot has had its starter buildings spawned, so
+    /// the rest of the loop doesn't re-spawn them every tick.
+    pub starter_spawned: bool,
 }
 
 #[derive(Resource)]
@@ -254,10 +294,12 @@ fn tick_sim(mut clock: ResMut<SimClock>, mut budget: ResMut<InputBudget>) {
 }
 
 fn sync_per_slot_state(
+    clock: Res<SimClock>,
     roster: Res<RosterHandle>,
     mut wave: ResMut<WaveState>,
     mut economy: ResMut<PlayerEconomy>,
     mut over: ResMut<GameOverFlags>,
+    mut commands: Commands,
 ) {
     let active = match roster.0.read() {
         Ok(r) => r.active_slots(),
@@ -271,7 +313,13 @@ fn sync_per_slot_state(
         }
         active_mask[idx] = true;
         if wave.slots[idx].is_none() {
-            wave.slots[idx] = Some(SlotWave::default());
+            let prepare_until = clock.tick.saturating_add(PREPARE_PHASE_TICKS);
+            wave.slots[idx] = Some(SlotWave {
+                next_wave_tick: prepare_until,
+                next_spawn_tick: prepare_until,
+                prepare_until_tick: prepare_until,
+                ..SlotWave::default()
+            });
         }
         if economy.slots[idx].is_none() {
             economy.slots[idx] = Some(PlayerEconomyEntry {
@@ -281,12 +329,44 @@ fn sync_per_slot_state(
             });
             over.fired[idx] = false;
         }
+        // Spawn the slot's starter defensive towers exactly once.
+        if let Some(entry) = wave.slots[idx].as_mut()
+            && !entry.starter_spawned
+        {
+            spawn_starter_buildings(*slot, &mut commands, clock.tick);
+            entry.starter_spawned = true;
+        }
     }
     for (idx, &is_active) in active_mask.iter().enumerate().take(proto::MAX_PLAYERS) {
         if !is_active {
             wave.slots[idx] = None;
             economy.slots[idx] = None;
             over.fired[idx] = false;
+        }
+    }
+}
+
+fn spawn_starter_buildings(slot: proto::PlayerSlot, commands: &mut Commands, tick: u32) {
+    for (col, row, kind) in STARTER_BUILDING_AXIALS {
+        let x = (*col as f32) * 32.0 + 16.0;
+        let y = (*row as f32) * 32.0 + 16.0;
+        let mut spawn = commands.spawn((
+            BuildingTag {
+                kind: *kind,
+                owner: slot,
+                col: *col,
+                row: *row,
+            },
+            Position(x, y),
+            Health {
+                hp: BUILDING_HP,
+                max_hp: BUILDING_HP,
+            },
+        ));
+        if building_is_offensive(*kind) {
+            spawn.insert(TowerStats {
+                last_fire_tick: tick,
+            });
         }
     }
 }
@@ -365,6 +445,12 @@ fn spawn_wave_enemies(clock: Res<SimClock>, mut wave: ResMut<WaveState>, mut com
             continue;
         };
         let slot = proto::PlayerSlot(idx as u8);
+
+        // Prepare phase gate — no enemies before the slot's initial
+        // countdown finishes.
+        if clock.tick < entry.prepare_until_tick {
+            continue;
+        }
 
         if clock.tick >= entry.next_wave_tick && entry.spawned_in_wave >= ENEMIES_PER_WAVE {
             entry.wave = entry.wave.wrapping_add(1);
@@ -621,12 +707,8 @@ fn emit_snapshot(
         .iter()
         .map(|slot| {
             let idx = slot.0 as usize;
-            let slot_wave = wave
-                .slots
-                .get(idx)
-                .and_then(|w| w.as_ref())
-                .map(|w| w.wave)
-                .unwrap_or(0);
+            let slot_wave_state = wave.slots.get(idx).and_then(|w| w.as_ref()).copied();
+            let slot_wave = slot_wave_state.map(|w| w.wave).unwrap_or(0);
             let econ = economy
                 .slots
                 .get(idx)
@@ -637,6 +719,7 @@ fn emit_snapshot(
                     lives: STARTING_LIVES,
                     kills: 0,
                 });
+            let (phase, phase_remaining_ms) = derive_phase(slot_wave_state, econ.lives, clock.tick);
             proto::FieldDelta {
                 owner: *slot,
                 buildings: building_bins.remove(&slot.0).unwrap_or_default(),
@@ -645,6 +728,9 @@ fn emit_snapshot(
                 gold: econ.gold,
                 lives: econ.lives,
                 wave: slot_wave,
+                phase,
+                phase_remaining_ms,
+                kills: econ.kills,
             }
         })
         .collect();

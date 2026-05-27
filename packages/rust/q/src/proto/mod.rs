@@ -153,6 +153,25 @@ pub struct ProjectileDelta {
     pub destroyed: bool,
 }
 
+/// Per-slot match phase — drives the client HUD's pacing chip + banner.
+/// Mapped to u8 on the wire so older clients can ignore unknown variants
+/// without crashing the decoder.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum MatchPhase {
+    /// Inter-wave breather + initial countdown before the first enemy
+    /// spawn. Towers can be placed; no enemies on the field yet.
+    #[default]
+    Prepare = 0,
+    /// Spawn window is open — enemies are being added each spawn-tick.
+    Wave = 1,
+    /// Spawning is done; remaining enemies still walking the path. Wave
+    /// counter has not yet ticked over to the next number.
+    Intermission = 2,
+    /// Player ran out of lives. No more enemies will be spawned for them.
+    GameOver = 3,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FieldDelta {
     pub owner: PlayerSlot,
@@ -162,6 +181,13 @@ pub struct FieldDelta {
     pub gold: i32,
     pub lives: i32,
     pub wave: u16,
+    /// Current pacing state for this slot.
+    pub phase: MatchPhase,
+    /// Milliseconds remaining in the current phase (countdown for
+    /// Prepare/Intermission; 0 for Wave/GameOver).
+    pub phase_remaining_ms: u32,
+    /// Cumulative enemy kills for this slot since the match started.
+    pub kills: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
