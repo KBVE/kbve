@@ -1,0 +1,89 @@
+---
+title: Agones Factorio Relay
+description: |
+    Sidecar binary deployed alongside the Agones-managed Factorio dedicated server. Tails the Factorio console log, speaks RCON to the game container, bridges chat to the kbve IRC #general channel (which already relays to Discord), and writes telemetry into the gameops ClickHouse database.
+sidebar:
+    label: Agones Factorio Relay
+    order: 461
+tags:
+    - agones
+    - factorio
+    - relay
+    - rust
+    - irc
+    - clickhouse
+key: agones_factorio_relay
+pipeline: docker
+app_name: agones-factorio-relay
+version: "0.0.2"
+source_path: apps/agones/factorio/relay
+version_toml: apps/agones/factorio/relay/version.toml
+runner: ubuntu-latest
+image: kbve/agones-factorio-relay
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Rust binary that runs as a sidecar container in the Factorio Agones GameServer pod (`apps/kube/agones/factorio/`, landing in Phase 1 / 3b). It exists so the factorio container itself can stay vanilla — no Agones SDK plumbing, no chat-bridge logic, no telemetry — and lifecycle work happens out-of-process where it can be iterated without rebuilding the 1+ GB Factorio image.
+
+Three roles, one process:
+
+- **Log tail** — reads `/shared/log/console.log` (written by the factorio container via `--console-log`) and emits typed `GameEvent`s for `[CHAT] / [JOIN] / [LEAVE] / [COMMAND] / [STATS]` markers.
+- **IRC bridge** — forwards `[CHAT]` plus join/leave events to the configured channel (default `#general`) on the existing kbve IRC network. IRC → Discord is already wired by the `irc-gateway` service, so this is the single integration point the game needs.
+- **ClickHouse writer** — inserts snapshots, player events, and rotation rows into `gameops.factorio_*` (schema in `packages/data/ch/schemas/factorio.sql`). 14-day raw TTL, 90-day rotation history.
+
+Phase 3a (this entry) ships the crate scaffold so the image builds and publishes. The IRC, RCON, and ClickHouse modules are stubbed and log only. Real impl lands in Phase 3c (IRC + RCON wiring) and Phase 4d (ClickHouse insert + scenario.lua `[STATS]` emitter).
+
+## Architecture (target — Phase 3c+)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ GameServer Pod                                           │
+│                                                          │
+│ ┌──────────────┐  ┌────────────────┐  ┌──────────────┐   │
+│ │  factorio    │  │ factorio-relay │  │ agones-sdk   │   │
+│ │              │  │                │  │ (injected)   │   │
+│ │ udp:34197 ←──┼──┼─→ rcon 27015   │  │              │   │
+│ │ rcon:27015 ──┼─→│  127.0.0.1     │  │ http:9358    │   │
+│ │              │  │                │  │ grpc:9357    │   │
+│ │ writes →     │  │ reads →        │  │              │   │
+│ │ /shared/log/ │  │ /shared/log/   │  │              │   │
+│ │ console.log  │  │ console.log    │  │              │   │
+│ └──────┬───────┘  └────────┬───────┘  └──────────────┘   │
+│        │                    │                            │
+│        └────emptyDir: /shared/log────┘                   │
+│                                                          │
+│  IRC out ←──── factorio-relay ────→ irc.kbve.com:6697    │
+│  CH writes ←─── factorio-relay ───→ gameops.factorio_*   │
+└──────────────────────────────────────────────────────────┘
+```
+
+## Runtime knobs
+
+| Env | Default | Notes |
+|---|---|---|
+| `FACTORIO_CONSOLE_LOG` | `/shared/log/console.log` | Tailable shared volume mounted from the same `emptyDir` as the factorio container |
+| `FACTORIO_RCON_ADDR` | `127.0.0.1:27015` | Same-pod loopback; RCON server lives in the factorio container |
+| `FACTORIO_RCON_PASSWORD` | _(required)_ | Mounted from `SealedSecret` |
+| `IRC_SERVER` | `irc.kbve.com` | |
+| `IRC_PORT` | `6697` | TLS |
+| `IRC_USE_TLS` | `true` | |
+| `IRC_NICK` | `factorio-bot` | |
+| `IRC_CHANNEL` | `#general` | Single channel for v1. Multi-channel routing is Phase 3c+ scope |
+| `IRC_PASSWORD` | _(unset)_ | NickServ identify |
+| `FACTORIO_SERVER_ID` | `factorio-default` | Stamps every ClickHouse row; later: `factorio-vanilla-1`, `factorio-pvp-1`, etc. |
+| `FACTORIO_SCENARIO_DEFAULT` | `kbve` | Fallback when a `[STATS]` line doesn't include scenario |
+| `CLICKHOUSE_URL` | _(unset)_ | When unset, the ClickHouse writer is disabled; the relay still bridges IRC ↔ RCON |
+| `CLICKHOUSE_USER` | _(unset)_ | |
+| `CLICKHOUSE_PASSWORD` | _(unset)_ | |
+| `CLICKHOUSE_DATABASE` | `gameops` | |
+
+## Refs
+
+- Tracking issue #11138
+- Schema PR — `packages/data/ch/schemas/factorio.sql`
+- Sibling Phase 0 image — `kbve/agones-factorio`

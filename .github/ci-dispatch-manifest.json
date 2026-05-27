@@ -13,6 +13,17 @@
 			"has_test": true
 		},
 		{
+			"key": "agones_factorio_relay",
+			"app_name": "agones-factorio-relay",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/factorio/relay/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
+			"source_path": "apps/agones/factorio/relay",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-factorio-relay",
+			"has_test": false
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
 			"version": "1.0.172",
@@ -735,7 +746,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 27,
+		"docker": 28,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -745,6 +756,6 @@
 		"godot": 1,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 67
+		"total": 68
 	}
 }
