@@ -1,7 +1,7 @@
 -- ============================================================
 -- MC LOT SYSTEM — Digital real-estate for the survival backend.
 --
--- This file mirrors the contents of the dbmate migration
+-- This file mirrors the dbmate migration
 -- 20260526223407_mc_lot_system.sql and exists as the canonical
 -- source of truth for the lot/schematic schema. Update both when
 -- changing the schema.
@@ -9,33 +9,40 @@
 -- Tables:
 --   mc.schematic        — build catalog (id, dims, price, resource path)
 --   mc.lot              — parcel registry (chunk_x_range, chunk_z_range,
---                         owner, current_schematic_id, state, price)
---   mc.lot_purchase     — append-only ownership ledger
---   mc.lot_build_log    — append-only build/demolish audit
+--                         owner, current_schematic_id, state, price,
+--                         generated chunk_width/depth/area)
+--   mc.lot_purchase     — append-only ownership ledger (per-currency
+--                         wallet ledger references; one-purchase-per-lot
+--                         unique index)
+--   mc.lot_build_log    — append-only build/demolish audit + concurrent
+--                         work queue (apply_state 0/1/2/3 + claimed_at/by)
+--
+-- Concurrency:
+--   - mc.service_claim_pending_builds uses FOR UPDATE SKIP LOCKED so
+--     multiple MC workers can poll without taking the same job.
+--   - uq_mc_lot_build_log_one_active_per_lot WHERE apply_state IN (0,3)
+--     enforces "at most one outstanding job per lot" at the DB level.
 --
 -- Constraints worth highlighting:
---   - mc.lot uses a GIST EXCLUDE constraint on
---     (world =, chunk_x_range &&, chunk_z_range &&) so two lots in the
---     same world cannot occupy any overlapping chunk.
---   - chunk_x_range / chunk_z_range are stored as half-open int4range
---     pairs so a 1x1 lot at chunk 5 is [5, 6), and a 13x7 castle
---     bounding box is [20, 33) x [-10, -3).
---   - lot.state is a smallint enum:
---         0 = vacant, 1 = owned, 2 = built,
---         3 = under_build, 4 = demolishing
+--   - mc.lot has a GIST EXCLUDE on (world =, chunk_x_range &&,
+--     chunk_z_range &&) so two lots in the same world cannot share
+--     a chunk.
+--   - resource_path is namespaced and path-traversal-safe.
+--   - world ids must match '^[a-z0-9_.-]+:[a-z0-9_/.-]+$'.
 --
 -- RPC layering:
---   mc.service_*  — service_role only, used by MC mod + admin tooling.
---   mc.proxy_*    — authenticated callers; uses auth.uid() for ownership.
---   public.proxy_*— PostgREST wrapper because the mc schema is private.
+--   mc.service_*   — service_role only. MC mod + admin tooling.
+--   mc.proxy_*     — internal layer called from the public wrappers.
+--   public.proxy_* — PostgREST surface. authenticated callers.
 --
 -- Money flow rides on wallet.service_debit against the user-kind
--- account; mc.lot_purchase and mc.lot_build_log keep their own audit
--- rows so we can reconstruct ownership / build history without
--- joining through wallet.ledger.
+-- account; mc.lot_purchase / mc.lot_build_log keep their own audit
+-- rows. Dual-currency charges go through mc._derive_idem_key so the
+-- credits and khash legs each have their own wallet idempotency slot.
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 
 -- ========== TABLE: mc.schematic ==========
@@ -58,10 +65,14 @@ CREATE TABLE IF NOT EXISTS mc.schematic (
     CONSTRAINT mc_schematic_dims_y_chk CHECK (dims_y <= 384),
     CONSTRAINT mc_schematic_price_chk  CHECK (price_credits >= 0 AND price_khash >= 0),
     CONSTRAINT mc_schematic_category_chk
-        CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument'))
+        CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
+    CONSTRAINT mc_schematic_resource_path_chk
+        CHECK (resource_path !~ '(^/|\.\.)' AND
+               resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_schematic_category_enabled ON mc.schematic (category, enabled);
+CREATE INDEX IF NOT EXISTS idx_mc_schematic_enabled_category_tier_name
+    ON mc.schematic (category, tier, name) WHERE enabled;
 CREATE INDEX IF NOT EXISTS idx_mc_schematic_tier ON mc.schematic (tier);
 
 
@@ -72,6 +83,13 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     world           TEXT NOT NULL DEFAULT 'minecraft:overworld',
     chunk_x_range   int4range NOT NULL,
     chunk_z_range   int4range NOT NULL,
+    chunk_width     INTEGER GENERATED ALWAYS AS
+        (upper(chunk_x_range) - lower(chunk_x_range)) STORED,
+    chunk_depth     INTEGER GENERATED ALWAYS AS
+        (upper(chunk_z_range) - lower(chunk_z_range)) STORED,
+    chunk_area      INTEGER GENERATED ALWAYS AS
+        ((upper(chunk_x_range) - lower(chunk_x_range))
+       * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
     anchor_y        SMALLINT NOT NULL,
     owner_user_id   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
@@ -90,6 +108,8 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     CONSTRAINT mc_lot_z_range_chk    CHECK (NOT isempty(chunk_z_range)
                                              AND lower_inc(chunk_z_range)
                                              AND NOT upper_inc(chunk_z_range)),
+    CONSTRAINT mc_lot_world_chk
+        CHECK (world ~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$'),
     CONSTRAINT mc_lot_owner_state_chk CHECK (
         (state = 0 AND owner_user_id IS NULL)
         OR (state > 0 AND owner_user_id IS NOT NULL)
@@ -106,9 +126,12 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     )
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_owner ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_mc_lot_state ON mc.lot (state);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state ON mc.lot (world, state);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_owner
+    ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_order
+    ON mc.lot (world, lower(chunk_x_range), lower(chunk_z_range));
+CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_order
+    ON mc.lot (world, state, lower(chunk_x_range), lower(chunk_z_range));
 
 
 -- ========== TABLE: mc.lot_purchase ==========
@@ -119,7 +142,8 @@ CREATE TABLE IF NOT EXISTS mc.lot_purchase (
     buyer_user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
-    wallet_ledger_id BIGINT,
+    wallet_credits_ledger_id BIGINT,
+    wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -130,6 +154,8 @@ CREATE TABLE IF NOT EXISTS mc.lot_purchase (
 
 CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_lot   ON mc.lot_purchase (lot_id);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_buyer ON mc.lot_purchase (buyer_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_purchase_one_per_lot
+    ON mc.lot_purchase (lot_id);
 
 
 -- ========== TABLE: mc.lot_build_log ==========
@@ -142,26 +168,41 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     schematic_id    TEXT REFERENCES mc.schematic(schematic_id),
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
-    wallet_ledger_id BIGINT,
+    wallet_credits_ledger_id BIGINT,
+    wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
     apply_state     SMALLINT NOT NULL DEFAULT 0,
     apply_error     TEXT,
+    claimed_at      TIMESTAMPTZ,
+    claimed_by      TEXT,
     queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     applied_at      TIMESTAMPTZ,
 
     CONSTRAINT mc_lot_build_log_action_chk
         CHECK (action_kind IN (0, 1)),
     CONSTRAINT mc_lot_build_log_apply_state_chk
-        CHECK (apply_state BETWEEN 0 AND 2),
+        CHECK (apply_state BETWEEN 0 AND 3),
     CONSTRAINT mc_lot_build_log_build_has_schematic_chk
         CHECK ((action_kind = 0 AND schematic_id IS NOT NULL)
             OR (action_kind = 1)),
+    CONSTRAINT mc_lot_build_log_apply_error_len_chk
+        CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
+    CONSTRAINT mc_lot_build_log_claimed_consistency_chk
+        CHECK ((apply_state = 3 AND claimed_at IS NOT NULL)
+            OR (apply_state <> 3)),
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_lot     ON mc.lot_build_log (lot_id);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor   ON mc.lot_build_log (actor_user_id);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending ON mc.lot_build_log (queued_at) WHERE apply_state = 0;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_lot
+    ON mc.lot_build_log (lot_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor
+    ON mc.lot_build_log (actor_user_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending
+    ON mc.lot_build_log (queued_at) WHERE apply_state = 0;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_claimed_stale
+    ON mc.lot_build_log (claimed_at) WHERE apply_state = 3;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_build_log_one_active_per_lot
+    ON mc.lot_build_log (lot_id) WHERE apply_state IN (0, 3);
 
 
 -- RPC bodies live in the migration file (20260526223407_mc_lot_system.sql).
