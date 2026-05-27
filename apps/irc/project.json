@@ -1,30 +1,40 @@
 {
-  "name": "irc",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "apps/irc",
-  "targets": {
-    "e2e": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "options": {
-        "commands": [
-          "nx test irc-gateway --no-cloud",
-          "nx e2e irc-e2e --no-cloud",
-          "docker rm -f irc-e2e-test 2>/dev/null || true",
-          "nx container irc-gateway --configuration=local --no-cloud",
-          "nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
-        ],
-        "parallel": false
-      }
-    },
-    "container": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["nx container irc-gateway"],
-        "parallel": false
-      }
-    }
-  },
-  "tags": []
+	"name": "irc",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/irc",
+	"targets": {
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"nx test irc-gateway --no-cloud",
+					"nx e2e irc-e2e --no-cloud",
+					"docker rm -f irc-e2e-test 2>/dev/null || true",
+					"nx container irc-gateway --configuration=local --no-cloud",
+					"nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"ci": {
+					"commands": [
+						"nx test irc-gateway --no-cloud",
+						"docker rm -f irc-e2e-test 2>/dev/null || true",
+						"nx container irc-gateway --configuration=local --no-cloud",
+						"nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
+					]
+				}
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx container irc-gateway"],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
 }
