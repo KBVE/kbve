@@ -177,38 +177,17 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  set -euo pipefail
-                  # gh api --paginate emits one JSON array per page back-to-back,
-                  # which json.load() cannot parse ("Extra data" at start of page 2).
-                  # Slurp pages with `jq -s` and concatenate before writing.
-                  if ! gh api repos/${{ github.repository }}/code-scanning/alerts --paginate 2>/dev/null \
-                       | jq -s 'add // [] | map(select(.state == "open"))' \
-                       > /tmp/codeql-alerts.json; then
-                    echo '[]' > /tmp/codeql-alerts.json
-                  fi
-                  if ! python3 -c "import json; json.load(open('/tmp/codeql-alerts.json'))" 2>/dev/null; then
-                    echo '[]' > /tmp/codeql-alerts.json
-                  fi
-
-                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/codeql-alerts.json'))))" 2>/dev/null || echo 0)
-                  echo "CodeQL open alerts: $COUNT"
+                  python3 scripts/fetch-github-alerts.py \
+                    --endpoint code-scanning \
+                    --out /tmp/codeql-alerts.json
 
             - name: Fetch Dependabot alerts
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  set -euo pipefail
-                  if ! gh api repos/${{ github.repository }}/dependabot/alerts --paginate 2>/dev/null \
-                       | jq -s 'add // [] | map(select(.state == "open"))' \
-                       > /tmp/dependabot-alerts.json; then
-                    echo '[]' > /tmp/dependabot-alerts.json
-                  fi
-                  if ! python3 -c "import json; json.load(open('/tmp/dependabot-alerts.json'))" 2>/dev/null; then
-                    echo '[]' > /tmp/dependabot-alerts.json
-                  fi
-
-                  COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/dependabot-alerts.json'))))" 2>/dev/null || echo 0)
-                  echo "Dependabot open alerts: $COUNT"
+                  python3 scripts/fetch-github-alerts.py \
+                    --endpoint dependabot \
+                    --out /tmp/dependabot-alerts.json
 
             - name: Aggregate security data
               run: |
@@ -279,6 +258,22 @@ jobs:
                   path: |
                       apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx
                       apps/kbve/astro-kbve/public/data/nx/nx-security.json
+
+            - name: Upload raw audit payloads on failure
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: dashboard-security-debug
+                  retention-days: 3
+                  if-no-files-found: ignore
+                  path: |
+                      /tmp/pnpm-audit.json
+                      /tmp/cargo-audit.json
+                      /tmp/pip-audit.json
+                      /tmp/pip-audit-partial.json
+                      /tmp/codeql-alerts.json
+                      /tmp/dependabot-alerts.json
+                      /tmp/nx-security-raw.json
 
             - name: Cleanup
               if: always()
