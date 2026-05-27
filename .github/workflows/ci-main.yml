@@ -495,7 +495,7 @@ jobs:
                     [ -n "$vtgt" ] && extra="$extra --field version_target=${vtgt}"
                     [ -n "$proj_path" ] && extra="$extra --field project_path=${proj_path}"
                     [ -n "$engine_version" ] && extra="$extra --field engine_version=${engine_version}"
-                    [ "$build_targets" != "[]" ] && extra="$extra --field build_targets=${build_targets}"
+                    extra="$extra --field build_targets=${build_targets}"
                     [ "$features" != "[]" ] && extra="$extra --field features=${features}"
                     [ -n "$lic" ] && extra="$extra --field license_method=${lic}"
                     [ -n "$ext_repo" ] && extra="$extra --field external_repo_url=${ext_repo}"

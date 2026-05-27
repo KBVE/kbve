@@ -123,17 +123,25 @@ jobs:
         steps:
             - uses: actions/checkout@v6
             - name: Run headless test pass
+              env:
+                  GODOT_BIN: godot
               working-directory: ${{ inputs.project_path }}
               run: |
-                  if [ -d tests ] || ls test_*.gd 2>/dev/null | head -1 > /dev/null; then
+                  # Prefer the project's own scripts/test.sh when present — it knows
+                  # whether the suite is gdUnit4, GUT, or raw godot --quit-after.
+                  # Falls back to a sanity --quit-after pass when no harness exists.
+                  if [ -x scripts/test.sh ]; then
+                    bash scripts/test.sh
+                  elif [ -d tests ] || ls test_*.gd 2>/dev/null | head -1 > /dev/null; then
                     godot --headless --path . --quit-after 10
                   else
-                    echo "::notice::No tests/ dir or test_*.gd files — skipping headless run"
+                    echo "::notice::No scripts/test.sh, tests/ dir, or test_*.gd files — skipping headless run"
                   fi
 
     build:
         name: Build (${{ matrix.preset }})
         needs: [version_gate, test]
+        if: ${{ inputs.build_targets != '[]' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:

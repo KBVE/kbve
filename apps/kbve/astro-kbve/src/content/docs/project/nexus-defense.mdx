@@ -1,0 +1,48 @@
+---
+title: Nexus Defense
+description: |
+    Godot 4 tower-defense client paired with the Rust nd-server. ci-godot drives the gdunit headless test pass and (eventually) the export matrix; the Rust server side ships separately under nd-server.
+sidebar:
+    label: Nexus Defense
+    order: 60
+tags:
+    - godot
+    - game
+key: nexus_defense
+pipeline: godot
+app_name: nexus-defense
+version: "0.0.1"
+source_path: apps/godot/nexus-defense
+version_toml: apps/godot/nexus-defense/version.toml
+engine:
+    version: "4.4-stable"
+    project_path: apps/godot/nexus-defense
+    build_targets: []
+    dotnet_enabled: false
+has_test: true
+test_framework: godot
+author: h0lybyte
+license: KBVE
+status: beta
+---
+
+## Overview
+
+Nexus Defense is the Godot 4 client for the nd-server tower-defense prototype. The Godot project lives at `apps/godot/nexus-defense`; the authoritative Rust server lives at `apps/godot/nexus-defense/server` and ships independently as `nd-server`.
+
+## CI
+
+- `pipeline: godot` routes this entry through `ci-godot.yml` (dispatched from `ci-main.yml`).
+- `test_framework: godot` selects the headless gdunit pass; `scripts/test.sh` is invoked inside the `barichello/godot-ci` container so no godot install is needed on the runner.
+- `build_targets: []` keeps the export matrix empty for now — add export presets to `export_presets.cfg` and list them here when the client is ready to ship binaries.
+- The Rust server side (Cargo workspace member `nd-server`) is tracked separately under [`nd-server.mdx`](./nd-server.mdx).
+
+## Local
+
+```bash
+# gdunit suite (requires godot 4.4 on PATH or GODOT_BIN env)
+nx run nexus-defense:test-godot
+
+# integration (Rust server + Godot client)
+nx run nexus-defense:test-e2e
+```
