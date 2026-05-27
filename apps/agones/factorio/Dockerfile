@@ -3,13 +3,15 @@ FROM factoriotools/factorio:${FACTORIO_VERSION}-rootless
 
 USER root
 
-COPY --chown=factorio:factorio apps/agones/factorio/scenarios/kbve /factorio/scenarios/kbve
-COPY --chown=factorio:factorio apps/agones/factorio/config /opt/factorio/config-defaults
+COPY --chown=1000:1000 apps/agones/factorio/scenarios/kbve /factorio/scenarios/kbve
+COPY --chown=1000:1000 apps/agones/factorio/config /opt/factorio/config-defaults
 COPY apps/agones/factorio/shim/agones-shim.sh /usr/local/bin/agones-shim
 
-RUN chmod +x /usr/local/bin/agones-shim
+RUN chmod +x /usr/local/bin/agones-shim && \
+    mkdir -p /shared/log /factorio/config && \
+    chown -R 1000:1000 /shared/log /factorio/config
 
-USER factorio
+USER 1000:1000
 
 ENV FACTORIO_BIN=/opt/factorio/bin/x64/factorio \
     FACTORIO_SCENARIO=kbve \
