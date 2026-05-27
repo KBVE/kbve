@@ -19,11 +19,14 @@ use bevy::ecs::system::Commands;
 use bevy::prelude::{
     Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
+use bevy_mapdb::map;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
 use crate::net::server::Roster;
 use crate::proto::{self, Input, ServerEvent};
+
+pub mod zone;
 
 /// Server sim tick rate. 20 Hz matches the design budget in #11294.
 pub const SIM_TICK_HZ: u32 = 20;
@@ -50,17 +53,34 @@ const SPAWN_INTERVAL_TICKS: u32 = 10;
 const WAVE_INTERVAL_TICKS: u32 = SIM_TICK_HZ * 5;
 const PREPARE_PHASE_TICKS: u32 = SIM_TICK_HZ * 6;
 
-const STARTER_BUILDING_AXIALS: &[(i32, i32, proto::BuildKind)] = &[
-    (-4, 0, proto::BuildKind::Tower),
-    (4, 0, proto::BuildKind::Tower),
-];
+/// Map a mapdb `WorldObjectDef.ref` slug onto the wire-side `BuildKind`
+/// enum the server already understands. Slugs that aren't known fall
+/// back to `Tower` — the most common starter kind.
+fn build_kind_from_ref(object_def_ref: &str) -> proto::BuildKind {
+    match object_def_ref {
+        "nd-generator" | "solar" | "diesel" | "nuclear" => proto::BuildKind::Generator,
+        "nd-battery" | "battery" => proto::BuildKind::Battery,
+        "nd-repair" | "repair" => proto::BuildKind::Repair,
+        "nd-armoury" | "armoury" => proto::BuildKind::Armoury,
+        "nd-village" | "village" => proto::BuildKind::Village,
+        "nd-town" | "town" => proto::BuildKind::Town,
+        "nd-castle" | "castle" => proto::BuildKind::Castle,
+        "nexus" => proto::BuildKind::Nexus,
+        _ => proto::BuildKind::Tower,
+    }
+}
 
 /// Map current SlotWave state + lives to (phase, phase_remaining_ms).
 /// Wave-active when enemies are still being spawned this wave;
 /// Intermission while waiting for the next wave to start; Prepare for
 /// the very first window before the match opens; GameOver once lives
 /// hit zero.
-fn derive_phase(slot_wave: Option<SlotWave>, lives: i32, tick: u32) -> (proto::MatchPhase, u32) {
+fn derive_phase(
+    slot_wave: Option<SlotWave>,
+    lives: i32,
+    tick: u32,
+    enemies_per_wave: u32,
+) -> (proto::MatchPhase, u32) {
     if lives <= 0 {
         return (proto::MatchPhase::GameOver, 0);
     }
@@ -71,7 +91,7 @@ fn derive_phase(slot_wave: Option<SlotWave>, lives: i32, tick: u32) -> (proto::M
         let remaining = entry.prepare_until_tick.saturating_sub(tick);
         return (proto::MatchPhase::Prepare, ticks_to_ms(remaining));
     }
-    if entry.spawned_in_wave < ENEMIES_PER_WAVE {
+    if entry.spawned_in_wave < enemies_per_wave {
         return (proto::MatchPhase::Wave, 0);
     }
     let remaining = entry.next_wave_tick.saturating_sub(tick);
@@ -247,6 +267,35 @@ pub struct ProjectileTag {
     pub remaining_range: f32,
 }
 
+/// Server-side wrapper around the mapdb [`map::Zone`] currently driving
+/// the match. Constructed once at boot from [`zone::default_zone`]; the
+/// follow-up MDX/codegen integration will swap the constructor for a
+/// runtime lookup against the shared mapdb registry.
+#[derive(Resource, Clone)]
+pub struct ZoneLayout(pub map::Zone);
+
+impl Default for ZoneLayout {
+    fn default() -> Self {
+        Self(zone::default_zone())
+    }
+}
+
+impl ZoneLayout {
+    pub fn enemies_per_wave(&self) -> u32 {
+        zone::read_int_extension(&self.0, zone::EXT_ENEMIES_PER_WAVE)
+            .filter(|v| *v > 0)
+            .map(|v| v as u32)
+            .unwrap_or(ENEMIES_PER_WAVE)
+    }
+
+    pub fn prepare_ticks(&self) -> u32 {
+        zone::read_int_extension(&self.0, zone::EXT_PREPARE_SECONDS)
+            .filter(|v| *v > 0)
+            .map(|v| (v as u32).saturating_mul(SIM_TICK_HZ))
+            .unwrap_or(PREPARE_PHASE_TICKS)
+    }
+}
+
 pub fn build_app(
     tx: broadcast::Sender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
@@ -265,6 +314,7 @@ pub fn build_app(
         .insert_resource(PlayerEconomy::default())
         .insert_resource(InputBudget::default())
         .insert_resource(GameOverFlags::default())
+        .insert_resource(ZoneLayout::default())
         .add_systems(
             Update,
             (
@@ -296,6 +346,7 @@ fn tick_sim(mut clock: ResMut<SimClock>, mut budget: ResMut<InputBudget>) {
 fn sync_per_slot_state(
     clock: Res<SimClock>,
     roster: Res<RosterHandle>,
+    zone_layout: Res<ZoneLayout>,
     mut wave: ResMut<WaveState>,
     mut economy: ResMut<PlayerEconomy>,
     mut over: ResMut<GameOverFlags>,
@@ -313,7 +364,7 @@ fn sync_per_slot_state(
         }
         active_mask[idx] = true;
         if wave.slots[idx].is_none() {
-            let prepare_until = clock.tick.saturating_add(PREPARE_PHASE_TICKS);
+            let prepare_until = clock.tick.saturating_add(zone_layout.prepare_ticks());
             wave.slots[idx] = Some(SlotWave {
                 next_wave_tick: prepare_until,
                 next_spawn_tick: prepare_until,
@@ -333,7 +384,7 @@ fn sync_per_slot_state(
         if let Some(entry) = wave.slots[idx].as_mut()
             && !entry.starter_spawned
         {
-            spawn_starter_buildings(*slot, &mut commands, clock.tick);
+            spawn_starter_buildings(*slot, &zone_layout.0, &mut commands, clock.tick);
             entry.starter_spawned = true;
         }
     }
@@ -346,16 +397,27 @@ fn sync_per_slot_state(
     }
 }
 
-fn spawn_starter_buildings(slot: proto::PlayerSlot, commands: &mut Commands, tick: u32) {
-    for (col, row, kind) in STARTER_BUILDING_AXIALS {
-        let x = (*col as f32) * 32.0 + 16.0;
-        let y = (*row as f32) * 32.0 + 16.0;
+fn spawn_starter_buildings(
+    slot: proto::PlayerSlot,
+    zone: &map::Zone,
+    commands: &mut Commands,
+    tick: u32,
+) {
+    for placement in &zone.objects {
+        let Some(grid_pos) = placement.grid_pos.as_ref() else {
+            continue;
+        };
+        let col = grid_pos.x;
+        let row = grid_pos.y;
+        let kind = build_kind_from_ref(&placement.object_def_ref);
+        let x = (col as f32) * 32.0 + 16.0;
+        let y = (row as f32) * 32.0 + 16.0;
         let mut spawn = commands.spawn((
             BuildingTag {
-                kind: *kind,
+                kind,
                 owner: slot,
-                col: *col,
-                row: *row,
+                col,
+                row,
             },
             Position(x, y),
             Health {
@@ -363,7 +425,7 @@ fn spawn_starter_buildings(slot: proto::PlayerSlot, commands: &mut Commands, tic
                 max_hp: BUILDING_HP,
             },
         ));
-        if building_is_offensive(*kind) {
+        if building_is_offensive(kind) {
             spawn.insert(TowerStats {
                 last_fire_tick: tick,
             });
@@ -439,7 +501,13 @@ fn apply_input(
     }
 }
 
-fn spawn_wave_enemies(clock: Res<SimClock>, mut wave: ResMut<WaveState>, mut commands: Commands) {
+fn spawn_wave_enemies(
+    clock: Res<SimClock>,
+    zone_layout: Res<ZoneLayout>,
+    mut wave: ResMut<WaveState>,
+    mut commands: Commands,
+) {
+    let enemies_per_wave = zone_layout.enemies_per_wave();
     for idx in 0..proto::MAX_PLAYERS {
         let Some(entry) = wave.slots[idx].as_mut() else {
             continue;
@@ -452,14 +520,14 @@ fn spawn_wave_enemies(clock: Res<SimClock>, mut wave: ResMut<WaveState>, mut com
             continue;
         }
 
-        if clock.tick >= entry.next_wave_tick && entry.spawned_in_wave >= ENEMIES_PER_WAVE {
+        if clock.tick >= entry.next_wave_tick && entry.spawned_in_wave >= enemies_per_wave {
             entry.wave = entry.wave.wrapping_add(1);
             entry.spawned_in_wave = 0;
             entry.next_spawn_tick = clock.tick;
             entry.next_wave_tick = clock.tick + WAVE_INTERVAL_TICKS;
         }
 
-        if entry.spawned_in_wave >= ENEMIES_PER_WAVE {
+        if entry.spawned_in_wave >= enemies_per_wave {
             continue;
         }
         if clock.tick < entry.next_spawn_tick {
@@ -646,6 +714,7 @@ fn emit_snapshot(
     economy: Res<PlayerEconomy>,
     bcast: Res<SnapshotBroadcast>,
     roster: Res<RosterHandle>,
+    zone_layout: Res<ZoneLayout>,
     enemies: Query<(Entity, &EnemyTag, &Position, &Health)>,
     buildings: Query<(Entity, &BuildingTag, &Health)>,
     projectiles: Query<(Entity, &Position, &Velocity, &ProjectileTag)>,
@@ -719,7 +788,12 @@ fn emit_snapshot(
                     lives: STARTING_LIVES,
                     kills: 0,
                 });
-            let (phase, phase_remaining_ms) = derive_phase(slot_wave_state, econ.lives, clock.tick);
+            let (phase, phase_remaining_ms) = derive_phase(
+                slot_wave_state,
+                econ.lives,
+                clock.tick,
+                zone_layout.enemies_per_wave(),
+            );
             proto::FieldDelta {
                 owner: *slot,
                 buildings: building_bins.remove(&slot.0).unwrap_or_default(),
