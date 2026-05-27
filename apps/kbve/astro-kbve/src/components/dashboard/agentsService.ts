@@ -58,9 +58,17 @@ class AgentsService {
 
 			this.$accessToken.set(session.access_token as string);
 
-			const providerToken =
+			const sessionProviderToken =
 				(session as { provider_token?: string | null } | null)
 					?.provider_token ?? null;
+
+			let providerToken: string | null = sessionProviderToken;
+			if (!providerToken) {
+				const { authBridge } =
+					await import('@/components/auth/AuthBridge');
+				providerToken = authBridge.getDiscordProviderToken();
+			}
+
 			if (!providerToken) {
 				this.$authState.set('discord_reauth_required');
 				return;
@@ -90,6 +98,13 @@ class AgentsService {
 			if (resp.status === 401) {
 				this.$authState.set('discord_reauth_required');
 				this.$providerToken.set(null);
+				try {
+					const { authBridge } =
+						await import('@/components/auth/AuthBridge');
+					authBridge.clearDiscordProviderToken();
+				} catch {
+					// non-fatal
+				}
 				this.$guildsError.set(
 					'Discord session expired. Re-sign-in required.',
 				);
