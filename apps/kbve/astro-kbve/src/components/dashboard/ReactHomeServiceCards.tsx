@@ -496,12 +496,12 @@ export default function ReactHomeServiceCards() {
 				</ServiceCard>
 			)}
 
-			{/* ROWS — Game Server Operations (staff only) */}
+			{/* GameOps — central panel for all game servers (staff only) */}
 			{isStaff && (
 				<ServiceCard
-					title="Game Ops (ROWS)"
-					description="ChuckRPG game server backend"
-					href="/dashboard/rows/"
+					title="GameOps"
+					description="ROWS, Factorio, and MC control panels"
+					href="/dashboard/gameops/"
 					icon={<Gamepad2 size={18} />}
 					accentColor="#f97316"
 					status={rowsStatus}>
