@@ -15,6 +15,10 @@ export const EMBED_CSS = `
 :host {
   all: initial;
   display: block;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  contain: layout paint;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
   color: var(--kbc-text);
 

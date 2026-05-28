@@ -12,6 +12,30 @@ const EnemySprite := preload("res://ui/components/enemy_sprite.gd")
 const ENEMY_MARCH_DURATION := 8.0
 const ENEMY_SPAWN_STAGGER := 0.35
 
+# Tower discriminants from proto::BuildKind. Used by build_bar id →
+# server kind_idx + reverse for sprite rendering.
+const BUILD_KIND_TOWER := 0
+const BUILD_KIND_GENERATOR := 1
+const BUILD_KIND_BATTERY := 2
+const BUILD_KIND_REPAIR := 3
+const BUILD_KIND_ARMOURY := 4
+const BUILD_KIND_VILLAGE := 5
+const BUILD_KIND_TOWN := 6
+const BUILD_KIND_CASTLE := 7
+const BUILD_KIND_NEXUS := 8
+
+const BUILD_KIND_TO_SPRITE_ID := {
+	BUILD_KIND_TOWER: "arrow",
+	BUILD_KIND_GENERATOR: "magic",
+	BUILD_KIND_BATTERY: "frost",
+	BUILD_KIND_REPAIR: "frost",
+	BUILD_KIND_ARMOURY: "cannon",
+	BUILD_KIND_VILLAGE: "arrow",
+	BUILD_KIND_TOWN: "cannon",
+	BUILD_KIND_CASTLE: "cannon",
+	BUILD_KIND_NEXUS: "magic",
+}
+
 var _wave: int = 1
 var _lives: int = 20
 var _gold: int = 150
@@ -22,6 +46,12 @@ var _last_snapshot_log_tick: int = -1
 var _selected_tower: String = ""
 var _hex_map: Node2D = null
 var _world: Node2D = null
+
+# Snapshot-driven entity registries. Keys are server eids (int); values
+# are the godot nodes rendering each. We diff incoming snapshots against
+# these to spawn / despawn sprites without re-creating the whole scene.
+var _enemy_sprites: Dictionary = {}
+var _building_sprites: Dictionary = {}
 
 func _ready() -> void:
 	_world = get_node_or_null("World")
@@ -45,6 +75,8 @@ func _ready() -> void:
 		socket.connect("connected", _on_connected)
 		socket.connect("welcome", _on_welcome)
 		socket.connect("snapshot", _on_snapshot)
+		socket.connect("enemies_update", _on_enemies_update)
+		socket.connect("buildings_update", _on_buildings_update)
 		socket.connect("disconnected", _on_disconnected)
 		socket.connect("decode_error", _on_decode_error)
 		await _begin_session()
@@ -60,7 +92,11 @@ func _ready() -> void:
 
 	Ui.open("wave_banner", {"title": "Wave %d" % _wave, "subtitle": "%d enemies inbound" % _enemies})
 	Ui.toast("Godot %s · gecs + q · %s" % [Engine.get_version_info()["string"], msg], 3.0, "info")
-	_spawn_wave_enemies(_enemies)
+	# Offline / no server → keep the cosmetic enemy marchers so the
+	# visual stays alive; when connected the snapshot stream drives
+	# entity lifecycle instead.
+	if socket == null:
+		_spawn_wave_enemies(_enemies)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
@@ -108,7 +144,11 @@ func _try_place(screen_pos: Vector2) -> void:
 	occupied.append(axial)
 	_hex_map.set_occupied(occupied)
 	_send_place_building(axial.x, axial.y, _tower_kind_idx(_selected_tower))
-	_spawn_tower_sprite(_selected_tower, axial)
+	# When connected the server snapshot will include the new building on
+	# the next tick; offline (no socket) we render an optimistic local
+	# sprite so placement still feels responsive.
+	if socket == null:
+		_spawn_tower_sprite(_selected_tower, axial)
 	Ui.toast("Placed %s at (%d,%d)" % [_selected_tower, axial.x, axial.y], 1.6, "ok")
 	_cancel_placement()
 
@@ -193,7 +233,11 @@ func _advance_wave() -> void:
 		bar.apply({"gold": _gold})
 	Ui.open("wave_banner", {"title": "Wave %d" % _wave, "subtitle": "%d enemies inbound" % _enemies})
 	Ui.toast("+50 gold reward", 1.6, "ok")
-	_spawn_wave_enemies(_enemies)
+	# skip_wave is a local debug shortcut — only spawn cosmetic
+	# marchers when offline. Connected play gets enemies from the
+	# server's wave system.
+	if socket == null:
+		_spawn_wave_enemies(_enemies)
 
 func _return_to_menu() -> void:
 	for panel_name in ["hud_top", "build_bar", "wave_banner", "pause"]:
@@ -254,7 +298,6 @@ func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, g
 	if wave_changed and phase == PHASE_WAVE:
 		_wave = wave
 		Ui.open("wave_banner", {"title": "Wave %d" % wave, "subtitle": "%d enemies inbound" % enemy_count})
-		_spawn_wave_enemies(enemy_count)
 	elif phase_changed and phase == PHASE_PREPARE:
 		var secs := int(ceil(float(phase_remaining_ms) / 1000.0))
 		Ui.open("wave_banner", {"title": "Prepare", "subtitle": "Wave %d in %ds" % [max(wave, 1), secs]})
@@ -313,3 +356,97 @@ func _on_supabase_failed(reason: String) -> void:
 func _dial(jwt: String, kbve_username: String) -> void:
 	_log("dialing %s as %s" % [SERVER_URL, kbve_username])
 	socket.call("connect_to", SERVER_URL, jwt, kbve_username)
+
+# -----------------------------------------------------------------------------
+# Snapshot-driven entity rendering
+#
+# The server is the source of truth for what exists on the field. Each
+# snapshot carries the full per-slot roster of enemies + buildings; we
+# diff against the maps below to spawn / despawn sprites.
+#
+# Entities are keyed by server eid (u32 → int). When an eid appears in
+# the incoming list and we don't have a sprite for it yet → spawn. When
+# an eid we know about is missing from the list (or has `destroyed:
+# true`) → queue_free + erase. Position-only updates can be added later
+# once enemies move along a path the client can interpolate.
+# -----------------------------------------------------------------------------
+
+func _on_enemies_update(entities: Array) -> void:
+	if _hex_map == null:
+		return
+	var seen: Dictionary = {}
+	for entry in entities:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var data: Dictionary = entry
+		var eid: int = int(data.get("eid", 0))
+		if eid == 0:
+			continue
+		seen[eid] = true
+		var destroyed: bool = bool(data.get("destroyed", false))
+		if destroyed:
+			_despawn_enemy(eid)
+			continue
+		if not _enemy_sprites.has(eid):
+			_spawn_snapshot_enemy(eid)
+	for eid in _enemy_sprites.keys():
+		if not seen.has(eid):
+			_despawn_enemy(eid)
+
+func _spawn_snapshot_enemy(eid: int) -> void:
+	var pts: PackedVector2Array = _path_points()
+	if pts.size() < 2:
+		return
+	var sprite: Node2D = EnemySprite.new()
+	_hex_map.add_child(sprite)
+	sprite.call("start", pts, ENEMY_MARCH_DURATION)
+	_enemy_sprites[eid] = sprite
+
+func _despawn_enemy(eid: int) -> void:
+	if not _enemy_sprites.has(eid):
+		return
+	var node: Variant = _enemy_sprites[eid]
+	if node is Node and is_instance_valid(node):
+		(node as Node).queue_free()
+	_enemy_sprites.erase(eid)
+
+func _on_buildings_update(entities: Array) -> void:
+	if _hex_map == null:
+		return
+	var seen: Dictionary = {}
+	for entry in entities:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var data: Dictionary = entry
+		var eid: int = int(data.get("eid", 0))
+		if eid == 0:
+			continue
+		seen[eid] = true
+		var destroyed: bool = bool(data.get("destroyed", false))
+		if destroyed:
+			_despawn_building(eid)
+			continue
+		var col: int = int(data.get("col", 0))
+		var row: int = int(data.get("row", 0))
+		var kind: int = int(data.get("kind", BUILD_KIND_TOWER))
+		if not _building_sprites.has(eid):
+			_spawn_snapshot_building(eid, kind, col, row)
+	for eid in _building_sprites.keys():
+		if not seen.has(eid):
+			_despawn_building(eid)
+
+func _spawn_snapshot_building(eid: int, kind: int, col: int, row: int) -> void:
+	var sprite: Node2D = TowerSprite.new()
+	var sprite_id: String = String(BUILD_KIND_TO_SPRITE_ID.get(kind, "arrow"))
+	sprite.apply_id(sprite_id)
+	sprite.position = _hex_map.axial_to_pixel(col, row)
+	_hex_map.add_child(sprite)
+	_building_sprites[eid] = sprite
+
+func _despawn_building(eid: int) -> void:
+	if not _building_sprites.has(eid):
+		return
+	var node: Variant = _building_sprites[eid]
+	if node is Node and is_instance_valid(node):
+		(node as Node).queue_free()
+	_building_sprites.erase(eid)
