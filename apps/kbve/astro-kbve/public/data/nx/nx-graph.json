@@ -5288,6 +5288,112 @@
           ]
         }
       },
+      "agones-factorio-relay": {
+        "name": "agones-factorio-relay",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/factorio/relay",
+          "name": "agones-factorio-relay",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/factorio/relay/src",
+          "tags": [
+            "scope:agones"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/agones-factorio-relay"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/agones-factorio-relay"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/agones-factorio-relay"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/agones/factorio/relay/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/agones-factorio-relay:latest"
+                  ]
+                },
+                "production": {
+                  "push": true,
+                  "tags": [
+                    "ghcr.io/kbve/agones-factorio-relay:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "arc-runner": {
         "name": "arc-runner",
         "type": "lib",
@@ -5680,7 +5786,7 @@
             "nexus-defense"
           ],
           "targets": {
-            "test": {
+            "test-godot": {
               "executor": "nx:run-commands",
               "options": {
                 "command": "bash apps/godot/nexus-defense/scripts/test.sh"
@@ -5696,8 +5802,7 @@
                 "{projectRoot}/scripts/test.sh"
               ],
               "configurations": {},
-              "parallelism": true,
-              "cache": true
+              "parallelism": true
             },
             "test-e2e": {
               "executor": "nx:run-commands",
@@ -10888,7 +10993,7 @@
                 "commands": [
                   "docker rm -f edge-e2e-test 2>/dev/null || true",
                   "docker run -d --name edge-e2e-test -p 9100:9000 -e JWT_SECRET=super-secret-jwt-token-for-dev -e VERIFY_JWT=true -e SUPABASE_URL=http://localhost:54321 -e SUPABASE_SERVICE_ROLE_KEY=dummy-service-role-key kbve/edge:latest start --main-service /home/deno/functions/main",
-                  "npx vitest run; EC=$?; docker rm -f edge-e2e-test 2>/dev/null || true; exit $EC"
+                  "npx vitest run; EC=$?; if [ $EC -ne 0 ]; then echo '--- edge-e2e-test container state ---'; docker ps -a --filter name=edge-e2e-test --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}' || true; echo '--- edge-e2e-test logs (last 200 lines) ---'; docker logs --tail 200 edge-e2e-test 2>&1 || true; echo '--- end edge-e2e-test logs ---'; fi; docker rm -f edge-e2e-test 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
                 "cwd": "apps/kbve/edge-e2e"
@@ -13362,7 +13467,16 @@
                 ],
                 "parallel": false
               },
-              "configurations": {},
+              "configurations": {
+                "ci": {
+                  "commands": [
+                    "nx test irc-gateway --no-cloud",
+                    "docker rm -f irc-e2e-test 2>/dev/null || true",
+                    "nx container irc-gateway --configuration=local --no-cloud",
+                    "nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
+                  ]
+                }
+              },
               "parallelism": true,
               "inputs": [
                 "default",
@@ -13911,6 +14025,7 @@
           "type": "static"
         }
       ],
+      "agones-factorio-relay": [],
       "arc-runner": [],
       "bevy_db": [],
       "herbmail-e2e": [
