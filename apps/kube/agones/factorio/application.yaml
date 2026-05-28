@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-factorio
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: factorio
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/agones/factorio/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: factorio
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=false
+            - ServerSideApply=true
