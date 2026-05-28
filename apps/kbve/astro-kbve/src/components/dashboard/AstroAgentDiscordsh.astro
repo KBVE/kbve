@@ -1,6 +1,7 @@
 ---
 import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 import ReactAgentBotConfig from './ReactAgentBotConfig';
+import ReactAgentSetupStatus from './ReactAgentSetupStatus';
 ---
 
 <section
@@ -31,6 +32,7 @@ import ReactAgentBotConfig from './ReactAgentBotConfig';
 		</header>
 
 		<div class="agent-stack">
+			<ReactAgentSetupStatus client:only="react" />
 			<ReactAgentBotConfig client:only="react" />
 			<ReactAgentDiscordsh client:only="react" />
 		</div>
