@@ -3,6 +3,8 @@ set -eu
 
 FACTORIO_BIN="${FACTORIO_BIN:-/opt/factorio/bin/x64/factorio}"
 FACTORIO_SCENARIO="${FACTORIO_SCENARIO:-kbve}"
+FACTORIO_SAVE="${FACTORIO_SAVE:-}"
+FACTORIO_SAVES_DIR="${FACTORIO_SAVES_DIR:-/factorio/saves}"
 FACTORIO_PORT="${FACTORIO_PORT:-34197}"
 FACTORIO_CONFIG_DIR="${FACTORIO_CONFIG_DIR:-/factorio/config}"
 FACTORIO_DEFAULTS_DIR="${FACTORIO_DEFAULTS_DIR:-/opt/factorio/config-defaults}"
@@ -47,11 +49,23 @@ cleanup() {
 }
 trap cleanup TERM INT
 
-echo "[agones-shim] launching factorio scenario=${FACTORIO_SCENARIO} port=${FACTORIO_PORT} console_log=${FACTORIO_CONSOLE_LOG}"
+START_ARG="--start-server-load-scenario $FACTORIO_SCENARIO"
+START_DESC="scenario=${FACTORIO_SCENARIO}"
+if [ -n "$FACTORIO_SAVE" ]; then
+    SAVE_PATH="${FACTORIO_SAVES_DIR}/${FACTORIO_SAVE}"
+    if [ -f "$SAVE_PATH" ]; then
+        START_ARG="--start-server $SAVE_PATH"
+        START_DESC="save=${FACTORIO_SAVE}"
+    else
+        echo "[agones-shim] WARN FACTORIO_SAVE=${FACTORIO_SAVE} not found at ${SAVE_PATH}, falling back to scenario ${FACTORIO_SCENARIO}"
+    fi
+fi
+
+echo "[agones-shim] launching factorio ${START_DESC} port=${FACTORIO_PORT} console_log=${FACTORIO_CONSOLE_LOG}"
 
 # shellcheck disable=SC2086
 "$FACTORIO_BIN" \
-    --start-server-load-scenario "$FACTORIO_SCENARIO" \
+    $START_ARG \
     --port "$FACTORIO_PORT" \
     --server-settings "${FACTORIO_CONFIG_DIR}/server-settings.json" \
     --console-log "${FACTORIO_CONSOLE_LOG}" \
