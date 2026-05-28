@@ -5,6 +5,13 @@
 //! them across a crossbeam channel; `_process` drains the channel on the main
 //! thread and fires GDScript signals so the scene tree can react.
 
+// godot `#[signal]` macros expand into fn declarations; the `snapshot` signal
+// has 9 args (HUD summary) which trips clippy's too-many-arguments lint.
+// Packing the fields into a Dictionary would push the cost to every GDScript
+// reader on every snapshot tick — not worth it. Scoped allow at module level
+// so the lint stays enforced everywhere else in q.
+#![allow(clippy::too_many_arguments)]
+
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use futures_util::{SinkExt, StreamExt};
 use godot::classes::INode;
@@ -17,6 +24,33 @@ use crate::threads::runtime::RuntimeManager;
 enum Outbound {
     Send(Vec<u8>),
     Close,
+}
+
+/// Flat, godot-friendly mirror of `proto::EnemyDelta` — only the fields
+/// the client actually renders, primitives only so the Variant cast in
+/// `process` is cheap. `kind` is the discriminant of `proto::EnemyKind`.
+struct EnemyView {
+    eid: u32,
+    kind: i32,
+    pos_x: f32,
+    pos_y: f32,
+    hp: f32,
+    max_hp: f32,
+    destroyed: bool,
+}
+
+/// Same shape as `EnemyView` but for `proto::BuildingDelta`. `kind` is
+/// the discriminant of `proto::BuildKind`. `col` / `row` are the axial
+/// grid coords the client already speaks via hex_map.
+struct BuildingView {
+    eid: u32,
+    kind: i32,
+    col: i32,
+    row: i32,
+    hp: f32,
+    max_hp: f32,
+    online: bool,
+    destroyed: bool,
 }
 
 enum Inbound {
@@ -35,6 +69,8 @@ enum Inbound {
         phase: u8,
         phase_remaining_ms: u32,
         kills: u32,
+        enemies: Vec<EnemyView>,
+        buildings: Vec<BuildingView>,
     },
     Disconnected {
         reason: String,
@@ -93,7 +129,11 @@ impl INode for MatchSocket {
                     phase,
                     phase_remaining_ms,
                     kills,
+                    enemies,
+                    buildings,
                 } => {
+                    let enemy_array = enemies_to_array(&enemies);
+                    let building_array = buildings_to_array(&buildings);
                     self.base_mut().emit_signal(
                         &StringName::from("snapshot"),
                         &[
@@ -107,6 +147,14 @@ impl INode for MatchSocket {
                             (phase_remaining_ms as i64).to_variant(),
                             (kills as i64).to_variant(),
                         ],
+                    );
+                    self.base_mut().emit_signal(
+                        &StringName::from("enemies_update"),
+                        &[enemy_array.to_variant()],
+                    );
+                    self.base_mut().emit_signal(
+                        &StringName::from("buildings_update"),
+                        &[building_array.to_variant()],
                     );
                 }
                 Inbound::Disconnected { reason } => {
@@ -133,9 +181,9 @@ impl MatchSocket {
     #[signal]
     fn welcome(slot: i64, seed: i64);
 
-    /// Snapshot landed — summary surface for the HUD. Per-entity detail can
-    /// be pulled from a future ring buffer; for now we plumb the headline
-    /// numbers so GDScript can render a wave/enemies/gold display.
+    /// Snapshot landed — summary surface for the HUD. Per-entity detail
+    /// rides alongside on `enemies_update` + `buildings_update` so HUD
+    /// consumers don't pay for entity arrays they don't need.
     #[signal]
     fn snapshot(
         tick: i64,
@@ -148,6 +196,24 @@ impl MatchSocket {
         phase_remaining_ms: i64,
         kills: i64,
     );
+
+    /// Per-snapshot enemy roster. Each entry is a Dictionary:
+    ///   { "eid": int, "kind": int, "pos_x": float, "pos_y": float,
+    ///     "hp": float, "max_hp": float, "destroyed": bool }
+    /// `kind` is the discriminant of `proto::EnemyKind`. Authoritative
+    /// — drives the visual layer; cosmetic client spawners should defer
+    /// to this list when the WS is connected.
+    #[signal]
+    fn enemies_update(entities: Array<Variant>);
+
+    /// Per-snapshot building roster. Each entry is a Dictionary:
+    ///   { "eid": int, "kind": int, "col": int, "row": int,
+    ///     "hp": float, "max_hp": float, "online": bool,
+    ///     "destroyed": bool }
+    /// `kind` is the discriminant of `proto::BuildKind`. Includes
+    /// server-spawned starters plus anything `apply_input` placed.
+    #[signal]
+    fn buildings_update(entities: Array<Variant>);
 
     #[signal]
     fn disconnected(reason: GString);
@@ -363,6 +429,39 @@ async fn run_socket(
                     let phase = field.map(|f| f.phase as u8).unwrap_or(0);
                     let phase_remaining_ms = field.map(|f| f.phase_remaining_ms).unwrap_or(0);
                     let kills = field.map(|f| f.kills).unwrap_or(0);
+                    let enemies = field
+                        .map(|f| {
+                            f.enemies
+                                .iter()
+                                .map(|e| EnemyView {
+                                    eid: e.eid.0,
+                                    kind: e.kind as i32,
+                                    pos_x: e.pos.x,
+                                    pos_y: e.pos.y,
+                                    hp: e.hp,
+                                    max_hp: e.max_hp,
+                                    destroyed: e.destroyed,
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    let buildings = field
+                        .map(|f| {
+                            f.buildings
+                                .iter()
+                                .map(|b| BuildingView {
+                                    eid: b.eid.0,
+                                    kind: b.kind as i32,
+                                    col: b.col,
+                                    row: b.row,
+                                    hp: b.hp,
+                                    max_hp: b.max_hp,
+                                    online: b.online,
+                                    destroyed: b.destroyed,
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default();
                     let _ = tx.send(Inbound::Snapshot {
                         tick: snap.tick,
                         wave,
@@ -373,6 +472,8 @@ async fn run_socket(
                         phase,
                         phase_remaining_ms,
                         kills,
+                        enemies,
+                        buildings,
                     });
                 }
                 Ok(ServerEvent::Reject { reason }) => {
@@ -399,4 +500,37 @@ async fn run_socket(
     let _ = tx.send(Inbound::Disconnected {
         reason: "stream ended".into(),
     });
+}
+
+fn enemies_to_array(enemies: &[EnemyView]) -> Array<Variant> {
+    let mut arr: Array<Variant> = Array::new();
+    for e in enemies {
+        let mut dict: Dictionary<Variant, Variant> = Dictionary::new();
+        dict.set("eid", e.eid as i64);
+        dict.set("kind", e.kind as i64);
+        dict.set("pos_x", e.pos_x as f64);
+        dict.set("pos_y", e.pos_y as f64);
+        dict.set("hp", e.hp as f64);
+        dict.set("max_hp", e.max_hp as f64);
+        dict.set("destroyed", e.destroyed);
+        arr.push(&dict.to_variant());
+    }
+    arr
+}
+
+fn buildings_to_array(buildings: &[BuildingView]) -> Array<Variant> {
+    let mut arr: Array<Variant> = Array::new();
+    for b in buildings {
+        let mut dict: Dictionary<Variant, Variant> = Dictionary::new();
+        dict.set("eid", b.eid as i64);
+        dict.set("kind", b.kind as i64);
+        dict.set("col", b.col as i64);
+        dict.set("row", b.row as i64);
+        dict.set("hp", b.hp as f64);
+        dict.set("max_hp", b.max_hp as f64);
+        dict.set("online", b.online);
+        dict.set("destroyed", b.destroyed);
+        arr.push(&dict.to_variant());
+    }
+    arr
 }
