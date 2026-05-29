@@ -59,6 +59,7 @@ nexus-defense-server = [
     "bevy-server",
     "supabase-auth",
     "dep:bevy_mapdb",
+    "dep:bevy_npc",
 ]
 
 # -----------------------------------------------------------------------------
@@ -89,6 +90,11 @@ bevy = { version = "0.18", optional = true, default-features = false, features =
 # game-specific schema. Server-only because the godot client doesn't load
 # zones today.
 bevy_mapdb = { path = "../bevy/bevy_mapdb", optional = true }
+
+# Shared NPC registry — enemy stats (HP, speed, bounty) live in npcdb MDX
+# under apps/kbve/astro-kbve/src/content/docs/npcdb/. Server-only because
+# the godot client renders enemy sprites from `EnemyKind`, not stats.
+bevy_npc = { path = "../bevy/bevy_npc", optional = true }
 
 # Networking
 tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
