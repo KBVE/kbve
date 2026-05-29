@@ -33,15 +33,19 @@ ordering and what's deferred is documented at the bottom.
     <https://www.factorio.com/profile>; rotate it there if it ever
     leaks (a fresh token instantly invalidates the previous one).
 
-    **RCON password is generated, not sealed.**
-    `manifests/rcon-generated-secret.yaml` declares a
-    `generators.external-secrets.io/v1alpha1/Password` + an
-    `ExternalSecret` with `refreshInterval: 0`. On first reconcile the
-    ExternalSecrets operator generates a random 48-char password into
-    the `factorio-rcon` Secret. Nobody types it; nobody rotates it on a
-    schedule. To rotate manually: delete the Secret and the
-    GameServer pod — operator regenerates, Agones respawns the pod, the
-    relay re-auths against the new password on next boot.
+    **RCON password is randomly generated, then sealed.**
+    Run `./seal-rcon.sh` once. The script does
+    `openssl rand -hex 24 | kubeseal`, so a 48-char random password is
+    sealed into `manifests/rcon-sealed-secret.yaml` without the
+    plaintext ever touching disk or shell history. To rotate, re-run
+    the script — it overwrites the YAML, commit + push, ArgoCD syncs
+    the new sealed payload, then `kubectl delete gameserver factorio`
+    so Agones respawns the pod with the new password.
+
+    (We tried the `generators.external-secrets.io/Password` route
+    first, but the generator CRDs aren't installed cluster-wide on
+    this cluster. Switching to that pattern is a follow-up — see the
+    PR description for context.)
 
     **IRC creds are not needed.**
     The relay sidecar talks to the internal kbve IRC server
