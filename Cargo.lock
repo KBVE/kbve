@@ -12947,6 +12947,7 @@ dependencies = [
  "axum 0.7.9",
  "bevy",
  "bevy_mapdb",
+ "bevy_npc",
  "bincode",
  "bitflags 2.11.0",
  "crossbeam-channel",

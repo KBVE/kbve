@@ -2668,6 +2668,34 @@
 			]
 		},
 		{
+			"id": "01KSR8C4R81VPD7J5CH6VEGTJP",
+			"ref": "nd-enemy-runner",
+			"drafted": false,
+			"name": "Runner",
+			"description": "Fast, fragile basic enemy for Nexus Defense. Walks the lane from the spawn point toward the player's Nexus and dies in a couple of tower volleys. Drops a flat gold bounty on death.\n",
+			"typeFlags": 1,
+			"rarity": "NPC_RARITY_COMMON",
+			"personality": "PERSONALITY_AGGRESSIVE",
+			"rank": "NPC_RANK_NORMAL",
+			"family": "humanoid",
+			"level": 1,
+			"stats": {
+				"hp": 50,
+				"maxHp": 50,
+				"attack": 1,
+				"defense": 0,
+				"speed": 60,
+				"armor": 0
+			},
+			"loot": {
+				"goldMin": 8,
+				"goldMax": 8
+			},
+			"faction": {
+				"factionId": "daemoncorps"
+			}
+		},
+		{
 			"description": "The ghost of a fallen knight that charges through the battlefield, armor clanking with otherworldly echoes.\n",
 			"ref": "phantom-knight",
 			"id": "01KKR5QWTB1TRDD9W2D6MFNME5",
