@@ -60,6 +60,7 @@ resources:
     - agones/rows/application.yaml
     - agones/mc/application.yaml
     - agones/nd-server/application.yaml
+    - agones/factorio/application.yaml
     - chuckrpg/application.yaml
     # RareIcon — bullet-hell roguelite website + API
     - rareicon/application.yaml
