@@ -77,6 +77,34 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-rareicon
+          protocol: HTTPS
+          port: 443
+          hostname: rareicon.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rareicon-tls
+                    namespace: rareicon
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rareicon-api
+          protocol: HTTPS
+          port: 443
+          hostname: api.rareicon.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rareicon-api-tls
+                    namespace: rareicon
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
 ## kbve.com routes
 apiVersion: gateway.networking.k8s.io/v1
