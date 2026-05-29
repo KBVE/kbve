@@ -21,18 +21,17 @@ ordering and what's deferred is documented at the bottom.
 
 ## First-deploy runbook
 
-1. **Seal the human-provided secrets** (local laptop, with `kubectl`
-   pointed at the prod cluster and `kubeseal` installed):
+1. **Seal the matchmaking token** (local laptop, with `kubectl` pointed
+   at the prod cluster and `kubeseal` installed):
 
     ```bash
-    ./seal-irc-creds.sh    # prompts for IRC server / port / nick / password
     ./seal-credentials.sh  # prompts for matchmaking username + token (+ optional game password)
     ```
 
-    Each script writes a `*-sealed-secret.yaml` under `manifests/`. Commit
-    them — the sealed payloads are safe in git. The matchmaking token is
-    pulled from <https://www.factorio.com/profile>; rotate it there if it
-    ever leaks (a fresh token instantly invalidates the previous one).
+    Writes `manifests/credentials-sealed-secret.yaml`. Commit it — the
+    sealed payload is safe in git. The token is pulled from
+    <https://www.factorio.com/profile>; rotate it there if it ever
+    leaks (a fresh token instantly invalidates the previous one).
 
     **RCON password is generated, not sealed.**
     `manifests/rcon-generated-secret.yaml` declares a
@@ -43,6 +42,14 @@ ordering and what's deferred is documented at the bottom.
     schedule. To rotate manually: delete the Secret and the
     GameServer pod — operator regenerates, Agones respawns the pod, the
     relay re-auths against the new password on next boot.
+
+    **IRC creds are not needed.**
+    The relay sidecar talks to the internal kbve IRC server
+    (`ergo-irc-service.irc.svc.cluster.local:6667`) inside the
+    cluster. The connection is anonymous (no NickServ identify), so
+    `gameserver.yaml` sets `IRC_SERVER` / `IRC_PORT` / `IRC_USE_TLS` /
+    `IRC_NICK` / `IRC_CHANNEL` as static env values — no SealedSecret,
+    no kubeseal step.
 
 2. **Apply the ArgoCD `Application`**:
 

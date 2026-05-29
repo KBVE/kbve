@@ -163,32 +163,22 @@ spec:
                                 key: rcon_password
                       - name: FACTORIO_SERVER_ID
                         value: 'factorio-1'
+                      # Internal IRC — the kbve ergo IRCd lives in the
+                      # `irc` namespace and accepts anonymous connections.
+                      # No SealedSecret needed; cluster DNS resolves the
+                      # service across namespaces, and the relay's
+                      # IRC_PASSWORD stays unset so no NickServ identify
+                      # is attempted.
                       - name: IRC_SERVER
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_server
-                                optional: true
+                        value: 'ergo-irc-service.irc.svc.cluster.local'
                       - name: IRC_PORT
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_port
-                                optional: true
+                        value: '6667'
+                      - name: IRC_USE_TLS
+                        value: 'false'
                       - name: IRC_NICK
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_nick
-                                optional: true
+                        value: 'factorio-bot'
                       - name: IRC_CHANNEL
                         value: '#general'
-                      - name: IRC_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_password
-                                optional: true
                       - name: RUST_LOG
                         value: 'info,agones_factorio_relay=debug'
                   volumeMounts:
