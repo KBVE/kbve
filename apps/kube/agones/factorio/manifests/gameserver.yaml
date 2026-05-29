@@ -90,6 +90,32 @@ spec:
                         value: 'http://127.0.0.1:9358'
                       - name: AGONES_READY_DELAY
                         value: '45'
+                      # Public matchmaking credentials — produced by
+                      # ../seal-credentials.sh and decrypted by the
+                      # sealed-secrets controller. All three keys are
+                      # optional: with `username` + `token` unset the
+                      # server stays LAN/IP-only; with FACTORIO_PUBLIC
+                      # unset it stays unlisted even when creds are set.
+                      - name: FACTORIO_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: username
+                                optional: true
+                      - name: FACTORIO_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: token
+                                optional: true
+                      - name: FACTORIO_GAME_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: game_password
+                                optional: true
+                      - name: FACTORIO_PUBLIC
+                        value: 'true'
                       # Optional: load a save instead of the scenario. The
                       # save file must already exist under /factorio/saves on
                       # the PVC — seed it once via `kubectl cp` (see
@@ -137,32 +163,22 @@ spec:
                                 key: rcon_password
                       - name: FACTORIO_SERVER_ID
                         value: 'factorio-1'
+                      # Internal IRC — the kbve ergo IRCd lives in the
+                      # `irc` namespace and accepts anonymous connections.
+                      # No SealedSecret needed; cluster DNS resolves the
+                      # service across namespaces, and the relay's
+                      # IRC_PASSWORD stays unset so no NickServ identify
+                      # is attempted.
                       - name: IRC_SERVER
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_server
-                                optional: true
+                        value: 'ergo-irc-service.irc.svc.cluster.local'
                       - name: IRC_PORT
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_port
-                                optional: true
+                        value: '6667'
+                      - name: IRC_USE_TLS
+                        value: 'false'
                       - name: IRC_NICK
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_nick
-                                optional: true
+                        value: 'factorio-bot'
                       - name: IRC_CHANNEL
                         value: '#general'
-                      - name: IRC_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: factorio-irc
-                                key: irc_password
-                                optional: true
                       - name: RUST_LOG
                         value: 'info,agones_factorio_relay=debug'
                   volumeMounts:
