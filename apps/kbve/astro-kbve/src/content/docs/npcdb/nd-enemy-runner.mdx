@@ -1,0 +1,45 @@
+---
+id: '01KSR8C4R81VPD7J5CH6VEGTJP'
+ref: 'nd-enemy-runner'
+drafted: false
+title: 'Nexus Defense — Runner'
+name: 'Runner'
+description: |
+    Fast, fragile basic enemy for Nexus Defense. Walks the lane from the spawn point toward the player's Nexus and dies in a couple of tower volleys. Drops a flat gold bounty on death.
+type_flags: 1
+rarity: 'common'
+personality: 'aggressive'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+stats:
+    hp: 50
+    max_hp: 50
+    attack: 1
+    defense: 0
+    speed: 60
+    armor: 0
+loot:
+    gold_min: 8
+    gold_max: 8
+faction:
+    faction_id: 'daemoncorps'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+# Nexus Defense — Runner
+
+Default lane mob for Nexus Defense matches. Spawned by the server during the `Wave` phase and walks straight toward the Nexus along the player's hex strip.
+
+<NPCDBPanel data={frontmatter} />
+
+## Tuning surface
+
+The `nd-server` flavor of the `q` crate pulls combat numbers from this entry at boot via `NpcDb::from_bytes` + `get_by_ref("nd-enemy-runner")`:
+
+- `stats.max_hp` → enemy hit points.
+- `stats.speed` → lane traversal speed in **pixels per second** (Nexus Defense reinterprets the field; Rareicon and other RPG consumers continue to read it as a turn-based stat).
+- `loot.gold_min` → flat bounty awarded to the slot whose tower lands the killing blow. `loot.gold_max` is ignored until per-kill variance is wired up.
+
+Adjusting the YAML and re-running `nx run astro-kbve:sync:npcdb` retunes the live build without recompiling the Rust binary.

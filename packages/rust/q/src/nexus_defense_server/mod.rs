@@ -20,6 +20,7 @@ use bevy::prelude::{
     Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
 use bevy_mapdb::{MapDb, map};
+use bevy_npc::NpcDb;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
@@ -44,8 +45,6 @@ pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 /// Map dimensions used by the placeholder spawner.
 const PLAYFIELD_WIDTH: f32 = 800.0;
 const SPAWN_X: f32 = 0.0;
-const ENEMY_SPEED: f32 = 60.0;
-const ENEMY_HP: f32 = 50.0;
 const ENEMIES_PER_WAVE: u32 = 10;
 /// Ticks between consecutive enemy spawns inside a wave (0.5 s at 20 Hz).
 const SPAWN_INTERVAL_TICKS: u32 = 10;
@@ -114,15 +113,16 @@ const INPUT_BUDGET_PER_TICK: u32 = 8;
 
 // --- Combat tuning -------------------------------------------------------
 // Per-tower combat numbers (HP, range, damage, fire cooldown, projectile
-// speed + lifetime) now live in `WorldObjectDef.ranged_attack` + `max_health`
+// speed + lifetime) live in `WorldObjectDef.ranged_attack` + `max_health`
 // in `apps/kbve/astro-kbve/src/content/docs/mapdb/nd-tower-basic.mdx` and
-// are resolved at boot into `ZoneLayout::starter_stats`. Adjust the MDX +
-// run `nx run astro-kbve:sync:mapdb` to retune the live build.
+// resolve at boot into `ZoneLayout::starter_stats`. Per-enemy HP / speed /
+// bounty live in `NpcStats` + `LootTable` under
+// `apps/kbve/astro-kbve/src/content/docs/npcdb/nd-enemy-runner.mdx` and
+// resolve into `ZoneLayout::runner_stats`. Adjust the MDX + run the
+// matching `astro-kbve:sync:*` target to retune without a recompile.
 
 const PROJECTILE_HIT_RADIUS: f32 = 12.0;
 const PROJECTILE_HIT_RADIUS_SQ: f32 = PROJECTILE_HIT_RADIUS * PROJECTILE_HIT_RADIUS;
-/// Gold awarded per enemy kill (uniform for v1; tier scaling later).
-const ENEMY_BOUNTY: i32 = 8;
 
 /// Cost lookup matching the catalog in the legacy phaser TD config.
 fn build_cost(kind: proto::BuildKind) -> i32 {
@@ -275,24 +275,28 @@ pub struct ProjectileTag {
 pub struct ZoneLayout {
     pub zone: map::Zone,
     pub starter_stats: zone::BuildingStats,
+    pub runner_stats: zone::EnemyStats,
 }
 
 impl Default for ZoneLayout {
     fn default() -> Self {
-        let db = MapDb::from_bytes(zone::MAPDB_BINPB).unwrap_or_default();
-        Self::from_mapdb(&db)
+        let map_db = MapDb::from_bytes(zone::MAPDB_BINPB).unwrap_or_default();
+        let npc_db = NpcDb::from_bytes(zone::NPCDB_BINPB).unwrap_or_default();
+        Self::from_dbs(&map_db, &npc_db)
     }
 }
 
 impl ZoneLayout {
-    pub fn from_mapdb(db: &MapDb) -> Self {
-        let starter_stats = db
+    pub fn from_dbs(map_db: &MapDb, npc_db: &NpcDb) -> Self {
+        let starter_stats = map_db
             .get_object_def_by_ref(zone::STARTER_TOWER_REF)
             .map(zone::building_stats_from_def)
             .unwrap_or(zone::BuildingStats::FALLBACK_TOWER);
+        let runner_stats = zone::runner_stats_from_db(npc_db);
         Self {
             zone: zone::default_zone(),
             starter_stats,
+            runner_stats,
         }
     }
 
@@ -572,13 +576,14 @@ fn spawn_wave_enemies(
         };
 
         let stripe_y = SLOT_STRIPE_BASE + (idx as f32) * SLOT_STRIPE_HEIGHT;
+        let stats = zone_layout.runner_stats;
         commands.spawn((
             EnemyTag { kind, owner: slot },
             Position(SPAWN_X, stripe_y + (entry.spawned_in_wave as f32 * 4.0)),
-            Velocity(ENEMY_SPEED, 0.0),
+            Velocity(stats.speed, 0.0),
             Health {
-                hp: ENEMY_HP,
-                max_hp: ENEMY_HP,
+                hp: stats.max_hp,
+                max_hp: stats.max_hp,
             },
         ));
 
@@ -669,10 +674,12 @@ fn move_projectiles(
 
 fn projectile_hits(
     mut commands: Commands,
+    zone_layout: Res<ZoneLayout>,
     mut economy: ResMut<PlayerEconomy>,
     projectiles: Query<(Entity, &Position, &ProjectileTag)>,
     mut enemies: Query<(Entity, &EnemyTag, &Position, &mut Health), Without<ProjectileTag>>,
 ) {
+    let bounty = zone_layout.runner_stats.bounty_gold;
     for (p_entity, p_pos, p_tag) in projectiles.iter() {
         // Find first enemy of the same owner within hit radius.
         let mut hit: Option<(Entity, bool)> = None;
@@ -696,7 +703,7 @@ fn projectile_hits(
                 commands.entity(enemy_entity).despawn();
                 let idx = p_tag.owner.0 as usize;
                 if let Some(entry) = economy.slots.get_mut(idx).and_then(|s| s.as_mut()) {
-                    entry.gold = entry.gold.saturating_add(ENEMY_BOUNTY);
+                    entry.gold = entry.gold.saturating_add(bounty);
                     entry.kills = entry.kills.wrapping_add(1);
                 }
             }

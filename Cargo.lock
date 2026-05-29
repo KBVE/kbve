@@ -1614,7 +1614,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.172"
+version = "1.0.173"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -12947,6 +12947,7 @@ dependencies = [
  "axum 0.7.9",
  "bevy",
  "bevy_mapdb",
+ "bevy_npc",
  "bincode",
  "bitflags 2.11.0",
  "crossbeam-channel",
