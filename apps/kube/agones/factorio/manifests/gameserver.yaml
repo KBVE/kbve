@@ -90,6 +90,32 @@ spec:
                         value: 'http://127.0.0.1:9358'
                       - name: AGONES_READY_DELAY
                         value: '45'
+                      # Public matchmaking credentials — produced by
+                      # ../seal-credentials.sh and decrypted by the
+                      # sealed-secrets controller. All three keys are
+                      # optional: with `username` + `token` unset the
+                      # server stays LAN/IP-only; with FACTORIO_PUBLIC
+                      # unset it stays unlisted even when creds are set.
+                      - name: FACTORIO_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: username
+                                optional: true
+                      - name: FACTORIO_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: token
+                                optional: true
+                      - name: FACTORIO_GAME_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: factorio-credentials
+                                key: game_password
+                                optional: true
+                      - name: FACTORIO_PUBLIC
+                        value: 'true'
                       # Optional: load a save instead of the scenario. The
                       # save file must already exist under /factorio/saves on
                       # the PVC — seed it once via `kubectl cp` (see

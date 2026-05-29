@@ -21,27 +21,39 @@ ordering and what's deferred is documented at the bottom.
 
 ## First-deploy runbook
 
-1. **Seal the secrets** (local laptop, with `kubectl` pointed at the prod
-   cluster and `kubeseal` installed):
+1. **Seal the human-provided secrets** (local laptop, with `kubectl`
+   pointed at the prod cluster and `kubeseal` installed):
 
     ```bash
-    ./seal-rcon.sh         # prompts for the RCON password
     ./seal-irc-creds.sh    # prompts for IRC server / port / nick / password
+    ./seal-credentials.sh  # prompts for matchmaking username + token (+ optional game password)
     ```
 
     Each script writes a `*-sealed-secret.yaml` under `manifests/`. Commit
-    both — the sealed payloads are safe in git.
+    them — the sealed payloads are safe in git. The matchmaking token is
+    pulled from <https://www.factorio.com/profile>; rotate it there if it
+    ever leaks (a fresh token instantly invalidates the previous one).
+
+    **RCON password is generated, not sealed.**
+    `manifests/rcon-generated-secret.yaml` declares a
+    `generators.external-secrets.io/v1alpha1/Password` + an
+    `ExternalSecret` with `refreshInterval: 0`. On first reconcile the
+    ExternalSecrets operator generates a random 48-char password into
+    the `factorio-rcon` Secret. Nobody types it; nobody rotates it on a
+    schedule. To rotate manually: delete the Secret and the
+    GameServer pod — operator regenerates, Agones respawns the pod, the
+    relay re-auths against the new password on next boot.
 
 2. **Apply the ArgoCD `Application`**:
 
-    ```bash
-    kubectl apply -f apps/kube/agones/factorio/application.yaml
-    ```
+    The Application is already registered in the kustomize app-of-apps
+    (`apps/kube/kustomization.yaml`), so `kube-root` creates it on the next
+    reconcile — no manual `kubectl apply` is needed once that PR is in.
 
     ArgoCD picks up everything under `manifests/`. The sealed-secrets
     controller decrypts the sealed payloads into regular `Secret`s named
-    `factorio-rcon` + `factorio-irc` inside the `factorio` namespace, and
-    the GameServer pod mounts them.
+    `factorio-rcon`, `factorio-irc`, and `factorio-credentials` inside the
+    `factorio` namespace, and the GameServer pod mounts them.
 
 3. **Verify**:
 

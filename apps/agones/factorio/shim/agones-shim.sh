@@ -14,6 +14,11 @@ FACTORIO_RCON_PORT="${FACTORIO_RCON_PORT:-27015}"
 FACTORIO_RCON_BIND="${FACTORIO_RCON_BIND:-127.0.0.1}"
 FACTORIO_RCON_PASSWORD="${FACTORIO_RCON_PASSWORD:-}"
 
+FACTORIO_USERNAME="${FACTORIO_USERNAME:-}"
+FACTORIO_TOKEN="${FACTORIO_TOKEN:-}"
+FACTORIO_PUBLIC="${FACTORIO_PUBLIC:-}"
+FACTORIO_GAME_PASSWORD="${FACTORIO_GAME_PASSWORD:-}"
+
 AGONES_SDK_HTTP="${AGONES_SDK_HTTP:-}"
 AGONES_HEALTH_INTERVAL="${AGONES_HEALTH_INTERVAL:-5}"
 AGONES_READY_DELAY="${AGONES_READY_DELAY:-30}"
@@ -24,6 +29,29 @@ for f in server-settings.json map-gen-settings.json map-settings.json; do
         cp "${FACTORIO_DEFAULTS_DIR}/${f}" "${FACTORIO_CONFIG_DIR}/${f}"
     fi
 done
+
+SETTINGS="${FACTORIO_CONFIG_DIR}/server-settings.json"
+if [ -n "$FACTORIO_USERNAME" ] && [ -n "$FACTORIO_TOKEN" ]; then
+    sed -i \
+        -e "s|\"username\": *\"[^\"]*\"|\"username\": \"${FACTORIO_USERNAME}\"|" \
+        -e "s|\"token\": *\"[^\"]*\"|\"token\": \"${FACTORIO_TOKEN}\"|" \
+        "$SETTINGS"
+    echo "[agones-shim] matchmaking credentials applied (username=${FACTORIO_USERNAME})"
+fi
+case "$FACTORIO_PUBLIC" in
+    1|true|TRUE|yes|YES)
+        sed -i 's|"public": *false|"public": true|' "$SETTINGS"
+        echo "[agones-shim] public visibility enabled"
+        ;;
+    0|false|FALSE|no|NO)
+        sed -i 's|"public": *true|"public": false|' "$SETTINGS"
+        ;;
+esac
+if [ -n "$FACTORIO_GAME_PASSWORD" ]; then
+    sed -i \
+        -e "s|\"game_password\": *\"[^\"]*\"|\"game_password\": \"${FACTORIO_GAME_PASSWORD}\"|" \
+        "$SETTINGS"
+fi
 
 RCON_ARGS=""
 if [ -n "$FACTORIO_RCON_PASSWORD" ]; then
