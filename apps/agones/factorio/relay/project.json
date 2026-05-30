@@ -31,6 +31,27 @@
 			}
 		},
 		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx agones-factorio-relay:containerx",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/factorio/relay/version.toml | head -1) && docker tag kbve/agones-factorio-relay:latest kbve/agones-factorio-relay:$VERSION && echo \"Tagged kbve/agones-factorio-relay:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx agones-factorio-relay:containerx --configuration=production",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/factorio/relay/version.toml | head -1) && docker tag kbve/agones-factorio-relay:latest kbve/agones-factorio-relay:$VERSION && docker tag kbve/agones-factorio-relay:latest ghcr.io/kbve/agones-factorio-relay:latest && docker tag kbve/agones-factorio-relay:latest ghcr.io/kbve/agones-factorio-relay:$VERSION && echo \"Tagged ghcr.io/kbve/agones-factorio-relay:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",
 			"options": {
@@ -46,8 +67,15 @@
 					"tags": ["kbve/agones-factorio-relay:latest"]
 				},
 				"production": {
-					"push": true,
-					"tags": ["ghcr.io/kbve/agones-factorio-relay:latest"],
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/agones-factorio-relay",
+							"kbve/agones-factorio-relay"
+						],
+						"tags": ["latest"]
+					},
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache"
 					],
