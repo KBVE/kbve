@@ -15,11 +15,12 @@ tags:
 key: agones_factorio_relay
 pipeline: docker
 app_name: agones-factorio-relay
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/factorio/relay
 version_toml: apps/agones/factorio/relay/version.toml
 runner: ubuntu-latest
 image: kbve/agones-factorio-relay
+deployment_yaml: apps/kube/agones/factorio/manifests/gameserver.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
