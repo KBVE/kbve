@@ -1,7 +1,18 @@
 ---
+/**
+ * KBVE Header override.
+ *
+ * Wrap in `transition:persist` so the navbar (auth icon, wallet badge,
+ * profile dropdown, search button) survives ClientRouter swaps. Without
+ * this, the entire top bar re-hydrates per nav — React islands
+ * remount, the auth probe re-runs, wallet badge re-fetches, and the
+ * navbar visibly flickers.
+ */
 import Default from '@astrojs/starlight/components/Header.astro';
 import AstroKbveSearch from '../search/AstroKbveSearch.astro';
 ---
 
-<Default />
-<AstroKbveSearch />
+<div transition:persist="kbve-header">
+	<Default />
+	<AstroKbveSearch />
+</div>
