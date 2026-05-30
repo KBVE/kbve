@@ -114,7 +114,7 @@ spec:
                           drop:
                               - ALL
                 - name: factorio-relay
-                  image: ghcr.io/kbve/agones-factorio-relay:0.0.2
+                  image: ghcr.io/kbve/agones-factorio-relay:0.0.3
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_CONSOLE_LOG

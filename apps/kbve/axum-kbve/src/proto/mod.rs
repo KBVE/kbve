@@ -32,4 +32,9 @@ pub mod kbve {
     pub mod osrs {
         include!(concat!(env!("OUT_DIR"), "/kbve.osrs.rs"));
     }
+
+    #[allow(dead_code, clippy::enum_variant_names)]
+    pub mod rcon {
+        include!(concat!(env!("OUT_DIR"), "/kbve.rcon.rs"));
+    }
 }

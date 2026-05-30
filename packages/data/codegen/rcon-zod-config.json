@@ -1,0 +1,32 @@
+{
+	"include": [
+		"kbve.rcon.RconRequest",
+		"kbve.rcon.RconResponse",
+		"kbve.rcon.RconCommandSpec",
+		"kbve.rcon.RconCommandRegistry"
+	],
+
+	"enums": {
+		"kbve.rcon.Game": {
+			"mode": "const_array",
+			"stripPrefix": "GAME_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "Games",
+			"sourceEnum": "kbve.rcon.Game",
+			"typeName": "GameValue",
+			"zodSchemaName": "GameSchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.rcon.RconRequest.server": ".min(1).max(64).regex(/^[a-z][a-z0-9_-]*$/, 'server key must be lowercase kebab/underscore')",
+		"kbve.rcon.RconRequest.command": ".min(1).max(64).regex(/^[a-z][a-z0-9_]*$/, 'command must be lowercase snake_case')",
+		"kbve.rcon.RconCommandSpec.name": ".min(1).max(64).regex(/^[a-z][a-z0-9_]*$/, 'command name must be lowercase snake_case')",
+		"kbve.rcon.RconCommandSpec.template": ".min(1).max(512)"
+	}
+}
