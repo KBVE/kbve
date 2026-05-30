@@ -1,0 +1,357 @@
+---
+/**
+ * Persistent right-side virtual-assistant dock — Yuki, the chibi
+ * concierge that lives in the lower-right corner of every page.
+ *
+ * Design goals (per the dogfood thread that produced PR #11472):
+ *
+ *  1. Zero main-thread work on initial paint. The collapsed shell is
+ *     a single `<button>` + skeleton `<aside>` rendered as static HTML
+ *     and styled with CSS. No React, no Three.js, no model fetch.
+ *
+ *  2. Persist across every ClientRouter swap. Wrapped in
+ *     `transition:persist="kbve-yuki-dock"` so the dock survives
+ *     internal navigation — toggle state, chat history, mounted React
+ *     panel (once expanded) all stay in place. Lives outside the
+ *     Footer's auto-rendered region so it isn't tied to the footer's
+ *     own re-render cadence.
+ *
+ *  3. Lazy-mount the heavy panel on first expand. The vanilla driver
+ *     `yuki-dock.ts` dynamically `import()`s the React island the
+ *     first time the user clicks the FAB. Until then the bundle never
+ *     ships down the wire.
+ *
+ *  4. Survive the obvious foot-guns. Toggle state persists to
+ *     `localStorage` so a reload (or full nav) restores the
+ *     last-known expand/collapsed state. `prefers-reduced-motion`
+ *     respected. Mobile collapses to a full-screen sheet so the
+ *     button stays thumb-reachable.
+ *
+ * Future expansion: the placeholder panel currently shows a "Yuki is
+ * warming up" message. Phase B (separate PR) wires the existing
+ * `ReactJayYuki` 3D model + chat backend behind a feature flag so we
+ * can dogfood without committing to the full assistant immediately.
+ */
+const AVATAR_SRC = '/assets/images/brand/earth_ceo.png';
+---
+
+<div
+	id="kbve-yuki-dock"
+	class="kbve-yuki-dock"
+	data-kbve-yuki-dock
+	data-state="collapsed"
+	aria-live="polite"
+	transition:persist="kbve-yuki-dock">
+	<button
+		type="button"
+		class="kbve-yuki-dock__fab"
+		data-kbve-yuki-toggle
+		aria-controls="kbve-yuki-panel"
+		aria-expanded="false"
+		aria-label="Open Yuki assistant">
+		<img
+			class="kbve-yuki-dock__avatar"
+			src={AVATAR_SRC}
+			alt=""
+			loading="lazy"
+			decoding="async"
+			draggable="false"
+		/>
+		<span class="kbve-yuki-dock__pulse" aria-hidden="true"></span>
+	</button>
+
+	<aside
+		id="kbve-yuki-panel"
+		class="kbve-yuki-dock__panel"
+		role="dialog"
+		aria-modal="false"
+		aria-labelledby="kbve-yuki-panel-title"
+		hidden>
+		<header class="kbve-yuki-dock__header">
+			<div class="kbve-yuki-dock__title-row">
+				<img
+					class="kbve-yuki-dock__title-avatar"
+					src={AVATAR_SRC}
+					alt=""
+					loading="lazy"
+					decoding="async"
+					draggable="false"
+				/>
+				<div>
+					<h2
+						id="kbve-yuki-panel-title"
+						class="kbve-yuki-dock__title">
+						Yuki
+					</h2>
+					<p class="kbve-yuki-dock__subtitle">
+						Virtual concierge · early preview
+					</p>
+				</div>
+			</div>
+			<button
+				type="button"
+				class="kbve-yuki-dock__close"
+				data-kbve-yuki-toggle
+				aria-label="Close Yuki assistant">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</header>
+
+		<div
+			class="kbve-yuki-dock__body"
+			id="kbve-yuki-mount"
+			data-kbve-yuki-mount>
+			<p class="kbve-yuki-dock__placeholder">
+				Yuki is warming up — the assistant runtime ships in a follow-up
+				release. For now, drop feedback in the
+				<a href="/forum/">forum</a>.
+			</p>
+		</div>
+	</aside>
+</div>
+
+<script>
+	import { initYukiDock } from './yuki-dock';
+
+	initYukiDock();
+</script>
+
+<style is:global>
+	.kbve-yuki-dock {
+		--yuki-fab-size: 56px;
+		--yuki-fab-offset: 1.25rem;
+		--yuki-panel-width: 360px;
+		--yuki-panel-height: min(70vh, 560px);
+		--yuki-bg: rgba(15, 23, 42, 0.92);
+		--yuki-bg-soft: rgba(30, 41, 59, 0.85);
+		--yuki-border: rgba(255, 255, 255, 0.08);
+		--yuki-accent: #06b6d4;
+		--yuki-text: rgba(255, 255, 255, 0.92);
+		--yuki-muted: rgba(255, 255, 255, 0.55);
+		--yuki-radius: 18px;
+		--yuki-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+
+		position: fixed;
+		bottom: var(--yuki-fab-offset);
+		right: var(--yuki-fab-offset);
+		z-index: 9998;
+		pointer-events: none;
+	}
+
+	.kbve-yuki-dock__fab,
+	.kbve-yuki-dock__panel {
+		pointer-events: auto;
+	}
+
+	.kbve-yuki-dock__fab {
+		position: relative;
+		width: var(--yuki-fab-size);
+		height: var(--yuki-fab-size);
+		border-radius: 999px;
+		border: 1px solid var(--yuki-border);
+		background:
+			radial-gradient(circle at 30% 30%, #1e293b, #0f172a 70%),
+			var(--yuki-bg);
+		color: var(--yuki-text);
+		padding: 0;
+		cursor: pointer;
+		display: grid;
+		place-items: center;
+		box-shadow: var(--yuki-shadow);
+		transition:
+			transform 0.18s ease,
+			box-shadow 0.18s ease,
+			border-color 0.18s ease;
+		appearance: none;
+	}
+
+	.kbve-yuki-dock__fab:hover {
+		transform: translateY(-2px);
+		border-color: color-mix(in srgb, var(--yuki-accent) 60%, transparent);
+		box-shadow:
+			var(--yuki-shadow),
+			0 0 0 4px color-mix(in srgb, var(--yuki-accent) 18%, transparent);
+	}
+
+	.kbve-yuki-dock__fab:focus-visible {
+		outline: 2px solid var(--yuki-accent);
+		outline-offset: 3px;
+	}
+
+	.kbve-yuki-dock__avatar {
+		width: 70%;
+		height: 70%;
+		object-fit: contain;
+		image-rendering: auto;
+		pointer-events: none;
+	}
+
+	.kbve-yuki-dock__pulse {
+		position: absolute;
+		inset: -4px;
+		border-radius: 999px;
+		border: 1px solid
+			color-mix(in srgb, var(--yuki-accent) 50%, transparent);
+		opacity: 0;
+		pointer-events: none;
+		animation: kbve-yuki-pulse 2.8s ease-out infinite;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.kbve-yuki-dock__pulse {
+			display: none;
+		}
+		.kbve-yuki-dock__fab {
+			transition: none;
+		}
+	}
+
+	@keyframes kbve-yuki-pulse {
+		0% {
+			transform: scale(0.9);
+			opacity: 0.7;
+		}
+		70% {
+			transform: scale(1.4);
+			opacity: 0;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	.kbve-yuki-dock__panel {
+		position: absolute;
+		bottom: calc(var(--yuki-fab-size) + 0.85rem);
+		right: 0;
+		width: var(--yuki-panel-width);
+		max-width: calc(100vw - 2 * var(--yuki-fab-offset));
+		height: var(--yuki-panel-height);
+		background: var(--yuki-bg);
+		border: 1px solid var(--yuki-border);
+		border-radius: var(--yuki-radius);
+		box-shadow: var(--yuki-shadow);
+		color: var(--yuki-text);
+		display: grid;
+		grid-template-rows: auto 1fr;
+		overflow: hidden;
+		transform-origin: bottom right;
+		opacity: 0;
+		transform: translateY(8px) scale(0.96);
+		transition:
+			transform 0.18s ease,
+			opacity 0.18s ease;
+	}
+
+	.kbve-yuki-dock[data-state='expanded'] .kbve-yuki-dock__panel {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+
+	.kbve-yuki-dock[data-state='expanded'] .kbve-yuki-dock__panel[hidden] {
+		display: grid;
+	}
+
+	.kbve-yuki-dock[data-state='collapsed']
+		.kbve-yuki-dock__panel:not([hidden]) {
+		visibility: hidden;
+	}
+
+	@media (max-width: 640px) {
+		.kbve-yuki-dock {
+			--yuki-fab-offset: 0.85rem;
+			--yuki-panel-width: calc(100vw - 1rem);
+			--yuki-panel-height: min(75vh, 540px);
+		}
+		.kbve-yuki-dock__panel {
+			right: 0;
+		}
+	}
+
+	.kbve-yuki-dock__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem;
+		padding: 0.85rem 1rem;
+		border-bottom: 1px solid var(--yuki-border);
+		background: var(--yuki-bg-soft);
+	}
+
+	.kbve-yuki-dock__title-row {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		min-width: 0;
+	}
+
+	.kbve-yuki-dock__title-avatar {
+		width: 34px;
+		height: 34px;
+		border-radius: 999px;
+		object-fit: cover;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid var(--yuki-border);
+		pointer-events: none;
+	}
+
+	.kbve-yuki-dock__title {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+
+	.kbve-yuki-dock__subtitle {
+		margin: 0;
+		font-size: 0.72rem;
+		color: var(--yuki-muted);
+	}
+
+	.kbve-yuki-dock__close {
+		appearance: none;
+		display: grid;
+		place-items: center;
+		width: 30px;
+		height: 30px;
+		border-radius: 8px;
+		background: transparent;
+		border: 1px solid var(--yuki-border);
+		color: var(--yuki-muted);
+		cursor: pointer;
+		flex: 0 0 auto;
+	}
+
+	.kbve-yuki-dock__close:hover {
+		color: var(--yuki-text);
+		border-color: color-mix(in srgb, var(--yuki-accent) 50%, transparent);
+	}
+
+	.kbve-yuki-dock__body {
+		padding: 1rem;
+		overflow-y: auto;
+		font-size: 0.85rem;
+		line-height: 1.5;
+		color: var(--yuki-muted);
+	}
+
+	.kbve-yuki-dock__placeholder {
+		margin: 0;
+	}
+
+	.kbve-yuki-dock__placeholder a {
+		color: var(--yuki-accent);
+	}
+</style>
