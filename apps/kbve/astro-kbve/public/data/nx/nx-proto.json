@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-05-29T09:19:33.240Z",
+  "generated_at": "2026-05-30T08:55:03.732Z",
   "summary": {
-    "total_protos": 35,
-    "registered": 26,
+    "total_protos": 36,
+    "registered": 27,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 663,
-    "total_enums": 136
+    "total_messages": 667,
+    "total_enums": 137
   },
   "protos": [
     {
@@ -772,6 +772,28 @@
       }
     },
     {
+      "proto": "packages/data/proto/kbve/rcon.proto",
+      "package": "kbve.rcon",
+      "messages": [
+        "RconRequest",
+        "RconResponse",
+        "RconCommandSpec",
+        "RconCommandRegistry"
+      ],
+      "enums": [
+        "Game"
+      ],
+      "message_count": 4,
+      "enum_count": 1,
+      "codegen": {
+        "registered": true,
+        "name": "rcon",
+        "zod_config": "packages/data/codegen/rcon-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/rcon-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/rcon.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/kbve/schema.proto",
       "package": "kbve.schema",
       "messages": [
@@ -1401,7 +1423,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-05-29T09:19:33Z",
+  "checked_at": "2026-05-30T08:55:03Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/ci_registry-schema.ts",
@@ -1424,6 +1446,7 @@
     "packages/data/codegen/generated/pool-schema.ts",
     "packages/data/codegen/generated/profile-schema.ts",
     "packages/data/codegen/generated/questdb-schema.ts",
+    "packages/data/codegen/generated/rcon-schema.ts",
     "packages/data/codegen/generated/redis-schema.ts",
     "packages/data/codegen/generated/rows-schema.ts",
     "packages/data/codegen/generated/schema-schema.ts",
