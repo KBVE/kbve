@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-05-29T09:22:20Z",
+  "generated_at": "2026-05-30T08:57:42Z",
   "summary": {
     "critical": 2,
-    "high": 44,
-    "medium": 63,
+    "high": 47,
+    "medium": 64,
     "low": 32,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 65,
+      "total": 69,
       "severities": {
         "critical": 0,
-        "high": 26,
-        "medium": 33,
+        "high": 29,
+        "medium": 34,
         "low": 6,
         "info": 0
       },
@@ -472,6 +472,34 @@
           "severity": "high",
           "package": "tmp",
           "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
+        },
+        {
+          "id": "1119667",
+          "title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
+        },
+        {
+          "id": "1119669",
+          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
+        },
+        {
+          "id": "1119674",
+          "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
+        },
+        {
+          "id": "1119675",
+          "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
         }
       ]
     },
