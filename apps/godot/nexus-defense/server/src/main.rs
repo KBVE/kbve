@@ -2,8 +2,11 @@
 //!
 //! Boots the bevy headless sim, wires its snapshot broadcast into the axum
 //! WS router (`q::net::server`), and serves both from the same tokio
-//! runtime. Agones lifecycle + JWT verify land in follow-up commits per
-//! the phase plan in KBVE/kbve#11294.
+//! runtime. Agones lifecycle (`Ready` / `Health` / `Shutdown`) is proxied
+//! through the [`agones`] module so the Fleet flips this pod to `Ready`
+//! the moment the WS listener accepts connections.
+
+mod agones;
 
 use std::net::SocketAddr;
 
@@ -63,11 +66,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(%addr, %seed, auth = %auth_mode, "nd-server listening");
 
     let listener = TcpListener::bind(addr).await?;
+
+    // Bring the Agones SDK heartbeat up the moment the listener is bound.
+    // The loop owns the SDK handle for the process lifetime; outside
+    // Agones it logs once and exits, so `cargo run` still works.
+    let agones_handle = tokio::spawn(agones::run_health_loop());
+
     let serve = axum::serve(listener, router).with_graceful_shutdown(shutdown_signal());
 
     if let Err(e) = serve.await {
         tracing::error!("serve error: {e}");
     }
+
+    // Best-effort graceful Shutdown so the Fleet can drain this pod
+    // without waiting for the health timeout. Bounded to 1s — Agones
+    // reaps via the health probe if the SDK call is wedged.
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(1), agones::shutdown()).await;
+    agones_handle.abort();
 
     // The sim task lives on a current-thread runtime inside spawn_blocking;
     // letting main return drops the JoinHandle and the process exits.
