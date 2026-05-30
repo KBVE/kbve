@@ -30,18 +30,26 @@ local function render_buy(content, player)
 	scroll.style.maximal_height = 480
 	scroll.style.minimal_width = 480
 	for i, entry in ipairs(Market.ITEMS) do
-		local row = scroll.add({ type = 'flow', direction = 'horizontal' })
-		row.add({ type = 'sprite-button', sprite = 'item/' .. entry.item, enabled = false })
-		row.add({
-			type = 'label',
-			caption = { '', { 'item-name.' .. entry.item }, '  x', entry.count },
-		}).style.minimal_width = 240
-		row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
-		row.add({
-			type = 'button',
-			name = BUY_PREFIX .. i,
-			caption = { '', 'Buy ', entry.price, ' [item=coin]' },
-		})
+		local proto = prototypes.item[entry.item]
+		if proto then
+			local row = scroll.add({ type = 'flow', direction = 'horizontal' })
+			row.add({
+				type = 'sprite-button',
+				sprite = 'item/' .. entry.item,
+				enabled = false,
+				tooltip = proto.localised_name,
+			})
+			row.add({
+				type = 'label',
+				caption = { '', proto.localised_name, '  x', entry.count },
+			}).style.minimal_width = 240
+			row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
+			row.add({
+				type = 'button',
+				name = BUY_PREFIX .. i,
+				caption = { '', 'Buy ', entry.price, ' [item=coin]' },
+			})
+		end
 	end
 end
 
@@ -62,7 +70,8 @@ local function render_vault(content, player)
 		if slot.valid_for_read then
 			btn.sprite = 'item/' .. slot.name
 			btn.number = slot.count
-			btn.tooltip = { 'item-name.' .. slot.name }
+			local proto = prototypes.item[slot.name]
+			btn.tooltip = proto and proto.localised_name or slot.name
 		end
 	end
 	content.add({ type = 'button', name = DEPOSIT_ALL, caption = 'Deposit my entire inventory' })
@@ -194,8 +203,20 @@ function ExchangeGui.on_gui_opened(event)
 	if not Spawn.is_market(entity) then return end
 	local player = game.get_player(event.player_index)
 	if not player then return end
+	storage.kbve = storage.kbve or {}
+	storage.kbve.pending_show = storage.kbve.pending_show or {}
+	storage.kbve.pending_show[event.player_index] = true
 	player.opened = nil
-	ExchangeGui.show(player)
+end
+
+function ExchangeGui.on_gui_closed(event)
+	if event.gui_type ~= defines.gui_type.entity then return end
+	if not Spawn.is_market(event.entity) then return end
+	if not (storage.kbve and storage.kbve.pending_show) then return end
+	if not storage.kbve.pending_show[event.player_index] then return end
+	storage.kbve.pending_show[event.player_index] = nil
+	local player = game.get_player(event.player_index)
+	if player then ExchangeGui.show(player) end
 end
 
 function ExchangeGui.on_gui_click(event)
