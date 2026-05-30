@@ -64,10 +64,16 @@ spec:
                   emptyDir:
                       medium: Memory
                       sizeLimit: 64Mi
+                # Writable scratch volume for /factorio/config so the shim
+                # can hydrate it from /opt/factorio/config-defaults at boot
+                # and `sed`-patch server-settings.json with the matchmaking
+                # creds. Phase 1.5 will switch this to a projected mount —
+                # ConfigMap defaults + sidecar-rendered token overlay —
+                # once the Phase 2 envSubst path settles.
                 - name: config
-                  configMap:
-                      name: factorio-server-settings
-                      optional: true
+                  emptyDir:
+                      medium: Memory
+                      sizeLimit: 8Mi
             containers:
                 - name: factorio
                   image: ghcr.io/kbve/agones-factorio:0.0.3
@@ -135,7 +141,6 @@ spec:
                         mountPath: /shared/log
                       - name: config
                         mountPath: /factorio/config
-                        readOnly: true
                   resources:
                       requests:
                           cpu: '1'
