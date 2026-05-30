@@ -8,6 +8,8 @@ FACTORIO_SAVES_DIR="${FACTORIO_SAVES_DIR:-/factorio/saves}"
 FACTORIO_PORT="${FACTORIO_PORT:-34197}"
 FACTORIO_CONFIG_DIR="${FACTORIO_CONFIG_DIR:-/factorio/config}"
 FACTORIO_DEFAULTS_DIR="${FACTORIO_DEFAULTS_DIR:-/opt/factorio/config-defaults}"
+FACTORIO_MODS_DIR="${FACTORIO_MODS_DIR:-/factorio/mods}"
+FACTORIO_MODS_DEFAULTS_DIR="${FACTORIO_MODS_DEFAULTS_DIR:-/opt/factorio/mods-defaults}"
 FACTORIO_LOG_DIR="${FACTORIO_LOG_DIR:-/shared/log}"
 FACTORIO_CONSOLE_LOG="${FACTORIO_CONSOLE_LOG:-${FACTORIO_LOG_DIR}/console.log}"
 FACTORIO_RCON_PORT="${FACTORIO_RCON_PORT:-27015}"
@@ -24,12 +26,58 @@ AGONES_SDK_HTTP="${AGONES_SDK_HTTP:-}"
 AGONES_HEALTH_INTERVAL="${AGONES_HEALTH_INTERVAL:-5}"
 AGONES_READY_DELAY="${AGONES_READY_DELAY:-30}"
 
-mkdir -p "$FACTORIO_CONFIG_DIR" "$FACTORIO_LOG_DIR"
+mkdir -p "$FACTORIO_CONFIG_DIR" "$FACTORIO_MODS_DIR" "$FACTORIO_LOG_DIR"
 for f in server-settings.json map-gen-settings.json map-settings.json; do
     if [ ! -f "${FACTORIO_CONFIG_DIR}/${f}" ] && [ -f "${FACTORIO_DEFAULTS_DIR}/${f}" ]; then
         cp "${FACTORIO_DEFAULTS_DIR}/${f}" "${FACTORIO_CONFIG_DIR}/${f}"
     fi
 done
+
+if [ ! -f "${FACTORIO_MODS_DIR}/mod-list.json" ] && [ -f "${FACTORIO_MODS_DEFAULTS_DIR}/mod-list.json" ]; then
+    cp "${FACTORIO_MODS_DEFAULTS_DIR}/mod-list.json" "${FACTORIO_MODS_DIR}/mod-list.json"
+    echo "[agones-shim] mod-list defaults applied"
+fi
+
+BASE_MODS="base elevated-rails quality space-age core"
+sync_mod() {
+    name="$1"
+    for skip in $BASE_MODS; do
+        [ "$name" = "$skip" ] && return 0
+    done
+    if ls "${FACTORIO_MODS_DIR}/${name}_"*.zip >/dev/null 2>&1; then
+        return 0
+    fi
+    if [ -z "$FACTORIO_USERNAME" ] || [ -z "$FACTORIO_TOKEN" ]; then
+        echo "[agones-shim] WARN cannot download mod ${name}: FACTORIO_USERNAME or FACTORIO_TOKEN unset"
+        return 1
+    fi
+    echo "[agones-shim] fetching mod portal metadata for ${name}..."
+    info=$(wget -q -O - "https://mods.factorio.com/api/mods/${name}") || {
+        echo "[agones-shim] WARN portal metadata fetch failed for ${name}"
+        return 1
+    }
+    dl_url=$(echo "$info" | jq -r '.releases | sort_by(.released_at) | last | .download_url // empty')
+    file_name=$(echo "$info" | jq -r '.releases | sort_by(.released_at) | last | .file_name // empty')
+    if [ -z "$dl_url" ] || [ -z "$file_name" ]; then
+        echo "[agones-shim] WARN no releases for ${name}"
+        return 1
+    fi
+    echo "[agones-shim] downloading ${file_name}..."
+    if wget -q -O "${FACTORIO_MODS_DIR}/${file_name}" \
+        "https://mods.factorio.com${dl_url}?username=${FACTORIO_USERNAME}&token=${FACTORIO_TOKEN}"; then
+        echo "[agones-shim] installed ${file_name}"
+    else
+        rm -f "${FACTORIO_MODS_DIR}/${file_name}"
+        echo "[agones-shim] WARN download failed for ${name}"
+        return 1
+    fi
+}
+
+if [ -f "${FACTORIO_MODS_DIR}/mod-list.json" ]; then
+    for mod in $(jq -r '.mods[] | select(.enabled == true) | .name' "${FACTORIO_MODS_DIR}/mod-list.json"); do
+        sync_mod "$mod" || true
+    done
+fi
 
 SETTINGS="${FACTORIO_CONFIG_DIR}/server-settings.json"
 if [ -n "$FACTORIO_USERNAME" ] && [ -n "$FACTORIO_TOKEN" ]; then
@@ -118,6 +166,7 @@ echo "[agones-shim] launching factorio ${START_DESC} port=${FACTORIO_PORT} conso
     $START_ARG \
     --port "$FACTORIO_PORT" \
     --server-settings "${FACTORIO_CONFIG_DIR}/server-settings.json" \
+    --mod-directory "${FACTORIO_MODS_DIR}" \
     --console-log "${FACTORIO_CONSOLE_LOG}" \
     $ADMIN_ARGS \
     $RCON_ARGS &

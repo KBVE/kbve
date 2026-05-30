@@ -23,8 +23,10 @@ services:
             FACTORIO_SAVE: ${FACTORIO_SAVE:-}
         volumes:
             - factorio-saves:/factorio/saves
+            - factorio-mods:/factorio/mods
             - factorio-log:/shared/log
 
 volumes:
     factorio-saves:
+    factorio-mods:
     factorio-log:
