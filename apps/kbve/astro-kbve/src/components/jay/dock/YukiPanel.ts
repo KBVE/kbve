@@ -251,31 +251,69 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	// ── Chat submit ────────────────────────────────────────────────────
 	const speak = makeSpeaker();
 	const input = form.querySelector<HTMLInputElement>('.yuki-panel__input');
+
+	// Cancel any in-flight stream when the user sends a new prompt OR
+	// closes / nav-swaps away. EventSource doesn't expose AbortSignal
+	// directly, so we keep a manual handle to `.close()`.
+	let activeStream: EventSource | null = null;
+
 	form.addEventListener('submit', (ev) => {
 		ev.preventDefault();
 		const value = input?.value.trim();
 		if (!value || !input) return;
 		input.value = '';
+
+		// Push the user bubble immediately. The Yuki bubble starts
+		// empty and grows as SSE chunks arrive.
 		const user: ChatEntry = { role: 'user', text: value, ts: Date.now() };
 		history.push(user);
 		log.appendChild(renderMessage(user));
-		// Phase B keeps the deterministic echo until the backend RPC
-		// lands. The next PR replaces the body of this block with an
-		// SSE stream to `/api/v1/yuki/chat`. The reply still flows
-		// through `speak()` so the VRM lipsync hook stays wired.
-		const reply =
-			"I've logged your question. The Yuki backend isn't online " +
-			'in this preview, but I will pass it along.';
-		const yuki: ChatEntry = {
-			role: 'yuki',
-			text: reply,
-			ts: Date.now(),
-		};
-		history.push(yuki);
-		log.appendChild(renderMessage(yuki));
-		writeHistory(history);
 		log.scrollTop = log.scrollHeight;
-		speak(reply);
+
+		const yuki: ChatEntry = { role: 'yuki', text: '', ts: Date.now() };
+		history.push(yuki);
+		const yukiRow = renderMessage(yuki);
+		const yukiBubble =
+			yukiRow.querySelector<HTMLElement>('.yuki-msg__bubble');
+		log.appendChild(yukiRow);
+		log.scrollTop = log.scrollHeight;
+
+		activeStream?.close();
+		const url = `/api/v1/yuki/chat?q=${encodeURIComponent(value)}`;
+		const es = new EventSource(url);
+		activeStream = es;
+
+		let assembled = '';
+		const append = (text: string): void => {
+			assembled += (assembled ? ' ' : '') + text;
+			yuki.text = assembled;
+			if (yukiBubble) yukiBubble.textContent = assembled;
+			log.scrollTop = log.scrollHeight;
+		};
+
+		es.onmessage = (msg) => {
+			if (msg.data) append(msg.data);
+		};
+		es.addEventListener('done', () => {
+			es.close();
+			activeStream = null;
+			writeHistory(history);
+			// Hand the fully-assembled text to SpeechSynthesis so the
+			// VRM lipsync analyser sees the whole utterance in one
+			// stretch instead of token-fragmented chirps.
+			if (assembled) speak(assembled);
+		});
+		es.onerror = () => {
+			es.close();
+			activeStream = null;
+			if (!assembled) {
+				const fallback =
+					"I couldn't reach my backend just now — try again in a sec.";
+				yuki.text = fallback;
+				if (yukiBubble) yukiBubble.textContent = fallback;
+			}
+			writeHistory(history);
+		};
 	});
 
 	if (!document.getElementById('kbve-yuki-panel-css')) {
