@@ -18,6 +18,7 @@ FACTORIO_USERNAME="${FACTORIO_USERNAME:-}"
 FACTORIO_TOKEN="${FACTORIO_TOKEN:-}"
 FACTORIO_PUBLIC="${FACTORIO_PUBLIC:-}"
 FACTORIO_GAME_PASSWORD="${FACTORIO_GAME_PASSWORD:-}"
+FACTORIO_ADMINS="${FACTORIO_ADMINS:-}"
 
 AGONES_SDK_HTTP="${AGONES_SDK_HTTP:-}"
 AGONES_HEALTH_INTERVAL="${AGONES_HEALTH_INTERVAL:-5}"
@@ -51,6 +52,27 @@ if [ -n "$FACTORIO_GAME_PASSWORD" ]; then
     sed -i \
         -e "s|\"game_password\": *\"[^\"]*\"|\"game_password\": \"${FACTORIO_GAME_PASSWORD}\"|" \
         "$SETTINGS"
+fi
+
+ADMINLIST="${FACTORIO_CONFIG_DIR}/server-adminlist.json"
+if [ -n "$FACTORIO_ADMINS" ]; then
+    JSON="["
+    SEP=""
+    IFS=','
+    for ADMIN in $FACTORIO_ADMINS; do
+        ADMIN_TRIMMED="$(echo "$ADMIN" | sed 's/^ *//;s/ *$//')"
+        [ -z "$ADMIN_TRIMMED" ] && continue
+        JSON="${JSON}${SEP}\"${ADMIN_TRIMMED}\""
+        SEP=","
+    done
+    unset IFS
+    JSON="${JSON}]"
+    echo "$JSON" > "$ADMINLIST"
+    echo "[agones-shim] adminlist applied: ${FACTORIO_ADMINS}"
+fi
+ADMIN_ARGS=""
+if [ -f "$ADMINLIST" ]; then
+    ADMIN_ARGS="--server-adminlist ${ADMINLIST}"
 fi
 
 RCON_ARGS=""
@@ -97,6 +119,7 @@ echo "[agones-shim] launching factorio ${START_DESC} port=${FACTORIO_PORT} conso
     --port "$FACTORIO_PORT" \
     --server-settings "${FACTORIO_CONFIG_DIR}/server-settings.json" \
     --console-log "${FACTORIO_CONSOLE_LOG}" \
+    $ADMIN_ARGS \
     $RCON_ARGS &
 FACTORIO_PID=$!
 

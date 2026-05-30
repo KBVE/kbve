@@ -87,6 +87,8 @@ spec:
                                 optional: true
                       - name: FACTORIO_PUBLIC
                         value: 'true'
+                      - name: FACTORIO_ADMINS
+                        value: 'h0lybyte'
                       # - name: FACTORIO_SAVE
                       #   value: 'Robots.zip'
                   ports:
