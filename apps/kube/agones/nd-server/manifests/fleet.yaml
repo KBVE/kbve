@@ -5,13 +5,12 @@
 # match. Each replica is a long-lived axum WS host backed by the bevy
 # headless sim.
 #
-# IMPORTANT: nd-server doesn't talk the Agones SDK yet. It exposes a plain
-# HTTP `/healthz` that always returns `ok`, so for Agones to flip the
-# GameServer to `Ready` we lean on the `agones.dev/sdk-grpc-port` startup
-# behavior — when the container doesn't open the SDK socket, Agones treats
-# the pod as healthy/ready via the configured TCP health probe instead.
-# The SDK + `Ready()` / `Health()` calls land in the Phase-3 follow-up
-# (see Agones Game Server Integration in apps/kbve/astro-kbve docs).
+# nd-server now speaks the Agones SDK directly (`apps/godot/nexus-defense/
+# server/src/agones.rs`): it marks the GameServer `Ready` as soon as the
+# WS listener binds and pings `Health()` every 2s. The plain HTTP
+# `/healthz` endpoint stays as a belt-and-suspenders kubelet probe so
+# pod restarts still happen if the process wedges before the SDK loop
+# can stop sending heartbeats.
 apiVersion: agones.dev/v1
 kind: Fleet
 metadata:
@@ -44,8 +43,11 @@ spec:
                 periodSeconds: 10
                 failureThreshold: 5
             sdkServer:
-                # Sidecar runs even without SDK calls — Agones uses it as the
-                # health-probe surface until nd-server speaks SDK directly.
+                # Sidecar is the primary health surface — nd-server's
+                # in-process loop calls Ready() then pings Health() every
+                # 2s (HEALTH_PING_INTERVAL). Agones reaps the pod if the
+                # health channel goes silent for failureThreshold *
+                # periodSeconds.
                 logLevel: Info
             template:
                 spec:
