@@ -74,6 +74,60 @@ function renderMessage(entry: ChatEntry): HTMLElement {
 	return row;
 }
 
+const AVATAR_MODE_KEY = 'kbve:yuki-dock:avatar-mode';
+type AvatarMode = 'text' | '3d';
+
+function readAvatarMode(): AvatarMode {
+	try {
+		return localStorage.getItem(AVATAR_MODE_KEY) === '3d' ? '3d' : 'text';
+	} catch {
+		return 'text';
+	}
+}
+function writeAvatarMode(mode: AvatarMode): void {
+	try {
+		localStorage.setItem(AVATAR_MODE_KEY, mode);
+	} catch {
+		/* ignore */
+	}
+}
+
+interface YukiVRMRuntime {
+	speak(audio: HTMLAudioElement | MediaStream): void;
+	stopSpeaking(): void;
+	destroy(): void;
+}
+
+// Web Speech API is widely supported in browsers but TypeScript's lib
+// only narrows it loosely; cast through unknown to keep the call site
+// readable without pulling in dom-speechrecognition types.
+type SpeakFn = (text: string) => HTMLAudioElement | null;
+
+/**
+ * Pipe SpeechSynthesis output through a MediaStream so the VRM
+ * lipsync analyser has a sample-able source. Browser support for
+ * `mediaStream` on `SpeechSynthesisUtterance` is patchy, so we fall
+ * back to plain `speak` without lipsync when unavailable — the VRM
+ * still talks visually via the deterministic idle loop, just without
+ * mouth movement on this turn.
+ */
+function makeSpeaker(): SpeakFn {
+	return (text: string) => {
+		try {
+			const synth = window.speechSynthesis;
+			if (!synth) return null;
+			synth.cancel();
+			const utter = new SpeechSynthesisUtterance(text);
+			utter.rate = 1.0;
+			utter.pitch = 1.15;
+			synth.speak(utter);
+		} catch {
+			/* ignore */
+		}
+		return null;
+	};
+}
+
 export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	if (host.dataset.kbveYukiPanelMounted === 'true') return;
 	host.dataset.kbveYukiPanelMounted = 'true';
@@ -81,12 +135,37 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 
 	const wrap = document.createElement('div');
 	wrap.className = 'yuki-panel';
+	wrap.dataset.avatarMode = readAvatarMode();
+
+	// 3D avatar stage. Hidden when mode === 'text'. Canvas mount is
+	// populated by the lazy-loaded `YukiVRM` module on demand.
+	const stage = document.createElement('div');
+	stage.className = 'yuki-panel__stage';
+	stage.dataset.kbveYukiStage = '';
+	stage.setAttribute('aria-label', 'Yuki avatar');
+	wrap.appendChild(stage);
 
 	const log = document.createElement('div');
 	log.className = 'yuki-panel__log';
 	log.setAttribute('role', 'log');
 	log.setAttribute('aria-live', 'polite');
 	wrap.appendChild(log);
+
+	// Mode toggle (text-only / 3D Yuki). Lives above the input so it's
+	// always reachable. Off by default — flips lazy-load the VRM.
+	const toggle = document.createElement('div');
+	toggle.className = 'yuki-panel__mode';
+	toggle.innerHTML = `
+		<label class="yuki-panel__mode-label">
+			<input
+				type="checkbox"
+				class="yuki-panel__mode-input"
+				data-kbve-yuki-mode
+				${readAvatarMode() === '3d' ? 'checked' : ''} />
+			<span>Show 3D Yuki</span>
+		</label>
+	`;
+	wrap.appendChild(toggle);
 
 	const form = document.createElement('form');
 	form.className = 'yuki-panel__form';
@@ -121,6 +200,56 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	}
 	log.scrollTop = log.scrollHeight;
 
+	// ── 3D avatar lifecycle ────────────────────────────────────────────
+	let vrmRuntime: YukiVRMRuntime | null = null;
+	let vrmLoading = false;
+	const ensureVRM = async (): Promise<void> => {
+		if (vrmRuntime || vrmLoading) return;
+		vrmLoading = true;
+		stage.dataset.state = 'loading';
+		stage.innerHTML =
+			'<div class="yuki-panel__stage-skeleton">Loading Yuki…</div>';
+		try {
+			const mod = await import('./YukiVRM');
+			vrmRuntime = await mod.mountYukiVRM({ host: stage });
+			stage.dataset.state = 'ready';
+		} catch (err) {
+			console.warn('[yuki-panel] VRM load failed', err);
+			stage.innerHTML =
+				'<div class="yuki-panel__stage-error">Avatar failed to load.</div>';
+			stage.dataset.state = 'error';
+		} finally {
+			vrmLoading = false;
+		}
+	};
+	const tearDownVRM = (): void => {
+		try {
+			vrmRuntime?.destroy();
+		} catch {
+			/* ignore */
+		}
+		vrmRuntime = null;
+		stage.innerHTML = '';
+		stage.removeAttribute('data-state');
+	};
+	if (readAvatarMode() === '3d') void ensureVRM();
+
+	const modeInput = toggle.querySelector<HTMLInputElement>(
+		'[data-kbve-yuki-mode]',
+	);
+	modeInput?.addEventListener('change', () => {
+		const next: AvatarMode = modeInput.checked ? '3d' : 'text';
+		writeAvatarMode(next);
+		wrap.dataset.avatarMode = next;
+		if (next === '3d') {
+			void ensureVRM();
+		} else {
+			tearDownVRM();
+		}
+	});
+
+	// ── Chat submit ────────────────────────────────────────────────────
+	const speak = makeSpeaker();
 	const input = form.querySelector<HTMLInputElement>('.yuki-panel__input');
 	form.addEventListener('submit', (ev) => {
 		ev.preventDefault();
@@ -130,27 +259,38 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		const user: ChatEntry = { role: 'user', text: value, ts: Date.now() };
 		history.push(user);
 		log.appendChild(renderMessage(user));
-		// Phase A: deterministic placeholder reply. Phase B will replace
-		// this with a real backend round-trip.
+		// Phase B keeps the deterministic echo until the backend RPC
+		// lands. The next PR replaces the body of this block with an
+		// SSE stream to `/api/v1/yuki/chat`. The reply still flows
+		// through `speak()` so the VRM lipsync hook stays wired.
+		const reply =
+			"I've logged your question. The Yuki backend isn't online " +
+			'in this preview, but I will pass it along.';
 		const yuki: ChatEntry = {
 			role: 'yuki',
-			text:
-				"I've logged your question. The Yuki backend isn't online " +
-				'in this preview, but it will be soon — appreciate the patience.',
+			text: reply,
 			ts: Date.now(),
 		};
 		history.push(yuki);
 		log.appendChild(renderMessage(yuki));
 		writeHistory(history);
 		log.scrollTop = log.scrollHeight;
+		speak(reply);
 	});
 
 	if (!document.getElementById('kbve-yuki-panel-css')) {
 		const css = document.createElement('style');
 		css.id = 'kbve-yuki-panel-css';
 		css.textContent = `
-			.yuki-panel { display: grid; grid-template-rows: 1fr auto; gap: 0.5rem; height: 100%; }
+			.yuki-panel { display: grid; grid-template-rows: auto 1fr auto auto; gap: 0.5rem; height: 100%; }
+			.yuki-panel[data-avatar-mode='text'] .yuki-panel__stage { display: none; }
+			.yuki-panel__stage { height: 180px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; }
+			.yuki-panel__stage-skeleton, .yuki-panel__stage-error { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.78rem; color: rgba(255,255,255,0.5); }
+			.yuki-panel__stage-error { color: #f87171; }
 			.yuki-panel__log { display: grid; gap: 0.5rem; align-content: start; overflow-y: auto; padding-right: 0.25rem; }
+			.yuki-panel__mode { display: flex; justify-content: flex-end; }
+			.yuki-panel__mode-label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(255,255,255,0.55); cursor: pointer; user-select: none; }
+			.yuki-panel__mode-input { accent-color: rgb(6,182,212); }
 			.yuki-msg { display: flex; }
 			.yuki-msg--user { justify-content: flex-end; }
 			.yuki-msg__bubble { max-width: 80%; padding: 0.55rem 0.75rem; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; word-wrap: break-word; }
