@@ -427,6 +427,10 @@ fn router(state: AppState) -> Router {
             post(super::referral::me_set_default),
         )
         // service_role JWT required; anon / authenticated JWTs are rejected with 403.
+        // Yuki dock — SSE chat stream. Phase C is a deterministic
+        // canned reply; Phase D swaps the handler body for a real
+        // LLM round-trip without touching the route or the front-end.
+        .route("/api/v1/yuki/chat", get(super::yuki::chat_handler))
         .route(
             "/api/v1/wallet/service/balance/{user_id}",
             get(super::wallet::service_balance),

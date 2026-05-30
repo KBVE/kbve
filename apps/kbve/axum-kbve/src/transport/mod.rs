@@ -4,3 +4,4 @@ pub mod proxy;
 pub mod referral;
 pub mod vnc_hub;
 pub mod wallet;
+pub mod yuki;
