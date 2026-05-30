@@ -79,6 +79,11 @@ const protos = [
 		package: 'kbve.firecracker',
 	},
 	{
+		name: 'rcon',
+		protoFile: 'kbve/rcon.proto',
+		package: 'kbve.rcon',
+	},
+	{
 		name: 'ows',
 		protoFile: 'ows/ows.proto',
 		package: 'ows',

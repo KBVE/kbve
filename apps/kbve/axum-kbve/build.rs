@@ -10,6 +10,7 @@ const PROTO_MODULES: &[&str] = &[
     "kbve.pool",
     "kbve.schema",
     "kbve.osrs",
+    "kbve.rcon",
 ];
 
 fn protoc_available() -> bool {
@@ -63,6 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         proto_dir.join("pool.proto"),
         proto_dir.join("schema.proto"),
         proto_dir.join("osrs.proto"),
+        proto_dir.join("rcon.proto"),
     ];
 
     for proto in &proto_files {

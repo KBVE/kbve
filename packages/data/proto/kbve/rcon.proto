@@ -1,0 +1,61 @@
+// Unified RCON schema — same source consumed by axum-kbve (Rust prost) and
+// the edge `rcon/` function (Deno via proto-to-zod). Both transport paths
+// (in-cluster axum → ClusterIP RCON, edge → public LB) speak this wire format
+// so a request rendered for one path is valid for the other.
+//
+// Auth lives outside this proto: callers attach Supabase JWT, downstreams
+// check `is_staff` (or equivalent claim) before routing. Audit lives outside
+// too: structured tracing on axum + structured console.log on edge → Vector
+// → ClickHouse. Don't add audit fields here.
+
+syntax = "proto3";
+
+package kbve.rcon;
+
+// Which game the RCON endpoint targets. Single enum so axum / edge can both
+// switch on it without their own string mapping.
+enum Game {
+  GAME_UNSPECIFIED = 0;
+  GAME_MC = 1;        // Minecraft (Source RCON / vanilla rcon)
+  GAME_FACTORIO = 2;  // Factorio (Source RCON, `/c` + `/silent-command`)
+}
+
+// One RCON call. `command` is the canonical name from the registry below
+// (not a raw line); `template` in RconCommandSpec renders args into the wire
+// command. Callers never pass raw strings to the game — the server resolves
+// the spec, validates args, then renders.
+message RconRequest {
+  Game game = 1;
+  // Logical server name. Maps to env prefix on the server side:
+  //   RCON_MC_LOBBY_HOST / _PORT / _PASSWORD
+  //   RCON_FACTORIO_MAIN_HOST / _PORT / _PASSWORD
+  string server = 2;
+  string command = 3;          // matches RconCommandSpec.name
+  repeated string args = 4;
+}
+
+message RconResponse {
+  bool ok = 1;
+  string output = 2;           // raw RCON body returned by the game
+  uint32 latency_ms = 3;
+  optional string error = 4;   // populated when ok=false
+}
+
+// Allowlist entry. The registry is shipped as a checked-in YAML/JSON next
+// to this proto and loaded at boot by both axum and edge — no runtime fetch,
+// no DB. Adding a command = PR to that file.
+message RconCommandSpec {
+  Game game = 1;
+  string name = 2;             // canonical, e.g. "tp", "silent_command"
+  bool staff_only = 3;         // true → require JWT `is_staff` claim
+  // Wire template, e.g. "tp {0} {1}" or "/silent-command {0}". Positional
+  // placeholders match `args` by index.
+  string template = 4;
+  // Per-arg validator names — server resolves to a function. Examples:
+  //   "username", "uuid", "int", "float", "vec3", "lua_snippet"
+  repeated string arg_validators = 5;
+}
+
+message RconCommandRegistry {
+  repeated RconCommandSpec commands = 1;
+}
