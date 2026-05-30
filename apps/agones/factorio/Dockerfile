@@ -3,6 +3,10 @@ FROM factoriotools/factorio:${FACTORIO_VERSION}-rootless
 
 USER root
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --chown=1000:1000 apps/agones/factorio/scenarios/kbve /factorio/scenarios/kbve
 COPY --chown=1000:1000 apps/agones/factorio/config /opt/factorio/config-defaults
 COPY apps/agones/factorio/shim/agones-shim.sh /usr/local/bin/agones-shim
