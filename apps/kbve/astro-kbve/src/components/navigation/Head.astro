@@ -11,6 +11,8 @@
  *
  * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
  */
+import { ClientRouter } from 'astro:transitions';
+
 const route = Astro.locals.starlightRoute;
 const head = route.head;
 const data = route.entry.data as Record<string, unknown>;
@@ -71,6 +73,16 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
 
 <slot />
+
+{
+	/* Astro SPA-style nav. Pairs with the native browser
+   `<meta name="view-transition">` below so supporting browsers also
+   get cross-doc transitions when the router falls back to a full nav
+   (initial entry, external links with prefetch off, manual reload).
+   onMount() from @kbve/astro/utils/clientRouter is wired across the
+   component scripts to re-init per swap. */
+}
+<ClientRouter />
 <meta name="view-transition" content="same-origin" />
 
 <!-- YouTube hero-bg DNS + TLS warm so the iframe doesn't gate LCP -->
