@@ -4,6 +4,7 @@
 		{ "name": "elevated-rails", "enabled": true },
 		{ "name": "quality", "enabled": true },
 		{ "name": "space-age", "enabled": true },
-		{ "name": "Warehousing", "enabled": true }
+		{ "name": "aai-containers", "enabled": true },
+		{ "name": "Explosive_biters", "enabled": true }
 	]
 }

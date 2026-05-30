@@ -56,8 +56,8 @@ sync_mod() {
         echo "[agones-shim] WARN portal metadata fetch failed for ${name}"
         return 1
     }
-    dl_url=$(echo "$info" | jq -r '.releases | sort_by(.released_at) | last | .download_url // empty')
-    file_name=$(echo "$info" | jq -r '.releases | sort_by(.released_at) | last | .file_name // empty')
+    dl_url=$(printf '%s' "$info" | jq -r '.releases | sort_by(.released_at) | last | .download_url // empty')
+    file_name=$(printf '%s' "$info" | jq -r '.releases | sort_by(.released_at) | last | .file_name // empty')
     if [ -z "$dl_url" ] || [ -z "$file_name" ]; then
         echo "[agones-shim] WARN no releases for ${name}"
         return 1
