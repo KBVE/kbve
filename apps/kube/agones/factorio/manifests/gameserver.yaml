@@ -45,6 +45,9 @@ spec:
                   emptyDir:
                       medium: Memory
                       sizeLimit: 8Mi
+                - name: mods
+                  emptyDir:
+                      sizeLimit: 256Mi
             containers:
                 - name: factorio
                   image: ghcr.io/kbve/agones-factorio:0.0.3
@@ -87,6 +90,8 @@ spec:
                                 optional: true
                       - name: FACTORIO_PUBLIC
                         value: 'true'
+                      - name: FACTORIO_ADMINS
+                        value: 'h0lybyte'
                       # - name: FACTORIO_SAVE
                       #   value: 'Robots.zip'
                   ports:
@@ -101,6 +106,8 @@ spec:
                         mountPath: /shared/log
                       - name: config
                         mountPath: /factorio/config
+                      - name: mods
+                        mountPath: /factorio/mods
                   resources:
                       requests:
                           cpu: '1'

@@ -1,0 +1,32 @@
+services:
+    factorio:
+        build:
+            context: ../../..
+            dockerfile: apps/agones/factorio/Dockerfile
+            platforms:
+                - linux/amd64
+        platform: linux/amd64
+        image: kbve/agones-factorio:local
+        container_name: factorio-local
+        restart: unless-stopped
+        ports:
+            - '34197:34197/udp'
+            - '27015:27015/tcp'
+        environment:
+            FACTORIO_SCENARIO: kbve
+            FACTORIO_RCON_PASSWORD: ${FACTORIO_RCON_PASSWORD:-localdev}
+            FACTORIO_RCON_BIND: 0.0.0.0
+            FACTORIO_ADMINS: ${FACTORIO_ADMINS:-h0lybyte}
+            FACTORIO_USERNAME: ${FACTORIO_USERNAME:-}
+            FACTORIO_TOKEN: ${FACTORIO_TOKEN:-}
+            FACTORIO_PUBLIC: ${FACTORIO_PUBLIC:-false}
+            FACTORIO_SAVE: ${FACTORIO_SAVE:-}
+        volumes:
+            - factorio-saves:/factorio/saves
+            - factorio-mods:/factorio/mods
+            - factorio-log:/shared/log
+
+volumes:
+    factorio-saves:
+    factorio-mods:
+    factorio-log:

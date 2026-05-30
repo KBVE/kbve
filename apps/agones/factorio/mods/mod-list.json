@@ -1,0 +1,25 @@
+{
+	"mods": [
+		{ "name": "base", "enabled": true },
+		{ "name": "elevated-rails", "enabled": true },
+		{ "name": "quality", "enabled": true },
+		{ "name": "space-age", "enabled": true },
+		{ "name": "aai-containers", "enabled": true },
+		{ "name": "aai-industry", "enabled": true },
+		{ "name": "aai-signals", "enabled": true },
+		{ "name": "aai-zones", "enabled": true },
+		{ "name": "informatron", "enabled": true },
+		{ "name": "aai-programmable-vehicles", "enabled": true },
+		{ "name": "aai-programmable-structures", "enabled": true },
+		{ "name": "aai-vehicles-miner", "enabled": true },
+		{ "name": "aai-vehicles-hauler", "enabled": true },
+		{ "name": "aai-vehicles-warden", "enabled": true },
+		{ "name": "aai-vehicles-chaingunner", "enabled": true },
+		{ "name": "aai-vehicles-laser-tank", "enabled": true },
+		{ "name": "aai-vehicles-ironclad", "enabled": true },
+		{ "name": "alien-biomes", "enabled": true },
+		{ "name": "alien-biomes-graphics", "enabled": true },
+		{ "name": "equipment-gantry", "enabled": true },
+		{ "name": "Explosive_biters", "enabled": true }
+	]
+}
