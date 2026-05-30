@@ -5,10 +5,6 @@ metadata:
     labels:
         app.kubernetes.io/part-of: factorio
         kbve.com/stack: agones
-        # Agones GameServer uses hostPort 34197 for the public UDP listener,
-        # which the cluster-wide `baseline` PodSecurity profile forbids. Match
-        # the arc-runners ns (which runs the mc / ows Agones fleets) and
-        # downgrade to `privileged` for all three PodSecurity dimensions.
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
