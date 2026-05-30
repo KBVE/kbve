@@ -1,5 +1,3 @@
-local Market = require('modules.market')
-
 local Spawn = {}
 
 local CENTER = { x = 0, y = 0 }
@@ -83,12 +81,6 @@ function Spawn.build_compound(surface)
 		market.destructible = false
 		market.minable = false
 		storage.kbve.market_unit_number = market.unit_number
-		Market.populate(market)
-	end
-
-	local vault = place_chest(surface, { CENTER.x + 2, CENTER.y - 1 }, nil, true)
-	if vault then
-		storage.kbve.vault_terminal_unit_number = vault.unit_number
 	end
 
 	place_chest(surface, { CENTER.x - 3, CENTER.y + 2 }, STARTER_KIT_A, false)
@@ -97,9 +89,9 @@ function Spawn.build_compound(surface)
 	storage.kbve.spawn_built = true
 end
 
-function Spawn.is_vault_terminal(entity)
+function Spawn.is_market(entity)
 	if not (entity and entity.valid) then return false end
-	return entity.unit_number == (storage.kbve and storage.kbve.vault_terminal_unit_number)
+	return entity.unit_number == (storage.kbve and storage.kbve.market_unit_number)
 end
 
 return Spawn

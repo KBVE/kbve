@@ -37,15 +37,4 @@ Market.ITEMS = {
 	{ item = 'fusion-reactor-equipment', price = 6000, count = 1 },
 }
 
-function Market.populate(market_entity)
-	if not (market_entity and market_entity.valid) then return end
-	market_entity.clear_market_items()
-	for _, entry in ipairs(Market.ITEMS) do
-		market_entity.add_market_item({
-			price = { { name = 'coin', count = entry.price } },
-			offer = { type = 'give-item', item = entry.item, count = entry.count },
-		})
-	end
-end
-
 return Market

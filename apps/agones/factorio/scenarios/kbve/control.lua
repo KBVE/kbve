@@ -1,7 +1,7 @@
 local Coins = require('modules.coins')
 local Spawn = require('modules.spawn')
 local Vault = require('modules.vault')
-local VaultGui = require('modules.vault_gui')
+local ExchangeGui = require('modules.exchange_gui')
 
 local function on_player_joined(event)
 	local player = game.get_player(event.player_index)
@@ -17,7 +17,7 @@ local function on_player_left(event)
 	if player then
 		game.print({ 'kbve.player_left', player.name })
 	end
-	VaultGui.on_player_left(event)
+	ExchangeGui.on_player_left(event)
 end
 
 local function init_world()
@@ -40,5 +40,5 @@ script.on_event(defines.events.on_player_joined_game, on_player_joined)
 script.on_event(defines.events.on_player_left_game, on_player_left)
 script.on_event(defines.events.on_pre_player_mined_item, Coins.handle_pre_player_mined)
 script.on_event(defines.events.on_entity_died, Coins.handle_entity_died)
-script.on_event(defines.events.on_gui_opened, VaultGui.on_gui_opened)
-script.on_event(defines.events.on_gui_click, VaultGui.on_gui_click)
+script.on_event(defines.events.on_gui_opened, ExchangeGui.on_gui_opened)
+script.on_event(defines.events.on_gui_click, ExchangeGui.on_gui_click)
