@@ -40,6 +40,7 @@ impl RelayConfig {
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
+use crate::discord::n8n::N8nConfig;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
 
@@ -105,6 +106,11 @@ pub struct AppState {
     pub irc: Option<ChatClient>,
 
     pub relay: Option<RelayConfig>,
+
+    /// Optional n8n webhook forwarder. `None` when `N8N_BASE_URL`,
+    /// `N8N_HMAC_SECRET`, or `N8N_ALLOWED_PATHS` are missing — in which case
+    /// `/n8n` is not registered as a usable command.
+    pub n8n: Option<Arc<N8nConfig>>,
 
     /// Optional persistent KV store (redb). Opened from `DB_PATH` env var
     /// at startup. `None` when the variable is unset or the file fails to
@@ -205,6 +211,13 @@ impl AppState {
         let local_db = open_local_db();
         let profiles = Arc::new(ProfileStore::from_env_with_local(local_db.clone()));
 
+        let n8n = N8nConfig::from_env();
+        if n8n.is_none() {
+            tracing::info!(
+                "n8n not configured (set N8N_BASE_URL + N8N_HMAC_SECRET + N8N_ALLOWED_PATHS to enable /n8n)"
+            );
+        }
+
         let relay = RelayConfig::from_env();
         if let Some(ref r) = relay {
             tracing::info!(
@@ -238,6 +251,7 @@ impl AppState {
             github_store: Arc::new(GithubStore::from_env()),
             irc,
             relay,
+            n8n,
             local_db,
         }
     }

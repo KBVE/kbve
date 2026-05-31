@@ -65,6 +65,31 @@ subjects:
       name: n8n-external-secrets
       namespace: n8n
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: discordsh-n8n-hmac-access
+    namespace: n8n
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['discordsh-n8n-hmac']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: discordsh-n8n-hmac-access-binding
+    namespace: n8n
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: discordsh-n8n-hmac-access
+subjects:
+    - kind: ServiceAccount
+      name: discordsh-external-secrets
+      namespace: discordsh
+---
 # NetworkPolicy: Allow n8n pods to reach Redis on port 6379
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

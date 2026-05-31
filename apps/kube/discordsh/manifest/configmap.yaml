@@ -13,3 +13,7 @@ data:
     PUBLIC_DISCORD_CLIENT_ID: 'placeholder-discord-client-id'
     PUBLIC_ENV: 'production'
     RUST_LOG: 'debug'
+    N8N_BASE_URL: 'http://n8n.n8n.svc.cluster.local:5678/webhook/'
+    N8N_ALLOWED_PATHS: 'kbve/*,deploy-*'
+    N8N_RATE_LIMIT: '1'
+    N8N_RATE_WINDOW: '5'
