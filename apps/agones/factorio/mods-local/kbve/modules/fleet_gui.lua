@@ -181,10 +181,10 @@ local function render_vehicles(content, player)
 	scroll.style.maximal_height = 360
 	scroll.style.minimal_width = 540
 	local header = scroll.add({ type = 'flow', direction = 'horizontal' })
-	header.add({ type = 'label', caption = 'Vehicle', style = 'bold_label' }).style.minimal_width = 220
-	header.add({ type = 'label', caption = 'On surface', style = 'bold_label' }).style.minimal_width = 90
-	header.add({ type = 'label', caption = 'Registered', style = 'bold_label' }).style.minimal_width = 90
-	header.add({ type = 'label', caption = 'Gap', style = 'bold_label' })
+	header.add({ type = 'label', caption = 'Vehicle', }).style.minimal_width = 220
+	header.add({ type = 'label', caption = 'On surface', }).style.minimal_width = 90
+	header.add({ type = 'label', caption = 'Registered', }).style.minimal_width = 90
+	header.add({ type = 'label', caption = 'Gap', })
 
 	for name, count in pairs(on_surface) do
 		local reg = registered_by_name[name] or 0
@@ -197,11 +197,13 @@ local function render_vehicles(content, player)
 		row.add({ type = 'label', caption = tostring(count) }).style.minimal_width = 90
 		row.add({ type = 'label', caption = tostring(reg) }).style.minimal_width = 90
 		local gap = count - reg
-		row.add({
+		local gap_label = row.add({
 			type = 'label',
 			caption = gap == 0 and 'ok' or ('-' .. gap),
-			style = gap == 0 and 'description_label' or 'bold_red_label',
 		})
+		if gap ~= 0 then
+			gap_label.style.font_color = { r = 1, g = 0.4, b = 0.4 }
+		end
 	end
 
 	if #registered_units_on_surface > 0 then
