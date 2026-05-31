@@ -203,6 +203,7 @@ COPY --from=astro-precompressor /static /app/apps/kbve/axum-kbve/templates/dist
 
 # Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
+COPY packages/data/rcon packages/data/rcon
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/holy packages/rust/holy
