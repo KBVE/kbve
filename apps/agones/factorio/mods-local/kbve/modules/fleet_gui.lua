@@ -76,18 +76,22 @@ local function active_zones(player)
 	return out
 end
 
-local function aai_zone_first_position(player, zone_name)
+local function aai_zone_position_at(player, zone_name, index)
 	if not has_aai_zones() then return nil end
 	local ok, result = pcall(remote.call, 'aai-zones', 'get_zone_by_index', {
 		force = player.force,
 		surface_index = player.surface.index,
 		type = zone_name,
-		index = 1,
+		index = index,
 	})
 	if ok and type(result) == 'table' and result.x and result.y then
 		return { x = result.x + 0.5, y = result.y + 0.5 }
 	end
 	return nil
+end
+
+local function aai_zone_first_position(player, zone_name)
+	return aai_zone_position_at(player, zone_name, 1)
 end
 
 local function has_aai_vehicles()
@@ -509,9 +513,9 @@ local function dispatch(player)
 		return
 	end
 
-	local pos = aai_zone_first_position(player, target_zone_name)
-	if not pos then
-		player.print('Could not resolve a tile position for zone ' .. target_zone_name .. '.')
+	local zone_count = aai_zone_count(player, target_zone_name)
+	if zone_count <= 0 then
+		player.print('Zone ' .. target_zone_name .. ' has no tiles.')
 		return
 	end
 
@@ -521,7 +525,15 @@ local function dispatch(player)
 	else
 		found = player.surface.find_entities_filtered({ name = vehicle_name })
 	end
+
+	local pos = aai_zone_position_at(player, target_zone_name, 1)
+	if not pos then
+		player.print('Could not resolve a tile position for zone ' .. target_zone_name .. '.')
+		return
+	end
+
 	local dispatched, unregistered, inactive = 0, 0, 0
+	local valid_targets = {}
 	for _, v in pairs(found) do
 		if v.valid then
 			local unit = aai_get_unit(v)
@@ -529,13 +541,18 @@ local function dispatch(player)
 				if unit.active_state == 'inactive' then
 					inactive = inactive + 1
 				end
-				aai_set_unit_command({ unit_id = unit.unit_id, target_speed = 0.1 })
-				if aai_set_unit_command({ unit_id = unit.unit_id, target_position = pos }) then
-					dispatched = dispatched + 1
-				end
+				table.insert(valid_targets, unit)
 			else
 				unregistered = unregistered + 1
 			end
+		end
+	end
+	for i, unit in ipairs(valid_targets) do
+		local zone_index = math.floor(((i - 1) * zone_count) / math.max(1, #valid_targets)) + 1
+		local target_pos = aai_zone_position_at(player, target_zone_name, zone_index) or pos
+		aai_set_unit_command({ unit_id = unit.unit_id, target_speed = 0.1 })
+		if aai_set_unit_command({ unit_id = unit.unit_id, target_position = target_pos }) then
+			dispatched = dispatched + 1
 		end
 	end
 	if unregistered > 0 then
