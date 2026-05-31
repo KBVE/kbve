@@ -4,6 +4,8 @@ const GAME_SCENE := "res://scenes/game.tscn"
 const ENV_EMAIL := "ND_SUPABASE_EMAIL"
 const ENV_PASSWORD := "ND_SUPABASE_PASSWORD"
 const ENV_USERNAME := "ND_SUPABASE_USERNAME"
+const ENV_OAUTH_PROVIDER := "ND_OAUTH_PROVIDER"
+const DEFAULT_OAUTH_PROVIDER := "github"
 
 var _menu: Control = null
 var _sign_in_in_flight: bool = false
@@ -42,15 +44,23 @@ func _on_sign_in() -> void:
 		return
 	var email: String = OS.get_environment(ENV_EMAIL)
 	var password: String = OS.get_environment(ENV_PASSWORD)
-	if email.is_empty() or password.is_empty():
-		_menu.set_status("Set %s + %s to sign in (OAuth coming soon)." % [ENV_EMAIL, ENV_PASSWORD], "warn")
-		return
 	_sign_in_in_flight = true
 	_menu.set_busy(true)
-	_menu.set_status("Signing in to supabase.kbve.com…", "info")
 	Supabase.session_ready.connect(_on_supabase_ready, CONNECT_ONE_SHOT)
 	Supabase.session_failed.connect(_on_supabase_failed, CONNECT_ONE_SHOT)
-	Supabase.resume_or_sign_in(email, password, OS.get_environment(ENV_USERNAME))
+	if not email.is_empty() and not password.is_empty():
+		_menu.set_status("Signing in to supabase.kbve.com…", "info")
+		Supabase.resume_or_sign_in(email, password, OS.get_environment(ENV_USERNAME))
+		return
+	# No env-baked password? Fall through to the localhost-redirect OAuth dance
+	# (mirrors apps/kbve/isometric/src-tauri/src/auth.rs and the rareicon Unity
+	# title screen). The browser handles the provider handshake and bounces the
+	# token back to a TCPServer the supabase_client autoload is running.
+	var provider: String = OS.get_environment(ENV_OAUTH_PROVIDER)
+	if provider.is_empty():
+		provider = DEFAULT_OAUTH_PROVIDER
+	_menu.set_status("Opening browser for %s sign-in…" % provider, "info")
+	Supabase.sign_in_with_oauth(provider, OS.get_environment(ENV_USERNAME))
 
 func _on_supabase_ready(_token: String, username: String) -> void:
 	_sign_in_in_flight = false

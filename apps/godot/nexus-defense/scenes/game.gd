@@ -230,7 +230,7 @@ func _advance_wave() -> void:
 	_wave += 1
 	_enemies = 10 + _wave * 3
 	_gold += 50
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies, "kills": _last_kills})
 	var bar := Ui.get_panel("build_bar")
 	if bar:
 		bar.apply({"gold": _gold})
@@ -313,7 +313,15 @@ func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, g
 	_lives = lives
 	_gold = gold
 	_enemies = enemy_count
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {
+		"wave": _wave,
+		"lives": _lives,
+		"gold": _gold,
+		"enemies": _enemies,
+		"kills": kills,
+		"phase": phase,
+		"phase_remaining_ms": phase_remaining_ms,
+	})
 	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed or building_changed or phase_changed:
 		_last_snapshot_log_tick = tick
 		_log("snapshot tick=%d phase=%s wave=%d enemies=%d buildings=%d gold=%d lives=%d kills=%d remaining_ms=%d" % [tick, _phase_name(phase), wave, enemy_count, building_count, gold, lives, kills, phase_remaining_ms])
