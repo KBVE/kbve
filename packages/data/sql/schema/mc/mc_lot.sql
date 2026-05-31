@@ -77,9 +77,10 @@ CREATE TABLE IF NOT EXISTS mc.schematic (
                resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_schematic_enabled_category_tier_name
-    ON mc.schematic (category, tier, name) WHERE enabled;
-CREATE INDEX IF NOT EXISTS idx_mc_schematic_tier ON mc.schematic (tier);
+CREATE INDEX IF NOT EXISTS idx_mc_schematic_enabled_category_tier_name_cover
+    ON mc.schematic (category, tier, name, schematic_id)
+    INCLUDE (dims_x, dims_y, dims_z, price_credits, price_khash)
+    WHERE enabled;
 
 
 -- ========== TABLE: mc.lot ==========
@@ -89,6 +90,10 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     world           TEXT NOT NULL DEFAULT 'minecraft:overworld',
     chunk_x_range   int4range NOT NULL,
     chunk_z_range   int4range NOT NULL,
+    chunk_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range)) STORED,
+    chunk_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) - 1) STORED,
+    chunk_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range)) STORED,
+    chunk_z_max     INTEGER GENERATED ALWAYS AS (upper(chunk_z_range) - 1) STORED,
     chunk_width     INTEGER GENERATED ALWAYS AS
         (upper(chunk_x_range) - lower(chunk_x_range)) STORED,
     chunk_depth     INTEGER GENERATED ALWAYS AS
@@ -139,13 +144,15 @@ CREATE TABLE IF NOT EXISTS mc.lot (
 
 CREATE INDEX IF NOT EXISTS idx_mc_lot_owner
     ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_order
-    ON mc.lot (world, lower(chunk_x_range), lower(chunk_z_range));
-CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_order
-    ON mc.lot (world, state, lower(chunk_x_range), lower(chunk_z_range));
-CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_world_chunk_order
-    ON mc.lot (owner_user_id, world, lower(chunk_x_range), lower(chunk_z_range))
+CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_cursor
+    ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_cursor
+    ON mc.lot (world, state, chunk_x_min, chunk_z_min, lot_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_world_chunk_cursor
+    ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_current_schematic
+    ON mc.lot (current_schematic_id) WHERE current_schematic_id IS NOT NULL;
 
 
 -- ========== TABLE: mc.lot_purchase ==========
@@ -163,11 +170,20 @@ CREATE TABLE IF NOT EXISTS mc.lot_purchase (
 
     CONSTRAINT mc_lot_purchase_price_chk
         CHECK (price_credits >= 0 AND price_khash >= 0),
+    CONSTRAINT mc_lot_purchase_credits_ledger_chk CHECK (
+        (price_credits = 0 AND wallet_credits_ledger_id IS NULL)
+        OR (price_credits > 0 AND wallet_credits_ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT mc_lot_purchase_khash_ledger_chk CHECK (
+        (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
+        OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
+    ),
     CONSTRAINT mc_lot_purchase_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_lot   ON mc.lot_purchase (lot_id);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_buyer ON mc.lot_purchase (buyer_user_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_lot ON mc.lot_purchase (lot_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_buyer_created
+    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_purchase_one_per_lot
     ON mc.lot_purchase (lot_id);
 
@@ -203,6 +219,14 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
     CONSTRAINT mc_lot_build_log_claimed_by_len_chk
         CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
+    CONSTRAINT mc_lot_build_log_credits_ledger_chk CHECK (
+        (price_credits = 0 AND wallet_credits_ledger_id IS NULL)
+        OR (price_credits > 0 AND wallet_credits_ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT mc_lot_build_log_khash_ledger_chk CHECK (
+        (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
+        OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
+    ),
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
         CHECK (
             (apply_state = 3 AND claimed_at IS NOT NULL AND claimed_by IS NOT NULL)
@@ -213,14 +237,24 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
 
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_lot
     ON mc.lot_build_log (lot_id);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor
-    ON mc.lot_build_log (actor_user_id);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending
-    ON mc.lot_build_log (queued_at) WHERE apply_state = 0;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor_queued
+    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending_claim
+    ON mc.lot_build_log (queued_at, build_id) WHERE apply_state = 0;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_claimed_stale
-    ON mc.lot_build_log (claimed_at) WHERE apply_state = 3;
+    ON mc.lot_build_log (claimed_at, build_id) WHERE apply_state = 3;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_schematic
+    ON mc.lot_build_log (schematic_id) WHERE schematic_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_build_log_one_active_per_lot
     ON mc.lot_build_log (lot_id) WHERE apply_state IN (0, 3);
+
+ALTER TABLE mc.lot_build_log SET (
+    fillfactor = 80,
+    autovacuum_vacuum_scale_factor = 0.02,
+    autovacuum_analyze_scale_factor = 0.01,
+    autovacuum_vacuum_threshold = 1000,
+    autovacuum_analyze_threshold = 500
+);
 
 
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';

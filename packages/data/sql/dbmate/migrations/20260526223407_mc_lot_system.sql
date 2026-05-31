@@ -116,12 +116,14 @@ CREATE TABLE mc.schematic (
                resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
--- Partial index lines up with proxy_list_schematics' WHERE enabled + ORDER
--- BY category, tier, name path. Unfiltered rows are extremely cold.
-CREATE INDEX idx_mc_schematic_enabled_category_tier_name
-    ON mc.schematic (category, tier, name)
+-- Partial index lines up with proxy_list_schematics' WHERE enabled +
+-- ORDER BY category, tier, name path. INCLUDE columns let the planner
+-- satisfy the catalog listing without touching the heap once the
+-- visibility map is warm.
+CREATE INDEX idx_mc_schematic_enabled_category_tier_name_cover
+    ON mc.schematic (category, tier, name, schematic_id)
+    INCLUDE (dims_x, dims_y, dims_z, price_credits, price_khash)
     WHERE enabled;
-CREATE INDEX idx_mc_schematic_tier ON mc.schematic (tier);
 
 ALTER TABLE mc.schematic ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.schematic FORCE ROW LEVEL SECURITY;
@@ -138,8 +140,15 @@ CREATE TABLE mc.lot (
     world           TEXT NOT NULL DEFAULT 'minecraft:overworld',
     chunk_x_range   int4range NOT NULL,
     chunk_z_range   int4range NOT NULL,
-    -- Stored generated columns so chunk-count guards in RPCs (and any
-    -- future "lots ordered by size" queries) don't recompute on every read.
+    -- Stored generated columns so chunk-count guards in RPCs, listing
+    -- sort orders, and dashboard map queries don't recompute on every
+    -- read. *_min / *_max are inclusive (i.e. -1 from the half-open
+    -- upper bound) so indexes and queries are in the same coordinate
+    -- system the dashboard renders in.
+    chunk_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range)) STORED,
+    chunk_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) - 1) STORED,
+    chunk_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range)) STORED,
+    chunk_z_max     INTEGER GENERATED ALWAYS AS (upper(chunk_z_range) - 1) STORED,
     chunk_width     INTEGER GENERATED ALWAYS AS
         (upper(chunk_x_range) - lower(chunk_x_range)) STORED,
     chunk_depth     INTEGER GENERATED ALWAYS AS
@@ -195,35 +204,35 @@ CREATE TABLE mc.lot (
     )
 );
 
+-- Now that we have stored chunk_x_min / chunk_z_min generated columns,
+-- prefer them over expression indexes on lower(chunk_*_range) so plans
+-- pick the index directly without rewriting the predicate. The trailing
+-- lot_id makes every ordering deterministic and unlocks keyset
+-- pagination in a later migration without touching these indexes.
 CREATE INDEX idx_mc_lot_owner ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
--- Covering order for service_list_lots / proxy_list_lots:
--- ORDER BY world, lower(chunk_x_range), lower(chunk_z_range).
-CREATE INDEX idx_mc_lot_world_chunk_order
-    ON mc.lot (world, lower(chunk_x_range), lower(chunk_z_range));
--- Same order with state in the leading position so state-filtered listings
--- skip irrelevant rows entirely.
-CREATE INDEX idx_mc_lot_world_state_chunk_order
-    ON mc.lot (world, state, lower(chunk_x_range), lower(chunk_z_range));
--- proxy_list_lots(p_only_mine = true) filters by owner first then sorts
--- by world/chunk. This partial index covers that path so "my lots" never
--- falls back to a sort.
-CREATE INDEX idx_mc_lot_owner_world_chunk_order
-    ON mc.lot (owner_user_id, world, lower(chunk_x_range), lower(chunk_z_range))
+CREATE INDEX idx_mc_lot_world_chunk_cursor
+    ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id);
+CREATE INDEX idx_mc_lot_world_state_chunk_cursor
+    ON mc.lot (world, state, chunk_x_min, chunk_z_min, lot_id);
+CREATE INDEX idx_mc_lot_owner_world_chunk_cursor
+    ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     WHERE owner_user_id IS NOT NULL;
 
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot FORCE ROW LEVEL SECURITY;
 
 -- Trigger touches updated_at only when something other than updated_at
--- itself changed; cuts write amplification on no-op UPDATEs.
--- clock_timestamp() captures real statement time even in long transactions.
+-- itself changed; cuts write amplification on no-op UPDATEs. NOW() is
+-- transaction-stable, which is what we want for an audit-style column
+-- (callers expect rows updated in the same transaction to share a
+-- timestamp), and it skips the per-row clock read.
 CREATE OR REPLACE FUNCTION mc.trg_lot_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF NEW IS DISTINCT FROM OLD THEN
-        NEW.updated_at := clock_timestamp();
+        NEW.updated_at := NOW();
     END IF;
     RETURN NEW;
 END;
@@ -257,11 +266,25 @@ CREATE TABLE mc.lot_purchase (
 
     CONSTRAINT mc_lot_purchase_price_chk
         CHECK (price_credits >= 0 AND price_khash >= 0),
+    -- Per-currency ledger reference must be present iff that currency
+    -- was actually charged. Prevents dirty audit rows that would force
+    -- defensive null-checking downstream.
+    CONSTRAINT mc_lot_purchase_credits_ledger_chk CHECK (
+        (price_credits = 0 AND wallet_credits_ledger_id IS NULL)
+        OR (price_credits > 0 AND wallet_credits_ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT mc_lot_purchase_khash_ledger_chk CHECK (
+        (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
+        OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
+    ),
     CONSTRAINT mc_lot_purchase_idem_uq UNIQUE (idempotency_key)
 );
 
 CREATE INDEX idx_mc_lot_purchase_lot   ON mc.lot_purchase (lot_id);
-CREATE INDEX idx_mc_lot_purchase_buyer ON mc.lot_purchase (buyer_user_id);
+-- Dashboard "my purchase history" sorts newest first; composite avoids
+-- a sort step.
+CREATE INDEX idx_mc_lot_purchase_buyer_created
+    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC);
 
 -- Phase-0 invariant: each lot can be bought exactly once. Resale comes
 -- with an explicit ownership-epoch column in a follow-up migration.
@@ -310,6 +333,14 @@ CREATE TABLE mc.lot_build_log (
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
     CONSTRAINT mc_lot_build_log_claimed_by_len_chk
         CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
+    CONSTRAINT mc_lot_build_log_credits_ledger_chk CHECK (
+        (price_credits = 0 AND wallet_credits_ledger_id IS NULL)
+        OR (price_credits > 0 AND wallet_credits_ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT mc_lot_build_log_khash_ledger_chk CHECK (
+        (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
+        OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
+    ),
     -- Claimed state must carry full worker identity; non-claimed states
     -- must not.
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
@@ -321,18 +352,46 @@ CREATE TABLE mc.lot_build_log (
 );
 
 CREATE INDEX idx_mc_lot_build_log_lot     ON mc.lot_build_log (lot_id);
-CREATE INDEX idx_mc_lot_build_log_actor   ON mc.lot_build_log (actor_user_id);
-CREATE INDEX idx_mc_lot_build_log_pending ON mc.lot_build_log (queued_at) WHERE apply_state = 0;
--- Stuck-job reclaim: find rows whose worker died after claiming.
+-- User history: newest-first composite drops the sort step.
+CREATE INDEX idx_mc_lot_build_log_actor_queued
+    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC);
+-- Queue + worker claim path: include build_id so the claim ORDER BY
+-- (queued_at, build_id) is satisfied by index walk alone.
+CREATE INDEX idx_mc_lot_build_log_pending_claim
+    ON mc.lot_build_log (queued_at, build_id)
+    WHERE apply_state = 0;
+-- Stuck-job reclaim. build_id keeps janitor scans deterministic and
+-- supports a LIMIT-batched requeue.
 CREATE INDEX idx_mc_lot_build_log_claimed_stale
-    ON mc.lot_build_log (claimed_at)
+    ON mc.lot_build_log (claimed_at, build_id)
     WHERE apply_state = 3;
+-- Reverse FK lookup: "which build jobs referenced schematic X?"
+CREATE INDEX idx_mc_lot_build_log_schematic
+    ON mc.lot_build_log (schematic_id)
+    WHERE schematic_id IS NOT NULL;
 
 -- At most one outstanding job (queued OR claimed) per lot. Stronger than
 -- the lot.state guard because it survives RPC bugs / direct admin writes.
 CREATE UNIQUE INDEX uq_mc_lot_build_log_one_active_per_lot
     ON mc.lot_build_log (lot_id)
     WHERE apply_state IN (0, 3);
+
+-- Reverse FK lookup for mc.lot.current_schematic_id.
+CREATE INDEX idx_mc_lot_current_schematic
+    ON mc.lot (current_schematic_id)
+    WHERE current_schematic_id IS NOT NULL;
+
+-- Queue table sees state-update churn (queued -> claimed -> applied);
+-- HOT updates rely on free space inside the page. fillfactor 80 leaves
+-- room for in-page row replacement so we avoid index bloat from page
+-- splits. The audit/append-mostly tables stay at the default 100.
+ALTER TABLE mc.lot_build_log SET (
+    fillfactor = 80,
+    autovacuum_vacuum_scale_factor = 0.02,
+    autovacuum_analyze_scale_factor = 0.01,
+    autovacuum_vacuum_threshold = 1000,
+    autovacuum_analyze_threshold = 500
+);
 
 ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_build_log FORCE ROW LEVEL SECURITY;
@@ -354,10 +413,13 @@ STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+    -- wallet.account has a partial unique index (kind='user', user_id)
+    -- so at most one row matches; LIMIT 1 was previously defensive but
+    -- masked corruption. Plain scalar subquery surfaces duplicates as a
+    -- "more than one row" runtime error instead.
     SELECT a.id
     FROM wallet.account a
-    WHERE a.kind = 'user' AND a.user_id = p_user_id
-    LIMIT 1;
+    WHERE a.kind = 'user' AND a.user_id = p_user_id;
 $$;
 
 ALTER FUNCTION mc._user_account_id(UUID) OWNER TO postgres;
@@ -399,10 +461,10 @@ ROWS 256
 AS $$
     SELECT l.lot_id,
            l.world,
-           lower(l.chunk_x_range)     AS chunk_x_min,
-           upper(l.chunk_x_range) - 1 AS chunk_x_max,
-           lower(l.chunk_z_range)     AS chunk_z_min,
-           upper(l.chunk_z_range) - 1 AS chunk_z_max,
+           l.chunk_x_min,
+           l.chunk_x_max,
+           l.chunk_z_min,
+           l.chunk_z_max,
            l.chunk_area,
            l.anchor_y,
            l.owner_user_id,
@@ -416,7 +478,7 @@ AS $$
     WHERE (p_world         IS NULL OR l.world = p_world)
       AND (p_state         IS NULL OR l.state = p_state)
       AND (p_owner_user_id IS NULL OR l.owner_user_id = p_owner_user_id)
-    ORDER BY l.world, lower(l.chunk_x_range), lower(l.chunk_z_range)
+    ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
     LIMIT GREATEST(0, LEAST(p_limit, 1024))
     OFFSET GREATEST(0, p_offset);
 $$;
@@ -543,30 +605,43 @@ GRANT EXECUTE ON FUNCTION mc.service_claim_pending_builds(TEXT, INTEGER)
 -- mc.service_requeue_stale_claims — recover orphaned worker claims
 -- ===========================================================================
 CREATE OR REPLACE FUNCTION mc.service_requeue_stale_claims(
-    p_older_than_seconds INTEGER DEFAULT 300
+    p_older_than_seconds INTEGER DEFAULT 300,
+    p_limit INTEGER DEFAULT 128
 )
 RETURNS INTEGER
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    WITH stale AS (
-        UPDATE mc.lot_build_log
+    -- Batch + SKIP LOCKED so a janitor run never blocks on rows another
+    -- requeue is touching, and the write surface stays bounded per call.
+    WITH picked AS (
+        SELECT build_id
+          FROM mc.lot_build_log
+         WHERE apply_state = 3
+           AND claimed_at IS NOT NULL
+           AND claimed_at < clock_timestamp()
+                          - make_interval(secs => GREATEST(1, p_older_than_seconds))
+         ORDER BY claimed_at, build_id
+         LIMIT GREATEST(0, LEAST(p_limit, 512))
+         FOR UPDATE SKIP LOCKED
+    ),
+    stale AS (
+        UPDATE mc.lot_build_log b
            SET apply_state = 0,
                claimed_at = NULL,
                claimed_by = NULL
-         WHERE apply_state = 3
-           AND claimed_at IS NOT NULL
-           AND claimed_at < clock_timestamp() - make_interval(secs => GREATEST(1, p_older_than_seconds))
+          FROM picked
+         WHERE b.build_id = picked.build_id
         RETURNING 1
     )
     SELECT COUNT(*)::INTEGER FROM stale;
 $$;
 
-ALTER FUNCTION mc.service_requeue_stale_claims(INTEGER) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc.service_requeue_stale_claims(INTEGER)
+ALTER FUNCTION mc.service_requeue_stale_claims(INTEGER, INTEGER) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_requeue_stale_claims(INTEGER, INTEGER)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc.service_requeue_stale_claims(INTEGER)
+GRANT EXECUTE ON FUNCTION mc.service_requeue_stale_claims(INTEGER, INTEGER)
     TO service_role;
 
 
@@ -1139,38 +1214,37 @@ RETURNS TABLE (
     price_credits   BIGINT,
     price_khash     BIGINT
 )
-LANGUAGE plpgsql
+LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 256
 AS $$
-DECLARE
-    v_uid UUID := auth.uid();
-BEGIN
-    RETURN QUERY
+    -- LANGUAGE sql so the planner sees the body directly instead of going
+    -- through a plpgsql RETURN QUERY layer. auth.uid() is called once via
+    -- the CROSS JOIN so the equality survives function inlining cleanly.
+    WITH me AS (SELECT auth.uid() AS uid)
     SELECT l.lot_id,
            l.world,
-           lower(l.chunk_x_range)     AS chunk_x_min,
-           upper(l.chunk_x_range) - 1 AS chunk_x_max,
-           lower(l.chunk_z_range)     AS chunk_z_min,
-           upper(l.chunk_z_range) - 1 AS chunk_z_max,
+           l.chunk_x_min,
+           l.chunk_x_max,
+           l.chunk_z_min,
+           l.chunk_z_max,
            l.chunk_area,
            l.anchor_y,
            l.owner_user_id,
-           (l.owner_user_id IS NOT NULL AND l.owner_user_id = v_uid) AS is_owned_by_me,
+           (l.owner_user_id IS NOT NULL AND l.owner_user_id = me.uid) AS is_owned_by_me,
            l.current_schematic_id,
            l.state,
            l.price_credits,
            l.price_khash
-    FROM mc.lot l
+    FROM mc.lot l, me
     WHERE (p_world IS NULL OR l.world = p_world)
       AND (p_state IS NULL OR l.state = p_state)
-      AND (NOT p_only_mine OR (v_uid IS NOT NULL AND l.owner_user_id = v_uid))
-    ORDER BY l.world, lower(l.chunk_x_range), lower(l.chunk_z_range)
+      AND (NOT p_only_mine OR (me.uid IS NOT NULL AND l.owner_user_id = me.uid))
+    ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
     LIMIT GREATEST(0, LEAST(p_limit, 1024))
     OFFSET GREATEST(0, p_offset);
-END;
 $$;
 
 ALTER FUNCTION mc.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER) OWNER TO postgres;
@@ -1225,7 +1299,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 DECLARE
     v_uid UUID := auth.uid();
@@ -1251,7 +1325,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 DECLARE
     v_uid UUID := auth.uid();
@@ -1277,7 +1351,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 DECLARE
     v_uid UUID := auth.uid();
@@ -1374,7 +1448,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
@@ -1398,7 +1472,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
@@ -1424,7 +1498,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-COST 100
+COST 10
 AS $$
 BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
@@ -1522,7 +1596,8 @@ COMMENT ON FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT) IS
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_requeue_stale_claims(
-    p_older_than_seconds INTEGER DEFAULT 300
+    p_older_than_seconds INTEGER DEFAULT 300,
+    p_limit INTEGER DEFAULT 128
 )
 RETURNS INTEGER
 LANGUAGE sql
@@ -1530,16 +1605,16 @@ SECURITY DEFINER
 SET search_path = ''
 COST 100
 AS $$
-    SELECT mc.service_requeue_stale_claims(p_older_than_seconds);
+    SELECT mc.service_requeue_stale_claims(p_older_than_seconds, p_limit);
 $$;
 
-ALTER FUNCTION public.proxy_service_requeue_stale_claims(INTEGER) OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
+ALTER FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER)
+GRANT EXECUTE ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER)
     TO service_role;
-COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER) IS
-    'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Returns the count of jobs requeued.';
+COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) IS
+    'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Batched + SKIP LOCKED with p_limit (max 512). Returns the count of jobs requeued in this call.';
 
 
 NOTIFY pgrst, 'reload schema';
@@ -1554,6 +1629,7 @@ DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT);
 
+DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT, TEXT);
@@ -1585,6 +1661,7 @@ DROP FUNCTION IF EXISTS mc.service_queue_build_on_lot(TEXT, TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_purchase_lot(TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT, TEXT);
+DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS mc.service_claim_pending_builds(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_list_schematics(TEXT, BOOLEAN);
