@@ -16,6 +16,27 @@ CREATE TABLE IF NOT EXISTS auth.users (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Minimal auth.identities mirror (FK target for tracker.find_claim_identity_by_discord_id
+-- and source for the custom_access_token_hook owned_guilds claim). Schema follows
+-- Supabase's auth.identities so migrations that read identity_data->>'...' or
+-- filter on provider work identically against local + prod.
+CREATE TABLE IF NOT EXISTS auth.identities (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    provider      TEXT NOT NULL,
+    provider_id   TEXT NOT NULL,
+    identity_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at    TIMESTAMPTZ DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (provider, provider_id)
+);
+
+-- supabase_auth_admin needs USAGE on auth + SELECT on auth.identities so the
+-- custom_access_token_hook (SECURITY DEFINER owned by that role) can read
+-- identity_data->'owned_guilds' at JWT mint time.
+GRANT USAGE  ON SCHEMA auth            TO supabase_auth_admin;
+GRANT SELECT ON TABLE  auth.identities TO supabase_auth_admin;
+
 -- Stub auth.uid() — reads request.jwt.claims (matches Supabase auth's
 -- behaviour closely enough for proxy-function tests that set the GUC
 -- via `SET LOCAL request.jwt.claims = '{"role":...,"sub":...}'`.
