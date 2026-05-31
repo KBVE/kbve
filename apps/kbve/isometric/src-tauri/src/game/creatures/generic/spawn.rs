@@ -86,9 +86,18 @@ pub fn spawn_sprite_creatures(
         for i in 0..count {
             let seed = (i as u32).wrapping_add(seed_offset);
             let phase = hash_f32(seed * 11 + 1);
+            // For FourWay sprites we pick a quadrant (0..3) and translate it
+            // through `quadrant_to_row` so the stored direction matches what
+            // the simulate path writes on every move/flee tick. Previously the
+            // spawn path stored the raw quadrant index and used it as a row
+            // offset, so freshly-spawned creatures rendered in the wrong row
+            // until their first behavior decision fired.
             let direction = match &creature_type.direction_model {
                 DirectionModel::Flip => 0,
-                DirectionModel::FourWay { .. } => (hash_f32(seed * 37 + 5) * 4.0) as u32 % 4,
+                DirectionModel::FourWay { quadrant_to_row } => {
+                    let q = (hash_f32(seed * 37 + 5) * 4.0) as usize % 4;
+                    quadrant_to_row[q]
+                }
             };
             let idle_timer = creature_type.idle_min
                 + hash_f32(seed * 53 + 11) * (creature_type.idle_max - creature_type.idle_min);
@@ -97,7 +106,7 @@ pub fn spawn_sprite_creatures(
 
             let initial_row = match &creature_type.direction_model {
                 DirectionModel::Flip => idle_anim.base_row,
-                DirectionModel::FourWay { quadrant_to_row } => idle_anim.base_row + direction,
+                DirectionModel::FourWay { .. } => idle_anim.base_row + direction,
             };
 
             // Spawn blob shadow
