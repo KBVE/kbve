@@ -98,7 +98,7 @@ local function aai_get_unit_id(entity)
 	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
 		return nil
 	end
-	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_unit_by_entity', { entity = entity })
+	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_unit_by_entity', entity)
 	if not ok or type(result) ~= 'table' then return nil end
 	return result.unit_id
 end
