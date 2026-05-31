@@ -474,6 +474,7 @@ local function dispatch(player)
 				if unit.active_state == 'inactive' then
 					inactive = inactive + 1
 				end
+				aai_set_unit_command({ unit_id = unit.unit_id, target_speed = 0.1 })
 				if aai_set_unit_command({ unit_id = unit.unit_id, target_position = pos }) then
 					dispatched = dispatched + 1
 				end
