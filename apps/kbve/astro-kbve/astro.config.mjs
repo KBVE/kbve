@@ -17,7 +17,16 @@ export default defineConfig({
 	image: {
 		domains: ['images.unsplash.com'],
 	},
-	prefetch: true,
+	// Prefetch warms destination HTML on hover so ClientRouter's swap
+	// has zero wait-for-network latency on the common case. `hover`
+	// strategy avoids the bandwidth cost of `viewport`/`load` while
+	// still feeling instant. `prefetchAll: true` opts every internal
+	// link in by default — individual links can opt out with
+	// `data-astro-prefetch="false"`.
+	prefetch: {
+		prefetchAll: true,
+		defaultStrategy: 'hover',
+	},
 	redirects: {
 		'/account': '/dashboard/account/',
 		'/account/': '/dashboard/account/',
@@ -92,6 +101,7 @@ export default defineConfig({
 				ThemeProvider: './src/components/theme/ThemeProvider.astro',
 				Head: './src/components/navigation/Head.astro',
 				Header: './src/components/navigation/Header.astro',
+				Sidebar: './src/components/navigation/Sidebar.astro',
 			},
 			head: [
 				{

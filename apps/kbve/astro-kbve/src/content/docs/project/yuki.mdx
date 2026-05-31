@@ -1,0 +1,144 @@
+---
+title: Yuki
+description: |
+    Persistent virtual concierge that lives in the lower-right corner of
+    every kbve.com page — chat panel, optional VRM avatar, audio-driven
+    lipsync, SSE-streamed replies.
+tableOfContents: true
+graph:
+    visible: true
+sidebar:
+    label: Yuki
+    order: 5
+tags:
+    - project
+    - astro-kbve
+    - axum-kbve
+    - vrm
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+Yuki is the always-available concierge that ships inside the right-side
+dock on every kbve.com page. Persistent across `<ClientRouter />`
+navigation, deferred until the user opens her, and architected so the
+heavy parts (VRM model, Three.js scene, AudioContext) only land in the
+browser when the user opts in.
+
+## At a glance
+
+| Phase | Status | What ships |
+|-------|--------|------------|
+| **A** — Dock shell | ✅ merged (#11474) | Persistent FAB + collapsed panel, vanilla driver, lazy-mount contract, localStorage state, ESC-to-close, reduced-motion respect |
+| **B** — VRM avatar | ✅ merged (#11475) | `@pixiv/three-vrm@^3.5.3` scene, idle/blink animation, `aa`/`ih`/`ou` lipsync via AnalyserNode tap, render-loop visibility + fps gates |
+| **C** — SSE stream | 🚧 this PR | `GET /api/v1/yuki/chat?q=<…>` returns `text/event-stream` chunks; panel streams tokens into the bubble + hands assembled text to `speak()` for lipsync |
+| **D** — Real backend | 🗓 next | Swap the canned reply in `transport/yuki.rs` for a jedi/q-routed LLM call. Prompt template, conversation compaction, rate limit. Front-end unchanged. |
+| **E** — Voice in | 🗓 later | Push-to-talk mic capture → on-device VAD → server STT → same SSE response path |
+| **F** — Tools / actions | 🗓 later | Function-call schema so Yuki can navigate the site, open the wallet card, queue a forum post, etc. |
+
+<Adsense />
+
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ AstroYukiDock.astro                                             │
+│   • transition:persist="kbve-yuki-dock"                         │
+│   • static HTML/CSS — zero JS on first paint                    │
+└───────────────┬─────────────────────────────────────────────────┘
+                │   user clicks FAB → first time only
+                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ yuki-dock.ts (vanilla)                                          │
+│   • toggle + localStorage state                                 │
+│   • dynamic import('./YukiPanel')                               │
+└───────────────┬─────────────────────────────────────────────────┘
+                │   panel mounts inside the dock body
+                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ YukiPanel.ts                                                    │
+│   • chat log + input                                            │
+│   • "Show 3D Yuki" toggle → dynamic import('./YukiVRM')         │
+│   • submit → EventSource('/api/v1/yuki/chat?q=…')               │
+│   • SSE chunks stream into the bubble; on `done` → speak(text)  │
+└─────────┬──────────────────────────────────┬────────────────────┘
+          │                                  │
+          ▼ (optional)                        ▼
+┌──────────────────────────┐    ┌─────────────────────────────────┐
+│ YukiVRM.ts               │    │ axum-kbve transport/yuki.rs     │
+│  Three + three-vrm       │    │  GET /api/v1/yuki/chat          │
+│  idle / blink / lipsync  │    │  text/event-stream, 15s keep-   │
+│  destroy() releases all  │    │  alive, `event: done` terminator│
+│  resources               │    └─────────────────────────────────┘
+└──────────────────────────┘
+```
+
+### Why no React for the panel?
+
+The chat layer needs to live inside a `transition:persist` node that
+the rest of the dock shell wraps. React's reconciliation tree is
+allergic to having its root DOM swap-mutated under it by Astro's
+ClientRouter, so the safer move is vanilla DOM that owns its own state.
+Bundle-wise we save the React + ReactDOM payload on first dock open —
+and the VRM scene that *does* use Three.js never crosses into React's
+tree either.
+
+### Why no Mediapipe / webcam?
+
+Yuki's pose data is either ours (canned animations, server-driven
+flags) or audio-derived (lipsync from the speak source). We
+deliberately don't ask the visitor for camera access — the avatar is
+a concierge, not a mirror.
+
+## Public surface
+
+### Frontend
+
+```ts
+// Loaded only after first dock expand.
+import { mountYukiPanel } from '@/components/jay/dock/YukiPanel';
+
+// Lazily imported by the panel when "Show 3D Yuki" is on.
+import { mountYukiVRM } from '@/components/jay/dock/YukiVRM';
+//   const handle = await mountYukiVRM({ host });
+//   handle.setState('happy');
+//   handle.speak(audioElement);   // analyser tap → mouth blendshapes
+//   handle.destroy();             // releases WebGL ctx + AudioContext
+```
+
+### Backend
+
+```
+GET /api/v1/yuki/chat?q=<utf8 prompt>
+
+Content-Type: text/event-stream
+:keepalive                 ← every 15s while idle
+data: <chunk>              ← repeats per token / sentence fragment
+data: <chunk>
+event: done                ← terminator
+data:
+```
+
+The handler trims and rejects empty prompts with a 400. There is no
+authentication on the route in Phase C; Phase D will gate it on a
+Supabase JWT once the real LLM call costs money to run.
+
+## Storage
+
+| Key | Purpose |
+|-----|---------|
+| `kbve:yuki-dock:state` | `'collapsed'` or `'expanded'` — restores last view across reloads |
+| `kbve:yuki-dock:avatar-mode` | `'text'` or `'3d'` — restores 3D toggle |
+| `kbve:yuki-dock:history` | Last 24 chat entries, `{role, text, ts}` |
+
+All three are localStorage-only, never sent to the server.
+
+## What's next
+
+- **Phase D**: replace `compose_reply` in `apps/kbve/axum-kbve/src/transport/yuki.rs` with a real LLM call. Likely q-routed so we keep our existing tracing + Supabase JWT verification. Front-end stays identical.
+- **Site-context**: feed the current page slug into the prompt so Yuki can answer "where am I?" without a tool call.
+- **Tool calls**: small JSON-schema function set (`navigate`, `open_dock_card`, `compose_forum_post`) so Yuki can act on the page, not just talk about it.
+- **Voice input** behind a push-to-talk gate, on-device VAD to keep the mic OFF except while the button is held.
+
+If you have feedback, drop it in the [forum](/forum/) — the link is
+literally what the Phase C stub tells you to do.

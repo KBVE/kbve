@@ -1,0 +1,17 @@
+---
+/**
+ * KBVE Sidebar override — wraps Starlight's default left sidebar in a
+ * `transition:persist` container so the DOM survives ClientRouter
+ * navigation. Eliminates the cross-fade flicker where the sidebar
+ * briefly re-renders between pages: active-link highlight, group
+ * collapsed state, and `data-auth-visibility` gates all stay stable
+ * across swaps. Starlight's internal JS updates the active-link
+ * class via `astro:after-swap` so the sidebar still tracks the
+ * current route.
+ */
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+---
+
+<div transition:persist="kbve-sidebar">
+	<Default />
+</div>

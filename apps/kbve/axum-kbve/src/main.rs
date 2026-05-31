@@ -5,6 +5,7 @@ pub mod gameserver;
 mod mcp;
 mod openapi;
 mod proto;
+mod rcon;
 mod telemetry;
 mod transport;
 pub mod version;
@@ -88,6 +89,15 @@ async fn main() -> anyhow::Result<()> {
         info!("MC service initialized - player list + texture proxy enabled");
     } else {
         info!("MC service not configured (set MC_RCON_HOST to enable)");
+    }
+
+    match rcon::init_rcon_registry() {
+        Ok(reg) => info!(
+            "RCON registry initialized — {} commands, {} endpoints configured",
+            reg.command_count(),
+            reg.endpoint_count()
+        ),
+        Err(e) => warn!(error = %e, "RCON registry init failed — /api/v1/rcon/* will 503"),
     }
 
     if db::init_forum_service() {

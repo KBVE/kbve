@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-29T09:22:20Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-05-30T08:57:42Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**46** critical/high severity findings across the monorepo.
+**49** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-05-29T09:22:20Z** — updated daily by `ci-dashboard`.
   <Card title="2 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="44 High" icon="error">
+  <Card title="47 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="63 Medium" icon="information">
+  <Card title="64 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="32 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-05-29T09:22:20Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **65** advisories
+    **69** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-05-29T09:22:20Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 2
-    "High" : 44
-    "Medium" : 63
+    "High" : 47
+    "Medium" : 64
     "Low" : 32
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 65
+    "npm" : 69
     "Cargo" : 43
     "CodeQL" : 61
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 0 | 26 | 33 | 6 | 65 |
+| **npm** | 0 | 29 | 34 | 6 | 69 |
 | **Cargo** | 0 | 0 | 15 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 44 | 63 | 32 | 169 |
+| **Total** | 2 | 47 | 64 | 32 | 173 |
 
   </TabItem>
   <TabItem label="npm">
@@ -121,6 +121,9 @@ pie showData
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
 | High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
+| High | `axios` | axios's shouldBypassProxy does not recognize IPv4-mapped ... | [Details](https://github.com/advisories/GHSA-pjwm-pj3p-43mv) |
+| High | `axios` | axios Vulnerable to Credential Theft and Response Hijacki... | [Details](https://github.com/advisories/GHSA-3g43-6gmg-66jw) |
+| High | `axios` | axios Vulnerable to Full Man-in-the-Middle via Prototype ... | [Details](https://github.com/advisories/GHSA-35jp-ww65-95wh) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -154,6 +157,7 @@ pie showData
 | Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `qs` | qs has a remotely triggerable DoS: qs.stringify crashes w... | [Details](https://github.com/advisories/GHSA-q8mj-m7cp-5q26) |
+| Medium | `axios` | axios has DoS &amp; Header Injection via Prototype Pollution ... | [Details](https://github.com/advisories/GHSA-898c-q2cr-xwhg) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |

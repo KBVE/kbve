@@ -292,6 +292,10 @@ fn router(state: AppState) -> Router {
             get(mc_player_by_uuid_handler),
         )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
+        .route(
+            "/api/v1/rcon/{game}/{server}/exec",
+            post(crate::rcon::exec_handler),
+        )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))
@@ -427,6 +431,10 @@ fn router(state: AppState) -> Router {
             post(super::referral::me_set_default),
         )
         // service_role JWT required; anon / authenticated JWTs are rejected with 403.
+        // Yuki dock — SSE chat stream. Phase C is a deterministic
+        // canned reply; Phase D swaps the handler body for a real
+        // LLM round-trip without touching the route or the front-end.
+        .route("/api/v1/yuki/chat", get(super::yuki::chat_handler))
         .route(
             "/api/v1/wallet/service/balance/{user_id}",
             get(super::wallet::service_balance),

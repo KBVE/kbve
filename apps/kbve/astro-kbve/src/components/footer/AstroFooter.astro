@@ -4,6 +4,7 @@ import AstroDroidFooter from './AstroDroidFooter.astro';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 import SocialIcon from '@/components/social/SocialIcon.astro';
 import { SOCIALS, withUtm } from '@/data/socials';
+import AstroYukiDock from '@/components/jay/dock/AstroYukiDock.astro';
 
 const legalLinks = [
 	{ href: '/legal/privacy', label: 'Privacy' },
@@ -150,6 +151,8 @@ const currentYear = new Date().getFullYear();
 	<FooterQuickLinks />
 	<AstroDroidFooter />
 </footer>
+
+<AstroYukiDock />
 
 <style>
 	.kf-footer {
