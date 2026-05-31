@@ -85,6 +85,21 @@ function Spawn.build_compound(surface)
 		storage.kbve.market_unit_number = market.unit_number
 	end
 
+	local fleet_kind = prototypes.entity['kbve-fleet-commander'] and 'kbve-fleet-commander' or nil
+	if fleet_kind then
+		local fleet = surface.create_entity({
+			name = fleet_kind,
+			position = { CENTER.x + 3, CENTER.y - 1 },
+			force = 'neutral',
+		})
+		if fleet and fleet.valid then
+			fleet.destructible = false
+			fleet.minable = false
+			fleet.operable = false
+			storage.kbve.fleet_unit_number = fleet.unit_number
+		end
+	end
+
 	place_chest(surface, { CENTER.x - 3, CENTER.y + 2 }, STARTER_KIT_A, false)
 	place_chest(surface, { CENTER.x + 3, CENTER.y + 2 }, STARTER_KIT_B, false)
 
