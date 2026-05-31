@@ -19,6 +19,10 @@ pub struct Config {
     pub clickhouse_user: Option<String>,
     pub clickhouse_password: Option<String>,
     pub clickhouse_database: String,
+    pub agones_sdk_http: Option<String>,
+    pub agones_health_interval_secs: u64,
+    pub agones_rcon_probe_timeout_secs: u64,
+    pub agones_initial_ready_delay_secs: u64,
 }
 
 impl Config {
@@ -48,7 +52,18 @@ impl Config {
             clickhouse_password: std::env::var("CLICKHOUSE_PASSWORD").ok(),
             clickhouse_database: std::env::var("CLICKHOUSE_DATABASE")
                 .unwrap_or_else(|_| "gameops".into()),
+            agones_sdk_http: std::env::var("AGONES_SDK_HTTP").ok(),
+            agones_health_interval_secs: parse_env_u64("AGONES_HEALTH_INTERVAL_SECS", 5)?,
+            agones_rcon_probe_timeout_secs: parse_env_u64("AGONES_RCON_PROBE_TIMEOUT_SECS", 2)?,
+            agones_initial_ready_delay_secs: parse_env_u64("AGONES_INITIAL_READY_DELAY_SECS", 0)?,
         })
+    }
+}
+
+fn parse_env_u64(name: &str, default: u64) -> Result<u64> {
+    match std::env::var(name).ok() {
+        Some(s) => s.parse().with_context(|| format!("{name} not a u64")),
+        None => Ok(default),
     }
 }
 
