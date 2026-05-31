@@ -1,0 +1,11 @@
+{
+	"name": "kbve",
+	"version": "0.0.1",
+	"factorio_version": "2.0",
+	"title": "KBVE",
+	"author": "kbve",
+	"contact": "https://kbve.com",
+	"homepage": "https://kbve.com",
+	"description": "KBVE Factorio server scenario + exchange terminal. Coin economy, market, personal vault, scenario starter compound.",
+	"dependencies": ["base >= 2.0", "? space-age"]
+}

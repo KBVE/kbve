@@ -1,6 +1,7 @@
 {
 	"mods": [
 		{ "name": "base", "enabled": true },
+		{ "name": "kbve", "enabled": true },
 		{ "name": "elevated-rails", "enabled": true },
 		{ "name": "quality", "enabled": true },
 		{ "name": "space-age", "enabled": true },
@@ -20,6 +21,10 @@
 		{ "name": "alien-biomes", "enabled": true },
 		{ "name": "alien-biomes-graphics", "enabled": true },
 		{ "name": "equipment-gantry", "enabled": true },
-		{ "name": "Explosive_biters", "enabled": true }
+		{ "name": "Explosive_biters", "enabled": true },
+		{ "name": "even-distribution", "enabled": true },
+		{ "name": "FactorySearch", "enabled": true },
+		{ "name": "RateCalculator", "enabled": true },
+		{ "name": "flib", "enabled": true }
 	]
 }
