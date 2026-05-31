@@ -75,7 +75,11 @@ const {
 		consumeRingNavDir,
 	} from './_ringNav';
 
+	const RING_DISABLED = true;
+
 	const init = () => {
+		if (RING_DISABLED) return;
+
 		// Disable browser scroll restoration so back-nav lands at our bottom.
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';

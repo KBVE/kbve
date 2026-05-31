@@ -1,19 +1,6 @@
-/**
- * Yuki panel — the heavy chunk lazy-imported by `yuki-dock.ts` the
- * first time a user opens the dock.
- *
- * Phase A (this file): minimal vanilla chat scaffold so the dock
- * shows something useful when expanded — a sticky input row + a
- * scroll buffer for messages — without dragging React + Three.js
- * into the initial bundle.
- *
- * Phase B (follow-up PR): swap this for a React mount of the existing
- * `ReactJayYuki` (or a lighter variant) wired to a real assistant
- * backend. The mount API is intentionally a single
- * `mountYukiPanel(host)` function so the swap is one-line.
- */
-
 const HISTORY_KEY = 'kbve:yuki-dock:history';
+const FLOAT_KEY = 'kbve:yuki-dock:float-mode';
+const FLOAT_POS_KEY = 'kbve:yuki-dock:float-pos';
 const MAX_HISTORY = 24;
 
 type Role = 'user' | 'yuki';
@@ -51,7 +38,7 @@ function writeHistory(history: ChatEntry[]): void {
 			JSON.stringify(history.slice(-MAX_HISTORY)),
 		);
 	} catch {
-		/* ignore quota */
+		void 0;
 	}
 }
 
@@ -88,29 +75,58 @@ function writeAvatarMode(mode: AvatarMode): void {
 	try {
 		localStorage.setItem(AVATAR_MODE_KEY, mode);
 	} catch {
-		/* ignore */
+		void 0;
+	}
+}
+
+function readFloat(): boolean {
+	try {
+		return localStorage.getItem(FLOAT_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+function writeFloat(on: boolean): void {
+	try {
+		localStorage.setItem(FLOAT_KEY, on ? '1' : '0');
+	} catch {
+		void 0;
+	}
+}
+
+interface FloatPos {
+	x: number;
+	y: number;
+}
+function readFloatPos(): FloatPos | null {
+	try {
+		const raw = localStorage.getItem(FLOAT_POS_KEY);
+		if (!raw) return null;
+		const p = JSON.parse(raw);
+		if (typeof p?.x !== 'number' || typeof p?.y !== 'number') return null;
+		return p;
+	} catch {
+		return null;
+	}
+}
+function writeFloatPos(pos: FloatPos): void {
+	try {
+		localStorage.setItem(FLOAT_POS_KEY, JSON.stringify(pos));
+	} catch {
+		void 0;
 	}
 }
 
 interface YukiVRMRuntime {
+	setState(state: string): void;
 	speak(audio: HTMLAudioElement | MediaStream): void;
 	stopSpeaking(): void;
+	pointAt(x: number, y: number): void;
 	destroy(): void;
 }
 
-// Web Speech API is widely supported in browsers but TypeScript's lib
-// only narrows it loosely; cast through unknown to keep the call site
-// readable without pulling in dom-speechrecognition types.
 type SpeakFn = (text: string) => HTMLAudioElement | null;
 
-/**
- * Pipe SpeechSynthesis output through a MediaStream so the VRM
- * lipsync analyser has a sample-able source. Browser support for
- * `mediaStream` on `SpeechSynthesisUtterance` is patchy, so we fall
- * back to plain `speak` without lipsync when unavailable — the VRM
- * still talks visually via the deterministic idle loop, just without
- * mouth movement on this turn.
- */
 function makeSpeaker(): SpeakFn {
 	return (text: string) => {
 		try {
@@ -122,10 +138,105 @@ function makeSpeaker(): SpeakFn {
 			utter.pitch = 1.15;
 			synth.speak(utter);
 		} catch {
-			/* ignore */
+			void 0;
 		}
 		return null;
 	};
+}
+
+const FLOAT_LAYER_ID = 'kbve-yuki-float-layer';
+const FLOAT_HOST_ID = 'kbve-yuki-float-host';
+
+function ensureFloatLayer(): HTMLElement {
+	let layer = document.getElementById(FLOAT_LAYER_ID);
+	if (layer) return layer;
+	layer = document.createElement('div');
+	layer.id = FLOAT_LAYER_ID;
+	layer.setAttribute('transition:persist', 'kbve-yuki-float');
+	layer.dataset.astroTransitionPersist = 'kbve-yuki-float';
+	const pos = readFloatPos() ?? {
+		x: Math.max(24, window.innerWidth - 220),
+		y: Math.max(24, window.innerHeight - 320),
+	};
+	layer.style.cssText = `
+		position: fixed;
+		left: ${pos.x}px;
+		top: ${pos.y}px;
+		width: 196px;
+		height: 260px;
+		z-index: 60;
+		pointer-events: auto;
+		display: none;
+		filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
+	`;
+	const handle = document.createElement('div');
+	handle.id = 'kbve-yuki-float-drag';
+	handle.style.cssText =
+		'position:absolute;inset:0 0 auto 0;height:18px;cursor:grab;user-select:none;';
+	const close = document.createElement('button');
+	close.id = 'kbve-yuki-float-close';
+	close.type = 'button';
+	close.setAttribute('aria-label', 'Return Yuki to dock');
+	close.textContent = '×';
+	close.style.cssText = `
+		position:absolute;top:4px;right:6px;width:22px;height:22px;
+		display:grid;place-items:center;border-radius:999px;
+		background:rgba(15,23,42,0.65);color:rgba(255,255,255,0.9);
+		border:1px solid rgba(255,255,255,0.15);font-size:14px;
+		line-height:1;cursor:pointer;z-index:2;
+	`;
+	const stage = document.createElement('div');
+	stage.id = FLOAT_HOST_ID;
+	stage.style.cssText = 'position:absolute;inset:0;';
+	layer.appendChild(stage);
+	layer.appendChild(handle);
+	layer.appendChild(close);
+	document.body.appendChild(layer);
+	return layer;
+}
+
+function clampFloatPos(x: number, y: number): FloatPos {
+	const w = 196;
+	const h = 260;
+	const nx = Math.min(Math.max(8, x), window.innerWidth - w - 8);
+	const ny = Math.min(Math.max(8, y), window.innerHeight - h - 8);
+	return { x: nx, y: ny };
+}
+
+function bindFloatDrag(layer: HTMLElement): void {
+	if (layer.dataset.dragBound === '1') return;
+	layer.dataset.dragBound = '1';
+	const handle = layer.querySelector<HTMLElement>('#kbve-yuki-float-drag');
+	if (!handle) return;
+	let dragging = false;
+	let offX = 0;
+	let offY = 0;
+	const onMove = (ev: PointerEvent) => {
+		if (!dragging) return;
+		const pos = clampFloatPos(ev.clientX - offX, ev.clientY - offY);
+		layer.style.left = `${pos.x}px`;
+		layer.style.top = `${pos.y}px`;
+	};
+	const onUp = (ev: PointerEvent) => {
+		if (!dragging) return;
+		dragging = false;
+		handle.style.cursor = 'grab';
+		(ev.target as Element).releasePointerCapture?.(ev.pointerId);
+		const rect = layer.getBoundingClientRect();
+		writeFloatPos({ x: rect.left, y: rect.top });
+		window.removeEventListener('pointermove', onMove);
+		window.removeEventListener('pointerup', onUp);
+	};
+	handle.addEventListener('pointerdown', (ev) => {
+		dragging = true;
+		const rect = layer.getBoundingClientRect();
+		offX = ev.clientX - rect.left;
+		offY = ev.clientY - rect.top;
+		handle.style.cursor = 'grabbing';
+		(ev.target as Element).setPointerCapture?.(ev.pointerId);
+		window.addEventListener('pointermove', onMove);
+		window.addEventListener('pointerup', onUp);
+	});
 }
 
 export async function mountYukiPanel(host: HTMLElement): Promise<void> {
@@ -136,9 +247,8 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	const wrap = document.createElement('div');
 	wrap.className = 'yuki-panel';
 	wrap.dataset.avatarMode = readAvatarMode();
+	wrap.dataset.floatMode = readFloat() ? '1' : '0';
 
-	// 3D avatar stage. Hidden when mode === 'text'. Canvas mount is
-	// populated by the lazy-loaded `YukiVRM` module on demand.
 	const stage = document.createElement('div');
 	stage.className = 'yuki-panel__stage';
 	stage.dataset.kbveYukiStage = '';
@@ -151,8 +261,6 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	log.setAttribute('aria-live', 'polite');
 	wrap.appendChild(log);
 
-	// Mode toggle (text-only / 3D Yuki). Lives above the input so it's
-	// always reachable. Off by default — flips lazy-load the VRM.
 	const toggle = document.createElement('div');
 	toggle.className = 'yuki-panel__mode';
 	toggle.innerHTML = `
@@ -164,6 +272,13 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 				${readAvatarMode() === '3d' ? 'checked' : ''} />
 			<span>Show 3D Yuki</span>
 		</label>
+		<button
+			type="button"
+			class="yuki-panel__float-btn"
+			data-kbve-yuki-float
+			aria-pressed="${readFloat() ? 'true' : 'false'}">
+			${readFloat() ? 'Dock' : 'Float'}
+		</button>
 	`;
 	wrap.appendChild(toggle);
 
@@ -200,39 +315,117 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	}
 	log.scrollTop = log.scrollHeight;
 
-	// ── 3D avatar lifecycle ────────────────────────────────────────────
 	let vrmRuntime: YukiVRMRuntime | null = null;
 	let vrmLoading = false;
-	const ensureVRM = async (): Promise<void> => {
-		if (vrmRuntime || vrmLoading) return;
+	let vrmHost: HTMLElement = stage;
+	let vrmTransparent = false;
+
+	const ensureVRM = async (
+		hostEl: HTMLElement,
+		transparent: boolean,
+	): Promise<void> => {
+		if (vrmLoading) return;
+		if (vrmRuntime && vrmHost === hostEl && vrmTransparent === transparent)
+			return;
+		if (vrmRuntime) {
+			try {
+				vrmRuntime.destroy();
+			} catch {
+				void 0;
+			}
+			vrmRuntime = null;
+		}
 		vrmLoading = true;
-		stage.dataset.state = 'loading';
-		stage.innerHTML =
+		hostEl.dataset.state = 'loading';
+		hostEl.innerHTML =
 			'<div class="yuki-panel__stage-skeleton">Loading Yuki…</div>';
 		try {
 			const mod = await import('./YukiVRM');
-			vrmRuntime = await mod.mountYukiVRM({ host: stage });
-			stage.dataset.state = 'ready';
+			vrmRuntime = (await mod.mountYukiVRM({
+				host: hostEl,
+				transparent,
+			})) as unknown as YukiVRMRuntime;
+			vrmHost = hostEl;
+			vrmTransparent = transparent;
+			hostEl.dataset.state = 'ready';
 		} catch (err) {
 			console.warn('[yuki-panel] VRM load failed', err);
-			stage.innerHTML =
+			hostEl.innerHTML =
 				'<div class="yuki-panel__stage-error">Avatar failed to load.</div>';
-			stage.dataset.state = 'error';
+			hostEl.dataset.state = 'error';
 		} finally {
 			vrmLoading = false;
 		}
 	};
+
 	const tearDownVRM = (): void => {
 		try {
 			vrmRuntime?.destroy();
 		} catch {
-			/* ignore */
+			void 0;
 		}
 		vrmRuntime = null;
 		stage.innerHTML = '';
 		stage.removeAttribute('data-state');
+		const floatLayer = document.getElementById(FLOAT_LAYER_ID);
+		if (floatLayer) {
+			const fh = floatLayer.querySelector<HTMLElement>(
+				`#${FLOAT_HOST_ID}`,
+			);
+			if (fh) {
+				fh.innerHTML = '';
+				fh.removeAttribute('data-state');
+			}
+		}
 	};
-	if (readAvatarMode() === '3d') void ensureVRM();
+
+	const applyFloat = (on: boolean): void => {
+		wrap.dataset.floatMode = on ? '1' : '0';
+		const btn = toggle.querySelector<HTMLButtonElement>(
+			'[data-kbve-yuki-float]',
+		);
+		if (btn) {
+			btn.textContent = on ? 'Dock' : 'Float';
+			btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+		}
+		const layer = ensureFloatLayer();
+		bindFloatDrag(layer);
+		const floatStage = layer.querySelector<HTMLElement>(
+			`#${FLOAT_HOST_ID}`,
+		);
+		if (!floatStage) return;
+		if (on && readAvatarMode() === '3d') {
+			layer.style.display = 'block';
+			stage.innerHTML = '';
+			stage.removeAttribute('data-state');
+			void ensureVRM(floatStage, true);
+		} else {
+			layer.style.display = 'none';
+			if (readAvatarMode() === '3d') {
+				const fh = layer.querySelector<HTMLElement>(
+					`#${FLOAT_HOST_ID}`,
+				);
+				if (fh) fh.innerHTML = '';
+				void ensureVRM(stage, false);
+			} else {
+				tearDownVRM();
+			}
+		}
+	};
+
+	if (readAvatarMode() === '3d') {
+		applyFloat(readFloat());
+	}
+
+	const layer = ensureFloatLayer();
+	bindFloatDrag(layer);
+	const closeBtn = layer.querySelector<HTMLButtonElement>(
+		'#kbve-yuki-float-close',
+	);
+	closeBtn?.addEventListener('click', () => {
+		writeFloat(false);
+		applyFloat(false);
+	});
 
 	const modeInput = toggle.querySelector<HTMLInputElement>(
 		'[data-kbve-yuki-mode]',
@@ -242,19 +435,31 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		writeAvatarMode(next);
 		wrap.dataset.avatarMode = next;
 		if (next === '3d') {
-			void ensureVRM();
+			applyFloat(readFloat());
 		} else {
+			writeFloat(false);
+			applyFloat(false);
 			tearDownVRM();
 		}
 	});
 
-	// ── Chat submit ────────────────────────────────────────────────────
+	const floatBtn = toggle.querySelector<HTMLButtonElement>(
+		'[data-kbve-yuki-float]',
+	);
+	floatBtn?.addEventListener('click', () => {
+		if (readAvatarMode() !== '3d') {
+			writeAvatarMode('3d');
+			wrap.dataset.avatarMode = '3d';
+			if (modeInput) modeInput.checked = true;
+		}
+		const next = !readFloat();
+		writeFloat(next);
+		applyFloat(next);
+	});
+
 	const speak = makeSpeaker();
 	const input = form.querySelector<HTMLInputElement>('.yuki-panel__input');
 
-	// Cancel any in-flight stream when the user sends a new prompt OR
-	// closes / nav-swaps away. EventSource doesn't expose AbortSignal
-	// directly, so we keep a manual handle to `.close()`.
 	let activeStream: EventSource | null = null;
 
 	form.addEventListener('submit', (ev) => {
@@ -263,8 +468,6 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		if (!value || !input) return;
 		input.value = '';
 
-		// Push the user bubble immediately. The Yuki bubble starts
-		// empty and grows as SSE chunks arrive.
 		const user: ChatEntry = { role: 'user', text: value, ts: Date.now() };
 		history.push(user);
 		log.appendChild(renderMessage(user));
@@ -298,9 +501,6 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			es.close();
 			activeStream = null;
 			writeHistory(history);
-			// Hand the fully-assembled text to SpeechSynthesis so the
-			// VRM lipsync analyser sees the whole utterance in one
-			// stretch instead of token-fragmented chirps.
 			if (assembled) speak(assembled);
 		});
 		es.onerror = () => {
@@ -322,13 +522,17 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		css.textContent = `
 			.yuki-panel { display: grid; grid-template-rows: auto 1fr auto auto; gap: 0.5rem; height: 100%; }
 			.yuki-panel[data-avatar-mode='text'] .yuki-panel__stage { display: none; }
+			.yuki-panel[data-float-mode='1'] .yuki-panel__stage { display: none; }
 			.yuki-panel__stage { height: 180px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; }
 			.yuki-panel__stage-skeleton, .yuki-panel__stage-error { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.78rem; color: rgba(255,255,255,0.5); }
 			.yuki-panel__stage-error { color: #f87171; }
 			.yuki-panel__log { display: grid; gap: 0.5rem; align-content: start; overflow-y: auto; padding-right: 0.25rem; }
-			.yuki-panel__mode { display: flex; justify-content: flex-end; }
+			.yuki-panel__mode { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 			.yuki-panel__mode-label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(255,255,255,0.55); cursor: pointer; user-select: none; }
 			.yuki-panel__mode-input { accent-color: rgb(6,182,212); }
+			.yuki-panel__float-btn { font-size: 0.7rem; padding: 0.25rem 0.55rem; border-radius: 8px; background: rgba(6,182,212,0.16); border: 1px solid rgba(6,182,212,0.4); color: rgba(255,255,255,0.85); cursor: pointer; }
+			.yuki-panel__float-btn:hover { background: rgba(6,182,212,0.28); }
+			.yuki-panel__float-btn[aria-pressed='true'] { background: rgba(244,114,182,0.18); border-color: rgba(244,114,182,0.5); }
 			.yuki-msg { display: flex; }
 			.yuki-msg--user { justify-content: flex-end; }
 			.yuki-msg__bubble { max-width: 80%; padding: 0.55rem 0.75rem; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; word-wrap: break-word; }
@@ -339,6 +543,8 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			.yuki-panel__input:focus { outline: 2px solid rgba(6,182,212,0.6); outline-offset: -1px; }
 			.yuki-panel__send { display: grid; place-items: center; width: 36px; background: rgba(6,182,212,0.6); border: none; border-radius: 10px; color: white; cursor: pointer; }
 			.yuki-panel__send:hover { background: rgba(6,182,212,0.85); }
+			#${FLOAT_LAYER_ID} { transition: filter 0.2s ease; }
+			#${FLOAT_LAYER_ID}:hover { filter: drop-shadow(0 12px 32px rgba(244,114,182,0.45)); }
 		`;
 		document.head.appendChild(css);
 	}

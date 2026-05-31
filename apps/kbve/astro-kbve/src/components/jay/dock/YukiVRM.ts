@@ -1,39 +1,13 @@
-/**
- * Yuki VRM renderer — lazy-loaded Three.js scene that mounts a VRM
- * avatar inside the dock panel.
- *
- * Loaded only when the user toggles "3D Yuki" on, so the cost
- * (Three + GLTFLoader + @pixiv/three-vrm + the ~12 MB .vrm asset)
- * never lands on cold boot. The runtime is hand-coded vanilla Three
- * (no React Three Fiber) so it doesn't drag in `@react-three/*` or
- * a React tree — the dock panel hosts a raw `<canvas>` and this
- * module owns the render loop.
- *
- * Animation comes from three sources, all driven by the chat layer:
- *
- *   1. Idle: spring-based breath on the spine bone + auto-blink.
- *   2. Talking: mouth blendshapes (`aa`, `ih`, `ou`) driven by an
- *      AnalyserNode tapping the SpeechSynthesis output. Volume per
- *      frame → mouth shape value.
- *   3. Gestures: hand-authored bone rotation lerps for wave / nod /
- *      shake, triggered by `setState('wave')` etc.
- *
- * No webcam, no Kalidokit, no Mediapipe — pose data is either
- * deterministic (idle / canned gestures) or audio-derived (lipsync).
- *
- * Performance gates:
- *   - render loop pauses when `document.visibilityState !== 'visible'`
- *   - frame rate caps at 30 fps on coarse pointers (mobile)
- *   - render loop stops + WebGL context destroyed on `destroy()`
- */
 import {
-	AnimationMixer,
 	Clock,
 	Color,
 	DirectionalLight,
 	HemisphereLight,
+	MathUtils,
+	Object3D,
 	PerspectiveCamera,
 	Scene,
+	Vector3,
 	WebGLRenderer,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -53,18 +27,38 @@ export interface YukiVRMHandle {
 	setState(state: YukiState): void;
 	speak(audio: HTMLAudioElement | MediaStream): void;
 	stopSpeaking(): void;
+	pointAt(x: number, y: number): void;
 	destroy(): void;
 }
 
 interface MountOpts {
 	host: HTMLElement;
 	vrmUrl?: string;
+	transparent?: boolean;
+}
+
+const REST_POSE: Partial<Record<VRMHumanBoneName, [number, number, number]>> = {
+	[VRMHumanBoneName.LeftUpperArm]: [0, 0, MathUtils.degToRad(75)],
+	[VRMHumanBoneName.RightUpperArm]: [0, 0, MathUtils.degToRad(-75)],
+	[VRMHumanBoneName.LeftLowerArm]: [0, MathUtils.degToRad(-12), 0],
+	[VRMHumanBoneName.RightLowerArm]: [0, MathUtils.degToRad(12), 0],
+	[VRMHumanBoneName.LeftHand]: [0, 0, MathUtils.degToRad(8)],
+	[VRMHumanBoneName.RightHand]: [0, 0, MathUtils.degToRad(-8)],
+};
+
+function applyRestPose(vrm: VRM): void {
+	if (!vrm.humanoid) return;
+	for (const [name, [x, y, z]] of Object.entries(REST_POSE)) {
+		const bone = vrm.humanoid.getNormalizedBoneNode(
+			name as VRMHumanBoneName,
+		);
+		if (bone) bone.rotation.set(x, y, z);
+	}
 }
 
 export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
-	const { host, vrmUrl = DEFAULT_VRM_URL } = opts;
+	const { host, vrmUrl = DEFAULT_VRM_URL, transparent = false } = opts;
 
-	// ── DOM + WebGL bootstrap ──────────────────────────────────────────
 	host.innerHTML = '';
 	const canvas = document.createElement('canvas');
 	canvas.className = 'yuki-vrm__canvas';
@@ -78,6 +72,14 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		alpha: true,
 	});
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+	const scene = new Scene();
+	if (!transparent) scene.background = new Color(0x0f172a);
+
+	const camera = new PerspectiveCamera(30, 1, 0.1, 20);
+	camera.position.set(0, 1.45, 1.1);
+	camera.lookAt(0, 1.42, 0);
+
 	const setSize = () => {
 		const w = host.clientWidth || 320;
 		const h = host.clientHeight || 360;
@@ -85,31 +87,21 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		camera.aspect = w / h;
 		camera.updateProjectionMatrix();
 	};
-
-	const scene = new Scene();
-	scene.background = new Color(0x0f172a);
-
-	const camera = new PerspectiveCamera(28, 1, 0.1, 20);
-	camera.position.set(0, 1.35, 1.4);
-	camera.lookAt(0, 1.25, 0);
+	setSize();
+	const resizeObserver = new ResizeObserver(setSize);
+	resizeObserver.observe(host);
 
 	scene.add(new HemisphereLight(0xffffff, 0x404060, 0.9));
 	const key = new DirectionalLight(0xffffff, 1.0);
 	key.position.set(1, 2, 1.5);
 	scene.add(key);
 
-	setSize();
-	const resizeObserver = new ResizeObserver(setSize);
-	resizeObserver.observe(host);
-
-	// ── VRM load ───────────────────────────────────────────────────────
 	const loader = new GLTFLoader();
 	loader.register((parser) => new VRMLoaderPlugin(parser));
 	const gltf = await loader.loadAsync(vrmUrl);
 	const vrm: VRM | undefined = gltf.userData.vrm;
 	if (!vrm) throw new Error('VRM payload missing on loaded GLTF');
-	// Optimization helpers are version-sensitive; non-fatal if they're
-	// not on this build of @pixiv/three-vrm.
+
 	try {
 		(
 			VRMUtils as unknown as {
@@ -120,27 +112,45 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 			VRMUtils as unknown as { combineSkeletons?: (s: unknown) => void }
 		).combineSkeletons?.(gltf.scene);
 	} catch {
-		/* ignore optimizer drift */
+		void 0;
 	}
-	scene.add(vrm.scene);
-	// Frame the head — VRMs are usually authored facing +Z.
-	vrm.scene.rotation.y = Math.PI;
 
-	// ── State + animation ──────────────────────────────────────────────
+	scene.add(vrm.scene);
+	applyRestPose(vrm);
+
+	const lookAtTarget = new Object3D();
+	lookAtTarget.position.set(0, 1.45, 0.6);
+	scene.add(lookAtTarget);
+	if (vrm.lookAt) vrm.lookAt.target = lookAtTarget;
+
+	const targetWorld = new Vector3(0, 1.45, 0.6);
+	const targetCurrent = new Vector3(0, 1.45, 0.6);
+
+	const pointAt = (clientX: number, clientY: number): void => {
+		const rect = host.getBoundingClientRect();
+		const nx = ((clientX - rect.left) / rect.width) * 2 - 1;
+		const ny = ((clientY - rect.top) / rect.height) * 2 - 1;
+		targetWorld.set(nx * 0.45, 1.45 - ny * 0.3, 0.6);
+	};
+
+	const onPointerMove = (ev: PointerEvent) => pointAt(ev.clientX, ev.clientY);
+	host.addEventListener('pointermove', onPointerMove);
+	host.addEventListener('pointerleave', () => {
+		targetWorld.set(0, 1.45, 0.6);
+	});
+
 	const clock = new Clock();
-	const mixer = new AnimationMixer(vrm.scene);
 	let currentState: YukiState = 'idle';
 	let blinkCooldown = 1.5 + Math.random() * 2;
-	let blinkPhase = 0; // 0..1 across one blink
+	let blinkPhase = 0;
 
 	const setExpression = (name: VRMExpressionPresetName, value: number) => {
 		vrm.expressionManager?.setValue(name, value);
 	};
 
-	// Audio analyser for TTS lipsync. Created lazily on first `speak`.
 	let audioCtx: AudioContext | null = null;
 	let analyser: AnalyserNode | null = null;
-	let buffer: Uint8Array | null = null;
+	let buffer: Uint8Array<ArrayBuffer> | null = null;
 	let speakingActive = false;
 
 	const ensureAudio = (): AudioContext => {
@@ -162,13 +172,12 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		void ctx.resume();
 		analyser = ctx.createAnalyser();
 		analyser.fftSize = 256;
-		buffer = new Uint8Array(analyser.frequencyBinCount);
+		buffer = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount));
 		const node =
 			source instanceof HTMLAudioElement
 				? ctx.createMediaElementSource(source)
 				: ctx.createMediaStreamSource(source);
 		node.connect(analyser);
-		// HTMLAudio also wants to reach speakers — MediaStream doesn't.
 		if (source instanceof HTMLAudioElement) {
 			analyser.connect(ctx.destination);
 		}
@@ -201,7 +210,6 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		}
 	};
 
-	// ── Render loop with visibility gate + fps cap ─────────────────────
 	const coarse = window.matchMedia('(pointer: coarse)').matches;
 	const minFrameMs = coarse ? 1000 / 30 : 1000 / 60;
 	let lastFrame = 0;
@@ -216,28 +224,33 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		const delta = clock.getDelta();
 		lastFrame = now;
 
-		// Lipsync drive.
+		targetCurrent.lerp(targetWorld, Math.min(1, delta * 6));
+		lookAtTarget.position.copy(targetCurrent);
+
 		if (speakingActive && analyser && buffer) {
 			analyser.getByteFrequencyData(buffer);
 			let sum = 0;
 			for (let i = 0; i < buffer.length; i++) sum += buffer[i];
-			const avg = sum / buffer.length / 255; // 0..1
+			const avg = sum / buffer.length / 255;
 			const mouth = Math.min(1, avg * 2.3);
 			setExpression('aa', mouth);
 			setExpression('ih', mouth * 0.35);
 			setExpression('ou', mouth * 0.25);
 		}
 
-		// Idle breath — gentle spine bob.
+		const t = performance.now();
 		const spine = vrm.humanoid?.getNormalizedBoneNode(
 			VRMHumanBoneName.Spine,
 		);
 		if (spine) {
-			const breath = Math.sin(performance.now() / 1400) * 0.018;
-			spine.rotation.x = breath;
+			spine.rotation.x = Math.sin(t / 1400) * 0.018;
+			spine.rotation.z = Math.sin(t / 2700) * 0.012;
+		}
+		const hips = vrm.humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Hips);
+		if (hips) {
+			hips.position.y = Math.sin(t / 1100) * 0.005;
 		}
 
-		// Blink.
 		blinkCooldown -= delta;
 		if (blinkCooldown <= 0 && blinkPhase === 0) {
 			blinkPhase = 0.0001;
@@ -253,14 +266,13 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 			}
 		}
 
-		mixer.update(delta);
 		vrm.update(delta);
 		renderer.render(scene, camera);
 	};
 	rafId = requestAnimationFrame(tick);
 
 	const onVisibility = () => {
-		clock.getDelta(); // burn the accumulated delta so resume isn't a jump
+		clock.getDelta();
 	};
 	document.addEventListener('visibilitychange', onVisibility);
 
@@ -269,6 +281,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		disposed = true;
 		cancelAnimationFrame(rafId);
 		document.removeEventListener('visibilitychange', onVisibility);
+		host.removeEventListener('pointermove', onPointerMove);
 		resizeObserver.disconnect();
 		stopSpeaking();
 		if (audioCtx) {
@@ -278,14 +291,12 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		try {
 			VRMUtils.deepDispose(vrm.scene);
 		} catch {
-			/* ignore */
+			void 0;
 		}
 		renderer.dispose();
 		canvas.remove();
 	};
 
-	// Touch a noop to silence unused-import diagnostics on tooling
-	// that doesn't see VRMUtils.deepDispose at parse time.
 	void currentState;
 	void setState;
 
@@ -293,6 +304,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		setState,
 		speak,
 		stopSpeaking,
+		pointAt,
 		destroy,
 	};
 }
