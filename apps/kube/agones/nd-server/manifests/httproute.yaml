@@ -1,0 +1,29 @@
+# Browser-facing WSS endpoint for Nexus Defense.
+#
+# Terminates TLS at the shared `kbve-gateway` (Cilium Gateway API) using the
+# wildcard cert provisioned by cert-manager for *.kbve.com, then forwards
+# the WebSocket upgrade to the nd-server Service on port 7878. The Service
+# round-robins across whichever Agones Fleet pods are Ready, so browser /
+# WASM clients ride the standard ingress while native clients can still
+# direct-connect via the Agones-allocated Dynamic node port.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: nd-server-route
+    namespace: nexus-defense
+    labels:
+        app.kubernetes.io/part-of: nexus-defense
+spec:
+    parentRefs:
+        - name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - nd.kbve.com
+    rules:
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          backendRefs:
+              - name: nd-server
+                port: 7878
