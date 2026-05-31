@@ -69,18 +69,14 @@ const {
 </div>
 
 <script>
+	import { onMount } from '../../../utils/clientRouter';
 	import {
 		ringNavigate,
 		isRingNavLocked,
 		consumeRingNavDir,
 	} from './_ringNav';
 
-	const RING_DISABLED = true;
-
-	const init = () => {
-		if (RING_DISABLED) return;
-
-		// Disable browser scroll restoration so back-nav lands at our bottom.
+	onMount(() => {
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';
 		}
@@ -99,12 +95,11 @@ const {
 			window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
 		}
 
+		const cleanups: Array<() => void> = [];
+
 		document
 			.querySelectorAll<HTMLElement>('[data-ring-root]')
 			.forEach((root) => {
-				if (root.dataset.ringInit === 'true') return;
-				root.dataset.ringInit = 'true';
-
 				const prev = root.dataset.ringPrev || '';
 				const next = root.dataset.ringNext || '';
 				const threshold = Number(root.dataset.ringThreshold) || 220;
@@ -204,8 +199,6 @@ const {
 				};
 				const onTouchEnd = () => {
 					lastTouchY = null;
-					// Don't reset immediately — let the pulseTimer fade the
-					// hint out so the user sees the next-page label linger.
 				};
 
 				const onKey = (e: KeyboardEvent) => {
@@ -231,23 +224,20 @@ const {
 				});
 				window.addEventListener('keydown', onKey);
 
-				const cleanup = () => {
+				cleanups.push(() => {
 					window.removeEventListener('wheel', onWheel);
 					window.removeEventListener('touchstart', onTouchStart);
 					window.removeEventListener('touchmove', onTouchMove);
 					window.removeEventListener('touchend', onTouchEnd);
 					window.removeEventListener('keydown', onKey);
 					window.clearTimeout(pulseTimer);
-				};
-				window.addEventListener('pagehide', cleanup, { once: true });
+				});
 			});
-	};
 
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', init, { once: true });
-	} else {
-		init();
-	}
+		return () => {
+			for (const fn of cleanups) fn();
+		};
+	});
 </script>
 
 <style>
