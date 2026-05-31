@@ -226,7 +226,9 @@ local function render_vehicles(content, player)
 			local u = registered_units_on_surface[i]
 			local v = u.vehicle
 			local proto = prototypes.entity[v.name]
-			local hp_pct = math.floor((v.health / (proto and proto.max_health or v.health)) * 100)
+			local ok_max, max_hp = pcall(function() return v.prototype.max_health end)
+			if not ok_max or not max_hp or max_hp <= 0 then max_hp = v.health > 0 and v.health or 1 end
+			local hp_pct = math.floor((v.health / max_hp) * 100)
 			local fuel_pct = 0
 			local burner = v.burner
 			if burner then
