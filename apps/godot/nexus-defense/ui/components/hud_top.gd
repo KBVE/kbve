@@ -10,6 +10,7 @@ var wave: int = 1
 var lives: int = 20
 var gold: int = 150
 var enemies_left: int = 0
+var is_multiplayer: bool = false
 
 var _wave_value: Label
 var _lives_value: Label
@@ -53,6 +54,7 @@ func _build() -> void:
 	_pause_btn.custom_minimum_size = Vector2(44, 44)
 	_pause_btn.tooltip_text = "Pause (Esc)"
 	_pause_btn.pressed.connect(_on_pause)
+	_pause_btn.visible = not is_multiplayer
 	row.add_child(_pause_btn)
 
 func _chip(caption: String, value: String, accent: Color, tag: String) -> Control:
@@ -172,3 +174,7 @@ func apply(data: Variant) -> void:
 		var prev_enemies: int = enemies_left
 		enemies_left = int(data["enemies"])
 		_tween_int(_enemies_value, prev_enemies, enemies_left, "enemies")
+	if data.has("is_multiplayer"):
+		is_multiplayer = bool(data["is_multiplayer"])
+		if _pause_btn:
+			_pause_btn.visible = not is_multiplayer

@@ -84,7 +84,7 @@ func _ready() -> void:
 	await get_tree().create_timer(0.6).timeout
 	Ui.close("boot")
 
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies, "is_multiplayer": socket != null})
 	var build_bar: Control = Ui.open("build_bar", {"gold": _gold})
 	if build_bar:
 		build_bar.tower_selected.connect(_on_tower_selected)
@@ -100,7 +100,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
-		Ui.toggle("pause")
+		if socket == null:
+			Ui.toggle("pause")
+		else:
+			Ui.toast("Pause unavailable in multiplayer", 1.4, "warn")
 		return
 	if event.is_action_pressed("skip_wave"):
 		_advance_wave()
@@ -379,9 +382,9 @@ func _on_enemies_update(entities: Array) -> void:
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
 		var data: Dictionary = entry
-		var eid: int = int(data.get("eid", 0))
-		if eid == 0:
+		if not data.has("eid"):
 			continue
+		var eid: int = int(data["eid"])
 		seen[eid] = true
 		var destroyed: bool = bool(data.get("destroyed", false))
 		if destroyed:
@@ -418,9 +421,9 @@ func _on_buildings_update(entities: Array) -> void:
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
 		var data: Dictionary = entry
-		var eid: int = int(data.get("eid", 0))
-		if eid == 0:
+		if not data.has("eid"):
 			continue
+		var eid: int = int(data["eid"])
 		seen[eid] = true
 		var destroyed: bool = bool(data.get("destroyed", false))
 		if destroyed:
