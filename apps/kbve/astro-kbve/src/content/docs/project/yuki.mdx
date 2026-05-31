@@ -31,10 +31,11 @@ browser when the user opts in.
 |-------|--------|------------|
 | **A** — Dock shell | ✅ merged (#11474) | Persistent FAB + collapsed panel, vanilla driver, lazy-mount contract, localStorage state, ESC-to-close, reduced-motion respect |
 | **B** — VRM avatar | ✅ merged (#11475) | `@pixiv/three-vrm@^3.5.3` scene, idle/blink animation, `aa`/`ih`/`ou` lipsync via AnalyserNode tap, render-loop visibility + fps gates |
-| **C** — SSE stream | 🚧 this PR | `GET /api/v1/yuki/chat?q=<…>` returns `text/event-stream` chunks; panel streams tokens into the bubble + hands assembled text to `speak()` for lipsync |
-| **D** — Real backend | 🗓 next | Swap the canned reply in `transport/yuki.rs` for a jedi/q-routed LLM call. Prompt template, conversation compaction, rate limit. Front-end unchanged. |
-| **E** — Voice in | 🗓 later | Push-to-talk mic capture → on-device VAD → server STT → same SSE response path |
-| **F** — Tools / actions | 🗓 later | Function-call schema so Yuki can navigate the site, open the wallet card, queue a forum post, etc. |
+| **C** — SSE stream | ✅ merged (#11476) | `GET /api/v1/yuki/chat?q=<…>` returns `text/event-stream` chunks; panel streams tokens into the bubble + hands assembled text to `speak()` for lipsync |
+| **D** — Organic + float | 🚧 this PR | Manual rest pose (no T-pose), portrait camera framing, `vrm.lookAt` cursor tracking, spine/hips micro-sway, draggable float-detach layer that persists across `<ClientRouter />` swaps |
+| **E** — Real backend | 🗓 next | Swap the canned reply in `transport/yuki.rs` for a jedi/q-routed LLM call. Prompt template, conversation compaction, rate limit. Front-end unchanged. |
+| **F** — Voice in | 🗓 later | Push-to-talk mic capture → on-device VAD → server STT → same SSE response path |
+| **G** — Tools / actions | 🗓 later | Function-call schema so Yuki can navigate the site, open the wallet card, queue a forum post, etc. |
 
 <Adsense />
 
@@ -130,15 +131,18 @@ Supabase JWT once the real LLM call costs money to run.
 | `kbve:yuki-dock:state` | `'collapsed'` or `'expanded'` — restores last view across reloads |
 | `kbve:yuki-dock:avatar-mode` | `'text'` or `'3d'` — restores 3D toggle |
 | `kbve:yuki-dock:history` | Last 24 chat entries, `{role, text, ts}` |
+| `kbve:yuki-dock:float-mode` | `'1'` or `'0'` — restores float-detach state across reloads |
+| `kbve:yuki-dock:float-pos` | `{x, y}` viewport coords of the float layer — restores last drag position |
 
-All three are localStorage-only, never sent to the server.
+All five are localStorage-only, never sent to the server.
 
 ## What's next
 
-- **Phase D**: replace `compose_reply` in `apps/kbve/axum-kbve/src/transport/yuki.rs` with a real LLM call. Likely q-routed so we keep our existing tracing + Supabase JWT verification. Front-end stays identical.
+- **Phase E**: replace `compose_reply` in `apps/kbve/axum-kbve/src/transport/yuki.rs` with a real LLM call. Likely q-routed so we keep our existing tracing + Supabase JWT verification. Front-end stays identical.
 - **Site-context**: feed the current page slug into the prompt so Yuki can answer "where am I?" without a tool call.
 - **Tool calls**: small JSON-schema function set (`navigate`, `open_dock_card`, `compose_forum_post`) so Yuki can act on the page, not just talk about it.
 - **Voice input** behind a push-to-talk gate, on-device VAD to keep the mic OFF except while the button is held.
+- **Wander**: replace the static float layer with a slow drift loop so Yuki actually walks the viewport edges between turns.
 
 If you have feedback, drop it in the [forum](/forum/) — the link is
 literally what the Phase C stub tells you to do.

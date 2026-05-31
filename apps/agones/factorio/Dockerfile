@@ -4,7 +4,7 @@ FROM factoriotools/factorio:${FACTORIO_VERSION}-rootless
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget jq ca-certificates && \
+    apt-get install -y --no-install-recommends wget jq ca-certificates zip && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --chown=1000:1000 apps/agones/factorio/config /opt/factorio/config-defaults

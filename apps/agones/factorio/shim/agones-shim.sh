@@ -42,9 +42,17 @@ for local_mod in "${FACTORIO_MODS_DEFAULTS_DIR}"/*/; do
     [ -d "$local_mod" ] || continue
     [ -f "${local_mod}info.json" ] || continue
     mod_name=$(basename "$local_mod")
-    if [ ! -d "${FACTORIO_MODS_DIR}/${mod_name}" ]; then
-        cp -r "$local_mod" "${FACTORIO_MODS_DIR}/${mod_name}"
-        echo "[agones-shim] local mod ${mod_name} seeded"
+    mod_version=$(jq -r '.version // "0.0.1"' "${local_mod}info.json")
+    target_zip="${FACTORIO_MODS_DIR}/${mod_name}_${mod_version}.zip"
+    if [ -d "${FACTORIO_MODS_DIR}/${mod_name}" ]; then
+        rm -rf "${FACTORIO_MODS_DIR}/${mod_name}"
+    fi
+    if [ ! -f "$target_zip" ]; then
+        work=$(mktemp -d)
+        cp -r "$local_mod" "${work}/${mod_name}_${mod_version}"
+        (cd "$work" && zip -qr "$target_zip" "${mod_name}_${mod_version}")
+        rm -rf "$work"
+        echo "[agones-shim] local mod packaged: ${mod_name}_${mod_version}.zip"
     fi
 done
 
