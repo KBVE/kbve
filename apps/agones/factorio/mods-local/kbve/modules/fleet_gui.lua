@@ -395,7 +395,7 @@ local function render_dispatch(content, player)
 		caption = 'Writes the unit-data target on every matching AAI vehicle so they path to the selected zone.',
 	})
 
-	local type_row = content.add({ type = 'flow', direction = 'horizontal' })
+	local type_row = content.add({ type = 'flow', name = 'kbve_fleet_type_row', direction = 'horizontal' })
 	type_row.add({ type = 'label', caption = 'Vehicle type:' })
 	local type_items, _ = build_type_items(player)
 	type_row.add({
@@ -405,7 +405,7 @@ local function render_dispatch(content, player)
 		selected_index = 1,
 	})
 
-	local zone_row = content.add({ type = 'flow', direction = 'horizontal' })
+	local zone_row = content.add({ type = 'flow', name = 'kbve_fleet_zone_row', direction = 'horizontal' })
 	zone_row.add({ type = 'label', caption = 'Target zone:' })
 	local zone_items, _ = build_zone_items(player)
 	zone_row.add({
@@ -488,19 +488,23 @@ local function refresh(player)
 end
 
 local function dispatch(player)
+	log('[kbve_fleet] dispatch called by ' .. player.name)
 	local frame = player.gui.screen[GUI_NAME]
-	if not frame then return end
+	if not frame then log('[kbve_fleet] no frame'); return end
 	local tabbed = frame[TABBED_NAME]
-	if not tabbed then return end
+	if not tabbed then log('[kbve_fleet] no tabbed'); return end
 	local dispatch_content = tabbed[DISPATCH_TAB]
-	if not dispatch_content then return end
-	local type_dd = dispatch_content[TYPE_DROPDOWN]
-	local zone_dd = dispatch_content[ZONE_DROPDOWN]
-	if not (type_dd and zone_dd) then return end
+	if not dispatch_content then log('[kbve_fleet] no dispatch tab'); return end
+	local type_row = dispatch_content['kbve_fleet_type_row']
+	local zone_row = dispatch_content['kbve_fleet_zone_row']
+	local type_dd = type_row and type_row[TYPE_DROPDOWN]
+	local zone_dd = zone_row and zone_row[ZONE_DROPDOWN]
+	if not (type_dd and zone_dd) then log('[kbve_fleet] missing dropdowns'); return end
 
 	local type_index = type_dd.selected_index
 	local _, type_names = build_type_items(player)
 	local vehicle_name = type_names[type_index]
+	log('[kbve_fleet] type_index=' .. tostring(type_index) .. ' vehicle_name=' .. tostring(vehicle_name))
 	if not vehicle_name then
 		player.print('No vehicle type available.')
 		return
@@ -508,6 +512,7 @@ local function dispatch(player)
 
 	local _, zone_names = build_zone_items(player)
 	local target_zone_name = zone_names[zone_dd.selected_index]
+	log('[kbve_fleet] zone_index=' .. tostring(zone_dd.selected_index) .. ' zone_name=' .. tostring(target_zone_name))
 	if not target_zone_name or target_zone_name == '' then
 		player.print('No painted zone selected. Use the Zone Planner first.')
 		return
@@ -525,6 +530,7 @@ local function dispatch(player)
 	else
 		found = player.surface.find_entities_filtered({ name = vehicle_name })
 	end
+	log('[kbve_fleet] found_entities=' .. #found .. ' zone_count=' .. tostring(zone_count))
 
 	local pos = aai_zone_position_at(player, target_zone_name, 1)
 	if not pos then
@@ -547,11 +553,14 @@ local function dispatch(player)
 			end
 		end
 	end
+	log('[kbve_fleet] valid_targets=' .. #valid_targets .. ' unregistered=' .. unregistered)
 	for i, unit in ipairs(valid_targets) do
 		local zone_index = math.floor(((i - 1) * zone_count) / math.max(1, #valid_targets)) + 1
 		local target_pos = aai_zone_position_at(player, target_zone_name, zone_index) or pos
-		aai_set_unit_command({ unit_id = unit.unit_id, target_speed = 0.1 })
-		if aai_set_unit_command({ unit_id = unit.unit_id, target_position = target_pos }) then
+		local ok1 = aai_set_unit_command({ unit_id = unit.unit_id, target_speed = 0.1 })
+		local ok2 = aai_set_unit_command({ unit_id = unit.unit_id, target_position = target_pos })
+		log('[kbve_fleet] dispatched unit_id=' .. tostring(unit.unit_id) .. ' tp=(' .. target_pos.x .. ',' .. target_pos.y .. ') ok=' .. tostring(ok1) .. '/' .. tostring(ok2))
+		if ok2 then
 			dispatched = dispatched + 1
 		end
 	end
