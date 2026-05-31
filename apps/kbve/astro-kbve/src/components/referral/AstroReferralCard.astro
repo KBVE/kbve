@@ -460,7 +460,9 @@
 			const supa = getSupa();
 			const sessionResult = await supa.getSession().catch(() => null);
 			const token = sessionResult?.session?.access_token;
-			const userId = sessionResult?.session?.user?.id;
+			const userId = sessionResult?.session?.user?.id as
+				| string
+				| undefined;
 			if (!token) {
 				setState('signed-out');
 				return;
