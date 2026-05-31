@@ -7,6 +7,7 @@ local ZONES_TAB = 'kbve_fleet_zones'
 local DISPATCH_TAB = 'kbve_fleet_dispatch'
 local CLOSE_NAME = 'kbve_fleet_close'
 local REFRESH_NAME = 'kbve_fleet_refresh'
+local SYNC_NAME = 'kbve_fleet_sync'
 local DISPATCH_PREFIX = 'kbve_fleet_dispatch_'
 local TYPE_DROPDOWN = 'kbve_fleet_type'
 local ZONE_DROPDOWN = 'kbve_fleet_zone'
@@ -94,22 +95,40 @@ local function aai_zone_first_position(player, zone_name)
 	return nil
 end
 
-local function aai_get_unit_id(entity)
-	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
-		return nil
-	end
-	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_unit_by_entity', entity)
-	if not ok or type(result) ~= 'table' then return nil end
-	return result.unit_id
+local function has_aai_vehicles()
+	return remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles'] ~= nil
 end
 
-local function aai_set_unit_command(unit_id, target_position)
-	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
-		return false
-	end
-	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'set_unit_command', {
-		unit_id = unit_id,
-		target_position = target_position,
+local function aai_get_unit(entity)
+	if not has_aai_vehicles() then return nil end
+	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_unit_by_entity', entity)
+	if not ok or type(result) ~= 'table' then return nil end
+	return result
+end
+
+local function aai_get_unit_id(entity)
+	local u = aai_get_unit(entity)
+	return u and u.unit_id or nil
+end
+
+local function aai_get_all_units()
+	if not has_aai_vehicles() then return {} end
+	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_units')
+	if not ok or type(result) ~= 'table' then return {} end
+	return result
+end
+
+local function aai_set_unit_command(args)
+	if not has_aai_vehicles() then return false end
+	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'set_unit_command', args)
+	return ok
+end
+
+local function aai_force_register(entity)
+	if not has_aai_vehicles() then return false end
+	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'on_entity_deployed', {
+		entity = entity,
+		signals = nil,
 	})
 	return ok
 end
@@ -123,29 +142,126 @@ end
 local function render_vehicles(content, player)
 	content.clear()
 	content.add({ type = 'label', caption = 'AAI vehicles on this surface', style = 'heading_2_label' })
+
 	local vehicles = list_vehicles(player.surface)
-	content.add({ type = 'label', caption = { '', 'Total: ', #vehicles } })
+	local on_surface = {}
+	for _, v in pairs(vehicles) do
+		on_surface[v.name] = (on_surface[v.name] or 0) + 1
+	end
+
+	local registered = aai_get_all_units()
+	local registered_total = 0
+	local registered_by_name = {}
+	local registered_units_on_surface = {}
+	for _, u in pairs(registered) do
+		registered_total = registered_total + 1
+		if u.vehicle and u.vehicle.valid and u.vehicle.surface.index == player.surface.index then
+			local name = u.vehicle.name
+			registered_by_name[name] = (registered_by_name[name] or 0) + 1
+			table.insert(registered_units_on_surface, u)
+		end
+	end
+
+	content.add({
+		type = 'label',
+		caption = { '', 'On surface: ', #vehicles, '   Registered with AAI: ', registered_total },
+	})
+
+	content.add({
+		type = 'button',
+		name = SYNC_NAME,
+		caption = 'Sync unregistered vehicles to AAI',
+		tooltip = 'Walks every AAI vehicle entity on this surface and force-registers any that AAI is not tracking.',
+	})
+
 	if #vehicles == 0 then
 		content.add({
 			type = 'label',
-			caption = 'No AAI vehicles found. Build one via the AAI Industry tech tree.',
+			caption = 'No AAI vehicles found. Take one from the warehouse and place it down.',
 		})
 		return
 	end
-	local counts = {}
-	for _, v in pairs(vehicles) do
-		counts[v.name] = (counts[v.name] or 0) + 1
-	end
+
 	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
 	scroll.style.maximal_height = 360
-	scroll.style.minimal_width = 480
-	for name, count in pairs(counts) do
+	scroll.style.minimal_width = 540
+	local header = scroll.add({ type = 'flow', direction = 'horizontal' })
+	header.add({ type = 'label', caption = 'Vehicle', style = 'bold_label' }).style.minimal_width = 220
+	header.add({ type = 'label', caption = 'On surface', style = 'bold_label' }).style.minimal_width = 90
+	header.add({ type = 'label', caption = 'Registered', style = 'bold_label' }).style.minimal_width = 90
+	header.add({ type = 'label', caption = 'Gap', style = 'bold_label' })
+
+	for name, count in pairs(on_surface) do
+		local reg = registered_by_name[name] or 0
 		local row = scroll.add({ type = 'flow', direction = 'horizontal' })
 		local proto = prototypes.entity[name]
-		row.add({ type = 'label', caption = proto and proto.localised_name or name }).style.minimal_width = 240
-		row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
-		row.add({ type = 'label', caption = { '', count, ' active' } })
+		row.add({
+			type = 'label',
+			caption = proto and proto.localised_name or name,
+		}).style.minimal_width = 220
+		row.add({ type = 'label', caption = tostring(count) }).style.minimal_width = 90
+		row.add({ type = 'label', caption = tostring(reg) }).style.minimal_width = 90
+		local gap = count - reg
+		row.add({
+			type = 'label',
+			caption = gap == 0 and 'ok' or ('-' .. gap),
+			style = gap == 0 and 'description_label' or 'bold_red_label',
+		})
 	end
+
+	if #registered_units_on_surface > 0 then
+		content.add({
+			type = 'label',
+			caption = 'Registered units (first 20)',
+			style = 'heading_2_label',
+		})
+		local detail = content.add({ type = 'scroll-pane', direction = 'vertical' })
+		detail.style.maximal_height = 220
+		detail.style.minimal_width = 540
+		for i = 1, math.min(20, #registered_units_on_surface) do
+			local u = registered_units_on_surface[i]
+			local pos = u.vehicle.position
+			local tp = u.target_position
+			detail.add({
+				type = 'label',
+				caption = {
+					'',
+					'#', tostring(u.unit_id),
+					' ', u.vehicle.name,
+					' mode=', tostring(u.mode),
+					' state=', tostring(u.active_state),
+					' pos=(', tostring(math.floor(pos.x)), ',', tostring(math.floor(pos.y)), ')',
+					' tp=', tp and ('(' .. math.floor(tp.x) .. ',' .. math.floor(tp.y) .. ')') or 'nil',
+				},
+			})
+		end
+	end
+end
+
+local function sync_unregistered(player)
+	local synced, already, failed = 0, 0, 0
+	local vehicles = list_vehicles(player.surface)
+	for _, v in pairs(vehicles) do
+		if v.valid then
+			if aai_get_unit_id(v) then
+				already = already + 1
+			elseif aai_force_register(v) then
+				if aai_get_unit_id(v) then
+					synced = synced + 1
+				else
+					failed = failed + 1
+				end
+			else
+				failed = failed + 1
+			end
+		end
+	end
+	player.print({
+		'',
+		'Sync done — already registered: ', already,
+		', newly registered: ', synced,
+		', failed: ', failed,
+	})
 end
 
 local function render_zones(content, player)
@@ -353,12 +469,15 @@ local function dispatch(player)
 	end
 
 	local found = player.surface.find_entities_filtered({ name = vehicle_name })
-	local dispatched, unregistered = 0, 0
+	local dispatched, unregistered, inactive = 0, 0, 0
 	for _, v in pairs(found) do
 		if v.valid then
-			local unit_id = aai_get_unit_id(v)
-			if unit_id then
-				if aai_set_unit_command(unit_id, pos) then
+			local unit = aai_get_unit(v)
+			if unit and unit.unit_id then
+				if unit.active_state == 'inactive' then
+					inactive = inactive + 1
+				end
+				if aai_set_unit_command({ unit_id = unit.unit_id, target_position = pos }) then
 					dispatched = dispatched + 1
 				end
 			else
@@ -369,22 +488,29 @@ local function dispatch(player)
 	if unregistered > 0 then
 		player.print({
 			'',
-			unregistered,
-			' vehicle(s) not yet registered with AAI. Deploy them via the Unit Controller Deployer first.',
+			tostring(unregistered),
+			' vehicle(s) not registered with AAI. Click "Sync unregistered vehicles" in the Vehicles tab.',
+		})
+	end
+	if inactive > 0 then
+		player.print({
+			'',
+			tostring(inactive),
+			' vehicle(s) have active_state=inactive and will ignore commands. Toggle them to Auto/On.',
 		})
 	end
 	player.print({
 		'',
 		'Dispatched ',
-		dispatched,
+		tostring(dispatched),
 		' x ',
 		prototypes.entity[vehicle_name] and prototypes.entity[vehicle_name].localised_name or vehicle_name,
 		' to ',
 		target_zone_name,
 		' at (',
-		math.floor(pos.x),
+		tostring(math.floor(pos.x)),
 		',',
-		math.floor(pos.y),
+		tostring(math.floor(pos.y)),
 		').',
 	})
 end
@@ -414,6 +540,11 @@ function FleetGui.on_gui_click(event)
 		return
 	end
 	if name == REFRESH_NAME then
+		refresh(player)
+		return
+	end
+	if name == SYNC_NAME then
+		sync_unregistered(player)
 		refresh(player)
 		return
 	end
