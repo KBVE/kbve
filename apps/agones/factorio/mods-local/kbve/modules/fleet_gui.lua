@@ -213,24 +213,66 @@ local function render_vehicles(content, player)
 			style = 'heading_2_label',
 		})
 		local detail = content.add({ type = 'scroll-pane', direction = 'vertical' })
-		detail.style.maximal_height = 220
+		detail.style.maximal_height = 260
 		detail.style.minimal_width = 540
+		local detail_header = detail.add({ type = 'flow', direction = 'horizontal' })
+		detail_header.add({ type = 'label', caption = 'ID' }).style.minimal_width = 36
+		detail_header.add({ type = 'label', caption = 'Vehicle' }).style.minimal_width = 200
+		detail_header.add({ type = 'label', caption = 'Mode' }).style.minimal_width = 90
+		detail_header.add({ type = 'label', caption = 'HP' }).style.minimal_width = 50
+		detail_header.add({ type = 'label', caption = 'Fuel' }).style.minimal_width = 60
+		detail_header.add({ type = 'label', caption = 'Dist→tp' })
 		for i = 1, math.min(20, #registered_units_on_surface) do
 			local u = registered_units_on_surface[i]
-			local pos = u.vehicle.position
-			local tp = u.target_position
-			detail.add({
+			local v = u.vehicle
+			local proto = prototypes.entity[v.name]
+			local hp_pct = math.floor((v.health / (proto and proto.max_health or v.health)) * 100)
+			local fuel_pct = 0
+			local burner = v.burner
+			if burner then
+				local cur = burner.currently_burning
+				local cur_val = (cur and cur.name and prototypes.item[cur.name.name] and prototypes.item[cur.name.name].fuel_value) or 0
+				if cur_val > 0 then
+					fuel_pct = math.max(0, math.min(100, math.floor((burner.remaining_burning_fuel / cur_val) * 100)))
+				end
+				if fuel_pct == 0 and burner.inventory and not burner.inventory.is_empty() then
+					fuel_pct = -1
+				end
+			end
+			local dist = '-'
+			if u.target_position then
+				local dx = u.target_position.x - v.position.x
+				local dy = u.target_position.y - v.position.y
+				dist = tostring(math.floor(math.sqrt(dx * dx + dy * dy)))
+			end
+			local row = detail.add({ type = 'flow', direction = 'horizontal' })
+			row.add({ type = 'label', caption = '#' .. u.unit_id }).style.minimal_width = 36
+			row.add({
 				type = 'label',
-				caption = {
-					'',
-					'#', tostring(u.unit_id),
-					' ', u.vehicle.name,
-					' mode=', tostring(u.mode),
-					' state=', tostring(u.active_state),
-					' pos=(', tostring(math.floor(pos.x)), ',', tostring(math.floor(pos.y)), ')',
-					' tp=', tp and ('(' .. math.floor(tp.x) .. ',' .. math.floor(tp.y) .. ')') or 'nil',
-				},
-			})
+				caption = proto and proto.localised_name or v.name,
+			}).style.minimal_width = 200
+			row.add({ type = 'label', caption = tostring(u.mode) }).style.minimal_width = 90
+			local hp_label = row.add({ type = 'label', caption = hp_pct .. '%' })
+			hp_label.style.minimal_width = 50
+			if hp_pct < 30 then
+				hp_label.style.font_color = { r = 1, g = 0.4, b = 0.4 }
+			elseif hp_pct < 70 then
+				hp_label.style.font_color = { r = 1, g = 0.85, b = 0.3 }
+			end
+			local fuel_caption
+			if not burner then
+				fuel_caption = 'n/a'
+			elseif fuel_pct < 0 then
+				fuel_caption = 'idle'
+			else
+				fuel_caption = fuel_pct .. '%'
+			end
+			local fuel_label = row.add({ type = 'label', caption = fuel_caption })
+			fuel_label.style.minimal_width = 60
+			if burner and fuel_pct >= 0 and fuel_pct < 20 then
+				fuel_label.style.font_color = { r = 1, g = 0.4, b = 0.4 }
+			end
+			row.add({ type = 'label', caption = dist })
 		end
 	end
 end
@@ -304,14 +346,19 @@ local function render_zones(content, player)
 	end
 end
 
-local function build_type_items()
-	local out = {}
+local ALL_VEHICLES_SENTINEL = '__all__'
+
+local function build_type_items(player)
+	local items = { 'All AAI vehicles on this surface' }
+	local names = { ALL_VEHICLES_SENTINEL }
 	for _, n in ipairs(known_vehicle_names()) do
-		local proto = prototypes.entity[n]
-		table.insert(out, proto and proto.localised_name or n)
+		if #player.surface.find_entities_filtered({ name = n, limit = 1 }) > 0 then
+			local proto = prototypes.entity[n]
+			table.insert(items, proto and proto.localised_name or n)
+			table.insert(names, n)
+		end
 	end
-	if #out == 0 then table.insert(out, 'No AAI vehicles loaded') end
-	return out
+	return items, names
 end
 
 local function build_zone_items(player)
@@ -344,10 +391,11 @@ local function render_dispatch(content, player)
 
 	local type_row = content.add({ type = 'flow', direction = 'horizontal' })
 	type_row.add({ type = 'label', caption = 'Vehicle type:' })
+	local type_items, _ = build_type_items(player)
 	type_row.add({
 		type = 'drop-down',
 		name = TYPE_DROPDOWN,
-		items = build_type_items(),
+		items = type_items,
 		selected_index = 1,
 	})
 
@@ -445,8 +493,8 @@ local function dispatch(player)
 	if not (type_dd and zone_dd) then return end
 
 	local type_index = type_dd.selected_index
-	local names = known_vehicle_names()
-	local vehicle_name = names[type_index]
+	local _, type_names = build_type_items(player)
+	local vehicle_name = type_names[type_index]
 	if not vehicle_name then
 		player.print('No vehicle type available.')
 		return
@@ -465,7 +513,12 @@ local function dispatch(player)
 		return
 	end
 
-	local found = player.surface.find_entities_filtered({ name = vehicle_name })
+	local found
+	if vehicle_name == ALL_VEHICLES_SENTINEL then
+		found = list_vehicles(player.surface)
+	else
+		found = player.surface.find_entities_filtered({ name = vehicle_name })
+	end
 	local dispatched, unregistered, inactive = 0, 0, 0
 	for _, v in pairs(found) do
 		if v.valid then
@@ -497,12 +550,18 @@ local function dispatch(player)
 			' vehicle(s) have active_state=inactive and will ignore commands. Toggle them to Auto/On.',
 		})
 	end
+	local label
+	if vehicle_name == ALL_VEHICLES_SENTINEL then
+		label = 'all AAI vehicles'
+	else
+		label = prototypes.entity[vehicle_name] and prototypes.entity[vehicle_name].localised_name or vehicle_name
+	end
 	player.print({
 		'',
 		'Dispatched ',
 		tostring(dispatched),
 		' x ',
-		prototypes.entity[vehicle_name] and prototypes.entity[vehicle_name].localised_name or vehicle_name,
+		label,
 		' to ',
 		target_zone_name,
 		' at (',
