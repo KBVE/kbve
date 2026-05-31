@@ -12,14 +12,34 @@ local TYPE_DROPDOWN = 'kbve_fleet_type'
 local ZONE_DROPDOWN = 'kbve_fleet_zone'
 local DISPATCH_BUTTON = 'kbve_fleet_dispatch_btn'
 
-local VEHICLE_NAMES = {
+local VEHICLE_NAMES_CANDIDATES = {
 	'vehicle-miner',
 	'vehicle-hauler',
 	'vehicle-warden',
 	'vehicle-chaingunner',
 	'vehicle-laser-tank',
 	'vehicle-ironclad',
+	'aai-vehicle-miner',
+	'aai-vehicle-hauler',
+	'aai-vehicle-warden',
+	'aai-vehicle-chaingunner',
+	'aai-vehicle-laser-tank',
+	'aai-vehicle-ironclad',
+	'miner',
+	'hauler',
+	'warden',
+	'chaingunner',
+	'laser-tank',
+	'ironclad',
 }
+
+local function known_vehicle_names()
+	local out = {}
+	for _, n in ipairs(VEHICLE_NAMES_CANDIDATES) do
+		if prototypes.entity[n] then table.insert(out, n) end
+	end
+	return out
+end
 
 local function destroy(player)
 	if player.gui.screen[GUI_NAME] then
@@ -45,8 +65,9 @@ local function aai_set_unit_data(unit_number, data)
 end
 
 local function list_vehicles(surface)
-	local found = surface.find_entities_filtered({ name = VEHICLE_NAMES })
-	return found
+	local names = known_vehicle_names()
+	if #names == 0 then return {} end
+	return surface.find_entities_filtered({ name = names })
 end
 
 local function render_vehicles(content, player)
@@ -103,10 +124,11 @@ end
 
 local function build_type_items()
 	local out = {}
-	for _, n in ipairs(VEHICLE_NAMES) do
+	for _, n in ipairs(known_vehicle_names()) do
 		local proto = prototypes.entity[n]
-		table.insert(out, proto and { 'entity-name.' .. n } or n)
+		table.insert(out, proto and proto.localised_name or n)
 	end
+	if #out == 0 then table.insert(out, 'No AAI vehicles loaded') end
 	return out
 end
 
@@ -227,7 +249,8 @@ local function dispatch(player)
 	if not (type_dd and zone_dd) then return end
 
 	local type_index = type_dd.selected_index
-	local vehicle_name = VEHICLE_NAMES[type_index]
+	local names = known_vehicle_names()
+	local vehicle_name = names[type_index]
 	if not vehicle_name then return end
 
 	local zones = aai_zones()
