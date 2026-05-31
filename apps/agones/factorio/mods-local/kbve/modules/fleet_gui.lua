@@ -14,24 +14,19 @@ local ZONE_DROPDOWN = 'kbve_fleet_zone'
 local DISPATCH_BUTTON = 'kbve_fleet_dispatch_btn'
 
 local VEHICLE_NAMES_CANDIDATES = {
-	'vehicle-miner',
-	'vehicle-hauler',
-	'vehicle-warden',
-	'vehicle-chaingunner',
-	'vehicle-laser-tank',
-	'vehicle-ironclad',
-	'aai-vehicle-miner',
-	'aai-vehicle-hauler',
-	'aai-vehicle-warden',
-	'aai-vehicle-chaingunner',
-	'aai-vehicle-laser-tank',
-	'aai-vehicle-ironclad',
-	'miner',
-	'hauler',
-	'warden',
-	'chaingunner',
-	'laser-tank',
-	'ironclad',
+	'vehicle-miner-0',
+	'vehicle-miner-mk2-0',
+	'vehicle-miner-mk3-0',
+	'vehicle-miner-mk4-0',
+	'vehicle-miner-mk5-0',
+	'vehicle-hauler-0',
+	'vehicle-warden-electro-bolter-gun',
+	'vehicle-chaingunner-vehicle-chaingunner-gun',
+	'vehicle-laser-tank-laser-tank-cannon',
+	'vehicle-flame-tank-flame-tank-flamethrower',
+	'vehicle-flame-tumbler-flame-tumbler-flamethrower',
+	'vehicle-ironclad-0',
+	'vehicle-ironclad-vehicle-ironclad-cannon',
 }
 
 local function known_vehicle_names()

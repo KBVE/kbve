@@ -83,17 +83,20 @@ local WAREHOUSE_CANDIDATES = {
 	'steel-chest',
 }
 
-local AAI_MACHINE_CANDIDATES = {
-	['vehicle-miner'] = 4,
-	['vehicle-hauler'] = 4,
-	['vehicle-warden'] = 2,
-	['vehicle-chaingunner'] = 2,
-	['vehicle-laser-tank'] = 2,
-	['unit-controller-deployer'] = 2,
+local AAI_VEHICLE_FAMILIES = {
+	{ ai_item = 'vehicle-miner-0', count = 4 },
+	{ ai_item = 'vehicle-hauler-0', count = 4 },
+	{ ai_item = 'vehicle-warden-electro-bolter-gun', count = 2 },
+	{ ai_item = 'vehicle-chaingunner-vehicle-chaingunner-gun', count = 2 },
+	{ ai_item = 'vehicle-laser-tank-laser-tank-cannon', count = 2 },
+	{ ai_item = 'vehicle-flame-tank-flame-tank-flamethrower', count = 1 },
+	{ ai_item = 'vehicle-flame-tumbler-flame-tumbler-flamethrower', count = 1 },
+	{ ai_item = 'vehicle-ironclad-0', count = 1 },
+}
+
+local AAI_SUPPORT_KIT = {
 	['unit-remote-control'] = 2,
-	['zone-controller'] = 2,
 	['zone-planner'] = 2,
-	['programmable-vehicle-prototype-creator'] = 1,
 	['accumulator'] = 20,
 	['solar-panel'] = 30,
 	['big-electric-pole'] = 20,
@@ -149,8 +152,13 @@ local STARTER_TECHS = {
 
 local function build_aai_machine_kit()
 	local out = {}
-	for item, count in pairs(AAI_MACHINE_CANDIDATES) do
+	for item, count in pairs(AAI_SUPPORT_KIT) do
 		if prototypes.item[item] then out[item] = count end
+	end
+	for _, entry in ipairs(AAI_VEHICLE_FAMILIES) do
+		if prototypes.item[entry.ai_item] then
+			out[entry.ai_item] = entry.count
+		end
 	end
 	return out
 end

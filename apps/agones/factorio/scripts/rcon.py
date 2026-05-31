@@ -85,15 +85,8 @@ class RCON:
         if not self.sock:
             self.connect()
         self._send(EXEC_ID, SERVERDATA_EXECCOMMAND, command)
-        self._send(SENTINEL_ID, SERVERDATA_EXECCOMMAND, "")
-        parts: list[str] = []
-        while True:
-            rid, _, body = self._recv()
-            if rid == SENTINEL_ID:
-                self._recv()
-                break
-            parts.append(body)
-        return "".join(parts)
+        _, _, body = self._recv()
+        return body
 
     def batch(self, statements: list[str]) -> str:
         joined = "; ".join(s.strip().rstrip(";")
