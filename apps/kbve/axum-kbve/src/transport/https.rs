@@ -292,6 +292,10 @@ fn router(state: AppState) -> Router {
             get(mc_player_by_uuid_handler),
         )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
+        .route(
+            "/api/v1/rcon/{game}/{server}/exec",
+            post(crate::rcon::exec_handler),
+        )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))

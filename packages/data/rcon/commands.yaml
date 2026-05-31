@@ -1,0 +1,56 @@
+# Shared RCON allowlist — one source of truth consumed by axum-kbve
+# (POST /rcon/{game}/{server}/exec) and, in a follow-up PR, by the
+# Deno edge `rcon/` function. Both paths load this file at boot.
+#
+# Schema matches kbve.rcon.RconCommandRegistry from
+# packages/data/proto/kbve/rcon.proto. Adding a command = PR to this
+# file; the server has no DB, no admin UI, no runtime reload.
+#
+# Fields per entry:
+#   game             — "mc" or "factorio" (matches kbve.rcon.Game enum)
+#   name             — canonical command id, snake_case
+#   staff_only       — true gates against the JWT `is_staff` claim
+#   template         — wire command rendered with positional {N} args
+#   arg_validators   — per-arg validator names; resolved by the server
+#                       (currently: "string", "int", "lua_snippet")
+
+commands:
+    # ---- Minecraft (vanilla / Fabric) ----
+    - game: mc
+      name: list
+      staff_only: false
+      template: list
+      arg_validators: []
+
+    - game: mc
+      name: say
+      staff_only: true
+      template: 'say {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: tp
+      staff_only: true
+      template: 'tp {0} {1}'
+      arg_validators:
+          - string
+          - string
+
+    # ---- Factorio (vanilla) ----
+    # `players online` — read-only, safe for everyone signed in.
+    - game: factorio
+      name: players_online
+      staff_only: false
+      template: '/players online'
+      arg_validators: []
+
+    # `/silent-command` runs arbitrary Lua. Staff only, validator forces a
+    # plain Lua snippet (no length limit here — Source RCON enforces 4096B
+    # at the wire layer in jedi::rcon).
+    - game: factorio
+      name: silent_command
+      staff_only: true
+      template: '/silent-command {0}'
+      arg_validators:
+          - lua_snippet

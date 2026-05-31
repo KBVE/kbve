@@ -67,6 +67,7 @@ impl Modify for SecurityAddon {
         (name = "forum", description = "Public forum threads, comments, spaces, and tags."),
         (name = "osrs", description = "Old School RuneScape item lookups."),
         (name = "mc", description = "Minecraft RCON-backed live data: player list, head textures."),
+        (name = "rcon", description = "Generic RCON exec — staff-gated, allowlist-driven, MC + Factorio backends."),
         (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
         (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."),
         (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows."),
@@ -90,6 +91,8 @@ impl Modify for SecurityAddon {
         crate::transport::https::mc_players_handler,
         crate::transport::https::mc_player_by_uuid_handler,
         crate::transport::https::mc_texture_handler,
+        // rcon (generic exec)
+        crate::rcon::handler::exec_handler,
         // forum
         crate::transport::https::api_me,
         crate::transport::https::api_me_staff,
@@ -166,6 +169,9 @@ impl Modify for SecurityAddon {
             crate::transport::wallet::ServiceRevokeCouponBody,
             crate::transport::wallet::ServiceRevokeDto,
             crate::transport::wallet::ServiceVerifyBalanceDto,
+            // rcon
+            crate::rcon::handler::RconExecRequest,
+            crate::rcon::handler::RconExecResponse,
             // marketplace
             crate::transport::market::MarketListingDto,
             crate::transport::market::MarketListingDetailDto,
