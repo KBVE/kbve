@@ -11,10 +11,12 @@ const SUPABASE_ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5
 const SESSION_FILENAME := "session.json"
 const ACCESS_EXP_SKEW_SEC := 30
 
-# Loopback OAuth flow, mirrored from apps/kbve/isometric/src-tauri/src/auth.rs.
-# The bridge page at kbve.com/auth/desktop handles the provider OAuth dance and
-# 302-redirects the access token back to the loopback URL the game prints.
-const OAUTH_BRIDGE_URL := "https://kbve.com/auth/desktop"
+# Loopback OAuth flow, mirrored from
+# apps/kbve/isometric/src-tauri/src/game/title_screen.rs — hits GoTrue's
+# `/auth/v1/authorize` directly with `redirect_to` pointed at our local
+# TCPServer. The supabase project must whitelist `http://127.0.0.1` /
+# `http://localhost` in its Additional Redirect URLs for this to land.
+const OAUTH_AUTHORIZE_URL := "%s/auth/v1/authorize" % SUPABASE_URL
 const OAUTH_LISTENER_TIMEOUT_SEC := 180
 const OAUTH_PEER_READ_TIMEOUT_MS := 5000
 
@@ -120,8 +122,8 @@ func sign_in_with_oauth(provider: String, username_hint: String = "") -> void:
 	_oauth_deadline_ms = Time.get_ticks_msec() + OAUTH_LISTENER_TIMEOUT_SEC * 1000
 	set_process(true)
 	var redirect: String = _oauth_redirect_url()
-	var url: String = "%s?provider=%s&redirect=%s" % [
-		OAUTH_BRIDGE_URL,
+	var url: String = "%s?provider=%s&redirect_to=%s" % [
+		OAUTH_AUTHORIZE_URL,
 		provider.uri_encode(),
 		redirect.uri_encode(),
 	]
