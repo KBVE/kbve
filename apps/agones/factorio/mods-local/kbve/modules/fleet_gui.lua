@@ -101,24 +101,54 @@ end
 local function render_zones(content, player)
 	content.clear()
 	content.add({ type = 'label', caption = 'AAI zones', style = 'heading_2_label' })
+
+	if not (remote and remote.interfaces and remote.interfaces['aai-zones']) then
+		content.add({
+			type = 'label',
+			caption = 'aai-zones mod interface not detected. Make sure aai-industry / aai-zones is enabled.',
+		})
+		return
+	end
+
+	local methods = {}
+	for k, _ in pairs(remote.interfaces['aai-zones'] or {}) do
+		table.insert(methods, k)
+	end
+	content.add({
+		type = 'label',
+		caption = { '', 'aai-zones methods: ', table.concat(methods, ', ') },
+	})
+
 	local zones = aai_zones()
 	if next(zones) == nil then
 		content.add({
 			type = 'label',
-			caption = 'No zones detected. Use the AAI Zone tool to define one.',
+			caption = 'No zones returned. Craft a Zone Planner (research aai-zones), select an area, then re-open this panel.',
 		})
 		return
 	end
+
 	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
 	scroll.style.maximal_height = 360
 	scroll.style.minimal_width = 480
 	for id, zone in pairs(zones) do
 		local row = scroll.add({ type = 'flow', direction = 'horizontal' })
-		local name = (type(zone) == 'table' and zone.name) or ('zone-' .. tostring(id))
-		row.add({ type = 'label', caption = name }).style.minimal_width = 240
+		local label
+		if type(zone) == 'table' then
+			label = zone.name or zone.id or ('zone-' .. tostring(id))
+		else
+			label = 'zone-' .. tostring(id)
+		end
+		row.add({ type = 'label', caption = label }).style.minimal_width = 240
 		row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
-		local size = type(zone) == 'table' and zone.size or '?'
-		row.add({ type = 'label', caption = { '', size, ' tiles' } })
+		local detail = '?'
+		if type(zone) == 'table' then
+			if zone.size then detail = tostring(zone.size) .. ' tiles'
+			elseif zone.area then detail = 'area'
+			elseif zone.tiles then detail = tostring(#zone.tiles) .. ' tiles'
+			end
+		end
+		row.add({ type = 'label', caption = detail })
 	end
 end
 
@@ -225,6 +255,15 @@ function FleetGui.show(player)
 	})
 	tabbed.add_tab(dispatch_tab, dispatch_content)
 	render_dispatch(dispatch_content, player)
+
+	player.opened = frame
+end
+
+function FleetGui.on_gui_closed(event)
+	local elem = event.element
+	if elem and elem.valid and elem.name == GUI_NAME then
+		elem.destroy()
+	end
 end
 
 local function refresh(player)

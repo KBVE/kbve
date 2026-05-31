@@ -83,6 +83,88 @@ local WAREHOUSE_CANDIDATES = {
 	'steel-chest',
 }
 
+local AAI_MACHINE_CANDIDATES = {
+	['vehicle-miner'] = 4,
+	['vehicle-hauler'] = 4,
+	['vehicle-warden'] = 2,
+	['vehicle-chaingunner'] = 2,
+	['vehicle-laser-tank'] = 2,
+	['unit-controller-deployer'] = 2,
+	['unit-remote-control'] = 2,
+	['zone-controller'] = 2,
+	['zone-planner'] = 2,
+	['programmable-vehicle-prototype-creator'] = 1,
+	['accumulator'] = 20,
+	['solar-panel'] = 30,
+	['big-electric-pole'] = 20,
+	['substation'] = 10,
+	['roboport'] = 4,
+	['flying-robot-frame'] = 20,
+	['construction-robot'] = 20,
+	['logistic-robot'] = 10,
+	['rocket-fuel'] = 200,
+}
+
+local STARTER_TECHS = {
+	'automation',
+	'logistics',
+	'electronics',
+	'steel-processing',
+	'steel-axe',
+	'electric-mining-drill',
+	'fast-inserter',
+	'logistic-science-pack',
+	'engine',
+	'fluid-handling',
+	'oil-processing',
+	'plastics',
+	'sulfur-processing',
+	'advanced-electronics',
+	'gun-turret',
+	'military',
+	'stone-wall',
+	'electric-energy-distribution-1',
+	'solar-energy',
+	'electric-energy-accumulators',
+	'circuit-network',
+	'logistics-2',
+	'fast-transport-belt',
+	'inserter-capacity-bonus-1',
+	'robotics',
+	'construction-robotics',
+	'logistic-robotics',
+	'aai-junction',
+	'aai-signals',
+	'aai-vehicles',
+	'aai-vehicles-warden',
+	'aai-vehicles-miner',
+	'aai-vehicles-hauler',
+	'aai-vehicles-chaingunner',
+	'aai-vehicles-laser-tank',
+	'aai-vehicles-ironclad',
+	'aai-programmable-structures',
+	'aai-programmable-vehicles',
+	'aai-zones',
+}
+
+local function build_aai_machine_kit()
+	local out = {}
+	for item, count in pairs(AAI_MACHINE_CANDIDATES) do
+		if prototypes.item[item] then out[item] = count end
+	end
+	return out
+end
+
+local function apply_starter_research(force)
+	if not force then return end
+	for _, tech_name in ipairs(STARTER_TECHS) do
+		local tech = force.technologies[tech_name]
+		if tech and not tech.researched then
+			tech.researched = true
+		end
+	end
+end
+
 local function pick_warehouse_proto()
 	for _, name in ipairs(WAREHOUSE_CANDIDATES) do
 		if prototypes.entity[name] then return name end
@@ -169,7 +251,7 @@ function Spawn.build_compound(surface)
 	if fleet_kind then
 		local fleet = surface.create_entity({
 			name = fleet_kind,
-			position = { CENTER.x + 3, CENTER.y - 1 },
+			position = { CENTER.x + 7, CENTER.y - 1 },
 			force = 'neutral',
 		})
 		if fleet and fleet.valid then
@@ -181,12 +263,15 @@ function Spawn.build_compound(surface)
 	end
 
 	place_chest(surface, { CENTER.x - 4, CENTER.y - 1 }, STARTER_KIT_A, false)
-	place_chest(surface, { CENTER.x - 5, CENTER.y - 1 }, STARTER_KIT_B, false)
+	place_chest(surface, { CENTER.x - 6, CENTER.y - 1 }, STARTER_KIT_B, false)
 
 	local warehouse_proto = pick_warehouse_proto()
-	place_chest_named(surface, warehouse_proto, { CENTER.x - 6, CENTER.y + 4 }, WAREHOUSE_KIT_ORE, false)
-	place_chest_named(surface, warehouse_proto, { CENTER.x, CENTER.y + 5 }, WAREHOUSE_KIT_BUILD, false)
-	place_chest_named(surface, warehouse_proto, { CENTER.x + 6, CENTER.y + 4 }, WAREHOUSE_KIT_AAI, false)
+	place_chest_named(surface, warehouse_proto, { CENTER.x - 8, CENTER.y + 4 }, WAREHOUSE_KIT_ORE, false)
+	place_chest_named(surface, warehouse_proto, { CENTER.x - 3, CENTER.y + 4 }, WAREHOUSE_KIT_BUILD, false)
+	place_chest_named(surface, warehouse_proto, { CENTER.x + 3, CENTER.y + 4 }, WAREHOUSE_KIT_AAI, false)
+	place_chest_named(surface, warehouse_proto, { CENTER.x + 8, CENTER.y + 4 }, build_aai_machine_kit(), false)
+
+	apply_starter_research(game.forces.player)
 
 	storage.kbve.warehouse_proto = warehouse_proto
 	storage.kbve.spawn_built = true

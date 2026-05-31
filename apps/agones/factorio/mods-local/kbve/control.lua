@@ -27,6 +27,11 @@ local function on_gui_click(event)
 	FleetGui.on_gui_click(event)
 end
 
+local function on_gui_closed(event)
+	ExchangeGui.on_gui_closed(event)
+	FleetGui.on_gui_closed(event)
+end
+
 local function init_world()
 	Coins.init_state()
 	Vault.init_state()
@@ -48,5 +53,6 @@ script.on_event(defines.events.on_player_left_game, on_player_left)
 script.on_event(defines.events.on_pre_player_mined_item, Coins.handle_pre_player_mined)
 script.on_event(defines.events.on_entity_died, Coins.handle_entity_died)
 script.on_event(defines.events.on_gui_click, on_gui_click)
+script.on_event(defines.events.on_gui_closed, on_gui_closed)
 script.on_event('kbve-open-exchange', ExchangeGui.on_custom_input)
 script.on_event('kbve-open-fleet', FleetGui.on_custom_input)
