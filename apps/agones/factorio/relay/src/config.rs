@@ -23,6 +23,10 @@ pub struct Config {
     pub agones_health_interval_secs: u64,
     pub agones_rcon_probe_timeout_secs: u64,
     pub agones_initial_ready_delay_secs: u64,
+    pub sim_director_enabled: bool,
+    pub sim_poll_interval_secs: u64,
+    pub sim_rcon_rate_limit_qps: u32,
+    pub sim_dry_run: bool,
 }
 
 impl Config {
@@ -56,7 +60,18 @@ impl Config {
             agones_health_interval_secs: parse_env_u64("AGONES_HEALTH_INTERVAL_SECS", 5)?,
             agones_rcon_probe_timeout_secs: parse_env_u64("AGONES_RCON_PROBE_TIMEOUT_SECS", 2)?,
             agones_initial_ready_delay_secs: parse_env_u64("AGONES_INITIAL_READY_DELAY_SECS", 0)?,
+            sim_director_enabled: parse_env_bool("SIM_DIRECTOR_ENABLED", true),
+            sim_poll_interval_secs: parse_env_u64("SIM_POLL_INTERVAL_SECS", 10)?,
+            sim_rcon_rate_limit_qps: parse_env_u32("SIM_RCON_RATE_LIMIT_QPS", 4)?,
+            sim_dry_run: parse_env_bool("SIM_DRY_RUN", false),
         })
+    }
+}
+
+fn parse_env_u32(name: &str, default: u32) -> Result<u32> {
+    match std::env::var(name).ok() {
+        Some(s) => s.parse().with_context(|| format!("{name} not a u32")),
+        None => Ok(default),
     }
 }
 
