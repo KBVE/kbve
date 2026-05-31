@@ -38,6 +38,16 @@ if [ ! -f "${FACTORIO_MODS_DIR}/mod-list.json" ] && [ -f "${FACTORIO_MODS_DEFAUL
     echo "[agones-shim] mod-list defaults applied"
 fi
 
+for local_mod in "${FACTORIO_MODS_DEFAULTS_DIR}"/*/; do
+    [ -d "$local_mod" ] || continue
+    [ -f "${local_mod}info.json" ] || continue
+    mod_name=$(basename "$local_mod")
+    if [ ! -d "${FACTORIO_MODS_DIR}/${mod_name}" ]; then
+        cp -r "$local_mod" "${FACTORIO_MODS_DIR}/${mod_name}"
+        echo "[agones-shim] local mod ${mod_name} seeded"
+    fi
+done
+
 BASE_MODS="base elevated-rails quality space-age core"
 sync_mod() {
     name="$1"
@@ -45,6 +55,9 @@ sync_mod() {
         [ "$name" = "$skip" ] && return 0
     done
     if ls "${FACTORIO_MODS_DIR}/${name}_"*.zip >/dev/null 2>&1; then
+        return 0
+    fi
+    if [ -d "${FACTORIO_MODS_DIR}/${name}" ] && [ -f "${FACTORIO_MODS_DIR}/${name}/info.json" ]; then
         return 0
     fi
     if [ -z "$FACTORIO_USERNAME" ] || [ -z "$FACTORIO_TOKEN" ]; then

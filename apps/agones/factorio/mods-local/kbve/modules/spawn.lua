@@ -72,14 +72,16 @@ function Spawn.build_compound(surface)
 	clear_area(surface, CENTER.x, CENTER.y, WALL_HALF + 2)
 	build_walls(surface, CENTER.x, CENTER.y, WALL_HALF)
 
+	local kind = prototypes.entity['kbve-exchange'] and 'kbve-exchange' or 'market'
 	local market = surface.create_entity({
-		name = 'market',
+		name = kind,
 		position = { CENTER.x, CENTER.y - 1 },
 		force = 'neutral',
 	})
 	if market and market.valid then
 		market.destructible = false
 		market.minable = false
+		market.operable = false
 		storage.kbve.market_unit_number = market.unit_number
 	end
 

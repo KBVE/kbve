@@ -197,26 +197,17 @@ local function deposit_entire_inventory(player)
 	end
 end
 
-function ExchangeGui.on_gui_opened(event)
-	if event.gui_type ~= defines.gui_type.entity then return end
-	local entity = event.entity
-	if not Spawn.is_market(entity) then return end
+function ExchangeGui.on_custom_input(event)
 	local player = game.get_player(event.player_index)
-	if not player then return end
-	storage.kbve = storage.kbve or {}
-	storage.kbve.pending_show = storage.kbve.pending_show or {}
-	storage.kbve.pending_show[event.player_index] = true
-	player.opened = nil
-end
-
-function ExchangeGui.on_gui_closed(event)
-	if event.gui_type ~= defines.gui_type.entity then return end
-	if not Spawn.is_market(event.entity) then return end
-	if not (storage.kbve and storage.kbve.pending_show) then return end
-	if not storage.kbve.pending_show[event.player_index] then return end
-	storage.kbve.pending_show[event.player_index] = nil
-	local player = game.get_player(event.player_index)
-	if player then ExchangeGui.show(player) end
+	if not player or not player.character then return end
+	if player.gui.screen[GUI_NAME] then return end
+	local nearby = player.surface.find_entities_filtered({
+		position = player.position,
+		radius = 3,
+		name = 'kbve-exchange',
+	})
+	if #nearby == 0 then return end
+	ExchangeGui.show(player)
 end
 
 function ExchangeGui.on_gui_click(event)
