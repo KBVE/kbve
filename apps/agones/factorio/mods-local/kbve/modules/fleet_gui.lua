@@ -47,20 +47,61 @@ local function destroy(player)
 	end
 end
 
-local function aai_zones()
-	if not (remote and remote.interfaces and remote.interfaces['aai-zones']) then
-		return {}
-	end
-	local ok, result = pcall(remote.call, 'aai-zones', 'get_zones')
+local function has_aai_zones()
+	return remote and remote.interfaces and remote.interfaces['aai-zones'] ~= nil
+end
+
+local function aai_zone_types()
+	if not has_aai_zones() then return {} end
+	local ok, result = pcall(remote.call, 'aai-zones', 'get_zone_types')
 	if not ok or type(result) ~= 'table' then return {} end
 	return result
 end
 
-local function aai_set_unit_data(unit_number, data)
+local function aai_zone_count(player, zone_name)
+	if not has_aai_zones() then return 0 end
+	local ok, result = pcall(remote.call, 'aai-zones', 'get_zone_count_of_type', {
+		force = player.force,
+		surface_index = player.surface.index,
+		type = zone_name,
+	})
+	if not ok then return 0 end
+	return result or 0
+end
+
+local function active_zones(player)
+	local out = {}
+	for _, zone in ipairs(aai_zone_types()) do
+		local n = aai_zone_count(player, zone.name)
+		if n > 0 then
+			table.insert(out, { name = zone.name, count = n })
+		end
+	end
+	return out
+end
+
+local function aai_zone_first_position(player, zone_name)
+	if not has_aai_zones() then return nil end
+	local ok, result = pcall(remote.call, 'aai-zones', 'get_zone_by_index', {
+		force = player.force,
+		surface_index = player.surface.index,
+		type = zone_name,
+		index = 1,
+	})
+	if ok and type(result) == 'table' and result.x and result.y then
+		return { x = result.x + 0.5, y = result.y + 0.5 }
+	end
+	return nil
+end
+
+local function aai_set_unit_command(unit_number, target_position)
 	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
 		return false
 	end
-	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'set_unit_data', unit_number, data)
+	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'set_unit_command', {
+		unit_id = unit_number,
+		target_position = target_position,
+	})
 	return ok
 end
 
@@ -100,30 +141,21 @@ end
 
 local function render_zones(content, player)
 	content.clear()
-	content.add({ type = 'label', caption = 'AAI zones', style = 'heading_2_label' })
+	content.add({ type = 'label', caption = 'Active AAI zones on this surface', style = 'heading_2_label' })
 
-	if not (remote and remote.interfaces and remote.interfaces['aai-zones']) then
+	if not has_aai_zones() then
 		content.add({
 			type = 'label',
-			caption = 'aai-zones mod interface not detected. Make sure aai-industry / aai-zones is enabled.',
+			caption = 'aai-zones not loaded.',
 		})
 		return
 	end
 
-	local methods = {}
-	for k, _ in pairs(remote.interfaces['aai-zones'] or {}) do
-		table.insert(methods, k)
-	end
-	content.add({
-		type = 'label',
-		caption = { '', 'aai-zones methods: ', table.concat(methods, ', ') },
-	})
-
-	local zones = aai_zones()
-	if next(zones) == nil then
+	local active = active_zones(player)
+	if #active == 0 then
 		content.add({
 			type = 'label',
-			caption = 'No zones returned. Craft a Zone Planner (research aai-zones), select an area, then re-open this panel.',
+			caption = 'No zones painted. Craft a Zone Planner item, pick a pattern+colour combo, paint an area on the map, then click Refresh.',
 		})
 		return
 	end
@@ -131,24 +163,22 @@ local function render_zones(content, player)
 	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
 	scroll.style.maximal_height = 360
 	scroll.style.minimal_width = 480
-	for id, zone in pairs(zones) do
+	for _, zone in ipairs(active) do
 		local row = scroll.add({ type = 'flow', direction = 'horizontal' })
-		local label
-		if type(zone) == 'table' then
-			label = zone.name or zone.id or ('zone-' .. tostring(id))
-		else
-			label = 'zone-' .. tostring(id)
-		end
-		row.add({ type = 'label', caption = label }).style.minimal_width = 240
+		local proto = prototypes.entity[zone.name]
+		local sprite = 'entity/' .. zone.name
+		row.add({
+			type = 'sprite-button',
+			sprite = sprite,
+			enabled = false,
+			tooltip = proto and proto.localised_name or zone.name,
+		})
+		row.add({
+			type = 'label',
+			caption = proto and proto.localised_name or zone.name,
+		}).style.minimal_width = 280
 		row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
-		local detail = '?'
-		if type(zone) == 'table' then
-			if zone.size then detail = tostring(zone.size) .. ' tiles'
-			elseif zone.area then detail = 'area'
-			elseif zone.tiles then detail = tostring(#zone.tiles) .. ' tiles'
-			end
-		end
-		row.add({ type = 'label', caption = detail })
+		row.add({ type = 'label', caption = { '', zone.count, ' tiles' } })
 	end
 end
 
@@ -162,19 +192,24 @@ local function build_type_items()
 	return out
 end
 
-local function build_zone_items()
-	local items, ids = {}, {}
-	local zones = aai_zones()
-	for id, zone in pairs(zones) do
-		local name = (type(zone) == 'table' and zone.name) or ('zone-' .. tostring(id))
-		table.insert(items, name)
-		table.insert(ids, id)
+local function build_zone_items(player)
+	local items, names = {}, {}
+	for _, zone in ipairs(active_zones(player)) do
+		local proto = prototypes.entity[zone.name]
+		local label
+		if proto then
+			label = { '', '[entity=' .. zone.name .. '] ', proto.localised_name, ' (', zone.count, ')' }
+		else
+			label = zone.name .. ' (' .. zone.count .. ')'
+		end
+		table.insert(items, label)
+		table.insert(names, zone.name)
 	end
 	if #items == 0 then
-		table.insert(items, 'No zones')
-		table.insert(ids, 0)
+		table.insert(items, 'No zones painted')
+		table.insert(names, '')
 	end
-	return items, ids
+	return items, names
 end
 
 local function render_dispatch(content, player)
@@ -196,7 +231,7 @@ local function render_dispatch(content, player)
 
 	local zone_row = content.add({ type = 'flow', direction = 'horizontal' })
 	zone_row.add({ type = 'label', caption = 'Target zone:' })
-	local zone_items = build_zone_items()
+	local zone_items, _ = build_zone_items(player)
 	zone_row.add({
 		type = 'drop-down',
 		name = ZONE_DROPDOWN,
@@ -290,14 +325,21 @@ local function dispatch(player)
 	local type_index = type_dd.selected_index
 	local names = known_vehicle_names()
 	local vehicle_name = names[type_index]
-	if not vehicle_name then return end
+	if not vehicle_name then
+		player.print('No vehicle type available.')
+		return
+	end
 
-	local zones = aai_zones()
-	local zone_ids = {}
-	for id, _ in pairs(zones) do table.insert(zone_ids, id) end
-	local target_zone = zone_ids[zone_dd.selected_index]
-	if not target_zone then
-		player.print('No valid zone selected. Draw a zone with the AAI Zone tool first.')
+	local _, zone_names = build_zone_items(player)
+	local target_zone_name = zone_names[zone_dd.selected_index]
+	if not target_zone_name or target_zone_name == '' then
+		player.print('No painted zone selected. Use the Zone Planner first.')
+		return
+	end
+
+	local pos = aai_zone_first_position(player, target_zone_name)
+	if not pos then
+		player.print('Could not resolve a tile position for zone ' .. target_zone_name .. '.')
 		return
 	end
 
@@ -305,12 +347,25 @@ local function dispatch(player)
 	local dispatched = 0
 	for _, v in pairs(found) do
 		if v.valid and v.unit_number then
-			if aai_set_unit_data(v.unit_number, { target_zone = target_zone, command = 'goto-zone' }) then
+			if aai_set_unit_command(v.unit_number, pos) then
 				dispatched = dispatched + 1
 			end
 		end
 	end
-	player.print({ '', 'Dispatched ', dispatched, ' x ', { 'entity-name.' .. vehicle_name }, ' to zone.' })
+	player.print({
+		'',
+		'Dispatched ',
+		dispatched,
+		' x ',
+		prototypes.entity[vehicle_name] and prototypes.entity[vehicle_name].localised_name or vehicle_name,
+		' to ',
+		target_zone_name,
+		' at (',
+		math.floor(pos.x),
+		',',
+		math.floor(pos.y),
+		').',
+	})
 end
 
 function FleetGui.on_custom_input(event)
