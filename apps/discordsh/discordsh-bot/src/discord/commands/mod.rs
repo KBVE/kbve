@@ -3,6 +3,7 @@ mod dungeon;
 pub(crate) mod gh;
 pub(crate) mod github_board;
 mod health;
+mod n8n;
 mod ping;
 mod skills;
 mod status;
@@ -21,5 +22,6 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         github_board::github(),
         gh::gh(),
         skills::skills(),
+        n8n::n8n(),
     ]
 }
