@@ -94,12 +94,21 @@ local function aai_zone_first_position(player, zone_name)
 	return nil
 end
 
-local function aai_set_unit_command(unit_number, target_position)
+local function aai_get_unit_id(entity)
+	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
+		return nil
+	end
+	local ok, result = pcall(remote.call, 'aai-programmable-vehicles', 'get_unit_by_entity', { entity = entity })
+	if not ok or type(result) ~= 'table' then return nil end
+	return result.unit_id
+end
+
+local function aai_set_unit_command(unit_id, target_position)
 	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then
 		return false
 	end
 	local ok = pcall(remote.call, 'aai-programmable-vehicles', 'set_unit_command', {
-		unit_id = unit_number,
+		unit_id = unit_id,
 		target_position = target_position,
 	})
 	return ok
@@ -344,13 +353,25 @@ local function dispatch(player)
 	end
 
 	local found = player.surface.find_entities_filtered({ name = vehicle_name })
-	local dispatched = 0
+	local dispatched, unregistered = 0, 0
 	for _, v in pairs(found) do
-		if v.valid and v.unit_number then
-			if aai_set_unit_command(v.unit_number, pos) then
-				dispatched = dispatched + 1
+		if v.valid then
+			local unit_id = aai_get_unit_id(v)
+			if unit_id then
+				if aai_set_unit_command(unit_id, pos) then
+					dispatched = dispatched + 1
+				end
+			else
+				unregistered = unregistered + 1
 			end
 		end
+	end
+	if unregistered > 0 then
+		player.print({
+			'',
+			unregistered,
+			' vehicle(s) not yet registered with AAI. Deploy them via the Unit Controller Deployer first.',
+		})
 	end
 	player.print({
 		'',
