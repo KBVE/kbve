@@ -198,3 +198,43 @@ TTL toDateTime(ts) + INTERVAL 7 DAY;
 CREATE TABLE IF NOT EXISTS gameops.factorio_chat_log ON CLUSTER 'cluster'
 AS gameops.factorio_chat_log_raw
 ENGINE = Distributed('cluster', 'gameops', 'factorio_chat_log_raw', rand());
+
+-- ---------------------------------------------------------------------------
+-- sim_snapshots_raw — relay-side `sim_director` poll observations.
+--
+-- Distinct from `factorio_snapshots_raw` (which captures server capacity
+-- facts like map age and seed). This table captures the strategic state the
+-- director reads when deciding whether to fire a rule: evolution factor,
+-- pollution near origin, UPS, and player count, stamped with both the wall
+-- timestamp and the in-game tick.
+--
+-- Producer writes one row every `SIM_POLL_INTERVAL_SECS` seconds per server
+-- (default 10s), via a single `/silent-command rcon.print(game.table_to_json(
+-- ...))` round trip per cycle so the Factorio tick cost stays one Lua eval
+-- regardless of how many fields the director reads.
+--
+-- Retention: 14 days (matches `factorio_snapshots_raw`).
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS gameops.sim_snapshots_raw ON CLUSTER 'cluster'
+(
+    ts          DateTime64(3, 'UTC'),
+    server_id   LowCardinality(String),
+    tick        UInt64,
+    evolution   Float64,
+    players     UInt16,
+    pollution   Float64,
+    ups         Float64,
+    ingested_at DateTime64(3, 'UTC') DEFAULT now64(3)
+)
+ENGINE = ReplicatedMergeTree(
+    '/clickhouse/tables/{shard}/gameops/sim_snapshots_raw',
+    '{replica}'
+)
+ORDER BY (server_id, ts)
+PARTITION BY toYYYYMMDD(ts)
+TTL toDateTime(ts) + INTERVAL 14 DAY;
+
+CREATE TABLE IF NOT EXISTS gameops.sim_snapshots ON CLUSTER 'cluster'
+AS gameops.sim_snapshots_raw
+ENGINE = Distributed('cluster', 'gameops', 'sim_snapshots_raw', rand());

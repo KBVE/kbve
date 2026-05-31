@@ -6,6 +6,7 @@ WORKDIR /build
 
 COPY apps/agones/factorio/relay/Cargo.workspace.toml Cargo.toml
 COPY apps/agones/factorio/relay apps/agones/factorio/relay
+COPY packages/rust/jedi packages/rust/jedi
 
 RUN --mount=type=cache,target=/build/target,id=agones-factorio-relay-target \
     --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry \

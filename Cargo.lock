@@ -463,7 +463,9 @@ name = "agones-factorio-relay"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "futures",
+ "jedi",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
