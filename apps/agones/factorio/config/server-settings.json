@@ -16,7 +16,7 @@
 	"minimum_latency_in_ticks": 0,
 	"ignore_player_limit_for_returning_players": false,
 	"allow_commands": "admins-only",
-	"autosave_interval": 5,
+	"autosave_interval": 30,
 	"autosave_slots": 5,
 	"afk_autokick_interval": 0,
 	"auto_pause": true,
