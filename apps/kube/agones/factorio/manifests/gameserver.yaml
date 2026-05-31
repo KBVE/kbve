@@ -121,7 +121,7 @@ spec:
                           drop:
                               - ALL
                 - name: factorio-relay
-                  image: ghcr.io/kbve/agones-factorio-relay:0.0.3
+                  image: ghcr.io/kbve/agones-factorio-relay:0.0.4
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_CONSOLE_LOG
@@ -145,6 +145,14 @@ spec:
                         value: 'factorio-bot'
                       - name: IRC_CHANNEL
                         value: '#general'
+                      - name: AGONES_SDK_HTTP
+                        value: 'http://127.0.0.1:9358'
+                      - name: AGONES_HEALTH_INTERVAL_SECS
+                        value: '5'
+                      - name: AGONES_RCON_PROBE_TIMEOUT_SECS
+                        value: '2'
+                      - name: AGONES_INITIAL_READY_DELAY_SECS
+                        value: '60'
                       - name: RUST_LOG
                         value: 'info,agones_factorio_relay=debug'
                   volumeMounts:

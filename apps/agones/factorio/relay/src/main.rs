@@ -1,3 +1,4 @@
+mod agones_health;
 mod ch_writer;
 mod config;
 mod event;
@@ -40,6 +41,7 @@ async fn main() -> Result<()> {
     let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), irc_in_tx));
     let rcon_handle = tokio::spawn(rcon_client::run(cfg.clone(), irc_in_rx));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
+    let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
 
     drop(game_tx);
 
@@ -48,6 +50,7 @@ async fn main() -> Result<()> {
         r = irc_handle => r??,
         r = rcon_handle => r??,
         r = ch_handle => r??,
+        r = agones_handle => r??,
         _ = tokio::signal::ctrl_c() => {
             info!("ctrl_c received, shutting down");
         }
