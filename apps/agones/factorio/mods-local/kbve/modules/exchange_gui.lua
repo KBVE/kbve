@@ -110,6 +110,15 @@ function ExchangeGui.show(player)
 	})
 	tabbed.add_tab(vault_tab, vault_content)
 	render_vault(vault_content, player)
+
+	player.opened = frame
+end
+
+function ExchangeGui.on_gui_closed(event)
+	local elem = event.element
+	if elem and elem.valid and elem.name == GUI_NAME then
+		elem.destroy()
+	end
 end
 
 local function refresh_buy(player)

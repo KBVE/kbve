@@ -62,6 +62,18 @@ function Coins.get_balance(player_index)
 	return inv.get_item_count(COIN)
 end
 
+function Coins.spend(player_index, amount, reason)
+	if not amount or amount <= 0 then return false end
+	local player = game.get_player(player_index)
+	if not player then return false end
+	local inv = player.get_main_inventory()
+	if not inv then return false end
+	local removed = inv.remove({ name = COIN, count = amount })
+	if removed <= 0 then return false end
+	emit_stats(player.name, -removed, reason or 'spend')
+	return removed == amount
+end
+
 function Coins.handle_player_joined(event)
 	Coins.init_state()
 	local player = game.get_player(event.player_index)

@@ -1,1281 +1,1281 @@
 {
-  "generated_at": "2026-05-31T09:12:42Z",
-  "summary": {
-    "critical": 2,
-    "high": 47,
-    "medium": 64,
-    "low": 32,
-    "info": 28
-  },
-  "ecosystems": {
-    "npm": {
-      "total": 69,
-      "severities": {
-        "critical": 0,
-        "high": 29,
-        "medium": 34,
-        "low": 6,
-        "info": 0
-      },
-      "advisories": [
-        {
-          "id": "1088948",
-          "title": "Got allows a redirect to a UNIX socket",
-          "severity": "medium",
-          "package": "got",
-          "url": "https://github.com/advisories/GHSA-pfrx-2q88-qq97"
-        },
-        {
-          "id": "1109842",
-          "title": "glob CLI: Command injection via -c/--cmd executes matches with shell:true",
-          "severity": "high",
-          "package": "glob",
-          "url": "https://github.com/advisories/GHSA-5j98-mcp5-4vw2"
-        },
-        {
-          "id": "1111772",
-          "title": "vue-template-compiler vulnerable to client-side Cross-Site Scripting (XSS)",
-          "severity": "medium",
-          "package": "vue-template-compiler",
-          "url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
-        },
-        {
-          "id": "1112455",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
-        },
-        {
-          "id": "1112704",
-          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
-          "severity": "low",
-          "package": "diff",
-          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
-        },
-        {
-          "id": "1112705",
-          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
-          "severity": "low",
-          "package": "diff",
-          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
-        },
-        {
-          "id": "1112715",
-          "title": "js-yaml has prototype pollution in merge (<<)",
-          "severity": "medium",
-          "package": "js-yaml",
-          "url": "https://github.com/advisories/GHSA-mh29-5h37-fv8m"
-        },
-        {
-          "id": "1113048",
-          "title": "mdast-util-to-hast has unsanitized class attribute",
-          "severity": "medium",
-          "package": "mdast-util-to-hast",
-          "url": "https://github.com/advisories/GHSA-4fh9-h7wg-q85m"
-        },
-        {
-          "id": "1113161",
-          "title": "qs's arrayLimit bypass in comma parsing allows denial of service",
-          "severity": "low",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-w7fw-mjwx-w883"
-        },
-        {
-          "id": "1113515",
-          "title": "Rollup 4 has Arbitrary File Write via Path Traversal",
-          "severity": "high",
-          "package": "rollup",
-          "url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
-        },
-        {
-          "id": "1113564",
-          "title": "Koa has Host Header Injection via ctx.hostname",
-          "severity": "high",
-          "package": "koa",
-          "url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
-        },
-        {
-          "id": "1113686",
-          "title": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
-          "severity": "high",
-          "package": "serialize-javascript",
-          "url": "https://github.com/advisories/GHSA-5c6j-r48x-rmvq"
-        },
-        {
-          "id": "1113714",
-          "title": "ajv has ReDoS when using `$data` option",
-          "severity": "medium",
-          "package": "ajv",
-          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
-        },
-        {
-          "id": "1113715",
-          "title": "ajv has ReDoS when using `$data` option",
-          "severity": "medium",
-          "package": "ajv",
-          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
-        },
-        {
-          "id": "1113719",
-          "title": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
-          "severity": "medium",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
-        },
-        {
-          "id": "1114150",
-          "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
-          "severity": "high",
-          "package": "svgo",
-          "url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
-        },
-        {
-          "id": "1114151",
-          "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
-          "severity": "high",
-          "package": "svgo",
-          "url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
-        },
-        {
-          "id": "1114200",
-          "title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
-          "severity": "high",
-          "package": "tar",
-          "url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96"
-        },
-        {
-          "id": "1114302",
-          "title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
-          "severity": "high",
-          "package": "tar",
-          "url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256"
-        },
-        {
-          "id": "1114526",
-          "title": "flatted vulnerable to unbounded recursion DoS in parse() revive phase",
-          "severity": "high",
-          "package": "flatted",
-          "url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f"
-        },
-        {
-          "id": "1115357",
-          "title": "Prototype Pollution via parse() in NodeJS flatted",
-          "severity": "high",
-          "package": "flatted",
-          "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
-        },
-        {
-          "id": "1115427",
-          "title": "Astro: Remote allowlist bypass via unanchored matchPathname wildcard",
-          "severity": "low",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
-        },
-        {
-          "id": "1115527",
-          "title": "path-to-regexp vulnerable to Regular Expression Denial of Service via multiple route parameters",
-          "severity": "high",
-          "package": "path-to-regexp",
-          "url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
-        },
-        {
-          "id": "1115540",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
-          "id": "1115541",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
-          "id": "1115543",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
-          "id": "1115549",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
-          "id": "1115551",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
-          "id": "1115552",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115554",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115555",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115556",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115806",
-          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
-          "severity": "high",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
-        },
-        {
-          "id": "1115810",
-          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
-        },
-        {
-          "id": "1116229",
-          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
-        },
-        {
-          "id": "1116230",
-          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
-        },
-        {
-          "id": "1116232",
-          "title": "Vite: `server.fs.deny` bypassed with queries",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
-        },
-        {
-          "id": "1116234",
-          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
-        },
-        {
-          "id": "1116235",
-          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
-        },
-        {
-          "id": "1117068",
-          "title": "Immutable is vulnerable to Prototype Pollution",
-          "severity": "high",
-          "package": "immutable",
-          "url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
-        },
-        {
-          "id": "1117141",
-          "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
-          "severity": "medium",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
-        },
-        {
-          "id": "1117574",
-          "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
-        },
-        {
-          "id": "1117576",
-          "title": "Axios: Incomplete Fix for CVE-2025-62718 \u2014 NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
-        },
-        {
-          "id": "1117577",
-          "title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
-        },
-        {
-          "id": "1117580",
-          "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
-          "severity": "low",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
-        },
-        {
-          "id": "1117581",
-          "title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
-        },
-        {
-          "id": "1117583",
-          "title": "Axios: no_proxy bypass via IP alias allows SSRF",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
-        },
-        {
-          "id": "1117585",
-          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
-        },
-        {
-          "id": "1117587",
-          "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
-        },
-        {
-          "id": "1117589",
-          "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
-        },
-        {
-          "id": "1117591",
-          "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
-        },
-        {
-          "id": "1117593",
-          "title": "Axios: Header Injection via Prototype Pollution",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
-        },
-        {
-          "id": "1117595",
-          "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
-        },
-        {
-          "id": "1117870",
-          "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
-          "severity": "high",
-          "package": "fast-uri",
-          "url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
-        },
-        {
-          "id": "1117884",
-          "title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
-          "severity": "high",
-          "package": "fast-uri",
-          "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
-        },
-        {
-          "id": "1118607",
-          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
-        },
-        {
-          "id": "1118920",
-          "title": "Astro: Server island encrypted parameters vulnerable to cross-component replay",
-          "severity": "low",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-xr5h-phrj-8vxv"
-        },
-        {
-          "id": "1119005",
-          "title": "Svelte devalue: DoS via sparse array deserialization",
-          "severity": "high",
-          "package": "devalue",
-          "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
-        },
-        {
-          "id": "1119074",
-          "title": "webpack-dev-server vulnerable to cross-origin source code exposure on non-HTTPS origins",
-          "severity": "medium",
-          "package": "webpack-dev-server",
-          "url": "https://github.com/advisories/GHSA-79cf-xcqc-c78w"
-        },
-        {
-          "id": "1119088",
-          "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
-        },
-        {
-          "id": "1119108",
-          "title": "ws: Uninitialized memory disclosure",
-          "severity": "medium",
-          "package": "ws",
-          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
-        },
-        {
-          "id": "1119440",
-          "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
-          "severity": "medium",
-          "package": "serialize-javascript",
-          "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
-        },
-        {
-          "id": "1119441",
-          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-          "severity": "medium",
-          "package": "uuid",
-          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
-        },
-        {
-          "id": "1119502",
-          "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
-          "severity": "medium",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
-        },
-        {
-          "id": "1119610",
-          "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
-          "severity": "high",
-          "package": "tmp",
-          "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
-        },
-        {
-          "id": "1119667",
-          "title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
-        },
-        {
-          "id": "1119669",
-          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
-        },
-        {
-          "id": "1119674",
-          "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
-        },
-        {
-          "id": "1119675",
-          "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
-        }
-      ]
-    },
-    "cargo": {
-      "total": 43,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 15,
-        "low": 0,
-        "info": 28
-      },
-      "advisories": [
-        {
-          "id": "RUSTSEC-2026-0118",
-          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
-        },
-        {
-          "id": "RUSTSEC-2026-0119",
-          "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
-        },
-        {
-          "id": "RUSTSEC-2023-0071",
-          "title": "Marvin Attack: potential key recovery through timing sidechannels",
-          "severity": "medium",
-          "package": "rsa",
-          "url": "https://github.com/RustCrypto/RSA/issues/626"
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2024-0363",
-          "title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
-          "severity": "medium",
-          "package": "sqlx",
-          "url": "https://github.com/launchbadge/sqlx/issues/3440"
-        },
-        {
-          "id": "RUSTSEC-2026-0121",
-          "title": "Denial of service in Steamworks game clients/servers using P2P authentication",
-          "severity": "medium",
-          "package": "steamworks",
-          "url": "https://github.com/Noxime/steamworks-rs/issues/321"
-        },
-        {
-          "id": "RUSTSEC-2024-0413",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0416",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2025-0141",
-          "title": "Bincode is unmaintained",
-          "severity": "info",
-          "package": "bincode",
-          "url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
-        },
-        {
-          "id": "RUSTSEC-2024-0388",
-          "title": "`derivative` is unmaintained; consider using an alternative",
-          "severity": "info",
-          "package": "derivative",
-          "url": "https://github.com/mcarton/rust-derivative/issues/117"
-        },
-        {
-          "id": "RUSTSEC-2025-0057",
-          "title": "fxhash - no longer maintained",
-          "severity": "info",
-          "package": "fxhash",
-          "url": "https://github.com/cbreeden/fxhash/issues/20"
-        },
-        {
-          "id": "RUSTSEC-2024-0412",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0418",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0411",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkwayland-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0417",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0414",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0415",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0420",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0419",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk3-macros",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0436",
-          "title": "paste - no longer maintained",
-          "severity": "info",
-          "package": "paste",
-          "url": "https://github.com/dtolnay/paste"
-        },
-        {
-          "id": "RUSTSEC-2024-0370",
-          "title": "proc-macro-error is unmaintained",
-          "severity": "info",
-          "package": "proc-macro-error",
-          "url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
-        },
-        {
-          "id": "RUSTSEC-2025-0134",
-          "title": "rustls-pemfile is unmaintained",
-          "severity": "info",
-          "package": "rustls-pemfile",
-          "url": "https://github.com/rustls/pemfile/issues/61"
-        },
-        {
-          "id": "RUSTSEC-2025-0134",
-          "title": "rustls-pemfile is unmaintained",
-          "severity": "info",
-          "package": "rustls-pemfile",
-          "url": "https://github.com/rustls/pemfile/issues/61"
-        },
-        {
-          "id": "RUSTSEC-2021-0127",
-          "title": "serde_cbor is unmaintained",
-          "severity": "info",
-          "package": "serde_cbor",
-          "url": "https://github.com/pyfisch/cbor"
-        },
-        {
-          "id": "RUSTSEC-2025-0081",
-          "title": "`unic-char-property` is unmaintained",
-          "severity": "info",
-          "package": "unic-char-property",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0075",
-          "title": "`unic-char-range` is unmaintained",
-          "severity": "info",
-          "package": "unic-char-range",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0080",
-          "title": "`unic-common` is unmaintained",
-          "severity": "info",
-          "package": "unic-common",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0100",
-          "title": "`unic-ucd-ident` is unmaintained",
-          "severity": "info",
-          "package": "unic-ucd-ident",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0098",
-          "title": "`unic-ucd-version` is unmaintained",
-          "severity": "info",
-          "package": "unic-ucd-version",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2024-0429",
-          "title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
-          "severity": "info",
-          "package": "glib",
-          "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        }
-      ]
-    },
-    "python": {
-      "total": 0,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "info": 0
-      },
-      "advisories": []
-    },
-    "codeql": {
-      "total": 61,
-      "severities": {
-        "critical": 2,
-        "high": 18,
-        "medium": 15,
-        "low": 26,
-        "info": 0
-      },
-      "alerts": [
-        {
-          "rule_id": "js/trivial-conditional",
-          "description": "Useless conditional",
-          "severity": "medium",
-          "path": "apps/ows/ows-instance-launcher/wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/491"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "packages/data/codegen/generate-proto-registry.mjs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/488"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/memes/astro-memes/src/components/feed/ReactMemeContent.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/485"
-        },
-        {
-          "rule_id": "py/import-and-import-from",
-          "description": "Module is imported with 'import' and 'import from'",
-          "severity": "low",
-          "path": "packages/python/fudster/fudster/cli.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/483"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/kbve/edge/functions/meme/index.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/482"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/440"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/439"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/twitch.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/438"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/twitch.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/437"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/discord.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/436"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/discord.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/435"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/mc.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/434"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/erust/src/supabase/integration.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/278"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/erust/src/supabase/integration.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/277"
-        },
-        {
-          "rule_id": "rust/non-https-url",
-          "description": "Failure to use HTTPS URLs",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/sys/system_diagnostics.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/264"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/entity/response/header_response.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/263"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/authentication.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/262"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/authentication.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/261"
-        },
-        {
-          "rule_id": "rust/cleartext-logging",
-          "description": "Cleartext logging of sensitive information",
-          "severity": "high",
-          "path": "apps/mc/plugins/kbve-mc-plugin/src/lib.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/256"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/axum-kbve/templates/askama/profile_not_found/index.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/251"
-        },
-        {
-          "rule_id": "js/syntax-error",
-          "description": "Syntax error",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/KBVE/index.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/250"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/user/ReactUserProfile.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/248"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/241"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/240"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/239"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/238"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/jay/ReactJayYuki.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/237"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/discord/ReactDiscordProfile.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/236"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/228"
-        },
-        {
-          "rule_id": "js/client-side-request-forgery",
-          "description": "Client-side request forgery",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/227"
-        },
-        {
-          "rule_id": "js/log-injection",
-          "description": "Log injection",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.shared.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/226"
-        },
-        {
-          "rule_id": "js/log-injection",
-          "description": "Log injection",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/225"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/223"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/test-worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/222"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.simple.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/221"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/220"
-        },
-        {
-          "rule_id": "js/tainted-format-string",
-          "description": "Use of externally-controlled format string",
-          "severity": "high",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/218"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "packages/rust/q/src/manager/gui_manager.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/124"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/102"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/101"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/93"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/92"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/91"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/90"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/irc/astro-irc/src/components/chat/ReactChatRoom.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/88"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": ".github/deprecated/github-a-localtunnel/index.js",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/74"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "packages/npm/droid/src/lib/workers/supabase-db-worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/60"
-        },
-        {
-          "rule_id": "py/exit-from-finally",
-          "description": "'break' or 'return' statement in finally",
-          "severity": "medium",
-          "path": "apps/pydesk/pydesk/main.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/59"
-        },
-        {
-          "rule_id": "py/empty-except",
-          "description": "Empty except",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/utils/health_monitor.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/58"
-        },
-        {
-          "rule_id": "py/unused-import",
-          "description": "Unused import",
-          "severity": "low",
-          "path": "packages/python/kbve/kbve/proto/kbve_pb2_grpc.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/49"
-        },
-        {
-          "rule_id": "py/mixed-returns",
-          "description": "Explicit returns mixed with implicit (fall through) returns",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/supabase/tracker.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/48"
-        },
-        {
-          "rule_id": "py/mixed-returns",
-          "description": "Explicit returns mixed with implicit (fall through) returns",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/discord_service.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/47"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/43"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/42"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/41"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/40"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/39"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/38"
-        },
-        {
-          "rule_id": "py/unused-global-variable",
-          "description": "Unused global variable",
-          "severity": "low",
-          "path": "packages/python/kbve/kbve/proto/kbve_pb2.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/37"
-        },
-        {
-          "rule_id": "js/xss-through-dom",
-          "description": "DOM text reinterpreted as HTML",
-          "severity": "high",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/11"
-        },
-        {
-          "rule_id": "py/stack-trace-exposure",
-          "description": "Information exposure through an exception",
-          "severity": "medium",
-          "path": "apps/pydesk/pydesk/main.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/7"
-        }
-      ]
-    },
-    "dependabot": {
-      "total": 0,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "info": 0
-      },
-      "alerts": []
-    }
-  }
+	"generated_at": "2026-05-31T09:12:42Z",
+	"summary": {
+		"critical": 2,
+		"high": 47,
+		"medium": 64,
+		"low": 32,
+		"info": 28
+	},
+	"ecosystems": {
+		"npm": {
+			"total": 69,
+			"severities": {
+				"critical": 0,
+				"high": 29,
+				"medium": 34,
+				"low": 6,
+				"info": 0
+			},
+			"advisories": [
+				{
+					"id": "1088948",
+					"title": "Got allows a redirect to a UNIX socket",
+					"severity": "medium",
+					"package": "got",
+					"url": "https://github.com/advisories/GHSA-pfrx-2q88-qq97"
+				},
+				{
+					"id": "1109842",
+					"title": "glob CLI: Command injection via -c/--cmd executes matches with shell:true",
+					"severity": "high",
+					"package": "glob",
+					"url": "https://github.com/advisories/GHSA-5j98-mcp5-4vw2"
+				},
+				{
+					"id": "1111772",
+					"title": "vue-template-compiler vulnerable to client-side Cross-Site Scripting (XSS)",
+					"severity": "medium",
+					"package": "vue-template-compiler",
+					"url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
+				},
+				{
+					"id": "1112455",
+					"title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+					"severity": "medium",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+				},
+				{
+					"id": "1112704",
+					"title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+					"severity": "low",
+					"package": "diff",
+					"url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
+				},
+				{
+					"id": "1112705",
+					"title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+					"severity": "low",
+					"package": "diff",
+					"url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
+				},
+				{
+					"id": "1112715",
+					"title": "js-yaml has prototype pollution in merge (<<)",
+					"severity": "medium",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-mh29-5h37-fv8m"
+				},
+				{
+					"id": "1113048",
+					"title": "mdast-util-to-hast has unsanitized class attribute",
+					"severity": "medium",
+					"package": "mdast-util-to-hast",
+					"url": "https://github.com/advisories/GHSA-4fh9-h7wg-q85m"
+				},
+				{
+					"id": "1113161",
+					"title": "qs's arrayLimit bypass in comma parsing allows denial of service",
+					"severity": "low",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-w7fw-mjwx-w883"
+				},
+				{
+					"id": "1113515",
+					"title": "Rollup 4 has Arbitrary File Write via Path Traversal",
+					"severity": "high",
+					"package": "rollup",
+					"url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
+				},
+				{
+					"id": "1113564",
+					"title": "Koa has Host Header Injection via ctx.hostname",
+					"severity": "high",
+					"package": "koa",
+					"url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
+				},
+				{
+					"id": "1113686",
+					"title": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
+					"severity": "high",
+					"package": "serialize-javascript",
+					"url": "https://github.com/advisories/GHSA-5c6j-r48x-rmvq"
+				},
+				{
+					"id": "1113714",
+					"title": "ajv has ReDoS when using `$data` option",
+					"severity": "medium",
+					"package": "ajv",
+					"url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
+				},
+				{
+					"id": "1113715",
+					"title": "ajv has ReDoS when using `$data` option",
+					"severity": "medium",
+					"package": "ajv",
+					"url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
+				},
+				{
+					"id": "1113719",
+					"title": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
+					"severity": "medium",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
+				},
+				{
+					"id": "1114150",
+					"title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
+				},
+				{
+					"id": "1114151",
+					"title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
+				},
+				{
+					"id": "1114200",
+					"title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96"
+				},
+				{
+					"id": "1114302",
+					"title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256"
+				},
+				{
+					"id": "1114526",
+					"title": "flatted vulnerable to unbounded recursion DoS in parse() revive phase",
+					"severity": "high",
+					"package": "flatted",
+					"url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f"
+				},
+				{
+					"id": "1115357",
+					"title": "Prototype Pollution via parse() in NodeJS flatted",
+					"severity": "high",
+					"package": "flatted",
+					"url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
+				},
+				{
+					"id": "1115427",
+					"title": "Astro: Remote allowlist bypass via unanchored matchPathname wildcard",
+					"severity": "low",
+					"package": "astro",
+					"url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
+				},
+				{
+					"id": "1115527",
+					"title": "path-to-regexp vulnerable to Regular Expression Denial of Service via multiple route parameters",
+					"severity": "high",
+					"package": "path-to-regexp",
+					"url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
+				},
+				{
+					"id": "1115540",
+					"title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+					"severity": "medium",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+				},
+				{
+					"id": "1115541",
+					"title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+					"severity": "medium",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+				},
+				{
+					"id": "1115543",
+					"title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+					"severity": "medium",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+				},
+				{
+					"id": "1115549",
+					"title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+					"severity": "medium",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+				},
+				{
+					"id": "1115551",
+					"title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+					"severity": "medium",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+				},
+				{
+					"id": "1115552",
+					"title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+					"severity": "high",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+				},
+				{
+					"id": "1115554",
+					"title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+					"severity": "high",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+				},
+				{
+					"id": "1115555",
+					"title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+					"severity": "medium",
+					"package": "yaml",
+					"url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+				},
+				{
+					"id": "1115556",
+					"title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+					"severity": "medium",
+					"package": "yaml",
+					"url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+				},
+				{
+					"id": "1115806",
+					"title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+					"severity": "high",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+				},
+				{
+					"id": "1115810",
+					"title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+					"severity": "medium",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+				},
+				{
+					"id": "1116229",
+					"title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+					"severity": "medium",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
+				},
+				{
+					"id": "1116230",
+					"title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
+					"severity": "medium",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
+				},
+				{
+					"id": "1116232",
+					"title": "Vite: `server.fs.deny` bypassed with queries",
+					"severity": "high",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
+				},
+				{
+					"id": "1116234",
+					"title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+					"severity": "high",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+				},
+				{
+					"id": "1116235",
+					"title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
+					"severity": "high",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+				},
+				{
+					"id": "1117068",
+					"title": "Immutable is vulnerable to Prototype Pollution",
+					"severity": "high",
+					"package": "immutable",
+					"url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
+				},
+				{
+					"id": "1117141",
+					"title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
+					"severity": "medium",
+					"package": "astro",
+					"url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
+				},
+				{
+					"id": "1117574",
+					"title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
+				},
+				{
+					"id": "1117576",
+					"title": "Axios: Incomplete Fix for CVE-2025-62718 \u2014 NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
+				},
+				{
+					"id": "1117577",
+					"title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
+				},
+				{
+					"id": "1117580",
+					"title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
+					"severity": "low",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
+				},
+				{
+					"id": "1117581",
+					"title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
+				},
+				{
+					"id": "1117583",
+					"title": "Axios: no_proxy bypass via IP alias allows SSRF",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
+				},
+				{
+					"id": "1117585",
+					"title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
+				},
+				{
+					"id": "1117587",
+					"title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
+				},
+				{
+					"id": "1117589",
+					"title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
+				},
+				{
+					"id": "1117591",
+					"title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
+				},
+				{
+					"id": "1117593",
+					"title": "Axios: Header Injection via Prototype Pollution",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
+				},
+				{
+					"id": "1117595",
+					"title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
+				},
+				{
+					"id": "1117870",
+					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
+				},
+				{
+					"id": "1117884",
+					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+				},
+				{
+					"id": "1118607",
+					"title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
+				},
+				{
+					"id": "1118920",
+					"title": "Astro: Server island encrypted parameters vulnerable to cross-component replay",
+					"severity": "low",
+					"package": "astro",
+					"url": "https://github.com/advisories/GHSA-xr5h-phrj-8vxv"
+				},
+				{
+					"id": "1119005",
+					"title": "Svelte devalue: DoS via sparse array deserialization",
+					"severity": "high",
+					"package": "devalue",
+					"url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
+				},
+				{
+					"id": "1119074",
+					"title": "webpack-dev-server vulnerable to cross-origin source code exposure on non-HTTPS origins",
+					"severity": "medium",
+					"package": "webpack-dev-server",
+					"url": "https://github.com/advisories/GHSA-79cf-xcqc-c78w"
+				},
+				{
+					"id": "1119088",
+					"title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
+					"severity": "medium",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
+				},
+				{
+					"id": "1119108",
+					"title": "ws: Uninitialized memory disclosure",
+					"severity": "medium",
+					"package": "ws",
+					"url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
+				},
+				{
+					"id": "1119440",
+					"title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+					"severity": "medium",
+					"package": "serialize-javascript",
+					"url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
+				},
+				{
+					"id": "1119441",
+					"title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+					"severity": "medium",
+					"package": "uuid",
+					"url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+				},
+				{
+					"id": "1119502",
+					"title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
+					"severity": "medium",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
+				},
+				{
+					"id": "1119610",
+					"title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
+					"severity": "high",
+					"package": "tmp",
+					"url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
+				},
+				{
+					"id": "1119667",
+					"title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
+				},
+				{
+					"id": "1119669",
+					"title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
+				},
+				{
+					"id": "1119674",
+					"title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
+				},
+				{
+					"id": "1119675",
+					"title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
+				}
+			]
+		},
+		"cargo": {
+			"total": 43,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 15,
+				"low": 0,
+				"info": 28
+			},
+			"advisories": [
+				{
+					"id": "RUSTSEC-2026-0118",
+					"title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
+					"severity": "medium",
+					"package": "hickory-proto",
+					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
+				},
+				{
+					"id": "RUSTSEC-2026-0119",
+					"title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
+					"severity": "medium",
+					"package": "hickory-proto",
+					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+				},
+				{
+					"id": "RUSTSEC-2023-0071",
+					"title": "Marvin Attack: potential key recovery through timing sidechannels",
+					"severity": "medium",
+					"package": "rsa",
+					"url": "https://github.com/RustCrypto/RSA/issues/626"
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0049",
+					"title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2024-0363",
+					"title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
+					"severity": "medium",
+					"package": "sqlx",
+					"url": "https://github.com/launchbadge/sqlx/issues/3440"
+				},
+				{
+					"id": "RUSTSEC-2026-0121",
+					"title": "Denial of service in Steamworks game clients/servers using P2P authentication",
+					"severity": "medium",
+					"package": "steamworks",
+					"url": "https://github.com/Noxime/steamworks-rs/issues/321"
+				},
+				{
+					"id": "RUSTSEC-2024-0413",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "atk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0416",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "atk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2025-0141",
+					"title": "Bincode is unmaintained",
+					"severity": "info",
+					"package": "bincode",
+					"url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
+				},
+				{
+					"id": "RUSTSEC-2024-0388",
+					"title": "`derivative` is unmaintained; consider using an alternative",
+					"severity": "info",
+					"package": "derivative",
+					"url": "https://github.com/mcarton/rust-derivative/issues/117"
+				},
+				{
+					"id": "RUSTSEC-2025-0057",
+					"title": "fxhash - no longer maintained",
+					"severity": "info",
+					"package": "fxhash",
+					"url": "https://github.com/cbreeden/fxhash/issues/20"
+				},
+				{
+					"id": "RUSTSEC-2024-0412",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0418",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0411",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkwayland-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0417",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkx11",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0414",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkx11-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0415",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0420",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0419",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk3-macros",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0436",
+					"title": "paste - no longer maintained",
+					"severity": "info",
+					"package": "paste",
+					"url": "https://github.com/dtolnay/paste"
+				},
+				{
+					"id": "RUSTSEC-2024-0370",
+					"title": "proc-macro-error is unmaintained",
+					"severity": "info",
+					"package": "proc-macro-error",
+					"url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
+				},
+				{
+					"id": "RUSTSEC-2025-0134",
+					"title": "rustls-pemfile is unmaintained",
+					"severity": "info",
+					"package": "rustls-pemfile",
+					"url": "https://github.com/rustls/pemfile/issues/61"
+				},
+				{
+					"id": "RUSTSEC-2025-0134",
+					"title": "rustls-pemfile is unmaintained",
+					"severity": "info",
+					"package": "rustls-pemfile",
+					"url": "https://github.com/rustls/pemfile/issues/61"
+				},
+				{
+					"id": "RUSTSEC-2021-0127",
+					"title": "serde_cbor is unmaintained",
+					"severity": "info",
+					"package": "serde_cbor",
+					"url": "https://github.com/pyfisch/cbor"
+				},
+				{
+					"id": "RUSTSEC-2025-0081",
+					"title": "`unic-char-property` is unmaintained",
+					"severity": "info",
+					"package": "unic-char-property",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0075",
+					"title": "`unic-char-range` is unmaintained",
+					"severity": "info",
+					"package": "unic-char-range",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0080",
+					"title": "`unic-common` is unmaintained",
+					"severity": "info",
+					"package": "unic-common",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0100",
+					"title": "`unic-ucd-ident` is unmaintained",
+					"severity": "info",
+					"package": "unic-ucd-ident",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0098",
+					"title": "`unic-ucd-version` is unmaintained",
+					"severity": "info",
+					"package": "unic-ucd-version",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2024-0429",
+					"title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
+					"severity": "info",
+					"package": "glib",
+					"url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				}
+			]
+		},
+		"python": {
+			"total": 0,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 0,
+				"low": 0,
+				"info": 0
+			},
+			"advisories": []
+		},
+		"codeql": {
+			"total": 61,
+			"severities": {
+				"critical": 2,
+				"high": 18,
+				"medium": 15,
+				"low": 26,
+				"info": 0
+			},
+			"alerts": [
+				{
+					"rule_id": "js/trivial-conditional",
+					"description": "Useless conditional",
+					"severity": "medium",
+					"path": "apps/ows/ows-instance-launcher/wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/491"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "packages/data/codegen/generate-proto-registry.mjs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/488"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/memes/astro-memes/src/components/feed/ReactMemeContent.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/485"
+				},
+				{
+					"rule_id": "py/import-and-import-from",
+					"description": "Module is imported with 'import' and 'import from'",
+					"severity": "low",
+					"path": "packages/python/fudster/fudster/cli.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/483"
+				},
+				{
+					"rule_id": "js/useless-assignment-to-local",
+					"description": "Useless assignment to local variable",
+					"severity": "medium",
+					"path": "apps/kbve/edge/functions/meme/index.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/482"
+				},
+				{
+					"rule_id": "rust/unused-variable",
+					"description": "Unused variable",
+					"severity": "low",
+					"path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/440"
+				},
+				{
+					"rule_id": "rust/unused-variable",
+					"description": "Unused variable",
+					"severity": "low",
+					"path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/439"
+				},
+				{
+					"rule_id": "rust/cleartext-transmission",
+					"description": "Cleartext transmission of sensitive information",
+					"severity": "high",
+					"path": "apps/kbve/axum-kbve/src/db/twitch.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/438"
+				},
+				{
+					"rule_id": "rust/cleartext-transmission",
+					"description": "Cleartext transmission of sensitive information",
+					"severity": "high",
+					"path": "apps/kbve/axum-kbve/src/db/twitch.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/437"
+				},
+				{
+					"rule_id": "rust/cleartext-transmission",
+					"description": "Cleartext transmission of sensitive information",
+					"severity": "high",
+					"path": "apps/kbve/axum-kbve/src/db/discord.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/436"
+				},
+				{
+					"rule_id": "rust/cleartext-transmission",
+					"description": "Cleartext transmission of sensitive information",
+					"severity": "high",
+					"path": "apps/kbve/axum-kbve/src/db/discord.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/435"
+				},
+				{
+					"rule_id": "rust/cleartext-transmission",
+					"description": "Cleartext transmission of sensitive information",
+					"severity": "high",
+					"path": "apps/kbve/axum-kbve/src/db/mc.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/434"
+				},
+				{
+					"rule_id": "rust/hard-coded-cryptographic-value",
+					"description": "Hard-coded cryptographic value",
+					"severity": "critical",
+					"path": "packages/rust/erust/src/supabase/integration.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/278"
+				},
+				{
+					"rule_id": "rust/hard-coded-cryptographic-value",
+					"description": "Hard-coded cryptographic value",
+					"severity": "critical",
+					"path": "packages/rust/erust/src/supabase/integration.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/277"
+				},
+				{
+					"rule_id": "rust/non-https-url",
+					"description": "Failure to use HTTPS URLs",
+					"severity": "high",
+					"path": "packages/rust/kbve/src/sys/system_diagnostics.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/264"
+				},
+				{
+					"rule_id": "rust/insecure-cookie",
+					"description": "'Secure' attribute is not set to true",
+					"severity": "high",
+					"path": "packages/rust/kbve/src/entity/response/header_response.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/263"
+				},
+				{
+					"rule_id": "rust/insecure-cookie",
+					"description": "'Secure' attribute is not set to true",
+					"severity": "high",
+					"path": "packages/rust/kbve/src/authentication.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/262"
+				},
+				{
+					"rule_id": "rust/insecure-cookie",
+					"description": "'Secure' attribute is not set to true",
+					"severity": "high",
+					"path": "packages/rust/kbve/src/authentication.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/261"
+				},
+				{
+					"rule_id": "rust/cleartext-logging",
+					"description": "Cleartext logging of sensitive information",
+					"severity": "high",
+					"path": "apps/mc/plugins/kbve-mc-plugin/src/lib.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/256"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/axum-kbve/templates/askama/profile_not_found/index.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/251"
+				},
+				{
+					"rule_id": "js/syntax-error",
+					"description": "Syntax error",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/KBVE/index.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/250"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/user/ReactUserProfile.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/248"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/241"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/240"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/239"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/238"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/jay/ReactJayYuki.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/237"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/kbve/astro-kbve/src/components/discord/ReactDiscordProfile.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/236"
+				},
+				{
+					"rule_id": "js/useless-assignment-to-local",
+					"description": "Useless assignment to local variable",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/228"
+				},
+				{
+					"rule_id": "js/client-side-request-forgery",
+					"description": "Client-side request forgery",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/227"
+				},
+				{
+					"rule_id": "js/log-injection",
+					"description": "Log injection",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.shared.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/226"
+				},
+				{
+					"rule_id": "js/log-injection",
+					"description": "Log injection",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/225"
+				},
+				{
+					"rule_id": "js/missing-origin-check",
+					"description": "Missing origin verification in `postMessage` handler",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/223"
+				},
+				{
+					"rule_id": "js/missing-origin-check",
+					"description": "Missing origin verification in `postMessage` handler",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/test-worker.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/222"
+				},
+				{
+					"rule_id": "js/missing-origin-check",
+					"description": "Missing origin verification in `postMessage` handler",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.db.simple.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/221"
+				},
+				{
+					"rule_id": "js/missing-origin-check",
+					"description": "Missing origin verification in `postMessage` handler",
+					"severity": "medium",
+					"path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/220"
+				},
+				{
+					"rule_id": "js/tainted-format-string",
+					"description": "Use of externally-controlled format string",
+					"severity": "high",
+					"path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/218"
+				},
+				{
+					"rule_id": "rust/unused-variable",
+					"description": "Unused variable",
+					"severity": "low",
+					"path": "packages/rust/q/src/manager/gui_manager.rs",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/124"
+				},
+				{
+					"rule_id": "js/useless-assignment-to-local",
+					"description": "Useless assignment to local variable",
+					"severity": "medium",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/102"
+				},
+				{
+					"rule_id": "js/useless-assignment-to-local",
+					"description": "Useless assignment to local variable",
+					"severity": "medium",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/101"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/93"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/92"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/91"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/90"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": "apps/irc/astro-irc/src/components/chat/ReactChatRoom.tsx",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/88"
+				},
+				{
+					"rule_id": "js/unused-local-variable",
+					"description": "Unused variable, import, function or class",
+					"severity": "low",
+					"path": ".github/deprecated/github-a-localtunnel/index.js",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/74"
+				},
+				{
+					"rule_id": "js/missing-origin-check",
+					"description": "Missing origin verification in `postMessage` handler",
+					"severity": "medium",
+					"path": "packages/npm/droid/src/lib/workers/supabase-db-worker.ts",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/60"
+				},
+				{
+					"rule_id": "py/exit-from-finally",
+					"description": "'break' or 'return' statement in finally",
+					"severity": "medium",
+					"path": "apps/pydesk/pydesk/main.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/59"
+				},
+				{
+					"rule_id": "py/empty-except",
+					"description": "Empty except",
+					"severity": "low",
+					"path": "apps/discordsh/notification-bot/notification_bot/utils/health_monitor.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/58"
+				},
+				{
+					"rule_id": "py/unused-import",
+					"description": "Unused import",
+					"severity": "low",
+					"path": "packages/python/kbve/kbve/proto/kbve_pb2_grpc.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/49"
+				},
+				{
+					"rule_id": "py/mixed-returns",
+					"description": "Explicit returns mixed with implicit (fall through) returns",
+					"severity": "low",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/supabase/tracker.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/48"
+				},
+				{
+					"rule_id": "py/mixed-returns",
+					"description": "Explicit returns mixed with implicit (fall through) returns",
+					"severity": "low",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/discord_service.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/47"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/43"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/42"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/41"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/40"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/39"
+				},
+				{
+					"rule_id": "py/uninitialized-local-variable",
+					"description": "Potentially uninitialized local variable",
+					"severity": "high",
+					"path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/38"
+				},
+				{
+					"rule_id": "py/unused-global-variable",
+					"description": "Unused global variable",
+					"severity": "low",
+					"path": "packages/python/kbve/kbve/proto/kbve_pb2.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/37"
+				},
+				{
+					"rule_id": "js/xss-through-dom",
+					"description": "DOM text reinterpreted as HTML",
+					"severity": "high",
+					"path": "apps/pydesk/templates/home.html",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/11"
+				},
+				{
+					"rule_id": "py/stack-trace-exposure",
+					"description": "Information exposure through an exception",
+					"severity": "medium",
+					"path": "apps/pydesk/pydesk/main.py",
+					"url": "https://github.com/KBVE/kbve/security/code-scanning/7"
+				}
+			]
+		},
+		"dependabot": {
+			"total": 0,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 0,
+				"low": 0,
+				"info": 0
+			},
+			"alerts": []
+		}
+	}
 }
