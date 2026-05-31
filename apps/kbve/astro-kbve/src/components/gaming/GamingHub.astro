@@ -21,7 +21,7 @@ const games = allDocs
 			typeof rawDesc === 'string'
 				? rawDesc.replace(/\s+/g, ' ').trim()
 				: '';
-		const tags = (entry.data.tags ?? []).filter(
+		const tags = ((entry.data as { tags?: string[] }).tags ?? []).filter(
 			(t: string) => t.toLowerCase() !== 'gaming',
 		);
 		return {
