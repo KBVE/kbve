@@ -5,6 +5,16 @@ import { getSupa } from '@/lib/supa';
 // Types
 // ---------------------------------------------------------------------------
 
+export interface KasmResourceSpec {
+	cpu?: string;
+	memory?: string;
+}
+
+export interface KasmResources {
+	requests?: KasmResourceSpec;
+	limits?: KasmResourceSpec;
+}
+
 export interface KasmWorkspace {
 	name: string;
 	namespace: string;
@@ -16,6 +26,8 @@ export interface KasmWorkspace {
 	port: number;
 	/** Service URL for accessing the workspace */
 	serviceUrl: string;
+	/** Resources from the workspace container (not gluetun) */
+	resources?: KasmResources;
 }
 
 export type KasmPhase = 'Running' | 'Stopped' | 'Starting' | 'Error';
@@ -99,6 +111,10 @@ interface K8sDeployment {
 					name: string;
 					image: string;
 					ports?: Array<{ containerPort: number }>;
+					resources?: {
+						requests?: { cpu?: string; memory?: string };
+						limits?: { cpu?: string; memory?: string };
+					};
 				}>;
 			};
 		};
@@ -133,6 +149,24 @@ function deploymentToWorkspace(dep: K8sDeployment): KasmWorkspace {
 		vpnStatus = ready > 0 ? 'connected' : 'disconnected';
 	}
 
+	const rawResources = workspaceContainer?.resources;
+	const resources: KasmResources | undefined = rawResources
+		? {
+				requests: rawResources.requests
+					? {
+							cpu: rawResources.requests.cpu,
+							memory: rawResources.requests.memory,
+						}
+					: undefined,
+				limits: rawResources.limits
+					? {
+							cpu: rawResources.limits.cpu,
+							memory: rawResources.limits.memory,
+						}
+					: undefined,
+			}
+		: undefined;
+
 	return {
 		name: dep.metadata.name,
 		namespace: dep.metadata.namespace,
@@ -142,6 +176,7 @@ function deploymentToWorkspace(dep: K8sDeployment): KasmWorkspace {
 		vpnStatus,
 		port: 6901,
 		serviceUrl: `${dep.metadata.name}-service.${KASM_NAMESPACE}.svc.cluster.local:6901`,
+		resources,
 	};
 }
 

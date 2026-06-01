@@ -9,7 +9,45 @@ import {
 	Shield,
 	ShieldOff,
 	Loader2,
+	Cpu,
+	MemoryStick,
 } from 'lucide-react';
+
+interface ResourcePillProps {
+	label: string;
+	value: string;
+	color: string;
+	Icon: typeof Cpu;
+	title: string;
+}
+
+function ResourcePill({ label, value, color, Icon, title }: ResourcePillProps) {
+	return (
+		<span
+			title={title}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: '0.3rem',
+				padding: '0.2rem 0.55rem',
+				borderRadius: '6px',
+				fontSize: '0.72rem',
+				background: `${color}1a`,
+				border: `1px solid ${color}40`,
+				color,
+			}}>
+			<Icon size={11} />
+			<span style={{ opacity: 0.7 }}>{label}</span>
+			<strong style={{ fontWeight: 600 }}>{value}</strong>
+		</span>
+	);
+}
+
+function formatRange(req?: string, lim?: string): string | null {
+	if (!req && !lim) return null;
+	if (req && lim && req !== lim) return `${req} → ${lim}`;
+	return lim ?? req ?? '';
+}
 
 function KasmCard({ info }: { info: KasmInfo }) {
 	const actionInProgress = useStore(kasmService.$actionInProgress);
@@ -120,6 +158,46 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					)}
 				</span>
 			</div>
+
+			{(() => {
+				const cpu = formatRange(
+					workspace.resources?.requests?.cpu,
+					workspace.resources?.limits?.cpu,
+				);
+				const mem = formatRange(
+					workspace.resources?.requests?.memory,
+					workspace.resources?.limits?.memory,
+				);
+				if (!cpu && !mem) return null;
+				return (
+					<div
+						style={{
+							display: 'flex',
+							flexWrap: 'wrap',
+							gap: '0.4rem',
+							marginTop: '-0.25rem',
+						}}>
+						{cpu && (
+							<ResourcePill
+								label="CPU"
+								value={cpu}
+								color="#38bdf8"
+								Icon={Cpu}
+								title={`requests ${workspace.resources?.requests?.cpu ?? '—'} · limits ${workspace.resources?.limits?.cpu ?? '—'}`}
+							/>
+						)}
+						{mem && (
+							<ResourcePill
+								label="Memory"
+								value={mem}
+								color="#f59e0b"
+								Icon={MemoryStick}
+								title={`requests ${workspace.resources?.requests?.memory ?? '—'} · limits ${workspace.resources?.limits?.memory ?? '—'}`}
+							/>
+						)}
+					</div>
+				);
+			})()}
 
 			{/* Actions */}
 			<div
