@@ -1,0 +1,106 @@
+name: Factorio Mod Portal Publish
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'apps/agones/factorio/mods-local/kbve/info.json'
+            - 'apps/agones/factorio/mods-local/kbve/**'
+            - 'apps/agones/factorio/scripts/build-mod.sh'
+            - '.github/workflows/ci-factorio-mod-publish.yml'
+    workflow_dispatch:
+        inputs:
+            force_upload:
+                description: 'Upload even if info.json version did not change'
+                required: false
+                default: 'false'
+                type: choice
+                options: ['false', 'true']
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - name: Resolve version + diff
+              id: ver
+              run: |
+                  set -euo pipefail
+                  NEW=$(jq -r .version apps/agones/factorio/mods-local/kbve/info.json)
+                  OLD=$(git show HEAD~1:apps/agones/factorio/mods-local/kbve/info.json 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+                  echo "new=$NEW" >> "$GITHUB_OUTPUT"
+                  echo "old=$OLD" >> "$GITHUB_OUTPUT"
+                  if [ "$NEW" = "$OLD" ]; then
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
+                  fi
+                  echo "::notice::info.json version old=$OLD new=$NEW"
+
+            - name: Decide whether to publish
+              id: gate
+              run: |
+                  set -euo pipefail
+                  FORCED='${{ github.event.inputs.force_upload }}'
+                  CHANGED='${{ steps.ver.outputs.changed }}'
+                  if [ "$FORCED" = "true" ] || [ "$CHANGED" = "true" ]; then
+                    echo "publish=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "publish=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice::info.json version unchanged; skipping upload."
+                  fi
+
+            - name: Install deps
+              if: steps.gate.outputs.publish == 'true'
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends jq zip
+
+            - name: Build mod zip
+              if: steps.gate.outputs.publish == 'true'
+              run: bash apps/agones/factorio/scripts/build-mod.sh
+
+            - name: Upload to mods.factorio.com
+              if: steps.gate.outputs.publish == 'true'
+              env:
+                  FACTORIO_API_KEY: ${{ secrets.FACTORIO }}
+                  MOD_NAME: kbve
+                  MOD_VERSION: ${{ steps.ver.outputs.new }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${FACTORIO_API_KEY}" ]; then
+                    echo "secrets.FACTORIO is empty — aborting" >&2
+                    exit 1
+                  fi
+                  ZIP="apps/agones/factorio/mods-local/dist/${MOD_NAME}_${MOD_VERSION}.zip"
+                  if [ ! -f "$ZIP" ]; then
+                    echo "expected zip not found: $ZIP" >&2
+                    ls -R apps/agones/factorio/mods-local/dist/ || true
+                    exit 1
+                  fi
+                  echo "::notice::posting init_upload for ${MOD_NAME}_${MOD_VERSION}"
+                  INIT=$(curl -sS --fail-with-body -X POST \
+                      -H "Authorization: Bearer ${FACTORIO_API_KEY}" \
+                      -F "mod=${MOD_NAME}" \
+                      "https://mods.factorio.com/api/v2/mods/releases/init_upload")
+                  echo "init response: $INIT"
+                  UPLOAD_URL=$(printf '%s' "$INIT" | jq -r '.upload_url // empty')
+                  if [ -z "$UPLOAD_URL" ]; then
+                    echo "init_upload did not return upload_url" >&2
+                    exit 1
+                  fi
+                  echo "::notice::uploading zip"
+                  RESP=$(curl -sS --fail-with-body -X POST \
+                      -F "file=@${ZIP}" \
+                      "$UPLOAD_URL")
+                  echo "upload response: $RESP"
+                  if printf '%s' "$RESP" | jq -e '.error // empty | length > 0' >/dev/null 2>&1; then
+                    echo "::error::mod portal rejected the upload"
+                    exit 1
+                  fi
+                  echo "::notice::published kbve ${MOD_VERSION} to https://mods.factorio.com/mod/kbve"
