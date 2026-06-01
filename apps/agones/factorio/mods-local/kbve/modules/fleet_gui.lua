@@ -660,28 +660,48 @@ local function render_groups(content, player)
 	scroll.style.maximal_height = 320
 	scroll.style.minimal_width = 560
 
+	local fleet = FleetState.get()
 	for _, g in ipairs(groups) do
-		local grow = scroll.add({ type = 'flow', direction = 'horizontal' })
-		grow.add({ type = 'label', caption = '#' .. g.id .. ' ' .. g.name }).style.minimal_width = 180
-		grow.add({ type = 'label', caption = { '', 'units: ', #g.unit_ids } }).style.minimal_width = 90
-		grow.add({
+		local mission_counts = {}
+		for _, uid in ipairs(g.unit_ids) do
+			local st = fleet.unit_state[uid]
+			local m = (st and st.mission) or 'idle'
+			mission_counts[m] = (mission_counts[m] or 0) + 1
+		end
+		local badge_parts = {}
+		for m, c in pairs(mission_counts) do
+			table.insert(badge_parts, m .. ':' .. c)
+		end
+		table.sort(badge_parts)
+		local badge = table.concat(badge_parts, '  ')
+		if badge == '' then badge = 'no members' end
+
+		local grow = scroll.add({ type = 'flow', direction = 'vertical' })
+		local header = grow.add({ type = 'flow', direction = 'horizontal' })
+		header.add({ type = 'label', caption = '#' .. g.id .. ' ' .. g.name }).style.minimal_width = 180
+		header.add({ type = 'label', caption = { '', 'units: ', #g.unit_ids } }).style.minimal_width = 90
+		header.add({
 			type = 'drop-down',
 			name = GROUP_ZONE_PREFIX .. g.id,
 			items = mining_items,
 			selected_index = 1,
 		})
-		grow.add({
+		header.add({
 			type = 'button',
 			name = GROUP_DISPATCH_PREFIX .. g.id,
 			caption = 'Dispatch',
 			enabled = #g.unit_ids > 0 and #mining_names > 0 and mining_names[1] ~= '',
 		})
-		grow.add({
+		header.add({
 			type = 'button',
 			name = GROUP_DELETE_PREFIX .. g.id,
 			caption = 'X',
 			tooltip = 'Delete squad',
 		})
+		grow.add({
+			type = 'label',
+			caption = '    ' .. badge,
+		}).style.font_color = { r = 0.75, g = 0.85, b = 1 }
 	end
 end
 

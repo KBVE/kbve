@@ -96,16 +96,49 @@ function Coins.handle_pre_player_mined(event)
 	end
 end
 
+local function grant_to_all_admins(amount, reason)
+	if not amount or amount <= 0 then return end
+	for _, p in pairs(game.connected_players) do
+		if p.admin then
+			Coins.grant(p.index, amount, reason)
+		end
+	end
+end
+
 function Coins.handle_entity_died(event)
-	local cause = event.cause
-	if not (cause and cause.valid and cause.type == 'character') then return end
-	local player = cause.player
-	if not player then return end
 	local entity = event.entity
 	if not (entity and entity.valid) then return end
 	local reward = KILL_REWARD[entity.name]
 	if not reward then return end
-	Coins.grant(player.index, reward, 'kill')
+	local cause = event.cause
+	if not (cause and cause.valid) then return end
+	if cause.type == 'character' then
+		local player = cause.player
+		if not player then return end
+		Coins.grant(player.index, reward, 'kill')
+		return
+	end
+	if cause.type == 'car' or cause.type == 'spider-vehicle' then
+		grant_to_all_admins(math.max(1, math.floor(reward * 0.5)), 'fleet_kill')
+	end
+end
+
+function Coins.grant_deposit_reward(item_name, count)
+	if not item_name or not count or count <= 0 then return end
+	local proto = prototypes.item[item_name]
+	if not proto then return end
+	local per_unit_coins
+	if proto.subgroup and proto.subgroup.name == 'raw-resource' then
+		per_unit_coins = 0.01
+	elseif proto.fuel_value and proto.fuel_value > 0 then
+		per_unit_coins = 0.02
+	else
+		per_unit_coins = 0.05
+	end
+	local total = math.floor(count * per_unit_coins)
+	if total > 0 then
+		grant_to_all_admins(total, 'fleet_deposit')
+	end
 end
 
 return Coins

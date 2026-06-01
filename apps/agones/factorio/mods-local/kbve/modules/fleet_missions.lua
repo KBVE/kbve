@@ -1,4 +1,5 @@
 local FleetState = require('modules.fleet_state')
+local Coins = require('modules.coins')
 
 local FleetMissions = {}
 
@@ -78,6 +79,35 @@ local function nearest_zone_position(player_force, surface_index, zone_name, fro
 	return best
 end
 
+local function nearest_highway_position(force, surface_index, from)
+	local highway_zones = FleetState.zones_by_role('highway')
+	if #highway_zones == 0 then return nil end
+	local best, best_d = nil, math.huge
+	for _, zone_name in ipairs(highway_zones) do
+		local pos = nearest_zone_position(force, surface_index, zone_name, from)
+		if pos then
+			local dx = pos.x - from.x
+			local dy = pos.y - from.y
+			local d = dx * dx + dy * dy
+			if d < best_d then best_d, best = d, pos end
+		end
+	end
+	return best
+end
+
+local function plan_route(force, surface_index, from, destination)
+	if not destination then return nil end
+	local entry = nearest_highway_position(force, surface_index, from)
+	if not entry then return { destination } end
+	local exit_point = nearest_highway_position(force, surface_index, destination)
+	local waypoints = { entry }
+	if exit_point and (exit_point.x ~= entry.x or exit_point.y ~= entry.y) then
+		table.insert(waypoints, exit_point)
+	end
+	table.insert(waypoints, destination)
+	return waypoints
+end
+
 local function unit_fuel_low(u)
 	if not (u.vehicle and u.vehicle.valid and u.vehicle.burner) then return false end
 	if u.vehicle.burner.remaining_burning_fuel > FUEL_LOW_BURN then return false end
@@ -106,6 +136,40 @@ local function ore_under(surface, position)
 		limit = 1,
 	})
 	return r[1]
+end
+
+local function send_via_route(unit_id, force, surface_index, from, destination)
+	local route = plan_route(force, surface_index, from, destination)
+	if not (route and #route > 0) then return false end
+	local st = FleetState.get_unit_state(unit_id) or {}
+	st.route = route
+	st.route_index = 1
+	FleetState.get().unit_state[unit_id] = st
+	local next_pos = route[1]
+	aai_set(unit_id, { target_speed = 0.1 })
+	aai_set(unit_id, { target_position = next_pos })
+	return true
+end
+
+local function advance_route(unit_id, u)
+	local st = FleetState.get_unit_state(unit_id)
+	if not (st and st.route and st.route_index) then return false end
+	if not (u.vehicle and u.vehicle.valid and u.target_position) then return false end
+	local current = st.route[st.route_index]
+	if not current then return false end
+	local dx = current.x - u.vehicle.position.x
+	local dy = current.y - u.vehicle.position.y
+	if (dx * dx + dy * dy) > (PATROL_ARRIVAL_RADIUS * PATROL_ARRIVAL_RADIUS) then return false end
+	st.route_index = st.route_index + 1
+	local next_pos = st.route[st.route_index]
+	if not next_pos then
+		st.route = nil
+		st.route_index = nil
+		return false
+	end
+	aai_set(unit_id, { target_speed = 0.1 })
+	aai_set(unit_id, { target_position = next_pos })
+	return true
 end
 
 local function any_connected_player()
@@ -255,16 +319,14 @@ local function tick_mining()
 						pos = SPAWN_REGROUP_POSITION
 					end
 					FleetState.set_unit_mission(unit_id, 'retreating', refuel)
-					aai_set(unit_id, { target_speed = 0.1 })
-					aai_set(unit_id, { target_position = pos })
+					send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 				elseif unit_cargo_full(u) then
 					local deposit = FleetState.zones_by_role('deposit')[1]
 					if deposit then
 						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, deposit, u.vehicle.position)
 						if pos then
 							FleetState.set_unit_mission(unit_id, 'depositing', deposit)
-							aai_set(unit_id, { target_speed = 0.1 })
-							aai_set(unit_id, { target_position = pos })
+							send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 						end
 					else
 						warn_no_zone('deposit')
@@ -275,8 +337,7 @@ local function tick_mining()
 						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
 						if pos then
 							FleetState.set_unit_mission(unit_id, 'refueling', refuel)
-							aai_set(unit_id, { target_speed = 0.1 })
-							aai_set(unit_id, { target_position = pos })
+							send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 						end
 					else
 						warn_no_zone('refuel')
@@ -305,6 +366,7 @@ local function tick_refueling()
 		if st.mission == 'refueling' and registered[unit_id] then
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid then
+				advance_route(unit_id, u)
 				local has_fuel = u.vehicle.burner
 					and u.vehicle.burner.inventory
 					and not u.vehicle.burner.inventory.is_empty()
@@ -322,6 +384,18 @@ local function tick_refueling()
 	end
 end
 
+local function trunk_contents(vehicle)
+	if not (vehicle and vehicle.valid) then return {} end
+	local inv = vehicle.get_inventory(defines.inventory.car_trunk)
+	if not inv then return {} end
+	local out = {}
+	local raw = inv.get_contents()
+	for _, item in pairs(raw) do
+		if item.name and item.count then out[item.name] = (out[item.name] or 0) + item.count end
+	end
+	return out
+end
+
 local function tick_depositing()
 	local fleet = FleetState.get()
 	local registered = aai_units()
@@ -329,7 +403,21 @@ local function tick_depositing()
 		if st.mission == 'depositing' and registered[unit_id] then
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid then
+				advance_route(unit_id, u)
+				local now = trunk_contents(u.vehicle)
+				local prev_snapshot = st.deposit_snapshot
+				if prev_snapshot then
+					for name, before in pairs(prev_snapshot) do
+						local after = now[name] or 0
+						if after < before then
+							Coins.grant_deposit_reward(name, before - after)
+						end
+					end
+				end
+				st.deposit_snapshot = now
+
 				if not unit_cargo_full(u) then
+					st.deposit_snapshot = nil
 					local prev = st.previous_mission
 					local prev_zone = st.previous_zone
 					if prev and prev_zone then
@@ -360,16 +448,14 @@ local function tick_defense()
 						pos = SPAWN_REGROUP_POSITION
 					end
 					FleetState.set_unit_mission(unit_id, 'retreating', refuel)
-					aai_set(unit_id, { target_speed = 0.1 })
-					aai_set(unit_id, { target_position = pos })
+					send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 				elseif unit_fuel_low(u) then
 					local refuel = FleetState.zones_by_role('refuel')[1]
 					if refuel then
 						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
 						if pos then
 							FleetState.set_unit_mission(unit_id, 'refueling', refuel)
-							aai_set(unit_id, { target_speed = 0.1 })
-							aai_set(unit_id, { target_position = pos })
+							send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 						end
 					else
 						warn_no_zone('refuel')
@@ -411,8 +497,7 @@ local function tick_combat()
 					pos = SPAWN_REGROUP_POSITION
 				end
 				FleetState.set_unit_mission(unit_id, 'retreating', refuel)
-				aai_set(unit_id, { target_speed = 0.1 })
-				aai_set(unit_id, { target_position = pos })
+				send_via_route(unit_id, u.vehicle.force, u.vehicle.surface.index, u.vehicle.position, pos)
 			end
 		end
 	end
@@ -425,7 +510,10 @@ local function tick_retreating()
 		if st.mission == 'retreating' and registered[unit_id] then
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid then
+				advance_route(unit_id, u)
 				if unit_hp_ratio(u) > 0.95 then
+					st.route = nil
+					st.route_index = nil
 					FleetState.set_unit_mission(unit_id, nil, nil)
 				end
 			end
