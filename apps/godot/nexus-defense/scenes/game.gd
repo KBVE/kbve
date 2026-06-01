@@ -398,20 +398,46 @@ func _on_enemies_update(entities: Array) -> void:
 		if destroyed:
 			_despawn_enemy(eid)
 			continue
-		if not _enemy_sprites.has(eid):
-			_spawn_snapshot_enemy(eid)
+		var pos_x: float = float(data.get("pos_x", 0.0))
+		var hp: float = float(data.get("hp", 1.0))
+		var max_hp: float = float(data.get("max_hp", 1.0))
+		var pixel: Vector2 = _server_pos_to_pixel(pos_x)
+		var sprite: Node2D = _enemy_sprites.get(eid)
+		if sprite == null:
+			sprite = _spawn_snapshot_enemy(eid, pixel)
+		if sprite and sprite.has_method("update_from_server"):
+			sprite.call("update_from_server", pixel, hp, max_hp)
 	for eid in _enemy_sprites.keys():
 		if not seen.has(eid):
 			_despawn_enemy(eid)
 
-func _spawn_snapshot_enemy(eid: int) -> void:
+# Maps server-side `Position.x` (0..PLAYFIELD_WIDTH) to the client's hex path
+# by sampling `_path_points()` at the same fractional progress. Server uses a
+# 32px square grid; client renders on a hex map with a different edge length,
+# so we go through the path-sample helper instead of trying to share units.
+const SERVER_PLAYFIELD_WIDTH: float = 800.0
+
+func _server_pos_to_pixel(server_x: float) -> Vector2:
 	var pts: PackedVector2Array = _path_points()
-	if pts.size() < 2:
-		return
+	if pts.size() == 0:
+		return Vector2.ZERO
+	if pts.size() == 1:
+		return pts[0]
+	var t: float = clamp(server_x / SERVER_PLAYFIELD_WIDTH, 0.0, 1.0)
+	var segments: float = float(pts.size() - 1)
+	var pos_f: float = t * segments
+	var idx: int = int(floor(pos_f))
+	var frac: float = pos_f - float(idx)
+	if idx >= pts.size() - 1:
+		return pts[pts.size() - 1]
+	return pts[idx].lerp(pts[idx + 1], frac)
+
+func _spawn_snapshot_enemy(eid: int, initial_pos: Vector2) -> Node2D:
 	var sprite: Node2D = EnemySprite.new()
+	sprite.position = initial_pos
 	_hex_map.add_child(sprite)
-	sprite.call("start", pts, ENEMY_MARCH_DURATION)
 	_enemy_sprites[eid] = sprite
+	return sprite
 
 func _despawn_enemy(eid: int) -> void:
 	if not _enemy_sprites.has(eid):
