@@ -12,7 +12,7 @@
  *
  * Outputs (per-game sync — Unity-friendly, raw frontmatter):
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json
- *     — { version, generated_at, count, entries: [...snake_case frontmatter...] }
+ *     — { version, count, entries: [...snake_case frontmatter...] }
  *     Mirrors the gen-mapdb-data.mjs wrapper convention so Newtonsoft can
  *     deserialise directly into an ItemDBBundle POCO (see ItemDBDef.cs).
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb
@@ -278,7 +278,6 @@ function main() {
 	const unityEntries = records.map(stripAstroFields);
 	const unityBundle = {
 		version: 1,
-		generated_at: new Date().toISOString(),
 		count: unityEntries.length,
 		entries: unityEntries,
 	};
