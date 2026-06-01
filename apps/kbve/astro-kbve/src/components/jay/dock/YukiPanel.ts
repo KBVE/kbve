@@ -4,10 +4,6 @@ const FLOAT_POS_KEY = 'kbve:yuki-dock:float-pos';
 const GREETED_KEY = 'kbve:yuki-dock:greeted';
 const MAX_HISTORY = 24;
 
-const GREETING =
-	"Hi! I'm Yuki — your KBVE concierge. Tap the chat or just say hello.";
-const CLICK_GREET = 'Hi there! Need a hand finding something?';
-
 type Role = 'user' | 'yuki';
 interface ChatEntry {
 	role: Role;
@@ -139,30 +135,9 @@ function writeFloatPos(pos: FloatPos): void {
 
 interface YukiVRMRuntime {
 	setState(state: string): void;
-	speak(audio: HTMLAudioElement | MediaStream): void;
-	stopSpeaking(): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
 	destroy(): void;
-}
-
-type SpeakFn = (text: string) => HTMLAudioElement | null;
-
-function makeSpeaker(): SpeakFn {
-	return (text: string) => {
-		try {
-			const synth = window.speechSynthesis;
-			if (!synth) return null;
-			synth.cancel();
-			const utter = new SpeechSynthesisUtterance(text);
-			utter.rate = 1.0;
-			utter.pitch = 1.15;
-			synth.speak(utter);
-		} catch {
-			void 0;
-		}
-		return null;
-	};
 }
 
 const FLOAT_LAYER_ID = 'kbve-yuki-float-layer';
@@ -336,8 +311,6 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	}
 	log.scrollTop = log.scrollHeight;
 
-	const speak = makeSpeaker();
-
 	let vrmRuntime: YukiVRMRuntime | null = null;
 	let vrmLoading = false;
 	let vrmHost: HTMLElement = stage;
@@ -351,13 +324,11 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		if (readGreeted()) return;
 		writeGreeted();
 		vrmRuntime.setState('wave');
-		speak(GREETING);
 	};
 
 	const clickGreet = (): void => {
 		if (!vrmRuntime) return;
 		vrmRuntime.setState('wave');
-		speak(CLICK_GREET);
 	};
 
 	const ensureVRM = async (
@@ -620,7 +591,6 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			activeStream = null;
 			writeHistory(history);
 			if (assembled) {
-				speak(assembled);
 				vrmRuntime?.setState('happy');
 				setTimeout(() => vrmRuntime?.setState('idle'), 2200);
 			}

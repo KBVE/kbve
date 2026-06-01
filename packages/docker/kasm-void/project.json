@@ -1,0 +1,66 @@
+{
+	"name": "kasm-void",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/docker/kasm-void",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npx nx run kasm-void:containerx"],
+				"parallel": false
+			},
+			"configurations": {
+				"local": {},
+				"production": {
+					"commands": ["npx nx run kasm-void:containerx:production"]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "packages/docker/kasm-void",
+				"file": "packages/docker/kasm-void/Dockerfile",
+				"platforms": ["linux/amd64"],
+				"load": true,
+				"push": false,
+				"tags": ["ghcr.io/kbve/kasm-void:dev"]
+			},
+			"configurations": {
+				"local": {
+					"tags": ["ghcr.io/kbve/kasm-void:dev"]
+				},
+				"production": {
+					"tags": ["ghcr.io/kbve/kasm-void:latest"],
+					"push": true,
+					"metadata": {
+						"images": ["ghcr.io/kbve/kasm-void"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kasm-void:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kasm-void:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container"],
+			"options": {
+				"commands": [
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
+					"docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-void:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
+					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q cloak_loop && echo 'PASS: custom_startup.sh has cloak supervisor'",
+					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q discord_loop && echo 'PASS: custom_startup.sh has discord supervisor'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/discord_startup.sh && echo 'PASS: upstream discord startup preserved'"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["docker", "kasm", "workspace"]
+}
