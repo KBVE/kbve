@@ -125,11 +125,12 @@ CREATE INDEX idx_mc_schematic_enabled_category_tier_name_cover
     INCLUDE (dims_x, dims_y, dims_z, price_credits, price_khash)
     WHERE enabled;
 
+ALTER TABLE mc.schematic OWNER TO postgres;
 ALTER TABLE mc.schematic ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.schematic FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.schematic IS
-    'Build catalog. Dashboard reads enabled rows via proxy_list_schematics. Each row references a serialized structure blob in the Fabric mod jar by resource_path.';
+    'Build catalog. RPC-only: RLS is enabled + forced with NO policies; direct table access is denied even to service_role. All reads/writes flow through SECURITY DEFINER RPCs.';
 
 
 -- ===========================================================================
@@ -262,6 +263,7 @@ CREATE INDEX idx_mc_lot_owner_active_world_chunk_cursor
              chunk_area, anchor_y, price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
 
+ALTER TABLE mc.lot OWNER TO postgres;
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot FORCE ROW LEVEL SECURITY;
 
@@ -297,7 +299,7 @@ CREATE TRIGGER trg_mc_lot_updated_at
     EXECUTE FUNCTION mc.trg_lot_updated_at();
 
 COMMENT ON TABLE mc.lot IS
-    'Parcel registry. Chunk-aligned rectangular regions guarded by a GIST EXCLUDE constraint that forbids overlap within a world.';
+    'Parcel registry. Chunk-aligned rectangular regions guarded by a GIST EXCLUDE constraint that forbids overlap within a world. RPC-only: RLS is enabled + forced with NO policies; all reads/writes flow through SECURITY DEFINER RPCs.';
 COMMENT ON COLUMN mc.lot.state IS '0=vacant, 1=owned, 2=built, 3=under_build, 4=demolishing';
 
 
@@ -352,11 +354,12 @@ CREATE INDEX idx_mc_lot_purchase_buyer_created
 CREATE UNIQUE INDEX uq_mc_lot_purchase_one_per_lot
     ON mc.lot_purchase (lot_id);
 
+ALTER TABLE mc.lot_purchase OWNER TO postgres;
 ALTER TABLE mc.lot_purchase ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_purchase FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_purchase IS
-    'Append-only ownership ledger. Per-currency wallet_*_ledger_id columns back-reference wallet.ledger so dual-currency purchases retain both debit references.';
+    'Append-only ownership ledger. Per-currency wallet_*_ledger_id columns back-reference wallet.ledger so dual-currency purchases retain both debit references. RPC-only: RLS enabled + forced, no policies.';
 
 
 -- ===========================================================================
@@ -382,6 +385,12 @@ CREATE TABLE mc.lot_build_log (
     claimed_by      TEXT,
     queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     applied_at      TIMESTAMPTZ,
+    failed_at       TIMESTAMPTZ,
+    -- Retry budget. Incremented on every claim; rows that hit the cap
+    -- are excluded from the SKIP LOCKED scan so a poisoned job cannot
+    -- cycle through claim -> stale-requeue -> claim forever.
+    attempt_count   SMALLINT NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMPTZ,
 
     CONSTRAINT mc_lot_build_log_action_chk
         CHECK (action_kind IN (0, 1)),
@@ -392,6 +401,8 @@ CREATE TABLE mc.lot_build_log (
             OR (action_kind = 1)),
     CONSTRAINT mc_lot_build_log_apply_error_len_chk
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
+    CONSTRAINT mc_lot_build_log_attempt_count_chk
+        CHECK (attempt_count >= 0 AND attempt_count <= 100),
     CONSTRAINT mc_lot_build_log_claimed_by_len_chk
         CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
     CONSTRAINT mc_lot_build_log_credits_ledger_chk CHECK (
@@ -476,11 +487,12 @@ ALTER TABLE mc.lot SET (
     autovacuum_analyze_threshold = 250
 );
 
+ALTER TABLE mc.lot_build_log OWNER TO postgres;
 ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_build_log FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_build_log IS
-    'Append-only audit of build/demolish events and concurrent work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed.';
+    'Append-only audit of build/demolish events and concurrent work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed. RPC-only: RLS enabled + forced, no policies.';
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
 COMMENT ON COLUMN mc.lot_build_log.apply_state IS
     '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
@@ -604,6 +616,52 @@ GRANT EXECUTE ON FUNCTION mc.service_list_lots(TEXT, SMALLINT, UUID, INTEGER, IN
 
 
 -- ===========================================================================
+-- mc.service_get_lot — primary-key lookup
+-- ===========================================================================
+-- Dedicated PK fetch for detail views, worker diagnostics, and admin
+-- repair flows; cheaper than threading a single-row case through
+-- service_list_lots' optional-filter predicate.
+CREATE OR REPLACE FUNCTION mc.service_get_lot(p_lot_id TEXT)
+RETURNS TABLE (
+    lot_id          TEXT,
+    world           TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    owner_user_id   UUID,
+    current_schematic_id TEXT,
+    state           SMALLINT,
+    price_credits   BIGINT,
+    price_khash     BIGINT,
+    created_at      TIMESTAMPTZ,
+    updated_at      TIMESTAMPTZ
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 1
+AS $$
+    SELECT l.lot_id, l.world,
+           l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max,
+           l.chunk_area, l.anchor_y,
+           l.owner_user_id, l.current_schematic_id,
+           l.state, l.price_credits, l.price_khash,
+           l.created_at, l.updated_at
+    FROM mc.lot l
+    WHERE l.lot_id = p_lot_id;
+$$;
+
+ALTER FUNCTION mc.service_get_lot(TEXT) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_get_lot(TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.service_get_lot(TEXT) TO service_role;
+
+
+-- ===========================================================================
 -- mc.service_list_schematics
 -- ===========================================================================
 CREATE OR REPLACE FUNCTION mc.service_list_schematics(
@@ -694,15 +752,22 @@ BEGIN
         SELECT build_id
           FROM mc.lot_build_log
          WHERE apply_state = 0
+           -- Retry budget: skip poison jobs that have already exhausted
+           -- their attempts. The stale-claim janitor never resurrects
+           -- past this cap either, so the row stays queued but dormant
+           -- until an admin retries via service_retry_failed_build.
+           AND attempt_count < 5
          ORDER BY queued_at, build_id
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 32), 256))
          FOR UPDATE SKIP LOCKED
     ),
     claimed AS (
         UPDATE mc.lot_build_log b
-           SET apply_state = 3,
-               claimed_at  = clock_timestamp(),
-               claimed_by  = p_worker_id
+           SET apply_state    = 3,
+               claimed_at     = clock_timestamp(),
+               claimed_by     = p_worker_id,
+               attempt_count  = b.attempt_count + 1,
+               last_attempt_at = clock_timestamp()
           FROM picked
          WHERE b.build_id = picked.build_id
         RETURNING b.build_id, b.lot_id, b.actor_user_id,
@@ -885,7 +950,10 @@ BEGIN
            apply_error = left(
                COALESCE(NULLIF(btrim(p_error), ''), 'worker reported failure'),
                2048),
-           applied_at = clock_timestamp(),
+           -- Distinct timestamp from applied_at so dashboards can tell
+           -- 'finished cleanly' from 'gave up' without inspecting state.
+           failed_at = clock_timestamp(),
+           applied_at = NULL,
            claimed_at = NULL,
            claimed_by = NULL
      WHERE build_id = p_build_id
@@ -961,8 +1029,10 @@ BEGIN
     -- the lock two identical requests can both miss the existing-key
     -- check, then one inserts cleanly and the other tries the lot-state
     -- path and surfaces a confusing "lot not vacant" error instead of
-    -- collapsing to the original purchase row.
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+    -- collapsing to the original purchase row. Namespace the lock key
+    -- so a caller that reuses the same idempotency_key across purchase,
+    -- build, and demolish doesn't accidentally cross-block.
+    PERFORM pg_advisory_xact_lock(hashtextextended('mc.purchase:' || p_idempotency_key::text, 0));
 
     -- Idempotent replay: existing key must match the original parameters,
     -- otherwise the caller is reusing a key for a different request.
@@ -1033,10 +1103,19 @@ BEGIN
     )
     RETURNING purchase_id INTO v_purchase_id;
 
-    UPDATE mc.lot
-       SET state = 1,
-           owner_user_id = p_user_id
-     WHERE lot_id = p_lot_id;
+    DECLARE v_rowcount INTEGER;
+    BEGIN
+        UPDATE mc.lot
+           SET state = 1,
+               owner_user_id = p_user_id
+         WHERE lot_id = p_lot_id
+           AND state = 0;
+        GET DIAGNOSTICS v_rowcount = ROW_COUNT;
+        IF v_rowcount <> 1 THEN
+            RAISE EXCEPTION 'lot % no longer vacant at purchase commit', p_lot_id
+                USING ERRCODE = '22023';
+        END IF;
+    END;
 
     RETURN v_purchase_id;
 END;
@@ -1101,7 +1180,7 @@ BEGIN
 
     -- Serialize concurrent retries on the same idempotency_key. See the
     -- matching note in service_purchase_lot.
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+    PERFORM pg_advisory_xact_lock(hashtextextended('mc.build:' || p_idempotency_key::text, 0));
 
     SELECT build_id, lot_id, schematic_id, actor_user_id
       INTO v_existing_build_id, v_existing_lot, v_existing_schematic, v_existing_actor
@@ -1235,7 +1314,21 @@ BEGIN
         END;
     END;
 
-    UPDATE mc.lot SET state = 3 WHERE lot_id = p_lot_id;
+    -- Self-validating transition: defense-in-depth in case a future
+    -- refactor weakens the earlier FOR UPDATE + state guard.
+    DECLARE v_rowcount INTEGER;
+    BEGIN
+        UPDATE mc.lot
+           SET state = 3
+         WHERE lot_id = p_lot_id
+           AND owner_user_id = p_user_id
+           AND state IN (1, 2);
+        GET DIAGNOSTICS v_rowcount = ROW_COUNT;
+        IF v_rowcount <> 1 THEN
+            RAISE EXCEPTION 'lot % no longer in a buildable state at queue commit', p_lot_id
+                USING ERRCODE = '22023';
+        END IF;
+    END;
 
     RETURN v_build_id;
 END;
@@ -1281,7 +1374,7 @@ BEGIN
         RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
     END IF;
 
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text, 0));
+    PERFORM pg_advisory_xact_lock(hashtextextended('mc.demolish:' || p_idempotency_key::text, 0));
 
     SELECT build_id, lot_id, actor_user_id, action_kind
       INTO v_existing_build_id, v_existing_lot, v_existing_actor, v_existing_action
@@ -1334,7 +1427,19 @@ BEGIN
         END;
     END;
 
-    UPDATE mc.lot SET state = 4 WHERE lot_id = p_lot_id;
+    DECLARE v_rowcount INTEGER;
+    BEGIN
+        UPDATE mc.lot
+           SET state = 4
+         WHERE lot_id = p_lot_id
+           AND owner_user_id = p_user_id
+           AND state = 2;
+        GET DIAGNOSTICS v_rowcount = ROW_COUNT;
+        IF v_rowcount <> 1 THEN
+            RAISE EXCEPTION 'lot % no longer demolishable at queue commit', p_lot_id
+                USING ERRCODE = '22023';
+        END IF;
+    END;
 
     RETURN v_build_id;
 END;
@@ -1720,6 +1825,18 @@ ALTER FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) OWNER TO service_role
 REVOKE ALL ON FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) TO authenticated, service_role;
 
+COMMENT ON FUNCTION public.proxy_purchase_lot(TEXT, UUID) IS
+    'Authenticated client RPC: charge wallet + flip the vacant lot to owned. Pass a stable p_idempotency_key on retries so network repeats collapse to the original purchase.';
+COMMENT ON FUNCTION public.proxy_queue_build_on_lot(TEXT, TEXT, UUID) IS
+    'Authenticated client RPC: charge schematic cost + queue a build on a lot the caller owns. Idempotent on p_idempotency_key.';
+COMMENT ON FUNCTION public.proxy_queue_demolish_lot(TEXT, UUID) IS
+    'Authenticated client RPC: queue a demolish on a built lot the caller owns. Free in phase 0; idempotent on p_idempotency_key.';
+COMMENT ON FUNCTION public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                          TEXT, INTEGER, INTEGER, TEXT) IS
+    'Generic lot listing RPC. Prefer the dedicated public.proxy_list_vacant_lots and public.proxy_list_my_active_lots wrappers for dashboard use — those bind hard-coded predicates to the partial INCLUDE indexes. This generic shape stays for admin/compat callers.';
+COMMENT ON FUNCTION public.proxy_list_schematics(TEXT) IS
+    'Catalog read: enabled schematics, optionally filtered to a category. Sorted by (category, tier, name). Index-only path via idx_mc_schematic_enabled_category_tier_name_cover.';
+
 
 -- ===========================================================================
 -- PUBLIC WORKER WRAPPERS — service_role only, for MC mod through PostgREST
@@ -1825,6 +1942,40 @@ COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) 
     'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Batched + SKIP LOCKED with p_limit (max 512). Returns the count of jobs requeued in this call.';
 
 
+CREATE OR REPLACE FUNCTION public.proxy_service_get_lot(p_lot_id TEXT)
+RETURNS TABLE (
+    lot_id          TEXT,
+    world           TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    owner_user_id   UUID,
+    current_schematic_id TEXT,
+    state           SMALLINT,
+    price_credits   BIGINT,
+    price_khash     BIGINT,
+    created_at      TIMESTAMPTZ,
+    updated_at      TIMESTAMPTZ
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 1
+AS $$
+    SELECT * FROM mc.service_get_lot(p_lot_id);
+$$;
+
+ALTER FUNCTION public.proxy_service_get_lot(TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_get_lot(TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_get_lot(TEXT) TO service_role;
+COMMENT ON FUNCTION public.proxy_service_get_lot(TEXT) IS
+    'Service-role-only primary-key lookup for a single lot. Use for detail views, worker diagnostics, and admin repair flows.';
+
+
 -- ===========================================================================
 -- HOT-PATH LIST RPCs — dedicated wrappers for the two most common reads
 -- ===========================================================================
@@ -1897,7 +2048,7 @@ BEGIN
              > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
       )
     ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024));
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 256), 1), 1024);
 END;
 $$;
 
@@ -1980,7 +2131,7 @@ BEGIN
              > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
       )
     ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024));
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 256), 1), 1024);
 END;
 $$;
 
@@ -2047,6 +2198,8 @@ DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS mc.service_claim_pending_builds(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS public.proxy_service_get_lot(TEXT);
+DROP FUNCTION IF EXISTS mc.service_get_lot(TEXT);
 DROP FUNCTION IF EXISTS mc.service_list_schematics(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS mc.service_list_lots(TEXT, SMALLINT, UUID, INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_list_lots(TEXT, SMALLINT, UUID, INTEGER, INTEGER,

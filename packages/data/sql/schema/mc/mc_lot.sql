@@ -229,6 +229,9 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     claimed_by      TEXT,
     queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     applied_at      TIMESTAMPTZ,
+    failed_at       TIMESTAMPTZ,
+    attempt_count   SMALLINT NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMPTZ,
 
     CONSTRAINT mc_lot_build_log_action_chk
         CHECK (action_kind IN (0, 1)),
@@ -239,6 +242,8 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
             OR (action_kind = 1)),
     CONSTRAINT mc_lot_build_log_apply_error_len_chk
         CHECK (apply_error IS NULL OR length(apply_error) <= 2048),
+    CONSTRAINT mc_lot_build_log_attempt_count_chk
+        CHECK (attempt_count >= 0 AND attempt_count <= 100),
     CONSTRAINT mc_lot_build_log_claimed_by_len_chk
         CHECK (claimed_by IS NULL OR length(claimed_by) <= 128),
     CONSTRAINT mc_lot_build_log_credits_ledger_chk CHECK (
