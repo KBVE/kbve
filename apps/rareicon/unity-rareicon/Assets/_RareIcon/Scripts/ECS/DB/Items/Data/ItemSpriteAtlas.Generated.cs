@@ -21,7 +21,7 @@ namespace RareIcon
 
         static float4[] BuildTable()
         {
-            var t = new float4[557];
+            var t = new float4[563];
             for (int i = 0; i < t.Length; i++) t[i] = FallbackUV;
             t[1] = new float4(0.75000000f, 0.12500000f, 0.06250000f, 0.06250000f);
             t[2] = new float4(0.31250000f, 0.00000000f, 0.06250000f, 0.06250000f);

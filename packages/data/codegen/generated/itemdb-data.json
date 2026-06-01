@@ -148,7 +148,57 @@
 			"compress": {
 				"targetRef": "quiver",
 				"ratio": 100
-			}
+			},
+			"recipes": [
+				{
+					"skill": "SKILLING_FLETCHING",
+					"skillLevel": 1,
+					"xpReward": 4,
+					"outputQuantity": 10,
+					"ingredients": [
+						{
+							"itemRef": "log",
+							"amount": 1
+						},
+						{
+							"itemRef": "cacti-needle",
+							"amount": 1
+						},
+						{
+							"itemRef": "stone",
+							"amount": 1
+						}
+					]
+				},
+				{
+					"skill": "SKILLING_FLETCHING",
+					"skillLevel": 1,
+					"xpReward": 6,
+					"outputQuantity": 10,
+					"ingredients": [
+						{
+							"itemRef": "bone",
+							"amount": 1
+						},
+						{
+							"itemRef": "log",
+							"amount": 1
+						}
+					]
+				},
+				{
+					"skill": "SKILLING_FLETCHING",
+					"skillLevel": 3,
+					"xpReward": 80,
+					"outputQuantity": 500,
+					"ingredients": [
+						{
+							"itemRef": "timber",
+							"amount": 1
+						}
+					]
+				}
+			]
 		},
 		{
 			"description": "A fine grey powder, still warm enough at the center of a scoop to remind you what it came from. Tastes alkaline, clings to fingers, settles into the weave of any cloth you set it near.\n",
