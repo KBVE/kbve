@@ -49,24 +49,30 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        # Single listener for both meme.sh (apex) and www.meme.sh.
+        #
+        # `memes-tls` covers both names via SAN, and the Cilium gateway
+        # controller derives the filter chain SNI list from the cert SANs
+        # — not the listener `hostname` field. Splitting this into two
+        # listeners (one per hostname) made Cilium emit two filter chains
+        # with identical SNI=[meme.sh, www.meme.sh], which Envoy rejects
+        # as duplicate filter chain match. The whole memes routing block
+        # then fell through to a default 404 handler — meme.sh returned
+        # nginx-style 404s for 73 days even though the HTTPRoute was
+        # Accepted=True and the memes-service cluster was healthy. The
+        # ACME HTTP-01 challenge routes shared the same listener, so the
+        # cert reissue loop also couldn't complete (Reason=
+        # IncorrectCertificate stuck for 8 days).
+        #
+        # The HTTPRoute `memes/memes-route` has both hostnames in its
+        # spec.hostnames, so the single listener's SAN-driven SNI match
+        # still covers both names. Don't add a second listener here for
+        # any additional cert that already covers multiple SANs — issue
+        # a separate cert per hostname if you need per-host listeners.
         - name: https-memes
           protocol: HTTPS
           port: 443
           hostname: meme.sh
-          tls:
-              mode: Terminate
-              certificateRefs:
-                  - kind: Secret
-                    group: ''
-                    name: memes-tls
-                    namespace: memes
-          allowedRoutes:
-              namespaces:
-                  from: All
-        - name: https-memes-www
-          protocol: HTTPS
-          port: 443
-          hostname: www.meme.sh
           tls:
               mode: Terminate
               certificateRefs:
