@@ -101,14 +101,36 @@ impl Plugin for PauseMenuPlugin {
     }
 }
 
-fn category_text(cat: SettingsCategory) -> &'static str {
+fn category_text(cat: SettingsCategory, settings: &super::settings::GameSettings) -> String {
     match cat {
-        SettingsCategory::General => "Game settings will be added here.",
-        SettingsCategory::Audio => "Volume controls will be added here.",
-        SettingsCategory::Video => "Resolution and display options will be added here.",
+        SettingsCategory::General => format!(
+            "Player: {}\nVSync: {}\nTransport: {}",
+            crate::auth_common::current_signin_snapshot()
+                .username
+                .unwrap_or_else(|| "Guest".into()),
+            if settings.vsync { "On" } else { "Off" },
+            transport_label(settings.transport_override),
+        ),
+        SettingsCategory::Audio => format!(
+            "Master  {}%\nMusic   {}%\nSfx     {}%\n\nOpen the settings panel from the title screen to adjust.",
+            settings.master_volume, settings.music_volume, settings.sfx_volume,
+        ),
+        SettingsCategory::Video => format!(
+            "VSync: {}\n\nResolution + display options coming soon.",
+            if settings.vsync { "On" } else { "Off" },
+        ),
         SettingsCategory::Controls => {
-            "W/A/S/D \u{2014} Move\nSpace \u{2014} Jump\nI \u{2014} Inventory\nEscape \u{2014} Toggle Menu"
+            "W/A/S/D \u{2014} Move\nSpace \u{2014} Jump\nT or / \u{2014} Chat\nI \u{2014} Inventory\nEscape \u{2014} Toggle Menu"
+                .to_string()
         }
+    }
+}
+
+fn transport_label(t: Option<super::phase::TransportKind>) -> &'static str {
+    match t {
+        None | Some(super::phase::TransportKind::Unknown) => "Auto",
+        Some(super::phase::TransportKind::WebSocket) => "WebSocket",
+        Some(super::phase::TransportKind::WebTransport) => "WebTransport",
     }
 }
 
@@ -121,7 +143,8 @@ fn category_title(cat: SettingsCategory) -> &'static str {
     }
 }
 
-fn spawn_pause_menu(mut commands: Commands) {
+fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameSettings>) {
+    let settings_snapshot = settings.clone();
     commands
         .spawn((
             Node {
@@ -249,7 +272,10 @@ fn spawn_pause_menu(mut commands: Commands) {
                                 CategoryContent,
                             ));
                             content.spawn((
-                                Text::new(category_text(SettingsCategory::General)),
+                                Text::new(category_text(
+                                    SettingsCategory::General,
+                                    &settings_snapshot,
+                                )),
                                 TextFont {
                                     font_size: 11.0,
                                     ..default()
@@ -361,6 +387,7 @@ fn handle_category_buttons(
     mut all_btns: Query<(&CategoryBtn, &mut BackgroundColor, &Children)>,
     mut text_colors: Query<&mut TextColor>,
     mut content_q: Query<&mut Text, With<CategoryContent>>,
+    settings: Res<super::settings::GameSettings>,
 ) {
     for (interaction, clicked) in &btn_q {
         if *interaction != Interaction::Pressed {
@@ -394,7 +421,7 @@ fn handle_category_buttons(
             **title = category_title(state.category).to_string();
         }
         if let Some(mut body) = iter.next() {
-            **body = category_text(state.category).to_string();
+            **body = category_text(state.category, &settings);
         }
     }
 }
