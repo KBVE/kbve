@@ -1,7 +1,12 @@
 const HISTORY_KEY = 'kbve:yuki-dock:history';
 const FLOAT_KEY = 'kbve:yuki-dock:float-mode';
 const FLOAT_POS_KEY = 'kbve:yuki-dock:float-pos';
+const GREETED_KEY = 'kbve:yuki-dock:greeted';
 const MAX_HISTORY = 24;
+
+const GREETING =
+	"Hi! I'm Yuki — your KBVE concierge. Tap the chat or just say hello.";
+const CLICK_GREET = 'Hi there! Need a hand finding something?';
 
 type Role = 'user' | 'yuki';
 interface ChatEntry {
@@ -94,6 +99,21 @@ function writeFloat(on: boolean): void {
 	}
 }
 
+function readGreeted(): boolean {
+	try {
+		return localStorage.getItem(GREETED_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+function writeGreeted(): void {
+	try {
+		localStorage.setItem(GREETED_KEY, '1');
+	} catch {
+		void 0;
+	}
+}
+
 interface FloatPos {
 	x: number;
 	y: number;
@@ -122,6 +142,7 @@ interface YukiVRMRuntime {
 	speak(audio: HTMLAudioElement | MediaStream): void;
 	stopSpeaking(): void;
 	pointAt(x: number, y: number): void;
+	setActive(active: boolean): void;
 	destroy(): void;
 }
 
@@ -187,7 +208,7 @@ function ensureFloatLayer(): HTMLElement {
 	`;
 	const stage = document.createElement('div');
 	stage.id = FLOAT_HOST_ID;
-	stage.style.cssText = 'position:absolute;inset:0;';
+	stage.style.cssText = 'position:absolute;inset:0;cursor:pointer;';
 	layer.appendChild(stage);
 	layer.appendChild(handle);
 	layer.appendChild(close);
@@ -315,10 +336,29 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 	}
 	log.scrollTop = log.scrollHeight;
 
+	const speak = makeSpeaker();
+
 	let vrmRuntime: YukiVRMRuntime | null = null;
 	let vrmLoading = false;
 	let vrmHost: HTMLElement = stage;
 	let vrmTransparent = false;
+	let wanderRaf = 0;
+	let wanderLastMove = performance.now();
+	let pageMoveBound = false;
+
+	const fireFirstGreet = (): void => {
+		if (!vrmRuntime) return;
+		if (readGreeted()) return;
+		writeGreeted();
+		vrmRuntime.setState('wave');
+		speak(GREETING);
+	};
+
+	const clickGreet = (): void => {
+		if (!vrmRuntime) return;
+		vrmRuntime.setState('wave');
+		speak(CLICK_GREET);
+	};
 
 	const ensureVRM = async (
 		hostEl: HTMLElement,
@@ -348,6 +388,7 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			vrmHost = hostEl;
 			vrmTransparent = transparent;
 			hostEl.dataset.state = 'ready';
+			setTimeout(fireFirstGreet, 600);
 		} catch (err) {
 			console.warn('[yuki-panel] VRM load failed', err);
 			hostEl.innerHTML =
@@ -379,6 +420,63 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		}
 	};
 
+	const onPageMove = (ev: PointerEvent): void => {
+		if (!readFloat()) return;
+		const layer = document.getElementById(FLOAT_LAYER_ID);
+		if (!layer) return;
+		const fh = layer.querySelector<HTMLElement>(`#${FLOAT_HOST_ID}`);
+		if (!fh) return;
+		const rect = fh.getBoundingClientRect();
+		const cx = rect.left + rect.width / 2;
+		const cy = rect.top + rect.height / 2;
+		const dx = ev.clientX - cx;
+		const dy = ev.clientY - cy;
+		const maxR = Math.max(window.innerWidth, window.innerHeight) / 2;
+		const fx = Math.max(-1.4, Math.min(1.4, dx / maxR));
+		const fy = Math.max(-1.4, Math.min(1.4, dy / maxR));
+		const px = rect.left + rect.width / 2 + (fx * rect.width) / 2;
+		const py = rect.top + rect.height / 2 + (fy * rect.height) / 2;
+		vrmRuntime?.pointAt(px, py);
+		wanderLastMove = performance.now();
+	};
+
+	const bindPageMove = (): void => {
+		if (pageMoveBound) return;
+		pageMoveBound = true;
+		window.addEventListener('pointermove', onPageMove);
+	};
+	const unbindPageMove = (): void => {
+		if (!pageMoveBound) return;
+		pageMoveBound = false;
+		window.removeEventListener('pointermove', onPageMove);
+	};
+
+	const wanderTick = (): void => {
+		wanderRaf = requestAnimationFrame(wanderTick);
+		if (!readFloat() || !vrmRuntime) return;
+		const idleMs = performance.now() - wanderLastMove;
+		if (idleMs < 8000) return;
+		const layer = document.getElementById(FLOAT_LAYER_ID);
+		if (!layer || layer.style.display === 'none') return;
+		const fh = layer.querySelector<HTMLElement>(`#${FLOAT_HOST_ID}`);
+		if (!fh) return;
+		const rect = fh.getBoundingClientRect();
+		const t = performance.now() / 2200;
+		const px = rect.left + rect.width / 2 + Math.cos(t) * rect.width * 0.3;
+		const py =
+			rect.top + rect.height / 2 + Math.sin(t * 1.3) * rect.height * 0.2;
+		vrmRuntime.pointAt(px, py);
+	};
+	wanderRaf = requestAnimationFrame(wanderTick);
+
+	const dock = document.getElementById('kbve-yuki-dock');
+	const evaluateActive = (): void => {
+		if (!vrmRuntime) return;
+		const expanded = dock?.dataset.state === 'expanded';
+		const floating = readFloat();
+		vrmRuntime.setActive(expanded || floating);
+	};
+
 	const applyFloat = (on: boolean): void => {
 		wrap.dataset.floatMode = on ? '1' : '0';
 		const btn = toggle.querySelector<HTMLButtonElement>(
@@ -399,8 +497,10 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			stage.innerHTML = '';
 			stage.removeAttribute('data-state');
 			void ensureVRM(floatStage, true);
+			bindPageMove();
 		} else {
 			layer.style.display = 'none';
+			unbindPageMove();
 			if (readAvatarMode() === '3d') {
 				const fh = layer.querySelector<HTMLElement>(
 					`#${FLOAT_HOST_ID}`,
@@ -411,6 +511,7 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 				tearDownVRM();
 			}
 		}
+		evaluateActive();
 	};
 
 	if (readAvatarMode() === '3d') {
@@ -426,6 +527,14 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		writeFloat(false);
 		applyFloat(false);
 	});
+
+	const floatStage = layer.querySelector<HTMLElement>(`#${FLOAT_HOST_ID}`);
+	floatStage?.addEventListener('click', (ev) => {
+		const target = ev.target as HTMLElement | null;
+		if (target?.id === 'kbve-yuki-float-close') return;
+		clickGreet();
+	});
+	stage.addEventListener('click', clickGreet);
 
 	const modeInput = toggle.querySelector<HTMLInputElement>(
 		'[data-kbve-yuki-mode]',
@@ -457,8 +566,15 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		applyFloat(next);
 	});
 
-	const speak = makeSpeaker();
 	const input = form.querySelector<HTMLInputElement>('.yuki-panel__input');
+	input?.addEventListener('focus', () => {
+		if (!input || !vrmRuntime) return;
+		const rect = input.getBoundingClientRect();
+		vrmRuntime.pointAt(
+			rect.left + rect.width / 2,
+			rect.top + rect.height / 2,
+		);
+	});
 
 	let activeStream: EventSource | null = null;
 
@@ -472,6 +588,8 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		history.push(user);
 		log.appendChild(renderMessage(user));
 		log.scrollTop = log.scrollHeight;
+
+		vrmRuntime?.setState('nod');
 
 		const yuki: ChatEntry = { role: 'yuki', text: '', ts: Date.now() };
 		history.push(yuki);
@@ -501,7 +619,11 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			es.close();
 			activeStream = null;
 			writeHistory(history);
-			if (assembled) speak(assembled);
+			if (assembled) {
+				speak(assembled);
+				vrmRuntime?.setState('happy');
+				setTimeout(() => vrmRuntime?.setState('idle'), 2200);
+			}
 		});
 		es.onerror = () => {
 			es.close();
@@ -511,10 +633,25 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 					"I couldn't reach my backend just now — try again in a sec.";
 				yuki.text = fallback;
 				if (yukiBubble) yukiBubble.textContent = fallback;
+				vrmRuntime?.setState('shake');
 			}
 			writeHistory(history);
 		};
 	});
+
+	if (dock) {
+		const dockObserver = new MutationObserver(evaluateActive);
+		dockObserver.observe(dock, {
+			attributes: true,
+			attributeFilter: ['data-state'],
+		});
+	}
+
+	const onSwap = (): void => {
+		cancelAnimationFrame(wanderRaf);
+		unbindPageMove();
+	};
+	document.addEventListener('astro:before-swap', onSwap, { once: true });
 
 	if (!document.getElementById('kbve-yuki-panel-css')) {
 		const css = document.createElement('style');
@@ -523,7 +660,7 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			.yuki-panel { display: grid; grid-template-rows: auto 1fr auto auto; gap: 0.5rem; height: 100%; }
 			.yuki-panel[data-avatar-mode='text'] .yuki-panel__stage { display: none; }
 			.yuki-panel[data-float-mode='1'] .yuki-panel__stage { display: none; }
-			.yuki-panel__stage { height: 180px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; }
+			.yuki-panel__stage { height: 180px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; cursor: pointer; }
 			.yuki-panel__stage-skeleton, .yuki-panel__stage-error { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.78rem; color: rgba(255,255,255,0.5); }
 			.yuki-panel__stage-error { color: #f87171; }
 			.yuki-panel__log { display: grid; gap: 0.5rem; align-content: start; overflow-y: auto; padding-right: 0.25rem; }
