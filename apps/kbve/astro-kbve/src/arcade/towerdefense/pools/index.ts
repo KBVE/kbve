@@ -1,4 +1,4 @@
-import type Phaser from 'phaser';
+import Phaser from 'phaser';
 
 const DEFAULT_CAP = 256;
 
@@ -63,11 +63,14 @@ export class ProjectileSpritePool {
 			pooled.setPosition(x, y);
 			pooled.setRadius(radius);
 			pooled.setFillStyle(color);
+			pooled.setBlendMode(Phaser.BlendModes.ADD);
 			pooled.setActive(true);
 			pooled.setVisible(true);
 			return pooled;
 		}
-		return this.scene.add.circle(x, y, radius, color);
+		const sprite = this.scene.add.circle(x, y, radius, color);
+		sprite.setBlendMode(Phaser.BlendModes.ADD);
+		return sprite;
 	}
 
 	release(sprite: Phaser.GameObjects.Arc): void {

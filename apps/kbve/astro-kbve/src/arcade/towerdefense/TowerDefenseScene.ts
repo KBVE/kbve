@@ -214,6 +214,7 @@ import {
 	type StunDroneDeps,
 } from './drones';
 import { drawGrass, drawGridLines, drawPath } from './environment';
+import type { GrassController } from './environment/grass';
 import { createGameObjectPools, type GameObjectPools } from './pools';
 import {
 	tickAuraEmitters as tickAuraEmittersExt,
@@ -620,6 +621,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private placementPreview!: Phaser.GameObjects.Rectangle;
 	private placementRange!: Phaser.GameObjects.Arc;
 	private placementCoverage!: Phaser.GameObjects.Graphics;
+	private grassController: GrassController | null = null;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
 
@@ -750,7 +752,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		}
 		this.path = generatePath(this.rand);
 		this.cameras.main.setBackgroundColor(COLORS.background);
-		drawGrass(this);
+		this.grassController = drawGrass(this);
 		drawGridLines(this);
 		drawPath(this, this.path);
 		this.subscribeHudSignals();
@@ -2022,6 +2024,18 @@ export class TowerDefenseScene extends Phaser.Scene {
 		marker.lineBetween(x + 6, y, x + 18, y);
 		marker.lineBetween(x, y - 18, x, y - 6);
 		marker.lineBetween(x, y + 6, x, y + 18);
+		const markerWithFilters = marker as Phaser.GameObjects.Graphics & {
+			enableFilters?: () => unknown;
+			filters?: {
+				external: {
+					addGlow(color: number, outerStrength?: number): unknown;
+				};
+			};
+		};
+		if (typeof markerWithFilters.enableFilters === 'function') {
+			markerWithFilters.enableFilters();
+			markerWithFilters.filters?.external.addGlow(t.spec.color, 4);
+		}
 		t.fixedTargetMarker = marker;
 		TowerState.hasFixedTarget[t.id] = 1;
 		TowerState.fixedTargetX[t.id] = x;
@@ -3955,7 +3969,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		gameStateAtom.set('gameover');
 	}
 
-	update(_time: number, deltaMs: number): void {
+	update(time: number, deltaMs: number): void {
+		this.grassController?.update(time);
 		if (gameStateAtom.get() !== 'playing') return;
 		if (this.isGameOver) return;
 		if (this.awaitingCardPick) {
