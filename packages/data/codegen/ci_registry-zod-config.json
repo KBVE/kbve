@@ -3,6 +3,7 @@
 		"kbve.ci.CiProject",
 		"kbve.ci.CiRegistry",
 		"kbve.ci.ExternalPublish",
+		"kbve.ci.FactorioMod",
 		"kbve.ci.GameEngineConfig",
 		"kbve.ci.SteamApp"
 	],
@@ -105,7 +106,8 @@
 		"kbve.ci.ExternalPublish.curseforge_project_id": "z.string().regex(/^\\d+$/).max(16).optional()",
 		"kbve.ci.ExternalPublish.curseforge_pack_id": "z.string().regex(/^\\d+$/).max(16).optional()",
 		"kbve.ci.ExternalPublish.curseforge_release_type": "z.enum(['alpha', 'beta', 'release']).optional()",
-		"kbve.ci.ExternalPublish.factorio_mod_name": "z.string().min(1).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Factorio mod name must match the portal slug').optional()",
-		"kbve.ci.ExternalPublish.factorio_mod_source_path": "z.string().min(1).max(256).optional()"
+		"kbve.ci.ExternalPublish.factorio_mods": "z.array(FactorioModSchema).max(10).optional()",
+		"kbve.ci.FactorioMod.name": "z.string().min(1).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Factorio mod name must match the portal slug')",
+		"kbve.ci.FactorioMod.source_path": "z.string().min(1).max(256)"
 	}
 }
