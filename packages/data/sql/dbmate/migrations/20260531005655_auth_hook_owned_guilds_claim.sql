@@ -11,38 +11,49 @@ BEGIN;
 -- profile.discord_bootstrap_cache + custom_access_token_hook v2
 --
 -- v1 of the hook (20260510210000) embedded a single claim: kbve_username.
--- v2 adds a second claim: owned_guilds — an array of Discord guild
--- snowflakes the user owns. The dashboard reads it from the JWT and
--- skips the live Discord /users/@me/guilds call that currently blanks
--- the agents page with "Discord session expired" whenever the cached
--- provider_token ages out.
+-- v2 adds a second claim: owned_guilds — Discord guild snowflakes the
+-- user owns. The dashboard reads it from the JWT and skips the live
+-- Discord /users/@me/guilds call that currently blanks the agents page
+-- with "Discord session expired" whenever the cached provider_token
+-- ages out.
 --
--- Storage uses text[] (round 4) so the JWT-mint hot path avoids jsonb
--- traversal. The write path goes through a single service RPC
--- (profile.service_upsert_discord_bootstrap_cache) — service_role does
--- NOT have direct INSERT/UPDATE/DELETE on the cache table. The RPC
--- centralises:
---   - input validation (snowflake regex, NULL-element filter)
---   - canonicalisation (dedup + first-seen ordering + cap 100)
---   - account relinking (DELETE old row if discord_provider_id moves
---     between user_ids)
---   - future-timestamp rejection
---   - updated_at maintenance
+-- Architecture (after 6 review rounds on PR #11488)
+--   1. profile.discord_bootstrap_cache — text[] storage, capped at 50
+--      (matches the JWT mint cap; anything more is dead weight)
+--   2. profile.discord_owned_guilds_are_valid(text[]) — IMMUTABLE
+--      shape validator (rejects NULLs, non-snowflakes, oversized)
+--   3. profile.service_upsert_discord_bootstrap_cache(...) — the
+--      ONLY sanctioned write path. Service_role has no direct
+--      INSERT/UPDATE/DELETE on the cache. The RPC centralises:
+--        - Input validation with clean error messages
+--        - Canonicalisation (dedup + first-seen + NULL/regex filter
+--          + cap 50)
+--        - Future-timestamp rejection >30s
+--        - Account relinking (DELETE old row with same provider_id)
+--        - Advisory locking on (user_id, provider_id) to serialise
+--          concurrent OAuth refreshes
+--        - updated_at maintenance
+--      Owner pinned to postgres explicitly so SECURITY DEFINER
+--      behaviour is stable across local/CI/prod environments.
+--   4. profile.get_discord_owned_guilds_claim(uuid, timestamptz) —
+--      SQL helper that fetches the claim. STABLE + COST 20 so the
+--      planner can inline + cost-estimate around the call. Hook
+--      delegates here instead of carrying a CTE.
+--   5. public.custom_access_token_hook(jsonb) — slim PL/pgSQL hook,
+--      defers guild lookup to the helper, applies the JWT claim.
 --
--- The hook itself does NO external calls and never blocks. It reads
--- one row by PK, slices to 50, applies a defensive NULL+regex filter
--- (belt+suspender even though storage is canonical), wraps in jsonb,
--- and embeds as a JWT claim.
+-- The hook does NO external calls and never blocks. The helper does
+-- one PK lookup, freshness check, defensive NULL+regex filter,
+-- jsonb_agg. No external work.
 -- ============================================================
 
 -- ------------------------------------------------------------
--- Validator function (text[] variant — fixes round-5 #5 NULL bypass)
+-- Validator (text[] variant; round 5 #5 NULL bypass fix preserved)
 -- ------------------------------------------------------------
--- Round 5 #4: single COALESCE(array_length, 0) instead of two
--- array_length calls.
--- Round 5 #5: explicit NULL-element check. Without `g IS NULL OR`,
--- `g !~ '...'` returns NULL for NULL inputs and NOT EXISTS never
--- sees the bad row → ARRAY['valid', NULL] would pass validation.
+-- Round 6 #6: validator EXECUTE revoked from service_role +
+-- supabase_auth_admin. CHECK constraints run as table owner
+-- regardless of caller, so direct EXECUTE rights aren't needed.
+-- Round 6 #14: cardinality() instead of COALESCE(array_length).
 CREATE OR REPLACE FUNCTION profile.discord_owned_guilds_are_valid(p_guilds text[])
 RETURNS boolean
 LANGUAGE sql
@@ -51,7 +62,7 @@ STRICT
 SET search_path = ''
 AS $$
     SELECT CASE
-        WHEN COALESCE(array_length(p_guilds, 1), 0) > 100 THEN false
+        WHEN cardinality(p_guilds) > 50 THEN false
         ELSE NOT EXISTS (
             SELECT 1
             FROM unnest(p_guilds) AS g
@@ -61,18 +72,16 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION profile.discord_owned_guilds_are_valid(text[]) IS
-    'IMMUTABLE shape validator for profile.discord_bootstrap_cache.owned_guilds. Rejects NULL elements, non-snowflake strings (regex ^[0-9]{17,20}$), and arrays larger than 100 elements. Empty arrays are valid.';
+    'IMMUTABLE shape validator for profile.discord_bootstrap_cache.owned_guilds. Rejects NULL elements, non-snowflake strings, and arrays > 50. Empty arrays valid. Called from a table CHECK; no direct EXECUTE grants needed.';
 
 REVOKE EXECUTE ON FUNCTION profile.discord_owned_guilds_are_valid(text[])
-    FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION profile.discord_owned_guilds_are_valid(text[])
-    TO service_role, supabase_auth_admin;
+    FROM PUBLIC, anon, authenticated, service_role, supabase_auth_admin;
 
 -- ------------------------------------------------------------
 -- Cache table
 -- ------------------------------------------------------------
--- Round 5 #9: updated_at >= created_at ordering invariant folded
--- into the timestamps_floor CHECK (now timestamps_ordering_and_floor).
+-- Round 6 #14: cardinality() in CHECK.
+-- Round 6 #15: cap 100 -> 50. JWT-bound, more is dead weight.
 CREATE TABLE profile.discord_bootstrap_cache (
     user_id              uuid PRIMARY KEY,
     discord_provider_id  text NOT NULL
@@ -89,10 +98,7 @@ CREATE TABLE profile.discord_bootstrap_cache (
     CONSTRAINT discord_bootstrap_cache_discord_provider_id_unique
         UNIQUE (discord_provider_id),
     CONSTRAINT discord_bootstrap_cache_owned_guilds_size_cap
-        CHECK (
-            array_length(owned_guilds, 1) IS NULL
-            OR array_length(owned_guilds, 1) <= 100
-        ),
+        CHECK (cardinality(owned_guilds) <= 50),
     CONSTRAINT discord_bootstrap_cache_owned_guilds_valid
         CHECK (profile.discord_owned_guilds_are_valid(owned_guilds)),
     CONSTRAINT discord_bootstrap_cache_timestamps_ordering_and_floor
@@ -112,25 +118,24 @@ REVOKE ALL ON TABLE profile.discord_bootstrap_cache
 
 GRANT USAGE  ON SCHEMA profile                         TO supabase_auth_admin;
 GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
--- Round 5 #2: service_role keeps SELECT (dashboard freshness peeks +
--- ON CONFLICT visibility for the RPC's INSERT), but loses
--- INSERT/UPDATE/DELETE. All writes go through the RPC.
+-- service_role keeps SELECT (dashboard freshness peeks + ON CONFLICT
+-- visibility for the RPC's internal INSERT, even though that runs
+-- under SECURITY DEFINER as the RPC owner).
 GRANT SELECT ON TABLE profile.discord_bootstrap_cache TO service_role;
 
 ALTER TABLE profile.discord_bootstrap_cache ENABLE ROW LEVEL SECURITY;
 
--- Round 5 #3: WITH CHECK simplified to true. The RPC validates
--- inputs explicitly and the table CHECK constraints remain
--- authoritative — RLS WITH CHECK was paying duplicate validation
--- cost for a code path service_role no longer takes directly.
+-- Round 6 #7: policy is SELECT-only (was FOR ALL). Matches actual
+-- grants and prevents future privilege drift where someone re-adds
+-- UPDATE and a stale FOR ALL policy silently permits it.
 DROP POLICY IF EXISTS "service_role_full_access" ON profile.discord_bootstrap_cache;
-CREATE POLICY "service_role_full_access"
+DROP POLICY IF EXISTS "service_role_select"      ON profile.discord_bootstrap_cache;
+CREATE POLICY "service_role_select"
     ON profile.discord_bootstrap_cache
     AS PERMISSIVE
-    FOR ALL
+    FOR SELECT
     TO service_role
-    USING (true)
-    WITH CHECK (true);
+    USING (true);
 
 DROP POLICY IF EXISTS "supabase_auth_admin_select" ON profile.discord_bootstrap_cache;
 CREATE POLICY "supabase_auth_admin_select"
@@ -141,20 +146,29 @@ CREATE POLICY "supabase_auth_admin_select"
     USING (true);
 
 -- ------------------------------------------------------------
--- Service-role RPC: the only write path for the cache
+-- Service-role write RPC (the only sanctioned write surface)
 -- ------------------------------------------------------------
--- Centralised write surface that handles validation, dedup +
--- canonical ordering, account relinking, future-timestamp guard, and
--- updated_at maintenance. SECURITY DEFINER + owned by the migrating
--- role (effectively superuser) so it can bypass the absent direct
--- INSERT grant for service_role.
+-- Round 6 #4 + #5: advisory locks on (user_id, provider_id) in
+-- fixed order to serialise concurrent OAuth refreshes for the same
+-- account and avoid races between DELETE (relinking) and INSERT
+-- (upsert). Lock order is invariant (user_id first, then
+-- provider_id) so any caller doing both takes them in the same
+-- sequence -> no deadlocks.
 --
--- Folds in round-5 #1, #2, #7, #10, #12.
+-- Round 6 #9: owner pinned to postgres explicitly so SECURITY
+-- DEFINER behaviour is stable across env/migrating-role variance.
+--
+-- Round 6 #10: error messages trimmed of function-name prefixes —
+-- expected validation failures, not internal-state leaks.
+--
+-- Round 6 #11: explicit NULL handling for p_refreshed_at so a
+-- caller passing NULL doesn't bypass the future/floor checks and
+-- hit the table NOT NULL violation downstream.
 CREATE OR REPLACE FUNCTION profile.service_upsert_discord_bootstrap_cache(
     p_user_id              uuid,
     p_discord_provider_id  text,
     p_owned_guilds         text[]      DEFAULT ARRAY[]::text[],
-    p_refreshed_at         timestamptz DEFAULT statement_timestamp()
+    p_refreshed_at         timestamptz DEFAULT NULL
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -165,32 +179,33 @@ DECLARE
     v_canonical text[];
     v_now       timestamptz := statement_timestamp();
 BEGIN
-    -- Belt 1: input shape validation. Cleaner errors than letting the
-    -- table constraints fail later.
     IF p_user_id IS NULL THEN
-        RAISE EXCEPTION 'service_upsert_discord_bootstrap_cache: user_id required';
+        RAISE EXCEPTION 'user_id required';
     END IF;
     IF p_discord_provider_id IS NULL OR p_discord_provider_id !~ '^[0-9]{15,25}$' THEN
-        RAISE EXCEPTION 'service_upsert_discord_bootstrap_cache: invalid discord_provider_id';
+        RAISE EXCEPTION 'invalid discord_provider_id';
     END IF;
 
-    -- Round 5 #10: reject future-dated writes >30s before they hit
-    -- storage. Table CHECK can't express now()+30s (not IMMUTABLE),
-    -- so it has to be enforced here.
+    IF p_refreshed_at IS NULL THEN
+        p_refreshed_at := v_now;
+    END IF;
     IF p_refreshed_at > v_now + interval '30 seconds' THEN
-        RAISE EXCEPTION
-            'service_upsert_discord_bootstrap_cache: p_refreshed_at too far in future (got %, max %)',
+        RAISE EXCEPTION 'refreshed_at too far in future (got %, max %)',
             p_refreshed_at, v_now + interval '30 seconds';
     END IF;
     IF p_refreshed_at < '2025-01-01'::timestamptz THEN
-        RAISE EXCEPTION
-            'service_upsert_discord_bootstrap_cache: p_refreshed_at below floor (got %, min 2025-01-01)',
+        RAISE EXCEPTION 'refreshed_at below floor (got %, min 2025-01-01)',
             p_refreshed_at;
     END IF;
 
-    -- Round 5 #7: canonicalise. NULL + non-snowflake elements are
-    -- filtered; duplicates collapsed by first-seen order; capped at
-    -- 100 to match the table CHECK.
+    -- Round 6 #4 + #5: serialise concurrent writes for this account.
+    -- Always lock user first, then provider, for consistent ordering.
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 1));
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_discord_provider_id, 2));
+
+    -- Canonicalise: NULL + non-snowflake elements filtered; duplicates
+    -- collapsed by first-seen order; capped at 50 (matches table CHECK
+    -- and JWT mint cap).
     SELECT COALESCE(array_agg(g ORDER BY ord), ARRAY[]::text[])
       INTO v_canonical
       FROM (
@@ -201,15 +216,13 @@ BEGIN
              AND g ~ '^[0-9]{17,20}$'
            GROUP BY g
            ORDER BY MIN(ord)
-           LIMIT 100
+           LIMIT 50
       ) AS s;
 
-    -- Round 5 #12: account relinking. If the same Discord provider
-    -- id is cached under a different user_id (rare, but possible
-    -- when a user re-OAuths under a fresh Supabase identity), drop
-    -- the stale row first so the upsert below succeeds against the
-    -- discord_provider_id UNIQUE constraint instead of raising a
-    -- raw unique_violation to the caller.
+    -- Account relinking: drop stale row carrying same provider_id
+    -- under a different user_id so the upsert below can succeed
+    -- against the discord_provider_id UNIQUE constraint without
+    -- raising a raw unique_violation.
     DELETE FROM profile.discord_bootstrap_cache
      WHERE discord_provider_id = p_discord_provider_id
        AND user_id <> p_user_id;
@@ -226,8 +239,11 @@ BEGIN
 END;
 $$;
 
+ALTER FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz)
+    OWNER TO postgres;
+
 COMMENT ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz) IS
-    'Service-role upsert for profile.discord_bootstrap_cache. Validates inputs, canonicalises owned_guilds (dedup + first-seen order + cap 100), enforces future-timestamp guard, handles account relinking, maintains updated_at. The only sanctioned write path — service_role has no direct INSERT/UPDATE/DELETE on the table.';
+    'Service-role upsert for profile.discord_bootstrap_cache. Validates inputs, canonicalises owned_guilds (dedup + first-seen + cap 50), enforces future-timestamp guard + 2025 floor, handles account relinking, advisory-locks on (user_id, provider_id) in fixed order, maintains updated_at. Owner pinned to postgres for stable SECURITY DEFINER behaviour. Only sanctioned write path — service_role has no direct INSERT/UPDATE/DELETE on the cache.';
 
 REVOKE EXECUTE ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz)
     FROM PUBLIC, anon, authenticated;
@@ -235,13 +251,56 @@ GRANT EXECUTE ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, t
     TO service_role;
 
 -- ------------------------------------------------------------
--- Hook v2 (slimmed — round 5 #6, #8)
+-- SQL helper: guild claim lookup (round 6 #1, #18)
 -- ------------------------------------------------------------
--- Slices to 50 (storage is canonical via the RPC, so no GROUP BY
--- needed) but keeps a defensive NULL + snowflake regex filter as
--- belt+suspender. JWT mint is a security boundary — even if the
--- RPC develops a bug or a superuser does manual DML, the hook
--- still emits only well-formed snowflakes.
+-- Extracted out of the hook so Postgres can inline + cost-estimate
+-- the call. STABLE + COST 20. INVOKER (default) — when called from
+-- the hook (SECURITY DEFINER owned by supabase_auth_admin), the
+-- helper runs as supabase_auth_admin, which has SELECT on the cache.
+--
+-- Storage is canonical via the RPC, so dedup + GROUP BY aren't
+-- needed here. The defensive NULL + regex filter stays because
+-- JWT mint is a security boundary — even if the RPC develops a bug
+-- or a superuser does manual DML, the hook still emits only
+-- well-formed snowflakes.
+CREATE OR REPLACE FUNCTION profile.get_discord_owned_guilds_claim(
+    p_user_id uuid,
+    p_now     timestamptz DEFAULT statement_timestamp()
+)
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SET search_path = ''
+COST 20
+AS $$
+    SELECT COALESCE(to_jsonb(array_agg(g ORDER BY ord)), '[]'::jsonb)
+      FROM (
+          SELECT g, ord
+            FROM profile.discord_bootstrap_cache AS c,
+                 LATERAL unnest(c.owned_guilds) WITH ORDINALITY AS e(g, ord)
+           WHERE c.user_id      = p_user_id
+             AND c.refreshed_at <= p_now + interval '30 seconds'
+             AND c.refreshed_at >= p_now - interval '7 days'
+             AND g IS NOT NULL
+             AND g ~ '^[0-9]{17,20}$'
+           ORDER BY ord
+           LIMIT 50
+      ) AS s;
+$$;
+
+COMMENT ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestamptz) IS
+    'Returns the owned_guilds JWT claim for a user as a jsonb array (max 50 snowflakes, first-seen order, NULL + non-snowflake elements filtered). Reads profile.discord_bootstrap_cache; applies 7-day freshness window + 30-second future-timestamp guard. STABLE + COST 20 so the planner can inline / cost-estimate when called from custom_access_token_hook.';
+
+REVOKE EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestamptz)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestamptz)
+    TO supabase_auth_admin;
+
+-- ------------------------------------------------------------
+-- Hook v2 (slimmed — round 6 #1 delegates guild lookup to helper)
+-- ------------------------------------------------------------
+-- Round 6 #3 + #15: storage cap 50 makes the runtime length check
+-- unreachable; dropped from hook.
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -295,30 +354,7 @@ BEGIN
         v_claims := v_claims - 'kbve_username';
     END IF;
 
-    WITH src AS (
-        SELECT c.owned_guilds AS arr
-          FROM profile.discord_bootstrap_cache AS c
-         WHERE c.user_id      = v_user_id
-           AND c.refreshed_at <= v_now + interval '30 seconds'
-           AND c.refreshed_at >= v_now - interval '7 days'
-    ),
-    guarded AS (
-        SELECT g, ord
-          FROM src,
-               LATERAL unnest(src.arr) WITH ORDINALITY AS e(g, ord)
-         WHERE g IS NOT NULL
-           AND g ~ '^[0-9]{17,20}$'
-         ORDER BY ord
-         LIMIT 50
-    )
-    SELECT COALESCE(to_jsonb(array_agg(g ORDER BY ord)), '[]'::jsonb)
-      INTO v_owned_guilds
-      FROM guarded;
-
-    IF length(v_owned_guilds::text) > 1600 THEN
-        v_owned_guilds := '[]'::jsonb;
-    END IF;
-
+    v_owned_guilds := profile.get_discord_owned_guilds_claim(v_user_id, v_now);
     v_claims := jsonb_set(v_claims, '{owned_guilds}', v_owned_guilds, true);
 
     RETURN jsonb_set(event, '{claims}', v_claims, true);
@@ -334,7 +370,7 @@ GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb)
     TO supabase_auth_admin;
 
 COMMENT ON FUNCTION public.custom_access_token_hook(jsonb) IS
-    'GoTrue access-token hook v2: embeds profile.username as kbve_username and profile.discord_bootstrap_cache.owned_guilds (canonical text[] storage, slice 50 + defensive NULL/regex filter, 7-day freshness + 30-second future-timestamp guard, soft 1600-char size cap) as owned_guilds JWT claim. No external calls.';
+    'GoTrue access-token hook v2: embeds profile.username as kbve_username and delegates owned_guilds lookup to profile.get_discord_owned_guilds_claim. No external calls. Slim PL/pgSQL orchestration; guild work happens in the SQL helper for planner inlining.';
 
 -- ------------------------------------------------------------
 -- Privilege + plumbing assertions
@@ -344,6 +380,7 @@ BEGIN
     PERFORM 'public.custom_access_token_hook(jsonb)'::regprocedure;
     PERFORM 'profile.discord_owned_guilds_are_valid(text[])'::regprocedure;
     PERFORM 'profile.service_upsert_discord_bootstrap_cache(uuid,text,text[],timestamptz)'::regprocedure;
+    PERFORM 'profile.get_discord_owned_guilds_claim(uuid,timestamptz)'::regprocedure;
 
     IF NOT has_schema_privilege('supabase_auth_admin', 'public', 'USAGE') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold USAGE on schema public.';
@@ -354,8 +391,8 @@ BEGIN
     IF NOT has_function_privilege('supabase_auth_admin', 'public.custom_access_token_hook(jsonb)', 'EXECUTE') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold EXECUTE on public.custom_access_token_hook(jsonb).';
     END IF;
-    IF NOT has_function_privilege('service_role', 'profile.discord_owned_guilds_are_valid(text[])', 'EXECUTE') THEN
-        RAISE EXCEPTION 'service_role must hold EXECUTE on profile.discord_owned_guilds_are_valid(text[]).';
+    IF NOT has_function_privilege('supabase_auth_admin', 'profile.get_discord_owned_guilds_claim(uuid,timestamptz)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'supabase_auth_admin must hold EXECUTE on profile.get_discord_owned_guilds_claim for the hook to delegate.';
     END IF;
     IF NOT has_function_privilege('service_role', 'profile.service_upsert_discord_bootstrap_cache(uuid,text,text[],timestamptz)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_role must hold EXECUTE on profile.service_upsert_discord_bootstrap_cache for bootstrap writes.';
@@ -369,14 +406,20 @@ BEGIN
        OR has_function_privilege('public',     'public.custom_access_token_hook(jsonb)', 'EXECUTE') THEN
         RAISE EXCEPTION 'public.custom_access_token_hook(jsonb) must not be executable by anon/authenticated/public.';
     END IF;
+    -- Round 6 #6: validator EXECUTE intentionally revoked from
+    -- everyone. CHECK constraint runs the function as table owner.
+    IF has_function_privilege('service_role',       'profile.discord_owned_guilds_are_valid(text[])', 'EXECUTE')
+       OR has_function_privilege('supabase_auth_admin', 'profile.discord_owned_guilds_are_valid(text[])', 'EXECUTE')
+       OR has_function_privilege('anon',            'profile.discord_owned_guilds_are_valid(text[])', 'EXECUTE')
+       OR has_function_privilege('authenticated',   'profile.discord_owned_guilds_are_valid(text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'validator EXECUTE must be revoked from all roles; CHECK constraint runs it under table owner.';
+    END IF;
     IF NOT has_table_privilege('supabase_auth_admin', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold SELECT on profile.discord_bootstrap_cache.';
     END IF;
     IF NOT has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'service_role must hold SELECT on profile.discord_bootstrap_cache (dashboard peek + ON CONFLICT visibility).';
     END IF;
-    -- Round 5 #2 negative assertions: direct write privileges
-    -- intentionally NOT granted. Writes go through the RPC.
     IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'INSERT') THEN
         RAISE EXCEPTION 'service_role must NOT have direct INSERT on profile.discord_bootstrap_cache; use service_upsert RPC.';
     END IF;
@@ -390,18 +433,27 @@ BEGIN
        OR has_table_privilege('authenticated', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'anon/authenticated must NOT have SELECT on profile.discord_bootstrap_cache.';
     END IF;
+    -- Round 6 #9: RPC owner must be postgres for stable
+    -- SECURITY DEFINER behaviour.
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_roles r ON r.oid = p.proowner
+        WHERE p.oid = 'profile.service_upsert_discord_bootstrap_cache(uuid,text,text[],timestamptz)'::regprocedure
+          AND r.rolname = 'postgres'
+    ) THEN
+        RAISE EXCEPTION 'profile.service_upsert_discord_bootstrap_cache must be owned by postgres.';
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ------------------------------------------------------------
--- Behavioural smoke checks (SQL-only — no writes to auth.users)
+-- Hook behavioural smoke checks (SQL-only — no writes to auth.users)
 -- ------------------------------------------------------------
 DO $$
 DECLARE
     v_out  jsonb;
 BEGIN
-    -- 1: empty event / no user_id -> claims preserved, privileged
-    -- claims absent.
     v_out := public.custom_access_token_hook(
         jsonb_build_object('claims', jsonb_build_object('role','authenticated'))
     );
@@ -412,8 +464,6 @@ BEGIN
         RAISE EXCEPTION 'smoke 1: invalid user_id must NOT emit owned_guilds, got %', v_out->'claims';
     END IF;
 
-    -- 2: malformed user_id with attacker-supplied owned_guilds claim
-    -- -> claim stripped.
     v_out := public.custom_access_token_hook(
         jsonb_build_object(
             'user_id', 'not-a-uuid',
@@ -427,8 +477,6 @@ BEGIN
         RAISE EXCEPTION 'smoke 2: malformed user_id must strip attacker-supplied owned_guilds, got %', v_out->'claims';
     END IF;
 
-    -- 3: non-object claims -> rebuilt as object, hook still emits
-    -- owned_guilds [].
     v_out := public.custom_access_token_hook(
         jsonb_build_object(
             'user_id', '00000000-0000-0000-0000-000000000000',
@@ -444,7 +492,6 @@ BEGIN
             v_out->'claims'->'owned_guilds';
     END IF;
 
-    -- 4: valid user_id, no cache row -> owned_guilds [].
     v_out := public.custom_access_token_hook(
         jsonb_build_object(
             'user_id', '00000000-0000-0000-0000-000000000000',
@@ -463,7 +510,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ------------------------------------------------------------
--- Validator smoke (with explicit NULL-element regression guard)
+-- Validator smoke (NULL-element regression guard preserved)
 -- ------------------------------------------------------------
 DO $$
 BEGIN
@@ -485,9 +532,17 @@ BEGIN
     IF profile.discord_owned_guilds_are_valid(ARRAY['123456789012345678901']) THEN
         RAISE EXCEPTION 'validator: accepted too-long snowflake';
     END IF;
-    -- Round 5 #5 regression guard.
     IF profile.discord_owned_guilds_are_valid(ARRAY['111111111111111111', NULL]::text[]) THEN
         RAISE EXCEPTION 'validator: accepted NULL element (round 5 #5 regression)';
+    END IF;
+    -- Round 6 #15: 51-element array exceeds new cap.
+    IF profile.discord_owned_guilds_are_valid(
+        ARRAY(
+            SELECT LPAD(i::text, 18, '1')
+            FROM generate_series(1, 51) AS gs(i)
+        )::text[]
+    ) THEN
+        RAISE EXCEPTION 'validator: accepted 51-element array (cap is 50)';
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -496,20 +551,15 @@ COMMIT;
 
 -- migrate:down transaction:false
 
--- transaction:false: matches the up section.
-
 BEGIN;
 
--- Restore the v1 hook body. Preserves the hardening from v2:
+-- Restore the v1 hook body. Preserves hardening from v2:
 --   - Object typecheck of event->'claims' before jsonb_set
 --   - Invalid / missing user_id strips kbve_username from inbound
 --     claims before returning
 --   - Explicitly strips owned_guilds from inbound claims so a
 --     rollback during a sign-in flow can't leak v2 state into a v1
 --     JWT
---
--- Function is REPLACE'd, not DROPPED — GoTrue is configured to call
--- it and a missing function would break all sign-in.
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -565,9 +615,9 @@ REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb)
 GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb)
     TO supabase_auth_admin;
 
--- Round 5 #13: explicit drops for new objects this migration added.
--- Order: RPC first (no deps), then table (cascades policies), then
--- validator overload.
+-- Drop in dependency order: helper (called by nothing in down), RPC
+-- (writes to table), table (cascades policies), validator.
+DROP FUNCTION  IF EXISTS profile.get_discord_owned_guilds_claim(uuid, timestamptz);
 DROP FUNCTION  IF EXISTS profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz);
 DROP TABLE     IF EXISTS profile.discord_bootstrap_cache;
 DROP FUNCTION  IF EXISTS profile.discord_owned_guilds_are_valid(text[]);
