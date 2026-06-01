@@ -57,7 +57,7 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
 }
 
 fn parse_line(line: &str) -> Option<GameEvent> {
-    let trimmed = line.trim_end_matches(|c: char| c == '\n' || c == '\r');
+    let trimmed = line.trim_end_matches(['\n', '\r']);
     let kind = if trimmed.contains("[CHAT]") {
         GameEventKind::Chat
     } else if trimmed.contains("[JOIN]") {
