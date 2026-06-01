@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: factorio-rotator
+    namespace: factorio
+spec:
+    schedule: '*/5 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 0
+            ttlSecondsAfterFinished: 3600
+            template:
+                spec:
+                    serviceAccountName: factorio-rotator
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 65532
+                        runAsGroup: 65532
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: rotator
+                          image: bitnami/kubectl:1.31
+                          imagePullPolicy: IfNotPresent
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities:
+                                  drop:
+                                      - ALL
+                              readOnlyRootFilesystem: true
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+                                  NS=factorio
+                                  GS=factorio
+                                  desired=$(kubectl -n "$NS" get gs/"$GS" -o jsonpath='{.spec.template.spec.containers[?(@.name=="factorio")].image}' 2>/dev/null || true)
+                                  running=$(kubectl -n "$NS" get pod/"$GS" -o jsonpath='{.spec.containers[?(@.name=="factorio")].image}' 2>/dev/null || true)
+                                  state=$(kubectl -n "$NS" get gs/"$GS" -o jsonpath='{.status.state}' 2>/dev/null || true)
+                                  echo "desired=${desired} running=${running} state=${state}"
+                                  if [ -z "$desired" ] || [ -z "$running" ]; then
+                                    echo "missing gs or pod — nothing to rotate"
+                                    exit 0
+                                  fi
+                                  if [ "$desired" = "$running" ]; then
+                                    echo "images match — no rotation needed"
+                                    exit 0
+                                  fi
+                                  if [ "$state" != "Ready" ] && [ "$state" != "Allocated" ]; then
+                                    echo "gs not Ready/Allocated (state=${state}) — skipping rotate, will retry next tick"
+                                    exit 0
+                                  fi
+                                  echo "image drift detected: ${running} -> ${desired}; rotating"
+                                  kubectl -n "$NS" delete gs/"$GS" --timeout=180s
+                                  echo "delete sent; ArgoCD selfHeal will recreate from ${desired}"
+                          resources:
+                              requests:
+                                  cpu: 25m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi

@@ -4,15 +4,16 @@ FROM factoriotools/factorio:${FACTORIO_VERSION}-rootless
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget jq ca-certificates zip && \
+    apt-get install -y --no-install-recommends wget jq ca-certificates zip python3-minimal && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --chown=1000:1000 apps/agones/factorio/config /opt/factorio/config-defaults
 COPY --chown=1000:1000 apps/agones/factorio/mods /opt/factorio/mods-defaults
 COPY --chown=1000:1000 apps/agones/factorio/mods-local/kbve /opt/factorio/mods-defaults/kbve
 COPY apps/agones/factorio/shim/agones-shim.sh /usr/local/bin/agones-shim
+COPY apps/agones/factorio/shim/agones-shim-prestop.sh /usr/local/bin/agones-shim-prestop
 
-RUN chmod +x /usr/local/bin/agones-shim && \
+RUN chmod +x /usr/local/bin/agones-shim /usr/local/bin/agones-shim-prestop && \
     mkdir -p /shared/log /factorio/config /factorio/mods /factorio/scenarios && \
     ln -sfn /opt/factorio/mods-defaults/kbve/scenarios/kbve /factorio/scenarios/kbve && \
     chown -R 1000:1000 /shared/log /factorio/config /factorio/mods /factorio/scenarios
