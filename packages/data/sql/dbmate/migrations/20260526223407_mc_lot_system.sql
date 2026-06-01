@@ -157,7 +157,14 @@ CREATE TABLE mc.lot (
         ((upper(chunk_x_range) - lower(chunk_x_range))
        * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
     anchor_y        SMALLINT NOT NULL,
-    owner_user_id   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    -- ON DELETE RESTRICT, not SET NULL: the owner_state_chk requires
+    -- state > 0 to carry a non-null owner. SET NULL would let a user
+    -- deletion drop the owner column on a built/owned/under_build lot
+    -- and surface the CHECK violation at the wrong layer. Forcing a
+    -- restriction means user deletion has to flow through an explicit
+    -- 'release my lots' RPC that resets state, owner, and schematic
+    -- together.
+    owner_user_id   UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
     -- 0 = vacant, 1 = owned, 2 = built, 3 = under_build, 4 = demolishing
     state           SMALLINT NOT NULL DEFAULT 0,
@@ -228,7 +235,9 @@ CREATE TABLE mc.lot (
 -- pick the index directly without rewriting the predicate. The trailing
 -- lot_id makes every ordering deterministic and unlocks keyset
 -- pagination in a later migration without touching these indexes.
-CREATE INDEX idx_mc_lot_owner ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
+-- Bare 'WHERE owner_user_id = $1' lookups are covered by the leading
+-- column of idx_mc_lot_owner_world_chunk_cursor; no separate non-cursor
+-- owner index needed.
 CREATE INDEX idx_mc_lot_world_chunk_cursor
     ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id);
 CREATE INDEX idx_mc_lot_world_state_chunk_cursor
@@ -1197,7 +1206,9 @@ BEGIN
 
     -- The partial uq_mc_lot_build_log_one_active_per_lot index turns a
     -- concurrent second queue attempt into a unique_violation. Translate
-    -- to a clearer domain error.
+    -- ONLY that constraint into the domain error; an idempotency-key
+    -- collision (different mc_lot_build_log_idem_uq constraint) must
+    -- re-raise so the caller sees a distinct error.
     BEGIN
         INSERT INTO mc.lot_build_log (
             lot_id, actor_user_id, action_kind, schematic_id,
@@ -1212,8 +1223,16 @@ BEGIN
         )
         RETURNING build_id INTO v_build_id;
     EXCEPTION WHEN unique_violation THEN
-        RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
-            USING ERRCODE = '23505';
+        DECLARE
+            v_constraint TEXT;
+        BEGIN
+            GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME;
+            IF v_constraint = 'uq_mc_lot_build_log_one_active_per_lot' THEN
+                RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
+                    USING ERRCODE = '23505';
+            END IF;
+            RAISE;
+        END;
     END;
 
     UPDATE mc.lot SET state = 3 WHERE lot_id = p_lot_id;
@@ -1303,8 +1322,16 @@ BEGIN
         )
         RETURNING build_id INTO v_build_id;
     EXCEPTION WHEN unique_violation THEN
-        RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
-            USING ERRCODE = '23505';
+        DECLARE
+            v_constraint TEXT;
+        BEGIN
+            GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME;
+            IF v_constraint = 'uq_mc_lot_build_log_one_active_per_lot' THEN
+                RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
+                    USING ERRCODE = '23505';
+            END IF;
+            RAISE;
+        END;
     END;
 
     UPDATE mc.lot SET state = 4 WHERE lot_id = p_lot_id;
@@ -1550,15 +1577,36 @@ RETURNS TABLE (
     price_credits   BIGINT,
     price_khash     BIGINT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 256
 AS $$
-    SELECT * FROM mc.proxy_list_lots(
+BEGIN
+    -- Generic list has a four-field cursor (world + chunk_x + chunk_z +
+    -- lot_id). All-or-none, otherwise a malformed client cursor would
+    -- silently return zero rows from the SQL-level guard inside
+    -- mc.proxy_list_lots and hide the bug.
+    IF p_after_lot_id IS NOT NULL
+       AND (p_after_world IS NULL
+            OR p_after_chunk_x IS NULL
+            OR p_after_chunk_z IS NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_world, after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NULL
+       AND (p_after_world IS NOT NULL
+            OR p_after_chunk_x IS NOT NULL
+            OR p_after_chunk_z IS NOT NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_world, after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY SELECT * FROM mc.proxy_list_lots(
         p_world, p_state, p_only_mine, p_limit, p_offset,
         p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
@@ -1818,12 +1866,16 @@ BEGIN
     IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
         RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
     END IF;
-    -- Cursor all-or-none. world is already pinned via p_world so it
-    -- doesn't enter the cursor tuple; the three remaining cursor args
-    -- must agree on null-ness.
-    IF (p_after_lot_id IS NULL) <> (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL)
-       OR (p_after_lot_id IS NOT NULL
-           AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL)) THEN
+    -- Cursor all-or-none. Split into two directional checks so the
+    -- 'lot_id NULL + one coord set' case (and its mirror) can't slip
+    -- through a clever boolean.
+    IF p_after_lot_id IS NOT NULL
+       AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NULL
+       AND (p_after_chunk_x IS NOT NULL OR p_after_chunk_z IS NOT NULL) THEN
         RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
             USING ERRCODE = '22023';
     END IF;

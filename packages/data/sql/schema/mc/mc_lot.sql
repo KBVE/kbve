@@ -102,7 +102,11 @@ CREATE TABLE IF NOT EXISTS mc.lot (
         ((upper(chunk_x_range) - lower(chunk_x_range))
        * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
     anchor_y        SMALLINT NOT NULL,
-    owner_user_id   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    -- ON DELETE RESTRICT: owner_state_chk requires state>0 to carry a
+    -- non-null owner, so SET NULL would induce CHECK violations on user
+    -- deletion. Force the deletion path through an explicit release-lots
+    -- RPC that resets state, owner, and schematic together.
+    owner_user_id   UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
     state           SMALLINT NOT NULL DEFAULT 0,
     price_credits   BIGINT NOT NULL DEFAULT 0,
@@ -151,8 +155,6 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     )
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_owner
-    ON mc.lot (owner_user_id) WHERE owner_user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_cursor
     ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_cursor
