@@ -11,11 +11,14 @@
 				"{projectRoot}/info.json",
 				"{projectRoot}/prototypes/**/*.lua",
 				"{projectRoot}/graphics/**/*.png",
-				"{projectRoot}/tools/test_mod.py"
+				"{projectRoot}/tools/test_mod.py",
+				"{projectRoot}/pyproject.toml"
 			],
 			"outputs": [],
 			"options": {
-				"commands": ["python3 tools/test_mod.py"],
+				"commands": [
+					"uv run --quiet --project . python tools/test_mod.py"
+				],
 				"cwd": "apps/factorio/mods/kbve-spider",
 				"parallel": false
 			}
@@ -25,7 +28,7 @@
 			"cache": false,
 			"options": {
 				"commands": [
-					"python3 tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
+					"uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
 				],
 				"cwd": "apps/factorio/mods/kbve-spider",
 				"parallel": false
@@ -42,11 +45,14 @@
 				"{projectRoot}/README.md",
 				"{projectRoot}/prototypes/**/*.lua",
 				"{projectRoot}/graphics/**/*.png",
-				"{projectRoot}/tools/build_zip.py"
+				"{projectRoot}/tools/build_zip.py",
+				"{projectRoot}/pyproject.toml"
 			],
 			"outputs": ["{projectRoot}/dist"],
 			"options": {
-				"commands": ["python3 tools/build_zip.py"],
+				"commands": [
+					"uv run --quiet --project . python tools/build_zip.py"
+				],
 				"cwd": "apps/factorio/mods/kbve-spider",
 				"parallel": false
 			}
@@ -56,7 +62,9 @@
 			"cache": false,
 			"dependsOn": ["test"],
 			"options": {
-				"commands": ["python3 tools/test_mod.py"],
+				"commands": [
+					"uv run --quiet --project . python tools/test_mod.py"
+				],
 				"cwd": "apps/factorio/mods/kbve-spider",
 				"parallel": false
 			}
@@ -65,7 +73,9 @@
 			"executor": "nx:run-commands",
 			"cache": false,
 			"options": {
-				"commands": ["python3 tools/optimize_pngs.py"],
+				"commands": [
+					"uv run --quiet --project . python tools/optimize_pngs.py"
+				],
 				"cwd": "apps/factorio/mods/kbve-spider",
 				"parallel": false
 			}
