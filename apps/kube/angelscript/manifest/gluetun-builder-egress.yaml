@@ -12,23 +12,10 @@
 # Gluetun's tun0 instead of dying through masquerade NAT.
 #
 # Prereqs:
-#   1. SealedSecret `vpn-wireguard` exists in the `angelscript` namespace.
-#      Re-seal the KASM creds into this namespace (SealedSecret is ns-scoped):
-#        kubectl create secret generic vpn-wireguard \
-#          --dry-run=client \
-#          --namespace=angelscript \
-#          --from-literal=VPN_SERVICE_PROVIDER="<provider>" \
-#          --from-literal=VPN_TYPE="wireguard" \
-#          --from-literal=WIREGUARD_PRIVATE_KEY="<key>" \
-#          --from-literal=WIREGUARD_ADDRESSES="<addr>" \
-#          --from-literal=WIREGUARD_PUBLIC_KEY="<peer pub>" \
-#          --from-literal=WIREGUARD_ENDPOINT_IP="<ip>" \
-#          --from-literal=WIREGUARD_ENDPOINT_PORT="<port>" \
-#          -o yaml | \
-#          kubeseal --controller-name=sealed-secrets \
-#                   --controller-namespace=sealed-secrets \
-#                   -o yaml > sealed-vpn-wireguard.yaml
-#      Then commit `sealed-vpn-wireguard.yaml` alongside this file.
+#   1. The `vpn-wireguard` Secret is materialized in this namespace by ESO,
+#      mirrored from the upstream `kasm/vpn-wireguard` SealedSecret (see
+#      external-secrets.yaml). The sealed source of truth lives in the kasm
+#      namespace; this namespace only ever holds a refreshable copy.
 #   2. NetworkPolicy in this namespace permits TCP 8888 from `app: angelscript`
 #      pods to this deployment (handled in networkpolicy.yaml).
 #
