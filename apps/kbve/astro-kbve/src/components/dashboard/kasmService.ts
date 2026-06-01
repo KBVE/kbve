@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { getSupa } from '@/lib/supa';
+import { fetchIndexedLogs } from './clickhouseService';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,6 +59,21 @@ export const KasmState = {
 const PROXY_BASE = '/dashboard/vm/proxy';
 const KASM_NAMESPACE = 'kasm';
 const REFRESH_INTERVAL_MS = 15_000;
+const SUPERVISOR_WINDOW_MIN = 60;
+const SUPERVISOR_REFRESH_MS = 60_000;
+const SUPERVISOR_FETCH_LIMIT = 500;
+
+export interface SupervisorActivity {
+	cloak: number;
+	discord: number;
+	windowMin: number;
+	fetchedAt: Date;
+}
+
+const SUPERVISOR_PATTERNS = {
+	cloak: 'launching cloakbrowser',
+	discord: 'launching discord',
+} as const;
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -218,6 +234,12 @@ class KasmService {
 	public readonly $loading = atom<boolean>(true);
 	public readonly $error = atom<string | null>(null);
 	public readonly $actionInProgress = atom<string | null>(null);
+	public readonly $supervisorActivity = atom<
+		Record<string, SupervisorActivity>
+	>({});
+
+	private _supervisorInterval: ReturnType<typeof setInterval> | undefined;
+	private _supervisorInflight = false;
 
 	public readonly $runningCount = computed(
 		[this.$workspaces],
@@ -292,6 +314,56 @@ class KasmService {
 			() => this.fetchData(token),
 			REFRESH_INTERVAL_MS,
 		);
+		this.fetchSupervisorActivity(token);
+		if (this._supervisorInterval) clearInterval(this._supervisorInterval);
+		this._supervisorInterval = setInterval(
+			() => this.fetchSupervisorActivity(token),
+			SUPERVISOR_REFRESH_MS,
+		);
+	}
+
+	public async fetchSupervisorActivity(token: string): Promise<void> {
+		if (this._supervisorInflight) return;
+		const workspaces = this.$workspaces.get();
+		if (workspaces.length === 0) return;
+		this._supervisorInflight = true;
+		try {
+			const [cloakRows, discordRows] = await Promise.all([
+				fetchIndexedLogs(token, {
+					namespace: KASM_NAMESPACE,
+					search: SUPERVISOR_PATTERNS.cloak,
+					minutes: SUPERVISOR_WINDOW_MIN,
+					limit: SUPERVISOR_FETCH_LIMIT,
+				}).catch(() => []),
+				fetchIndexedLogs(token, {
+					namespace: KASM_NAMESPACE,
+					search: SUPERVISOR_PATTERNS.discord,
+					minutes: SUPERVISOR_WINDOW_MIN,
+					limit: SUPERVISOR_FETCH_LIMIT,
+				}).catch(() => []),
+			]);
+
+			const fetchedAt = new Date();
+			const next: Record<string, SupervisorActivity> = {};
+			for (const info of workspaces) {
+				const name = info.workspace.name;
+				const cloak = cloakRows.filter((r) =>
+					r.pod_name?.startsWith(name),
+				).length;
+				const discord = discordRows.filter((r) =>
+					r.pod_name?.startsWith(name),
+				).length;
+				next[name] = {
+					cloak,
+					discord,
+					windowMin: SUPERVISOR_WINDOW_MIN,
+					fetchedAt,
+				};
+			}
+			this.$supervisorActivity.set(next);
+		} finally {
+			this._supervisorInflight = false;
+		}
 	}
 
 	/** Per-workspace action result — cleared after 5s or on next action */
