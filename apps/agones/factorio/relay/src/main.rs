@@ -6,7 +6,6 @@ mod irc_bridge;
 mod log_tail;
 mod rcon_client;
 mod rcon_pool;
-mod sim_director;
 
 use anyhow::Result;
 use tokio::sync::{broadcast, mpsc};
@@ -39,14 +38,13 @@ async fn main() -> Result<()> {
     let (game_tx, _) = broadcast::channel::<GameEvent>(512);
     let (irc_in_tx, irc_in_rx) = mpsc::channel::<IrcMessage>(512);
 
-    let (rcon_pool, rcon_pool_handle) = rcon_pool::spawn(cfg.clone());
+    let (_rcon_pool, rcon_pool_handle) = rcon_pool::spawn(cfg.clone());
 
     let tail_handle = tokio::spawn(log_tail::run(cfg.clone(), game_tx.clone()));
     let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), irc_in_tx));
     let rcon_handle = tokio::spawn(rcon_client::run(cfg.clone(), irc_in_rx));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
-    let sim_handle = tokio::spawn(sim_director::run(cfg.clone(), rcon_pool));
 
     drop(game_tx);
 
@@ -56,7 +54,6 @@ async fn main() -> Result<()> {
         r = rcon_handle => r??,
         r = ch_handle => r??,
         r = agones_handle => r??,
-        r = sim_handle => r??,
         r = rcon_pool_handle => r??,
         _ = tokio::signal::ctrl_c() => {
             info!("ctrl_c received, shutting down");
