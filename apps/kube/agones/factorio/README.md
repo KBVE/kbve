@@ -149,3 +149,13 @@ time — fine for the single-pod Phase 1 layout.
 - **Why `externalTrafficPolicy: Local`** — preserves the client source IP
   in the kernel UDP socket so admin tooling that bans / rate-limits by IP
   doesn't see every connection as coming from the same node.
+
+## Art assets
+
+NPC portrait artwork used by the Market / Exchange GUIs is sourced from
+[Fropl's Sci-Fi Portrait Pack](https://fropl.itch.io/sci-fi-portrait-pack).
+The PNGs live in this monorepo under `dist/artwork_portrait/` (ignored by
+git, hydrated locally before image build). The pack itself is not
+redistributed inside the `kbve` mod zip or the GameServer image — only
+the subset wired into the GUI ships, and the credit line stays in this
+README rather than on the mod portal listing.
