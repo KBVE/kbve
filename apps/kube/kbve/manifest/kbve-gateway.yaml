@@ -13,6 +13,13 @@ spec:
     infrastructure:
         labels:
             node.kbve.com/type: dedicated-server
+        annotations:
+            # Claim both LB IPs for the same gateway so the legacy
+            # talos.kbve.com (.74) CNAME keeps resolving after the
+            # ingress-nginx drop. Envoy listens on both VIPs; no CF
+            # DNS edits required during the cutover. Drop .74 later
+            # once every external CNAME has been audited and moved.
+            io.cilium/lb-ipam-ips: '142.132.206.71,142.132.206.74'
     listeners:
         - name: http
           protocol: HTTP
