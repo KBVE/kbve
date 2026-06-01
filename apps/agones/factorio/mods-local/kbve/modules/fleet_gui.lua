@@ -1,10 +1,79 @@
 local FleetState = require('modules.fleet_state')
 local FleetMissions = require('modules.fleet_missions')
+local Npcs = require('modules.npcs')
 
 local FleetGui = {}
 
 local GUI_NAME = 'kbve_fleet'
 local TABBED_NAME = 'kbve_fleet_tabbed'
+local BODY_NAME = 'kbve_fleet_body'
+local NPC_PANEL_NAME = 'kbve_fleet_npc_panel'
+local NPC_PORTRAIT_NAME = 'kbve_fleet_npc_portrait'
+local NPC_NAME_LABEL = 'kbve_fleet_npc_name'
+local NPC_ROLE_LABEL = 'kbve_fleet_npc_role'
+local NPC_DIALOG_LABEL = 'kbve_fleet_npc_dialog'
+
+local function fleet_sprite_or_nil(path)
+	if path and helpers and helpers.is_valid_sprite_path and helpers.is_valid_sprite_path(path) then
+		return path
+	end
+	return nil
+end
+
+local function render_fleet_npc_panel(panel, npc, line)
+	panel.clear()
+	panel.style.minimal_width = 220
+	panel.style.maximal_width = 240
+	local portrait_path = fleet_sprite_or_nil(npc.portrait)
+	if portrait_path then
+		local portrait = panel.add({
+			type = 'sprite',
+			name = NPC_PORTRAIT_NAME,
+			sprite = portrait_path,
+		})
+		portrait.style.minimal_width = 200
+		portrait.style.minimal_height = 300
+		portrait.style.stretch_image_to_widget_size = true
+	else
+		local placeholder = panel.add({
+			type = 'frame',
+			name = NPC_PORTRAIT_NAME,
+			direction = 'vertical',
+		})
+		placeholder.style.minimal_width = 200
+		placeholder.style.minimal_height = 300
+		placeholder.add({
+			type = 'label',
+			caption = '[portrait pending]',
+		}).style.font_color = { r = 0.6, g = 0.7, b = 1 }
+	end
+	panel.add({
+		type = 'label',
+		name = NPC_NAME_LABEL,
+		caption = npc.name,
+		style = 'heading_2_label',
+	})
+	panel.add({
+		type = 'label',
+		name = NPC_ROLE_LABEL,
+		caption = npc.role,
+	}).style.font_color = { r = 0.7, g = 0.75, b = 0.9 }
+	local dialog = panel.add({
+		type = 'label',
+		name = NPC_DIALOG_LABEL,
+		caption = line,
+	})
+	dialog.style.single_line = false
+	dialog.style.maximal_width = 220
+end
+
+local function refresh_fleet_npc(player, line)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local body = frame[BODY_NAME]
+	local panel = body and body[NPC_PANEL_NAME]
+	if panel then render_fleet_npc_panel(panel, Npcs.FLEET_DISPATCHER, line) end
+end
 local VEHICLES_TAB = 'kbve_fleet_vehicles'
 local ZONES_TAB = 'kbve_fleet_zones'
 local DISPATCH_TAB = 'kbve_fleet_dispatch'
@@ -386,6 +455,11 @@ local function sync_unregistered(player)
 		', newly registered: ', synced,
 		', failed: ', failed,
 	})
+	if synced > 0 then
+		refresh_fleet_npc(player, Npcs.sync_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	elseif failed > 0 then
+		refresh_fleet_npc(player, Npcs.unregistered_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	end
 end
 
 local function render_zones(content, player)
@@ -720,7 +794,20 @@ function FleetGui.show(player)
 	header.add({ type = 'button', name = REFRESH_NAME, caption = 'Refresh' })
 	header.add({ type = 'button', name = CLOSE_NAME, caption = 'Close' })
 
-	local tabbed = frame.add({ type = 'tabbed-pane', name = TABBED_NAME })
+	local body = frame.add({ type = 'flow', name = BODY_NAME, direction = 'horizontal' })
+
+	local npc_panel = body.add({
+		type = 'flow',
+		name = NPC_PANEL_NAME,
+		direction = 'vertical',
+	})
+	render_fleet_npc_panel(
+		npc_panel,
+		Npcs.FLEET_DISPATCHER,
+		Npcs.greeting(Npcs.FLEET_DISPATCHER, player.index)
+	)
+
+	local tabbed = body.add({ type = 'tabbed-pane', name = TABBED_NAME })
 
 	local vehicles_tab = tabbed.add({ type = 'tab', caption = 'Vehicles' })
 	local vehicles_content = tabbed.add({
@@ -798,7 +885,7 @@ end
 local function refresh(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	if not tabbed then return end
 	if tabbed[VEHICLES_TAB] then render_vehicles(tabbed[VEHICLES_TAB], player) end
 	if tabbed[ZONES_TAB] then render_zones(tabbed[ZONES_TAB], player) end
@@ -813,7 +900,7 @@ local function dispatch(player)
 	log('[kbve_fleet] dispatch called by ' .. player.name)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then log('[kbve_fleet] no frame'); return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	if not tabbed then log('[kbve_fleet] no tabbed'); return end
 	local dispatch_content = tabbed[DISPATCH_TAB]
 	if not dispatch_content then log('[kbve_fleet] no dispatch tab'); return end
@@ -938,7 +1025,7 @@ end
 local function mining_dispatch(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	local content = tabbed and tabbed[MINING_TAB]
 	if not content then return end
 	local row = content['kbve_fleet_mining_row']
@@ -953,12 +1040,13 @@ local function mining_dispatch(player)
 	local unit_ids = units_matching(player, is_miner)
 	local n = FleetMissions.assign_mining(player, unit_ids, zone_name)
 	player.print({ '', 'Mining mission: ', tostring(n), ' miner(s) sent to ', zone_name, '.' })
+	refresh_fleet_npc(player, Npcs.mining_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
 end
 
 local function defense_dispatch(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	local content = tabbed and tabbed[DEFENSE_TAB]
 	if not content then return end
 	local row = content['kbve_fleet_defense_row']
@@ -976,12 +1064,13 @@ local function defense_dispatch(player)
 		FleetState.set_unit_mission(uid, 'defense', zone_name)
 	end
 	player.print({ '', 'Defense mission: ', tostring(n), ' combat unit(s) holding ', zone_name, '.' })
+	refresh_fleet_npc(player, Npcs.defense_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
 end
 
 local function combat_dispatch(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	local content = tabbed and tabbed[COMBAT_TAB]
 	if not content then return end
 	local row = content['kbve_fleet_combat_row']
@@ -997,6 +1086,7 @@ local function combat_dispatch(player)
 	local unit_ids = units_matching(player, is_combat)
 	local n = FleetMissions.assign_combat(player, unit_ids, { x = x, y = y })
 	player.print({ '', 'Combat strike: ', tostring(n), ' unit(s) en route to (', tostring(x), ',', tostring(y), ').' })
+	refresh_fleet_npc(player, Npcs.combat_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
 end
 
 local function set_zone_role_from_dropdown(player, elem, zone_name)
@@ -1013,7 +1103,7 @@ end
 
 local function group_create(player)
 	local frame = player.gui.screen[GUI_NAME]
-	local tabbed = frame and frame[TABBED_NAME]
+	local body = frame and frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	local content = tabbed and tabbed[GROUPS_TAB]
 	if not content then return end
 	local row = content['kbve_fleet_group_new_row']
@@ -1032,7 +1122,7 @@ end
 
 local function group_dispatch(player, group_id)
 	local frame = player.gui.screen[GUI_NAME]
-	local tabbed = frame and frame[TABBED_NAME]
+	local body = frame and frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 	local content = tabbed and tabbed[GROUPS_TAB]
 	if not content then return end
 	local dd = content[GROUP_ZONE_PREFIX .. group_id]
@@ -1117,7 +1207,7 @@ function FleetGui.on_gui_click(event)
 	end
 	if name == SELECTION_ADD_BUTTON then
 		local frame = player.gui.screen[GUI_NAME]
-		local tabbed = frame and frame[TABBED_NAME]
+		local body = frame and frame[BODY_NAME]; local tabbed = body and body[TABBED_NAME]
 		local content = tabbed and tabbed[VEHICLES_TAB]
 		local sel_row = content and content['kbve_fleet_sel_row']
 		local dd = sel_row and sel_row[SELECTION_GROUP_DROPDOWN]
@@ -1159,6 +1249,14 @@ function FleetGui.on_gui_selection_state_changed(event)
 		local zone_name = name:sub(#ZONE_ROLE_PREFIX + 1)
 		set_zone_role_from_dropdown(player, elem, zone_name)
 	end
+end
+
+function FleetGui.on_gui_selected_tab_changed(event)
+	local elem = event.element
+	if not (elem and elem.valid and elem.name == TABBED_NAME) then return end
+	local player = game.get_player(event.player_index)
+	if not player then return end
+	refresh_fleet_npc(player, Npcs.greeting(Npcs.FLEET_DISPATCHER, player.index + game.tick))
 end
 
 function FleetGui.on_player_left(event)

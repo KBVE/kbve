@@ -38,8 +38,41 @@ local VAULT_KEEPER = {
 	},
 }
 
+local FLEET_DISPATCHER = {
+	id = 'fleet_dispatcher',
+	name = 'Kress',
+	role = 'Fleet Dispatcher',
+	portrait = 'kbve_portrait_3',
+	greetings = {
+		'Fleet ready. Where are we sending them?',
+		'Every chassis on the board, captain. Your call.',
+		'Wheels lubed, fuel topped, drivers alert.',
+	},
+	mining_lines = {
+		'Miners en route. They will fan out on arrival.',
+		'Drill bits warm. Ore is borrowed time anyway.',
+	},
+	defense_lines = {
+		'Defenders deployed. They hold or they fall back.',
+		'Turrets up. Biters will think twice.',
+	},
+	combat_lines = {
+		'Strike package away. Make it count.',
+		'No survivors at the target. Acknowledged.',
+	},
+	sync_lines = {
+		'New chassis registered with the grid.',
+		'Headcount updated. The roster is clean.',
+	},
+	unregistered_lines = {
+		'Some vehicles are still off-grid. Run a sync.',
+		'I count more cars than transponders. Sync them.',
+	},
+}
+
 Npcs.EXCHANGE_KEEPER = EXCHANGE_KEEPER
 Npcs.VAULT_KEEPER = VAULT_KEEPER
+Npcs.FLEET_DISPATCHER = FLEET_DISPATCHER
 
 local function pick_line(pool, seed)
 	if not pool or #pool == 0 then return '' end
@@ -61,6 +94,26 @@ end
 
 function Npcs.deposit_line(npc, seed)
 	return pick_line(npc.deposit_lines, seed)
+end
+
+function Npcs.mining_line(npc, seed)
+	return pick_line(npc.mining_lines, seed)
+end
+
+function Npcs.defense_line(npc, seed)
+	return pick_line(npc.defense_lines, seed)
+end
+
+function Npcs.combat_line(npc, seed)
+	return pick_line(npc.combat_lines, seed)
+end
+
+function Npcs.sync_line(npc, seed)
+	return pick_line(npc.sync_lines, seed)
+end
+
+function Npcs.unregistered_line(npc, seed)
+	return pick_line(npc.unregistered_lines, seed)
 end
 
 return Npcs
