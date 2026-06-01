@@ -1,17 +1,56 @@
 ---
-/**
- * KBVE Sidebar override — wraps Starlight's default left sidebar in a
- * `transition:persist` container so the DOM survives ClientRouter
- * navigation. Eliminates the cross-fade flicker where the sidebar
- * briefly re-renders between pages: active-link highlight, group
- * collapsed state, and `data-auth-visibility` gates all stay stable
- * across swaps. Starlight's internal JS updates the active-link
- * class via `astro:after-swap` so the sidebar still tracks the
- * current route.
- */
 import Default from '@astrojs/starlight/components/Sidebar.astro';
 ---
 
-<div transition:persist="kbve-sidebar">
+<div transition:persist="kbve-sidebar" data-kbve-sidebar-root>
 	<Default />
 </div>
+
+<script is:inline data-astro-rerun>
+	(function () {
+		const ROOT_SELECTOR = '[data-kbve-sidebar-root]';
+		const normalize = (p) => {
+			if (!p) return '/';
+			let v = p.split('#')[0].split('?')[0];
+			if (v.length > 1 && v.endsWith('/')) v = v.slice(0, -1);
+			return v || '/';
+		};
+		const update = () => {
+			const root = document.querySelector(ROOT_SELECTOR);
+			if (!root) return;
+			const current = normalize(window.location.pathname);
+			const links = root.querySelectorAll('a[href]');
+			let match = null;
+			for (const link of links) {
+				const href = link.getAttribute('href') || '';
+				if (
+					href.startsWith('http') ||
+					href.startsWith('//') ||
+					href.startsWith('mailto:') ||
+					href.startsWith('tel:')
+				) {
+					continue;
+				}
+				if (normalize(href) === current) {
+					link.setAttribute('aria-current', 'page');
+					match = link;
+				} else if (link.getAttribute('aria-current') === 'page') {
+					link.removeAttribute('aria-current');
+				}
+			}
+			if (match) {
+				let parent = match.parentElement;
+				while (parent && parent !== root) {
+					if (parent.tagName === 'DETAILS') parent.open = true;
+					parent = parent.parentElement;
+				}
+			}
+		};
+		update();
+		if (!window.__kbveSidebarBound) {
+			window.__kbveSidebarBound = true;
+			document.addEventListener('astro:after-swap', update);
+			document.addEventListener('astro:page-load', update);
+		}
+	})();
+</script>
