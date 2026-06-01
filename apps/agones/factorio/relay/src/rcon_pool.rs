@@ -61,7 +61,7 @@ impl RconPool {
 
 pub fn spawn(cfg: Config) -> (RconPool, tokio::task::JoinHandle<Result<()>>) {
     let (tx, rx) = mpsc::channel::<RconJob>(256);
-    let permits = std::sync::Arc::new(Semaphore::new(cfg.sim_rcon_rate_limit_qps.max(1) as usize));
+    let permits = std::sync::Arc::new(Semaphore::new(4));
     let pool = RconPool {
         tx,
         permits: permits.clone(),

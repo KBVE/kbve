@@ -467,13 +467,16 @@ dependencies = [
  "futures",
  "jedi",
  "reqwest 0.12.28",
+ "rustls 0.23.37",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
+ "tokio-rustls 0.26.4",
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]
