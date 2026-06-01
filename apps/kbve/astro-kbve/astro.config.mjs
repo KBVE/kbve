@@ -198,8 +198,25 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Profile', link: '/dashboard/profile/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Account', link: '/dashboard/account/', attrs: { 'data-auth-visibility': 'auth' } },
+						{
+							label: 'Account',
+							collapsed: true,
+							items: [
+								{ label: 'Profile', link: '/dashboard/profile/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Account', link: '/dashboard/account/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Marketplace', link: '/dashboard/market/', attrs: { 'data-auth-visibility': 'auth' } },
+							],
+						},
+						{
+							label: 'Workspace',
+							collapsed: true,
+							items: [
+								{ label: 'Kanban', link: '/dashboard/kanban/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Report', link: '/dashboard/report/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Graph', link: '/dashboard/graph/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Security', link: '/dashboard/security/', attrs: { 'data-auth-visibility': 'auth' } },
+							],
+						},
 						{
 							label: 'Agents',
 							collapsed: true,
@@ -209,12 +226,7 @@ export default defineConfig({
 								{ label: 'DiscordSH', link: '/dashboard/agents/discordsh/', attrs: { 'data-auth-visibility': 'auth' } },
 							],
 						},
-						{ label: 'Marketplace', link: '/dashboard/market/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'API', link: '/dashboard/api/' },
-						{ label: 'Kanban', link: '/dashboard/kanban/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Report', link: '/dashboard/report/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Graph', link: '/dashboard/graph/', attrs: { 'data-auth-visibility': 'auth' } },
-						{ label: 'Security', link: '/dashboard/security/', attrs: { 'data-auth-visibility': 'auth' } },
 						{ label: 'ArgoCD', link: '/dashboard/argo/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'ClickHouse', link: '/dashboard/clickhouse/', attrs: { 'data-auth-visibility': 'staff' } },
 						{ label: 'Edge', link: '/dashboard/edge/', attrs: { 'data-auth-visibility': 'auth' } },
