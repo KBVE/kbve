@@ -46,7 +46,22 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
-              run: pnpm install --frozen-lockfile
+              timeout-minutes: 10
+              env:
+                  UV_THREADPOOL_SIZE: '16'
+              run: pnpm install --frozen-lockfile --prefer-offline
+
+            # Every NPM package the dispatcher fans into this workflow
+            # (devops, droid, khashvault, laser) has a sibling `<pkg>-e2e`
+            # Playwright suite, so always install chromium up front. The
+            # `pnpm install` step's UV_THREADPOOL_SIZE bump carries over to
+            # avoid the chromium-extract libuv-threadpool deadlock seen in
+            # earlier runs.
+            - name: Install Playwright Browsers
+              timeout-minutes: 15
+              env:
+                  UV_THREADPOOL_SIZE: '16'
+              run: pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud
