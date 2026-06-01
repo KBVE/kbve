@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-05-04T06:27:06.676Z
+ * Generated: 2026-06-01T06:12:05.358Z
  */
 
 import { z } from 'zod';
@@ -48,7 +48,7 @@ export const SteamAppSchema = z.object({
 	label: z.string().min(1).max(64).optional(),
 	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
 	branch: z.string().min(1).max(64).optional(),
-	promote_to_branch: z.string().min(1).max(64).optional(),
+	promote_to_branch: z.string().optional(),
 });
 
 export type SteamApp = z.infer<typeof SteamAppSchema>;
@@ -77,6 +77,16 @@ export const ExternalPublishSchema = z.object({
 	curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
 	curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
 	curseforge_release_type: z.enum(['alpha', 'beta', 'release']).optional(),
+	factorio_mod_name: z
+		.string()
+		.min(1)
+		.max(50)
+		.regex(
+			/^[a-zA-Z0-9_-]+$/,
+			'Factorio mod name must match the portal slug',
+		)
+		.optional(),
+	factorio_mod_source_path: z.string().min(1).max(256).optional(),
 });
 
 export type ExternalPublish = z.infer<typeof ExternalPublishSchema>;
@@ -143,6 +153,7 @@ export const CiProjectSchema = z.object({
 	image: z.string().max(128).optional(),
 	e2e_name: z.string().max(64).optional(),
 	deployment_yaml: z.string().max(256).optional(),
+	deployment_yamls: z.array(z.string()).optional(),
 	version_target: z.string().max(256).optional(),
 	has_test: z.boolean().optional(),
 	target: z.string().max(64).optional(),

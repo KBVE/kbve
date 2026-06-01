@@ -104,6 +104,8 @@
 		"kbve.ci.ExternalPublish.google_play_track": "z.enum(['internal', 'alpha', 'beta', 'production']).optional()",
 		"kbve.ci.ExternalPublish.curseforge_project_id": "z.string().regex(/^\\d+$/).max(16).optional()",
 		"kbve.ci.ExternalPublish.curseforge_pack_id": "z.string().regex(/^\\d+$/).max(16).optional()",
-		"kbve.ci.ExternalPublish.curseforge_release_type": "z.enum(['alpha', 'beta', 'release']).optional()"
+		"kbve.ci.ExternalPublish.curseforge_release_type": "z.enum(['alpha', 'beta', 'release']).optional()",
+		"kbve.ci.ExternalPublish.factorio_mod_name": "z.string().min(1).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Factorio mod name must match the portal slug').optional()",
+		"kbve.ci.ExternalPublish.factorio_mod_source_path": "z.string().min(1).max(256).optional()"
 	}
 }

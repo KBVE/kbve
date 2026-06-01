@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ows.binpb
  * Config: ../ows-zod-config.json
- * Generated: 2026-05-04T21:04:26.540Z
+ * Generated: 2026-06-01T06:12:05.360Z
  */
 
 import { z } from 'zod';

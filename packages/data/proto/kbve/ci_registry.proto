@@ -140,6 +140,10 @@ message ExternalPublish {
   optional string curseforge_project_id = 50;   // Numeric CurseForge project id
   optional string curseforge_pack_id = 51;      // Optional separate modpack project id
   optional string curseforge_release_type = 52; // alpha | beta | release
+
+  // ── Factorio Mod Portal (mods.factorio.com) ───────────────────────
+  optional string factorio_mod_name = 60;
+  optional string factorio_mod_source_path = 61;
 }
 
 // A tracked item in the CI dispatch registry.
