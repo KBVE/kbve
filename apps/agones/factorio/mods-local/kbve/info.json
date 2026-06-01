@@ -2,10 +2,17 @@
 	"name": "kbve",
 	"version": "0.0.1",
 	"factorio_version": "2.0",
-	"title": "KBVE",
+	"title": "KBVE Fleet Commander",
 	"author": "kbve",
 	"contact": "https://kbve.com",
 	"homepage": "https://kbve.com",
-	"description": "KBVE Factorio server scenario + exchange terminal. Coin economy, market, personal vault, scenario starter compound.",
-	"dependencies": ["base >= 2.0", "? space-age"]
+	"license": "MIT — see https://kbve.com/legal/",
+	"description": "KBVE community server pack: an in-game economy and an AAI fleet command center. Spawn inside a walled starter compound with the KBVE Exchange (buy items, deposit into a per-player vault that survives deaths and rejoins) and the KBVE Fleet Commander (single GUI for every AAI vehicle on the surface - sync unregistered cars, fan a miner squad across a mining zone, send combat units to a defense zone, route returns through highway tiles, auto-deposit when cargo is full, retreat under fire). Designed for the public KBVE Factorio server but works standalone with AAI Programmable Vehicles, AAI Zones, and AAI Industry installed.",
+	"dependencies": [
+		"base >= 2.0",
+		"? space-age",
+		"? aai-programmable-vehicles",
+		"? aai-zones",
+		"? aai-industry"
+	]
 }

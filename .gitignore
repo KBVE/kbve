@@ -159,3 +159,4 @@ mono_crash.*.json
 # Solitaire standalone (single-HTML itch.io build)
 apps/kbve/astro-kbve/dist/solitaire-standalone/
 apps/kbve/astro-kbve/dist/solitaire-standalone.zip
+apps/agones/factorio/mods-local/dist/

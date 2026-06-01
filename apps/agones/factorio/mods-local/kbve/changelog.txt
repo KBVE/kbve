@@ -1,0 +1,16 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2026-06-01
+  Features:
+    - KBVE Exchange entity with a tabbed Buy / Vault GUI.
+    - Per-player coin economy backed by the vanilla coin item.
+    - Per-player vault inventory that persists across deaths and rejoins.
+    - Walled spawn compound with starter chests, warehouses, and starter research applied to the player force.
+    - KBVE Fleet Commander entity for bulk AAI vehicle control.
+    - Zones tab: tag any AAI zone as mining / defense / refuel / deposit / highway.
+    - Mining tab: filter to miners, fan units across the zone, auto-skip depleted tiles, auto-deposit when cargo fills.
+    - Defense tab: filter to combat units, patrol cadence, retreat-on-HP.
+    - Combat tab: one-shot offensive dispatch to a typed map position.
+    - Squads tab: persist named subsets of the fleet with mission badge.
+    - Mission tick loop: low-fuel routes to refuel zone, low-HP routes to refuel zone, multi-waypoint return path via highway tiles.
+    - Coin payouts for AAI vehicle kills and hauler deposits.
