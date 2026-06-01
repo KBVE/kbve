@@ -1,5 +1,4 @@
 import {
-	Clock,
 	Color,
 	DirectionalLight,
 	HemisphereLight,
@@ -11,6 +10,7 @@ import {
 	WebGLRenderer,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Timer } from 'three/examples/jsm/misc/Timer.js';
 import {
 	VRM,
 	VRMHumanBoneName,
@@ -25,8 +25,6 @@ export type YukiState = 'idle' | 'talking' | 'wave' | 'nod' | 'shake' | 'happy';
 
 export interface YukiVRMHandle {
 	setState(state: YukiState): void;
-	speak(audio: HTMLAudioElement | MediaStream): void;
-	stopSpeaking(): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
 	destroy(): void;
@@ -135,6 +133,17 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		void 0;
 	}
 
+	const humanoid = vrm.humanoid;
+	const spineBone = humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Spine);
+	const hipsBone = humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Hips);
+	const headBone = humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Head);
+	const rUpperArm = humanoid?.getNormalizedBoneNode(
+		VRMHumanBoneName.RightUpperArm,
+	);
+	const rLowerArm = humanoid?.getNormalizedBoneNode(
+		VRMHumanBoneName.RightLowerArm,
+	);
+
 	const lookAtTarget = new Object3D();
 	lookAtTarget.position.set(0, 1.45, 0.6);
 	scene.add(lookAtTarget);
@@ -163,7 +172,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		lastPointNx = 0;
 	});
 
-	const clock = new Clock();
+	const timer = new Timer();
 	let currentState: YukiState = 'idle';
 	let blinkCooldown = 1.5 + Math.random() * 2;
 	let blinkPhase = 0;
@@ -178,83 +187,6 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	): void => {
 		expressionTarget[name] = value;
 		lastInteractionMs = performance.now();
-	};
-
-	const setExpressionInstant = (
-		name: VRMExpressionPresetName,
-		value: number,
-	): void => {
-		expressionTarget[name] = value;
-		expressionCurrent[name] = value;
-		vrm.expressionManager?.setValue(name, value);
-	};
-
-	let audioCtx: AudioContext | null = null;
-	let analyser: AnalyserNode | null = null;
-	let activeSourceNode:
-		| MediaElementAudioSourceNode
-		| MediaStreamAudioSourceNode
-		| null = null;
-	let buffer: Uint8Array<ArrayBuffer> | null = null;
-	let speakingActive = false;
-
-	const ensureAudio = (): AudioContext => {
-		if (!audioCtx) {
-			audioCtx = new (
-				window.AudioContext ||
-				(
-					window as unknown as {
-						webkitAudioContext: typeof AudioContext;
-					}
-				).webkitAudioContext
-			)();
-		}
-		return audioCtx;
-	};
-
-	const ensureAnalyser = (ctx: AudioContext): AnalyserNode => {
-		if (analyser) return analyser;
-		analyser = ctx.createAnalyser();
-		analyser.fftSize = 256;
-		buffer = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount));
-		return analyser;
-	};
-
-	const speak = (source: HTMLAudioElement | MediaStream): void => {
-		const ctx = ensureAudio();
-		void ctx.resume();
-		const a = ensureAnalyser(ctx);
-		try {
-			activeSourceNode?.disconnect();
-		} catch {
-			void 0;
-		}
-		const node =
-			source instanceof HTMLAudioElement
-				? ctx.createMediaElementSource(source)
-				: ctx.createMediaStreamSource(source);
-		node.connect(a);
-		if (source instanceof HTMLAudioElement) {
-			a.connect(ctx.destination);
-		}
-		activeSourceNode = node;
-		speakingActive = true;
-		currentState = 'talking';
-		lastInteractionMs = performance.now();
-	};
-
-	const stopSpeaking = (): void => {
-		speakingActive = false;
-		try {
-			activeSourceNode?.disconnect();
-		} catch {
-			void 0;
-		}
-		activeSourceNode = null;
-		currentState = 'idle';
-		setExpression('aa', 0);
-		setExpression('ih', 0);
-		setExpression('ou', 0);
 	};
 
 	const triggerGesture = (
@@ -290,36 +222,26 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		lastInteractionMs = performance.now();
 	};
 
-	const applyGesture = (vrmRef: VRM, gesture: Gesture, _delta: number) => {
+	const applyGesture = (gesture: Gesture) => {
 		const p = Math.min(1, gesture.elapsed / gesture.duration);
 		const fade = Math.sin(p * Math.PI);
-		const hum = vrmRef.humanoid;
-		if (!hum) return;
 		if (gesture.name === 'wave') {
-			const rUpper = hum.getNormalizedBoneNode(
-				VRMHumanBoneName.RightUpperArm,
-			);
-			const rLower = hum.getNormalizedBoneNode(
-				VRMHumanBoneName.RightLowerArm,
-			);
-			if (rUpper) {
+			if (rUpperArm) {
 				const baseZ = MathUtils.degToRad(-75);
 				const lift = MathUtils.degToRad(-115) - baseZ;
-				rUpper.rotation.z = baseZ + lift * fade;
-				rUpper.rotation.x = MathUtils.degToRad(-10) * fade;
+				rUpperArm.rotation.z = baseZ + lift * fade;
+				rUpperArm.rotation.x = MathUtils.degToRad(-10) * fade;
 			}
-			if (rLower) {
+			if (rLowerArm) {
 				const sway = Math.sin(gesture.elapsed * 14) * 0.5 * fade;
-				rLower.rotation.y = MathUtils.degToRad(12) + sway;
+				rLowerArm.rotation.y = MathUtils.degToRad(12) + sway;
 			}
 		} else if (gesture.name === 'nod') {
-			const head = hum.getNormalizedBoneNode(VRMHumanBoneName.Head);
-			if (head)
-				head.rotation.x += Math.sin(p * Math.PI * 2) * 0.18 * fade;
+			if (headBone)
+				headBone.rotation.x += Math.sin(p * Math.PI * 2) * 0.18 * fade;
 		} else if (gesture.name === 'shake') {
-			const head = hum.getNormalizedBoneNode(VRMHumanBoneName.Head);
-			if (head)
-				head.rotation.y += Math.sin(p * Math.PI * 2) * 0.22 * fade;
+			if (headBone)
+				headBone.rotation.y += Math.sin(p * Math.PI * 2) * 0.22 * fade;
 		}
 	};
 
@@ -339,51 +261,33 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 
 		const idleMs = now - lastInteractionMs;
 		const isIdle =
-			!speakingActive &&
-			!activeGesture &&
-			currentState === 'idle' &&
-			idleMs > 2000;
+			!activeGesture && currentState === 'idle' && idleMs > 2000;
 		const fps = isIdle ? idleFps : activeFps;
 		const minFrameMs = 1000 / fps;
 		if (now - lastFrame < minFrameMs) return;
-		const delta = clock.getDelta();
+		timer.update(now);
+		const delta = timer.getDelta();
 		lastFrame = now;
 
 		targetCurrent.lerp(targetWorld, Math.min(1, delta * 6));
 		lookAtTarget.position.copy(targetCurrent);
 
-		if (speakingActive && analyser && buffer) {
-			analyser.getByteFrequencyData(buffer);
-			let sum = 0;
-			for (let i = 0; i < buffer.length; i++) sum += buffer[i];
-			const avg = sum / buffer.length / 255;
-			const mouth = Math.min(1, avg * 2.3);
-			expressionTarget['aa'] = mouth;
-			expressionTarget['ih'] = mouth * 0.35;
-			expressionTarget['ou'] = mouth * 0.25;
-		}
-
-		const t = performance.now();
-		const spine = vrm.humanoid?.getNormalizedBoneNode(
-			VRMHumanBoneName.Spine,
-		);
-		if (spine) {
-			spine.rotation.x = Math.sin(t / 1400) * 0.018;
-			spine.rotation.z = Math.sin(t / 2700) * 0.012;
-			spine.rotation.y = MathUtils.lerp(
-				spine.rotation.y,
+		if (spineBone) {
+			spineBone.rotation.x = Math.sin(now / 1400) * 0.018;
+			spineBone.rotation.z = Math.sin(now / 2700) * 0.012;
+			spineBone.rotation.y = MathUtils.lerp(
+				spineBone.rotation.y,
 				lastPointNx * 0.12,
 				Math.min(1, delta * 4),
 			);
 		}
-		const hips = vrm.humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Hips);
-		if (hips) {
-			hips.position.y = Math.sin(t / 1100) * 0.005;
+		if (hipsBone) {
+			hipsBone.position.y = Math.sin(now / 1100) * 0.005;
 		}
 
 		if (activeGesture) {
 			activeGesture.elapsed += delta;
-			applyGesture(vrm, activeGesture, delta);
+			applyGesture(activeGesture);
 			if (activeGesture.elapsed >= activeGesture.duration) {
 				activeGesture = null;
 				applyRestPose(vrm);
@@ -406,12 +310,16 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		}
 
 		const expSpeed = Math.min(1, delta * 8);
-		for (const k of Object.keys(expressionTarget)) {
-			const target = expressionTarget[k as VRMExpressionPresetName] ?? 0;
-			const current = expressionCurrent[k] ?? 0;
-			const next = current + (target - current) * expSpeed;
-			expressionCurrent[k] = next;
-			vrm.expressionManager?.setValue(k as VRMExpressionPresetName, next);
+		const mgr = vrm.expressionManager;
+		if (mgr) {
+			for (const k of Object.keys(expressionTarget)) {
+				const target =
+					expressionTarget[k as VRMExpressionPresetName] ?? 0;
+				const current = expressionCurrent[k] ?? 0;
+				const next = current + (target - current) * expSpeed;
+				expressionCurrent[k] = next;
+				mgr.setValue(k as VRMExpressionPresetName, next);
+			}
 		}
 
 		vrm.update(delta);
@@ -420,14 +328,16 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	rafId = requestAnimationFrame(tick);
 
 	const onVisibility = () => {
-		clock.getDelta();
+		timer.update(performance.now());
+		timer.getDelta();
 	};
 	document.addEventListener('visibilitychange', onVisibility);
 
 	const setActive = (next: boolean): void => {
 		active = next;
 		if (next) {
-			clock.getDelta();
+			timer.update(performance.now());
+			timer.getDelta();
 			lastInteractionMs = performance.now();
 		}
 	};
@@ -439,18 +349,6 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		document.removeEventListener('visibilitychange', onVisibility);
 		host.removeEventListener('pointermove', onPointerMove);
 		resizeObserver.disconnect();
-		stopSpeaking();
-		try {
-			analyser?.disconnect();
-		} catch {
-			void 0;
-		}
-		analyser = null;
-		buffer = null;
-		if (audioCtx) {
-			void audioCtx.close().catch(() => {});
-			audioCtx = null;
-		}
 		try {
 			VRMUtils.deepDispose(vrm.scene);
 		} catch {
@@ -461,12 +359,9 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	};
 
 	void currentState;
-	void setExpressionInstant;
 
 	return {
 		setState,
-		speak,
-		stopSpeaking,
 		pointAt,
 		setActive,
 		destroy,
