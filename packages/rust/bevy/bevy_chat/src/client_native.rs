@@ -206,43 +206,24 @@ impl ChatClient {
         let nick = self.config.nick.clone();
         let writer_clone = self.writer.clone();
         tokio::spawn(async move {
-            tracing::info!("[ws-in] read loop started");
             while let Some(item) = stream.next().await {
                 let payload = match item {
-                    Ok(WsMessage::Text(t)) => {
-                        tracing::info!("[ws-in] frame text len={}", t.len());
-                        t.to_string()
-                    }
-                    Ok(WsMessage::Binary(b)) => {
-                        tracing::info!("[ws-in] frame binary len={}", b.len());
-                        match String::from_utf8(b.to_vec()) {
-                            Ok(s) => s,
-                            Err(_) => continue,
-                        }
-                    }
-                    Ok(WsMessage::Ping(_)) => {
-                        tracing::info!("[ws-in] frame ping");
-                        continue;
-                    }
-                    Ok(WsMessage::Pong(_)) => {
-                        tracing::info!("[ws-in] frame pong");
-                        continue;
-                    }
-                    Ok(WsMessage::Close(c)) => {
-                        tracing::warn!("[ws-in] close frame: {:?}", c);
-                        break;
-                    }
+                    Ok(WsMessage::Text(t)) => t.to_string(),
+                    Ok(WsMessage::Binary(b)) => match String::from_utf8(b.to_vec()) {
+                        Ok(s) => s,
+                        Err(_) => continue,
+                    },
+                    Ok(WsMessage::Ping(_)) | Ok(WsMessage::Pong(_)) => continue,
+                    Ok(WsMessage::Close(_)) => break,
                     Ok(_) => continue,
                     Err(e) => {
                         tracing::warn!("IRC-WS read error: {e}");
                         break;
                     }
                 };
-                // The chat.kbve.com gateway delivers each IRC line as its
-                // own WebSocket text frame WITHOUT a trailing CRLF, but raw
-                // IRC TCP and some other gateways include `\r\n` (and may
-                // batch multiple lines per frame). Split on `\n` if present;
-                // otherwise treat the whole frame as a single IRC line.
+                // chat.kbve.com sends each IRC line as a standalone WS frame
+                // without CRLF; raw-TCP gateways batch multiple lines per
+                // frame. Handle both shapes.
                 let trimmed = payload
                     .trim_end_matches('\n')
                     .trim_end_matches('\r')
@@ -259,7 +240,6 @@ impl ChatClient {
                     vec![trimmed]
                 };
                 for line in &lines {
-                    tracing::info!("[ws-in] <= {line}");
                     if line.starts_with("PING") {
                         let pong = line.replacen("PING", "PONG", 1);
                         if let Some(Writer::Ws(ref out)) = *writer_clone.lock().await {
@@ -268,12 +248,6 @@ impl ChatClient {
                         continue;
                     }
                     if let Some(privmsg) = parse_privmsg(line, &nick) {
-                        tracing::info!(
-                            "[ws-in] parsed PRIVMSG sender={} channel={} content={}",
-                            privmsg.sender,
-                            privmsg.channel,
-                            privmsg.content
-                        );
                         let _ = tx.send(privmsg);
                     }
                 }
