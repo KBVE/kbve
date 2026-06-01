@@ -10,6 +10,8 @@
   `--direction-shift N` (each step = 22.5°).
 ]]
 
+local util = require("util")
+
 local FRAME = 256
 local DIRECTIONS = 16
 local SCALE = 0.5
@@ -172,17 +174,57 @@ local sprint_sticker = {
 	single_particle = true,
 }
 
+local ally_spider = util.table.deepcopy(spider)
+ally_spider.name = "kbve-spider-ally"
+ally_spider.order = "b-b-z-kbve-spider-ally"
+ally_spider.max_health = 60
+ally_spider.movement_speed = 0.22
+ally_spider.attack_parameters.cooldown = 50
+
+local spider_egg_item = {
+	type = "item",
+	name = "kbve-spider-egg",
+	icon = "__kbve-spider__/graphics/item/spider-egg.png",
+	icon_size = 64,
+	subgroup = "tool",
+	order = "z[kbve-spider-egg]",
+	stack_size = 10,
+	place_result = "kbve-spider-egg-entity",
+}
+
+local spider_egg_entity = {
+	type = "simple-entity-with-owner",
+	name = "kbve-spider-egg-entity",
+	icon = "__kbve-spider__/graphics/item/spider-egg.png",
+	icon_size = 64,
+	flags = { "placeable-neutral", "placeable-off-grid", "not-blueprintable", "player-creation" },
+	collision_box = { { -0.3, -0.3 }, { 0.3, 0.3 } },
+	selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } },
+	selectable_in_game = true,
+	picture = {
+		filename = "__kbve-spider__/graphics/item/spider-egg.png",
+		width = 64,
+		height = 64,
+		scale = 0.35,
+		shift = { 0, -0.05 },
+	},
+	minable = { mining_time = 0.3, result = "kbve-spider-egg" },
+	max_health = 20,
+	subgroup = "tool",
+	order = "z[kbve-spider-egg-entity]",
+}
+
 data:extend({
 	spider,
-	-- Lingering deaths.
+	ally_spider,
+	spider_egg_item,
+	spider_egg_entity,
 	corpse_proto("Death1", { animation_speed = 0.4 }),
 	corpse_proto("Death2", { animation_speed = 0.4 }),
-	-- Hit reactions: short linger, played fast as stagger visual.
 	corpse_proto("Hit_Front", { time_before_removed = 60, animation_speed = 1.2 }),
 	corpse_proto("Hit_Back",  { time_before_removed = 60, animation_speed = 1.2 }),
 	corpse_proto("Hit_Left",  { time_before_removed = 60, animation_speed = 1.2 }),
 	corpse_proto("Hit_Right", { time_before_removed = 60, animation_speed = 1.2 }),
-	-- Future scripted swaps: spawn via control.lua to overlay states.
 	corpse_proto("Idle",    { time_before_removed = 60, animation_speed = 0.4 }),
 	corpse_proto("Run",     { time_before_removed = 60, animation_speed = 0.6 }),
 	corpse_proto("Attack2", { time_before_removed = 60, animation_speed = 0.5 }),

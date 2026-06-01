@@ -132,6 +132,26 @@ def check_all_sheets(frames: dict[str, int]) -> None:
         f"  graphics OK   ({total} sheets, {len(frames)} anims × {len(LAYERS)} layers)")
 
 
+EXTRA_PNGS = (
+    "graphics/icon.png",
+    "thumbnail.png",
+    "graphics/item/spider-egg.png",
+)
+
+
+def check_extras() -> None:
+    for rel in EXTRA_PNGS:
+        path = ROOT / rel
+        if not path.exists():
+            raise TestFail(f"missing {rel}")
+        try:
+            with Image.open(path) as img:
+                img.load()
+        except Exception as e:
+            raise TestFail(f"{rel}: cannot open ({e})")
+    print(f"  extras OK     ({len(EXTRA_PNGS)} required assets)")
+
+
 def check_wired_anims(frames: dict[str, int]) -> None:
     src = PROTO_PATH.read_text()
     wired = set(find_rotated_calls(src))
@@ -157,6 +177,7 @@ def main() -> int:
 
     check_all_sheets(frames)
     check_wired_anims(frames)
+    check_extras()
 
     print("PASS")
     return 0
