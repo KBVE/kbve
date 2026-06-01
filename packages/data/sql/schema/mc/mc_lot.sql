@@ -151,6 +151,16 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_world_state_chunk_cursor
 CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_vacant_world_chunk_cursor
+    ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id)
+    INCLUDE (chunk_x_max, chunk_z_max, chunk_area, anchor_y,
+             price_credits, price_khash)
+    WHERE state = 0;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_active_world_chunk_cursor
+    ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
+    INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
+             chunk_area, anchor_y)
+    WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id) WHERE current_schematic_id IS NOT NULL;
 
