@@ -105,6 +105,20 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-cryptothrone
+          protocol: HTTPS
+          port: 443
+          hostname: cryptothrone.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: cryptothrone-tls
+                    namespace: cryptothrone
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
 ## kbve.com routes
 apiVersion: gateway.networking.k8s.io/v1
