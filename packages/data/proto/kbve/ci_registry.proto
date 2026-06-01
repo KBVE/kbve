@@ -98,6 +98,16 @@ message SteamApp {
   optional string promote_to_branch = 5; // Branch to flip live via ci-steam-promote.yml after upload; empty = no auto-promote
 }
 
+// One Factorio mod entry for [`ExternalPublish`]. A single CI project can
+// publish multiple mods to mods.factorio.com — e.g. agones-factorio ships
+// both the main `kbve` server pack and the `kbve-spider` content mod from
+// the same Docker pipeline. Each entry is a portal slug + the repo path
+// containing its `info.json`.
+message FactorioMod {
+  string name = 1;        // Portal slug (must match info.json::name and the URL on mods.factorio.com)
+  string source_path = 2; // Repo-relative path to the mod folder containing info.json
+}
+
 // External publish targets — storefronts, mod platforms, package indexes
 // outside the GitHub/GHCR/PyPI core. Consumed by utils-external-publish.yml
 // after a successful Docker / package build to fan out artifacts.
@@ -142,8 +152,10 @@ message ExternalPublish {
   optional string curseforge_release_type = 52; // alpha | beta | release
 
   // ── Factorio Mod Portal (mods.factorio.com) ───────────────────────
-  optional string factorio_mod_name = 60;
-  optional string factorio_mod_source_path = 61;
+  // List of Factorio mods this CI project publishes. Each entry is a
+  // portal slug + the repo path to the mod folder. Field numbers 60 / 61
+  // retired with the migration to the repeated FactorioMod shape.
+  repeated FactorioMod factorio_mods = 62;
 }
 
 // A tracked item in the CI dispatch registry.

@@ -63,6 +63,15 @@ const SteamAppInline = z.object({
 	promote_to_branch: z.string().min(1).max(64).optional(),
 });
 
+const FactorioModInline = z.object({
+	name: z
+		.string()
+		.min(1)
+		.max(50)
+		.regex(/^[a-zA-Z0-9_-]+$/),
+	source_path: z.string().min(1).max(256),
+});
+
 const ExternalPublishInline = z
 	.object({
 		modrinth_mod_id: z.string().max(32).optional(),
@@ -89,13 +98,7 @@ const ExternalPublishInline = z
 		curseforge_release_type: z
 			.enum(['alpha', 'beta', 'release'])
 			.optional(),
-		factorio_mod_name: z
-			.string()
-			.min(1)
-			.max(50)
-			.regex(/^[a-zA-Z0-9_-]+$/)
-			.optional(),
-		factorio_mod_source_path: z.string().min(1).max(256).optional(),
+		factorio_mods: z.array(FactorioModInline).max(10).optional(),
 	})
 	.optional();
 

@@ -10,6 +10,11 @@
 ]]
 
 local SPIDER = "kbve-spider"
+local SPIDER_ALLY = "kbve-spider-ally"
+local EGG_ENTITY = "kbve-spider-egg-entity"
+local HATCH_TICKS = 60 * 30
+
+local SPIDER_NAMES = { [SPIDER] = true, [SPIDER_ALLY] = true }
 
 local HIT_CORPSES = {
 	front = "kbve-spider-corpse-hit-front",
@@ -73,7 +78,7 @@ end
 
 script.on_event(defines.events.on_entity_damaged, function(event)
 	local e = event.entity
-	if not (e and e.valid) or e.name ~= SPIDER then return end
+	if not (e and e.valid) or not SPIDER_NAMES[e.name] then return end
 
 	local cause = event.cause
 	local attacker_pos = (cause and cause.valid) and cause.position or e.position
@@ -118,7 +123,16 @@ end)
 
 script.on_event(defines.events.on_entity_died, function(event)
 	local e = event.entity
-	if not (e and e.valid) or e.name ~= SPIDER then return end
+	if not (e and e.valid) then return end
+
+	if e.name == EGG_ENTITY then
+		if storage.pending_eggs and e.unit_number then
+			storage.pending_eggs[e.unit_number] = nil
+		end
+		return
+	end
+
+	if not SPIDER_NAMES[e.name] then return end
 
 	-- The prototype already spawned a Death1 corpse via the `corpse` field.
 	-- 50% of the time, layer a Death2 on top for visual variety.
@@ -139,11 +153,72 @@ end)
 script.on_init(function()
 	storage.sprint_cooldown = {}
 	storage.fleeing = {}
+	storage.pending_eggs = {}
 end)
 
 script.on_configuration_changed(function()
 	storage.sprint_cooldown = storage.sprint_cooldown or {}
 	storage.fleeing = storage.fleeing or {}
+	storage.pending_eggs = storage.pending_eggs or {}
+end)
+
+local function track_egg(entity, tick)
+	storage.pending_eggs = storage.pending_eggs or {}
+	storage.pending_eggs[entity.unit_number] = {
+		tick_due = tick + HATCH_TICKS,
+		surface_index = entity.surface_index,
+		position = { x = entity.position.x, y = entity.position.y },
+		force = entity.force.name,
+	}
+end
+
+local egg_filter = { { filter = "name", name = EGG_ENTITY } }
+
+script.on_event(defines.events.on_built_entity, function(event)
+	track_egg(event.entity, event.tick)
+end, egg_filter)
+
+script.on_event(defines.events.on_robot_built_entity, function(event)
+	track_egg(event.entity, event.tick)
+end, egg_filter)
+
+local function drop_pending(entity)
+	if entity.valid and entity.unit_number and storage.pending_eggs then
+		storage.pending_eggs[entity.unit_number] = nil
+	end
+end
+
+script.on_event(defines.events.on_player_mined_entity, function(event)
+	drop_pending(event.entity)
+end, egg_filter)
+
+script.on_event(defines.events.on_robot_mined_entity, function(event)
+	drop_pending(event.entity)
+end, egg_filter)
+
+script.on_nth_tick(60, function(event)
+	if not storage.pending_eggs then return end
+	for unit_number, info in pairs(storage.pending_eggs) do
+		if event.tick >= info.tick_due then
+			local surface = game.surfaces[info.surface_index]
+			if surface then
+				local eggs = surface.find_entities_filtered{
+					name = EGG_ENTITY,
+					position = info.position,
+					radius = 0.5,
+				}
+				for _, egg in pairs(eggs) do
+					if egg.valid then egg.destroy() end
+				end
+				surface.create_entity{
+					name = SPIDER_ALLY,
+					position = info.position,
+					force = info.force,
+				}
+			end
+			storage.pending_eggs[unit_number] = nil
+		end
+	end
 end)
 
 -- Sprint loop: every SPRINT_TICK_INTERVAL ticks, find spiders that are
@@ -151,19 +226,24 @@ end)
 -- sprint sticker. Per-unit cooldown prevents constant sprinting.
 script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 	for _, surface in pairs(game.surfaces) do
-		local spiders = surface.find_entities_filtered{ name = SPIDER }
+		local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
 		local n = #spiders
 		if n == 0 then goto continue end
 
 		local picks = math.min(NERVOUS_PICK_COUNT, n)
 		for _ = 1, picks do
 			local s = spiders[math.random(1, n)]
-			if s.valid and not s.unit_group then
-				surface.create_entity{
-					name = NERVOUS_CORPSE,
-					position = s.position,
-					direction = s.direction,
-				}
+			if s.valid then
+				local in_group = false
+				local ok, ug = pcall(function() return s.unit_group end)
+				if ok and ug then in_group = true end
+				if not in_group then
+					surface.create_entity{
+						name = NERVOUS_CORPSE,
+						position = s.position,
+						direction = s.direction,
+					}
+				end
 			end
 		end
 		::continue::
@@ -179,17 +259,16 @@ script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
 	local tick = event.tick
 
 	for _, surface in pairs(game.surfaces) do
-		local spiders = surface.find_entities_filtered{ name = SPIDER }
+		local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
 		for i = 1, #spiders do
 			local s = spiders[i]
 			if s.valid then
 				local key = s.unit_number
 				local ready_at = cooldowns[key] or 0
 				if tick >= ready_at then
-					-- `unit_group` is non-nil while a unit is part of an attack
-					-- group (the engine assigns this when biters are coordinating
-					-- a pursuit / raid). Cheap test, no full command read.
-					local in_group = s.unit_group ~= nil
+					local in_group = false
+					local ok, ug = pcall(function() return s.unit_group end)
+					if ok and ug then in_group = true end
 					if in_group and math.random() < SPRINT_CHANCE then
 						surface.create_entity{
 							name = SPRINT_STICKER,
