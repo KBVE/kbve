@@ -5,6 +5,9 @@ local FleetMissions = {}
 local TICK_INTERVAL = 60
 local FUEL_LOW_BURN = 200000
 local CARGO_FULL_RATIO = 0.9
+local COMBAT_RETREAT_HP_RATIO = 0.30
+local PATROL_ARRIVAL_RADIUS = 6
+local SPAWN_REGROUP_POSITION = { x = 0, y = 0 }
 
 local function has_aai_vehicles()
 	return remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles'] ~= nil
@@ -103,6 +106,37 @@ local function ore_under(surface, position)
 	return r[1]
 end
 
+local function pick_live_mining_tile(force, surface, zone_name, seed)
+	local n = zone_count(force, surface.index, zone_name)
+	if n <= 0 then return nil end
+	for i = 1, math.min(n, 12) do
+		local idx = ((seed + i) % n) + 1
+		local tile = zone_tile_at(force, surface.index, zone_name, idx)
+		if tile and not FleetState.is_tile_depleted(zone_name, tile.x, tile.y) then
+			local center = { x = tile.x + 0.5, y = tile.y + 0.5 }
+			if ore_under(surface, center) then
+				return center, tile
+			else
+				FleetState.mark_tile_depleted(zone_name, tile.x, tile.y)
+			end
+		end
+	end
+	return nil
+end
+
+local function unit_hp_ratio(u)
+	if not (u.vehicle and u.vehicle.valid) then return 1 end
+	local ok, max_hp = pcall(function() return u.vehicle.prototype.max_health end)
+	if not ok or not max_hp or max_hp <= 0 then return 1 end
+	return u.vehicle.health / max_hp
+end
+
+local function dist2(a, b)
+	local dx = a.x - b.x
+	local dy = a.y - b.y
+	return dx * dx + dy * dy
+end
+
 local function units_on_mission(mission)
 	local out = {}
 	local fleet = FleetState.get()
@@ -174,7 +208,17 @@ local function tick_mining()
 		if st.mission == 'mining' and registered[unit_id] then
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid then
-				if unit_fuel_low(u) then
+				if unit_cargo_full(u) then
+					local deposit = FleetState.zones_by_role('deposit')[1]
+					if deposit then
+						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, deposit, u.vehicle.position)
+						if pos then
+							FleetState.set_unit_mission(unit_id, 'depositing', deposit)
+							aai_set(unit_id, { target_speed = 0.1 })
+							aai_set(unit_id, { target_position = pos })
+						end
+					end
+				elseif unit_fuel_low(u) then
 					local refuel = FleetState.zones_by_role('refuel')[1]
 					if refuel then
 						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
@@ -184,17 +228,15 @@ local function tick_mining()
 							aai_set(unit_id, { target_position = pos })
 						end
 					end
-				elseif u.target_position == nil or u.mode == 'passive' then
-					local n = zone_count(u.vehicle.force, u.vehicle.surface.index, st.zone)
-					if n > 0 then
-						for i = 1, math.min(n, 8) do
-							local idx = ((game.tick + unit_id + i) % n) + 1
-							local tile = zone_tile_at(u.vehicle.force, u.vehicle.surface.index, st.zone, idx)
-							if tile and ore_under(u.vehicle.surface, { x = tile.x + 0.5, y = tile.y + 0.5 }) then
-								aai_set(unit_id, { target_speed = 0.1 })
-								aai_set(unit_id, { target_position = { x = tile.x + 0.5, y = tile.y + 0.5 } })
-								break
-							end
+				else
+					if u.target_position and not ore_under(u.vehicle.surface, u.target_position) then
+						FleetState.mark_tile_depleted(st.zone, u.target_position.x, u.target_position.y)
+					end
+					if u.target_position == nil or u.mode == 'passive' then
+						local pos = pick_live_mining_tile(u.vehicle.force, u.vehicle.surface, st.zone, game.tick + unit_id)
+						if pos then
+							aai_set(unit_id, { target_speed = 0.1 })
+							aai_set(unit_id, { target_position = pos })
 						end
 					end
 				end
@@ -248,12 +290,95 @@ local function tick_depositing()
 	end
 end
 
+local function tick_defense()
+	local fleet = FleetState.get()
+	local registered = aai_units()
+	for unit_id, st in pairs(fleet.unit_state) do
+		if st.mission == 'defense' and registered[unit_id] then
+			local u = registered[unit_id]
+			if u.vehicle and u.vehicle.valid then
+				if unit_hp_ratio(u) < COMBAT_RETREAT_HP_RATIO then
+					local refuel = FleetState.zones_by_role('refuel')[1]
+					local pos = refuel
+						and nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+						or SPAWN_REGROUP_POSITION
+					FleetState.set_unit_mission(unit_id, 'retreating', refuel)
+					aai_set(unit_id, { target_speed = 0.1 })
+					aai_set(unit_id, { target_position = pos })
+				elseif unit_fuel_low(u) then
+					local refuel = FleetState.zones_by_role('refuel')[1]
+					if refuel then
+						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+						if pos then
+							FleetState.set_unit_mission(unit_id, 'refueling', refuel)
+							aai_set(unit_id, { target_speed = 0.1 })
+							aai_set(unit_id, { target_position = pos })
+						end
+					end
+				else
+					local arrived = u.target_position == nil
+						or u.mode == 'passive'
+						or dist2(u.vehicle.position, u.target_position) <= (PATROL_ARRIVAL_RADIUS * PATROL_ARRIVAL_RADIUS)
+					if arrived then
+						local n = zone_count(u.vehicle.force, u.vehicle.surface.index, st.zone)
+						if n > 0 then
+							local idx = ((game.tick + unit_id) % n) + 1
+							local tile = zone_tile_at(u.vehicle.force, u.vehicle.surface.index, st.zone, idx)
+							if tile then
+								aai_set(unit_id, { target_speed = 0.1 })
+								aai_set(unit_id, { target_position = { x = tile.x + 0.5, y = tile.y + 0.5 } })
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function tick_combat()
+	local fleet = FleetState.get()
+	local registered = aai_units()
+	for unit_id, st in pairs(fleet.unit_state) do
+		if st.mission == 'combat' and registered[unit_id] then
+			local u = registered[unit_id]
+			if u.vehicle and u.vehicle.valid and unit_hp_ratio(u) < COMBAT_RETREAT_HP_RATIO then
+				local refuel = FleetState.zones_by_role('refuel')[1]
+				local pos = refuel
+					and nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+					or SPAWN_REGROUP_POSITION
+				FleetState.set_unit_mission(unit_id, 'retreating', refuel)
+				aai_set(unit_id, { target_speed = 0.1 })
+				aai_set(unit_id, { target_position = pos })
+			end
+		end
+	end
+end
+
+local function tick_retreating()
+	local fleet = FleetState.get()
+	local registered = aai_units()
+	for unit_id, st in pairs(fleet.unit_state) do
+		if st.mission == 'retreating' and registered[unit_id] then
+			local u = registered[unit_id]
+			if u.vehicle and u.vehicle.valid then
+				if unit_hp_ratio(u) > 0.95 then
+					FleetState.set_unit_mission(unit_id, nil, nil)
+				end
+			end
+		end
+	end
+end
+
 function FleetMissions.on_tick(event)
 	if (event.tick % TICK_INTERVAL) ~= 0 then return end
 	if not has_aai_vehicles() then return end
 	tick_mining()
 	tick_refueling()
 	tick_depositing()
+	tick_defense()
+	tick_combat()
+	tick_retreating()
 end
 
 return FleetMissions

@@ -32,6 +32,10 @@ local GROUP_NAME_FIELD = 'kbve_fleet_group_name'
 local GROUP_DELETE_PREFIX = 'kbve_fleet_group_del_'
 local GROUP_DISPATCH_PREFIX = 'kbve_fleet_group_dispatch_'
 local GROUP_ZONE_PREFIX = 'kbve_fleet_group_zone_'
+local SELECT_PREFIX = 'kbve_fleet_select_'
+local SELECTION_CLEAR = 'kbve_fleet_sel_clear'
+local SELECTION_GROUP_DROPDOWN = 'kbve_fleet_sel_group'
+local SELECTION_ADD_BUTTON = 'kbve_fleet_sel_add'
 
 local ROLE_NONE = '— none —'
 
@@ -251,10 +255,45 @@ local function render_vehicles(content, player)
 			caption = 'Registered units (first 20)',
 			style = 'heading_2_label',
 		})
+
+		local selection = FleetState.get_player_selection(player.index)
+		local selection_count = 0
+		for _ in pairs(selection) do selection_count = selection_count + 1 end
+		local sel_row = content.add({ type = 'flow', name = 'kbve_fleet_sel_row', direction = 'horizontal' })
+		sel_row.add({
+			type = 'label',
+			caption = { '', 'Selected: ', tostring(selection_count) },
+		}).style.minimal_width = 120
+		local groups = FleetState.groups_list()
+		local group_items, group_ids = { 'Pick squad…' }, { 0 }
+		for _, g in ipairs(groups) do
+			table.insert(group_items, '#' .. g.id .. ' ' .. g.name)
+			table.insert(group_ids, g.id)
+		end
+		sel_row.add({
+			type = 'drop-down',
+			name = SELECTION_GROUP_DROPDOWN,
+			items = group_items,
+			selected_index = 1,
+		})
+		sel_row.add({
+			type = 'button',
+			name = SELECTION_ADD_BUTTON,
+			caption = 'Add to squad',
+			enabled = selection_count > 0 and #groups > 0,
+		})
+		sel_row.add({
+			type = 'button',
+			name = SELECTION_CLEAR,
+			caption = 'Clear',
+			enabled = selection_count > 0,
+		})
+
 		local detail = content.add({ type = 'scroll-pane', direction = 'vertical' })
 		detail.style.maximal_height = 260
-		detail.style.minimal_width = 540
+		detail.style.minimal_width = 600
 		local detail_header = detail.add({ type = 'flow', direction = 'horizontal' })
+		detail_header.add({ type = 'label', caption = ' ' }).style.minimal_width = 28
 		detail_header.add({ type = 'label', caption = 'ID' }).style.minimal_width = 36
 		detail_header.add({ type = 'label', caption = 'Vehicle' }).style.minimal_width = 200
 		detail_header.add({ type = 'label', caption = 'Mode' }).style.minimal_width = 90
@@ -287,6 +326,11 @@ local function render_vehicles(content, player)
 				dist = tostring(math.floor(math.sqrt(dx * dx + dy * dy)))
 			end
 			local row = detail.add({ type = 'flow', direction = 'horizontal' })
+			row.add({
+				type = 'checkbox',
+				name = SELECT_PREFIX .. u.unit_id,
+				state = selection[u.unit_id] == true,
+			}).style.minimal_width = 28
 			row.add({ type = 'label', caption = '#' .. u.unit_id }).style.minimal_width = 36
 			row.add({
 				type = 'label',
@@ -1045,6 +1089,43 @@ function FleetGui.on_gui_click(event)
 			refresh(player)
 		end
 		return
+	end
+	if name == SELECTION_CLEAR then
+		FleetState.clear_player_selection(player.index)
+		refresh(player)
+		return
+	end
+	if name == SELECTION_ADD_BUTTON then
+		local frame = player.gui.screen[GUI_NAME]
+		local tabbed = frame and frame[TABBED_NAME]
+		local content = tabbed and tabbed[VEHICLES_TAB]
+		local sel_row = content and content['kbve_fleet_sel_row']
+		local dd = sel_row and sel_row[SELECTION_GROUP_DROPDOWN]
+		if not dd or dd.selected_index <= 1 then
+			player.print('Pick a squad to add the selected units into.')
+			return
+		end
+		local groups = FleetState.groups_list()
+		local target_group_id = groups[dd.selected_index - 1] and groups[dd.selected_index - 1].id
+		if not target_group_id then return end
+		local unit_ids = FleetState.player_selected_unit_ids(player.index)
+		FleetState.assign_units_to_group(target_group_id, unit_ids)
+		FleetState.clear_player_selection(player.index)
+		player.print({ '', 'Added ', tostring(#unit_ids), ' unit(s) to squad #', tostring(target_group_id), '.' })
+		refresh(player)
+		return
+	end
+end
+
+function FleetGui.on_gui_checked_state_changed(event)
+	local elem = event.element
+	if not (elem and elem.valid) then return end
+	local name = elem.name or ''
+	if name:sub(1, #SELECT_PREFIX) == SELECT_PREFIX then
+		local uid = tonumber(name:sub(#SELECT_PREFIX + 1))
+		if uid then
+			FleetState.toggle_player_selection(event.player_index, uid)
+		end
 	end
 end
 
