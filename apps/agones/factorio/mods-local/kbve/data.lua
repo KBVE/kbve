@@ -40,4 +40,15 @@ table.insert(to_add, {
 	consuming = 'none',
 })
 
+for i = 1, 6 do
+	table.insert(to_add, {
+		type = 'sprite',
+		name = 'kbve_portrait_' .. i,
+		filename = '__kbve__/graphics/portraits/portrait_' .. i .. '.png',
+		width = 640,
+		height = 960,
+		flags = { 'gui-icon' },
+	})
+end
+
 data:extend(to_add)

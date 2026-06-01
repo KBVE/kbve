@@ -40,7 +40,7 @@ local function render_npc_panel(panel, npc, line)
 			sprite = portrait_path,
 		})
 		portrait.style.minimal_width = 200
-		portrait.style.minimal_height = 200
+		portrait.style.minimal_height = 300
 		portrait.style.stretch_image_to_widget_size = true
 	else
 		local placeholder = panel.add({
@@ -49,7 +49,7 @@ local function render_npc_panel(panel, npc, line)
 			direction = 'vertical',
 		})
 		placeholder.style.minimal_width = 200
-		placeholder.style.minimal_height = 200
+		placeholder.style.minimal_height = 300
 		placeholder.add({
 			type = 'label',
 			caption = '[portrait pending]',
