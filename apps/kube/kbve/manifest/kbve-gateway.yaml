@@ -125,6 +125,48 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-chuckrpg
+          protocol: HTTPS
+          port: 443
+          hostname: chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: chuckrpg-tls
+                    namespace: chuckrpg
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-chuckrpg-api
+          protocol: HTTPS
+          port: 443
+          hostname: api.chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: chuckrpg-api-tls
+                    namespace: rows
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-discordsh
+          protocol: HTTPS
+          port: 443
+          hostname: discord.sh
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: discordsh-tls
+                    namespace: discordsh
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
 ## kbve.com routes
 apiVersion: gateway.networking.k8s.io/v1
