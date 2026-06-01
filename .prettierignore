@@ -15,3 +15,7 @@ apps/kbve/edge/
 .nx/self-healing
 
 pnpm-lock.yaml
+
+packages/data/codegen/generated/*.json
+apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
+apps/discordsh/discordsh-bot/data/mapdb.json
