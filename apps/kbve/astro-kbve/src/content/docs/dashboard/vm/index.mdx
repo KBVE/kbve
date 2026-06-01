@@ -18,3 +18,52 @@ tags:
 import AstroVMDashboard from '@/components/dashboard/AstroVMDashboard.astro';
 
 <AstroVMDashboard />
+
+<div
+    style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '0 1rem 2rem',
+        fontSize: '0.8rem',
+        color: 'rgba(255,255,255,0.45)',
+        lineHeight: 1.5,
+    }}>
+    <details
+        style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+        }}>
+        <summary
+            style={{
+                cursor: 'pointer',
+                color: 'rgba(255,255,255,0.7)',
+                fontWeight: 500,
+            }}>
+            How image tags stay current
+        </summary>
+        <p style={{ marginTop: '0.75rem' }}>
+            Each entry in the dashboard reads the image tag straight from
+            its Kubernetes manifest — KubeVirt <code>VirtualMachine</code>{' '}
+            specs for the VM cards, the <code>kasm-vpn</code>{' '}
+            <code>Deployment</code> for KASM workspaces, and the
+            firecracker manifests for the microVM rows. Tags are pinned
+            (no <code>:latest</code>), so what you see is exactly what's
+            running.
+        </p>
+        <p style={{ marginTop: '0.5rem' }}>
+            Bumps happen automatically: each tracked image has a{' '}
+            <code>version.toml</code> + an MDX entry under{' '}
+            <a href="/project/">/project/</a> referencing the manifest via{' '}
+            <code>deployment_yaml</code>. After CI publishes a new tag, a
+            post-publish chore PR rewrites the pin and ArgoCD rolls the
+            pod. Card image strings (e.g.{' '}
+            <a href="/project/kasm-void/">
+                <code>kasm-void:0.0.1</code>
+            </a>
+            ) link back to the project page where the env knobs and
+            recovery behaviour live.
+        </p>
+    </details>
+</div>
