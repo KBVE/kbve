@@ -48,6 +48,7 @@ export const SteamAppSchema = z.object({
 	label: z.string().min(1).max(64).optional(),
 	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
 	branch: z.string().min(1).max(64).optional(),
+	promote_to_branch: z.string().min(1).max(64).optional(),
 });
 
 export type SteamApp = z.infer<typeof SteamAppSchema>;
