@@ -32,7 +32,8 @@ browser when the user opts in.
 | **A** — Dock shell | ✅ merged (#11474) | Persistent FAB + collapsed panel, vanilla driver, lazy-mount contract, localStorage state, ESC-to-close, reduced-motion respect |
 | **B** — VRM avatar | ✅ merged (#11475) | `@pixiv/three-vrm@^3.5.3` scene, idle/blink animation, `aa`/`ih`/`ou` lipsync via AnalyserNode tap, render-loop visibility + fps gates |
 | **C** — SSE stream | ✅ merged (#11476) | `GET /api/v1/yuki/chat?q=<…>` returns `text/event-stream` chunks; panel streams tokens into the bubble + hands assembled text to `speak()` for lipsync |
-| **D** — Organic + float | 🚧 this PR | Manual rest pose (no T-pose), portrait camera framing, `vrm.lookAt` cursor tracking, spine/hips micro-sway, draggable float-detach layer that persists across `<ClientRouter />` swaps |
+| **D** — Organic + float | ✅ merged (#11492) | Manual rest pose (no T-pose), portrait camera framing, `vrm.lookAt` cursor tracking, spine/hips micro-sway, draggable float-detach layer that persists across `<ClientRouter />` swaps |
+| **D.1** — Vtuber polish | 🚧 this PR | Spring-bone reset + body-twist on extreme gaze (Bundle A); first-open wave + greet, input-focus look, nod-on-send, happy-on-done, click-to-wave, blendshape lerp smoothing (Bundle B); analyser reuse, idle FPS drop to 15, render pause when dock collapsed + not floating (Bundle C); page-wide cursor follow + autonomous wander when floating |
 | **E** — Real backend | 🗓 next | Swap the canned reply in `transport/yuki.rs` for a jedi/q-routed LLM call. Prompt template, conversation compaction, rate limit. Front-end unchanged. |
 | **F** — Voice in | 🗓 later | Push-to-talk mic capture → on-device VAD → server STT → same SSE response path |
 | **G** — Tools / actions | 🗓 later | Function-call schema so Yuki can navigate the site, open the wallet card, queue a forum post, etc. |
@@ -133,8 +134,9 @@ Supabase JWT once the real LLM call costs money to run.
 | `kbve:yuki-dock:history` | Last 24 chat entries, `{role, text, ts}` |
 | `kbve:yuki-dock:float-mode` | `'1'` or `'0'` — restores float-detach state across reloads |
 | `kbve:yuki-dock:float-pos` | `{x, y}` viewport coords of the float layer — restores last drag position |
+| `kbve:yuki-dock:greeted` | `'1'` once Yuki has fired her first-open wave + greet on this device |
 
-All five are localStorage-only, never sent to the server.
+All six are localStorage-only, never sent to the server.
 
 ## What's next
 
