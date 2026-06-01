@@ -38,11 +38,11 @@ async fn main() -> Result<()> {
     let (game_tx, _) = broadcast::channel::<GameEvent>(512);
     let (irc_in_tx, irc_in_rx) = mpsc::channel::<IrcMessage>(512);
 
-    let (_rcon_pool, rcon_pool_handle) = rcon_pool::spawn(cfg.clone());
+    let (rcon_pool, rcon_pool_handle) = rcon_pool::spawn(cfg.clone());
 
     let tail_handle = tokio::spawn(log_tail::run(cfg.clone(), game_tx.clone()));
     let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), irc_in_tx));
-    let rcon_handle = tokio::spawn(rcon_client::run(cfg.clone(), irc_in_rx));
+    let rcon_handle = tokio::spawn(rcon_client::run(cfg.clone(), rcon_pool, irc_in_rx));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
 
