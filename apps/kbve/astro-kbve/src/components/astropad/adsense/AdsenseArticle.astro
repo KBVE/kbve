@@ -6,9 +6,8 @@
 	is:inline
 	async
 	src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3698214103602019"
-	crossorigin="anonymous"
-	data-astro-rerun
-></script>
+	crossorigin="anonymous">
+</script>
 <ins
 	class="adsbygoogle"
 	style="display:block; text-align:center;"
@@ -17,7 +16,10 @@
 	data-ad-client="ca-pub-3698214103602019"
 	data-ad-slot="3879928077">
 </ins>
-
 <script is:inline data-astro-rerun>
-	(adsbygoogle = window.adsbygoogle || []).push({});
+	try {
+		(window.adsbygoogle = window.adsbygoogle || []).push({});
+	} catch (e) {
+		console.warn('[AdsenseArticle] push failed', e);
+	}
 </script>

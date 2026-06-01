@@ -3,12 +3,11 @@
 ---
 
 <script
+	is:inline
 	async
 	src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3698214103602019"
-	crossorigin="anonymous"
-	is:inline
-></script>
-<!-- Responsive Ad -->
+	crossorigin="anonymous">
+</script>
 <ins
 	class="adsbygoogle"
 	style="display:block"
@@ -17,6 +16,10 @@
 	data-ad-format="auto"
 	data-full-width-responsive="true">
 </ins>
-<script is:inline>
-	(adsbygoogle = window.adsbygoogle || []).push({});
+<script is:inline data-astro-rerun>
+	try {
+		(window.adsbygoogle = window.adsbygoogle || []).push({});
+	} catch (e) {
+		console.warn('[Adsense] push failed', e);
+	}
 </script>

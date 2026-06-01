@@ -123,9 +123,9 @@ const AVATAR_SRC = '/assets/images/brand/earth_ceo.png';
 </div>
 
 <script>
-	import { initYukiDock } from './yuki-dock';
-
-	initYukiDock();
+	import('./yuki-dock')
+		.then((mod) => mod.initYukiDock())
+		.catch((err) => console.warn('[yuki-dock] init failed', err));
 </script>
 
 <style is:global>
