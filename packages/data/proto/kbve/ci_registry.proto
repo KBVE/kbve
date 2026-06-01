@@ -95,6 +95,7 @@ message SteamApp {
   optional string label = 2;    // "main" | "demo" | "dlc-foo" — used in VDF filenames + logs
   optional string depot_id = 3; // Optional inline depot override (usually depots live in the VDF files instead)
   optional string branch = 4;   // Steam branch (default | beta | preview); empty = default branch
+  optional string promote_to_branch = 5; // Branch to flip live via ci-steam-promote.yml after upload; empty = no auto-promote
 }
 
 // External publish targets — storefronts, mod platforms, package indexes

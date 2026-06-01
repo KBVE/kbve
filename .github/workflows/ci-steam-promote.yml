@@ -1,0 +1,147 @@
+# =============================================================================
+# CI: Steam branch promotion
+#
+# Flips a Steam app's `to_branch` live BuildID via the Steamworks
+# Partner Web API (ISteamApps/SetAppBuildLive/v2). Gated by the
+# `steam-prod` GitHub Environment — set required reviewers there
+# before this workflow can succeed.
+#
+# Auto-dispatched from ci-unity.yml's deploy_steam job after a
+# successful upload to `from_branch`, with the just-uploaded
+# BuildID handed through verbatim. Also supports manual dispatch
+# for ad-hoc rollback / re-promote.
+#
+# Required repo secrets:
+#   STEAM_WEBAPI_PUBLISHER_KEY — Steamworks Partner Web API key
+#     scoped to the publisher account (NOT a user Web API key).
+#     Generated in Steamworks → Users & Permissions → Manage
+#     Groups → <group> → Create WebAPI Key. Restricted to
+#     ISteamApps endpoints by Valve when issued.
+# =============================================================================
+name: CI - Steam promote
+
+run-name: 'Steam promote / ${{ inputs.app_label || inputs.app_id }} → ${{ inputs.to_branch }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            app_id:
+                description: 'Steam AppID to promote'
+                required: true
+                type: string
+            build_id:
+                description: 'Steam BuildID to set live on the target branch'
+                required: true
+                type: string
+            from_branch:
+                description: 'Source branch the build was uploaded to (informational only)'
+                required: false
+                type: string
+                default: 'beta'
+            to_branch:
+                description: 'Target branch to flip live (e.g. default, demo, playtest)'
+                required: true
+                type: string
+                default: 'default'
+            app_label:
+                description: 'Human label for run-name (demo / main / …)'
+                required: false
+                type: string
+                default: ''
+            source_sha:
+                description: 'Originating commit SHA (informational)'
+                required: false
+                type: string
+                default: ''
+
+permissions:
+    contents: read
+
+concurrency:
+    # Serialize per app+branch so two promotions can't race on the
+    # same live pointer. Different apps / branches run in parallel.
+    group: steam-promote-${{ inputs.app_id }}-${{ inputs.to_branch }}
+    cancel-in-progress: false
+
+jobs:
+    validate:
+        name: Validate inputs
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        steps:
+            - name: Check numeric IDs
+              run: |
+                  if ! [[ "${{ inputs.app_id }}" =~ ^[0-9]+$ ]]; then
+                    echo "::error::app_id must be numeric — got '${{ inputs.app_id }}'"
+                    exit 1
+                  fi
+                  if ! [[ "${{ inputs.build_id }}" =~ ^[0-9]+$ ]]; then
+                    echo "::error::build_id must be numeric — got '${{ inputs.build_id }}'"
+                    exit 1
+                  fi
+                  if [ -z "${{ inputs.to_branch }}" ]; then
+                    echo "::error::to_branch required"
+                    exit 1
+                  fi
+
+    promote:
+        name: SetAppBuildLive ${{ inputs.app_id }} → ${{ inputs.to_branch }}
+        needs: validate
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        environment:
+            name: steam-prod
+            url: https://partner.steamgames.com/apps/builds/${{ inputs.app_id }}
+        steps:
+            - name: Promote build via Steamworks Partner Web API
+              env:
+                  STEAM_WEBAPI_KEY: ${{ secrets.STEAM_WEBAPI_PUBLISHER_KEY }}
+                  APP_ID: ${{ inputs.app_id }}
+                  BUILD_ID: ${{ inputs.build_id }}
+                  TO_BRANCH: ${{ inputs.to_branch }}
+                  SOURCE_SHA: ${{ inputs.source_sha }}
+                  APP_LABEL: ${{ inputs.app_label }}
+              run: |
+                  if [ -z "$STEAM_WEBAPI_KEY" ]; then
+                    echo "::error::STEAM_WEBAPI_PUBLISHER_KEY secret missing"
+                    exit 1
+                  fi
+
+                  DESC="promoted via gha run ${GITHUB_RUN_ID}"
+                  if [ -n "$SOURCE_SHA" ]; then
+                    DESC="$DESC from ${SOURCE_SHA:0:7}"
+                  fi
+                  if [ -n "$APP_LABEL" ]; then
+                    DESC="$DESC ($APP_LABEL)"
+                  fi
+
+                  echo "::notice::Setting app=$APP_ID build=$BUILD_ID live on branch=$TO_BRANCH"
+
+                  HTTP_BODY=$(mktemp)
+                  HTTP_CODE=$(curl -sS -o "$HTTP_BODY" -w '%{http_code}' \
+                    -X POST 'https://partner.steam-api.com/ISteamApps/SetAppBuildLive/v2/' \
+                    --data-urlencode "key=$STEAM_WEBAPI_KEY" \
+                    --data-urlencode "appid=$APP_ID" \
+                    --data-urlencode "buildid=$BUILD_ID" \
+                    --data-urlencode "betakey=$TO_BRANCH" \
+                    --data-urlencode "description=$DESC")
+
+                  echo "HTTP $HTTP_CODE"
+                  # Redact the request URL in the log (curl already does
+                  # this with --data-urlencode, but echo the response body
+                  # which never contains the key).
+                  cat "$HTTP_BODY"
+                  echo
+
+                  if [ "$HTTP_CODE" != "200" ]; then
+                    echo "::error::Steam API rejected promotion (HTTP $HTTP_CODE)"
+                    exit 1
+                  fi
+
+                  RESULT=$(jq -r '.response.result // empty' "$HTTP_BODY" 2>/dev/null || echo "")
+                  if [ "$RESULT" != "OK" ] && [ -n "$RESULT" ]; then
+                    echo "::error::Steam API result=$RESULT — promotion failed"
+                    exit 1
+                  fi
+
+                  echo "::notice::Promotion succeeded — $APP_ID build $BUILD_ID is now live on $TO_BRANCH"

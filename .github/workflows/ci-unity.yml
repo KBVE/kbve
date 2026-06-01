@@ -186,6 +186,34 @@ jobs:
                   git lfs install --local
                   git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
 
+            - name: Setup pnpm
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+
+            - name: Setup Node
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install workspace dependencies
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              run: pnpm install --frozen-lockfile
+
+            # itemdb.json / itemdb.binpb are gitignored codegen artifacts.
+            # Without regen the bundle ships with an empty ItemDBCache and
+            # every name resolves to "item.unknown".
+            - name: Regenerate StreamingAssets DB artifacts
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              run: |
+                  npx nx run astro-kbve:sync:itemdb
+                  npx nx run astro-kbve:sync:itemdb-atlas
+                  npx nx run astro-kbve:sync:npcdb
+                  npx nx run astro-kbve:sync:mapdb
+
             - name: Run Unity EditMode tests
               uses: game-ci/unity-test-runner@v4
               env:
@@ -264,6 +292,34 @@ jobs:
                   git lfs install --local
                   git lfs pull --include="${{ inputs.project_path }}/**" --exclude=""
                   echo "LFS cache: $(du -sh "$LFS_CACHE" 2>/dev/null | cut -f1)"
+
+            - name: Setup pnpm
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+
+            - name: Setup Node
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install workspace dependencies
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              run: pnpm install --frozen-lockfile
+
+            # itemdb.json / itemdb.binpb are gitignored codegen artifacts.
+            # Without regen the bundle ships with an empty ItemDBCache and
+            # every name resolves to "item.unknown".
+            - name: Regenerate StreamingAssets DB artifacts
+              if: ${{ contains(inputs.project_path, 'rareicon') }}
+              run: |
+                  npx nx run astro-kbve:sync:itemdb
+                  npx nx run astro-kbve:sync:itemdb-atlas
+                  npx nx run astro-kbve:sync:npcdb
+                  npx nx run astro-kbve:sync:mapdb
 
             - name: Seed Unity Library from PVC
               run: |
@@ -478,9 +534,14 @@ jobs:
               with:
                   shared_secret: ${{ secrets.STEAM_TOTP_SECRET }}
 
+            # SHA-pin to main: tagged v3.x does not yet expose buildId.
+            # main HEAD (42f7685) tees steamcmd output and scrapes
+            # `(BuildID NNN)` into the buildId step output. Bump to v3.3+
+            # once the upstream tag ships the same code.
             - name: Upload via SteamPipe (game-ci/steam-deploy)
               if: steps.vdf.outputs.skip != 'true'
-              uses: game-ci/steam-deploy@v3
+              id: steam_deploy
+              uses: game-ci/steam-deploy@42f7685db8f153c3bfbdf2793f048163fdae3905
               with:
                   username: ${{ secrets.STEAM_USERNAME }}
                   password: ${{ secrets.STEAM_PASSWORD }}
@@ -492,6 +553,28 @@ jobs:
                   depot2Path: StandaloneLinux64
                   depot3Path: StandaloneOSX
                   releaseBranch: ${{ matrix.app.branch }}
+
+            # Auto-dispatch promotion to default branch, gated by the
+            # `steam-prod` GitHub environment in ci-steam-promote.yml.
+            # Only fires when the matrix entry declares a promote_to_branch
+            # AND the source branch matches what was just uploaded — keeps
+            # dormant manifest entries (no promote configured) safe.
+            - name: Dispatch Steam branch promotion
+              if: ${{ steps.vdf.outputs.skip != 'true' && matrix.app.promote_to_branch != '' && steps.steam_deploy.outputs.buildId != '' }}
+              env:
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              run: |
+                  BUILD_ID="${{ steps.steam_deploy.outputs.buildId }}"
+                  echo "::notice::Dispatching promotion: app=${{ matrix.app.app_id }} build=$BUILD_ID ${{ matrix.app.branch }} → ${{ matrix.app.promote_to_branch }}"
+                  gh workflow run ci-steam-promote.yml \
+                    --repo "${{ github.repository }}" \
+                    --ref "${{ github.ref_name }}" \
+                    -f app_id="${{ matrix.app.app_id }}" \
+                    -f build_id="$BUILD_ID" \
+                    -f from_branch="${{ matrix.app.branch }}" \
+                    -f to_branch="${{ matrix.app.promote_to_branch }}" \
+                    -f app_label="${{ steps.vdf.outputs.label }}" \
+                    -f source_sha="${{ github.sha }}"
 
     post_publish_sync:
         name: Post-publish version sync
