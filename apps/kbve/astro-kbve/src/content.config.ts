@@ -84,6 +84,18 @@ const ExternalPublishInline = z
 		google_play_track: z
 			.enum(['internal', 'alpha', 'beta', 'production'])
 			.optional(),
+		curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
+		curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
+		curseforge_release_type: z
+			.enum(['alpha', 'beta', 'release'])
+			.optional(),
+		factorio_mod_name: z
+			.string()
+			.min(1)
+			.max(50)
+			.regex(/^[a-zA-Z0-9_-]+$/)
+			.optional(),
+		factorio_mod_source_path: z.string().min(1).max(256).optional(),
 	})
 	.optional();
 

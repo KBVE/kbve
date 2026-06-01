@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/rcon.binpb
  * Config: ../rcon-zod-config.json
- * Generated: 2026-05-30T05:37:46.870Z
+ * Generated: 2026-06-01T06:12:05.359Z
  */
 
 import { z } from 'zod';

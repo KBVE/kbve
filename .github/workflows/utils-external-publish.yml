@@ -38,6 +38,9 @@ on:
             CURSEFORGE_TOKEN:
                 description: 'CurseForge upload API token'
                 required: false
+            FACTORIO:
+                description: 'Factorio mod portal API key (ModPortal: Upload Mods scope)'
+                required: false
 
 jobs:
     modrinth:
@@ -606,3 +609,106 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - run: echo "::notice::CurseForge publish not yet implemented for ${{ inputs.app_name }}"
+
+    factorio_mod_portal:
+        name: Factorio Mod Portal (${{ inputs.app_name }})
+        if: fromJson(inputs.external_publish).factorio_mod_name != ''
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Resolve mod metadata
+              id: meta
+              env:
+                  CFG: ${{ inputs.external_publish }}
+              run: |
+                  set -euo pipefail
+                  MOD_NAME=$(echo "$CFG" | jq -r .factorio_mod_name)
+                  MOD_DIR=$(echo "$CFG" | jq -r .factorio_mod_source_path)
+                  if [ ! -f "${MOD_DIR}/info.json" ]; then
+                    echo "::error::missing info.json at ${MOD_DIR}/info.json"
+                    exit 1
+                  fi
+                  MOD_VERSION=$(jq -r .version "${MOD_DIR}/info.json")
+                  echo "mod_name=${MOD_NAME}" >> "$GITHUB_OUTPUT"
+                  echo "mod_dir=${MOD_DIR}" >> "$GITHUB_OUTPUT"
+                  echo "mod_version=${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "::notice::mod=${MOD_NAME} version=${MOD_VERSION} dir=${MOD_DIR}"
+
+            - name: Check if version already published
+              id: gate
+              env:
+                  MOD_NAME: ${{ steps.meta.outputs.mod_name }}
+                  MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
+              run: |
+                  set -euo pipefail
+                  HTTP=$(curl -sS -o /tmp/portal.json -w "%{http_code}" \
+                      "https://mods.factorio.com/api/mods/${MOD_NAME}")
+                  if [ "$HTTP" = "404" ]; then
+                    echo "::notice::mod not yet on portal — first publish path"
+                    echo "publish=true" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  if [ "$HTTP" != "200" ]; then
+                    echo "::error::portal lookup failed: HTTP $HTTP"
+                    cat /tmp/portal.json
+                    exit 1
+                  fi
+                  EXISTS=$(jq --arg v "$MOD_VERSION" '.releases | map(.version == $v) | any' /tmp/portal.json)
+                  if [ "$EXISTS" = "true" ]; then
+                    echo "::notice::version ${MOD_VERSION} already on portal — skipping upload"
+                    echo "publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Build mod zip
+              if: steps.gate.outputs.publish == 'true'
+              env:
+                  MOD_NAME: ${{ steps.meta.outputs.mod_name }}
+                  MOD_DIR: ${{ steps.meta.outputs.mod_dir }}
+                  MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
+              run: |
+                  set -euo pipefail
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends jq zip
+                  WORK=$(mktemp -d)
+                  INNER="${MOD_NAME}_${MOD_VERSION}"
+                  cp -R "${MOD_DIR}" "${WORK}/${INNER}"
+                  find "${WORK}/${INNER}" -name '.DS_Store' -delete
+                  mkdir -p dist
+                  (cd "${WORK}" && zip -qr "${GITHUB_WORKSPACE}/dist/${MOD_NAME}_${MOD_VERSION}.zip" "${INNER}")
+                  ls -l "dist/${MOD_NAME}_${MOD_VERSION}.zip"
+
+            - name: Upload to mods.factorio.com
+              if: steps.gate.outputs.publish == 'true'
+              env:
+                  FACTORIO_API_KEY: ${{ secrets.FACTORIO }}
+                  MOD_NAME: ${{ steps.meta.outputs.mod_name }}
+                  MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${FACTORIO_API_KEY}" ]; then
+                    echo "::error::secrets.FACTORIO is empty"
+                    exit 1
+                  fi
+                  ZIP="dist/${MOD_NAME}_${MOD_VERSION}.zip"
+                  INIT=$(curl -sS --fail-with-body -X POST \
+                      -H "Authorization: Bearer ${FACTORIO_API_KEY}" \
+                      -F "mod=${MOD_NAME}" \
+                      "https://mods.factorio.com/api/v2/mods/releases/init_upload")
+                  UPLOAD_URL=$(printf '%s' "$INIT" | jq -r '.upload_url // empty')
+                  if [ -z "$UPLOAD_URL" ]; then
+                    echo "::error::init_upload did not return upload_url"
+                    echo "$INIT"
+                    exit 1
+                  fi
+                  RESP=$(curl -sS --fail-with-body -X POST -F "file=@${ZIP}" "$UPLOAD_URL")
+                  if printf '%s' "$RESP" | jq -e '.error // empty | length > 0' >/dev/null 2>&1; then
+                    echo "::error::portal rejected the upload"
+                    echo "$RESP"
+                    exit 1
+                  fi
+                  echo "::notice::published ${MOD_NAME} ${MOD_VERSION} → https://mods.factorio.com/mod/${MOD_NAME}"

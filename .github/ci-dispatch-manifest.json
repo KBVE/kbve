@@ -11,7 +11,11 @@
 			"image": "kbve/agones-factorio",
 			"e2e_name": "agones-factorio",
 			"deployment_yaml": "apps/kube/agones/factorio/manifests/gameserver.yaml",
-			"has_test": true
+			"has_test": true,
+			"external_publish": {
+				"factorio_mod_name": "kbve",
+				"factorio_mod_source_path": "apps/agones/factorio/mods-local/kbve"
+			}
 		},
 		{
 			"key": "agones_factorio_relay",

@@ -299,6 +299,7 @@ jobs:
             STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
             STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
             CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+            FACTORIO: ${{ secrets.FACTORIO }}
 
     track_failure:
         name: Track Failures
