@@ -47,7 +47,7 @@ spec:
                       sizeLimit: 8Mi
                 - name: mods
                   emptyDir:
-                      sizeLimit: 256Mi
+                      sizeLimit: 1Gi
             containers:
                 - name: factorio
                   image: ghcr.io/kbve/agones-factorio:0.0.9
