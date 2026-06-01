@@ -28,7 +28,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.176",
+			"version": "1.0.177",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -122,7 +122,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.16",
+			"version": "0.1.17",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -717,7 +717,8 @@
 					{
 						"app_id": "3791950",
 						"label": "demo",
-						"branch": "beta"
+						"branch": "beta",
+						"promote_to_branch": "default"
 					},
 					{
 						"app_id": "2238370",

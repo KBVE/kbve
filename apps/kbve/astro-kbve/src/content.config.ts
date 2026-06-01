@@ -55,6 +55,38 @@ const gdd = defineCollection({
 	}),
 });
 
+const SteamAppInline = z.object({
+	app_id: z.string().regex(/^\d+$/).max(16),
+	label: z.string().min(1).max(64).optional(),
+	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
+	branch: z.string().min(1).max(64).optional(),
+	promote_to_branch: z.string().min(1).max(64).optional(),
+});
+
+const ExternalPublishInline = z
+	.object({
+		modrinth_mod_id: z.string().max(32).optional(),
+		modrinth_pack_id: z.string().max(32).optional(),
+		modrinth_version_type: z.enum(['alpha', 'beta', 'release']).optional(),
+		modrinth_game_versions: z.string().max(512).optional(),
+		modrinth_loaders: z.string().max(256).optional(),
+		modrinth_retain_count: z.number().int().min(1).max(50).optional(),
+		modrinth_rolling_version: z.string().min(1).max(64).optional(),
+		modrinth_server_address: z.string().min(1).max(253).optional(),
+		itch_user: z.string().min(1).max(64).optional(),
+		itch_game: z.string().min(1).max(64).optional(),
+		itch_channel: z.string().min(1).max(64).optional(),
+		steam_apps: z.array(SteamAppInline).max(10).optional(),
+		apple_bundle_id: z.string().min(1).max(128).optional(),
+		apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
+		apple_team_id: z.string().min(1).max(32).optional(),
+		google_play_package: z.string().min(1).max(128).optional(),
+		google_play_track: z
+			.enum(['internal', 'alpha', 'beta', 'production'])
+			.optional(),
+	})
+	.optional();
+
 const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 	title: z.string().optional(),
 	sidebar: z
@@ -79,6 +111,7 @@ const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 			external_repo_url: z.string().url().max(512).optional(),
 		})
 		.optional(),
+	external_publish: ExternalPublishInline,
 });
 
 const project = defineCollection({

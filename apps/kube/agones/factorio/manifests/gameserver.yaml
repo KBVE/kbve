@@ -50,7 +50,7 @@ spec:
                       sizeLimit: 256Mi
             containers:
                 - name: factorio
-                  image: ghcr.io/kbve/agones-factorio:0.0.8
+                  image: ghcr.io/kbve/agones-factorio:0.0.9
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_RCON_PASSWORD
@@ -121,7 +121,7 @@ spec:
                           drop:
                               - ALL
                 - name: factorio-relay
-                  image: ghcr.io/kbve/agones-factorio-relay:0.0.4
+                  image: ghcr.io/kbve/agones-factorio-relay:0.0.5
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_CONSOLE_LOG
