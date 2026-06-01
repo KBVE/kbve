@@ -225,12 +225,13 @@ CREATE INDEX idx_mc_lot_vacant_world_chunk_cursor
              price_credits, price_khash)
     WHERE state = 0;
 -- "My lots" page is dominated by owned + built rows; vacant/under-build
--- are rare. INCLUDE the columns the dashboard renders so the index can
--- answer index-only.
+-- are rare. INCLUDE the columns the dashboard renders (including
+-- prices, which surface as "sell-for" hints on owned-but-not-built
+-- rows) so the index can answer index-only.
 CREATE INDEX idx_mc_lot_owner_active_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
-             chunk_area, anchor_y)
+             chunk_area, anchor_y, price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
 
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
@@ -517,18 +518,27 @@ AS $$
     WHERE (p_world         IS NULL OR l.world = p_world)
       AND (p_state         IS NULL OR l.state = p_state)
       AND (p_owner_user_id IS NULL OR l.owner_user_id = p_owner_user_id)
+      -- Cursor all-or-none. Tuple comparison against any NULL would
+      -- silently return no rows; require the full cursor or none.
       AND (
           p_after_lot_id IS NULL
-          OR (l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id)
-             > (p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          OR (
+              p_after_world   IS NOT NULL
+              AND p_after_chunk_x IS NOT NULL
+              AND p_after_chunk_z IS NOT NULL
+              AND (l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id)
+                  > (p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          )
       )
     ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
     LIMIT GREATEST(0, LEAST(p_limit, 1024))
-    -- OFFSET is preserved only for the non-cursor path; cursor callers
-    -- should pass 0. Plain OFFSET is fine for small admin scans and
-    -- gives a backwards-compat lever for the dashboard until it flips
-    -- to keyset.
-    OFFSET CASE WHEN p_after_lot_id IS NULL THEN GREATEST(0, p_offset) ELSE 0 END;
+    -- OFFSET preserved only for the non-cursor path; cursor callers
+    -- should pass 0. Capped at 100000 so a pathological admin call
+    -- can't request a multi-million-row deep scan.
+    OFFSET CASE
+        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, p_offset), 100000)
+        ELSE 0
+    END;
 $$;
 
 ALTER FUNCTION mc.service_list_lots(TEXT, SMALLINT, UUID, INTEGER, INTEGER,
@@ -1313,12 +1323,20 @@ AS $$
       AND (NOT p_only_mine OR (me.uid IS NOT NULL AND l.owner_user_id = me.uid))
       AND (
           p_after_lot_id IS NULL
-          OR (l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id)
-             > (p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          OR (
+              p_after_world   IS NOT NULL
+              AND p_after_chunk_x IS NOT NULL
+              AND p_after_chunk_z IS NOT NULL
+              AND (l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id)
+                  > (p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          )
       )
     ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
     LIMIT GREATEST(0, LEAST(p_limit, 1024))
-    OFFSET CASE WHEN p_after_lot_id IS NULL THEN GREATEST(0, p_offset) ELSE 0 END;
+    OFFSET CASE
+        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, p_offset), 100000)
+        ELSE 0
+    END;
 $$;
 
 ALTER FUNCTION mc.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
@@ -1699,6 +1717,137 @@ COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) 
     'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Batched + SKIP LOCKED with p_limit (max 512). Returns the count of jobs requeued in this call.';
 
 
+-- ===========================================================================
+-- HOT-PATH LIST RPCs — dedicated wrappers for the two most common reads
+-- ===========================================================================
+-- The generic list_lots() uses optional OR predicates, which can make the
+-- planner pick the broad cursor index instead of the narrower partial
+-- indexes (idx_mc_lot_vacant_*, idx_mc_lot_owner_active_*). These two
+-- wrappers hard-code the state predicate so the partial indexes are the
+-- only viable plan. Same cursor convention (chunk_x, chunk_z, lot_id),
+-- but world is fixed by p_world so it isn't part of the cursor tuple.
+
+CREATE OR REPLACE FUNCTION public.proxy_list_vacant_lots(
+    p_world TEXT,
+    p_limit INTEGER DEFAULT 256,
+    p_after_chunk_x INTEGER DEFAULT NULL,
+    p_after_chunk_z INTEGER DEFAULT NULL,
+    p_after_lot_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    lot_id          TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    price_credits   BIGINT,
+    price_khash     BIGINT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 256
+AS $$
+    SELECT l.lot_id,
+           l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max,
+           l.chunk_area,
+           l.anchor_y,
+           l.price_credits,
+           l.price_khash
+    FROM mc.lot l
+    WHERE l.state = 0
+      AND l.world = p_world
+      AND (
+          p_after_lot_id IS NULL
+          OR (
+              p_after_chunk_x IS NOT NULL
+              AND p_after_chunk_z IS NOT NULL
+              AND (l.chunk_x_min, l.chunk_z_min, l.lot_id)
+                  > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          )
+      )
+    ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
+    LIMIT GREATEST(0, LEAST(p_limit, 1024));
+$$;
+
+ALTER FUNCTION public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT) IS
+    'Hot-path: vacant lots in a world for the marketplace map. Hard-codes state=0 so idx_mc_lot_vacant_world_chunk_cursor is the only viable plan. Cursor pagination via (chunk_x, chunk_z, lot_id) of the last row from the prior page.';
+
+
+CREATE OR REPLACE FUNCTION public.proxy_list_my_active_lots(
+    p_world TEXT,
+    p_limit INTEGER DEFAULT 256,
+    p_after_chunk_x INTEGER DEFAULT NULL,
+    p_after_chunk_z INTEGER DEFAULT NULL,
+    p_after_lot_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    lot_id          TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    state           SMALLINT,
+    current_schematic_id TEXT,
+    price_credits   BIGINT,
+    price_khash     BIGINT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 256
+AS $$
+    WITH me AS (SELECT auth.uid() AS uid)
+    SELECT l.lot_id,
+           l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max,
+           l.chunk_area,
+           l.anchor_y,
+           l.state,
+           l.current_schematic_id,
+           l.price_credits,
+           l.price_khash
+    FROM mc.lot l, me
+    WHERE me.uid IS NOT NULL
+      AND l.owner_user_id = me.uid
+      AND l.state IN (1, 2)
+      AND l.world = p_world
+      AND (
+          p_after_lot_id IS NULL
+          OR (
+              p_after_chunk_x IS NOT NULL
+              AND p_after_chunk_z IS NOT NULL
+              AND (l.chunk_x_min, l.chunk_z_min, l.lot_id)
+                  > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+          )
+      )
+    ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
+    LIMIT GREATEST(0, LEAST(p_limit, 1024));
+$$;
+
+ALTER FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT) IS
+    'Hot-path: caller-owned active lots (state IN (1, 2)) in a world. Hard-codes owner = auth.uid() and the state set so idx_mc_lot_owner_active_world_chunk_cursor is the only viable plan.';
+
+
 NOTIFY pgrst, 'reload schema';
 
 
@@ -1729,6 +1878,8 @@ DROP FUNCTION IF EXISTS mc.proxy_purchase_lot(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_queue_demolish_lot(TEXT, UUID);
 DROP FUNCTION IF EXISTS public.proxy_queue_build_on_lot(TEXT, TEXT, UUID);
 DROP FUNCTION IF EXISTS public.proxy_purchase_lot(TEXT, UUID);
+DROP FUNCTION IF EXISTS public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_schematics(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
