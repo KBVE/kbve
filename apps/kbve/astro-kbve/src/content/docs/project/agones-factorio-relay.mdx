@@ -15,7 +15,7 @@ tags:
 key: agones_factorio_relay
 pipeline: docker
 app_name: agones-factorio-relay
-version: "0.0.4"
+version: "0.0.5"
 source_path: apps/agones/factorio/relay
 version_toml: apps/agones/factorio/relay/version.toml
 runner: ubuntu-latest
@@ -82,6 +82,178 @@ Phase 3a (this entry) ships the crate scaffold so the image builds and publishes
 | `CLICKHOUSE_USER` | _(unset)_ | |
 | `CLICKHOUSE_PASSWORD` | _(unset)_ | |
 | `CLICKHOUSE_DATABASE` | `gameops` | |
+| `AGONES_SDK_HTTP` | _(unset)_ | Base URL of the in-pod Agones SDK sidecar (e.g. `http://127.0.0.1:9358`). When unset, the relay-side health module is a no-op |
+| `AGONES_HEALTH_INTERVAL_SECS` | `5` | TCP-probes the local RCON port every N seconds, POSTs `/health` to Agones SDK on success |
+| `AGONES_RCON_PROBE_TIMEOUT_SECS` | `2` | How long to wait for the TCP probe before treating RCON as down |
+| `AGONES_INITIAL_READY_DELAY_SECS` | `0` | Delay before the relay also POSTs `/ready` (single source-of-truth liveness; `60` in prod) |
+
+## Phase 5 — `sim_director` (design map)
+
+Moves the simulation "brain" into the relay so the in-game Lua mod can stay thin (just per-tick sensors) while strategic decisions — evolution-driven raids, scheduled events, ClickHouse-driven economy gifts — run out-of-process. RCON commands still execute inside the Factorio tick loop, so this module saves nothing on the hot path; the win is _consolidation_: rules, schedules, and telemetry-driven logic live in one Rust crate that is unit-testable, hot-redeployable, and reusable across servers when a second one lands.
+
+### Split of responsibilities
+
+| Layer | Responsibility | Why there |
+|---|---|---|
+| Factorio Lua mod | Per-tick event hooks (`on_entity_died`, `on_player_built_entity`, `on_research_finished`), `[STATS]` console emitter, narrow `rcon.print(...)` JSON helpers | Hot path — must run inside the tick |
+| `factorio-relay :: sim_director` | Poll snapshots, evaluate rules, schedule cron events, ClickHouse-driven decisions, RCON action dispatch | Strategic cadence (5–30s), Rust testability, external state |
+| `factorio-relay :: rcon_pool` | Single shared RCON connection with a serialized command queue, rate limit, retries | One TCP conn, never burst the tick |
+
+### Proposed module layout
+
+```
+apps/agones/factorio/relay/src/
+├── sim_director/
+│   ├── mod.rs            // entrypoint: spawn poller + scheduler + rule engine
+│   ├── state.rs          // SimSnapshot { tick, evolution, pollution, players, ups, ... }
+│   ├── poller.rs         // periodic single-RCON snapshot via game.table_to_json
+│   ├── triggers.rs       // Trigger enum + cooldown bookkeeping
+│   ├── actions.rs        // Action enum + Lua-string builders (SpawnBiterWave, GiftItems, ...)
+│   ├── scheduler.rs      // cron-like timed events (raids every 30m, daily reset, ...)
+│   └── rules.rs          // declarative Rule { trigger, action, cooldown, name }
+├── rcon_pool.rs          // shared mpsc-backed RCON queue (also used by irc_bridge)
+└── rcon_client.rs        // promoted from stub to real connection (Phase 3c work)
+```
+
+### Data flow
+
+```
+ticker (poll_interval) ──► poller.rs ──► SimSnapshot ──┐
+                                                       │
+log_tail GameEvent ────────────────────────────────────┤
+                                                       ▼
+scheduler.rs cron tick ────────────────► triggers.rs (eval + cooldown)
+                                                       │
+                                                       ▼
+                                                   actions.rs
+                                                       │
+                                                       ▼
+                                                   rcon_pool ──► Factorio
+                                                       │
+                                                       ▼
+                                                   ch_writer (audit row)
+```
+
+### Snapshot shape
+
+One RCON call per poll cycle; Lua side packs a JSON blob so Rust deserializes a single payload instead of round-tripping per field.
+
+```lua
+/silent-command rcon.print(game.table_to_json({
+    tick = game.tick,
+    evolution = game.forces.enemy.evolution_factor,
+    players = #game.connected_players,
+    pollution = game.get_pollution({0,0}),
+    ups = game.speed,
+    surfaces = { ["nauvis"] = game.surfaces["nauvis"].day_time }
+}))
+```
+
+```rust
+struct SimSnapshot {
+    captured_at: chrono::DateTime<chrono::Utc>,
+    tick: u64,
+    evolution: f64,
+    players: u32,
+    pollution: f64,
+    ups: f64,
+    surfaces: HashMap<String, f64>,
+}
+```
+
+### Triggers + actions (sketch)
+
+```rust
+enum Trigger {
+    EvolutionAbove { threshold: f64 },
+    PollutionAbove { center: (i32, i32), value: f64 },
+    PlayerCountChanged,
+    TickDivisible { every_ticks: u64 },
+    Cron(String),                 // "*/30 * * * *"
+    LogEventMatched(GameEventKind),
+}
+
+enum Action {
+    SpawnBiterWave { size: u32, distance: u32, surface: String },
+    GiftItems { player: String, items: Vec<(String, u32)> },
+    Broadcast(String),
+    SetEvolution(f64),
+    RawLua(String),               // admin-gated escape hatch
+}
+
+struct Rule {
+    name: &'static str,
+    trigger: Trigger,
+    action: Action,
+    cooldown: Duration,
+}
+```
+
+Phase 2 ships hardcoded rules; Phase 3 promotes to a TOML/YAML rule file mounted via `ConfigMap` and watched with `notify`.
+
+### ClickHouse schema additions
+
+Lives in `packages/data/ch/schemas/factorio.sql` alongside the existing `factorio_*` tables.
+
+```
+sim_snapshots (
+    ts          DateTime64(3),
+    server_id   LowCardinality(String),
+    tick        UInt64,
+    evolution   Float64,
+    pollution   Float64,
+    players     UInt16,
+    ups         Float64
+)
+
+sim_actions (
+    ts          DateTime64(3),
+    server_id   LowCardinality(String),
+    rule_name   LowCardinality(String),
+    action_kind LowCardinality(String),
+    lua         String,
+    status      Enum8('sent'=1, 'failed'=2, 'dry_run'=3),
+    latency_ms  UInt32
+)
+```
+
+`sim_actions` becomes the canonical audit log of every relay-issued RCON command — searchable, retainable, and the first place to look when an unexpected biter wave shows up at 03:00.
+
+### Runtime knobs (proposed)
+
+| Env | Default | Notes |
+|---|---|---|
+| `SIM_DIRECTOR_ENABLED` | `true` | Master switch; `false` keeps the rest of the relay running with no director |
+| `SIM_POLL_INTERVAL_SECS` | `10` | Snapshot cadence |
+| `SIM_RULE_PATH` | _(unset)_ | When set, loads rules from a YAML/TOML file; unset uses the hardcoded Phase 2 set |
+| `SIM_EVO_THRESHOLD` | `0.30` | Default evolution-above trigger value (Phase 2) |
+| `SIM_RAID_MIN_INTERVAL_SECS` | `1800` | Floor on auto-raid frequency |
+| `SIM_RCON_RATE_LIMIT_QPS` | `4` | Cap on RCON commands per second across all callers |
+| `SIM_DRY_RUN` | `false` | Log actions to `sim_actions` with `status='dry_run'`, never send them. Forced on in CI |
+
+### Phasing
+
+| Phase | Scope | Outcome |
+|---|---|---|
+| P1 | Promote `rcon_client` from stub to real connection; add `rcon_pool` with serialized queue; ship `SimSnapshot` poller writing rows to `sim_snapshots` only | Readable evolution/tick/UPS curves in ClickHouse; no game-facing side effects |
+| P2 | `triggers.rs` + `actions.rs` with hardcoded `EvolutionAbove → Broadcast` and `Cron("*/30 * * * *") → SpawnBiterWave` rules; `sim_actions` audit rows | First closed sim loop, full audit trail |
+| P3 | External rule file (`SIM_RULE_PATH`), hot-reload via `notify`, admin IRC commands `!reloadrules` / `!dryrun on` | Rule edits without redeploy |
+| P4 | ClickHouse-driven decisions: query aggregates (last hour deaths, top miners) and act (gift packs, broadcast leaderboards) | Telemetry feeds back into sim |
+| P5 | Multi-server fan-out: shared rules + per-server overrides; cross-server raids | Coordinated server #2+ |
+
+### Safety rails
+
+- **`SIM_DRY_RUN=true`** in CI and during initial prod rollout; nothing reaches Factorio until a human flips the switch.
+- **Per-rule cooldown** (`Rule::cooldown`) — required, no default of zero, so `EvolutionAbove(0.3)` doesn't fire every poll.
+- **RCON QPS cap** (`SIM_RCON_RATE_LIMIT_QPS`) enforced by a tokio `Semaphore` in `rcon_pool`. Sized so director + IRC bridge + `agones_health` together can never burst the tick.
+- **`RawLua` action gated by IRC admin allowlist** — never auto-fired by a trigger, only by an explicit operator command.
+- **All actions audited** in `sim_actions`, dry-runs included — no silent commands.
+
+### Open questions
+
+- Rule source: TOML file on a `ConfigMap` volume vs. a `sim_rules` ClickHouse table. File-on-volume is simpler and ArgoCD-friendly; CH-backed enables web UI editing later.
+- Cron parser: `cron` crate vs. an ad-hoc interval struct. Probably `cron` once we have more than two time-based rules.
+- Lua-mod ↔ relay event contract: keep the current `[CHAT] / [JOIN] / [STATS]` console markers (relay tails them) or add a structured `[SIM]` channel for richer per-tick events the director wants. Lean toward extending the marker set rather than introducing a second transport.
 
 ## Refs
 

@@ -79,6 +79,23 @@ spec:
                                     secretKeyRef:
                                         name: nd-server-supabase-jwt
                                         key: SUPABASE_JWT_SECRET
+                              - name: IRC_SERVER
+                                value: 'ergo-irc-service.irc.svc.cluster.local'
+                              - name: IRC_PORT
+                                value: '6667'
+                              - name: IRC_USE_TLS
+                                value: 'false'
+                              - name: IRC_NICK
+                                value: 'nd-bot'
+                              - name: IRC_CHANNEL
+                                value: '#general'
+                              - name: IRC_OPER_USER
+                                value: 'nd-bot'
+                              - name: IRC_OPER_PASSWORD
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: nd-server-irc-bot
+                                        key: IRC_OPER_PASSWORD
                           ports:
                               - name: ws
                                 containerPort: 7878

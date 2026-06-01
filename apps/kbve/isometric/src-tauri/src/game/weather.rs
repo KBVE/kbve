@@ -401,11 +401,24 @@ fn update_blob_shadows(
 /// Advance the game clock. When connected to a server, snap to the server's
 /// authoritative time and interpolate locally between syncs. Otherwise run
 /// the local clock at default speed.
+/// Multiply `day.speed` by this factor while it's night (hour < 5 or > 19)
+/// so players spend less wall-clock time in darkness. Day stays at 1×.
+const NIGHT_SPEED_MULT: f32 = 3.0;
+
+fn night_speed_multiplier(hour: f32) -> f32 {
+    if !(5.0..=19.0).contains(&hour) {
+        NIGHT_SPEED_MULT
+    } else {
+        1.0
+    }
+}
+
 fn update_day_cycle(
     time: Res<Time>,
     mut day: ResMut<DayCycle>,
     server_time: Option<Res<ServerTime>>,
 ) {
+    let mult = night_speed_multiplier(day.hour);
     if let Some(st) = server_time {
         if st.active {
             // Smoothly interpolate toward server time to avoid jarring snaps.
@@ -423,12 +436,12 @@ fn update_day_cycle(
             };
             // Blend: fast correction (10x/sec) so we converge within a few frames
             let correction = wrapped_diff * (10.0 * time.delta_secs()).min(1.0);
-            day.hour += time.delta_secs() * day.speed + correction;
+            day.hour += time.delta_secs() * day.speed * mult + correction;
         } else {
-            day.hour += time.delta_secs() * day.speed;
+            day.hour += time.delta_secs() * day.speed * mult;
         }
     } else {
-        day.hour += time.delta_secs() * day.speed;
+        day.hour += time.delta_secs() * day.speed * mult;
     }
     if day.hour >= 24.0 {
         day.hour -= 24.0;

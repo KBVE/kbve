@@ -56,6 +56,9 @@ spec:
                   envFrom:
                       - secretRef:
                             name: n8n-redis-secret
+                      - secretRef:
+                            name: discordsh-n8n-hmac
+                            optional: true
                   env:
                       # PostgreSQL (same DB as main instance)
                       - name: DB_TYPE

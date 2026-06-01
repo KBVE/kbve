@@ -137,9 +137,8 @@ func _on_tower_pressed(id: String) -> void:
 	panel_event.emit("tower_selected", id)
 
 func _on_cancel() -> void:
-	if selected_id == "" or not _buttons.has(selected_id):
-		return
-	_buttons[selected_id]["button"].button_pressed = false
+	if selected_id != "" and _buttons.has(selected_id):
+		_buttons[selected_id]["button"].button_pressed = false
 	selected_id = ""
 	tower_canceled.emit()
 	panel_event.emit("tower_canceled", null)

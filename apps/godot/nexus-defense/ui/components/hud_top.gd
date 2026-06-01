@@ -10,11 +10,26 @@ var wave: int = 1
 var lives: int = 20
 var gold: int = 150
 var enemies_left: int = 0
+var kills: int = 0
+var phase: int = 0
+var phase_remaining_ms: int = 0
+var is_multiplayer: bool = false
+
+const PHASE_NAMES := {0: "PREPARE", 1: "WAVE", 2: "BREAK", 3: "GAME OVER"}
+const PHASE_COLORS := {
+	0: Color(0.32, 0.78, 0.95),
+	1: Color(0.95, 0.42, 0.46),
+	2: Color(0.95, 0.78, 0.32),
+	3: Color(0.5, 0.5, 0.55),
+}
 
 var _wave_value: Label
 var _lives_value: Label
 var _gold_value: Label
 var _enemies_value: Label
+var _kills_value: Label
+var _phase_caption: Label
+var _phase_value: Label
 var _pause_btn: Button
 var _root_margin: MarginContainer
 var _chip_boxes: Dictionary = {}
@@ -43,8 +58,10 @@ func _build() -> void:
 	row.add_theme_constant_override("separation", Tokens.SPACE_MD)
 	panel.add_child(row)
 
+	row.add_child(_chip(_phase_caption_text(), _phase_value_text(), _phase_color(), "phase"))
 	row.add_child(_chip("WAVE", str(wave), Tokens.COLOR_ACCENT, "wave"))
 	row.add_child(_chip("ENEMIES", str(enemies_left), Tokens.COLOR_TEXT_MUTED, "enemies"))
+	row.add_child(_chip("KILLS", str(kills), Tokens.COLOR_ACCENT, "kills"))
 	row.add_child(make_spacer())
 	row.add_child(_chip("LIVES", str(lives), Tokens.COLOR_DANGER, "lives"))
 	row.add_child(_chip("GOLD", str(gold), Tokens.COLOR_WARN, "gold"))
@@ -53,6 +70,7 @@ func _build() -> void:
 	_pause_btn.custom_minimum_size = Vector2(44, 44)
 	_pause_btn.tooltip_text = "Pause (Esc)"
 	_pause_btn.pressed.connect(_on_pause)
+	_pause_btn.visible = not is_multiplayer
 	row.add_child(_pause_btn)
 
 func _chip(caption: String, value: String, accent: Color, tag: String) -> Control:
@@ -72,7 +90,30 @@ func _chip(caption: String, value: String, accent: Color, tag: String) -> Contro
 		"lives": _lives_value = val
 		"gold": _gold_value = val
 		"enemies": _enemies_value = val
+		"kills": _kills_value = val
+		"phase":
+			_phase_caption = cap
+			_phase_value = val
 	return box
+
+func _phase_caption_text() -> String:
+	return String(PHASE_NAMES.get(phase, "PHASE"))
+
+func _phase_value_text() -> String:
+	if phase_remaining_ms <= 0:
+		return "—"
+	var secs: int = int(ceil(float(phase_remaining_ms) / 1000.0))
+	return "%ds" % secs
+
+func _phase_color() -> Color:
+	return PHASE_COLORS.get(phase, Tokens.COLOR_TEXT_MUTED)
+
+func _refresh_phase_chip() -> void:
+	if _phase_caption:
+		_phase_caption.text = _phase_caption_text()
+		_phase_caption.modulate = _phase_color()
+	if _phase_value:
+		_phase_value.text = _phase_value_text()
 
 func _on_pause() -> void:
 	var ui := get_node_or_null("/root/Ui")
@@ -172,3 +213,24 @@ func apply(data: Variant) -> void:
 		var prev_enemies: int = enemies_left
 		enemies_left = int(data["enemies"])
 		_tween_int(_enemies_value, prev_enemies, enemies_left, "enemies")
+	if data.has("kills"):
+		var prev_kills: int = kills
+		kills = int(data["kills"])
+		_tween_int(_kills_value, prev_kills, kills, "kills")
+		if kills > prev_kills:
+			_punch_chip("kills")
+	if data.has("phase"):
+		var prev_phase: int = phase
+		phase = int(data["phase"])
+		if data.has("phase_remaining_ms"):
+			phase_remaining_ms = int(data["phase_remaining_ms"])
+		_refresh_phase_chip()
+		if phase != prev_phase:
+			_punch_chip("phase")
+	elif data.has("phase_remaining_ms"):
+		phase_remaining_ms = int(data["phase_remaining_ms"])
+		_refresh_phase_chip()
+	if data.has("is_multiplayer"):
+		is_multiplayer = bool(data["is_multiplayer"])
+		if _pause_btn:
+			_pause_btn.visible = not is_multiplayer

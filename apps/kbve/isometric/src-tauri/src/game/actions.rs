@@ -197,6 +197,10 @@ fn process_action_buffer(
         }
 
         let Ok(mut ec) = commands.get_entity(entity) else {
+            warn!(
+                "[actions] entity {:?} not found for action '{}' — stale snapshot or already despawned",
+                entity, req.action
+            );
             continue;
         };
 

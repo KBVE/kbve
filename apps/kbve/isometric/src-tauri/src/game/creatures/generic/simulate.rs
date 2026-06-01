@@ -102,13 +102,17 @@ pub fn simulate_sprite_creatures(
             let ground = terrain.height_at_world(spawn_x, spawn_z);
             cr.anchor = Vec3::new(spawn_x, ground, spawn_z);
 
-            // Reset direction
+            // Reset direction. For FourWay we must translate the random
+            // quadrant through `quadrant_to_row` so the marker stores a row
+            // offset (same convention the move/flee branches use), not a raw
+            // quadrant index.
             match &ctype.direction_model {
                 DirectionModel::Flip => {
                     sd.facing_left = hash_f32(ps + 300) > 0.5;
                 }
-                DirectionModel::FourWay { .. } => {
-                    marker.direction = (hash_f32(ps + 300) * 4.0) as u32 % 4;
+                DirectionModel::FourWay { quadrant_to_row } => {
+                    let q = (hash_f32(ps + 300) * 4.0) as usize % 4;
+                    marker.direction = quadrant_to_row[q];
                 }
             }
 

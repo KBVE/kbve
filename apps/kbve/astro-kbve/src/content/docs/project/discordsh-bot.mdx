@@ -11,7 +11,7 @@ tags:
 key: discordsh_bot
 pipeline: docker
 app_name: discordsh-bot
-version: "0.1.16"
+version: "0.1.17"
 source_path: apps/discordsh/discordsh-bot
 version_toml: apps/discordsh/discordsh-bot/version.toml
 version_target: apps/discordsh/discordsh-bot/Cargo.toml
@@ -29,11 +29,62 @@ has_test: true
 ### Features
 
 - Poise/serenity Discord gateway with shard support
-- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`
+- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`, `/skills`, `/n8n`
 - Embed Dungeon game with bevy_battle combat, bevy_inventory item management
 - GitHub issue/PR management with SVG card rendering
 - Player persistence via Supabase
+- HMAC-signed forwarder into in-cluster n8n (`/n8n`)
 - Minimal health HTTP server for k8s probes
+
+## Environment Variables
+
+Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-n8n-hmac` Secrets. For the dev container, drop them into `apps/discordsh/discordsh-bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
+
+### Core
+
+| Variable                    | Required | Default       | Notes                                                               |
+| --------------------------- | -------- | ------------- | ------------------------------------------------------------------- |
+| `DISCORD_TOKEN`             | Yes\*    | —             | Bot token. \*Resolved from Supabase Vault in prod if unset locally. |
+| `GUILD_ID`                  | No       | —             | Dev guild for fast slash-command registration                       |
+| `SHARD_ID` / `SHARD_COUNT`  | No       | single-shard  | Distributed sharding                                                |
+| `HEALTH_PORT`               | No       | `4322`        | Health server bind port                                             |
+| `FONT_PATH`                 | No       | `alagard.ttf` | Card render font                                                    |
+| `SYMBOL_FONT_PATH`          | No       | `NotoSansSymbols-Regular.ttf` | Unicode symbol font                                                 |
+| `DB_PATH`                   | No       | —             | Local KV (redb) path for L2 profile cache                           |
+
+### Supabase / GitHub
+
+| Variable                    | Required | Notes                                              |
+| --------------------------- | -------- | -------------------------------------------------- |
+| `SUPABASE_URL`              | No       | API URL; enables persistence + shard tracker       |
+| `SUPABASE_SERVICE_ROLE_KEY` | No       | Service-role JWT; pair with `SUPABASE_URL`         |
+| `GITHUB_TOKEN`              | No       | PAT for `/github` + `/gh` commands                 |
+| `GITHUB_DEFAULT_REPO`       | No       | Default `owner/name` (default `KBVE/kbve`)         |
+| `GITHUB_ALLOWED_REPOS`      | No       | Comma-separated repo allowlist                     |
+
+### n8n forwarder (`/n8n`)
+
+`/n8n <webhook_path> [args]` forwards Discord input to the in-cluster n8n webhook receiver. Every payload is signed `X-KBVE-Signature: sha256=HMAC(secret, "{ts}.{body}")` so n8n workflows verify origin + reject replays in a Function node. All three required vars must be present or the command unregisters itself.
+
+| Variable             | Required | Default | Notes                                                                 |
+| -------------------- | -------- | ------- | --------------------------------------------------------------------- |
+| `N8N_BASE_URL`       | Yes      | —       | `http://n8n.n8n.svc.cluster.local:5678/webhook/` in cluster; `https://n8n.kbve.com/webhook/` for dev against public n8n |
+| `N8N_HMAC_SECRET`    | Yes      | —       | Shared secret with the n8n workflow (`$env.N8N_HMAC_SECRET`)          |
+| `N8N_ALLOWED_PATHS`  | Yes      | —       | Globset allowlist, comma-separated (e.g. `kbve/*,deploy-*`)           |
+| `N8N_RATE_LIMIT`     | No       | `1`     | Max calls per user per window                                         |
+| `N8N_RATE_WINDOW`    | No       | `5`     | Sliding window length in seconds                                      |
+
+Dev-container `.env` example:
+
+```env
+N8N_BASE_URL=https://n8n.kbve.com/webhook/
+N8N_HMAC_SECRET=<shared>
+N8N_ALLOWED_PATHS=kbve/*,deploy-*
+N8N_RATE_LIMIT=1
+N8N_RATE_WINDOW=5
+```
+
+In production the same secret lives once as a SealedSecret in the `n8n` namespace and is mirrored into `discordsh` via ExternalSecret — see `apps/kube/discordsh/seal-n8n-hmac.sh`.
 
 ### Related
 

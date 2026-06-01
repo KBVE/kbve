@@ -84,7 +84,7 @@ func _ready() -> void:
 	await get_tree().create_timer(0.6).timeout
 	Ui.close("boot")
 
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies, "is_multiplayer": socket != null})
 	var build_bar: Control = Ui.open("build_bar", {"gold": _gold})
 	if build_bar:
 		build_bar.tower_selected.connect(_on_tower_selected)
@@ -100,7 +100,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
-		Ui.toggle("pause")
+		if socket == null:
+			Ui.toggle("pause")
+		else:
+			Ui.toast("Pause unavailable in multiplayer", 1.4, "warn")
 		return
 	if event.is_action_pressed("skip_wave"):
 		_advance_wave()
@@ -227,7 +230,7 @@ func _advance_wave() -> void:
 	_wave += 1
 	_enemies = 10 + _wave * 3
 	_gold += 50
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies, "kills": _last_kills})
 	var bar := Ui.get_panel("build_bar")
 	if bar:
 		bar.apply({"gold": _gold})
@@ -310,7 +313,15 @@ func _on_snapshot(tick: int, wave: int, enemy_count: int, building_count: int, g
 	_lives = lives
 	_gold = gold
 	_enemies = enemy_count
-	Ui.open("hud_top", {"wave": _wave, "lives": _lives, "gold": _gold, "enemies": _enemies})
+	Ui.open("hud_top", {
+		"wave": _wave,
+		"lives": _lives,
+		"gold": _gold,
+		"enemies": _enemies,
+		"kills": kills,
+		"phase": phase,
+		"phase_remaining_ms": phase_remaining_ms,
+	})
 	if _last_snapshot_log_tick < 0 or tick - _last_snapshot_log_tick >= 10 or wave_changed or building_changed or phase_changed:
 		_last_snapshot_log_tick = tick
 		_log("snapshot tick=%d phase=%s wave=%d enemies=%d buildings=%d gold=%d lives=%d kills=%d remaining_ms=%d" % [tick, _phase_name(phase), wave, enemy_count, building_count, gold, lives, kills, phase_remaining_ms])
@@ -379,9 +390,9 @@ func _on_enemies_update(entities: Array) -> void:
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
 		var data: Dictionary = entry
-		var eid: int = int(data.get("eid", 0))
-		if eid == 0:
+		if not data.has("eid"):
 			continue
+		var eid: int = int(data["eid"])
 		seen[eid] = true
 		var destroyed: bool = bool(data.get("destroyed", false))
 		if destroyed:
@@ -418,9 +429,9 @@ func _on_buildings_update(entities: Array) -> void:
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
 		var data: Dictionary = entry
-		var eid: int = int(data.get("eid", 0))
-		if eid == 0:
+		if not data.has("eid"):
 			continue
+		var eid: int = int(data["eid"])
 		seen[eid] = true
 		var destroyed: bool = bool(data.get("destroyed", false))
 		if destroyed:

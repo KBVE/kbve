@@ -1,0 +1,24 @@
+# ClusterIP service in front of the Agones Fleet pods.
+#
+# Agones-allocated Dynamic ports are for direct outside-cluster access
+# (native godot client connecting straight to nodeIP:dynPort). For browser /
+# WASM clients we need a stable in-cluster Service the Cilium Gateway can
+# target. Selector matches the Fleet's pod label so every Ready GameServer
+# becomes a backend; the Fleet handles add/drop as pods cycle.
+apiVersion: v1
+kind: Service
+metadata:
+    name: nd-server
+    namespace: nexus-defense
+    labels:
+        app: nd-server
+        app.kubernetes.io/part-of: nexus-defense
+spec:
+    type: ClusterIP
+    selector:
+        app: nd-server
+    ports:
+        - name: ws
+          port: 7878
+          targetPort: 7878
+          protocol: TCP
