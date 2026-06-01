@@ -18,6 +18,15 @@ function FleetState.init()
 	f.unit_state = f.unit_state or {}
 	f.depleted_tiles = f.depleted_tiles or {}
 	f.player_selection = f.player_selection or {}
+	f.warnings = f.warnings or {}
+end
+
+function FleetState.warn_once(key, throttle_ticks)
+	local f = FleetState.get()
+	local last = f.warnings[key] or 0
+	if (game.tick - last) < throttle_ticks then return false end
+	f.warnings[key] = game.tick
+	return true
 end
 
 local function tile_key(x, y)

@@ -6,8 +6,10 @@ local TICK_INTERVAL = 60
 local FUEL_LOW_BURN = 200000
 local CARGO_FULL_RATIO = 0.9
 local COMBAT_RETREAT_HP_RATIO = 0.30
+local MINER_RETREAT_HP_RATIO = 0.50
 local PATROL_ARRIVAL_RADIUS = 6
 local SPAWN_REGROUP_POSITION = { x = 0, y = 0 }
+local WARN_THROTTLE_TICKS = 60 * 60
 
 local function has_aai_vehicles()
 	return remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles'] ~= nil
@@ -106,6 +108,32 @@ local function ore_under(surface, position)
 	return r[1]
 end
 
+local function any_connected_player()
+	for _, p in pairs(game.connected_players) do return p end
+	return nil
+end
+
+local function remove_zone_tile_visually(force, surface, x, y)
+	if not has_aai_zones() then return end
+	local player = any_connected_player()
+	if not player then return end
+	local ok = pcall(script.raise_event, defines.events.on_player_alt_selected_area, {
+		player_index = player.index,
+		item = 'zone-planner',
+		area = { left_top = { x = x, y = y }, right_bottom = { x = x + 1, y = y + 1 } },
+		surface = surface,
+		entities = {},
+		tiles = {},
+	})
+	return ok
+end
+
+local function depleted_mark_and_remove(force, surface, zone_name, x, y)
+	if FleetState.is_tile_depleted(zone_name, x, y) then return end
+	FleetState.mark_tile_depleted(zone_name, x, y)
+	remove_zone_tile_visually(force, surface, x, y)
+end
+
 local function pick_live_mining_tile(force, surface, zone_name, seed)
 	local n = zone_count(force, surface.index, zone_name)
 	if n <= 0 then return nil end
@@ -117,11 +145,20 @@ local function pick_live_mining_tile(force, surface, zone_name, seed)
 			if ore_under(surface, center) then
 				return center, tile
 			else
-				FleetState.mark_tile_depleted(zone_name, tile.x, tile.y)
+				depleted_mark_and_remove(force, surface, zone_name, tile.x, tile.y)
 			end
 		end
 	end
 	return nil
+end
+
+local function warn_no_zone(role)
+	if not FleetState.warn_once('missing_' .. role, WARN_THROTTLE_TICKS) then return end
+	game.print({
+		'',
+		'[KBVE Fleet] No zone tagged "', role,
+		'" — tag one from the Zones tab so units can return on their own.',
+	})
 end
 
 local function unit_hp_ratio(u)
@@ -208,7 +245,19 @@ local function tick_mining()
 		if st.mission == 'mining' and registered[unit_id] then
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid then
-				if unit_cargo_full(u) then
+				if unit_hp_ratio(u) < MINER_RETREAT_HP_RATIO then
+					local refuel = FleetState.zones_by_role('refuel')[1]
+					local pos
+					if refuel then
+						pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+					else
+						warn_no_zone('refuel')
+						pos = SPAWN_REGROUP_POSITION
+					end
+					FleetState.set_unit_mission(unit_id, 'retreating', refuel)
+					aai_set(unit_id, { target_speed = 0.1 })
+					aai_set(unit_id, { target_position = pos })
+				elseif unit_cargo_full(u) then
 					local deposit = FleetState.zones_by_role('deposit')[1]
 					if deposit then
 						local pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, deposit, u.vehicle.position)
@@ -217,6 +266,8 @@ local function tick_mining()
 							aai_set(unit_id, { target_speed = 0.1 })
 							aai_set(unit_id, { target_position = pos })
 						end
+					else
+						warn_no_zone('deposit')
 					end
 				elseif unit_fuel_low(u) then
 					local refuel = FleetState.zones_by_role('refuel')[1]
@@ -227,10 +278,12 @@ local function tick_mining()
 							aai_set(unit_id, { target_speed = 0.1 })
 							aai_set(unit_id, { target_position = pos })
 						end
+					else
+						warn_no_zone('refuel')
 					end
 				else
 					if u.target_position and not ore_under(u.vehicle.surface, u.target_position) then
-						FleetState.mark_tile_depleted(st.zone, u.target_position.x, u.target_position.y)
+						depleted_mark_and_remove(u.vehicle.force, u.vehicle.surface, st.zone, u.target_position.x, u.target_position.y)
 					end
 					if u.target_position == nil or u.mode == 'passive' then
 						local pos = pick_live_mining_tile(u.vehicle.force, u.vehicle.surface, st.zone, game.tick + unit_id)
@@ -299,9 +352,13 @@ local function tick_defense()
 			if u.vehicle and u.vehicle.valid then
 				if unit_hp_ratio(u) < COMBAT_RETREAT_HP_RATIO then
 					local refuel = FleetState.zones_by_role('refuel')[1]
-					local pos = refuel
-						and nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
-						or SPAWN_REGROUP_POSITION
+					local pos
+					if refuel then
+						pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+					else
+						warn_no_zone('refuel')
+						pos = SPAWN_REGROUP_POSITION
+					end
 					FleetState.set_unit_mission(unit_id, 'retreating', refuel)
 					aai_set(unit_id, { target_speed = 0.1 })
 					aai_set(unit_id, { target_position = pos })
@@ -314,6 +371,8 @@ local function tick_defense()
 							aai_set(unit_id, { target_speed = 0.1 })
 							aai_set(unit_id, { target_position = pos })
 						end
+					else
+						warn_no_zone('refuel')
 					end
 				else
 					local arrived = u.target_position == nil
@@ -344,9 +403,13 @@ local function tick_combat()
 			local u = registered[unit_id]
 			if u.vehicle and u.vehicle.valid and unit_hp_ratio(u) < COMBAT_RETREAT_HP_RATIO then
 				local refuel = FleetState.zones_by_role('refuel')[1]
-				local pos = refuel
-					and nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
-					or SPAWN_REGROUP_POSITION
+				local pos
+				if refuel then
+					pos = nearest_zone_position(u.vehicle.force, u.vehicle.surface.index, refuel, u.vehicle.position)
+				else
+					warn_no_zone('refuel')
+					pos = SPAWN_REGROUP_POSITION
+				end
 				FleetState.set_unit_mission(unit_id, 'retreating', refuel)
 				aai_set(unit_id, { target_speed = 0.1 })
 				aai_set(unit_id, { target_position = pos })
