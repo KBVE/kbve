@@ -10,7 +10,18 @@ import {
 	WebGLRenderer,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { Timer } from 'three/examples/jsm/misc/Timer.js';
+
+class FrameTimer {
+	private prev = 0;
+	private delta = 0;
+	update(now: number): void {
+		this.delta = this.prev ? Math.min((now - this.prev) / 1000, 0.1) : 0;
+		this.prev = now;
+	}
+	getDelta(): number {
+		return this.delta;
+	}
+}
 import {
 	VRM,
 	VRMHumanBoneName,
@@ -172,7 +183,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		lastPointNx = 0;
 	});
 
-	const timer = new Timer();
+	const timer = new FrameTimer();
 	let currentState: YukiState = 'idle';
 	let blinkCooldown = 1.5 + Math.random() * 2;
 	let blinkPhase = 0;
