@@ -16,6 +16,76 @@ function FleetState.init()
 	f.groups = f.groups or {}
 	f.next_group_id = f.next_group_id or 1
 	f.unit_state = f.unit_state or {}
+	f.depleted_tiles = f.depleted_tiles or {}
+	f.player_selection = f.player_selection or {}
+	f.warnings = f.warnings or {}
+end
+
+function FleetState.warn_once(key, throttle_ticks)
+	local f = FleetState.get()
+	local last = f.warnings[key] or 0
+	if (game.tick - last) < throttle_ticks then return false end
+	f.warnings[key] = game.tick
+	return true
+end
+
+local function tile_key(x, y)
+	return math.floor(x) .. ':' .. math.floor(y)
+end
+
+function FleetState.is_tile_depleted(zone_name, x, y)
+	if not zone_name then return false end
+	local f = FleetState.get()
+	local zone = f.depleted_tiles[zone_name]
+	if not zone then return false end
+	return zone[tile_key(x, y)] == true
+end
+
+function FleetState.mark_tile_depleted(zone_name, x, y)
+	if not zone_name then return end
+	local f = FleetState.get()
+	f.depleted_tiles[zone_name] = f.depleted_tiles[zone_name] or {}
+	f.depleted_tiles[zone_name][tile_key(x, y)] = true
+end
+
+function FleetState.clear_depleted(zone_name)
+	if not zone_name then return end
+	FleetState.get().depleted_tiles[zone_name] = nil
+end
+
+function FleetState.depleted_count(zone_name)
+	if not zone_name then return 0 end
+	local zone = FleetState.get().depleted_tiles[zone_name]
+	if not zone then return 0 end
+	local n = 0
+	for _ in pairs(zone) do n = n + 1 end
+	return n
+end
+
+function FleetState.get_player_selection(player_index)
+	local f = FleetState.get()
+	f.player_selection[player_index] = f.player_selection[player_index] or {}
+	return f.player_selection[player_index]
+end
+
+function FleetState.toggle_player_selection(player_index, unit_id)
+	local sel = FleetState.get_player_selection(player_index)
+	if sel[unit_id] then
+		sel[unit_id] = nil
+	else
+		sel[unit_id] = true
+	end
+end
+
+function FleetState.clear_player_selection(player_index)
+	FleetState.get().player_selection[player_index] = {}
+end
+
+function FleetState.player_selected_unit_ids(player_index)
+	local sel = FleetState.get_player_selection(player_index)
+	local out = {}
+	for uid, _ in pairs(sel) do table.insert(out, uid) end
+	return out
 end
 
 function FleetState.get()
