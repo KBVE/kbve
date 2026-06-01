@@ -68,10 +68,9 @@
         <script src="bug-report-shim.js"></script>
         <script src="safari-shim.js"></script>
         <script>
-            // Tauri macOS bug: WKWebView treats desktop clicks as touch with
-            // ~500ms delay, causing the click to register at the previous
-            // pointer position. Block touch listeners before they're attached.
-            // Ref: https://github.com/orgs/tauri-apps/discussions/11957
+            // Tauri macOS WKWebView treats desktop clicks as touch with
+            // ~500ms delay; block touch listeners before they're attached.
+            // https://github.com/orgs/tauri-apps/discussions/11957
             (function () {
                 if (!/Mac|Macintosh/i.test(navigator.userAgent)) return;
                 var origAdd = EventTarget.prototype.addEventListener;
@@ -83,66 +82,42 @@
             })();
         </script>
         <script>
-            // Native Tauri build renders Bevy directly to the webview's wgpu
-            // surface (no canvas attachment). The bevy-canvas element + body
-            // would otherwise eat clicks before tao forwards them to Bevy.
-            // Detect Tauri and make the DOM click-through; React UI children
-            // opt back in via pointer-events: auto when needed.
+            // Native Tauri renders Bevy onto the webview surface; capture
+            // pointer/key events at window level and forward them via
+            // Tauri commands so Bevy receives them regardless of which DOM
+            // element has focus. The DOM stays interactive (no pointer-
+            // events: none on html/body) so WKWebView keeps compositing.
             var isTauri = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
-            console.log('[native-input] script booted; isTauri=', isTauri, '__TAURI_INTERNALS__=', !!window.__TAURI_INTERNALS__);
             if (isTauri) {
-                // NOTE: Do NOT set `pointer-events: none` on html/body.
-                // WKWebView treats non-interactive documents as paint-skip
-                // candidates and defers DOM composition until devtools opens.
-                // The capture-phase window listeners below forward every
-                // pointer/key event to Bevy regardless of pointer-events, so
-                // the click-through behaviour is preserved without breaking
-                // composition. Only the bevy-canvas itself needs to opt out.
                 var canvas = document.getElementById('bevy-canvas');
                 if (canvas) canvas.style.pointerEvents = 'none';
 
                 var dpr = window.devicePixelRatio || 1;
-                console.log('[native-input] __TAURI__=', window.__TAURI__,
-                    'core=', window.__TAURI__ && window.__TAURI__.core,
-                    'INTERNALS keys=', window.__TAURI_INTERNALS__ ? Object.keys(window.__TAURI_INTERNALS__) : null);
 
                 var invokeRef = null;
-                var firstSuccess = false;
                 var loggedErr = false;
                 var call = function (cmd, args) {
                     if (!invokeRef) {
-                        // Tauri 2 preferred path: window.__TAURI__.core.invoke
-                        // (exposed when withGlobalTauri: true).
                         invokeRef = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
                             || (window.__TAURI__ && window.__TAURI__.invoke)
                             || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
                         if (!invokeRef) {
                             if (!loggedErr) {
-                                console.error('[native-input] no invoke fn — TAURI=', window.__TAURI__,
-                                    'INTERNALS=', window.__TAURI_INTERNALS__);
+                                console.error('[native-input] no invoke fn');
                                 loggedErr = true;
                             }
                             return;
                         }
-                        console.log('[native-input] invokeRef resolved as', invokeRef.name || 'anonymous');
                     }
                     try {
                         var p = invokeRef(cmd, args);
-                        if (p && p.then) {
-                            p.then(function () {
-                                if (!firstSuccess) {
-                                    console.log('[native-input] first invoke succeeded:', cmd);
-                                    firstSuccess = true;
-                                }
-                            }).catch(function (err) {
+                        if (p && p.catch) {
+                            p.catch(function (err) {
                                 if (!loggedErr) {
                                     console.error('[native-input] invoke failed', cmd, err);
                                     loggedErr = true;
                                 }
                             });
-                        } else if (!firstSuccess) {
-                            console.log('[native-input] invoke returned non-promise:', cmd, p);
-                            firstSuccess = true;
                         }
                     } catch (err) {
                         if (!loggedErr) {
@@ -187,7 +162,6 @@
                 };
                 window.addEventListener('pointerdown', function (e) {
                     if (isDragRegion(e)) return;
-                    console.log('[native-input] pointerdown fired button=', e.button);
                     call('forward_pointer_button', { button: e.button, pressed: true });
                 }, true);
                 window.addEventListener('pointerup', function (e) {
@@ -197,11 +171,9 @@
                 window.addEventListener('wheel', function (e) {
                     call('forward_wheel', { dx: e.deltaX, dy: -e.deltaY });
                 }, { capture: true, passive: true });
-                // Skip forwarding when focus is on a text input — the
-                // React chat UI (and any other future input widget) needs
-                // raw key strokes for editing without Bevy also reacting
-                // to them as gameplay hotkeys (e.g. typing `i` while in
-                // chat opening the inventory).
+                // Don't forward keys to Bevy when focus is on a text widget
+                // — React chat etc. need raw input without triggering game
+                // hotkeys (typing `i` while in chat opening the inventory).
                 var keyTargetIsEditable = function (e) {
                     var t = e.target;
                     if (!t || !t.tagName) return false;
@@ -221,10 +193,8 @@
                     if (keyTargetIsEditable(e)) return;
                     call('forward_key', { code: e.code, pressed: false, repeat: false });
                 }, true);
-                console.log('[native-input] forwarder armed (listeners attached)');
             } else {
-                // WASM browser build keeps the canvas focused so winit's web
-                // backend receives keyboard events.
+                // WASM browser build: keep canvas focused so winit gets keys.
                 document.addEventListener('pointerup', function() {
                     var c = document.getElementById('bevy-canvas');
                     if (c && document.activeElement !== c) c.focus();

@@ -40,10 +40,6 @@
 	<script>
 		import { authBridge } from '@/components/auth';
 
-		// Expose a Promise<string|null> on `window` so `main.tsx` can `await`
-		// the Supabase session probe BEFORE calling `set_signed_in` — the
-		// `<script>` block below kicks off WASM loading synchronously, so
-		// without a promise the session resolution would race the import.
 		(
 			window as Window & {
 				__KBVE_SESSION_PROBE__?: Promise<string | null>;
@@ -54,19 +50,45 @@
 			.catch(() => null);
 	</script>
 	<script is:inline>
+		// WASM Bevy + web workers + WebGPU context can't be torn down
+		// cleanly through Astro's view-transition swap. Force a real
+		// navigation whenever the route crosses /arcade/isometric in
+		// either direction, so the browser disposes the GPU + thread
+		// resources naturally on unload and re-inits cleanly on return.
 		(function () {
-			// Downscale droid workers to free threads for WASM pthreads
+			var ISO_PREFIX = '/arcade/isometric';
+			function pathOf(input) {
+				if (!input) return '';
+				if (typeof input === 'string') {
+					try {
+						return new URL(input, location.href).pathname;
+					} catch (_) {
+						return '';
+					}
+				}
+				if (input.pathname) return input.pathname;
+				return '';
+			}
+			document.addEventListener('astro:before-preparation', function (e) {
+				var fromIso = location.pathname.indexOf(ISO_PREFIX) === 0;
+				var toIso = pathOf(e.to).indexOf(ISO_PREFIX) === 0;
+				if (!fromIso && !toIso) return;
+				if (e.to && e.to.href) {
+					e.preventDefault();
+					window.location.assign(e.to.href);
+				}
+			});
+
 			function downscaleDroid() {
 				if (
 					window.kbve &&
 					typeof window.kbve.downscale === 'function'
 				) {
-					window.kbve.downscale().catch(function (e) {
-						console.warn('[Isometric] Droid downscale failed:', e);
+					window.kbve.downscale().catch(function (err) {
+						console.warn('[isometric] droid downscale failed', err);
 					});
 					return;
 				}
-				// Poll until droid is ready (max ~5s)
 				var attempts = 0;
 				var poll = setInterval(function () {
 					attempts++;
@@ -75,10 +97,10 @@
 						typeof window.kbve.downscale === 'function'
 					) {
 						clearInterval(poll);
-						window.kbve.downscale().catch(function (e) {
+						window.kbve.downscale().catch(function (err) {
 							console.warn(
-								'[Isometric] Droid downscale failed:',
-								e,
+								'[isometric] droid downscale failed',
+								err,
 							);
 						});
 					} else if (attempts > 50) {
@@ -87,7 +109,14 @@
 				}, 100);
 			}
 
-			if (navigator.gpu) {
+			function bootIsometric() {
+				if (window.__KBVE_ISOMETRIC_BOOTED__) return;
+				window.__KBVE_ISOMETRIC_BOOTED__ = true;
+				if (!navigator.gpu) {
+					document.getElementById('webgpu-warning').style.display =
+						'flex';
+					return;
+				}
 				document.getElementById('game-loading').style.display = 'flex';
 				document.getElementById('bevy-canvas').style.display = '';
 				document.getElementById('root').style.display = '';
@@ -97,10 +126,9 @@
 				s.src = '/isometric/assets/index.js';
 				s.crossOrigin = '';
 				document.head.appendChild(s);
-			} else {
-				document.getElementById('webgpu-warning').style.display =
-					'flex';
 			}
+
+			bootIsometric();
 		})();
 	</script>
 </div>
