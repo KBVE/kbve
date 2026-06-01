@@ -28,6 +28,25 @@ import {
 	Clock,
 } from 'lucide-react';
 
+const ARGO_TABLE_CSS = `
+.kbve-argo-row {
+	display: grid;
+	grid-template-columns: 24px 1fr 100px 120px 120px 180px;
+}
+.kbve-argo-header {
+	display: grid;
+}
+@media (max-width: 768px) {
+	.kbve-argo-row {
+		grid-template-columns: 24px 1fr auto auto;
+	}
+	.kbve-argo-col-project,
+	.kbve-argo-col-last {
+		display: none;
+	}
+}
+`;
+
 function StallBadge({
 	reason,
 	ageMs,
@@ -192,7 +211,8 @@ function ResourceRow({
 	};
 	return (
 		<>
-			<div
+			<button
+				type="button"
 				onClick={() => onSelectResource(sel)}
 				style={{
 					display: 'flex',
@@ -208,6 +228,12 @@ function ResourceRow({
 						? 'rgba(139, 92, 246, 0.12)'
 						: 'transparent',
 					transition: 'background 0.12s',
+					border: 'none',
+					textAlign: 'left',
+					width: '100%',
+					font: 'inherit',
+					touchAction: 'manipulation',
+					WebkitTapHighlightColor: 'transparent',
 				}}
 				onMouseEnter={(e) => {
 					if (!selected) {
@@ -258,7 +284,7 @@ function ResourceRow({
 						</span>
 					) : null;
 				})()}
-			</div>
+			</button>
 			{selected && (
 				<ReactArgoResourceDetail
 					token={token}
@@ -812,15 +838,24 @@ function ApplicationRow({
 				marginBottom: 8,
 				transition: 'background 0.2s',
 			}}>
-			<div
+			<button
+				type="button"
 				onClick={onToggle}
+				className="kbve-argo-row"
+				aria-expanded={expanded}
 				style={{
-					display: 'grid',
-					gridTemplateColumns: '24px 1fr 100px 120px 120px 180px',
 					alignItems: 'center',
 					padding: '0.75rem 1rem',
 					cursor: 'pointer',
 					gap: 8,
+					background: 'transparent',
+					border: 'none',
+					color: 'inherit',
+					font: 'inherit',
+					textAlign: 'left',
+					width: '100%',
+					touchAction: 'manipulation',
+					WebkitTapHighlightColor: 'transparent',
 				}}>
 				<span style={{ color: 'var(--sl-color-gray-4, #6b7280)' }}>
 					{expanded ? (
@@ -837,6 +872,10 @@ function ApplicationRow({
 						fontWeight: 600,
 						color: 'var(--sl-color-text, #e6edf3)',
 						fontSize: '0.9rem',
+						minWidth: 0,
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+						whiteSpace: 'nowrap',
 					}}>
 					{app.metadata.name}
 					{(() => {
@@ -851,6 +890,7 @@ function ApplicationRow({
 					})()}
 				</span>
 				<span
+					className="kbve-argo-col-project"
 					style={{
 						color: 'var(--sl-color-gray-4, #6b7280)',
 						fontSize: '0.8rem',
@@ -868,13 +908,14 @@ function ApplicationRow({
 					iconFn={healthIcon}
 				/>
 				<span
+					className="kbve-argo-col-last"
 					style={{
 						color: 'var(--sl-color-gray-4, #6b7280)',
 						fontSize: '0.75rem',
 					}}>
 					{lastSync}
 				</span>
-			</div>
+			</button>
 			{expanded && (
 				<AppExpandedPanel
 					app={app}
@@ -952,11 +993,11 @@ export default function ReactArgoAppTable() {
 
 	return (
 		<>
+			<style>{ARGO_TABLE_CSS}</style>
 			{/* Table header */}
 			<div
+				className="kbve-argo-row kbve-argo-header"
 				style={{
-					display: 'grid',
-					gridTemplateColumns: '24px 1fr 100px 120px 120px 180px',
 					padding: '0 1rem 0.5rem',
 					fontSize: '0.7rem',
 					fontWeight: 600,
@@ -967,10 +1008,10 @@ export default function ReactArgoAppTable() {
 				}}>
 				<span></span>
 				<span>Name</span>
-				<span>Project</span>
+				<span className="kbve-argo-col-project">Project</span>
 				<span>Sync</span>
 				<span>Health</span>
-				<span>Last Sync</span>
+				<span className="kbve-argo-col-last">Last Sync</span>
 			</div>
 
 			{/* Application rows */}
