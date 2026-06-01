@@ -199,7 +199,6 @@ mod desktop {
             frame_count += 1;
             if last_fps_update.elapsed() >= Duration::from_secs(1) {
                 AVERAGE_FRAME_RATE.store(frame_count, Ordering::Relaxed);
-                eprintln!("[fps] store {frame_count}");
                 frame_count = 0;
                 last_fps_update = Instant::now();
             }

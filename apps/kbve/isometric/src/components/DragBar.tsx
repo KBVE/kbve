@@ -39,12 +39,6 @@ async function fetchChrome(): Promise<UiChromeState | null> {
 	}
 }
 
-/**
- * Window drag handle shown only at Title (phase=0) or while the in-game
- * Settings modal is open. The rest of the time the chrome stays hidden so
- * gameplay feels like a windowless idle RPG. Tauri reads
- * `data-tauri-drag-region` and turns the element into a draggable area.
- */
 export function DragBar() {
 	const [visible, setVisible] = useState(false);
 	const isTauri = detectTauri();
@@ -77,9 +71,6 @@ export function DragBar() {
 		if (e.button !== 0) return;
 		e.preventDefault();
 		e.stopPropagation();
-		// Fire synchronously so AppKit still has the active mousedown when
-		// the IPC reaches the Tauri backend. Awaiting an import first lets
-		// the OS gesture complete before startDragging executes.
 		getCurrentWindow()
 			.startDragging()
 			.catch((err) => console.warn('[drag] startDragging failed', err));

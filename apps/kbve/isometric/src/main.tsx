@@ -11,14 +11,10 @@ function setLoadingProgress(status: string, percent: number) {
 	if (bar) bar.style.width = percent + '%';
 }
 
-/**
- * macOS WKWebView defers composition on transparent + click-through documents
- * (html/body with `pointer-events: none`). React mounts but paint stays stale
- * until devtools opens or the window resizes. Force a layout/resize on every
- * animation frame for the first ~600ms, then drop to a 500ms interval so
- * later UI state changes (chat panel opening, FPS counter updates) still get
- * composited.
- */
+// macOS WKWebView defers DOM composition on transparent + click-through
+// documents until something triggers a real OS resize (Web Inspector does
+// this naturally). Force a layout pulse + a stepped window-size nudge so
+// the React overlay paints from boot instead of staying invisible.
 function kickPaint() {
 	const force = () => {
 		document.documentElement.getBoundingClientRect();
@@ -32,17 +28,12 @@ function kickPaint() {
 	requestAnimationFrame(rafTick);
 	setInterval(force, 500);
 
-	// macOS WKWebView only reconfigures its compositor surface on real OS
-	// window-size changes (opening devtools triggers this naturally). Multi-
-	// stage nudge with a perceptible delta and a real delay so AppKit treats
-	// it as a true resize event, not a coalesced no-op.
 	(async () => {
 		try {
 			const winApi = await import('@tauri-apps/api/window');
 			const w = winApi.getCurrentWindow();
 			const size = await w.innerSize();
 			const PhysicalSize = winApi.PhysicalSize;
-			console.log('[paint] window-nudge starting; size=', size);
 			await w.setSize(
 				new PhysicalSize(size.width + 20, size.height + 20),
 			);
@@ -52,7 +43,6 @@ function kickPaint() {
 			await w.setSize(new PhysicalSize(size.width + 1, size.height));
 			await new Promise((r) => setTimeout(r, 100));
 			await w.setSize(new PhysicalSize(size.width, size.height));
-			console.log('[paint] window-nudge complete');
 		} catch (err) {
 			console.warn('[paint] window-nudge failed', err);
 		}
@@ -68,11 +58,6 @@ function hideLoadingScreen() {
 	}
 }
 
-/**
- * Probe browser capabilities and persist to localStorage as JSON.
- * Run ONCE before WASM init so the Rust side can read a complete
- * ClientProfile without scattered JS interop calls.
- */
 function resolveEndpoints() {
 	const hostname = window.location.hostname;
 	const protocol = window.location.protocol;
@@ -113,7 +98,6 @@ function probeClientProfile() {
 	try {
 		localStorage.setItem('kbve_client_profile', JSON.stringify(profile));
 	} catch {
-		// Private browsing or storage full — WASM will fall back to safe defaults.
 		console.warn(
 			'[profile] localStorage unavailable, WASM will use defaults',
 		);
@@ -124,11 +108,9 @@ function probeClientProfile() {
 async function bootstrap() {
 	const profile = probeClientProfile();
 
-	// Native Tauri build runs Bevy as a real Rust binary via wgpu and the
-	// webview's raw window handle — DO NOT load the WASM game on top of it,
-	// or two Bevy instances fight for input/render and wasm-bindgen
-	// closures get invoked recursively (visible as "closure invoked
-	// recursively or after being dropped" panics in the webview console).
+	// Native Tauri runs Bevy as a real Rust binary on the webview's raw
+	// window. Loading the WASM build on top of it spawns a second Bevy +
+	// recursive wasm-bindgen closures and crashes the webview.
 	const isTauri = !!(
 		(
 			window as typeof window & {
@@ -156,7 +138,6 @@ async function bootstrap() {
 		return;
 	}
 
-	// Verify WebGPU is available before loading the WASM game
 	if (!profile.has_webgpu) {
 		const root = document.getElementById('root');
 		if (root) {
@@ -172,8 +153,6 @@ async function bootstrap() {
 
 	setLoadingProgress('Loading game module...', 20);
 
-	// Load and initialize Bevy WASM — starts the game loop (non-blocking)
-	// Tower-http serves pre-compressed .wasm.br/.wasm.gz transparently via Content-Encoding
 	const wasmModule = await import('../wasm-pkg/isometric_game.js');
 	const { default: init } = wasmModule;
 
@@ -181,11 +160,8 @@ async function bootstrap() {
 
 	const wasm = await init();
 
-	// Hand the Supabase access token (resolved by the arcade page's
-	// authBridge probe) to Bevy so the title screen flips straight to
-	// "Signed in as X" and the netcode handshake starts without a Play
-	// Online click. Awaiting the probe avoids a race where WASM finishes
-	// init before the IndexedDB-backed session is read.
+	// Await the Supabase session probe so set_signed_in fires before
+	// netcode handshake — otherwise WASM races the IndexedDB read.
 	const probe = (
 		window as Window & {
 			__KBVE_SESSION_PROBE__?: Promise<string | null>;
@@ -200,8 +176,8 @@ async function bootstrap() {
 		}
 	}
 
-	// Spawn web workers for WASM pthreads (chunk computation, etc.)
-	// Only when SharedArrayBuffer is available (cross-origin isolated).
+	// WASM pthreads via web workers, only when SharedArrayBuffer is
+	// available (cross-origin isolated context).
 	if (
 		typeof SharedArrayBuffer !== 'undefined' &&
 		'worker_entry_point' in wasm
@@ -212,15 +188,12 @@ async function bootstrap() {
 		);
 		setLoadingProgress(`Spawning ${numWorkers} workers...`, 75);
 
-		// wasm-bindgen doesn't export the WebAssembly.Module, so compile it ourselves.
-		// The memory IS on instance.exports since we use --shared-memory.
 		const wasmUrl = new URL(
 			'../wasm-pkg/isometric_game_bg.wasm',
 			import.meta.url,
 		);
 		const wasmMemory = (wasm as unknown as { memory: WebAssembly.Memory })
 			.memory;
-		// Resolve the wasm-bindgen JS URL for workers to import dynamically.
 		const bindgenUrl = new URL(
 			'../wasm-pkg/isometric_game.js',
 			import.meta.url,
@@ -242,15 +215,13 @@ async function bootstrap() {
 					bindgenUrl,
 				});
 			}
-			console.log(`[pthreads] Spawned ${numWorkers} WASM worker threads`);
 		} catch (err) {
-			console.warn('[pthreads] Failed to compile WASM for workers:', err);
+			console.warn('[pthreads] worker setup failed', err);
 		}
 	}
 
 	setLoadingProgress('Starting...', 90);
 
-	// Render React UI overlay
 	ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 		<React.StrictMode>
 			<GameUIProvider>

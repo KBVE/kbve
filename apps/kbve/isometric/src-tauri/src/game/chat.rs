@@ -1,11 +1,4 @@
-//! IRC chat bridge for the isometric game.
-//!
-//! Connects to the IRC gateway via WebSocket (`wss://chat.kbve.com`) and bridges
-//! incoming world events into Bevy `Toast` notifications. On WASM the transport
-//! is `web_sys::WebSocket`; on native (desktop Tauri) it's tokio TCP.
-//!
-//! Gracefully degrades: if IRC is unreachable, the game continues without
-//! cross-platform world events.
+//! IRC chat bridge wired into the Bevy game (native + WASM).
 
 use bevy::prelude::*;
 use bevy_chat::{ChatMessage, ChatPlugin, IncomingChatEvent, IrcConfig, IrcTransport, MessageKind};
@@ -16,23 +9,15 @@ use std::sync::{Mutex, OnceLock};
 
 use super::toast::Toast;
 
-/// Default channel new messages from the React input box land on.
-/// Must match the Discord bot's `RELAY_IRC_CHANNEL` (and the chat.kbve.com
-/// web embed default) so all three audiences fan out through the same Ergo
-/// channel.
+/// Channel game messages fan out through. Must match the Discord relay's
+/// `RELAY_IRC_CHANNEL` and the chat.kbve.com web default so game/Discord/web
+/// all see the same Ergo room.
 pub const DEFAULT_SEND_CHANNEL: &str = "#general";
 
-/// Outbox sender exposed for the `send_chat` Tauri command + wasm-bindgen
-/// export. Set once when the chat plugin builds; readers must tolerate a
-/// `None` value before that happens.
 static OUTBOX_TX: OnceLock<Sender<ChatMessage>> = OnceLock::new();
 
 const SNAPSHOT_LOG_CAP: usize = 60;
 
-/// Thread-safe snapshot of recent #general chat lines exposed to React via the
-/// `get_chat_log` Tauri command. Mirrors the Bevy-side ChatLog used by the
-/// in-game overlay but lives outside the ECS so the React panel can read it
-/// at any phase (title screen included).
 static SNAPSHOT_LOG: Mutex<VecDeque<ChatLogEntry>> = Mutex::new(VecDeque::new());
 
 #[derive(Clone, Serialize)]
@@ -61,8 +46,6 @@ pub fn snapshot_log() -> Vec<ChatLogEntry> {
         .unwrap_or_default()
 }
 
-/// Build and queue a `ChatMessage` from raw user input. Returns `false` if
-/// chat hasn't initialized yet or the user is not signed in (no nick).
 pub fn queue_outgoing_chat(text: &str) -> bool {
     let trimmed = text.trim();
     if trimmed.is_empty() {
@@ -91,47 +74,22 @@ pub fn queue_outgoing_chat(text: &str) -> bool {
     sent
 }
 
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
-
-/// Default IRC gateway URL for browser clients.
-/// In WASM mode this is the public chat.kbve.com WebSocket endpoint.
 const DEFAULT_WS_URL: &str = "wss://chat.kbve.com/ws";
-
-/// Default IRC host for native (desktop) clients.
 const DEFAULT_NATIVE_HOST: &str = "irc.kbve.com";
-
-/// Channels every isometric client auto-joins. `#general` is the shared
-/// fan-out (game ↔ Discord ↔ chat.kbve.com web); `#world-events` is game-
-/// internal for toast events.
 const DEFAULT_CHANNELS: &[&str] = &["#general", "#world-events"];
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
-/// Bridges IRC world events into the isometric game's toast notifications.
-///
-/// Adds:
-/// - `bevy_chat::ChatPlugin` (inbox/outbox crossbeam channels + ECS event)
-/// - Startup system that creates a `ChatClient` and connects (graceful failure)
-/// - Update system that converts `IncomingChatEvent` → `Toast`
 pub struct GameChatPlugin;
 
 impl Plugin for GameChatPlugin {
     fn build(&self, app: &mut App) {
-        // Crossbeam channels for IRC ↔ ECS bridging
         let (inbox_tx, inbox_rx) = unbounded();
         let (outbox_tx, outbox_rx) = unbounded();
 
-        // Add the bevy_chat plugin (creates ChatInbox/ChatOutbox resources + IncomingChatEvent)
         app.add_plugins(ChatPlugin {
             inbox_rx: inbox_rx.clone(),
             outbox_tx: outbox_tx.clone(),
         });
 
-        // Store the senders + receivers for the connect system
         app.insert_resource(ChatBridgeChannels {
             inbox_tx,
             outbox_rx,
@@ -139,24 +97,14 @@ impl Plugin for GameChatPlugin {
         app.init_resource::<ChatSession>();
         let _ = OUTBOX_TX.set(outbox_tx);
 
-        // Connect chat lazily: wait for the user to sign in (PreFlight
-        // observes `kbve_username` + JWT), then dial `wss://chat.kbve.com`
-        // with the JWT as the IRC `PASS` and the username as the nick.
         app.add_systems(Update, connect_chat_on_signin);
-
-        // Bridge incoming world events to toast notifications
         app.add_systems(Update, world_events_to_toasts);
-        // Mirror chat-channel messages into the React-visible snapshot.
         app.add_systems(Update, snapshot_incoming);
     }
 }
 
 fn snapshot_incoming(mut events: MessageReader<IncomingChatEvent>) {
     for IncomingChatEvent(msg) in events.read() {
-        info!(
-            "[chat] incoming sender={} channel={} content={}",
-            msg.sender, msg.channel, msg.content
-        );
         if msg.channel == "#world-events" {
             continue;
         }
@@ -173,8 +121,6 @@ fn snapshot_incoming(mut events: MessageReader<IncomingChatEvent>) {
     }
 }
 
-/// Tracks whether we've already started a chat connection for the current
-/// session. Reset on disconnect/re-auth in a future iteration.
 #[derive(Resource, Default)]
 struct ChatSession {
     connected: bool,
@@ -191,8 +137,6 @@ fn connect_chat_on_signin(mut session: ResMut<ChatSession>, channels: Res<ChatBr
     }
     let nick = match snapshot.username {
         Some(name) if !name.is_empty() => name,
-        // No canonical username yet — chat needs one to register, so wait
-        // until the player picks one via the in-game username modal.
         _ => return,
     };
     let jwt = match crate::auth_common::current_jwt() {
@@ -201,7 +145,7 @@ fn connect_chat_on_signin(mut session: ResMut<ChatSession>, channels: Res<ChatBr
     };
     session.connected = true;
     session.nick = Some(nick.clone());
-    info!("[chat] sign-in observed; dialing chat.kbve.com as {nick}");
+    info!("[chat] connecting as {nick}");
     spawn_chat_connection(
         channels.inbox_tx.clone(),
         channels.outbox_rx.clone(),
@@ -210,24 +154,17 @@ fn connect_chat_on_signin(mut session: ResMut<ChatSession>, channels: Res<ChatBr
     );
 }
 
-/// Stores the inbox sender (called by the IRC client when messages arrive)
-/// and the outbox receiver (read by the outbox flush task).
 #[derive(Resource)]
 struct ChatBridgeChannels {
     inbox_tx: Sender<bevy_chat::ChatMessage>,
-    #[allow(dead_code)] // Used by future outbox flush task
+    #[allow(dead_code)]
     outbox_rx: Receiver<bevy_chat::ChatMessage>,
 }
 
-// ---------------------------------------------------------------------------
-// IRC connection (platform-specific)
-// ---------------------------------------------------------------------------
-
 fn chat_config(nick: String, jwt: String) -> IrcConfig {
-    // chat.kbve.com gateway authenticates the WS upgrade itself, not the IRC
-    // PASS line — it reads `Authorization: Bearer <jwt>` or the `?token=`
-    // query param. Bake the token into the URL since bevy_chat doesn't
-    // forward custom upgrade headers.
+    // chat.kbve.com authenticates the WS upgrade via `?token=`; PASS line
+    // is ignored. Skip IRC registration since the gateway pre-registers us
+    // from the JWT claims.
     let url = format!("{}?token={}", DEFAULT_WS_URL, jwt);
     IrcConfig {
         host: url,
@@ -253,19 +190,12 @@ fn spawn_chat_connection(
     use wasm_bindgen::JsCast;
 
     let config = chat_config(nick, jwt);
-    info!(
-        "[chat] connecting to IRC gateway at {} (nick={})",
-        config.host, config.nick
-    );
     let client = ChatClient::new(config);
     if let Err(e) = client.connect() {
-        warn!("[chat] IRC connect failed: {} — world events disabled", e);
+        warn!("[chat] connect failed: {e}");
         return;
     }
 
-    // Inbound: drain WASM client buffer into ECS crossbeam inbox each tick.
-    // Outbound: pull queued ChatMessages and ship via the WebSocket. Both
-    // run inside the same setInterval so we don't leak two timers.
     let client_for_poll = client.clone();
     let closure = wasm_bindgen::prelude::Closure::wrap(Box::new(move || {
         for msg in client_for_poll.drain_incoming() {
@@ -285,7 +215,6 @@ fn spawn_chat_connection(
         );
         closure.forget();
     }
-    info!("[chat] IRC bridge active (wasm)");
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -298,17 +227,6 @@ fn spawn_chat_connection(
     use bevy_chat::ChatClient;
 
     let config = chat_config(nick, jwt);
-    let host = config.host.clone();
-    info!(
-        "[chat] connecting to IRC gateway at {} (nick={})",
-        host, config.nick
-    );
-
-    // Bevy runs sync — drive the async connect on a dedicated tokio
-    // runtime spawned on a worker thread. The runtime lives for the
-    // process lifetime; one task forwards incoming messages into the
-    // crossbeam inbox, another drains the outbox channel and pushes each
-    // queued ChatMessage onto the WebSocket.
     std::thread::Builder::new()
         .name("chat-irc-ws".to_string())
         .spawn(move || {
@@ -326,16 +244,10 @@ fn spawn_chat_connection(
                 let mut client = ChatClient::new(config);
                 let mut subscriber = client.subscribe();
                 if let Err(e) = client.connect().await {
-                    warn!("[chat] native IRC-WS connect failed: {e}");
+                    warn!("[chat] connect failed: {e}");
                     return;
                 }
-                info!("[chat] native IRC-WS bridge active");
 
-                // Outbound: spawn a task that pulls from the crossbeam
-                // outbox in a blocking loop on a tokio blocking thread,
-                // forwarding each message via the async send. Using
-                // spawn_blocking keeps the synchronous Receiver::recv
-                // call off the async executor.
                 let client_send = client.clone();
                 tokio::spawn(async move {
                     loop {
@@ -352,7 +264,6 @@ fn spawn_chat_connection(
                             break;
                         }
                     }
-                    warn!("[chat] native outbound pump ended");
                 });
 
                 while let Ok(msg) = subscriber.recv().await {
@@ -360,19 +271,13 @@ fn spawn_chat_connection(
                         break;
                     }
                 }
-                warn!("[chat] native IRC-WS subscriber loop ended");
             });
         })
         .expect("failed to spawn chat-irc-ws thread");
 }
 
-// ---------------------------------------------------------------------------
-// Event bridge: IncomingChatEvent → Toast
-// ---------------------------------------------------------------------------
-
 fn world_events_to_toasts(mut events: MessageReader<IncomingChatEvent>, mut commands: Commands) {
     for IncomingChatEvent(msg) in events.read() {
-        // Only render world-events channel as toasts (avoid spamming chat)
         if msg.channel != "#world-events" {
             continue;
         }
@@ -389,7 +294,7 @@ fn world_events_to_toasts(mut events: MessageReader<IncomingChatEvent>, mut comm
             MessageKind::Custom(ref tag) if tag == "VICTORY" => {
                 Toast::success(format!("\u{1F451} {}", msg.content))
             }
-            _ => continue, // Skip unknown event types
+            _ => continue,
         };
 
         commands.trigger(toast);
