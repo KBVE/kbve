@@ -31,19 +31,27 @@ Memes application service serving [meme.sh](https://meme.sh) and `www.meme.sh`. 
 
 ## Routing
 
-Public traffic enters via Cloudflare → CNAME to `gateway.kbve.com` → `142.132.206.71` (Cilium gateway LB) → [`kbve-gateway`](apps/kube/kbve/manifest/) `https-memes` / `https-memes-www` listeners → [`memes-route`](apps/kube/memes/manifest/httproute.yaml) → `memes-service:4321`.
+Public traffic enters via Cloudflare → CNAME to `gateway.kbve.com` → `142.132.206.71` (Cilium gateway LB) → [`kbve-gateway`](apps/kube/kbve/manifest/kbve-gateway.yaml) `https-memes` listener (hostname `meme.sh`, cert `memes-tls` covers both `meme.sh` and `www.meme.sh` via SAN) → [`memes-route`](apps/kube/memes/manifest/httproute.yaml) (spec.hostnames = `[meme.sh, www.meme.sh]`) → `memes-service:4321`.
 
 The cert lives in `memes/memes-tls` and is consumed cross-namespace by `kbve-gateway` via [`memes-tls-from-kbve-gateway` ReferenceGrant](apps/kube/memes/manifest/memes-refgrant.yaml).
 
 ## TLS / certificate
 
-[`memes-cert`](apps/kube/memes/manifest/memes-cert.yaml) is **RSA 2048**, issued by the `letsencrypt-http` ClusterIssuer (HTTP-01). The algorithm matches the cert already in `memes-tls`; do not change to ECDSA without first verifying that the ACME HTTP-01 challenge path on Cilium gateway is healthy (see runbook below) — otherwise cert-manager flags `IncorrectCertificate` and queues a reissue that can never complete, while two `cm-acme-http-solver` HTTPRoutes ghost-attach to the listener and break `/` routing for `meme.sh`. Lost about 8 days of `meme.sh` uptime to this in May 2026.
+[`memes-cert`](apps/kube/memes/manifest/memes-cert.yaml) is **RSA 2048**, issued by the `letsencrypt-http` ClusterIssuer (HTTP-01). The algorithm matches the cert already in `memes-tls`; do not change to ECDSA without first verifying that the ACME HTTP-01 challenge path on Cilium gateway is healthy (see runbook below) — otherwise cert-manager flags `IncorrectCertificate` and queues a reissue that can never complete.
+
+## Cilium gateway gotcha — never split apex + www across listeners with one cert
+
+The original setup had two listeners (`https-memes` for `meme.sh`, `https-memes-www` for `www.meme.sh`) both pointing at the same `memes-tls` Secret. Cilium derives the Envoy filter chain SNI list from the **cert SAN** (not the listener `hostname`), so each listener emitted a filter chain with the same SNI array `[meme.sh, www.meme.sh]`. Envoy rejects duplicate filter chain match → falls through to the default 404 handler → 73 days of `meme.sh` returning nginx-style 404s while `kubectl get gateway` reported `Programmed=True / Accepted=True / ResolvedRefs=True` and the `memes-service` cluster sat healthy with zero `cx_total`.
+
+A second-order victim was ACME HTTP-01 — `cm-acme-http-solver-*` HTTPRoutes share the same listener, so the cert reissue loop also couldn't complete (`Ready=False, Reason=IncorrectCertificate`).
+
+**Rule for this gateway:** if one cert covers multiple SANs, use **one listener** with the apex hostname and let the HTTPRoute `spec.hostnames` enumerate every hostname the route serves. If you need per-host listeners, issue one cert per hostname so the SNI lists don't collide.
 
 ## Runbook — meme.sh returns 404
 
 1. Confirm origin is the actual culprit (not Cloudflare): `curl -s https://meme.sh/ | head` — an `nginx`-flavored 404 body means the request reached origin and the gateway returned it.
 2. Compare against a sibling host on the same gateway, e.g. `curl -sk --resolve kbve.com:443:142.132.206.71 -H 'Host: kbve.com' https://kbve.com/` — if that's 200, the gateway is healthy and the breakage is memes-specific.
-3. Check `kubectl get cert memes-cert -n memes` for `Ready=False, Reason=IncorrectCertificate` and `kubectl get httproute -n memes` for `cm-acme-http-solver-*` HTTPRoutes older than a few hours.
-4. If both present: the cert spec drifted from the live secret. Re-align `memes-cert.yaml` `spec.privateKey.algorithm` to the live secret (`openssl x509 -in <(kubectl get secret memes-tls -n memes -o jsonpath='{.data.tls\.crt}' | base64 -d) -text -noout | grep "Public Key Algorithm"`) and reapply via ArgoCD.
-5. After the cert reissue lock clears (the cm-acme HTTPRoutes get garbage-collected), kick the gateway: `kubectl rollout restart -n kube-system ds/cilium-envoy` so Envoy reloads its listener config.
+3. Dump the Envoy filter chains and look for two with overlapping SNI arrays: `kubectl exec -n kube-system <cilium-pod> -- cilium-dbg envoy admin config | jq '.. | objects | select(.filter_chains) | .filter_chains[] | select(.filter_chain_match.server_names[]? | contains("meme")) | .filter_chain_match.server_names'` — if you see the SAN list duplicated across two chains, the listener split is the bug.
+4. Collapse to one listener (this PR's fix), reapply via ArgoCD, and `kubectl rollout restart -n kube-system ds/cilium-envoy` to flush the stale filter chains.
+5. The stuck `cm-acme-http-solver-*` HTTPRoutes drain automatically once the cert can validate; if they don't, `kubectl delete httproute -l acme.cert-manager.io/http01-solver -n memes` to force cert-manager to recreate fresh ones.
 6. Re-curl `meme.sh` — should return 200.
