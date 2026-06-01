@@ -192,9 +192,28 @@ CREATE TABLE mc.lot (
         (state = 0 AND owner_user_id IS NULL)
         OR (state > 0 AND owner_user_id IS NOT NULL)
     ),
+    -- Schematic presence per state:
+    --   0 vacant       — no schematic (and no owner; see vacant_clean_chk).
+    --   1 owned        — no schematic (clean lot, no build yet).
+    --   2 built        — schematic NOT NULL.
+    --   3 under_build  — schematic free (rebuild flow may carry the
+    --                    prior schematic; first build starts NULL).
+    --   4 demolishing  — schematic NOT NULL (target row of the clear).
     CONSTRAINT mc_lot_built_has_schematic_chk CHECK (
-        (state = 2 AND current_schematic_id IS NOT NULL)
-        OR state <> 2
+        CASE state
+            WHEN 0 THEN current_schematic_id IS NULL
+            WHEN 1 THEN current_schematic_id IS NULL
+            WHEN 2 THEN current_schematic_id IS NOT NULL
+            WHEN 4 THEN current_schematic_id IS NOT NULL
+            ELSE TRUE  -- state=3 unconstrained
+        END
+    ),
+    -- Vacant lots have no owner. state=0 + owner combos slipped through
+    -- the broader owner_state_chk because that check allowed state>0
+    -- with non-null owner; this is the stricter inverse for state=0.
+    CONSTRAINT mc_lot_vacant_clean_chk CHECK (
+        state <> 0
+        OR (owner_user_id IS NULL AND current_schematic_id IS NULL)
     ),
 
     CONSTRAINT mc_lot_no_overlap_excl EXCLUDE USING gist (
@@ -311,7 +330,6 @@ CREATE TABLE mc.lot_purchase (
     CONSTRAINT mc_lot_purchase_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX idx_mc_lot_purchase_lot   ON mc.lot_purchase (lot_id);
 -- Dashboard "my purchase history" sorts newest first; composite avoids
 -- a sort step.
 CREATE INDEX idx_mc_lot_purchase_buyer_created
@@ -319,6 +337,9 @@ CREATE INDEX idx_mc_lot_purchase_buyer_created
 
 -- Phase-0 invariant: each lot can be bought exactly once. Resale comes
 -- with an explicit ownership-epoch column in a follow-up migration.
+-- This unique index also covers the lookup-by-lot path; no separate
+-- non-unique idx_mc_lot_purchase_lot needed (would just be write
+-- amplification).
 CREATE UNIQUE INDEX uq_mc_lot_purchase_one_per_lot
     ON mc.lot_purchase (lot_id);
 
@@ -372,6 +393,17 @@ CREATE TABLE mc.lot_build_log (
         (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
         OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
     ),
+    -- Demolish is always free in phase 0: action_kind=1 cannot carry a
+    -- schematic, price, or ledger ref. Locking this in at the table
+    -- level so a future RPC change can't silently break the invariant.
+    CONSTRAINT mc_lot_build_log_demolish_free_chk CHECK (
+        action_kind <> 1
+        OR (schematic_id IS NULL
+            AND price_credits = 0
+            AND price_khash = 0
+            AND wallet_credits_ledger_id IS NULL
+            AND wallet_khash_ledger_id IS NULL)
+    ),
     -- Claimed state must carry full worker identity; non-claimed states
     -- must not.
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
@@ -422,6 +454,17 @@ ALTER TABLE mc.lot_build_log SET (
     autovacuum_analyze_scale_factor = 0.01,
     autovacuum_vacuum_threshold = 1000,
     autovacuum_analyze_threshold = 500
+);
+
+-- mc.lot churns too: state cycles 0 -> 1 -> 3 -> 2 -> 4 -> 1, and the
+-- updated_at trigger writes on every meaningful column change. Less
+-- aggressive than lot_build_log but tighter than the catalog default.
+ALTER TABLE mc.lot SET (
+    fillfactor = 90,
+    autovacuum_vacuum_scale_factor = 0.05,
+    autovacuum_analyze_scale_factor = 0.02,
+    autovacuum_vacuum_threshold = 500,
+    autovacuum_analyze_threshold = 250
 );
 
 ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
@@ -531,12 +574,12 @@ AS $$
           )
       )
     ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(p_limit, 1024))
+    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024))
     -- OFFSET preserved only for the non-cursor path; cursor callers
     -- should pass 0. Capped at 100000 so a pathological admin call
     -- can't request a multi-million-row deep scan.
     OFFSET CASE
-        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, p_offset), 100000)
+        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, COALESCE(p_offset, 0)), 100000)
         ELSE 0
     END;
 $$;
@@ -643,7 +686,7 @@ BEGIN
           FROM mc.lot_build_log
          WHERE apply_state = 0
          ORDER BY queued_at, build_id
-         LIMIT GREATEST(0, LEAST(p_limit, 256))
+         LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 32), 256))
          FOR UPDATE SKIP LOCKED
     ),
     claimed AS (
@@ -693,9 +736,9 @@ AS $$
            -- estimates).
            AND claimed_at < clock_timestamp()
                           - make_interval(secs =>
-                              LEAST(GREATEST(1, p_older_than_seconds), 86400))
+                              LEAST(GREATEST(1, COALESCE(p_older_than_seconds, 300)), 86400))
          ORDER BY claimed_at, build_id
-         LIMIT GREATEST(0, LEAST(p_limit, 512))
+         LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 128), 512))
          FOR UPDATE SKIP LOCKED
     ),
     stale AS (
@@ -828,7 +871,11 @@ BEGIN
 
     UPDATE mc.lot_build_log
        SET apply_state = 2,
-           apply_error = left(p_error, 2048),
+           -- Always carry SOME diagnostic string so operators reading
+           -- the row aren't left guessing on null/blank input.
+           apply_error = left(
+               COALESCE(NULLIF(btrim(p_error), ''), 'worker reported failure'),
+               2048),
            applied_at = clock_timestamp(),
            claimed_at = NULL,
            claimed_by = NULL
@@ -1148,18 +1195,26 @@ BEGIN
         );
     END IF;
 
-    INSERT INTO mc.lot_build_log (
-        lot_id, actor_user_id, action_kind, schematic_id,
-        price_credits, price_khash,
-        wallet_credits_ledger_id, wallet_khash_ledger_id,
-        idempotency_key
-    ) VALUES (
-        p_lot_id, p_user_id, 0, p_schematic_id,
-        v_sch_price_credits, v_sch_price_khash,
-        v_credits_ledger_id, v_khash_ledger_id,
-        p_idempotency_key
-    )
-    RETURNING build_id INTO v_build_id;
+    -- The partial uq_mc_lot_build_log_one_active_per_lot index turns a
+    -- concurrent second queue attempt into a unique_violation. Translate
+    -- to a clearer domain error.
+    BEGIN
+        INSERT INTO mc.lot_build_log (
+            lot_id, actor_user_id, action_kind, schematic_id,
+            price_credits, price_khash,
+            wallet_credits_ledger_id, wallet_khash_ledger_id,
+            idempotency_key
+        ) VALUES (
+            p_lot_id, p_user_id, 0, p_schematic_id,
+            v_sch_price_credits, v_sch_price_khash,
+            v_credits_ledger_id, v_khash_ledger_id,
+            p_idempotency_key
+        )
+        RETURNING build_id INTO v_build_id;
+    EXCEPTION WHEN unique_violation THEN
+        RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
+            USING ERRCODE = '23505';
+    END;
 
     UPDATE mc.lot SET state = 3 WHERE lot_id = p_lot_id;
 
@@ -1240,12 +1295,17 @@ BEGIN
             p_lot_id, v_lot_state USING ERRCODE = '22023';
     END IF;
 
-    INSERT INTO mc.lot_build_log (
-        lot_id, actor_user_id, action_kind, schematic_id, idempotency_key
-    ) VALUES (
-        p_lot_id, p_user_id, 1, NULL, p_idempotency_key
-    )
-    RETURNING build_id INTO v_build_id;
+    BEGIN
+        INSERT INTO mc.lot_build_log (
+            lot_id, actor_user_id, action_kind, schematic_id, idempotency_key
+        ) VALUES (
+            p_lot_id, p_user_id, 1, NULL, p_idempotency_key
+        )
+        RETURNING build_id INTO v_build_id;
+    EXCEPTION WHEN unique_violation THEN
+        RAISE EXCEPTION 'lot % already has an active queued/claimed job', p_lot_id
+            USING ERRCODE = '23505';
+    END;
 
     UPDATE mc.lot SET state = 4 WHERE lot_id = p_lot_id;
 
@@ -1332,9 +1392,9 @@ AS $$
           )
       )
     ORDER BY l.world, l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(p_limit, 1024))
+    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024))
     OFFSET CASE
-        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, p_offset), 100000)
+        WHEN p_after_lot_id IS NULL THEN LEAST(GREATEST(0, COALESCE(p_offset, 0)), 100000)
         ELSE 0
     END;
 $$;
@@ -1745,12 +1805,30 @@ RETURNS TABLE (
     price_credits   BIGINT,
     price_khash     BIGINT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 256
 AS $$
+BEGIN
+    IF p_world IS NULL OR btrim(p_world) = '' THEN
+        RAISE EXCEPTION 'world cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
+        RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
+    END IF;
+    -- Cursor all-or-none. world is already pinned via p_world so it
+    -- doesn't enter the cursor tuple; the three remaining cursor args
+    -- must agree on null-ness.
+    IF (p_after_lot_id IS NULL) <> (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL)
+       OR (p_after_lot_id IS NOT NULL
+           AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL)) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
     SELECT l.lot_id,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
@@ -1763,15 +1841,12 @@ AS $$
       AND l.world = p_world
       AND (
           p_after_lot_id IS NULL
-          OR (
-              p_after_chunk_x IS NOT NULL
-              AND p_after_chunk_z IS NOT NULL
-              AND (l.chunk_x_min, l.chunk_z_min, l.lot_id)
-                  > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
-          )
+          OR (l.chunk_x_min, l.chunk_z_min, l.lot_id)
+             > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
       )
     ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(p_limit, 1024));
+    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024));
+END;
 $$;
 
 ALTER FUNCTION public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
@@ -1804,13 +1879,36 @@ RETURNS TABLE (
     price_credits   BIGINT,
     price_khash     BIGINT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 256
 AS $$
-    WITH me AS (SELECT auth.uid() AS uid)
+DECLARE
+    v_uid UUID := auth.uid();
+BEGIN
+    IF v_uid IS NULL THEN
+        RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
+    END IF;
+    IF p_world IS NULL OR btrim(p_world) = '' THEN
+        RAISE EXCEPTION 'world cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
+        RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NOT NULL
+       AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NULL
+       AND (p_after_chunk_x IS NOT NULL OR p_after_chunk_z IS NOT NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
     SELECT l.lot_id,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
@@ -1820,22 +1918,18 @@ AS $$
            l.current_schematic_id,
            l.price_credits,
            l.price_khash
-    FROM mc.lot l, me
-    WHERE me.uid IS NOT NULL
-      AND l.owner_user_id = me.uid
+    FROM mc.lot l
+    WHERE l.owner_user_id = v_uid
       AND l.state IN (1, 2)
       AND l.world = p_world
       AND (
           p_after_lot_id IS NULL
-          OR (
-              p_after_chunk_x IS NOT NULL
-              AND p_after_chunk_z IS NOT NULL
-              AND (l.chunk_x_min, l.chunk_z_min, l.lot_id)
-                  > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
-          )
+          OR (l.chunk_x_min, l.chunk_z_min, l.lot_id)
+             > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
       )
     ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT GREATEST(0, LEAST(p_limit, 1024));
+    LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 256), 1024));
+END;
 $$;
 
 ALTER FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)

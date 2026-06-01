@@ -131,8 +131,17 @@ CREATE TABLE IF NOT EXISTS mc.lot (
         OR (state > 0 AND owner_user_id IS NOT NULL)
     ),
     CONSTRAINT mc_lot_built_has_schematic_chk CHECK (
-        (state = 2 AND current_schematic_id IS NOT NULL)
-        OR state <> 2
+        CASE state
+            WHEN 0 THEN current_schematic_id IS NULL
+            WHEN 1 THEN current_schematic_id IS NULL
+            WHEN 2 THEN current_schematic_id IS NOT NULL
+            WHEN 4 THEN current_schematic_id IS NOT NULL
+            ELSE TRUE
+        END
+    ),
+    CONSTRAINT mc_lot_vacant_clean_chk CHECK (
+        state <> 0
+        OR (owner_user_id IS NULL AND current_schematic_id IS NULL)
     ),
 
     CONSTRAINT mc_lot_no_overlap_excl EXCLUDE USING gist (
@@ -191,9 +200,10 @@ CREATE TABLE IF NOT EXISTS mc.lot_purchase (
     CONSTRAINT mc_lot_purchase_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_lot ON mc.lot_purchase (lot_id);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_buyer_created
     ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC);
+-- Unique on (lot_id) covers both the phase-0 'one purchase per lot'
+-- invariant and the lookup-by-lot path; no separate non-unique index.
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_purchase_one_per_lot
     ON mc.lot_purchase (lot_id);
 
@@ -237,6 +247,14 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
         (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
         OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
     ),
+    CONSTRAINT mc_lot_build_log_demolish_free_chk CHECK (
+        action_kind <> 1
+        OR (schematic_id IS NULL
+            AND price_credits = 0
+            AND price_khash = 0
+            AND wallet_credits_ledger_id IS NULL
+            AND wallet_khash_ledger_id IS NULL)
+    ),
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
         CHECK (
             (apply_state = 3 AND claimed_at IS NOT NULL AND claimed_by IS NOT NULL)
@@ -264,6 +282,14 @@ ALTER TABLE mc.lot_build_log SET (
     autovacuum_analyze_scale_factor = 0.01,
     autovacuum_vacuum_threshold = 1000,
     autovacuum_analyze_threshold = 500
+);
+
+ALTER TABLE mc.lot SET (
+    fillfactor = 90,
+    autovacuum_vacuum_scale_factor = 0.05,
+    autovacuum_analyze_scale_factor = 0.02,
+    autovacuum_vacuum_threshold = 500,
+    autovacuum_analyze_threshold = 250
 );
 
 
