@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2026-06-01
+  Changes:
+    - Realigns the portal release with the docker image source so server + clients pulling from mods.factorio.com match on connect.
+    - Server image now defers the kbve mod entirely to the portal sync (FACTORIO_PORTAL_ONLY_MODS=kbve) instead of pre-packaging from local sources.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 2026-06-01
   Features:
