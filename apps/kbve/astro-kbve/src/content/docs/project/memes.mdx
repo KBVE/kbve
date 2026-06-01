@@ -27,4 +27,23 @@ status: active
 
 ## Overview
 
-Memes application service.
+Memes application service serving [meme.sh](https://meme.sh) and `www.meme.sh`. Built from `apps/memes/axum-memes` (Rust backend + Askama templates) plus the `apps/memes/astro-memes` static frontend, packaged into the `kbve/memes` image. Deployment lives at [apps/kube/memes/manifest/](apps/kube/memes/manifest/).
+
+## Routing
+
+Public traffic enters via Cloudflare → CNAME to `gateway.kbve.com` → `142.132.206.71` (Cilium gateway LB) → [`kbve-gateway`](apps/kube/kbve/manifest/) `https-memes` / `https-memes-www` listeners → [`memes-route`](apps/kube/memes/manifest/httproute.yaml) → `memes-service:4321`.
+
+The cert lives in `memes/memes-tls` and is consumed cross-namespace by `kbve-gateway` via [`memes-tls-from-kbve-gateway` ReferenceGrant](apps/kube/memes/manifest/memes-refgrant.yaml).
+
+## TLS / certificate
+
+[`memes-cert`](apps/kube/memes/manifest/memes-cert.yaml) is **RSA 2048**, issued by the `letsencrypt-http` ClusterIssuer (HTTP-01). The algorithm matches the cert already in `memes-tls`; do not change to ECDSA without first verifying that the ACME HTTP-01 challenge path on Cilium gateway is healthy (see runbook below) — otherwise cert-manager flags `IncorrectCertificate` and queues a reissue that can never complete, while two `cm-acme-http-solver` HTTPRoutes ghost-attach to the listener and break `/` routing for `meme.sh`. Lost about 8 days of `meme.sh` uptime to this in May 2026.
+
+## Runbook — meme.sh returns 404
+
+1. Confirm origin is the actual culprit (not Cloudflare): `curl -s https://meme.sh/ | head` — an `nginx`-flavored 404 body means the request reached origin and the gateway returned it.
+2. Compare against a sibling host on the same gateway, e.g. `curl -sk --resolve kbve.com:443:142.132.206.71 -H 'Host: kbve.com' https://kbve.com/` — if that's 200, the gateway is healthy and the breakage is memes-specific.
+3. Check `kubectl get cert memes-cert -n memes` for `Ready=False, Reason=IncorrectCertificate` and `kubectl get httproute -n memes` for `cm-acme-http-solver-*` HTTPRoutes older than a few hours.
+4. If both present: the cert spec drifted from the live secret. Re-align `memes-cert.yaml` `spec.privateKey.algorithm` to the live secret (`openssl x509 -in <(kubectl get secret memes-tls -n memes -o jsonpath='{.data.tls\.crt}' | base64 -d) -text -noout | grep "Public Key Algorithm"`) and reapply via ArgoCD.
+5. After the cert reissue lock clears (the cm-acme HTTPRoutes get garbage-collected), kick the gateway: `kubectl rollout restart -n kube-system ds/cilium-envoy` so Envoy reloads its listener config.
+6. Re-curl `meme.sh` — should return 200.

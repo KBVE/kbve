@@ -11,8 +11,17 @@ spec:
     dnsNames:
         - meme.sh
         - www.meme.sh
+    # Aligned with the RSA 2048 cert already in the live `memes-tls` secret
+    # (issued Apr 21 2026 by Let's Encrypt R12, valid through Jul 20 2026).
+    # Previously declared ECDSA/256, which made cert-manager flag the secret
+    # as IncorrectCertificate and queue an HTTP-01 reissue. The challenge
+    # never validated because the Cilium gateway listener was also dropping
+    # the cm-acme-http-solver HTTPRoutes (8 days of stuck challenges), so
+    # meme.sh stayed 404 while the cert ghost-rotated. Switching the spec
+    # back to RSA matches reality and stops the reissue loop. ECDSA migration
+    # is a separate task that needs a working ACME path first.
     privateKey:
-        algorithm: ECDSA
-        size: 256
+        algorithm: RSA
+        size: 2048
     duration: 2160h
     renewBefore: 720h
