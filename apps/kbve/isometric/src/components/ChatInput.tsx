@@ -99,7 +99,14 @@ export function ChatInput() {
 	const [signedIn, setSignedIn] = useState(false);
 	const [username, setUsername] = useState<string | null>(null);
 	const [log, setLog] = useState<ChatLogEntry[]>([]);
-	const [open, setOpen] = useState(false);
+	// `openState` tracks both the visible state and the snapshot length the
+	// player has acknowledged. Bundling them in one state object keeps the
+	// "open the panel + clear unread" transition atomic and pure (no
+	// during-render setState or ref mutation).
+	const [openState, setOpenState] = useState<{ open: boolean; seen: number }>(
+		{ open: false, seen: 0 },
+	);
+	const { open } = openState;
 	const inputRef = useRef<HTMLInputElement>(null);
 	const logRef = useRef<HTMLDivElement>(null);
 
@@ -123,6 +130,9 @@ export function ChatInput() {
 		};
 	}, []);
 
+	const openChat = () => setOpenState({ open: true, seen: log.length });
+	const closeChat = () => setOpenState({ open: false, seen: log.length });
+
 	useEffect(() => {
 		if (!open) return;
 		const el = logRef.current;
@@ -143,7 +153,7 @@ export function ChatInput() {
 				if (target === inputRef.current && e.key === 'Escape') {
 					e.preventDefault();
 					if (inputRef.current) inputRef.current.value = '';
-					setOpen(false);
+					closeChat();
 				}
 				return;
 			}
@@ -157,9 +167,10 @@ export function ChatInput() {
 			if (isOpenChat && !e.metaKey && !e.ctrlKey && !e.altKey) {
 				e.preventDefault();
 				e.stopPropagation();
-				setOpen((prev) => !prev);
+				if (open) closeChat();
+				else openChat();
 			} else if (e.key === 'Escape' && open) {
-				setOpen(false);
+				closeChat();
 			}
 		};
 		window.addEventListener('keydown', onKeyDown, true);
@@ -187,7 +198,42 @@ export function ChatInput() {
 		}
 	}, []);
 
-	if (!signedIn || !open) return null;
+	if (!signedIn) return null;
+
+	const unread = open ? 0 : Math.max(0, log.length - openState.seen);
+
+	if (!open) {
+		if (unread === 0) return null;
+		return (
+			<button
+				type="button"
+				onClick={openChat}
+				style={{
+					position: 'fixed',
+					left: 12,
+					top: 48,
+					zIndex: 9999,
+					pointerEvents: 'auto',
+					padding: '4px 10px',
+					background: 'rgba(10, 10, 16, 0.86)',
+					border: '1px solid #b83030',
+					borderRadius: 12,
+					color: '#e8d8b8',
+					fontFamily: 'monospace',
+					fontSize: 11,
+					cursor: 'pointer',
+					display: 'flex',
+					alignItems: 'center',
+					gap: 6,
+				}}
+				title="Press T to open chat">
+				<span style={{ color: '#b83030', fontWeight: 'bold' }}>
+					{unread}
+				</span>
+				<span>chat</span>
+			</button>
+		);
+	}
 
 	return (
 		<div
@@ -226,7 +272,7 @@ export function ChatInput() {
 				</span>
 				<button
 					type="button"
-					onClick={() => setOpen(false)}
+					onClick={closeChat}
 					style={{
 						background: 'transparent',
 						border: 'none',
