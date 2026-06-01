@@ -13,6 +13,7 @@ import {
 	MemoryStick,
 	MessageCircle,
 	Globe,
+	Activity,
 } from 'lucide-react';
 
 type BundledApp = 'discord' | 'cloakbrowser';
@@ -129,8 +130,10 @@ function formatRange(req?: string, lim?: string): string | null {
 function KasmCard({ info }: { info: KasmInfo }) {
 	const actionInProgress = useStore(kasmService.$actionInProgress);
 	const lastAction = useStore(kasmService.$lastAction);
+	const supervisorActivity = useStore(kasmService.$supervisorActivity);
 	const token = useStore(vmService.$accessToken);
 	const { workspace, phase, state } = info;
+	const activity = supervisorActivity[workspace.name];
 
 	const isActing = actionInProgress?.includes(workspace.name) ?? false;
 	const cardAction = lastAction?.name === workspace.name ? lastAction : null;
@@ -303,6 +306,32 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					{imageMeta.bundledApps.map((app) => (
 						<AppChip key={app} app={app} />
 					))}
+				</div>
+			)}
+
+			{activity && (activity.cloak > 0 || activity.discord > 0) && (
+				<div
+					title={`Supervisor launches in the last ${activity.windowMin}m — includes the cold pod start. Anything above 2 per app is likely respawns after a crash or window close.`}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.4rem',
+						fontSize: '0.72rem',
+						color: 'rgba(255,255,255,0.55)',
+						marginTop: '-0.25rem',
+					}}>
+					<Activity size={12} style={{ color: '#a78bfa' }} />
+					<span>
+						Last {activity.windowMin}m:{' '}
+						<strong style={{ color: '#a78bfa' }}>
+							{activity.cloak}
+						</strong>{' '}
+						browser ·{' '}
+						<strong style={{ color: '#a78bfa' }}>
+							{activity.discord}
+						</strong>{' '}
+						discord launches
+					</span>
 				</div>
 			)}
 
