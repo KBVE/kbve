@@ -68,7 +68,7 @@
 		"astro-vtbot": "^2.1.11",
 		"autoprefixer": "^10.4.24",
 		"babel-plugin-macros": "^3.1.0",
-		"babel-plugin-styled-components": "2.1.4",
+		"babel-plugin-styled-components": "2.3.0",
 		"cssnano": "^7.1.4",
 		"esbuild": "0.28.0",
 		"eslint": "8.57.0",
