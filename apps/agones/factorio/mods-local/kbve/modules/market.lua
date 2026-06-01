@@ -30,6 +30,7 @@ Market.ITEMS = {
 	{ item = 'defender-capsule', price = 40, count = 10 },
 	{ item = 'distractor-capsule', price = 150, count = 5 },
 	{ item = 'destroyer-capsule', price = 300, count = 5 },
+	{ item = 'kbve-spider-egg', price = 100, count = 1 },
 	{ item = 'modular-armor', price = 500, count = 1 },
 	{ item = 'roboport', price = 500, count = 1 },
 	{ item = 'power-armor', price = 2000, count = 1 },

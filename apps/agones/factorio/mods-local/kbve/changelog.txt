@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2026-06-01
+  Features:
+    - KBVE Exchange now stocks Spider Eggs (kbve-spider-egg) at 100 coins each.
+      Eggs hatch into ally spiders on the buyer's force after 30 seconds.
+  Dependencies:
+    - Added optional dependency on `kbve-spider`. Without that mod loaded the
+      exchange row silently skips the entry (existing `if proto then` guard in
+      exchange_gui.lua handles it).
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2026-06-01
   Changes:
