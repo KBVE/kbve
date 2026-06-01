@@ -1,3 +1,6 @@
+local FleetState = require('modules.fleet_state')
+local FleetMissions = require('modules.fleet_missions')
+
 local FleetGui = {}
 
 local GUI_NAME = 'kbve_fleet'
@@ -5,6 +8,10 @@ local TABBED_NAME = 'kbve_fleet_tabbed'
 local VEHICLES_TAB = 'kbve_fleet_vehicles'
 local ZONES_TAB = 'kbve_fleet_zones'
 local DISPATCH_TAB = 'kbve_fleet_dispatch'
+local MINING_TAB = 'kbve_fleet_mining'
+local DEFENSE_TAB = 'kbve_fleet_defense'
+local COMBAT_TAB = 'kbve_fleet_combat'
+local GROUPS_TAB = 'kbve_fleet_groups'
 local CLOSE_NAME = 'kbve_fleet_close'
 local REFRESH_NAME = 'kbve_fleet_refresh'
 local SYNC_NAME = 'kbve_fleet_sync'
@@ -12,6 +19,34 @@ local DISPATCH_PREFIX = 'kbve_fleet_dispatch_'
 local TYPE_DROPDOWN = 'kbve_fleet_type'
 local ZONE_DROPDOWN = 'kbve_fleet_zone'
 local DISPATCH_BUTTON = 'kbve_fleet_dispatch_btn'
+local ZONE_ROLE_PREFIX = 'kbve_fleet_zonerole_'
+local MINING_DISPATCH = 'kbve_fleet_mining_dispatch'
+local MINING_ZONE_DROPDOWN = 'kbve_fleet_mining_zone'
+local DEFENSE_DISPATCH = 'kbve_fleet_defense_dispatch'
+local DEFENSE_ZONE_DROPDOWN = 'kbve_fleet_defense_zone'
+local COMBAT_DISPATCH = 'kbve_fleet_combat_dispatch'
+local COMBAT_X = 'kbve_fleet_combat_x'
+local COMBAT_Y = 'kbve_fleet_combat_y'
+local GROUP_NEW = 'kbve_fleet_group_new'
+local GROUP_NAME_FIELD = 'kbve_fleet_group_name'
+local GROUP_DELETE_PREFIX = 'kbve_fleet_group_del_'
+local GROUP_DISPATCH_PREFIX = 'kbve_fleet_group_dispatch_'
+local GROUP_ZONE_PREFIX = 'kbve_fleet_group_zone_'
+
+local ROLE_NONE = '— none —'
+
+local function is_miner(name)
+	return string.find(name, 'vehicle%-miner', 1, false) ~= nil
+end
+
+local function is_combat(name)
+	return string.find(name, 'vehicle%-warden', 1, false) ~= nil
+		or string.find(name, 'vehicle%-chaingunner', 1, false) ~= nil
+		or string.find(name, 'vehicle%-laser%-tank', 1, false) ~= nil
+		or string.find(name, 'vehicle%-flame%-tank', 1, false) ~= nil
+		or string.find(name, 'vehicle%-flame%-tumbler', 1, false) ~= nil
+		or string.find(name, 'vehicle%-ironclad', 1, false) ~= nil
+end
 
 local VEHICLE_NAMES_CANDIDATES = {
 	'vehicle-miner-0',
@@ -330,9 +365,12 @@ local function render_zones(content, player)
 		return
 	end
 
+	local roles = { ROLE_NONE }
+	for _, r in ipairs(FleetState.roles()) do table.insert(roles, r) end
+
 	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
 	scroll.style.maximal_height = 360
-	scroll.style.minimal_width = 480
+	scroll.style.minimal_width = 600
 	for _, zone in ipairs(active) do
 		local row = scroll.add({ type = 'flow', direction = 'horizontal' })
 		local proto = prototypes.entity[zone.name]
@@ -346,9 +384,20 @@ local function render_zones(content, player)
 		row.add({
 			type = 'label',
 			caption = proto and proto.localised_name or zone.name,
-		}).style.minimal_width = 280
-		row.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
-		row.add({ type = 'label', caption = { '', zone.count, ' tiles' } })
+		}).style.minimal_width = 260
+		row.add({ type = 'label', caption = { '', zone.count, ' tiles' } }).style.minimal_width = 80
+		row.add({ type = 'label', caption = 'Role:' })
+		local current = FleetState.get_zone_role(zone.name)
+		local selected = 1
+		for i, r in ipairs(roles) do
+			if r == current then selected = i; break end
+		end
+		row.add({
+			type = 'drop-down',
+			name = ZONE_ROLE_PREFIX .. zone.name,
+			items = roles,
+			selected_index = selected,
+		})
 	end
 end
 
@@ -423,6 +472,175 @@ local function render_dispatch(content, player)
 	})
 end
 
+local function build_role_zone_items(role)
+	local items, names = {}, {}
+	local fleet = FleetState.get()
+	for zone_name, r in pairs(fleet.zone_roles) do
+		if r == role then
+			local proto = prototypes.entity[zone_name]
+			table.insert(items, proto and proto.localised_name or zone_name)
+			table.insert(names, zone_name)
+		end
+	end
+	if #items == 0 then
+		table.insert(items, 'No ' .. role .. ' zones — set one in the Zones tab')
+		table.insert(names, '')
+	end
+	return items, names
+end
+
+local function units_matching(player, predicate)
+	local out = {}
+	if not (remote and remote.interfaces and remote.interfaces['aai-programmable-vehicles']) then return out end
+	local ok, registered = pcall(remote.call, 'aai-programmable-vehicles', 'get_units')
+	if not ok or type(registered) ~= 'table' then return out end
+	for _, u in pairs(registered) do
+		if u.vehicle and u.vehicle.valid
+			and u.vehicle.surface.index == player.surface.index
+			and predicate(u.vehicle.name)
+		then
+			table.insert(out, u.unit_id)
+		end
+	end
+	return out
+end
+
+local function render_mission_tab(content, player, opts)
+	content.clear()
+	content.add({ type = 'label', caption = opts.title, style = 'heading_2_label' })
+	content.add({ type = 'label', caption = opts.subtitle })
+
+	local zone_row = content.add({ type = 'flow', name = opts.zone_row_name, direction = 'horizontal' })
+	zone_row.add({ type = 'label', caption = opts.zone_label })
+	local items, _ = build_role_zone_items(opts.role)
+	zone_row.add({
+		type = 'drop-down',
+		name = opts.dropdown_name,
+		items = items,
+		selected_index = 1,
+	})
+
+	local matching = units_matching(player, opts.predicate)
+	content.add({
+		type = 'label',
+		caption = { '', opts.match_label, tostring(#matching) },
+	})
+
+	content.add({
+		type = 'button',
+		name = opts.button_name,
+		caption = opts.button_caption,
+		style = 'green_button',
+		enabled = #matching > 0,
+	})
+end
+
+local function render_mining(content, player)
+	render_mission_tab(content, player, {
+		title = 'Mining missions',
+		subtitle = 'Send AAI miners to a mining-tagged zone. Auto-fan keeps them on ore tiles.',
+		zone_label = 'Mining zone:',
+		zone_row_name = 'kbve_fleet_mining_row',
+		dropdown_name = MINING_ZONE_DROPDOWN,
+		button_name = MINING_DISPATCH,
+		button_caption = 'Send miners',
+		match_label = 'Miners on this surface: ',
+		predicate = is_miner,
+		role = 'mining',
+	})
+end
+
+local function render_defense(content, player)
+	render_mission_tab(content, player, {
+		title = 'Defense missions',
+		subtitle = 'Hold a defense-tagged zone with warden, chaingunner, laser-tank, ironclad, or flame units.',
+		zone_label = 'Defense zone:',
+		zone_row_name = 'kbve_fleet_defense_row',
+		dropdown_name = DEFENSE_ZONE_DROPDOWN,
+		button_name = DEFENSE_DISPATCH,
+		button_caption = 'Send combat units',
+		match_label = 'Combat units on this surface: ',
+		predicate = is_combat,
+		role = 'defense',
+	})
+end
+
+local function render_combat(content, player)
+	content.clear()
+	content.add({ type = 'label', caption = 'Combat mission', style = 'heading_2_label' })
+	content.add({
+		type = 'label',
+		caption = 'One-shot offensive — every combat unit drives straight to the entered map position.',
+	})
+
+	local row = content.add({ type = 'flow', name = 'kbve_fleet_combat_row', direction = 'horizontal' })
+	row.add({ type = 'label', caption = 'Target x:' })
+	row.add({ type = 'textfield', name = COMBAT_X, text = tostring(math.floor(player.position.x)), numeric = true, allow_negative = true })
+	row.add({ type = 'label', caption = 'y:' })
+	row.add({ type = 'textfield', name = COMBAT_Y, text = tostring(math.floor(player.position.y)), numeric = true, allow_negative = true })
+
+	local matching = units_matching(player, is_combat)
+	content.add({ type = 'label', caption = { '', 'Combat units on this surface: ', tostring(#matching) } })
+	content.add({
+		type = 'button',
+		name = COMBAT_DISPATCH,
+		caption = 'Strike',
+		style = 'red_back_button',
+		enabled = #matching > 0,
+	})
+end
+
+local function render_groups(content, player)
+	content.clear()
+	content.add({ type = 'label', caption = 'Squads', style = 'heading_2_label' })
+	content.add({
+		type = 'label',
+		caption = 'Persist named subsets of the fleet. Each squad keeps its own member list across saves.',
+	})
+
+	local row = content.add({ type = 'flow', name = 'kbve_fleet_group_new_row', direction = 'horizontal' })
+	row.add({ type = 'label', caption = 'New squad name:' })
+	row.add({ type = 'textfield', name = GROUP_NAME_FIELD, text = '' })
+	row.add({ type = 'button', name = GROUP_NEW, caption = 'Create' })
+
+	local groups = FleetState.groups_list()
+	if #groups == 0 then
+		content.add({ type = 'label', caption = 'No squads yet.' })
+		return
+	end
+
+	local _, role_zone_names = build_role_zone_items('defense')
+	local mining_items, mining_names = build_role_zone_items('mining')
+
+	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
+	scroll.style.maximal_height = 320
+	scroll.style.minimal_width = 560
+
+	for _, g in ipairs(groups) do
+		local grow = scroll.add({ type = 'flow', direction = 'horizontal' })
+		grow.add({ type = 'label', caption = '#' .. g.id .. ' ' .. g.name }).style.minimal_width = 180
+		grow.add({ type = 'label', caption = { '', 'units: ', #g.unit_ids } }).style.minimal_width = 90
+		grow.add({
+			type = 'drop-down',
+			name = GROUP_ZONE_PREFIX .. g.id,
+			items = mining_items,
+			selected_index = 1,
+		})
+		grow.add({
+			type = 'button',
+			name = GROUP_DISPATCH_PREFIX .. g.id,
+			caption = 'Dispatch',
+			enabled = #g.unit_ids > 0 and #mining_names > 0 and mining_names[1] ~= '',
+		})
+		grow.add({
+			type = 'button',
+			name = GROUP_DELETE_PREFIX .. g.id,
+			caption = 'X',
+			tooltip = 'Delete squad',
+		})
+	end
+end
+
 function FleetGui.show(player)
 	destroy(player)
 	local frame = player.gui.screen.add({
@@ -467,6 +685,42 @@ function FleetGui.show(player)
 	tabbed.add_tab(dispatch_tab, dispatch_content)
 	render_dispatch(dispatch_content, player)
 
+	local mining_tab = tabbed.add({ type = 'tab', caption = 'Mining' })
+	local mining_content = tabbed.add({
+		type = 'flow',
+		name = MINING_TAB,
+		direction = 'vertical',
+	})
+	tabbed.add_tab(mining_tab, mining_content)
+	render_mining(mining_content, player)
+
+	local defense_tab = tabbed.add({ type = 'tab', caption = 'Defense' })
+	local defense_content = tabbed.add({
+		type = 'flow',
+		name = DEFENSE_TAB,
+		direction = 'vertical',
+	})
+	tabbed.add_tab(defense_tab, defense_content)
+	render_defense(defense_content, player)
+
+	local combat_tab = tabbed.add({ type = 'tab', caption = 'Combat' })
+	local combat_content = tabbed.add({
+		type = 'flow',
+		name = COMBAT_TAB,
+		direction = 'vertical',
+	})
+	tabbed.add_tab(combat_tab, combat_content)
+	render_combat(combat_content, player)
+
+	local groups_tab = tabbed.add({ type = 'tab', caption = 'Squads' })
+	local groups_content = tabbed.add({
+		type = 'flow',
+		name = GROUPS_TAB,
+		direction = 'vertical',
+	})
+	tabbed.add_tab(groups_tab, groups_content)
+	render_groups(groups_content, player)
+
 	player.opened = frame
 end
 
@@ -485,6 +739,10 @@ local function refresh(player)
 	if tabbed[VEHICLES_TAB] then render_vehicles(tabbed[VEHICLES_TAB], player) end
 	if tabbed[ZONES_TAB] then render_zones(tabbed[ZONES_TAB], player) end
 	if tabbed[DISPATCH_TAB] then render_dispatch(tabbed[DISPATCH_TAB], player) end
+	if tabbed[MINING_TAB] then render_mining(tabbed[MINING_TAB], player) end
+	if tabbed[DEFENSE_TAB] then render_defense(tabbed[DEFENSE_TAB], player) end
+	if tabbed[COMBAT_TAB] then render_combat(tabbed[COMBAT_TAB], player) end
+	if tabbed[GROUPS_TAB] then render_groups(tabbed[GROUPS_TAB], player) end
 end
 
 local function dispatch(player)
@@ -613,6 +871,120 @@ function FleetGui.on_custom_input(event)
 	FleetGui.show(player)
 end
 
+local function mining_dispatch(player)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local tabbed = frame[TABBED_NAME]
+	local content = tabbed and tabbed[MINING_TAB]
+	if not content then return end
+	local row = content['kbve_fleet_mining_row']
+	local dd = row and row[MINING_ZONE_DROPDOWN]
+	if not dd then return end
+	local _, names = build_role_zone_items('mining')
+	local zone_name = names[dd.selected_index]
+	if not zone_name or zone_name == '' then
+		player.print('No mining zone selected. Tag a zone "mining" in the Zones tab first.')
+		return
+	end
+	local unit_ids = units_matching(player, is_miner)
+	local n = FleetMissions.assign_mining(player, unit_ids, zone_name)
+	player.print({ '', 'Mining mission: ', tostring(n), ' miner(s) sent to ', zone_name, '.' })
+end
+
+local function defense_dispatch(player)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local tabbed = frame[TABBED_NAME]
+	local content = tabbed and tabbed[DEFENSE_TAB]
+	if not content then return end
+	local row = content['kbve_fleet_defense_row']
+	local dd = row and row[DEFENSE_ZONE_DROPDOWN]
+	if not dd then return end
+	local _, names = build_role_zone_items('defense')
+	local zone_name = names[dd.selected_index]
+	if not zone_name or zone_name == '' then
+		player.print('No defense zone selected. Tag a zone "defense" in the Zones tab first.')
+		return
+	end
+	local unit_ids = units_matching(player, is_combat)
+	local n = FleetMissions.assign_mining(player, unit_ids, zone_name)
+	for _, uid in ipairs(unit_ids) do
+		FleetState.set_unit_mission(uid, 'defense', zone_name)
+	end
+	player.print({ '', 'Defense mission: ', tostring(n), ' combat unit(s) holding ', zone_name, '.' })
+end
+
+local function combat_dispatch(player)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local tabbed = frame[TABBED_NAME]
+	local content = tabbed and tabbed[COMBAT_TAB]
+	if not content then return end
+	local row = content['kbve_fleet_combat_row']
+	local xf = row and row[COMBAT_X]
+	local yf = row and row[COMBAT_Y]
+	if not (xf and yf) then return end
+	local x = tonumber(xf.text)
+	local y = tonumber(yf.text)
+	if not (x and y) then
+		player.print('Enter numeric x,y target coordinates.')
+		return
+	end
+	local unit_ids = units_matching(player, is_combat)
+	local n = FleetMissions.assign_combat(player, unit_ids, { x = x, y = y })
+	player.print({ '', 'Combat strike: ', tostring(n), ' unit(s) en route to (', tostring(x), ',', tostring(y), ').' })
+end
+
+local function set_zone_role_from_dropdown(player, elem, zone_name)
+	local idx = elem.selected_index
+	if idx <= 1 then
+		FleetState.set_zone_role(zone_name, nil)
+		player.print({ '', 'Cleared role for ', zone_name, '.' })
+	else
+		local role = FleetState.roles()[idx - 1]
+		FleetState.set_zone_role(zone_name, role)
+		player.print({ '', zone_name, ' tagged as ', role, '.' })
+	end
+end
+
+local function group_create(player)
+	local frame = player.gui.screen[GUI_NAME]
+	local tabbed = frame and frame[TABBED_NAME]
+	local content = tabbed and tabbed[GROUPS_TAB]
+	if not content then return end
+	local row = content['kbve_fleet_group_new_row']
+	local field = row and row[GROUP_NAME_FIELD]
+	if not field then return end
+	local name = field.text
+	local id = FleetState.create_group(name)
+	field.text = ''
+	player.print({ '', 'Created squad #', tostring(id), '.' })
+end
+
+local function group_delete(player, group_id)
+	FleetState.delete_group(group_id)
+	player.print({ '', 'Deleted squad #', tostring(group_id), '.' })
+end
+
+local function group_dispatch(player, group_id)
+	local frame = player.gui.screen[GUI_NAME]
+	local tabbed = frame and frame[TABBED_NAME]
+	local content = tabbed and tabbed[GROUPS_TAB]
+	if not content then return end
+	local dd = content[GROUP_ZONE_PREFIX .. group_id]
+	if not dd then return end
+	local _, names = build_role_zone_items('mining')
+	local zone_name = names[dd.selected_index]
+	if not zone_name or zone_name == '' then
+		player.print('No mining zone selected for this squad.')
+		return
+	end
+	local g = FleetState.get().groups[group_id]
+	if not g then return end
+	local n = FleetMissions.assign_mining(player, g.unit_ids, zone_name)
+	player.print({ '', 'Squad ', g.name, ': ', tostring(n), ' unit(s) dispatched to ', zone_name, '.' })
+end
+
 function FleetGui.on_gui_click(event)
 	local elem = event.element
 	if not (elem and elem.valid) then return end
@@ -637,6 +1009,54 @@ function FleetGui.on_gui_click(event)
 		dispatch(player)
 		refresh(player)
 		return
+	end
+	if name == MINING_DISPATCH then
+		mining_dispatch(player)
+		refresh(player)
+		return
+	end
+	if name == DEFENSE_DISPATCH then
+		defense_dispatch(player)
+		refresh(player)
+		return
+	end
+	if name == COMBAT_DISPATCH then
+		combat_dispatch(player)
+		refresh(player)
+		return
+	end
+	if name == GROUP_NEW then
+		group_create(player)
+		refresh(player)
+		return
+	end
+	if name:sub(1, #GROUP_DELETE_PREFIX) == GROUP_DELETE_PREFIX then
+		local id = tonumber(name:sub(#GROUP_DELETE_PREFIX + 1))
+		if id then
+			group_delete(player, id)
+			refresh(player)
+		end
+		return
+	end
+	if name:sub(1, #GROUP_DISPATCH_PREFIX) == GROUP_DISPATCH_PREFIX then
+		local id = tonumber(name:sub(#GROUP_DISPATCH_PREFIX + 1))
+		if id then
+			group_dispatch(player, id)
+			refresh(player)
+		end
+		return
+	end
+end
+
+function FleetGui.on_gui_selection_state_changed(event)
+	local elem = event.element
+	if not (elem and elem.valid) then return end
+	local name = elem.name or ''
+	if name:sub(1, #ZONE_ROLE_PREFIX) == ZONE_ROLE_PREFIX then
+		local player = game.get_player(event.player_index)
+		if not player then return end
+		local zone_name = name:sub(#ZONE_ROLE_PREFIX + 1)
+		set_zone_role_from_dropdown(player, elem, zone_name)
 	end
 end
 
