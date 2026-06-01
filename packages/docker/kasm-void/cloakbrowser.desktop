@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=CloakBrowser
+Comment=Stealth Chromium build
+Exec=/opt/cloakbrowser/cloakbrowser --no-sandbox %U
+Icon=web-browser
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true

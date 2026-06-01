@@ -3,7 +3,7 @@
 		{
 			"key": "agones_factorio",
 			"app_name": "agones-factorio",
-			"version": "0.0.8",
+			"version": "0.0.9",
 			"version_toml": "apps/agones/factorio/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
 			"source_path": "apps/agones/factorio",
@@ -244,6 +244,18 @@
 			"e2e_name": "irc",
 			"deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml",
 			"has_test": true
+		},
+		{
+			"key": "kasm_void",
+			"app_name": "kasm-void",
+			"version": "0.0.1",
+			"version_toml": "packages/docker/kasm-void/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kasm-void.mdx",
+			"source_path": "packages/docker/kasm-void",
+			"runner": "ubuntu-latest",
+			"image": "kbve/kasm-void",
+			"deployment_yaml": "apps/kube/kasm/manifest/deployment.yaml",
+			"has_test": false
 		},
 		{
 			"key": "kilobase",
@@ -749,7 +761,7 @@
 	"unreal_game": [],
 	"bevy_game": [],
 	"summary": {
-		"docker": 28,
+		"docker": 29,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -759,6 +771,6 @@
 		"godot": 1,
 		"unreal_game": 0,
 		"bevy_game": 0,
-		"total": 68
+		"total": 69
 	}
 }

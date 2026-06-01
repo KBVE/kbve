@@ -158,7 +158,8 @@ spec:
                           cpu: '500m'
 
                 - name: workspace
-                  image: kasmweb/discord:1.18.0-rolling-daily
+                  image: ghcr.io/kbve/kasm-void:0.0.0
+                  imagePullPolicy: IfNotPresent
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -179,16 +180,22 @@ spec:
                         value: >-
                             --no-sandbox --disable-gpu --disable-dev-shm-usage
                             --user-agent="Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0"
+                      - name: START_URL
+                        value: 'https://kbve.com'
+                      - name: LAUNCH_DISCORD
+                        value: '1'
+                      - name: LAUNCH_CLOAK
+                        value: '1'
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
                   resources:
                       requests:
-                          memory: '1Gi'
-                          cpu: '500m'
-                      limits:
                           memory: '4Gi'
                           cpu: '2'
+                      limits:
+                          memory: '8Gi'
+                          cpu: '4'
             volumes:
                 - name: discord-profile
                   persistentVolumeClaim:

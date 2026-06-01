@@ -1,0 +1,98 @@
+---
+title: KASM Void
+description: |
+    Custom KASM workspace image. Bundles the upstream `kasmweb/discord` install with CloakBrowser (stealth Chromium fork) inside the same container, both auto-launched and supervised so the desktop stays populated even if either app crashes or is closed. Designed for in-session Discord screen-share of the bundled browser.
+sidebar:
+    label: KASM Void
+    order: 470
+tags:
+    - docker
+    - kasm
+    - workspace
+    - discord
+    - cloakbrowser
+key: kasm_void
+pipeline: docker
+app_name: kasm-void
+version: "0.0.1"
+source_path: packages/docker/kasm-void
+version_toml: packages/docker/kasm-void/version.toml
+runner: ubuntu-latest
+image: kbve/kasm-void
+deployment_yaml: apps/kube/kasm/manifest/deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+`kasm-void` is the production workspace image used by the `kasm-vpn`
+Deployment in `apps/kube/kasm/`. It extends `kasmweb/discord` with
+[CloakBrowser](https://github.com/CloakHQ/CloakBrowser) so the KASM session
+exposes both Discord and a browser side-by-side. The browser is the canonical
+screen-share target inside Discord — the operator opens any URL in the bundled
+Chromium build and streams the window through Discord's video feature.
+
+## Why a custom image
+
+- The stock `kasmweb/discord` image ships only Discord; closing it leaves an
+  empty desktop with no way to recover.
+- We need a known, reproducible browser binary inside the workspace so the
+  Discord stream picks up consistent fonts/codecs across sessions.
+- Resource targets are higher than the stock image's defaults — bundling lets
+  us own the `requests/limits` against a single artifact instead of patching
+  a vendor tag.
+
+## Crash recovery
+
+`/dockerstartup/custom_startup.sh` spawns two background supervisors:
+
+| Loop | Process matched (`pgrep -f`) | Action |
+|------|------------------------------|--------|
+| `cloak_loop` | `cloakbrowser` | Relaunches `/opt/cloakbrowser/cloakbrowser $CLOAK_APP_ARGS $START_URL` |
+| `discord_loop` | `discord|electron` | Relaunches the upstream `discord_startup.sh` |
+
+Each loop polls every 3 seconds. Closing the Discord window or the browser
+window from the desktop triggers a respawn — no manual KASM session restart
+needed.
+
+The original `kasmweb/discord` startup script is preserved as
+`/dockerstartup/discord_startup.sh` so its arg-handling, profile setup, and
+maximize logic continue to work unchanged.
+
+## Runtime env
+
+| Variable          | Default              | Notes                                          |
+| ----------------- | -------------------- | ---------------------------------------------- |
+| `START_URL`       | `https://kbve.com`   | Launch URL for the cloakbrowser instance       |
+| `CLOAK_APP_ARGS`  | (chromium defaults)  | Override the full cloakbrowser arg list        |
+| `LAUNCH_DISCORD`  | `1`                  | Set to `0` to disable the Discord supervisor   |
+| `LAUNCH_CLOAK`    | `1`                  | Set to `0` to disable the browser supervisor   |
+| `VNC_PW`          | (k8s secret)         | Provided by the kasm `Deployment`              |
+| `APP_ARGS`        | (inherited)          | Discord-side Electron args, consumed upstream  |
+
+## Resources
+
+The `workspace` container in `apps/kube/kasm/manifest/deployment.yaml` is
+sized for Discord + a browser tab + a screenshare encoder running in parallel:
+
+| | CPU | Memory |
+|---|---|---|
+| `requests` | `2` | `4Gi` |
+| `limits` | `4` | `8Gi` |
+
+The Gluetun sidecar keeps its own modest profile (`100m`/`128Mi` request,
+`500m`/`384Mi` limit) — bumping it does not buy noticeable latency since
+the VPN tunnel is bandwidth-, not CPU-bound.
+
+## Build
+
+```sh
+npx nx run kasm-void:container
+npx nx run kasm-void:test
+```
+
+Published tags land at `ghcr.io/kbve/kasm-void:<version>`; the post-publish
+chore workflow syncs the Deployment image pin to match `version.toml`.
