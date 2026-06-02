@@ -12,9 +12,45 @@ osrs:
   lowalch: 5
   highalch: 8
   limit: 10000
-  about: "Feldip weasel fur is a members-only item in Old School RuneScape. High alchemy value: 8 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Feldip weasel
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Jungle camo top
+      slug: jungle-camo-top
+      relationship: product
+      description: Crafted from Feldip weasel fur at the Varrock tailor
+    - item_name: Jungle camo legs
+      slug: jungle-camo-legs
+      relationship: product
+      description: Crafted from Feldip weasel fur at the Varrock tailor
+  about: "Feldip weasel fur is caught from Feldip weasels in Feldip Hills using a tracking trap and 7 Hunter. Two furs plus 20 coins per piece are exchanged at the Varrock tailor for jungle camouflage clothing."
+  market_strategy:
+    notes:
+      - Requires 7 Hunter to capture
+      - Used at Varrock tailor for jungle camo gear (2 furs + 20 coins each)
+      - Camo gear is weight-reducing only, no Hunter bonus
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill.
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

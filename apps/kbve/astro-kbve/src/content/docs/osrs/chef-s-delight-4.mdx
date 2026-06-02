@@ -1,20 +1,84 @@
 ---
-title: Chef's delight(4) | OSRS Price Data
+title: "Chef's delight(4) | OSRS Price Data"
 description: "Chef's delight(4): This keg contains 4 pints of Chef's Delight.. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5833
-  name: Chef's delight(4)
+  name: "Chef's delight(4)"
   slug: chef-s-delight-4
   examine: This keg contains 4 pints of Chef's Delight.
   members: true
-  icon: Chef's delight(4).png
+  icon: "Chef's delight(4).png"
   value: 1
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Chef's delight(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Boosts Cooking by 1-5 levels per pint while lowering Attack and Strength by 2-3.
+      - description: Restores roughly 1-10% run energy depending on pint.
+  recipes:
+    - skill: cooking
+      level: 54
+      xp: 446
+      materials:
+        - item_name: The stuff
+          quantity: 2
+        - item_name: Chocolate bar
+          quantity: 2
+        - item_name: Pot of cream
+          quantity: 4
+        - item_name: Beer barrel
+          quantity: 1
+      output_quantity: 2
+      tools:
+        - Brewing vat
+        - Calquat keg
+  related_items:
+    - item_id: 5831
+      item_name: "Chef's delight(3)"
+      slug: chef-s-delight-3
+      relationship: variant
+      description: Three-pint version of the keg
+    - item_id: 5829
+      item_name: "Chef's delight(2)"
+      slug: chef-s-delight-2
+      relationship: variant
+      description: Two-pint version of the keg
+    - item_id: 5827
+      item_name: "Chef's delight(1)"
+      slug: chef-s-delight-1
+      relationship: variant
+      description: One-pint version of the keg
+  about: "Four-pint keg of Chef's Delight brewed at 54 Cooking; each pint temporarily boosts Cooking while reducing Attack and Strength."
+  market_strategy:
+    notes:
+      - Brewed via the Keldagrim brewery vat
+      - Used as a Cooking boost for tougher recipes
+      - Partial kegs cannot be traded after sipping
+  trading_tips:
+    - Buy during brewing event windows when supply peaks
+    - Useful as a Cooking boost stockpile for new high-level food updates
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,86 +1,89 @@
 ---
 title: Torva platebody (damaged) | OSRS Price Data
-description: "Torva platebody (damaged): An ancient warrior's platebody.. High alch: 360,000 GP, GE limit: 8."
+description: "Torva platebody (damaged): An ancient warrior's platebody. High alch: 360,000 GP, GE limit: 8."
 osrs:
   id: 26378
   name: Torva platebody (damaged)
   slug: torva-platebody-damaged
-  examine: An ancient warrior's platebody.
+  examine: "An ancient warrior's platebody."
   members: true
   icon: Torva platebody (damaged).png
   value: 600000
   lowalch: 240000
   highalch: 360000
   limit: 8
-  item:
+  material:
     type: damaged armour
-    tradeable: true
-    weight: 9.525
-  obtaining:
-    - source: Nex
-      drop_rate: 1/43 per unique roll
-      notes: Requires Bandos chestplate to repair
+    tier: high
+  drop_table:
+    sources:
+      - source: Nex
+        quantity: "1"
+        rarity: 1/258
   recipes:
-    - skill: none
-      level: 0
+    - skill: Smithing
+      level: 90
+      experience: 2250
       materials:
-        - item_id: 26378
-          item_name: Torva platebody (damaged)
+        - item_name: Torva platebody (damaged)
           quantity: 1
-        - item_id: 11832
-          item_name: Bandos chestplate
+        - item_name: Bandos chestplate
           quantity: 1
+      tools:
+        - Hammer
+        - Anvil
       product: Torva platebody
-      product_id: 26384
-      notes: No skill requirements
+      notes: "Bandos chestplate is consumed in the process."
   related_items:
-    - item_id: 11832
-      item_name: Bandos chestplate
+    - item_name: Bandos chestplate
       slug: bandos-chestplate
       relationship: component
-      description: Required to repair
-    - item_id: 26384
-      item_name: Torva platebody
+      description: Consumed component required to restore the platebody.
+    - item_name: Torva platebody
       slug: torva-platebody
       relationship: product
-      description: Repaired BiS melee body
-    - item_id: 26376
-      item_name: Torva full helm (damaged)
+      description: Restored best-in-slot melee body produced from this damaged piece.
+    - item_name: Torva full helm (damaged)
       slug: torva-full-helm-damaged
       relationship: alternative
-      description: Damaged helm from Nex
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Damaged Armour |
-    | Tradeable | Yes |
-    | Weight | 9.525 kg |
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Torva platebody (damaged) | Nex | ~290M |
-    | Bandos chestplate | God Wars Dungeon | ~15M |
-
-    No skill requirements to combine the items.
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Torva platebody | Damaged piece + Bandos chestplate |
-
-    Warning: Bandos chestplate is permanently consumed.
-
-    Part of the Torva armour set, which provides:
-    - Best-in-slot melee stats
-    - +4 HP boost (body piece)
-    - +16 total HP with full set
+      description: Damaged head slot drop from Nex.
+    - item_name: Torva platelegs (damaged)
+      slug: torva-platelegs-damaged
+      relationship: alternative
+      description: Damaged legs slot drop from Nex.
+  about: "Damaged Torva platebody drops from Nex and combines with a Bandos chestplate at 90 Smithing to restore the best-in-slot Torva platebody."
   market_strategy:
     notes:
-      - Nex exclusive drop
-      - BCP consumed in repair
-      - Creates BiS melee body
-      - Second most valuable Nex unique
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Nex exclusive drop with a 1/258 unique rate.
+      - Restoration requires 90 Smithing and consumes a Bandos chestplate.
+      - Track the spread between damaged and restored pieces plus the BCP cost.
+  trading_tips:
+    - Buy damaged when restored price minus BCP minus tax exceeds the damaged ask.
+    - Skippers without 90 Smithing should flip the restored variant directly.
+  history:
+    - date: "2022-01-05"
+      description: "Released with the Nex: The Fifth General update."
+    - date: "2023-08-03"
+      description: Received a graphical rework alongside the wider Torva set refresh.
+    - date: "2023-08-16"
+      description: Back design lowered to better conceal the neck.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-01-05"
+    update: "Nex: The Fifth General"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

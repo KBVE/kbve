@@ -1,6 +1,6 @@
 ---
 title: Black spear(p+) | OSRS Price Data
-description: "Black spear(p+): A poisoned black tipped spear.. High alch: 450 GP, GE limit: 8."
+description: "Black spear(p+): a poisoned black tipped spear. High alch: 450 GP, GE limit: 8."
 osrs:
   id: 5734
   name: Black spear(p+)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 8
-  about: "Black spear(p+) is a members-only item in Old School RuneScape. High alchemy value: 450 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 15
+      slash: 15
+      crush: 15
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 5730
+      item_name: Black spear
+      slug: black-spear
+      relationship: alternative
+      description: Unpoisoned variant
+    - item_id: 5732
+      item_name: Black spear(p)
+      slug: black-spear-p-base
+      relationship: downgrade
+      description: Weaker poison variant
+    - item_id: 5736
+      item_name: Black spear(kp)
+      slug: black-spear-kp
+      relationship: alternative
+      description: Karambwan poison variant
+  about: "Black spear(p+) is a two-handed members weapon coated in extra-strength poison, requiring 10 Attack and dealing stab/slash/crush damage in melee."
+  market_strategy:
+    notes:
+      - Niche poison variant of the black spear
+      - 21 April 2021 speed buff to 4 ticks improved viability
+  trading_tips:
+    - Thin volume, list near alch value for slow fills
+    - Watch for poison sigil meta usage at low-defence bosses
+  history:
+    - date: "2021-04-21"
+      description: Attack speed increased from 5 ticks to 4 ticks.
+    - date: "2005-05-17"
+      description: Released alongside the Barrows Changes and Other Tweaks update.
+  properties:
+    release_date: "2005-05-17"
+    update: Barrows Changes and Other Tweaks
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,63 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 8
-  about: "Bronze locks is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Bronze chest (red)
+        quantity: "1"
+        rarity: 1/63
+      - source: Bronze chest (brown)
+        quantity: "1"
+        rarity: 1/63
+      - source: Bronze chest (crimson)
+        quantity: "1"
+        rarity: 1/63
+      - source: Bronze chest (black)
+        quantity: "1"
+        rarity: 1/63
+      - source: Bronze chest (purple)
+        quantity: "1"
+        rarity: 1/59
+  related_items:
+    - item_id: 25441
+      item_name: Broken coffin
+      slug: broken-coffin
+      relationship: component
+      description: Combined with bronze locks via Dampe to make a bronze coffin
+    - item_id: 25443
+      item_name: Bronze coffin
+      slug: bronze-coffin
+      relationship: product
+      description: Bronze locks + broken coffin combined at Dampe
+  about: "Shades of Mort'ton bronze chest reward; combined with a broken coffin via Dampe to assemble a bronze coffin, and the process is reversible through the coffin's Remove-lock option."
+  market_strategy:
+    notes:
+      - Bronze chest drop with ring of wealth boost
+      - Buy limit 8; thin volume (around 9/day)
+      - Demand tied to shade coffin construction
+  trading_tips:
+    - Watch coffin assembly demand spikes after Shades reworks
+    - Limit 8 keeps spreads wide; price carefully
+  history:
+    - date: "2021-01-27"
+      description: Released with the Shades of Mort'ton rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-27"
+    update: Shades of Mort'ton rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

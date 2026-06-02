@@ -1,6 +1,6 @@
 ---
 title: Super antifire potion(1) | OSRS Price Data
-description: "Super antifire potion(1): 1 dose of super anti-firebreath potion.. High alch: 408 GP, GE limit: 2,000."
+description: "Super antifire potion(1): 1 dose of super anti-firebreath potion. High alch: 408 GP, GE limit: 2,000."
 osrs:
   id: 21987
   name: Super antifire potion(1)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 272
   highalch: 408
   limit: 2000
-  about: "Super antifire potion(1) is a members-only item in Old School RuneScape. High alchemy value: 408 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: Grants complete immunity to standard dragonfire for three minutes.
+      - description: Partially blocks stronger dragonfire from King Black Dragon, Galvek, and Vorkath.
+      - description: Requires having started Dragon Slayer I to drink.
+  recipes:
+    - product: Super antifire potion(1)
+      product_id: 21987
+      skill: Herblore
+      level: 92
+      experience: 32.5
+      materials:
+        - item_id: 2454
+          item_name: Antifire potion(4)
+          quantity: 1
+        - item_id: 22418
+          item_name: Crushed superior dragon bones
+          quantity: 1
+      tools: []
+      notes: Brewing a full dose-4 antifire potion before splitting yields a four-dose super antifire totalling 130 XP.
+  related_items:
+    - item_id: 21981
+      item_name: Super antifire potion(4)
+      slug: super-antifire-potion-4
+      relationship: variant
+      description: Four-dose version.
+    - item_id: 21983
+      item_name: Super antifire potion(3)
+      slug: super-antifire-potion-3
+      relationship: variant
+      description: Three-dose version.
+    - item_id: 21985
+      item_name: Super antifire potion(2)
+      slug: super-antifire-potion-2
+      relationship: variant
+      description: Two-dose version.
+  about: "Super antifire potion(1) is the single-dose form of the high-tier antifire potion unlocked through Dragon Slayer II, granting full immunity to standard dragonfire for three minutes."
+  market_strategy:
+    notes:
+      - Demand spikes around dragon slayer training spikes and Vorkath grinds.
+      - Single doses are typically the cheapest per-dose form when crafters split (4) doses.
+  trading_tips:
+    - Buy single doses near the per-dose discount and combine for personal use.
+    - Sell to consumers during late-game PvM hype windows.
+  history:
+    - date: "2018-01-04"
+      description: Released with the Dragon Slayer II update.
+    - date: "2018-01-25"
+      description: Duration extended from two to three minutes and lava scale shard upgrade path added.
+  properties:
+    release_date: "2018-01-04"
+    update: "Dragon Slayer II"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Dragon Slayer II
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

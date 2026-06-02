@@ -1,6 +1,6 @@
 ---
 title: Pyre logs | OSRS Price Data
-description: "Pyre logs: Logs prepared with sacred oil for a funeral pyre.. High alch: 4 GP, GE limit: 11,000."
+description: "Pyre logs: Logs prepared with sacred oil for a funeral pyre. High alch: 4 GP, GE limit: 11,000."
 osrs:
   id: 3438
   name: Pyre logs
@@ -12,9 +12,60 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 11000
-  about: "Pyre logs is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Firemaking
+      level: 1
+      xp: 10
+      materials:
+        - item_name: Logs
+          quantity: 1
+        - item_name: Sacred oil(2)
+          quantity: 1
+      tools: []
+      output: Pyre logs
+  related_items:
+    - item_id: 3440
+      item_name: Oak pyre logs
+      slug: oak-pyre-logs
+      relationship: upgrade
+      description: Higher-tier pyre log
+    - item_id: 3442
+      item_name: Willow pyre logs
+      slug: willow-pyre-logs
+      relationship: upgrade
+      description: Willow-tier pyre log
+    - item_id: 1511
+      item_name: Logs
+      slug: logs
+      relationship: component
+      description: Base log used in the recipe
+    - item_id: 3436
+      item_name: Sacred oil(2)
+      slug: sacred-oil-2
+      relationship: component
+      description: Sacred oil applied to soak the logs
+  about: "Pyre logs are regular logs soaked in sacred oil(2), produced at Firemaking 1 for 10 xp and burned at Mort'ton funeral pyres (Firemaking 5) to cremate Loar and Phrin shade remains for 50 Firemaking xp plus Prayer xp."
+  properties:
+    release_date: "2004-10-18"
+    update: "Mortton Shades and Mage Armour"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Mortton Shades and Mage Armour update introducing Shades of Mort'ton."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

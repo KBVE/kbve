@@ -1,6 +1,6 @@
 ---
 title: Bob's purple shirt | OSRS Price Data
-description: "Bob's purple shirt: 'Bob says: Keep your computer keylogger free and virus scanned.'. High alch: 1 GP, GE limit: 4."
+description: "Bob's purple shirt: 'Bob says: Keep your computer keylogger free and virus scanned.' High alch: 1 GP, GE limit: 4."
 osrs:
   id: 10324
   name: Bob's purple shirt
@@ -12,9 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Bob's purple shirt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 10318
+      item_name: Bob's red shirt
+      slug: bob-s-red-shirt
+      relationship: variant
+      description: Red variant of the same cosmetic shirt.
+    - item_id: 10320
+      item_name: Bob's blue shirt
+      slug: bob-s-blue-shirt
+      relationship: variant
+      description: Blue variant.
+    - item_id: 10322
+      item_name: Bob's green shirt
+      slug: bob-s-green-shirt
+      relationship: variant
+      description: Green variant.
+    - item_id: 10326
+      item_name: Bob's black shirt
+      slug: bob-s-black-shirt
+      relationship: variant
+      description: Black variant.
+  about: "Bob's purple shirt is one of five cosmetic body-slot easy clue rewards bearing the Jagex Bob security tagline, storable in the costume room."
+  market_strategy:
+    notes:
+      - Steady novelty demand from clue scroll completionists.
+      - Daily volume hovers in the dozens, so listings move slowly.
+  trading_tips:
+    - List around the average GE price; do not undercut aggressively as supply is thin.
+    - Bundle the full set of Bob's shirts for collectors.
+  history:
+    - date: "2006-12-05"
+      description: Added to the game as an easy clue reward.
+    - date: "2014-12-10"
+      description: Renamed from Bob shirt to Bob's purple shirt.
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Haemostatic dressing (3) | OSRS Price Data
-description: "Haemostatic dressing (3): 3 applications of haemostatic dressing.. High alch: 150 GP."
+description: "Haemostatic dressing (3) is a members herblore dressing that cures bleed status. High alch: 150 GP."
 osrs:
   id: 31593
   name: Haemostatic dressing (3)
@@ -12,9 +12,59 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: null
-  about: "Haemostatic dressing (3) is a members-only item in Old School RuneScape. High alchemy value: 150 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 3
+    effects:
+      - description: "Cures the bleed status effect when applied."
+      - description: "Restores 5 Hitpoints if bleeding was active at the time of use."
+  related_items:
+    - item_id: 31591
+      item_name: Haemostatic dressing (1)
+      slug: haemostatic-dressing-1
+      relationship: variant
+      description: Single-use dressing.
+    - item_id: 31592
+      item_name: Haemostatic dressing (2)
+      slug: haemostatic-dressing-2
+      relationship: variant
+      description: Two-application dressing.
+    - item_id: 31594
+      item_name: Haemostatic dressing (4)
+      slug: haemostatic-dressing-4
+      relationship: variant
+      description: Four-application dressing (full).
+  about: "Haemostatic dressing (3) is a three-application herblore dressing that cures bleed and restores 5 HP when applied during a bleed."
+  market_strategy:
+    notes:
+      - Mid-dose variant typically flips against the (4) dose
+      - Demand follows Sailing combat encounters
+      - No GE buy limit makes bulk flips viable
+  trading_tips:
+    - 'Decant strategy: combine doses into (4) for thinner-margin resale'
+    - Watch herblore secondary prices around updates
+  history:
+    - date: "2025-11-05"
+      description: "Added to the game (initially unobtainable)."
+    - date: "2025-11-19"
+      description: "Released with the Sailing launch update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Apply
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

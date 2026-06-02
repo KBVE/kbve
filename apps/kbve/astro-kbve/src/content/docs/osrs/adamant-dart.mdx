@@ -1,6 +1,6 @@
 ---
 title: Adamant dart | OSRS Price Data
-description: "Adamant dart is a members weapon slot item. High alch: 39 GP, GE limit: 11,000."
+description: "Adamant dart is a members thrown ranged weapon. High alch: 39 GP, GE limit: 11,000."
 osrs:
   id: 810
   name: Adamant dart
@@ -12,67 +12,106 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 11000
+  material:
+    type: adamant
+    tier: mid
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 30
-  stats:
-    attack:
+    weight: 0
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 0
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 17
-  fletching:
-    level: 67
-    xp: 15
-    method: Attach feathers to adamant dart tips
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 67
+      xp: 15
+      output_quantity: 10
+      materials:
+        - item_name: Adamant dart tip
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      notes: "Attach feathers to adamant dart tips."
   drop_table:
     sources:
       - source: Dagannoth Supreme
-        source_id: 2265
-        combat_level: 303
-        quantity: 25-75
+        quantity: "1"
         rarity: common
-        members_only: true
       - source: Brutal blue dragon
-        source_id: 7273
-        combat_level: 271
-        quantity: 7-13
+        quantity: "1"
         rarity: common
-        members_only: true
   related_items:
     - item_id: 823
       item_name: Adamant dart tip
       slug: adamant-dart-tip
       relationship: component
-      description: Fletching material
+      description: Fletching material used to make adamant darts.
     - item_id: 314
       item_name: Feather
       slug: feather
       relationship: component
-      description: Fletching material
+      description: Required to fletch darts.
     - item_id: 811
       item_name: Rune dart
       slug: rune-dart
       relationship: upgrade
-      description: Higher tier
+      description: Higher tier thrown dart.
     - item_id: 809
       item_name: Mithril dart
       slug: mithril-dart
       relationship: downgrade
-      description: Lower tier
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon/Ammo |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 30 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Lower tier thrown dart.
+  about: "Adamant dart is a members thrown ranged weapon requiring 30 Ranged to wield, fletched at level 67 Fletching."
+  market_strategy:
+    notes:
+      - Bulk-flipped by mid-game rangers
+      - GE limit 11,000 supports large flips
+      - Tied to fletching profit margins
+  trading_tips:
+    - Watch adamant dart tip prices for fletching arbitrage
+    - Stable consumable demand from PvM/Slayer
+  history:
+    - date: "2003-04-14"
+      description: "Released with the New Throwing Weapons update."
+    - date: "2021-06-30"
+      description: "Ranged attack bonus decreased from +11 to 0; ranged strength increased from +10 to +17."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: "New Throwing Weapons!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

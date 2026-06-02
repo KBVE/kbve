@@ -12,9 +12,49 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of the bloodhound is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Most monsters (Deadman Mode events)
+        quantity: "1"
+        rarity: Rare
+  treasure_trail:
+    tier: master
+    is_reward: false
+  related_items:
+    - item_name: Reward casket (master)
+      slug: reward-casket-master
+      relationship: product
+      description: 75% chance to be returned when completing a clue step while sigil is attuned
+  about: "Sigil of the bloodhound is a tier 2 utility sigil exclusive to Deadman Mode events that grants a 75% chance for any-tier clue rewards to return the casket on completion."
+  market_strategy:
+    notes:
+      - Only available during Deadman Mode events so price discovery only matters in-season
+      - Un-attuned version is tradeable on the Grand Exchange; attuned version is character-bound
+  trading_tips:
+    - Buy un-attuned during the event window; resale outside Deadman is impossible
+    - Confirm event payout values before bidding against the 1 coin base value
+  history:
+    - date: "2023-08-23"
+      update: Deadman Apocalypse - Friday 25th August
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-08-23"
+    update: Deadman Apocalypse - Friday 25th August
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: Destroy
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

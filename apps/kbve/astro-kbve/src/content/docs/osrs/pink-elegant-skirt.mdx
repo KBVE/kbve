@@ -15,18 +15,73 @@ osrs:
   equipment:
     slot: legs
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.1
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/18128
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 12339
       item_name: Pink elegant blouse
       slug: pink-elegant-blouse
       relationship: set-piece
-      description: Matching elegant blouse
-  about: |-
-    > *"A rather elegant pink skirt."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the pink elegant clothing set (women's variant). Pairs with the pink elegant blouse.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching elegant blouse top
+  about: "Cosmetic medium Treasure Trail reward with no combat bonuses; pairs with the pink elegant blouse and is storable in a costume room treasure chest."
+  market_strategy:
+    notes:
+      - Medium clue cosmetic at 1/18,128 rarity
+      - Low daily volume (around 33); use limit orders
+      - Value tied to clue meta and fashionscape demand
+  trading_tips:
+    - Track set price alongside the blouse for flipping margin
+    - Spread widens after clue rework patches
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail Expansion update.
+    - date: "2014-12-10"
+      description: "Renamed from Pink ele' skirt to Pink elegant skirt."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

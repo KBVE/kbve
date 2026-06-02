@@ -1,6 +1,6 @@
 ---
 title: Ancient hilt | OSRS Price Data
-description: "Ancient hilt: Brimming with potential.. High alch: 300,000 GP."
+description: "Ancient hilt: Brimming with potential. High alch: 300,000 GP."
 osrs:
   id: 26370
   name: Ancient hilt
@@ -12,54 +12,69 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: null
-  item:
-    type: crafting material
-    tradeable: true
-    weight: 2.5
-  obtaining:
-    - source: Nex
-      drop_rate: 1/516
+  material:
+    type: godsword-hilt
+    tier: high
+  drop_table:
+    sources:
+      - source: Nex
+        quantity: "1"
+        rarity: 1/516
   recipes:
-    - materials:
-        - item_id: 26370
-          item_name: Ancient hilt
-          quantity: 1
+    - product: Ancient godsword
+      product_id: 26233
+      skill: None
+      level: 0
+      experience: 0
+      materials:
         - item_id: 11690
           item_name: Godsword blade
           quantity: 1
-      product: Ancient godsword
-      product_id: 26233
-      notes: No skill requirements
+        - item_id: 26370
+          item_name: Ancient hilt
+          quantity: 1
+      tools: []
+      notes: No skill requirements to combine.
   related_items:
     - item_id: 11690
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Base component for godsword
+      description: Base component combined with the hilt.
     - item_id: 26233
       item_name: Ancient godsword
       slug: ancient-godsword
       relationship: product
-      description: Created healing spec weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 2.5 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Ancient godsword | Godsword blade + Ancient hilt |
-
-    No skill requirements.
+      description: Created two-handed godsword with the Blood Sacrifice special attack.
+  about: "Ancient hilt is the rare Nex drop combined with a godsword blade to forge the Ancient godsword, the highest-value hilt thanks to the blade's healing spec."
   market_strategy:
     notes:
-      - Farm Nex
-      - Most valuable hilt
-      - Unique blood spec
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply is gated by Nex spawns; price tracks PvM popularity.
+      - Spec utility on the finished godsword sustains long-term demand.
+  trading_tips:
+    - Buy hilts during Nex content lulls and assemble during PvM hype.
+    - Track godsword blade price to time arbitrage windows.
+  history:
+    - date: "2021-12-16"
+      description: Item added to the game data but not yet obtainable.
+    - date: "2022-01-05"
+      description: "Became obtainable as a Nex drop with the Nex: The Fifth General update."
+  properties:
+    release_date: "2022-01-05"
+    update: "Nex: The Fifth General"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.5
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

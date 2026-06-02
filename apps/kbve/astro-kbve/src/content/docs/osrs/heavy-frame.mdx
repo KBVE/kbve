@@ -12,9 +12,70 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Heavy frame is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Demonic gorilla
+        quantity: "1"
+        rarity: 1/1500
+      - source: Tortured gorilla
+        quantity: "1"
+        rarity: 1/15000
+  recipes:
+    - product: Incomplete heavy ballista
+      skill: Fletching
+      level: 72
+      xp: 30
+      tools: []
+      materials:
+        - item_name: Heavy frame
+          quantity: 1
+        - item_name: Ballista limbs
+          quantity: 1
+  related_items:
+    - item_id: 19592
+      item_name: Ballista limbs
+      slug: ballista-limbs
+      relationship: component
+      description: Combined with the heavy frame at 72 Fletching
+    - item_id: 19478
+      item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: product
+      description: End product after assembling all ballista parts
+    - item_id: 19590
+      item_name: Light frame
+      slug: light-frame
+      relationship: alternative
+      description: Lighter ballista frame variant
+  about: "Heavy frame is a rare Demonic gorilla drop used at 72 Fletching to build the incomplete heavy ballista, requiring Monkey Madness II."
+  market_strategy:
+    notes:
+      - Locked behind Monkey Madness II grind
+      - Demand from heavy ballista crafters
+      - Buy limit of 8 keeps spread wide
+  trading_tips:
+    - Pairs 1:1 with ballista limbs
+    - Demonic gorilla farming is the main supply
+  history:
+    - date: "2016-05-06"
+      description: Released with Monkey Madness II.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-06"
+    update: Monkey Madness II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Monkey Madness II
+    weight: 5.25
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

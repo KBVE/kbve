@@ -14,8 +14,12 @@ osrs:
   limit: 70
   equipment:
     slot: weapon
-    type: staff
-    attack_speed: 5
+    weapon_type: staff
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      magic: 50
+      slayer: 55
     attack_bonus:
       stab: 7
       slash: -1
@@ -33,15 +37,9 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 50
-      slayer: 55
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 1.814
-  shop_source:
-    - name: Slayer Masters
+  shops:
+    - shop_name: Slayer Equipment
+      location: Slayer Masters
       cost: 21000
       currency: coins
   related_items:
@@ -49,39 +47,47 @@ osrs:
       item_name: Slayer's staff (e)
       slug: slayers-staff-e
       relationship: upgrade
-      description: Enchanted version with +15% magic damage
+      description: Enchanted variant with +15% magic damage on Slayer tasks.
     - item_id: 21257
       item_name: Slayer's enchantment
       slug: slayers-enchantment
       relationship: component
-      description: Upgrade material
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +7 |
-    | Slash | -1 |
-    | Crush | +25 |
-    | Magic | +12 |
-    | Strength | +35 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +2 |
-    | Slash | +3 |
-    | Crush | +1 |
-    | Magic | +10 |
-
-    Autocasts: Magic Dart, Crumble Undead, Arceuus spells, Wave and Surge spells.
-
-    Required for Magic Dart against turoth and kurask.
-
-    | Item | Requirements |
-    |------|--------------|
-    | Slayer's staff (e) | 75 Magic, Slayer's enchantment |
-
-    Enchanted version has 2,500 charges, +15% magic damage.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Used to enchant the staff into Slayer's staff (e).
+    - item_id: 4166
+      item_name: Mystic smoke staff
+      slug: mystic-smoke-staff
+      relationship: alternative
+      description: Alternative one-handed magic staff with melee bonuses.
+  about: "Slayer's staff is a members magic staff sold by Slayer Masters; it is the only weapon that can autocast Magic Dart against Turoth and Kurask."
+  market_strategy:
+    notes:
+      - Shop price 21,000 coins anchors a floor for arbitrage from Slayer Masters.
+      - Demand tracks Slayer task popularity and Magic Dart use.
+  trading_tips:
+    - Buy from Slayer Masters at 21,000 coins and resell on GE when margin opens.
+    - Consider upgrading to Slayer's staff (e) for personal Slayer use rather than reselling.
+  history:
+    - date: "2005-01-26"
+      description: Released as part of the Slayer skill update.
+  properties:
+    release_date: "2005-01-26"
+    update: Slayer skill released
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

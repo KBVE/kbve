@@ -1,6 +1,6 @@
 ---
 title: Cactus seed | OSRS Price Data
-description: "Cactus seed: A Cactus seed - plant in a cactus patch.. High alch: 59 GP, GE limit: 200."
+description: "Cactus seed: A Cactus seed - plant in a cactus patch. High alch: 59 GP, GE limit: 200."
 osrs:
   id: 5280
   name: Cactus seed
@@ -12,9 +12,62 @@ osrs:
   lowalch: 39
   highalch: 59
   limit: 200
-  about: "Cactus seed is a members-only item in Old School RuneScape. High alchemy value: 59 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    skill_level: 55
+    plant_xp: 66.5
+    check_xp: 374
+    harvest_xp: 25
+    growth_time_minutes: 560
+    patch_type: Cactus patch
+    protection_payment: 6 cadava berries
+    produces: Cactus spine
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        quantity: "1"
+        rarity: "1/76.5"
+      - source: Moss giant
+        quantity: "1"
+        rarity: "1/319.4"
+      - source: Master Farmer (pickpocket)
+        quantity: "1"
+        rarity: "1/1230"
+      - source: Ice giant
+        quantity: "1"
+        rarity: Uncommon
+      - source: Cave horror
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Cactus spine
+      relationship: product
+      description: Harvested from a grown cactus.
+  about: "Cactus seed is planted in a cactus patch at 55 Farming, taking around 9 hours 20 minutes to grow before yielding cactus spines used in Herblore."
+  market_strategy:
+    notes:
+      - Low GE limit of 200 per 4 hours restricts bulk farming
+      - Supply driven by Master Farmer pickpocketing and aberrant spectre drops
+      - Cactus spine demand is tied to weapon poison Herblore use
+  history:
+    - date: "2005-06-06"
+      description: Released as part of the Farming skill expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-06-06"
+    update: Farming skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,83 @@ osrs:
   lowalch: 3200000
   highalch: 4800000
   limit: 250
-  about: "Ancient effigy is a members-only item in Old School RuneScape. High alchemy value: 4,800,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant goblin
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant pyrefiend
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant hobgoblin
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant cyclops
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant hellhound
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant demon
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant ork
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant dark beast
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant knight
+        quantity: "1"
+        rarity: Rare
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: Rare
+      - source: Bounty Crate
+        quantity: "1"
+        rarity: 4/1000
+  related_items:
+    - item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: alternative
+      description: Other always-lost-on-death revenant item
+    - item_name: Revenant ether
+      slug: revenant-ether
+      relationship: product
+      description: Effigy can be chiselled into 16,000 revenant ether
+  about: "Ancient effigy is a high-value drop from revenants and Bounty Crates that can be exchanged with the Emblem Trader for 8,000,000 coins or chiselled into 16,000 revenant ether."
+  market_strategy:
+    notes:
+      - Effigy sells for a fixed 8,000,000 to the Emblem Trader so GE price is anchored just below that ceiling
+      - 16,000 revenant ether per effigy gives a second valuation route to compare against
+  trading_tips:
+    - Compare GE price to Emblem Trader payout minus GE tax before flipping
+    - Always lost on death even if alone in inventory; do not carry while risking PvP
+  history:
+    - date: "2018-02-08"
+      update: Revenant Caves
+      description: Added to the game.
+    - date: "2025-07"
+      description: Chiselling an effigy now produces 16,000 revenant ether.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-02-08"
+    update: Revenant Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

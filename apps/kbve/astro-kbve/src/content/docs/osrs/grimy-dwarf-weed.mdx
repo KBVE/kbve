@@ -12,18 +12,14 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 11000
-  herb:
-    type: grimy
+  material:
+    type: grimy-herb
     tier: high
-  herblore:
-    cleaning_level: 70
-    cleaning_xp: 13.8
-    clean_id: 267
-    clean_name: Dwarf weed
   farming:
     level: 79
     seed_id: 5303
     seed_name: Dwarf weed seed
+    xp_per_harvest: 192
   drop_table:
     sources:
       - source: Aberrant spectre
@@ -35,6 +31,14 @@ osrs:
       - source: Gargoyle
         source_id: 412
         combat_level: 111
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Abyssal Sire
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Demonic gorilla
         quantity: "1"
         rarity: uncommon
         members_only: true
@@ -59,22 +63,35 @@ osrs:
       slug: dwarf-weed-seed
       relationship: component
       description: Farming seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 70 (to clean) |
-
-    Clean to produce dwarf weed for Herblore.
-
-    Dwarf weed used for:
-    - Ranging potion
-    - Combat potion
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Grimy dwarf weed is the uncleaned form of dwarf weed, requiring 70 Herblore to clean for 13.8 XP. Primarily used to make ranging potions. Farmed at level 79 or dropped by slayer monsters."
+  market_strategy:
+    notes:
+      - High volume herblore staple
+      - Ranging potion supply chain
+      - Steady slayer drop supply
+      - 11,000 buy limit supports bulk trades
+  trading_tips:
+    - Track ranging potion demand for price signal
+    - Cleaning margin vs cleaned dwarf weed
+  history:
+    - date: "2002-02-27"
+      description: Released with RuneScape 2.
+  properties:
+    release_date: "2002-02-27"
+    update: Herblore release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

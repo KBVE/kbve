@@ -1,6 +1,6 @@
 ---
 title: Dragon dart(p+) | OSRS Price Data
-description: "Dragon dart(p+): A deadly poisoned dart with a dragon tip.. High alch: 300 GP, GE limit: 11,000."
+description: "Dragon dart(p+) is a members enhanced-poison thrown weapon requiring 60 Ranged. High alch: 300 GP, GE limit: 11,000."
 osrs:
   id: 11233
   name: Dragon dart(p+)
@@ -12,9 +12,96 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Dragon dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 35
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      level: 73
+      xp: 0
+      output_quantity: 1
+      materials:
+        - item_name: Dragon dart
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      notes: "Use Weapon poison(+) on a dragon dart to make a Dragon dart(p+)."
+  related_items:
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: variant
+      description: Unpoisoned dragon dart base.
+    - item_id: 11232
+      item_name: Dragon dart(p)
+      slug: dragon-dart-p
+      relationship: downgrade
+      description: Standard-poison dragon dart.
+    - item_id: 11234
+      item_name: Dragon dart(p++)
+      slug: dragon-dart-pp
+      relationship: upgrade
+      description: Extra-strong poison dragon dart.
+    - item_id: 11231
+      item_name: Dragon dart tip
+      slug: dragon-dart-tip
+      relationship: component
+      description: Fletching base for the dart.
+  about: "Dragon dart(p+) is the second-tier poisoned dragon throwing dart, dealing +35 ranged strength and applying enhanced poison damage on hit."
+  market_strategy:
+    notes:
+      - Slight premium over unpoisoned dragon darts
+      - GE limit 11,000 enables bulk flipping
+      - Weapon poison(+) supply gates the spread
+  trading_tips:
+    - Monitor unpoisoned dragon dart prices for poison arbitrage
+    - Demand peaks around poison-immune-light boss content
+  history:
+    - date: "2007-06-11"
+      description: "Released with the Impetuous Impulses update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-06-11"
+    update: "Impetuous Impulses"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

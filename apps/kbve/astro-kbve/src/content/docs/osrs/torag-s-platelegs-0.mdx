@@ -1,20 +1,93 @@
 ---
 title: Torag's platelegs 0 | OSRS Price Data
-description: "Torag's platelegs 0: Torag the Corrupted's plate leg armour.. High alch: 165,000 GP, GE limit: 15."
+description: "Torag's platelegs 0: Torag the Corrupted's plate leg armour. High alch: 165,000 GP, GE limit: 15."
 osrs:
   id: 4974
   name: Torag's platelegs 0
   slug: torag-s-platelegs-0
-  examine: Torag the Corrupted's plate leg armour.
+  examine: "Torag the Corrupted's plate leg armour."
   members: true
   icon: Torag's platelegs 0.png
   value: 275000
   lowalch: 110000
   highalch: 165000
   limit: 15
-  about: "Torag's platelegs 0 is a members-only item in Old School RuneScape. High alchemy value: 165,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: barrows armour
+    tier: high
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 9.071
+    requirements:
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 85
+      slash: 82
+      crush: 83
+      magic: -4
+      ranged: 92
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Barrows chest
+        quantity: "1"
+        rarity: 1/2448
+  related_items:
+    - item_name: Torag's platelegs 25
+      slug: torag-s-platelegs-25
+      relationship: variant
+      description: Partially degraded charge state of the same legs.
+    - item_name: Torag's platelegs 100
+      slug: torag-s-platelegs-100
+      relationship: variant
+      description: Fully repaired charge state of the same legs.
+    - item_name: Torag's platebody 0
+      slug: torag-s-platebody-0
+      relationship: set-piece
+      description: Matching body slot piece for Torag's set effect.
+  about: "Torag's platelegs are the legs slot of Torag the Corrupted's Barrows set, equipped at 70 Defence and degraded to broken state."
+  market_strategy:
+    notes:
+      - Fully degraded variant traded for repair at NPCs or POH armour stand.
+      - Wears the same as charged versions but cannot be equipped until repaired.
+      - Price tracks the cost of repair plus expected resale of charged legs.
+  trading_tips:
+    - Buy 0 charge variants when undercut below repair-cost spread.
+    - 99 Smithing players save ~40k per repair vs NPC pricing.
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows minigame update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    update: "Barrows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure?"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Bronze arrow(p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: arrow
+    weight: 0
+    other_bonus:
+      ranged_strength: 7
+  recipes:
+    - skill: Herblore
+      materials:
+        - item_name: Bronze arrow
+          quantity: 1
+        - item_name: Extra strong poison
+          quantity: 1
+      tools: []
+  related_items:
+    - item_id: 882
+      item_name: Bronze arrow
+      slug: bronze-arrow
+      relationship: component
+      description: Unpoisoned variant
+    - item_id: 884
+      item_name: Iron arrow(p+)
+      slug: iron-arrow-p
+      relationship: upgrade
+      description: Higher tier poisoned arrow
+  about: "Bronze arrow(p+) is a poisoned ammo arrow dealing extra venomous damage on hit and used with bows of all tiers up to adamant."
+  market_strategy:
+    notes:
+      - Low-tier poisoned ammunition
+      - Stackable training resource
+      - Buy limit 7,000 per 4 hours
+  history:
+    - date: "2001-01-04"
+      description: Original bronze arrow line released with RuneScape beta launch.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

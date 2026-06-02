@@ -12,9 +12,40 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 100
-  about: "Steel keel parts is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Steel bar
+          quantity: "5"
+      tools:
+        - Anvil
+        - Hammer
+      skill: Smithing
+      level: 38
+      experience: 187.5
+      output_quantity: 1
+  about: "Steel keel parts are smithed from 5 steel bars and used in Sailing to build skiff keels or upgrade into larger sloop keel parts."
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

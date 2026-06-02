@@ -12,9 +12,57 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
-  about: "Mithril gold-trimmed set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid
+  related_items:
+    - item_id: 12283
+      item_name: Mithril full helm (g)
+      slug: mithril-full-helm-g
+      relationship: set-piece
+      description: Helm component
+    - item_id: 12281
+      item_name: Mithril platebody (g)
+      slug: mithril-platebody-g
+      relationship: set-piece
+      description: Platebody component
+    - item_id: 12285
+      item_name: Mithril plateskirt (g)
+      slug: mithril-plateskirt-g
+      relationship: set-piece
+      description: Skirt component
+    - item_id: 12287
+      item_name: Mithril kiteshield (g)
+      slug: mithril-kiteshield-g
+      relationship: set-piece
+      description: Kiteshield component
+  about: "Mithril gold-trimmed set (sk) bundles a gold-trimmed mithril full helm, platebody, plateskirt and kiteshield via the Grand Exchange Sets option."
+  market_strategy:
+    notes:
+      - Exchanged via GE clerk Sets option
+      - Components sum cheaper than set
+      - F2P bank space saver
+      - Buy limit 8 per 4 hours
+  history:
+    - date: "2015-02-26"
+      description: Released alongside the Grand Exchange Sets option.
+  properties:
+    release_date: "2015-02-26"
+    update: Grand Exchange Sets
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
