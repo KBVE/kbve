@@ -12,11 +12,11 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 200
-  seed:
+  material:
     type: herb
     tier: high
   farming:
-    level: 67
+    farming_level: 67
     xp_plant: 106.5
     xp_harvest: 120
     growth_time: 80
@@ -28,7 +28,7 @@ osrs:
       item_name: Grimy cadantine
       slug: grimy-cadantine
       relationship: product
-      description: Harvested product
+      description: Harvested grimy herb
     - item_id: 265
       item_name: Cadantine
       slug: cadantine
@@ -38,26 +38,18 @@ osrs:
       item_name: Super defence(4)
       slug: super-defence-4
       relationship: product
-      description: Made from cadantine
+      description: Potion made from cadantine
     - item_id: 5300
       item_name: Snapdragon seed
       slug: snapdragon-seed
       relationship: alternative
-      description: Lower tier herb seed
+      description: Lower-tier herb seed
     - item_id: 5302
       item_name: Lantadyme seed
       slug: lantadyme-seed
       relationship: upgrade
-      description: Next tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy cadantine.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 67 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 106.5 |
-    | XP (harvest) | 120 per herb |
+      description: Next-tier herb seed
+  about: "Cadantine seed is a tier-67 herb seed yielding grimy cadantine, the main ingredient for Super defence potions."
   market_strategy:
     notes:
       - High-tier herb seed
@@ -69,8 +61,35 @@ osrs:
       - 9 herb patches available
       - ~10 minute runs, 80 minute regrowth
       - Super defence essential for PvM
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2005-08-09"
+      update: Farming
+      description: Herb seed introduced with the Farming skill.
+    - date: "2005-08-23"
+      update: Farming Tweaks
+      description: Renamed from generic Herb seed to Cadantine seed.
+    - date: "2018-02-08"
+      update: Ground Visibility
+      description: Value reduced from 64 to 7 coins to improve ground visibility.
+    - date: "2020-01-09"
+      update: Farming XP Rework
+      description: Plant XP is now awarded on harvest instead of planting.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Farming
+    tradeable: true
+    equipable: false
+    stackable: true
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

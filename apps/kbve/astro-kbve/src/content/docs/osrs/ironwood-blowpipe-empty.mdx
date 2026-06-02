@@ -1,6 +1,6 @@
 ---
 title: Ironwood blowpipe (empty) | OSRS Price Data
-description: "Ironwood blowpipe (empty): Breath powered dart delivering system with a hint of ironwood.. High alch: 2,160 GP, GE limit: 8."
+description: "Ironwood blowpipe (empty): Breath powered dart delivering system with a hint of ironwood. High alch: 2,160 GP, GE limit: 8."
 osrs:
   id: 31581
   name: Ironwood blowpipe (empty)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1440
   highalch: 2160
   limit: 8
-  about: "Ironwood blowpipe (empty) is a members-only item in Old School RuneScape. High alchemy value: 2,160 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: 2h
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0.3
+    requirements:
+      ranged: 55
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 16
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 4
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 72
+      xp: 170
+      materials:
+        - item_name: Ironwood logs
+          quantity: 2
+        - item_name: Squid beak
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: Higher-tier blowpipe variant
+    - item_name: Ironwood blowpipe
+      slug: ironwood-blowpipe
+      relationship: variant
+      description: Charged state of this weapon
+  market_strategy:
+    notes:
+      - Released with Sailing update
+      - Ranged 55 requirement keeps mid-game demand strong
+      - Fletching 72 supply gates the item
+      - Tracks ironwood log and squid beak input prices
+  history:
+    - date: "2025-11-19"
+      update: Sailing
+      description: Item released with the Sailing update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Ironwood blowpipe (empty) is a members two-handed thrown weapon fletched at 72 from ironwood logs and squid beak, requiring 55 Ranged to wield.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

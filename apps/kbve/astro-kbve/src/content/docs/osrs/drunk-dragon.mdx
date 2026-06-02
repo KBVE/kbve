@@ -12,9 +12,81 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Drunk dragon is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 5
+    boost: "+5% +2 Strength, -2 to -3 Attack"
+  recipes:
+    - skill: Cooking
+      level: 32
+      xp: 160
+      materials:
+        - item_name: Vodka
+          quantity: 1
+        - item_name: Gin
+          quantity: 1
+        - item_name: Dwellberries
+          quantity: 1
+        - item_name: Pineapple chunks
+          quantity: 1
+        - item_name: Pot of cream
+          quantity: 1
+        - item_name: Cocktail glass
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Drinky Store
+      location: Tai Bwo Wannai
+      currency: Trading sticks
+  related_items:
+    - item_id: 2025
+      item_name: Vodka
+      slug: vodka
+      relationship: component
+      description: Cocktail ingredient
+    - item_id: 2019
+      item_name: Gin
+      slug: gin
+      relationship: component
+      description: Cocktail ingredient
+    - item_id: 2126
+      item_name: Dwellberries
+      slug: dwellberries
+      relationship: component
+      description: Cocktail ingredient
+  market_strategy:
+    notes:
+      - Niche Cooking product, low GE flow
+      - Gnome cocktail demand from Gnome Restaurant minigame
+      - Strength boost competes with combat potions
+  trading_tips:
+    - Watch Tai Bwo Wannai trading stick conversion arbitrage
+    - Stockpile during Gnome Restaurant grinds
+  history:
+    - date: "2002-12-12"
+      update: Agility skill release
+      description: Drunk dragon added as a gnome cocktail with the Agility skill launch.
+    - date: "2006-08-07"
+      update: Gnome Restaurant rework
+      description: Graphics updated alongside the Gnome Restaurant minigame rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Drunk dragon is a gnome cocktail made at Cooking 32 that heals 5 and boosts Strength while lowering Attack.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

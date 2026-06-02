@@ -1,6 +1,6 @@
 ---
 title: Carved teak magic wardrobe (flatpack) | OSRS Price Data
-description: "Carved teak magic wardrobe (flatpack): Carved teak magic wardrobe.. High alch: 6 GP, GE limit: 500."
+description: "Carved teak magic wardrobe (flatpack): Carved teak magic wardrobe. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9855
   name: Carved teak magic wardrobe (flatpack)
@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Carved teak magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: construction
+      level: 69
+      xp: 540
+      materials:
+        - item_name: Teak plank
+          item_id: 8780
+          quantity: 6
+      product: Carved teak magic wardrobe (flatpack)
+      product_id: 9855
+      product_quantity: 1
+      facility: Workbench (player-owned house workshop)
+  construction:
+    construction_level: 69
+    xp: 540
+    notes: Assembled in the Costume Room's Magic wardrobe space.
+  related_items:
+    - item_id: 8780
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Material (×6) for the flatpack
+    - item_id: 9853
+      item_name: Teak magic wardrobe (flatpack)
+      slug: teak-magic-wardrobe-flatpack
+      relationship: downgrade
+      description: Lower tier teak wardrobe variant
+  about: "Carved teak magic wardrobe (flatpack) is a Construction 69 workbench product crafted from 6 teak planks for the player-owned house Costume Room."
+  market_strategy:
+    notes:
+      - Construction 69 + 6 teak planks per flatpack
+      - 540 XP per build, useful for ironman XP routes
+      - GE buy limit 500 per 4 hours
+      - High alch only 6 GP, alching is unprofitable
+      - Demand driven by POH Costume Room builders
+  history:
+    - date: "2006-10-18"
+      update: Construction release
+      description: Carved teak magic wardrobe flatpack added with the Construction skill launch.
+    - date: "2015-02-26"
+      update: Renaming
+      description: Renamed from Carved teak mw to full name with the Grand Exchange update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

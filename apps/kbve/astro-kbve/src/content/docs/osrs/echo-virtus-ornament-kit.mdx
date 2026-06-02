@@ -1,6 +1,6 @@
 ---
 title: Echo virtus ornament kit | OSRS Price Data
-description: "Echo virtus ornament kit: Used on Virtus robes to decorate them in the style of Leagues V: Raging Echoes.. High alch: 3,000 GP."
+description: "Echo virtus ornament kit: Used on Virtus robes to decorate them in the style of Leagues V: Raging Echoes. High alch: 3,000 GP."
 osrs:
   id: 30443
   name: Echo virtus ornament kit
@@ -12,9 +12,58 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Echo virtus ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Lumbridge Castle
+      currency: League Points
+      price: 8000
+      notes: Pack of 3 kits
+  related_items:
+    - item_id: 26241
+      item_name: Virtus mask
+      slug: virtus-mask
+      relationship: component
+      description: Decorated when kit is applied
+    - item_id: 26243
+      item_name: Virtus robe top
+      slug: virtus-robe-top
+      relationship: component
+      description: Decorated when kit is applied
+    - item_id: 26245
+      item_name: Virtus robe bottom
+      slug: virtus-robe-bottom
+      relationship: component
+      description: Decorated when kit is applied
+  about: "Echo virtus ornament kit is a Leagues V: Raging Echoes cosmetic kit applied to Virtus robes; the process is reversible, returning both the item and kit."
+  market_strategy:
+    notes:
+      - Limited supply tied to Leagues V reward shop
+      - Reversible application protects underlying Virtus value
+      - Strong fashionscape demand among Virtus owners
+      - No GE buy limit listed
+  history:
+    - date: "2025-01-15"
+      update: "Leagues V: Raging Echoes Rewards"
+      description: Item became obtainable from the Leagues Reward Shop.
+    - date: "2024-11-27"
+      description: Item added to the game cache.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-01-15"
+    update: "Leagues V: Raging Echoes Rewards Are Here"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    alchable: false
+    destroy: Drop
+    options:
+      - Use
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Fancy teak dresser (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Construction
+      level: 56
+      xp: 182
+      facility: Steel framed workbench
+      tools:
+        - Hammer
+        - Saw
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+        - item_name: Molten glass
+          quantity: 2
+      output_quantity: 1
+      members_only: true
+  construction:
+    construction_level: 56
+    construction_xp: 182
+    hotspot: Dresser space
+    room: Bedroom
+  related_items:
+    - item_id: 8780
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Primary material
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: component
+      description: Secondary material
+  market_strategy:
+    notes:
+      - Construction flatpack demand from Mahogany Homes / training
+      - Capped buy limit of 500 throttles bulk supply
+      - Profitable to alch only at extreme price collapse
+  trading_tips:
+    - Stack alongside other teak/mahogany flatpacks
+    - Check vs raw teak plank price when flipping
+  history:
+    - date: "2006-05-31"
+      update: Player-Owned Houses!
+      description: Fancy teak dresser (flatpack) added with the Construction skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Fancy teak dresser (flatpack) is a Construction flatpack assembled into a bedroom dresser inside a player-owned house.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

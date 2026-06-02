@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Civitas illa fortis teleport is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Civitas illa Fortis
+    type: tablet
+    consumable: true
+  recipes:
+    - skill: Magic
+      level: 54
+      xp: 64
+      facility: Spellbook (Standard)
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 1761
+      item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Tablet base
+    - item_id: 563
+      item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Casting cost (x2)
+  market_strategy:
+    notes:
+      - Magic 54 + Twilight's Promise gates the cast
+      - Player-made tablet, supply tied to runecrafting/teleport flippers
+      - Quick access to Varlamore for hunter/herblore/agility runs
+  trading_tips:
+    - Watch demand around Varlamore content releases
+    - Stack against alternate Varlamore travel (Quetzal, fairy ring CIQ)
+  history:
+    - date: "2024-03-20"
+      update: Varlamore - Part One
+      description: Civitas illa Fortis teleport spell and tablet released alongside Varlamore Part One.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore - Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Break
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Civitas illa fortis teleport is a Magic 54 tablet that teleports the player to Civitas illa Fortis in Varlamore.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

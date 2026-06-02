@@ -1,6 +1,6 @@
 ---
 title: Infernal plate | OSRS Price Data
-description: "Infernal plate: Metal from infernus, waiting to be shaped at an anvil.. High alch: 12 GP."
+description: "Infernal plate: Metal from infernus, waiting to be shaped at an anvil. High alch: 12 GP."
 osrs:
   id: 30864
   name: Infernal plate
@@ -12,9 +12,78 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Infernal plate is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ore
+    tier: high
+  recipes:
+    - skill: Smithing
+      level: 83
+      xp: 2000
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      output_quantity: 1
+      output_item: Oathplate chest
+      facility: Anvil
+    - skill: Smithing
+      level: 83
+      xp: 2000
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      output_quantity: 1
+      output_item: Oathplate helm
+      facility: Anvil
+    - skill: Smithing
+      level: 83
+      xp: 2000
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      output_quantity: 1
+      output_item: Oathplate legs
+      facility: Anvil
+  related_items:
+    - item_name: Oathplate chest
+      slug: oathplate-chest
+      relationship: product
+      description: Created from 9 infernal plates at 83 Smithing
+    - item_name: Oathplate helm
+      slug: oathplate-helm
+      relationship: product
+      description: Created from 9 infernal plates at 83 Smithing
+    - item_name: Oathplate legs
+      slug: oathplate-legs
+      relationship: product
+      description: Created from 9 infernal plates at 83 Smithing
+  market_strategy:
+    notes:
+      - High Smithing requirement (83) restricts demand
+      - Stackable smithing material
+      - Demand tied to Oathplate armor crafting
+  history:
+    - date: "2025-05-14"
+      update: "Yama, the Master of Pacts: Out Today"
+      description: Item released with the Yama boss update.
+    - date: "2025-05-22"
+      description: Infernal plates can now be traded.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-05-14"
+    update: "Yama, the Master of Pacts: Out Today"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Infernal plate is a members-only smithing material used to craft Oathplate armor at 83 Smithing.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

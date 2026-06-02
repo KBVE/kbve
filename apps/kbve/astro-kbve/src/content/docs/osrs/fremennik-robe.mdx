@@ -12,9 +12,63 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Fremennik robe is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      stock: 5
+      price: 650
+      members_only: true
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania
+      stock: 5
+      price: 500
+      members_only: true
+  about: Fremennik robe is a body slot clothing item sold in Rellekka after completing The Fremennik Trials, offering minor slash and crush defence.
+  market_strategy:
+    notes:
+      - Sold by Yrsa for 650 coins in Rellekka
+      - Requires The Fremennik Trials
+      - Cosmetic Fremennik fashion
+      - Low GE volume
+  history:
+    - date: "2004-11-02"
+      description: Added to the game with The Fremennik Trials quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

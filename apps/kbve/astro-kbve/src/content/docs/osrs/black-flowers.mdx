@@ -12,9 +12,59 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Black flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: slash-sword
+    attack_speed: 4
+    weight: 0.028
+    attack_bonus:
+      stab: -100
+      slash: -100
+      crush: -50
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: -10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  farming:
+    farming_level: 30
+    seed: Mithril seed
+  about: Black flowers are a rare yield from mithril or adamant seeds, functioning as a novelty fun weapon with severe negative combat bonuses.
+  market_strategy:
+    notes:
+      - 2/1,001 chance from mithril or adamant seeds
+      - Single picking opportunity per seed
+      - Fun weapon novelty drives demand
+      - Can be made into imp repellent
+  history:
+    - date: "2004-03-29"
+      description: Added to the game with the RuneScape 2 launch.
+    - date: "2024-04-10"
+      description: Adamant seeds added as a source of black flowers.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

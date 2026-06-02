@@ -12,9 +12,73 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Wood camo top (equipped) is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.226
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 19
+      magic: 0
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - product_name: Wood camo top
+      skill: Crafting
+      facility: Fancy Clothes Store, Hunter Guild, or Seamstress (Prifddinas)
+      materials:
+        - item_name: Common kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+  related_items:
+    - item_id: 10053
+      item_name: Wood camo legs
+      slug: wood-camo-legs
+      relationship: set-piece
+      description: Matching legs slot of the Woodland camouflage set
+  market_strategy:
+    notes:
+      - Cosmetic camouflage with negligible market depth
+      - Worn variant entry, distinct ID from inventory item
+      - Weight reduction perk benefits Hunter runs in wooded areas
+  history:
+    - date: "2006-11-21"
+      update: Hunter skill launch
+      description: Wood camo top released alongside the Hunter skill.
+    - date: "2024-03-20"
+      update: "Varlamore: The Hunter Guild"
+      description: Worn version now reduces equipped weight by 3 kg.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: "Wood camo top (equipped) is a members-only body slot camouflage garment in Old School RuneScape, providing defensive bonuses and a -3 kg equipped weight perk for woodland Hunter activity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

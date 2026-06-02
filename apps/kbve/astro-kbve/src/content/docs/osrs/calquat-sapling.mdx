@@ -5,16 +5,90 @@ osrs:
   id: 5503
   name: Calquat sapling
   slug: calquat-sapling
-  examine: This sapling is ready to be replanted in a Calquat Tree patch.
+  examine: This sapling is ready to be replanted in a Calquat tree patch.
   members: true
   icon: Calquat sapling.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Calquat sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 72
+    plant_xp: 129.5
+    check_health_xp: 12096
+    harvest_xp: 48.5
+    patch_type: Calquat
+    growth_time_minutes: 1280
+    protection_payment: 8 poison ivy berries (noted)
+    patch_locations:
+      - Tai Bwo Wannai Village
+      - The Summer Shore
+      - Kastori
+  recipes:
+    - skill: farming
+      level: 72
+      xp: 27
+      materials:
+        - item_name: Calquat seed
+          item_id: 5284
+          quantity: 1
+        - item_name: Plant pot (filled)
+          item_id: 5354
+          quantity: 1
+      product: Calquat seedling
+      product_id: 5502
+      product_quantity: 1
+      facility: Gardening trowel + water
+      members_only: true
+  related_items:
+    - item_id: 5284
+      item_name: Calquat seed
+      slug: calquat-seed
+      relationship: component
+      description: Seed planted in a plant pot
+    - item_id: 5502
+      item_name: Calquat seedling
+      slug: calquat-seedling
+      relationship: component
+      description: Watered seedling matures into the sapling
+    - item_id: 5980
+      item_name: Calquat fruit
+      slug: calquat-fruit
+      relationship: product
+      description: Harvested from the grown tree
+  about: Calquat sapling is a members-only Farming item planted in a Calquat tree patch at level 72 to grow Calquat fruits used in Karamja gloves and brewing.
+  market_strategy:
+    notes:
+      - Only one patch grants daily Calquat yield
+      - Buy seeds, save XP by planting saplings
+      - Karamja Diary fruit demand sustains use
+      - Saplings tradeable since 2015 update
+  history:
+    - date: "2019-01-10"
+      update: Examine Polish
+      description: Examine text slightly modified.
+    - date: "2015-01-29"
+      update: Tradeable Saplings
+      description: Saplings from tradeable seeds became tradeable.
+    - date: "2005-07-11"
+      update: Farming Skill
+      description: Item released alongside the Farming skill and Calquat tree patch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming Skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

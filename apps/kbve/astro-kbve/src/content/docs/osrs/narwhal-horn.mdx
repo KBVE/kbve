@@ -1,20 +1,73 @@
 ---
 title: Narwhal horn | OSRS Price Data
-description: "Narwhal horn: A sharp horn for such a gentle creature.. High alch: 4,800 GP."
+description: "Narwhal horn: The sharp horn of a narwhal. High alch: 4,800 GP."
 osrs:
   id: 31954
   name: Narwhal horn
   slug: narwhal-horn
-  examine: A sharp horn for such a gentle creature.
+  examine: The sharp horn of a narwhal.
   members: true
   icon: Narwhal horn.png
   value: 8000
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Narwhal horn is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Narwhal
+        combat_level: 111
+        quantity: "1"
+        rarity: 1/20
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 51
+      xp: 73
+      materials:
+        - item_name: Narwhal horn
+          item_id: 31954
+          quantity: 1
+        - item_name: Chisel
+          item_id: 1755
+          quantity: 1
+      product: Narwhal horn knife
+      product_quantity: 1
+      facility: Inventory
+      members_only: true
+  related_items:
+    - item_id: 1755
+      item_name: Chisel
+      slug: chisel
+      relationship: component
+      description: Tool used to shape the horn
+  market_strategy:
+    notes:
+      - Sailing-era narwhal drop
+      - Shapes into untradeable knife
+      - High alch covers cost floor
+      - Demand tied to Crafting trainers
+  history:
+    - date: "2025-11-05"
+      description: Item added to game data but unobtainable.
+    - date: "2025-11-19"
+      description: Became obtainable with the Sailing launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Narwhal horn is a members Sailing drop from narwhals that can be carved into a narwhal horn knife at 51 Crafting in Old School RuneScape.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

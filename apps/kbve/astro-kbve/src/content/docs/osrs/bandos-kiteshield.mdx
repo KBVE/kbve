@@ -12,9 +12,80 @@ osrs:
   lowalch: 21760
   highalch: 32640
   limit: 8
-  about: "Bandos kiteshield is a free-to-play item in Old School RuneScape. High alchemy value: 32,640 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 44
+      slash: 48
+      crush: 46
+      magic: -1
+      ranged: 46
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_id: 1201
+      item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: variant
+      description: Stock kiteshield with identical defence bonuses
+    - item_id: 12486
+      item_name: Bandos platebody
+      slug: bandos-platebody
+      relationship: set-piece
+      description: Matching Bandos rune body
+    - item_id: 12490
+      item_name: Bandos chestplate
+      slug: bandos-chestplate
+      relationship: alternative
+      description: Higher-tier Bandos armour piece
+    - item_id: 12492
+      item_name: Bandos full helm
+      slug: bandos-full-helm
+      relationship: set-piece
+      description: Matching Bandos rune helm
+  market_strategy:
+    notes:
+      - Cosmetic Bandos trim over rune kiteshield base
+      - Hard clue reward, supply gated by clue solvers
+      - Low GE limit caps flipping volume
+      - Used for costume room set storage
+  about: Bandos kiteshield is a cosmetic rune kiteshield variant in the colours of Bandos, awarded from hard Treasure Trails reward caskets.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

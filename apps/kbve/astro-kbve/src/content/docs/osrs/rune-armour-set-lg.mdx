@@ -12,9 +12,59 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 8
-  about: "Rune armour set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 45,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 1163
+      item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: set-piece
+      description: Helmet included in the set
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: set-piece
+      description: Body armour included in the set
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: set-piece
+      description: Leg armour included in the set
+    - item_id: 1201
+      item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: set-piece
+      description: Shield included in the set
+    - item_id: 13025
+      item_name: Rune armour set (sk)
+      slug: rune-armour-set-sk
+      relationship: alternative
+      description: Skirt variant of the rune armour set
+  about: "Rune armour set (lg) bundles full helm, platebody, platelegs and kiteshield into one Grand Exchange Sets package for convenient bank storage."
+  market_strategy:
+    notes:
+      - Convenience premium over individual pieces
+      - Useful for bank space savings
+      - Exchange via Grand Exchange Sets interface
+      - Popular among ironmen for gifting transfers
+  history:
+    - date: "2015-02-26"
+      update: Grand Exchange Sets
+      description: Rune armour set (lg) added to the Grand Exchange Sets interface.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    update: Grand Exchange Sets
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

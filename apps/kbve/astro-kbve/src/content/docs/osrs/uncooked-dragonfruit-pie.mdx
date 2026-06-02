@@ -1,6 +1,6 @@
 ---
 title: Uncooked dragonfruit pie | OSRS Price Data
-description: "Uncooked dragonfruit pie: This would be much tastier cooked.. High alch: 24 GP, GE limit: 10,000."
+description: "Uncooked dragonfruit pie: This would be much tastier cooked. High alch: 24 GP, GE limit: 10,000."
 osrs:
   id: 22789
   name: Uncooked dragonfruit pie
@@ -12,9 +12,75 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 10000
-  about: "Uncooked dragonfruit pie is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: cooking
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Dragonfruit
+          item_id: 21769
+          quantity: 1
+        - item_name: Pie shell
+          item_id: 2315
+          quantity: 1
+      product: Uncooked dragonfruit pie
+      product_id: 22789
+      product_quantity: 1
+      facility: Inventory
+      members_only: true
+    - skill: cooking
+      level: 73
+      xp: 220
+      materials:
+        - item_name: Uncooked dragonfruit pie
+          item_id: 22789
+          quantity: 1
+      product: Dragonfruit pie
+      product_id: 22791
+      product_quantity: 1
+      facility: Range
+      members_only: true
+  related_items:
+    - item_id: 21769
+      item_name: Dragonfruit
+      slug: dragonfruit
+      relationship: component
+      description: Cooking ingredient
+    - item_id: 2315
+      item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: Pie base
+    - item_id: 22791
+      item_name: Dragonfruit pie
+      slug: dragonfruit-pie
+      relationship: product
+      description: Cooked result
+  market_strategy:
+    notes:
+      - Step before high-end Cooking pies
+      - 73 Cooking gate limits suppliers
+      - Bakeable for 220 XP at 73 Cooking
+      - Steady demand for skillers
+  history:
+    - date: "2019-01-10"
+      description: Item released with The Kebos Lowlands update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Uncooked dragonfruit pie is a members Cooking intermediate combining a dragonfruit with a pie shell, baked into a dragonfruit pie at 73 Cooking in Old School RuneScape.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

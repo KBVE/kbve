@@ -12,26 +12,95 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  item_id: 1281
-  item_type: equipment
-  slot: weapon
-  type: sword
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 5
-  stats:
-    stab_attack: 11
-    slash_attack: 8
-    crush_attack: -2
-    strength: 12
+  material:
+    type: steel
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: stab-sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 11
+      slash: 8
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 34
+      xp: 37.5
+      materials:
+        - item_id: 2353
+          item_name: Steel bar
+          quantity: 1
+      product: Steel sword
+      product_id: 1281
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 325
+    - shop_name: Warriors' Guild Armoury
+      location: Warriors' Guild
+      price: 390
   related_items:
-    - slug: black-sword
-    - slug: steel-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1283
+      item_name: Black sword
+      slug: black-sword
+      relationship: downgrade
+      description: Lower-tier sword
+    - item_id: 1285
+      item_name: Mithril sword
+      slug: mithril-sword
+      relationship: upgrade
+      description: Higher-tier sword
+    - item_id: 1325
+      item_name: Steel scimitar
+      slug: steel-scimitar
+      relationship: alternative
+      description: Slash-focused steel weapon
+  about: "Steel sword is a free-to-play stab sword requiring 5 Attack to wield, smithable at 34 Smithing from 1 steel bar."
+  market_strategy:
+    notes:
+      - Common F2P low-level weapon
+      - Smithing produces a net loss vs bar cost
+      - Sold in basic sword shops
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta
+      description: Steel sword released as part of the original RuneScape weapon roster.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

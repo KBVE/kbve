@@ -1,6 +1,6 @@
 ---
 title: Teal robe top | OSRS Price Data
-description: "Teal robe top: Some fine werewolf clothing.. High alch: 300 GP, GE limit: 150."
+description: "Teal robe top: Some fine werewolf clothing. High alch: 300 GP, GE limit: 150."
 osrs:
   id: 2926
   name: Teal robe top
@@ -12,9 +12,84 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Teal robe top is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+  related_items:
+    - item_id: 2924
+      item_name: Teal hat
+      slug: teal-hat
+      relationship: set-piece
+      description: Matching head slot piece
+    - item_id: 2928
+      item_name: Teal robe bottoms
+      slug: teal-robe-bottoms
+      relationship: set-piece
+      description: Matching legs slot piece
+    - item_id: 2918
+      item_name: Red robe top
+      slug: red-robe-top
+      relationship: alternative
+      description: Different colour variant
+    - item_id: 2920
+      item_name: Yellow robe top
+      slug: yellow-robe-top
+      relationship: alternative
+      description: Different colour variant
+  about: "Teal robe top is a members-only body slot cosmetic sold by Barker in Canifis as part of a five-colour werewolf robe collection."
+  market_strategy:
+    notes:
+      - Sold by Barker's Haberdashery in Canifis at 650 GP base
+      - Cosmetic-only, no combat use
+      - GE limit 150 per 4 hours
+      - Part of a matching teal werewolf outfit
+      - Demand driven by fashionscape collectors
+  history:
+    - date: "2004-06-29"
+      update: Priest in Peril
+      description: Added with the Priest in Peril quest update making Morytania accessible.
+    - date: "2014-12-10"
+      update: Renaming
+      description: Renamed from Robe top to Teal robe top to disambiguate from other coloured robes.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,90 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 125
-  about: "Xerician robe is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.18
+    requirements:
+      defence: 10
+      magic: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 7
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 17
+      xp: 88
+      materials:
+        - item_id: 13383
+          item_name: Xerician fabric
+          quantity: 4
+        - item_id: 1734
+          item_name: Thread
+          quantity: 1
+      product: Xerician robe
+      product_id: 13389
+  related_items:
+    - item_id: 13383
+      item_name: Xerician fabric
+      slug: xerician-fabric
+      relationship: component
+      description: Material used in crafting
+    - item_id: 13385
+      item_name: Xerician hat
+      slug: xerician-hat
+      relationship: set-piece
+      description: Matching head slot piece
+    - item_id: 13387
+      item_name: Xerician top
+      slug: xerician-top
+      relationship: set-piece
+      description: Matching body slot piece
+  about: "Xerician robe is a leg-slot magic garment crafted from 4 Xerician fabric and thread at 17 Crafting, requiring 10 Defence and 20 Magic to wear."
+  market_strategy:
+    notes:
+      - Entry-tier magic legwear
+      - Crafting from fabric yields modest profit
+      - Often used in early Kourend questing
+  history:
+    - date: "2016-01-07"
+      update: "Zeah: Great Kourend"
+      description: Xerician robe released alongside the Great Kourend update.
+    - date: "2021-09-22"
+      update: Wilderness & Equipment Rebalance
+      description: Magic attack bonus reduced from +8 to +4.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.18
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
