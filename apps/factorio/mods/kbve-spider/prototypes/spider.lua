@@ -165,19 +165,26 @@ local stagger_sticker = {
 	single_particle = true,
 }
 
+local SPRINT_SPEED_MULTIPLIER = settings.startup["kbve-spider-sprint-speed-multiplier"]
+		and settings.startup["kbve-spider-sprint-speed-multiplier"].value
+	or 1.9
+local ALLY_MAX_HEALTH = settings.startup["kbve-spider-ally-max-health"]
+		and settings.startup["kbve-spider-ally-max-health"].value
+	or 60
+
 local sprint_sticker = {
 	type = "sticker",
 	name = "kbve-spider-sprint",
 	flags = { "not-on-map" },
 	duration_in_ticks = 180,
-	target_movement_modifier = 1.9,
+	target_movement_modifier = SPRINT_SPEED_MULTIPLIER,
 	single_particle = true,
 }
 
 local ally_spider = util.table.deepcopy(spider)
 ally_spider.name = "kbve-spider-ally"
 ally_spider.order = "b-b-z-kbve-spider-ally"
-ally_spider.max_health = 60
+ally_spider.max_health = ALLY_MAX_HEALTH
 ally_spider.movement_speed = 0.22
 ally_spider.attack_parameters.cooldown = 50
 
