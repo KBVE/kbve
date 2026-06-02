@@ -56,6 +56,25 @@ const tooltipStyle = {
 const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
 const gridStroke = 'var(--sl-color-gray-5, #262626)';
 
+// Skeleton sized to the parent chart's exact height — keeps the page
+// layout stable while the first range query is in flight (prevents the
+// ~1050px cumulative shift on cold load).
+function ChartSkeleton({ height }: { height: number }) {
+	return (
+		<div
+			aria-hidden
+			style={{
+				width: '100%',
+				height,
+				borderRadius: '8px',
+				background:
+					'repeating-linear-gradient(90deg, var(--sl-color-gray-6, #1c1c1c) 0 24px, var(--sl-color-gray-5, #262626) 24px 48px)',
+				opacity: 0.5,
+			}}
+		/>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -93,28 +112,31 @@ function TrendIndicator({
 	);
 }
 
-function SparklineChart({
+function SparklineSlot({
 	data,
 	color,
 }: {
-	data: SparklinePoint[];
+	data?: SparklinePoint[];
 	color: string;
 }) {
-	if (data.length < 2) return null;
+	// Slot is always rendered to reserve 36px in the card layout — keeps
+	// EnhancedStatCard at a stable height while sparkline data hydrates.
 	return (
 		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			<ResponsiveContainer width="100%" height={36}>
-				<LineChart data={data}>
-					<Line
-						type="monotone"
-						dataKey="v"
-						stroke={color}
-						strokeWidth={1.5}
-						dot={false}
-						isAnimationActive={false}
-					/>
-				</LineChart>
-			</ResponsiveContainer>
+			{data && data.length >= 2 && (
+				<ResponsiveContainer width="100%" height={36}>
+					<LineChart data={data}>
+						<Line
+							type="monotone"
+							dataKey="v"
+							stroke={color}
+							strokeWidth={1.5}
+							dot={false}
+							isAnimationActive={false}
+						/>
+					</LineChart>
+				</ResponsiveContainer>
+			)}
 		</div>
 	);
 }
@@ -164,7 +186,7 @@ function EnhancedStatCard({
 				background: 'var(--sl-color-bg-nav, #111)',
 				transition:
 					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 120,
+				minHeight: 156,
 				cursor: onClick ? 'pointer' : 'default',
 				borderTop: `2px solid ${accentColor}`,
 				borderColor:
@@ -216,9 +238,7 @@ function EnhancedStatCard({
 			{trend && (
 				<TrendIndicator trend={trend} invertColors={invertTrend} />
 			)}
-			{sparkline && (
-				<SparklineChart data={sparkline} color={sparkColor} />
-			)}
+			<SparklineSlot data={sparkline} color={sparkColor} />
 		</div>
 	);
 }
@@ -474,24 +494,24 @@ export default function ReactGrafanaNodes() {
 			)}
 
 			{/* CPU & Memory chart */}
-			{timeSeries.length > 0 && (
-				<div
+			<div
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						CPU & Memory ({timeRange})
-					</h3>
+					CPU & Memory ({timeRange})
+				</h3>
+				{timeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={300}>
 						<AreaChart data={timeSeries}>
 							<CartesianGrid
@@ -532,28 +552,30 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
+				) : (
+					<ChartSkeleton height={300} />
+				)}
+			</div>
 
 			{/* Network Traffic chart */}
-			{networkTimeSeries.length > 0 && (
-				<div
+			<div
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Network Traffic ({timeRange})
-					</h3>
+					Network Traffic ({timeRange})
+				</h3>
+				{networkTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={networkTimeSeries}>
 							<CartesianGrid
@@ -596,28 +618,30 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
 
 			{/* Disk Usage chart */}
-			{diskTimeSeries.length > 0 && (
-				<div
+			<div
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Disk Usage ({timeRange})
-					</h3>
+					Disk Usage ({timeRange})
+				</h3>
+				{diskTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={diskTimeSeries}>
 							<CartesianGrid
@@ -650,8 +674,10 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
 		</section>
 	);
 }

@@ -781,6 +781,12 @@ class HomeService {
 
 	// --- Auth ---
 
+	// Idempotent guard so successive initAuth() calls across Astro
+	// client-router navigations don't stack $auth.subscribe handlers
+	// (each remount of ReactHomeAuth used to add another listener,
+	// multiplying staff-toast frequency over time).
+	private _authSub: (() => void) | null = null;
+
 	public async initAuth(): Promise<void> {
 		try {
 			await initSupa();
@@ -791,7 +797,7 @@ class HomeService {
 			if (!session?.access_token) {
 				this.$authState.set('unauthenticated');
 				addToast({
-					id: `auth-anon-${Date.now()}`,
+					id: 'home-auth-anon',
 					message: 'Please sign in to access the dashboard.',
 					severity: 'info',
 					duration: 4000,
@@ -801,45 +807,57 @@ class HomeService {
 
 			this.$accessToken.set(session.access_token as string);
 
-			// Read staff flag from $auth — resolveStaffFlag() in supa.ts
-			// already upgraded flags to STAFF during initSupa() if the
-			// user has staff permissions.
 			const { flags } = $auth.get();
 			const isStaff = hasAuthFlag(flags, AuthFlags.STAFF);
 			this.$isStaff.set(isStaff);
 
 			this.$authState.set('authenticated');
 
-			const authName = $auth.get().name;
-			addToast({
-				id: `auth-ok-${Date.now()}`,
-				message: authName
-					? `Welcome back, ${authName}`
-					: 'Signed in successfully',
-				severity: 'success',
-				duration: 4000,
-			});
-
-			// Also subscribe in case profile-controller sets it later
-			const syncStaff = () => {
-				const { flags } = $auth.get();
-				if (hasAuthFlag(flags, AuthFlags.STAFF)) {
-					if (!this.$isStaff.get()) {
-						this.$isStaff.set(true);
-						addToast({
-							id: `staff-ok-${Date.now()}`,
-							message: 'Staff access enabled',
-							severity: 'info',
-							duration: 3000,
-						});
-					}
+			// Welcome toast is gated per browser session so Starlight's
+			// client-side routing doesn't fire it on every navigation.
+			if (
+				typeof sessionStorage !== 'undefined' &&
+				!sessionStorage.getItem('home-auth-welcomed')
+			) {
+				const authName = $auth.get().name;
+				addToast({
+					id: 'home-auth-ok',
+					message: authName
+						? `Welcome back, ${authName}`
+						: 'Signed in successfully',
+					severity: 'success',
+					duration: 4000,
+				});
+				try {
+					sessionStorage.setItem('home-auth-welcomed', '1');
+				} catch {
+					// sessionStorage may be unavailable (private mode, etc.) —
+					// failing to set means we re-show the toast once next nav,
+					// which is acceptable degradation.
 				}
-			};
-			$auth.subscribe(syncStaff);
+			}
+
+			if (!this._authSub) {
+				const syncStaff = () => {
+					const { flags } = $auth.get();
+					if (hasAuthFlag(flags, AuthFlags.STAFF)) {
+						if (!this.$isStaff.get()) {
+							this.$isStaff.set(true);
+							addToast({
+								id: 'home-staff-ok',
+								message: 'Staff access enabled',
+								severity: 'info',
+								duration: 3000,
+							});
+						}
+					}
+				};
+				this._authSub = $auth.subscribe(syncStaff);
+			}
 		} catch {
 			this.$authState.set('unauthenticated');
 			addToast({
-				id: `auth-err-${Date.now()}`,
+				id: 'home-auth-err',
 				message: 'Session expired — please sign in again.',
 				severity: 'warning',
 				duration: 5000,
@@ -977,7 +995,7 @@ class HomeService {
 				failures.push('Forgejo');
 			if (failures.length > 0) {
 				addToast({
-					id: `svc-err-${Date.now()}`,
+					id: 'home-svc-err',
 					message: `${failures.join(', ')} unavailable`,
 					severity: 'warning',
 					duration: 5000,
@@ -987,7 +1005,7 @@ class HomeService {
 
 		if (this.$edgeStatus.get() === 'unavailable') {
 			addToast({
-				id: `edge-err-${Date.now()}`,
+				id: 'home-edge-err',
 				message: 'Edge service unavailable',
 				severity: 'warning',
 				duration: 5000,
