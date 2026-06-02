@@ -330,6 +330,12 @@ commands.add_command(
 		local pn = 0
 		for _ in pairs(pending) do pn = pn + 1 end
 		player.print(string.format("[kbve-spider] pending eggs: %d", pn))
+
+		player.print("[kbve-spider] forcing rebuild_ally_registry()…")
+		rebuild_ally_registry()
+		local n2 = 0
+		for _ in pairs(storage.allies or {}) do n2 = n2 + 1 end
+		player.print(string.format("[kbve-spider] post-rebuild registry: %d ally entries", n2))
 	end
 )
 
