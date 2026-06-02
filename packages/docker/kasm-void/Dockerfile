@@ -6,6 +6,12 @@ ARG CLOAK_SHA256=
 ENV CLOAK_HOME=/opt/cloakbrowser \
     CLOAK_BIN=/opt/cloakbrowser/cloakbrowser
 
+LABEL org.opencontainers.image.source="https://github.com/KBVE/kbve" \
+      org.opencontainers.image.description="KASM workspace with Discord + CloakBrowser + URL launcher nav-shim" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.vendor="KBVE" \
+      org.opencontainers.image.title="kasm-void"
+
 USER root
 
 RUN set -eux; \
@@ -67,3 +73,9 @@ ENV HOME=/home/kasm-user \
     NAV_SHIM_PORT=9998 \
     CDP_PORT=9222
 WORKDIR /home/kasm-user
+
+EXPOSE 9222 9998
+STOPSIGNAL SIGTERM
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${NAV_SHIM_PORT:-9998}/healthz" >/dev/null || exit 1
