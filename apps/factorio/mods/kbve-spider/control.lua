@@ -283,9 +283,17 @@ script.on_nth_tick(60, function(event)
 	end
 end)
 
-local FOLLOW_TICK_INTERVAL = 120
-local FOLLOW_RADIUS_SQ = 64 * 64
-local FOLLOW_MIN_DIST_SQ = 4 * 4
+-- Follow loop: re-issued every second so the ally tracks the owner smoothly
+-- even when the owner is moving. We re-issue UNCONDITIONALLY (modulo the
+-- "already on top of owner" early-out) because once the unit reaches
+-- `radius` of a go_to_location target it idles, and Factorio's player-force
+-- unit AI does not pick a new destination on its own. The teleport-far cap
+-- prevents the loop from spamming commands for allies the owner abandoned
+-- on a different chunk; once back within range the loop picks up again.
+local FOLLOW_TICK_INTERVAL = 60
+local FOLLOW_RADIUS_SQ = 128 * 128   -- keep tracking up to ~128 tiles away
+local FOLLOW_REST_DIST_SQ = 2 * 2    -- already on top of owner → don't churn
+local FOLLOW_DESTINATION_RADIUS = 2  -- ally settles within 2 tiles of owner
 
 script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 	storage.ally_owners = storage.ally_owners or {}
@@ -318,16 +326,21 @@ script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 					owner = nearest
 				end
 				if owner then
-					local dx = owner.position.x - ally.position.x
-					local dy = owner.position.y - ally.position.y
+					local ox, oy = owner.position.x, owner.position.y
+					local dx = ox - ally.position.x
+					local dy = oy - ally.position.y
 					local d2 = dx * dx + dy * dy
-					if d2 > FOLLOW_MIN_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
+					if d2 > FOLLOW_REST_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
 						pcall(function()
 							ally.set_command{
 								type = defines.command.go_to_location,
-								destination = { x = owner.position.x, y = owner.position.y },
-								distraction = defines.distraction.by_enemy,
-								radius = 3,
+								destination = { x = ox, y = oy },
+								-- by_damage = ally engages only when hit, not at every
+								-- ambient enemy. Keeps the follow tether intact while
+								-- the owner is just walking past biter spawners.
+								distraction = defines.distraction.by_damage,
+								radius = FOLLOW_DESTINATION_RADIUS,
+								pathfind_flags = { allow_destroy_friendly_entities = false },
 							}
 						end)
 					end
