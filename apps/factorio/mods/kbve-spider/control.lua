@@ -49,11 +49,28 @@ local SPRINT_TICK_INTERVAL = 180
 local SPRINT_COOLDOWN_TICKS = 600
 local NERVOUS_TICK_INTERVAL = 900
 
-local function setting(name, default)
-	local s = settings.global[name]
-	if not s then return default end
-	return s.value
+-- Runtime mod settings cache. Per-tick lookups through `settings.global[X].value`
+-- are cheap but not free; reading the same six knobs 60× per second adds up on
+-- busy servers. We hydrate once at load and refresh via the runtime-changed
+-- event so the cache stays in sync with admin tweaks without polling.
+local cached_hatch_seconds = 30
+local cached_sprint_chance = 0.45
+local cached_flee_threshold = 0.3
+local cached_nervous_pick = 3
+
+local function rehydrate_runtime_settings()
+	local s_hatch = settings.global["kbve-spider-hatch-seconds"]
+	local s_sprint = settings.global["kbve-spider-sprint-chance"]
+	local s_flee = settings.global["kbve-spider-flee-health-threshold"]
+	local s_nervous = settings.global["kbve-spider-nervous-pick-count"]
+	if s_hatch then cached_hatch_seconds = s_hatch.value end
+	if s_sprint then cached_sprint_chance = s_sprint.value end
+	if s_flee then cached_flee_threshold = s_flee.value end
+	if s_nervous then cached_nervous_pick = s_nervous.value end
 end
+
+script.on_load(rehydrate_runtime_settings)
+script.on_event(defines.events.on_runtime_mod_setting_changed, rehydrate_runtime_settings)
 local NERVOUS_CORPSE = "kbve-spider-corpse-nervous"
 
 -- Map an attacker→spider vector + spider orientation into a hit side.
@@ -82,9 +99,14 @@ local function hit_side(spider_pos, attacker_pos, orientation)
 	end
 end
 
+local spider_damaged_filter = {
+	{ filter = "name", name = SPIDER },
+	{ filter = "name", name = SPIDER_ALLY, mode = "or" },
+}
+
 script.on_event(defines.events.on_entity_damaged, function(event)
 	local e = event.entity
-	if not (e and e.valid) or not SPIDER_NAMES[e.name] then return end
+	if not (e and e.valid) then return end
 
 	local cause = event.cause
 	local attacker_pos = (cause and cause.valid) and cause.position or e.position
@@ -110,7 +132,7 @@ script.on_event(defines.events.on_entity_damaged, function(event)
 	local key = e.unit_number
 	if cause and cause.valid and key and not storage.fleeing[key] then
 		local health_ratio = e.get_health_ratio() or 1
-		if health_ratio < setting("kbve-spider-flee-health-threshold", 0.3) then
+		if health_ratio < cached_flee_threshold then
 			storage.fleeing[key] = true
 			e.set_command{
 				type = defines.command.flee,
@@ -125,7 +147,13 @@ script.on_event(defines.events.on_entity_damaged, function(event)
 			}
 		end
 	end
-end)
+end, spider_damaged_filter)
+
+local spider_died_filter = {
+	{ filter = "name", name = SPIDER },
+	{ filter = "name", name = SPIDER_ALLY, mode = "or" },
+	{ filter = "name", name = EGG_ENTITY, mode = "or" },
+}
 
 script.on_event(defines.events.on_entity_died, function(event)
 	local e = event.entity
@@ -137,8 +165,6 @@ script.on_event(defines.events.on_entity_died, function(event)
 		end
 		return
 	end
-
-	if not SPIDER_NAMES[e.name] then return end
 
 	-- The prototype already spawned a Death1 corpse via the `corpse` field.
 	-- 50% of the time, layer a Death2 on top for visual variety.
@@ -176,7 +202,7 @@ script.on_event(defines.events.on_entity_died, function(event)
 			end
 		end
 	end
-end)
+end, spider_died_filter)
 
 -- Rebuild the ally registry from the world. Called on first init and on
 -- mod-config changes so save games predating the registry pick it up. After
@@ -203,6 +229,7 @@ script.on_init(function()
 	storage.allies = {}
 	storage.ally_names = {}
 	storage.ally_nametags = {}
+	rehydrate_runtime_settings()
 end)
 
 local function backfill_nametags()
@@ -236,6 +263,7 @@ script.on_configuration_changed(function()
 		rebuild_ally_registry()
 	end
 	backfill_nametags()
+	rehydrate_runtime_settings()
 end)
 
 local function attach_nametag(ally, name, owner_player)
@@ -277,7 +305,7 @@ end
 
 local function track_egg(entity, tick, placer_index)
 	storage.pending_eggs = storage.pending_eggs or {}
-	local hatch_ticks = math.floor(60 * setting("kbve-spider-hatch-seconds", 30))
+	local hatch_ticks = math.floor(60 * cached_hatch_seconds)
 	local render_id = nil
 	local ok, ro = pcall(function()
 		return rendering.draw_text{
@@ -501,8 +529,11 @@ end
 -- inside one function keeps the behavior + saves the overhead of a second
 -- per-tick dispatch.
 script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
-	hatch_sweep(event.tick)
-	follow_loop()
+	local has_eggs = storage.pending_eggs and next(storage.pending_eggs) ~= nil
+	local has_allies = storage.allies and next(storage.allies) ~= nil
+	if not (has_eggs or has_allies) then return end
+	if has_eggs then hatch_sweep(event.tick) end
+	if has_allies then follow_loop() end
 end)
 
 -- Build a set of surface indices that have at least one connected player.
@@ -528,7 +559,7 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 			local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
 			local n = #spiders
 			if n > 0 then
-				local picks = math.min(setting("kbve-spider-nervous-pick-count", 3), n)
+				local picks = math.min(cached_nervous_pick, n)
 				for _ = 1, picks do
 					local s = spiders[math.random(1, n)]
 					if s.valid then
@@ -572,7 +603,7 @@ script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
 						local in_group = false
 						local ok, ug = pcall(function() return s.unit_group end)
 						if ok and ug then in_group = true end
-						if in_group and math.random() < setting("kbve-spider-sprint-chance", 0.45) then
+						if in_group and math.random() < cached_sprint_chance then
 							surface.create_entity{
 								name = SPRINT_STICKER,
 								position = s.position,
