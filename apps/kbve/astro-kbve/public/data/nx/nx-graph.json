@@ -3183,12 +3183,13 @@
                 "{projectRoot}/info.json",
                 "{projectRoot}/prototypes/**/*.lua",
                 "{projectRoot}/graphics/**/*.png",
-                "{projectRoot}/tools/test_mod.py"
+                "{projectRoot}/tools/test_mod.py",
+                "{projectRoot}/pyproject.toml"
               ],
               "outputs": [],
               "options": {
                 "commands": [
-                  "python3 tools/test_mod.py"
+                  "uv run --quiet --project . python tools/test_mod.py"
                 ],
                 "cwd": "apps/factorio/mods/kbve-spider",
                 "parallel": false
@@ -3201,7 +3202,7 @@
               "cache": false,
               "options": {
                 "commands": [
-                  "python3 tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
+                  "uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
                 ],
                 "cwd": "apps/factorio/mods/kbve-spider",
                 "parallel": false
@@ -3222,14 +3223,15 @@
                 "{projectRoot}/README.md",
                 "{projectRoot}/prototypes/**/*.lua",
                 "{projectRoot}/graphics/**/*.png",
-                "{projectRoot}/tools/build_zip.py"
+                "{projectRoot}/tools/build_zip.py",
+                "{projectRoot}/pyproject.toml"
               ],
               "outputs": [
                 "{projectRoot}/dist"
               ],
               "options": {
                 "commands": [
-                  "python3 tools/build_zip.py"
+                  "uv run --quiet --project . python tools/build_zip.py"
                 ],
                 "cwd": "apps/factorio/mods/kbve-spider",
                 "parallel": false
@@ -3245,7 +3247,7 @@
               ],
               "options": {
                 "commands": [
-                  "python3 tools/test_mod.py"
+                  "uv run --quiet --project . python tools/test_mod.py"
                 ],
                 "cwd": "apps/factorio/mods/kbve-spider",
                 "parallel": false
@@ -3262,7 +3264,7 @@
               "cache": false,
               "options": {
                 "commands": [
-                  "python3 tools/optimize_pngs.py"
+                  "uv run --quiet --project . python tools/optimize_pngs.py"
                 ],
                 "cwd": "apps/factorio/mods/kbve-spider",
                 "parallel": false
@@ -5887,10 +5889,29 @@
               "options": {
                 "commands": [
                   "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.WorkingDir}}' | grep -q '^/home/kasm-user$' && echo 'PASS: workdir is /home/kasm-user'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^CDP_PORT=9222$' && echo 'PASS: CDP_PORT default 9222'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^NAV_SHIM_PORT=9998$' && echo 'PASS: NAV_SHIM_PORT default 9998'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^START_URL=https://kbve.com$' && echo 'PASS: START_URL default kbve.com'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LAUNCH_CLOAK=1$' && echo 'PASS: LAUNCH_CLOAK default on'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LAUNCH_DISCORD=1$' && echo 'PASS: LAUNCH_DISCORD default on'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LAUNCH_NAV_SHIM=1$' && echo 'PASS: LAUNCH_NAV_SHIM default on'",
                   "docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-void:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
+                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -c 'import websocket; assert websocket.__version__ == \"1.8.0\", websocket.__version__' && echo 'PASS: websocket-client 1.8.0 importable'",
+                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -m py_compile /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py compiles'",
+                  "docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py executable'",
+                  "docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/custom_startup.sh && echo 'PASS: custom_startup.sh executable'",
                   "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q cloak_loop && echo 'PASS: custom_startup.sh has cloak supervisor'",
                   "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q discord_loop && echo 'PASS: custom_startup.sh has discord supervisor'",
-                  "docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/discord_startup.sh && echo 'PASS: upstream discord startup preserved'"
+                  "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q nav_shim_loop && echo 'PASS: custom_startup.sh has nav_shim supervisor'",
+                  "docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/discord_startup.sh && echo 'PASS: upstream discord startup preserved'",
+                  "docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /home/kasm-user/Desktop/cloakbrowser.desktop && echo 'PASS: cloakbrowser.desktop deployed'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.Healthcheck.Test}}' | grep -q '/healthz' && echo 'PASS: HEALTHCHECK targets nav_shim /healthz'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range $$k, $$v := .Config.ExposedPorts}}{{$$k}} {{end}}' | grep -q '9222/tcp' && echo 'PASS: CDP port 9222 exposed'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range $$k, $$v := .Config.ExposedPorts}}{{$$k}} {{end}}' | grep -q '9998/tcp' && echo 'PASS: nav-shim port 9998 exposed'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.StopSignal}}' | grep -q '^SIGTERM$' && echo 'PASS: STOPSIGNAL=SIGTERM'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{index .Config.Labels \"org.opencontainers.image.source\"}}' | grep -q 'github.com/KBVE/kbve' && echo 'PASS: OCI source label set'",
+                  "docker inspect ghcr.io/kbve/kasm-void:dev --format '{{index .Config.Labels \"org.opencontainers.image.title\"}}' | grep -q '^kasm-void$' && echo 'PASS: OCI title label set'"
                 ],
                 "parallel": false
               },
@@ -8739,6 +8760,42 @@
               "cache": true,
               "configurations": {},
               "parallelism": true
+            },
+            "test:unit": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "vitest run --config vitest.unit-jsdom.config.ts"
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "build"
+              ],
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "commands": [
+                  "pnpm exec playwright test --config=playwright.config.ts"
+                ],
+                "parallel": false
+              },
+              "configurations": {
+                "ci": {
+                  "commands": [
+                    "pnpm exec playwright test --config=playwright.config.ts --reporter=line"
+                  ]
+                }
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
             },
             "sync": {
               "executor": "nx:run-commands",

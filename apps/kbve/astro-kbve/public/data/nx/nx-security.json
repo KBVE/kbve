@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-06-01T10:01:26Z",
+  "generated_at": "2026-06-02T09:39:37Z",
   "summary": {
-    "critical": 2,
-    "high": 46,
-    "medium": 63,
-    "low": 32,
+    "critical": 3,
+    "high": 44,
+    "medium": 61,
+    "low": 29,
     "info": 28
   },
   "ecosystems": {
     "npm": {
-      "total": 67,
+      "total": 61,
       "severities": {
-        "critical": 0,
-        "high": 28,
-        "medium": 33,
-        "low": 6,
+        "critical": 1,
+        "high": 26,
+        "medium": 31,
+        "low": 3,
         "info": 0
       },
       "advisories": [
@@ -48,13 +48,6 @@
         },
         {
           "id": "1112704",
-          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
-          "severity": "low",
-          "package": "diff",
-          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
-        },
-        {
-          "id": "1112705",
           "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
           "severity": "low",
           "package": "diff",
@@ -124,13 +117,6 @@
           "url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
         },
         {
-          "id": "1114150",
-          "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
-          "severity": "high",
-          "package": "svgo",
-          "url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
-        },
-        {
           "id": "1114151",
           "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
           "severity": "high",
@@ -164,13 +150,6 @@
           "severity": "high",
           "package": "flatted",
           "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
-        },
-        {
-          "id": "1115427",
-          "title": "Astro: Remote allowlist bypass via unanchored matchPathname wildcard",
-          "severity": "low",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-g735-7g2w-hh3f"
         },
         {
           "id": "1115527",
@@ -243,13 +222,6 @@
           "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
         },
         {
-          "id": "1116229",
-          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
-        },
-        {
           "id": "1116230",
           "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
           "severity": "medium",
@@ -264,13 +236,6 @@
           "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
         },
         {
-          "id": "1116234",
-          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
-        },
-        {
           "id": "1116235",
           "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
           "severity": "high",
@@ -283,13 +248,6 @@
           "severity": "high",
           "package": "immutable",
           "url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
-        },
-        {
-          "id": "1117141",
-          "title": "Astro: XSS in define:vars via incomplete </script> tag sanitization",
-          "severity": "medium",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-j687-52p2-xcff"
         },
         {
           "id": "1117574",
@@ -397,13 +355,6 @@
           "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
         },
         {
-          "id": "1118920",
-          "title": "Astro: Server island encrypted parameters vulnerable to cross-component replay",
-          "severity": "low",
-          "package": "astro",
-          "url": "https://github.com/advisories/GHSA-xr5h-phrj-8vxv"
-        },
-        {
           "id": "1119005",
           "title": "Svelte devalue: DoS via sparse array deserialization",
           "severity": "high",
@@ -486,6 +437,13 @@
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
+        },
+        {
+          "id": "1120011",
+          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+          "severity": "critical",
+          "package": "vitest",
+          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
         }
       ]
     },
