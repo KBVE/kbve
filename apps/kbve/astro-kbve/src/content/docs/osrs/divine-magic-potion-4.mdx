@@ -12,9 +12,71 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Divine magic potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    duration_minutes: 5
+    effects:
+      - description: Boosts Magic level by 4 for 5 minutes.
+      - description: Magic level does not drain below the boosted maximum during the effect.
+      - description: Costs 10 Hitpoints to drink; player must have more than 10 HP.
+  recipes:
+    - skill: herblore
+      level: 78
+      xp: 2
+      materials:
+        - item_name: Magic potion(4)
+          item_id: 3046
+          quantity: 1
+        - item_name: Crystal dust
+          item_id: 23964
+          quantity: 1
+      tools: []
+      ticks: 2
+      members_only: true
+  related_items:
+    - item_id: 23743
+      item_name: Divine magic potion(3)
+      slug: divine-magic-potion-3
+      relationship: downgrade
+      description: 3 dose version
+    - item_id: 23741
+      item_name: Divine magic potion(2)
+      slug: divine-magic-potion-2
+      relationship: downgrade
+      description: 2 dose version
+    - item_id: 23739
+      item_name: Divine magic potion(1)
+      slug: divine-magic-potion-1
+      relationship: downgrade
+      description: 1 dose version
+    - item_id: 3040
+      item_name: Magic potion(4)
+      slug: magic-potion-4
+      relationship: component
+      description: Base potion infused with crystal dust
+  about: "Divine magic potion (4) holds the +4 Magic boost for 5 minutes at the cost of 10 HP per dose, made at 78 Herblore from a magic potion and crystal dust."
+  history:
+    - date: "2020-07-02"
+      description: Inventory icon updated to match standard potion aesthetics.
+    - date: "2019-07-25"
+      description: Released with the Song of the Elves update.
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Teak hull parts | OSRS Price Data
-description: "Teak hull parts: Parts for creating a teak hull for a boat.. High alch: 750 GP, GE limit: 100."
+description: "Teak hull parts are a Sailing crafting component made from 5 teak planks at a shipwrights' workbench. High alch: 750 GP, GE limit: 100."
 osrs:
   id: 32047
   name: Teak hull parts
@@ -12,9 +12,59 @@ osrs:
   lowalch: 500
   highalch: 750
   limit: 100
-  about: "Teak hull parts is a members-only item in Old School RuneScape. High alchemy value: 750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teak
+    tier: mid
+  recipes:
+    - skill: Construction
+      level: 23
+      experience: 225
+      materials:
+        - item_name: Teak plank
+          quantity: 5
+      tools:
+        - Shipwrights' workbench
+  related_items:
+    - item_id: 32048
+      item_name: Large teak hull parts
+      slug: large-teak-hull-parts
+      relationship: product
+      description: Five teak hull parts combine into one large teak hull part
+    - item_id: 32049
+      item_name: Teak hull
+      slug: teak-hull
+      relationship: product
+      description: Assembled skiff hull requiring 31 Sailing and 23 Construction
+  construction:
+    level: 23
+    experience: 225
+  about: "Teak hull parts are a Sailing material crafted from five teak planks at a shipwrights' workbench, used to build large teak hull parts and finally a teak skiff hull."
+  market_strategy:
+    notes:
+      - "Plank cost sits well above alch value, so flips rely on Sailing demand cycles rather than alch arbitrage; expect price compression when shipwrights' workbench XP rates rebalance."
+  trading_tips:
+    - "Compare GE price to (5 * teak plank + nails + tar) - if the spread inverts, buy parts instead of crafting them and bank the construction XP gap."
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill launch update."
+    - date: "2025-11-19"
+      description: "Hotfix halved Construction experience from shipwrights' workbenches."
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

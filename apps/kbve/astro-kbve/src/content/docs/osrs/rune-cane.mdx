@@ -1,6 +1,6 @@
 ---
 title: Rune cane | OSRS Price Data
-description: "Rune cane is a members weapon slot item with +36 melee strength requiring 40 Attack. High alch: 8,640 GP, GE limit: 4."
+description: "Rune cane: a dragonstone-topped crush weapon from hard clue scrolls with +4 prayer and +36 strength requiring 40 Attack. High alch: 8,640 GP, GE limit: 4."
 osrs:
   id: 12379
   name: Rune cane
@@ -12,10 +12,16 @@ osrs:
   lowalch: 5760
   highalch: 8640
   limit: 4
+  material:
+    type: rune
+    tier: mid
   equipment:
     slot: weapon
-    type: spiked
+    weapon_type: spiked
     attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 40
     attack_bonus:
       stab: 20
       slash: -2
@@ -33,60 +39,58 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 4
-    requirements:
-      attack: 40
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard
-        drop_rate: 1/1,625
-        description: Rare reward from hard clue scrolls
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 12377
       item_name: Adamant cane
       slug: adamant-cane
       relationship: downgrade
-      description: Lower-tier cane from medium clues
+      description: Lower-tier cane from medium clues.
     - item_id: 12381
       item_name: Dragon cane
       slug: dragon-cane
       relationship: upgrade
-      description: Higher-tier cane from elite clues
+      description: Higher-tier cane from elite clues.
     - item_id: 1333
       item_name: Rune scimitar
       slug: rune-scimitar
       relationship: alternative
-      description: Common rune-tier weapon
-  about: |-
-    > *"A dragonstone topped cane."*
-
-    | Style | Type | Experience |
-    |-------|------|-----------|
-    | Pound | Crush | Attack |
-    | Pummel | Crush | Strength |
-    | Spike | Stab | Shared |
-    | Block | Crush | Defence |
-
-    | Property | Rune Cane | Rune Mace | Rune Scimitar |
-    |----------|-----------|-----------|---------------|
-    | Best Attack | +39 Crush | +36 Crush | +45 Slash |
-    | Strength | +36 | +36 | +44 |
-    | Prayer | +4 | +1 | 0 |
-    | Speed | 5 | 5 | 4 |
-    | Source | Hard clue | Smithing/drops | Smithing/drops |
-
-    The rune cane trades raw DPS for a superior prayer bonus. It is primarily a cosmetic weapon used for fashionscape rather than efficient combat.
+      description: Standard rune-tier slash weapon.
+  about: "The rune cane is a cosmetic crush weapon from hard clues that trades raw DPS for a notable +4 prayer bonus."
   market_strategy:
     title: Investment Notes
     notes:
-      - Hard clue exclusive cosmetic weapon
-      - Prayer bonus makes it a niche option for prayer-focused setups
-      - Primarily valued for fashionscape and collection log
-      - Not efficient for combat compared to rune scimitar
-      - Collection log completionists drive demand
-      - Pairs with other cane-tier items for a gentleman's outfit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Hard clue exclusive cosmetic weapon with limited supply.
+      - +4 prayer bonus is niche but unique among rune-tier weapons.
+      - Drives collection-log and fashionscape demand.
+      - Buy limit of 4 keeps the GE thin and prone to swings.
+  history:
+    - date: "2014-06-12"
+      update: Treasure Trail Expansion
+      description: Added to game in the Treasure Trail Expansion update.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

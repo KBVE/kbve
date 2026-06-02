@@ -1,20 +1,93 @@
 ---
 title: White warhammer | OSRS Price Data
-description: "White warhammer: I don't think it's intended for joinery.. High alch: 588 GP, GE limit: 125."
+description: "White warhammer: a White Knight crush weapon with a +1 prayer bonus, requiring 10 Attack and purchased from Sir Vyvin. High alch: 588 GP, GE limit: 125."
 osrs:
   id: 6613
   name: White warhammer
   slug: white-warhammer
-  examine: I don't think it's intended for joinery.
+  examine: "I don't think it's intended for joinery."
   members: true
   icon: White warhammer.png
   value: 980
   lowalch: 392
   highalch: 588
   limit: 125
-  about: "White warhammer is a members-only item in Old School RuneScape. High alchemy value: 588 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: warhammer
+    attack_speed: 6
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 22
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 22
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: Sir Vyvin's Equipment
+      location: White Knights' Castle, Falador
+      stock: 1
+      price: 980
+      currency: Coins
+      description: Requires Master rank in the White Knights to purchase.
+  related_items:
+    - item_id: 1325
+      item_name: Black warhammer
+      slug: black-warhammer
+      relationship: variant
+      description: Comparable black-tier warhammer without the prayer bonus.
+    - item_id: 1335
+      item_name: Rune warhammer
+      slug: rune-warhammer
+      relationship: upgrade
+      description: Stronger rune-tier warhammer.
+  about: "The white warhammer is a White Knight-only crush weapon sold by Sir Vyvin that mirrors the black warhammer with an added +1 prayer bonus."
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Supply gated behind Master rank in the White Knights (1,300 black knight kills).
+      - Prayer bonus distinguishes it from other low-tier warhammers.
+      - Buy limit of 125 keeps the market accessible for casual buyers.
+      - Primarily collected for fashionscape and White Knight loadouts.
+  history:
+    - date: "2005-10-17"
+      update: White Knight equipment
+      description: Added to game as part of the White Knight reward line.
+  properties:
+    release_date: "2005-10-17"
+    update: White Knight equipment
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

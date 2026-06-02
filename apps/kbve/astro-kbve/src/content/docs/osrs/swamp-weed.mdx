@@ -1,6 +1,6 @@
 ---
 title: Swamp weed | OSRS Price Data
-description: "Swamp weed: Swamp weed found in the caves near Dorgesh-Kaan.. High alch: 1 GP, GE limit: 13,000."
+description: "Swamp weed: a members herb dropped by cave bugs and molanisks, used to make soda ash and as a Superglass Make ingredient. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 10978
   name: Swamp weed
@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Swamp weed is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    - source: Cave bug
+      level: 96
+      quantity: 1-8
+      rarity: Uncommon
+    - source: Molanisk
+      level: 51
+      quantity: 1-8
+      rarity: Uncommon
+    - source: Fishing spot (frogspawn)
+      quantity: "1"
+      rarity: 43/1000
+      description: Caught while fishing for frogspawn at 33 Fishing.
+  recipes:
+    - name: Soda ash
+      skill: Cooking
+      level: 1
+      experience: 0
+      output: Soda ash
+      materials:
+        - item_name: Swamp weed
+          quantity: 1
+      tools:
+        - Range
+      description: Cook swamp weed on a range to produce soda ash.
+    - name: Superglass Make
+      skill: Magic
+      level: 77
+      experience: 78
+      output: Molten glass
+      materials:
+        - item_name: Swamp weed
+          quantity: 1
+        - item_name: Bucket of sand
+          quantity: 1
+      description: Lunar spell that turns swamp weed and sand into molten glass.
+  about: "Swamp weed is a herb-like plant gathered from the Dorgesh-Kaan South Dungeon, used for soda ash, Superglass Make and cave goblin recipes."
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Demand driven by Superglass Make crafters needing cheap molten glass.
+      - Buy limit of 13,000 per 4 hours keeps prices stable.
+      - Bulk farming via cave bugs and molanisks fuels supply.
+      - Profitable when crafters compete with raw sand/seaweed alternatives.
+  history:
+    - date: "2007-03-20"
+      update: Land of the Goblins
+      description: Added to game with the Dorgesh-Kaan South Dungeon.
+  properties:
+    release_date: "2007-03-20"
+    update: Land of the Goblins
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Sigil of deft strikes | OSRS Price Data
-description: "Sigil of deft strikes: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of deft strikes: A power enhancing sigil not yet attuned to you. High alch: 0 GP, GE limit: 10."
 osrs:
   id: 26012
   name: Sigil of deft strikes
@@ -8,13 +8,39 @@ osrs:
   examine: A power enhancing sigil not yet attuned to you.
   members: true
   icon: Sigil of deft strikes.png
-  value: 10000
-  lowalch: 4000
-  highalch: 6000
+  value: 1
+  lowalch: 0
+  highalch: 0
   limit: 10
-  about: "Sigil of deft strikes is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: low
+  related_items:
+    - item_id: 26011
+      item_name: Sigil of deft strikes (attuned)
+      slug: sigil-of-deft-strikes-attuned
+      relationship: variant
+      description: Attuned/unlocked version
+  about: "Sigil of deft strikes is a tier 1 Deadman: Reborn combat sigil granting up to 30% increased accuracy in all styles against all monsters. It exists only in temporary Deadman events and cannot be obtained in standard gameplay."
+  history:
+    - date: "2021-08-25"
+      update: "Deadman: Reborn"
+      description: Released as a tier 1 sigil for the Deadman Reborn event.
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options: [Unlock, Inspect, Destroy]
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Willow blackjack | OSRS Price Data
-description: "Willow blackjack: A handy little club made out of willow.. High alch: 360 GP, GE limit: 125."
+description: "Willow blackjack: A handy little club made out of willow. High alch: 360 GP, GE limit: 125."
 osrs:
   id: 4600
   name: Willow blackjack
@@ -12,9 +12,59 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 125
-  about: "Willow blackjack is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    attack_speed: 4
+    weight: 1.814
+    other_bonus:
+      melee_strength: 8
+  shops:
+    - shop_name: "Ali's Discount Wares"
+      location: Al Kharid
+      stock: 25
+      price: 600
+    - shop_name: Blackjack seller
+      location: Pollnivneach
+      price: 600
+  related_items:
+    - item_id: 4602
+      item_name: Maple blackjack
+      slug: maple-blackjack
+      relationship: upgrade
+      description: Stronger blackjack
+    - item_id: 4598
+      item_name: Oak blackjack
+      slug: oak-blackjack
+      relationship: downgrade
+      description: Weaker blackjack
+  about: "Willow blackjack is a Thieving and crushing weapon used to knock out bandits and Menaphite Thugs in Pollnivneach."
+  market_strategy:
+    notes:
+      - Bought cheaply from Pollnivneach blackjack seller
+      - Used for blackjacking Thieving training
+      - Better strength bonus than oak variant
+  history:
+    - date: "2005-04-04"
+      description: "Item released with the Ali Morrisane and Pollnivneach update."
+  properties:
+    release_date: "2005-04-04"
+    update: Ali Morrisane and Pollnivneach
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

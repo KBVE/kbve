@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Evil chicken legs is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 20440
+      item_name: Evil chicken head
+      slug: evil-chicken-head
+      relationship: set-piece
+      description: Headslot piece of the outfit
+    - item_id: 20444
+      item_name: Evil chicken wings
+      slug: evil-chicken-wings
+      relationship: set-piece
+      description: Capeslot piece of the outfit
+    - item_id: 20446
+      item_name: Evil chicken feet
+      slug: evil-chicken-feet
+      relationship: set-piece
+      description: Bootsslot piece of the outfit
+  about: Cosmetic legs piece of the evil chicken outfit obtained from offering bird's nests at the Woodcutting Guild shrine; provides no combat bonuses.
+  properties:
+    release_date: "2016-07-21"
+    update: Broken Armour & Open Beta
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

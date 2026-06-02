@@ -1,6 +1,6 @@
 ---
 title: Tribal top (brown) | OSRS Price Data
-description: "Tribal top (brown): Local dress.. High alch: 180 GP, GE limit: 150."
+description: "Tribal top (brown) is a members body slot cosmetic sold at Gabooty's in Tai Bwo Wannai. High alch: 180 GP, GE limit: 150."
 osrs:
   id: 6341
   name: Tribal top (brown)
@@ -12,9 +12,59 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Tribal top (brown) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 1
+    requirements: {}
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 360
+      stock: 50
+  related_items:
+    - item_id: 6339
+      item_name: Tribal top (blue)
+      slug: tribal-top-blue
+      relationship: variant
+      description: Blue colour variant of the tribal top
+    - item_id: 6343
+      item_name: Tribal top (pink)
+      slug: tribal-top-pink
+      relationship: variant
+      description: Pink colour variant of the tribal top
+    - item_id: 6345
+      item_name: Tribal top (yellow)
+      slug: tribal-top-yellow
+      relationship: variant
+      description: Yellow colour variant of the tribal top
+  about: "The tribal top (brown) is a Karamja-themed body slot cosmetic sold at Gabooty's Tai Bwo Wannai Cooperative for 360 trading sticks, reduced to 300 with Karamja gloves."
+  market_strategy:
+    notes:
+      - "Trading-stick gating and a magic wardrobe storage option keep demand cosmetic-only; price drifts on roleplay and houseparty trends rather than meta."
+  trading_tips:
+    - "Stock up while running Tai Bwo Wannai Cleanup for trading sticks - convert excess sticks into tops, then list slightly under the prevailing GE price for a slow flip."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Clean-Up update."
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Clean-Up
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

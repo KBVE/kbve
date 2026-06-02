@@ -12,9 +12,31 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Iron knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    requirements:
+      ranged: 1
+  about: Iron knife(p+) is a stronger-poisoned thrown ranged weapon used as members ammunition with the weapon slot.
+  properties:
+    release_date: "2005-10-25"
+    update: Poisonous Weaponry
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Leather vambraces | OSRS Price Data
-description: "Leather vambraces: Better than no armour!. High alch: 10 GP, GE limit: 125."
+description: "Leather vambraces are F2P hands slot armour, the best-in-slot mage gloves for free players. High alch: 10 GP, GE limit: 125."
 osrs:
   id: 1063
   name: Leather vambraces
@@ -12,9 +12,74 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 125
-  about: "Leather vambraces is a free-to-play item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: leather
+    tier: mid
+  equipment:
+    slot: hands
+    weight: 0.226
+    requirements: {}
+    attack_bonus:
+      ranged: 4
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 1
+  shops:
+    - shop_name: Aaron's Archery Appendages
+      location: Ranging Guild
+      price: 18
+      stock: 10
+  recipes:
+    - skill: Crafting
+      level: 11
+      experience: 22
+      materials:
+        - item_name: Leather
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+  related_items:
+    - item_id: 1099
+      item_name: Spiky vambraces
+      slug: spiky-vambraces
+      relationship: upgrade
+      description: Upgrade made by adding kebbit claws (Crafting 32)
+    - item_id: 1065
+      item_name: Hard leather vambraces
+      slug: hard-leather-vambraces
+      relationship: upgrade
+      description: Stronger hands slot armour crafted from hard leather
+  about: "Leather vambraces are commonly worn as the best-in-slot mage gloves for free-to-play players because they carry no magic penalty while still giving a small ranged attack bonus."
+  market_strategy:
+    notes:
+      - "Bulk demand comes from low-level rangers and F2P mages, so flips run on volume not margin; the GE limit of 125 caps per-cycle profit."
+  trading_tips:
+    - "Restock arbitrage from Aaron's Archery Appendages can undercut the GE; track daily volume around 15k to time large offers."
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

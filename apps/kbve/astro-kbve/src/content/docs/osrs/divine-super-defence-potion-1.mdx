@@ -12,9 +12,38 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Divine super defence potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - skill: defence
+        boost: "+5 +15% of Defence level"
+        duration: 300
+        description: Increases Defence level by 5 plus 15% of the player's Defence level for 5 minutes; Defence will not drop below the boosted maximum during this period.
+      - skill: hitpoints
+        boost: "-10"
+        duration: 0
+        description: Drinking deals 10 Hitpoint damage; player must have more than 10 HP to consume.
+  about: "Divine super defence potion(1) sustains a super defence boost for 5 minutes at the cost of 10 HP, popular for sustained tank training and bossing."
+  history:
+    - date: "2020-07-02"
+      description: Inventory icon graphically updated to match the standard potion appearance.
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

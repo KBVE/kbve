@@ -12,9 +12,80 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 11000
-  about: "Black brutal is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: ammo
+    weight: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 22
+      magic_damage: 0
+      prayer: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+  related_items:
+    - item_id: 4827
+      item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: component
+      description: Bow used to fire brutal arrows
+    - item_id: 2883
+      item_name: Ogre bow
+      slug: ogre-bow
+      relationship: alternative
+      description: Basic ogre bow
+    - item_id: 4824
+      item_name: Flighted ogre arrow
+      slug: flighted-ogre-arrow
+      relationship: component
+      description: Base arrow before adding black nails
+  about: "Black-tipped brutal arrow used with an ogre bow or comp ogre bow to hunt zogres, skogres, and chompy birds; created at 38 Fletching from flighted ogre arrows and black nails."
+  recipes:
+    - product_id: 4788
+      product_name: Black brutal
+      skill: Fletching
+      level: 38
+      experience: 39
+      tools:
+        - Hammer
+      materials:
+        - item_id: 4824
+          item_name: Flighted ogre arrow
+          quantity: 6
+        - item_id: 4819
+          item_name: Black nails
+          quantity: 6
+  history:
+    - date: "2005-05-17"
+      description: Added to the game with the Zogre Flesh Eaters quest.
+  properties:
+    release_date: "2005-05-17"
+    update: Zogre Flesh Eaters
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

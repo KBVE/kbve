@@ -1,6 +1,6 @@
 ---
 title: Eternal boots | OSRS Price Data
-description: "Eternal boots is a members feet slot item requiring 60 Magic. High alch: 45,000 GP, GE limit: 15."
+description: "Eternal boots is a members feet slot item requiring 75 Magic and 75 Defence. High alch: 45,000 GP, GE limit: 15."
 osrs:
   id: 13235
   name: Eternal boots
@@ -14,22 +14,23 @@ osrs:
   limit: 15
   equipment:
     slot: feet
-    type: boots
-    attack_style: magic
+    weight: 1.814
     requirements:
-      magic: 60
-      runecraft: 60
-    stats:
-      attack_magic: 8
-      defence_magic: 8
-      defence_stab: 5
-      defence_slash: 5
-      defence_crush: 5
-      defence_ranged: 5
+      magic: 75
+      defence: 75
+    attack_bonus:
+      magic: 8
+    defence_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 8
+      ranged: 5
+    other_bonus:
       magic_damage: 1
   recipes:
-    - skill: crafting
-      level: 1
+    - skill: magic
+      level: 60
       xp: 200
       materials:
         - item_name: Infinity boots
@@ -43,6 +44,7 @@ osrs:
       product_quantity: 1
       facility: None
       members_only: true
+      notes: "Also requires 60 Runecraft; grants 200 Runecraft XP. Boosts not allowed. Irreversible."
   related_items:
     - item_id: 13239
       item_name: Primordial boots
@@ -59,38 +61,38 @@ osrs:
       slug: eternal-crystal
       relationship: component
       description: From Cerberus
-  about: |-
-    Combine Infinity boots + Eternal crystal.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 60 |
-    | Runecraft | 60 |
-    | XP | 200 Magic, 200 Runecraft |
-
-    Process is irreversible.
-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +8 |
-    | Magic defence | +8 |
-    | Magic damage | 1% |
-    | All defence | +5 |
-
-    Second-best magic boots (behind Avernic treads)
-
-    BiS magic boots for:
-    - All magic combat
-    - Raids
-    - Bossing
-    - Barrage Slayer
+    - item_id: 6920
+      item_name: Infinity boots
+      slug: infinity-boots
+      relationship: component
+      description: Mage Training Arena reward
+  about: "Eternal boots are the upgraded magic version of infinity boots, made by combining infinity boots with an eternal crystal dropped by Cerberus."
   market_strategy:
     notes:
       - Crystal from Cerberus
       - Infinity boots from MTA or GE
       - Popular for magic setups
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Second-best magic boots behind Avernic treads
+  history:
+    - date: "2015-08-27"
+      description: "Item released with the Cerberus update."
+  properties:
+    release_date: "2015-08-27"
+    update: Cerberus
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

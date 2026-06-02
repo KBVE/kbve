@@ -12,9 +12,73 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 50
-  about: "Awakener's orb is a members-only item in Old School RuneScape. High alchemy value: 45,000 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: consumable
+    tier: high
+  drop_table:
+    sources:
+      - source: Vardorvis
+        combat_level: 571
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/80.6
+        members_only: true
+      - source: Duke Sucellus
+        combat_level: 575
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/48.5
+        members_only: true
+      - source: The Whisperer
+        combat_level: 599
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/34.5
+        members_only: true
+      - source: The Leviathan
+        combat_level: 593
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/53.6
+        members_only: true
+  related_items:
+    - item_id: 28319
+      item_name: Virtus mask
+      slug: virtus-mask
+      relationship: alternative
+      description: Awakened-mode unique drop
+    - item_id: 28307
+      item_name: Ingot
+      slug: ingot
+      relationship: alternative
+      description: Awakened-mode unique drop
+    - item_id: 28278
+      item_name: Vestige
+      slug: vestige
+      relationship: alternative
+      description: Awakened-mode unique drop
+  about: One-time consumable that empowers a Forgotten Four boss to awakened mode for harder fights with boosted unique drop rates.
+  history:
+    - date: "2023-08-03"
+      description: Awakener's orbs have been added to the collection log; orbs obtained before this update will not appear in the log.
+    - date: "2023-07-26"
+      description: Added to the game with Desert Treasure II - The Fallen Empire.
+  properties:
+    release_date: "2023-07-26"
+    update: Desert Treasure II - The Fallen Empire
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,22 +12,61 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
+  material:
+    type: steel
+    tier: mid
   equipment:
     slot: legs
+    weight: 8.164
     requirements:
       defence: 5
+    defence_bonus:
+      stab: 17
+      slash: 16
+      crush: 15
+      magic: -4
+      ranged: 16
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 20175
       item_name: Steel plateskirt (g)
       slug: steel-plateskirt-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Steel plateskirt with trim."*
-
-    The steel plateskirt (t) is a trimmed cosmetic variant of the steel plateskirt. Requiring 5 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed variant of the steel plateskirt
+  about: "The steel plateskirt (t) is a trim-decorated reward from easy Treasure Trails, sharing the same defence bonuses as a plain steel plateskirt but with cosmetic trim and no Smithing recipe."
+  market_strategy:
+    notes:
+      - "Supply is throttled to easy clue caskets, so prices drift with clue volume; flips work best when global clue events spike caskets opened."
+  trading_tips:
+    - "Track easy clue caskets opened on the wiki Grand Exchange data; cosmetic trims thin-trade so post slightly under margin to clear quickly."
+  history:
+    - date: "2016-07-06"
+      description: "Released as part of the Treasure Trail Expansion (2016) update."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus on the plateskirt was decreased from -7 to -11."
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion (2016)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

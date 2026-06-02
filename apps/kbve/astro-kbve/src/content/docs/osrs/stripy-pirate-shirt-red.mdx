@@ -12,9 +12,53 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Stripy pirate shirt (red) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Dodgy Mike's Second-hand Clothing"
+      location: Mos Le'Harmless
+      stock: 10
+  about: "Stripy pirate shirt (red) is a purely cosmetic body slot item sold by Dodgy Mike on Mos Le'Harmless following the Cabin Fever quest."
+  history:
+    - date: "2006-02-07"
+      description: Released alongside the Cabin Fever quest.
+  properties:
+    release_date: "2006-02-07"
+    update: Cabin Fever
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

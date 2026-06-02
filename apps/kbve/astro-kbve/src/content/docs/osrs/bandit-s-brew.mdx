@@ -12,9 +12,45 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 2000
-  about: "Bandit's brew is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: "Attack: +1 boost"
+      - description: "Thieving: +1 boost"
+      - description: "Hitpoints: restores 1"
+      - description: "Strength: drains 3 to 7 based on level band"
+      - description: "Defence: drains 3 to 7 based on level band"
+  shops:
+    - shop_name: The Big Heist Lodge
+      location: Bandit Camp, Kharidian Desert
+      price: 650
+      stock: 10
+  about: "Bandit's brew is a members lager sold at the Bandit Camp's Big Heist Lodge that boosts Attack and Thieving by 1 while heavily draining Strength and Defence based on the player's level band."
+  market_strategy:
+    notes:
+      - Limited to shop supply after Desert Treasure progression
+      - Niche utility outside of quest and Thieving boosts
+      - Mid-range high alch margin when cheap
+  history:
+    - date: "2005-04-18"
+      description: Released with the Desert Treasure update.
+  properties:
+    release_date: "2005-04-18"
+    update: Desert Treasure
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

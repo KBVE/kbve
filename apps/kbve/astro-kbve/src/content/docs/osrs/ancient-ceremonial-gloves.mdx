@@ -12,9 +12,97 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 8
-  about: "Ancient ceremonial gloves is a members-only item in Old School RuneScape. High alchemy value: 24,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.2
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Spiritual mage (Zarosian)
+        rarity: 1/640
+        members_only: true
+      - source: Spiritual ranger (Zarosian)
+        rarity: 1/640
+        members_only: true
+      - source: Spiritual warrior (Zarosian)
+        rarity: 1/640
+        members_only: true
+      - source: Blood reaver
+        rarity: 1/640
+        members_only: true
+      - source: Fumus
+        rarity: 1/1000
+        members_only: true
+      - source: Umbra
+        rarity: 1/1000
+        members_only: true
+      - source: Cruor
+        rarity: 1/1000
+        members_only: true
+      - source: Glacies
+        rarity: 1/1000
+        members_only: true
+  related_items:
+    - item_name: Ancient ceremonial mask
+      slug: ancient-ceremonial-mask
+      relationship: set-piece
+      description: Headgear piece of the ancient ceremonial set
+    - item_name: Ancient ceremonial top
+      slug: ancient-ceremonial-top
+      relationship: set-piece
+      description: Body piece of the ancient ceremonial set
+    - item_name: Ancient ceremonial legs
+      slug: ancient-ceremonial-legs
+      relationship: set-piece
+      description: Legs piece of the ancient ceremonial set
+    - item_name: Ancient ceremonial boots
+      slug: ancient-ceremonial-boots
+      relationship: set-piece
+      description: Boots piece of the ancient ceremonial set
+  about: "Ancient ceremonial gloves are a cosmetic hand slot item released on 5 January 2022 alongside the Nex boss update. They provide a +1 prayer bonus with no other combat stats and are part of the five-piece ancient ceremonial robes set worn by followers of Zaros. They are dropped by various Zarosian NPCs in the Ancient Prison portion of the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - Thin market with low buy limit and modest volume
+      - Demand is mostly cosmetic and tied to costume room storage
+      - Watch for full set purchases driving short price spikes
+  history:
+    - date: "2022-01-05"
+      description: Released alongside the Nex boss update with the Ancient Prison expansion
+  properties:
+    release_date: "2022-01-05"
+    update: Nex
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

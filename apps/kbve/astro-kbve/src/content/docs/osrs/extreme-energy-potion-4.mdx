@@ -1,6 +1,6 @@
 ---
 title: Extreme energy potion(4) | OSRS Price Data
-description: "Extreme energy potion(4): 4 doses of extreme energy potion.. High alch: 150 GP."
+description: "Extreme energy potion(4) restores 40% run energy per dose for members. High alch: 150 GP."
 osrs:
   id: 31614
   name: Extreme energy potion(4)
@@ -12,9 +12,64 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: null
-  about: "Extreme energy potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - description: Restores 40% of the player's run energy per dose.
+  recipes:
+    - skill: Herblore
+      level: 66
+      xp: 84
+      output_quantity: 1
+      materials:
+        - item_name: Super energy potion(4)
+          quantity: 1
+        - item_name: Yellow fin
+          quantity: 4
+  related_items:
+    - item_id: 31616
+      item_name: Extreme energy potion(3)
+      slug: extreme-energy-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_id: 31618
+      item_name: Extreme energy potion(2)
+      slug: extreme-energy-potion-2
+      relationship: variant
+      description: 2-dose variant
+    - item_id: 31620
+      item_name: Extreme energy potion(1)
+      slug: extreme-energy-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_id: 3018
+      item_name: Super energy potion(4)
+      slug: super-energy-potion-4
+      relationship: component
+      description: Base potion before brewing
+  about: "Extreme energy potion(4) is a members Herblore potion brewed at level 66 from a super energy potion and yellow fins; each dose restores 40% run energy and cannot be used to make stamina potions."
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Extreme energy potion released alongside the Sailing skill launch.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

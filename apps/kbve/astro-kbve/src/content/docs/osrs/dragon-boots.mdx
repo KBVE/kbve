@@ -14,16 +14,26 @@ osrs:
   limit: 70
   equipment:
     slot: feet
-    type: melee_boots
+    weight: 1
     requirements:
       defence: 60
-    stats:
-      attack_magic: -3
-      attack_ranged: -1
-      strength: 4
-      defence_stab: 16
-      defence_slash: 17
-      defence_crush: 18
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 16
+      slash: 17
+      crush: 18
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: Spiritual mage
@@ -43,7 +53,7 @@ osrs:
       item_name: Primordial boots
       slug: primordial-boots
       relationship: upgrade
-      description: BiS melee boots (+1 str)
+      description: BiS melee boots (+1 strength)
     - item_id: 21733
       item_name: Guardian boots
       slug: guardian-boots
@@ -54,35 +64,29 @@ osrs:
       slug: bandos-boots
       relationship: alternative
       description: Prayer bonus option
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Magic | -3 |
-    | Ranged | -1 |
-    | Strength | +4 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +16 |
-    | Slash | +17 |
-    | Crush | +18 |
-
-    Requirements: 60 Defence
-
-    Popular melee boots for:
-    - Budget melee setups
-    - All melee combat
-    - Slayer
-    - Mid-game progression
-
-    Budget alternative to Primordial boots (+1 less strength).
+  about: Dragon boots are the third-highest strength melee boots, dropped by Spiritual mages in the God Wars Dungeon and prized as a budget alternative to Primordial boots.
   market_strategy:
     notes:
-      - Very affordable
-      - Spiritual mages are easy
-      - Popular at all levels
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cheap entry-level strength boot
+      - Steady supply from Spiritual mage drops
+      - High demand across mid-game melee setups
+      - Core component for Primordial boots upgrade path
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2013-10-17"
+    update: The God Wars Dungeon has been uncovered!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

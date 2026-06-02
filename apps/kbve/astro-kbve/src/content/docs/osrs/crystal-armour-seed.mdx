@@ -12,14 +12,11 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 100
-  item:
-    type: crafting material
-    tradeable: true
-  obtaining:
+  drop_table:
     - source: The Gauntlet
-      drop_rate: 1/120
+      rate: "1/120"
     - source: Corrupted Gauntlet
-      drop_rate: 1/50
+      rate: "1/50"
   recipes:
     - skill: smithing
       level: 70
@@ -30,9 +27,12 @@ osrs:
         - item_id: 23962
           item_name: Crystal shard
           quantity: 50
+      tools:
+        - Singing bowl
       facility: Singing bowl
       product: Crystal helm
       product_id: 23971
+      product_quantity: 1
     - skill: smithing
       level: 72
       materials:
@@ -42,9 +42,12 @@ osrs:
         - item_id: 23962
           item_name: Crystal shard
           quantity: 100
+      tools:
+        - Singing bowl
       facility: Singing bowl
       product: Crystal legs
       product_id: 23979
+      product_quantity: 1
     - skill: smithing
       level: 74
       materials:
@@ -54,9 +57,12 @@ osrs:
         - item_id: 23962
           item_name: Crystal shard
           quantity: 150
+      tools:
+        - Singing bowl
       facility: Singing bowl
       product: Crystal body
       product_id: 23975
+      product_quantity: 1
   related_items:
     - item_id: 23975
       item_name: Crystal body
@@ -73,27 +79,27 @@ osrs:
       slug: crystal-helm
       relationship: product
       description: Created armour piece
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
-
-    | Item | Seeds | Shards | Smithing/Crafting |
-    |------|-------|--------|-------------------|
-    | Crystal helm | 1 | 50 | 70 |
-    | Crystal legs | 2 | 100 | 72 |
-    | Crystal body | 3 | 150 | 74 |
-
-    Alternative: Exchange for 250 crystal shards.
+  about: "Crystal armour seed is sung at the Singing bowl with crystal shards into Crystal helm, legs, or body; primary source is the Gauntlet and Corrupted Gauntlet."
   market_strategy:
     notes:
       - Farm Corrupted Gauntlet for best rates
       - Use for crystal armour or trade for shards
       - Needed for full crystal set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

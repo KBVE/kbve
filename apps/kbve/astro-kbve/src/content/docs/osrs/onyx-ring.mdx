@@ -14,19 +14,39 @@ osrs:
   limit: 10000
   equipment:
     slot: ring
+    weight: 0.006
     requirements:
       crafting: 67
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 67
       xp: 115
-      inputs:
+      materials:
         - item_id: 6573
           item_name: Onyx
           quantity: 1
         - item_id: 2357
           item_name: Gold bar
           quantity: 1
+      tools:
+        - Ring mould
       output_quantity: 1
   related_items:
     - item_id: 1645
@@ -39,19 +59,38 @@ osrs:
       slug: zenyte-ring
       relationship: upgrade
       description: Next tier ring (zenyte)
-  about: |-
-    | Input | Skill | Level | XP |
-    |-------|-------|-------|----|
-    | Onyx + Gold bar | Crafting | 67 | 115 |
-
-    Enchant with Lvl-6 Enchant (Magic 87) to create Ring of stone (cosmetic transformation).
+  about: Onyx ring is a high-value ring crafted from an onyx and a gold bar at a furnace, primarily used as the base for the cosmetic Ring of stone.
   market_strategy:
     notes:
       - Onyx is expensive (~2.5M)
       - Ring of stone is cosmetic only
       - Niche crafting XP method
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2018-12-13"
+      description: Inventory sprite adjusted.
+    - date: "2018-02-22"
+      description: Sprite rotated to distinguish from enchanted jewellery.
+    - date: "2005-10-17"
+      description: Value increased from 1 to 201,000 coins.
+  properties:
+    release_date: "2005-10-04"
+    update: TzHaar Fight Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,11 +1,11 @@
 ---
 title: Pink boots | OSRS Price Data
-description: "Pink boots is a members feet slot item. High alch: 120 GP, GE limit: 150."
+description: "Pink boots: a cosmetic gnome-style feet slot item sold by Rometti at the Grand Tree with minimal defensive bonuses. High alch: 120 GP, GE limit: 150."
 osrs:
   id: 626
   name: Pink boots
   slug: pink-boots
-  examine: They're soft, silky and pink.
+  examine: "They're soft, silky and pink."
   members: true
   icon: Pink boots.png
   value: 200
@@ -14,18 +14,82 @@ osrs:
   limit: 150
   equipment:
     slot: feet
+    weight: 0.34
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Rometti's Fine Fashions"
+      location: Grand Tree, Tree Gnome Stronghold
+      stock: 5
+      price: 200
+      currency: Coins
+      description: Gnome tailor shop stocking the pink boots.
   related_items:
     - item_id: 636
       item_name: Pink robe top
       slug: pink-robe-top
       relationship: set-piece
-      description: Matching top
-  about: |-
-    > _"A\"nice\" pair of pink boots."_
-
-    Pink boots are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching pink gnome robe top.
+    - item_id: 638
+      item_name: Pink skirt
+      slug: pink-skirt
+      relationship: set-piece
+      description: Matching pink gnome skirt.
+    - item_id: 657
+      item_name: Pink hat
+      slug: pink-hat
+      relationship: set-piece
+      description: Matching pink gnome hat.
+  about: "Pink boots are a gnome-style feet slot cosmetic from Rometti's Fine Fashions with marginal slash and crush defence."
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Reliable shop supply keeps the GE price close to value.
+      - Demand driven entirely by fashionscape and gnome-themed outfits.
+      - Buy limit of 150 leaves plenty of room for bulk fashionscape buyers.
+      - Pair with the matching pink robe top, skirt and hat for the full set.
+  history:
+    - date: "2002-12-12"
+      update: Agility skill launch
+      description: Added to game alongside the Agility skill release.
+    - date: "2014-12-10"
+      update: Item rename
+      description: Renamed from "Boots" to "Pink boots" to disambiguate gnome clothing.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

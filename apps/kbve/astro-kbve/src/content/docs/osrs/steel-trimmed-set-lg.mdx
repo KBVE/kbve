@@ -1,6 +1,6 @@
 ---
 title: Steel trimmed set (lg) | OSRS Price Data
-description: "Steel trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 540 GP, GE limit: 8."
+description: "Steel trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield. High alch: 540 GP, GE limit: 8."
 osrs:
   id: 20376
   name: Steel trimmed set (lg)
@@ -12,9 +12,57 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Steel trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 2627
+      item_name: Steel full helm (t)
+      slug: steel-full-helm-t
+      relationship: set-piece
+      description: Helm component of the trimmed set
+    - item_id: 2623
+      item_name: Steel platebody (t)
+      slug: steel-platebody-t
+      relationship: set-piece
+      description: Body component of the trimmed set
+    - item_id: 2625
+      item_name: Steel platelegs (t)
+      slug: steel-platelegs-t
+      relationship: set-piece
+      description: Legs component of the trimmed set
+    - item_id: 2629
+      item_name: Steel kiteshield (t)
+      slug: steel-kiteshield-t
+      relationship: set-piece
+      description: Shield component of the trimmed set
+    - item_id: 20379
+      item_name: Steel trimmed set (sk)
+      slug: steel-trimmed-set-sk
+      relationship: alternative
+      description: Plateskirt variant
+  about: "Steel trimmed set (lg) is a Grand Exchange bundle combining the trimmed steel full helm, platebody, platelegs, and kiteshield into one tradeable item to save bank space."
+  market_strategy:
+    notes:
+      - Assembled via the Grand Exchange Sets option
+      - Useful for moving the full trimmed kit in one tradeable item
+      - Components originate from easy Treasure Trails
+  history:
+    - date: "2016-07-06"
+      description: "Item released with the Treasure Trail Expansion (2016) update."
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion (2016)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

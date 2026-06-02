@@ -12,9 +12,55 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
-  about: "Monkey bones is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  prayer:
+    bury_xp: 5
+    altar_xp: 17.5
+    ectofuntus_xp: 20
+    sinister_offering_xp: 15
+  drop_table:
+    sources:
+      - source: Monkey
+        combat_level: 3
+        quantity: "1"
+        rarity: always
+        members_only: false
+  related_items:
+    - item_id: 526
+      item_name: Bones
+      slug: bones
+      relationship: alternative
+      description: Standard bones with 4.5 Prayer XP
+    - item_id: 532
+      item_name: Big bones
+      slug: big-bones
+      relationship: upgrade
+      description: Higher-tier bones giving 15 Prayer XP
+  about: "Monkey bones are a free-to-play bone drop from monkeys that grant 5 Prayer XP when buried, scaling up to 20 XP at the Ectofuntus."
+  market_strategy:
+    notes:
+      - Cheap free-to-play Prayer training material
+      - Niche compared to dragon or ourg bones for XP rate
+      - Limited bulk demand keeps prices low
+  history:
+    - date: "2004-09-14"
+      description: Released with the Tai Bwo Wannai Trio update.
+  properties:
+    release_date: "2004-09-14"
+    update: Tai Bwo Wannai Trio
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Bury
+      - Drop
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

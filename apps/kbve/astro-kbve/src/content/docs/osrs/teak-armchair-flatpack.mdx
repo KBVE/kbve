@@ -12,9 +12,53 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak armchair (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Construction
+      level: 35
+      experience: 180
+      output_quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+      notes: Built at an Oak workbench in a Workshop.
+  construction:
+    level: 35
+    experience: 180
+    hotspot: Chairs
+    room: Parlour
+  related_items:
+    - item_id: 8505
+      item_name: Teak armchair
+      slug: teak-armchair
+      relationship: product
+      description: Built form for the parlour chair hotspot.
+  about: "Teak armchair (flatpack) is a Construction flatpack built from two teak planks at an Oak workbench, ready to be deployed into a player-owned house parlour chair hotspot."
+  market_strategy:
+    notes:
+      - Tradeable on the Grand Exchange
+      - Profitable training is rare; flatpacks are usually consumed for own use
+      - Buy limit of 500 makes bulk POH building feasible
+  history:
+    - date: "2006-05-31"
+      description: Released with the Player-Owned Houses update.
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

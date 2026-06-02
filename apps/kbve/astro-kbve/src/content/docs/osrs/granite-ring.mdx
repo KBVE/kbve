@@ -15,6 +15,9 @@ osrs:
   equipment:
     slot: ring
     weight: 3
+    requirements:
+      defence: 50
+      strength: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,9 +35,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 50
-      strength: 50
   drop_table:
     primary_source: Grotesque Guardians
     best_drop_rate: 2/500
@@ -67,28 +67,34 @@ osrs:
       slug: granite-ring-i
       relationship: upgrade
       description: Imbued version with doubled stats
-  about: |-
-    Best ranged defence ring:
-    - +12 Ranged defence (highest of any ring)
-    - Can be imbued to double all stats
-
-    Imbuing methods:
-    - Nightmare Zone: 500,000 points
-    - Soul Wars: 200 Zeal Tokens
-    - PvP Arena: Scroll of imbuing
-
-    When imbued:
-    - +4 Stab/Slash/Crush defence
-    - -4 Magic defence
-    - +24 Ranged defence
+  about: "Granite ring is the only ring requiring a Defence level to wear, boasting the highest ranged defence bonus of any ring and imbueable for doubled stats."
   market_strategy:
     notes:
       - Niche tanking ring
       - Best for ranged defence specifically
       - Consider imbuing for doubled stats
       - Part of Grotesque Guardian collection
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2025-06-25"
+      description: Ranged defence bonus increased from +8 to +12.
+    - date: "2017-10-26"
+      description: Released with the Grotesque Guardians update.
+  properties:
+    release_date: "2017-10-26"
+    update: Grotesque Guardians
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

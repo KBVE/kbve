@@ -14,17 +14,28 @@ osrs:
   limit: 125
   equipment:
     slot: head
-    type: armour
-    prayer_bonus: 3
+    weapon_type: armour
+    weight: 2.267
     requirements:
       defence: 20
       prayer: 10
-    combat_stats:
-      stab_defence: 14
-      slash_defence: 16
-      crush_defence: 13
-      magic_defence: -1
-      ranged_defence: 15
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 13
+      slash: 14
+      crush: 11
+      magic: -1
+      ranged: 13
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
   related_items:
     - item_id: 5575
       item_name: Initiate hauberk
@@ -46,34 +57,38 @@ osrs:
       slug: helm-of-neitiznot
       relationship: alternative
       description: Better melee stats (+3 Prayer)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Head |
-    | Prayer Bonus | +3 |
-    | Defence Req | 20 |
-    | Prayer Req | 10 |
-
-    - Mid-tier prayer helm
-    - Bridge to Proselyte
-    - Lower requirements than Proselyte
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | Initiate sallet | +3 |
-    | Initiate hauberk | +6 |
-    | Initiate cuisse | +5 |
-    | Total | +14 |
+  about: "Initiate sallet is a prayer-boosting Temple Knight helm awarded after Recruitment Drive, matching the Helm of Neitiznot's prayer bonus while keeping mithril-tier defences."
   market_strategy:
     notes:
-      - Requires quest completion
-      - Shop purchase only
-      - No GE trading (untradeable)
-      - Must complete Recruitment Drive
-      - Stepping stone to Proselyte
-      - Lower requirements good for pures
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Requires Recruitment Drive completion to purchase from Sir Tiffy Cashien
+      - Tradeable once obtained, with a 125 buy limit
+      - Stepping stone before the Proselyte upgrade
+      - Lower requirements suit pures and mid-level prayer flick setups
+  history:
+    - date: "2005-06-27"
+      description: Released with the Recruitment Drive quest.
+    - date: "2005-10-04"
+      description: Graphically updated alongside the Wanted! quest release.
+    - date: "2006-09-25"
+      description: Renamed from Initiate helm to Initiate sallet.
+    - date: "2021-04-21"
+      description: Ranged attack bonus reduced from -2 to -3.
+  properties:
+    release_date: "2005-06-27"
+    update: Recruitment Drive
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: true
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

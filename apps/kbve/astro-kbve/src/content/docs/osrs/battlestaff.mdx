@@ -14,30 +14,41 @@ osrs:
   limit: 11000
   equipment:
     slot: weapon
-    type: staff
-    attack_requirement: 30
-    magic_requirement: 30
-  attack_bonuses:
-    crush: 25
-    magic: 12
-  other_bonuses:
-    strength: 32
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 30
+      magic: 30
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 25
+      magic: 12
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+    other_bonus:
+      melee_strength: 32
   shops:
-    - shop_name: Zaff's Superior Staffs
+    - shop_name: "Zaff's Superior Staffs"
+      location: Varrock
       price: 7000
       currency: Coins
-      stock: Daily
   recipes:
     - skill: crafting
       level: 66
       xp: 137.5
       materials:
-        - item_name: Battlestaff
-          item_id: 1391
+        - item_id: 1391
+          item_name: Battlestaff
           quantity: 1
-        - item_name: Air orb
-          item_id: 573
+        - item_id: 573
+          item_name: Air orb
           quantity: 1
+      tools: []
       product: Air battlestaff
       product_id: 1397
       product_quantity: 1
@@ -47,12 +58,13 @@ osrs:
       level: 54
       xp: 100
       materials:
-        - item_name: Battlestaff
-          item_id: 1391
+        - item_id: 1391
+          item_name: Battlestaff
           quantity: 1
-        - item_name: Water orb
-          item_id: 571
+        - item_id: 571
+          item_name: Water orb
           quantity: 1
+      tools: []
       product: Water battlestaff
       product_id: 1395
       product_quantity: 1
@@ -62,12 +74,13 @@ osrs:
       level: 58
       xp: 112.5
       materials:
-        - item_name: Battlestaff
-          item_id: 1391
+        - item_id: 1391
+          item_name: Battlestaff
           quantity: 1
-        - item_name: Earth orb
-          item_id: 575
+        - item_id: 575
+          item_name: Earth orb
           quantity: 1
+      tools: []
       product: Earth battlestaff
       product_id: 1399
       product_quantity: 1
@@ -77,12 +90,13 @@ osrs:
       level: 62
       xp: 125
       materials:
-        - item_name: Battlestaff
-          item_id: 1391
+        - item_id: 1391
+          item_name: Battlestaff
           quantity: 1
-        - item_name: Fire orb
-          item_id: 569
+        - item_id: 569
+          item_name: Fire orb
           quantity: 1
+      tools: []
       product: Fire battlestaff
       product_id: 1393
       product_quantity: 1
@@ -109,36 +123,44 @@ osrs:
       slug: celastrus-bark
       relationship: component
       description: Fletching material
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Attack requirement | 30 |
-    | Magic requirement | 30 |
-    | Magic attack | +12 |
-    | Crush attack | +25 |
-    | Strength bonus | +32 |
-
-    | Product | Additional Item |
-    |---------|-----------------|
-    | Air battlestaff | Air orb |
-    | Water battlestaff | Water orb |
-    | Earth battlestaff | Earth orb |
-    | Fire battlestaff | Fire orb |
+  about: "Battlestaff is a level 30 magic weapon and the elemental orb base, sold daily by Zaff in Varrock and a staple of high-level Crafting profit."
   market_strategy:
     notes:
       - Attach orbs for profit
       - Daily Zaff stock
       - High Crafting XP
       - Elemental battlestaff crafting
-      - Crafting training
       - Varrock diary reward
-      - Zaff daily stock
-      - Zaff sells discounted (diary)
-      - High Crafting XP per staff
+      - Zaff sells discounted with diary
       - Orb charging profit chain
       - Mystic staff upgrades
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2021-09-22"
+      description: Magic Attack and Defence bonuses of battlestaves were increased from +10 to +12.
+    - date: "2017-02-09"
+      description: Making battlestaves now includes an animation.
+    - date: "2015-12-03"
+      description: Banking fix for noted battlestaff stacks.
+    - date: "2015-03-05"
+      description: Varrock Diary discount system implemented for Zaff daily stock.
+  properties:
+    release_date: "2002-03-18"
+    update: "RuneScape updated (18 March 2002)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,59 @@ osrs:
   lowalch: 28
   highalch: 43
   limit: 2000
-  about: "Energy mix(2) is a members-only item in Old School RuneScape. High alchemy value: 43 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: Restores 10% of run energy per dose
+      - description: Heals 3 Hitpoints per dose
+  recipes:
+    - skill: Herblore
+      level: 29
+      experience: 23
+      materials:
+        - item_name: Energy potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+  related_items:
+    - item_name: Energy mix(1)
+      slug: energy-mix-1
+      relationship: variant
+      description: Single-dose variant
+    - item_name: Energy potion(2)
+      slug: energy-potion-2
+      relationship: component
+      description: Base potion mixed with caviar to create the barbarian mix
+  about: "Energy mix(2) is the two-dose Barbarian Herblore variant of the energy potion, released on 3 July 2007 with the Barbarian Training update. Each dose restores 10% run energy and heals 3 Hitpoints, providing a small combat utility that base energy potions lack. It is made at level 29 Herblore by combining an Energy potion(2) with caviar for 23 experience."
+  market_strategy:
+    notes:
+      - Profit depends on caviar and energy potion(2) input prices
+      - Useful for cheap healing during low-level Barbarian Herblore training
+      - Volume is low; large flips can move the market noticeably
+  history:
+    - date: "2007-07-03"
+      description: Released with the Barbarian Training update
+    - date: "2016-04-01"
+      description: Half-full potions gained bank placeholder functionality
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

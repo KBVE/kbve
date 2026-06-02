@@ -14,6 +14,9 @@ osrs:
   limit: 8
   equipment:
     slot: hands
+    weight: 1
+    requirements:
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,8 +34,11 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10376
       item_name: Guthix bracers
@@ -55,24 +61,33 @@ osrs:
       slug: black-d-hide-vambraces
       relationship: downgrade
       description: Standard version requiring 40 Defence
-  about: |-
-    > *"Ancient blessed dragonhide vambraces."*
-
-    | Stat | Blessed | Black D'hide |
-    |------|--------:|-----------:|
-    | Ranged Attack | +11 | +11 |
-    | Prayer | +1 | 0 |
-    | Ranged Req | 70 | 70 |
-    | Defence Req | None | 40 |
-
-    No Defence requirement makes these ideal for 1-Defence pures. The +1 prayer bonus is an additional advantage.
+  about: Ancient bracers are a hard clue scroll reward providing best-in-slot ranged glove stats for pures with no Defence requirement and a bonus +1 prayer.
   market_strategy:
     notes:
       - Hard clue exclusive
       - Best-in-slot ranged gloves for pures
       - All god variants are functionally identical
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  history:
+    - date: "2014-06-12"
+      description: Released as a hard clue scroll reward in the Treasure Trail Expansion.
+    - date: "2021-09-22"
+      description: The 40 Defence requirement was removed.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

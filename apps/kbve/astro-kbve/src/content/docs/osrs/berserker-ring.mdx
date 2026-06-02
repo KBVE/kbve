@@ -14,12 +14,24 @@ osrs:
   limit: 8
   equipment:
     slot: ring
-    type: ring
-    stats:
-      strength: 4
-    imbue:
-      location: Soul Wars/Nightmare Zone
-      imbued_strength: 8
+    weight: 0.004
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: Dagannoth Rex
@@ -29,49 +41,53 @@ osrs:
         rarity: 1/128
         members_only: true
   related_items:
-    - item_id: 6733
-      item_name: Archers ring
+    - item_name: Berserker ring (i)
+      slug: berserker-ring-i
+      relationship: upgrade
+      description: Imbued variant with doubled Strength bonus (+8)
+    - item_name: Archers ring
       slug: archers-ring
       relationship: alternative
-      description: Ranged equivalent
-    - item_id: 6731
-      item_name: Seers ring
+      description: Ranged equivalent dropped by Dagannoth Supreme
+    - item_name: Seers ring
       slug: seers-ring
       relationship: alternative
-      description: Magic equivalent
-    - item_id: 19550
-      item_name: Ring of suffering
+      description: Magic equivalent dropped by Dagannoth Prime
+    - item_name: Ring of suffering
       slug: ring-of-suffering
       relationship: alternative
-      description: Defensive alternative
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Strength | +4 |
-    | Requirements | None |
-
-    Best-in-slot strength bonus ring.
-
-    Imbue at Soul Wars or Nightmare Zone for doubled stats:
-
-    | Stat | Imbued |
-    |------|--------|
-    | Strength | +8 |
-
-    BiS melee ring for:
-    - All melee combat
-    - Bossing
-    - Slayer
-    - Max strength setups
-
-    Imbue is essential - doubles the bonus.
+      description: Defensive alternative ring option
+  about: "Berserker ring is a members-only ring released on 7 November 2005 with the Waterbirth Island update. It grants a +4 Strength bonus and is dropped by Dagannoth Rex at a 1/128 rate, making it the canonical best-in-slot Strength ring for melee. Its imbued variant doubles the Strength bonus to +8 and is obtainable through Nightmare Zone points, Combat Achievements, Soul Wars zeal, or a Scroll of Imbuing."
   market_strategy:
     notes:
-      - DKs are efficient to farm
-      - Imbue immediately
-      - BiS for all melee
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Best-in-slot melee Strength ring with consistent end-game demand
+      - Dagannoth Rex farming supplies the GE; bossing trends move the price
+      - Imbue immediately for melee content since it doubles the bonus
+  trading_tips:
+    - Buy when Dagannoth Rex group-farming events flood supply
+    - Hold for new melee content releases that boost Strength demand
+  history:
+    - date: "2005-11-07"
+      description: Released with the Waterbirth Island update
+  properties:
+    release_date: "2005-11-07"
+    update: Waterbirth Island - deeper, darker, deadlier!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

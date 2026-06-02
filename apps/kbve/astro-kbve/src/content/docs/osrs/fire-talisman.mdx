@@ -12,9 +12,46 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Fire talisman is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    primary_source: Fire wizard
+    best_drop_rate: 1/20
+    sources:
+      - source: Fire wizard
+        rarity: common
+        drop_rate: 1/20
+      - source: Dark wizard
+        rarity: uncommon
+      - source: Skeleton
+        rarity: rare
+      - source: Lava dragon
+        rarity: uncommon
+  shops:
+    - shop_name: Temple Supplies
+      location: Temple of the Eye
+      price: 10
+      currency: Abyssal pearls
+  about: Fire talisman is a free-to-play talisman used to enter the Fire altar for crafting fire runes, commonly dropped by fire wizards and other magical foes.
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.015
+    options:
+      - Locate
+      - Drop
+    alchable: true
+  history:
+    - date: "2003-12-01"
+      description: Added to the RuneScape 2 Beta.
+    - date: "2004-03-29"
+      description: Became permanently available with the RS2 launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

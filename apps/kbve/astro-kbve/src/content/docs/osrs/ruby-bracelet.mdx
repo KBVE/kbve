@@ -14,18 +14,37 @@ osrs:
   limit: 10000
   equipment:
     slot: hands
-    requirements:
-      crafting: 42
+    weight: 0.25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 42
       xp: 80
-      inputs:
+      materials:
         - item_name: Ruby
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+      tools:
+        - Bracelet mould
       output_quantity: 1
+      facility: Furnace
   related_items:
     - item_id: 11076
       item_name: Emerald bracelet
@@ -37,24 +56,41 @@ osrs:
       slug: diamond-bracelet
       relationship: upgrade
       description: Next tier bracelet
-  about: |-
-    Crafting (Level 42): Ruby + Gold bar at a furnace with bracelet mould (80 XP)
-
-    > *"A ruby bracelet."*
-
-    Lvl-3 Enchant (49 Magic): 1 cosmic rune + 5 fire runes (59 XP)
-
-    The Inoculation bracelet provides poison immunity until it absorbs 500 total poison damage, then crumbles. Unlike antipoisons which cure existing poison, this prevents poison from being applied. Useful for:
-    - Wilderness activities where re-poisoning is frequent
-    - Budget alternative to antidote++ or serpentine helm
-    - Single charge of prevention vs repeated potion doses
+    - item_id: 11088
+      item_name: Inoculation bracelet
+      slug: inoculation-bracelet
+      relationship: product
+      description: Enchanted Lvl-3 form
+  about: "Ruby bracelet is a members crafting product made from a ruby and gold bar at a furnace at level 42 Crafting; it can be enchanted into the Inoculation bracelet for poison immunity."
   market_strategy:
     notes:
-      - Niche poison immunity item
-      - Most players prefer antipoison potions
-      - Consumed after 500 poison damage absorbed
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Mainly produced for Crafting XP and gold bar processing
+      - Steady demand from Lvl-3 Enchant casters making Inoculation bracelets
+      - GE volume tied to bulk crafters and ironman alts
+  history:
+    - date: "2018-02-22"
+      description: Inventory sprite was rotated to distinguish it from the enchanted variant.
+    - date: "2007-04-30"
+      description: Released with the 24 Carat Update.
+  properties:
+    release_date: "2007-04-30"
+    update: 24 Carat Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

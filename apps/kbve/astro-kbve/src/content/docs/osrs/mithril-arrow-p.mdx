@@ -1,6 +1,6 @@
 ---
 title: Mithril arrow(p) | OSRS Price Data
-description: "Mithril arrow(p) is a members ammo slot item. High alch: 19 GP, GE limit: 7,000."
+description: "Mithril arrow(p): Venomous-looking arrows. Mithril arrows tipped with weapon poison. High alch: 19 GP, GE limit: 7,000."
 osrs:
   id: 889
   name: Mithril arrow(p)
@@ -12,16 +12,86 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 7000
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: ammo
-    ranged_strength: 22
-  related_items: []
-  about: |-
-    > _"Mithril arrows with a poisoned tip."_
-
-    Mithril arrows tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 22
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      level: 1
+      tools: []
+      materials:
+        - item_name: Mithril arrow
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+  related_items:
+    - item_id: 888
+      item_name: Mithril arrow
+      slug: mithril-arrow
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 890
+      item_name: Mithril arrow(p+)
+      slug: mithril-arrow-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 891
+      item_name: Mithril arrow(p++)
+      slug: mithril-arrow-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  about: "Mithril arrow(p) is a poison-tipped mithril arrow with +22 ranged strength that has a chance to poison the target for 2 damage per tick."
+  market_strategy:
+    notes:
+      - Made by applying weapon poison to mithril arrows
+      - Niche ammo for poison strategies
+      - Often cheaper than the unpoisoned variant due to low demand
+  history:
+    - date: "2002-03-25"
+      description: Mithril arrows released with the original Fletching skill update.
+    - date: "2006-08-22"
+      description: Poisoned variants renamed for naming consistency (Mithril arrow(+) became Mithril arrow(p+)).
+  properties:
+    release_date: "2002-03-25"
+    update: Fletching
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

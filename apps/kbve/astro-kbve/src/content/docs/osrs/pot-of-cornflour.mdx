@@ -12,9 +12,54 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15
-  about: "Pot of cornflour is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: quest
+    tier: low
+  recipes:
+    - name: Grind Sweetcorn into cornflour
+      skill: Cooking
+      output: Pot of cornflour
+      output_quantity: 1
+      tools: [Windmill]
+      materials:
+        - item_name: Sweetcorn
+          quantity: 1
+        - item_name: Pot
+          quantity: 1
+      notes: "Collected from the basin under the windmill after grinding sweetcorn."
+  related_items:
+    - item_name: Cornflour mixture
+      slug: cornflour-mixture
+      relationship: product
+      description: Combined with milky mixture during Recipe for Disaster.
+    - item_name: Sweetcorn
+      slug: sweetcorn
+      relationship: component
+      description: Raw input ground at a windmill to produce cornflour.
+  about: "Pot of cornflour is a Recipe for Disaster quest item made by grinding sweetcorn at a windmill, used in the Freeing Sir Amik Varze subquest to prepare creme brulee supreme."
+  market_strategy:
+    notes:
+      - "Strictly demanded by Recipe for Disaster questers; supply is constrained by the small 15-per-4-hours buy limit."
+  trading_tips:
+    - "Self-make at a windmill if the GE markup is excessive; the recipe needs no skill levels."
+  history:
+    - date: "2006-03-15"
+      description: Released as part of the Recipe for Disaster quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-03-15"
+    update: "Recipe for Disaster"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 1.36
+    options: [Empty, Drop]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

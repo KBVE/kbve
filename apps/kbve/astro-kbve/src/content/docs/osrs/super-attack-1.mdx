@@ -12,6 +12,10 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
+  potion:
+    doses: 1
+    effects:
+      - description: "Boosts Attack by floor(level * 0.15) + 5, decaying at 1 point per minute."
   related_items:
     - item_id: 145
       item_name: Super attack(3)
@@ -23,12 +27,26 @@ osrs:
       slug: super-attack-2
       relationship: variant
       description: 2-dose version
-  about: |-
-    > _"1 dose of super Attack potion."_
-
-    A 1-dose super attack potion. Boosts Attack by 5 + 15% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Super attack(1) is a single-dose Attack-boosting potion that elevates Attack by 5 plus 15 percent of the current level for melee combat encounters."
+  history:
+    - date: "2002-02-27"
+      description: Released as part of the original Herblore potion set.
+  properties:
+    release_date: "2002-02-27"
+    update: Members release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

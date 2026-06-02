@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Greenmans ale(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - description: Temporarily boosts Cooking by 2 levels
+  related_items:
+    - item_name: Greenmans ale
+      slug: greenmans-ale
+      relationship: variant
+      description: Standard non-mature single-pint variant
+    - item_name: Greenmans ale(m)
+      slug: greenmans-ale-m
+      relationship: variant
+      description: Single-pint mature variant
+  about: "Greenmans ale(m4) is a four-pint keg of mature Greenmans Ale, released on 11 July 2005 with the Farming update. Each pint provides a small Cooking level boost which is useful for marginal Cooking-based content. Kegs must be brewed from grain, hops, and water using brewing vats and aged into the mature form."
+  market_strategy:
+    notes:
+      - Used niche-side for marginal Cooking boost requirements
+      - Partial kegs cannot be sold on GE, only full m4 trades
+      - Brewing supply is the main price driver
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update
+    - date: "2005-10-01"
+      description: "Renamed from 'Greenmans ale(n)' to 'Greenmans ale(mn)' for naming clarity"
+    - date: "2015-02-01"
+      description: Partially consumed versions became untradeable on the Grand Exchange
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

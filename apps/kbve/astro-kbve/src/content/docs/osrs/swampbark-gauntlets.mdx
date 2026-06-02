@@ -1,6 +1,6 @@
 ---
 title: Swampbark gauntlets | OSRS Price Data
-description: "Swampbark gauntlets: These should protect my hands.. High alch: 6,000 GP."
+description: "Swampbark gauntlets: These should protect my hands. High alch: 6,000 GP."
 osrs:
   id: 25392
   name: Swampbark gauntlets
@@ -12,9 +12,89 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Swampbark gauntlets is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.907
+    requirements:
+      magic: 50
+      defence: 50
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      stab: 4
+      slash: 3
+      crush: 5
+      magic: 4
+  recipes:
+    - skill: runecraft
+      level: 42
+      xp: 5
+      materials:
+        - item_name: Splitbark gauntlets
+          item_id: 3845
+          quantity: 1
+        - item_name: Nature rune
+          item_id: 561
+          quantity: 100
+      product: Swampbark gauntlets
+      product_id: 25392
+      product_quantity: 1
+      facility: Nature Altar
+      members_only: true
+      notes: "Requires reading the Runescroll of swampbark first."
+  related_items:
+    - item_id: 3845
+      item_name: Splitbark gauntlets
+      slug: splitbark-gauntlets
+      relationship: component
+      description: Base gauntlets used in recipe
+    - item_id: 25386
+      item_name: Swampbark helm
+      slug: swampbark-helm
+      relationship: set-piece
+      description: Helm slot piece
+    - item_id: 25388
+      item_name: Swampbark body
+      slug: swampbark-body
+      relationship: set-piece
+      description: Body slot piece
+    - item_id: 25390
+      item_name: Swampbark legs
+      slug: swampbark-legs
+      relationship: set-piece
+      description: Legs slot piece
+    - item_id: 25394
+      item_name: Swampbark boots
+      slug: swampbark-boots
+      relationship: set-piece
+      description: Boots slot piece
+  about: "Swampbark gauntlets are reinforced splitbark gauntlets made at the Nature Altar after reading the Runescroll of swampbark; they do not contribute to the full set bind effect."
+  market_strategy:
+    notes:
+      - Created from splitbark gauntlets + 100 nature runes
+      - Niche magic hands option
+      - Gauntlets do not extend bind spell duration
+  history:
+    - date: "2021-01-27"
+      description: "Item released with the Shades of Mort'ton Rework update."
+  properties:
+    release_date: "2021-01-27"
+    update: "Shades of Mort'ton Rework"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

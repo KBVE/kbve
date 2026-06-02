@@ -1,6 +1,6 @@
 ---
 title: Elemental shield | OSRS Price Data
-description: "Elemental shield: A magic shield.. High alch: 12 GP, GE limit: 70."
+description: "Elemental shield: A magic shield. High alch: 12 GP, GE limit: 70."
 osrs:
   id: 2890
   name: Elemental shield
@@ -12,9 +12,68 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 70
-  about: "Elemental shield is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 0.226
+    requirements:
+      defence: 20
+    defence_bonus:
+      magic: 6
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 20
+      materials:
+        - item_name: Elemental metal
+          item_id: 2892
+          quantity: 1
+      tools:
+        - Hammer
+        - Battered book
+      product: Elemental shield
+      product_id: 2890
+      product_quantity: 1
+      facility: Workbench in Elemental Workshop
+      members_only: true
+      notes: "Created at the workbench during/after Elemental Workshop I."
+  related_items:
+    - item_id: 2898
+      item_name: Mind shield
+      slug: mind-shield
+      relationship: upgrade
+      description: Made after Elemental Workshop II
+    - item_id: 2892
+      item_name: Elemental metal
+      slug: elemental-metal
+      relationship: component
+      description: Smithed material
+  about: "Elemental shield is the reward shield from Elemental Workshop I, providing a small magic defence bonus and capping wyvern icy breath damage at 10 when worn."
+  market_strategy:
+    notes:
+      - Required during Elemental Workshop I
+      - Useful against skeletal and standard wyverns
+      - Outclassed by mind shield once Elemental Workshop II is complete
+  history:
+    - date: "2004-06-02"
+      description: "Item released with the Elemental Workshop I quest."
+  properties:
+    release_date: "2004-06-02"
+    update: Elemental Workshop I
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: true
+    weight: 0.226
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

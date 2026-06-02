@@ -12,9 +12,62 @@ osrs:
   lowalch: 510
   highalch: 765
   limit: 10000
-  about: "Emerald amulet (u) is a free-to-play item in Old School RuneScape. High alchemy value: 765 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jewellery
+    tier: low
+  related_items:
+    - item_id: 1696
+      item_name: Emerald amulet
+      slug: emerald-amulet
+      relationship: product
+      description: Strung version (with ball of wool)
+    - item_id: 1701
+      item_name: Amulet of defence
+      slug: amulet-of-defence
+      relationship: product
+      description: Enchanted via Lvl-2 Enchant
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: component
+      description: Strings the unstrung amulet
+  about: Unstrung emerald amulet crafted from a gold bar and a cut emerald at 31 Crafting; string with a ball of wool to wear, or enchant to make an amulet of defence.
+  recipes:
+    - product_id: 1696
+      product_name: Emerald amulet
+      skill: Crafting
+      level: 1
+      experience: 4
+      tools:
+        - None
+      materials:
+        - item_id: 1677
+          item_name: Emerald amulet (u)
+          quantity: 1
+        - item_id: 1759
+          item_name: Ball of wool
+          quantity: 1
+  history:
+    - date: "2014-12-10"
+      description: Renamed from Emerald amulet to Emerald amulet (u) during The Trading Post update.
+    - date: "2001-05-08"
+      description: Added to the game.
+  properties:
+    release_date: "2001-05-08"
+    update: Runescape updated (8 May 2001)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

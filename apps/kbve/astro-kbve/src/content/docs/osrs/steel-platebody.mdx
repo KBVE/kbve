@@ -1,6 +1,6 @@
 ---
 title: Steel platebody | OSRS Price Data
-description: "Steel platebody: Provides excellent protection.. High alch: 1,200 GP, GE limit: 125."
+description: "Steel platebody is a F2P body slot armour requiring 5 Defence. High alch: 1,200 GP, GE limit: 125."
 osrs:
   id: 1119
   name: Steel platebody
@@ -12,24 +12,86 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 125
-  item_id: 1119
-  item_type: armor
-  slot: body
-  type: platebody
-  tradeable: true
-  weight: 9.979
-  requirements:
-    defence: 5
-  stats:
-    stab_defence: 32
-    slash_defence: 31
-    crush_defence: 24
-    ranged_defence: 31
+  material:
+    type: steel
+    tier: low
+  equipment:
+    slot: body
+    weight: 9.979
+    requirements:
+      defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -15
+    defence_bonus:
+      stab: 32
+      slash: 31
+      crush: 24
+      magic: -6
+      ranged: 31
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 48
+      xp: 187.5
+      output_quantity: 1
+      tools: [Hammer]
+      facility: Anvil
+      materials:
+        - item_name: Steel bar
+          quantity: 5
   related_items:
-    - slug: black-platebody
-    - slug: steel-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1117
+      item_name: Black platebody
+      slug: black-platebody
+      relationship: alternative
+      description: F2P platebody alternative
+    - item_id: 1127
+      item_name: Mithril platebody
+      slug: mithril-platebody
+      relationship: upgrade
+      description: Higher tier platebody
+    - item_id: 1107
+      item_name: Steel full helm
+      slug: steel-full-helm
+      relationship: set-piece
+      description: Matching steel helm
+  about: Steel platebody is a free-to-play body armour smithed from five steel bars at 48 Smithing, requiring 5 Defence to wear.
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta launch
+      description: Steel platebody available since the RuneScape beta launch.
+    - date: "2005-03-07"
+      update: Graphical Update
+      description: Platebody model updated graphically.
+    - date: "2021-04-21"
+      update: Equipment Rebalance
+      description: Ranged attack bonus reduced from -10 to -15.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

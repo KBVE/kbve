@@ -14,6 +14,9 @@ osrs:
   limit: 8
   equipment:
     slot: legs
+    weight: 5
+    requirements:
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,8 +34,11 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10380
       item_name: Guthix chaps
@@ -54,31 +60,35 @@ osrs:
       item_name: Black d'hide chaps
       slug: black-d-hide-chaps
       relationship: downgrade
-      description: Standard version requiring 40 Defence
-  about: |-
-    > *"Ancient blessed dragonhide chaps."*
-
-    | Stat | Blessed | Black D'hide |
-    |------|--------:|-----------:|
-    | Ranged Attack | +8 | +8 |
-    | Stab Defence | +17 | +17 |
-    | Slash Defence | +20 | +20 |
-    | Crush Defence | +16 | +16 |
-    | Magic Defence | +18 | +18 |
-    | Ranged Defence | +17 | +17 |
-    | Prayer | +1 | 0 |
-    | Ranged Req | 70 | 70 |
-    | Defence Req | None | 40 |
-
-    The key advantage: blessed chaps have no Defence requirement, making them ideal for pures and ranged-focused accounts. They also offer a +1 prayer bonus.
+      description: Standard version (40 Defence req historically)
+  about: Ancient chaps are the Zaros-blessed dragonhide chaps from hard clue caskets, identical to other god variants and prized by 1-Defence pures for the +1 prayer bonus.
   market_strategy:
     notes:
       - Hard clue exclusive — supply tied to clue completion rates
-      - Popular with 1-Defence pures who need best-in-slot ranged legs
-      - All god variants are functionally identical
-      - Armadyl and Ancient variants tend to have slight premiums
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - All god variants functionally identical; cosmetic premium varies
+      - Pure-friendly best-in-slot ranged legs
+      - 8/4h buy limit keeps the floor stiff
+  history:
+    - date: "2021-09-22"
+      description: The 40 Defence requirement has been removed.
+    - date: "2015-06-18"
+      description: Fixed a stretching issue with void robes and dragonhide chaps while using Zul-andra teleport.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

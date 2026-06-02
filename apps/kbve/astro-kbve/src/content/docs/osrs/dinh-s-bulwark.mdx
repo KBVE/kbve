@@ -14,33 +14,38 @@ osrs:
   limit: 8
   equipment:
     slot: 2h
-    type: shield
-    tradeable: true
-    weight: 8
+    weapon_type: bulwark
+    attack_speed: 5
+    weight: 30
     requirements:
+      attack: 75
       defence: 75
-    stats:
-      attack_crush: 124
-      stab_def: 106
-      slash_def: 109
-      crush_def: 109
-      ranged_def: 148
-      strength: 38
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 124
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 106
+      slash: 109
+      crush: 109
+      magic: -10
+      ranged: 148
+    other_bonus:
+      melee_strength: 38
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Shield Bash
     energy: 50
-    effect: Hits up to 10 enemies in 11x11 area, reduces offensive stats by 5%
-    notes:
-      - Primary target receives 2 hits
-      - Other targets receive 1 hit
+    description: "Hits up to 10 enemies in an 11x11 area with 20% increased accuracy and reduces highest offensive stats by 5%."
   drop_table:
     sources:
       - source: Chambers of Xeric
         rate: 3/69
         notes: Ancient chest
-  truemarket:
-    buy_limit: 8
-    price_estimate: 3000000
   related_items:
     - item_id: 12931
       item_name: Serpentine helm
@@ -52,37 +57,38 @@ osrs:
       slug: dragonfire-shield
       relationship: alternative
       description: Alternative shield
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Crush attack | +124 |
-    | Stab defence | +106 |
-    | Slash defence | +109 |
-    | Crush defence | +109 |
-    | Ranged defence | +148 |
-    | Strength | +38 |
-
-    Strongest shield in-game.
-
-    Shield Bash (50% energy):
-    - Hits up to 10 enemies in 11x11 area
-    - Primary target: 2 hits
-    - Other targets: 1 hit
-    - Reduces enemy offensive stats by 5%
-
-    Best For:
-    - Wilderness tank gear (anti-PK)
-    - Multicombat Slayer (dust devils, nechryaels)
-    - Tanking in dangerous situations
-
-    Strategy: Pair with defensive armor for maximum survivability.
+  about: "Dinh's bulwark is the strongest defensive shield in the game, occupying the two-handed slot and offering a Shield Bash multi-target special attack popular for wilderness tank gear and Chambers of Xeric."
   market_strategy:
     notes:
       - Niche but powerful defensive item
       - Popular for wilderness activities
       - Two-handed (no weapon)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2021-12-01"
+      description: Fixed a bug where the special attack's stat drain was not applying correctly.
+    - date: "2021-09-22"
+      description: Attack speed improved, Crush bonus raised to +124 and defensive bonuses adjusted.
+  properties:
+    release_date: "2017-01-05"
+    update: Chambers of Xeric
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 30
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+      - Pummel
+      - Block
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

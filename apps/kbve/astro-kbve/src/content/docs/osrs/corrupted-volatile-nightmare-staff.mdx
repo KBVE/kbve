@@ -12,9 +12,64 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted volatile nightmare staff is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: nightmare
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 1.6
+    requirements:
+      magic: 50
+      hitpoints: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 16
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 14
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 15
+      prayer: 0
+  special_attack:
+    name: Volatile Discharge
+    energy: 55
+    description: Fires a volatile blast at the target with a 6-tile range, hitting up to 50% higher than the player's max hit based on Magic level.
+  related_items:
+    - item_id: 24424
+      item_name: Volatile nightmare staff
+      slug: volatile-nightmare-staff
+      relationship: alternative
+      description: Non-corrupted variant with 10-tile special attack range
+  about: "Corrupted volatile nightmare staff is a Deadman Mode variant of the volatile nightmare staff with lowered requirements but a shorter 6-tile special attack range."
+  history:
+    - date: "2024-07-17"
+      description: Released with the Deadman Armageddon and While Guthix Sleeps Updates.
+  properties:
+    release_date: "2024-07-17"
+    update: Deadman Armageddon & While Guthix Sleeps Updates
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.6
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,7 +14,24 @@ osrs:
   limit: 15
   equipment:
     slot: hands
-    requirements: {}
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   related_items:
     - item_id: 4302
       item_name: Ham hood
@@ -31,12 +48,31 @@ osrs:
       slug: ham-boots
       relationship: set-piece
       description: H.A.M. feet piece
-  about: |-
-    > *"HAM gloves as worn by the Humans Against Monsters group."*
-
-    The ham gloves are the hands piece of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Ham gloves are the hands piece of the H.A.M. robes set; wearing more pieces reduces ejection chance when caught pickpocketing at the H.A.M. Hideout.
+  market_strategy:
+    notes:
+      - Demand tied to H.A.M. pickpocketing thieves training
+      - Tiny 15/4h buy limit keeps supply tight
+      - Cosmetic value for full H.A.M. uniform collectors
+  history:
+    - date: "2014-12-10"
+      description: Item renamed from Gloves to Ham gloves.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes, and Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

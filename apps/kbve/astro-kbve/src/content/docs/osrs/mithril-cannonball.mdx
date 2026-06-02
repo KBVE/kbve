@@ -12,9 +12,48 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Mithril cannonball is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Smithing
+      level: 55
+      xp: 34
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+      tools:
+        - Ammo mould
+      output_quantity: 4
+      notes: Requires partial completion of Dwarf Cannon.
+    - skill: Smithing
+      level: 55
+      xp: 68
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Double ammo mould
+      output_quantity: 8
+      notes: Requires Sleeping Giants completion and Giants' Foundry access.
+  about: "Mithril cannonball is members ammunition used by mithril or stronger ship-mounted cannons during Sailing combat encounters."
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill launch.
+    - date: "2026-03-18"
+      description: Ranged Strength bonus increased from +48 to +105.
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

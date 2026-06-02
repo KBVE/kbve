@@ -12,9 +12,65 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered top (t3) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 26452
+      item_name: Shattered hood (t3)
+      slug: shattered-hood-t3
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter outfit hood.
+    - item_id: 26456
+      item_name: Shattered legs (t3)
+      slug: shattered-legs-t3
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter outfit legs.
+    - item_id: 26458
+      item_name: Shattered boots (t3)
+      slug: shattered-boots-t3
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter outfit boots.
+  about: "Shattered top (t3) is the cosmetic body slot piece of the tier 3 Shattered Relic Hunter outfit, purchased from the Leagues Reward Shop for 15,000 League points."
+  history:
+    - date: "2022-03-16"
+      description: Item made obtainable and examine text capitalization corrected.
+  properties:
+    release_date: "2022-03-16"
+    update: "Leagues III: Shattered Relics"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

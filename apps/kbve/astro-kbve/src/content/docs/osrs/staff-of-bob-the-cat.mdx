@@ -12,9 +12,61 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 8
-  about: "Staff of bob the cat is a members-only item in Old School RuneScape. High alchemy value: 900 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2
+    attack_bonus:
+      stab: 2
+      slash: -1
+      crush: 10
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  about: "Staff of bob the cat is a cosmetic one-handed staff released on 11 April 2019 as part of the Treasure Trails expansion and Easter 2019 update. Obtained as a rare reward from easy reward caskets at roughly 1/1,404, it offers +10 Magic and Crush attack bonuses along with +7 Strength and supports standard spellbook autocasting but not Ancient or Arceuus spells."
+  market_strategy:
+    notes:
+      - Buy limit of 8 keeps daily volume thin and price volatile
+      - Demand is largely collector and fashionscape driven
+      - Treasure Trail droprate underpins long term floor price
+  history:
+    - date: "2019-04-11"
+      description: Released as a reward from the Treasure Trails expansion and Easter 2019 event
+  properties:
+    release_date: "2019-04-11"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
