@@ -5,12 +5,19 @@ use axum::{
     response::IntoResponse,
 };
 use futures_util::{SinkExt, StreamExt};
+use std::time::Duration;
+use tokio::time::{interval, timeout};
 use tokio_tungstenite::connect_async;
 use tracing::{error, info, warn};
 
 use crate::auth::jwt;
 
 const NO_USERNAME_MSG: &str = "No provider username configured. Set a username on your OAuth provider (Discord/GitHub/Twitch) before joining IRC.";
+
+const WS_MAX_FRAME_BYTES: usize = 16 * 1024;
+const WS_MAX_MESSAGE_BYTES: usize = 64 * 1024;
+const WS_PING_INTERVAL: Duration = Duration::from_secs(30);
+const WS_READ_DEADLINE: Duration = Duration::from_secs(90);
 
 pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse {
     let token = match jwt::extract_token(&req) {
@@ -33,7 +40,9 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
 
     info!(user = %username, "WebSocket upgrade accepted");
 
-    ws.on_upgrade(move |socket| proxy_to_ergo(socket, username))
+    ws.max_frame_size(WS_MAX_FRAME_BYTES)
+        .max_message_size(WS_MAX_MESSAGE_BYTES)
+        .on_upgrade(move |socket| proxy_to_ergo(socket, username))
         .into_response()
 }
 
@@ -77,9 +86,19 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
 
     info!(user = %username, "Connected to Ergo");
 
-    // Bidirectional proxy
+    let (client_pulse_tx, mut client_pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
+
     let client_to_ergo = async {
-        while let Some(Ok(msg)) = client_stream.next().await {
+        loop {
+            let msg = match timeout(WS_READ_DEADLINE, client_stream.next()).await {
+                Ok(Some(Ok(m))) => m,
+                Ok(Some(Err(_))) | Ok(None) => break,
+                Err(_) => {
+                    warn!(user = %username, "client idle past read deadline; closing");
+                    break;
+                }
+            };
+            let _ = client_pulse_tx.send(());
             let ergo_msg = match msg {
                 Message::Text(t) => {
                     tokio_tungstenite::tungstenite::Message::Text(t.to_string().into())
@@ -96,19 +115,37 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     };
 
     let ergo_to_client = async {
-        while let Some(Ok(msg)) = ergo_stream.next().await {
-            let client_msg = match msg {
-                tokio_tungstenite::tungstenite::Message::Text(t) => {
-                    Message::Text(t.to_string().into())
+        let mut ping_timer = interval(WS_PING_INTERVAL);
+        ping_timer.tick().await;
+        loop {
+            tokio::select! {
+                msg = ergo_stream.next() => {
+                    let msg = match msg {
+                        Some(Ok(m)) => m,
+                        _ => break,
+                    };
+                    let client_msg = match msg {
+                        tokio_tungstenite::tungstenite::Message::Text(t) => {
+                            Message::Text(t.to_string().into())
+                        }
+                        tokio_tungstenite::tungstenite::Message::Binary(b) => Message::Binary(b.into()),
+                        tokio_tungstenite::tungstenite::Message::Ping(p) => Message::Ping(p.into()),
+                        tokio_tungstenite::tungstenite::Message::Pong(p) => Message::Pong(p.into()),
+                        tokio_tungstenite::tungstenite::Message::Close(_) => break,
+                        _ => continue,
+                    };
+                    if client_sink.send(client_msg).await.is_err() {
+                        break;
+                    }
                 }
-                tokio_tungstenite::tungstenite::Message::Binary(b) => Message::Binary(b.into()),
-                tokio_tungstenite::tungstenite::Message::Ping(p) => Message::Ping(p.into()),
-                tokio_tungstenite::tungstenite::Message::Pong(p) => Message::Pong(p.into()),
-                tokio_tungstenite::tungstenite::Message::Close(_) => break,
-                _ => continue,
-            };
-            if client_sink.send(client_msg).await.is_err() {
-                break;
+                _ = ping_timer.tick() => {
+                    if client_sink.send(Message::Ping(Default::default())).await.is_err() {
+                        break;
+                    }
+                }
+                _ = client_pulse_rx.recv() => {
+                    ping_timer.reset();
+                }
             }
         }
     };
