@@ -428,8 +428,8 @@ end
 -- on a different chunk; once back within range the loop picks up again.
 local FOLLOW_TICK_INTERVAL = 60
 local FOLLOW_RADIUS_SQ = 128 * 128   -- keep tracking up to ~128 tiles away
-local FOLLOW_REST_DIST_SQ = 2 * 2    -- already on top of owner → don't churn
-local FOLLOW_DESTINATION_RADIUS = 2  -- ally settles within 2 tiles of owner
+local FOLLOW_REST_DIST_SQ = 6 * 6    -- ally orbits within 6 tiles — pack-like, not heel-clinging
+local FOLLOW_DESTINATION_RADIUS = 5  -- ally settles within 5 tiles of owner
 
 -- Iterates `storage.allies` (maintained at hatch + death + on_init/
 -- on_configuration_changed rebuild) instead of calling
@@ -520,14 +520,14 @@ local function follow_loop()
 								ally.set_command{
 									type = defines.command.go_to_location,
 									destination_entity = target_entity,
-									distraction = defines.distraction.by_damage,
+									distraction = defines.distraction.by_enemy,
 									radius = FOLLOW_DESTINATION_RADIUS,
 								}
 							else
 								ally.set_command{
 									type = defines.command.go_to_location,
 									destination = { x = opos.x, y = opos.y },
-									distraction = defines.distraction.by_damage,
+									distraction = defines.distraction.by_enemy,
 									radius = FOLLOW_DESTINATION_RADIUS,
 								}
 							end
@@ -536,7 +536,7 @@ local function follow_loop()
 								type = defines.command.wander,
 								ticks_to_wait = 240,
 								wander_in_group = false,
-								distraction = defines.distraction.by_damage,
+								distraction = defines.distraction.by_enemy,
 							}
 						end
 					end)
