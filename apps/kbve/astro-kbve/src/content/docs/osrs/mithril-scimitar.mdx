@@ -12,24 +12,82 @@ osrs:
   lowalch: 416
   highalch: 624
   limit: 125
-  item_id: 1329
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.587
-  requirements:
-    attack: 20
-  stats:
-    slash_attack: 21
-    strength: 20
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: scimitar
+    attack_speed: 4
+    weight: 1.587
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 5
+      slash: 21
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 20
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 55
+      experience: 100
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - slug: adamant-scimitar
-    - slug: mithril-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Adamant scimitar
+      relationship: upgrade
+    - name: Steel scimitar
+      relationship: downgrade
+    - name: Mithril bar
+      relationship: component
+  about: "Mithril scimitar is a free-to-play one-handed slash weapon in Old School RuneScape requiring 20 Attack to wield. It is smithed from 2 mithril bars at Smithing level 55 for 100 experience and offers a fast 4-tick attack with +21 slash and +20 strength."
+  market_strategy:
+    notes:
+      - Common training weapon for low-mid Attack accounts; demand is steady and broad.
+      - Cheaper to buy on the GE than to smith from mithril bars.
+      - F2P accessible, so flips compete with high volume and thin margins.
+  trading_tips:
+    - Watch mithril bar price; if bar price falls, scimitar floor follows.
+    - Buy in bulk during off-peak hours; GE limit of 125 per 4 hours allows decent flip cycles.
+  history:
+    - date: "2001-01-04"
+      description: Released as part of the original RuneScape weapon lineup.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.587
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

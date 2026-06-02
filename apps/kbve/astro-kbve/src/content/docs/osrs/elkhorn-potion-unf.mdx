@@ -12,9 +12,60 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: null
-  about: "Elkhorn potion (unf) is a members-only item in Old School RuneScape. High alchemy value: 15 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Herblore
+      level: 56
+      materials:
+        - item_name: Vial of water
+          quantity: 1
+        - item_name: Elkhorn coral
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_id: 31664
+      item_name: Haemostatic poultice
+      slug: haemostatic-poultice
+      relationship: product
+      description: Finished potion product
+    - item_name: Elkhorn coral
+      slug: elkhorn-coral
+      relationship: component
+      description: Primary ingredient
+    - item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+  about: "Elkhorn potion (unf) is an unfinished Herblore potion created by adding an elkhorn coral to a vial of water at level 56 Herblore. Adding squid paste completes it into a Haemostatic poultice. Introduced in the Sailing update."
+  market_strategy:
+    notes:
+      - No GE buy limit
+      - Acts as a Herblore intermediate, demand driven by Haemostatic poultice usage
+      - Often unprofitable to produce directly
+  trading_tips:
+    - Track elkhorn coral and squid paste prices together
+    - Bulk-make only when poultice demand spikes
+  history:
+    - date: "2025-11-05"
+      description: Added to the game as an unobtainable item.
+    - date: "2025-11-19"
+      description: Made obtainable with the Sailing release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

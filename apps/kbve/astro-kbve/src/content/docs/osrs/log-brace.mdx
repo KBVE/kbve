@@ -5,16 +5,76 @@ osrs:
   id: 28146
   name: Log brace
   slug: log-brace
-  examine: With some rope, adamantite bars and steel nails, I can create a sturdy harness.
+  examine: "With some rope, adamantite bars and steel nails, I can create a sturdy harness."
   members: true
   icon: Log brace.png
   value: 3000
   lowalch: 1200
   highalch: 1800
   limit: 40
-  about: "Log brace is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: "Forestry Shop"
+      location: "Forestry events"
+      members: true
+      currency: "Anima-infused bark"
+      notes: "Costs 3,000 anima-infused bark plus 300 maple logs and 300 yew logs per brace."
+  recipes:
+    - skill: Smithing
+      level: 75
+      experience: 0
+      materials:
+        - item_name: Log brace
+          quantity: "1"
+        - item_name: Steel nails
+          quantity: "45"
+        - item_name: Rope
+          quantity: "2"
+        - item_name: Adamantite bar
+          quantity: "3"
+      tools:
+        - Hammer
+      output_quantity: 1
+      notes: "Combine the log brace with the listed materials at 75 Smithing and 75 Woodcutting to craft a Sturdy harness — the upgrade that converts a Forestry kit into a Forestry basket."
+  related_items:
+    - name: Sturdy harness
+      relationship: product
+    - name: Forestry kit
+      relationship: alternative
+    - name: Forestry basket
+      relationship: upgrade
+    - name: Anima-infused bark
+      relationship: component
+  about: "Log brace is a Forestry-event item used to upgrade a Forestry kit into a Forestry basket via a sturdy harness in Old School RuneScape. Bought from the Forestry Shop for 3,000 anima-infused bark plus 300 maple and 300 yew logs; combined with 45 steel nails, 2 rope, and 3 adamantite bars at 75 Smithing and 75 Woodcutting to produce the sturdy harness."
+  market_strategy:
+    notes:
+      - "Effectively a bark-sink — supply is gated by Forestry event participation, not GE flippers."
+      - "Daily GE limit of 40 keeps the market thin and price-volatile."
+      - "Demand tied to players chasing the Forestry basket upgrade for log-store convenience."
+  trading_tips:
+    - "GE price is heavily anchored to anima-infused bark farming time, not direct gold cost."
+    - "Watch for Forestry buffs or QoL changes — these patches push demand sharply on the limited supply."
+    - "Buy in small lots; the 40-per-4h limit makes large orders impractical."
+  history:
+    - date: "2023-06-28"
+      description: "Released with the Forestry update as a sturdy-harness component."
+    - date: "2023-10-25"
+      description: "Inventory icon and model graphically updated."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-06-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    alchable: true
+    options:
+      - Use
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

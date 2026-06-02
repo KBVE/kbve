@@ -5,16 +5,73 @@ osrs:
   id: 31115
   name: Eye of ayak (uncharged)
   slug: eye-of-ayak-uncharged
-  examine: This staff is imbued with demonic power. It is currently uncharged.
+  examine: "This staff is imbued with demonic power. It is currently uncharged."
   members: true
   icon: Eye of ayak (uncharged).png
   value: 6000000
   lowalch: 2400000
   highalch: 3600000
   limit: 8
-  about: "Eye of ayak (uncharged) is a members-only item in Old School RuneScape. High alchemy value: 3,600,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ayak
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 3
+    weight: 2
+    requirements:
+      magic: 83
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 30
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 5
+      crush: 5
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 2
+  charges:
+    max_charges: 50000
+    description: "Charge with death/chaos runes or demon tears; lasts roughly 25 hours of continuous combat."
+  drop_table:
+    sources:
+      - source: Doom of Mokhaiotl
+        quantity: "1"
+        rarity: 1/2000
+  related_items:
+    - item_id: 31117
+      item_name: Eye of ayak
+      slug: eye-of-ayak
+      relationship: variant
+      description: Charged form of the staff
+  about: "Eye of ayak (uncharged) is the dormant form of the powered staff dropped by Doom of Mokhaiotl in Varlamore. Must be charged before it can be equipped. High alchemy value: 3,600,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  history:
+    - date: "2025-07-23"
+      description: "Released with Varlamore: The Final Dawn."
+    - date: "2026-01-15"
+      description: Fixed invisibility bugs that affected Akkha and Yama encounters.
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

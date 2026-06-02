@@ -12,9 +12,68 @@ osrs:
   lowalch: 10
   highalch: 16
   limit: 7000
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      ranged: 11
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 10
+  related_items:
+    - item_name: Mithril knife
+      slug: mithril-knife
+      relationship: variant
+      description: Unpoisoned base variant
+    - item_name: Mithril knife(p)
+      slug: mithril-knife-p
+      relationship: variant
+      description: Poison variant
+    - item_name: Mithril knife(p+)
+      slug: mithril-knife-p-plus
+      relationship: variant
+      description: Stronger poison variant
+    - item_name: Adamant knife(p++)
+      slug: adamant-knife-p-plus-plus
+      relationship: upgrade
+      description: Higher tier poisoned knife
   about: "Mithril knife(p++) is a members-only item in Old School RuneScape. High alchemy value: 16 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Thrown ranged weapon with poison++ application
+      - Niche use for poison-stacked PvM and PvP
+      - Low high-alch value, demand driven by combat usage
+      - Stackable so trades execute in bulk lots
+      - Upgrade path to adamant/rune variants
+  history:
+    - date: "2003-04-14"
+      description: "Released as part of the New Throwing Weapons update."
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

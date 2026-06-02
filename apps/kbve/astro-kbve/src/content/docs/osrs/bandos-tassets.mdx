@@ -12,9 +12,14 @@ osrs:
   lowalch: 115964
   highalch: 173946
   limit: 8
+  material:
+    type: bandos
+    tier: high
   equipment:
     slot: legs
     weight: 9.071
+    requirements:
+      defence: 65
     attack_bonus:
       stab: 0
       slash: 0
@@ -25,60 +30,69 @@ osrs:
       stab: 71
       slash: 63
       crush: 66
-      magic: -21
-      ranged: -7
+      magic: -4
+      ranged: 93
     other_bonus:
-      melee_strength: 2
+      strength: 2
       ranged_strength: 0
       magic_damage: 0
-      prayer: 0
-    requirements:
-      defence: 65
+      prayer: 1
   drop_table:
-    primary_source: General Graardor
-    best_drop_rate: 1/381
     sources:
       - source: General Graardor
-        source_id: 2215
-        combat_level: 624
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/381
-        members_only: true
+        rarity: 1/381
+      - source: Sergeant Strongstack
+        quantity: "1"
+        rarity: 1/16256
+      - source: Sergeant Steelwill
+        quantity: "1"
+        rarity: 1/16256
+      - source: Sergeant Grimspike
+        quantity: "1"
+        rarity: 1/16256
   related_items:
-    - item_id: 11832
-      item_name: Bandos chestplate
-      slug: bandos-chestplate
+    - name: Bandos chestplate
       relationship: set-piece
-      description: Matching body armor
-    - item_id: 26384
-      item_name: Torva platelegs
-      slug: torva-platelegs
+    - name: Bandos boots
+      relationship: set-piece
+    - name: Torva platelegs
       relationship: upgrade
-      description: Ultimate upgrade
-    - item_id: 21298
-      item_name: Obsidian platelegs
-      slug: obsidian-platelegs
+    - name: Obsidian platelegs
       relationship: alternative
-      description: Budget alternative
-    - item_id: 11128
-      item_name: Bandos boots
-      slug: bandos-boots
-      relationship: set-piece
-      description: Matching boots
-  about: |-
-    BiS melee legs for:
-    - All melee combat
-    - Bossing
-    - Slayer
-    - Tank setups
+  about: "Bandos tassets are a top-tier melee leg slot item in Old School RuneScape requiring 65 Defence, dropped by General Graardor and his bodyguards in the God Wars Dungeon. They provide a +2 Strength bonus and serve as the upgrade path component for Torva platelegs."
   market_strategy:
     notes:
-      - GWD is popular grind
-      - Required for Torva platelegs
-      - Still BiS defence
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Long-standing BiS-tier melee legs for many setups; demand stays steady from GWD farming and PvM gearing.
+      - 1/381 drop from General Graardor caps supply — GWD trip volume drives price.
+      - Required component for Torva platelegs, providing a permanent demand floor.
+  trading_tips:
+    - Track GWD popularity (events, double drop weeks) for short-term price dips.
+    - Compare against Torva platelegs spread; if delta narrows, upgrade pressure rises.
+  history:
+    - date: "2013-10-17"
+      description: Released with the God Wars Dungeon update; dropped by General Graardor and his bodyguards.
+    - date: "2014-01-30"
+      description: Item value adjusted from 272,500 to 289,910 coins.
+  properties:
+    release_date: "2013-10-17"
+    update: The God Wars Dungeon has been uncovered!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,57 +14,70 @@ osrs:
   limit: 125
   equipment:
     slot: neck
-    type: symbol
-    prayer_bonus: 8
+    weapon_type: none
+    weight: 0.007
     requirements:
       prayer: 31
-  crafting:
-    skill: crafting
-    level: 31
-    xp: 50
-    materials:
-      - item_name: Unstrung symbol
-        item_id: 1714
-        quantity: "1"
-      - item_name: Ball of wool
-        item_id: 1759
-        quantity: "1"
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: 2
+      ranged: 2
+    other_bonus:
+      prayer: 8
+  recipes:
+    - skill: Crafting
+      level: 31
+      experience: 4
+      materials:
+        - item_name: Unstrung symbol
+          quantity: "1"
+        - item_name: Ball of wool
+          quantity: "1"
+      tools: []
+      output_quantity: 1
+      notes: "Use a ball of wool on an unstrung symbol to string it, then have Brother Jered bless it (requires 31 Prayer)."
   related_items:
-    - item_id: 1724
-      item_name: Unholy symbol
-      slug: unholy-symbol
+    - name: Unholy symbol
       relationship: alternative
-      description: Zamorak counterpart (+8 Prayer)
-    - item_id: 1704
-      item_name: Amulet of glory
-      slug: amulet-of-glory
+    - name: Amulet of glory
       relationship: alternative
-      description: Better combat stats, no prayer bonus
-    - item_id: 19492
-      item_name: Amulet of the damned
-      slug: amulet-of-the-damned
+    - name: Amulet of the damned
       relationship: upgrade
-      description: For Barrows sets
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Prayer Bonus | +8 |
-    | Prayer Req | 31 |
-
-    - Prayer bonus for protection prayers
-    - Used in some quests
-    - Budget prayer gear option
+    - name: Unstrung symbol
+      relationship: component
+  about: "Holy symbol is a free-to-play neck-slot amulet blessed in the name of Saradomin, granting +8 Prayer bonus and minor defence bonuses across the board. Popular as a budget Prayer training amulet alongside Proselyte armour, and required for Animal Magnetism and The Great Brain Robbery."
   market_strategy:
     notes:
-      - Low demand item
-      - Crafting supplies often more valuable
-      - Quest requirement creates some demand
-      - Often cheaper to craft
-      - Low volume trading
-      - Consider for quest supplies flips
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Low-demand consumable that mostly moves to ironmen, questers and budget Prayer trainers."
+      - "Crafting from an unstrung symbol + ball of wool + blessing is typically cheaper than buying off the GE."
+      - "Quest requirement (Animal Magnetism, The Great Brain Robbery) creates steady but small demand spikes."
+  trading_tips:
+    - "Flip in small lots; the buy limit is 125 but volume is shallow."
+    - "Compare GE price to the cost of an unstrung symbol + ball of wool — large gaps mean profitable crafting flips."
+    - "Stock up before mass-quest events or Deadman seasons when prayer gear demand rises."
+  history:
+    - date: "2001-07-12"
+      description: "Released as part of the original Prayer skill content."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-07-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    alchable: true
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

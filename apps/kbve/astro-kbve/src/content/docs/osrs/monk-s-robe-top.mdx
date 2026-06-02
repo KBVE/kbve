@@ -12,29 +12,30 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 125
+  material:
+    type: cloth
+    tier: low
   equipment:
     slot: body
-    type: robes
-    prayer_bonus: 6
-    combat_stats:
-      stab_defence: 0
-      slash_defence: 0
-      crush_defence: 0
-      magic_defence: 0
-      ranged_defence: 0
+    weapon_type: na
+    weight: 0.907
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus:
+      prayer: 6
+  prayer:
+    bonus: 6
   related_items:
-    - item_id: 542
-      item_name: Monk's robe
+    - item_name: Monk's robe
       slug: monks-robe
       relationship: set-piece
       description: Legs (+5 Prayer)
-    - item_id: 9674
-      item_name: Proselyte hauberk
+    - item_name: Proselyte hauberk
       slug: proselyte-hauberk
       relationship: upgrade
       description: Better defence and prayer (+8)
-    - item_id: 5575
-      item_name: Initiate hauberk
+    - item_name: Initiate hauberk
       slug: initiate-hauberk
       relationship: upgrade
       description: Defence and prayer (+6)
@@ -63,8 +64,28 @@ osrs:
       - Not worth flipping
       - Free to obtain
       - Used for fashion/clues only
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-07-12"
+      description: "Released with the Improved prayer system update."
+  properties:
+    release_date: "2001-07-12"
+    update: Improved prayer system
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,63 @@ osrs:
   lowalch: 88
   highalch: 133
   limit: 2000
-  about: "Anti-venom+(2) is a members-only item in Old School RuneScape. High alchemy value: 133 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: Instantly cures poison and venom on the player.
+      - description: Grants immunity to poison for 15 minutes and immunity to venom for approximately 3 minutes.
+  recipes:
+    - skill: Herblore
+      level: 94
+      experience: 125
+      materials:
+        - item_name: Anti-venom(4)
+          quantity: 1
+        - item_name: Torstol
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Anti-venom+(4)
+      relationship: variant
+    - name: Anti-venom+(3)
+      relationship: variant
+    - name: Anti-venom+(1)
+      relationship: variant
+    - name: Anti-venom(4)
+      relationship: component
+  about: "Anti-venom+(2) is a 2-dose super antivenom potion in Old School RuneScape created at Herblore level 94 by adding torstol to Anti-venom(4) for 125 experience. Each dose cures and grants temporary immunity to both poison and venom."
+  market_strategy:
+    notes:
+      - Core supply for high-level Slayer bosses (Zulrah, venomous monsters) — demand tracks PvM cycles.
+      - Crafted from Anti-venom(4) and torstol; arbitrage tied to torstol seed/herb prices.
+      - Unfinished torstol potions can substitute for raw torstol since the 2022 update.
+  trading_tips:
+    - Compare price-per-dose against Anti-venom+(4) and Anti-venom+(3) for the best venom coverage value.
+    - Watch torstol price swings — feedstock moves the floor.
+  history:
+    - date: "2015-01-08"
+      description: Released with the Zulrah update; created from Anti-venom(4) plus torstol at Herblore level 94.
+    - date: "2022-11-16"
+      description: Update allowed unfinished torstol potions to substitute for raw torstol when brewing Anti-venom+.
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

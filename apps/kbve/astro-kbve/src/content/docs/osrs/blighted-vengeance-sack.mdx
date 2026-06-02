@@ -12,9 +12,59 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 10000
+  prayer:
+    spellbook: Lunar
+    spell: Vengeance
+    requirements:
+      magic: 94
+    notes: Consumed when casting Vengeance or Vengeance Other in PvP-enabled zones. Removes the rune requirement entirely.
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      cost: "1 Last Man Standing point per 50"
+    - shop_name: Soul Wars Reward Shop
+      cost: "10 Zeal Tokens per 50"
+  related_items:
+    - name: Blighted anglerfish
+      relationship: variant
+    - name: Blighted manta ray
+      relationship: variant
+    - name: Blighted karambwan
+      relationship: variant
+    - name: Blighted ancient ice sack
+      relationship: variant
+    - name: Blighted surge sack
+      relationship: variant
+    - name: Blighted teleport spell sack
+      relationship: variant
   about: "Blighted vengeance sack is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Bulk-consumed by PKers casting Vengeance without runes; steady wilderness demand.
+      - Sourced from LMS and Soul Wars reward shops; reward-token-to-gp arbitrage drives floor price.
+      - Drops from numerous wilderness Slayer monsters as a secondary supply stream.
+  trading_tips:
+    - Track LMS/Soul Wars point values relative to GE price to gauge floor.
+    - Stack-buy in bulk for high-tier PvP loadouts.
+  history:
+    - date: "2020-04-23"
+      description: Released with the Blighted Items update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-23"
+    update: Blighted Items
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

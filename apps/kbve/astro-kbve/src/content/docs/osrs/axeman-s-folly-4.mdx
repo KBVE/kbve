@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Axeman's folly(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Temporarily boosts Woodcutting by 2 levels."
+      - description: "Lowers Attack by 3 levels."
+  recipes:
+    - materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Hammerstone hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: The stuff
+          quantity: 1
+      tools:
+        - Brewing vat
+      output_quantity: 2
+      notes: "Mature Axeman's folly batch fills two 4-pint kegs."
+  related_items:
+    - item_id: 5823
+      item_name: Axeman's folly(1)
+      slug: axeman-s-folly-1
+      relationship: variant
+      description: Single-pint variant
+    - item_id: 5821
+      item_name: Axeman's folly(2)
+      slug: axeman-s-folly-2
+      relationship: variant
+      description: Two-pint variant
+    - item_id: 5819
+      item_name: Axeman's folly(3)
+      slug: axeman-s-folly-3
+      relationship: variant
+      description: Three-pint variant
+  about: "Axeman's folly(4) is a brewed ale keg from the Forgettable Tale of a Drunken Dwarf quest reward brewery line. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  history:
+    - date: "2005-07-11"
+      description: Released alongside the Farming skill update.
+    - date: "2015-02-26"
+      description: Partially drunk variants made untradeable on the Grand Exchange.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,25 +12,96 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 70
-  item_id: 1079
-  item_type: armor
-  slot: legs
-  type: platelegs
-  tradeable: true
-  weight: 9.071
-  requirements:
-    defence: 40
-  stats:
-    stab_defence: 51
-    slash_defence: 49
-    crush_defence: 47
-    magic: -21
-    ranged: -11
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 9.071
+    requirements:
+      defence: 40
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -21
+      ranged: 49
+  recipes:
+    - skill: Smithing
+      level: 99
+      experience: 225
+      materials:
+        - item_name: Runite bar
+          quantity: "3"
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      notes: "Use 3 runite bars on an anvil with a hammer at 99 Smithing for 225 XP."
+  shops:
+    - shop_name: "Champions' Guild Armoury"
+      location: "Champions' Guild, south of Varrock"
+      members: false
+    - shop_name: "Brian's Armour Shop"
+      location: "Prifddinas"
+      members: true
+  drop_table:
+    sources:
+      - source: "Chaos Elemental"
+        quantity: "1"
+        rarity: "1/512"
+      - source: "K'ril Tsutsaroth"
+        quantity: "1"
+        rarity: "Common"
+      - source: "Rune dragon"
+        quantity: "1"
+        rarity: "1/256"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - slug: rune-plateskirt
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Rune plateskirt
+      relationship: alternative
+    - name: Runite bar
+      relationship: component
+    - name: Adamant platelegs
+      relationship: downgrade
+    - name: Dragon platelegs
+      relationship: upgrade
+  about: "Rune platelegs are the rune-tier leg armour in Old School RuneScape, requiring 40 Defence to wear. The strongest free-to-play platelegs, they offer top-tier melee defence at a budget price and double as a popular high alch target. Smithable at 99 Smithing from 3 runite bars for 225 XP."
+  market_strategy:
+    notes:
+      - "Steady high-alch staple: large gap between GE price and 38,400 gp alch keeps demand consistent."
+      - "Drops from a wide range of mid-to-high level monsters, so supply is broad and stable."
+      - "F2P-tradeable item — flips can run across both game modes."
+  trading_tips:
+    - "Watch the GE-vs-high-alch margin; when GE price dips below ~38,000 alching becomes profitable."
+    - "Smithing 99 alts can craft profitably when runite bar prices dip."
+    - "Stable, blue-chip flip — low daily volatility but reliable margin in volume."
+  history:
+    - date: "2001-07-26"
+      description: "Released alongside the rune armour tier as the strongest F2P platelegs."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    alchable: true
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

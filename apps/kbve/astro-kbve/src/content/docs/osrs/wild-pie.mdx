@@ -17,32 +17,53 @@ osrs:
     cooking_level: 85
     cooking_xp: 240
   recipes:
-    - skill: cooking
+    - skill: Cooking
       level: 85
       xp: 240
-      inputs:
-        - item_name: Pastry dough
+      materials:
+        - item_name: Raw wild pie
           quantity: 1
-        - item_name: Pie dish
-          quantity: 1
-        - item_name: Raw bear meat
-          quantity: 1
-        - item_name: Raw chompy
-          quantity: 1
-        - item_name: Raw rabbit
-          quantity: 1
+      tools:
+        - Cooking range
       output_quantity: 1
   related_items:
-    - item_id: 7198
-      item_name: Admiral pie
-      slug: admiral-pie
+    - name: Raw wild pie
+      relationship: component
+    - name: Admiral pie
       relationship: alternative
-      description: +5 Fishing boost
-    - item_id: 7170
-      item_name: Mud pie
-      slug: mud-pie
+    - name: Mud pie
       relationship: alternative
-      description: Run energy drain pie
+    - name: Half a wild pie
+      relationship: variant
+    - name: Pie dish
+      relationship: component
+  market_strategy:
+    notes:
+      - "High demand for Slayer boosting; +5 Slayer is the highest available boost."
+      - "Raw chompy requires Big Chompy Bird Hunting quest, restricting supply."
+      - "Bake Pie spell (Lunar) avoids burning and stabilises production cost."
+  trading_tips:
+    - "Watch raw chompy and raw bear meat prices to model production cost."
+    - "Spikes around new boss releases that gate behind Slayer levels."
+  history:
+    - date: "2006-02-20"
+      description: "Wild pie released alongside the Recipe for Disaster questline content."
+  properties:
+    release_date: "2006-02-20"
+    update: Recipe for Disaster
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   about: |-
     | Skill | Boost |
     |-------|-------|
@@ -62,13 +83,8 @@ osrs:
     | Spicy stew (orange) | -5 to +5 | Random | 1 HP |
 
     Wild pie is reliable (+5 guaranteed) versus spicy stew which is random. However, spicy stew can potentially boost any skill.
-  market_strategy:
-    notes:
-      - High demand for Slayer boosting
-      - Raw chompy requires Big Chompy Bird Hunting quest
-      - Bake Pie spell avoids burning
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

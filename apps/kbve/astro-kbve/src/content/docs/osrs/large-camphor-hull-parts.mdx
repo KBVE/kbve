@@ -12,9 +12,57 @@ osrs:
   lowalch: 12500
   highalch: 18750
   limit: 100
-  about: "Large camphor hull parts is a members-only item in Old School RuneScape. High alchemy value: 18,750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    level: 53
+    experience: 0
+    hotspot: Shipwrights' workbench
+    notes: "Assembled at the Shipwrights' workbench from 5 camphor hull parts in 5 ticks; used to construct large camphor hulls for sloops with Sailing."
+  recipes:
+    - skill: Construction
+      level: 53
+      experience: 0
+      output_quantity: 1
+      tools:
+        - Saw
+        - Hammer
+      materials:
+        - item_name: Camphor hull parts
+          quantity: 5
+      notes: "Crafted at the Shipwrights' workbench; 5 ticks (3 seconds) per craft."
+  related_items:
+    - item_id: 32072
+      item_name: Camphor hull parts
+      slug: camphor-hull-parts
+      relationship: component
+      description: Standard hull parts combined into the large variant.
+  about: "Sailing-era component crafted at the Shipwrights' workbench (53 Construction) — 16 large parts plus extras build a full camphor hull for sloops at 67 Sailing / 59 Construction."
+  market_strategy:
+    notes:
+      - Demand is tied to Sailing skill progress; sloop hull builds consume these in bulk.
+      - 100 GE buy limit caps daily flow; spread is sensitive to camphor log supply and recent Sailing XP nerfs.
+  trading_tips:
+    - Watch camphor hull parts supply — large parts price tracks 5x that input plus tax.
+    - November 2025 hotfix halved Construction XP at shipwrights' benches; budget for fewer Construction-trainer buyers.
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill update.
+    - date: "2025-11"
+      description: Hotfix halved Construction XP from the Shipwrights' workbench.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
