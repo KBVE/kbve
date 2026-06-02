@@ -20,6 +20,7 @@ describe('kbve-kubectl CLI', () => {
 		expect(out).toContain('guest-exec');
 		expect(out).toContain('run');
 		expect(out).toContain('info');
+		expect(out).toContain('rotate-gameserver');
 	});
 
 	it('should show version with --version', () => {
@@ -94,6 +95,26 @@ describe('kbve-kubectl CLI', () => {
 		);
 		// Fails on missing kubectl context, not arg parsing
 		expect(result.exitCode).not.toBe(0);
+		expect(result.stderr).not.toContain('unrecognized');
+	});
+
+	it('should show subcommand help for rotate-gameserver', () => {
+		const out = dockerExec('kbve-kubectl rotate-gameserver --help');
+		expect(out).toContain('--namespace');
+		expect(out).toContain('--gameserver');
+		expect(out).toContain('--container');
+		expect(out).toContain('--delete-timeout');
+	});
+
+	it('should fail rotate-gameserver with missing required args', () => {
+		const result = dockerExecSafe('kbve-kubectl rotate-gameserver');
+		expect(result.exitCode).not.toBe(0);
+	});
+
+	it('should accept rotate-gameserver flags without arg-parse errors', () => {
+		const result = dockerExecSafe(
+			'kbve-kubectl rotate-gameserver --namespace ns --gameserver gs --container c --delete-timeout 30',
+		);
 		expect(result.stderr).not.toContain('unrecognized');
 	});
 });

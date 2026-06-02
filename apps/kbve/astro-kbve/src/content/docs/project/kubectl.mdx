@@ -42,6 +42,7 @@ Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM m
 | `kbve-kubectl info` | Print version and check available tools |
 | `kbve-kubectl run <script>` | Execute a shell script (passthrough to `/bin/sh`) |
 | `kbve-kubectl guest-exec --vm <name> --command <cmd>` | Run a command inside a KubeVirt VM via QEMU Guest Agent |
+| `kbve-kubectl rotate-gameserver --namespace <ns> --gameserver <name>` | Roll an Agones GameServer when its desired image drifts from the running pod image (delete-only; ArgoCD recreates) |
 
 ### Bundled Tools
 
@@ -70,7 +71,7 @@ The image is pinned in three manifests today, all kept in sync by the `deploymen
 |---|---|---|
 | `apps/kube/kubevirt/autologon/job.yaml` | KubeVirt Windows autologon setup | One-shot Job, kubectl + virtctl |
 | `apps/kube/kubevirt/runner/job.yaml` | KubeVirt runner orchestration | One-shot Job, kubectl + virtctl |
-| `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer image rotator | CronJob every 5 min, compares `gs.spec.image` vs `pod.spec.image`, deletes the GameServer when they drift so ArgoCD selfHeal recreates from the new spec |
+| `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer image rotator | CronJob every 5 min, invokes `kbve-kubectl rotate-gameserver` to compare `gs.spec.image` vs `pod.spec.image` and delete the GameServer on drift so ArgoCD selfHeal recreates from the new spec |
 
 When a new behavior needs to land across all rotator and KubeVirt jobs (RCON-aware save-flush probes, Agones SDK Health calls, retry-with-backoff, ConfigMap-driven rotation policy), extend the Rust CLI in `apps/vm/kubectl/src/`, bump `version.toml`, and every manifest above auto-bumps via the post-publish sync.
 
@@ -82,4 +83,19 @@ containers:
       image: ghcr.io/kbve/kubectl:0.1.0
       command: ['kbve-kubectl', 'guest-exec']
       args: ['--vm', 'windows-builder', '--command', 'powershell.exe']
+```
+
+GameServer rotator using the Rust CLI directly:
+
+```yaml
+containers:
+    - name: rotator
+      image: ghcr.io/kbve/kubectl:0.1.2
+      command:
+          - kbve-kubectl
+          - rotate-gameserver
+          - --namespace=factorio
+          - --gameserver=factorio
+          - --container=factorio
+          - --delete-timeout=180
 ```
