@@ -1,6 +1,6 @@
 ---
 title: Cleaning cloth | OSRS Price Data
-description: "Cleaning cloth: A spirit soaked piece of silk which can be used to remove poison.. High alch: 36 GP, GE limit: 40."
+description: "Cleaning cloth: A spirit soaked piece of silk which can be used to remove poison. High alch: 36 GP, GE limit: 40."
 osrs:
   id: 3188
   name: Cleaning cloth
@@ -12,9 +12,64 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 40
-  about: "Cleaning cloth is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  shops:
+    - shop_name: Tamayu's Spear Stall
+      location: Tai Bwo Wannai
+      price: 60
+      quantity_in_stock: 5
+      restock_time: 100
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Silk
+          item_id: 950
+          quantity: 1
+        - item_name: Karamjan rum
+          item_id: 431
+          quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 950
+      item_name: Silk
+      slug: silk
+      relationship: component
+      description: Base material for the cloth
+    - item_id: 431
+      item_name: Karamjan rum
+      slug: karamjan-rum
+      relationship: component
+      description: Combine with silk to produce the cloth
+  about: Cleaning cloth is a spirit-soaked silk used to remove poison from weapons and clean cosmetic recolours from abyssal whips and dark bows; obtained from Tamayu's Spear Stall after Tai Bwo Wannai Trio.
+  market_strategy:
+    notes:
+      - Small 40 buy limit caps arbitrage
+      - Demand spikes when whip/dark bow recolours trend
+      - Quest-locked shop limits supply
+  history:
+    - date: "2004-09-14"
+      update: Tai Bwo Wannai Trio
+      description: Cleaning cloth added with the Tai Bwo Wannai Trio quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-14"
+    update: Tai Bwo Wannai Trio
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

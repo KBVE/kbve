@@ -12,9 +12,98 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril hasta(p) is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -5
+      slash: -5
+      crush: -4
+      magic: 0
+      ranged: -5
+    other_bonus:
+      melee_strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 55
+      xp: 100
+      materials:
+        - item_name: Mithril bar
+          item_id: 2359
+          quantity: 1
+        - item_name: Maple logs
+          item_id: 1517
+          quantity: 1
+      product: Mithril hasta
+      product_id: 11392
+      product_quantity: 1
+      tool: Hammer at Barbarian anvil
+  related_items:
+    - item_id: 11392
+      item_name: Mithril hasta
+      slug: mithril-hasta
+      relationship: variant
+      description: Unpoisoned base hasta
+    - item_id: 11401
+      item_name: Mithril hasta(p+)
+      slug: mithril-hasta-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 11402
+      item_name: Mithril hasta(p++)
+      slug: mithril-hasta-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison tier
+  market_strategy:
+    notes:
+      - Barbarian Smithing miniquest required to wield
+      - 4-tick spear attack speed since 2021
+      - Cheap entry-tier poison spear
+      - Smithing 55 craft recipe undercut by GE supply
+      - GE limit 125 per 4 hours
+      - Niche demand outside Barbarian content
+  history:
+    - date: "2007-07-03"
+      update: Barbarian Training
+      description: Item added to the game with Barbarian hastas.
+    - date: "2021-04-21"
+      update: Game update
+      description: Attack speed improved from 5 ticks to 4 ticks.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
+  about: Mithril hasta(p) is a low-tier poisoned spear from the Barbarian Smithing miniquest, wielded at 20 Attack with a 4-tick speed.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,90 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 150
-  about: "Cavalier mask is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: head
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: other
+      materials:
+        - item_name: Black cavalier
+          quantity: 1
+        - item_name: Highwayman mask
+          quantity: 1
+        - item_name: Coins
+          quantity: 500
+      product: Cavalier mask
+      product_id: 11280
+      product_quantity: 1
+      members_only: true
+      notes: Combined by Patchy on Mos Le'Harmless for 500 coins; disassembly costs 600 coins.
+  treasure_trail:
+    is_reward: true
+    tier: hard
+    notes: Assembled from a black cavalier (hard clue reward) and highwayman mask (easy clue reward).
+  related_items:
+    - item_id: 0
+      item_name: Black cavalier
+      slug: black-cavalier
+      relationship: component
+      description: Hard clue scroll reward component
+    - item_id: 2631
+      item_name: Highwayman mask
+      slug: highwayman-mask
+      relationship: component
+      description: Easy clue scroll reward component
+  about: Cavalier mask is a cosmetic head slot item assembled by Patchy on Mos Le'Harmless from a black cavalier and highwayman mask.
+  market_strategy:
+    notes:
+      - Niche cosmetic with limited demand
+      - Margin set by component clue rewards
+      - Low daily volume requires patience
+  trading_tips:
+    - Compare component prices vs combined mask
+    - Watch clue scroll meta and Treasure Trails updates
+  history:
+    - date: "2007-06-18"
+      update: "Game Improvements"
+      description: Released as a cosmetic combined headgear from clue scroll rewards.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-06-18"
+    update: "Game Improvements"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

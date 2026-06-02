@@ -12,14 +12,11 @@ osrs:
   lowalch: 45
   highalch: 67
   limit: 13000
+  material:
+    type: food
+    tier: high
   food:
     heals: 22
-    cooking_level: 68
-    cooking_xp: 309.5
-  cooking:
-    level: 68
-    xp: 309.5
-    ticks: 4
   recipes:
     - skill: cooking
       level: 68
@@ -39,72 +36,72 @@ osrs:
       item_name: Potato with butter
       slug: potato-with-butter
       relationship: component
-      description: Base potato
+      description: Base potato component
     - item_id: 7068
       item_name: Tuna and corn
       slug: tuna-and-corn
       relationship: component
-      description: Filling ingredient
+      description: Filling component
     - item_id: 361
       item_name: Tuna
       slug: tuna
       relationship: component
-      description: Tuna source
+      description: Tuna source ingredient
     - item_id: 5988
       item_name: Sweetcorn
       slug: sweetcorn
       relationship: component
-      description: Corn source
+      description: Corn source ingredient
     - item_id: 391
       item_name: Manta ray
       slug: manta-ray
       relationship: alternative
-      description: Same healing (22 HP)
+      description: Same 22 HP healing food
     - item_id: 11936
       item_name: Dark crab
       slug: dark-crab
       relationship: alternative
-      description: Same healing (22 HP)
+      description: Same 22 HP healing food
     - item_id: 13441
       item_name: Anglerfish
       slug: anglerfish
       relationship: alternative
-      description: Overheal food (up to 22 HP)
+      description: Overheal food up to 22 HP
     - item_id: 385
       item_name: Shark
       slug: shark
       relationship: alternative
-      description: Lower tier food (20 HP)
-  about: |-
-    Combine tuna and corn with a potato with butter.
-
-    Full Recipe Chain:
-    1. Bake a potato on a range/fire
-    2. Add butter to make potato with butter
-    3. Combine cooked tuna with cooked sweetcorn to make tuna and corn
-    4. Add tuna and corn to the potato with butter
-
-    | Effect | Value |
-    |--------|-------|
-    | Healing | 22 Hitpoints |
-
-    Tuna potato is one of the highest instant-healing foods:
-    - Tied with manta ray, dark crab, anglerfish, and bluefin at 22 HP
-    - Single-bite consumption
-    - Complex to make (many preparation steps)
+      description: Lower tier food at 20 HP
   market_strategy:
     notes:
-      - Complex recipe = potential profit margins
-      - Requires multiple intermediate items
-      - Calculate full material costs vs sell price
-      - Same healing as manta ray and dark crab
-      - Heavier weight (0.5 kg) than alternatives
-      - Most complex preparation of any 22 HP food
-      - Low trade volume due to complex creation
+      - Complex recipe creates potential profit margins from component flipping
+      - Same healing as manta ray and dark crab but heavier at 0.5 kg
+      - Low trade volume due to multi-step preparation
       - Ironman accounts may make these for efficient food
-      - Consider component flipping instead of full recipe
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Consider component flipping instead of full recipe assembly
+  about: Tuna potato is a high-end members food that heals 22 Hitpoints, made at level 68 Cooking by combining a potato with butter and tuna and corn.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    update: Runesquares, Harpie Bugs and new potato recipes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2006-01-30"
+      update: Runesquares, Harpie Bugs and new potato recipes
+      description: Tuna potato released as part of the new potato recipes update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

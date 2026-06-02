@@ -12,9 +12,15 @@ osrs:
   lowalch: 115964
   highalch: 173946
   limit: 15
+  material:
+    type: blue-moon
+    tier: high
   equipment:
     slot: legs
     weight: 1.36
+    requirements:
+      magic: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,11 +38,13 @@ osrs:
       ranged_strength: 0
       magic_damage: 1
       prayer: 0
-    requirements:
-      magic: 75
-      defence: 50
-    degradable: true
-    charges: 3000
+  charges:
+    initial: 3000
+    drain_rate: 1 charge per 54 seconds of combat
+    duration: ~45 hours of combat
+    repair_npc_cost: 1500000
+    repair_smithing_cost: 757500
+    repair_smithing_level: 99
   drop_table:
     primary_source: Lunar Chest (Neypotzli)
     best_drop_rate: 1/224
@@ -51,40 +59,49 @@ osrs:
       item_name: Blue moon spear
       slug: blue-moon-spear
       relationship: set-piece
-      description: Weapon for Frostweaver set effect
+      description: Weapon for the Frostweaver set effect.
     - item_id: 29019
       item_name: Blue moon helm
       slug: blue-moon-helm
       relationship: set-piece
-      description: Helm in set
+      description: Helm in the Blue moon set.
     - item_id: 29013
       item_name: Blue moon chestplate
       slug: blue-moon-chestplate
       relationship: set-piece
-      description: Body armour in set
-  about: |-
-    When wearing the full Blue moon armour set with the Blue moon spear:
-    - Frostweaver: After casting a bind spell, 20% chance for next melee attack to be unaffected by action delays
-
-    | Property | Value |
-    |----------|-------|
-    | Total charges | 3,000 |
-    | Charge rate | 1 per 54 seconds |
-    | Combat duration | ~45 hours |
-    | NPC repair cost | 1,500,000 coins |
-    | Repair at 99 Smithing | 757,500 coins |
-
-    Magic-melee hybrid legs for Blue moon builds:
-    - +22 magic attack
-    - +1 strength bonus
-    - +1% magic damage
+      description: Body armour in the Blue moon set.
+  about: Blue moon tassets are magic-melee hybrid legs from the Lunar Chest that anchor the Frostweaver set, giving 20% chance after a bind spell that the Blue moon spear's next melee swing ignores action delays.
   market_strategy:
     notes:
-      - Essential for Blue moon builds
-      - Good magic defence
-      - Factor in repair costs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Essential for Blue moon hybrid builds
+      - Strong magic defence and +1% magic damage
+      - Factor 1.5M repair cost into long-term price floor
+  history:
+    - date: "2024-05-29"
+      description: Magic damage bonus increased from 0% to 1%.
+    - date: "2024-04-24"
+      description: Weight reduced from 8 kg to 1.36 kg.
+    - date: "2024-03-20"
+      update: Varlamore; Part One
+      description: Blue moon tassets released as part of the Blue moon armour set.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore; Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

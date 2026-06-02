@@ -12,9 +12,89 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 70
-  about: "Rune helm (h1) is a free-to-play item in Old School RuneScape. High alchemy value: 21,120 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune-metal
+    tier: high
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    is_reward: true
+    tier: hard
+    reward_tiers:
+      - hard
+      - elite
+  related_items:
+    - item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: variant
+      description: Base rune full helm without a heraldic crest.
+    - item_name: Rune helm (h2)
+      slug: rune-helm-h2
+      relationship: variant
+      description: Alternate heraldic colour variant.
+    - item_name: Rune helm (h3)
+      slug: rune-helm-h3
+      relationship: variant
+      description: Alternate heraldic colour variant.
+    - item_name: Rune helm (h4)
+      slug: rune-helm-h4
+      relationship: variant
+      description: Alternate heraldic colour variant.
+    - item_name: Rune helm (h5)
+      slug: rune-helm-h5
+      relationship: variant
+      description: Alternate heraldic colour variant.
+  about: Rune helm (h1) is a heraldic cosmetic rune full helm with identical stats to the standard rune full helm, awarded from hard and elite Treasure Trails.
+  market_strategy:
+    notes:
+      - Stats mirror the rune full helm; value is purely cosmetic crest demand.
+      - Hard and elite clue completions cap supply each rotation.
+      - Worn with matching rune heraldic kiteshield for fashionscape sets.
+  history:
+    - date: "2021-04-21"
+      update: Game update
+      description: Ranged attack bonus reduced from -2 to -3 to align with other rune full helms.
+    - date: "2006-12-05"
+      update: Treasure Trails, spiders and sheep
+      description: Released as a clue scroll reward with the heraldic helm series.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails, spiders and sheep
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

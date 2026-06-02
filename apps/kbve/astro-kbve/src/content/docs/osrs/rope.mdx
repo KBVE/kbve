@@ -12,13 +12,72 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 250
-  related_items: []
-  about: |-
-    > _"A coil of rope."_
-
-    Rope is used in numerous quests and activities. Required for tying things, crossing obstacles, and many quest objectives. One of the most commonly needed quest items in the game.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  material:
+    type: quest material
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 30
+      xp: 50
+      materials:
+        - item_id: 10814
+          item_name: Yak-hair
+          quantity: 1
+      product: Rope
+      product_id: 954
+  shops:
+    - shop_name: Ned's Handmade Rope
+      location: Draynor Village
+      price: 18
+      stock: 30
+    - shop_name: Aemad's Adventuring Supplies
+      location: Ardougne
+      price: 23
+      stock: 20
+    - shop_name: Khazard General Store
+      location: Port Khazard
+      price: 25
+      stock: 30
+    - shop_name: Martin Thwait's Lost and Found
+      location: Rogues' Den
+      price: 18
+      stock: 50
+  related_items:
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: component
+      description: Used by Ned to make rope (4 balls of wool)
+    - item_id: 10814
+      item_name: Yak-hair
+      slug: yak-hair
+      relationship: component
+      description: Spun on a spinning wheel to craft rope
+  market_strategy:
+    notes:
+      - Heavy quest demand keeps a constant baseline buy volume
+      - Best F2P source is Ned's shop in Draynor Village
+      - Tempoross rewards free rope inventories for members
+      - Buy limit of 250 caps speculative flips
+  history:
+    - date: "2001-02-28"
+      description: Added with the "Yet another new quest, and new options menu" update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-28"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Rope is a low-cost F2P quest staple sold at Ned's shop in Draynor Village and required by dozens of quests and obstacles.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,24 +12,108 @@ osrs:
   lowalch: 10240
   highalch: 15360
   limit: 70
-  item_id: 1333
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 40
-  stats:
-    slash_attack: 45
-    strength: 44
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: slash-sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 7
+      slash: 45
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 44
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Fire giant
+        combat_level: 86
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Zamorak warrior
+        combat_level: 57
+        quantity: "1"
+        rarity: 1/50
+        members_only: true
+  shops:
+    - shop_name: Iorwerth's Arms
+      location: Prifddinas
+      price: 38400
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 150
+      materials:
+        - item_name: Runite bar
+          item_id: 2363
+          quantity: 2
+      product: Rune scimitar
+      product_id: 1333
+      product_quantity: 1
+      tool: Hammer at anvil
   related_items:
-    - slug: dragon-scimitar
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: upgrade
+      description: Members upgrade with special attack
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Raw smithing material
+    - item_id: 1323
+      item_name: Adamant scimitar
+      slug: adamant-scimitar
+      relationship: downgrade
+      description: Lower tier alternative
+  market_strategy:
+    notes:
+      - Strongest scimitar in F2P
+      - Second-strongest scimitar overall behind Dragon scimitar
+      - Crafting from runite bars is unprofitable; GE flips preferred
+      - High supply from Fire giant and Zamorak warrior drops
+      - GE limit 70 per 4 hours
+      - Alchable for 15,360 GP, decent F2P money-making baseline
+  history:
+    - date: "2001-08-13"
+      update: Wilderness
+      description: Item added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-08-13"
+    update: Wilderness
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
+  about: Rune scimitar is a 40-Attack one-handed slash sword, the strongest scimitar available in free-to-play and a staple F2P weapon.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

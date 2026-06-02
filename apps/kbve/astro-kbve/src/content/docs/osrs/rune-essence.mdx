@@ -12,9 +12,9 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 20000
-  item:
-    type: material
-    tradeable: true
+  material:
+    type: runecrafting
+    tier: low
   recipes:
     - skill: runecraft
       level: 1
@@ -23,35 +23,63 @@ osrs:
         - item_id: 1436
           item_name: Rune essence
           quantity: 1
-      product: Elemental runes
-      product_id: 0
+      product: Air rune
+      product_id: 556
+  drop_table:
+    sources:
+      - source: Catablepon
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Minotaur
+        quantity: "1"
+        rarity: common
+        members_only: false
+      - source: Ankou
+        quantity: "1"
+        rarity: common
+        members_only: true
   related_items:
     - item_id: 7936
       item_name: Pure essence
       slug: pure-essence
       relationship: upgrade
-      description: Members upgrade for more rune types
+      description: Members-only upgrade usable for all rune types
     - item_id: 556
       item_name: Air rune
       slug: air-rune
       relationship: product
-      description: Crafted product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Runecraft Material |
-    | Tradeable | Yes |
-    | Weight | 0.002 kg |
-    | Requirements | Rune Mysteries quest |
-
-    Used to craft elemental runes (air, water, earth, fire).
-
-    Free-to-play runecrafting material.
-
-    Members get pure essence at 30+ Mining instead.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Crafted product at the Air Altar
+  market_strategy:
+    notes:
+      - F2P-only crafting input now that members use pure essence
+      - Steady demand from low-level runecrafters
+      - Buy limit of 20,000 supports bulk training
+      - Price floor stays near alch value
+  history:
+    - date: "2022-03-23"
+      description: Examine text changed from "An uncharged Rune Stone" to "An unimbued rune."
+    - date: "2006-04-20"
+      description: Inventory sprite updated alongside the release of pure essence.
+    - date: "2004-03-29"
+      description: Became permanently available with the RS2 launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 launch
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Rune essence is the basic Runecraft material used by free players to craft low-level elemental and catalytic runes.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

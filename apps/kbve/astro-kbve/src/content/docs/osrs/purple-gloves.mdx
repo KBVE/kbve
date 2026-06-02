@@ -12,9 +12,100 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Purple gloves is a free-to-play item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: hands
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barker's Haberdashery
+      location: Canifis
+      price: 650
+  drop_table:
+    sources:
+      - source: Crawling Hand
+        rarity: 1/64
+        quantity: "1"
+        members_only: true
+      - source: Crushing Hand
+        rarity: 3/64
+        quantity: "1"
+        members_only: true
+  treasure_trail:
+    is_reward: true
+    tier: medium
+  related_items:
+    - item_name: Grey gloves
+      slug: grey-gloves
+      relationship: variant
+      description: Grey colour variant from Barker's Haberdashery.
+    - item_name: Red gloves
+      slug: red-gloves
+      relationship: variant
+      description: Red colour variant from Barker's Haberdashery.
+    - item_name: Yellow gloves
+      slug: yellow-gloves
+      relationship: variant
+      description: Yellow colour variant from Barker's Haberdashery.
+    - item_name: Teal gloves
+      slug: teal-gloves
+      relationship: variant
+      description: Teal colour variant from Barker's Haberdashery.
+  about: Purple gloves are a cosmetic hand slot item sold at Barker's Haberdashery in Canifis, matching the purple Canifis robe set and dropped by Crawling Hands.
+  market_strategy:
+    notes:
+      - Demand is largely cosmetic; matched with purple robe set for fashionscape.
+      - Medium clue emote step reward keeps supply ticking.
+      - Crawling Hand Slayer tasks supply consistent drops.
+  history:
+    - date: "2014-12-10"
+      update: Game update
+      description: Renamed from "Gloves" to "Purple gloves" for clarity with the other colour variants.
+    - date: "2004-07-20"
+      update: Game update
+      description: Made available to free-to-play players.
+    - date: "2004-07-13"
+      update: Game update
+      description: Briefly switched to members-only before reverting.
+    - date: "2004-06-29"
+      update: Priest in Peril
+      description: Released with the Priest in Peril quest update alongside Canifis robe sets.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-06-29"
+    update: Priest in Peril
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

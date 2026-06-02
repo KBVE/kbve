@@ -12,9 +12,80 @@ osrs:
   lowalch: 75000
   highalch: 112500
   limit: 100
-  about: "Large dragon keel parts is a members-only item in Old School RuneScape. High alchemy value: 112,500 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon-metal
+    tier: high
+  recipes:
+    - name: Forge large dragon keel parts
+      skill: smithing
+      level: 94
+      xp: 500
+      output_quantity: 1
+      materials:
+        - item_name: Dragon keel parts
+          quantity: 2
+        - item_name: Hammer
+          quantity: 1
+      facility: Dragon forge
+      members: true
+      notes: Requires completion of Dragon Slayer II and Pandemonium to use the Dragon forge.
+  drop_table:
+    sources:
+      - source: Vampyre kraken
+        combat_level: 211
+        quantity: "1"
+        rarity: 1/1024
+        members_only: true
+      - source: Armoured kraken
+        combat_level: 180
+        quantity: "1"
+        rarity: 1/1280
+        members_only: true
+      - source: Veiled kraken
+        combat_level: 210
+        quantity: "1"
+        rarity: 1/2100
+        members_only: true
+      - source: Great white shark
+        combat_level: 175
+        quantity: "1"
+        rarity: 1/6138
+        members_only: true
+  related_items:
+    - item_name: Dragon keel parts
+      slug: dragon-keel-parts
+      relationship: component
+      description: Two standard dragon keel parts smelt into one large dragon keel part.
+    - item_name: Dragon metal sheet
+      slug: dragon-metal-sheet
+      relationship: component
+      description: Upstream material used to manufacture dragon keel parts.
+  about: Large dragon keel parts are a high-tier Sailing material smithed at the Dragon forge from two dragon keel parts, used to construct dragon sloop keels.
+  market_strategy:
+    notes:
+      - 94 Smithing plus Dragon Slayer II and Pandemonium gate supply tightly.
+      - Sloop keels demand sixteen parts each, sustaining steady buy pressure.
+      - Drop sources are deep-sea bosses with low rates - shop liquidity is driven by smithers.
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Released with the Sailing skill launch as a dragon-tier keel component.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

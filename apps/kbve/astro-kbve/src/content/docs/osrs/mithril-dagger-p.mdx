@@ -12,9 +12,94 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Mithril dagger(p) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: stab-sword
+    attack_speed: 4
+    weight: 0.396
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 11
+      slash: 5
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Mithril dagger
+          item_id: 1209
+          quantity: 1
+        - item_name: Weapon poison
+          item_id: 187
+          quantity: 1
+      product: Mithril dagger(p)
+      product_id: 1225
+      product_quantity: 1
+  related_items:
+    - item_id: 1209
+      item_name: Mithril dagger
+      slug: mithril-dagger
+      relationship: variant
+      description: Unpoisoned base dagger
+    - item_id: 5680
+      item_name: Mithril dagger(p+)
+      slug: mithril-dagger-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 5686
+      item_name: Mithril dagger(p++)
+      slug: mithril-dagger-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  about: Mithril dagger(p) is a poisoned mithril stab sword created by applying weapon poison to a mithril dagger; requires 20 Attack to wield.
+  market_strategy:
+    notes:
+      - Cheap entry-level poisoned weapon
+      - Poison adds little over base dagger price
+      - Low alch margin from mithril bar route
+      - Limited PvM use; PKers prefer higher tiers
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta launch
+      description: Item released with the RuneScape beta.
+    - date: "2006-08-22"
+      description: Poison variants renamed from "(+)" and "(s)" suffixes to "(p+)" and "(p++)" respectively.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.396
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

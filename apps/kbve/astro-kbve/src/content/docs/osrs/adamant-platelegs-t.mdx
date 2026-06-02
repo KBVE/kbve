@@ -12,27 +12,83 @@ osrs:
   lowalch: 2560
   highalch: 3840
   limit: 8
+  material:
+    type: adamant
+    tier: mid
   equipment:
     slot: legs
+    weight: 10.432
     requirements:
       defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -11
+      ranged: -11
+    defence_bonus:
+      stab: 33
+      slash: 31
+      crush: 29
+      magic: -4
+      ranged: 34
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    is_reward: true
+    tier: medium
   related_items:
     - item_id: 2599
       item_name: Adamant platebody (t)
       slug: adamant-platebody-t
       relationship: set-piece
-      description: Matching trimmed platebody
+      description: Matching trimmed platebody.
     - item_id: 2609
       item_name: Adamant platelegs (g)
       slug: adamant-platelegs-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Adamant platelegs with trim."*
-
-    The adamant platelegs (t) are a trimmed cosmetic variant of standard adamant platelegs. Identical stats, requiring 30 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed variant from the same clue tier.
+    - item_id: 1073
+      item_name: Adamant platelegs
+      slug: adamant-platelegs
+      relationship: alternative
+      description: Untrimmed Smithing-made counterpart with identical stats.
+  about: Adamant platelegs (t) are a cosmetic medium clue scroll reward sharing stats with normal adamant platelegs and requiring 30 Defence to wear.
+  market_strategy:
+    notes:
+      - Supply gated entirely by medium clue completions
+      - Demand from fashionscape and trimmed set collectors
+      - Thin GE limit (8) makes large fills slow
+  history:
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -7 to -11.
+    - date: "2014-06-12"
+      description: Renamed from "Adam platelegs (t)" to "Adamant platelegs (t)".
+    - date: "2004-05-05"
+      update: Bigger Banks & Treasure Trails
+      description: Adamant platelegs (t) released as a medium clue scroll reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 10.432
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

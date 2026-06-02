@@ -1,20 +1,88 @@
 ---
 title: Frog slippers | OSRS Price Data
-description: "Frog slippers: Cute frog slippers.. High alch: 600 GP, GE limit: 4."
+description: "Frog slippers: Cute frog slippers. High alch: 600 GP, GE limit: 4."
 osrs:
   id: 23288
   name: Frog slippers
   slug: frog-slippers
   examine: Cute frog slippers.
-  members: false
+  members: true
   icon: Frog slippers.png
   value: 1000
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Frog slippers is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic_armour
+    tier: low
+  equipment:
+    slot: feet
+    weight: 0.2
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    rarity: 1/360
+  related_items:
+    - item_name: Reward casket (beginner)
+      slug: reward-casket-beginner
+      relationship: component
+      description: Source casket for the frog slippers drop
+    - item_name: Bunny feet
+      slug: bunny-feet
+      relationship: alternative
+      description: Cosmetic feet slot from holiday event
+    - item_name: Frog mask
+      slug: frog-mask
+      relationship: alternative
+      description: Themed cosmetic head slot
+  market_strategy:
+    notes:
+      - Cosmetic only - zero combat bonuses
+      - Counts as warm clothing at Wintertodt
+      - Low buy limit (4) keeps supply tight
+      - Storable in costume room treasure chest
+  about: Frog slippers are a cosmetic feet-slot reward from beginner-tier Treasure Trails caskets that count as warm clothing at the Wintertodt.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-04-11"
+    update: Treasure Trails Expansion and Easter 2019
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2019-04-11"
+      update: Treasure Trails Expansion and Easter 2019
+      description: Frog slippers added as a beginner clue reward during the Treasure Trails expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

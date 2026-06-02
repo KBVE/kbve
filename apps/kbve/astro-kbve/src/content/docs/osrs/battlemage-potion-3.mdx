@@ -1,6 +1,6 @@
 ---
 title: Battlemage potion(3) | OSRS Price Data
-description: "Battlemage potion(3): 3 doses of Battlemage potion.. High alch: 162 GP, GE limit: 2,000."
+description: "Battlemage potion(3): 3 doses of Battlemage potion. High alch: 162 GP, GE limit: 2,000."
 osrs:
   id: 22452
   name: Battlemage potion(3)
@@ -12,9 +12,84 @@ osrs:
   lowalch: 108
   highalch: 162
   limit: 2000
-  about: "Battlemage potion(3) is a members-only item in Old School RuneScape. High alchemy value: 162 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: high
+  potion:
+    doses: 3
+    effects:
+      - description: Boosts Magic level by 4.
+      - description: Boosts Defence level by 5 + 15% of player's Defence level.
+      - description: Defence boost decays by 1 every minute (90 seconds with Preserve prayer).
+  recipes:
+    - skill: herblore
+      level: 80
+      xp: 155
+      materials:
+        - item_name: Cadantine blood potion (unf)
+          quantity: 1
+        - item_name: Potato cactus
+          quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_name: Battlemage potion(4)
+      slug: battlemage-potion-4
+      relationship: upgrade
+      description: Four-dose variant
+    - item_name: Battlemage potion(2)
+      slug: battlemage-potion-2
+      relationship: downgrade
+      description: Two-dose variant
+    - item_name: Battlemage potion(1)
+      slug: battlemage-potion-1
+      relationship: downgrade
+      description: One-dose variant
+    - item_name: Cadantine blood potion (unf)
+      slug: cadantine-blood-potion-unf
+      relationship: component
+      description: Required unfinished base potion
+    - item_name: Potato cactus
+      slug: potato-cactus
+      relationship: component
+      description: Secondary ingredient
+    - item_name: Bastion potion(3)
+      slug: bastion-potion-3
+      relationship: alternative
+      description: Ranged-focused sibling potion
+  market_strategy:
+    notes:
+      - Niche PvM consumable - mostly used at Theatre of Blood and ToA
+      - Profit margin tracks Cadantine and Potato cactus prices
+      - Often cheaper to make from scratch vs buying assembled potions
+      - 80 Herblore gate limits supply
+  about: Battlemage potion(3) is a three-dose Herblore potion that boosts Magic by 4 and provides a scaling Defence boost, used in high-level PvM encounters.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-06-07"
+    update: Theatre of Blood
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2018-06-07"
+      update: Theatre of Blood
+      description: Battlemage potion released alongside the Theatre of Blood raid.
+    - date: "2019-08-01"
+      update: Game Update
+      description: Inventory ordering standardised with other combat potions.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

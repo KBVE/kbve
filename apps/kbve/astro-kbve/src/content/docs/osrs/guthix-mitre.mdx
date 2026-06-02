@@ -12,30 +12,78 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  material:
+    type: vestment
+    tier: mid
   equipment:
     slot: head
+    weight: 0.3
     requirements:
       prayer: 40
       magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium
-        description: Reward from medium clue scrolls
+  treasure_trail:
+    tier: medium
+    is_reward: true
   related_items:
     - item_id: 10452
       item_name: Guthix robe top
       slug: guthix-robe-top
       relationship: set-piece
-      description: Guthix vestment body piece
-  about: |-
-    > *"A Guthix mitre."*
-
-    The Guthix mitre is a head slot item from the Guthix vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. As a Guthixian item, it provides protection in the God Wars Dungeon. Offers one of the higher prayer bonuses for the head slot while also providing modest magic bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Body slot of the Guthix vestment set
+    - item_id: 10456
+      item_name: Guthix robe legs
+      slug: guthix-robe-legs
+      relationship: set-piece
+      description: Legs slot of the Guthix vestment set
+    - item_id: 10440
+      item_name: Saradomin mitre
+      slug: saradomin-mitre
+      relationship: alternative
+      description: Saradominist counterpart with identical stats
+  market_strategy:
+    notes:
+      - One of the highest prayer bonuses for the head slot
+      - Useful for prayer-heavy bossing setups
+      - Provides protection in the God Wars Dungeon Guthix area
+      - Supply is steady from medium clue completions
+  history:
+    - date: "2006-12-05"
+      description: Added with the Treasure Trails update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Guthix mitre is a head slot vestment from medium clues offering +5 prayer and +4 magic bonuses for prayer-heavy setups.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

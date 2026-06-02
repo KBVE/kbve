@@ -12,9 +12,71 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Gilded armour set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: high
+  related_items:
+    - item_id: 3486
+      item_name: Gilded full helm
+      slug: gilded-full-helm
+      relationship: component
+      description: Set piece
+    - item_id: 3481
+      item_name: Gilded platebody
+      slug: gilded-platebody
+      relationship: component
+      description: Set piece
+    - item_id: 3483
+      item_name: Gilded platelegs
+      slug: gilded-platelegs
+      relationship: component
+      description: Set piece
+    - item_id: 3488
+      item_name: Gilded kiteshield
+      slug: gilded-kiteshield
+      relationship: component
+      description: Set piece
+    - item_id: 13037
+      item_name: Gilded armour set (sk)
+      slug: gilded-armour-set-sk
+      relationship: variant
+      description: Skirt variant of the set
+  shops:
+    - shop_name: Grand Exchange
+      location: Varrock
+      price: 80000
+  market_strategy:
+    notes:
+      - Container item for the four gilded armour pieces
+      - Trade via Grand Exchange set conversion
+      - Useful for buying/selling all four pieces atomically
+      - Cosmetic Treasure Trail loot, high alch value
+      - Free-to-play accessible since 2016
+      - Compare set price vs sum of individual pieces for arbitrage
+  history:
+    - date: "2015-02-26"
+      update: The Grand Exchange
+      description: Item added to the game as part of Grand Exchange set conversion.
+    - date: "2016-05-19"
+      update: Sand Crabs & Soul Bearers
+      description: Made available to free-to-play players.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    update: The Grand Exchange
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Gilded armour set (lg) is a free-to-play Grand Exchange container holding the four gilded armour pieces (full helm, platebody, platelegs, kiteshield) for atomic trading.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

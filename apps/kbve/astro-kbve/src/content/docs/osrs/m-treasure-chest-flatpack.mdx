@@ -12,9 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "M. treasure chest (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mahogany
+    tier: mid-high
+  construction:
+    construction_level: 84
+    xp: 280
+    hotspot: Treasure chest space
+    room: Costume Room
+    location: Workbench (Workshop)
+    builds: Mahogany treasure chest
+  recipes:
+    - skill: Construction
+      level: 84
+      xp: 280
+      materials:
+        - item_name: Mahogany plank
+          quantity: 2
+      output:
+        item_name: M. treasure chest (flatpack)
+        quantity: 1
+      notes: Made at the Workshop workbench; requires hammer and saw.
+  related_items:
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Sole construction material for the flatpack.
+    - item_id: 9863
+      item_name: T. treasure chest (flatpack)
+      slug: t-treasure-chest-flatpack
+      relationship: downgrade
+      description: Teak-tier predecessor flatpack.
+  about: M. treasure chest (flatpack) is a portable mahogany furniture pack that lets a player skip the level-84 Construction requirement when placing a mahogany treasure chest into the Costume Room of a player-owned house.
+  market_strategy:
+    notes:
+      - Demand from POH owners under level 84 Construction
+      - Profit margin currently negative on mahogany plank cost
+      - 500 GE buy limit keeps flips small and frequent
+  history:
+    - date: "2006-10-18"
+      description: M. treasure chest (flatpack) introduced as part of the Costume Room update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,92 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 7000
-  about: "Black knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 10
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 8
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 13
+      xp: 0
+      materials:
+        - item_name: Black knife
+          item_id: 869
+          quantity: 1
+        - item_name: Weapon poison(+)
+          item_id: 5937
+          quantity: 1
+      product: Black knife(p+)
+      product_id: 5658
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 869
+      item_name: Black knife
+      slug: black-knife
+      relationship: variant
+      description: Unpoisoned base knife
+    - item_id: 870
+      item_name: Black knife(p)
+      slug: black-knife-p-870
+      relationship: downgrade
+      description: Basic poison variant
+    - item_id: 5662
+      item_name: Black knife(p++)
+      slug: black-knife-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  history:
+    - date: "2021-07-07"
+      description: Female player equipment positioning adjusted.
+    - date: "2006-09-20"
+      description: Poison variants renamed from "+" notation to "(p+)" and "(p++)" format.
+    - date: "2003-04-14"
+      update: New Throwing Weapons!
+      description: Black knife(p+) released with the thrown weapons update.
+  about: Black knife(p+) is a thrown black knife coated in stronger weapon poison(+), requiring 10 Ranged and inflicting an upgraded poison effect on hit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

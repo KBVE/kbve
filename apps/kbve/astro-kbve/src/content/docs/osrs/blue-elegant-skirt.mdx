@@ -12,21 +12,69 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  material:
+    type: cloth
+    tier: mid
   equipment:
     slot: legs
-    requirements: {}
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    is_reward: true
+    tier: easy
   related_items:
     - item_id: 10428
       item_name: Blue elegant blouse
       slug: blue-elegant-blouse
       relationship: set-piece
       description: Matching elegant blouse
-  about: |-
-    > *"A rather elegant blue skirt."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the blue elegant clothing set (women's variant). Pairs with the blue elegant blouse.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Blue elegant skirt is a cosmetic Easy Treasure Trail reward worn in the legs slot with no combat bonuses.
+  market_strategy:
+    notes:
+      - Easy clue scroll reward (~1/2808 from caskets)
+      - Purely cosmetic, no combat stats
+      - Set bonus only when worn with matching blouse
+  history:
+    - date: "2014-12-10"
+      description: Renamed from "Blue ele' skirt" to "Blue elegant skirt".
+    - date: "2006-12-05"
+      update: Treasure Trails, spiders and sheep
+      description: Blue elegant skirt added as an Easy Treasure Trail reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails, spiders and sheep
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

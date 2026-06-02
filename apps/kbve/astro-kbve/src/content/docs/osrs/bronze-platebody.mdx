@@ -12,24 +12,86 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 125
-  item_id: 1117
-  item_type: armor
-  slot: body
-  type: platebody
-  tradeable: true
-  weight: 9.979
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 15
-    slash_defence: 14
-    crush_defence: 9
-    ranged_defence: 14
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: body
+    weight: 9.979
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 15
+      slash: 14
+      crush: 9
+      magic: -6
+      ranged: 14
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 18
+      xp: 62.5
+      materials:
+        - item_name: Bronze bar
+          item_id: 2349
+          quantity: 5
+      product: Bronze platebody
+      product_id: 1117
+      product_quantity: 1
+      tool: Hammer
+      facility: Anvil
   related_items:
-    - slug: iron-platebody
-    - slug: bronze-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1115
+      item_name: Iron platebody
+      slug: iron-platebody
+      relationship: upgrade
+      description: Next smithing tier platebody
+    - item_id: 1155
+      item_name: Bronze full helm
+      slug: bronze-full-helm
+      relationship: set-piece
+      description: Matching bronze armour piece
+  about: Bronze platebody is the cheapest tier of platebody, smithed at level 18 from 5 bronze bars.
+  market_strategy:
+    notes:
+      - Smithing target item at level 18
+      - Almost always loss-making to smith for cash
+      - GE price typically below high alch
+      - Steady low-level player demand
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta launch
+      description: Item released with the RuneScape beta.
+    - date: "2005-03-07"
+      description: Item received a graphical update.
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -10 to -15.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

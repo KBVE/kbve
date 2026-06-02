@@ -12,9 +12,80 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Gilded armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour_set
+    tier: high
+  recipes:
+    - skill: other
+      materials:
+        - item_name: Gilded full helm
+          quantity: 1
+        - item_name: Gilded platebody
+          quantity: 1
+        - item_name: Gilded plateskirt
+          quantity: 1
+        - item_name: Gilded kiteshield
+          quantity: 1
+      product: Gilded armour set (sk)
+      product_id: 13038
+      product_quantity: 1
+      members_only: false
+      notes: Assembled via the Grand Exchange clerk's "Sets" interface.
+  related_items:
+    - item_id: 3486
+      item_name: Gilded full helm
+      slug: gilded-full-helm
+      relationship: set-piece
+      description: Helm component
+    - item_id: 3481
+      item_name: Gilded platebody
+      slug: gilded-platebody
+      relationship: set-piece
+      description: Platebody component
+    - item_id: 3485
+      item_name: Gilded plateskirt
+      slug: gilded-plateskirt
+      relationship: set-piece
+      description: Plateskirt component
+    - item_id: 3488
+      item_name: Gilded kiteshield
+      slug: gilded-kiteshield
+      relationship: set-piece
+      description: Kiteshield component
+  about: Gilded armour set (sk) bundles a gilded full helm, platebody, plateskirt, and kiteshield through the Grand Exchange Sets interface for one-click trading.
+  market_strategy:
+    notes:
+      - Convenience bundle for cosmetic gilded gear
+      - Margin tracks individual gilded component prices
+      - GE buy limit 8 gates flip volume
+      - High-value flip with long settle times
+  trading_tips:
+    - Compare set price vs sum of components for arbitrage
+    - Sets clerk has no fee, only GE tax applies on sale
+    - Watch clue scroll loot tables for supply pulses
+  history:
+    - date: "2016-05-19"
+      description: Made accessible to free-to-play players.
+    - date: "2015-02-26"
+      update: "The Grand Exchange"
+      description: Added with the Grand Exchange sets interface.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    update: "The Grand Exchange"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

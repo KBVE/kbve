@@ -5,16 +5,83 @@ osrs:
   id: 30576
   name: Bounty supply crate
   slug: bounty-supply-crate
-  examine: A crate full of supplies.
+  examine: A special crate that can be filled with supplies.
   members: true
   icon: Bounty supply crate (unobtainable item).png
   value: 10000
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Bounty supply crate is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: container
+    tier: mid
+  recipes:
+    - skill: other
+      materials:
+        - item_name: Blighted super restore(4)
+          quantity: 1
+        - item_name: Blighted karambwan
+          quantity: 2
+        - item_name: Coins
+          quantity: 1000
+        - item_name: Blighted anglerfish or blighted manta ray
+          quantity: 8
+      product: Bounty supply crate
+      product_id: 30576
+      product_quantity: 1
+      members_only: true
+      notes: Filled at the Bounty Hunter lobby crate object in Daimon's Crater; yields either the anglerfish or manta ray variant.
+  related_items:
+    - item_id: 0
+      item_name: Bounty supply crate (anglerfish)
+      slug: bounty-supply-crate-anglerfish
+      relationship: variant
+      description: Anglerfish-filled variant
+    - item_id: 0
+      item_name: Bounty supply crate (manta ray)
+      slug: bounty-supply-crate-manta-ray
+      relationship: variant
+      description: Manta ray-filled variant
+    - item_id: 0
+      item_name: Blighted anglerfish
+      slug: blighted-anglerfish
+      relationship: component
+      description: Food filling option
+    - item_id: 0
+      item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: component
+      description: Food filling option
+  about: Bounty supply crate is a Bounty Hunter container assembled in Daimon's Crater lobby from blighted supplies to bank a bounty supply pack of anglerfish or manta ray.
+  market_strategy:
+    notes:
+      - Wilderness PvP supply convenience item
+      - Demand follows Bounty Hunter activity
+      - Variants gate which food is inside
+  trading_tips:
+    - Track blighted food prices for cost basis
+    - Compare against raw blighted food banking time
+  history:
+    - date: "2025-01-29"
+      update: "Bounty Hunter Changes, Collection Log Updates & Emote Improvements"
+      description: Introduced alongside Bounty Hunter quality-of-life rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-01-29"
+    update: "Bounty Hunter Changes, Collection Log Updates & Emote Improvements"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Take manta ray
+      - Take anglerfish
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

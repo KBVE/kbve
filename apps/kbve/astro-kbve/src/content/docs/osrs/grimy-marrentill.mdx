@@ -1,6 +1,6 @@
 ---
 title: Grimy marrentill | OSRS Price Data
-description: "Grimy marrentill: It needs cleaning.. High alch: 8 GP, GE limit: 13,000."
+description: "Grimy marrentill: It needs cleaning. High alch: 8 GP, GE limit: 13,000."
 osrs:
   id: 201
   name: Grimy marrentill
@@ -12,18 +12,85 @@ osrs:
   lowalch: 5
   highalch: 8
   limit: 13000
+  material:
+    type: herb
+    tier: low
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        combat_level: 96
+        quantity: "1"
+        rarity: 1/8.8
+        members_only: true
+      - source: Elder Chaos druid
+        combat_level: 129
+        quantity: "1"
+        rarity: 1/12.5
+        members_only: true
+      - source: Deviant spectre
+        combat_level: 169
+        quantity: "1"
+        rarity: 1/14.8
+        members_only: true
+  farming:
+    farming_level: 14
+    seed_item: Marrentill seed
+    seed_item_id: 5292
+    grow_time_minutes: 80
+    cleaning:
+      herblore_level: 5
+      xp: 3.8
+  recipes:
+    - skill: herblore
+      level: 5
+      xp: 3.8
+      materials:
+        - item_name: Grimy marrentill
+          item_id: 201
+          quantity: 1
+      output_item: Marrentill
+      output_item_id: 251
+      members_only: true
   related_items:
     - item_id: 251
       item_name: Marrentill
       slug: marrentill
       relationship: product
       description: Cleaned version
-  about: |-
-    > _"It needs cleaning."_
-
-    Grimy marrentill requires 5 Herblore to clean (3.8 XP). Used in antipoison potions and as incense on the Incense Burner in a Player-Owned House.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 5292
+      item_name: Marrentill seed
+      slug: marrentill-seed
+      relationship: component
+      description: Farmable seed source
+  about: Grimy marrentill is the uncleaned form of marrentill, cleaned at 5 Herblore for 3.8 XP and used in antipoison potions and POH incense burners.
+  market_strategy:
+    notes:
+      - Bulk supply from Slayer (Aberrant/Deviant spectres)
+      - Low alch margin - flips on volume
+      - Farmable from Marrentill seeds at 14 Farming
+  history:
+    - date: "2017-03-09"
+      description: Value raised from 1 to 14 coins.
+    - date: "2015-02-24"
+      description: Made tradeable on the Grand Exchange with a "Clean" option replacing "Identify".
+    - date: "2002-02-27"
+      description: Grimy marrentill added as part of the original Herblore herb set.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

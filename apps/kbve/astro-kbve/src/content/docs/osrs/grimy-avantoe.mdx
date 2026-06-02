@@ -12,16 +12,20 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 13000
-  herb:
-    type: clean
+  material:
+    type: herb
     tier: mid
-  herblore:
-    cleaning_level: 48
-    cleaning_xp: 10
+  potion:
+    skill: herblore
+    level: 48
+    xp: 10
+    effects:
+      - description: Cleans into Avantoe, used in Fishing potion, Hunter potion, and Super energy mixtures.
   farming:
-    level: 50
-    seed_id: 5298
+    farming_level: 50
     seed_name: Avantoe seed
+    seed_id: 5298
+    patch_type: herb
   drop_table:
     sources:
       - source: Aberrant spectre
@@ -31,6 +35,18 @@ osrs:
         rarity: common
         members_only: true
   recipes:
+    - skill: herblore
+      level: 48
+      xp: 10
+      materials:
+        - item_name: Grimy avantoe
+          item_id: 211
+          quantity: 1
+      product: Avantoe
+      product_id: 261
+      product_quantity: 1
+      facility: None
+      members_only: true
     - skill: herblore
       level: 50
       xp: 112.5
@@ -62,51 +78,53 @@ osrs:
       facility: None
       members_only: true
   related_items:
-    - item_id: 3022
-      item_name: Super energy(3)
-      slug: super-energy-3
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
       relationship: product
-      description: Main product
-    - item_id: 2970
-      item_name: Mort myre fungus
-      slug: mort-myre-fungus
-      relationship: component
-      description: Secondary
-    - item_id: 12625
-      item_name: Stamina potion(4)
-      slug: stamina-potion-4
-      relationship: product
-      description: Upgraded product
+      description: Cleaned form of the herb
     - item_id: 5298
       item_name: Avantoe seed
       slug: avantoe-seed
       relationship: component
-      description: Farming seed
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 48 |
-    | XP | 10 |
-    | Product | Avantoe (clean) |
+      description: Farming seed used to grow the herb
+    - item_id: 3022
+      item_name: Super energy(3)
+      slug: super-energy-3
+      relationship: product
+      description: Downstream Herblore product
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: component
+      description: Secondary for Super energy production
   market_strategy:
-    title: |-
-      - Super energy production
-      - Stamina potion chain
-      - Moderate value
     notes:
-      - Super energy production
-      - Stamina potion chain
-      - Moderate value
-      - Super energy potions
-      - Stamina potion production
-      - Hunter potions
-      - Ironman accounts
-      - Farm runs profitable
-      - 50 Farming required
-      - Essential for stamina chain
-      - Mid-tier pricing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Mid-tier herb backing Super energy and Stamina chains
+      - Steady drop supply from Slayer tasks
+      - Farming runs profitable at 50 Farming
+      - Strong consistent demand from PvMers
+      - Ironman accounts widen the buy book
+  history:
+    - date: "2002-02-27"
+      description: Released alongside the Herblore skill rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Grimy avantoe is the uncleaned form of Avantoe, requiring level 48 Herblore to clean for 10 XP.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
