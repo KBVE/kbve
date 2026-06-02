@@ -230,8 +230,8 @@ importers:
         specifier: ^4.18.3
         version: 4.18.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-window:
-        specifier: ^1.8.11
-        version: 1.8.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^2.2.7
+        version: 2.2.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       recharts:
         specifier: ^2.13.3
         version: 2.15.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -419,9 +419,6 @@ importers:
       '@types/react-is':
         specifier: 19.2.0
         version: 19.2.0
-      '@types/react-window':
-        specifier: ^1.8.8
-        version: 1.8.8
       '@types/service-worker-mock':
         specifier: ^2.0.4
         version: 2.0.4
@@ -6088,9 +6085,6 @@ packages:
     resolution: {integrity: sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg==}
     peerDependencies:
       '@types/react': '*'
-
-  '@types/react-window@1.8.8':
-    resolution: {integrity: sha512-8Ls660bHR1AUA2kuRvVG9D/4XpRC6wjAaPT9dil7Ckc76eP9TKWZwwmgfq8Q1LANX3QNDnoU4Zp48A3w+zK69Q==}
 
   '@types/react@19.2.9':
     resolution: {integrity: sha512-Lpo8kgb/igvMIPeNV2rsYKTgaORYdO1XGVZ4Qz3akwOj0ySGYMPlQWa8BaLn0G63D1aSaAQ5ldR06wCpChQCjA==}
@@ -13518,12 +13512,11 @@ packages:
       react: '>=16 || >=17 || >= 18 || >= 19'
       react-dom: '>=16 || >=17 || >= 18 || >=19'
 
-  react-window@1.8.11:
-    resolution: {integrity: sha512-+SRbUVT2scadgFSWx+R1P754xHPEqvcfSfVX10QYg6POOz+WNgkN48pS+BtZNIMGiL1HYrSEiCkwsMS15QogEQ==}
-    engines: {node: '>8.0.0'}
+  react-window@2.2.7:
+    resolution: {integrity: sha512-SH5nvfUQwGHYyriDUAOt7wfPsfG9Qxd6OdzQxl5oQ4dsSsUicqQvjV7dR+NqZ4coY0fUn3w1jnC5PwzIUWEg5w==}
     peerDependencies:
-      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   react-zdog@1.2.2:
     resolution: {integrity: sha512-Ix7ALha91aOEwiHuxumCeYbARS5XNpc/w0v145oGkM6poF/CvhKJwzLhM5sEZbtrghMA+psAhOJkCTzJoseicA==}
@@ -24100,10 +24093,6 @@ snapshots:
     dependencies:
       '@types/react': 19.2.9
 
-  '@types/react-window@1.8.8':
-    dependencies:
-      '@types/react': 19.2.9
-
   '@types/react@19.2.9':
     dependencies:
       csstype: 3.2.3
@@ -33700,10 +33689,8 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  react-window@1.8.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  react-window@2.2.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
-      '@babel/runtime': 7.27.6
-      memoize-one: 5.2.1
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
