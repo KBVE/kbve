@@ -70,7 +70,7 @@ local spider = {
 	icon = "__kbve-spider__/graphics/icon.png",
 	icon_size = 64,
 	icon_mipmaps = 4,
-	flags = { "placeable-enemy", "placeable-off-grid", "not-repairable", "breaths-air" },
+	flags = { "placeable-enemy", "placeable-off-grid", "not-repairable", "breaths-air", "get-by-unit-number" },
 
 	max_health = 80,
 	healing_per_tick = 0.01,
