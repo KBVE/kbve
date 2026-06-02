@@ -12,17 +12,22 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: null
+  material:
+    type: Sunfire
+    tier: high
   equipment:
     slot: body
-    type: melee_prayer
-    tradeable: true
-    weight: 9
+    weapon_type: none
+    weight: 8.618
+    requirements:
+      defence: 40
+      prayer: 60
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
-      magic: -6
-      ranged: -3
+      magic: -30
+      ranged: -15
     defence_bonus:
       stab: 82
       slash: 80
@@ -34,89 +39,58 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 10
-    requirements:
-      prayer: 60
-      defence: 40
-  set_effect:
-    name: Sunfire Fanatic
-    pieces:
-      - Sunfire fanatic helm
-      - Sunfire fanatic cuirass
-      - Sunfire fanatic chausses
-    description: Best-in-slot prayer bonus armor set
   drop_table:
-    primary_source: Fortis Colosseum
-    best_drop_rate: 1/24.47
     sources:
-      - source: Fortis Colosseum
+      - source: Fortis Colosseum (wave 4-12 reward)
         quantity: "1"
-        rarity: uncommon
-        drop_rate: 1/24.47 (full completion)
-        members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 2500000
+        rarity: 1/24.47
   related_items:
-    - item_id: 28933
-      item_name: Sunfire fanatic helm
-      slug: sunfire-fanatic-helm
+    - name: Sunfire fanatic helm
       relationship: set-piece
-      description: Head piece
-    - item_id: 28939
-      item_name: Sunfire fanatic chausses
-      slug: sunfire-fanatic-chausses
+    - name: Sunfire fanatic chausses
       relationship: set-piece
-      description: Leg piece
-  about: |-
-    ### Defensive Bonuses
-    | Defence Type | Bonus |
-    |--------------|-------|
-    | Stab | +82 |
-    | Slash | +80 |
-    | Crush | +72 |
-    | Magic | -6 |
-    | Ranged | +80 |
-
-    ### Other Bonuses
-    | Stat | Bonus |
-    |------|-------|
-    | Magic Attack | -6 |
-    | Ranged Attack | -3 |
-    | Prayer | +10 |
-
-    The Sunfire Fanatic set provides the best-in-slot prayer bonus when worn together:
-
-    Full Set Pieces:
-    - Sunfire fanatic helm (+6 Prayer)
-    - Sunfire fanatic cuirass (+10 Prayer)
-    - Sunfire fanatic chausses (+8 Prayer)
-
-    Total Set Prayer Bonus: +24
-
-    The cuirass alone provides nearly half of the set's total prayer bonus, making it the most impactful piece.
-
-    Best uses for the Sunfire fanatic cuirass:
-
-    - Inferno: Maximizes prayer efficiency during attempts
-    - Fight Caves: Enables longer prayer uptime
-    - GWD: Extended trips with fewer prayer potions
-    - Nightmare/Phosani: Prayer-heavy boss encounters
-    - TOB: Useful in prayer-drain rooms
-    - General bossing: Reduces supply costs
-
-    Comparison to Proselyte:
-    - Proselyte hauberk: +8 Prayer
-    - Sunfire fanatic cuirass: +10 Prayer (+2 more)
-    - Significantly better defensive stats
+    - name: Proselyte hauberk
+      relationship: alternative
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  about: "Sunfire fanatic cuirass is a members body slot item rewarded from the Fortis Colosseum and Elite Treasure Trails clue scrolls. It offers a class-leading +10 prayer bonus alongside competitive melee defence, making it a premier prayer-bonus body for Inferno, Nightmare, and other prayer-heavy PvM encounters."
   market_strategy:
     notes:
-      - Most expensive piece due to highest prayer bonus
-      - High demand for Inferno preparation
-      - Price may fluctuate with Colosseum popularity
-      - Worth the investment for serious PvM
-      - Consider as first purchase from set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Most expensive piece in the Sunfire Fanatic set thanks to its +10 prayer bonus."
+      - "Demand spikes alongside Inferno popularity and Fortis Colosseum content launches."
+      - "Price tracks Fortis Colosseum completion rates; supply expands as more players unlock consistent runs."
+      - "Strong long-term investment for serious PvMers — outclasses Proselyte hauberk on both prayer and defence."
+  trading_tips:
+    - "First Sunfire piece to buy if assembling the set on a budget — single biggest prayer-bonus contribution."
+    - "Pair with sunfire fanatic helm and chausses for the full +24 prayer set bonus."
+    - "List buys slightly above instant-buy price to clear the order quickly when prepping for Inferno."
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Varlamore: Part One update as a Fortis Colosseum reward."
+    - date: "2024-04-10"
+      description: "Base value standardised to 500,000 coins (high alch 300,000)."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8.618
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

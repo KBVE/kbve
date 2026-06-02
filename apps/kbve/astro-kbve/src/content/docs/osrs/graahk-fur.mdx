@@ -12,9 +12,51 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 10000
-  about: "Graahk fur is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Horned graahk
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - name: Tatty graahk fur
+      relationship: variant
+    - name: Larupia fur
+      relationship: alternative
+    - name: Kyatt fur
+      relationship: alternative
+    - name: Graahk headdress
+      relationship: product
+    - name: Graahk top
+      relationship: product
+    - name: Graahk legs
+      relationship: product
+  about: "Graahk fur is a perfect Hunter fur trapped from Horned Graahks on Karamja at 41 Hunter, used to tailor the graahk hunter outfit or sold to fur merchants for steady gp."
+  market_strategy:
+    notes:
+      - "GE price near 339 gp with a 10,000-per-4-hours buy limit."
+      - "Steady demand from Hunter outfit crafters and medium fur pouch makers."
+  trading_tips:
+    - "Sell to Fancy Clothes Store and East Ardougne fur merchants for a flat NPC floor when GE dips."
+    - "Pair with kyatt and larupia furs - the trio fluctuates with Hunter training guide popularity."
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill."
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

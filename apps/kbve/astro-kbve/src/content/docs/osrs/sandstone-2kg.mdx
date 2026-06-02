@@ -9,12 +9,51 @@ osrs:
   members: true
   icon: Sandstone (2kg).png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 100
-  about: "Sandstone (2kg) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: stone
+    tier: low
+  related_items:
+    - name: Sandstone (1kg)
+      relationship: downgrade
+    - name: Sandstone (5kg)
+      relationship: upgrade
+    - name: Sandstone (10kg)
+      relationship: upgrade
+    - name: Bucket of sand
+      relationship: product
+    - name: Molten glass
+      relationship: product
+  about: "Sandstone (2kg) is a small block of sandstone mined from sandstone rocks at the Bandit Camp Quarry, Necropolis, and Cape Conch with 35 Mining. It can be ground into buckets of sand at the Sandstorm grinder or split with a chisel into smaller chunks."
+  market_strategy:
+    notes:
+      - Used to make buckets of sand for Crafting
+      - Mid-size variant balances weight and yield
+  trading_tips:
+    - Buy limit is 100 per 4 hours
+    - Margins are thin compared to direct mining
+  history:
+    - date: "2006-01-23"
+      description: "Sandstone (2kg) was released with the Enakhra's Lament quest and Desert Mining."
+  properties:
+    release_date: "2006-01-23"
+    update: "Enakhra's Lament"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Use
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

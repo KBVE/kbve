@@ -12,9 +12,65 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 11000
-  about: "Dragon arrow(p) is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: ranged-ammunition
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      ranged_strength: 60
+  related_items:
+    - name: Dragon arrow
+      relationship: downgrade
+    - name: Dragon arrow(p+)
+      relationship: upgrade
+    - name: Dragon arrow(p++)
+      relationship: upgrade
+  drop_table:
+    sources:
+      - source: Dragon impling
+        quantity: "1"
+        rarity: 1/19
+      - source: Crazy archaeologist
+        quantity: "1"
+        rarity: 1/128
+      - source: The Gauntlet
+        quantity: "1"
+        rarity: 1/24
+  about: "Dragon arrow(p) is a members-only poisoned ranged ammunition in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  market_strategy:
+    notes:
+      - Dragon arrow(p) trades at premium over plain dragon arrows due to weak poison effect.
+      - Demand is driven by ranged PvM and PvP usage with dragon-tier bows.
+  trading_tips:
+    - Buy in bulk during off-peak hours to take advantage of GE limit.
+    - Compare price spread against dragon arrow + weapon poison crafting cost.
+  history:
+    - date: "2007-06-11"
+      description: Released with the Impetuous Impulses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-06-11"
+    update: Impetuous Impulses
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

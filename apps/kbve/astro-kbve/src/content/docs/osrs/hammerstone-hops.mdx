@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Hammerstone hops is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hops
+    tier: low
+  farming:
+    seed: Hammerstone seed
+    farming_level: 4
+    patch: Hops
+    yield: Hammerstone hops
+  recipes:
+    - materials:
+        - item_name: Hammerstone hops
+          quantity: 4
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Ale yeast
+          quantity: 1
+      tools:
+        - Fermenting vat
+      output_quantity: 8
+  shops:
+    - shop_name: Olivia's Farming Shop (Catherby)
+      currency: Coins
+      price: 4
+      stock: 5
+    - shop_name: Lyra's Farming Shop (East Ardougne)
+      currency: Coins
+      price: 4
+      stock: 5
+    - shop_name: Elstan's Farming Shop (South Falador)
+      currency: Coins
+      price: 4
+      stock: 5
+  related_items:
+    - item_name: Hammerstone seed
+      slug: hammerstone-seed
+      relationship: component
+    - item_name: Dwarven stout
+      slug: dwarven-stout
+      relationship: product
+    - item_name: Asgarnian hops
+      slug: asgarnian-hops
+      relationship: alternative
+  about: "Lowest-tier farming hops, planted from a Hammerstone seed at 4 Farming and used in brewing dwarven stout via 19 Cooking."
+  market_strategy:
+    notes:
+      - Cheap brewing input
+      - Easy farming experience early
+      - Shops stock at 4gp
+  history:
+    - date: "2005-07-11"
+      description: Released with Farming skill update.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,86 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 70
+  material:
+    type: metal
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: two_handed_sword
+    attack_speed: 7
+    weight: 3.628
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 0
+      slash: 69
+      crush: 50
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 70
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1319
+      item_name: Rune 2h sword
+      slug: rune-2h-sword
+      relationship: alternative
+      description: Same stats, non-gilded base
+    - item_id: 7158
+      item_name: Dragon 2h sword
+      slug: dragon-2h-sword
+      relationship: upgrade
+      description: Higher-tier two-handed sword (60 Attack)
+    - item_id: 20143
+      item_name: Gilded scimitar
+      slug: gilded-scimitar
+      relationship: alternative
+      description: Other gilded melee weapon from Treasure Trails
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
+  market_strategy:
+    notes:
+      - "Cosmetic gilded variant of the rune 2h sword; price tracks clue scroll meta."
+      - "Limited supply (70/4hr) with multi-tier Treasure Trails drop pool."
+  trading_tips:
+    - "Stockpile after Treasure Trails reworks that buff non-gilded loot."
+    - "Long-term hold; gilded items historically trend upward."
   about: "Gilded 2h sword is a free-to-play item in Old School RuneScape. High alchemy value: 38,400 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2016-07-06"
+      description: Released with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

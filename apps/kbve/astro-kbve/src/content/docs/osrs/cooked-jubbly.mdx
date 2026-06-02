@@ -12,9 +12,52 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 10000
-  about: "Cooked jubbly is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 15
+    type: cooked
+    cooking_level: 41
+    cooking_xp: 160
+  recipes:
+    - materials:
+        - item_name: Raw jubbly
+      tools:
+        - Iron spit
+      output_quantity: 1
+      skill: Cooking
+      level: 41
+      xp: 160
+      notes: "Cooked on an ogre spit-roast near Rantz in Feldip Hills or at Jiggig."
+  about: "Cooked jubbly is a members-only food item in Old School RuneScape that heals 15 Hitpoints when eaten. It requires level 41 Cooking to prepare on an ogre spit-roast and is associated with the Skrach Uglogwee subquest of Recipe for Disaster."
+  market_strategy:
+    notes:
+      - "Profitable cooking flip: raw jubblies are cheaper than cooked, and successful cooks yield strong margins once GE tax is accounted for."
+      - "Demand is modest because most high-level players prefer sharks or anglerfish for raw HP-per-inventory-slot."
+      - "Heaviest food in the game at 10 kg per item alongside cooked chompy — limits stacking in weight-sensitive activities."
+  trading_tips:
+    - "Buy raw jubblies in bulk and cook to 41+ Cooking for a steady margin."
+    - "Stockpile for Skrach Uglogwee subquest demand spikes."
+    - "Avoid carrying many at once in agility-heavy content due to 10 kg weight."
+  history:
+    - date: "2006-03-15"
+      description: "Released as part of the Recipe for Disaster: Freeing Skrach Uglogwee subquest."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-03-15"
+    update: "Recipe for Disaster"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: "Recipe for Disaster"
+    weight: 10
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

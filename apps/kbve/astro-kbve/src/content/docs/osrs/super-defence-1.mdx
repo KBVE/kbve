@@ -12,23 +12,52 @@ osrs:
   lowalch: 52
   highalch: 79
   limit: 2000
+  potion:
+    effects:
+      - description: "Boosts Defence by ⌊Defence level × 15 / 100⌋ + 5 for the drinker."
+        skill: defence
+        boost_formula: "floor(level * 0.15) + 5"
+      - description: "Boost degrades at 1 level per minute (extended to 90 seconds per level with the Preserve prayer)."
+        decay_per_minute: 1
   related_items:
-    - item_id: 163
-      item_name: Super defence(3)
-      slug: super-defence-3
+    - name: Super defence(3)
       relationship: variant
-      description: 3-dose version
-    - item_id: 165
-      item_name: Super defence(2)
-      slug: super-defence-2
+    - name: Super defence(2)
       relationship: variant
-      description: 2-dose version
-  about: |-
-    > _"1 dose of super Defence potion."_
-
-    A 1-dose super defence potion. Boosts Defence by 5 + 15% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Super defence(4)
+      relationship: variant
+  about: "Super defence(1) is a single-dose members potion that boosts Defence by 5 plus 15% of the drinker's current Defence level. Commonly used as the final sip in long PvM trips and bought to top up combat potion stocks at the Grand Exchange."
+  market_strategy:
+    notes:
+      - "Lowest-margin variant of super defence; demand from PvMers topping off doses keeps it liquid."
+      - "Generally moves slowest of the dose splits — most players grab (4) doses instead."
+      - "Watch decant traders who convert (4) → (1) doses for arbitrage windows."
+  trading_tips:
+    - "Use Lunar decanting or decant services when sitting on excess (4) doses to free up bank space."
+    - "Avoid alching — high alch barely covers cost; sell on the Grand Exchange instead."
+  history:
+    - date: "2002-02-27"
+      description: "Released as part of the original Herblore potion lineup."
+    - date: "2004-03-29"
+      description: "RuneScape 2 launch standardised the (1)/(2)/(3)/(4) dose system."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: "Herblore release"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

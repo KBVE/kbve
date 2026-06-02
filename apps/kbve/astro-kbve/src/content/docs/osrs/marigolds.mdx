@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Marigolds is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flower
+    tier: low
+  farming:
+    seed: Marigold seed
+    level: 2
+    patch: Flower patch
+    growth_time_minutes: 20
+    yield: 1
+    protection: Used as protection payment for Hammerstone hops (1 bunch per protection)
+  related_items:
+    - item_name: Marigold seed
+      slug: marigold-seed
+      relationship: component
+      description: Seed planted in a flower patch to grow marigolds
+    - item_name: Anchovy oil
+      slug: anchovy-oil
+      relationship: alternative
+      description: Combined with marigolds to make imp repellent
+  about: "Marigolds are a members-only Farming flower grown from marigold seeds at level 2 Farming, used in Herblore for imp repellent and as protection payment for Hammerstone hops while also repelling disease from nearby allotment crops."
+  market_strategy:
+    notes:
+      - Low buy limit (600) caps bulk flips
+      - Steady Farming demand from disease-protection planters
+      - Imp repellent recipe creates niche Herblore demand
+      - Supply dependent on flower patch farmers
+  trading_tips:
+    - Buy when farming meta favours allotment runs
+    - Sell during Halloween/Easter event seasons when flower demand spikes
+    - Stock up for personal allotment runs to avoid GE markup
+  history:
+    - date: "2005-07-11"
+      description: Marigolds released alongside the Farming skill update.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

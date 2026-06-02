@@ -12,9 +12,44 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
-  about: "Dharok's armour set is a members-only item in Old School RuneScape. High alchemy value: 240,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - name: Dharok's helm
+      relationship: set-piece
+    - name: Dharok's platebody
+      relationship: set-piece
+    - name: Dharok's platelegs
+      relationship: set-piece
+    - name: Dharok's greataxe
+      relationship: set-piece
+  about: "Dharok's armour set is a Grand Exchange convenience bundle of the four Dharok the Wretched Barrows pieces (helm, platebody, platelegs, greataxe). The GE clerk exchanges the set for its component pieces, simplifying bulk buy/sell flow."
+  market_strategy:
+    notes:
+      - Convenient bundle for selling full Dharok's kit
+      - Typically trades at a small premium to component sum
+      - Demand spikes during Barrows meta shifts
+  trading_tips:
+    - Compare bundle price to four component pieces before flipping
+    - Buy limit of 8 per 4 hours constrains volume
+  history:
+    - date: "2014-12-10"
+      description: "Dharok's armour set was released as part of the Grand Exchange Sets expansion."
+  properties:
+    release_date: "2014-12-10"
+    update: "Grand Exchange Sets Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

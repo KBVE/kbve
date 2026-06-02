@@ -12,84 +12,74 @@ osrs:
   lowalch: 380000
   highalch: 570000
   limit: 8
+  material:
+    type: dragon
+    tier: high
   equipment:
     slot: weapon
-    type: ranged_weapon
-    two_handed: true
-    tradeable: true
+    weapon_type: ballista
+    attack_speed: 7
     weight: 6
     requirements:
       ranged: 75
       quest: Monkey Madness II
-    stats:
-      attack_ranged: 125
+    attack_bonus:
+      ranged: 125
+    other_bonus:
       ranged_strength: 15
-  creation:
-    method: Combine unstrung heavy ballista with Monkey tail
-    requirements:
-      fletching: 72
-    xp: 600
-    materials:
-      - item_id: 19589
-        item_name: Unstrung heavy ballista
-        slug: unstrung-heavy-ballista
-      - item_id: 19610
-        item_name: Monkey tail
-        slug: monkey-tail
-  ammunition:
-    type: javelin
-    max_tier: dragon
   special_attack:
     name: Concentrated Shot
-    energy: 65
-    description: +25% accuracy, +25% damage
+    energy_cost: 65
+    description: "Increases accuracy and damage by 25%."
+  recipes:
+    - skill: Fletching
+      level: 72
+      xp: 600
+      output_quantity: 1
+      tools: []
+      materials:
+        - item_name: Unstrung heavy ballista
+          quantity: 1
+        - item_name: Monkey tail
+          quantity: 1
   related_items:
-    - item_id: 19478
-      item_name: Light ballista
-      slug: light-ballista
+    - name: Light ballista
       relationship: downgrade
-      description: Lighter version
-    - item_id: 19484
-      item_name: Dragon javelin
-      slug: dragon-javelin
+    - name: Dragon javelin
       relationship: component
-      description: Best ammo
-    - item_id: 0
-      item_name: Monkey Madness II
-      slug: monkey-madness-ii
-      relationship: alternative
-      description: Unlock quest
-  about: |-
-    Combine unstrung heavy ballista with Monkey tail.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Fletching | 72 (600 XP) |
-
-    | Offence | Bonus |
-    |---------|-------|
-    | Ranged | +125 |
-    | Ranged Strength | +15 |
-
-    Uses Javelins (up to dragon tier).
-
-    Concentrated Shot (65% spec)
-    - +25% accuracy
-    - +25% damage
-
-    BiS for:
-    - PvP ranged KOs
-    - High max hit setups
-    - Spec weapon
-
-    Highest ranged max hit weapon.
+    - name: Heavy ballista (or)
+      relationship: variant
+  about: "Heavy ballista is a two-handed ranged weapon from Monkey Madness II, firing javelins up to dragon tier. Its Concentrated Shot special gives +25% accuracy and damage at 65% energy, making it a top PvP ranged KO option."
   market_strategy:
     notes:
-      - Great for PvP
+      - Great for PvP burst damage
       - Slow attack speed
-      - Best with dragon javelins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Best paired with dragon javelins
+  trading_tips:
+    - Monitor buy limit of 8 per 4 hours
+    - Price tracks unstrung ballista + monkey tail margin
+  history:
+    - date: "2016-05-06"
+      description: "Heavy ballista was released with the Monkey Madness II quest."
+  properties:
+    release_date: "2016-05-06"
+    update: "Monkey Madness II"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Monkey Madness II"
+    weight: 6
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

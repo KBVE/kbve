@@ -12,64 +12,65 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 5
-  item:
+  material:
     type: sigil
-    tradeable: true
-    weight: 3
-  obtaining:
-    methods:
+    tier: high
+  drop_table:
+    sources:
       - source: Corporeal Beast
-        drop_rate: 1/1,365
-  creation:
-    creates:
-      item_id: 12821
-      item_name: Spectral spirit shield
-      slug: spectral-spirit-shield
-    method: Combine with Blessed spirit shield
-    requirements:
-      prayer: 90
-      smithing: 85
-    alternative: Pay Abbot Langley 1,500,000 gp
-  created_effect:
-    name: Spectral Protection
-    description: Reduces Prayer drain from attacks by 50%
-    use_cases:
-      - Cerberus
-      - Nightmare
+        quantity: "1"
+        rarity: 1/1365
+  recipes:
+    - materials:
+        - item_name: Spectral sigil
+          quantity: 1
+        - item_name: Blessed spirit shield
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+      output_item: Spectral spirit shield
+      skill: Smithing
+      level: 85
+      xp: 1800
+      prayer_requirement: 90
   related_items:
-    - item_id: 0
-      item_name: Corporeal Beast
-      slug: corporeal-beast
-      relationship: component
-      description: Source
-    - item_id: 12821
-      item_name: Spectral spirit shield
-      slug: spectral-spirit-shield
+    - item_name: Spectral spirit shield
       relationship: product
-      description: Created item
-    - item_id: 12831
-      item_name: Blessed spirit shield
-      slug: blessed-spirit-shield
+    - item_name: Blessed spirit shield
       relationship: component
-      description: Required material
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Sigil |
-    | Tradeable | Yes |
-    | Weight | 3 kg |
-
-    | Item Created | Materials | Requirements |
-    |--------------|-----------|--------------|
-    | Spectral spirit shield | Spectral sigil + Blessed spirit shield | 90 Prayer, 85 Smithing |
-
-    Alternatively, pay Abbot Langley 1,500,000 gp.
-
-    Spectral Spirit Shield: Reduces Prayer drain from attacks by 50%.
-
-    Useful at Cerberus and Nightmare.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Arcane sigil
+      relationship: alternative
+    - item_name: Elysian sigil
+      relationship: alternative
+  about: "The spectral sigil is a rare Corporeal Beast drop combined with a blessed spirit shield at 90 Prayer and 85 Smithing (or via Abbot Langley for 1.5M coins) to forge the spectral spirit shield, which halves prayer drain from incoming damage."
+  market_strategy:
+    notes:
+      - Sole source is the Corporeal Beast at roughly 1/1,365 per kill.
+      - GE limit of 5 every 4 hours throttles flips on the multi-million-gp sigil.
+      - Combined shield price tracks sigil supply since Blessed spirit shields are cheap.
+  trading_tips:
+    - Watch Corp mass communities; group respawn pushes increase sigil supply.
+    - Compare combined shield value vs raw sigil + blessed shield + Abbot fee for arbitrage.
+  history:
+    - date: "2014-10-16"
+      description: Released with the Corporeal Beast update as one of three sigil drops.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-10-16"
+    update: "Corporeal Beast"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

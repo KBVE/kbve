@@ -12,18 +12,59 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 6000
+  food:
+    heals: 8
+    cooking_level: 20
+    cooking_xp: 80
+    stops_burning_level: 54
+  recipes:
+    - materials:
+        - item_name: Raw pike
+          quantity: 1
+      tools:
+        - Fire or cooking range
+      output_quantity: 1
+      cooking_xp: 80
+      cooking_level: 20
   related_items:
     - item_id: 349
       item_name: Raw pike
       slug: raw-pike
       relationship: component
       description: Uncooked version
+    - item_id: 343
+      item_name: Burnt pike
+      slug: burnt-pike
+      relationship: alternative
+      description: Result of failing the cook
   about: |-
     > _"Some nicely cooked pike."_
-
     Pike heals 8 Hitpoints. Caught with a fishing rod and bait at 25 Fishing. A decent mid-level F2P food.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Free-to-play food, low margin but high volume
+      - Buy limit of 6,000 supports bulk flips
+  history:
+    - date: "2001-06-11"
+      description: Added to the game alongside the Fishing and Cooking skill content.
+  properties:
+    release_date: "2001-06-11"
+    update: Fishing and Cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

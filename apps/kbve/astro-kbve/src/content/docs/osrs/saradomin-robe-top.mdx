@@ -16,8 +16,17 @@ osrs:
     slot: body
     requirements:
       prayer: 20
+    attack_bonus:
+      magic: 4
+    defence_bonus:
+      magic: 4
     other_bonus:
       prayer: 6
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 10464
       item_name: Saradomin robe legs
@@ -29,12 +38,50 @@ osrs:
       slug: saradomin-mitre
       relationship: set-piece
       description: Saradomin vestment head
+    - item_id: 10454
+      item_name: Saradomin cloak
+      slug: saradomin-cloak
+      relationship: set-piece
+      description: Saradomin vestment cape
+    - item_id: 10456
+      item_name: Saradomin crozier
+      slug: saradomin-crozier
+      relationship: set-piece
+      description: Saradomin vestment weapon
   about: |-
     > *"Saradomin Vestments."*
-
     The Saradomin robe top is the body piece of the Saradomin vestment set. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Counts as a Saradominist item in the God Wars Dungeon, providing protection from Saradomin followers.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Easy clue reward with steady demand from GWD Saradomin trips and fashionscape vestment collectors.
+      - Low GE limit (8) compresses arbitrage; full vestment set buys tend to lift price.
+  trading_tips:
+    - Watch for spikes around Saradomin GWD content tweaks or new prayer training methods.
+    - Stockpile around clue scroll drop-rate buffs; demand stays anchored to easy clue volume.
+  history:
+    - date: "2006-12-05"
+      description: Released with the Treasure Trails, spiders and sheep update.
+    - date: "2014-07-24"
+      description: Vestment robe tops and legs adjusted to match monk robe prayer bonuses.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.8
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

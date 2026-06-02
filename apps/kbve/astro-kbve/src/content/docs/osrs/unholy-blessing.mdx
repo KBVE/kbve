@@ -14,67 +14,84 @@ osrs:
   limit: 5
   equipment:
     slot: ammo
-    type: blessing
-    attack_style: none
-    stats:
-      prayer_bonus: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Rare
-        description: Reward from master clue scrolls
-      - source: Treasure Trails
-        requirements:
-          clue_type: Elite
-        rarity: Rare
-        description: Reward from elite clue scrolls
+    weight: 0.51
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      prayer: 1
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/541
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: rare
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: rare
   related_items:
-    - item_id: 20220
-      item_name: Holy blessing
-      slug: holy-blessing
+    - slug: holy-blessing
       relationship: alternative
-      description: Saradomin blessing
-    - item_id: 20226
-      item_name: Peaceful blessing
-      slug: peaceful-blessing
+    - slug: peaceful-blessing
       relationship: alternative
-      description: Guthix blessing
-    - item_id: 20229
-      item_name: Honourable blessing
-      slug: honourable-blessing
+    - slug: honourable-blessing
       relationship: alternative
-      description: Armadyl blessing
-    - item_id: 20232
-      item_name: War blessing
-      slug: war-blessing
+    - slug: war-blessing
       relationship: alternative
-      description: Bandos blessing
-    - item_id: 20235
-      item_name: Ancient blessing
-      slug: ancient-blessing
+    - slug: ancient-blessing
       relationship: alternative
-      description: Zaros blessing
-  about: |-
-    The unholy blessing is a Zamorak-aligned item worn in the ammunition slot, providing +1 prayer bonus. It is the Zamorak equivalent of other god blessings.
-
-    Blessings are valuable because they provide prayer bonus in the ammunition slot, which normally has no prayer-boosting options. This makes them useful for any build that wants to maximize prayer bonus without sacrificing ranging capability.
-
-    God Wars Protection:
-    - Counts as a Zamorak item in the God Wars Dungeon
-    - Zamorak followers will not be aggressive when worn
+  about: "Unholy blessing is the Zamorak ammo-slot blessing granting +1 Prayer and protection in the Zamorak section of the God Wars Dungeon."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Prices vary between different god blessings
-      - Zamorak version useful for K'ril Tsutsaroth
-      - Good investment for PvM-focused accounts
-      - Compare prices between all six blessings
-      - Consider God Wars Dungeon utility when pricing
-      - Popular with players wanting prayer bonus in ammo slot
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Prices vary between the six blessings; Unholy version pairs well with K'ril trips.
+      - Low GE limit of 5 widens spreads and rewards patient buyers.
+      - Long-term investment driven by PvM ammo-slot prayer demand.
+  trading_tips:
+    - Compare prices across all six blessings before buying.
+    - Stack in costume room treasure chest if storing long-term.
+  history:
+    - date: "2016-07-06"
+      description: Added with the Treasure Trail Expansion as a clue scroll reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.51
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Spottier cape | OSRS Price Data
-description: "Spottier cape: A really surprisingly aerodynamic cape.. High alch: 480 GP, GE limit: 125."
+description: "Spottier cape: A really surprisingly aerodynamic cape. High alch: 480 GP, GE limit: 125."
 osrs:
   id: 10071
   name: Spottier cape
@@ -12,9 +12,84 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 125
-  about: "Spottier cape is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dashing-kebbit-fur
+    tier: mid
+  equipment:
+    slot: cape
+    weapon_type: cape
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      hunter: 66
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Dashing kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 800
+      tools:
+        - Fancy Clothes Store (Varrock) or Pellem (Hunter Guild) or Seamstress (Prifddinas)
+      skill: Hunter
+      level: 66
+      xp: 0
+      output_quantity: 1
+      notes: Hunter level 66 required to wear; dashing kebbits need 69 Hunter at Piscatoris falconry area.
+  related_items:
+    - item_id: 10069
+      item_name: Spotted cape
+      slug: spotted-cape
+      relationship: downgrade
+      description: Lower-tier hunter cape made from spotted kebbit fur with less weight reduction.
+    - item_id: 11852
+      item_name: Graceful cape
+      slug: graceful-cape
+      relationship: alternative
+      description: Agility reward cape with smaller weight reduction but run energy restore.
+  about: A Hunter-skill cape made from two dashing kebbit furs; provides the largest static weight reduction in the cape slot but no run energy regen.
+  market_strategy:
+    notes:
+      - Demand tied to mid-game Hunter goals and weight-reduction sets for skilling.
+      - Supply throttled by dashing kebbit catch rates at falconry.
+  trading_tips:
+    - Buy underpriced GE listings and tan from raw kebbit furs when margins invert.
+    - Watch graceful cape meta shifts; spottier benefits when energy regen isn't needed.
+  history:
+    - date: "2006-11-21"
+      description: Spottier cape released alongside the Hunter skill expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

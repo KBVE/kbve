@@ -12,9 +12,66 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Super str. mix(1) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Boosts Strength by 5 + floor(Strength level × 0.15) (range 5-19 depending on level)."
+        skill: strength
+        boost_formula: "floor(level * 0.15) + 5"
+      - description: "Restores 6 Hitpoints on drink — Barbarian Training combo potion."
+        skill: hitpoints
+        heal: 6
+  recipes:
+    - skill: Herblore
+      level: 59
+      xp: 42
+      materials:
+        - item_name: Super strength(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      requirements:
+        - "Completed the Herblore section of the Barbarian Training miniquest with Otto Godblessed."
+  related_items:
+    - name: Super strength(1)
+      relationship: variant
+    - name: Super str. mix(2)
+      relationship: variant
+    - name: Caviar
+      relationship: component
+  about: "Super str. mix(1) is a single-dose Barbarian Training mix potion that combines a super Strength boost with 6 Hitpoints of healing. Made by combining caviar with super strength(2) at 59 Herblore after unlocking the Herblore stage of Barbarian Training."
+  market_strategy:
+    notes:
+      - "Niche demand from PvMers wanting Strength + heal in one inventory slot."
+      - "Profit margin depends on caviar spot price relative to super strength(2)."
+      - "Often produced for Herblore XP rather than for sale; supply can spike when caviar is cheap."
+  trading_tips:
+    - "Compare caviar + super strength(2) cost against finished mix sale price — small fluctuations can flip the margin negative."
+    - "Sell finished mixes in (1)-dose form when caviar/strength prices are tight; (2)-dose moves faster otherwise."
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Training update (Herblore extension)."
+    - date: "2015-02-05"
+      description: "Renamed from 'Sup. str. mix' to 'Super str. mix' for clarity."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: "Barbarian Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
