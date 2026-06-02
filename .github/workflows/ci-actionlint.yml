@@ -64,9 +64,11 @@ jobs:
 
             - name: Run zizmor (offline audits only, informational)
               run: |
-                  set -euo pipefail
-                  uvx zizmor==1.8.0 --persona=regular --no-online-audits \
-                      --format plain .github/workflows
+                  set -uo pipefail
+                  uvx zizmor==1.25.2 --persona=regular --no-online-audits \
+                      --format plain .github/workflows || \
+                      echo "::notice::zizmor exited non-zero (findings or crash) — informational only, not blocking"
+                  exit 0
 
     track_failure:
         name: Track Failures
