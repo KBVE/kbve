@@ -663,9 +663,8 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 				for _ = 1, picks do
 					local s = spiders[math.random(1, n)]
 					if s.valid then
-						local in_group = false
-						local ok, ug = pcall(function() return s.unit_group end)
-						if ok and ug then in_group = true end
+						local cmdable = s.commandable
+						local in_group = cmdable and cmdable.parent_group ~= nil
 						if not in_group then
 							surface.create_entity{
 								name = NERVOUS_CORPSE,
@@ -675,29 +674,18 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 						end
 					end
 				end
-				-- Idle wander pass: any spider that's not in an attack group and
-				-- has no current command gets a short wander burst so wild biters
-				-- (which aren't tied to a spawner here, so don't get Factorio's
-				-- normal ambient AI) and ally spiders parked near their owner
-				-- don't freeze in place.
 				for i = 1, n do
 					local s = spiders[i]
 					if s.valid then
-						local in_group = false
-						local ok_ug, ug = pcall(function() return s.unit_group end)
-						if ok_ug and ug then in_group = true end
-						if not in_group then
-							pcall(function()
-								local commandable = s.commandable
-								if commandable and not commandable.has_command then
-									commandable.set_command{
-										type = defines.command.wander,
-										ticks_to_wait = 600,
-										wander_in_group = false,
-										distraction = defines.distraction.by_damage,
-									}
-								end
-							end)
+						local cmdable = s.commandable
+						local in_group = cmdable and cmdable.parent_group ~= nil
+						if not in_group and cmdable and not cmdable.has_command then
+							cmdable.set_command{
+								type = defines.command.wander,
+								ticks_to_wait = 600,
+								wander_in_group = false,
+								distraction = defines.distraction.by_damage,
+							}
 						end
 					end
 				end
@@ -726,9 +714,8 @@ script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
 					local key = s.unit_number
 					local ready_at = cooldowns[key] or 0
 					if tick >= ready_at then
-						local in_group = false
-						local ok, ug = pcall(function() return s.unit_group end)
-						if ok and ug then in_group = true end
+						local cmdable = s.commandable
+						local in_group = cmdable and cmdable.parent_group ~= nil
 						if in_group and math.random() < cached_sprint_chance then
 							surface.create_entity{
 								name = SPRINT_STICKER,
