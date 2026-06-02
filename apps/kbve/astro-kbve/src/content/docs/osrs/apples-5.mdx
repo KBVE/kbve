@@ -1,6 +1,6 @@
 ---
 title: Apples(5) | OSRS Price Data
-description: "Apples(5): A fruit basket filled with apples.. High alch: 1 GP, GE limit: 600."
+description: "Apples(5): A fruit basket filled with apples. High alch: 1 GP, GE limit: 600."
 osrs:
   id: 5386
   name: Apples(5)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Apples(5) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: farming
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Basket
+          quantity: 1
+        - item_name: Cooking apple
+          quantity: 5
+      product: Apples(5)
+      product_id: 5386
+  related_items:
+    - item_id: 5454
+      item_name: Basket
+      slug: basket
+      relationship: component
+      description: Empty basket container
+    - item_id: 1955
+      item_name: Cooking apple
+      slug: cooking-apple
+      relationship: component
+      description: Filler fruit
+    - item_id: 5286
+      item_name: Orange tree seed
+      slug: orange-tree-seed
+      relationship: alternative
+      description: Comparable farmer payment alternative
+  about: A basket of five cooking apples used as farmer payment to protect strawberry, willow and banana patches.
+  market_strategy:
+    notes:
+      - Used as farmer protection payment
+      - One basket protects strawberry or willow patch
+      - Four baskets protect banana trees
+      - Supply tied to player baskets filled, not GE
+      - Niche farming utility item
+  history:
+    - date: "2005-07-11"
+      update: Farming update
+      description: Item released as part of the Farming skill launch.
+    - date: "2018-03-15"
+      update: Inventory option improvements
+      description: Added Empty option and shift-click empty for single-apple baskets.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Fill
+      - Remove-one
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

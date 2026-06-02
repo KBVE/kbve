@@ -1,6 +1,6 @@
 ---
 title: Trailblazer tool ornament kit | OSRS Price Data
-description: "Trailblazer tool ornament kit is a members-only OSRS item. High alch: 15,000 GP, GE limit: 5."
+description: "Trailblazer tool ornament kit: A kit which can be attached to any Dragon or Infernal axe, pickaxe or harpoon to recolour it. High alch: 15,000 GP, GE limit: 5."
 osrs:
   id: 25090
   name: Trailblazer tool ornament kit
@@ -12,9 +12,65 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Trailblazer tool ornament kit is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues Reward interface
+      price: 1500
+      members_only: true
+      currency: League Points
+  related_items:
+    - item_id: 1359
+      item_name: Dragon axe
+      slug: dragon-axe
+      relationship: component
+      description: Compatible woodcutting tool for recolour
+    - item_id: 13661
+      item_name: Infernal axe
+      slug: infernal-axe
+      relationship: component
+      description: Compatible woodcutting tool for recolour
+    - item_id: 11920
+      item_name: Dragon harpoon
+      slug: dragon-harpoon
+      relationship: component
+      description: Compatible fishing tool for recolour
+    - item_id: 13243
+      item_name: Infernal harpoon
+      slug: infernal-harpoon
+      relationship: component
+      description: Compatible fishing tool for recolour
+  market_strategy:
+    title: League cosmetic, capped supply
+    notes:
+      - Tradeable Leagues II reward, supply locked to past event
+      - Very low buy limit of 5 throttles flips
+      - Demand sustained by fashionscape skillers
+      - Watch for spikes around new League cosmetic announcements
+  history:
+    - date: "2020-10-28"
+      update: Leagues II - Trailblazer Launch
+      description: Trailblazer tool ornament kit introduced as a Leagues II reward.
+    - date: "2021-01-06"
+      update: Soul Wars and 20th Anniversary
+      description: Tradeable release rolled into the main game with adjusted value.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Trailblazer tool ornament kit recolours dragon and infernal axes, pickaxes, and harpoons; sourced from the Leagues II reward shop.
+  properties:
+    release_date: "6 January 2021"
+    update: Soul Wars and 20th Anniversary Event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    destroy: You will need to claim a new one from the Leagues Reward Shop.
+    options:
+      - Attach
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

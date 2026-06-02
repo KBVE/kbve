@@ -3,7 +3,7 @@
 		{
 			"key": "agones_factorio",
 			"app_name": "agones-factorio",
-			"version": "0.0.11",
+			"version": "0.0.12",
 			"version_toml": "apps/agones/factorio/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
 			"source_path": "apps/agones/factorio",
@@ -290,6 +290,11 @@
 			"runner": "arc-runner-set",
 			"image": "kbve/kubectl",
 			"e2e_name": "kubectl-e2e",
+			"deployment_yamls": [
+				"apps/kube/kubevirt/autologon/job.yaml",
+				"apps/kube/kubevirt/runner/job.yaml",
+				"apps/kube/agones/factorio/manifests/rotation-cronjob.yaml"
+			],
 			"has_test": true
 		},
 		{

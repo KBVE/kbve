@@ -12,9 +12,65 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
-  about: "Zamorak platebody is a free-to-play item in Old School RuneScape. High alchemy value: 39,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 9.979
+    requirements:
+      defence: 40
+      quest: Dragon Slayer I
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  about: Zamorak-themed rune platebody awarded from hard Treasure Trails.
+  market_strategy:
+    notes:
+      - Hard clue reward, limited supply
+      - +1 Prayer bonus over plain rune platebody
+      - Requires Dragon Slayer I to equip
+  history:
+    - date: "2021-04-21"
+      update: Equipment rebalance
+      description: Ranged attack bonus decreased from -10 to -15.
+    - date: "2014-01-09"
+      update: God platebody prayer bonus
+      description: Added +1 Prayer bonus to all god platebodies.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "5 May 2004"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

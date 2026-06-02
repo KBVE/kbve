@@ -1,6 +1,6 @@
 ---
 title: Guthix stole | OSRS Price Data
-description: "Guthix stole is a members neck slot item. High alch: 1,500 GP, GE limit: 8."
+description: "Guthix stole: A Guthix stole. High alch: 1,500 GP, GE limit: 8."
 osrs:
   id: 10472
   name: Guthix stole
@@ -14,10 +14,31 @@ osrs:
   limit: 8
   equipment:
     slot: neck
+    weight: 0.01
     requirements:
       prayer: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 10
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10470
       item_name: Saradomin stole
@@ -29,12 +50,36 @@ osrs:
       slug: zamorak-stole
       relationship: variant
       description: Zamorak equivalent stole
-  about: |-
-    > *"A Guthix stole."*
-
-    The Guthix stole is a neck slot item from the Guthix vestment set. It provides a +10 Prayer bonus and requires 60 Prayer to equip. One of the highest prayer bonus items available in the neck slot. Counts as a Guthixian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    title: Hard clue prayer neck
+    notes:
+      - Best-in-slot Prayer neck bonus for many setups
+      - Counts as Guthixian for God Wars Dungeon entry
+      - Hard clue reward — supply tied to clue completions
+      - Low GE buy limit of 8 limits flips
+  history:
+    - date: "2006-12-05"
+      update: Treasure Trails expansion
+      description: Guthix stole added as a hard clue scroll reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Guthix stole is a hard clue scroll neck slot item with +10 Prayer; requires 60 Prayer and counts as Guthixian in the God Wars Dungeon.
+  properties:
+    release_date: "5 December 2006"
+    update: Treasure Trails expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

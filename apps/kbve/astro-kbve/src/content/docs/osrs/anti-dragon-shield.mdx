@@ -1,6 +1,6 @@
 ---
 title: Anti-dragon shield | OSRS Price Data
-description: "Anti-dragon shield is a F2P shield slot item. High alch: 12 GP, GE limit: 125."
+description: "Anti-dragon shield: This provides partial protection from dragonbreath attacks. High alch: 12 GP, GE limit: 125."
 osrs:
   id: 1540
   name: Anti-dragon shield
@@ -14,7 +14,7 @@ osrs:
   limit: 125
   equipment:
     slot: shield
-    weight: 2.721
+    weight: 5.443
     attack_bonus:
       stab: 0
       slash: 0
@@ -23,70 +23,84 @@ osrs:
       ranged: 0
     defence_bonus:
       stab: 7
-      slash: 8
-      crush: 7
+      slash: 9
+      crush: 8
       magic: 2
-      ranged: 0
+      ranged: 8
     other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  special_effect:
-    name: Dragonfire Protection
-    description: Provides partial protection against dragonfire attacks.
-    triggers: passive
-  obtaining:
-    methods:
-      - source: Duke Horacio
-        location: Lumbridge Castle
-        method: Free during Dragon Slayer
-      - source: Oziach
-        location: Edgeville
-        method: Purchase
+  special_attack:
+    name: Dragonfire protection
+    energy: 0
+    description: Passively provides partial protection against dragonfire attacks; required for antifire potion stacking.
+  shops:
+    - shop_name: Oziach's Armour
+      location: Edgeville
+      price: 26
+      stock: 5
+      members_only: false
+      currency: coins
+  drop_table:
+    sources:
+      - source: Duke Horacio (Dragon Slayer I)
+        quantity: "1"
+        rarity: always
+        members_only: false
   related_items:
     - item_id: 11284
       item_name: Dragonfire shield
       slug: dragonfire-shield
       relationship: upgrade
-      description: Superior version
+      description: Superior fused version with draconic visage
     - item_id: 22003
       item_name: Dragonfire ward
       slug: dragonfire-ward
       relationship: alternative
-      description: Ranged variant upgrade
+      description: Magic/ranged-defence variant
     - item_id: 21634
       item_name: Ancient wyvern shield
       slug: ancient-wyvern-shield
       relationship: alternative
-      description: Wyvern protection variant
-  about: |-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +7 |
-    | Slash | +8 |
-    | Crush | +7 |
-    | Magic | +2 |
-
-    Provides partial protection against dragonfire.
-
-    Usage: Essential for fighting dragons without antifire potions.
-
-    Combine with antifire for full protection.
+      description: Wyvern protection alternative
   market_strategy:
+    title: Quest staple and DFS feeder
     notes:
-      - Required for Dragon Slayer
-      - Cheap and accessible
-      - Component for DFS
-      - New players
-      - Dragon Slayer quest
-      - Ironmen
-      - DFS creation
-      - Free from Duke Horacio
-      - Combine with draconic visage for DFS
-      - Keep one for dragon tasks
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cheap, accessible Dragon Slayer reward
+      - Component for the Dragonfire shield via draconic visage
+      - Free from Duke Horacio during the quest, 26 GP from Oziach
+      - Ironmen and new players sustain steady demand
+  history:
+    - date: "2001-09-23"
+      update: Dragon Slayer
+      description: Anti-dragon shield released as the Dragon Slayer reward shield.
+    - date: "2005-04-18"
+      update: Item rename
+      description: Renamed from Dragonfire shield to Anti-dragon shield.
+    - date: "2018-07-05"
+      update: Antifire requirement clarification
+      description: Players must start Dragon Slayer I before antifire protection applies.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Anti-dragon shield is the F2P Dragon Slayer reward shield that provides partial dragonfire protection.
+  properties:
+    release_date: "23 September 2001"
+    update: Dragon Slayer
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

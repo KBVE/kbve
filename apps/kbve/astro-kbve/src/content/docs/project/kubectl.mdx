@@ -19,6 +19,10 @@ version_toml: apps/vm/kubectl/version.toml
 version_target: apps/vm/kubectl/Cargo.toml
 runner: arc-runner-set
 image: kbve/kubectl
+deployment_yamls:
+    - apps/kube/kubevirt/autologon/job.yaml
+    - apps/kube/kubevirt/runner/job.yaml
+    - apps/kube/agones/factorio/manifests/rotation-cronjob.yaml
 has_test: true
 e2e_name: kubectl-e2e
 test_framework: typescript
@@ -57,6 +61,18 @@ containers:
       image: ghcr.io/kbve/kubectl:0.1.0
       command: ['/bin/sh', '/scripts/my-script.sh']
 ```
+
+### Where it ships
+
+The image is pinned in three manifests today, all kept in sync by the `deployment_yamls` field above:
+
+| Manifest | Job | Pattern |
+|---|---|---|
+| `apps/kube/kubevirt/autologon/job.yaml` | KubeVirt Windows autologon setup | One-shot Job, kubectl + virtctl |
+| `apps/kube/kubevirt/runner/job.yaml` | KubeVirt runner orchestration | One-shot Job, kubectl + virtctl |
+| `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer image rotator | CronJob every 5 min, compares `gs.spec.image` vs `pod.spec.image`, deletes the GameServer when they drift so ArgoCD selfHeal recreates from the new spec |
+
+When a new behavior needs to land across all rotator and KubeVirt jobs (RCON-aware save-flush probes, Agones SDK Health calls, retry-with-backoff, ConfigMap-driven rotation policy), extend the Rust CLI in `apps/vm/kubectl/src/`, bump `version.toml`, and every manifest above auto-bumps via the post-publish sync.
 
 Or using the Rust CLI directly:
 

@@ -1,6 +1,6 @@
 ---
 title: Arctic pyre logs | OSRS Price Data
-description: "Arctic pyre logs: Arctic pine logs prepared with sacred oil for a funeral pyre.. High alch: 120 GP, GE limit: 11,000."
+description: "Arctic pyre logs: Arctic pine logs prepared with sacred oil for a funeral pyre. High alch: 120 GP, GE limit: 11,000."
 osrs:
   id: 10808
   name: Arctic pyre logs
@@ -12,9 +12,66 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 11000
-  about: "Arctic pyre logs is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: pyre_log
+    tier: mid
+  recipes:
+    - skill: firemaking
+      level: 47
+      xp: 5
+      materials:
+        - item_name: Arctic pine logs
+          quantity: 1
+        - item_name: Sacred oil(2)
+          quantity: 1
+      product: Arctic pyre logs
+      product_id: 10808
+  related_items:
+    - item_id: 3438
+      item_name: Pyre logs
+      slug: pyre-logs
+      relationship: downgrade
+      description: Lowest tier pyre log
+    - item_id: 10810
+      item_name: Magic pyre logs
+      slug: magic-pyre-logs
+      relationship: upgrade
+      description: Highest tier pyre log
+    - item_id: 10810
+      item_name: Redwood pyre logs
+      slug: redwood-pyre-logs
+      relationship: upgrade
+      description: High-tier Shades of Mort'ton supply
+  about: Arctic pine logs treated with sacred oil, used to cremate Loar, Phrin and Riyl shade remains at Mort'ton.
+  market_strategy:
+    notes:
+      - Shades of Mort'ton minigame supply
+      - 47 Firemaking gates cremation
+      - 158.5 Firemaking XP per cremation
+      - Riyl shade gives 61.4 Prayer XP
+      - Sacred oil(2) cost drives margins
+  history:
+    - date: "2007-02-06"
+      update: Fremennik Isles
+      description: Released alongside arctic pine logs and the Fremennik Isles quest.
+    - date: "2024-07-31"
+      update: Pyre log creation rework
+      description: Standardised Firemaking XP to 5 XP per dose of sacred oil and added a Make-All menu.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-02-06"
+    update: Fremennik Isles
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

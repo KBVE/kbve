@@ -1,6 +1,6 @@
 ---
 title: Curry leaf | OSRS Price Data
-description: "Curry leaf: I could make a spicy curry with this.. High alch: 11 GP, GE limit: 11,000."
+description: "Curry leaf: I could make a spicy curry with this. High alch: 11 GP, GE limit: 11,000."
 osrs:
   id: 5970
   name: Curry leaf
@@ -12,9 +12,68 @@ osrs:
   lowalch: 7
   highalch: 11
   limit: 11000
-  about: "Curry leaf is a members-only item in Old School RuneScape. High alchemy value: 11 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: herb
+    tier: low
+  drop_table:
+    sources:
+      - source: Gourmet impling jar
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Eclectic impling jar
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  shops:
+    - shop_name: The Spice Is Right
+      location: Sophanem
+      price: 28
+      stock: 10
+      members_only: true
+      currency: coins
+  farming:
+    farming_level: 42
+    patch_type: fruit tree
+    notes: Curry tree saplings grow into curry trees; farmers protect for 5 baskets of bananas.
+  related_items:
+    - item_id: 5286
+      item_name: Curry sapling
+      slug: curry-sapling
+      relationship: component
+      description: Plant in fruit tree patch to grow curry trees
+    - item_id: 2011
+      item_name: Curry
+      slug: curry
+      relationship: product
+      description: Cook 3 curry leaves with uncooked stew
+  market_strategy:
+    title: Steady farming + impling supply
+    notes:
+      - High GE buy limit (11,000) supports bulk
+      - Used in compost (15 leaves) and cooking
+      - Impling hunters and farmers feed supply
+      - Gardener payment for higher fruit trees
+  history:
+    - date: "2005-07-11"
+      update: Farming update
+      description: Curry leaf released as part of the Farming skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Curry leaf is a members herb harvested from curry trees, used in cooking and compost.
+  properties:
+    release_date: "11 July 2005"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

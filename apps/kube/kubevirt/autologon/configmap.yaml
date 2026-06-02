@@ -29,7 +29,22 @@ data:
 
         echo "=== Configuring Windows autologon + VNC-ready: ${VM_NAME} ==="
 
-        # ── Wait for VMI to be running ──
+        # ── Skip cleanly if the VMI is absent at sync time ──
+        # ArgoCD runs this Job on every PostSync. If the VM is stopped
+        # (no VMI object) exit 0 instead of waiting + failing, so the
+        # sync stays Healthy. The next sync after the VM is started will
+        # reapply the settings.
+        INITIAL_PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
+            -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+        if [ -z "${INITIAL_PHASE}" ] || \
+           [ "${INITIAL_PHASE}" = "Stopped" ] || \
+           [ "${INITIAL_PHASE}" = "Succeeded" ] || \
+           [ "${INITIAL_PHASE}" = "Failed" ]; then
+            echo "VM not running (phase=${INITIAL_PHASE:-absent}), skipping autologon configuration"
+            exit 0
+        fi
+
+        # ── Wait for VMI to reach Running phase ──
         echo "Waiting for VM to be running..."
         for i in $(seq 1 60); do
             PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
@@ -39,8 +54,8 @@ data:
                 break
             fi
             if [ "$i" -eq 60 ]; then
-                echo "ERROR: VM not running after 10 minutes"
-                exit 1
+                echo "VM did not reach Running phase within 10 minutes; skipping"
+                exit 0
             fi
             echo "  Phase: ${PHASE:-not found} (${i}/60)"
             sleep 10
@@ -57,10 +72,11 @@ data:
                 break
             fi
             if [ "$i" -eq 30 ]; then
-                echo "ERROR: Guest agent not connected after 5 minutes"
+                echo "Guest agent not connected after 5 minutes; skipping."
                 echo "Ensure QEMU Guest Agent is installed as a Windows service"
-                echo "(from virtio-win ISO: guest-agent/qemu-ga-x86_64.msi)"
-                exit 1
+                echo "(from virtio-win ISO: guest-agent/qemu-ga-x86_64.msi)."
+                echo "Next ArgoCD sync after the agent registers will reapply."
+                exit 0
             fi
             echo "  Agent: ${AGENT:-not connected} (${i}/30)"
             sleep 10

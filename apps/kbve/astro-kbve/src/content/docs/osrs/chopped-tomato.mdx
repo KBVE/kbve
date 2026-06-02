@@ -1,6 +1,6 @@
 ---
 title: Chopped tomato | OSRS Price Data
-description: "Chopped tomato: A mixture of tomatoes in a bowl.. High alch: 1 GP, GE limit: 11,000."
+description: "Chopped tomato: A mixture of tomatoes in a bowl. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 1869
   name: Chopped tomato
@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Chopped tomato is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bowl
+          item_id: 1923
+          quantity: 1
+        - item_name: Tomato
+          item_id: 1982
+          quantity: 1
+      product: Chopped tomato
+      product_id: 1869
+  related_items:
+    - item_id: 1982
+      item_name: Tomato
+      slug: tomato
+      relationship: component
+      description: Raw ingredient
+    - item_id: 1923
+      item_name: Bowl
+      slug: bowl
+      relationship: component
+      description: Container
+    - item_id: 2289
+      item_name: Uncooked pizza
+      slug: uncooked-pizza
+      relationship: product
+      description: Used in pizza making
+    - item_id: 7062
+      item_name: Spicy tomato
+      slug: spicy-tomato
+      relationship: product
+      description: Gnome cuisine mix
+  about: Knife-prepared tomato in a bowl; a building-block ingredient for pizzas, gnome dishes and chinchompa bait.
+  market_strategy:
+    title: Cooking Prep Component
+    notes:
+      - Cheap intermediate ingredient
+      - Used in pizza base recipes
+      - Light daily volume on GE
+      - 1.2-second prep tick
+      - Profitable when tomatoes are oversupplied
+  trading_tips:
+    - Watch tomato spawn farming bursts that crash the input price
+  history:
+    - date: "2006-01-30"
+      update: Cooking polish
+      description: Graphical update applied; "Eat" option added.
+    - date: "2003-04-14"
+      update: Tourist Trap Quest Online!
+      description: Released with the Tourist Trap quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "14 Apr 2003"
+    update: Tourist Trap Quest Online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Eat
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Shayzien banner | OSRS Price Data
-description: "Shayzien banner: A war torn banner baring the sigil of house Shayzien.. High alch: 42 GP, GE limit: 4."
+description: "Shayzien banner: A war torn banner baring the sigil of house Shayzien. High alch: 42 GP, GE limit: 4."
 osrs:
   id: 20263
   name: Shayzien banner
@@ -12,9 +12,73 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 4
-  about: "Shayzien banner is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: polestaff
+    attack_speed: 5
+    weight: 2.267
+    attack_bonus:
+      stab: 12
+      slash: 12
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: [hard]
+  related_items:
+    - item_id: 20259
+      item_name: Arceuus banner
+      slug: arceuus-banner
+      relationship: variant
+      description: Other Kourend house banner
+    - item_id: 20261
+      item_name: Hosidius banner
+      slug: hosidius-banner
+      relationship: variant
+      description: Other Kourend house banner
+    - item_id: 20265
+      item_name: Piscarilius banner
+      slug: piscarilius-banner
+      relationship: variant
+      description: Other Kourend house banner
+    - item_id: 20267
+      item_name: Lovakengj banner
+      slug: lovakengj-banner
+      relationship: variant
+      description: Other Kourend house banner
+  about: Polestaff-class cosmetic banner of House Shayzien obtained from Hard clue scroll rewards.
+  history:
+    - date: "2019-01-01"
+      update: Examine Text Fix
+      description: Examine text corrected from "baring" to "bearing".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "6 Jul 2016"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options: [Wield, Drop]
+    worn_options: [Remove]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

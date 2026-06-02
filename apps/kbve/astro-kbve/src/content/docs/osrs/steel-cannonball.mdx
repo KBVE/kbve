@@ -1,6 +1,6 @@
 ---
 title: Steel cannonball | OSRS Price Data
-description: "Steel cannonball: Ammo suited for a boat's cannon or for a dwarf multicannon.. High alch: 3 GP, GE limit: 11,000."
+description: "Steel cannonball: Ammo suited for a boat's cannon or for a dwarf multicannon. High alch: 3 GP, GE limit: 11,000."
 osrs:
   id: 2
   name: Steel cannonball
@@ -12,14 +12,9 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  ammunition:
-    type: cannonball
-  smithing:
-    level: 35
-    xp: 25.6
-    method: Ammo mould
-    bars_per_craft: 1
-    output_quantity: 4
+  material:
+    type: ammunition
+    tier: mid
   recipes:
     - skill: smithing
       level: 35
@@ -28,12 +23,8 @@ osrs:
         - item_name: Steel bar
           item_id: 2353
           quantity: 1
-      product: Cannonball
+      product: Steel cannonball
       product_id: 2
-      product_quantity: 4
-      facility: Furnace
-      tool: Ammo mould
-      members_only: true
   related_items:
     - item_id: 2353
       item_name: Steel bar
@@ -60,28 +51,48 @@ osrs:
       slug: double-ammo-mould
       relationship: alternative
       description: 2x production speed
-  about: |-
-    Cannonballs can be upgraded with granite dust:
-
-    | Upgrade | Smithing Level | Result |
-    |---------|----------------|--------|
-    | + Granite dust | 50 | Granite cannonball |
+  about: Standard Dwarf multicannon ammo smithed from steel bars at level 35 Smithing; four cannonballs per bar.
   market_strategy:
     title: Steel Bar Processing
-    profit_formulas:
-      - (Cannonball price × 4) - Steel bar price = Profit
     notes:
-      - Buy Steel bar → Smith → Sell cannonballs
+      - Buy Steel bar - Smith - Sell cannonballs
       - 1 bar = 4 cannonballs
-      - "Calculate:"
-      - ~306 GP profit per steel bar (after GE tax)
-      - ~179,400 GP/hour at optimal speed
-      - Very AFK method - popular for alts
-      - Extremely AFK - good for mobile/alts
+      - ~306 GP profit per steel bar after GE tax
+      - ~179,400 GP/hour at optimal pace
+      - Very AFK - popular for alts and mobile
       - High daily volume (~206M traded)
-      - Consistent demand from slayer/PvM
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Consistent slayer/PvM demand
+  trading_tips:
+    - Buy steel bars in bulk during off-peak hours
+    - Sell finished cannonballs during prime PvM windows
+  history:
+    - date: "2026-05-27"
+      update: Steel item graphics
+      description: Item graphically updated to better match other steel items.
+    - date: "2026-03-18"
+      update: Ship combat rebalance
+      description: Ranged Strength bonus increased from +26 to +74 for ship combat.
+    - date: "2025-11-05"
+      update: Cannonball rename
+      description: Item renamed from "Cannonball" to "Steel cannonball".
+    - date: "2003-05-27"
+      update: New Dwarf Cannon Quest
+      description: Released alongside the Dwarf Cannon quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "27 May 2003"
+    update: New Dwarf Cannon Quest
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

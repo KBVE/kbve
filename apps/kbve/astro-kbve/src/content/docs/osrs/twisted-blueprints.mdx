@@ -1,6 +1,6 @@
 ---
 title: Twisted blueprints | OSRS Price Data
-description: "Twisted blueprints: A scroll which unlocks the twisted player-owned house wall-kit.. High alch: 15,000 GP, GE limit: 5."
+description: "Twisted blueprints: A scroll which unlocks the twisted player-owned house wall-kit. High alch: 15,000 GP, GE limit: 5."
 osrs:
   id: 24463
   name: Twisted blueprints
@@ -12,9 +12,52 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Twisted blueprints is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Lumbridge Castle
+      price: 4000
+      stock: unlimited
+      members_only: true
+      currency: League Points
+  related_items:
+    - item_id: 24443
+      item_name: Twisted relic hunter (t1) armour set
+      slug: twisted-relic-hunter-t1-armour-set
+      relationship: alternative
+      description: Other Leagues reward shop cosmetic
+    - item_id: 24565
+      item_name: Trailblazer blueprints
+      slug: trailblazer-blueprints
+      relationship: variant
+      description: Trailblazer League house style equivalent
+  about: A Twisted League reward scroll that unlocks the twisted POH wall-kit when handed to an Estate Agent.
+  market_strategy:
+    notes:
+      - Fixed Leagues supply, no farmable source
+      - Buy limit of 5 keeps merchanting controlled
+      - Returns to inventory when changing POH style
+      - Cosmetic-only, no stat benefit
+      - Twisted League prestige item
+  history:
+    - date: "2020-01-16"
+      update: Twisted League Reward Shop and Game Improvements
+      description: Released as a 4,000 League Points reward from the Twisted League shop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-01-16"
+    update: Twisted League Reward Shop and Game Improvements
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Inspect
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

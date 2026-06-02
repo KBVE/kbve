@@ -1,6 +1,6 @@
 ---
 title: Steel javelin(p++) | OSRS Price Data
-description: "Steel javelin(p++): A steel tipped javelin.. High alch: 14 GP, GE limit: 7,000."
+description: "Steel javelin(p++): A steel tipped javelin. High alch: 14 GP, GE limit: 7,000."
 osrs:
   id: 5650
   name: Steel javelin(p++)
@@ -12,9 +12,86 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 7000
-  about: "Steel javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 14 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: ammo
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 64
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 826
+      item_name: Steel javelin
+      slug: steel-javelin
+      relationship: variant
+      description: Unpoisoned base javelin
+    - item_id: 5648
+      item_name: Steel javelin(p)
+      slug: steel-javelin-p
+      relationship: variant
+      description: Weapon poison variant
+    - item_id: 5649
+      item_name: Steel javelin(p+)
+      slug: steel-javelin-p-plus
+      relationship: variant
+      description: Weapon poison(+) variant
+    - item_id: 828
+      item_name: Mithril javelin
+      slug: mithril-javelin
+      relationship: upgrade
+      description: Higher-tier javelin
+  about: Steel javelin coated with weapon poison(++); used as Heavy ballista ammunition for venom-tier ranged damage.
+  market_strategy:
+    title: Poisoned Javelin Niche
+    notes:
+      - Ballista ammo for poison setups
+      - Crafted from base javelin + weapon poison(++)
+      - Production loss makes Smithing/Herblore costly
+      - GE price often below alch
+      - Niche PvP/PvM demand
+  history:
+    - date: "2016-10-31"
+      update: Ranged rebalance
+      description: Ranged Strength decreased from +75 to +64.
+    - date: "2016-05-06"
+      update: Ranged slot rework
+      description: Changed to ammunition slot; Ranged Attack bonus removed and Ranged Strength increased.
+    - date: "2006-09-20"
+      update: Poison naming
+      description: Poison naming standardized across + and ++ variants.
+    - date: "2004-03-29"
+      update: RS2 Launched!
+      description: Released with the RS2 client launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "29 Mar 2004"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

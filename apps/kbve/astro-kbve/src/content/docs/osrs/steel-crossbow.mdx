@@ -1,6 +1,6 @@
 ---
 title: Steel crossbow | OSRS Price Data
-description: "Steel crossbow is a members weapon slot item requiring 31 Ranged. High alch: 216 GP, GE limit: 125."
+description: "Steel crossbow: A steel crossbow. High alch: 216 GP, GE limit: 125."
 osrs:
   id: 9179
   name: Steel crossbow
@@ -14,48 +14,96 @@ osrs:
   limit: 125
   equipment:
     slot: weapon
-    type: crossbow
-    tradeable: true
+    weapon_type: crossbow
+    attack_speed: 6
     weight: 5
     requirements:
       ranged: 31
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 54
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 54
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    attack_range: 7
   recipes:
     - skill: fletching
       level: 46
+      xp: 54
       materials:
-        - item_name: Steel crossbow (u)
+        - item_id: 9457
+          item_name: Steel crossbow (u)
           quantity: 1
-        - item_name: Crossbow string
+        - item_id: 9438
+          item_name: Crossbow string
           quantity: 1
+      product: Steel crossbow
+      product_id: 9179
   related_items:
     - item_id: 9181
       item_name: Mithril crossbow
       slug: mithril-crossbow
       relationship: upgrade
       description: Next tier crossbow
+    - item_id: 9177
+      item_name: Iron crossbow
+      slug: iron-crossbow
+      relationship: downgrade
+      description: Previous tier crossbow
     - item_id: 9141
       item_name: Steel bolts
       slug: steel-bolts
       relationship: alternative
-      description: Compatible ammo
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Compatible bolt ammunition
+  market_strategy:
+    title: Mid-tier ranged training weapon
+    notes:
+      - Bridges iron and mithril crossbows for 31 Ranged training
+      - Fletchable from steel crossbow (u) + string for level 46 XP
+      - Low GE buy limit of 125 caps flipping
+      - Demand modest — players quickly upgrade
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Steel crossbow released with the Crossbows update.
+    - date: "2014-09-04"
+      update: Item renaming
+      description: Renamed from "Steel c'bow" to Steel crossbow.
+    - date: "2015-05-07"
+      update: Fletching boosted-level support
+      description: Boosted Fletching levels accepted when stringing.
+    - date: "2021-08-25"
+      update: Animation update
+      description: Wield animation adjusted.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Steel crossbow is a members 31 Ranged crossbow accepting bolts up to steel, fletched at level 46.
+  properties:
+    release_date: "31 July 2006"
+    update: Crossbows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

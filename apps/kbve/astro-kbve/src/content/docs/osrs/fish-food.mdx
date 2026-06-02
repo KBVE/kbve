@@ -12,18 +12,48 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
+  recipes:
+    - skill: Quest
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Fish food
+          quantity: 1
+        - item_name: Poison
+          quantity: 1
+      product: Poisoned fish food
+      product_id: 274
   related_items:
     - item_id: 273
       item_name: Poison
       slug: poison-item
       relationship: component
-      description: Combined to make poisoned fish food
-  about: |-
-    > _"Keeps your pet fish strong and healthy."_
-
-    Fish food is a quest item used in Ernest the Chicken. Combined with poison to create poisoned fish food, which kills piranhas in a fountain to retrieve a pressure gauge.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Combined to make poisoned fish food.
+    - item_id: 274
+      item_name: Poisoned fish food
+      slug: poisoned-fish-food
+      relationship: product
+      description: Result of combining fish food with poison.
+  about: Quest item used in Ernest the Chicken to poison piranhas in the Draynor Manor fountain.
+  history:
+    - date: "2006-12-18"
+      update: Christmas Update
+      description: Graphically updated.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "21 January 2001"
+    update: Newsletter 1
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

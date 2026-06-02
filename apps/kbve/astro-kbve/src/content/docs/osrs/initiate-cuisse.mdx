@@ -1,6 +1,6 @@
 ---
 title: Initiate cuisse | OSRS Price Data
-description: "Initiate cuisse is a members legs slot item requiring 20 Defence. High alch: 4,800 GP, GE limit: 125."
+description: "Initiate cuisse: An initiate Temple Knight's leg armour. High alch: 4,800 GP, GE limit: 125."
 osrs:
   id: 5576
   name: Initiate cuisse
@@ -14,17 +14,40 @@ osrs:
   limit: 125
   equipment:
     slot: legs
-    type: armour
-    prayer_bonus: 5
+    weight: 7.711
     requirements:
       defence: 20
       prayer: 10
-    combat_stats:
-      stab_defence: 26
-      slash_defence: 25
-      crush_defence: 24
-      magic_defence: -4
-      ranged_defence: 26
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 24
+      slash: 22
+      crush: 20
+      magic: -4
+      ranged: 22
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  shops:
+    - shop_name: Initiate Temple Knight Armoury
+      location: Falador Park
+      price: 8000
+      stock: 30
+      members_only: true
+      currency: coins
+    - shop_name: Proselyte Temple Knight Armoury
+      location: Falador Park
+      price: 8000
+      stock: 30
+      members_only: true
+      currency: coins
   related_items:
     - item_id: 5575
       item_name: Initiate hauberk
@@ -46,34 +69,43 @@ osrs:
       slug: monks-robe
       relationship: downgrade
       description: No defence (+5 Prayer)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Legs |
-    | Prayer Bonus | +5 |
-    | Defence Req | 20 |
-    | Prayer Req | 10 |
-
-    - Mid-tier prayer armour
-    - Bridge to Proselyte
-    - Lower requirements than Proselyte
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | Initiate sallet | +3 |
-    | Initiate hauberk | +6 |
-    | Initiate cuisse | +5 |
-    | Total | +14 |
+  about: Mid-tier prayer leg armour rewarded from Recruitment Drive; bridge between monk's robes and Proselyte.
   market_strategy:
+    title: Quest-Gated Prayer Legs
     notes:
-      - Requires quest completion
-      - Shop purchase only
-      - No GE trading (untradeable)
-      - Must complete Recruitment Drive
-      - Stepping stone to Proselyte
-      - Lower requirements good for pures
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Requires Recruitment Drive completion
+      - Shop purchase at Falador Park armoury
+      - Stepping stone to Proselyte cuisse
+      - Lower requirements suit pures
+      - Best mid-game prayer legs at 20 Defence
+  history:
+    - date: "2021-04-21"
+      update: Combat stat rebalance
+      description: Ranged attack bonus decreased from -7 to -11.
+    - date: "2006-09-20"
+      update: Item rename
+      description: Renamed from "Initiate platelegs" to "Initiate cuisse".
+    - date: "2005-10-17"
+      update: Wanted!
+      description: Graphically updated alongside the Wanted! quest release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "27 Jun 2005"
+    update: Recruitment Drive
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7.711
+    options:
+      - Drop
+    worn_options:
+      - Wear
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
