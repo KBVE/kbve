@@ -440,7 +440,7 @@ jobs:
                   done < <(jq -c '.unreal[]' "$MANIFEST")
 
                   # =================================================================
-                  # Game-engine pipelines — unity / godot / unreal_game / bevy_game.
+                  # Game-engine pipelines — unity / godot / unreal_game.
                   # Same dispatch shape, one workflow file per engine. Reads the
                   # shared GameEngineConfig sub-object from the manifest entry.
                   # =================================================================
@@ -528,11 +528,6 @@ jobs:
                   while IFS= read -r entry; do
                     dispatch_game_engine unreal_game ci-unreal-game.yml "$entry"
                   done < <(jq -c '.unreal_game[]? // empty' "$MANIFEST")
-
-                  echo "=== Bevy Game ==="
-                  while IFS= read -r entry; do
-                    dispatch_game_engine bevy_game ci-bevy-game.yml "$entry"
-                  done < <(jq -c '.bevy_game[]? // empty' "$MANIFEST")
 
                   echo ""
                   echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="
