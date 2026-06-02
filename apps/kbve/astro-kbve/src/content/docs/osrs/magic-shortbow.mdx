@@ -1,6 +1,6 @@
 ---
 title: Magic shortbow | OSRS Price Data
-description: "Magic shortbow is a members two-handed weapon. High alch: 960 GP, GE limit: 18,000."
+description: "Magic shortbow: Short and magical, but still effective. High alch: 960 GP, GE limit: 18,000."
 osrs:
   id: 861
   name: Magic shortbow
@@ -14,25 +14,45 @@ osrs:
   limit: 18000
   equipment:
     slot: 2h
-    type: shortbow
-    attack_style: ranged
+    weapon_type: shortbow
     attack_speed: 4
-  requirements:
-    ranged: 50
-  stats:
-    attack:
+    weight: 1.36
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 69
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
-    range: 7
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Snapshot
-    description: Fires 2 arrows quickly with reduced accuracy
-    energy_cost: 55
-  fletching:
-    level: 80
-    xp: 83.3
-    method: Magic shortbow (u) + bowstring
+    energy: 55
+    description: Fires two arrows in rapid succession with an accuracy boost of +107 (~43%).
+  recipes:
+    - skill: fletching
+      level: 80
+      xp: 83.3
+      materials:
+        - item_name: Magic shortbow (u)
+          item_id: 70
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Magic shortbow
+      product_id: 861
   drop_table:
     sources:
       - source: Spiritual ranger
@@ -46,7 +66,7 @@ osrs:
       item_name: Magic shortbow (i)
       slug: magic-shortbow-i
       relationship: upgrade
-      description: Imbued version (+75 ranged)
+      description: Imbued version (+75 ranged, 50% spec)
     - item_id: 21326
       item_name: Amethyst arrow
       slug: amethyst-arrow
@@ -62,9 +82,31 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
-  about: "Snapshot: Fires 2 arrows quickly. Costs 55% spec."
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Magic shortbow with the Snapshot special attack: fires two arrows for 55% spec energy."
+  market_strategy:
+    notes:
+      - Fletching supply at 80 Fletching keeps prices near material cost
+      - PvP and mid-level PvM demand sustain steady turnover
+      - Imbued variant locks higher-end players out of the base bow market
+  history:
+    - date: "2002-03-25"
+      update: Ranged Update
+      description: Magic shortbow added to the game alongside the Ranged rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "25 Mar 2002"
+    update: Ranged Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options: [Wield, Drop]
+    worn_options: [Remove]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

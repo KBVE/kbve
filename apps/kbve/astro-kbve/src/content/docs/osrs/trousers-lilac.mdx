@@ -12,9 +12,62 @@ osrs:
   lowalch: 280
   highalch: 420
   limit: 150
-  about: "Trousers (lilac) is a members-only item in Old School RuneScape. High alchemy value: 420 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Agmundi Quality Clothes
+      location: Keldagrim
+      price: 910
+      stock: 3
+      members_only: true
+      currency: coins
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania and Etceteria Dungeon
+      price: 700
+      stock: 3
+      members_only: true
+      currency: coins
+  about: Cosmetic dwarven legwear sold by Keldagrim and Miscellania clothing shops.
+  history:
+    - date: "2005-07-26"
+      update: Examine text changed
+      description: Examine text changed from "These look pretty heavy." to current text.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "31 May 2005"
+    update: Keldagrim - The Dwarven City
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: White gloves | OSRS Price Data
-description: "White gloves: These will keep my hands warm!. High alch: 3 GP, GE limit: 125."
+description: "White gloves: These will keep my hands warm! High alch: 3 GP, GE limit: 125."
 osrs:
   id: 6629
   name: White gloves
@@ -12,9 +12,72 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 125
-  about: "White gloves is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.226
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 6627
+      item_name: Black gloves
+      slug: black-gloves
+      relationship: variant
+      description: Alternate colour cosmetic gloves
+    - item_id: 1059
+      item_name: Leather gloves
+      slug: leather-gloves
+      relationship: alternative
+      description: Common F2P leather gloves
+  market_strategy:
+    title: Cheap prayer-bonus gloves
+    notes:
+      - Easy clue reward, plentiful supply
+      - +1 Prayer bonus is unique for cheap hands
+      - Low GE buy limit of 125 caps flipping
+      - Fashionscape demand keeps a floor
+  history:
+    - date: "2005-10-17"
+      update: Wanted!
+      description: White gloves added with the Wanted! quest update as a clue scroll reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: White gloves are easy clue scroll hand-slot gloves offering minor defence and +1 Prayer.
+  properties:
+    release_date: "17 October 2005"
+    update: Wanted!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

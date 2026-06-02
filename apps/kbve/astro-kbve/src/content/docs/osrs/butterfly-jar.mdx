@@ -1,6 +1,6 @@
 ---
 title: Butterfly jar | OSRS Price Data
-description: "Butterfly jar: It's got little holes in the top.. High alch: 1 GP, GE limit: 40."
+description: "Butterfly jar: It's got little holes in the top. High alch: 1 GP, GE limit: 40."
 osrs:
   id: 10012
   name: Butterfly jar
@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  about: "Butterfly jar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Nardah Hunter Shop
+      location: Nardah
+      price: 1
+      stock: 100
+      members_only: true
+      currency: coins
+    - shop_name: Aleck's Hunter Emporium
+      location: Yanille
+      price: 1
+      stock: 100
+      members_only: true
+      currency: coins
+    - shop_name: Imia's Supplies
+      location: Hunter Guild
+      price: 1
+      stock: 100
+      members_only: true
+      currency: coins
+    - shop_name: Elder Strom's Hunting Stall
+      location: The Summer Shore
+      price: 1
+      stock: 100
+      members_only: true
+      currency: coins
+  related_items:
+    - item_id: 11260
+      item_name: Impling jar
+      slug: impling-jar
+      relationship: alternative
+      description: Converted via imp repellent
+    - item_id: 10014
+      item_name: Butterfly net
+      slug: butterfly-net
+      relationship: component
+      description: Needed to catch butterflies
+    - item_id: 10006
+      item_name: Magic butterfly net
+      slug: magic-butterfly-net
+      relationship: upgrade
+      description: Higher-tier catching tool
+  about: Hunter jar with holes in the lid used to store caught butterflies and moths; converts to impling jar with imp repellent.
+  market_strategy:
+    title: Hunter Storage Staple
+    notes:
+      - 1gp from shops, very thin GE margins
+      - High daily volume (~50k traded)
+      - Tight 40-unit buy limit
+      - Cannot hold implings directly
+      - Cornerstone of butterfly catching
+  history:
+    - date: "2024-09-25"
+      update: Varlamore
+      description: The item's inventory icon was adjusted during the Varlamore update.
+    - date: "2006-11-21"
+      update: HUNTER SKILL!
+      description: Released alongside the Hunter skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "21 Nov 2006"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

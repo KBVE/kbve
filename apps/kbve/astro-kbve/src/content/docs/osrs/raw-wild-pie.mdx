@@ -1,6 +1,6 @@
 ---
 title: Raw wild pie | OSRS Price Data
-description: "Raw wild pie: Good as it looks, I'd better cook it.. High alch: 54 GP, GE limit: 13,000."
+description: "Raw wild pie: Good as it looks, I'd better cook it. High alch: 54 GP, GE limit: 13,000."
 osrs:
   id: 7206
   name: Raw wild pie
@@ -12,9 +12,59 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 13000
-  about: "Raw wild pie is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: cooking
+      level: 85
+      xp: 240
+      materials:
+        - item_name: Part wild pie
+          quantity: 1
+        - item_name: Raw rabbit
+          quantity: 1
+      product: Wild pie
+      product_id: 7208
+      notes: Cook on a range; burns under 85 Cooking
+  related_items:
+    - item_id: 7204
+      item_name: Part wild pie
+      slug: part-wild-pie
+      relationship: component
+      description: Pie shell + raw bear meat + raw chompy stage
+    - item_id: 7208
+      item_name: Wild pie
+      slug: wild-pie
+      relationship: product
+      description: Cooked wild pie, two-bite +5 Slayer / +4 Ranged / +4 Fishing boost
+  about: Uncooked wild pie containing bear meat, chompy and rabbit, cooked into the +Slayer/Ranged/Fishing boosting wild pie.
+  market_strategy:
+    notes:
+      - 85 Cooking required to stop burning
+      - Bear meat and raw chompy gate supply
+      - Wild pie boosts Slayer, Ranged and Fishing
+      - Niche skiller demand
+      - Buy limit allows bulk stockpiling
+  history:
+    - date: "2006-02-20"
+      update: Updates, updates and more updates...
+      description: Released with the Hunter precursor cooking expansion.
+    - date: "2015-03-12"
+      update: GE tradeable uncooked pies
+      description: Uncooked pies became tradeable on the Grand Exchange.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-02-20"
+    update: Updates, updates and more updates...
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

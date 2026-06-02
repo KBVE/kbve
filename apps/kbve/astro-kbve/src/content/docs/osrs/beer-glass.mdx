@@ -1,6 +1,6 @@
 ---
 title: Beer glass | OSRS Price Data
-description: "Beer glass: I need to fill this with beer.. High alch: 1 GP, GE limit: 10,000."
+description: "Beer glass: I need to fill this with beer. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 1919
   name: Beer glass
@@ -14,10 +14,7 @@ osrs:
   limit: 10000
   material:
     type: glass_product
-    tier: basic
-  crafting:
-    level: 1
-    xp: 17.5
+    tier: low
   recipes:
     - skill: crafting
       level: 1
@@ -28,8 +25,6 @@ osrs:
           quantity: 1
       product: Beer glass
       product_id: 1919
-      product_quantity: 1
-      facility: Glassblowing pipe
   related_items:
     - item_id: 1775
       item_name: Molten glass
@@ -40,25 +35,37 @@ osrs:
       item_name: Beer
       slug: beer
       relationship: product
-      description: Container use
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Glassblowing | 1 | 1 Molten glass |
-    | XP | 17.5 | - |
-
-    Used to hold beer and various other drinks.
+      description: Container fills with beer
+  about: Lowest-level glassblowing product, used as a vessel for beers, ales and stouts.
   market_strategy:
     notes:
-      - Brewing minigame
-      - Collecting ales
-      - F2P crafting training
-      - Lowest level glassblowing product
-      - F2P accessible
-      - Not very profitable
-      - Good for early crafting XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - F2P crafting product, level 1 entry
+      - Brewing minigame and pub fills consume supply
+      - Molten glass cost sets the floor
+      - Low margin, primarily XP-driven
+      - Compatible with Asgarnian ale, Dwarven stout and friends
+  history:
+    - date: "2002-03-18"
+      update: Latest RuneScape News (18 March 2002)
+      description: Released as the introductory glassblowing product.
+    - date: "2015-02-26"
+      update: POH change
+      description: Player-owned house version of beer glass was made members-only.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-18"
+    update: Latest RuneScape News (18 March 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

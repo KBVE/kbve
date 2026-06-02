@@ -1,6 +1,6 @@
 ---
 title: Colossal wyrm teleport scroll | OSRS Price Data
-description: "Colossal wyrm teleport scroll: A teleport to the Colossal Wyrm Remains in the Avium Savannah.. High alch: 6 GP."
+description: "Colossal wyrm teleport scroll: A teleport to the Colossal Wyrm Remains in the Avium Savannah. High alch: 6 GP."
 osrs:
   id: 30040
   name: Colossal wyrm teleport scroll
@@ -12,9 +12,55 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: null
-  about: "Colossal wyrm teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 6 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destinations:
+      - Colossal Wyrm Remains (Avium Savannah)
+    type: consumable
+    charges: 1
+    recharge_method: Buy more from Worm Tongue's Wares
+  shops:
+    - shop_name: Worm Tongue's Wares
+      location: Colossal Wyrm Remains
+      price: 40
+      members_only: true
+      currency: Termites
+  related_items:
+    - item_id: 29776
+      item_name: Termites
+      slug: termites
+      relationship: component
+      description: Currency earned at the Colossal Wyrm Agility Course
+  market_strategy:
+    title: Agility supply, daily teleport sink
+    notes:
+      - Single-use consumable, demand renews each trip
+      - Supply gated by Colossal Wyrm Agility termite farming
+      - No GE buy limit allows bulk purchases
+      - Quest gate (Children of the Sun) trims pool of buyers
+  history:
+    - date: "2024-09-25"
+      update: "Varlamore: The Rising Darkness"
+      description: Colossal wyrm teleport scroll added with the Avium Savannah expansion.
+    - date: "2024-09-27"
+      update: Hotfix
+      description: Collection log functionality restored after purchase.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Colossal wyrm teleport scroll is a single-use scroll teleporting players to the Colossal Wyrm Remains in the Avium Savannah.
+  properties:
+    release_date: "25 September 2024"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

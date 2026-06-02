@@ -1,6 +1,6 @@
 ---
 title: Extended antifire mix(1) | OSRS Price Data
-description: "Extended antifire mix(1): One dose of fishy extended anti-firebreath potion.. High alch: 96 GP, GE limit: 2,000."
+description: "Extended antifire mix(1): One dose of fishy extended anti-firebreath potion. High alch: 96 GP, GE limit: 2,000."
 osrs:
   id: 11962
   name: Extended antifire mix(1)
@@ -12,9 +12,70 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 2000
-  about: "Extended antifire mix(1) is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    herblore_level: 91
+    herblore_xp: 61
+    effect: Provides 12 minutes of dragonfire resistance and restores 6 Hitpoints.
+    effects:
+      - description: Extended antifire protection (12 minutes per full dose)
+        duration: 1200
+      - stat: hitpoints
+        boost_value: 6
+        description: Restores 6 Hitpoints per dose
+  recipes:
+    - skill: herblore
+      level: 91
+      xp: 61
+      materials:
+        - item_name: Extended antifire(1)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      product: Extended antifire mix(1)
+      product_id: 11962
+  related_items:
+    - item_id: 11960
+      item_name: Extended antifire mix(2)
+      slug: extended-antifire-mix-2
+      relationship: variant
+      description: Two-dose version
+    - item_id: 22209
+      item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: upgrade
+      description: Standard four-dose Herblore potion
+  about: Barbarian-mix variant of the extended antifire potion that also restores 6 Hitpoints per dose.
+  market_strategy:
+    notes:
+      - 91 Herblore gates supply
+      - Caviar cost determines floor price
+      - Barbarian Herblore training prerequisite
+      - Niche demand vs standard antifire(4)
+  history:
+    - date: "2014-03-27"
+      update: Wilderness Feedback Update
+      description: Item released with the extended antifire potion line.
+    - date: "2016-04-15"
+      update: Bank placeholder update
+      description: Partially-used potions became convertible to bank placeholders.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-03-27"
+    update: Wilderness Feedback Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

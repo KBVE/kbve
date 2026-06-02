@@ -1,6 +1,6 @@
 ---
 title: Echo crystal | OSRS Price Data
-description: "Echo crystal: A crystal of rebounding potential.. High alch: 90,000 GP, GE limit: 8."
+description: "Echo crystal: A crystal of rebounding potential. High alch: 90,000 GP, GE limit: 8."
 osrs:
   id: 28942
   name: Echo crystal
@@ -12,69 +12,70 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 8
-  item:
-    type: material
-    tradeable: true
-    weight: 0.5
+  material:
+    type: crystal
+    tier: high
   drop_table:
-    primary_source: Fortis Colosseum
-    best_drop_rate: Varies
     sources:
-      - source: Fortis Colosseum
+      - source: Fortis Colosseum reward chest
         quantity: "1"
         rarity: varies
-        drop_rate: Varies (waves 4-12)
         members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 1798350
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Guardian boots
+          item_id: 21733
+          quantity: 1
+        - item_name: Echo crystal
+          item_id: 28942
+          quantity: 1
+      product: Echo boots
+      product_id: 28945
   related_items:
     - item_id: 28945
       item_name: Echo boots
       slug: echo-boots
       relationship: product
-      description: Upgrades guardian boots
+      description: Upgrades guardian boots to BiS prayer melee boots
     - item_id: 21733
       item_name: Guardian boots
       slug: guardian-boots
       relationship: component
       description: Base item for upgrade
-  about: |-
-    The Echo crystal is a rare material dropped from the Fortis Colosseum used to upgrade Guardian boots into the powerful Echo boots. This shimmering crystal contains the echoes of battles fought in the arena.
-
-    Type: Material
-    Stackable: No
-    Tradeable: Yes
-    Weight: 0.5 kg
-
-    Echo crystals have a single purpose:
-
-    ### Creating Echo Boots
-    Combine with Guardian boots to create Echo boots:
-
-    Materials Required:
-    - 1x Guardian boots (Item ID: 21733)
-    - 1x Echo crystal (Item ID: 28942)
-
-    Result: Echo boots (Item ID: 28945) - Untradeable
-
-    Important: This is a one-way upgrade. Echo boots cannot be reverted to Guardian boots.
-
-    The upgrade provides:
-    - +4 Prayer bonus (Guardian boots have 0)
-    - Recoil effect: Deals 1 damage to attackers in 3x3 area
-    - 60,000 charges on the recoil effect
-    - Best-in-slot melee boots for prayer builds
+  about: Rare Fortis Colosseum material; combine with Guardian boots to create Echo boots (+2 prayer, 6,000-charge recoil).
   market_strategy:
+    title: Echo crystal trading
     notes:
       - Price largely determined by Guardian boots price
       - "Calculate total upgrade cost: Echo crystal + Guardian boots"
       - Consider if untradeable result is worth investment
-      - High demand from players seeking BiS melee boots
+      - High demand from players seeking BiS prayer melee boots
       - Price fluctuates with Colosseum activity levels
       - More valuable earlier in the week (fresh restocks)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2024-04-10"
+      update: Varlamore Hotfix
+      description: Charges per crystal raised from 2,500 to 6,000; multi-crystal charging enabled; item value raised from 500 to 150,000.
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: Echo crystal added with the Fortis Colosseum release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "20 Mar 2024"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options: [Drop]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

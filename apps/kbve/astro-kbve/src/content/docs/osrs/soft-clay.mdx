@@ -1,6 +1,6 @@
 ---
 title: Soft clay | OSRS Price Data
-description: "Soft clay: Clay soft enough to mould.. High alch: 1 GP, GE limit: 13,000."
+description: "Soft clay: Clay soft enough to mould. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 1761
   name: Soft clay
@@ -13,75 +13,76 @@ osrs:
   highalch: 1
   limit: 13000
   material:
-    type: dragonhide
-    tier: high
-  tanning:
-    product_id: 2507
-    product_name: Red dragon leather
-    npc_cost: 20
-    canifis_cost: 45
-    spell_level: 78
-  drop_table:
-    sources:
-      - source: Red dragon
-        source_id: 247
-        combat_level: 152
-        quantity: "1"
-        rarity: always
-        members_only: true
-      - source: Brutal red dragon
-        source_id: 8079
-        combat_level: 289
-        quantity: "2"
-        rarity: always
-        members_only: true
-      - source: Vorkath
-        source_id: 8059
-        combat_level: 732
-        quantity: 20-25
-        rarity: common
-        members_only: true
-        notes: noted
-      - source: Sarachnis
-        source_id: 8713
-        combat_level: 318
-        quantity: 15-25
-        rarity: common
-        members_only: true
-        notes: noted
+    type: clay
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Clay
+          item_id: 434
+          quantity: 1
+        - item_name: Bucket of water
+          quantity: 1
+      product: Soft clay
+      product_id: 1761
+    - skill: magic
+      level: 68
+      xp: 65
+      materials:
+        - item_name: Clay
+          item_id: 434
+          quantity: 1
+      product: Soft clay
+      product_id: 1761
+      notes: Humidify spell (requires Dream Mentor)
   related_items:
-    - item_id: 2507
-      item_name: Red dragon leather
-      slug: red-dragon-leather
+    - item_id: 434
+      item_name: Clay
+      slug: clay
+      relationship: component
+      description: Raw mining product
+    - item_id: 1763
+      item_name: Bowl (unfired)
+      slug: unfired-bowl
       relationship: product
-      description: Tanned form
-    - item_id: 1753
-      item_name: Green dragonhide
-      slug: green-dragonhide
-      relationship: alternative
-      description: Entry-level d'hide
-    - item_id: 1751
-      item_name: Blue dragonhide
-      slug: blue-dragonhide
-      relationship: alternative
-      description: Mid-tier d'hide
-    - item_id: 1747
-      item_name: Black dragonhide
-      slug: black-dragonhide
-      relationship: alternative
-      description: Highest tier
+      description: Pottery wheel product
+    - item_id: 1787
+      item_name: Pot (unfired)
+      slug: unfired-pot
+      relationship: product
+      description: Beginner pottery product
+  about: Clay moistened with water, the base material for pottery, magic tablets and Construction projects.
   market_strategy:
-    profit_formulas:
-      - Leather price - Hide price - 20 gp = Profit per hide
     notes:
-      - Tans 5 hides per cast
-      - 81 Magic XP per cast
-      - "Buy limit: 11,000 per 4 hours"
-      - "Calculate:"
-      - Tan Leather spell is significantly more profitable
-      - Pairs well with other hides for batch tanning
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - 13,000 buy limit allows bulk supply
+      - Humidify spell (68 Magic) bulk-creates 27 per cast
+      - Construction and magic tablet demand drives volume
+      - Bucket/jug of water + clay arbitrage on GE
+      - F2P accessible material
+  history:
+    - date: "2001-02-28"
+      update: Yet another new quest, and new options menu
+      description: Soft clay introduced in the early RuneScape Classic era.
+    - date: "2024-01-10"
+      update: Soft clay creation
+      description: Vials of water may now be used to create soft clay.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-28"
+    update: Yet another new quest, and new options menu
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

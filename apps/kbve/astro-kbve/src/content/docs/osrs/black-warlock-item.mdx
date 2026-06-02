@@ -1,6 +1,6 @@
 ---
 title: Black warlock (item) | OSRS Price Data
-description: "Black warlock (item): There's a black warlock butterfly in here.. High alch: 42 GP, GE limit: 125."
+description: "Black warlock (item): There's a black warlock butterfly in here. High alch: 42 GP, GE limit: 125."
 osrs:
   id: 10014
   name: Black warlock (item)
@@ -12,9 +12,53 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 125
-  about: "Black warlock (item) is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: butterfly
+    tier: mid
+  drop_table:
+    sources:
+      - source: Black warlock (Hunter)
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 10012
+      item_name: Ruby harvest
+      slug: ruby-harvest
+      relationship: variant
+      description: Lower-tier hunter butterfly
+    - item_id: 10016
+      item_name: Sapphire glacialis
+      slug: sapphire-glacialis
+      relationship: variant
+      description: Other hunter butterfly variant
+    - item_id: 10018
+      item_name: Snowy knight
+      slug: snowy-knight
+      relationship: variant
+      description: Other hunter butterfly variant
+  about: Caught Black warlock butterfly used in Hunter mixes; captured with a butterfly net at 45 Hunter (or barehanded at 55 Hunter) in Feldip Hunter area and Farming Guild.
+  history:
+    - date: "2024-09-25"
+      update: Hunter Icon Refresh
+      description: Inventory icon adjusted.
+    - date: "2024-04-03"
+      update: Group Ironman Sharing
+      description: Group Ironmen gained the ability to share hunter mixes and butterflies within their group.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "21 Nov 2006"
+    update: Hunter Skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options: [Release, Drop]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
