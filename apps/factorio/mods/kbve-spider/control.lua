@@ -134,11 +134,14 @@ script.on_event(defines.events.on_entity_damaged, function(event)
 		local health_ratio = e.get_health_ratio() or 1
 		if health_ratio < cached_flee_threshold then
 			storage.fleeing[key] = true
-			e.set_command{
-				type = defines.command.flee,
-				from = cause,
-				distraction = defines.distraction.none,
-			}
+			local commandable = e.commandable
+			if commandable then
+				commandable.set_command{
+					type = defines.command.flee,
+					from = cause,
+					distraction = defines.distraction.none,
+				}
+			end
 			surface.create_entity{
 				name = SPRINT_STICKER,
 				position = e.position,
@@ -294,16 +297,39 @@ commands.add_command(
 			local name = storage.ally_names and storage.ally_names[unit_number] or "?"
 			local owner_idx = storage.ally_owners and storage.ally_owners[unit_number] or "?"
 			local valid = ally and ally.valid
-			local has_cmd = valid and ally.has_command() or false
+			local cmdable = valid and ally.commandable or nil
+			local has_cmd = cmdable and cmdable.has_command() or false
 			local pos_str = valid and string.format("(%d,%d)", math.floor(ally.position.x), math.floor(ally.position.y)) or "<gone>"
 			player.print(string.format(
 				"  unit=%d name=%s owner=%s surface=%d pos=%s valid=%s has_command=%s",
 				unit_number, tostring(name), tostring(owner_idx), surface_index, pos_str, tostring(valid), tostring(has_cmd)
 			))
 		end
-		if n == 0 then
-			player.print("  registry empty — try /c remote.call or just walk around for one tick")
+
+		local total_world = 0
+		for _, surface in pairs(game.surfaces) do
+			local found = surface.find_entities_filtered{ name = SPIDER_ALLY }
+			for _, a in pairs(found) do
+				if a.valid and a.unit_number then
+					total_world = total_world + 1
+					local in_reg = allies[a.unit_number] ~= nil
+					local cmdable_a = a.commandable
+					local has_cmd_a = cmdable_a and cmdable_a.has_command() or false
+					player.print(string.format(
+						"  world: unit=%d surface=%s pos=(%d,%d) in_registry=%s force=%s has_command=%s",
+						a.unit_number, surface.name,
+						math.floor(a.position.x), math.floor(a.position.y),
+						tostring(in_reg), a.force.name, tostring(has_cmd_a)
+					))
+				end
+			end
 		end
+		player.print(string.format("[kbve-spider] world scan: %d kbve-spider-ally entities found", total_world))
+
+		local pending = storage.pending_eggs or {}
+		local pn = 0
+		for _ in pairs(pending) do pn = pn + 1 end
+		player.print(string.format("[kbve-spider] pending eggs: %d", pn))
 	end
 )
 
@@ -558,29 +584,35 @@ local function follow_loop()
 							-- is nil for spectators / editor mode, in which
 							-- case we fall back to a static destination so the
 							-- ally at least catches up to the cursor.
-							local target_entity = owner.character
-							if target_entity and target_entity.valid then
-								ally.set_command{
-									type = defines.command.go_to_location,
-									destination_entity = target_entity,
+							local commandable = ally.commandable
+							if commandable then
+								local target_entity = owner.character
+								if target_entity and target_entity.valid then
+									commandable.set_command{
+										type = defines.command.go_to_location,
+										destination_entity = target_entity,
+										distraction = defines.distraction.by_enemy,
+										radius = FOLLOW_DESTINATION_RADIUS,
+									}
+								else
+									commandable.set_command{
+										type = defines.command.go_to_location,
+										destination = { x = opos.x, y = opos.y },
+										distraction = defines.distraction.by_enemy,
+										radius = FOLLOW_DESTINATION_RADIUS,
+									}
+								end
+							end
+						else
+							local commandable = ally.commandable
+							if commandable and not commandable.has_command() then
+								commandable.set_command{
+									type = defines.command.wander,
+									ticks_to_wait = 240,
+									wander_in_group = false,
 									distraction = defines.distraction.by_enemy,
-									radius = FOLLOW_DESTINATION_RADIUS,
-								}
-							else
-								ally.set_command{
-									type = defines.command.go_to_location,
-									destination = { x = opos.x, y = opos.y },
-									distraction = defines.distraction.by_enemy,
-									radius = FOLLOW_DESTINATION_RADIUS,
 								}
 							end
-						elseif not ally.has_command() then
-							ally.set_command{
-								type = defines.command.wander,
-								ticks_to_wait = 240,
-								wander_in_group = false,
-								distraction = defines.distraction.by_enemy,
-							}
 						end
 					end)
 				end
@@ -656,8 +688,9 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 						if ok_ug and ug then in_group = true end
 						if not in_group then
 							pcall(function()
-								if not s.has_command() then
-									s.set_command{
+								local commandable = s.commandable
+								if commandable and not commandable.has_command() then
+									commandable.set_command{
 										type = defines.command.wander,
 										ticks_to_wait = 600,
 										wander_in_group = false,
