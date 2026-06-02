@@ -157,6 +157,13 @@ CREATE TABLE mc.lot (
     chunk_area      INTEGER GENERATED ALWAYS AS
         ((upper(chunk_x_range) - lower(chunk_x_range))
        * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
+    -- Block-space mirrors of the chunk bounds. The dashboard map and
+    -- the MC mod both render in block space; storing these once avoids
+    -- per-client recompute and keeps the math DB-side.
+    block_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range) * 16) STORED,
+    block_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) * 16 - 1) STORED,
+    block_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range) * 16) STORED,
+    block_z_max     INTEGER GENERATED ALWAYS AS (upper(chunk_z_range) * 16 - 1) STORED,
     anchor_y        SMALLINT NOT NULL,
     -- ON DELETE RESTRICT, not SET NULL: the owner_state_chk requires
     -- state > 0 to carry a non-null owner. SET NULL would let a user
@@ -191,6 +198,18 @@ CREATE TABLE mc.lot (
         CHECK (lower(chunk_x_range) IS NOT NULL AND upper(chunk_x_range) IS NOT NULL),
     CONSTRAINT mc_lot_z_range_finite_chk
         CHECK (lower(chunk_z_range) IS NOT NULL AND upper(chunk_z_range) IS NOT NULL),
+    -- Hard ceiling on parcel size. 512 chunks = 8192 blocks per axis;
+    -- 262144 total chunks = 4 km × 4 km. Anything bigger is almost
+    -- certainly an admin tooling bug and would corrode map/exclusion
+    -- index behavior. Phase-0 RPC cap is 64 chunks; this is the table
+    -- floor that even direct admin INSERTs must obey.
+    CONSTRAINT mc_lot_chunk_width_max_chk
+        CHECK ((upper(chunk_x_range) - lower(chunk_x_range)) <= 512),
+    CONSTRAINT mc_lot_chunk_depth_max_chk
+        CHECK ((upper(chunk_z_range) - lower(chunk_z_range)) <= 512),
+    CONSTRAINT mc_lot_chunk_area_max_chk
+        CHECK ((upper(chunk_x_range) - lower(chunk_x_range))
+             * (upper(chunk_z_range) - lower(chunk_z_range)) <= 262144),
     -- Vanilla dim ids look like 'minecraft:overworld' or
     -- 'kbve:survival_ext'. Enforce the namespaced format to keep typos and
     -- arbitrary text from sneaking into the world column.
@@ -262,6 +281,15 @@ CREATE INDEX idx_mc_lot_owner_active_world_chunk_cursor
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
              chunk_area, anchor_y, price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
+-- "Under build / demolishing" view of my lots. Smaller partial set,
+-- but lots in transitional states get re-rendered every few seconds
+-- by the dashboard waiting for the worker ACK, so a dedicated index
+-- earns its keep there.
+CREATE INDEX idx_mc_lot_owner_transitional_world_chunk_cursor
+    ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
+    INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
+             chunk_area, anchor_y, price_credits, price_khash)
+    WHERE owner_user_id IS NOT NULL AND state IN (3, 4);
 
 ALTER TABLE mc.lot OWNER TO postgres;
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
@@ -342,9 +370,12 @@ CREATE TABLE mc.lot_purchase (
 );
 
 -- Dashboard "my purchase history" sorts newest first; composite avoids
--- a sort step.
+-- a sort step. INCLUDE'd columns make the history list index-only.
+-- Ledger ids intentionally omitted — the dashboard doesn't render
+-- them, and adding them inflates the index without payoff.
 CREATE INDEX idx_mc_lot_purchase_buyer_created
-    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC);
+    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC)
+    INCLUDE (lot_id, price_credits, price_khash);
 
 -- Phase-0 invariant: each lot can be bought exactly once. Resale comes
 -- with an explicit ownership-epoch column in a follow-up migration.
@@ -388,8 +419,10 @@ CREATE TABLE mc.lot_build_log (
     failed_at       TIMESTAMPTZ,
     -- Retry budget. Incremented on every claim; rows that hit the cap
     -- are excluded from the SKIP LOCKED scan so a poisoned job cannot
-    -- cycle through claim -> stale-requeue -> claim forever.
-    attempt_count   SMALLINT NOT NULL DEFAULT 0,
+    -- cycle through claim -> stale-requeue -> claim forever. INTEGER
+    -- (not SMALLINT) so future schemas can reuse the column without
+    -- a type widening migration.
+    attempt_count   INTEGER NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
 
     CONSTRAINT mc_lot_build_log_action_chk
@@ -434,20 +467,34 @@ CREATE TABLE mc.lot_build_log (
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX idx_mc_lot_build_log_lot     ON mc.lot_build_log (lot_id);
--- User history: newest-first composite drops the sort step.
+-- Per-lot history: newest-first composite drops the sort for
+-- "show me every build event for this lot".
+CREATE INDEX idx_mc_lot_build_log_lot_queued
+    ON mc.lot_build_log (lot_id, queued_at DESC, build_id DESC);
+-- User history: INCLUDE the columns the 'my build history' page
+-- renders so the dashboard read goes index-only.
 CREATE INDEX idx_mc_lot_build_log_actor_queued
-    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC);
+    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC)
+    INCLUDE (lot_id, action_kind, schematic_id, apply_state,
+             failed_at, applied_at, attempt_count);
 -- Queue + worker claim path: include build_id so the claim ORDER BY
--- (queued_at, build_id) is satisfied by index walk alone.
+-- (queued_at, build_id) is satisfied by index walk alone. attempt_count
+-- predicate mirrors the claim WHERE so poisoned rows drop out of the
+-- partial index instead of getting scanned-and-skipped forever.
 CREATE INDEX idx_mc_lot_build_log_pending_claim
     ON mc.lot_build_log (queued_at, build_id)
-    WHERE apply_state = 0;
+    WHERE apply_state = 0 AND attempt_count < 5;
 -- Stuck-job reclaim. build_id keeps janitor scans deterministic and
--- supports a LIMIT-batched requeue.
+-- supports a LIMIT-batched requeue. claimed_at IS NOT NULL is
+-- redundant with the claimed-consistency CHECK today but makes the
+-- partial index self-documenting and survives future constraint edits.
 CREATE INDEX idx_mc_lot_build_log_claimed_stale
     ON mc.lot_build_log (claimed_at, build_id)
-    WHERE apply_state = 3;
+    WHERE apply_state = 3 AND claimed_at IS NOT NULL;
+-- Failed-job admin/janitor listing (#3, #10).
+CREATE INDEX idx_mc_lot_build_log_failed_recent
+    ON mc.lot_build_log (failed_at DESC, build_id DESC)
+    WHERE apply_state = 2;
 -- Reverse FK lookup: "which build jobs referenced schematic X?"
 CREATE INDEX idx_mc_lot_build_log_schematic
     ON mc.lot_build_log (schematic_id)
@@ -486,6 +533,22 @@ ALTER TABLE mc.lot SET (
     autovacuum_vacuum_threshold = 500,
     autovacuum_analyze_threshold = 250
 );
+
+-- Extended statistics for correlated column pairs. The planner
+-- otherwise treats (world, state) and (owner_user_id, state) as
+-- independent, which under-estimates selectivity on the hot list
+-- queries because state distribution is skewed (most rows owned or
+-- built, very few transitional). Same idea on the queue: pending +
+-- attempt_count are tightly correlated (most rows are 0/applied).
+CREATE STATISTICS st_mc_lot_world_state
+    ON world, state
+    FROM mc.lot;
+CREATE STATISTICS st_mc_lot_owner_state
+    ON owner_user_id, state
+    FROM mc.lot;
+CREATE STATISTICS st_mc_build_log_state_attempt
+    ON apply_state, attempt_count
+    FROM mc.lot_build_log;
 
 ALTER TABLE mc.lot_build_log OWNER TO postgres;
 ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
@@ -724,7 +787,20 @@ RETURNS TABLE (
     actor_user_id   UUID,
     action_kind     SMALLINT,
     schematic_id    TEXT,
-    queued_at       TIMESTAMPTZ
+    queued_at       TIMESTAMPTZ,
+    -- Denormalized lot + schematic columns so the worker can start
+    -- applying without follow-up queries. resource_path / dims_* are
+    -- NULL for demolish jobs (LEFT JOIN to mc.schematic).
+    world           TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    anchor_y        SMALLINT,
+    resource_path   TEXT,
+    dims_x          SMALLINT,
+    dims_y          SMALLINT,
+    dims_z          SMALLINT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -761,21 +837,36 @@ BEGIN
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 32), 256))
          FOR UPDATE SKIP LOCKED
     ),
+    nowish AS (
+        -- One clock_timestamp() reading shared by claimed_at and
+        -- last_attempt_at; avoids the multi-microsecond drift the
+        -- old shape introduced.
+        SELECT clock_timestamp() AS ts
+    ),
     claimed AS (
         UPDATE mc.lot_build_log b
-           SET apply_state    = 3,
-               claimed_at     = clock_timestamp(),
-               claimed_by     = p_worker_id,
-               attempt_count  = b.attempt_count + 1,
-               last_attempt_at = clock_timestamp()
-          FROM picked
+           SET apply_state     = 3,
+               claimed_at      = nowish.ts,
+               claimed_by      = p_worker_id,
+               attempt_count   = b.attempt_count + 1,
+               last_attempt_at = nowish.ts
+          FROM picked, nowish
          WHERE b.build_id = picked.build_id
         RETURNING b.build_id, b.lot_id, b.actor_user_id,
                   b.action_kind, b.schematic_id, b.queued_at
     )
-    SELECT *
-      FROM claimed
-     ORDER BY queued_at, build_id;
+    -- Denormalize the claim with lot + schematic data so workers don't
+    -- need follow-up queries to start applying. schematic_id is NULL
+    -- on demolish jobs, so the schematic join is LEFT.
+    SELECT c.build_id, c.lot_id, c.actor_user_id, c.action_kind,
+           c.schematic_id, c.queued_at,
+           l.world, l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max, l.anchor_y,
+           s.resource_path, s.dims_x, s.dims_y, s.dims_z
+      FROM claimed c
+      JOIN mc.lot l ON l.lot_id = c.lot_id
+      LEFT JOIN mc.schematic s ON s.schematic_id = c.schematic_id
+     ORDER BY c.queued_at, c.build_id;
 END;
 $$;
 
@@ -1856,7 +1947,17 @@ RETURNS TABLE (
     actor_user_id   UUID,
     action_kind     SMALLINT,
     schematic_id    TEXT,
-    queued_at       TIMESTAMPTZ
+    queued_at       TIMESTAMPTZ,
+    world           TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    anchor_y        SMALLINT,
+    resource_path   TEXT,
+    dims_x          SMALLINT,
+    dims_y          SMALLINT,
+    dims_z          SMALLINT
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -1940,6 +2041,149 @@ GRANT EXECUTE ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INT
     TO service_role;
 COMMENT ON FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) IS
     'Service-role-only PostgREST bridge for janitor recovery of orphaned worker claims older than p_older_than_seconds. Batched + SKIP LOCKED with p_limit (max 512). Returns the count of jobs requeued in this call.';
+
+
+-- ===========================================================================
+-- mc.service_retry_failed_build — admin/janitor retry of a failed job
+-- ===========================================================================
+-- Moves a row from apply_state=2 (failed) back to 0 (queued). Optionally
+-- resets attempt_count so a poisoned build can re-enter the claim
+-- pipeline; default keeps the counter (and the row will stay dormant
+-- if the cap is already exhausted).
+CREATE OR REPLACE FUNCTION mc.service_retry_failed_build(
+    p_build_id TEXT,
+    p_reset_attempts BOOLEAN DEFAULT FALSE
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
+        RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+
+    UPDATE mc.lot_build_log
+       SET apply_state     = 0,
+           apply_error     = NULL,
+           failed_at       = NULL,
+           applied_at      = NULL,
+           claimed_at      = NULL,
+           claimed_by      = NULL,
+           attempt_count   = CASE WHEN p_reset_attempts THEN 0
+                                   ELSE attempt_count END,
+           last_attempt_at = NULL
+     WHERE build_id = p_build_id
+       AND apply_state = 2;
+
+    RETURN FOUND;
+END;
+$$;
+
+ALTER FUNCTION mc.service_retry_failed_build(TEXT, BOOLEAN) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_retry_failed_build(TEXT, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.service_retry_failed_build(TEXT, BOOLEAN)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_retry_failed_build(
+    p_build_id TEXT,
+    p_reset_attempts BOOLEAN DEFAULT FALSE
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT mc.service_retry_failed_build(p_build_id, p_reset_attempts);
+$$;
+
+ALTER FUNCTION public.proxy_service_retry_failed_build(TEXT, BOOLEAN) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_retry_failed_build(TEXT, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_retry_failed_build(TEXT, BOOLEAN)
+    TO service_role;
+COMMENT ON FUNCTION public.proxy_service_retry_failed_build(TEXT, BOOLEAN) IS
+    'Service-role-only PostgREST bridge: re-queue a failed build. p_reset_attempts=true clears the retry counter (use for transient infrastructure failures); default keeps it so persistent poison stays excluded.';
+
+
+-- ===========================================================================
+-- mc.service_list_failed_builds — admin/ops listing for failed jobs
+-- ===========================================================================
+CREATE OR REPLACE FUNCTION mc.service_list_failed_builds(
+    p_limit INTEGER DEFAULT 100,
+    p_after_failed_at TIMESTAMPTZ DEFAULT NULL,
+    p_after_build_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    build_id        TEXT,
+    lot_id          TEXT,
+    actor_user_id   UUID,
+    action_kind     SMALLINT,
+    schematic_id    TEXT,
+    apply_error     TEXT,
+    failed_at       TIMESTAMPTZ,
+    attempt_count   INTEGER
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 100
+AS $$
+    SELECT b.build_id, b.lot_id, b.actor_user_id, b.action_kind,
+           b.schematic_id, b.apply_error, b.failed_at, b.attempt_count
+    FROM mc.lot_build_log b
+    WHERE b.apply_state = 2
+      AND (
+          p_after_build_id IS NULL
+          OR (b.failed_at, b.build_id)
+             < (p_after_failed_at, p_after_build_id)
+      )
+    ORDER BY b.failed_at DESC, b.build_id DESC
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 100), 1), 500);
+$$;
+
+ALTER FUNCTION mc.service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_list_failed_builds(
+    p_limit INTEGER DEFAULT 100,
+    p_after_failed_at TIMESTAMPTZ DEFAULT NULL,
+    p_after_build_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    build_id        TEXT,
+    lot_id          TEXT,
+    actor_user_id   UUID,
+    action_kind     SMALLINT,
+    schematic_id    TEXT,
+    apply_error     TEXT,
+    failed_at       TIMESTAMPTZ,
+    attempt_count   INTEGER
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 100
+AS $$
+    SELECT * FROM mc.service_list_failed_builds(p_limit, p_after_failed_at, p_after_build_id);
+$$;
+
+ALTER FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT)
+    TO service_role;
+COMMENT ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT) IS
+    'Service-role-only PostgREST bridge: keyset-paginated list of failed builds for ops dashboards. Uses idx_mc_lot_build_log_failed_recent.';
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_get_lot(p_lot_id TEXT)
@@ -2145,6 +2389,177 @@ COMMENT ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INT
     'Hot-path: caller-owned active lots (state IN (1, 2)) in a world. Hard-codes owner = auth.uid() and the state set so idx_mc_lot_owner_active_world_chunk_cursor is the only viable plan.';
 
 
+-- ===========================================================================
+-- public.proxy_list_lots_public — generic listing without raw owner UUIDs
+-- ===========================================================================
+-- Same shape as proxy_list_lots but strips owner_user_id from the
+-- output. Use this for authenticated dashboard reads that need a mixed
+-- world/state list; the raw UUID column lives in the admin-only generic
+-- proxy_list_lots wrapper.
+CREATE OR REPLACE FUNCTION public.proxy_list_lots_public(
+    p_world TEXT DEFAULT NULL,
+    p_state SMALLINT DEFAULT NULL,
+    p_only_mine BOOLEAN DEFAULT FALSE,
+    p_limit INTEGER DEFAULT 256,
+    p_offset INTEGER DEFAULT 0,
+    p_after_world TEXT DEFAULT NULL,
+    p_after_chunk_x INTEGER DEFAULT NULL,
+    p_after_chunk_z INTEGER DEFAULT NULL,
+    p_after_lot_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    lot_id          TEXT,
+    world           TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    is_owned        BOOLEAN,
+    is_owned_by_me  BOOLEAN,
+    current_schematic_id TEXT,
+    state           SMALLINT,
+    price_credits   BIGINT,
+    price_khash     BIGINT
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 256
+AS $$
+BEGIN
+    IF p_after_lot_id IS NOT NULL
+       AND (p_after_world IS NULL
+            OR p_after_chunk_x IS NULL
+            OR p_after_chunk_z IS NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_world, after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NULL
+       AND (p_after_world IS NOT NULL
+            OR p_after_chunk_x IS NOT NULL
+            OR p_after_chunk_z IS NOT NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_world, after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
+    SELECT r.lot_id, r.world,
+           r.chunk_x_min, r.chunk_x_max,
+           r.chunk_z_min, r.chunk_z_max,
+           r.chunk_area, r.anchor_y,
+           (r.owner_user_id IS NOT NULL) AS is_owned,
+           r.is_owned_by_me,
+           r.current_schematic_id, r.state,
+           r.price_credits, r.price_khash
+    FROM mc.proxy_list_lots(
+        p_world, p_state, p_only_mine, p_limit, p_offset,
+        p_after_world, p_after_chunk_x, p_after_chunk_z, p_after_lot_id) r;
+END;
+$$;
+
+ALTER FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                             TEXT, INTEGER, INTEGER, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                                     TEXT, INTEGER, INTEGER, TEXT)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                                        TEXT, INTEGER, INTEGER, TEXT)
+    TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                                  TEXT, INTEGER, INTEGER, TEXT) IS
+    'Public-safe generic lot listing. Mirrors proxy_list_lots but replaces owner_user_id with is_owned + is_owned_by_me so the dashboard does not leak ownership UUIDs of other players. Use the dedicated hot-path wrappers (proxy_list_vacant_lots / proxy_list_my_active_lots) when possible — they hit narrower partial indexes.';
+
+
+-- ===========================================================================
+-- public.proxy_list_lots_in_viewport — bounding-box map RPC
+-- ===========================================================================
+-- Dashboard map panning/zooming asks for lots whose chunk range
+-- intersects the visible viewport. The EXCLUDE GiST index on
+-- (world, chunk_x_range, chunk_z_range) already indexes the right
+-- columns for the && (overlap) operator, so this query is index-fed.
+CREATE OR REPLACE FUNCTION public.proxy_list_lots_in_viewport(
+    p_world TEXT,
+    p_min_chunk_x INTEGER,
+    p_max_chunk_x INTEGER,
+    p_min_chunk_z INTEGER,
+    p_max_chunk_z INTEGER,
+    p_state SMALLINT DEFAULT NULL,
+    p_limit INTEGER DEFAULT 1000
+)
+RETURNS TABLE (
+    lot_id          TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    is_owned        BOOLEAN,
+    is_owned_by_me  BOOLEAN,
+    current_schematic_id TEXT,
+    state           SMALLINT,
+    price_credits   BIGINT,
+    price_khash     BIGINT
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 1000
+AS $$
+DECLARE
+    v_uid UUID := auth.uid();
+BEGIN
+    IF p_world IS NULL OR btrim(p_world) = '' THEN
+        RAISE EXCEPTION 'world cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
+        RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
+    END IF;
+    IF p_max_chunk_x < p_min_chunk_x OR p_max_chunk_z < p_min_chunk_z THEN
+        RAISE EXCEPTION 'viewport max must be >= min' USING ERRCODE = '22023';
+    END IF;
+    IF (p_max_chunk_x - p_min_chunk_x + 1) > 4096
+       OR (p_max_chunk_z - p_min_chunk_z + 1) > 4096 THEN
+        RAISE EXCEPTION 'viewport too large (max 4096 chunks per axis)'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
+    SELECT l.lot_id,
+           l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max,
+           l.chunk_area, l.anchor_y,
+           (l.owner_user_id IS NOT NULL) AS is_owned,
+           (l.owner_user_id IS NOT NULL AND l.owner_user_id = v_uid) AS is_owned_by_me,
+           l.current_schematic_id, l.state,
+           l.price_credits, l.price_khash
+    FROM mc.lot l
+    WHERE l.world = p_world
+      AND l.chunk_x_range && int4range(p_min_chunk_x, p_max_chunk_x + 1, '[)')
+      AND l.chunk_z_range && int4range(p_min_chunk_z, p_max_chunk_z + 1, '[)')
+      AND (p_state IS NULL OR l.state = p_state)
+    ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 1000), 1), 4096);
+END;
+$$;
+
+ALTER FUNCTION public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGER, INTEGER, INTEGER,
+                                                  SMALLINT, INTEGER) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGER, INTEGER, INTEGER,
+                                                          SMALLINT, INTEGER)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGER, INTEGER, INTEGER,
+                                                             SMALLINT, INTEGER)
+    TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGER, INTEGER, INTEGER,
+                                                       SMALLINT, INTEGER) IS
+    'Viewport-bounded lot list for the dashboard map. Returns lots whose chunk range overlaps the (p_min_chunk_x..p_max_chunk_x, p_min_chunk_z..p_max_chunk_z) bbox in p_world. Fed by the GIST EXCLUDE index already created on (world, chunk_x_range, chunk_z_range). Owner UUIDs replaced with is_owned + is_owned_by_me.';
+
+
 NOTIFY pgrst, 'reload schema';
 
 
@@ -2157,6 +2572,8 @@ DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT);
 
+DROP FUNCTION IF EXISTS public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_service_retry_failed_build(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT);
@@ -2175,6 +2592,10 @@ DROP FUNCTION IF EXISTS mc.proxy_purchase_lot(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_queue_demolish_lot(TEXT, UUID);
 DROP FUNCTION IF EXISTS public.proxy_queue_build_on_lot(TEXT, TEXT, UUID);
 DROP FUNCTION IF EXISTS public.proxy_purchase_lot(TEXT, UUID);
+DROP FUNCTION IF EXISTS public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGER, INTEGER, INTEGER,
+                                                            SMALLINT, INTEGER);
+DROP FUNCTION IF EXISTS public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
+                                                      TEXT, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_schematics(TEXT);
@@ -2195,6 +2616,8 @@ DROP FUNCTION IF EXISTS mc.service_queue_build_on_lot(TEXT, TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_purchase_lot(TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT, TEXT);
+DROP FUNCTION IF EXISTS mc.service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT);
+DROP FUNCTION IF EXISTS mc.service_retry_failed_build(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER);
 DROP FUNCTION IF EXISTS mc.service_claim_pending_builds(TEXT, INTEGER);

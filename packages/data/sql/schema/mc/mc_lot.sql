@@ -101,6 +101,10 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     chunk_area      INTEGER GENERATED ALWAYS AS
         ((upper(chunk_x_range) - lower(chunk_x_range))
        * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
+    block_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range) * 16) STORED,
+    block_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) * 16 - 1) STORED,
+    block_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range) * 16) STORED,
+    block_z_max     INTEGER GENERATED ALWAYS AS (upper(chunk_z_range) * 16 - 1) STORED,
     anchor_y        SMALLINT NOT NULL,
     -- ON DELETE RESTRICT: owner_state_chk requires state>0 to carry a
     -- non-null owner, so SET NULL would induce CHECK violations on user
@@ -128,6 +132,13 @@ CREATE TABLE IF NOT EXISTS mc.lot (
         CHECK (lower(chunk_x_range) IS NOT NULL AND upper(chunk_x_range) IS NOT NULL),
     CONSTRAINT mc_lot_z_range_finite_chk
         CHECK (lower(chunk_z_range) IS NOT NULL AND upper(chunk_z_range) IS NOT NULL),
+    CONSTRAINT mc_lot_chunk_width_max_chk
+        CHECK ((upper(chunk_x_range) - lower(chunk_x_range)) <= 512),
+    CONSTRAINT mc_lot_chunk_depth_max_chk
+        CHECK ((upper(chunk_z_range) - lower(chunk_z_range)) <= 512),
+    CONSTRAINT mc_lot_chunk_area_max_chk
+        CHECK ((upper(chunk_x_range) - lower(chunk_x_range))
+             * (upper(chunk_z_range) - lower(chunk_z_range)) <= 262144),
     CONSTRAINT mc_lot_world_chk
         CHECK (world ~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$'),
     CONSTRAINT mc_lot_owner_state_chk CHECK (
@@ -172,6 +183,11 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_active_world_chunk_cursor
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
              chunk_area, anchor_y, price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_transitional_world_chunk_cursor
+    ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
+    INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
+             chunk_area, anchor_y, price_credits, price_khash)
+    WHERE owner_user_id IS NOT NULL AND state IN (3, 4);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id) WHERE current_schematic_id IS NOT NULL;
 
@@ -203,7 +219,8 @@ CREATE TABLE IF NOT EXISTS mc.lot_purchase (
 );
 
 CREATE INDEX IF NOT EXISTS idx_mc_lot_purchase_buyer_created
-    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC);
+    ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC)
+    INCLUDE (lot_id, price_credits, price_khash);
 -- Unique on (lot_id) covers both the phase-0 'one purchase per lot'
 -- invariant and the lookup-by-lot path; no separate non-unique index.
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_purchase_one_per_lot
@@ -230,7 +247,7 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     applied_at      TIMESTAMPTZ,
     failed_at       TIMESTAMPTZ,
-    attempt_count   SMALLINT NOT NULL DEFAULT 0,
+    attempt_count   INTEGER NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
 
     CONSTRAINT mc_lot_build_log_action_chk
@@ -270,14 +287,21 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_lot
-    ON mc.lot_build_log (lot_id);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_lot_queued
+    ON mc.lot_build_log (lot_id, queued_at DESC, build_id DESC);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor_queued
-    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC);
+    ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC)
+    INCLUDE (lot_id, action_kind, schematic_id, apply_state,
+             failed_at, applied_at, attempt_count);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending_claim
-    ON mc.lot_build_log (queued_at, build_id) WHERE apply_state = 0;
+    ON mc.lot_build_log (queued_at, build_id)
+    WHERE apply_state = 0 AND attempt_count < 5;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_claimed_stale
-    ON mc.lot_build_log (claimed_at, build_id) WHERE apply_state = 3;
+    ON mc.lot_build_log (claimed_at, build_id)
+    WHERE apply_state = 3 AND claimed_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_failed_recent
+    ON mc.lot_build_log (failed_at DESC, build_id DESC)
+    WHERE apply_state = 2;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_schematic
     ON mc.lot_build_log (schematic_id) WHERE schematic_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mc_lot_build_log_one_active_per_lot
@@ -298,6 +322,16 @@ ALTER TABLE mc.lot SET (
     autovacuum_vacuum_threshold = 500,
     autovacuum_analyze_threshold = 250
 );
+
+CREATE STATISTICS IF NOT EXISTS st_mc_lot_world_state
+    ON world, state
+    FROM mc.lot;
+CREATE STATISTICS IF NOT EXISTS st_mc_lot_owner_state
+    ON owner_user_id, state
+    FROM mc.lot;
+CREATE STATISTICS IF NOT EXISTS st_mc_build_log_state_attempt
+    ON apply_state, attempt_count
+    FROM mc.lot_build_log;
 
 
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
