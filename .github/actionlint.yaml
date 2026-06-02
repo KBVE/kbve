@@ -1,0 +1,9 @@
+self-hosted-runner:
+    labels:
+        - arc-runner-set
+        - arc-runner-ue
+        - arc-runner-ue-mac
+        - UE5-Mac
+        - UE5-Win
+
+config-variables: null

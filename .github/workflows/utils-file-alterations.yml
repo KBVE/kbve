@@ -130,9 +130,6 @@ on:
             laser:
                 description: 'Laser package changed'
                 value: ${{ jobs.alter.outputs.laser }}
-            worker:
-                description: 'Worker changed'
-                value: ${{ jobs.alter.outputs.worker }}
             edge:
                 description: 'Edge functions changed'
                 value: ${{ jobs.alter.outputs.edge }}

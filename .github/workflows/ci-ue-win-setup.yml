@@ -43,6 +43,9 @@ jobs:
     install:
         name: Install on UE5-Win
         runs-on: UE5-Win
+        defaults:
+            run:
+                shell: pwsh
         env:
             FILE_SERVER: http://file-server.angelscript.svc:8080
         steps:
