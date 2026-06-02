@@ -21,6 +21,10 @@
 					{
 						"name": "kbve-spider",
 						"source_path": "apps/agones/factorio/mods-src/kbve-spider"
+					},
+					{
+						"name": "kbve-orc",
+						"source_path": "apps/agones/factorio/mods-src/kbve-orc"
 					}
 				]
 			}

@@ -31,6 +31,8 @@ external_publish:
           source_path: apps/agones/factorio/mods-local/kbve
         - name: kbve-spider
           source_path: apps/agones/factorio/mods-src/kbve-spider
+        - name: kbve-orc
+          source_path: apps/agones/factorio/mods-src/kbve-orc
 kube:
     stack: agones
     environment: prod
@@ -81,7 +83,7 @@ bento:
             - <strong>Local-friendly</strong> — SDK skipped when AGONES_SDK_HTTP unset.
     stats:
         - { label: Image, value: kbve/agones-factorio, icon: box }
-        - { label: Base, value: factoriotools 2.0.76, icon: package }
+        - { label: Base, value: factoriotools 2.0.77, icon: package }
         - { label: Orchestration, value: Agones, icon: server }
         - { label: License, value: KBVE, icon: license }
     features:
