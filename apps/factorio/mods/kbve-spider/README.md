@@ -33,8 +33,9 @@ kbve-spider/
 ├── prototypes/
 │   └── spider.lua          # entity + corpse + sticker prototypes
 ├── graphics/
-│   ├── icon.png            # 64×64 single-frame icon for HUD / alerts
-│   ├── item/spider-egg.png # egg sprite
+│   ├── icon.png            # mipmap strip (120×64 = 64+32+16+8) for the spider icon
+│   ├── icon-egg.png        # mipmap strip (120×64) for the spider-egg item/entity
+│   ├── item/spider-egg.png # egg sprite source (64×64)
 │   └── entity/spider/      # 16-direction body + shadow sheets per animation
 └── tools/                  # bake_sheets / optimize_pngs / test_mod / build_zip / make_icon
 ```
@@ -100,13 +101,20 @@ The remaining sheets (Idle, Run, Attack2/3, Death1/2, Hit\_\*, Nervous) are bake
 
 ## Runtime behavior (control.lua)
 
-| Event                          | Behavior                                                                                                 |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `on_entity_damaged`            | Spawn directional `Hit_<side>` corpse + 30-tick stagger sticker (-80% speed).                            |
-| `on_entity_damaged` (HP < 30%) | Set spider command to `defines.command.flee` from attacker + apply sprint sticker. One-shot per spider.  |
-| `on_entity_died`               | Default Death1 corpse from prototype + 50% chance to layer Death2 on top.                                |
-| `on_nth_tick(180)` (every 3s)  | For spiders in an attack group: 45% chance to apply `kbve-spider-sprint` (1.9× speed, 3s, 10s cooldown). |
-| `on_nth_tick(900)` (every 15s) | Pick 3 random idle spiders, overlay Nervous animation as one-shot corpse (visual only).                  |
+| Event                          | Behavior                                                                                                                                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `on_entity_damaged`            | Spawn directional `Hit_<side>` corpse + 30-tick stagger sticker (-80% speed).                                                                                                                                                              |
+| `on_entity_damaged` (HP < 30%) | Set spider command to `defines.command.flee` from attacker + apply sprint sticker. One-shot per spider.                                                                                                                                    |
+| `on_built_entity` (egg)        | Track placer's `player_index`, schedule hatch tick, draw a floating "Hatching… Ns" countdown via `rendering.draw_text` above the egg.                                                                                                      |
+| `on_nth_tick(60)` (hatch loop) | Decrement the floating countdown. On expiry: destroy the egg, create the ally on the placer's force, set `last_user`, spawn a vanilla `explosion` puff.                                                                                    |
+| `on_nth_tick(120)` (follow)    | For each ally on each surface, find its owner (or nearest connected same-force player within 64 tiles) and issue `defines.command.go_to_location` with `radius = 3` and `by_enemy` distraction. Skips when within 4 tiles to avoid jitter. |
+| `on_entity_died`               | Default Death1 corpse from prototype + 50% chance to layer Death2 on top. Ally deaths chat-print to the owner with the position + alert sound.                                                                                             |
+| `on_nth_tick(180)` (every 3s)  | For spiders in an attack group: 45% chance to apply `kbve-spider-sprint` (1.9× speed, 3s, 10s cooldown).                                                                                                                                   |
+| `on_nth_tick(900)` (every 15s) | Pick 3 random idle spiders, overlay Nervous animation as one-shot corpse (visual only).                                                                                                                                                    |
+
+### Ally ownership
+
+`storage.ally_owners[unit_number] = player_index` is set at hatch and cleared on death. The follow loop falls back to the nearest connected same-force player when the original owner has disconnected or moved to another surface, so allies are never permanently stuck.
 
 ## Releasing to the Factorio mod portal
 

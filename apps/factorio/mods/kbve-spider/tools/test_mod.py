@@ -134,9 +134,12 @@ def check_all_sheets(frames: dict[str, int]) -> None:
 
 EXTRA_PNGS = (
     "graphics/icon.png",
+    "graphics/icon-egg.png",
     "thumbnail.png",
     "graphics/item/spider-egg.png",
 )
+MIPMAP_STRIP_PNGS = ("graphics/icon.png", "graphics/icon-egg.png")
+MIPMAP_EXPECTED_SIZE = (120, 64)
 
 
 def check_extras() -> None:
@@ -147,9 +150,18 @@ def check_extras() -> None:
         try:
             with Image.open(path) as img:
                 img.load()
+                size = img.size
         except Exception as e:
             raise TestFail(f"{rel}: cannot open ({e})")
-    print(f"  extras OK     ({len(EXTRA_PNGS)} required assets)")
+        if rel in MIPMAP_STRIP_PNGS and size != MIPMAP_EXPECTED_SIZE:
+            raise TestFail(
+                f"{rel}: expected mipmap strip {MIPMAP_EXPECTED_SIZE}, got {size} — "
+                "re-run tools/make_icon.py"
+            )
+    print(
+        f"  extras OK     ({len(EXTRA_PNGS)} required assets, "
+        f"{len(MIPMAP_STRIP_PNGS)} mipmap strips)"
+    )
 
 
 LOCALE_PATH = ROOT / "locale" / "en" / "kbve-spider.cfg"

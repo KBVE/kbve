@@ -141,6 +141,21 @@ script.on_event(defines.events.on_entity_died, function(event)
 	if e.unit_number then
 		if storage.sprint_cooldown then storage.sprint_cooldown[e.unit_number] = nil end
 		if storage.fleeing then storage.fleeing[e.unit_number] = nil end
+
+		if e.name == SPIDER_ALLY and storage.ally_owners then
+			local owner_idx = storage.ally_owners[e.unit_number]
+			storage.ally_owners[e.unit_number] = nil
+			if owner_idx then
+				local owner = game.players[owner_idx]
+				if owner and owner.valid then
+					owner.print(
+						{ "", "[item=kbve-spider-egg] Your ally spider died at ",
+							string.format("(%d, %d).", math.floor(e.position.x), math.floor(e.position.y)) },
+						{ sound = defines.print_sound.use_player_settings }
+					)
+				end
+			end
+		end
 	end
 end)
 
@@ -148,36 +163,69 @@ script.on_init(function()
 	storage.sprint_cooldown = {}
 	storage.fleeing = {}
 	storage.pending_eggs = {}
+	storage.ally_owners = {}
 end)
 
 script.on_configuration_changed(function()
 	storage.sprint_cooldown = storage.sprint_cooldown or {}
 	storage.fleeing = storage.fleeing or {}
 	storage.pending_eggs = storage.pending_eggs or {}
+	storage.ally_owners = storage.ally_owners or {}
 end)
 
-local function track_egg(entity, tick)
+local function track_egg(entity, tick, placer_index)
 	storage.pending_eggs = storage.pending_eggs or {}
+	local hatch_ticks = math.floor(60 * setting("kbve-spider-hatch-seconds", 30))
+	local render_id = nil
+	local ok, ro = pcall(function()
+		return rendering.draw_text{
+			text = string.format("Hatching… %ds", math.ceil(hatch_ticks / 60)),
+			surface = entity.surface,
+			target = { entity = entity, offset = { 0, -0.9 } },
+			color = { r = 1, g = 0.9, b = 0.4 },
+			scale = 1.2,
+			alignment = "center",
+			scale_with_zoom = false,
+		}
+	end)
+	if ok and ro then render_id = ro end
 	storage.pending_eggs[entity.unit_number] = {
-		tick_due = tick + math.floor(60 * setting("kbve-spider-hatch-seconds", 30)),
+		tick_due = tick + hatch_ticks,
 		surface_index = entity.surface_index,
 		position = { x = entity.position.x, y = entity.position.y },
 		force = entity.force.name,
+		placer_index = placer_index,
+		render_id = render_id,
 	}
 end
 
 local egg_filter = { { filter = "name", name = EGG_ENTITY } }
 
 script.on_event(defines.events.on_built_entity, function(event)
-	track_egg(event.entity, event.tick)
+	track_egg(event.entity, event.tick, event.player_index)
 end, egg_filter)
 
 script.on_event(defines.events.on_robot_built_entity, function(event)
-	track_egg(event.entity, event.tick)
+	local robot = event.robot
+	local owner_idx = nil
+	if robot and robot.valid and robot.last_user then
+		owner_idx = robot.last_user.index
+	end
+	track_egg(event.entity, event.tick, owner_idx)
 end, egg_filter)
+
+local function clear_render(info)
+	if info and info.render_id then
+		pcall(function()
+			if info.render_id.valid then info.render_id.destroy() end
+		end)
+	end
+end
 
 local function drop_pending(entity)
 	if entity.valid and entity.unit_number and storage.pending_eggs then
+		local info = storage.pending_eggs[entity.unit_number]
+		clear_render(info)
 		storage.pending_eggs[entity.unit_number] = nil
 	end
 end
@@ -192,6 +240,7 @@ end, egg_filter)
 
 script.on_nth_tick(60, function(event)
 	if not storage.pending_eggs then return end
+	storage.ally_owners = storage.ally_owners or {}
 	for unit_number, info in pairs(storage.pending_eggs) do
 		if event.tick >= info.tick_due then
 			local surface = game.surfaces[info.surface_index]
@@ -204,13 +253,86 @@ script.on_nth_tick(60, function(event)
 				for _, egg in pairs(eggs) do
 					if egg.valid then egg.destroy() end
 				end
-				surface.create_entity{
+				clear_render(info)
+				local ally = surface.create_entity{
 					name = SPIDER_ALLY,
 					position = info.position,
 					force = info.force,
 				}
+				if ally and ally.valid then
+					if info.placer_index then
+						storage.ally_owners[ally.unit_number] = info.placer_index
+						local player = game.players[info.placer_index]
+						if player and player.valid then
+							ally.last_user = player
+						end
+					end
+					surface.create_entity{
+						name = "explosion",
+						position = info.position,
+					}
+				end
 			end
 			storage.pending_eggs[unit_number] = nil
+		else
+			local remaining = math.max(0, math.ceil((info.tick_due - event.tick) / 60))
+			if info.render_id and info.render_id.valid then
+				info.render_id.text = string.format("Hatching… %ds", remaining)
+			end
+		end
+	end
+end)
+
+local FOLLOW_TICK_INTERVAL = 120
+local FOLLOW_RADIUS_SQ = 64 * 64
+local FOLLOW_MIN_DIST_SQ = 4 * 4
+
+script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
+	storage.ally_owners = storage.ally_owners or {}
+	for _, surface in pairs(game.surfaces) do
+		local allies = surface.find_entities_filtered{ name = SPIDER_ALLY }
+		for i = 1, #allies do
+			local ally = allies[i]
+			if ally.valid then
+				local owner = nil
+				local owner_idx = storage.ally_owners[ally.unit_number]
+				if owner_idx then
+					local p = game.players[owner_idx]
+					if p and p.valid and p.connected and p.surface_index == ally.surface_index then
+						owner = p
+					end
+				end
+				if not owner then
+					local nearest, nearest_d = nil, math.huge
+					for _, p in pairs(game.connected_players) do
+						if p.valid and p.surface_index == ally.surface_index and p.force == ally.force then
+							local dx = p.position.x - ally.position.x
+							local dy = p.position.y - ally.position.y
+							local d = dx * dx + dy * dy
+							if d < nearest_d then
+								nearest_d = d
+								nearest = p
+							end
+						end
+					end
+					owner = nearest
+				end
+				if owner then
+					local dx = owner.position.x - ally.position.x
+					local dy = owner.position.y - ally.position.y
+					local d2 = dx * dx + dy * dy
+					if d2 > FOLLOW_MIN_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
+						pcall(function()
+							ally.set_command{
+								type = defines.command.go_to_location,
+								destination = { x = owner.position.x, y = owner.position.y },
+								distraction = defines.distraction.by_enemy,
+								radius = 3,
+							}
+						end)
+					end
+				end
+			end
 		end
 	end
 end)
