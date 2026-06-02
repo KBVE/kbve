@@ -59,7 +59,7 @@ data:extend({
 		type = "int-setting",
 		name = "kbve-spider-ally-max-health",
 		setting_type = "startup",
-		default_value = 60,
+		default_value = 120,
 		minimum_value = 1,
 		maximum_value = 10000,
 		order = "z-a",
