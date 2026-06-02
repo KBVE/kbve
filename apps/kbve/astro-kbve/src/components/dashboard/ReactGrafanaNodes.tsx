@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	grafanaService,
@@ -164,7 +164,6 @@ function EnhancedStatCard({
 	invertTrend?: boolean;
 	onClick?: () => void;
 }) {
-	const [hovered, setHovered] = useState(false);
 	const hasThreshold = thresholds && value != null;
 	const thresholdColor = hasThreshold
 		? getThresholdColor(value, thresholds)
@@ -175,6 +174,9 @@ function EnhancedStatCard({
 
 	return (
 		<div
+			className={
+				onClick ? 'kbve-stat-card is-clickable' : 'kbve-stat-card'
+			}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
@@ -189,19 +191,8 @@ function EnhancedStatCard({
 				minHeight: 156,
 				cursor: onClick ? 'pointer' : 'default',
 				borderTop: `2px solid ${accentColor}`,
-				borderColor:
-					hovered && onClick
-						? 'var(--sl-color-gray-4, #6b7280)'
-						: undefined,
-				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
-				boxShadow:
-					hovered && onClick
-						? '0 4px 12px rgba(0,0,0,0.3)'
-						: undefined,
 			}}
-			onClick={onClick}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
+			onClick={onClick}>
 			<div
 				style={{
 					display: 'flex',
@@ -495,6 +486,7 @@ export default function ReactGrafanaNodes() {
 
 			{/* CPU & Memory chart */}
 			<div
+				className="kbve-chart-panel"
 				style={{
 					padding: '1.5rem',
 					borderRadius: '12px',
@@ -559,6 +551,7 @@ export default function ReactGrafanaNodes() {
 
 			{/* Network Traffic chart */}
 			<div
+				className="kbve-chart-panel"
 				style={{
 					padding: '1.5rem',
 					borderRadius: '12px',
@@ -625,6 +618,7 @@ export default function ReactGrafanaNodes() {
 
 			{/* Disk Usage chart */}
 			<div
+				className="kbve-chart-panel"
 				style={{
 					padding: '1.5rem',
 					borderRadius: '12px',

@@ -70,4 +70,40 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 			transform: rotate(360deg);
 		}
 	}
+
+	/* Card hover lifted out of React state — kills the per-render
+	   hover-state work that was forcing every sibling card to re-render
+	   on pointer enter, and removes the sticky-hover bug on touch
+	   devices where a tap leaves the card raised until the next tap. */
+	:global(.kbve-stat-card.is-clickable) {
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	:global(.kbve-stat-card.is-clickable:hover) {
+		border-color: var(--sl-color-gray-4, #6b7280);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
+	@media (hover: none) {
+		:global(.kbve-stat-card.is-clickable:hover) {
+			transform: none;
+			box-shadow: none;
+		}
+		:global(.kbve-stat-card.is-clickable:active) {
+			border-color: var(--sl-color-gray-4, #6b7280);
+			transform: scale(0.98);
+		}
+	}
+
+	/* Mobile: shrink chart panel padding + heading so the inner
+	   ResponsiveContainer claws back horizontal space the 1.5rem
+	   padding would steal on a narrow viewport. */
+	:global(.kbve-chart-panel) {
+		padding: clamp(0.75rem, 3vw, 1.5rem) !important;
+	}
+
+	:global(.kbve-chart-panel h3) {
+		font-size: clamp(0.95rem, 2.4vw, 1.1rem) !important;
+	}
 </style>

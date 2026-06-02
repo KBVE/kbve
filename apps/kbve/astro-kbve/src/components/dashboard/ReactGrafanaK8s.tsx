@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	grafanaService,
@@ -140,10 +140,11 @@ function StatCard({
 	sparkline?: SparklinePoint[];
 	onClick?: () => void;
 }) {
-	const [hovered, setHovered] = useState(false);
-
 	return (
 		<div
+			className={
+				onClick ? 'kbve-stat-card is-clickable' : 'kbve-stat-card'
+			}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
@@ -158,19 +159,8 @@ function StatCard({
 				minHeight: 156,
 				cursor: onClick ? 'pointer' : 'default',
 				borderTop: '2px solid var(--sl-color-accent, #06b6d4)',
-				borderColor:
-					hovered && onClick
-						? 'var(--sl-color-gray-4, #6b7280)'
-						: undefined,
-				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
-				boxShadow:
-					hovered && onClick
-						? '0 4px 12px rgba(0,0,0,0.3)'
-						: undefined,
 			}}
-			onClick={onClick}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
+			onClick={onClick}>
 			<div
 				style={{
 					display: 'flex',
@@ -419,6 +409,7 @@ export default function ReactGrafanaK8s() {
 
 			{/* Running Pods chart */}
 			<div
+				className="kbve-chart-panel"
 				style={{
 					padding: '1.5rem',
 					borderRadius: '12px',
