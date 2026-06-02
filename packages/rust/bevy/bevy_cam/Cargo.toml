@@ -25,3 +25,10 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_pbr",
 ] }
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["plotters", "cargo_bench_support"] }
+
+[[bench]]
+name = "pixel_snap"
+harness = false

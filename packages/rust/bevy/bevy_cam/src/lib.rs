@@ -64,13 +64,15 @@ use bevy::window::PrimaryWindow;
 /// offset actually moves ≥ 1/512 of a quad dimension.
 const SUBPIXEL_QUANT_STEPS: f32 = 512.0;
 
+#[doc(hidden)]
 #[inline(always)]
-fn quantize(v: f32) -> f32 {
+pub fn quantize(v: f32) -> f32 {
     (v * SUBPIXEL_QUANT_STEPS).round() / SUBPIXEL_QUANT_STEPS
 }
 
+#[doc(hidden)]
 #[inline(always)]
-fn pixel_snap_along_axis(pos: Vec3, axis: Vec3, step: f32) -> (f32, f32) {
+pub fn pixel_snap_along_axis(pos: Vec3, axis: Vec3, step: f32) -> (f32, f32) {
     let projected = pos.dot(axis);
     let snapped = (projected / step).round() * step;
     (snapped, projected - snapped)
@@ -129,6 +131,23 @@ pub struct DisplayCamera;
 /// Marker for the display quad.
 #[derive(Component)]
 struct DisplayQuad;
+
+/// Asset handles the resize system needs to recreate when the window
+/// aspect ratio drifts beyond [`ASPECT_RESIZE_THRESHOLD`].
+#[derive(Resource)]
+struct RenderTargetAssets {
+    image: Handle<Image>,
+    mesh: Handle<Mesh>,
+    /// Kept around so the material asset isn't garbage-collected if a
+    /// future feature needs to rebind it (e.g. swapping the upscaler).
+    #[allow(dead_code)]
+    material: Handle<StandardMaterial>,
+}
+
+/// Minimum fractional change in window aspect before the resize system
+/// reallocates the render target. Below this, the existing texture is
+/// re-used to avoid GPU thrashing on noisy window deltas.
+const ASPECT_RESIZE_THRESHOLD: f32 = 0.05;
 
 /// Runtime zoom state — readable/writable by game code. The `settled`
 /// flag flips false on new input and true when smoothing converges, so
@@ -220,6 +239,7 @@ impl Plugin for IsometricCameraPlugin {
         app.init_resource::<SubPixelOffset>();
         app.insert_resource(axes);
         app.add_systems(Startup, setup_camera);
+        app.add_systems(Update, resize_render_target_on_window_change);
 
         // Must run BEFORE TransformPropagate so the snapped camera Transform
         // and sub-pixel quad Transform reach GlobalTransform in the same
@@ -273,6 +293,12 @@ fn setup_camera(
         Image::new_target_texture(render_w, render_h, TextureFormat::Bgra8UnormSrgb, None);
     render_img.sampler = ImageSampler::nearest();
     let render_handle = images.add(render_img);
+    let mesh_handle = meshes.add(Rectangle::new(1.0, 1.0));
+    let material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(render_handle.clone()),
+        unlit: true,
+        ..default()
+    });
 
     commands.spawn((
         Camera3d::default(),
@@ -316,14 +342,12 @@ fn setup_camera(
     let texel_pad = 2.0 / render_h as f32;
     let quad_w = aspect + texel_pad * aspect;
     let quad_h = 1.0 + texel_pad;
-    let quad_material = materials.add(StandardMaterial {
-        base_color_texture: Some(render_handle),
-        unlit: true,
-        ..default()
-    });
+    if let Some(mesh) = meshes.get_mut(&mesh_handle) {
+        *mesh = Rectangle::new(quad_w, quad_h).into();
+    }
     commands.spawn((
-        Mesh3d(meshes.add(Rectangle::new(quad_w, quad_h))),
-        MeshMaterial3d(quad_material),
+        Mesh3d(mesh_handle.clone()),
+        MeshMaterial3d(material_handle.clone()),
         Transform::default(),
         RenderLayers::layer(config.display_layer),
         DisplayQuad,
@@ -335,6 +359,70 @@ fn setup_camera(
         quad_w,
         quad_h,
     });
+    commands.insert_resource(RenderTargetAssets {
+        image: render_handle,
+        mesh: mesh_handle,
+        material: material_handle,
+    });
+}
+
+/// Watch the primary window for size changes; reallocate the render target
+/// and refit the display quad when the aspect ratio drifts past
+/// [`ASPECT_RESIZE_THRESHOLD`]. The viewport-height baseline is preserved so
+/// the world stays at the same vertical world-unit span.
+#[allow(clippy::too_many_arguments)]
+fn resize_render_target_on_window_change(
+    mut resize_evr: bevy::ecs::message::MessageReader<bevy::window::WindowResized>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    config: Res<CameraConfig>,
+    mut geom: ResMut<RenderGeometry>,
+    assets: Res<RenderTargetAssets>,
+    mut images: ResMut<Assets<Image>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut camera_q: Query<&mut bevy::camera::Camera, With<IsometricCamera>>,
+) {
+    if resize_evr.read().next().is_none() {
+        return;
+    }
+    let Ok(window) = windows.single() else { return };
+    if window.width() <= 0.0 || window.height() <= 0.0 {
+        return;
+    }
+    let aspect = window.width() / window.height();
+    let prev_aspect = geom.render_w as f32 / geom.render_h.max(1) as f32;
+    if (aspect - prev_aspect).abs() / prev_aspect.max(0.001) < ASPECT_RESIZE_THRESHOLD {
+        return;
+    }
+
+    let render_h = (config.viewport_height * config.pixel_density as f32) as u32;
+    let render_w = (render_h as f32 * aspect) as u32;
+    if render_w == geom.render_w && render_h == geom.render_h {
+        return;
+    }
+
+    let mut new_img =
+        Image::new_target_texture(render_w, render_h, TextureFormat::Bgra8UnormSrgb, None);
+    new_img.sampler = ImageSampler::nearest();
+    if let Some(slot) = images.get_mut(&assets.image) {
+        *slot = new_img;
+    }
+
+    let texel_pad = 2.0 / render_h as f32;
+    let quad_w = aspect + texel_pad * aspect;
+    let quad_h = 1.0 + texel_pad;
+    if let Some(mesh) = meshes.get_mut(&assets.mesh) {
+        *mesh = Rectangle::new(quad_w, quad_h).into();
+    }
+
+    geom.render_w = render_w;
+    geom.render_h = render_h;
+    geom.quad_w = quad_w;
+    geom.quad_h = quad_h;
+
+    // Force the scene camera to re-acquire its render target's new size.
+    if let Ok(mut cam) = camera_q.single_mut() {
+        cam.set_changed();
+    }
 }
 
 fn camera_follow_target(
@@ -609,6 +697,18 @@ mod tests {
         let zoom = CameraZoom::default();
         assert!(zoom.settled, "fresh zoom should report settled");
         assert_eq!(zoom.target, zoom.current);
+    }
+
+    #[test]
+    fn aspect_resize_threshold_is_sane() {
+        // Sub-pixel jitter in window dragging shouldn't trigger a
+        // reallocation, but a real device-rotation / split-screen change
+        // (e.g. 16:9 → 4:3) should.
+        let prev: f32 = 1920.0 / 1080.0;
+        let micro: f32 = 1921.0 / 1080.0;
+        let major: f32 = 1440.0 / 1080.0;
+        assert!((micro - prev).abs() / prev.max(0.001) < ASPECT_RESIZE_THRESHOLD);
+        assert!((major - prev).abs() / prev.max(0.001) > ASPECT_RESIZE_THRESHOLD);
     }
 
     #[test]
