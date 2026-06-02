@@ -12,9 +12,56 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak cape rack (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    creates: Teak cape rack
+    room: Costume Room
+    hotspot: Cape rack
+  recipes:
+    - product: Teak cape rack (flatpack)
+      skill: Construction
+      level: 63
+      xp: 360
+      facility: Bench with vice
+      tools:
+        - Saw
+        - Hammer
+      materials:
+        - item_name: Teak plank
+          quantity: 4
+  related_items:
+    - item_name: Teak plank
+      relationship: component
+      description: Construction material
+    - item_name: Oak cape rack (flatpack)
+      relationship: downgrade
+      description: Lower-tier cape rack flatpack
+    - item_name: Mahogany cape rack (flatpack)
+      relationship: upgrade
+      description: Higher-tier cape rack flatpack
+  about: Teak cape rack (flatpack) is a prefabricated cape rack built at a workbench with vice from four teak planks, used to install or upgrade the cape hotspot in a Player-Owned House costume room.
+  market_strategy:
+    notes:
+      - Cheap teak-plank sink for Construction levellers
+      - Buy limit of 500 supports modest bulk flipping
+      - Demand mostly from POH builders and flatpack farmers
+  history:
+    - date: "2006-10-18"
+      description: Released with the Costume Room update
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    update: Player-Owned House costume room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

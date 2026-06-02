@@ -14,24 +14,81 @@ osrs:
   limit: 7000
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
+    weight: 0
     requirements:
       ranged: 10
     attack_bonus:
-      ranged: 8
-    ranged_strength: 8
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 10
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 8
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      output_name: Black knife(p)
+      output_quantity: 5
+      materials:
+        - item_name: Black knife
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
   related_items:
     - item_id: 869
       item_name: Black knife
       slug: black-knife
       relationship: variant
       description: Unpoisoned version
-  about: |-
-    > _"A very sharp black knife with a poisoned tip."_
-
-    A black knife tipped with basic weapon poison. Requires 10 Ranged. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 5654
+      item_name: Black knife(p+)
+      slug: black-knife-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 5664
+      item_name: Black knife(p++)
+      slug: black-knife-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  market_strategy:
+    notes:
+      - Created by applying Weapon poison to 5 black knives
+      - Profitable poison-flip recipe (around 1.1k profit per batch)
+      - Niche 10 Ranged thrown weapon
+      - Poison deals 2-4 damage over time
+  history:
+    - date: "2006-09-20"
+      description: Renamed to Black knife(p) to distinguish from (p+) and (p++) variants.
+    - date: "2005-07-11"
+      description: Released with the Farming update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming Update
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Black knife(p) is a thrown ranged weapon requiring 10 Ranged, made by applying basic weapon poison to five black knives via Herblore.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

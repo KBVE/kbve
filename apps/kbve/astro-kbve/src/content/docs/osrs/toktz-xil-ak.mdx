@@ -14,15 +14,17 @@ osrs:
   limit: 70
   equipment:
     slot: weapon
+    weapon_type: stab-sword
+    attack_speed: 4
     attack_bonus:
-      stab: 36
-      slash: 55
+      stab: 47
+      slash: 38
       crush: -2
       magic: 0
       ranged: 0
     defence_bonus:
-      stab: 0
-      slash: 0
+      stab: 2
+      slash: 3
       crush: 0
       magic: 0
       ranged: 0
@@ -33,6 +35,16 @@ osrs:
       prayer: 0
     requirements:
       attack: 60
+    weight: 1.814
+  shops:
+    - shop_name: TzHaar-Hur-Tel's Equipment Store
+      location: Mor Ul Rek
+      price: 60000
+      currency: Tokkul
+    - shop_name: TzHaar-Hur-Zal's Equipment Store
+      location: Mor Ul Rek
+      price: 60000
+      currency: Tokkul
   related_items:
     - item_id: 6525
       item_name: Toktz-xil-ek
@@ -49,20 +61,34 @@ osrs:
       slug: tzhaar-ket-om
       relationship: alternative
       description: Obsidian maul (crush)
-  about: |-
-    Strong 60 Attack weapon:
-    - Benefits from Obsidian armour set effect (+10% accuracy/damage)
-    - Good Strength training weapon
-    - Popular for low-level PvP
-
-    With full Obsidian set + Berserker necklace: Competitive DPS for training.
   market_strategy:
     notes:
       - Tokkul farmable from TzHaar Fight Cave
-      - Popular for Strength training meta
-      - Obsidian set synergy drives demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Popular Strength training meta weapon
+      - Obsidian armour set synergy drives demand
+      - Karamja gloves discount drops cost to 52,000 Tokkul
+  history:
+    - date: "2005-09-19"
+      description: Released with the Fight Pits minigame.
+  about: A 60 Attack obsidian stab sword that swings every 4 ticks and synergises with the obsidian armour set bonus and berserker necklace for strong Strength training.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-09-19"
+    update: Massive minigame - Fight Pits
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

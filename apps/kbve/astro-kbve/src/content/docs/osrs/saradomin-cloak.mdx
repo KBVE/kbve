@@ -12,24 +12,89 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  material:
+    type: vestment
+    tier: mid
   equipment:
     slot: cape
+    weight: 0.4
     requirements:
       prayer: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
+  treasure_trail:
+    tier: medium
+    casket: Reward casket (medium)
+    rarity: 1/1133
   related_items:
     - item_id: 10458
       item_name: Saradomin robe top
       slug: saradomin-robe-top
       relationship: set-piece
       description: Saradomin vestment body
-  about: |-
-    > *"A Saradomin cloak."*
-
-    The Saradomin cloak is the cape piece of the Saradomin vestment set. It provides a +3 Prayer bonus and requires 40 Prayer to equip. Counts as a Saradominist item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 10464
+      item_name: Saradomin robe legs
+      slug: saradomin-robe-legs
+      relationship: set-piece
+      description: Saradomin vestment legs
+    - item_id: 10452
+      item_name: Saradomin mitre
+      slug: saradomin-mitre
+      relationship: set-piece
+      description: Saradomin vestment head
+    - item_id: 10440
+      item_name: Saradomin stole
+      slug: saradomin-stole
+      relationship: set-piece
+      description: Saradomin vestment neck
+  about: Saradomin cloak is the cape piece of the Saradomin vestment set, providing a +3 Prayer bonus at 40 Prayer and counting as a Saradominist item in the God Wars Dungeon.
+  market_strategy:
+    notes:
+      - Vestment set piece, demand tied to fashionscape
+      - 1/1133 from medium clues caps supply
+      - +3 prayer cape competes with Ardougne / God capes
+  prayer:
+    bonus: 3
+  history:
+    - date: "2025-04-02"
+      update: Game update
+      description: Playerkit visual appearance adjusted.
+    - date: "2006-12-05"
+      update: Treasure Trails revamp
+      description: Saradomin vestment set added.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 5 December 2006
+    update: Treasure Trails revamp
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

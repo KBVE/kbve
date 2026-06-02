@@ -12,9 +12,75 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Broken dragon hook is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Great White Shark
+        source_id: 0
+        combat_level: 175
+        quantity: "1"
+        rarity: 1/1023
+        members_only: true
+  recipes:
+    - skill: construction
+      level: 78
+      xp: 0
+      materials:
+        - item_name: Broken dragon hook
+          item_id: 31961
+          quantity: 1
+        - item_name: Rosewood plank
+          item_id: 0
+          quantity: 1
+        - item_name: Dragon nails
+          item_id: 0
+          quantity: 1
+        - item_name: Dragon metal sheet
+          item_id: 0
+          quantity: 1
+        - item_name: Rope
+          item_id: 954
+          quantity: 1
+        - item_name: Cupronickel bar
+          item_id: 0
+          quantity: 1
+      facility: Boat (Sailing 86)
+      members_only: true
+  related_items:
+    - item_id: 0
+      item_name: Dragon salvaging hook
+      slug: dragon-salvaging-hook
+      relationship: upgrade
+      description: Repaired hook used on a boat
+  about: Broken dragon hook is a component obtained from Great White Sharks, used to construct a dragon salvaging hook with 86 Sailing and 78 Construction.
+  market_strategy:
+    notes:
+      - Supply tied to Great White Shark kills
+      - Required component for dragon salvaging hook upgrade
+      - 1/1023 drop rate gates supply
+      - Demand from Sailing content players
+  history:
+    - date: "2025-11-05"
+      update: Item added but unobtainable
+      description: Item added but unobtainable
+    - date: "2025-11-19"
+      update: Made obtainable via the Sailing update
+      description: Made obtainable via the Sailing update
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

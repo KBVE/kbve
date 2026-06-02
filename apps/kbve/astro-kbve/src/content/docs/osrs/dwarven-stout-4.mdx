@@ -1,6 +1,6 @@
 ---
 title: Dwarven stout(4) | OSRS Price Data
-description: "Dwarven stout(4): This keg contains 4 pints of Dwarven Stout.. High alch: 1 GP, GE limit: 2,000."
+description: "Dwarven stout(4) is a keg containing 4 pints of Dwarven Stout (Mining/Smithing boost). High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5777
   name: Dwarven stout(4)
@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Dwarven stout(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    type: drink
+    effects:
+      - description: Each pint gives the same effect as drinking a glass of dwarven stout (boosts Mining and Smithing).
+  related_items:
+    - item_id: 5775
+      item_name: Dwarven stout(1)
+      slug: dwarven-stout-1
+      relationship: variant
+      description: Single-pint keg
+    - item_id: 1913
+      item_name: Dwarven stout
+      slug: dwarven-stout
+      relationship: variant
+      description: Single glass form
+  about: Dwarven stout(4) is a 4-pint keg of Dwarven Stout used to temporarily boost Mining and Smithing; partially drunk versions are untradeable.
+  market_strategy:
+    notes:
+      - Full kegs are tradeable on GE
+      - Partial kegs cannot be sold
+      - Boosts Mining and Smithing skill levels
+  history:
+    - date: "2015-02-26"
+      description: Partially drunk versions were made untradeable on the Grand Exchange.
+    - date: "2005-07-11"
+      description: Item added with Farming update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

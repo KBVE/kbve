@@ -12,8 +12,9 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 18000
-  rune:
-    type: combat
+  material:
+    type: rune
+    tier: low
   runecraft:
     level: 2
     xp: 5.5
@@ -22,8 +23,14 @@ osrs:
     altar_location: Between Goblin Village and Ice Mountain
     essence_type: any
   shops:
-    - shop_name: Rune shops
-      stock: Unlimited
+    - shop_name: Aubury's Rune Shop
+      location: Varrock
+      price: 17
+    - shop_name: Betty's Magic Emporium
+      location: Port Sarim
+      price: 17
+    - shop_name: Magic Guild Store
+      location: Yanille
       price: 17
   recipes:
     - skill: runecraft
@@ -63,45 +70,38 @@ osrs:
       slug: fire-rune
       relationship: component
       description: Strike spell combo
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 2 |
-    | XP per rune | 5.5 |
-    | Runes per essence | 1 (14 at 98) |
-
-    Multipliers (every 14 levels):
-    - Level 14: 2x runes
-    - Level 28: 3x runes
-    - Level 42: 4x runes
-    - Level 56: 5x runes
-    - Level 70: 6x runes
-    - Level 84: 7x runes
-    - Level 98: 8x runes
-
-    | Spell | Mind Runes | Other Runes |
-    |-------|------------|-------------|
-    | Wind Strike | 1 | 1 Air |
-    | Water Strike | 1 | 1 Air, 1 Water |
-    | Earth Strike | 1 | 1 Air, 2 Earth |
-    | Fire Strike | 1 | 2 Air, 3 Fire |
-    | Confuse | 3 | 3 Water, 2 Earth |
-    | Weaken | 3 | 3 Water, 2 Earth |
+  about: Mind rune is a F2P combat rune used for basic missile Strike spells; the cheapest combat rune and a staple of F2P Magic training.
   market_strategy:
     notes:
       - Strike spells only
-      - F2P Magic training
+      - F2P Magic training staple
       - Very low value per rune
-      - F2P Magic training
-      - Early game spellcasting
       - Splash training (low cost)
-      - Ironman accounts
-      - Cheapest combat rune
-      - F2P demand primary driver
-      - High supply from shops
+      - Ironman demand for early Magic
+      - High supply from rune shops
       - Minimal flip potential
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2025-05-29"
+      update: Exempted from Grand Exchange convenience fee.
+      description: Exempted from Grand Exchange convenience fee.
+    - date: "2022-09-14"
+      update: Buy limit increased from 12,000 to 18,000.
+      description: Buy limit increased from 12,000 to 18,000.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape Launch
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

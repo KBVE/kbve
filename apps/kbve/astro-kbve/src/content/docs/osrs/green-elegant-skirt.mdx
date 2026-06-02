@@ -1,6 +1,6 @@
 ---
 title: Green elegant skirt | OSRS Price Data
-description: "Green elegant skirt is a members legs slot item. High alch: 1,200 GP, GE limit: 4."
+description: "Green elegant skirt is a cosmetic Treasure Trails reward (women's variant). High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 10434
   name: Green elegant skirt
@@ -14,19 +14,62 @@ osrs:
   limit: 4
   equipment:
     slot: legs
-    requirements: {}
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    casket: Reward casket (easy)
+    rarity: 1/2808
   related_items:
     - item_id: 10432
       item_name: Green elegant blouse
       slug: green-elegant-blouse
       relationship: set-piece
       description: Matching elegant blouse
-  about: |-
-    > *"A rather elegant green skirt."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the green elegant clothing set (women's variant). Pairs with the green elegant blouse.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Green elegant skirt is a purely cosmetic easy Treasure Trail reward, women's variant of the green elegant clothing set.
+  market_strategy:
+    notes:
+      - Cosmetic-only legs slot reward
+      - Low buy limit drives price volatility
+      - Pairs with green elegant blouse
+  history:
+    - date: "2014-12"
+      description: Renamed to Green elegant skirt.
+    - date: "2007-06"
+      description: Renamed from Elegant skirt to Green ele' skirt.
+    - date: "2006-12-05"
+      description: Item added with Treasure Trails, spiders and sheep update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails, spiders and sheep
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

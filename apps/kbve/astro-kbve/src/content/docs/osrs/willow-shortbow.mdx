@@ -14,24 +14,50 @@ osrs:
   limit: 18000
   equipment:
     slot: 2h
-    type: shortbow
-    attack_style: ranged
+    weapon_type: bow
     attack_speed: 4
-  requirements:
-    ranged: 20
-  stats:
-    attack:
+    weight: 1.36
+    requirements:
       ranged: 20
-    other:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 20
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
-    range: 7
-  fletching:
-    level: 35
-    xp: 33.3
-    method: Willow shortbow (u) + bowstring
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 35
+      xp: 33.3
+      materials:
+        - item_name: Willow shortbow (u)
+          item_id: 60
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Willow shortbow
+      product_id: 849
+      product_quantity: 1
+      facility: None
+      members_only: false
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
+      price: 200
+    - shop_name: Brian's Archery Supplies
+      location: Rimmington
       price: 200
   related_items:
     - item_id: 853
@@ -54,8 +80,30 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2005-03-29"
+      description: Made available to free-to-play players.
+    - date: "2005-01-26"
+      description: Graphically updated.
+  properties:
+    release_date: "2002-03-25"
+    update: RuneScape Launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Willow shortbow is a free-to-play two-handed ranged weapon requiring 20 Ranged, fletched from a willow shortbow (u) and bow string at 35 Fletching.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

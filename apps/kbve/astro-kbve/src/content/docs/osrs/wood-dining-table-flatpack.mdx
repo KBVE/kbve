@@ -1,6 +1,6 @@
 ---
 title: Wood dining table (flatpack) | OSRS Price Data
-description: "Wood dining table (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Wood dining table (flatpack) assembles into a POH wood dining table at 10 Construction. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8548
   name: Wood dining table (flatpack)
@@ -12,9 +12,59 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Wood dining table (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    level: 10
+    xp: 115
+    facility: Wooden workbench
+    tools:
+      - Hammer
+      - Saw
+  recipes:
+    - skill: Construction
+      level: 10
+      xp: 115
+      facility: Wooden workbench
+      materials:
+        - item_id: 960
+          item_name: Plank
+          quantity: 4
+        - item_id: 1539
+          item_name: Steel nails
+          quantity: 4
+  related_items:
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: Construction material
+    - item_id: 1539
+      item_name: Steel nails
+      slug: steel-nails
+      relationship: component
+      description: Construction material
+  about: Wood dining table (flatpack) is a 10 Construction flatpack that assembles into a wood dining table for the POH dining room.
+  market_strategy:
+    notes:
+      - Sold by flatpack maker scrollers
+      - Material cost typically exceeds GE price
+      - Useful for low Construction training routes
+  history:
+    - date: "2006-05-31"
+      description: Item added with Player-Owned Houses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    weight: 1
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,81 @@ osrs:
   lowalch: 33200
   highalch: 49800
   limit: 15
-  about: "Glacial temotli is a members-only item in Old School RuneScape. High alchemy value: 49,800 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: 2h
+    weapon_type: blunt
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 55
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 72
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 64
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 2
+  special_attack:
+    name: Multi-hit
+    description: Rolls two independent hits per attack; against monsters with negative flat armour (e.g. Nagua) each successful hit deals bonus damage.
+  drop_table:
+    sources:
+      - source: Frost Nagua
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/500"
+        members_only: true
+      - source: Amoxliatl
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/100"
+        members_only: true
+  related_items:
+    - item_id: 21902
+      item_name: Dragon claws
+      slug: dragon-claws
+      relationship: alternative
+      description: Comparable two-hit melee weapon
+    - item_id: 28997
+      item_name: Volatile nightmare staff
+      slug: volatile-nightmare-staff
+      relationship: alternative
+      description: Higher-tier multi-hit option (magic)
+  about: Glacial temotli is a 4-tick two-handed crush weapon dropped in the Ruins of Tapoyauik that hits twice per swing, excelling against negative-armour targets like Nagua.
+  market_strategy:
+    notes:
+      - Drop rate caps supply (1/100 to 1/500)
+      - Niche use for Nagua slayer tasks
+      - 15/day GE limit smooths price spikes
+      - Speculative play around new content
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    update: Varlamore
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

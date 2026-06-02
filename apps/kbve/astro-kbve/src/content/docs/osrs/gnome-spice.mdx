@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Gnome spice is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: The Grand Tree
+      price: 4
+    - shop_name: The Spice Is Right
+      location: Sophanem
+      price: 4
+  related_items:
+    - item_name: Chopped garlic
+      slug: chopped-garlic
+      relationship: product
+      description: Combines into spicy sauce
+    - item_name: Spicy sauce
+      slug: spicy-sauce
+      relationship: product
+      description: Made with gnome spice
+    - item_name: Toad's legs
+      slug: toads-legs
+      relationship: component
+      description: Used together in gnome cuisine
+  about: Gnome spice is Aluft Gianne's secret seasoning, sold by Hudo and used to prepare Gnome Restaurant dishes and spicy sauce.
+  market_strategy:
+    notes:
+      - Shop-stocked at 4 gp
+      - Gnome Restaurant demand limits margin
+      - Stable price floor from infinite stock
+  history:
+    - date: "2002-12-12"
+      description: Released with the Agility skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.15
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

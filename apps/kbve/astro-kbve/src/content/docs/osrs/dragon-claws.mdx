@@ -14,24 +14,32 @@ osrs:
   limit: 8
   equipment:
     slot: weapon
-    type: claw
-    attack_style: melee
+    weapon_type: claw
     attack_speed: 4
+    weight: 0.9
     requirements:
       attack: 60
-    stats:
-      attack_stab: 41
-      attack_slash: 57
-      attack_crush: -4
-      defence_stab: 13
-      defence_slash: 26
-      defence_crush: 7
-      strength: 56
-    special_attack:
-      name: Slice and Dice
-      energy: 50
-      effect: 4 rapid hits in sequence
-      accuracy_reduction_per_hit: 10
+    attack_bonus:
+      stab: 41
+      slash: 57
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 13
+      slash: 26
+      crush: 7
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 56
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Slice and Dice
+    energy: 50
+    description: Hits the enemy four times in rapid succession; later hits scale off the previous swing's roll, enabling huge burst damage.
   drop_table:
     sources:
       - source: Tormented Demons
@@ -44,7 +52,7 @@ osrs:
         source_id: 0
         combat_level: 0
         quantity: "1"
-        rarity: Very rare
+        rarity: 3/69
         members_only: true
   related_items:
     - item_id: 13576
@@ -62,37 +70,37 @@ osrs:
       slug: bandos-godsword
       relationship: alternative
       description: Defence draining spec
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Stab attack | +41 |
-    | Slash attack | +57 |
-    | Crush attack | -4 |
-    | Stab defence | +13 |
-    | Slash defence | +26 |
-    | Crush defence | +7 |
-    | Strength | +56 |
-    | Requirements | 60 Attack |
-
-    Slice and Dice (50% energy):
-    - 4 rapid hits in sequence
-    - Each hit has ~10% reduced accuracy
-    - Can deal massive burst damage
-
-    Extremely powerful for PvP and spec-focused PvM.
-
-    BiS spec weapon for:
-    - PvP (combo specs)
-    - ToB Maiden
-    - CoX Tekton
-    - General burst damage
+  about: Dragon claws are a two-handed melee spec weapon from Chambers of Xeric and Tormented Demons whose Slice and Dice special hits four times for potentially massive burst damage.
   market_strategy:
     notes:
       - Tormented Demons are best source
       - Iconic PvP spec weapon
-      - 4 hits can stack huge damage
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Four hits can stack huge damage
+      - BiS spec for PvP combos, ToB Maiden, CoX Tekton, general burst
+      - Buy limit 8 keeps price volatile
+  history:
+    - date: "2017-01-05"
+      update: Released with Chambers of Xeric
+      description: Released with Chambers of Xeric
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-01-05"
+    update: Chambers of Xeric
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

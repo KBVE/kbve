@@ -1,6 +1,6 @@
 ---
 title: Sigil of resilience | OSRS Price Data
-description: "Sigil of resilience is a members shield slot item requiring 80 Defence. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of resilience is a Deadman Mode exclusive sigil that accelerates HP restoration. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 25991
   name: Sigil of resilience
@@ -12,131 +12,45 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  equipment:
-    slot: shield
-    type: magic shield
-    tradeable: true
-    weight: 0.708
-    requirements:
-      magic: 80
-      defence: 80
-      prayer: 80
-      smithing: 90
-    stats:
-      attack_magic: 25
-      magic_damage_percent: 5
-      defence_stab: 51
-      defence_slash: 52
-      defence_crush: 48
-      defence_magic: 12
-      defence_ranged: 50
-      prayer: 3
-  creation:
-    materials:
-      - item_id: 25985
-        item_name: Elidinis' ward
-        quantity: 1
-      - item_id: 12827
-        item_name: Arcane sigil
-        quantity: 1
-      - item_id: 566
-        item_name: Soul rune
-        quantity: 10000
-    requirements:
-      prayer: 90
-      smithing: 90
-    notes: 90 Prayer and 90 Smithing required. Process cannot be reversed.
-  drop_table:
-    sources:
-      - source: Creation
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: N/A
-        members_only: true
-        notes: Created from Elidinis' ward + Arcane sigil + 10k Soul runes
-  market:
-    buy_limit: 8
-    price_estimate: 550000000
   related_items:
     - item_id: 25985
       item_name: Elidinis' ward
       slug: elidinis-ward
-      relationship: component
-      description: Base ward from ToA
-    - item_id: 12827
-      item_name: Arcane sigil
-      slug: arcane-sigil
-      relationship: component
-      description: From Corporeal Beast
+      relationship: alternative
+      description: ToA magic shield
     - item_id: 12825
       item_name: Arcane spirit shield
       slug: arcane-spirit-shield
       relationship: alternative
-      description: Previous BiS magic shield
-    - item_id: 27255
-      item_name: Menaphite ornament kit
-      slug: menaphite-ornament-kit
-      relationship: alternative
-      description: Cosmetic upgrade kit
-  about: |-
-    Combine at an anvil with 90 Prayer and 90 Smithing:
-    - Elidinis' ward
-    - Arcane sigil
-    - 10,000 soul runes
-
-    Warning: Process cannot be reversed. Components are permanently consumed.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Elidinis' ward | Tombs of Amascut | ~3.6M |
-    | Arcane sigil | Corporeal Beast | ~100M |
-    | 10,000 Soul runes | GE/RC | ~4.5M |
-
-    | Offense | Value |
-    |---------|-------|
-    | Magic attack | +25 |
-    | Magic damage | +5% |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +51 |
-    | Slash | +52 |
-    | Crush | +48 |
-    | Magic | +12 |
-    | Ranged | +50 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    Requirements: 80 Magic, 80 Defence, 80 Prayer
-
-    Best-in-slot magic shield for:
-    - All magic content
-    - Tombs of Amascut
-    - Theatre of Blood
-    - Inferno
-    - Any shield slot magic combat
-
-    Outperforms Arcane spirit shield in every category.
-
-    | Stat | Elidinis' ward (f) | Arcane spirit shield |
-    |------|-------------------|---------------------|
-    | Magic attack | +25 | +20 |
-    | Magic damage | +5% | +0% |
-    | Prayer | +3 | +3 |
-    | Defence | Higher | Lower |
-
-    Can be upgraded with Menaphite ornament kit to create Elidinis' ward (or) - cosmetic only.
+      description: Alternative magic shield
+  about: Sigil of resilience is a Deadman Mode exclusive sigil that accelerates hitpoint restoration depending on the variant (3x Reborn, 10x Apocalypse, 15x Armageddon).
   market_strategy:
     notes:
-      - Requires high skill levels to create
-      - Most expensive shield in game
-      - Essential for max magic setups
-      - Arcane sigil is major cost
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Exclusive to temporary Deadman Mode events
+      - Cannot be obtained in standard live game
+      - Accelerated HP restoration scales by variant
+  history:
+    - date: "2023-08-23"
+      description: Adjusted to provide 10x health restoration rate for Deadman Apocalypse.
+    - date: "2021-08-25"
+      description: Item added with Deadman Reborn update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    members: true
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

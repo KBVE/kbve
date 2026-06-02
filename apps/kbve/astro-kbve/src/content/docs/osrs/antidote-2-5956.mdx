@@ -12,9 +12,68 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 4000
-  about: "Antidote++(2) is a members-only item in Old School RuneScape. High alchemy value: 129 coins. Grand Exchange buy limit: 4,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: Cures poison instantly on drink.
+      - description: Grants 12 minutes of poison immunity per dose.
+      - description: Grants 18-36 seconds of venom immunity per dose; two doses cure active venom.
+  recipes:
+    - skill: herblore
+      level: 79
+      xp: 88.75
+      materials:
+        - item_name: Antidote++(3)
+          item_id: 5954
+          quantity: 1
+      product: Antidote++(2)
+      product_id: 5956
+      product_quantity: 1
+      facility: Inventory
+  related_items:
+    - item_id: 5952
+      item_name: Antidote++(4)
+      slug: antidote-4
+      relationship: upgrade
+      description: Full 4-dose version
+    - item_id: 5954
+      item_name: Antidote++(3)
+      slug: antidote-3
+      relationship: alternative
+      description: 3-dose variant
+    - item_id: 5958
+      item_name: Antidote++(1)
+      slug: antidote-1
+      relationship: downgrade
+      description: Single-dose variant
+  about: Antidote++(2) is a 2-dose members antipoison brewed at 79 Herblore that cures poison, grants 12 minutes of poison immunity per dose, and partially counters venom.
+  market_strategy:
+    notes:
+      - 79 Herblore gates supply
+      - Slayer/PvM demand drives volume
+      - Coconut milk supply caps margins
+      - Used vs Zulrah, Vorkath, venom raids
+  history:
+    - date: "2016-04-07"
+      update: Drinking any kind of antipoison will no longer decrease your poison immunity.
+      description: Drinking any kind of antipoison will no longer decrease your poison immunity.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,60 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 13000
-  about: "Chopped garlic is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - product: Chopped garlic
+      skill: Cooking
+      facility: Inventory
+      tools:
+        - Knife
+      materials:
+        - item_name: Bowl
+          quantity: 1
+        - item_name: Garlic
+          quantity: 1
+    - product: Spicy sauce
+      skill: Cooking
+      xp: 25
+      facility: Inventory
+      materials:
+        - item_name: Chopped garlic
+          quantity: 1
+        - item_name: Gnome spice
+          quantity: 1
+  related_items:
+    - item_name: Garlic
+      relationship: component
+      description: Raw ingredient chopped into the bowl
+    - item_name: Bowl
+      relationship: component
+      description: Container that holds the chopped garlic
+    - item_name: Spicy sauce
+      relationship: product
+      description: Made with chopped garlic and gnome spice
+  about: Chopped garlic is a Gnome Cooking ingredient produced by using a knife on garlic over a bowl and combined with gnome spice to make spicy sauce.
+  market_strategy:
+    notes:
+      - Cheap raw-garlic + bowl conversion at any cooking level
+      - Buy limit of 13,000 supports large gnome-cooking prep runs
+      - Spicy sauce demand drives the only meaningful pull
+  history:
+    - date: "2006-01-30"
+      description: Released with Runesquares, Harpie Bugs and new potato recipes
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    update: Runesquares, Harpie Bugs and new potato recipes!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,23 +12,51 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 7000
+  material:
+    type: ammunition
+    tier: low
   equipment:
     slot: ammo
-    type: arrow
-    attack_style: ranged
-  requirements:
-    ranged: 5
-  stats:
-    other:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 16
-  fletching:
-    level: 30
-    xp: 5
-    method: Steel arrowtips + headless arrows
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 5
+    weight: 0
+  recipes:
+    - skill: Fletching
+      level: 30
+      xp: 5
+      product: Steel arrow
+      quantity: 15
+      materials:
+        - item_name: Steel arrowtips
+          quantity: 15
+        - item_name: Headless arrow
+          quantity: 15
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
-      price: 32
+      stock: 1000
+      price: 12
+    - shop_name: Brian's Archery Supplies
+      location: Rimmington
+      stock: 1500
+      price: 12
   related_items:
     - item_id: 888
       item_name: Mithril arrow
@@ -50,8 +78,36 @@ osrs:
       slug: headless-arrow
       relationship: component
       description: Fletching material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - F2P viable ranged ammunition
+      - Steady fletching supply at level 30
+      - Shop-bought from Varrock and Rimmington
+      - Common low-tier ranged training arrow
+  history:
+    - date: "2025-05-29"
+      description: Exempted from Grand Exchange convenience fee.
+    - date: "2002-03-25"
+      description: Released with the original game launch.
+  about: Steel arrows are ranged ammunition with steel heads, fletched at level 30 Fletching or bought from F2P archery shops.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-25"
+    update: Latest RuneScape News
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

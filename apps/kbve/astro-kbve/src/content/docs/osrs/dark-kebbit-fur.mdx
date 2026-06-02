@@ -12,9 +12,58 @@ osrs:
   lowalch: 84
   highalch: 126
   limit: 10000
-  about: "Dark kebbit fur is a members-only item in Old School RuneScape. High alchemy value: 126 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hide
+    tier: mid
+  drop_table:
+    sources:
+      - source: Dark kebbit
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Caught via falconry at the Piscatoris falconry area (57 Hunter, 500gp falcon rental)
+  recipes:
+    - skill: crafting
+      materials:
+        - item_name: Dark kebbit fur
+          item_id: 10115
+          quantity: 2
+      product: Gloves of silence
+      product_id: 10075
+      product_quantity: 1
+      facility: Fancy Clothes Store (Varrock) or Hunter Guild
+      members_only: true
+      notes: 600gp tailoring fee
+  related_items:
+    - item_id: 10075
+      item_name: Gloves of silence
+      slug: gloves-of-silence
+      relationship: product
+      description: Two furs make one pair
+  market_strategy:
+    notes:
+      - 57 Hunter falconry gate limits supply
+      - Demand from thieving players seeking gloves of silence
+      - Two furs needed per pair of gloves
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill.
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+  about: Dark kebbit fur is a Hunter drop from dark kebbits, used in pairs at the Fancy Clothes Store to craft gloves of silence.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

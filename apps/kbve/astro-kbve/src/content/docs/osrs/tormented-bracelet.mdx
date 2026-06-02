@@ -14,12 +14,26 @@ osrs:
   limit: 8
   equipment:
     slot: hands
-    type: bracelet
+    weight: 0.25
     requirements:
       hitpoints: 75
-    stats:
-      attack_magic: 10
-      magic_damage_percent: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 5
+      prayer: 2
   recipes:
     - skill: magic
       level: 93
@@ -63,38 +77,36 @@ osrs:
       slug: barrows-gloves
       relationship: alternative
       description: All-around option
-  about: |-
-    Enchant Zenyte bracelet with Lvl-7 Enchant spell (93 Magic).
-
-    | Material | Quantity |
-    |----------|----------|
-    | Zenyte bracelet | 1 |
-    | Soul rune | 20 |
-    | Blood rune | 20 |
-    | Cosmic rune | 1 |
-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +10 |
-    | Magic damage | +5% |
-    | Requirements | 75 Hitpoints |
-
-    PvM:
-    - Best-in-slot magic gloves
-    - Essential for max magic setups
-    - All magic content
-
-    Best For:
-    - Bossing
-    - Bursting/Barraging
-    - Magic DPS
   market_strategy:
     notes:
-      - Zenyte from demonic gorillas
-      - BiS magic hands slot
-      - Only gloves with magic damage
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Zenyte ingredient sourced from demonic gorillas
+      - Best-in-slot magic hands slot
+      - Only gloves offering magic damage bonus
+      - Buy limit of 8 throttles supply against bossing demand
+  history:
+    - date: "2020-09-01"
+      description: Grand Exchange buy limit reduced from 10,000 to 8.
+    - date: "2016-05-06"
+      description: Released with the Monkey Madness II update.
+  properties:
+    release_date: "2016-05-06"
+    update: Monkey Madness II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Tormented bracelet is the best-in-slot magic gloves enchanted from a Zenyte bracelet using Lvl-7 Enchant at 93 Magic.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
