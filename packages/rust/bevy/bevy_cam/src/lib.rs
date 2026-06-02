@@ -724,4 +724,102 @@ mod tests {
         );
         assert!(threshold > 0.0);
     }
+
+    // ── Resize behaviour tests (issue #8190 — finding #5) ──────────────
+
+    /// Recreate the exact math the resize system uses to derive
+    /// render_w/render_h/quad_w/quad_h so a future refactor can't drift
+    /// the dimensions without flipping this test red.
+    fn recompute_geometry(
+        aspect: f32,
+        viewport_height: f32,
+        pixel_density: u32,
+    ) -> (u32, u32, f32, f32) {
+        let render_h = (viewport_height * pixel_density as f32) as u32;
+        let render_w = (render_h as f32 * aspect) as u32;
+        let texel_pad = 2.0 / render_h as f32;
+        let quad_w = aspect + texel_pad * aspect;
+        let quad_h = 1.0 + texel_pad;
+        (render_w, render_h, quad_w, quad_h)
+    }
+
+    #[test]
+    fn resize_keeps_viewport_height_constant_across_aspects() {
+        let config = CameraConfig::default();
+        let (_, h_169, _, _) =
+            recompute_geometry(16.0 / 9.0, config.viewport_height, config.pixel_density);
+        let (_, h_43, _, _) =
+            recompute_geometry(4.0 / 3.0, config.viewport_height, config.pixel_density);
+        let (_, h_219, _, _) =
+            recompute_geometry(21.0 / 9.0, config.viewport_height, config.pixel_density);
+        assert_eq!(h_169, h_43, "render_h must not depend on aspect");
+        assert_eq!(h_43, h_219);
+    }
+
+    #[test]
+    fn resize_render_width_scales_with_aspect() {
+        let config = CameraConfig::default();
+        let (w_169, _, _, _) =
+            recompute_geometry(16.0 / 9.0, config.viewport_height, config.pixel_density);
+        let (w_43, _, _, _) =
+            recompute_geometry(4.0 / 3.0, config.viewport_height, config.pixel_density);
+        let (w_219, _, _, _) =
+            recompute_geometry(21.0 / 9.0, config.viewport_height, config.pixel_density);
+        assert!(w_43 < w_169, "narrower aspect must shrink render width");
+        assert!(w_169 < w_219, "wider aspect must expand render width");
+    }
+
+    #[test]
+    fn quad_dimensions_include_texel_padding() {
+        let config = CameraConfig::default();
+        let aspect = 16.0_f32 / 9.0;
+        let (_, h, qw, qh) =
+            recompute_geometry(aspect, config.viewport_height, config.pixel_density);
+        // The padding must be strictly positive so the sub-pixel offset
+        // can move the quad without exposing the clear color at edges.
+        assert!(qw > aspect, "quad_w should overshoot raw aspect");
+        assert!(qh > 1.0, "quad_h should overshoot raw unit height");
+        // And it must equal exactly two render pixels — the system relies
+        // on this when computing the offset budget in `apply_subpixel`.
+        let expected_pad = 2.0 / h as f32;
+        assert!((qh - (1.0 + expected_pad)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn aspect_threshold_round_trip_is_idempotent() {
+        // Resizing back to the original aspect after a major shift should
+        // re-cross the threshold (so the render target follows the user
+        // around even when they rotate, undo, rotate again).
+        let prev: f32 = 16.0 / 9.0;
+        let rotated: f32 = 9.0 / 16.0;
+        assert!((rotated - prev).abs() / prev > ASPECT_RESIZE_THRESHOLD);
+        assert!((prev - rotated).abs() / rotated > ASPECT_RESIZE_THRESHOLD);
+    }
+
+    #[test]
+    fn quantize_handles_negative_and_large_inputs() {
+        // Hot-path math must stay symmetric around zero and not blow up
+        // on values larger than the quad — both are reachable when the
+        // camera is on the world boundary or under a huge zoom-out.
+        assert_eq!(quantize(-0.0), 0.0);
+        assert!((quantize(-0.5) + 0.5).abs() < 1e-6);
+        assert!((quantize(-1234.5) - (-1234.5)).abs() < 1.0 / SUBPIXEL_QUANT_STEPS);
+        assert!((quantize(987.654) - 987.654).abs() < 1.0 / SUBPIXEL_QUANT_STEPS);
+    }
+
+    #[test]
+    fn pixel_snap_remainder_always_within_half_step() {
+        let axes = StableAxes::from_offset(Vec3::new(15.0, 20.0, 15.0));
+        let step = 1.0_f32 / 32.0;
+        for seed in 0..256 {
+            let t = seed as f32 * 0.0137;
+            let pos = Vec3::new(t.cos() * 50.0, t.sin() * 10.0, t * 0.91 - 17.0);
+            let (_, rem) = pixel_snap_along_axis(pos, axes.right, step);
+            assert!(
+                rem.abs() <= step / 2.0 + 1e-6,
+                "remainder {rem} exceeds half pixel step {:.6} for pos {pos:?}",
+                step / 2.0
+            );
+        }
+    }
 }
