@@ -12,7 +12,6 @@
 local SPIDER = "kbve-spider"
 local SPIDER_ALLY = "kbve-spider-ally"
 local EGG_ENTITY = "kbve-spider-egg-entity"
-local HATCH_TICKS = 60 * 30
 
 local SPIDER_NAMES = { [SPIDER] = true, [SPIDER_ALLY] = true }
 
@@ -31,23 +30,18 @@ local DEATH_CORPSES = {
 local STAGGER_STICKER = "kbve-spider-stagger"
 local SPRINT_STICKER = "kbve-spider-sprint"
 
--- How often to roll sprint checks across all active spiders. 180 ticks = 3s.
+-- Fixed cadences. Per-spider cooldown stays hardcoded so the tuning surface
+-- is small; the runtime-global settings cover everything an admin would
+-- reasonably want to flip mid-game.
 local SPRINT_TICK_INTERVAL = 180
--- Per-spider cooldown after a sprint fires.
 local SPRINT_COOLDOWN_TICKS = 600
--- Chance per check (when pursuing + off cooldown) that sprint fires.
-local SPRINT_CHANCE = 0.45
-
--- Flee threshold: when a spider drops below this health ratio after a hit,
--- switch its command to "flee from attacker" and slap a sprint sticker on
--- it for that adrenaline burst.
-local FLEE_HEALTH_RATIO = 0.3
-
--- Nervous twitch: every NERVOUS_TICK_INTERVAL ticks, pick a few spiders at
--- random and overlay the Nervous animation as a one-shot corpse. Visual
--- only, no mechanical change.
 local NERVOUS_TICK_INTERVAL = 900
-local NERVOUS_PICK_COUNT = 3
+
+local function setting(name, default)
+	local s = settings.global[name]
+	if not s then return default end
+	return s.value
+end
 local NERVOUS_CORPSE = "kbve-spider-corpse-nervous"
 
 -- Map an attacker→spider vector + spider orientation into a hit side.
@@ -104,7 +98,7 @@ script.on_event(defines.events.on_entity_damaged, function(event)
 	local key = e.unit_number
 	if cause and cause.valid and key and not storage.fleeing[key] then
 		local health_ratio = e.get_health_ratio() or 1
-		if health_ratio < FLEE_HEALTH_RATIO then
+		if health_ratio < setting("kbve-spider-flee-health-threshold", 0.3) then
 			storage.fleeing[key] = true
 			e.set_command{
 				type = defines.command.flee,
@@ -165,7 +159,7 @@ end)
 local function track_egg(entity, tick)
 	storage.pending_eggs = storage.pending_eggs or {}
 	storage.pending_eggs[entity.unit_number] = {
-		tick_due = tick + HATCH_TICKS,
+		tick_due = tick + math.floor(60 * setting("kbve-spider-hatch-seconds", 30)),
 		surface_index = entity.surface_index,
 		position = { x = entity.position.x, y = entity.position.y },
 		force = entity.force.name,
@@ -230,7 +224,7 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 		local n = #spiders
 		if n == 0 then goto continue end
 
-		local picks = math.min(NERVOUS_PICK_COUNT, n)
+		local picks = math.min(setting("kbve-spider-nervous-pick-count", 3), n)
 		for _ = 1, picks do
 			local s = spiders[math.random(1, n)]
 			if s.valid then
@@ -269,7 +263,7 @@ script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
 					local in_group = false
 					local ok, ug = pcall(function() return s.unit_group end)
 					if ok and ug then in_group = true end
-					if in_group and math.random() < SPRINT_CHANCE then
+					if in_group and math.random() < setting("kbve-spider-sprint-chance", 0.45) then
 						surface.create_entity{
 							name = SPRINT_STICKER,
 							position = s.position,

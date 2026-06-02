@@ -152,6 +152,56 @@ def check_extras() -> None:
     print(f"  extras OK     ({len(EXTRA_PNGS)} required assets)")
 
 
+LOCALE_PATH = ROOT / "locale" / "en" / "kbve-spider.cfg"
+SETTINGS_PATH = ROOT / "settings.lua"
+LOCALE_REQUIRED_SECTIONS = (
+    "[mod-name]",
+    "[entity-name]",
+    "[entity-description]",
+    "[item-name]",
+    "[item-description]",
+    "[mod-setting-name]",
+)
+LOCALE_REQUIRED_KEYS = (
+    "kbve-spider",
+    "kbve-spider-ally",
+    "kbve-spider-egg-entity",
+    "kbve-spider-egg",
+)
+
+
+def check_locale() -> None:
+    if not LOCALE_PATH.exists():
+        raise TestFail(f"missing {LOCALE_PATH.relative_to(ROOT)}")
+    text = LOCALE_PATH.read_text()
+    for section in LOCALE_REQUIRED_SECTIONS:
+        if section not in text:
+            raise TestFail(f"locale missing section {section}")
+    for key in LOCALE_REQUIRED_KEYS:
+        if f"{key}=" not in text:
+            raise TestFail(f"locale missing key {key}")
+    print(
+        f"  locale OK     ({len(LOCALE_REQUIRED_KEYS)} required keys present)")
+
+
+def check_settings() -> None:
+    if not SETTINGS_PATH.exists():
+        raise TestFail(f"missing {SETTINGS_PATH.relative_to(ROOT)}")
+    src = SETTINGS_PATH.read_text()
+    required = (
+        "kbve-spider-hatch-seconds",
+        "kbve-spider-sprint-chance",
+        "kbve-spider-sprint-speed-multiplier",
+        "kbve-spider-flee-health-threshold",
+        "kbve-spider-nervous-pick-count",
+        "kbve-spider-ally-max-health",
+    )
+    missing = [k for k in required if k not in src]
+    if missing:
+        raise TestFail(f"settings.lua missing setting(s): {missing}")
+    print(f"  settings OK   ({len(required)} declared)")
+
+
 def check_wired_anims(frames: dict[str, int]) -> None:
     src = PROTO_PATH.read_text()
     wired = set(find_rotated_calls(src))
@@ -178,6 +228,8 @@ def main() -> int:
     check_all_sheets(frames)
     check_wired_anims(frames)
     check_extras()
+    check_locale()
+    check_settings()
 
     print("PASS")
     return 0

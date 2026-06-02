@@ -21,18 +21,36 @@ Custom pre-rendered isometric spider for Factorio 2.0. Drops in as a hostile `un
 kbve-spider/
 ├── info.json
 ├── data.lua
+├── settings.lua            # runtime + startup mod settings
+├── control.lua             # event hooks (hatch loop, hit reactions, sprint, flee, nervous)
 ├── changelog.txt
 ├── README.md
+├── thumbnail.png           # 144×144 mod-portal listing image
+├── locale/en/
+│   └── kbve-spider.cfg     # entity/item/setting names + descriptions
+├── migrations/
+│   └── README.md           # add <version>.lua here when storage shape changes
 ├── prototypes/
-│   └── spider.lua          # unit prototype + rotated animation helper
-├── graphics/entity/spider/ # baked direction-major sheets (Body + Shadow per anim)
-│   ├── Idle_Body.png
-│   ├── Idle_Shadow.png
-│   ├── Walk_Body.png
-│   └── ...
-└── tools/
-    └── bake_sheets.py      # source per-direction sheets → Factorio sheets
+│   └── spider.lua          # entity + corpse + sticker prototypes
+├── graphics/
+│   ├── icon.png            # 64×64 single-frame icon for HUD / alerts
+│   ├── item/spider-egg.png # egg sprite
+│   └── entity/spider/      # 16-direction body + shadow sheets per animation
+└── tools/                  # bake_sheets / optimize_pngs / test_mod / build_zip / make_icon
 ```
+
+## Mod settings
+
+Configurable in **Mod settings → Map** (runtime-global) and **Settings → Mods** (startup):
+
+| Setting                               | Type    | Default | Tunes                                                        |
+| ------------------------------------- | ------- | ------- | ------------------------------------------------------------ |
+| `kbve-spider-hatch-seconds`           | runtime | 30      | Seconds between placing a Spider Egg and the Ally hatching.  |
+| `kbve-spider-sprint-chance`           | runtime | 0.45    | Probability per 3-second tick that a chasing spider sprints. |
+| `kbve-spider-flee-health-threshold`   | runtime | 0.3     | Fraction of max HP below which a spider switches to `flee`.  |
+| `kbve-spider-nervous-pick-count`      | runtime | 3       | Random idle spiders that twitch every 15-second pass.        |
+| `kbve-spider-sprint-speed-multiplier` | startup | 1.9     | Sprint sticker movement modifier (baked into the prototype). |
+| `kbve-spider-ally-max-health`         | startup | 60      | Ally spider HP (wild spider stays at 80).                    |
 
 ## nx targets
 
